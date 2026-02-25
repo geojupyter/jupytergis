@@ -109,10 +109,15 @@ export class JupyterGISPanel extends SplitPanel {
     super({ orientation: 'vertical', spacing: 0 });
 
     this._state = state;
-    this._initModel({ model, commandRegistry });
-    this._initView(formSchemaRegistry, annotationModel);
     this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
+
+    const readyPromise = model.sharedModel.initialSyncReady;
+
+    readyPromise.then(() => {
+      this._initModel({ model, commandRegistry });
+      this._initView(formSchemaRegistry, annotationModel);
+    });
   }
 
   _initModel(options: {
@@ -142,6 +147,9 @@ export class JupyterGISPanel extends SplitPanel {
   }
 
   get jupyterGISMainViewPanel(): JupyterGISMainViewPanel {
+    if (!this._jupyterGISMainViewPanel) {
+      console.warn('JupyterGISPanel not ready (initialSyncReady not resolved)');
+    }
     return this._jupyterGISMainViewPanel;
   }
 
@@ -149,6 +157,9 @@ export class JupyterGISPanel extends SplitPanel {
     ObservableMap<JSONValue>,
     IObservableMap.IChangedArgs<JSONValue>
   > {
+    if (!this._view) {
+      console.warn('JupyterGISPanel not ready (initialSyncReady not resolved)');
+    }
     return this._view.changed;
   }
 
@@ -168,6 +179,9 @@ export class JupyterGISPanel extends SplitPanel {
   }
 
   get currentViewModel(): MainViewModel {
+    if (!this._mainViewModel) {
+      console.warn('JupyterGISPanel not ready (initialSyncReady not resolved)');
+    }
     return this._mainViewModel;
   }
 

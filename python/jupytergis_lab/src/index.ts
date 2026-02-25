@@ -58,6 +58,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       );
     };
 
+    const LAYER = '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
+
     createDefaultLayerRegistry(layerBrowserRegistry);
     const stateDbManager = GlobalStateDbManager.getInstance();
     stateDbManager.initialize(state);
@@ -87,32 +89,32 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.symbology,
-      selector: '.jp-gis-layerItem',
+      selector: LAYER,
       rank: 1,
     });
 
     // Separator
     app.contextMenu.addItem({
       type: 'separator',
-      selector: '.jp-gis-layerPanel',
+      selector: LAYER,
       rank: 1,
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.removeLayer,
-      selector: '.jp-gis-layerItem',
+      command: CommandIDs.removeSelected,
+      selector: LAYER,
       rank: 2,
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.renameLayer,
-      selector: '.jp-gis-layerItem',
+      command: CommandIDs.renameSelected,
+      selector: LAYER,
       rank: 2,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.zoomToLayer,
-      selector: '.jp-gis-layerItem',
+      selector: LAYER,
       rank: 2,
     });
 
@@ -128,7 +130,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // Add the Download submenu to the context menu
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerItem',
+      selector: LAYER,
       rank: 2,
       submenu: downloadSubmenu,
     });
@@ -148,7 +150,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerItem',
+      selector: LAYER,
       rank: 2,
       submenu: processingSubmenu,
     });
@@ -161,7 +163,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerItem',
+      selector: LAYER,
       rank: 2,
       submenu: moveLayerSubmenu,
     });
@@ -171,13 +173,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     );
 
     app.contextMenu.addItem({
-      command: CommandIDs.removeGroup,
+      command: CommandIDs.removeSelected,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2,
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.renameGroup,
+      command: CommandIDs.renameSelected,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2,
     });
@@ -207,6 +209,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       selector: '.jp-gis-layerPanel',
       rank: 3,
       submenu: newLayerSubMenu,
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-gis-layerPanel',
+      command: CommandIDs.addStorySegment,
+      rank: 4,
     });
 
     if (mainMenu) {

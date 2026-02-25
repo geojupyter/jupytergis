@@ -72,6 +72,11 @@ test.describe('#stac-browser', () => {
 
     await page.getByText('Stac Browser').click();
 
+    await page
+      .getByRole('tabpanel', { name: 'Filters' })
+      .getByRole('combobox')
+      .click();
+    await page.getByRole('option', { name: 'GEODES' }).click();
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();
@@ -82,6 +87,8 @@ test.describe('#stac-browser', () => {
     await page.getByRole('tab', { name: /Results/ }).click();
 
     const resultsList = page.locator('.jgis-stac-browser-results-list');
-    await expect(resultsList.locator('button')).toHaveCount(1);
+    await expect(resultsList.locator('button')).toHaveCount(1, {
+      timeout: 10000,
+    });
   });
 });

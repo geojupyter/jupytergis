@@ -1,11 +1,18 @@
 import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import useGetMultiBandInfo from '@/src/dialogs/symbology/hooks/useGetMultiBandInfo';
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  saveSymbology,
+  WebGlSymbologyParams,
+} from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
+import { useLatest } from '@/src/shared/hooks/useLatest';
+import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 interface ISelectedBands {
   red: number;
@@ -19,14 +26,24 @@ type rgbEnum = keyof ISelectedBands;
 const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
-  cancel,
   layerId,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   if (!layerId) {
     return;
   }
   const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
+
+  const params = useEffectiveSymbologyParams<WebGlSymbologyParams>({
+    model,
+    layerId: layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
+
+  if (!params || !layer) {
     return;
   }
 
@@ -39,38 +56,15 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
     alpha: 4,
   });
 
-  const numOfBandsRef = useRef(0);
-  const selectedBandsRef = useRef<ISelectedBands>({
-    red: selectedBands.red,
-    green: selectedBands.green,
-    blue: selectedBands.blue,
-    alpha: selectedBands.alpha,
-  });
+  const numOfBandsRef = useLatest(bandRows.length);
+  const selectedBandsRef = useLatest(selectedBands);
 
   useEffect(() => {
     populateOptions();
-
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
   }, []);
 
-  useEffect(() => {
-    numOfBandsRef.current = bandRows.length;
-  }, [bandRows]);
-
-  useEffect(() => {
-    selectedBandsRef.current = selectedBands;
-  }, [selectedBands]);
-
   const populateOptions = async () => {
-    const layerParams = layer.parameters as IWebGlLayer;
+    const layerParams = params as IWebGlLayer;
     const red = layerParams.symbologyState?.redBand ?? 1;
     const green = layerParams.symbologyState?.greenBand ?? 2;
     const blue = layerParams.symbologyState?.blueBand ?? 3;
@@ -87,11 +81,6 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const handleOk = () => {
-    // Update layer
-    if (!layer.parameters) {
-      return;
-    }
-
     const colorExpr: ExpressionValue[] = ['array'];
     const colors: (keyof ISelectedBands)[] = ['red', 'green', 'blue'];
 
@@ -115,13 +104,22 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
       alphaBand: selectedBandsRef.current.alpha,
     };
 
-    layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = colorExpr;
-    layer.type = 'WebGlLayer';
-
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: colorExpr,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        targetLayer.type = 'WebGlLayer';
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
 
   return (
     <div className="jp-gis-layer-symbology-container">
@@ -129,10 +127,10 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
         <LoadingOverlay loading={loading} />
         <BandRow
           label="Red Band"
-          index={selectedBands.red - 1}
+          index={selectedBands.red - 1} // IMPORTANT: Bands are 1-indexed
           bandRow={bandRows[selectedBands.red - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('red', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('red', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />
@@ -142,7 +140,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
           index={selectedBands.green - 1}
           bandRow={bandRows[selectedBands.green - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('green', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('green', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />
@@ -152,7 +150,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
           index={selectedBands.blue - 1}
           bandRow={bandRows[selectedBands.blue - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('blue', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('blue', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />
@@ -162,7 +160,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
           index={selectedBands.alpha - 1}
           bandRow={bandRows[selectedBands.alpha - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('alpha', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('alpha', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />

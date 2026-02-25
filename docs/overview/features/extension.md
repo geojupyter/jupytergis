@@ -9,6 +9,6 @@ This extension allows you to:
 - Create new `.jGIS` files
 - Edit those files by adding new vector or raster layers, modifying geometries, and performing spatial operations.
 
-```{image} /assets/lab_ext.webp
+```{image} /assets/images/lab_ext.webp
 :alt: JupyterGIS JupyterLab extension
 ```

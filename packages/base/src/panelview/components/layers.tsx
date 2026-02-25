@@ -24,7 +24,11 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
-import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
+import {
+  nonVisibilityIcon,
+  targetWithCenterIcon,
+  visibilityIcon,
+} from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 import { LegendItem } from './legendItem';
 
@@ -36,18 +40,20 @@ const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
+const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
 
 interface IBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   state: IStateDB;
+  layerTree: IJGISLayerTree;
 }
 
 export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
 
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
-    model?.getLayerTree() || [],
+    props.layerTree || [],
   );
 
   const notifyCommands = () => {
@@ -181,46 +187,33 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     onSelect({ type, item, event });
   };
 
-  /**
-   * Listen to the layers and layer tree changes.
-   */
+  // Update layerTree when prop changes
   useEffect(() => {
-    const updateLayers = () => {
-      setLayerTree(model?.getLayerTree() || []);
-    };
-    model?.sharedModel.layersChanged.connect(updateLayers);
-    model?.sharedModel.layerTreeChanged.connect(updateLayers);
-
-    updateLayers();
-    return () => {
-      model?.sharedModel.layersChanged.disconnect(updateLayers);
-      model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
-    };
-  }, [model]);
+    if (props.layerTree) {
+      setLayerTree(props.layerTree);
+    }
+  }, [props.layerTree]);
 
   return (
     <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
-      {layerTree
-        .slice()
-        .reverse()
-        .map(layer =>
-          typeof layer === 'string' ? (
-            <LayerComponent
-              key={layer}
-              gisModel={model}
-              layerId={layer}
-              onClick={onItemClick}
-            />
-          ) : (
-            <LayerGroupComponent
-              key={layer.name}
-              gisModel={model}
-              group={layer}
-              onClick={onItemClick}
-              state={props.state}
-            />
-          ),
-        )}
+      {layerTree.map(layer =>
+        typeof layer === 'string' ? (
+          <LayerComponent
+            key={layer}
+            gisModel={model}
+            layerId={layer}
+            onClick={onItemClick}
+          />
+        ) : (
+          <LayerGroupComponent
+            key={layer.name}
+            gisModel={model}
+            group={layer}
+            onClick={onItemClick}
+            state={props.state}
+          />
+        ),
+      )}
     </div>
   );
 };
@@ -424,6 +417,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
  * Properties of the layer component.
  */
 interface ILayerProps {
+  // ! todo this should never be undefined, like it's not possible in the parent, it will never be undef here
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
@@ -557,6 +551,35 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     }
   };
 
+  /**
+   * Set layer to current map view.
+   */
+  const moveToExtent = () => {
+    gisModel?.centerOnPosition(layerId);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    moveToExtent();
+  };
+
+  const getSlideNumber = () => {
+    if (!gisModel) {
+      return;
+    }
+
+    const { story } = gisModel.getSelectedStory();
+
+    if (!story?.storySegments) {
+      return;
+    }
+
+    const slideNum = story.storySegments.indexOf(layerId) + 1;
+
+    return slideNum;
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
@@ -590,18 +613,24 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </Button>
         )}
 
-        {/* Visibility toggle */}
-        <Button
-          title={layer.visible ? 'Hide layer' : 'Show layer'}
-          onClick={toggleVisibility}
-          minimal
-        >
-          <LabIcon.resolveReact
-            icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-            className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
-            tag="span"
-          />
-        </Button>
+        {/* Visibility toggle for normal layers, Slide number for story segments */}
+        {layer.type === 'StorySegmentLayer' ? (
+          <span className={LAYER_SLIDE_NUMBER_CLASS} title="Slide number">
+            {getSlideNumber()}
+          </span>
+        ) : (
+          <Button
+            title={layer.visible ? 'Hide layer' : 'Show layer'}
+            onClick={toggleVisibility}
+            minimal
+          >
+            <LabIcon.resolveReact
+              icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
+              className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
+              tag="span"
+            />
+          </Button>
+        )}
 
         {icons.has(layer.type) && (
           <LabIcon.resolveReact
@@ -629,10 +658,28 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             autoFocus
           />
         ) : (
-          <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
+          <span
+            id={id}
+            className={LAYER_TEXT_CLASS}
+            tabIndex={-2}
+            onDoubleClick={handleDoubleClick}
+            title="Double-click to zoom to layer"
+          >
             {name}
           </span>
         )}
+
+        <Button
+          title={'Move map to the extent of the layer'}
+          onClick={moveToExtent}
+          minimal
+        >
+          <LabIcon.resolveReact
+            icon={targetWithCenterIcon}
+            className={LAYER_ICON_CLASS}
+            tag="span"
+          />
+        </Button>
       </div>
 
       {/* Show legend only if supported symbology */}

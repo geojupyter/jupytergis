@@ -4,19 +4,18 @@ import {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
   SourceType,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
-import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import LAYER_GALLERY from '@/layer_gallery.json';
 
 export const debounce = (
   func: CallableFunction,
@@ -79,11 +78,19 @@ export function nearest(n: number, tol: number): number {
   }
 }
 
-export function getCSSVariableColor(name: string): string {
-  const color =
-    window.getComputedStyle(document.body).getPropertyValue(name) || '#ffffff';
+/** Read a CSS variable from the document root and return the value. */
+export function getCssVarAsColor(cssVar: string): string {
+  if (typeof document === 'undefined') {
+    return '';
+  }
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(cssVar)
+    .trim();
+  if (!value) {
+    return '';
+  }
 
-  return d3Color.rgb(color).formatHex();
+  return value;
 }
 
 /**
@@ -147,7 +154,7 @@ export function deepCopy<T = IDict<any>>(value: T): T {
 export function createDefaultLayerRegistry(
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
 ): void {
-  const RASTER_THUMBNAILS: { [key: string]: string } = {};
+  const LAYER_THUMBNAILS: { [key: string]: string } = {};
 
   /**
    * Generate object to hold thumbnail URLs
@@ -155,28 +162,30 @@ export function createDefaultLayerRegistry(
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
     r.keys().forEach(key => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
-      RASTER_THUMBNAILS[imageName] = r(key);
+      LAYER_THUMBNAILS[imageName] = r(key);
     });
   };
 
   const context = require.context(
-    '../rasterlayer_gallery',
+    '../layer_gallery',
     false,
     /\.(png|jpe?g|gif|svg)$/,
   );
   importAll(context);
 
-  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
-    const xyzprovider: any = (RASTER_LAYER_GALLERY as any)[entry];
+  for (const entry of Object.keys(LAYER_GALLERY)) {
+    const layerProvider: any = (LAYER_GALLERY as any)[entry];
 
-    if ('url' in xyzprovider) {
-      const tile = convertToRegistryEntry(entry, xyzprovider);
+    if ('thumbnailPath' in layerProvider) {
+      /*flat layer provider*/
+      const tile = convertToRegistryEntry(entry, layerProvider);
       layerBrowserRegistry.addRegistryLayer(tile);
     } else {
-      Object.keys(xyzprovider).forEach(mapName => {
+      /* nested layer provider */
+      Object.keys(layerProvider).forEach(mapName => {
         const tile = convertToRegistryEntry(
-          xyzprovider[mapName]['name'],
-          xyzprovider[mapName],
+          layerProvider[mapName]['name'],
+          layerProvider[mapName],
           entry,
         );
 
@@ -187,43 +196,27 @@ export function createDefaultLayerRegistry(
 
   // TODO: These need better names
   /**
-   * Parse tile information from providers to be useable in the layer registry
+   * Parse tile information from providers to be usable in the layer registry
    *
    * @param entry - The name of the entry, which may also serve as the default provider name if none is specified.
-   * @param xyzprovider - An object containing the XYZ provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
+   * @param layerProvider - An object containing the provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
    * @param provider - Optional. Specifies the provider name. If not provided, the `entry` parameter is used as the default provider name.
    * @returns - An object representing the registry entry
    */
   function convertToRegistryEntry(
     entry: string,
-    xyzprovider: { [x: string]: any },
+    layerProvider: { [x: string]: any },
     provider?: string | undefined,
-  ): IRasterLayerGalleryEntry {
-    const urlParameters: any = {};
-    if (xyzprovider.time) {
-      urlParameters.time = xyzprovider.time;
-    }
-    if (xyzprovider.variant) {
-      urlParameters.variant = xyzprovider.variant;
-    }
-    if (xyzprovider.tilematrixset) {
-      urlParameters.tilematrixset = xyzprovider.tilematrixset;
-    }
-    if (xyzprovider.format) {
-      urlParameters.format = xyzprovider.format;
-    }
-
+  ): ILayerGalleryEntry {
     return {
       name: entry,
-      thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
-      source: {
-        url: xyzprovider['url'],
-        minZoom: xyzprovider['min_zoom'] || 0,
-        maxZoom: xyzprovider['max_zoom'] || 24,
-        attribution: xyzprovider['attribution'] || '',
-        provider: provider ?? entry,
-        urlParameters,
-      },
+      thumbnail: LAYER_THUMBNAILS[layerProvider['name'].replace('.', '-')],
+      sourceType: layerProvider['sourceType'],
+      layerType: layerProvider['layerType'],
+      sourceParameters: layerProvider['sourceParameters'],
+      layerParameters: layerProvider['layerParameters'],
+      provider: provider ?? entry.split('.', 1)[0],
+      description: layerProvider['description'],
     };
   }
 }
@@ -625,19 +618,42 @@ export const loadFile = async (fileInfo: {
 
     switch (type) {
       case 'GeoJSONSource': {
-        return typeof file.content === 'string'
-          ? JSON.parse(file.content)
-          : file.content;
+        switch (file.format) {
+          case 'base64': {
+            return JSON.parse(atob(file.content));
+          }
+          case 'text': {
+            return JSON.parse(file.content);
+          }
+          case 'json': {
+            return file.content;
+          }
+        }
+        break;
       }
 
       case 'ShapefileSource': {
-        const arrayBuffer = await stringToArrayBuffer(file.content as string);
-        const geojson = await shp(arrayBuffer);
+        let buffer: ArrayBuffer;
+        switch (file.format) {
+          case 'base64': {
+            buffer = await base64ToArrayBuffer(file.content);
+            break;
+          }
+          case 'text': {
+            buffer = await stringToArrayBuffer(file.content);
+            break;
+          }
+          case 'json':
+          default: {
+            throw new Error(`Invalid Shapefile format: ${file.format}.`);
+          }
+        }
+        const geojson = await shp(buffer);
         return geojson;
       }
 
       case 'ImageSource': {
-        if (typeof file.content === 'string') {
+        if (file.format === 'base64') {
           const mimeType = getMimeType(filepath);
           if (!mimeType.startsWith('image/')) {
             throw new Error(`Invalid image file. MIME type: ${mimeType}`);
@@ -666,15 +682,25 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoParquetSource': {
-        if (typeof file.content === 'string') {
-          const { toGeoJson } = await import('geoparquet');
-
-          const arrayBuffer = await stringToArrayBuffer(file.content);
-
-          return await toGeoJson({ file: arrayBuffer, compressors });
-        } else {
-          throw new Error('Invalid file format for GeoParquet content.');
+        let buffer: ArrayBuffer;
+        switch (file.format) {
+          case 'base64': {
+            buffer = await base64ToArrayBuffer(file.content);
+            break;
+          }
+          case 'text': {
+            buffer = await stringToArrayBuffer(file.content);
+            break;
+          }
+          case 'json':
+          default: {
+            throw new Error(`Invalid Geoparquet format: ${file.format}.`);
+          }
         }
+
+        const { toGeoJson } = await import('geoparquet');
+
+        return await toGeoJson({ file: buffer, compressors });
       }
 
       default: {
@@ -887,13 +913,21 @@ export const getMimeType = (filename: string): string => {
  * @param content - File content as a base64 string.
  * @returns An ArrayBuffer.
  */
-export const stringToArrayBuffer = async (
-  content: string,
-): Promise<ArrayBuffer> => {
+const base64ToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
   const base64Response = await fetch(
     `data:application/octet-stream;base64,${content}`,
   );
   return await base64Response.arrayBuffer();
+};
+
+/**
+ * Helper to convert a raw string to ArrayBuffer.
+ *
+ * @param content - Raw string content.
+ * @returns An ArrayBuffer.
+ */
+const stringToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
+  return new TextEncoder().encode(content).buffer;
 };
 
 export const getFeatureAttributes = <T>(

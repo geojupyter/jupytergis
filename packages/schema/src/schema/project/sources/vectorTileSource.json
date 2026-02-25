@@ -7,34 +7,40 @@
   "properties": {
     "url": {
       "type": "string",
-      "description": "The url to the tile provider"
+      "description": "The url to the tile provider",
+      "default": ""
     },
     "minZoom": {
       "type": "number",
       "minimum": 0,
       "maximum": 24,
-      "description": "The minimum zoom level for the vector source"
+      "description": "The minimum zoom level for the vector source",
+      "default": 0
     },
     "maxZoom": {
       "type": "number",
       "minimum": 0,
       "maximum": 24,
-      "description": "The maximum zoom level for the vector source"
+      "description": "The maximum zoom level for the vector source",
+      "default": 24
     },
     "attribution": {
       "type": "string",
-      "description": "The attribution for the vector source"
+      "description": "The attribution for the vector source",
+      "default": ""
     },
     "provider": {
       "type": "string",
       "readOnly": true,
-      "description": "The map provider"
+      "description": "The map provider",
+      "default": ""
     },
     "urlParameters": {
       "type": "object",
       "additionalProperties": {
         "type": "string"
-      }
+      },
+      "default": {}
     }
   }
 }

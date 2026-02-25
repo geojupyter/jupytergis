@@ -1,7 +1,7 @@
 .jgis-calendar-container {
   padding: 0.75rem;
   background-color: var(--jp-layout-color2);
-  border: 1px solid var(--jp-accent-color0);
+  border: 1px solid var(--jp-border-color0);
   border-radius: var(--jp-border-radius);
 }
 
@@ -271,4 +271,10 @@
   display: flex;
   height: 2.5rem;
   align-items: center;
+}
+
+/* Unset width and border when popover contains calendar */
+.jgis-popover-content:has(> .jgis-calendar-container) {
+  width: unset;
+  border: unset;
 }

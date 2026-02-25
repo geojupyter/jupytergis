@@ -90,3 +90,10 @@ const classificationModes = [
 ] as const;
 
 export type ClassificationMode = (typeof classificationModes)[number];
+
+export const SYMBOLOGY_VALID_LAYER_TYPES = [
+  'VectorLayer',
+  'VectorTileLayer',
+  'WebGlLayer',
+  'HeatmapLayer',
+];

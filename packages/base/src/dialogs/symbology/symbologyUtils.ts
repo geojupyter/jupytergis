@@ -1,4 +1,9 @@
-import { IJGISLayer } from '@jupytergis/schema';
+import {
+  IJGISLayer,
+  IJupyterGISModel,
+  IVectorLayer,
+  IWebGlLayer,
+} from '@jupytergis/schema';
 import colormap from 'colormap';
 
 import { ColorRampName } from '@/src/types';
@@ -6,14 +11,151 @@ import { VectorClassifications } from './classificationModes';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
+
+/** Payload when saving symbology; shape matches vector or WebGl layer params. */
+export interface ISymbologyPayload {
+  symbologyState:
+    | IVectorLayer['symbologyState']
+    | IWebGlLayer['symbologyState'];
+  color?: IVectorLayer['color'] | IWebGlLayer['color'];
+}
+
+export interface ISaveSymbologyOptions {
+  model: IJupyterGISModel;
+  layerId: string;
+  isStorySegmentOverride?: boolean;
+  segmentId?: string;
+  payload: ISymbologyPayload;
+  mutateLayerBeforeSave?: (layer: any) => void;
+}
+
+export type VectorSymbologyParams = Pick<
+  IVectorLayer,
+  'symbologyState' | 'color'
+>;
+
+export type WebGlSymbologyParams = Pick<
+  IWebGlLayer,
+  'symbologyState' | 'color'
+>;
+
+/** Params-shaped object used for reading symbology (layer.parameters or segment override). */
+export type IEffectiveSymbologyParams =
+  | VectorSymbologyParams
+  | WebGlSymbologyParams;
+
+/**
+ * Resolve the effective symbology params for this dialog: either the layer's
+ * parameters or the matching segment override when editing a story-segment override.
+ */
+export function getEffectiveSymbologyParams(
+  model: IJupyterGISModel,
+  layerId: string,
+  layer: IJGISLayer | null | undefined,
+  isStorySegmentOverride?: boolean,
+  segmentId?: string,
+): IEffectiveSymbologyParams | null {
+  if (!layer?.parameters) {
+    return null;
+  }
+  if (!isStorySegmentOverride) {
+    return layer.parameters as IEffectiveSymbologyParams;
+  }
+  if (!segmentId) {
+    return null;
+  }
+  const segment = model.getLayer(segmentId);
+  const override = segment?.parameters?.layerOverride?.find(
+    (override: { targetLayer?: string }) => override.targetLayer === layerId,
+  );
+
+  if (!override.symbologyState) {
+    override.symbologyState = {};
+  }
+  return (override as IEffectiveSymbologyParams) ?? null;
+}
+
+export function saveSymbology(options: ISaveSymbologyOptions): void {
+  const {
+    model,
+    layerId,
+    isStorySegmentOverride,
+    segmentId,
+    payload,
+    mutateLayerBeforeSave,
+  } = options;
+
+  if (!isStorySegmentOverride) {
+    const layer = model.getLayer(layerId);
+    if (!layer?.parameters) {
+      return;
+    }
+
+    layer.parameters.symbologyState = payload.symbologyState;
+    if (payload.color !== undefined) {
+      layer.parameters.color = payload.color;
+    }
+
+    mutateLayerBeforeSave?.(layer);
+    model.sharedModel.updateLayer(layerId, layer);
+    return;
+  }
+
+  if (!segmentId) {
+    return;
+  }
+
+  const segment = model.getLayer(segmentId);
+  if (!segment?.parameters) {
+    return;
+  }
+
+  if (!segment.parameters.layerOverride) {
+    segment.parameters.layerOverride = [];
+  }
+
+  // Find the override for the target layer (from the selected layer in the dialog)
+  const targetLayerId = model.selected
+    ? Object.keys(model.selected).find(
+        id =>
+          id !== segmentId && model.getLayer(id)?.type !== 'StorySegmentLayer',
+      )
+    : undefined;
+
+  if (!targetLayerId) {
+    return;
+  }
+
+  const overrides = segment.parameters.layerOverride;
+  let override = overrides.find(
+    (override: any) => override.targetLayer === targetLayerId,
+  );
+
+  if (!override) {
+    // Create new override entry
+    override = {
+      targetLayer: targetLayerId,
+      visible: true,
+      opacity: 1,
+    };
+    overrides.push(override);
+  }
+
+  override.symbologyState = payload.symbologyState;
+  if (payload.color !== undefined) {
+    override.color = payload.color;
+  }
+
+  model.sharedModel.updateLayer(segmentId, segment);
+}
 export namespace VectorUtils {
-  export const buildColorInfo = (layer: IJGISLayer) => {
+  export const buildColorInfo = (layerParamers: VectorSymbologyParams) => {
     // This it to parse a color object on the layer
-    if (!layer.parameters?.color) {
+    if (!layerParamers?.color) {
       return [];
     }
 
-    const color = layer.parameters.color;
+    const color = layerParamers.color;
 
     // If color is a string we don't need to parse
     if (typeof color === 'string') {

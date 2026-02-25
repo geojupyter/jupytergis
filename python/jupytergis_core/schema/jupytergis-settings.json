@@ -1,4 +1,5 @@
 {
+  "jupyter.lab.setting-icon": "jupytergis::logoMini",
   "title": "JupyterGIS Settings",
   "description": "Settings for the JupyterGIS extension.",
   "type": "object",
@@ -12,36 +13,61 @@
     "leftPanelDisabled": {
       "type": "boolean",
       "title": "Disable Left Panel",
-      "default": false
-    },
-    "stacBrowserDisabled": {
-      "type": "boolean",
-      "title": "Disable STAC Browser",
-      "default": false
-    },
-    "filtersDisabled": {
-      "type": "boolean",
-      "title": "Disable Filters",
-      "default": false
-    },
-    "annotationsDisabled": {
-      "type": "boolean",
-      "title": "Disable Annotations",
-      "default": false
-    },
-    "identifyDisabled": {
-      "type": "boolean",
-      "title": "Disable Identify Features",
-      "default": false
-    },
-    "objectPropertiesDisabled": {
-      "type": "boolean",
-      "title": "Disable Object Properties",
+      "description": "Disable Left Panel in the JupyterGIS interface.",
       "default": false
     },
     "rightPanelDisabled": {
       "type": "boolean",
       "title": "Disable Right Panel",
+      "description": "Disable Right Panel in the JupyterGIS interface.",
+      "default": false
+    },
+    "layersDisabled": {
+      "type": "boolean",
+      "title": "Disable Layers",
+      "description": "Disable Layers tab from the Left Panel.",
+      "default": false
+    },
+    "stacBrowserDisabled": {
+      "type": "boolean",
+      "title": "Disable STAC Browser",
+      "description": "Disable STAC Browser tab from the Left Panel.",
+      "default": false
+    },
+    "filtersDisabled": {
+      "type": "boolean",
+      "title": "Disable Filters",
+      "description": "Disable Filters tab from the Left Panel.",
+      "default": false
+    },
+    "objectPropertiesDisabled": {
+      "type": "boolean",
+      "title": "Disable Object Properties",
+      "description": "Disable Object Properties tab from the Right Panel.",
+      "default": false
+    },
+    "storyMapsDisabled": {
+      "type": "boolean",
+      "title": "Disable Story Maps",
+      "description": "Disable Segments tab from the Left Panel and Story Editor tab from the Right Panel.",
+      "default": false
+    },
+    "annotationsDisabled": {
+      "type": "boolean",
+      "title": "Disable Annotations",
+      "description": "Disable Annotations tab from the Right Panel.",
+      "default": false
+    },
+    "identifyDisabled": {
+      "type": "boolean",
+      "title": "Disable Identify Features",
+      "description": "Disable Identify Features tab from the Right Panel and Identify command toolbar button.",
+      "default": false
+    },
+    "zoomButtonsEnabled": {
+      "type": "boolean",
+      "title": "Enable Zoom Buttons",
+      "description": "Enable + / − zoom buttons on the map.",
       "default": false
     }
   }

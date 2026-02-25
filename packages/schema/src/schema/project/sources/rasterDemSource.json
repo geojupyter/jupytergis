@@ -7,17 +7,20 @@
   "properties": {
     "url": {
       "type": "string",
-      "description": "The url to the tile provider"
+      "description": "The url to the tile provider",
+      "default": ""
     },
     "attribution": {
       "type": "string",
-      "description": "The attribution for the raster-dem source"
+      "description": "The attribution for the raster-dem source",
+      "default": ""
     },
     "urlParameters": {
       "type": "object",
       "additionalProperties": {
         "type": "string"
-      }
+      },
+      "default": {}
     },
     "interpolate": {
       "type": "boolean",

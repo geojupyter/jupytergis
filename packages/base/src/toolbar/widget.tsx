@@ -64,12 +64,24 @@ function createUserIconRenderer(model: JupyterGISModel) {
 
 export class ToolbarWidget extends ReactiveToolbar {
   private _model: JupyterGISModel;
+  private _newSubMenu: MenuSvg | null = null;
+  private _hasSetSpectaVisibility = false;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
 
     this._model = options.model;
     this.addClass('jGIS-toolbar-widget');
+
+    // Listen for settings changes
+    this._model.settingsChanged.connect(this._onSettingsChanged, this);
+
+    // Listen for options change because it's the dependable signal
+    // Update Specta mode visibility
+    this._model.sharedModel.optionsChanged.connect(
+      this._onSpectaModeChanged,
+      this,
+    );
 
     if (options.commands) {
       const openLayersBrowserButton = new CommandToolbarButton({
@@ -83,6 +95,7 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
+      this._newSubMenu = NewSubMenu;
 
       NewSubMenu.addItem({
         type: 'submenu',
@@ -92,6 +105,8 @@ export class ToolbarWidget extends ReactiveToolbar {
         type: 'submenu',
         submenu: vectorSubMenu(options.commands),
       });
+
+      this._updateStorySegmentMenuItem();
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
@@ -149,6 +164,18 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
+      const storyModePresentationToggleButton = new CommandToolbarButton({
+        id: CommandIDs.toggleStoryPresentationMode,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem(
+        'toggleStoryPresentationMode',
+        storyModePresentationToggleButton,
+      );
+      identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
+
       this.addItem('separator2', new Separator());
 
       const toggleConsoleButton = new CommandToolbarButton({
@@ -171,6 +198,72 @@ export class ToolbarWidget extends ReactiveToolbar {
         ),
       );
     }
+  }
+
+  /**
+   * Updates the story segment menu item based on settings
+   */
+  private _updateStorySegmentMenuItem(): void {
+    if (!this._newSubMenu) {
+      return;
+    }
+
+    const shouldShow = !this._model.jgisSettings.storyMapsDisabled;
+
+    // Find if the item already exists by checking menu items
+    let itemIndex: number | null = null;
+    for (let i = 0; i < this._newSubMenu.items.length; i++) {
+      const item = this._newSubMenu.items[i];
+      if (
+        item.type === 'command' &&
+        item.command === CommandIDs.addStorySegment
+      ) {
+        itemIndex = i;
+        break;
+      }
+    }
+
+    const isCurrentlyAdded = itemIndex !== null;
+
+    if (shouldShow && !isCurrentlyAdded) {
+      this._newSubMenu.addItem({
+        command: CommandIDs.addStorySegment,
+      });
+    } else if (!shouldShow && isCurrentlyAdded) {
+      if (itemIndex !== null) {
+        this._newSubMenu.removeItemAt(itemIndex);
+      }
+    }
+  }
+
+  /**
+   * Handles settings changes
+   */
+  private _onSettingsChanged = (sender: JupyterGISModel, key: string): void => {
+    if (key === 'storyMapsDisabled') {
+      this._updateStorySegmentMenuItem();
+    }
+  };
+
+  /**
+   * Handles story changes to update Specta mode visibility
+   */
+  private _onSpectaModeChanged = (args: any): void => {
+    if (!this._hasSetSpectaVisibility) {
+      this.setHidden(this._model.isSpectaMode());
+      this._hasSetSpectaVisibility = true;
+    }
+  };
+
+  dispose(): void {
+    if (this._model) {
+      this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
+      this._model.sharedModel.storyMapsChanged.disconnect(
+        this._onSpectaModeChanged,
+        this,
+      );
+    }
+    super.dispose();
   }
 }
 

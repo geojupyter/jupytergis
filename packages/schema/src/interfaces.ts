@@ -26,11 +26,37 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
+  IJGISStoryMap,
+  LayerType,
   SourceType,
 } from './_interface/project/jgis';
-import { IRasterSource } from './_interface/project/sources/rasterSource';
-import { Modes } from './types';
+import {
+  IGeoJSONSource,
+  IGeoParquetSource,
+  IGeoTiffSource,
+  IHeatmapLayer,
+  IHillshadeLayer,
+  IImageLayer,
+  IImageSource,
+  IMarkerSource,
+  IRasterDemSource,
+  IRasterLayer,
+  IRasterSource,
+  IShapefileSource,
+  IStacLayer,
+  IStorySegmentLayer,
+  IVectorLayer,
+  IVectorTileLayer,
+  IVectorTileSource,
+  IVideoSource,
+  IWebGlLayer,
+  Modes,
+} from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+
+export interface IJGISStoryMaps {
+  [k: string]: IJGISStoryMap;
+}
 
 export type JgisCoordinates = { x: number; y: number };
 
@@ -56,6 +82,13 @@ export interface IJGISLayerDocChange {
 
 export interface IJGISLayerTreeDocChange {
   layerTreeChange?: Delta<IJGISLayerItem[]>;
+}
+
+export interface IJGISStoryMapDocChange {
+  storyMapChange?: Array<{
+    id: string;
+    newValue: IJGISStoryMap | undefined;
+  }>;
 }
 
 export interface IJGISSourceDocChange {
@@ -92,6 +125,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
+  stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   metadata: any;
 
@@ -119,6 +153,11 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
 
+  getStoryMap(id: string): IJGISStoryMap | undefined;
+  removeStoryMap(id: string): void;
+  addStoryMap(id: string, value: IJGISStoryMap): void;
+  updateStoryMap(id: string, value: IJGISStoryMap): void;
+
   addLayerTreeItem(index: number, item: IJGISLayerItem): void;
   updateLayerTreeItem(index: number, item: IJGISLayerItem): void;
 
@@ -138,8 +177,10 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
+  initialSyncReady: Promise<void>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -187,6 +228,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   filePath: string;
 
   pathChanged: ISignal<IJupyterGISModel, string>;
+
+  stories: Map<string, IJGISStoryMap>;
 
   getFeaturesForCurrentTile: ({
     sourceId,
@@ -259,6 +302,19 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
+  getSelectedStory(): {
+    storyId: string;
+    story: IJGISStoryMap | undefined;
+  };
+  getCurrentSegmentIndex(): number;
+  setCurrentSegmentIndex(index: number): void;
+  currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
+  addStorySegment(): { storySegmentId: string; storyId: string } | null;
+  segmentAdded: ISignal<
+    IJupyterGISModel,
+    { storySegmentId: string; storyId: string }
+  >;
+  isSpectaMode(): boolean;
 }
 
 export interface IUserData {
@@ -325,21 +381,44 @@ export interface IJGISExternalCommandRegistry {
 }
 
 /**
- * Defines the structure for entries in a raster layer gallery.
- * Each entry consists of a name, a thumbnail URL, and source information.
- * The source information is expected to conform to the IRasterSource interface.
+ * Defines the structure for entries in a layer gallery.
  *
- * @interface IRasterLayerGalleryEntry
+ * @interface ILayerGalleryEntry
  */
-export interface IRasterLayerGalleryEntry {
+
+export type ILayerGalleryEntry = {
   name: string;
   thumbnail: string;
-  source: IRasterSource;
-}
+  layerType: LayerType;
+  layerParameters:
+    | IHeatmapLayer
+    | IHillshadeLayer
+    | IImageLayer
+    | IRasterLayer
+    | IStacLayer
+    | IStorySegmentLayer
+    | IVectorLayer
+    | IVectorTileLayer
+    | IWebGlLayer;
+  sourceType: SourceType;
+  sourceParameters:
+    | IGeoJSONSource
+    | IGeoParquetSource
+    | IGeoTiffSource
+    | IImageSource
+    | IMarkerSource
+    | IRasterDemSource
+    | IRasterSource
+    | IShapefileSource
+    | IVectorTileSource
+    | IVideoSource;
+  provider: string;
+  description: string;
+};
 
 export interface IJGISLayerBrowserRegistry {
-  getRegistryLayers(): IRasterLayerGalleryEntry[];
-  addRegistryLayer(data: IRasterLayerGalleryEntry): void;
+  getRegistryLayers(): ILayerGalleryEntry[];
+  addRegistryLayer(data: ILayerGalleryEntry): void;
   removeRegistryLayer(name: string): void;
   clearRegistry(): void;
 }
@@ -396,4 +475,10 @@ export interface IJupyterGISSettings {
   objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
+
+  // Story maps
+  storyMapsDisabled: boolean;
+
+  // Map controls
+  zoomButtonsEnabled?: boolean;
 }

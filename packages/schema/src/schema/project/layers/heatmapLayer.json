@@ -40,13 +40,15 @@
       "required": ["renderType"],
       "properties": {
         "renderType": {
-          "type": "string"
+          "type": "string",
+          "default": "Heatmap"
         },
         "colorRamp": {
           "type": "string",
           "default": "viridis"
         }
-      }
+      },
+      "default": {}
     }
   }
 }

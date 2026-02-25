@@ -30,24 +30,14 @@
     "selector": ".data-jgis-keybinding .jp-gis-source"
   },
   {
-    "command": "jupytergis:removeLayer",
+    "command": "jupytergis:removeSelected",
     "keys": ["Delete"],
-    "selector": ".data-jgis-keybinding .jp-gis-layerItem"
+    "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:renameLayer",
+    "command": "jupytergis:renameSelected",
     "keys": ["F2"],
-    "selector": ".jp-gis-layerItem"
-  },
-  {
-    "command": "jupytergis:removeGroup",
-    "keys": ["Delete"],
-    "selector": ".data-jgis-keybinding .jp-gis-layerGroupHeader"
-  },
-  {
-    "command": "jupytergis:renameGroup",
-    "keys": ["F2"],
-    "selector": ".jp-gis-layerGroupHeader"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:executeConsole",

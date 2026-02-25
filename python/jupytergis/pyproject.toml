@@ -16,16 +16,18 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "jupytergis_core==0.10.1",
-  "jupytergis_lab==0.10.1",
-  "jupytergis_qgis==0.10.1",
-  "jupyter-collaboration>=3,<4",
-  "jupyter-docprovider>=1,<2",
-  "jupyter-server-ydoc>=1,<2",
-  "jupyter-collaboration-ui>=1,<2",
-  "jupyterlab>=4.3,<4.5.0",
+  "jupytergis_core==0.13.3",
+  "jupytergis_lab==0.13.3",
+  "jupytergis_qgis==0.13.3",
+  "jupyter-collaboration>=4,<5",
+  "jupyter-docprovider>=2,<3",
+  "jupyter-server-ydoc>=2,<3",
+  "jupyter-collaboration-ui>=2,<3",
+  "jupyterlab>=4.5.1",
 ]
 description = "Collaborative GIS extension for JupyterLab"
 dynamic = ["version"]

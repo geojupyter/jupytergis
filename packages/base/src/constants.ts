@@ -1,4 +1,4 @@
-import { IDict, ProcessingCommandIDs } from '@jupytergis/schema';
+import { ProcessingCommandIDs } from '@jupytergis/schema';
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
 import * as BaseCommandIDs from './commands/BaseCommandIDs';
@@ -16,8 +16,7 @@ import {
 /**
  * The command IDs.
  */
-
-export const CommandIDs: IDict = {
+export const CommandIDs: typeof BaseCommandIDs & typeof ProcessingCommandIDs = {
   ...BaseCommandIDs,
   ...ProcessingCommandIDs,
 };
@@ -58,6 +57,12 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
+  [CommandIDs.toggleStoryPresentationMode]: {
+    iconClass: 'fa fa-book jgis-icon-adjust',
+  },
+  [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
+  [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
 };
 
 /**

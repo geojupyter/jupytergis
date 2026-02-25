@@ -54,26 +54,33 @@
       "required": ["renderType"],
       "properties": {
         "renderType": {
-          "type": "string"
+          "type": "string",
+          "default": "Single Symbol"
         },
         "band": {
-          "type": "number"
+          "type": "number",
+          "default": 1
         },
         "redBand": {
-          "type": "number"
+          "type": "number",
+          "default": 1
         },
         "greenBand": {
-          "type": "number"
+          "type": "number",
+          "default": 2
         },
         "blueBand": {
-          "type": "number"
+          "type": "number",
+          "default": 3
         },
         "alphaBand": {
-          "type": "number"
+          "type": "number",
+          "default": 4
         },
         "interpolation": {
           "type": "string",
-          "enum": ["discrete", "linear", "exact"]
+          "enum": ["discrete", "linear", "exact"],
+          "default": "linear"
         },
         "colorRamp": {
           "type": "string",
@@ -89,7 +96,19 @@
           "enum": ["continuous", "equal interval", "quantile"]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "default": {
+        "renderType": "Single Symbol",
+        "band": 1,
+        "redBand": 1,
+        "greenBand": 2,
+        "blueBand": 3,
+        "alphaBand": 4,
+        "interpolation": "linear",
+        "colorRamp": "viridis",
+        "nClasses": "9",
+        "mode": "equal interval"
+      }
     }
   }
 }

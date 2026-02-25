@@ -16,6 +16,7 @@
     "acb76fb7-df6d-41da-8e08-0208a1c82136": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "5f7a1edf-1b76-4f82-893f-540d28998b1d"
       },
       "type": "RasterLayer",
@@ -26,10 +27,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -11380610.12432032,
-      3752817.7844314026,
-      -6019296.164325077,
-      6345805.479548599
+      -10240909.420874791,
+      4039428.908078947,
+      -7158996.867770607,
+      6059194.355901054
     ],
     "latitude": 41.25016747852149,
     "longitude": -78.15300880668768,
@@ -43,6 +44,9 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -77,5 +81,6 @@
       },
       "type": "ImageSource"
     }
-  }
+  },
+  "stories": {}
 }

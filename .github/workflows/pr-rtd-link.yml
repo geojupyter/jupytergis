@@ -23,3 +23,4 @@ jobs:
             ---
             📚 Documentation preview: {docs-pr-index-url}
             💡 JupyterLite preview: {docs-pr-index-url}lite
+            💡 Specta preview: {docs-pr-index-url}lite/specta

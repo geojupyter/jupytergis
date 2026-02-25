@@ -7,7 +7,6 @@ import {
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
-  SelectionType,
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -30,7 +29,7 @@ import keybindings from '../keybindings.json';
 import { getSingleSelectedLayer } from '../processing/index';
 import { addProcessingCommands } from '../processing/processingCommands';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import { JupyterGISTracker } from '../types';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -72,6 +71,41 @@ export function addCommands(
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
+  /**
+   * Wraps a command definition to automatically disable it in Specta mode
+   */
+  const createSpectaAwareCommand = (
+    command: CommandRegistry.ICommandOptions,
+  ): CommandRegistry.ICommandOptions => {
+    const originalIsEnabled = command.isEnabled;
+
+    return {
+      ...command,
+      isEnabled: (args?: ReadonlyPartialJSONObject) => {
+        // First check if we're in Specta mode
+        const currentModel = tracker.currentWidget?.model;
+        if (currentModel?.isSpectaMode()) {
+          return false;
+        }
+        // Then check the original isEnabled if it exists
+        if (originalIsEnabled) {
+          return originalIsEnabled(args ?? {});
+        }
+        // Default to enabled if no original check
+        return true;
+      },
+    };
+  };
+
+  // Override addCommand to automatically wrap all commands
+  const originalAddCommand = commands.addCommand.bind(commands);
+  commands.addCommand = (
+    id: string,
+    options: CommandRegistry.ICommandOptions,
+  ) => {
+    return originalAddCommand(id, createSpectaAwareCommand(options));
+  };
+
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
     isEnabled: () => {
@@ -96,12 +130,7 @@ export function addCommands(
         return false;
       }
 
-      const isValidLayer = [
-        'VectorLayer',
-        'VectorTileLayer',
-        'WebGlLayer',
-        'HeatmapLayer',
-      ].includes(layer.type);
+      const isValidLayer = SYMBOLOGY_VALID_LAYER_TYPES.includes(layer.type);
 
       return isValidLayer;
     },
@@ -504,40 +533,44 @@ export function addCommands(
   /**
    * LAYERS and LAYER GROUP actions.
    */
-  commands.addCommand(CommandIDs.renameLayer, {
-    label: trans.__('Rename Layer'),
+  commands.addCommand(CommandIDs.renameSelected, {
+    label: trans.__('Rename'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length === 1;
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'layer');
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return;
+      }
+
+      await Private.renameSelectedItem(model);
     },
+    ...icons.get(CommandIDs.renameSelected),
   });
 
-  commands.addCommand(CommandIDs.removeLayer, {
-    label: trans.__('Remove Layer'),
-    execute: () => {
+  commands.addCommand(CommandIDs.removeSelected, {
+    label: trans.__('Remove'),
+    isEnabled: () => {
       const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'layer', selection => {
-        model?.removeLayer(selection);
-      });
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length > 0;
     },
-  });
-
-  commands.addCommand(CommandIDs.renameGroup, {
-    label: trans.__('Rename Group'),
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'group');
-    },
-  });
+      const selected = model?.localState?.selected?.value;
 
-  commands.addCommand(CommandIDs.removeGroup, {
-    label: trans.__('Remove Group'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'group', selection => {
-        model?.removeLayerGroup(selection);
-      });
+      if (!model || !selected) {
+        return;
+      }
+
+      await Private.removeSelectedItems(model);
     },
+    ...icons.get(CommandIDs.removeSelected),
   });
 
   commands.addCommand(CommandIDs.moveLayersToGroup, {
@@ -627,7 +660,7 @@ export function addCommands(
     label: trans.__('Rename Source'),
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'source');
+      await Private.renameSelectedItem(model);
     },
   });
 
@@ -635,16 +668,7 @@ export function addCommands(
     label: trans.__('Remove Source'),
     execute: () => {
       const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'source', selection => {
-        if (!(model?.getLayersBySource(selection).length ?? true)) {
-          model?.sharedModel.removeSource(selection);
-        } else {
-          showErrorMessage(
-            'Remove source error',
-            'The source is used by a layer.',
-          );
-        }
-      });
+      Private.removeSelectedSources(model);
     },
   });
 
@@ -1054,6 +1078,73 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
+  commands.addCommand(CommandIDs.addStorySegment, {
+    label: trans.__('Add Story Segment'),
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+      return (
+        current.model.sharedModel.editable &&
+        !current.model.jgisSettings.storyMapsDisabled
+      );
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      current.model.addStorySegment();
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+    },
+    ...icons.get(CommandIDs.addStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
+    label: trans.__('Toggle Story Presentation Mode'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const { storyMapPresentationMode } = current.model.getOptions();
+
+      return storyMapPresentationMode ?? false;
+    },
+    isEnabled: () => {
+      const storySegments =
+        tracker.currentWidget?.model.getSelectedStory().story?.storySegments;
+
+      if (
+        tracker.currentWidget?.model.jgisSettings.storyMapsDisabled ||
+        !storySegments ||
+        storySegments.length < 1
+      ) {
+        return false;
+      }
+
+      return true;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const currentOptions = current.model.getOptions();
+
+      current.model.setOptions({
+        ...currentOptions,
+        storyMapPresentationMode: !currentOptions.storyMapPresentationMode,
+      });
+
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+    },
+    ...icons.get(CommandIDs.toggleStoryPresentationMode),
+  });
+
   loadKeybindings(commands, keybindings);
 }
 
@@ -1131,52 +1222,71 @@ namespace Private {
     };
   }
 
-  export function removeSelectedItems(
-    model: IJupyterGISModel | undefined,
-    itemTypeToRemove: SelectionType,
-    removeFunction: (id: string) => void,
-  ) {
+  export function removeSelectedItems(model: IJupyterGISModel | undefined) {
     const selected = model?.localState?.selected?.value;
 
-    if (!selected) {
+    if (!selected || !model) {
       console.error('Failed to remove selected item -- nothing selected');
       return;
     }
 
-    for (const selection in selected) {
-      if (selected[selection].type === itemTypeToRemove) {
-        removeFunction(selection);
+    for (const id of Object.keys(selected)) {
+      const item = selected[id];
+
+      switch (item.type) {
+        case 'layer':
+          model.removeLayer(id);
+          break;
+        case 'group':
+          model.removeLayerGroup(id);
+          break;
       }
     }
   }
 
   export async function renameSelectedItem(
     model: IJupyterGISModel | undefined,
-    itemType: SelectionType,
   ) {
-    const selectedItems = model?.localState?.selected.value;
+    const selectedItems = model?.localState?.selected?.value;
 
     if (!selectedItems || !model) {
-      console.error(`No ${itemType} selected`);
+      console.error('No item selected');
       return;
     }
 
-    let itemId = '';
+    const ids = Object.keys(selectedItems);
+    if (ids.length === 0) {
+      return;
+    }
 
-    // If more then one item is selected, only rename the first
-    for (const id in selectedItems) {
-      if (selectedItems[id].type === itemType) {
-        itemId = id;
-        break;
+    const itemId = ids[0];
+    const item = selectedItems[itemId];
+
+    if (!item.type) {
+      return;
+    }
+
+    model.setEditingItem(item.type, itemId);
+  }
+
+  export function removeSelectedSources(model: IJupyterGISModel | undefined) {
+    const selected = model?.localState?.selected?.value;
+
+    if (!selected || !model) {
+      return;
+    }
+
+    for (const id of Object.keys(selected)) {
+      if (model.getLayersBySource(id).length > 0) {
+        showErrorMessage(
+          'Remove source error',
+          'The source is used by a layer.',
+        );
+        continue;
       }
-    }
 
-    if (!itemId) {
-      return;
+      model.sharedModel.removeSource(id);
     }
-
-    // Set editing state - component will show inline input
-    model.setEditingItem(itemType, itemId);
   }
 
   export function executeConsole(tracker: JupyterGISTracker): void {

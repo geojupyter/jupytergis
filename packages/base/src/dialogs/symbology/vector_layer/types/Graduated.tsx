@@ -1,28 +1,36 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRampControls, {
   ColorRampControlsOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
   IStopRow,
   ISymbologyTabbedDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
-import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
+import {
+  saveSymbology,
+  Utils,
+  VectorSymbologyParams,
+  VectorUtils,
+} from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { useLatest } from '@/src/shared/hooks/useLatest';
 import { ColorRampName, ClassificationMode } from '@/src/types';
+import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
-  state,
   okSignalPromise,
-  cancel,
   layerId,
   symbologyTab,
   selectableAttributesAndValues,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   const modeOptions = [
     'quantile',
@@ -31,12 +39,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     'pretty',
     'logarithmic',
   ] as const satisfies ClassificationMode[];
-
-  const selectableAttributeRef = useRef<string>();
-  const symbologyTabRef = useRef<string>();
-  const colorStopRowsRef = useRef<IStopRow[]>([]);
-  const radiusStopRowsRef = useRef<IStopRow[]>([]);
-  const colorRampOptionsRef = useRef<ColorRampControlsOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
@@ -54,35 +56,38 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [dataMin, setDataMin] = useState<number | undefined>();
   const [dataMax, setDataMax] = useState<number | undefined>();
 
-  const colorManualStyleRef = useRef(colorManualStyle);
-  const radiusManualStyleRef = useRef(radiusManualStyle);
+  const selectableAttributeRef = useLatest(selectedAttribute);
+  const symbologyTabRef = useLatest(symbologyTab);
+  const colorStopRowsRef = useLatest(colorStopRows);
+  const radiusStopRowsRef = useLatest(radiusStopRows);
+  const colorRampOptionsRef = useLatest(colorRampOptions);
+
+  const colorManualStyleRef = useLatest(colorManualStyle);
+  const radiusManualStyleRef = useLatest(radiusManualStyle);
 
   if (!layerId) {
     return;
   }
   const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
+  const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
+    model,
+    layerId: layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
+  if (!params) {
     return;
   }
 
   useEffect(() => {
     updateStopRowsBasedOnLayer();
-
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk, this);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
   }, []);
 
   useEffect(() => {
-    if (layer?.parameters?.color) {
-      const strokeColor = layer.parameters.color['stroke-color'];
-      const circleStrokeColor = layer.parameters.color['circle-stroke-color'];
+    if (params.color) {
+      const strokeColor = params.color['stroke-color'];
+      const circleStrokeColor = params.color['circle-stroke-color'];
 
       const isSimpleColor = (val: any) =>
         typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
@@ -94,39 +99,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             ? circleStrokeColor
             : '#3399CC',
         strokeWidth:
-          layer.parameters.color['stroke-width'] ||
-          layer.parameters.color['circle-stroke-width'] ||
+          params.color['stroke-width'] ||
+          params.color['circle-stroke-width'] ||
           1.25,
       });
       setRadiusManualStyle({
-        radius: layer.parameters.color['circle-radius'] || 5,
+        radius: params.color['circle-radius'] || 5,
       });
     }
   }, [layerId]);
 
   useEffect(() => {
-    colorStopRowsRef.current = colorStopRows;
-    radiusStopRowsRef.current = radiusStopRows;
-    selectableAttributeRef.current = selectedAttribute;
-    symbologyTabRef.current = symbologyTab;
-    colorRampOptionsRef.current = colorRampOptions;
-  }, [
-    colorStopRows,
-    radiusStopRows,
-    selectedAttribute,
-    symbologyTab,
-    colorRampOptions,
-  ]);
-
-  useEffect(() => {
-    colorManualStyleRef.current = colorManualStyle;
-    radiusManualStyleRef.current = radiusManualStyle;
-  }, [colorManualStyle, radiusManualStyle]);
-
-  useEffect(() => {
-    const layerParams = layer.parameters as IVectorLayer;
     const attribute =
-      layerParams.symbologyState?.value ??
+      params.symbologyState?.value ??
       Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
@@ -146,16 +131,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       return;
     }
 
-    setColorStopRows(VectorUtils.buildColorInfo(layer));
+    setColorStopRows(VectorUtils.buildColorInfo(params));
     setRadiusStopRows(VectorUtils.buildRadiusInfo(layer));
   };
 
   const handleOk = () => {
-    if (!layer.parameters) {
-      return;
-    }
-
-    const newStyle = { ...layer.parameters.color };
+    const newStyle = { ...params.color };
 
     // Apply color symbology
     if (colorStopRowsRef.current.length > 0) {
@@ -197,8 +178,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       newStyle['circle-radius'] = radiusManualStyleRef.current.radius;
     }
 
-    layer.parameters.color = newStyle;
-    layer.parameters.symbologyState = {
+    const symbologyState = {
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
       method: symbologyTabRef.current,
@@ -210,15 +190,26 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       max: colorRampOptionsRef.current?.maxValue,
       dataMin: colorRampOptionsRef.current?.dataMin,
       dataMax: colorRampOptionsRef.current?.dataMax,
-    };
+    } as IVectorLayer['symbologyState'];
 
-    if (layer.type === 'HeatmapLayer') {
-      layer.type = 'VectorLayer';
-    }
-
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: newStyle,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        if (targetLayer.type === 'HeatmapLayer') {
+          targetLayer.type = 'VectorLayer';
+        }
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
 
   const buildColorInfoFromClassification = (
     selectedMode: ClassificationMode,
@@ -315,11 +306,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const handleReset = (method: string) => {
-    if (!layer?.parameters) {
-      return;
-    }
-
-    const newStyle = { ...layer.parameters.color };
+    const newStyle = { ...params.color };
 
     if (method === 'color') {
       delete newStyle['stroke-color'];
@@ -330,6 +317,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     if (method === 'radius') {
       delete newStyle['circle-radius'];
       setRadiusStopRows([]);
+    }
+
+    const layer = model.getLayer(layerId);
+    if (!layer?.parameters) {
+      return;
     }
 
     layer.parameters.color = newStyle;
@@ -410,7 +402,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           </div>
 
           <ColorRampControls
-            layerParams={layer.parameters}
+            layerParams={params}
             modeOptions={modeOptions}
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
