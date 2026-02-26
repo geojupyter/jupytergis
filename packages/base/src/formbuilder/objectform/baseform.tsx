@@ -1,3 +1,4 @@
+import type { IDocumentManager } from '@jupyterlab/docmanager';
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
@@ -16,6 +17,7 @@ export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   model: IJupyterGISModel;
   formData: TFormData;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
+  docManager?: IDocumentManager;
 }
 
 export interface IBaseFormStates {
@@ -80,6 +82,11 @@ export interface IBaseFormProps {
    * Registry of form schemas for layers/sources; passed into formContext for custom fields.
    */
   formSchemaRegistry?: IJGISFormSchemaRegistry;
+
+  /**
+   * JupyterLab document manager (e.g. for file picker); available from formContext when using RJSF.
+   */
+  docManager?: IDocumentManager;
 }
 
 const WrappedFormComponent: React.FC<any> = props => {
@@ -134,14 +141,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   ): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       this.currentFormData = deepCopy(this.props.sourceData);
-      // if (this.props.schema) {
-      //   const applied = this.applySchemaDefaults(
-      //     this.currentFormData,
-      //     this.props.schema as RJSFSchema,
-      //   );
-      //   if (applied) {
-      //     this.props.syncData(this.currentFormData ?? {});
-      //   }
       const schema = deepCopy(this.props.schema);
       this.setState(old => ({ ...old, schema }));
     }
@@ -371,6 +370,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                   model: this.props.model,
                   formData,
                   formSchemaRegistry: this.props.formSchemaRegistry,
+                  docManager: this.props.formSchemaRegistry?.getDocManager?.(),
                 } satisfies IJupyterGISFormContext
               }
               onSubmit={this.onFormSubmit.bind(this)}

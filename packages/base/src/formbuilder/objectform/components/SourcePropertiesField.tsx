@@ -1,3 +1,4 @@
+import type { IDocumentManager } from '@jupyterlab/docmanager';
 import {
   IDict,
   IJGISFormSchemaRegistry,
@@ -10,6 +11,7 @@ import { getSourceTypeForm } from '../../formselectors';
 import type { ISourceFormProps } from '../source/sourceform';
 import { deepCopy } from '@/src/tools';
 
+// ! TODO extract this - also used in layerselect
 function extractLayerOverrideIndex(idSchema: {
   $id?: string;
 }): number | undefined {
@@ -25,18 +27,21 @@ function extractLayerOverrideIndex(idSchema: {
 export function SourcePropertiesField(props: FieldProps): React.ReactElement {
   const context = props.formContext as
     | {
+        docManager?: IDocumentManager;
         formData?: IStorySegmentLayer;
         formSchemaRegistry?: IJGISFormSchemaRegistry;
       }
     | undefined;
   const fullFormData = context?.formData;
   const formSchemaRegistry = context?.formSchemaRegistry;
+  const docManager = context?.docManager;
   const index = extractLayerOverrideIndex(props.idSchema ?? {});
   const model = props.formContext?.model;
   const layerId = fullFormData?.layerOverride?.[index ?? 0]?.targetLayer;
   const layer = model?.getLayer(layerId);
   const sourceID = layer?.parameters?.source;
   const source = model?.getSource(sourceID);
+
   /* Use form value so edits persist; fall back to live source for initial display */
   const sourceProperties =
     (props.formData as IDict | undefined) ?? source?.parameters;
@@ -58,6 +63,7 @@ export function SourcePropertiesField(props: FieldProps): React.ReactElement {
       props.onChange(properties);
     },
     sourceType: source?.type ?? 'GeoJSONSource',
+    docManager,
   };
   return (
     <>
