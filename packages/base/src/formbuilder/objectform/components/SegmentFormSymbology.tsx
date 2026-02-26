@@ -85,10 +85,6 @@ function LayerOverrideItem({ item, formContext }: ILayerOverrideItemProps) {
 }
 
 export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
-  const { formContext, formData } = props;
-
-  console.log('formContext', formContext);
-  console.log('formData', formData); // so this has targetlayer
   return (
     <>
       <div>{props.title}</div>

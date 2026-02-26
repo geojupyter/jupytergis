@@ -215,14 +215,16 @@
 }
 
 /* Hierarchy: .form-group > .jp-FormGroup-content > .jp-objectFieldWrapper > #jgis-source-properties-field */
-.form-group:has(.jp-FormGroup-content .jp-objectFieldWrapper #jgis-source-properties-field) {
+.form-group:has(
+  .jp-FormGroup-content .jp-objectFieldWrapper #jgis-source-properties-field
+) {
   padding: 0;
 }
 
 /* #jgis-source-properties-field and .jGIS-property-panel are siblings; remove padding on the panel's outer wrapper */
-.form-group:has(.jp-FormGroup-content .jp-objectFieldWrapper #jgis-source-properties-field):has(
-    .jGIS-property-panel
-  )
+.form-group:has(
+    .jp-FormGroup-content .jp-objectFieldWrapper #jgis-source-properties-field
+  ):has(.jGIS-property-panel)
   .jGIS-property-panel
   .jGIS-property-outer {
   padding: 0;

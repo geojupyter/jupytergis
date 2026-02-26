@@ -1,15 +1,15 @@
-import type { IDocumentManager } from '@jupyterlab/docmanager';
 import {
   IDict,
   IJGISFormSchemaRegistry,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
+import type { IDocumentManager } from '@jupyterlab/docmanager';
 import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
+import { deepCopy } from '@/src/tools';
 import { getSourceTypeForm } from '../../formselectors';
 import type { ISourceFormProps } from '../source/sourceform';
-import { deepCopy } from '@/src/tools';
 
 // ! TODO extract this - also used in layerselect
 function extractLayerOverrideIndex(idSchema: {
@@ -55,7 +55,7 @@ export function SourcePropertiesField(props: FieldProps): React.ReactElement {
 
   const formProps: ISourceFormProps = {
     formContext: 'update',
-    model: model!,
+    model: model,
     filePath: model?.filePath,
     schema: sourceSchema,
     sourceData: sourceProperties ?? undefined,

@@ -1,6 +1,6 @@
-import type { IDocumentManager } from '@jupyterlab/docmanager';
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
+import type { IDocumentManager } from '@jupyterlab/docmanager';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
@@ -288,7 +288,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   }
 
   protected syncData(properties: IDict<any> | undefined) {
-    console.log('sync data');
     if (!properties) {
       return;
     }

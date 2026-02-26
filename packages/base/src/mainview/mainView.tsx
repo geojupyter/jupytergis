@@ -961,7 +961,6 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async updateSource(id: string, source: IJGISSource): Promise<void> {
-    console.log('updating source');
     // get the layer id associated with this source
     const layerId = this._sourceToLayerMap.get(id);
     // get the OL layer

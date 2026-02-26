@@ -2,9 +2,9 @@ import { IDict, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
-import { SourcePropertiesField } from '../components/SourcePropertiesField';
-import { ArrayFieldTemplate } from '../components/SegmentFormSymbology';
 import { LayerPropertiesForm } from './layerform';
+import { ArrayFieldTemplate } from '../components/SegmentFormSymbology';
+import { SourcePropertiesField } from '../components/SourcePropertiesField';
 import StorySegmentReset from '../components/StorySegmentReset';
 
 export class StorySegmentLayerPropertiesForm extends LayerPropertiesForm {
