@@ -80,7 +80,11 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       return;
     }
 
-    const ramp = colorMaps.filter(c => c.name === rampName);
+    const ramp = colorMaps.filter(c => c.name === rampName)[0];
+    let colors = ramp.colors;
+    if (reverse) {
+      colors = [...colors].reverse();
+    }
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -88,7 +92,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
-      const color = reverse ? ramp[0].colors[255 - i] : ramp[0].colors[i];
+      const color = colors[i];
       ctx.fillStyle = color;
 
       ctx.fillRect(i * 2, 0, 2, canvasHeight);
