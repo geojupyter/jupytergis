@@ -115,7 +115,11 @@ export const FileSelectorWidget: React.FC<any> = props => {
   return (
     <div>
       <div className="file-container">
-        <button className="jp-mod-styled" onClick={handleBrowseServerFiles}>
+        <button
+          type="button"
+          className="jp-mod-styled"
+          onClick={handleBrowseServerFiles}
+        >
           Browse Server Files
         </button>
         <p>{serverFilePath || ''}</p>
