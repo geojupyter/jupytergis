@@ -405,7 +405,7 @@ export function addCommands(
    * Source and layers
    */
   commands.addCommand(CommandIDs.openNewRasterDialog, {
-    label: trans.__('Open New Raster Tile Dialog'),
+    label: trans.__('Open New Raster Tile Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -435,7 +435,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewVectorTileDialog, {
-    label: trans.__('Open New Vector Tile Dialog'),
+    label: trans.__('Open New Vector Tile Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -462,7 +462,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewGeoParquetDialog, {
-    label: trans.__('Open New GeoParquet Dialog'),
+    label: trans.__('Open New GeoParquet Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -489,7 +489,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewGeoJSONDialog, {
-    label: trans.__('Open New GeoJSON Dialog'),
+    label: trans.__('Open New GeoJSON Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -526,7 +526,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
-    label: trans.__('Open New Hillshade Dialog'),
+    label: trans.__('Open New Hillshade Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -552,7 +552,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewImageDialog, {
-    label: trans.__('Open New Image Dialog'),
+    label: trans.__('Open New Image Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -588,7 +588,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewVideoDialog, {
-    label: trans.__('Open New Video Dialog'),
+    label: trans.__('Open New Video Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -627,7 +627,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
-    label: trans.__('Open New GeoTiff Dialog'),
+    label: trans.__('Open New GeoTiff Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -657,7 +657,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewShapefileDialog, {
-    label: trans.__('Open New Shapefile Dialog'),
+    label: trans.__('Open New Shapefile Layer Creation Dialog'),
     describedBy: {
       args: {
         type: 'object',
