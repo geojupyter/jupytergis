@@ -761,13 +761,11 @@ export function addCommands(
         return;
       }
 
-      // ---- PARAMETER MODE ----
       if (filePath && layerIds && groupName !== undefined) {
         model.moveItemsToGroup(layerIds, groupName);
         return;
       }
 
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       const selectedLayers = model.localState?.selected?.value;
       if (!selectedLayers) {
         return;
@@ -809,7 +807,6 @@ export function addCommands(
         return;
       }
 
-      // ---- PARAMETER MODE ----
       if (filePath && groupName && layerIds) {
         const layerMap: { [key: string]: any } = {};
         layerIds.forEach(id => {
@@ -825,7 +822,6 @@ export function addCommands(
         return;
       }
 
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       const selectedLayers = model.localState?.selected?.value;
       if (!selectedLayers) {
         return;
@@ -1041,14 +1037,12 @@ export function addCommands(
 
       const model = current.model;
 
-      // ----- PARAMETER MODE -----
       if (filePath && layerId) {
         console.log(`Zooming to layer: ${layerId}`);
         model.centerOnPosition(layerId);
         return;
       }
 
-      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
       const selectedItems = model.localState?.selected?.value;
       if (!selectedItems) {
         return;
@@ -1119,7 +1113,6 @@ export function addCommands(
 
       const { filePath, layerId, exportFileName } = args ?? {};
 
-      // ----- PARAMETER MODE -----
       if (filePath && layerId && exportFileName) {
         const widget = tracker.find(w => w.model.filePath === filePath);
         if (!widget || !widget.model.sharedModel.editable) {
@@ -1137,7 +1130,6 @@ export function addCommands(
         return exportLayer(model, layer, exportFileName);
       }
 
-      // ----- INTERACTIVE MODE -----
       const selectedLayer = getSingleSelectedLayer(tracker);
       const model = tracker.currentWidget?.model as IJupyterGISModel;
 
