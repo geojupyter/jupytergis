@@ -2,96 +2,27 @@ import colormap from 'colormap';
 import colorScale from 'colormap/colorScale.js';
 import { useEffect } from 'react';
 
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
-
-export interface IColorMap {
-  name: ColorRampName;
-  colors: string[];
-}
+import { objectEntries } from '@/src/tools';
+import { IColorMap } from '@/src/types';
 
 const { __license__: _, ...cmocean } = rawCmocean;
 
 Object.assign(colorScale, cmocean);
 
-export const COLOR_RAMP_NAMES = [
-  'jet',
-  'hsv',
-  'hot',
-  'cool',
-  'spring',
-  'summer',
-  'autumn',
-  'winter',
-  'bone',
-  'copper',
-  'greys',
-  'YiGnBu',
-  'greens',
-  'YiOrRd',
-  'bluered',
-  'RdBu',
-  'picnic',
-  'rainbow',
-  'portland',
-  'blackbody',
-  'earth',
-  'electric',
-  'viridis',
-  'inferno',
-  'magma',
-  'plasma',
-  'warm',
-  'rainbow-soft',
-  'bathymetry',
-  'cdom',
-  'chlorophyll',
-  'density',
-  'freesurface-blue',
-  'freesurface-red',
-  'oxygen',
-  'par',
-  'phase',
-  'salinity',
-  'temperature',
-  'turbidity',
-  'velocity-blue',
-  'velocity-green',
-  'cubehelix',
-  'ice',
-  'oxy',
-  'matter',
-  'amp',
-  'tempo',
-  'rain',
-  'topo',
-  'balance',
-  'delta',
-  'curl',
-  'diff',
-  'tarn',
-] as const;
-
-export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
-  hsv: 11,
-  picnic: 11,
-  'rainbow-soft': 11,
-  cubehelix: 16,
-} as const;
-
-export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
-
 export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];
 
-  COLOR_RAMP_NAMES.forEach(name => {
-    const colorRamp = colormap({
+  for (const [name, definition] of objectEntries(COLOR_RAMP_DEFINITIONS)) {
+    const colors = colormap({
       colormap: name,
       nshades: 255,
       format: 'rgbaString',
     });
 
-    colorMapList.push({ name, colors: colorRamp });
-  });
+    colorMapList.push({ name, colors, definition });
+  }
 
   return colorMapList;
 };
@@ -99,7 +30,9 @@ export const getColorMapList = (): IColorMap[] => {
 /**
  * Hook that loads and sets color maps.
  */
-export const useColorMapList = (setColorMaps: (maps: IColorMap[]) => void) => {
+export const useColorMapList = (
+  setColorMaps: React.Dispatch<React.SetStateAction<IColorMap[]>>,
+) => {
   useEffect(() => {
     setColorMaps(getColorMapList());
   }, [setColorMaps]);

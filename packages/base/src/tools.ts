@@ -30,6 +30,9 @@ export const debounce = (
   };
 };
 
+export const objectKeys = Object.keys as <T extends Record<string, any>>(
+  obj: T,
+) => Array<keyof T>;
 export function throttle<T extends (...args: any[]) => void>(
   callback: T,
   delay = 100,
@@ -1032,7 +1035,7 @@ export async function getGeoJSONDataFromLayerSource(
  * code when using it.
  */
 export const objectEntries = Object.entries as <
-  T extends Record<PropertyKey, unknown>,
+  T extends Record<string | number, unknown>,
 >(
   obj: T,
 ) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;

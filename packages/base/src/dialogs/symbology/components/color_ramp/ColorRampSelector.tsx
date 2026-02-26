@@ -14,21 +14,22 @@
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import {
-  ColorRampName,
-  useColorMapList,
-  IColorMap,
-} from '@/src/dialogs/symbology/colorRampUtils';
+import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
+import { IColorMap, ColorRampName } from '@/src/types';
 import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
 interface IColorRampSelectorProps {
   selectedRamp: ColorRampName;
   setSelected: (item: any) => void;
+  reverse: boolean;
+  setReverse: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   selectedRamp,
   setSelected,
+  reverse,
+  setReverse,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +43,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     if (colorMaps.length > 0) {
       updateCanvas(selectedRamp);
     }
-  }, [selectedRamp, colorMaps]);
+  }, [selectedRamp, colorMaps, reverse]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -84,7 +85,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
-      const color = ramp[0].colors[i];
+      const color = reverse ? ramp[0].colors[255 - i] : ramp[0].colors[i];
       ctx.fillStyle = color;
 
       ctx.fillRect(i * 2, 0, 2, canvasHeight);
@@ -126,6 +127,17 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
             onClick={selectItem}
           />
         ))}
+      </div>
+
+      <div className="jp-gis-symbology-row">
+        <label className="jp-gis-inline-label">
+          <input
+            type="checkbox"
+            checked={reverse}
+            onChange={e => setReverse(e.target.checked)}
+          />
+          Reverse Color Ramp
+        </label>
       </div>
     </div>
   );

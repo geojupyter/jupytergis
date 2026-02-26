@@ -9,7 +9,7 @@ import {
   VectorSymbologyParams,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { ColorRampName } from '../../colorRampUtils';
+import { ColorRampName } from '@/src/types';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
@@ -105,17 +105,9 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
         <ColorRampSelector
           selectedRamp={selectedRamp}
           setSelected={setSelectedRamp}
+          reverse={reverseRamp}
+          setReverse={setReverseRamp}
         />
-      </div>
-      <div className="jp-gis-symbology-row">
-        <label>
-          <input
-            type="checkbox"
-            checked={reverseRamp}
-            onChange={e => setReverseRamp(e.target.checked)}
-          />
-          Reverse Color Ramp
-        </label>
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Radius:</label>

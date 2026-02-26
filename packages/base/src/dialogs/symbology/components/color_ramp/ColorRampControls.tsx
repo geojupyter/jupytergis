@@ -21,11 +21,15 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
+import {
+  COLOR_RAMP_DEFINITIONS,
+  COLOR_RAMP_DEFAULTS,
+} from '@/src/dialogs/symbology/colorRamps';
 import { LoadingIcon } from '@/src/shared/components/loading';
-import { ClassificationMode } from '@/src/types';
+import { ColorRampName, ClassificationMode } from '@/src/types';
 import ColorRampSelector from './ColorRampSelector';
+import { ColorRampValueControls } from './ColorRampValueControls';
 import ModeSelectRow from './ModeSelectRow';
-import { COLOR_RAMP_DEFAULTS, ColorRampName } from '../../colorRampUtils';
 
 interface IColorRampControlsProps {
   modeOptions: ClassificationMode[];
@@ -34,16 +38,32 @@ interface IColorRampControlsProps {
     selectedMode: ClassificationMode,
     numberOfShades: number,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
+  renderType:
+    | 'Graduated'
+    | 'Categorized'
+    | 'Heatmap'
+    | 'Singleband Pseudocolor';
+  dataMin?: number;
+  dataMax?: number;
 }
 
 export type ColorRampControlsOptions = {
   selectedRamp: ColorRampName;
   numberOfShades: number;
   selectedMode: ClassificationMode;
+  minValue: number;
+  maxValue: number;
+  criticalValue?: number;
+  reverseRamp: boolean;
+  dataMin?: number;
+  dataMax?: number;
 };
 
 const isValidNumberOfShades = (value: number) => !isNaN(value) && value > 0;
@@ -54,23 +74,28 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   classifyFunc,
   showModeRow,
   showRampSelector,
+  renderType,
+  dataMin,
+  dataMax,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
+  const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [selectedMode, setSelectedMode] =
     useState<ClassificationMode>('equal interval');
   const [numberOfShades, setNumberOfShades] = useState<number>(9);
+  const [minValue, setMinValue] = useState<number | undefined>(dataMin);
+  const [maxValue, setMaxValue] = useState<number | undefined>(dataMax);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
-    if (layerParams.symbologyState) {
-      populateOptions();
-    }
-  }, [
-    layerParams.symbologyState.nClasses,
-    layerParams.symbologyState.mode,
-    layerParams.symbologyState.colorRamp,
-  ]);
+    initializeState();
+  }, []);
+
+  useEffect(() => {
+    setMinValue(layerParams.symbologyState?.min ?? dataMin);
+    setMaxValue(layerParams.symbologyState?.max ?? dataMax);
+  }, [dataMin, dataMax]);
 
   useEffect(() => {
     if (!selectedRamp) {
@@ -103,12 +128,21 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
       setWarning(null);
     }
   }, [selectedRamp, numberOfShades]);
-  const populateOptions = () => {
-    const { nClasses, mode, colorRamp } = layerParams.symbologyState ?? {};
+  const initializeState = () => {
+    const { nClasses, mode, colorRamp, reverseRamp } =
+      layerParams.symbologyState ?? {};
     setNumberOfShades(Number(nClasses ?? 9));
     setSelectedMode((mode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp((colorRamp as ColorRampName) ?? 'viridis');
+    setReverseRamp(reverseRamp ?? false);
   };
+
+  const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
+
+  if (rampDef === undefined) {
+    // Typeguard: This should never happen
+    return;
+  }
 
   return (
     <div className="jp-gis-color-ramp-container">
@@ -118,9 +152,24 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
           <ColorRampSelector
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
+            reverse={reverseRamp}
+            setReverse={setReverseRamp}
           />
         </div>
       )}
+
+      <ColorRampValueControls
+        selectedMin={minValue}
+        setSelectedMin={setMinValue}
+        selectedMax={maxValue}
+        setSelectedMax={setMaxValue}
+        rampDef={rampDef}
+        dataMin={dataMin}
+        dataMax={dataMax}
+        renderType={renderType}
+        selectedMode={selectedMode}
+      />
+
       {showModeRow && (
         <ModeSelectRow
           modeOptions={modeOptions}
@@ -144,16 +193,26 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
           disabled={
-            !isValidNumberOfShades(numberOfShades) || !selectedMode || !!warning
+            !isValidNumberOfShades(numberOfShades) ||
+            !selectedMode ||
+            minValue === undefined ||
+            maxValue === undefined ||
+            !!warning
           }
-          onClick={() =>
+          onClick={() => {
+            if (minValue === undefined || maxValue === undefined) {
+              return;
+            }
             classifyFunc(
               selectedMode,
               numberOfShades,
               selectedRamp,
+              reverseRamp,
               setIsLoading,
-            )
-          }
+              minValue,
+              maxValue,
+            );
+          }}
         >
           Classify
         </Button>
