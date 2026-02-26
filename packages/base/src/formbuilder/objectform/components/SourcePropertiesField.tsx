@@ -1,28 +1,18 @@
-import {
-  IDict,
-  IJGISFormSchemaRegistry,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
-import type { IDocumentManager } from '@jupyterlab/docmanager';
+import { IDict, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
 import { deepCopy, extractLayerOverrideIndex } from '@/src/tools';
 import { getSourceTypeForm } from '../../formselectors';
-import type { ISourceFormProps } from '../source/sourceform';
+import type { IJupyterGISFormContext } from '../baseform';
 
 /**
  * RJSF custom field for layerOverride[].sourceProperties: renders the
  * appropriate source form for the target layer's source type.
  */
 export function SourcePropertiesField(props: FieldProps): React.ReactElement {
-  const context = props.formContext as
-    | {
-        docManager?: IDocumentManager;
-        formData?: IStorySegmentLayer;
-        formSchemaRegistry?: IJGISFormSchemaRegistry;
-      }
-    | undefined;
+  const context =
+    props.formContext as IJupyterGISFormContext<IStorySegmentLayer>;
   const fullFormData = context?.formData;
   const formSchemaRegistry = context?.formSchemaRegistry;
   const docManager = context?.docManager;
@@ -44,22 +34,19 @@ export function SourcePropertiesField(props: FieldProps): React.ReactElement {
 
   const SourceForm = getSourceTypeForm(source?.type ?? 'GeoJSONSource');
 
-  const formProps: ISourceFormProps = {
-    formContext: 'update',
-    model: model,
-    filePath: model?.filePath,
-    schema: sourceSchema,
-    sourceData: sourceProperties ?? undefined,
-    syncData: (properties: IDict) => {
-      props.onChange(properties);
-    },
-    sourceType: source?.type ?? 'GeoJSONSource',
-    docManager,
-  };
   return (
     <>
       <div id="jgis-source-properties-field">Source Parameters</div>
-      <SourceForm {...formProps} />
+      <SourceForm
+        formContext="update"
+        model={model}
+        filePath={model?.filePath}
+        schema={sourceSchema}
+        sourceData={sourceProperties ?? undefined}
+        syncData={(properties: IDict) => props.onChange(properties)}
+        sourceType={source?.type ?? 'GeoJSONSource'}
+        docManager={docManager}
+      />
     </>
   );
 }

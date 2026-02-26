@@ -1,7 +1,8 @@
-import { extractLayerOverrideIndex } from '@/src/tools';
 import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/utils';
 import React from 'react';
+
+import { extractLayerOverrideIndex } from '@/src/tools';
 
 interface ILayerSelectFormContext {
   model?: IJupyterGISModel;

@@ -410,7 +410,6 @@ const StoryViewerPanel = forwardRef<
           if (visible !== undefined) {
             targetLayer.visible = visible;
           }
-          // Apply source-level overrides for this segment (display only; no trigger yet)
           if (
             sourceProperties !== undefined &&
             Object.keys(sourceProperties).length > 0
