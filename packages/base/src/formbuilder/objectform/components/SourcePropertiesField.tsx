@@ -7,18 +7,9 @@ import type { IDocumentManager } from '@jupyterlab/docmanager';
 import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
-import { deepCopy } from '@/src/tools';
+import { deepCopy, extractLayerOverrideIndex } from '@/src/tools';
 import { getSourceTypeForm } from '../../formselectors';
 import type { ISourceFormProps } from '../source/sourceform';
-
-// ! TODO extract this - also used in layerselect
-function extractLayerOverrideIndex(idSchema: {
-  $id?: string;
-}): number | undefined {
-  const id = idSchema?.$id ?? '';
-  const match = id.match(/layerOverride_(\d+)/);
-  return match ? parseInt(match[1], 10) : undefined;
-}
 
 /**
  * RJSF custom field for layerOverride[].sourceProperties: renders the
