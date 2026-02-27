@@ -256,6 +256,7 @@ class GISDocument(CommWidget):
         path: str | Path | None = None,
         data: Dict | None = None,
         name: str = "GeoJSON Layer",
+        type: "points" | "polygons" | "lines" = "points",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
@@ -269,6 +270,7 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document.
         :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
+        :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
         """
@@ -312,6 +314,7 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
+                "type": type,
                 "color": color_expr,
                 "opacity": opacity,
                 "symbologyState": {
