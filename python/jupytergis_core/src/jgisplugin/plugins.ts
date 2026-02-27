@@ -157,6 +157,22 @@ const activate = async (
 
   app.commands.addCommand(CommandIDs.createNew, {
     label: args => (args['label'] as string) ?? 'GIS Project',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          label: {
+            type: 'string',
+            description: 'The label for the file creation command',
+          },
+          cwd: {
+            type: 'string',
+            description:
+              'The current working directory where the file should be created',
+          },
+        },
+      },
+    },
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {
@@ -211,22 +227,22 @@ const activate = async (
 
     // Layers and Sources
     palette.addItem({
-      command: CommandIDs.newRasterEntry,
+      command: CommandIDs.openNewRasterDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newVectorTileEntry,
+      command: CommandIDs.openNewVectorTileDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newGeoJSONEntry,
+      command: CommandIDs.openNewGeoJSONDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newHillshadeEntry,
+      command: CommandIDs.openNewHillshadeDialog,
       category: 'JupyterGIS',
     });
 
