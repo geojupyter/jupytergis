@@ -49,6 +49,7 @@ export const selectCompleter = 'jupytergis:selectConsoleCompleter';
 export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
 export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
+export const openAttributeTable = 'jupytergis:openAttributeTable';
 
 // Panel toggles
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';

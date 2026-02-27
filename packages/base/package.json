@@ -87,6 +87,7 @@
     "proj4-list": "1.0.4",
     "radix-ui": "^1.4.3",
     "react": "^18.0.1",
+    "react-data-grid": "^7.0.0-beta.57",
     "react-day-picker": "^9.7.0",
     "react-markdown": "^10.1.0",
     "shpjs": "^6.1.0",
