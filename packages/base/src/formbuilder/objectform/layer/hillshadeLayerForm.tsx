@@ -1,6 +1,6 @@
 import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { deepCopy } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
@@ -8,7 +8,7 @@ import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ILayerProps } from './layerform';
 
-export function WebGlLayerPropertiesForm(
+export function HillshadeLayerPropertiesForm(
   props: ILayerProps,
 ): React.ReactElement | null {
   const {
@@ -46,8 +46,6 @@ export function WebGlLayerPropertiesForm(
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
 
-    removeFormEntry('color', dataCopy, schema, builtUiSchema);
-    removeFormEntry('symbologyState', dataCopy, schema, builtUiSchema);
     processBaseSchema(
       dataCopy,
       schema,
@@ -58,22 +56,15 @@ export function WebGlLayerPropertiesForm(
 
     if (schema.properties?.source) {
       const availableSources = model.getSourcesByType(sourceType);
-
       (schema.properties.source as IDict).enumNames =
         Object.values(availableSources);
       (schema.properties.source as IDict).enum = Object.keys(availableSources);
     }
 
+    builtUiSchema.shadowColor = { 'ui:widget': 'color' };
+
     return builtUiSchema;
   }, [schema, formData, formContext, model, sourceType]);
-
-  const handleSubmit = useCallback(
-    (data: IDict) => {
-      const submitted = { ...data, symbologyState: {} };
-      handleSubmitBase(submitted);
-    },
-    [handleSubmitBase],
-  );
 
   if (!hasSchema) {
     return null;
@@ -84,7 +75,7 @@ export function WebGlLayerPropertiesForm(
       schema={schema}
       formData={formData}
       onChange={handleChangeBase}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmitBase}
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
