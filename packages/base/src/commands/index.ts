@@ -1161,9 +1161,7 @@ export function addCommands(
         return false;
       }
 
-      const isSpecta = model.isSpectaMode();
-
-      if (!isSpecta) {
+      if (!model.isSpectaMode()) {
         return false;
       }
 
