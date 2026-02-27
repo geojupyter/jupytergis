@@ -32,7 +32,8 @@ export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
     // Customize the widget for urls
     if (schema.properties && schema.properties.urls) {
       const docManager =
-        this.props.formChangedSignal?.sender.props.formSchemaRegistry.getDocManager();
+        this.props.docManager ??
+        this.props.formChangedSignal?.sender?.props?.formSchemaRegistry?.getDocManager();
 
       uiSchema.urls = {
         ...uiSchema.urls,

@@ -58,6 +58,7 @@
     },
     "urlParameters": {
       "type": "object",
+      "title": "URL parameters",
       "additionalProperties": {
         "type": "string"
       },
@@ -65,6 +66,7 @@
     },
     "interpolate": {
       "type": "boolean",
+      "title": "Interpolate",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
     }

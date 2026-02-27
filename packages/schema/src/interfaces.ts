@@ -250,6 +250,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
+  getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
   getSourcesByType(type: SourceType): { [key: string]: string };
@@ -299,7 +300,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;
   addFeatureAsMs(id: string, selectedFeature: string): void;
-  triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
+  triggerLayerUpdate(layerId: string, layer: IJGISLayer | IJGISSource): void;
 
   disposed: ISignal<any, void>;
   getSelectedStory(): {

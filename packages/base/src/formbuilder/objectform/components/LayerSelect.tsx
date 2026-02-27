@@ -2,13 +2,7 @@ import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/utils';
 import React from 'react';
 
-function extractlayerOverrideIndex(idSchema: {
-  $id?: string;
-}): number | undefined {
-  const id = idSchema?.$id ?? '';
-  const match = id.match(/layerOverride_(\d+)/);
-  return match ? parseInt(match[1], 10) : undefined;
-}
+import { extractLayerOverrideIndex } from '@/src/tools';
 
 interface ILayerSelectFormContext {
   model?: IJupyterGISModel;
@@ -25,7 +19,7 @@ export function LayerSelect(props: FieldProps) {
   const model = context?.model;
   const fullFormData = context?.formData ?? (formData as IStorySegmentLayer);
 
-  const arrayIndex = extractlayerOverrideIndex(idSchema ?? {});
+  const arrayIndex = extractLayerOverrideIndex(idSchema ?? {});
   const value =
     arrayIndex !== undefined && fullFormData?.layerOverride?.[arrayIndex]
       ? (fullFormData.layerOverride[arrayIndex].targetLayer ?? '')
