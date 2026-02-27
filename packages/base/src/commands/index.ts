@@ -111,6 +111,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
+    caption: 'Open the symbology editor for the currently selected layer.',
     describedBy: {
       args: {
         type: 'object',
@@ -155,6 +156,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
+    caption: 'Redo the last undone operation in the specified JupyterGIS document. If filePath is omitted, use the active document.',
     describedBy: {
       args: {
         type: 'object',
@@ -188,6 +190,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.undo, {
     label: trans.__('Undo'),
+    caption: 'Undo the last operation in the specified JupyterGIS document. If filePath is omitted, use the active document.',
     describedBy: {
       args: {
         type: 'object',
@@ -222,6 +225,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
+    caption: 'Toggle identify mode for the selected vector-compatible layer in the specified JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -313,6 +317,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.temporalController, {
     label: trans.__('Temporal Controller'),
+    caption: 'Toggle the temporal controller for the selected vector or heatmap layer in the specified JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -382,6 +387,7 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.openLayerBrowser, {
     label: trans.__('Open Layer Browser'),
+    caption: 'Open the layer browser dialog to browse and add available layers to the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -406,6 +412,7 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.openNewRasterDialog, {
     label: trans.__('Open New Raster Tile Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new raster tile layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -436,6 +443,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewVectorTileDialog, {
     label: trans.__('Open New Vector Tile Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new vector tile layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -463,6 +471,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewGeoParquetDialog, {
     label: trans.__('Open New GeoParquet Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new GeoParquet layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -490,6 +499,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewGeoJSONDialog, {
     label: trans.__('Open New GeoJSON Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new GeoJSON layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -527,6 +537,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
     label: trans.__('Open New Hillshade Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new hillshade layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -553,6 +564,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewImageDialog, {
     label: trans.__('Open New Image Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new image layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -589,6 +601,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewVideoDialog, {
     label: trans.__('Open New Video Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new video layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -628,6 +641,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
     label: trans.__('Open New GeoTiff Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new GeoTiff layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -658,6 +672,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.openNewShapefileDialog, {
     label: trans.__('Open New Shapefile Layer Creation Dialog'),
+    caption: 'Open a dialog to create a new shapefile layer and source in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -729,6 +744,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.moveLayersToGroup, {
     label: args =>
       args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
+    caption: `Group layers together in a new group with name "groupName" for the JupyterGIS document "filepath"`,
     describedBy: {
       args: {
         type: 'object',
@@ -778,6 +794,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
     label: trans.__('Move Selected Layers to New Group'),
+    caption: 'Move selected layers to a new group in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -902,6 +919,7 @@ export function addCommands(
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
+    caption: 'Toggle the console in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -929,6 +947,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
+    caption: 'Execute the console in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -946,6 +965,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
+    caption: 'Remove the console from the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -963,6 +983,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.invokeCompleter, {
     label: trans.__('Display the completion helper.'),
+    caption: 'Display the completion helper in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -988,6 +1009,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.selectCompleter, {
     label: trans.__('Select the completion suggestion.'),
+    caption: 'Select the completion suggestion in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1013,6 +1035,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.zoomToLayer, {
     label: trans.__('Zoom to Layer'),
+    caption: 'Zoom to the selected layer in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1056,6 +1079,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.downloadGeoJSON, {
     label: trans.__('Download as GeoJSON'),
+    caption: 'Download the selected layer as a GeoJSON file in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1170,6 +1194,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.getGeolocation, {
     label: trans.__('Center on Geolocation'),
+    caption: 'Center the map on the user\'s current geolocation.',
     describedBy: {
       args: {
         type: 'object',
@@ -1226,6 +1251,7 @@ export function addCommands(
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Toggle Left Panel'),
+    caption: 'Toggle the left panel in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1259,6 +1285,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleRightPanel, {
     label: trans.__('Toggle Right Panel'),
+    caption: 'Toggle the right panel in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1293,6 +1320,7 @@ export function addCommands(
   // Left panel tabs
   commands.addCommand(CommandIDs.showLayersTab, {
     label: trans.__('Show Layers Tab'),
+    caption: 'Show the layers tab in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1321,6 +1349,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showStacBrowserTab, {
     label: trans.__('Show STAC Browser Tab'),
+    caption: 'Show the STAC browser tab in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1349,6 +1378,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showFiltersTab, {
     label: trans.__('Show Filters Tab'),
+    caption: 'Show the filters tab in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1378,6 +1408,7 @@ export function addCommands(
   // Right panel tabs
   commands.addCommand(CommandIDs.showObjectPropertiesTab, {
     label: trans.__('Show Object Properties Tab'),
+    caption: 'Show the object properties tab in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1406,6 +1437,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
+    caption: 'Show the annotations tab in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1434,6 +1466,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showIdentifyPanelTab, {
     label: trans.__('Show Identify Panel Tab'),
+    caption: 'Show the identify panel tab in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
