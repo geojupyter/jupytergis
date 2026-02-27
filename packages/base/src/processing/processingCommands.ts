@@ -1,8 +1,6 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
-  ProcessingMerge,
-  ProcessingLogicType,
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -10,6 +8,11 @@ import { CommandRegistry } from '@lumino/commands';
 
 import { selectedLayerIsOfType, processSelectedLayer } from './index';
 import { JupyterGISTracker } from '../types';
+
+import {
+  forEachVectorProcessing,
+  buildGeoJsonSqlOptions,
+} from './processingVectorShared';
 
 export function replaceInSql(
   sql: string,
@@ -47,47 +50,34 @@ export function addProcessingCommands(
   trans: any,
   formSchemaRegistry: IJGISFormSchemaRegistry,
 ) {
-  for (const processingElement of ProcessingMerge) {
-    if (processingElement.type === ProcessingLogicType.vector) {
-      commands.addCommand(processingElement.name, {
-        label: trans.__(processingElement.label),
-        describedBy: {
-          args: {
-            type: 'object',
-            properties: {},
+  forEachVectorProcessing(processingElement => {
+    commands.addCommand(processingElement.name, {
+      label: trans.__(processingElement.label),
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+      execute: async () => {
+        await processSelectedLayer(
+          tracker,
+          formSchemaRegistry,
+          processingElement.description as ProcessingType,
+          {
+            sqlQueryFn: (layerName, keyToVal) =>
+              replaceInSql(
+                processingElement.operations.sql,
+                keyToVal,
+                layerName,
+              ),
+            gdalFunction: processingElement.operations.gdalFunction,
+            options: buildGeoJsonSqlOptions,
           },
-        },
-        isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
-        execute: async () => {
-          await processSelectedLayer(
-            tracker,
-            formSchemaRegistry,
-            processingElement.description as ProcessingType,
-            {
-              sqlQueryFn: (layerName, keyToVal) =>
-                replaceInSql(
-                  processingElement.operations.sql,
-                  keyToVal,
-                  layerName,
-                ),
-              gdalFunction: processingElement.operations.gdalFunction,
-              options: (sqlQuery: string) => [
-                '-f',
-                'GeoJSON',
-                '-dialect',
-                'SQLITE',
-                '-sql',
-                sqlQuery,
-                'output.geojson',
-              ],
-            },
-            app,
-          );
-        },
-      });
-    } else {
-      console.error('Unsupported process type');
-      return;
-    }
-  }
+          app,
+        );
+      },
+    });
+  });
 }

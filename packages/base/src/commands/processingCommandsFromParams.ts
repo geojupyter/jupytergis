@@ -1,19 +1,19 @@
 import {
   IJGISFormSchemaRegistry,
-  ProcessingLogicType,
   ProcessingType,
-  ProcessingMerge,
-  IJGISLayer,
-  IJGISSource,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
-import { UUID } from '@lumino/coreutils';
 
 import { getGdal } from '../gdal';
-import { getLayerGeoJSON } from '../processing';
+import { getLayerGeoJSON, executeSQLProcessing } from '../processing';
 import { replaceInSql } from '../processing/processingCommands';
 import { JupyterGISTracker } from '../types';
+
+import {
+  forEachVectorProcessing,
+  buildGeoJsonSqlOptions,
+} from '../processing/processingVectorShared';
 
 /**
  * Execute processing directly from params (no UI dialogs).
@@ -61,28 +61,17 @@ async function processLayerFromParams(
   const sqlQuery = options.sqlQueryFn(layerName, params);
   const fullOptions = options.gdalOptions(sqlQuery);
 
-  const outputFilePath = await Gdal.ogr2ogr(dataset, fullOptions);
-  const processedBytes = await Gdal.getFileBytes(outputFilePath);
-  Gdal.close(dataset);
-
-  const processedGeoJSON = JSON.parse(new TextDecoder().decode(processedBytes));
-  const newSourceId = UUID.uuid4();
-
-  const sourceModel: IJGISSource = {
-    type: 'GeoJSONSource',
-    name: `${processingType} Output`,
-    parameters: { data: processedGeoJSON },
-  };
-
-  const layerModel: IJGISLayer = {
-    type: 'VectorLayer',
-    name: `${processingType} Layer`,
-    visible: true,
-    parameters: { source: newSourceId },
-  };
-
-  model.sharedModel.addSource(newSourceId, sourceModel);
-  model.addLayer(UUID.uuid4(), layerModel);
+  await executeSQLProcessing(
+    model,
+    geojsonString,
+    options.gdalFunction,
+    fullOptions,
+    processingType,
+    processingType,
+    true,
+    tracker,
+    app,
+  );
 }
 
 /**
@@ -98,18 +87,12 @@ export function addProcessingCommandsFromParams(options: {
 }): void {
   const { app, commands, tracker, trans, processingSchemas } = options;
 
-  for (const proc of ProcessingMerge) {
-    if (proc.type !== ProcessingLogicType.vector) {
-      continue;
-    }
-
+  forEachVectorProcessing(proc => {
     const schemaKey = Object.keys(processingSchemas).find(
       k => k.toLowerCase() === proc.name.toLowerCase(),
     );
     const schema = schemaKey ? processingSchemas[schemaKey] : undefined;
-    if (!schema) {
-      continue;
-    }
+    if (!schema) return;
 
     const commandId = `${proc.name}WithParams`;
 
@@ -141,15 +124,7 @@ export function addProcessingCommandsFromParams(options: {
             sqlQueryFn: (layer, p) =>
               replaceInSql(proc.operations.sql, p, layer),
             gdalFunction: 'ogr2ogr',
-            gdalOptions: (sql: string) => [
-              '-f',
-              'GeoJSON',
-              '-dialect',
-              'SQLITE',
-              '-sql',
-              sql,
-              'output.geojson',
-            ],
+            gdalOptions: buildGeoJsonSqlOptions,
           },
           app,
           filePath,
@@ -157,5 +132,5 @@ export function addProcessingCommandsFromParams(options: {
         );
       }) as any,
     });
-  }
+  });
 }
