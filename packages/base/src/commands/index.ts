@@ -743,7 +743,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.moveLayersToGroup, {
     label: args =>
-      args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
+      args['label'] ? (args['label'] as string) : trans.__('Move to Group'),
     caption: `Group layers together in a new group with name "groupName" for the JupyterGIS document "filepath"`,
     describedBy: {
       args: {
