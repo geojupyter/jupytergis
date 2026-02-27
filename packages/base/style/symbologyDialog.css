@@ -191,7 +191,7 @@ select option {
 }
 
 .jp-gis-color-ramp-entry:not(.jp-gis-selected-entry):hover .jp-gis-color-label {
-  transform: scale(1.2);
+  transform: translateX(6px);
 }
 
 .jp-gis-color-canvas {
