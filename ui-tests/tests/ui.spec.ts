@@ -70,3 +70,31 @@ test.describe('UI Test', () => {
     }
   });
 });
+
+test.describe('Console activation test', () => {
+  test.beforeAll(async ({ request }) => {
+    const content = galata.newContentsHelper(request);
+    await content.deleteDirectory('/testDir');
+    await content.uploadDirectory(
+      path.resolve(__dirname, './gis-files'),
+      '/testDir'
+    );
+  });
+
+  test('should open console', async ({ page }) => {
+    await page.goto();
+    await page.sidebar.close('right');
+    await page.sidebar.close('left');
+    await page.getByLabel('notebook content').getByText('GIS File').click();
+    await page.getByRole('button', { name: 'Toggle console' }).click();
+    await page.getByRole('button', { name: 'Remove console' });
+
+    const main = await page.locator('#jp-main-dock-panel');
+
+    if (main) {
+      expect(await main.screenshot()).toMatchSnapshot({
+        name: `JGIS-Console.png`
+      });
+    }
+  });
+});
