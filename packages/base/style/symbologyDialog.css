@@ -23,7 +23,7 @@ select option {
 
 .jp-gis-symbology-row label {
   font-size: var(--jp-ui-font-size2);
-  flex: 0 1 20%;
+  flex: 0 1 auto;
 }
 
 .jp-gis-symbology-row > .jp-select-wrapper,

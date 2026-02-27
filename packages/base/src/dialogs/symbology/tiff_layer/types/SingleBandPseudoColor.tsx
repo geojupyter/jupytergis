@@ -245,6 +245,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           ? String(colorRampOptionsRef.current.numberOfShades)
           : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
     } as IWebGlLayer['symbologyState'];
 
     if (!isStorySegmentOverride) {
@@ -301,6 +302,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     selectedMode: ClassificationMode,
     numberOfShades: number,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     // Update layer state with selected options
@@ -308,6 +310,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       selectedRamp,
       numberOfShades,
       selectedMode,
+      reverseRamp,
     });
 
     let stops: number[] = [];
@@ -353,6 +356,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       stops,
       selectedRamp,
       nClasses,
+      reverseRamp,
     );
 
     setStopRows(valueColorPairs);

@@ -34,6 +34,7 @@ interface IColorRampControlsProps {
     selectedMode: ClassificationMode,
     numberOfShades: number,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
   ) => void;
   showModeRow: boolean;
@@ -44,6 +45,7 @@ export type ColorRampControlsOptions = {
   selectedRamp: ColorRampName;
   numberOfShades: number;
   selectedMode: ClassificationMode;
+  reverseRamp: boolean;
 };
 
 const isValidNumberOfShades = (value: number) => !isNaN(value) && value > 0;
@@ -60,6 +62,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     useState<ClassificationMode>('equal interval');
   const [numberOfShades, setNumberOfShades] = useState<number>(9);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
@@ -104,10 +107,12 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     }
   }, [selectedRamp, numberOfShades]);
   const populateOptions = () => {
-    const { nClasses, mode, colorRamp } = layerParams.symbologyState ?? {};
+    const { nClasses, mode, colorRamp, reverseRamp } =
+      layerParams.symbologyState ?? {};
     setNumberOfShades(Number(nClasses ?? 9));
     setSelectedMode((mode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp((colorRamp as ColorRampName) ?? 'viridis');
+    setReverseRamp(Boolean(reverseRamp ?? false));
   };
 
   return (
@@ -118,6 +123,8 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
           <ColorRampSelector
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
+            reverse={reverseRamp}
+            setReverse={setReverseRamp}
           />
         </div>
       )}
@@ -151,6 +158,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
               selectedMode,
               numberOfShades,
               selectedRamp,
+              reverseRamp,
               setIsLoading,
             )
           }
