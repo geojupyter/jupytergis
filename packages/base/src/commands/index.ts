@@ -1145,6 +1145,72 @@ export function addCommands(
     ...icons.get(CommandIDs.toggleStoryPresentationMode),
   });
 
+  /* Needs to be enabled in Specta mode, so add without Specta-aware wrapper */
+  originalAddCommand(CommandIDs.storyPrev, {
+    label: trans.__('Previous Story Segment'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const storySegments = model?.getSelectedStory().story?.storySegments;
+
+      if (
+        !model ||
+        model.jgisSettings.storyMapsDisabled ||
+        !storySegments ||
+        storySegments.length < 1
+      ) {
+        return false;
+      }
+
+      if (!model.isSpectaMode()) {
+        return false;
+      }
+
+      return model.getCurrentSegmentIndex() > 0;
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return;
+      }
+      const current = model.getCurrentSegmentIndex() ?? 0;
+      model.setCurrentSegmentIndex(current - 1);
+    },
+  });
+
+  originalAddCommand(CommandIDs.storyNext, {
+    label: trans.__('Next Story Segment'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const storySegments = model?.getSelectedStory().story?.storySegments;
+
+      if (
+        !model ||
+        model.jgisSettings.storyMapsDisabled ||
+        !storySegments ||
+        storySegments.length < 1
+      ) {
+        return false;
+      }
+
+      const isSpecta = model.isSpectaMode();
+      if (!isSpecta) {
+        return false;
+      }
+
+      const current = model.getCurrentSegmentIndex() ?? 0;
+
+      return current < storySegments.length - 1;
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return;
+      }
+      const current = model.getCurrentSegmentIndex() ?? 0;
+      model.setCurrentSegmentIndex(current + 1);
+    },
+  });
+
   loadKeybindings(commands, keybindings);
 }
 
