@@ -70,7 +70,7 @@ jobs:
           yarn build:packages
 
       - name: Upload extension packages
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}
           path: |
@@ -173,7 +173,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: extension-artifacts
 
@@ -215,7 +215,7 @@ jobs:
             qgis
 
       - name: Download extension package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: extension-artifacts
 
@@ -241,7 +241,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: jupytergis-playwright-tests
           path: |
@@ -318,7 +318,7 @@ jobs:
             specta
 
       - name: Download extension package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: extension-artifacts
 
@@ -345,7 +345,7 @@ jobs:
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: lite-artifacts
           path: ./lite/dist
@@ -373,7 +373,7 @@ jobs:
             jupyterlab
 
       - name: Download extension package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: lite-artifacts
           path: dist
@@ -405,7 +405,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: jupytergis-lite-playwright-tests
           path: |
