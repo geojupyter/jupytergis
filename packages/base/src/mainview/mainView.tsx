@@ -118,13 +118,13 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 import { MobileSpectaPanel } from '../panelview/story-maps/MobileSpectaPanel';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
 } from '../panelview/story-maps/StoryViewerPanel';
+import SpectaPresentationProgressBar from '../statusbar/SpectaPresentationProgressBar';
 
 type OlLayerTypes =
   | TileLayer
@@ -160,6 +160,7 @@ interface IStates {
   filterStates: IDict<IJGISFilterItem | undefined>;
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
+  initialLayersReady: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -262,6 +263,7 @@ export class MainView extends React.Component<IProps, IStates> {
       filterStates: {},
       jgisSettings: this._model.jgisSettings,
       isSpectaPresentation: this._model.isSpectaMode(),
+      initialLayersReady: false,
     };
 
     this._sources = [];
@@ -329,6 +331,12 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   async generateMap(center: number[], zoom: number): Promise<void> {
+    const layers = this._model.getLayers();
+
+    this._initialLayersCount = Object.values(layers).filter(
+      layer => layer.type !== 'StorySegmentLayer',
+    ).length;
+
     const scaleLine = new ScaleLine({
       target: this.controlsToolbarRef.current || undefined,
     });
@@ -1274,6 +1282,14 @@ export class MainView extends React.Component<IProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+
+        // doing +1 instead of calling method again
+        if (
+          !this.state.initialLayersReady &&
+          numLayers + 1 === this._initialLayersCount
+        ) {
+          this.setState(old => ({ ...old, initialLayersReady: true }));
+        }
       }
     } catch (error: any) {
       if (
@@ -2097,11 +2113,7 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   private _setupSpectaMode = (): void => {
     this._removeAllInteractions();
-
     this._setupStoryScrollListener();
-
-    // Update colors CSS variables with colors from story
-    this._updateSpectaPresentationColors();
   };
 
   private _removeAllInteractions = (): void => {
@@ -2229,37 +2241,6 @@ export class MainView extends React.Component<IProps, IStates> {
         containerElement.removeEventListener('wheel', this._storyScrollHandler);
       }
       this._storyScrollHandler = null;
-    }
-  };
-
-  private _updateSpectaPresentationColors = (): void => {
-    // Try ref first, fallback to querySelector if ref not available yet
-    const container =
-      this.spectaContainerRef.current ||
-      (this.divRef.current?.querySelector(
-        '.jgis-specta-story-panel-container',
-      ) as HTMLDivElement);
-
-    if (!container) {
-      return;
-    }
-
-    const story = this._model.getSelectedStory().story;
-    const bgColor = story?.presentationBgColor;
-    const textColor = story?.presentationTextColor;
-
-    // Set background color
-    if (bgColor) {
-      const rgb = hexToRgb(bgColor);
-      container.style.setProperty(
-        '--jgis-specta-bg-color',
-        `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
-      );
-    }
-
-    // Set text color
-    if (textColor) {
-      container.style.setProperty('--jgis-specta-text-color', textColor);
     }
   };
 
@@ -2674,7 +2655,6 @@ export class MainView extends React.Component<IProps, IStates> {
     const json = JSON.parse(args);
     const { layerId, layer: jgisLayer } = json;
     const olLayer = this.getLayer(layerId);
-
     if (!jgisLayer || !olLayer) {
       console.error('Failed to update layer -- layer not found');
       return;
@@ -2801,25 +2781,31 @@ export class MainView extends React.Component<IProps, IStates> {
                       />
                     )}
                   </>
-                ) : this.props.isMobile ? (
-                  <MobileSpectaPanel model={this._model} />
                 ) : (
-                  <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
-                    <div
-                      ref={this.spectaContainerRef}
-                      className="jgis-specta-story-panel-container"
-                    >
-                      <StoryViewerPanel
-                        ref={this.storyViewerPanelRef}
-                        model={this._model}
-                        isSpecta={this.state.isSpectaPresentation}
-                        className="jgis-story-viewer-panel-specta-mod"
-                        onSegmentTransitionEnd={() =>
-                          this._clearStoryScrollGuard()
-                        }
-                      />
-                    </div>
-                  </div>
+                  this.state.initialLayersReady &&
+                  (this.props.isMobile ? (
+                    <MobileSpectaPanel model={this._model} />
+                  ) : (
+                    <>
+                      <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
+                        <div
+                          ref={this.spectaContainerRef}
+                          className="jgis-specta-story-panel-container"
+                        >
+                          <StoryViewerPanel
+                            ref={this.storyViewerPanelRef}
+                            model={this._model}
+                            isSpecta={this.state.isSpectaPresentation}
+                            className="jgis-story-viewer-panel-specta-mod"
+                            onSegmentTransitionEnd={() =>
+                              this._clearStoryScrollGuard()
+                            }
+                          />
+                        </div>
+                      </div>
+                      <SpectaPresentationProgressBar model={this._model} />
+                    </>
+                  ))
                 )}
               </div>
               <div
@@ -2869,6 +2855,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
+  private _initialLayersCount: number;
 }
 
 // ! TODO make mainview a modern react component instead of a class

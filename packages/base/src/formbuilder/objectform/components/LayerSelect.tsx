@@ -51,7 +51,8 @@ export function LayerSelect(props: FieldProps) {
 
   const availableLayers = model.getLayers();
   const optionsList = Object.entries(availableLayers).filter(
-    ([layerId]) => !usedTargetLayerIds.has(layerId),
+    ([layerId, layer]) =>
+      !usedTargetLayerIds.has(layerId) && layer.type !== 'StorySegmentLayer',
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

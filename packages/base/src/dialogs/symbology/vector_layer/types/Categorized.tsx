@@ -43,7 +43,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     radius: 5,
   });
   const manualStyleRef = useLatest(manualStyle);
-  const [reverseRamp, setReverseRamp] = useState(false);
   const selectedAttributeRef = useLatest(selectedAttribute);
   const stopRowsRef = useLatest(stopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
@@ -116,6 +115,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     selectedMode: ClassificationMode,
     numberOfShades: number,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     setColorRampOptions({
@@ -123,6 +123,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedRamp,
       numberOfShades,
       selectedMode,
+      reverseRamp,
     });
 
     const stops = Array.from(
@@ -174,7 +175,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       method: symbologyTab,
-      reverse: reverseRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
     } as IVectorLayer['symbologyState'];
 
     saveSymbology({
@@ -309,19 +310,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               </div>
             )}
           </div>
-
-          {symbologyTab === 'color' && (
-            <div className="jp-gis-symbology-row">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={reverseRamp}
-                  onChange={e => setReverseRamp(e.target.checked)}
-                />
-                Reverse Color Ramp
-              </label>
-            </div>
-          )}
 
           <div className="jp-gis-layer-symbology-container">
             //! only needs symbology state

@@ -10,6 +10,7 @@
 @import url('./filterPanel.css');
 @import url('./symbologyDialog.css');
 @import url('./statusBar.css');
+@import url('./spectaProgressBar.css');
 @import url('./temporalSlider.css');
 @import url('./tabPanel.css');
 @import url('./stacBrowser.css');
@@ -141,7 +142,7 @@ button.jp-mod-styled.jp-mod-reject {
   gap: 0.5rem;
   position: absolute;
   bottom: 0.125rem;
-  z-index: 1000;
+  z-index: 1;
   padding: 0 0.125rem;
 }
 

@@ -1,0 +1,144 @@
+/* Specta presentation progress bar (segment stepper) */
+
+:root {
+  --jgis-specta-dot-fill-outer: var(--jp-accent-color0);
+  --jgis-specta-dot-fill-inner: var(--jp-accent-color3);
+  --jgis-specta-track-fill: color-mix(
+    in srgb,
+    var(--jp-accent-color1) 80%,
+    transparent
+  );
+  --jgis-specta-track-default: var(--jp-border-color0);
+  --jgis-specta-smooth: cubic-bezier(0, 0.72, 0.58, 1);
+}
+
+.jgis-specta-progress .jgis-specta-progress-bar {
+  display: flex;
+  flex-direction: row-reverse;
+  margin: auto auto 0;
+  width: 31.25rem;
+  max-width: 40%;
+}
+
+.jgis-specta-progress .jgis-specta-bar-segment {
+  display: flex;
+  flex-grow: 1;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Track fill line; :not(:last-child) below adds width/position for the connector */
+.jgis-specta-progress .jgis-specta-bar-segment::after {
+  content: '';
+  position: absolute;
+  height: 0.25rem;
+  top: calc(50% - 0.125rem);
+  transition: transform var(--jgis-specta-transition-duration, 0.06s)
+    var(--jgis-specta-smooth);
+  transform: scaleX(0);
+  background: var(--jgis-specta-track-fill);
+  transform-origin: left;
+  z-index: 5;
+}
+
+/* Filled state: track line + dot */
+.jgis-specta-progress .jgis-specta-bar-segment[data-filled]::after {
+  transform: scaleX(1);
+}
+
+/* Connector bar only when there is a segment to the right */
+.jgis-specta-progress .jgis-specta-bar-segment:not(:last-child)::before,
+.jgis-specta-progress .jgis-specta-bar-segment:not(:last-child)::after {
+  content: '';
+  width: calc(100% - 1.5rem);
+  position: absolute;
+  right: calc(50% + 0.75rem);
+}
+
+.jgis-specta-progress .jgis-specta-bar-segment:not(:last-child)::before {
+  height: 0.5rem;
+  top: calc(50% - 0.25rem);
+  background: var(--jgis-specta-track-default);
+}
+
+.jgis-specta-progress .jgis-specta-bar-segment:not(:last-child)::after {
+  transition-delay: 0s;
+}
+
+/* Button = dot */
+.jgis-specta-progress .jgis-specta-progress-input {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1.875rem;
+  height: 1.875rem;
+  margin: 0;
+  padding: 0;
+  border: 3px solid var(--jgis-specta-track-default);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+    2px 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.jgis-specta-progress .jgis-specta-progress-input:focus-visible {
+  outline: 2px solid var(--jp-brand-color1);
+  outline-offset: 2px;
+}
+
+.jgis-specta-progress .jgis-specta-progress-input::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    var(--jgis-specta-dot-fill-inner),
+    var(--jgis-specta-dot-fill-outer)
+  );
+  transform: scale(0.3);
+  opacity: 0;
+  transition:
+    transform 0.2s var(--jgis-specta-smooth),
+    opacity 0.2s var(--jgis-specta-smooth);
+  pointer-events: none;
+}
+
+.jgis-specta-progress
+  .jgis-specta-bar-segment[data-filled]
+  .jgis-specta-progress-input::before {
+  transform: none;
+  opacity: 1;
+}
+
+/* Dot fill delay: 0 when going prev; after track duration when data-direction="next" */
+.jgis-specta-progress
+  .jgis-specta-bar-segment:not(:last-child)
+  .jgis-specta-progress-input::before {
+  transition-delay: 0s;
+}
+.jgis-specta-progress[data-direction='next']
+  .jgis-specta-bar-segment:not(:last-child)
+  .jgis-specta-progress-input::before {
+  transition-delay: var(--jgis-specta-transition-duration, 0.3s);
+}
+
+.jgis-specta-progress {
+  box-sizing: border-box;
+  position: fixed;
+  bottom: 1.125rem;
+  width: 100%;
+  z-index: 40;
+}
+
+.jgis-specta-progress *,
+.jgis-specta-progress *::before,
+.jgis-specta-progress *::after {
+  box-sizing: inherit;
+}
