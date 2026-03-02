@@ -14,19 +14,19 @@ All of these use **JSON Schema–driven forms** (RJSF). The same form component 
 
 ## Design ideas
 
-1. **One render primitive**  
+1. **One render primitive**
    **SchemaForm** only renders a schema-driven form and reports changes via `onChange` and `onSubmit`. It does not own persistence, dialog behaviour, or create/update mode. The parent component owns state and decides what to do on change and submit.
 
-2. **Shared state and handlers**  
+2. **Shared state and handlers**
    **useSchemaFormState** holds form data (synced from `sourceData`), builds a copy of the schema, and provides a standard form context. It can also provide base change/submit handlers. Type-specific forms use this hook and either use those handlers directly or wrap them (e.g. to add validation or transform data before submit).
 
-3. **Shared schema behaviour**  
+3. **Shared schema behaviour**
    **schemaUtils** (`processBaseSchema`, `removeFormEntry`) adapts the JSON schema and uiSchema before they are passed to SchemaForm (array options, opacity field, read-only handling, hiding fields). Each type form calls these and then applies its own logic (e.g. source enum, custom widgets).
 
-4. **One component per type**  
+4. **One component per type**
    Each layer type, source type, and special form (Dissolve, Story editor, default processing) is a **function component** in its own file. It composes: `useSchemaFormState` (and optionally its base handlers), schemaUtils, type-specific uiSchema/validation, and SchemaForm. There is no shared base class; behaviour is composed from the hook and utilities.
 
-5. **Selectors and flows**  
+5. **Selectors and flows**
    **formselectors** (`getLayerTypeForm`, `getSourceTypeForm`) choose the right form component by type. **CreationForm** and **EditForm** use these selectors and pass a common set of props (schema, sourceData, syncData, model, formContext, etc.). Dialogs and the properties panel use CreationForm or EditForm; they do not talk to individual form components directly.
 
 ## Main pieces

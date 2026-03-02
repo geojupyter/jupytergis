@@ -43,8 +43,6 @@ export function GeoJSONSourcePropertiesForm(
     cancel,
     onAfterChange: dialogOptions
       ? (data: IDict) => {
-          console.log('dialogOptions.sourceData', dialogOptions.sourceData);
-          console.log('data', data);
           dialogOptions.sourceData = { ...data };
         }
       : undefined,
