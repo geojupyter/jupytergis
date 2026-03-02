@@ -79,7 +79,11 @@ async function openLayerBrowser(
   const layerBrowser = page.locator('#jupytergis\\:\\:layerBrowser');
 
   if (!(await layerBrowser.isVisible())) {
-    await page.getByTitle('Open the layer browser dialog to browse and add available layers to the current JupyterGIS document.').click();
+    await page
+      .getByTitle(
+        'Open the layer browser dialog to browse and add available layers to the current JupyterGIS document.',
+      )
+      .click();
     await page.waitForCondition(async () => await layerBrowser.isVisible());
   }
   return layerBrowser;
@@ -114,7 +118,9 @@ test.describe('#layerBrowser', () => {
   });
 
   test('toolbar should have layer browser icon', async ({ page }) => {
-    const toolbarIcon = page.getByTitle('Open the layer browser dialog to browse and add available layers to the current JupyterGIS document.');
+    const toolbarIcon = page.getByTitle(
+      'Open the layer browser dialog to browse and add available layers to the current JupyterGIS document.',
+    );
     await expect(toolbarIcon).toBeVisible();
   });
 
