@@ -1079,7 +1079,6 @@ export function addCommands(
       const model = current.model;
 
       if (filePath && layerId) {
-        console.log(`Zooming to layer: ${layerId}`);
         model.centerOnPosition(layerId);
         return;
       }
@@ -1090,7 +1089,6 @@ export function addCommands(
       }
 
       const selLayerId = Object.keys(selectedItems)[0];
-      console.log('zooming');
       model.centerOnPosition(selLayerId);
     },
   });
