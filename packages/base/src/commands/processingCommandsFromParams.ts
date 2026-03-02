@@ -7,8 +7,8 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
 
-import { replaceInSql } from '../processing/processingCommands';
 import { processSelectedLayer } from '../processing';
+import { replaceInSql } from '../processing/processingCommands';
 import { JupyterGISTracker } from '../types';
 
 export function addProcessingCommandsFromParams(options: {
@@ -19,7 +19,14 @@ export function addProcessingCommandsFromParams(options: {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   processingSchemas: Record<string, any>;
 }): void {
-  const { app, commands, tracker, trans, formSchemaRegistry, processingSchemas } = options;
+  const {
+    app,
+    commands,
+    tracker,
+    trans,
+    formSchemaRegistry,
+    processingSchemas,
+  } = options;
 
   for (const proc of ProcessingMerge) {
     if (proc.type !== ProcessingLogicType.vector) {

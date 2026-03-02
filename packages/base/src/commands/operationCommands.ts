@@ -107,7 +107,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newGeoJSONWithParams,
       label: 'New GeoJSON Layer From Parameters',
-      caption: 'Add a new GeoJSON vector layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new GeoJSON vector layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'GeoJSONSource',
       layerType: 'VectorLayer',
       sourceSchema: {
@@ -130,7 +131,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newRasterWithParams,
       label: 'New Raster Layer From Parameters',
-      caption: 'Add a new raster layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new raster layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'RasterSource',
       layerType: 'RasterLayer',
       sourceSchema: {
@@ -147,7 +149,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newVectorTileWithParams,
       label: 'New Vector Tile Layer From Parameters',
-      caption: 'Add a new vector tile layer (by URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new vector tile layer (by URL) and add it to the given JupyterGIS file',
       sourceType: 'VectorTileSource',
       layerType: 'VectorTileLayer',
       sourceSchema: {
@@ -168,7 +171,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newGeoParquetWithParams,
       label: 'New GeoParquet Layer From Parameters',
-      caption: 'Add a new GeoParquet vector layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new GeoParquet vector layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'GeoParquetSource',
       layerType: 'VectorLayer',
       sourceSchema: {
@@ -191,7 +195,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newHillshadeWithParams,
       label: 'New Hillshade Layer From Parameters',
-      caption: 'Add a new hillshade layer (by DEM raster source) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new hillshade layer (by DEM raster source) and add it to the given JupyterGIS file',
       sourceType: 'RasterDemSource',
       layerType: 'HillshadeLayer',
       sourceSchema: {
@@ -210,7 +215,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newImageWithParams,
       label: 'New Image Layer From Parameters',
-      caption: 'Add a new image layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new image layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'ImageSource',
       layerType: 'ImageLayer',
       sourceSchema: {
@@ -233,7 +239,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newVideoWithParams,
       label: 'New Video Layer From Parameters',
-      caption: 'Add a new video layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new video layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'VideoSource',
       layerType: 'RasterLayer',
       sourceSchema: {
@@ -256,7 +263,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newGeoTiffWithParams,
       label: 'New GeoTIFF Layer From Parameters',
-      caption: 'Add a new GeoTIFF layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new GeoTIFF layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'GeoTiffSource',
       layerType: 'WebGlLayer',
       sourceSchema: {
@@ -291,7 +299,8 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newShapefileWithParams,
       label: 'New Shapefile Layer From Parameters',
-      caption: 'Add a new Shapefile vector layer (by file path or URL) and add it to the given JupyterGIS file',
+      caption:
+        'Add a new Shapefile vector layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer',
       sourceSchema: {

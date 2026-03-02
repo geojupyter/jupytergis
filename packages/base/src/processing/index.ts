@@ -106,7 +106,6 @@ export async function processSelectedLayer(
     params?: Record<string, any>;
   },
 ) {
-
   // Resolve widget
   const widget = args?.filePath
     ? tracker.find(w => w.model.filePath === args.filePath)
@@ -155,34 +154,34 @@ export async function processSelectedLayer(
       model.sharedModel.awareness.getLocalState()?.selected?.value || {},
     )[0];
 
-  // Open ProcessingFormDialog
-  const formValues = await new Promise<IDict>(resolve => {
-    const dialog = new ProcessingFormDialog({
-      title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
-      schema,
-      model,
-      sourceData: {
-        inputLayer: selectedLayerId,
-        outputLayerName: selected.name,
-      },
-      formContext: 'create',
-      processingType,
-      syncData: (props: IDict) => {
-        resolve(props);
-        dialog.dispose();
-      },
+    // Open ProcessingFormDialog
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
+        schema,
+        model,
+        sourceData: {
+          inputLayer: selectedLayerId,
+          outputLayerName: selected.name,
+        },
+        formContext: 'create',
+        processingType,
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
     });
-    dialog.launch();
-  });
 
-  if (!formValues) {
-    return;
-  }
+    if (!formValues) {
+      return;
+    }
 
-  if (!processingList.includes(processingType)) {
-    console.error(`Unsupported processing type: ${processingType}`);
-    return;
-  }
+    if (!processingList.includes(processingType)) {
+      console.error(`Unsupported processing type: ${processingType}`);
+      return;
+    }
 
     processParam = processingFormToParam(formValues, processingType);
     embedOutputLayer = formValues.embedOutputLayer;
