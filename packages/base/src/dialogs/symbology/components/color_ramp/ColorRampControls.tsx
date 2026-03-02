@@ -69,11 +69,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     if (layerParams.symbologyState) {
       populateOptions();
     }
-  }, [
-    layerParams.symbologyState.nClasses,
-    layerParams.symbologyState.mode,
-    layerParams.symbologyState.colorRamp,
-  ]);
+  }, [layerParams.symbologyState]);
 
   useEffect(() => {
     if (!selectedRamp) {
