@@ -40,6 +40,11 @@
     "selector": ".data-jgis-keybinding"
   },
   {
+    "command": "jupytergis:duplicateLayer",
+    "keys": ["Accel Y"],
+    "selector": ".data-jgis-keybinding .jp-gis-layer"
+  },
+  {
     "command": "jupytergis:executeConsole",
     "keys": ["Shift Enter"],
     "selector": ".jpgis-console .jp-CodeConsole[data-jp-interaction-mode='notebook'] .jp-CodeConsole-promptCell"
