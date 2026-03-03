@@ -5,8 +5,8 @@ import validatorAjv8 from '@rjsf/validator-ajv8';
 import React, { useCallback, useMemo, useRef } from 'react';
 
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
-import { LayerSelect } from './components/LayerSelect';
 import HiddenField from './components/HiddenField';
+import { LayerSelect } from './components/LayerSelect';
 import OpacitySlider from './components/OpacitySlider';
 
 const defaultFields: RegistryFieldsType = {
