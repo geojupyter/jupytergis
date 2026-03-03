@@ -20,6 +20,7 @@ export function VectorLayerPropertiesForm(
     formContext,
     sourceType,
     dialogOptions,
+    formErrorSignal,
   } = props;
 
   const {
@@ -80,6 +81,7 @@ export function VectorLayerPropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

@@ -42,6 +42,7 @@ export function SourcePropertiesForm(
     formContext,
     dialogOptions,
     cancel,
+    formErrorSignal,
   } = props;
 
   const {
@@ -91,6 +92,7 @@ export function SourcePropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

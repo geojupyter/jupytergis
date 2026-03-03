@@ -184,6 +184,7 @@ export function GeoJSONSourcePropertiesForm(
       filePath={filePath}
       uiSchema={uiSchema}
       extraErrors={extraErrors}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

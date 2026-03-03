@@ -2,9 +2,10 @@ import { FormComponent } from '@jupyterlab/ui-components';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import { RegistryFieldsType, RJSFSchema, UiSchema } from '@rjsf/utils';
 import validatorAjv8 from '@rjsf/validator-ajv8';
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
+import type { Signal } from '@lumino/signaling';
 import HiddenField from './components/HiddenField';
 import { LayerSelect } from './components/LayerSelect';
 import OpacitySlider from './components/OpacitySlider';
@@ -38,6 +39,8 @@ export interface ISchemaFormProps {
   extraErrors?: IDict;
   /** Optional ref to the hidden submit button; when provided, parent can trigger submit (e.g. on ok signal). */
   submitButtonRef?: React.MutableRefObject<HTMLButtonElement | null>;
+  /** When provided, emit(true) when there are validation/extra errors, emit(false) when clear (e.g. to disable dialog OK). */
+  formErrorSignal?: Signal<any, boolean>;
 }
 
 /**
@@ -58,6 +61,7 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
     uiSchema: uiSchemaProp,
     extraErrors,
     submitButtonRef,
+    formErrorSignal,
   } = props;
 
   const schemaWithExtra: RJSFSchema = useMemo(
@@ -87,6 +91,13 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
   );
 
   const contextForForm: IJupyterGISFormContext = formContext;
+
+  useEffect(() => {
+    if (formErrorSignal) {
+      const hasExtra = Object.keys(extraErrors ?? {}).length > 0;
+      formErrorSignal.emit(hasExtra);
+    }
+  }, [formErrorSignal, extraErrors]);
 
   const handleChange = useCallback(
     (e: IChangeEvent) => {

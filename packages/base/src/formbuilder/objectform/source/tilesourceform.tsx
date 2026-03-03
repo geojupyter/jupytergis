@@ -39,6 +39,7 @@ export function TileSourcePropertiesForm(
     formContext,
     dialogOptions,
     cancel,
+    formErrorSignal,
   } = props;
 
   const {
@@ -115,6 +116,7 @@ export function TileSourcePropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

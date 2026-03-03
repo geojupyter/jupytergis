@@ -201,6 +201,7 @@ export function GeoTiffSourcePropertiesForm(
       filePath={filePath}
       uiSchema={uiSchema}
       extraErrors={extraErrors}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

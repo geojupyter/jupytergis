@@ -52,6 +52,7 @@ export function HeatmapLayerPropertiesForm(
     formContext,
     sourceType,
     dialogOptions,
+    formErrorSignal,
     sourceFormChangedSignal,
   } = props;
 
@@ -159,6 +160,7 @@ export function HeatmapLayerPropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

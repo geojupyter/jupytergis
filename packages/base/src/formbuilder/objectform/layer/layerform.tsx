@@ -43,6 +43,7 @@ export function LayerPropertiesForm(
     formContext,
     sourceType,
     dialogOptions,
+    formErrorSignal,
   } = props;
 
   const {
@@ -99,6 +100,7 @@ export function LayerPropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

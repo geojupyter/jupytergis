@@ -20,6 +20,7 @@ export function HillshadeLayerPropertiesForm(
     formContext,
     sourceType,
     dialogOptions,
+    formErrorSignal,
   } = props;
 
   const {
@@ -79,6 +80,7 @@ export function HillshadeLayerPropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

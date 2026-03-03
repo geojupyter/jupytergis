@@ -160,6 +160,7 @@ export function PathBasedSourcePropertiesForm(
       filePath={filePath}
       uiSchema={uiSchema}
       extraErrors={extraErrors}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

@@ -51,6 +51,7 @@ export function StorySegmentLayerPropertiesForm(
     formContext,
     sourceType,
     dialogOptions,
+    formErrorSignal,
   } = props;
 
   const {
@@ -172,6 +173,7 @@ export function StorySegmentLayerPropertiesForm(
       filePath={filePath}
       uiSchema={uiSchema}
       additionalFields={additionalFields}
+      formErrorSignal={formErrorSignal}
     />
   );
 }

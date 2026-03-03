@@ -20,6 +20,7 @@ export function WebGlLayerPropertiesForm(
     formContext,
     sourceType,
     dialogOptions,
+    formErrorSignal,
   } = props;
 
   const {
@@ -85,6 +86,7 @@ export function WebGlLayerPropertiesForm(
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
     />
   );
 }
