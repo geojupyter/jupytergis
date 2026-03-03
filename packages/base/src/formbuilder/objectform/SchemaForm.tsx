@@ -43,6 +43,32 @@ export interface ISchemaFormProps {
   formErrorSignal?: Signal<any, boolean>;
 }
 
+/** True if extraErrors has a non-empty __errors array. */
+function hasExtraErrors(extraErrors: IDict | undefined): boolean {
+  if (!extraErrors || typeof extraErrors !== 'object') {
+    return false;
+  }
+
+  for (const key of Object.keys(extraErrors)) {
+    const value = extraErrors[key];
+    const errorList =
+      value && typeof value === 'object'
+        ? (value as IDict).__errors
+        : undefined;
+
+    if (Array.isArray(errorList) && errorList.length > 0) {
+      return true;
+    }
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      if (hasExtraErrors(value as IDict)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Renders a JSON Schema form (RJSF) for layer, source, and other object properties.
  * The parent is responsible for state (formData), syncing to the model, and dialog
@@ -94,8 +120,7 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
 
   useEffect(() => {
     if (formErrorSignal) {
-      const hasExtra = Object.keys(extraErrors ?? {}).length > 0;
-      formErrorSignal.emit(hasExtra);
+      formErrorSignal.emit(hasExtraErrors(extraErrors ?? undefined));
     }
   }, [formErrorSignal, extraErrors]);
 

@@ -60,7 +60,10 @@ export function GeoJSONSourcePropertiesForm(
       let valid = true;
       let error = '';
 
-      if (path) {
+      if (!path || !path.trim()) {
+        valid = false;
+        error = 'Path is required';
+      } else {
         try {
           const geoJSONData = await loadFile({
             filepath: path,
