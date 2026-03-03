@@ -7,8 +7,7 @@
   "properties": {
     "path": {
       "type": "string",
-      "description": "The local path to a GeoJSON file",
-      "default": ""
+      "description": "The local path to a GeoJSON file"
     },
     "data": {
       "type": "object",
