@@ -594,7 +594,6 @@ export function addCommands(
       if (ids.length !== 1) {
         return;
       }
-
       const layerId = ids[0];
       const selectedItem = selected[layerId];
 
@@ -606,15 +605,12 @@ export function addCommands(
       if (!layer) {
         return;
       }
-
       const clonedLayer = JSON.parse(JSON.stringify(layer));
-
       const newId = crypto.randomUUID();
       clonedLayer.id = newId;
       clonedLayer.name = Private.generateCopyName(layer.name, model);
 
       model.addLayer(newId, clonedLayer, selectedItem.parent);
-
       model.moveItemRelatedTo(newId, layerId, true);
 
       model.triggerLayerUpdate(newId, clonedLayer);
