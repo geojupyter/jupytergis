@@ -6,11 +6,13 @@ import React, { useCallback, useMemo, useRef } from 'react';
 
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
 import { LayerSelect } from './components/LayerSelect';
+import HiddenField from './components/HiddenField';
 import OpacitySlider from './components/OpacitySlider';
 
 const defaultFields: RegistryFieldsType = {
   opacity: OpacitySlider,
   layerSelect: LayerSelect,
+  hidden: HiddenField,
 };
 
 export interface ISchemaFormProps {

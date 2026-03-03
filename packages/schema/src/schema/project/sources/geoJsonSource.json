@@ -14,12 +14,6 @@
       "type": "object",
       "description": "The GeoJSON data",
       "$ref": "./geojson.json"
-    },
-    "valid": {
-      "type": "boolean",
-      "description": "Whether the data are valid or not",
-      "readOnly": true,
-      "default": false
     }
   }
 }

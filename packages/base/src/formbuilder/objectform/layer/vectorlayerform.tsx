@@ -1,6 +1,6 @@
 import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { deepCopy } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
@@ -43,11 +43,12 @@ export function VectorLayerPropertiesForm(
   });
 
   const uiSchema = useMemo(() => {
-    const builtUiSchema: UiSchema = {};
+    const builtUiSchema: UiSchema = {
+      color: { 'ui:field': 'hidden' },
+      symbologyState: { 'ui:field': 'hidden' },
+    };
     const dataCopy = deepCopy(formData);
 
-    removeFormEntry('color', dataCopy, schema, builtUiSchema);
-    removeFormEntry('symbologyState', dataCopy, schema, builtUiSchema);
     processBaseSchema(
       dataCopy,
       schema,
@@ -66,14 +67,6 @@ export function VectorLayerPropertiesForm(
     return builtUiSchema;
   }, [schema, formData, formContext, model, sourceType]);
 
-  const handleSubmit = useCallback(
-    (data: IDict) => {
-      const submitted = { ...data, symbologyState: {} };
-      handleSubmitBase(submitted);
-    },
-    [handleSubmitBase],
-  );
-
   if (!hasSchema) {
     return null;
   }
@@ -83,7 +76,7 @@ export function VectorLayerPropertiesForm(
       schema={schema}
       formData={formData}
       onChange={handleChangeBase}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmitBase}
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}
