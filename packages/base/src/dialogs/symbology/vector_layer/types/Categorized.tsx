@@ -175,7 +175,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       method: symbologyTab,
-      reverse: colorRampOptionsRef.current?.reverseRamp,
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
     } as IVectorLayer['symbologyState'];
 
     saveSymbology({
