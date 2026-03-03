@@ -1,11 +1,11 @@
 import { FormComponent } from '@jupyterlab/ui-components';
+import type { Signal } from '@lumino/signaling';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import { RegistryFieldsType, RJSFSchema, UiSchema } from '@rjsf/utils';
 import validatorAjv8 from '@rjsf/validator-ajv8';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
-import type { Signal } from '@lumino/signaling';
 import HiddenField from './components/HiddenField';
 import { LayerSelect } from './components/LayerSelect';
 import OpacitySlider from './components/OpacitySlider';
