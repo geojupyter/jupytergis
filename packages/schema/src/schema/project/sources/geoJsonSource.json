@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "properties": {
     "path": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "The local path to a GeoJSON file"
     },
     "data": {

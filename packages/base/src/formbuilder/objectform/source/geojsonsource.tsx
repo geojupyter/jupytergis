@@ -170,7 +170,9 @@ export function GeoJSONSourcePropertiesForm(
   );
 
   useEffect(() => {
-    validatePath(formData?.path);
+    if (formData?.path) {
+      validatePath(formData?.path);
+    }
   }, []);
 
   if (!hasSchema) {

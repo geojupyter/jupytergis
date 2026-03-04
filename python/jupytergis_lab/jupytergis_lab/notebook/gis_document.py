@@ -299,6 +299,9 @@ class GISDocument(CommWidget):
         if data is not None:
             parameters["data"] = data
 
+        if color_expr is None:
+            color_expr = {}
+
         source = {
             "type": SourceType.GeoJSONSource,
             "name": f"{name} Source",
