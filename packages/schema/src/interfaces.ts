@@ -300,7 +300,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;
   addFeatureAsMs(id: string, selectedFeature: string): void;
-  triggerLayerUpdate(layerId: string, layer: IJGISLayer | IJGISSource): void;
+  triggerLayerUpdate(
+    layerId: string,
+    layerOrSource: IJGISLayer | IJGISSource,
+  ): void;
 
   disposed: ISignal<any, void>;
   getSelectedStory(): {
