@@ -20,7 +20,7 @@ import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
 interface IColorRampSelectorProps {
   selectedRamp: ColorRampName;
-  setSelected: (item: any) => void;
+  setSelected: (value: ColorRampName) => void;
   reverse: boolean;
   setReverse: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -77,7 +77,11 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       return;
     }
 
-    const ramp = colorMaps.filter(c => c.name === rampName);
+    const ramp = colorMaps.filter(c => c.name === rampName)[0];
+    let colors = ramp.colors;
+    if (reverse) {
+      colors = [...colors].reverse();
+    }
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -85,7 +89,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
-      const color = reverse ? ramp[0].colors[255 - i] : ramp[0].colors[i];
+      const color = colors[i];
       ctx.fillStyle = color;
 
       ctx.fillRect(i * 2, 0, 2, canvasHeight);
@@ -128,7 +132,6 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
           />
         ))}
       </div>
-
       <div className="jp-gis-symbology-row">
         <label className="jp-gis-inline-label">
           <input

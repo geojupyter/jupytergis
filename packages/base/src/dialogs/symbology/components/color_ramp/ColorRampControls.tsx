@@ -79,22 +79,30 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   dataMax,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
-  const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [selectedMode, setSelectedMode] =
     useState<ClassificationMode>('equal interval');
   const [numberOfShades, setNumberOfShades] = useState<number>(9);
   const [minValue, setMinValue] = useState<number | undefined>(dataMin);
   const [maxValue, setMaxValue] = useState<number | undefined>(dataMax);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const symbologyState = layerParams.symbologyState;
 
   useEffect(() => {
-    initializeState();
-  }, []);
+    if (symbologyState) {
+      initializeState();
+    }
+  }, [
+    symbologyState.colorRamp,
+    symbologyState.nClasses,
+    symbologyState.mode,
+    symbologyState.reverseRamp,
+  ]);
 
   useEffect(() => {
-    setMinValue(layerParams.symbologyState?.min ?? dataMin);
-    setMaxValue(layerParams.symbologyState?.max ?? dataMax);
+    setMinValue(symbologyState?.min ?? dataMin);
+    setMaxValue(symbologyState?.max ?? dataMax);
   }, [dataMin, dataMax]);
 
   useEffect(() => {
@@ -129,12 +137,11 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     }
   }, [selectedRamp, numberOfShades]);
   const initializeState = () => {
-    const { nClasses, mode, colorRamp, reverseRamp } =
-      layerParams.symbologyState ?? {};
+    const { nClasses, mode, colorRamp, reverseRamp } = symbologyState ?? {};
     setNumberOfShades(Number(nClasses ?? 9));
     setSelectedMode((mode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp((colorRamp as ColorRampName) ?? 'viridis');
-    setReverseRamp(reverseRamp ?? false);
+    setReverseRamp(Boolean(reverseRamp ?? false));
   };
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];

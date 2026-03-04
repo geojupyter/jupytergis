@@ -278,7 +278,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       band: selectedBandRef.current,
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      reverse: colorRampOptionsRef.current?.reverseRamp,
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
       min: colorRampOptionsRef.current?.minValue,
       max: colorRampOptionsRef.current?.maxValue,
       dataMin: colorRampOptionsRef.current?.dataMin,

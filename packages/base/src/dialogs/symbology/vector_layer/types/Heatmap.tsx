@@ -41,7 +41,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     radius: 8,
     blur: 15,
   });
-  const [reverseRamp, setReverseRamp] = useState(false);
+  const [reverseRamp, setReverseRamp] = useState<boolean>(false);
 
   const selectedRampRef = useLatest(selectedRamp);
   const heatmapOptionsRef = useLatest(heatmapOptions);
@@ -52,13 +52,17 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   }, []);
 
   const populateOptions = async () => {
-    let colorRamp;
+    let colorRamp: ColorRampName = 'viridis';
 
     if (params.symbologyState?.colorRamp) {
       colorRamp = params.symbologyState.colorRamp as ColorRampName;
     }
 
-    setSelectedRamp(colorRamp ? colorRamp : 'viridis');
+    if (typeof params.symbologyState?.reverse === 'boolean') {
+      setReverseRamp(params.symbologyState.reverse);
+    }
+
+    setSelectedRamp(colorRamp);
   };
 
   const handleOk = () => {

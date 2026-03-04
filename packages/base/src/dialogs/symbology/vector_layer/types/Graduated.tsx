@@ -183,7 +183,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       value: selectableAttributeRef.current,
       method: symbologyTabRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      reverse: colorRampOptionsRef.current?.reverseRamp,
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
       min: colorRampOptionsRef.current?.minValue,

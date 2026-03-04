@@ -191,7 +191,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      reverse: colorRampOptionsRef.current?.reverseRamp,
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
       method: symbologyTab,
     } as IVectorLayer['symbologyState'];
 
