@@ -40,9 +40,9 @@
     "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:duplicateLayer",
+    "command": "jupytergis:duplicateSelected",
     "keys": ["Accel Y"],
-    "selector": ".data-jgis-keybinding .jp-gis-layer"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:executeConsole",

@@ -573,13 +573,13 @@ export function addCommands(
     ...icons.get(CommandIDs.removeSelected),
   });
 
-  commands.addCommand(CommandIDs.duplicateLayer, {
-    label: trans.__('Duplicate Layer'),
+  commands.addCommand(CommandIDs.duplicateSelected, {
+    label: trans.__('Duplicate'),
 
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const selected = model?.localState?.selected?.value;
-      return !!selected && Object.keys(selected).length === 1;
+      return !!selected && Object.keys(selected).length > 0;
     },
 
     execute: () => {
@@ -590,30 +590,23 @@ export function addCommands(
         return;
       }
 
-      const ids = Object.keys(selected);
-      if (ids.length !== 1) {
-        return;
+      for (const [layerId, selectedItem] of Object.entries(selected)) {
+        if (selectedItem.type !== 'layer') {
+          continue;
+        }
+
+        const layer = model.getLayer(layerId);
+        if (!layer) {
+          continue;
+        }
+        const clonedLayer = JSON.parse(JSON.stringify(layer));
+        const newId = crypto.randomUUID();
+
+        clonedLayer.id = newId;
+        clonedLayer.name = Private.generateCopyName(layer.name, model);
+
+        model.addLayer(newId, clonedLayer, selectedItem.parent);
       }
-      const layerId = ids[0];
-      const selectedItem = selected[layerId];
-
-      if (selectedItem.type !== 'layer') {
-        return;
-      }
-
-      const layer = model.getLayer(layerId);
-      if (!layer) {
-        return;
-      }
-      const clonedLayer = JSON.parse(JSON.stringify(layer));
-      const newId = crypto.randomUUID();
-      clonedLayer.id = newId;
-      clonedLayer.name = Private.generateCopyName(layer.name, model);
-
-      model.addLayer(newId, clonedLayer, selectedItem.parent);
-      model.moveItemRelatedTo(newId, layerId, true);
-
-      model.triggerLayerUpdate(newId, clonedLayer);
     },
   });
 
@@ -1372,6 +1365,11 @@ namespace Private {
     const copyRegex = /(.*?)( Copy(_\d+)?)?$/;
     const match = baseName.match(copyRegex);
     const cleanBase = match ? match[1].trim() : baseName;
+
+    const firstCopyName = `${cleanBase} Copy`;
+    if (!existingNames.includes(firstCopyName)) {
+      return firstCopyName;
+    }
 
     const pattern = new RegExp(`^${cleanBase} Copy_(\\d+)$`);
     const numbers = existingNames

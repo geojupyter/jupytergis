@@ -113,7 +113,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.duplicateLayer,
+      command: CommandIDs.duplicateSelected,
       selector: LAYER,
       rank: 2,
     });
