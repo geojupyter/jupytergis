@@ -64,15 +64,17 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const symbologyState = layerParams.symbologyState;
 
   useEffect(() => {
-    if (layerParams.symbologyState) {
+    if (symbologyState) {
       populateOptions();
     }
   }, [
-    layerParams.symbologyState.nClasses,
-    layerParams.symbologyState.mode,
-    layerParams.symbologyState.colorRamp,
+    symbologyState.colorRamp,
+    symbologyState.nClasses,
+    symbologyState.mode,
+    symbologyState.reverseRamp,
   ]);
 
   useEffect(() => {
@@ -96,8 +98,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     }
   }, [selectedRamp, numberOfShades]);
   const populateOptions = () => {
-    const { nClasses, mode, colorRamp, reverseRamp } =
-      layerParams.symbologyState ?? {};
+    const { nClasses, mode, colorRamp, reverseRamp } = symbologyState ?? {};
     setNumberOfShades(Number(nClasses ?? 9));
     setSelectedMode((mode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp((colorRamp as ColorRampName) ?? 'viridis');
