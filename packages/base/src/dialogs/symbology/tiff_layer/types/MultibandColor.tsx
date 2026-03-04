@@ -2,7 +2,7 @@ import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
-import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import useGetMultiBandInfo from '@/src/dialogs/symbology/hooks/useGetMultiBandInfo';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import {
@@ -47,7 +47,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
     return;
   }
 
-  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
+  const { bandRows, setBandRows, loading } = useGetMultiBandInfo(model, layer);
 
   const [selectedBands, setSelectedBands] = useState<ISelectedBands>({
     red: 1,

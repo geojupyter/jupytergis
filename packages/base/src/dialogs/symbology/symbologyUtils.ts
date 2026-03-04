@@ -6,7 +6,8 @@ import {
 } from '@jupytergis/schema';
 import colormap from 'colormap';
 
-import { ColorRampName } from './colorRampUtils';
+import { ColorRampName } from '@/src/types';
+import { VectorClassifications } from './classificationModes';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -247,7 +248,26 @@ export namespace Utils {
     selectedRamp: ColorRampName,
     nClasses: number,
     reverse = false,
+    renderType:
+      | 'Categorized'
+      | 'Graduated'
+      | 'Heatmap'
+      | 'Singleband Pseudocolor',
+    minValue: number,
+    maxValue: number,
   ) => {
+    let effectiveStops: number[] = [];
+
+    if (stops && stops.length > 0) {
+      effectiveStops = stops.map(v => parseFloat(v.toFixed(2)));
+    } else {
+      effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
+        nClasses,
+        minValue,
+        maxValue,
+      ).map(v => parseFloat(v.toFixed(2)));
+    }
+
     let colorMap = colormap({
       colormap: selectedRamp,
       nshades: nClasses > 9 ? nClasses : 9,
@@ -270,7 +290,7 @@ export namespace Utils {
 
       // Get the last n/2 elements from the second array
       const secondPart = colorMap.slice(
-        colorMap.length - (stops.length - firstPart.length),
+        colorMap.length - (effectiveStops.length - firstPart.length),
       );
 
       // Create the new array by combining the first and last parts
@@ -278,7 +298,7 @@ export namespace Utils {
     }
 
     for (let i = 0; i < nClasses; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+      valueColorPairs.push({ stop: effectiveStops[i], output: colorMap[i] });
     }
 
     return valueColorPairs;
