@@ -245,7 +245,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           ? String(colorRampOptionsRef.current.numberOfShades)
           : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
-      reverse: colorRampOptionsRef.current?.reverseRamp,
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
     } as IWebGlLayer['symbologyState'];
 
     if (!isStorySegmentOverride) {
