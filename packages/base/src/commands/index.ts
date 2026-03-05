@@ -32,7 +32,6 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 import { addLayerCreationCommands } from './operationCommands';
-import { addProcessingCommandsFromParams } from './processingCommandsFromParams';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -535,14 +534,6 @@ export function addCommands(
 
   //Add processing commands
   addProcessingCommands(app, commands, tracker, trans, formSchemaRegistry);
-  addProcessingCommandsFromParams({
-    app,
-    commands,
-    tracker,
-    trans,
-    formSchemaRegistry,
-    processingSchemas: Object.fromEntries(formSchemaRegistry.getSchemas()),
-  });
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
     label: trans.__('Open New Hillshade Layer Creation Dialog'),
