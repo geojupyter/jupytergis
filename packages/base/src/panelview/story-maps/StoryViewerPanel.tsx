@@ -140,9 +140,9 @@ const StoryViewerPanel = forwardRef<
         if (action === 'remove') {
           removeLayer?.(layerId);
         } else {
-          const layer = model.getLayer(layerId);
-          if (layer) {
-            model.triggerLayerUpdate(layerId, layer);
+          const layerOrSource = model.getLayerOrSource(layerId);
+          if (layerOrSource) {
+            model.triggerLayerUpdate(layerId, layerOrSource);
           }
         }
       });
@@ -380,6 +380,7 @@ const StoryViewerPanel = forwardRef<
         const {
           color,
           opacity,
+          sourceProperties,
           symbologyState,
           targetLayer: targetLayerId,
           visible,
@@ -408,6 +409,31 @@ const StoryViewerPanel = forwardRef<
           }
           if (visible !== undefined) {
             targetLayer.visible = visible;
+          }
+          if (
+            sourceProperties !== undefined &&
+            Object.keys(sourceProperties).length > 0
+          ) {
+            const sourceId = targetLayer.parameters?.source;
+            if (sourceId) {
+              const source = model.getSource(sourceId);
+              if (!source) {
+                return;
+              }
+              if (source?.parameters) {
+                source.parameters = {
+                  ...source.parameters,
+                  ...sourceProperties,
+                };
+              }
+
+              overrideLayerEntriesRef.current.push({
+                layerId: sourceId,
+                action: 'restore',
+              });
+
+              model.triggerLayerUpdate(sourceId, source);
+            }
           }
           // Heatmaps are actually a different layer, not just symbology
           // so they need special handling

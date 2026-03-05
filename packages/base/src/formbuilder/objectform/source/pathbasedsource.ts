@@ -31,7 +31,8 @@ export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
     // Customize the widget for path field
     if (schema.properties && schema.properties.path) {
       const docManager =
-        this.props.formChangedSignal?.sender.props.formSchemaRegistry.getDocManager();
+        this.props.docManager ??
+        this.props.formChangedSignal?.sender?.props?.formSchemaRegistry?.getDocManager();
 
       uiSchema.path = {
         'ui:widget': FileSelectorWidget,
