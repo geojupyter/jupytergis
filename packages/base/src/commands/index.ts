@@ -599,11 +599,12 @@ export function addCommands(
         if (!layer) {
           continue;
         }
-        const clonedLayer = JSON.parse(JSON.stringify(layer));
-        const newId = crypto.randomUUID();
 
-        clonedLayer.id = newId;
-        clonedLayer.name = Private.generateCopyName(layer.name, model);
+        const clonedLayer = {
+          ...layer,
+          name: Private.generateCopyName(layer.name, model),
+        };
+        const newId = crypto.randomUUID();
 
         model.addLayer(newId, clonedLayer, selectedItem.parent);
       }
