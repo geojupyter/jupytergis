@@ -8,7 +8,7 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
 
-import { selectedLayerIsOfType, processSelectedLayer } from './index';
+import { selectedLayerIsOfType, processLayer } from './index';
 import { JupyterGISTracker } from '../types';
 
 export function replaceInSql(
@@ -51,9 +51,34 @@ export function addProcessingCommands(
     if (processingElement.type === ProcessingLogicType.vector) {
       commands.addCommand(processingElement.name, {
         label: trans.__(processingElement.label),
+        describedBy: {
+          args: {
+            type: 'object',
+            properties: {
+              filePath: {
+                type: 'string',
+                description: 'Path to the .jGIS file',
+              },
+              layerId: {
+                type: 'string',
+                description: 'Layer ID to process',
+              },
+              params: {
+                type: 'object',
+                description: 'Processing parameters (skip UI form)',
+              },
+            },
+          },
+        },
+
         isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
-        execute: async () => {
-          await processSelectedLayer(
+
+        execute: async (args?: {
+          filePath?: string;
+          layerId?: string;
+          params?: Record<string, any>;
+        }) => {
+          await processLayer(
             tracker,
             formSchemaRegistry,
             processingElement.description as ProcessingType,
@@ -76,6 +101,7 @@ export function addProcessingCommands(
               ],
             },
             app,
+            args,
           );
         },
       });

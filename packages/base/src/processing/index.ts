@@ -91,7 +91,7 @@ export type GdalFunctions =
 /**
  * Generalized processing function for Buffer & Dissolve
  */
-export async function processSelectedLayer(
+export async function processLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   processingType: ProcessingType,
@@ -101,59 +101,94 @@ export async function processSelectedLayer(
     options: (sqlQuery: string) => string[];
   },
   app: JupyterFrontEnd,
+  args?: {
+    filePath?: string;
+    params?: Record<string, any>;
+  },
 ) {
-  const selected = getSingleSelectedLayer(tracker);
-  if (!selected || !tracker.currentWidget) {
+  // Resolve widget
+  const widget = args?.filePath
+    ? tracker.find(w => w.model.filePath === args.filePath)
+    : tracker.currentWidget;
+
+  if (!widget) {
     return;
   }
 
-  const model = tracker.currentWidget.model;
-  const sources = model?.sharedModel.sources ?? {};
+  const model = widget.model;
+  const sources = model.sharedModel.sources ?? {};
+  const layers = model.sharedModel.layers ?? {};
+
+  // Resolve layer
+  let selected: IJGISLayer | null = null;
+
+  if (args?.params?.inputLayer) {
+    selected = layers[args.params.inputLayer];
+  } else {
+    selected = getSingleSelectedLayer(tracker);
+  }
+
+  if (!selected) {
+    return;
+  }
 
   const geojsonString = await getLayerGeoJSON(selected, sources, model);
   if (!geojsonString) {
     return;
   }
 
-  const schema = {
-    ...(formSchemaRegistry.getSchemas().get(processingType) as IDict),
-  };
-  const selectedLayerId = Object.keys(
-    model?.sharedModel.awareness.getLocalState()?.selected?.value || {},
-  )[0];
+  // Resolve params
+  let processParam: any;
+  let embedOutputLayer = true;
+  let outputLayerName = selected.name;
 
-  // Open ProcessingFormDialog
-  const formValues = await new Promise<IDict>(resolve => {
-    const dialog = new ProcessingFormDialog({
-      title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
-      schema,
-      model,
-      sourceData: {
-        inputLayer: selectedLayerId,
-        outputLayerName: selected.name,
-      },
-      formContext: 'create',
-      processingType,
-      syncData: (props: IDict) => {
-        resolve(props);
-        dialog.dispose();
-      },
+  if (args?.params) {
+    processParam = args.params;
+    outputLayerName = `${processingType} Layer`;
+  } else {
+    const schema = {
+      ...(formSchemaRegistry.getSchemas().get(processingType) as IDict),
+    };
+
+    const selectedLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
+
+    // Open ProcessingFormDialog
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
+        schema,
+        model,
+        sourceData: {
+          inputLayer: selectedLayerId,
+          outputLayerName: selected.name,
+        },
+        formContext: 'create',
+        processingType,
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
     });
-    dialog.launch();
-  });
 
-  if (!formValues) {
-    return;
+    if (!formValues) {
+      return;
+    }
+
+    if (!processingList.includes(processingType)) {
+      console.error(`Unsupported processing type: ${processingType}`);
+      return;
+    }
+
+    processParam = processingFormToParam(formValues, processingType);
+    embedOutputLayer = formValues.embedOutputLayer;
+    outputLayerName = formValues.outputLayerName;
   }
 
-  if (!processingList.includes(processingType)) {
-    console.error(`Unsupported processing type: ${processingType}`);
-    return;
-  }
-
-  const processParam: any = processingFormToParam(formValues, processingType);
-
-  const embedOutputLayer = formValues.embedOutputLayer;
+  // GDAL pre-processing
 
   const fileBlob = new Blob([geojsonString], {
     type: 'application/geo+json',
@@ -175,7 +210,7 @@ export async function processSelectedLayer(
     geojsonString,
     processingOptions.gdalFunction,
     fullOptions,
-    formValues.outputLayerName,
+    outputLayerName,
     processingType,
     embedOutputLayer,
     tracker,
