@@ -23,6 +23,12 @@ export interface ICreationFormWrapperProps extends ICreationFormProps {
    * and other form-related parameters.
    */
   dialogOptions?: any;
+  /**
+   * Optional. When provided, the form body can register a handler that the dialog
+   * will invoke when the user clicks OK. If no handler is
+   * registered, only the ok signal is emitted.
+   */
+  registerConfirmHandler?: (fn: () => void) => void;
 }
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
@@ -57,10 +63,10 @@ export const CreationFormWrapper: React.FC<
         sourceType={props.sourceType}
         sourceData={props.sourceData}
         layerData={props.layerData}
-        ok={okSignal.current}
         cancel={props.cancel}
         formErrorSignal={formErrorSignal.current}
         dialogOptions={props.dialogOptions}
+        registerConfirmHandler={props.registerConfirmHandler}
       />
     )
   );
@@ -73,6 +79,11 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
   constructor(options: ICreationFormDialogOptions) {
     const cancelCallback = () => {
       this.resolve(0);
+    };
+
+    let confirmHandler: (() => void) | null = null;
+    const registerConfirmHandler = (fn: () => void) => {
+      confirmHandler = fn;
     };
 
     const okSignalPromise = new PromiseDelegate<
@@ -97,6 +108,7 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
           cancel={cancelCallback}
           formErrorSignalPromise={formErrorSignalPromise}
           dialogOptions={options}
+          registerConfirmHandler={registerConfirmHandler}
         />
       </div>
     );
@@ -107,6 +119,7 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
 
+    this._getConfirmHandler = () => confirmHandler;
     this.okSignal = new Signal(this);
     const formErrorSignal = new Signal<Dialog<any>, boolean>(this);
 
@@ -138,9 +151,12 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
     }
 
     if (index === 1) {
+      this._getConfirmHandler()?.();
       this.okSignal.emit(1);
+      super.resolve(index);
     }
   }
 
+  private _getConfirmHandler: () => (() => void) | null;
   private okSignal: Signal<Dialog<any>, number>;
 }

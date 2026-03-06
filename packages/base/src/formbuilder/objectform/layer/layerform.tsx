@@ -1,14 +1,37 @@
-import { IDict } from '@jupytergis/schema';
+/**
+ * Base (default) layer form and props.
+ * Used for RasterLayer and any layer type without a dedicated form.
+ */
+import { IDict, SourceType } from '@jupytergis/schema';
+import { Signal } from '@lumino/signaling';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
 import { deepCopy } from '@/src/tools';
+import type { IBaseFormProps } from '@/src/types';
 import { SchemaForm } from '../SchemaForm';
 import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
-import type { ILayerProps } from './layerform';
 
-export function WebGlLayerPropertiesForm(
+export interface ILayerProps extends IBaseFormProps {
+  /**
+   * The source type for the layer
+   */
+  sourceType: SourceType;
+
+  /**
+   * The signal emitted when the attached source form has changed, if it exists
+   */
+  sourceFormChangedSignal?: Signal<any, IDict<any>>;
+
+  /**
+   * Configuration options for the dialog, including settings for layer data, source data,
+   * and other form-related parameters.
+   */
+  dialogOptions?: any;
+}
+
+export function LayerPropertiesForm(
   props: ILayerProps,
 ): React.ReactElement | null {
   const {
@@ -46,10 +69,6 @@ export function WebGlLayerPropertiesForm(
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
-
-    removeFormEntry('color', formData, schema, builtUiSchema);
-    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
-
     processBaseSchema(
       dataCopy,
       schema,
@@ -60,7 +79,6 @@ export function WebGlLayerPropertiesForm(
 
     if (schema.properties?.source) {
       const availableSources = model.getSourcesByType(sourceType);
-
       (schema.properties.source as IDict).enumNames =
         Object.values(availableSources);
       (schema.properties.source as IDict).enum = Object.keys(availableSources);

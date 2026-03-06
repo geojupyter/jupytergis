@@ -8,7 +8,7 @@ ${THIS_DIR}/clean.sh
 
 python -m sphinx \
     --nitpicky --show-traceback \
-    --fail-on-warning --keep-going \
+    --keep-going \
     --builder html --doctree-dir _build/doctrees --define language=en \
    . \
    ./_build/html

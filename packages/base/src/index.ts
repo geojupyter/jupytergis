@@ -2,7 +2,6 @@ export * from './annotations';
 export * from './commands/index';
 export * from './constants';
 export * from './dialogs/layerCreationFormDialog';
-export * from './formbuilder/objectform/baseform';
 export * from './icons';
 export * from './mainview';
 export * from './menus';
