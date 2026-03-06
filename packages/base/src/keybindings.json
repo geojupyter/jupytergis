@@ -50,6 +50,11 @@
     "selector": ".data-jgis-keybinding"
   },
   {
+    "command": "jupytergis:duplicateSelected",
+    "keys": ["Accel Y"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
     "command": "jupytergis:executeConsole",
     "keys": ["Shift Enter"],
     "selector": ".jpgis-console .jp-CodeConsole[data-jp-interaction-mode='notebook'] .jp-CodeConsole-promptCell"
