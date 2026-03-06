@@ -70,6 +70,7 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
 export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   model: IJupyterGISModel;
   formData: TFormData;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 
 /** Optional form state (schema, extraErrors). */

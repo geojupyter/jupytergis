@@ -6,6 +6,7 @@ import { deepCopy } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
 import type { ILayerProps } from './layerform';
 import { ArrayFieldTemplate } from '../components/SegmentFormSymbology';
+import { SourcePropertiesField } from '../components/SourcePropertiesField';
 import StorySegmentReset from '../components/StorySegmentReset';
 import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
@@ -52,6 +53,7 @@ export function StorySegmentLayerPropertiesForm(
     sourceType,
     dialogOptions,
     formErrorSignal,
+    formSchemaRegistry,
   } = props;
 
   const {
@@ -80,7 +82,7 @@ export function StorySegmentLayerPropertiesForm(
   );
 
   const formContextValue = useMemo(
-    () => ({ ...baseFormContext, layerId }),
+    () => ({ ...baseFormContext, layerId, formSchemaRegistry }),
     [baseFormContext, layerId],
   );
 
@@ -141,6 +143,9 @@ export function StorySegmentLayerPropertiesForm(
         },
         opacity: {
           'ui:field': 'opacity',
+        },
+        sourceProperties: {
+          'ui:field': SourcePropertiesField,
         },
       },
       'ui:options': {

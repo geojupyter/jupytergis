@@ -3,8 +3,8 @@ import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
 import { deepCopy, extractLayerOverrideIndex } from '@/src/tools';
+import { IJupyterGISFormContext } from '@/src/types';
 import { getSourceTypeForm } from '../../formselectors';
-import type { IJupyterGISFormContext } from '../baseform';
 
 /**
  * RJSF custom field for layerOverride[].sourceProperties: renders the
@@ -15,7 +15,7 @@ export function SourcePropertiesField(props: FieldProps): React.ReactElement {
     props.formContext as IJupyterGISFormContext<IStorySegmentLayer>;
   const fullFormData = context?.formData;
   const formSchemaRegistry = context?.formSchemaRegistry;
-  const docManager = context?.docManager;
+  // const docManager = context?.docManager;
   const index = extractLayerOverrideIndex(props.idSchema ?? {});
   const model = props.formContext?.model;
   const layerId = fullFormData?.layerOverride?.[index ?? 0]?.targetLayer;
@@ -45,7 +45,8 @@ export function SourcePropertiesField(props: FieldProps): React.ReactElement {
         sourceData={sourceProperties ?? undefined}
         syncData={(properties: IDict) => props.onChange(properties)}
         sourceType={source?.type ?? 'GeoJSONSource'}
-        docManager={docManager}
+        formSchemaRegistry={formSchemaRegistry}
+        // docManager={docManager}
       />
     </>
   );
