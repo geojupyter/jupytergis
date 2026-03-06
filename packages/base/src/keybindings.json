@@ -2,22 +2,22 @@
   {
     "command": "jupytergis:undo",
     "keys": ["Accel Z"],
-    "selector": ".jp-LabShell"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:redo",
     "keys": ["Accel Shift Z"],
-    "selector": ".jp-LabShell"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:identify",
     "keys": ["Escape"],
-    "selector": ".jp-LabShell"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:identify",
     "keys": ["Accel I"],
-    "selector": ".jp-LabShell"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:removeSource",
@@ -32,12 +32,12 @@
   {
     "command": "jupytergis:removeSelected",
     "keys": ["Delete"],
-    "selector": ".jp-LabShell"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:renameSelected",
     "keys": ["F2"],
-    "selector": ".jp-LabShell"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:executeConsole",
