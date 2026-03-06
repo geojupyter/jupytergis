@@ -119,14 +119,14 @@ export function HeatmapLayerPropertiesForm(
   }, [sourceType, sourceFormChangedSignal, model]);
 
   const uiSchema = useMemo(() => {
-    const builtUiSchema: UiSchema = {
-      color: { 'ui:field': 'hidden' },
-      symbologyState: { 'ui:field': 'hidden' },
-    };
+    const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
 
+    removeFormEntry('color', formData, schema, builtUiSchema);
+    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
     removeFormEntry('blur', dataCopy, schema, builtUiSchema);
     removeFormEntry('radius', dataCopy, schema, builtUiSchema);
+
     processBaseSchema(
       dataCopy,
       schema,
