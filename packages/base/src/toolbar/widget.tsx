@@ -71,7 +71,7 @@ export class ToolbarWidget extends ReactiveToolbar {
     super();
 
     this._model = options.model;
-    this.addClass('jGIS-toolbar-widget');
+    this.node.classList.add('jGIS-toolbar-widget', 'data-jgis-keybinding');
 
     // Listen for settings changes
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
@@ -187,7 +187,9 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
-      this.addItem('spacer', ReactiveToolbar.createSpacerItem());
+      const spacer = ReactiveToolbar.createSpacerItem();
+      spacer.node.tabIndex = -1;
+      this.addItem('spacer', spacer);
 
       // Users
       const iconRenderer = createUserIconRenderer(this._model);
