@@ -45,11 +45,11 @@
 }
 
 .jgis-switch-thumb[data-state='checked'] {
-  transform: translateX(16px);
+  transform: translateX(calc(100% + 3px));
 }
 
 .jgis-switch-thumb[data-state='unchecked'] {
-  transform: translateX(-2px);
+  transform: translateX(-3px);
 }
 
 @media (prefers-color-scheme: dark) {
