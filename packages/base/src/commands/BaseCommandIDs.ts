@@ -68,5 +68,7 @@ export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const toggleStoryPresentationMode =
   'jupytergis:toggleStoryPresentationMode';
+export const createStorySegmentFromLayer =
+  'jupytergis:createStorySegmentFromLayer';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';
