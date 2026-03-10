@@ -120,8 +120,8 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
-import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
 import { SpectaPanel } from '../panelview/story-maps/SpectaPanel';
+import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
@@ -270,6 +270,8 @@ export class MainView extends React.Component<IProps, IStates> {
       commands: this._commands,
     });
     this._updateCenter = debounce(this.updateCenter, 100);
+    this._boundAddLayer = this.addLayer.bind(this);
+    this._boundRemoveLayer = this.removeLayer.bind(this);
   }
 
   async componentDidMount(): Promise<void> {
@@ -2776,8 +2778,8 @@ export class MainView extends React.Component<IProps, IStates> {
                         commands={this._mainViewModel.commands}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
-                        addLayer={this.addLayer.bind(this)}
-                        removeLayer={this.removeLayer.bind(this)}
+                        addLayer={this._boundAddLayer}
+                        removeLayer={this._boundRemoveLayer}
                         settings={this.state.jgisSettings}
                       />
                     )}
@@ -2793,8 +2795,8 @@ export class MainView extends React.Component<IProps, IStates> {
                       }
                       containerRef={this.spectaContainerRef}
                       storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this.addLayer.bind(this)}
-                      removeLayer={this.removeLayer.bind(this)}
+                      addLayer={this._boundAddLayer}
+                      removeLayer={this._boundRemoveLayer}
                     />
                   )
                 )}
@@ -2847,6 +2849,12 @@ export class MainView extends React.Component<IProps, IStates> {
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
+  private _boundAddLayer: (
+    id: string,
+    layer: IJGISLayer,
+    index: number,
+  ) => Promise<void>;
+  private _boundRemoveLayer: (id: string) => void;
 }
 
 // ! TODO make mainview a modern react component instead of a class

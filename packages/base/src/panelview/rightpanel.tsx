@@ -25,25 +25,18 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 
-interface IRightPanelProps {
-  formSchemaRegistry: IJGISFormSchemaRegistry;
-  annotationModel: IAnnotationModel;
+/** Story viewer + useStoryMap; only mounted when story tab is active to avoid hook re-renders when tab is hidden. */
+function RightPanelStoryViewer({
+  model,
+  addLayer,
+  removeLayer,
+}: {
   model: IJupyterGISModel;
-  commands: CommandRegistry;
-  settings: IJupyterGISSettings;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
-}
-
-export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const [editorMode, setEditorMode] = React.useState(true);
-  const [storyMapPresentationMode, setStoryMapPresentationMode] =
-    React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
-  const [selectedObjectProperties, setSelectedObjectProperties] =
-    React.useState(undefined);
-
+}) {
   const overrideLayerEntriesRef = React.useRef<IOverrideLayerEntry[]>([]);
-  const storyViewerPanelRef = React.useRef<HTMLDivElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
   const {
     storyData,
     currentIndex,
@@ -56,11 +49,11 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     activeSlide,
     layerName,
   } = useStoryMap({
-    model: props.model,
+    model,
     overrideLayerEntriesRef,
-    removeLayer: props.removeLayer,
-    addLayer: props.addLayer,
-    panelRef: storyViewerPanelRef,
+    removeLayer,
+    addLayer,
+    panelRef,
     isSpecta: false,
   });
 
@@ -68,21 +61,95 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     return () => {
       clearOverrideLayers();
       storyData?.storySegments?.forEach(segmentId => {
-        const segment = props.model.getLayer(segmentId);
+        const segment = model.getLayer(segmentId);
         const overrides = segment?.parameters?.layerOverride;
         if (Array.isArray(overrides)) {
           overrides.forEach((override: { targetLayer?: string }) => {
             const targetLayerId = override.targetLayer;
             if (targetLayerId) {
-              const targetLayer = props.model.getLayer(targetLayerId);
+              const targetLayer = model.getLayer(targetLayerId);
               targetLayer &&
-                props.model.triggerLayerUpdate(targetLayerId, targetLayer);
+                model.triggerLayerUpdate(targetLayerId, targetLayer);
             }
           });
         }
       });
     };
-  }, [storyData, props.model, clearOverrideLayers]);
+  }, [storyData, model, clearOverrideLayers]);
+
+  return (
+    <div ref={panelRef}>
+      <StoryViewerPanel
+        model={model}
+        isSpecta={false}
+        storyData={storyData}
+        currentIndex={currentIndex}
+        activeSlide={activeSlide}
+        layerName={layerName}
+        handlePrev={handlePrev}
+        handleNext={handleNext}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+        setIndex={setIndex}
+      />
+    </div>
+  );
+}
+
+interface IRightPanelProps {
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  annotationModel: IAnnotationModel;
+  model: IJupyterGISModel;
+  commands: CommandRegistry;
+  settings: IJupyterGISSettings;
+  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  removeLayer?: (id: string) => void;
+}
+
+const RightPanelInner: React.FC<IRightPanelProps> = props => {
+  const renderCountRef = React.useRef(0);
+  const prevPropsRef = React.useRef(props);
+  renderCountRef.current += 1;
+
+  if (
+    typeof process !== 'undefined' &&
+    process.env?.NODE_ENV !== 'production'
+  ) {
+    const prev = prevPropsRef.current;
+    const changes: string[] = [];
+    if (prev.model !== props.model) {
+      changes.push('model');
+    }
+    if (prev.addLayer !== props.addLayer) {
+      changes.push('addLayer');
+    }
+    if (prev.removeLayer !== props.removeLayer) {
+      changes.push('removeLayer');
+    }
+    if (prev.commands !== props.commands) {
+      changes.push('commands');
+    }
+    if (prev.settings !== props.settings) {
+      changes.push('settings');
+    }
+    if (prev.formSchemaRegistry !== props.formSchemaRegistry) {
+      changes.push('formSchemaRegistry');
+    }
+    if (prev.annotationModel !== props.annotationModel) {
+      changes.push('annotationModel');
+    }
+    prevPropsRef.current = props;
+    console.log(
+      `[RightPanel] render #${renderCountRef.current}`,
+      changes.length ? { changed: changes } : '(no prop changes)',
+    );
+  }
+
+  const [editorMode, setEditorMode] = React.useState(true);
+  const [storyMapPresentationMode, setStoryMapPresentationMode] =
+    React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
+  const [selectedObjectProperties, setSelectedObjectProperties] =
+    React.useState(undefined);
 
   // Only show editor when not in presentation mode and editorMode is true
   const showEditor = !storyMapPresentationMode && editorMode;
@@ -226,23 +293,13 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
                   model={props.model}
                   commands={props.commands}
                 />
-              ) : (
-                <div ref={storyViewerPanelRef}>
-                  <StoryViewerPanel
-                    model={props.model}
-                    isSpecta={false}
-                    storyData={storyData}
-                    currentIndex={currentIndex}
-                    activeSlide={activeSlide}
-                    layerName={layerName}
-                    handlePrev={handlePrev}
-                    handleNext={handleNext}
-                    hasPrev={hasPrev}
-                    hasNext={hasNext}
-                    setIndex={setIndex}
-                  />
-                </div>
-              )}
+              ) : curTab === 'storyPanel' ? (
+                <RightPanelStoryViewer
+                  model={props.model}
+                  addLayer={props.addLayer}
+                  removeLayer={props.removeLayer}
+                />
+              ) : null}
             </TabsContent>
           )}
 
@@ -270,3 +327,5 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     </Draggable>
   );
 };
+
+export const RightPanel = React.memo(RightPanelInner);
