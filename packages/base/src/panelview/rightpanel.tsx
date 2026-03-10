@@ -16,6 +16,8 @@ import { ObjectPropertiesReact } from './objectproperties';
 import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
+import type { IOverrideLayerEntry } from './story-maps/useStoryMap';
+import { useStoryMap } from './story-maps/useStoryMap';
 import {
   PanelTabs,
   TabsContent,
@@ -39,6 +41,48 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
+
+  const overrideLayerEntriesRef = React.useRef<IOverrideLayerEntry[]>([]);
+  const storyViewerPanelRef = React.useRef<HTMLDivElement>(null);
+  const {
+    storyData,
+    currentIndex,
+    clearOverrideLayers,
+    setIndex,
+    handlePrev,
+    handleNext,
+    hasPrev,
+    hasNext,
+    activeSlide,
+    layerName,
+  } = useStoryMap({
+    model: props.model,
+    overrideLayerEntriesRef,
+    removeLayer: props.removeLayer,
+    addLayer: props.addLayer,
+    panelRef: storyViewerPanelRef,
+    isSpecta: false,
+  });
+
+  React.useEffect(() => {
+    return () => {
+      clearOverrideLayers();
+      storyData?.storySegments?.forEach(segmentId => {
+        const segment = props.model.getLayer(segmentId);
+        const overrides = segment?.parameters?.layerOverride;
+        if (Array.isArray(overrides)) {
+          overrides.forEach((override: { targetLayer?: string }) => {
+            const targetLayerId = override.targetLayer;
+            if (targetLayerId) {
+              const targetLayer = props.model.getLayer(targetLayerId);
+              targetLayer &&
+                props.model.triggerLayerUpdate(targetLayerId, targetLayer);
+            }
+          });
+        }
+      });
+    };
+  }, [storyData, props.model, clearOverrideLayers]);
 
   // Only show editor when not in presentation mode and editorMode is true
   const showEditor = !storyMapPresentationMode && editorMode;
@@ -183,12 +227,21 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
                   commands={props.commands}
                 />
               ) : (
-                <StoryViewerPanel
-                  model={props.model}
-                  isSpecta={false}
-                  addLayer={props.addLayer}
-                  removeLayer={props.removeLayer}
-                />
+                <div ref={storyViewerPanelRef}>
+                  <StoryViewerPanel
+                    model={props.model}
+                    isSpecta={false}
+                    storyData={storyData}
+                    currentIndex={currentIndex}
+                    activeSlide={activeSlide}
+                    layerName={layerName}
+                    handlePrev={handlePrev}
+                    handleNext={handleNext}
+                    hasPrev={hasPrev}
+                    hasNext={hasNext}
+                    setIndex={setIndex}
+                  />
+                </div>
               )}
             </TabsContent>
           )}

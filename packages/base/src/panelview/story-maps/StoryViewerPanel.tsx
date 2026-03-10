@@ -1,4 +1,8 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import React, {
   forwardRef,
   useEffect,
@@ -10,21 +14,26 @@ import React, {
 import { cn } from '@/src/shared/components/utils';
 import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
-import type { IOverrideLayerEntry } from './useStoryMap';
-import { useStoryMap } from './useStoryMap';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 
-interface IStoryViewerPanelProps {
+/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or MobileSpectaPanel). */
+export interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
   className?: string;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
-  /** Called when the segment transition animation has finished (e.g. for scroll-guard cleanup). */
   onSegmentTransitionEnd?: () => void;
+  storyData: IJGISStoryMap | null;
+  currentIndex: number;
+  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  layerName: string;
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+  setIndex: (index: number) => void;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -70,6 +79,9 @@ function getStoryNavPlacement(
   return hasImage ? 'over-image' : 'below-title';
 }
 
+/**
+ * Story viewer. Receives story state and callbacks from parent (SpectaPanel or MobileSpectaPanel use useStoryMap and pass results here).
+ */
 const StoryViewerPanel = forwardRef<
   IStoryViewerPanelHandle,
   IStoryViewerPanelProps
@@ -80,9 +92,16 @@ const StoryViewerPanel = forwardRef<
       isSpecta,
       isMobile = false,
       className,
-      addLayer,
-      removeLayer,
       onSegmentTransitionEnd,
+      storyData,
+      currentIndex,
+      activeSlide,
+      layerName,
+      handlePrev,
+      handleNext,
+      hasPrev,
+      hasNext,
+      setIndex,
     },
     ref,
   ) => {
@@ -93,47 +112,6 @@ const StoryViewerPanel = forwardRef<
     const bottomSentinelRef = useRef<HTMLDivElement>(null);
     const atTopRef = useRef(false);
     const atBottomRef = useRef(false);
-
-    const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
-
-    const {
-      storyData,
-      currentIndex,
-      clearOverrideLayers,
-      setIndex,
-      handlePrev,
-      handleNext,
-      hasPrev,
-      hasNext,
-      activeSlide,
-      layerName,
-    } = useStoryMap({
-      model,
-      overrideLayerEntriesRef,
-      removeLayer,
-      addLayer,
-      panelRef,
-      isSpecta,
-    });
-
-    // On unmount: remove override layers and restore layer symbology
-    useEffect(() => {
-      return () => {
-        clearOverrideLayers();
-        storyData?.storySegments?.forEach(segmentId => {
-          const segment = model.getLayer(segmentId);
-          const overrides = segment?.parameters?.layerOverride;
-          if (Array.isArray(overrides)) {
-            overrides.forEach((override: any) => {
-              const targetLayerId = override.targetLayer;
-              const targetLayer = model.getLayer(targetLayerId);
-              targetLayer &&
-                model.triggerLayerUpdate(targetLayerId, targetLayer);
-            });
-          }
-        });
-      };
-    }, [storyData, model, clearOverrideLayers]);
 
     // Prefetch image when slide changes
     useEffect(() => {

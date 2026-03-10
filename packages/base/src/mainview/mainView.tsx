@@ -2793,6 +2793,8 @@ export class MainView extends React.Component<IProps, IStates> {
                       }
                       containerRef={this.spectaContainerRef}
                       storyViewerPanelRef={this.storyViewerPanelRef}
+                      addLayer={this.addLayer.bind(this)}
+                      removeLayer={this.removeLayer.bind(this)}
                     />
                   )
                 )}
