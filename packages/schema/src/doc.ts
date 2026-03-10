@@ -30,7 +30,7 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
 	"layers": {},
 	"sources": {},
-	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},
+	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857", "storyMapPresentationMode": false},
 	"layerTree": [],
 	"metadata": {}
 }`;

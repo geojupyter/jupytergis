@@ -23,7 +23,7 @@ import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
 interface IColorRampSelectorProps {
   selectedRamp: ColorRampName;
-  setSelected: React.Dispatch<React.SetStateAction<ColorRampName>>;
+  setSelected: (value: ColorRampName) => void;
   reverse: boolean;
   setReverse: React.Dispatch<React.SetStateAction<boolean>>;
 }

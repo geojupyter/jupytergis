@@ -78,17 +78,6 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   ]);
 
   useEffect(() => {
-    if (!selectedRamp) {
-      return;
-    }
-
-    const defaultClasses = COLOR_RAMP_DEFAULTS[selectedRamp] ?? 9;
-
-    setNumberOfShades(defaultClasses);
-    setWarning(null);
-  }, [selectedRamp]);
-
-  useEffect(() => {
     if (!selectedRamp || !numberOfShades) {
       return;
     }
@@ -116,6 +105,14 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     setReverseRamp(Boolean(reverseRamp ?? false));
   };
 
+  const handleRampChange = (selectedRamp: ColorRampName) => {
+    setSelectedRamp(selectedRamp);
+
+    const defaultClasses = COLOR_RAMP_DEFAULTS[selectedRamp] ?? 9;
+    setNumberOfShades(defaultClasses);
+    setWarning(null);
+  };
+
   return (
     <div className="jp-gis-color-ramp-container">
       {showRampSelector && (
@@ -123,7 +120,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
           <label htmlFor="color-ramp-select">Color Ramp:</label>
           <ColorRampSelector
             selectedRamp={selectedRamp}
-            setSelected={setSelectedRamp}
+            setSelected={handleRampChange}
             reverse={reverseRamp}
             setReverse={setReverseRamp}
           />

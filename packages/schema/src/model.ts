@@ -424,6 +424,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getLayer(id);
   }
 
+  getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined {
+    return this.sharedModel.getLayer(id) ?? this.sharedModel.getLayerSource(id);
+  }
+
   getSource(id: string): IJGISSource | undefined {
     return this.sharedModel.getLayerSource(id);
   }
@@ -1007,7 +1011,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._updateLayerSignal;
   }
 
-  triggerLayerUpdate = (layerId: string, layer: IJGISLayer) => {
+  triggerLayerUpdate = (layerId: string, layer: IJGISLayer | IJGISSource) => {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 

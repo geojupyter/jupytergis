@@ -1,5 +1,15 @@
 [
   {
+    "command": "jupytergis:storyPrev",
+    "keys": ["ArrowLeft"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
+    "command": "jupytergis:storyNext",
+    "keys": ["ArrowRight"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
     "command": "jupytergis:undo",
     "keys": ["Accel Z"],
     "selector": ".data-jgis-keybinding"

@@ -105,6 +105,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
               syncData={(properties: { [key: string]: any }) => {
                 this.syncObjectProperties(this.props.layer, properties);
               }}
+              formSchemaRegistry={this.props.formSchemaRegistry}
             />
           </div>
         )}

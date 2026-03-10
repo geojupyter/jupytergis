@@ -2648,12 +2648,17 @@ export class MainView extends React.Component<IProps, IStates> {
     // ? could send just the filters object and modify that instead of emitting whole layer
     const json = JSON.parse(args);
     const { layerId, layer: jgisLayer } = json;
+    const isSourceType =
+      typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
     const olLayer = this.getLayer(layerId);
+
+    if (isSourceType) {
+      this.updateSource(layerId, jgisLayer);
+    }
     if (!jgisLayer || !olLayer) {
       console.error('Failed to update layer -- layer not found');
       return;
     }
-
     this.updateLayer(layerId, jgisLayer, olLayer);
   }
 
