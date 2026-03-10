@@ -1,16 +1,9 @@
-import {
-  IJGISLayer,
-  IJGISStoryMap,
-  IJupyterGISModel,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, {
   forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -18,15 +11,11 @@ import React, {
 import { cn } from '@/src/shared/components/utils';
 import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
+import type { IOverrideLayerEntry } from './useStoryMap';
+import { useOverrideSymbology, useStoryMap } from './useStoryMap';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
-
-/** Entry for a layer affected by layer override: remove (added clone) or restore (modified existing). */
-interface IOverrideLayerEntry {
-  layerId: string;
-  action: 'remove' | 'restore';
-}
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
@@ -98,12 +87,6 @@ const StoryViewerPanel = forwardRef<
     },
     ref,
   ) => {
-    const [currentIndex, setCurrentIndex] = useState(
-      () => model.getCurrentSegmentIndex() ?? 0,
-    );
-    const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
-      model.getSelectedStory().story ?? null,
-    );
     const [imageLoaded, setImageLoaded] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
     const segmentContainerRef = useRef<HTMLDivElement>(null);
@@ -112,82 +95,27 @@ const StoryViewerPanel = forwardRef<
     const atTopRef = useRef(false);
     const atBottomRef = useRef(false);
 
-    useEffect(() => {
-      const onIndexChanged = (_: IJupyterGISModel, index: number) => {
-        setCurrentIndex(Math.max(0, index ?? 0));
-      };
-      model.currentSegmentIndexChanged.connect(onIndexChanged);
-      return () => {
-        model.currentSegmentIndexChanged.disconnect(onIndexChanged);
-      };
-    }, [model]);
-
-    const setIndex = useCallback(
-      (index: number) => {
-        model.setCurrentSegmentIndex(index);
-      },
-      [model],
-    );
-
-    /** Layers affected by layer override
-     * We want to remove added layers (ie Heatmap)
-     * and Restore the original symbology for modified layers
-     */
     const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
 
-    const clearOverrideLayers = useCallback(() => {
-      overrideLayerEntriesRef.current.forEach(({ layerId, action }) => {
-        if (action === 'remove') {
-          removeLayer?.(layerId);
-        } else {
-          const layerOrSource = model.getLayerOrSource(layerId);
-          if (layerOrSource) {
-            model.triggerLayerUpdate(layerId, layerOrSource);
-          }
-        }
-      });
-      overrideLayerEntriesRef.current = [];
-    }, [model]);
-
-    // Derive story segments from story data
-    const storySegments = useMemo(() => {
-      if (!storyData?.storySegments) {
-        return [];
-      }
-
-      return storyData.storySegments
-        .map(storySegmentId => model.getLayer(storySegmentId))
-        .filter((layer): layer is IJGISLayer => layer !== undefined);
-    }, [storyData, model]);
-
-    // Derive current story segment from story segments and currentIndex
-    const currentStorySegment = useMemo(() => {
-      return storySegments[currentIndex];
-    }, [storySegments, currentIndex]);
-
-    // Derive active slide and layer name from current story segment
-    const activeSlide = useMemo(() => {
-      return currentStorySegment?.parameters;
-    }, [currentStorySegment]);
-
-    const layerName = useMemo(
-      () => currentStorySegment?.name ?? '',
-      [currentStorySegment],
-    );
-
-    // Derive story segment ID for zooming
-    const currentStorySegmentId = useMemo(() => {
-      return storyData?.storySegments?.[currentIndex];
-    }, [storyData, currentIndex]);
-
-    const hasPrev = currentIndex > 0;
-    const hasNext = currentIndex < storySegments.length - 1;
-
-    const zoomToCurrentLayer = () => {
-      if (currentStorySegmentId) {
-        model.centerOnPosition(currentStorySegmentId);
-      }
-    };
+    const {
+      storyData,
+      storySegments,
+      currentIndex,
+      clearOverrideLayers,
+      setIndex,
+      handlePrev,
+      handleNext,
+      hasPrev,
+      hasNext,
+      activeSlide,
+      layerName,
+      currentStorySegmentId,
+      zoomToCurrentLayer,
+    } = useStoryMap({
+      model,
+      overrideLayerEntriesRef,
+      removeLayer,
+    });
 
     const setSelectedLayerByIndex = useCallback(
       (index: number) => {
@@ -221,23 +149,6 @@ const StoryViewerPanel = forwardRef<
         });
       };
     }, [storyData, model, clearOverrideLayers]);
-
-    useEffect(() => {
-      const updateStory = () => {
-        clearOverrideLayers();
-        const { story } = model.getSelectedStory();
-        setStoryData(story ?? null);
-        setIndex(model.getCurrentSegmentIndex() ?? 0);
-      };
-
-      updateStory();
-
-      model.sharedModel.storyMapsChanged.connect(updateStory);
-
-      return () => {
-        model.sharedModel.storyMapsChanged.disconnect(updateStory);
-      };
-    }, [model, setIndex, clearOverrideLayers]);
 
     // Prefetch image when slide changes
     useEffect(() => {
@@ -361,110 +272,12 @@ const StoryViewerPanel = forwardRef<
       };
     }, [model, storyData, setIndex]);
 
-    // Apply layer overrides for the segment at the given index
-    const overrideSymbology = (index: number) => {
-      if (index < 0 || !storySegments[index]) {
-        return;
-      }
-
-      const segment = storySegments[index];
-      const layerOverrides: IStorySegmentLayer['layerOverride'] =
-        segment.parameters?.layerOverride;
-
-      if (!Array.isArray(layerOverrides)) {
-        return;
-      }
-
-      // Apply all layer overrides for this segment
-      layerOverrides.forEach(override => {
-        const {
-          color,
-          opacity,
-          sourceProperties,
-          symbologyState,
-          targetLayer: targetLayerId,
-          visible,
-        } = override;
-
-        if (!targetLayerId) {
-          return;
-        }
-
-        overrideLayerEntriesRef.current.push({
-          layerId: targetLayerId,
-          action: 'restore',
-        });
-
-        const targetLayer = model.getLayer(targetLayerId);
-
-        if (targetLayer?.parameters) {
-          if (symbologyState !== undefined) {
-            targetLayer.parameters.symbologyState = symbologyState;
-          }
-          if (color !== undefined) {
-            targetLayer.parameters.color = color;
-          }
-          if (opacity !== undefined) {
-            targetLayer.parameters.opacity = opacity;
-          }
-          if (visible !== undefined) {
-            targetLayer.visible = visible;
-          }
-          if (
-            sourceProperties !== undefined &&
-            Object.keys(sourceProperties).length > 0
-          ) {
-            const sourceId = targetLayer.parameters?.source;
-            if (sourceId) {
-              const source = model.getSource(sourceId);
-              if (!source) {
-                return;
-              }
-              if (source?.parameters) {
-                source.parameters = {
-                  ...source.parameters,
-                  ...sourceProperties,
-                };
-              }
-
-              overrideLayerEntriesRef.current.push({
-                layerId: sourceId,
-                action: 'restore',
-              });
-
-              model.triggerLayerUpdate(sourceId, source);
-            }
-          }
-          // Heatmaps are actually a different layer, not just symbology
-          // so they need special handling
-          if (symbologyState?.renderType === 'Heatmap') {
-            targetLayer.type = 'HeatmapLayer';
-            if (addLayer) {
-              const newId = UUID.uuid4();
-              addLayer(newId, targetLayer, 100);
-              overrideLayerEntriesRef.current.push({
-                layerId: newId,
-                action: 'remove',
-              });
-            }
-          } else {
-            model.triggerLayerUpdate(targetLayerId, targetLayer);
-          }
-        }
-      });
-    };
-
-    const handlePrev = useCallback(() => {
-      if (hasPrev) {
-        setIndex(currentIndex - 1);
-      }
-    }, [currentIndex, setIndex]);
-
-    const handleNext = useCallback(() => {
-      if (hasNext) {
-        setIndex(currentIndex + 1);
-      }
-    }, [currentIndex, storySegments.length, setIndex]);
+    const overrideSymbology = useOverrideSymbology({
+      model,
+      storySegments,
+      overrideLayerEntriesRef,
+      addLayer,
+    });
 
     if (!storyData || storyData?.storySegments?.length === 0) {
       return (
