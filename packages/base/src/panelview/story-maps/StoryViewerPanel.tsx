@@ -1,7 +1,6 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, {
   forwardRef,
-  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -12,7 +11,7 @@ import { cn } from '@/src/shared/components/utils';
 import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import type { IOverrideLayerEntry } from './useStoryMap';
-import { useOverrideSymbology, useStoryMap } from './useStoryMap';
+import { useStoryMap } from './useStoryMap';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
@@ -99,7 +98,6 @@ const StoryViewerPanel = forwardRef<
 
     const {
       storyData,
-      storySegments,
       currentIndex,
       clearOverrideLayers,
       setIndex,
@@ -109,27 +107,14 @@ const StoryViewerPanel = forwardRef<
       hasNext,
       activeSlide,
       layerName,
-      currentStorySegmentId,
-      zoomToCurrentLayer,
     } = useStoryMap({
       model,
       overrideLayerEntriesRef,
       removeLayer,
+      addLayer,
+      panelRef,
+      isSpecta,
     });
-
-    const setSelectedLayerByIndex = useCallback(
-      (index: number) => {
-        const storySegmentId = storyData?.storySegments?.[index];
-        if (storySegmentId) {
-          model.selected = {
-            [storySegmentId]: {
-              type: 'layer',
-            },
-          };
-        }
-      },
-      [storyData, model],
-    );
 
     // On unmount: remove override layers and restore layer symbology
     useEffect(() => {
@@ -182,46 +167,7 @@ const StoryViewerPanel = forwardRef<
       };
     }, [activeSlide?.content?.image]);
 
-    // Auto-zoom when slide changes
-    useEffect(() => {
-      if (currentStorySegmentId) {
-        zoomToCurrentLayer();
-      }
-    }, [currentStorySegmentId, model]);
-
-    // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
-    useEffect(() => {
-      if (!storyData?.storySegments || currentIndex < 0) {
-        return;
-      }
-      clearOverrideLayers();
-      setSelectedLayerByIndex(currentIndex);
-      overrideSymbology(currentIndex);
-    }, [storyData, currentIndex, setSelectedLayerByIndex, clearOverrideLayers]);
-
-    // Set selected layer on initial render and when story data changes
-    useEffect(() => {
-      if (storyData?.storySegments && currentIndex >= 0) {
-        setSelectedLayerByIndex(currentIndex);
-      }
-    }, [storyData, currentIndex, setSelectedLayerByIndex]);
-
-    // Apply story presentation colors (specta) to panel root
-    useEffect(() => {
-      if (!isSpecta || !panelRef.current) {
-        return;
-      }
-      const container = panelRef.current;
-      const bgColor = storyData?.presentationBgColor;
-      const textColor = storyData?.presentationTextColor;
-      if (bgColor) {
-        container.style.setProperty('--jgis-specta-bg-color', bgColor);
-      }
-      if (textColor) {
-        container.style.setProperty('--jgis-specta-text-color', textColor);
-      }
-    }, []);
-
+    // ! TODO come back for this
     // Listen for layer selection changes in unguided mode
     useEffect(() => {
       // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
@@ -271,13 +217,6 @@ const StoryViewerPanel = forwardRef<
         );
       };
     }, [model, storyData, setIndex]);
-
-    const overrideSymbology = useOverrideSymbology({
-      model,
-      storySegments,
-      overrideLayerEntriesRef,
-      addLayer,
-    });
 
     if (!storyData || storyData?.storySegments?.length === 0) {
       return (

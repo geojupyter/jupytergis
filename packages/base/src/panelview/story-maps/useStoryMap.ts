@@ -17,6 +17,10 @@ export interface IUseStoryMapParams {
 	model: IJupyterGISModel;
 	overrideLayerEntriesRef: React.RefObject<IOverrideLayerEntry[]>;
 	removeLayer?: (id: string) => void;
+	addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+	/** Panel root element for applying specta presentation CSS variables. */
+	panelRef?: React.RefObject<HTMLDivElement | null>;
+	isSpecta?: boolean;
 }
 
 /**
@@ -26,6 +30,9 @@ export function useStoryMap({
 	model,
 	overrideLayerEntriesRef,
 	removeLayer,
+	addLayer,
+	panelRef,
+	isSpecta,
 }: IUseStoryMapParams) {
 	const [currentIndex, setCurrentIndex] = useState(
 		() => model.getCurrentSegmentIndex() ?? 0,
@@ -133,6 +140,73 @@ export function useStoryMap({
 		}
 	}, [model, currentIndex, hasNext]);
 
+	const setSelectedLayerByIndex = useCallback(
+		(index: number) => {
+			const storySegmentId = storyData?.storySegments?.[index];
+			if (storySegmentId) {
+				model.selected = {
+					[storySegmentId]: {
+						type: 'layer',
+					},
+				};
+			}
+		},
+		[storyData, model],
+	);
+
+	const overrideSymbology = useOverrideSymbology({
+		model,
+		storySegments,
+		overrideLayerEntriesRef,
+		addLayer,
+	});
+
+	// Auto-zoom when slide changes
+	useEffect(() => {
+		if (currentStorySegmentId) {
+			zoomToCurrentLayer();
+		}
+	}, [currentStorySegmentId, zoomToCurrentLayer]);
+
+	// Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
+	useEffect(() => {
+		if (!storyData?.storySegments || currentIndex < 0) {
+			return;
+		}
+		clearOverrideLayers();
+		setSelectedLayerByIndex(currentIndex);
+		overrideSymbology(currentIndex);
+	}, [
+		storyData,
+		currentIndex,
+		setSelectedLayerByIndex,
+		clearOverrideLayers,
+		overrideSymbology,
+	]);
+
+	// Set selected layer on initial render and when story data changes
+	useEffect(() => {
+		if (storyData?.storySegments && currentIndex >= 0) {
+			setSelectedLayerByIndex(currentIndex);
+		}
+	}, [storyData, currentIndex, setSelectedLayerByIndex]);
+
+	// Apply story presentation colors (specta) to panel root
+	useEffect(() => {
+		if (!isSpecta || !panelRef?.current) {
+			return;
+		}
+		const container = panelRef.current;
+		const bgColor = storyData?.presentationBgColor;
+		const textColor = storyData?.presentationTextColor;
+		if (bgColor) {
+			container.style.setProperty('--jgis-specta-bg-color', bgColor);
+		}
+		if (textColor) {
+			container.style.setProperty('--jgis-specta-text-color', textColor);
+		}
+	}, [storyData, isSpecta, panelRef]);
+
 	return {
 		storyData,
 		storySegments,
@@ -143,6 +217,7 @@ export function useStoryMap({
 		handleNext,
 		hasPrev,
 		hasNext,
+		setSelectedLayerByIndex,
 		currentStorySegment,
 		activeSlide,
 		layerName,
