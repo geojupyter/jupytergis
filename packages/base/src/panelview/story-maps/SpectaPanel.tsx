@@ -1,10 +1,9 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 
 import { MobileSpectaPanel } from './MobileSpectaPanel';
 import StoryViewerPanel, { IStoryViewerPanelHandle } from './StoryViewerPanel';
-import type { IOverrideLayerEntry } from './useStoryMap';
-import { useStoryMap } from './useStoryMap';
+import { useStoryMap, type IOverrideLayerEntry } from './useStoryMap';
 import SpectaPresentationProgressBar from '../../statusbar/SpectaPresentationProgressBar';
 
 export interface ISpectaPanelProps {
@@ -32,7 +31,6 @@ export function SpectaPanel({
   const {
     storyData,
     currentIndex,
-    clearOverrideLayers,
     setIndex,
     handlePrev,
     handleNext,
@@ -48,27 +46,6 @@ export function SpectaPanel({
     panelRef: isMobile ? undefined : containerRef,
     isSpecta,
   });
-
-  // On unmount: remove override layers and restore layer symbology
-  useEffect(() => {
-    return () => {
-      clearOverrideLayers();
-      storyData?.storySegments?.forEach(segmentId => {
-        const segment = model.getLayer(segmentId);
-        const overrides = segment?.parameters?.layerOverride;
-        if (Array.isArray(overrides)) {
-          overrides.forEach((override: { targetLayer?: string }) => {
-            const targetLayerId = override.targetLayer;
-            if (targetLayerId) {
-              const targetLayer = model.getLayer(targetLayerId);
-              targetLayer &&
-                model.triggerLayerUpdate(targetLayerId, targetLayer);
-            }
-          });
-        }
-      });
-    };
-  }, [storyData, model, clearOverrideLayers]);
 
   if (isMobile) {
     return (

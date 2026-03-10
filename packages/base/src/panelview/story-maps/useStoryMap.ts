@@ -34,7 +34,6 @@ export function useStoryMap({
   panelRef,
   isSpecta,
 }: IUseStoryMapParams) {
-  console.log('hook');
   const [currentIndex, setCurrentIndex] = useState(
     () => model.getCurrentSegmentIndex() ?? 0,
   );
@@ -82,6 +81,27 @@ export function useStoryMap({
       model.sharedModel.storyMapsChanged.disconnect(updateStory);
     };
   }, [model, clearOverrideLayers]);
+
+  // On unmount: remove override layers and restore layer symbology
+  useEffect(() => {
+    return () => {
+      clearOverrideLayers();
+      storyData?.storySegments?.forEach(segmentId => {
+        const segment = model.getLayer(segmentId);
+        const overrides = segment?.parameters?.layerOverride;
+        if (Array.isArray(overrides)) {
+          overrides.forEach((override: { targetLayer?: string }) => {
+            const targetLayerId = override.targetLayer;
+            if (targetLayerId) {
+              const targetLayer = model.getLayer(targetLayerId);
+              targetLayer &&
+                model.triggerLayerUpdate(targetLayerId, targetLayer);
+            }
+          });
+        }
+      });
+    };
+  }, [storyData, model, clearOverrideLayers]);
 
   const storySegments = useMemo(() => {
     if (!storyData?.storySegments) {

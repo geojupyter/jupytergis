@@ -16,8 +16,10 @@ import { ObjectPropertiesReact } from './objectproperties';
 import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
-import type { IOverrideLayerEntry } from './story-maps/useStoryMap';
-import { useStoryMap } from './story-maps/useStoryMap';
+import {
+  useStoryMap,
+  type IOverrideLayerEntry,
+} from './story-maps/useStoryMap';
 import {
   PanelTabs,
   TabsContent,
@@ -25,7 +27,7 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 
-/** Story viewer + useStoryMap; only mounted when story tab is active to avoid hook re-renders when tab is hidden. */
+/** Story viewer + useStoryMap; only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden. */
 function RightPanelStoryViewer({
   model,
   addLayer,
@@ -40,7 +42,6 @@ function RightPanelStoryViewer({
   const {
     storyData,
     currentIndex,
-    clearOverrideLayers,
     setIndex,
     handlePrev,
     handleNext,
@@ -56,26 +57,6 @@ function RightPanelStoryViewer({
     panelRef,
     isSpecta: false,
   });
-
-  React.useEffect(() => {
-    return () => {
-      clearOverrideLayers();
-      storyData?.storySegments?.forEach(segmentId => {
-        const segment = model.getLayer(segmentId);
-        const overrides = segment?.parameters?.layerOverride;
-        if (Array.isArray(overrides)) {
-          overrides.forEach((override: { targetLayer?: string }) => {
-            const targetLayerId = override.targetLayer;
-            if (targetLayerId) {
-              const targetLayer = model.getLayer(targetLayerId);
-              targetLayer &&
-                model.triggerLayerUpdate(targetLayerId, targetLayer);
-            }
-          });
-        }
-      });
-    };
-  }, [storyData, model, clearOverrideLayers]);
 
   return (
     <div ref={panelRef}>
@@ -106,44 +87,44 @@ interface IRightPanelProps {
   removeLayer?: (id: string) => void;
 }
 
-const RightPanelInner: React.FC<IRightPanelProps> = props => {
-  const renderCountRef = React.useRef(0);
-  const prevPropsRef = React.useRef(props);
-  renderCountRef.current += 1;
+export const RightPanel: React.FC<IRightPanelProps> = props => {
+  // const renderCountRef = React.useRef(0);
+  // const prevPropsRef = React.useRef(props);
+  // renderCountRef.current += 1;
 
-  if (
-    typeof process !== 'undefined' &&
-    process.env?.NODE_ENV !== 'production'
-  ) {
-    const prev = prevPropsRef.current;
-    const changes: string[] = [];
-    if (prev.model !== props.model) {
-      changes.push('model');
-    }
-    if (prev.addLayer !== props.addLayer) {
-      changes.push('addLayer');
-    }
-    if (prev.removeLayer !== props.removeLayer) {
-      changes.push('removeLayer');
-    }
-    if (prev.commands !== props.commands) {
-      changes.push('commands');
-    }
-    if (prev.settings !== props.settings) {
-      changes.push('settings');
-    }
-    if (prev.formSchemaRegistry !== props.formSchemaRegistry) {
-      changes.push('formSchemaRegistry');
-    }
-    if (prev.annotationModel !== props.annotationModel) {
-      changes.push('annotationModel');
-    }
-    prevPropsRef.current = props;
-    console.log(
-      `[RightPanel] render #${renderCountRef.current}`,
-      changes.length ? { changed: changes } : '(no prop changes)',
-    );
-  }
+  // if (
+  //   typeof process !== 'undefined' &&
+  //   process.env?.NODE_ENV !== 'production'
+  // ) {
+  //   const prev = prevPropsRef.current;
+  //   const changes: string[] = [];
+  //   if (prev.model !== props.model) {
+  //     changes.push('model');
+  //   }
+  //   if (prev.addLayer !== props.addLayer) {
+  //     changes.push('addLayer');
+  //   }
+  //   if (prev.removeLayer !== props.removeLayer) {
+  //     changes.push('removeLayer');
+  //   }
+  //   if (prev.commands !== props.commands) {
+  //     changes.push('commands');
+  //   }
+  //   if (prev.settings !== props.settings) {
+  //     changes.push('settings');
+  //   }
+  //   if (prev.formSchemaRegistry !== props.formSchemaRegistry) {
+  //     changes.push('formSchemaRegistry');
+  //   }
+  //   if (prev.annotationModel !== props.annotationModel) {
+  //     changes.push('annotationModel');
+  //   }
+  //   prevPropsRef.current = props;
+  //   console.log(
+  //     `[RightPanel] render #${renderCountRef.current}`,
+  //     changes.length ? { changed: changes } : '(no prop changes)',
+  //   );
+  // }
 
   const [editorMode, setEditorMode] = React.useState(true);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
@@ -327,5 +308,3 @@ const RightPanelInner: React.FC<IRightPanelProps> = props => {
     </Draggable>
   );
 };
-
-export const RightPanel = React.memo(RightPanelInner);
