@@ -51,7 +51,7 @@
   },
   {
     "command": "jupytergis:duplicateSelected",
-    "keys": ["Accel Y"],
+    "keys": ["Accel C"],
     "selector": ".data-jgis-keybinding"
   },
   {

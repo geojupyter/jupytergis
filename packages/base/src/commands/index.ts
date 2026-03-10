@@ -15,7 +15,7 @@ import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
@@ -604,7 +604,7 @@ export function addCommands(
           ...layer,
           name: Private.generateCopyName(layer.name, model),
         };
-        const newId = crypto.randomUUID();
+        const newId = UUID.uuid4();
 
         model.addLayer(newId, clonedLayer, selectedItem.parent);
       }
