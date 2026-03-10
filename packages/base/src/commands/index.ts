@@ -1178,16 +1178,8 @@ export function addCommands(
       }
 
       const layerId = Object.keys(selected)[0];
-      const result = model.addStorySegment();
-      if (!result) {
-        return;
-      }
 
-      const segments = model.getSelectedStory().story?.storySegments ?? [];
-      const newIndex = segments.length - 1;
-
-      model.setCurrentSegmentIndex(newIndex);
-      model.centerOnPosition(layerId);
+      model.createStorySegmentFromLayer(layerId);
 
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },

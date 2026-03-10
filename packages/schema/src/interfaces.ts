@@ -314,6 +314,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
   addStorySegment(): { storySegmentId: string; storyId: string } | null;
+  createStorySegmentFromLayer(
+    layerId: string,
+  ): { storySegmentId: string; storyId: string } | null;
   segmentAdded: ISignal<
     IJupyterGISModel,
     { storySegmentId: string; storyId: string }

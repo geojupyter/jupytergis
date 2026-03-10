@@ -731,6 +731,36 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  createStorySegmentFromLayer(layerId: string) {
+    const layer = this.getLayer(layerId);
+    if (!layer) {
+      return null;
+    }
+
+    const result = this.addStorySegment();
+    if (!result) {
+      return null;
+    }
+
+    const segments = this.getSelectedStory().story?.storySegments ?? [];
+    const index = segments.length - 1;
+
+    // segment extent = layer extent
+    this.centerOnPosition(layerId);
+
+    // capture current layer parameters as override
+    const layerOverride = {
+      ...layer,
+      parameters: { ...layer.parameters },
+    };
+
+    this.triggerLayerUpdate(layerId, layerOverride);
+
+    this.setCurrentSegmentIndex(index);
+
+    return result;
+  }
+
   get segmentAdded(): ISignal<
     this,
     { storySegmentId: string; storyId: string }
