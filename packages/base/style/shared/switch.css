@@ -1,7 +1,8 @@
 .jgis-switch {
   display: inline-flex;
   height: 1.15rem;
-  width: 2.4rem;
+  width: 2.5rem;
+  padding: 2px;
   flex-shrink: 0;
   align-items: center;
   border-radius: 9999px !important;
@@ -45,11 +46,11 @@
 }
 
 .jgis-switch-thumb[data-state='checked'] {
-  transform: translateX(calc(100% + 3px));
+  transform: translateX(1.4rem);
 }
 
 .jgis-switch-thumb[data-state='unchecked'] {
-  transform: translateX(-3px);
+  transform: translateX(0);
 }
 
 @media (prefers-color-scheme: dark) {
