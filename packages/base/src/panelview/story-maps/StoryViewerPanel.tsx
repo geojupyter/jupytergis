@@ -52,8 +52,7 @@ export interface IStoryViewerPanelHandle {
 export type StoryNavPlacement =
   | 'below-title'
   | 'over-image'
-  | 'subtitle-specta'
-  | 'subtitle-specta-mobile';
+  | 'subtitle-specta';
 
 /**
  * Returns which section should render the nav bar, or null if nav should be hidden.
@@ -65,7 +64,7 @@ function getStoryNavPlacement(
   isMobile: boolean,
 ): StoryNavPlacement | null {
   if (isSpecta) {
-    return isMobile ? 'subtitle-specta-mobile' : 'subtitle-specta';
+    return isMobile ? null : 'subtitle-specta';
   }
   if (storyType !== 'guided') {
     return null;
@@ -236,12 +235,7 @@ function StoryViewerPanel({
         )}
         <StorySubtitleSection
           title={activeSlide?.content?.title ?? ''}
-          navSlot={
-            navPlacement === 'subtitle-specta' ||
-            navPlacement === 'subtitle-specta-mobile'
-              ? navSlot
-              : null
-          }
+          navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
         />
       </div>
       <div id="jgis-story-segment-content">
