@@ -6,7 +6,6 @@ import {
 } from '@jupytergis/schema';
 import React, { useEffect, useImperativeHandle, useRef } from 'react';
 
-import { cn } from '@/src/shared/components/utils';
 import { MobileSpectaPanel } from './MobileSpectaPanel';
 import StoryViewerPanel, { IStoryViewerPanelHandle } from './StoryViewerPanel';
 import { useStoryMap, type IOverrideLayerEntry } from './useStoryMap';
@@ -96,10 +95,7 @@ function SpectaPanelDesktop({
         <div ref={containerRef} className="jgis-specta-story-panel-container">
           <div
             ref={scrollContainerRef}
-            className={cn(
-              'jgis-story-viewer-panel',
-              'jgis-story-viewer-panel-specta-mod',
-            )}
+            className="jgis-story-viewer-panel-specta-mod"
             id="jgis-story-segment-panel"
           >
             <div

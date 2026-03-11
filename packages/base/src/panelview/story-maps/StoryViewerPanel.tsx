@@ -207,39 +207,43 @@ function StoryViewerPanel({
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
 
   return (
-    <div
-      ref={segmentContainerRef}
-      key={currentIndex}
-      className="jgis-story-segment-container"
-      style={{
-        animationDuration: `${transitionTime}s`,
-      }}
-    >
-      <div id="jgis-story-segment-header">
-        <h1 className="jgis-story-viewer-title">
-          {layerName ?? `Slide ${currentIndex + 1}`}
-        </h1>
-        {activeSlide?.content?.image && imageLoaded ? (
-          <StoryImageSection
-            imageUrl={activeSlide.content.image}
-            imageLoaded={imageLoaded}
-            layerName={layerName ?? ''}
-            slideNumber={currentIndex}
-            navSlot={navPlacement === 'over-image' ? navSlot : null}
+    <div className="jgis-story-viewer-panel">
+      <div
+        ref={segmentContainerRef}
+        key={currentIndex}
+        className="jgis-story-segment-container"
+        style={{
+          animationDuration: `${transitionTime}s`,
+        }}
+      >
+        <div id="jgis-story-segment-header">
+          <h1 className="jgis-story-viewer-title">
+            {layerName ?? `Slide ${currentIndex + 1}`}
+          </h1>
+          {activeSlide?.content?.image && imageLoaded ? (
+            <StoryImageSection
+              imageUrl={activeSlide.content.image}
+              imageLoaded={imageLoaded}
+              layerName={layerName ?? ''}
+              slideNumber={currentIndex}
+              navSlot={navPlacement === 'over-image' ? navSlot : null}
+            />
+          ) : (
+            <StoryTitleSection
+              title={storyData.title ?? ''}
+              navSlot={navPlacement === 'below-title' ? navSlot : null}
+            />
+          )}
+          <StorySubtitleSection
+            title={activeSlide?.content?.title ?? ''}
+            navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
           />
-        ) : (
-          <StoryTitleSection
-            title={storyData.title ?? ''}
-            navSlot={navPlacement === 'below-title' ? navSlot : null}
+        </div>
+        <div id="jgis-story-segment-content">
+          <StoryContentSection
+            markdown={activeSlide?.content?.markdown ?? ''}
           />
-        )}
-        <StorySubtitleSection
-          title={activeSlide?.content?.title ?? ''}
-          navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
-        />
-      </div>
-      <div id="jgis-story-segment-content">
-        <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+        </div>
       </div>
     </div>
   );
