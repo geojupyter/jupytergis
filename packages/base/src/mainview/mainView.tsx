@@ -912,12 +912,17 @@ export class MainView extends React.Component<IProps, IStates> {
 
         // Replace color placeholder in SVG with the parameter color
         const markerColor = parameters.color || '#3463a0';
-        const svgString = markerIcon.svgstr.replace('{{COLOR}}', markerColor);
+        const svgString = markerIcon.svgstr
+          .replace('{{COLOR}}', markerColor)
+          .replace('<svg', '<svg width="128" height="128"');
 
         const iconStyle = new Style({
           image: new Icon({
             src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
             scale: 0.25,
+            anchor: [0.5, 1],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
           }),
         });
 
