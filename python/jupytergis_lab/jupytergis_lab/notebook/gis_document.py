@@ -187,7 +187,7 @@ class GISDocument(CommWidget):
             "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity},
+            "parameters": {"source": source_id, "opacity": opacity, "color": {}},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -298,6 +298,9 @@ class GISDocument(CommWidget):
 
         if data is not None:
             parameters["data"] = data
+
+        if color_expr is None:
+            color_expr = {}
 
         source = {
             "type": SourceType.GeoJSONSource,

@@ -1,15 +1,37 @@
-import { IDict } from '@jupytergis/schema';
+/**
+ * Base (default) source form and props.
+ * Used for RasterSource and any source type without a dedicated form.
+ */
+import { IDict, SourceType } from '@jupytergis/schema';
+import { Signal } from '@lumino/signaling';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
 import { deepCopy } from '@/src/tools';
+import type { IBaseFormProps } from '@/src/types';
 import { SchemaForm } from '../SchemaForm';
 import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
-import type { ILayerProps } from './layerform';
 
-export function WebGlLayerPropertiesForm(
-  props: ILayerProps,
+export interface ISourceFormProps extends IBaseFormProps {
+  /**
+   * The source type for this form.
+   */
+  sourceType: SourceType;
+
+  /**
+   * The signal emitted when the source form has changed.
+   */
+  sourceFormChangedSignal?: Signal<any, IDict<any>>;
+
+  /**
+   * Configuration options for the dialog, including settings for source data and other parameters.
+   */
+  dialogOptions?: any;
+}
+
+export function SourcePropertiesForm(
+  props: ISourceFormProps,
 ): React.ReactElement | null {
   const {
     schema: schemaProp,
@@ -18,8 +40,8 @@ export function WebGlLayerPropertiesForm(
     model,
     filePath,
     formContext,
-    sourceType,
     dialogOptions,
+    cancel,
     formErrorSignal,
   } = props;
 
@@ -35,10 +57,10 @@ export function WebGlLayerPropertiesForm(
     schemaProp,
     model,
     syncData,
-    cancel: props.cancel,
+    cancel,
     onAfterChange: dialogOptions
       ? (data: IDict) => {
-          dialogOptions.layerData = { ...data };
+          dialogOptions.sourceData = { ...data };
         }
       : undefined,
   });
@@ -46,10 +68,6 @@ export function WebGlLayerPropertiesForm(
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
-
-    removeFormEntry('color', formData, schema, builtUiSchema);
-    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
-
     processBaseSchema(
       dataCopy,
       schema,
@@ -58,16 +76,8 @@ export function WebGlLayerPropertiesForm(
       removeFormEntry,
     );
 
-    if (schema.properties?.source) {
-      const availableSources = model.getSourcesByType(sourceType);
-
-      (schema.properties.source as IDict).enumNames =
-        Object.values(availableSources);
-      (schema.properties.source as IDict).enum = Object.keys(availableSources);
-    }
-
     return builtUiSchema;
-  }, [schema, formData, formContext, model, sourceType]);
+  }, [schema, formData, formContext]);
 
   if (!hasSchema) {
     return null;

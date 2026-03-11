@@ -5,8 +5,10 @@ import React from 'react';
 import { SymbologyWidget } from '@/src/dialogs/symbology/symbologyDialog';
 import { Button } from '@/src/shared/components/Button';
 import { GlobalStateDbManager } from '@/src/store';
-import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
-import type { IJupyterGISFormContext } from '../baseform';
+import {
+  SYMBOLOGY_VALID_LAYER_TYPES,
+  type IJupyterGISFormContext,
+} from '@/src/types';
 
 interface ILayerOverrideItemProps {
   item: ArrayFieldTemplateProps['items'][0];

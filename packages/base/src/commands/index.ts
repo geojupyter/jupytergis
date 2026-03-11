@@ -326,10 +326,6 @@ export function addCommands(
       title: 'Create Raster Tile Layer',
       createLayer: true,
       createSource: true,
-      sourceData: {
-        minZoom: 0,
-        maxZoom: 24,
-      },
       layerData: { name: 'Custom Raster Tile Layer' },
       sourceType: 'RasterSource',
       layerType: 'RasterLayer',
@@ -350,7 +346,6 @@ export function addCommands(
       title: 'Create Vector Tile Layer',
       createLayer: true,
       createSource: true,
-      sourceData: { minZoom: 0, maxZoom: 24 },
       layerData: { name: 'Custom Vector Tile Layer' },
       sourceType: 'VectorTileSource',
       layerType: 'VectorTileLayer',

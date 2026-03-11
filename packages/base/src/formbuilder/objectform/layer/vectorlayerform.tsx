@@ -8,7 +8,7 @@ import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ILayerProps } from './layerform';
 
-export function WebGlLayerPropertiesForm(
+export function VectorLayerPropertiesForm(
   props: ILayerProps,
 ): React.ReactElement | null {
   const {
@@ -60,7 +60,6 @@ export function WebGlLayerPropertiesForm(
 
     if (schema.properties?.source) {
       const availableSources = model.getSourcesByType(sourceType);
-
       (schema.properties.source as IDict).enumNames =
         Object.values(availableSources);
       (schema.properties.source as IDict).enum = Object.keys(availableSources);
