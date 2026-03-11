@@ -105,7 +105,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   useEffect(() => {
     // We only want number values here
     const attribute =
-      params.symbologyState?.value ??
+      params.symbologyState?.value ||
       Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
@@ -312,7 +312,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           </div>
 
           <div className="jp-gis-layer-symbology-container">
-            //! only needs symbology state
             <ColorRampControls
               layerParams={params}
               modeOptions={[]}

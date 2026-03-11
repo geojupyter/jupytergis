@@ -1,5 +1,12 @@
-import { IDict, IJupyterGISWidget } from '@jupytergis/schema';
-import { WidgetTracker } from '@jupyterlab/apputils';
+import {
+  IDict,
+  IJGISFormSchemaRegistry,
+  IJupyterGISModel,
+  IJupyterGISWidget,
+} from '@jupytergis/schema';
+import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
+import { Signal } from '@lumino/signaling';
+import { RJSFSchema } from '@rjsf/utils';
 import { Map } from 'ol';
 
 export { IDict };
@@ -58,3 +65,31 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'WebGlLayer',
   'HeatmapLayer',
 ];
+
+/** Form context passed to SchemaForm and custom fields. */
+export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
+  model: IJupyterGISModel;
+  formData: TFormData;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
+}
+
+/** Optional form state (schema, extraErrors). */
+export interface IBaseFormStates {
+  schema?: RJSFSchema;
+  extraErrors?: any;
+}
+
+/** Base props for object forms (layer, source, processing, story editor). */
+export interface IBaseFormProps {
+  formContext: 'update' | 'create';
+  sourceData: IDict | undefined;
+  filePath?: string;
+  model: IJupyterGISModel;
+  syncData: (properties: IDict) => void;
+  schema?: IDict;
+  ok?: Signal<Dialog<any>, number>;
+  cancel?: () => void;
+  formChangedSignal?: Signal<any, IDict<any>>;
+  formErrorSignal?: Signal<Dialog<any>, boolean>;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
+}

@@ -55,7 +55,7 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "default": "Single Symbol"
+          "default": "Singleband Pseudocolor"
         },
         "band": {
           "type": "number",
@@ -98,7 +98,7 @@
       },
       "additionalProperties": false,
       "default": {
-        "renderType": "Single Symbol",
+        "renderType": "Singleband Pseudocolor",
         "band": 1,
         "redBand": 1,
         "greenBand": 2,

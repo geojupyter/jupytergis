@@ -1,100 +1,137 @@
-import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
-import { IChangeEvent } from '@rjsf/core';
-import { RJSFSchema } from '@rjsf/utils';
+import { IDict, IGeoJSONSource, IJupyterGISModel } from '@jupytergis/schema';
+import { Dialog } from '@jupyterlab/apputils';
+import { Signal } from '@lumino/signaling';
+import { RJSFSchema, UiSchema } from '@rjsf/utils';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  BaseForm,
-  IBaseFormProps,
-  IBaseFormStates,
-} from '@/src/formbuilder/objectform/baseform'; // Ensure BaseForm imports states
-import { loadFile } from '@/src/tools';
+import { deepCopy, loadFile } from '@/src/tools';
+import type { IBaseFormProps } from '@/src/types';
+import { SchemaForm } from '../SchemaForm';
+import { processBaseSchema, removeFormEntry } from '../schemaUtils';
+import { useSchemaFormState } from '../useSchemaFormState';
 
-interface IDissolveFormOptions extends IBaseFormProps {
-  schema: IDict;
-  sourceData: IDict;
-  title: string;
-  cancelButton: (() => void) | boolean;
-  syncData: (props: IDict) => void;
+export interface IDissolveFormProps extends IBaseFormProps {
+  ok?: Signal<Dialog<any>, number>;
   model: IJupyterGISModel;
 }
 
-export class DissolveForm extends BaseForm {
-  private model: IJupyterGISModel;
-  private features: string[] = [];
+async function fetchFieldNames(
+  model: IJupyterGISModel,
+  layerId: string | undefined,
+): Promise<string[]> {
+  if (!layerId) {
+    return [];
+  }
+  const layer = model.getLayer(layerId);
+  if (!layer?.parameters?.source) {
+    return [];
+  }
+  const source = model.getSource(layer.parameters.source);
+  if (!source || source.type !== 'GeoJSONSource') {
+    return [];
+  }
+  const sourceData = source.parameters as IGeoJSONSource;
+  if (!sourceData?.path) {
+    return [];
+  }
+  const jsonData = await loadFile({
+    filepath: sourceData.path,
+    type: 'GeoJSONSource',
+    model,
+  });
+  if (!jsonData?.features?.length) {
+    return [];
+  }
+  return Object.keys(jsonData.features[0].properties ?? {});
+}
 
-  constructor(options: IDissolveFormOptions) {
-    super(options);
-    this.model = options.model;
+export function DissolveForm(
+  props: IDissolveFormProps,
+): React.ReactElement | null {
+  const {
+    schema: schemaProp,
+    sourceData,
+    syncData,
+    model,
+    filePath,
+    formContext,
+    ok,
+  } = props;
 
-    // Ensure initial state matches IBaseFormStates
-    this.state = {
-      schema: options.schema ?? {}, // Ensure schema is never undefined
+  const {
+    formData,
+    formContextValue,
+    hasSchema,
+    handleChangeBase,
+    handleSubmitBase,
+  } = useSchemaFormState({ sourceData, schemaProp, model, syncData });
+  const [features, setFeatures] = useState<string[]>([]);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    fetchFieldNames(model, formData?.inputLayer)
+      .then(setFeatures)
+      .catch(() => setFeatures([]));
+  }, [model, formData?.inputLayer]);
+
+  useEffect(() => {
+    if (!ok) {
+      return;
+    }
+
+    const handler = () => {
+      submitButtonRef.current?.click();
     };
+    ok.connect(handler);
+    return () => {
+      ok.disconnect(handler);
+    };
+  }, [ok]);
 
-    this.onFormChange = this.handleFormChange.bind(this);
+  const schema = useMemo(() => {
+    const schemaCopy = deepCopy(schemaProp ?? {}) as RJSFSchema;
 
-    this.fetchFieldNames(options.sourceData.inputLayer);
-  }
-
-  private async fetchFieldNames(layerId: string) {
-    const layer = this.model.getLayer(layerId);
-    if (!layer?.parameters?.source) {
-      return;
+    if (
+      schemaCopy.properties &&
+      (schemaCopy.properties as IDict).dissolveField
+    ) {
+      (schemaCopy.properties as IDict).dissolveField = {
+        ...(schemaCopy.properties.dissolveField as IDict),
+        enum: [...features],
+      };
     }
 
-    const source = this.model.getSource(layer.parameters.source);
-    if (!source || source.type !== 'GeoJSONSource') {
-      return;
-    }
+    return schemaCopy;
+  }, [schemaProp, features]);
 
-    const sourceData = source.parameters as IGeoJSONSource;
-    if (!sourceData?.path) {
-      return;
-    }
-
-    try {
-      const jsonData = await loadFile({
-        filepath: sourceData.path,
-        type: 'GeoJSONSource',
-        model: this.model,
-      });
-
-      if (!jsonData?.features?.length) {
-        return;
-      }
-
-      this.features = Object.keys(jsonData.features[0].properties);
-      this.updateSchema();
-    } catch (error) {
-      console.error('Error loading GeoJSON:', error);
-    }
-  }
-
-  public handleFormChange(e: IChangeEvent) {
-    super.onFormChange(e);
-
-    if (e.formData.inputLayer) {
-      this.fetchFieldNames(e.formData.inputLayer);
-    }
-  }
-
-  private updateSchema() {
-    this.setState(
-      (prevState: IBaseFormStates) => ({
-        schema: {
-          ...prevState.schema,
-          properties: {
-            ...prevState.schema?.properties,
-            dissolveField: {
-              ...(prevState.schema?.properties?.dissolveField as RJSFSchema),
-              enum: [...this.features],
-            },
-          },
-        },
-      }),
-      () => {
-        this.forceUpdate();
-      },
+  const uiSchema = useMemo(() => {
+    const builtUiSchema: UiSchema = {};
+    const dataCopy = deepCopy(formData);
+    processBaseSchema(
+      dataCopy,
+      schema,
+      builtUiSchema,
+      formContext,
+      removeFormEntry,
     );
+
+    return builtUiSchema;
+  }, [schema, formData, formContext]);
+
+  if (!hasSchema) {
+    return null;
   }
+
+  return (
+    <SchemaForm
+      schema={schema}
+      formData={formData}
+      onChange={handleChangeBase}
+      onSubmit={handleSubmitBase}
+      formContext={formContextValue}
+      filePath={filePath}
+      uiSchema={uiSchema}
+      submitButtonRef={submitButtonRef}
+    />
+  );
 }
