@@ -18,6 +18,7 @@ export interface ISpectaPanelDesktopProps {
   onSegmentTransitionEnd: () => void;
   containerRef: React.RefObject<HTMLDivElement>;
   storyViewerPanelRef: React.RefObject<IStoryViewerPanelHandle>;
+  segmentContainerRef: React.RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
@@ -35,6 +36,7 @@ function SpectaPanelDesktop({
   onSegmentTransitionEnd,
   containerRef,
   storyViewerPanelRef,
+  segmentContainerRef,
   storyData,
   currentIndex,
   activeSlide,
@@ -112,7 +114,7 @@ function SpectaPanelDesktop({
               model={model}
               isSpecta={isSpecta}
               className="jgis-story-viewer-panel-specta-mod"
-              onSegmentTransitionEnd={onSegmentTransitionEnd}
+              segmentContainerRef={segmentContainerRef}
               storyData={storyData}
               currentIndex={currentIndex}
               activeSlide={activeSlide}
@@ -159,6 +161,7 @@ export function SpectaPanel({
   removeLayer,
 }: ISpectaPanelProps) {
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
+  const segmentContainerRef = useRef<HTMLDivElement>(null);
   const {
     storyData,
     currentIndex,
@@ -178,10 +181,27 @@ export function SpectaPanel({
     isSpecta,
   });
 
+  // Notify when segment transition animation ends (desktop and mobile). Used for scroll-guard etc.
+  useEffect(() => {
+    const el = segmentContainerRef.current;
+    if (!el || !onSegmentTransitionEnd) {
+      return;
+    }
+    const handleAnimationEnd = (e: AnimationEvent) => {
+      if (e.animationName === 'fadeIn') {
+        el.removeEventListener('animationend', handleAnimationEnd);
+        onSegmentTransitionEnd();
+      }
+    };
+    el.addEventListener('animationend', handleAnimationEnd);
+    return () => el.removeEventListener('animationend', handleAnimationEnd);
+  }, [currentIndex, onSegmentTransitionEnd]);
+
   if (isMobile) {
     return (
       <MobileSpectaPanel
         model={model}
+        segmentContainerRef={segmentContainerRef}
         storyData={storyData}
         currentIndex={currentIndex}
         activeSlide={activeSlide}
@@ -202,6 +222,7 @@ export function SpectaPanel({
       onSegmentTransitionEnd={onSegmentTransitionEnd}
       containerRef={containerRef}
       storyViewerPanelRef={storyViewerPanelRef}
+      segmentContainerRef={segmentContainerRef}
       storyData={storyData}
       currentIndex={currentIndex}
       activeSlide={activeSlide}

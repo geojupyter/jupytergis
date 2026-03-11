@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
@@ -17,7 +17,8 @@ export interface IStoryViewerPanelProps {
   isSpecta: boolean;
   isMobile?: boolean;
   className?: string;
-  onSegmentTransitionEnd?: () => void;
+  /** Ref for the segment container (SpectaPanel uses it for animationend). */
+  segmentContainerRef?: React.RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
@@ -81,7 +82,7 @@ function StoryViewerPanel({
   isSpecta,
   isMobile = false,
   className,
-  onSegmentTransitionEnd,
+  segmentContainerRef,
   storyData,
   currentIndex,
   activeSlide,
@@ -93,7 +94,6 @@ function StoryViewerPanel({
   setIndex,
 }: IStoryViewerPanelProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const segmentContainerRef = useRef<HTMLDivElement>(null);
 
   // Prefetch image when slide changes
   useEffect(() => {
@@ -206,22 +206,6 @@ function StoryViewerPanel({
 
   // Get transition time from current segment, default to 0.3s
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
-
-  // Notify parent when segment transition animation ends (e.g. for scroll-guard cleanup)
-  useEffect(() => {
-    const el = segmentContainerRef.current;
-    if (!el || !onSegmentTransitionEnd) {
-      return;
-    }
-    const handleAnimationEnd = (e: AnimationEvent) => {
-      if (e.animationName === 'fadeIn') {
-        el.removeEventListener('animationend', handleAnimationEnd);
-        onSegmentTransitionEnd();
-      }
-    };
-    el.addEventListener('animationend', handleAnimationEnd);
-    return () => el.removeEventListener('animationend', handleAnimationEnd);
-  }, [currentIndex, onSegmentTransitionEnd]);
 
   return (
     <div

@@ -25,6 +25,7 @@ const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 export interface IMobileSpectaPanelProps {
   model: IJupyterGISModel;
+  segmentContainerRef: React.RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
@@ -82,6 +83,7 @@ function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
 
 export function MobileSpectaPanel({
   model,
+  segmentContainerRef,
   storyData,
   currentIndex,
   activeSlide,
@@ -194,6 +196,7 @@ export function MobileSpectaPanel({
               model={model}
               isSpecta={true}
               isMobile={true}
+              segmentContainerRef={segmentContainerRef}
               storyData={storyData}
               currentIndex={currentIndex}
               activeSlide={activeSlide}
