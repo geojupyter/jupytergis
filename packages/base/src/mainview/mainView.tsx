@@ -2483,7 +2483,7 @@ export class MainView extends React.Component<IProps, IStates> {
     view.setZoom(zoom);
   }
 
-  private _onPointerMove(e: MouseEvent) {
+  private _onPointerMove(e: PointerEvent) {
     const pixel = this._Map.getEventPixel(e);
     const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
@@ -2706,6 +2706,28 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
+    if (e.touches.length > 0) {
+      this._spectaTouchStartX = e.touches[0].clientX;
+    }
+  };
+
+  private _handleSpectaTouchEnd = (e: React.TouchEvent): void => {
+    if (e.changedTouches.length === 0) return;
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - this._spectaTouchStartX;
+    const threshold = 50;
+    const story = this._model.getSelectedStory().story;
+    const segmentCount = story?.storySegments?.length ?? 0;
+    if (segmentCount === 0) return;
+    const current = this._model.getCurrentSegmentIndex() ?? 0;
+    if (deltaX > threshold && current > 0) {
+      this._model.setCurrentSegmentIndex(current - 1);
+    } else if (deltaX < -threshold && current < segmentCount - 1) {
+      this._model.setCurrentSegmentIndex(current + 1);
+    }
+  };
+
   render(): JSX.Element {
     return (
       <>
@@ -2749,6 +2771,16 @@ export class MainView extends React.Component<IProps, IStates> {
                 ? `solid 3px ${this.state.remoteUser.color}`
                 : 'unset',
             }}
+            onTouchStart={
+              this.state.isSpectaPresentation && this.props.isMobile
+                ? this._handleSpectaTouchStart
+                : undefined
+            }
+            onTouchEnd={
+              this.state.isSpectaPresentation && this.props.isMobile
+                ? this._handleSpectaTouchEnd
+                : undefined
+            }
           >
             <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
@@ -2849,6 +2881,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
+  private _spectaTouchStartX = 0;
   private _boundAddLayer: (
     id: string,
     layer: IJGISLayer,
