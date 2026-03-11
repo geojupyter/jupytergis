@@ -7,7 +7,9 @@ import type {
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-/** Entry for a layer affected by layer override: remove (added clone) or restore (modified existing). */
+/** Entry for a layer affected by layer override
+ * remove if we added a layer or restore if we modified an existing layer.
+ **/
 export interface IOverrideLayerEntry {
   layerId: string;
   action: 'remove' | 'restore';
@@ -18,14 +20,11 @@ export interface IUseStoryMapParams {
   overrideLayerEntriesRef: React.RefObject<IOverrideLayerEntry[]>;
   removeLayer?: (id: string) => void;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  isSpecta: boolean;
   /** Panel root element for applying specta presentation CSS variables. */
   panelRef?: React.RefObject<HTMLDivElement | null>;
-  isSpecta?: boolean;
 }
 
-/**
- * Hook for story-map panel: owns currentIndex and storyData state, derives segments, and exposes navigation and override helpers.
- */
 export function useStoryMap({
   model,
   overrideLayerEntriesRef,
@@ -40,68 +39,6 @@ export function useStoryMap({
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     () => model.getSelectedStory().story ?? null,
   );
-
-  useEffect(() => {
-    const onIndexChanged = (_: IJupyterGISModel, index: number) => {
-      setCurrentIndex(Math.max(0, index ?? 0));
-    };
-    model.currentSegmentIndexChanged.connect(onIndexChanged);
-    return () => {
-      model.currentSegmentIndexChanged.disconnect(onIndexChanged);
-    };
-  }, [model]);
-
-  const clearOverrideLayers = useCallback(() => {
-    const entries = overrideLayerEntriesRef.current;
-    if (!entries) {
-      return;
-    }
-    entries.forEach(({ layerId, action }) => {
-      if (action === 'remove') {
-        removeLayer?.(layerId);
-      } else {
-        const layerOrSource = model.getLayerOrSource(layerId);
-        if (layerOrSource) {
-          model.triggerLayerUpdate(layerId, layerOrSource);
-        }
-      }
-    });
-    entries.length = 0;
-  }, [model, overrideLayerEntriesRef, removeLayer]);
-
-  useEffect(() => {
-    const updateStory = () => {
-      clearOverrideLayers();
-      setStoryData(model.getSelectedStory().story ?? null);
-      setCurrentIndex(model.getCurrentSegmentIndex() ?? 0);
-    };
-    updateStory();
-    model.sharedModel.storyMapsChanged.connect(updateStory);
-    return () => {
-      model.sharedModel.storyMapsChanged.disconnect(updateStory);
-    };
-  }, [model, clearOverrideLayers]);
-
-  // On unmount: remove override layers and restore layer symbology
-  useEffect(() => {
-    return () => {
-      clearOverrideLayers();
-      storyData?.storySegments?.forEach(segmentId => {
-        const segment = model.getLayer(segmentId);
-        const overrides = segment?.parameters?.layerOverride;
-        if (Array.isArray(overrides)) {
-          overrides.forEach((override: { targetLayer?: string }) => {
-            const targetLayerId = override.targetLayer;
-            if (targetLayerId) {
-              const targetLayer = model.getLayer(targetLayerId);
-              targetLayer &&
-                model.triggerLayerUpdate(targetLayerId, targetLayer);
-            }
-          });
-        }
-      });
-    };
-  }, [storyData, model, clearOverrideLayers]);
 
   const storySegments = useMemo(() => {
     if (!storyData?.storySegments) {
@@ -135,6 +72,27 @@ export function useStoryMap({
     [storySegmentIds, currentIndex],
   );
 
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < segmentCount - 1;
+
+  const clearOverrideLayers = useCallback(() => {
+    const entries = overrideLayerEntriesRef.current;
+    if (!entries) {
+      return;
+    }
+    entries.forEach(({ layerId, action }) => {
+      if (action === 'remove') {
+        removeLayer?.(layerId);
+      } else {
+        const layerOrSource = model.getLayerOrSource(layerId);
+        if (layerOrSource) {
+          model.triggerLayerUpdate(layerId, layerOrSource);
+        }
+      }
+    });
+    entries.length = 0;
+  }, [model, overrideLayerEntriesRef, removeLayer]);
+
   const zoomToCurrentLayer = useCallback(() => {
     if (currentStorySegmentId) {
       model.centerOnPosition(currentStorySegmentId);
@@ -147,9 +105,6 @@ export function useStoryMap({
     },
     [model],
   );
-
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < segmentCount - 1;
 
   const handlePrev = useCallback(() => {
     if (hasPrev) {
@@ -177,95 +132,7 @@ export function useStoryMap({
     [storyData, model],
   );
 
-  const overrideSymbology = useOverrideSymbology({
-    model,
-    storySegments,
-    overrideLayerEntriesRef,
-    addLayer,
-  });
-
-  // Auto-zoom when slide changes
-  useEffect(() => {
-    if (currentStorySegmentId) {
-      zoomToCurrentLayer();
-    }
-  }, [currentStorySegmentId, zoomToCurrentLayer]);
-
-  // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
-  useEffect(() => {
-    if (!storyData?.storySegments || currentIndex < 0) {
-      return;
-    }
-    clearOverrideLayers();
-    setSelectedLayerByIndex(currentIndex);
-    overrideSymbology(currentIndex);
-  }, [
-    storyData,
-    currentIndex,
-    setSelectedLayerByIndex,
-    clearOverrideLayers,
-    overrideSymbology,
-  ]);
-
-  // Set selected layer on initial render and when story data changes
-  useEffect(() => {
-    if (storyData?.storySegments && currentIndex >= 0) {
-      setSelectedLayerByIndex(currentIndex);
-    }
-  }, [storyData, currentIndex, setSelectedLayerByIndex]);
-
-  // Apply story presentation colors (specta) to panel root
-  useEffect(() => {
-    if (!isSpecta || !panelRef?.current) {
-      return;
-    }
-    const container = panelRef.current;
-    const bgColor = storyData?.presentationBgColor;
-    const textColor = storyData?.presentationTextColor;
-    if (bgColor) {
-      container.style.setProperty('--jgis-specta-bg-color', bgColor);
-    }
-    if (textColor) {
-      container.style.setProperty('--jgis-specta-text-color', textColor);
-    }
-  }, [storyData, isSpecta, panelRef]);
-
-  return {
-    storyData,
-    storySegments,
-    currentIndex,
-    clearOverrideLayers,
-    setIndex,
-    handlePrev,
-    handleNext,
-    hasPrev,
-    hasNext,
-    setSelectedLayerByIndex,
-    currentStorySegment,
-    activeSlide,
-    layerName,
-    currentStorySegmentId,
-    zoomToCurrentLayer,
-  };
-}
-
-export interface IUseOverrideSymbologyParams {
-  model: IJupyterGISModel;
-  storySegments: IJGISLayer[];
-  overrideLayerEntriesRef: React.RefObject<IOverrideLayerEntry[]>;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-}
-
-/**
- * Returns a callback that applies layer overrides for the story segment at the given index.
- */
-export function useOverrideSymbology({
-  model,
-  storySegments,
-  overrideLayerEntriesRef,
-  addLayer,
-}: IUseOverrideSymbologyParams) {
-  return useCallback(
+  const overrideSymbology = useCallback(
     (index: number) => {
       if (index < 0 || !storySegments[index]) {
         return;
@@ -357,4 +224,110 @@ export function useOverrideSymbology({
     },
     [addLayer, model, storySegments, overrideLayerEntriesRef],
   );
+
+  useEffect(() => {
+    const onIndexChanged = (_: IJupyterGISModel, index: number) => {
+      setCurrentIndex(Math.max(0, index ?? 0));
+    };
+    model.currentSegmentIndexChanged.connect(onIndexChanged);
+    return () => {
+      model.currentSegmentIndexChanged.disconnect(onIndexChanged);
+    };
+  }, [model]);
+
+  useEffect(() => {
+    const updateStory = () => {
+      clearOverrideLayers();
+      setStoryData(model.getSelectedStory().story ?? null);
+      setCurrentIndex(model.getCurrentSegmentIndex() ?? 0);
+    };
+    updateStory();
+    model.sharedModel.storyMapsChanged.connect(updateStory);
+    return () => {
+      model.sharedModel.storyMapsChanged.disconnect(updateStory);
+    };
+  }, [model, clearOverrideLayers]);
+
+  useEffect(() => {
+    return () => {
+      clearOverrideLayers();
+      storyData?.storySegments?.forEach(segmentId => {
+        const segment = model.getLayer(segmentId);
+        const overrides = segment?.parameters?.layerOverride;
+        if (Array.isArray(overrides)) {
+          overrides.forEach((override: { targetLayer?: string }) => {
+            const targetLayerId = override.targetLayer;
+            if (targetLayerId) {
+              const targetLayer = model.getLayer(targetLayerId);
+              targetLayer &&
+                model.triggerLayerUpdate(targetLayerId, targetLayer);
+            }
+          });
+        }
+      });
+    };
+  }, [storyData, model, clearOverrideLayers]);
+
+  useEffect(() => {
+    if (currentStorySegmentId) {
+      zoomToCurrentLayer();
+    }
+  }, [currentStorySegmentId, zoomToCurrentLayer]);
+
+  // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
+  useEffect(() => {
+    if (!storyData?.storySegments || currentIndex < 0) {
+      return;
+    }
+    clearOverrideLayers();
+    setSelectedLayerByIndex(currentIndex);
+    overrideSymbology(currentIndex);
+  }, [
+    storyData,
+    currentIndex,
+    setSelectedLayerByIndex,
+    clearOverrideLayers,
+    overrideSymbology,
+  ]);
+
+  // Set selected layer on initial render and when story data changes
+  useEffect(() => {
+    if (storyData?.storySegments && currentIndex >= 0) {
+      setSelectedLayerByIndex(currentIndex);
+    }
+  }, [storyData, currentIndex, setSelectedLayerByIndex]);
+
+  // Apply story presentation colors (specta) to panel root
+  useEffect(() => {
+    if (!isSpecta || !panelRef?.current) {
+      return;
+    }
+    const container = panelRef.current;
+    const bgColor = storyData?.presentationBgColor;
+    const textColor = storyData?.presentationTextColor;
+    if (bgColor) {
+      container.style.setProperty('--jgis-specta-bg-color', bgColor);
+    }
+    if (textColor) {
+      container.style.setProperty('--jgis-specta-text-color', textColor);
+    }
+  }, [storyData, isSpecta, panelRef]);
+
+  return {
+    storyData,
+    storySegments,
+    currentIndex,
+    clearOverrideLayers,
+    setIndex,
+    handlePrev,
+    handleNext,
+    hasPrev,
+    hasNext,
+    setSelectedLayerByIndex,
+    currentStorySegment,
+    activeSlide,
+    layerName,
+    currentStorySegmentId,
+    zoomToCurrentLayer,
+  };
 }

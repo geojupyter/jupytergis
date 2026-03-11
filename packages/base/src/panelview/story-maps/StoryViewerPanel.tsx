@@ -47,7 +47,7 @@ export interface IStoryViewerPanelHandle {
  * - below-title: normal mode, guided, no image (under the title)
  * - over-image: normal mode, guided, with image (over the image)
  * - subtitle-specta: specta mode desktop (next to subtitle, fixed centered)
- * - subtitle-specta-mobile: specta mode mobile (in line with subtitle)
+ * Specta mode mobile returns null (nav hidden).
  */
 export type StoryNavPlacement =
   | 'below-title'

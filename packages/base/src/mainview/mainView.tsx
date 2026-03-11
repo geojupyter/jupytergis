@@ -132,13 +132,14 @@ type OlLayerTypes =
   | HeatmapLayer
   | StacLayer
   | ImageLayer<any>;
-interface IProps {
+
+interface IMainViewProps {
   viewModel: MainViewModel;
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
-  isMobile?: boolean;
+  isMobile: boolean;
 }
 
 interface IStates {
@@ -160,8 +161,8 @@ interface IStates {
   initialLayersReady: boolean;
 }
 
-export class MainView extends React.Component<IProps, IStates> {
-  constructor(props: IProps) {
+export class MainView extends React.Component<IMainViewProps, IStates> {
+  constructor(props: IMainViewProps) {
     super(props);
     this._state = props.state;
 
@@ -290,7 +291,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  componentDidUpdate(prevProps: IProps, prevState: IStates): void {
+  componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
     // Run setup when isSpectaPresentation changes from false/undefined to true
     if (
       this.state.isSpectaPresentation &&
@@ -2713,14 +2714,22 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _handleSpectaTouchEnd = (e: React.TouchEvent): void => {
-    if (e.changedTouches.length === 0) return;
+    if (e.changedTouches.length === 0) {
+      return;
+    }
+
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - this._spectaTouchStartX;
     const threshold = 50;
     const story = this._model.getSelectedStory().story;
     const segmentCount = story?.storySegments?.length ?? 0;
-    if (segmentCount === 0) return;
+
+    if (segmentCount === 0) {
+      return;
+    }
+
     const current = this._model.getCurrentSegmentIndex() ?? 0;
+
     if (deltaX > threshold && current > 0) {
       this._model.setCurrentSegmentIndex(current - 1);
     } else if (deltaX < -threshold && current < segmentCount - 1) {
@@ -2892,7 +2901,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
 // ! TODO make mainview a modern react component instead of a class
 /** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
-function MainViewWithMediaQuery(props: IProps) {
+function MainViewWithMediaQuery(props: Omit<IMainViewProps, 'isMobile'>) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   return <MainView {...props} isMobile={isMobile} />;
 }

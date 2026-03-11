@@ -63,6 +63,7 @@ function getFirstSnapFromSegmentHeader(
   return clamped;
 }
 
+// ! replace with hook
 /** Build inline styles for specta presentation (bg and text color from story). */
 function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
   const story = model.getSelectedStory().story;

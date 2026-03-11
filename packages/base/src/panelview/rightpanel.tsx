@@ -27,7 +27,9 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 
-/** Story viewer + useStoryMap; only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden. */
+/** Story viewer + useStoryMap hook
+ * only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden.
+ **/
 function RightPanelStoryViewer({
   model,
   addLayer,
@@ -38,7 +40,6 @@ function RightPanelStoryViewer({
   removeLayer?: (id: string) => void;
 }) {
   const overrideLayerEntriesRef = React.useRef<IOverrideLayerEntry[]>([]);
-  const panelRef = React.useRef<HTMLDivElement>(null);
   const {
     storyData,
     currentIndex,
@@ -54,26 +55,23 @@ function RightPanelStoryViewer({
     overrideLayerEntriesRef,
     removeLayer,
     addLayer,
-    panelRef,
     isSpecta: false,
   });
 
   return (
-    <div ref={panelRef}>
-      <StoryViewerPanel
-        model={model}
-        isSpecta={false}
-        storyData={storyData}
-        currentIndex={currentIndex}
-        activeSlide={activeSlide}
-        layerName={layerName}
-        handlePrev={handlePrev}
-        handleNext={handleNext}
-        hasPrev={hasPrev}
-        hasNext={hasNext}
-        setIndex={setIndex}
-      />
-    </div>
+    <StoryViewerPanel
+      model={model}
+      isSpecta={false}
+      storyData={storyData}
+      currentIndex={currentIndex}
+      activeSlide={activeSlide}
+      layerName={layerName}
+      handlePrev={handlePrev}
+      handleNext={handleNext}
+      hasPrev={hasPrev}
+      hasNext={hasNext}
+      setIndex={setIndex}
+    />
   );
 }
 
@@ -88,44 +86,6 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  // const renderCountRef = React.useRef(0);
-  // const prevPropsRef = React.useRef(props);
-  // renderCountRef.current += 1;
-
-  // if (
-  //   typeof process !== 'undefined' &&
-  //   process.env?.NODE_ENV !== 'production'
-  // ) {
-  //   const prev = prevPropsRef.current;
-  //   const changes: string[] = [];
-  //   if (prev.model !== props.model) {
-  //     changes.push('model');
-  //   }
-  //   if (prev.addLayer !== props.addLayer) {
-  //     changes.push('addLayer');
-  //   }
-  //   if (prev.removeLayer !== props.removeLayer) {
-  //     changes.push('removeLayer');
-  //   }
-  //   if (prev.commands !== props.commands) {
-  //     changes.push('commands');
-  //   }
-  //   if (prev.settings !== props.settings) {
-  //     changes.push('settings');
-  //   }
-  //   if (prev.formSchemaRegistry !== props.formSchemaRegistry) {
-  //     changes.push('formSchemaRegistry');
-  //   }
-  //   if (prev.annotationModel !== props.annotationModel) {
-  //     changes.push('annotationModel');
-  //   }
-  //   prevPropsRef.current = props;
-  //   console.log(
-  //     `[RightPanel] render #${renderCountRef.current}`,
-  //     changes.length ? { changed: changes } : '(no prop changes)',
-  //   );
-  // }
-
   const [editorMode, setEditorMode] = React.useState(true);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);

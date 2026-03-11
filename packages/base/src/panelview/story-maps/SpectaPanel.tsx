@@ -15,7 +15,6 @@ import SpectaPresentationProgressBar from '../../statusbar/SpectaPresentationPro
 export interface ISpectaPanelDesktopProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
-  onSegmentTransitionEnd: () => void;
   containerRef: React.RefObject<HTMLDivElement>;
   storyViewerPanelRef: React.RefObject<IStoryViewerPanelHandle>;
   segmentContainerRef: React.RefObject<HTMLDivElement>;
@@ -33,7 +32,6 @@ export interface ISpectaPanelDesktopProps {
 function SpectaPanelDesktop({
   model,
   isSpecta,
-  onSegmentTransitionEnd,
   containerRef,
   storyViewerPanelRef,
   segmentContainerRef,
@@ -142,7 +140,7 @@ function SpectaPanelDesktop({
 export interface ISpectaPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
-  isMobile?: boolean;
+  isMobile: boolean;
   onSegmentTransitionEnd: () => void;
   containerRef: React.RefObject<HTMLDivElement>;
   storyViewerPanelRef: React.RefObject<IStoryViewerPanelHandle>;
@@ -153,7 +151,7 @@ export interface ISpectaPanelProps {
 export function SpectaPanel({
   model,
   isSpecta,
-  isMobile = false,
+  isMobile,
   onSegmentTransitionEnd,
   containerRef,
   storyViewerPanelRef,
@@ -181,7 +179,7 @@ export function SpectaPanel({
     isSpecta,
   });
 
-  // Notify when segment transition animation ends (desktop and mobile). Used for scroll-guard etc.
+  // Notify when segment transition animation ends
   useEffect(() => {
     const el = segmentContainerRef.current;
     if (!el || !onSegmentTransitionEnd) {
@@ -219,7 +217,6 @@ export function SpectaPanel({
     <SpectaPanelDesktop
       model={model}
       isSpecta={isSpecta}
-      onSegmentTransitionEnd={onSegmentTransitionEnd}
       containerRef={containerRef}
       storyViewerPanelRef={storyViewerPanelRef}
       segmentContainerRef={segmentContainerRef}

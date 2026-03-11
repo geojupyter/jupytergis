@@ -24,9 +24,7 @@ function StoryNavBar({
       ? 'jgis-story-viewer-nav-container'
       : placement === 'subtitle-specta'
         ? 'jgis-story-viewer-nav-container-specta-mod'
-        : placement === 'subtitle-specta-mobile'
-          ? 'jgis-story-viewer-nav-container-specta-mobile'
-          : undefined;
+        : undefined;
 
   const navbarClassName =
     placement === 'subtitle-specta'
