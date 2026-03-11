@@ -15,6 +15,24 @@ export interface IOverrideLayerEntry {
   action: 'remove' | 'restore';
 }
 
+/** Inline style for specta presentation (bg and text color from story). Shared by useStoryMap effect and MobileSpectaPanel. */
+export function getSpectaPresentationStyle(
+  story: IJGISStoryMap | null,
+): React.CSSProperties {
+  const bgColor = story?.presentationBgColor;
+  const textColor = story?.presentationTextColor;
+  const style: React.CSSProperties = {};
+  if (bgColor) {
+    (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
+    style.backgroundColor = bgColor;
+  }
+  if (textColor) {
+    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
+    style.color = textColor;
+  }
+  return style;
+}
+
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
   overrideLayerEntriesRef: React.RefObject<IOverrideLayerEntry[]>;
@@ -303,14 +321,12 @@ export function useStoryMap({
       return;
     }
     const container = panelRef.current;
-    const bgColor = storyData?.presentationBgColor;
-    const textColor = storyData?.presentationTextColor;
-    if (bgColor) {
-      container.style.setProperty('--jgis-specta-bg-color', bgColor);
-    }
-    if (textColor) {
-      container.style.setProperty('--jgis-specta-text-color', textColor);
-    }
+    const style = getSpectaPresentationStyle(storyData);
+    Object.entries(style).forEach(([key, value]) => {
+      if (value !== null) {
+        container.style.setProperty(key, String(value));
+      }
+    });
   }, [storyData, isSpecta, panelRef]);
 
   return {

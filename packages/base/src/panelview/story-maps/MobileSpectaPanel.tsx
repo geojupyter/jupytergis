@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { CSSProperties, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -12,6 +12,7 @@ import {
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
 import StoryViewerPanel from './StoryViewerPanel';
+import { getSpectaPresentationStyle } from './useStoryMap';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
@@ -63,25 +64,6 @@ function getFirstSnapFromSegmentHeader(
   return clamped;
 }
 
-// ! replace with hook
-/** Build inline styles for specta presentation (bg and text color from story). */
-function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
-  const story = model.getSelectedStory().story;
-  const bgColor = story?.presentationBgColor;
-  const textColor = story?.presentationTextColor;
-
-  const style: CSSProperties = {};
-  if (bgColor) {
-    (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
-    style.backgroundColor = bgColor;
-  }
-  if (textColor) {
-    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
-    style.color = textColor;
-  }
-  return style;
-}
-
 export function MobileSpectaPanel({
   model,
   segmentContainerRef,
@@ -102,7 +84,7 @@ export function MobileSpectaPanel({
   ]);
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
 
-  const presentationStyle = getSpectaPresentationStyle(model);
+  const presentationStyle = getSpectaPresentationStyle(storyData);
 
   // Keep active snap in sync with snapPoints so Vaul's --snap-point-height stays defined.
   useEffect(() => {
