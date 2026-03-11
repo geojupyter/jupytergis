@@ -189,20 +189,22 @@ export function MobileSpectaPanel({
           <Button>Open Story Panel</Button>
         </DrawerTrigger>
         <DrawerContent style={presentationStyle}>
-          <StoryViewerPanel
-            model={model}
-            isSpecta={true}
-            isMobile={true}
-            storyData={storyData}
-            currentIndex={currentIndex}
-            activeSlide={activeSlide}
-            layerName={layerName}
-            handlePrev={handlePrev}
-            handleNext={handleNext}
-            hasPrev={hasPrev}
-            hasNext={hasNext}
-            setIndex={setIndex}
-          />
+          <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
+            <StoryViewerPanel
+              model={model}
+              isSpecta={true}
+              isMobile={true}
+              storyData={storyData}
+              currentIndex={currentIndex}
+              activeSlide={activeSlide}
+              layerName={layerName}
+              handlePrev={handlePrev}
+              handleNext={handleNext}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              setIndex={setIndex}
+            />
+          </div>
         </DrawerContent>
       </Drawer>
     </div>

@@ -3,15 +3,8 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { cn } from '@/src/shared/components/utils';
 import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
@@ -80,275 +73,199 @@ function getStoryNavPlacement(
 }
 
 /**
- * Story viewer. Receives story state and callbacks from parent (SpectaPanel or MobileSpectaPanel use useStoryMap and pass results here).
+ * Story viewer (presentational). Receives story state and callbacks from parent.
+ * Desktop scroll/sentinel/imperative handle live in SpectaPanelDesktop.
  */
-const StoryViewerPanel = forwardRef<
-  IStoryViewerPanelHandle,
-  IStoryViewerPanelProps
->(
-  (
-    {
-      model,
-      isSpecta,
-      isMobile = false,
-      className,
-      onSegmentTransitionEnd,
-      storyData,
-      currentIndex,
-      activeSlide,
-      layerName,
-      handlePrev,
-      handleNext,
-      hasPrev,
-      hasNext,
-      setIndex,
-    },
-    ref,
-  ) => {
-    const [imageLoaded, setImageLoaded] = useState(false);
-    const panelRef = useRef<HTMLDivElement>(null);
-    const segmentContainerRef = useRef<HTMLDivElement>(null);
-    const topSentinelRef = useRef<HTMLDivElement>(null);
-    const bottomSentinelRef = useRef<HTMLDivElement>(null);
-    const atTopRef = useRef(false);
-    const atBottomRef = useRef(false);
+function StoryViewerPanel({
+  model,
+  isSpecta,
+  isMobile = false,
+  className,
+  onSegmentTransitionEnd,
+  storyData,
+  currentIndex,
+  activeSlide,
+  layerName,
+  handlePrev,
+  handleNext,
+  hasPrev,
+  hasNext,
+  setIndex,
+}: IStoryViewerPanelProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const segmentContainerRef = useRef<HTMLDivElement>(null);
 
-    // Prefetch image when slide changes
-    useEffect(() => {
-      const imageUrl = activeSlide?.content?.image;
+  // Prefetch image when slide changes
+  useEffect(() => {
+    const imageUrl = activeSlide?.content?.image;
 
-      if (!imageUrl) {
-        setImageLoaded(false);
+    if (!imageUrl) {
+      setImageLoaded(false);
+      return;
+    }
+
+    // Reset state
+    setImageLoaded(false);
+
+    // Preload the image
+    const img = new Image();
+
+    img.onload = () => {
+      setImageLoaded(true);
+    };
+
+    img.onerror = () => {
+      setImageLoaded(false);
+    };
+
+    img.src = imageUrl;
+
+    // Cleanup: abort loading if component unmounts or slide changes
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [activeSlide?.content?.image]);
+
+  // ! TODO come back for this
+  // Listen for layer selection changes in unguided mode
+  useEffect(() => {
+    // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
+    const handleSelectedStorySegmentChange = () => {
+      // This is just to update the displayed content
+      // So bail early if we don't need to do that
+      if (!storyData || storyData.storyType !== 'unguided') {
         return;
       }
 
-      // Reset state
-      setImageLoaded(false);
+      const localState = model.sharedModel.awareness.getLocalState();
+      if (!localState || !localState['selected']?.value) {
+        return;
+      }
 
-      // Preload the image
-      const img = new Image();
+      const selectedLayers = Object.keys(localState['selected'].value);
 
-      img.onload = () => {
-        setImageLoaded(true);
-      };
+      // Ensure only one layer is selected
+      if (selectedLayers.length !== 1) {
+        return;
+      }
 
-      img.onerror = () => {
-        setImageLoaded(false);
-      };
+      const selectedLayerId = selectedLayers[0];
+      const selectedLayer = model.getLayer(selectedLayerId);
+      if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
+        return;
+      }
 
-      img.src = imageUrl;
+      const index = storyData.storySegments?.indexOf(selectedLayerId);
+      if (index === undefined || index === -1) {
+        return;
+      }
 
-      // Cleanup: abort loading if component unmounts or slide changes
-      return () => {
-        img.onload = null;
-        img.onerror = null;
-      };
-    }, [activeSlide?.content?.image]);
+      setIndex(index);
+    };
 
-    // ! TODO come back for this
-    // Listen for layer selection changes in unguided mode
-    useEffect(() => {
-      // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
-      const handleSelectedStorySegmentChange = () => {
-        // This is just to update the displayed content
-        // So bail early if we don't need to do that
-        if (!storyData || storyData.storyType !== 'unguided') {
-          return;
-        }
+    // ! TODO really only want to connect this un unguided mode
+    model.sharedModel.awareness.on('change', handleSelectedStorySegmentChange);
 
-        const localState = model.sharedModel.awareness.getLocalState();
-        if (!localState || !localState['selected']?.value) {
-          return;
-        }
-
-        const selectedLayers = Object.keys(localState['selected'].value);
-
-        // Ensure only one layer is selected
-        if (selectedLayers.length !== 1) {
-          return;
-        }
-
-        const selectedLayerId = selectedLayers[0];
-        const selectedLayer = model.getLayer(selectedLayerId);
-        if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
-          return;
-        }
-
-        const index = storyData.storySegments?.indexOf(selectedLayerId);
-        if (index === undefined || index === -1) {
-          return;
-        }
-
-        setIndex(index);
-      };
-
-      // ! TODO really only want to connect this un unguided mode
-      model.sharedModel.awareness.on(
+    return () => {
+      model.sharedModel.awareness.off(
         'change',
         handleSelectedStorySegmentChange,
       );
-
-      return () => {
-        model.sharedModel.awareness.off(
-          'change',
-          handleSelectedStorySegmentChange,
-        );
-      };
-    }, [model, storyData, setIndex]);
-
-    if (!storyData || storyData?.storySegments?.length === 0) {
-      return (
-        <div style={{ padding: '1rem' }}>
-          <p>No Segments available. Add one using the Add Layer menu.</p>
-        </div>
-      );
-    }
-
-    const storyNavBarProps = {
-      onPrev: handlePrev,
-      onNext: handleNext,
-      hasPrev,
-      hasNext,
     };
+  }, [model, storyData, setIndex]);
 
-    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path)
-    useEffect(() => {
-      const root = panelRef.current;
-      const topEl = topSentinelRef.current;
-      const bottomEl = bottomSentinelRef.current;
-      if (!root || !topEl || !bottomEl) {
-        return;
-      }
-      const observer = new IntersectionObserver(
-        (entries: IntersectionObserverEntry[]) => {
-          for (const entry of entries) {
-            if (entry.target === topEl) {
-              atTopRef.current = entry.isIntersecting;
-            } else if (entry.target === bottomEl) {
-              atBottomRef.current = entry.isIntersecting;
-            }
-          }
-        },
-        { root, threshold: 0, rootMargin: '0px' },
-      );
-      observer.observe(topEl);
-      observer.observe(bottomEl);
-      return () => observer.disconnect();
-    }, [currentIndex]);
-
-    // Expose methods via ref for parent component to use
-    useImperativeHandle(
-      ref,
-      () => ({
-        handlePrev,
-        handleNext,
-        spectaMode: isSpecta,
-        hasPrev,
-        hasNext,
-        getAtTop: () => atTopRef.current,
-        getAtBottom: () => atBottomRef.current,
-        getScrollContainer: () => panelRef.current,
-      }),
-      [handlePrev, handleNext, storyData, isSpecta, hasPrev, hasNext],
-    );
-
-    const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-    const storyType = storyData.storyType ?? 'guided';
-    const navPlacement = getStoryNavPlacement(
-      isSpecta,
-      hasImage,
-      storyType,
-      isMobile,
-    );
-
-    const navSlot =
-      navPlacement !== null ? (
-        <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
-      ) : null;
-
-    // Get transition time from current segment, default to 0.3s
-    const transitionTime = activeSlide?.transition?.time ?? 0.3;
-
-    // Notify parent when segment transition animation ends (e.g. for scroll-guard cleanup)
-    useEffect(() => {
-      const el = segmentContainerRef.current;
-      if (!el || !onSegmentTransitionEnd) {
-        return;
-      }
-      const handleAnimationEnd = (e: AnimationEvent) => {
-        if (e.animationName === 'fadeIn') {
-          el.removeEventListener('animationend', handleAnimationEnd);
-          onSegmentTransitionEnd();
-        }
-      };
-      el.addEventListener('animationend', handleAnimationEnd);
-      return () => el.removeEventListener('animationend', handleAnimationEnd);
-    }, [currentIndex, onSegmentTransitionEnd]);
-
+  if (!storyData || storyData?.storySegments?.length === 0) {
     return (
-      <div
-        ref={panelRef}
-        className={cn('jgis-story-viewer-panel', className)}
-        id="jgis-story-segment-panel"
-      >
-        <div
-          ref={topSentinelRef}
-          aria-hidden
-          data-story-scroll-sentinel="top"
-          style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-        />
-        <div
-          ref={segmentContainerRef}
-          key={currentIndex}
-          className="jgis-story-segment-container"
-          style={{
-            animationDuration: `${transitionTime}s`,
-          }}
-        >
-          <div id="jgis-story-segment-header">
-            <h1 className="jgis-story-viewer-title">
-              {layerName ?? `Slide ${currentIndex + 1}`}
-            </h1>
-            {activeSlide?.content?.image && imageLoaded ? (
-              <StoryImageSection
-                imageUrl={activeSlide.content.image}
-                imageLoaded={imageLoaded}
-                layerName={layerName ?? ''}
-                slideNumber={currentIndex}
-                navSlot={navPlacement === 'over-image' ? navSlot : null}
-              />
-            ) : (
-              <StoryTitleSection
-                title={storyData.title ?? ''}
-                navSlot={navPlacement === 'below-title' ? navSlot : null}
-              />
-            )}
-            <StorySubtitleSection
-              title={activeSlide?.content?.title ?? ''}
-              navSlot={
-                navPlacement === 'subtitle-specta' ||
-                navPlacement === 'subtitle-specta-mobile'
-                  ? navSlot
-                  : null
-              }
-            />
-          </div>
-          <div id="jgis-story-segment-content">
-            <StoryContentSection
-              markdown={activeSlide?.content?.markdown ?? ''}
-            />
-          </div>
-        </div>
-        <div
-          ref={bottomSentinelRef}
-          aria-hidden
-          data-story-scroll-sentinel="bottom"
-          style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-        />
+      <div style={{ padding: '1rem' }}>
+        <p>No Segments available. Add one using the Add Layer menu.</p>
       </div>
     );
-  },
-);
+  }
+
+  const storyNavBarProps = {
+    onPrev: handlePrev,
+    onNext: handleNext,
+    hasPrev,
+    hasNext,
+  };
+
+  const hasImage = !!(activeSlide?.content?.image && imageLoaded);
+  const storyType = storyData.storyType ?? 'guided';
+  const navPlacement = getStoryNavPlacement(
+    isSpecta,
+    hasImage,
+    storyType,
+    isMobile,
+  );
+
+  const navSlot =
+    navPlacement !== null ? (
+      <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
+    ) : null;
+
+  // Get transition time from current segment, default to 0.3s
+  const transitionTime = activeSlide?.transition?.time ?? 0.3;
+
+  // Notify parent when segment transition animation ends (e.g. for scroll-guard cleanup)
+  useEffect(() => {
+    const el = segmentContainerRef.current;
+    if (!el || !onSegmentTransitionEnd) {
+      return;
+    }
+    const handleAnimationEnd = (e: AnimationEvent) => {
+      if (e.animationName === 'fadeIn') {
+        el.removeEventListener('animationend', handleAnimationEnd);
+        onSegmentTransitionEnd();
+      }
+    };
+    el.addEventListener('animationend', handleAnimationEnd);
+    return () => el.removeEventListener('animationend', handleAnimationEnd);
+  }, [currentIndex, onSegmentTransitionEnd]);
+
+  return (
+    <div
+      ref={segmentContainerRef}
+      key={currentIndex}
+      className="jgis-story-segment-container"
+      style={{
+        animationDuration: `${transitionTime}s`,
+      }}
+    >
+      <div id="jgis-story-segment-header">
+        <h1 className="jgis-story-viewer-title">
+          {layerName ?? `Slide ${currentIndex + 1}`}
+        </h1>
+        {activeSlide?.content?.image && imageLoaded ? (
+          <StoryImageSection
+            imageUrl={activeSlide.content.image}
+            imageLoaded={imageLoaded}
+            layerName={layerName ?? ''}
+            slideNumber={currentIndex}
+            navSlot={navPlacement === 'over-image' ? navSlot : null}
+          />
+        ) : (
+          <StoryTitleSection
+            title={storyData.title ?? ''}
+            navSlot={navPlacement === 'below-title' ? navSlot : null}
+          />
+        )}
+        <StorySubtitleSection
+          title={activeSlide?.content?.title ?? ''}
+          navSlot={
+            navPlacement === 'subtitle-specta' ||
+            navPlacement === 'subtitle-specta-mobile'
+              ? navSlot
+              : null
+          }
+        />
+      </div>
+      <div id="jgis-story-segment-content">
+        <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+      </div>
+    </div>
+  );
+}
 
 StoryViewerPanel.displayName = 'StoryViewerPanel';
 
