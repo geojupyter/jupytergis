@@ -533,7 +533,7 @@ export function addCommands(
   });
 
   //Add processing commands
-  addProcessingCommands(app, commands, tracker, trans, formSchemaRegistry);
+  addProcessingCommands(app, commands, tracker, trans, formSchemaRegistry, Object.fromEntries(formSchemaRegistry.getSchemas()));
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
     label: trans.__('Open New Hillshade Layer Creation Dialog'),

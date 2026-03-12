@@ -46,8 +46,17 @@ export function addProcessingCommands(
   tracker: JupyterGISTracker,
   trans: any,
   formSchemaRegistry: IJGISFormSchemaRegistry,
+  processingSchemas: Record<string, any>,
 ) {
   for (const processingElement of ProcessingMerge) {
+
+    const schemaKey = Object.keys(processingSchemas).find(
+      k => k.toLowerCase() === processingElement.name.toLowerCase(),
+    );
+    if (!schemaKey) {
+      continue;
+    }
+
     if (processingElement.type === ProcessingLogicType.vector) {
       commands.addCommand(processingElement.name, {
         label: trans.__(processingElement.label),
@@ -63,10 +72,7 @@ export function addProcessingCommands(
                 type: 'string',
                 description: 'Layer ID to process',
               },
-              params: {
-                type: 'object',
-                description: 'Processing parameters (skip UI form)',
-              },
+              params: processingSchemas[schemaKey],
             },
           },
         },
