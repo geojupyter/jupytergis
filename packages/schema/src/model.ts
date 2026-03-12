@@ -20,7 +20,10 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
-import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
+import {
+  IStorySegmentLayer,
+  LayerOverride,
+} from './_interface/project/layers/storySegmentLayer';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -737,28 +740,32 @@ export class JupyterGISModel implements IJupyterGISModel {
       return null;
     }
 
-    const result = this.addStorySegment();
-    if (!result) {
+    const segment = this.addStorySegment();
+    if (!segment) {
       return null;
     }
 
-    const segments = this.getSelectedStory().story?.storySegments ?? [];
-    const index = segments.length - 1;
+    const segmentLayer = this.getLayer(segment.storySegmentId);
+    if (!segmentLayer) {
+      return null;
+    }
 
-    // segment extent = layer extent
-    this.centerOnPosition(layerId);
+    const segmentParams = segmentLayer.parameters as IStorySegmentLayer;
 
-    // capture current layer parameters as override
-    const layerOverride = {
-      ...layer,
-      parameters: { ...layer.parameters },
+    const layerParams = layer.parameters;
+
+    const override: LayerOverride[number] = {
+      targetLayer: layerId,
+      visible: layer.visible,
+      color: layerParams?.color,
+      opacity: layerParams?.opacity,
+      symbologyState: layerParams?.symbologyState,
     };
 
-    this.triggerLayerUpdate(layerId, layerOverride);
+    segmentParams.layerOverride = [];
+    segmentParams.layerOverride.push(override);
 
-    this.setCurrentSegmentIndex(index);
-
-    return result;
+    return segment;
   }
 
   get segmentAdded(): ISignal<
