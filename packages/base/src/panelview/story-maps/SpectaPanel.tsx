@@ -8,10 +8,10 @@ import React, { useEffect, useImperativeHandle, useRef } from 'react';
 
 import { MobileSpectaPanel } from './MobileSpectaPanel';
 import StoryViewerPanel, { IStoryViewerPanelHandle } from './StoryViewerPanel';
-import { useStoryMap, type IOverrideLayerEntry } from './useStoryMap';
+import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
 import SpectaPresentationProgressBar from '../../statusbar/SpectaPresentationProgressBar';
 
-export interface ISpectaPanelDesktopProps {
+interface ISpectaPanelDesktopProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   containerRef: React.RefObject<HTMLDivElement>;

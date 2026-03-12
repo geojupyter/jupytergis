@@ -5,14 +5,14 @@ import {
 } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
-import StoryNavBar from './StoryNavBar';
+import StoryNavBar from './components/StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 
 /** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or MobileSpectaPanel). */
-export interface IStoryViewerPanelProps {
+interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;

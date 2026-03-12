@@ -13,13 +13,13 @@ import Draggable from 'react-draggable';
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
-import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
+import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
 import {
   useStoryMap,
   type IOverrideLayerEntry,
-} from './story-maps/useStoryMap';
+} from './story-maps/hooks/useStoryMap';
 import {
   PanelTabs,
   TabsContent,

@@ -12,7 +12,7 @@ import {
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
 import StoryViewerPanel from './StoryViewerPanel';
-import { getSpectaPresentationStyle } from './useStoryMap';
+import { getSpectaPresentationStyle } from './hooks/useStoryMap';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
@@ -24,7 +24,7 @@ const SNAP_FIRST_DEFAULT = 0.7;
 /** Offset (px) for segment header height: margins from p and h1 in story content */
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
-export interface IMobileSpectaPanelProps {
+interface IMobileSpectaPanelProps {
   model: IJupyterGISModel;
   segmentContainerRef: React.RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
