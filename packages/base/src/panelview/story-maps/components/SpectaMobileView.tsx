@@ -11,8 +11,8 @@ import {
   DrawerContent,
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
-import StoryViewerPanel from './StoryViewerPanel';
-import { getSpectaPresentationStyle } from './hooks/useStoryMap';
+import StoryViewerPanel from '../StoryViewerPanel';
+import { getSpectaPresentationStyle } from '../hooks/useStoryMap';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
@@ -24,7 +24,7 @@ const SNAP_FIRST_DEFAULT = 0.7;
 /** Offset (px) for segment header height: margins from p and h1 in story content */
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
-interface IMobileSpectaPanelProps {
+interface ISpectaMobileViewProps {
   model: IJupyterGISModel;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
@@ -64,7 +64,7 @@ function getFirstSnapFromSegmentHeader(
   return clamped;
 }
 
-export function MobileSpectaPanel({
+export function SpectaMobileView({
   model,
   segmentContainerRef,
   storyData,
@@ -76,7 +76,7 @@ export function MobileSpectaPanel({
   hasPrev,
   hasNext,
   setIndex,
-}: IMobileSpectaPanelProps) {
+}: ISpectaMobileViewProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [snapPoints, setSnapPoints] = useState<number[]>([
     SNAP_FIRST_DEFAULT,

@@ -1,144 +1,12 @@
-import {
-  IJGISLayer,
-  IJGISStoryMap,
-  IJupyterGISModel,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
-import React, {
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-} from 'react';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import React, { RefObject, useEffect, useRef } from 'react';
 
-import { MobileSpectaPanel } from './MobileSpectaPanel';
-import StoryViewerPanel, { IStoryViewerPanelHandle } from './StoryViewerPanel';
+import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
+import { SpectaDesktopView } from './components/SpectaDesktopView';
+import { SpectaMobileView } from './components/SpectaMobileView';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
-import SpectaPresentationProgressBar from '../../statusbar/SpectaPresentationProgressBar';
 
-interface ISpectaPanelDesktopProps {
-  model: IJupyterGISModel;
-  isSpecta: boolean;
-  containerRef: RefObject<HTMLDivElement>;
-  storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
-  segmentContainerRef: RefObject<HTMLDivElement>;
-  storyData: IJGISStoryMap | null;
-  currentIndex: number;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
-  layerName: string;
-  handlePrev: () => void;
-  handleNext: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
-  setIndex: (index: number) => void;
-}
-
-function SpectaPanelDesktop({
-  model,
-  isSpecta,
-  containerRef,
-  storyViewerPanelRef,
-  segmentContainerRef,
-  storyData,
-  currentIndex,
-  activeSlide,
-  layerName,
-  handlePrev,
-  handleNext,
-  hasPrev,
-  hasNext,
-  setIndex,
-}: ISpectaPanelDesktopProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const topSentinelRef = useRef<HTMLDivElement>(null);
-  const bottomSentinelRef = useRef<HTMLDivElement>(null);
-  const atTopRef = useRef(false);
-  const atBottomRef = useRef(false);
-
-  useEffect(() => {
-    const root = scrollContainerRef.current;
-    const topEl = topSentinelRef.current;
-    const bottomEl = bottomSentinelRef.current;
-    if (!root || !topEl || !bottomEl) {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]) => {
-        for (const entry of entries) {
-          if (entry.target === topEl) {
-            atTopRef.current = entry.isIntersecting;
-          } else if (entry.target === bottomEl) {
-            atBottomRef.current = entry.isIntersecting;
-          }
-        }
-      },
-      { root, threshold: 0, rootMargin: '0px' },
-    );
-    observer.observe(topEl);
-    observer.observe(bottomEl);
-    return () => observer.disconnect();
-  }, [currentIndex]);
-
-  useImperativeHandle(
-    storyViewerPanelRef,
-    () => ({
-      handlePrev,
-      handleNext,
-      spectaMode: isSpecta,
-      hasPrev,
-      hasNext,
-      getAtTop: () => atTopRef.current,
-      getAtBottom: () => atBottomRef.current,
-      getScrollContainer: () => scrollContainerRef.current,
-    }),
-    [handlePrev, handleNext, isSpecta, hasPrev, hasNext],
-  );
-
-  return (
-    <>
-      <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
-        <div ref={containerRef} className="jgis-specta-story-panel-container">
-          <div
-            ref={scrollContainerRef}
-            className="jgis-story-viewer-panel-specta-mod"
-            id="jgis-story-segment-panel"
-          >
-            <div
-              ref={topSentinelRef}
-              aria-hidden
-              data-story-scroll-sentinel="top"
-              style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-            />
-            <StoryViewerPanel
-              model={model}
-              isSpecta={isSpecta}
-              className="jgis-story-viewer-panel-specta-mod"
-              segmentContainerRef={segmentContainerRef}
-              storyData={storyData}
-              currentIndex={currentIndex}
-              activeSlide={activeSlide}
-              layerName={layerName}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-              setIndex={setIndex}
-            />
-            <div
-              ref={bottomSentinelRef}
-              aria-hidden
-              data-story-scroll-sentinel="bottom"
-              style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-            />
-          </div>
-        </div>
-      </div>
-      <SpectaPresentationProgressBar model={model} />
-    </>
-  );
-}
-
-export interface ISpectaPanelProps {
+interface ISpectaPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile: boolean;
@@ -198,7 +66,7 @@ export function SpectaPanel({
 
   if (isMobile) {
     return (
-      <MobileSpectaPanel
+      <SpectaMobileView
         model={model}
         segmentContainerRef={segmentContainerRef}
         storyData={storyData}
@@ -215,7 +83,7 @@ export function SpectaPanel({
   }
 
   return (
-    <SpectaPanelDesktop
+    <SpectaDesktopView
       model={model}
       isSpecta={isSpecta}
       containerRef={containerRef}

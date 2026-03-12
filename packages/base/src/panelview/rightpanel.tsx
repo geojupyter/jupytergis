@@ -13,9 +13,9 @@ import Draggable from 'react-draggable';
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
-import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
+import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
 import {
   useStoryMap,
   type IOverrideLayerEntry,
@@ -86,7 +86,6 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  console.log('right panel');
   const [editorMode, setEditorMode] = React.useState(true);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);

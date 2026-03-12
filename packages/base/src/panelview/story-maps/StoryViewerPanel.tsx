@@ -5,13 +5,13 @@ import {
 } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
 
-import StoryNavBar from './components/StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
+import StoryNavBar from './components/StoryNavBar';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 
-/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or MobileSpectaPanel). */
+/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
@@ -74,7 +74,7 @@ function getStoryNavPlacement(
 
 /**
  * Story viewer (presentational). Receives story state and callbacks from parent.
- * Desktop scroll/sentinel/imperative handle live in SpectaPanelDesktop.
+ * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
  */
 function StoryViewerPanel({
   model,

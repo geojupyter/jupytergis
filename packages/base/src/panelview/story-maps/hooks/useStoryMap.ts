@@ -32,7 +32,7 @@ export interface IUseStoryMapParams {
   panelRef?: RefObject<HTMLDivElement | null>;
 }
 
-/** Inline style for specta presentation (bg and text color from story). Shared by useStoryMap effect and MobileSpectaPanel. */
+/** Inline style for specta presentation (bg and text color from story). */
 export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
 ): CSSProperties {
@@ -58,7 +58,6 @@ export function useStoryMap({
   panelRef,
   isSpecta,
 }: IUseStoryMapParams) {
-  console.log('hook');
   const [currentIndex, setCurrentIndex] = useState(
     () => model.getCurrentSegmentIndex() ?? 0,
   );
