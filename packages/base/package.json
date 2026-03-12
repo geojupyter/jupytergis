@@ -93,7 +93,6 @@
     "styled-components": "^5.3.6",
     "three": "^0.135.0",
     "three-mesh-bvh": "^0.5.17",
-    "uuid": "^11.0.3",
     "vaul": "^1.1.2"
   },
   "devDependencies": {
@@ -103,7 +102,6 @@
     "@types/node": "^18.15.11",
     "@types/proj4": "2.19.0",
     "@types/shpjs": "^3.4.7",
-    "@types/uuid": "^10.0.0",
     "rimraf": "^3.0.2",
     "ts-patch": "^3.3.0",
     "typescript": "^5",
