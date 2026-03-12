@@ -102,7 +102,7 @@ export function addProcessingCommands(
             },
             app,
             args?.filePath,
-            args?.processingInputs
+            args?.processingInputs,
           );
         },
       });
