@@ -263,6 +263,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     position?: number,
   ): void;
   removeLayer(id: string): void;
+  removeSource(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
 

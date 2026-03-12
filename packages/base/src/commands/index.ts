@@ -1384,7 +1384,7 @@ namespace Private {
         continue;
       }
 
-      model.sharedModel.removeSource(id);
+      model.removeSource(id);
     }
   }
 

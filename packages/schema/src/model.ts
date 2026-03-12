@@ -536,8 +536,23 @@ export class JupyterGISModel implements IJupyterGISModel {
         },
       );
     } else {
-      this.sharedModel.removeSource(source_id);
+      if (source_id) {
+        this.removeSource(source_id);
+      }
     }
+  }
+
+  removeSource(sourceId: string): void {
+    const layersUsingSource = this.getLayersBySource(sourceId);
+
+    if (layersUsingSource.length > 0) {
+      console.debug(
+        `Skipping source removal: source ${sourceId} still used by layers: ${layersUsingSource.join(', ')}`,
+      );
+      return;
+    }
+
+    this.sharedModel.removeSource(sourceId);
   }
 
   setOptions(value: IJGISOptions) {
