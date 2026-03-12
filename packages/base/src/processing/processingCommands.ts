@@ -76,7 +76,7 @@ export function addProcessingCommands(
         execute: async (args?: {
           filePath?: string;
           layerId?: string;
-          params?: Record<string, any>;
+          processingInputs?: Record<string, any>;
         }) => {
           await processLayer(
             tracker,
@@ -101,7 +101,8 @@ export function addProcessingCommands(
               ],
             },
             app,
-            args,
+            args?.filePath,
+            args?.processingInputs
           );
         },
       });

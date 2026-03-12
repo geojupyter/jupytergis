@@ -101,14 +101,12 @@ export async function processLayer(
     options: (sqlQuery: string) => string[];
   },
   app: JupyterFrontEnd,
-  args?: {
-    filePath?: string;
-    params?: Record<string, any>;
-  },
+  filePath?: string,
+  processingInputs?: Record<string, any>,
 ) {
   // Resolve widget
-  const widget = args?.filePath
-    ? tracker.find(w => w.model.filePath === args.filePath)
+  const widget = filePath
+    ? tracker.find(w => w.model.filePath === filePath)
     : tracker.currentWidget;
 
   if (!widget) {
@@ -122,8 +120,8 @@ export async function processLayer(
   // Resolve layer
   let selected: IJGISLayer | null = null;
 
-  if (args?.params?.inputLayer) {
-    selected = layers[args.params.inputLayer];
+  if (processingInputs?.inputLayer) {
+    selected = layers[processingInputs.inputLayer];
   } else {
     selected = getSingleSelectedLayer(tracker);
   }
@@ -142,8 +140,8 @@ export async function processLayer(
   let embedOutputLayer = true;
   let outputLayerName = selected.name;
 
-  if (args?.params) {
-    processParam = args.params;
+  if (processingInputs) {
+    processParam = processingInputs;
     outputLayerName = `${processingType} Layer`;
   } else {
     const schema = {
