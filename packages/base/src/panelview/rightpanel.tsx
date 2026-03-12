@@ -86,6 +86,7 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  console.log('right panel');
   const [editorMode, setEditorMode] = React.useState(true);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);

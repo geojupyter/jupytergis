@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import React, { RefObject, useEffect, useState } from 'react';
 
 import StoryNavBar from './components/StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
@@ -18,7 +18,7 @@ interface IStoryViewerPanelProps {
   isMobile?: boolean;
   className?: string;
   /** Ref for the segment container (SpectaPanel uses it for animationend). */
-  segmentContainerRef?: React.RefObject<HTMLDivElement>;
+  segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;

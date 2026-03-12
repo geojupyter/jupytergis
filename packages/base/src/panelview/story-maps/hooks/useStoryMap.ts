@@ -5,7 +5,14 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 /** Entry for a layer affected by layer override
  * remove if we added a layer or restore if we modified an existing layer.
@@ -15,13 +22,23 @@ export interface IOverrideLayerEntry {
   action: 'remove' | 'restore';
 }
 
+export interface IUseStoryMapParams {
+  model: IJupyterGISModel;
+  overrideLayerEntriesRef: RefObject<IOverrideLayerEntry[]>;
+  removeLayer?: (id: string) => void;
+  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  isSpecta: boolean;
+  /** Panel root element for applying specta presentation CSS variables. */
+  panelRef?: RefObject<HTMLDivElement | null>;
+}
+
 /** Inline style for specta presentation (bg and text color from story). Shared by useStoryMap effect and MobileSpectaPanel. */
 export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
-): React.CSSProperties {
+): CSSProperties {
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
-  const style: React.CSSProperties = {};
+  const style: CSSProperties = {};
   if (bgColor) {
     (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
     style.backgroundColor = bgColor;
@@ -33,16 +50,6 @@ export function getSpectaPresentationStyle(
   return style;
 }
 
-export interface IUseStoryMapParams {
-  model: IJupyterGISModel;
-  overrideLayerEntriesRef: React.RefObject<IOverrideLayerEntry[]>;
-  removeLayer?: (id: string) => void;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  isSpecta: boolean;
-  /** Panel root element for applying specta presentation CSS variables. */
-  panelRef?: React.RefObject<HTMLDivElement | null>;
-}
-
 export function useStoryMap({
   model,
   overrideLayerEntriesRef,
@@ -51,6 +58,7 @@ export function useStoryMap({
   panelRef,
   isSpecta,
 }: IUseStoryMapParams) {
+  console.log('hook');
   const [currentIndex, setCurrentIndex] = useState(
     () => model.getCurrentSegmentIndex() ?? 0,
   );
@@ -284,7 +292,7 @@ export function useStoryMap({
         }
       });
     };
-  }, [storyData, model, clearOverrideLayers]);
+  }, []);
 
   useEffect(() => {
     if (currentStorySegmentId) {

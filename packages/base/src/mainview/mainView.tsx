@@ -271,8 +271,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       commands: this._commands,
     });
     this._updateCenter = debounce(this.updateCenter, 100);
-    this._boundAddLayer = this.addLayer.bind(this);
-    this._boundRemoveLayer = this.removeLayer.bind(this);
   }
 
   async componentDidMount(): Promise<void> {
@@ -2819,8 +2817,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                         commands={this._mainViewModel.commands}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
-                        addLayer={this._boundAddLayer}
-                        removeLayer={this._boundRemoveLayer}
+                        addLayer={this.addLayer.bind(this)}
+                        removeLayer={this.removeLayer.bind(this)}
                         settings={this.state.jgisSettings}
                       />
                     )}
@@ -2836,8 +2834,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                       }
                       containerRef={this.spectaContainerRef}
                       storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this._boundAddLayer}
-                      removeLayer={this._boundRemoveLayer}
+                      addLayer={this.addLayer.bind(this)}
+                      removeLayer={this.removeLayer.bind(this)}
                     />
                   )
                 )}
@@ -2891,12 +2889,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
-  private _boundAddLayer: (
-    id: string,
-    layer: IJGISLayer,
-    index: number,
-  ) => Promise<void>;
-  private _boundRemoveLayer: (id: string) => void;
 }
 
 // ! TODO make mainview a modern react component instead of a class

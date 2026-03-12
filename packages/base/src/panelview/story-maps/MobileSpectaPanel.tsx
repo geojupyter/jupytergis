@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import React, { RefObject, useEffect, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -26,7 +26,7 @@ const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 interface IMobileSpectaPanelProps {
   model: IJupyterGISModel;
-  segmentContainerRef: React.RefObject<HTMLDivElement>;
+  segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;

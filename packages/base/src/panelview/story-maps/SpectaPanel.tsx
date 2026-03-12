@@ -4,7 +4,12 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { useEffect, useImperativeHandle, useRef } from 'react';
+import React, {
+  RefObject,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 
 import { MobileSpectaPanel } from './MobileSpectaPanel';
 import StoryViewerPanel, { IStoryViewerPanelHandle } from './StoryViewerPanel';
@@ -14,9 +19,9 @@ import SpectaPresentationProgressBar from '../../statusbar/SpectaPresentationPro
 interface ISpectaPanelDesktopProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
-  containerRef: React.RefObject<HTMLDivElement>;
-  storyViewerPanelRef: React.RefObject<IStoryViewerPanelHandle>;
-  segmentContainerRef: React.RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement>;
+  storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
+  segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
@@ -138,8 +143,8 @@ export interface ISpectaPanelProps {
   isSpecta: boolean;
   isMobile: boolean;
   onSegmentTransitionEnd: () => void;
-  containerRef: React.RefObject<HTMLDivElement>;
-  storyViewerPanelRef: React.RefObject<IStoryViewerPanelHandle>;
+  containerRef: RefObject<HTMLDivElement>;
+  storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
 }
