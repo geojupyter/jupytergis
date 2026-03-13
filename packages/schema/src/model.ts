@@ -740,6 +740,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       return null;
     }
 
+    this.centerOnPosition(layerId);
     const segment = this.addStorySegment();
     if (!segment) {
       return null;
@@ -762,8 +763,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       symbologyState: layerParams?.symbologyState,
     };
 
-    segmentParams.layerOverride = [];
-    segmentParams.layerOverride.push(override);
+    segmentParams.layerOverride = [override];
 
     return segment;
   }
