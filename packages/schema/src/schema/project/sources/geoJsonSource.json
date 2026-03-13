@@ -6,20 +6,13 @@
   "additionalProperties": false,
   "properties": {
     "path": {
-      "type": "string",
-      "description": "The local path to a GeoJSON file",
-      "default": ""
+      "type": ["string", "null"],
+      "description": "The local path to a GeoJSON file"
     },
     "data": {
       "type": "object",
       "description": "The GeoJSON data",
       "$ref": "./geojson.json"
-    },
-    "valid": {
-      "type": "boolean",
-      "description": "Whether the data are valid or not",
-      "readOnly": true,
-      "default": false
     }
   }
 }

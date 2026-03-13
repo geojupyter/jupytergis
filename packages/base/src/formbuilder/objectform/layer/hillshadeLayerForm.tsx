@@ -8,7 +8,7 @@ import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ILayerProps } from './layerform';
 
-export function WebGlLayerPropertiesForm(
+export function HillshadeLayerPropertiesForm(
   props: ILayerProps,
 ): React.ReactElement | null {
   const {
@@ -47,9 +47,6 @@ export function WebGlLayerPropertiesForm(
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
 
-    removeFormEntry('color', formData, schema, builtUiSchema);
-    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
-
     processBaseSchema(
       dataCopy,
       schema,
@@ -60,11 +57,12 @@ export function WebGlLayerPropertiesForm(
 
     if (schema.properties?.source) {
       const availableSources = model.getSourcesByType(sourceType);
-
       (schema.properties.source as IDict).enumNames =
         Object.values(availableSources);
       (schema.properties.source as IDict).enum = Object.keys(availableSources);
     }
+
+    builtUiSchema.shadowColor = { 'ui:widget': 'color' };
 
     return builtUiSchema;
   }, [schema, formData, formContext, model, sourceType]);

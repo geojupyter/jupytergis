@@ -23,6 +23,7 @@ interface ILayerBrowserDialogProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   cancel: () => void;
+  registerConfirmHandler?: (fn: () => void) => void;
 }
 
 export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
@@ -31,6 +32,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   formSchemaRegistry,
   okSignalPromise,
   cancel,
+  registerConfirmHandler,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
@@ -141,6 +143,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
           }}
           okSignalPromise={okSignalPromise}
           cancel={cancel}
+          registerConfirmHandler={registerConfirmHandler}
         />
       </div>
     );
@@ -247,9 +250,13 @@ export interface ILayerBrowserOptions {
 
 export class LayerBrowserWidget extends Dialog<boolean> {
   constructor(options: ILayerBrowserOptions) {
-    let cancelCallback: (() => void) | undefined = undefined;
-    cancelCallback = () => {
+    const cancelCallback = () => {
       this.resolve(0);
+    };
+
+    let confirmHandler: (() => void) | null = null;
+    const registerConfirmHandler = (fn: () => void) => {
+      confirmHandler = fn;
     };
 
     const okSignalPromise = new PromiseDelegate<
@@ -263,6 +270,7 @@ export class LayerBrowserWidget extends Dialog<boolean> {
         formSchemaRegistry={options.formSchemaRegistry}
         okSignalPromise={okSignalPromise}
         cancel={cancelCallback}
+        registerConfirmHandler={registerConfirmHandler}
       />
     );
 
@@ -270,6 +278,7 @@ export class LayerBrowserWidget extends Dialog<boolean> {
 
     this.id = 'jupytergis::layerBrowser';
 
+    this._getConfirmHandler = () => confirmHandler;
     this.okSignal = new Signal(this);
     okSignalPromise.resolve(this.okSignal);
 
@@ -283,9 +292,12 @@ export class LayerBrowserWidget extends Dialog<boolean> {
     }
 
     if (index === 1) {
+      this._getConfirmHandler()?.();
       this.okSignal.emit(1);
+      super.resolve(index);
     }
   }
 
+  private _getConfirmHandler: () => (() => void) | null;
   private okSignal: Signal<Dialog<any>, number>;
 }

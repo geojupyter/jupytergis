@@ -110,7 +110,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
   useEffect(() => {
     const attribute =
-      params.symbologyState?.value ??
+      params.symbologyState?.value ||
       Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
