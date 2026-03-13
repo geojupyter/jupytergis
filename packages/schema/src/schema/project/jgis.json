@@ -166,7 +166,7 @@
         },
         "hideGradient": {
           "type": "boolean",
-          "title": "Turn off the majestic and beautiful gradient in case you hate beauty",
+          "title": "Use solid background",
           "default": false
         },
         "presentationBgColor": {

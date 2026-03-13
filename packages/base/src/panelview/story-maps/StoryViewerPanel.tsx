@@ -5,9 +5,9 @@ import {
 } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
 
-import StoryNavBar from './components/StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
+import StoryNavBar from './components/StoryNavBar';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 
