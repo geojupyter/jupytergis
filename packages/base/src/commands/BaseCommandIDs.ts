@@ -35,10 +35,6 @@ export const duplicateSelected = 'jupytergis:duplicateSelected';
 export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
 export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 
-// Source actions
-export const renameSource = 'jupytergis:renameSource';
-export const removeSource = 'jupytergis:removeSource';
-
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';
 export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';

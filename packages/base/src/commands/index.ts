@@ -10,7 +10,6 @@ import {
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
@@ -686,25 +685,6 @@ export function addCommands(
     },
   });
 
-  /**
-   * Source actions
-   */
-  commands.addCommand(CommandIDs.renameSource, {
-    label: trans.__('Rename Source'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model);
-    },
-  });
-
-  commands.addCommand(CommandIDs.removeSource, {
-    label: trans.__('Remove Source'),
-    execute: () => {
-      const model = tracker.currentWidget?.model;
-      Private.removeSelectedSources(model);
-    },
-  });
-
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
@@ -1366,26 +1346,6 @@ namespace Private {
     }
 
     model.setEditingItem(item.type, itemId);
-  }
-
-  export function removeSelectedSources(model: IJupyterGISModel | undefined) {
-    const selected = model?.localState?.selected?.value;
-
-    if (!selected || !model) {
-      return;
-    }
-
-    for (const id of Object.keys(selected)) {
-      if (model.getLayersBySource(id).length > 0) {
-        showErrorMessage(
-          'Remove source error',
-          'The source is used by a layer.',
-        );
-        continue;
-      }
-
-      model.removeSource(id);
-    }
   }
 
   export function executeConsole(tracker: JupyterGISTracker): void {
