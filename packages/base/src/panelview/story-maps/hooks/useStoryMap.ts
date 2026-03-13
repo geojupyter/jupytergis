@@ -97,6 +97,7 @@ export function useStoryMap({
     [storySegmentIds, currentIndex],
   );
 
+  const hideGradient = storyData?.hideGradient ?? false;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 
@@ -340,6 +341,7 @@ export function useStoryMap({
     storyData,
     storySegments,
     currentIndex,
+    hideGradient,
     clearOverrideLayers,
     setIndex,
     handlePrev,
