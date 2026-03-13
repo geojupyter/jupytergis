@@ -691,7 +691,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layerModel: IJGISLayer = {
       type: 'StorySegmentLayer',
       visible: true,
-      name: 'Story Segment',
+      name: this._generateStorySegmentName(),
       parameters: layerParams,
     };
 
@@ -734,6 +734,19 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  /**
+   * Generates a name for the next story segment based on the number of existing segments in the current story.
+   */
+  private _generateStorySegmentName(): string {
+    const { story } = this.getSelectedStory();
+    const count = story?.storySegments?.length ?? 0;
+    return count === 0 ? 'Story Segment' : `Story Segment ${count}`;
+  }
+
+  /**
+   * Adds a story segment from a layer
+   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
+   */
   createStorySegmentFromLayer(layerId: string) {
     const layer = this.getLayer(layerId);
     if (!layer) {
