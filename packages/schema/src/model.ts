@@ -448,22 +448,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
-   * Get the list of layers using a source.
-   *
-   * @param id - the source id.
-   * @returns a list of layer ids that use the source.
-   */
-  getLayersBySource(id: string): string[] {
-    const usingLayers: string[] = [];
-    Object.entries(this.getLayers() || {}).forEach(([layerId, layer]) => {
-      if (layer.parameters?.source === id) {
-        usingLayers.push(layerId);
-      }
-    });
-    return usingLayers;
-  }
-
-  /**
    * Add a layer group in the layer tree.
    *
    * @param name - the name of the group.
@@ -543,15 +527,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   removeSource(sourceId: string): void {
-    const layersUsingSource = this.getLayersBySource(sourceId);
-
-    if (layersUsingSource.length > 0) {
-      console.debug(
-        `Skipping source removal: source ${sourceId} still used by layers: ${layersUsingSource.join(', ')}`,
-      );
-      return;
-    }
-
     this.sharedModel.removeSource(sourceId);
   }
 
