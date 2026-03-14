@@ -57,7 +57,7 @@ export function addProcessingCommands(
     }
 
     if (processingElement.type === ProcessingLogicType.vector) {
-      commands.addCommand(processingElement.name, {
+      commands.addCommand(`jupytergis:${processingElement.name}`, {
         label: trans.__(processingElement.label),
         describedBy: {
           args: {
