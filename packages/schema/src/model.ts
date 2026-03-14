@@ -43,7 +43,7 @@ import {
   SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
-import { Modes } from './types';
+import { IExtent, IViewState, Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -82,6 +82,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
 
     this._jgisSettings = { ...DEFAULT_SETTINGS };
+
+    this._viewState = {
+      extents: new Map<string, IExtent>(),
+      lastUpdated: Date.now(),
+    };
 
     this.initSettings();
   }
@@ -381,6 +386,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
+  getViewState(): IViewState {
+    return this._viewState;
+  }
+
   /**
    * Getter for the contents manager.
    */
@@ -425,6 +434,11 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getLayer(id: string): IJGISLayer | undefined {
     return this.sharedModel.getLayer(id);
+  }
+
+  getLayerExtent(layerId: string): number[] | undefined {
+    const layerExtent = this._viewState.extents.get(layerId);
+    return layerExtent?.extent;
   }
 
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined {
@@ -514,6 +528,21 @@ export class JupyterGISModel implements IJupyterGISModel {
       { [id]: { type: 'layer' } },
       this.getClientId().toString(),
     );
+  }
+
+  updateLayerExtent(
+    layerId: string,
+    extent: number[],
+    projection?: string,
+  ): void {
+    this._viewState.extents.set(layerId, {
+      id: layerId,
+      type: 'layer',
+      extent,
+      projection,
+      ready: true,
+    });
+    this._viewState.lastUpdated = Date.now();
   }
 
   removeLayer(layer_id: string) {
@@ -672,11 +701,14 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(): { storySegmentId: string; storyId: string } | null {
+  addStorySegment(
+    extentOverride?: number[],
+  ): { storySegmentId: string; storyId: string } | null {
     const { zoom, extent } = this.getOptions();
+    const finalExtent = extentOverride ?? extent;
     const { storyId } = this.getSelectedStory();
 
-    if (!zoom || !extent) {
+    if (!zoom || !finalExtent) {
       console.warn('No extent or zoom found');
       return null;
     }
@@ -684,7 +716,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const newStorySegmentId = UUID.uuid4();
 
     const layerParams: IStorySegmentLayer = {
-      extent,
+      extent: finalExtent,
       zoom,
       transition: { type: 'linear', time: 1 },
     };
@@ -753,8 +785,13 @@ export class JupyterGISModel implements IJupyterGISModel {
       return null;
     }
 
-    this.centerOnPosition(layerId);
-    const segment = this.addStorySegment();
+    const layerExtent = this.getLayerExtent(layerId);
+
+    if (!layerExtent) {
+      return null;
+    }
+
+    const segment = this.addStorySegment(layerExtent);
     if (!segment) {
       return null;
     }
@@ -1101,6 +1138,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _pathChanged: Signal<IJupyterGISModel, string>;
 
+  private _viewState: IViewState;
   private _disposed = new Signal<this, void>(this);
   private _contentChanged = new Signal<this, void>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);

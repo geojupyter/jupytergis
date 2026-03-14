@@ -1222,6 +1222,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
+
+      this._trackLayerExtent(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1666,6 +1668,52 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   /**
+   * Compute extent for layer or source
+   */
+  private _computeExtent(
+    layer?: Layer | StacLayer,
+    source?: any,
+  ): number[] | undefined {
+    try {
+      if (source instanceof VectorSource) {
+        const extent = source.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+
+      if (source instanceof TileSource || source instanceof VectorTileSource) {
+        const tileGrid = source.getTileGrid();
+        const extent = tileGrid?.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+
+      if (layer instanceof StacLayer) {
+        const extent = layer.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to compute extent:', error);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Track layer extent in model's view state
+   */
+  private _trackLayerExtent(layerId: string, olLayer: Layer): void {
+    const extent = this._computeExtent(olLayer, olLayer.getSource());
+    if (extent) {
+      this._model.updateLayerExtent(layerId, extent);
+    }
+  }
+
+  /**
    * Wait for all layers to be loaded.
    */
   private _waitForReady(): Promise<void> {
@@ -2050,6 +2098,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
+
+        if (mapLayer) {
+          this._trackLayerExtent(id, mapLayer);
+        }
       } else {
         this.updateLayers(layerTree);
       }
@@ -2311,7 +2363,6 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     // The id is a layer
-    let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
     const jgisLayer = this._model.getLayer(id);
@@ -2376,22 +2427,9 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     }
 
-    if (source instanceof VectorSource) {
-      extent = source.getExtent();
-    }
-
-    if (source instanceof TileSource) {
-      // Tiled sources don't have getExtent() so we get it from the grid
-      const tileGrid = source.getTileGrid();
-      extent = tileGrid?.getExtent();
-    }
-
-    if (layer instanceof StacLayer) {
-      extent = layer.getExtent();
-    }
-
+    const extent = this._computeExtent(layer, source);
     if (!extent) {
-      console.warn('Layer has no extent.');
+      console.warn(`Layer ${id} has no extent.`);
       return;
     }
 
