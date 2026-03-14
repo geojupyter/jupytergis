@@ -270,6 +270,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
+  getSourceExtent(sourceId: string): number[] | undefined;
   getSourcesByType(type: SourceType): { [key: string]: string };
   getLayersBySource(id: string): string[];
   getLayerTree(): IJGISLayerTree;
@@ -281,6 +282,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   ): void;
   updateLayerExtent(
     layerId: string,
+    extent: number[],
+    projection?: string,
+  ): void;
+  updateSourceExtent(
+    sourceId: string,
     extent: number[],
     projection?: string,
   ): void;

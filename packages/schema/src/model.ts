@@ -449,6 +449,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getLayerSource(id);
   }
 
+  getSourceExtent(sourceId: string): number[] | undefined {
+    const extent = this._viewState.extents.get(sourceId);
+    return extent?.extent;
+  }
   /**
    * Get a {[key: id]: name} dictionary of sources for a given source type
    * @param type The required source type
@@ -542,6 +546,22 @@ export class JupyterGISModel implements IJupyterGISModel {
       projection,
       ready: true,
     });
+    this._viewState.lastUpdated = Date.now();
+  }
+
+  updateSourceExtent(
+    sourceId: string,
+    extent: number[],
+    projection?: string,
+  ): void {
+    this._viewState.extents.set(sourceId, {
+      id: sourceId,
+      type: 'source',
+      extent,
+      projection,
+      ready: true,
+    });
+
     this._viewState.lastUpdated = Date.now();
   }
 

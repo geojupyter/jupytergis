@@ -92,6 +92,7 @@ import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
+  Source,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
@@ -937,6 +938,8 @@ export class MainView extends React.Component<IProps, IStates> {
     newSource.set('id', id);
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
+
+    this._trackSourceExtent(id, newSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -1707,9 +1710,27 @@ export class MainView extends React.Component<IProps, IStates> {
    * Track layer extent in model's view state
    */
   private _trackLayerExtent(layerId: string, olLayer: Layer): void {
-    const extent = this._computeExtent(olLayer, olLayer.getSource());
+    const source: any = olLayer.getSource();
+    const sourceId = source?.get?.('id');
+
+    let extent = sourceId ? this._model.getSourceExtent(sourceId) : undefined;
+
+    if (!extent) {
+      extent = this._computeExtent(olLayer, source);
+    }
+
     if (extent) {
       this._model.updateLayerExtent(layerId, extent);
+    }
+  }
+
+  private _trackSourceExtent(sourceId: string, olSource: Source): void {
+    const extent = this._computeExtent(undefined, olSource);
+
+    if (extent) {
+      const projection = olSource?.getProjection?.()?.getCode?.();
+
+      this._model.updateSourceExtent(sourceId, extent, projection);
     }
   }
 
