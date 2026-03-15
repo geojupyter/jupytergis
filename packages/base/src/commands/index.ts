@@ -573,7 +573,11 @@ export function addCommands(
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const selected = model?.localState?.selected?.value;
-      return !!selected && Object.keys(selected).length > 0;
+      if (!selected) {
+        return false;
+      }
+
+      return Object.values(selected).some(item => item.type === 'layer');
     },
 
     execute: () => {
@@ -598,9 +602,8 @@ export function addCommands(
           ...layer,
           name: Private.generateCopyName(layer.name, model),
         };
-        const newId = UUID.uuid4();
 
-        model.addLayer(newId, clonedLayer, selectedItem.parent);
+        model.addLayer(UUID.uuid4(), clonedLayer);
       }
     },
   });
