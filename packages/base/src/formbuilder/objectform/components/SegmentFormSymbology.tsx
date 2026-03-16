@@ -95,20 +95,12 @@ function LayerOverrideItem({ item, formContext }: ILayerOverrideItemProps) {
 export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
   return (
     <>
-      <div>Symbology Overrides</div>
-      <div
-        className="jgis-symbology-override-list"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          // alignItems: 'flex-start',
-        }}
-      >
+      <div style={{ paddingBottom: '1rem' }}>Symbology Overrides</div>
+      <div className="jgis-symbology-override-list">
         {props.items.map(item => (
           <Collapsible>
             <CollapsibleTrigger asChild>
-              <span className="jgis-symbology-override-collapsible-trigger">
+              <div className="jgis-symbology-override-collapsible-trigger">
                 <Button
                   size="icon-sm"
                   variant="icon"
@@ -117,7 +109,7 @@ export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
                   <ChevronRightIcon />
                 </Button>
                 <span>Layer Override</span>
-              </span>
+              </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <LayerOverrideItem
