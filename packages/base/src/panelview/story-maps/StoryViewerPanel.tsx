@@ -1,42 +1,33 @@
 import {
-  IJGISLayer,
   IJGISStoryMap,
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { RefObject, useEffect, useState } from 'react';
 
-import { cn } from '@/src/shared/components/utils';
-import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
+import StoryNavBar from './components/StoryNavBar';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 
-/** Entry for a layer affected by layer override: remove (added clone) or restore (modified existing). */
-interface IOverrideLayerEntry {
-  layerId: string;
-  action: 'remove' | 'restore';
-}
-
+/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
   className?: string;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
-  /** Called when the segment transition animation has finished (e.g. for scroll-guard cleanup). */
-  onSegmentTransitionEnd?: () => void;
+  /** Ref for the segment container (SpectaPanel uses it for animationend). */
+  segmentContainerRef?: RefObject<HTMLDivElement>;
+  storyData: IJGISStoryMap | null;
+  currentIndex: number;
+  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  layerName: string;
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+  setIndex: (index: number) => void;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -56,13 +47,12 @@ export interface IStoryViewerPanelHandle {
  * - below-title: normal mode, guided, no image (under the title)
  * - over-image: normal mode, guided, with image (over the image)
  * - subtitle-specta: specta mode desktop (next to subtitle, fixed centered)
- * - subtitle-specta-mobile: specta mode mobile (in line with subtitle)
+ * Specta mode mobile returns null (nav hidden).
  */
 export type StoryNavPlacement =
   | 'below-title'
   | 'over-image'
-  | 'subtitle-specta'
-  | 'subtitle-specta-mobile';
+  | 'subtitle-specta';
 
 /**
  * Returns which section should render the nav bar, or null if nav should be hidden.
@@ -74,7 +64,7 @@ function getStoryNavPlacement(
   isMobile: boolean,
 ): StoryNavPlacement | null {
   if (isSpecta) {
-    return isMobile ? 'subtitle-specta-mobile' : 'subtitle-specta';
+    return isMobile ? null : 'subtitle-specta';
   }
   if (storyType !== 'guided') {
     return null;
@@ -82,543 +72,182 @@ function getStoryNavPlacement(
   return hasImage ? 'over-image' : 'below-title';
 }
 
-const StoryViewerPanel = forwardRef<
-  IStoryViewerPanelHandle,
-  IStoryViewerPanelProps
->(
-  (
-    {
-      model,
-      isSpecta,
-      isMobile = false,
-      className,
-      addLayer,
-      removeLayer,
-      onSegmentTransitionEnd,
-    },
-    ref,
-  ) => {
-    const [currentIndex, setCurrentIndex] = useState(
-      () => model.getCurrentSegmentIndex() ?? 0,
-    );
-    const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
-      model.getSelectedStory().story ?? null,
-    );
-    const [imageLoaded, setImageLoaded] = useState(false);
-    const panelRef = useRef<HTMLDivElement>(null);
-    const segmentContainerRef = useRef<HTMLDivElement>(null);
-    const topSentinelRef = useRef<HTMLDivElement>(null);
-    const bottomSentinelRef = useRef<HTMLDivElement>(null);
-    const atTopRef = useRef(false);
-    const atBottomRef = useRef(false);
+/**
+ * Story viewer (presentational). Receives story state and callbacks from parent.
+ * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
+ */
+function StoryViewerPanel({
+  model,
+  isSpecta,
+  isMobile = false,
+  className,
+  segmentContainerRef,
+  storyData,
+  currentIndex,
+  activeSlide,
+  layerName,
+  handlePrev,
+  handleNext,
+  hasPrev,
+  hasNext,
+  setIndex,
+}: IStoryViewerPanelProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-    useEffect(() => {
-      const onIndexChanged = (_: IJupyterGISModel, index: number) => {
-        setCurrentIndex(Math.max(0, index ?? 0));
-      };
-      model.currentSegmentIndexChanged.connect(onIndexChanged);
-      return () => {
-        model.currentSegmentIndexChanged.disconnect(onIndexChanged);
-      };
-    }, [model]);
+  // Prefetch image when slide changes
+  useEffect(() => {
+    const imageUrl = activeSlide?.content?.image;
 
-    const setIndex = useCallback(
-      (index: number) => {
-        model.setCurrentSegmentIndex(index);
-      },
-      [model],
-    );
+    if (!imageUrl) {
+      setImageLoaded(false);
+      return;
+    }
 
-    /** Layers affected by layer override
-     * We want to remove added layers (ie Heatmap)
-     * and Restore the original symbology for modified layers
-     */
-    const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
+    // Reset state
+    setImageLoaded(false);
 
-    const clearOverrideLayers = useCallback(() => {
-      overrideLayerEntriesRef.current.forEach(({ layerId, action }) => {
-        if (action === 'remove') {
-          removeLayer?.(layerId);
-        } else {
-          const layerOrSource = model.getLayerOrSource(layerId);
-          if (layerOrSource) {
-            model.triggerLayerUpdate(layerId, layerOrSource);
-          }
-        }
-      });
-      overrideLayerEntriesRef.current = [];
-    }, [model]);
+    // Preload the image
+    const img = new Image();
 
-    // Derive story segments from story data
-    const storySegments = useMemo(() => {
-      if (!storyData?.storySegments) {
-        return [];
-      }
-
-      return storyData.storySegments
-        .map(storySegmentId => model.getLayer(storySegmentId))
-        .filter((layer): layer is IJGISLayer => layer !== undefined);
-    }, [storyData, model]);
-
-    // Derive current story segment from story segments and currentIndex
-    const currentStorySegment = useMemo(() => {
-      return storySegments[currentIndex];
-    }, [storySegments, currentIndex]);
-
-    // Derive active slide and layer name from current story segment
-    const activeSlide = useMemo(() => {
-      return currentStorySegment?.parameters;
-    }, [currentStorySegment]);
-
-    const layerName = useMemo(
-      () => currentStorySegment?.name ?? '',
-      [currentStorySegment],
-    );
-
-    // Derive story segment ID for zooming
-    const currentStorySegmentId = useMemo(() => {
-      return storyData?.storySegments?.[currentIndex];
-    }, [storyData, currentIndex]);
-
-    const hasPrev = currentIndex > 0;
-    const hasNext = currentIndex < storySegments.length - 1;
-
-    const zoomToCurrentLayer = () => {
-      if (currentStorySegmentId) {
-        model.centerOnPosition(currentStorySegmentId);
-      }
+    img.onload = () => {
+      setImageLoaded(true);
     };
 
-    const setSelectedLayerByIndex = useCallback(
-      (index: number) => {
-        const storySegmentId = storyData?.storySegments?.[index];
-        if (storySegmentId) {
-          model.selected = {
-            [storySegmentId]: {
-              type: 'layer',
-            },
-          };
-        }
-      },
-      [storyData, model],
-    );
-
-    // On unmount: remove override layers and restore layer symbology
-    useEffect(() => {
-      return () => {
-        clearOverrideLayers();
-        storyData?.storySegments?.forEach(segmentId => {
-          const segment = model.getLayer(segmentId);
-          const overrides = segment?.parameters?.layerOverride;
-          if (Array.isArray(overrides)) {
-            overrides.forEach((override: any) => {
-              const targetLayerId = override.targetLayer;
-              const targetLayer = model.getLayer(targetLayerId);
-              targetLayer &&
-                model.triggerLayerUpdate(targetLayerId, targetLayer);
-            });
-          }
-        });
-      };
-    }, [storyData, model, clearOverrideLayers]);
-
-    useEffect(() => {
-      const updateStory = () => {
-        clearOverrideLayers();
-        const { story } = model.getSelectedStory();
-        setStoryData(story ?? null);
-        setIndex(model.getCurrentSegmentIndex() ?? 0);
-      };
-
-      updateStory();
-
-      model.sharedModel.storyMapsChanged.connect(updateStory);
-
-      return () => {
-        model.sharedModel.storyMapsChanged.disconnect(updateStory);
-      };
-    }, [model, setIndex, clearOverrideLayers]);
-
-    // Prefetch image when slide changes
-    useEffect(() => {
-      const imageUrl = activeSlide?.content?.image;
-
-      if (!imageUrl) {
-        setImageLoaded(false);
-        return;
-      }
-
-      // Reset state
+    img.onerror = () => {
       setImageLoaded(false);
+    };
 
-      // Preload the image
-      const img = new Image();
+    img.src = imageUrl;
 
-      img.onload = () => {
-        setImageLoaded(true);
-      };
+    // Cleanup: abort loading if component unmounts or slide changes
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [activeSlide?.content?.image]);
 
-      img.onerror = () => {
-        setImageLoaded(false);
-      };
-
-      img.src = imageUrl;
-
-      // Cleanup: abort loading if component unmounts or slide changes
-      return () => {
-        img.onload = null;
-        img.onerror = null;
-      };
-    }, [activeSlide?.content?.image]);
-
-    // Auto-zoom when slide changes
-    useEffect(() => {
-      if (currentStorySegmentId) {
-        zoomToCurrentLayer();
-      }
-    }, [currentStorySegmentId, model]);
-
-    // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
-    useEffect(() => {
-      if (!storyData?.storySegments || currentIndex < 0) {
+  // ! TODO come back for this
+  // Listen for layer selection changes in unguided mode
+  useEffect(() => {
+    // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
+    const handleSelectedStorySegmentChange = () => {
+      // This is just to update the displayed content
+      // So bail early if we don't need to do that
+      if (!storyData || storyData.storyType !== 'unguided') {
         return;
       }
-      clearOverrideLayers();
-      setSelectedLayerByIndex(currentIndex);
-      overrideSymbology(currentIndex);
-    }, [storyData, currentIndex, setSelectedLayerByIndex, clearOverrideLayers]);
 
-    // Set selected layer on initial render and when story data changes
-    useEffect(() => {
-      if (storyData?.storySegments && currentIndex >= 0) {
-        setSelectedLayerByIndex(currentIndex);
-      }
-    }, [storyData, currentIndex, setSelectedLayerByIndex]);
-
-    // Apply story presentation colors (specta) to panel root
-    useEffect(() => {
-      if (!isSpecta || !panelRef.current) {
+      const localState = model.sharedModel.awareness.getLocalState();
+      if (!localState || !localState['selected']?.value) {
         return;
       }
-      const container = panelRef.current;
-      const bgColor = storyData?.presentationBgColor;
-      const textColor = storyData?.presentationTextColor;
-      if (bgColor) {
-        container.style.setProperty('--jgis-specta-bg-color', bgColor);
+
+      const selectedLayers = Object.keys(localState['selected'].value);
+
+      // Ensure only one layer is selected
+      if (selectedLayers.length !== 1) {
+        return;
       }
-      if (textColor) {
-        container.style.setProperty('--jgis-specta-text-color', textColor);
+
+      const selectedLayerId = selectedLayers[0];
+      const selectedLayer = model.getLayer(selectedLayerId);
+      if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
+        return;
       }
-    }, []);
 
-    // Listen for layer selection changes in unguided mode
-    useEffect(() => {
-      // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
-      const handleSelectedStorySegmentChange = () => {
-        // This is just to update the displayed content
-        // So bail early if we don't need to do that
-        if (!storyData || storyData.storyType !== 'unguided') {
-          return;
-        }
+      const index = storyData.storySegments?.indexOf(selectedLayerId);
+      if (index === undefined || index === -1) {
+        return;
+      }
 
-        const localState = model.sharedModel.awareness.getLocalState();
-        if (!localState || !localState['selected']?.value) {
-          return;
-        }
+      setIndex(index);
+    };
 
-        const selectedLayers = Object.keys(localState['selected'].value);
+    // ! TODO really only want to connect this un unguided mode
+    model.sharedModel.awareness.on('change', handleSelectedStorySegmentChange);
 
-        // Ensure only one layer is selected
-        if (selectedLayers.length !== 1) {
-          return;
-        }
-
-        const selectedLayerId = selectedLayers[0];
-        const selectedLayer = model.getLayer(selectedLayerId);
-        if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
-          return;
-        }
-
-        const index = storyData.storySegments?.indexOf(selectedLayerId);
-        if (index === undefined || index === -1) {
-          return;
-        }
-
-        setIndex(index);
-      };
-
-      // ! TODO really only want to connect this un unguided mode
-      model.sharedModel.awareness.on(
+    return () => {
+      model.sharedModel.awareness.off(
         'change',
         handleSelectedStorySegmentChange,
       );
-
-      return () => {
-        model.sharedModel.awareness.off(
-          'change',
-          handleSelectedStorySegmentChange,
-        );
-      };
-    }, [model, storyData, setIndex]);
-
-    // Apply layer overrides for the segment at the given index
-    const overrideSymbology = (index: number) => {
-      if (index < 0 || !storySegments[index]) {
-        return;
-      }
-
-      const segment = storySegments[index];
-      const layerOverrides: IStorySegmentLayer['layerOverride'] =
-        segment.parameters?.layerOverride;
-
-      if (!Array.isArray(layerOverrides)) {
-        return;
-      }
-
-      // Apply all layer overrides for this segment
-      layerOverrides.forEach(override => {
-        const {
-          color,
-          opacity,
-          sourceProperties,
-          symbologyState,
-          targetLayer: targetLayerId,
-          visible,
-        } = override;
-
-        if (!targetLayerId) {
-          return;
-        }
-
-        overrideLayerEntriesRef.current.push({
-          layerId: targetLayerId,
-          action: 'restore',
-        });
-
-        const targetLayer = model.getLayer(targetLayerId);
-
-        if (targetLayer?.parameters) {
-          if (symbologyState !== undefined) {
-            targetLayer.parameters.symbologyState = symbologyState;
-          }
-          if (color !== undefined) {
-            targetLayer.parameters.color = color;
-          }
-          if (opacity !== undefined) {
-            targetLayer.parameters.opacity = opacity;
-          }
-          if (visible !== undefined) {
-            targetLayer.visible = visible;
-          }
-          if (
-            sourceProperties !== undefined &&
-            Object.keys(sourceProperties).length > 0
-          ) {
-            const sourceId = targetLayer.parameters?.source;
-            if (sourceId) {
-              const source = model.getSource(sourceId);
-              if (!source) {
-                return;
-              }
-              if (source?.parameters) {
-                source.parameters = {
-                  ...source.parameters,
-                  ...sourceProperties,
-                };
-              }
-
-              overrideLayerEntriesRef.current.push({
-                layerId: sourceId,
-                action: 'restore',
-              });
-
-              model.triggerLayerUpdate(sourceId, source);
-            }
-          }
-          // Heatmaps are actually a different layer, not just symbology
-          // so they need special handling
-          if (symbologyState?.renderType === 'Heatmap') {
-            targetLayer.type = 'HeatmapLayer';
-            if (addLayer) {
-              const newId = UUID.uuid4();
-              addLayer(newId, targetLayer, 100);
-              overrideLayerEntriesRef.current.push({
-                layerId: newId,
-                action: 'remove',
-              });
-            }
-          } else {
-            model.triggerLayerUpdate(targetLayerId, targetLayer);
-          }
-        }
-      });
     };
+  }, [model, storyData, setIndex]);
 
-    const handlePrev = useCallback(() => {
-      if (hasPrev) {
-        setIndex(currentIndex - 1);
-      }
-    }, [currentIndex, setIndex]);
-
-    const handleNext = useCallback(() => {
-      if (hasNext) {
-        setIndex(currentIndex + 1);
-      }
-    }, [currentIndex, storySegments.length, setIndex]);
-
-    if (!storyData || storyData?.storySegments?.length === 0) {
-      return (
-        <div style={{ padding: '1rem' }}>
-          <p>No Segments available. Add one using the Add Layer menu.</p>
-        </div>
-      );
-    }
-
-    const storyNavBarProps = {
-      onPrev: handlePrev,
-      onNext: handleNext,
-      hasPrev,
-      hasNext,
-    };
-
-    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path)
-    useEffect(() => {
-      const root = panelRef.current;
-      const topEl = topSentinelRef.current;
-      const bottomEl = bottomSentinelRef.current;
-      if (!root || !topEl || !bottomEl) {
-        return;
-      }
-      const observer = new IntersectionObserver(
-        (entries: IntersectionObserverEntry[]) => {
-          for (const entry of entries) {
-            if (entry.target === topEl) {
-              atTopRef.current = entry.isIntersecting;
-            } else if (entry.target === bottomEl) {
-              atBottomRef.current = entry.isIntersecting;
-            }
-          }
-        },
-        { root, threshold: 0, rootMargin: '0px' },
-      );
-      observer.observe(topEl);
-      observer.observe(bottomEl);
-      return () => observer.disconnect();
-    }, [currentIndex]);
-
-    // Expose methods via ref for parent component to use
-    useImperativeHandle(
-      ref,
-      () => ({
-        handlePrev,
-        handleNext,
-        spectaMode: isSpecta,
-        hasPrev,
-        hasNext,
-        getAtTop: () => atTopRef.current,
-        getAtBottom: () => atBottomRef.current,
-        getScrollContainer: () => panelRef.current,
-      }),
-      [handlePrev, handleNext, storyData, isSpecta, hasPrev, hasNext],
-    );
-
-    const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-    const storyType = storyData.storyType ?? 'guided';
-    const navPlacement = getStoryNavPlacement(
-      isSpecta,
-      hasImage,
-      storyType,
-      isMobile,
-    );
-
-    const navSlot =
-      navPlacement !== null ? (
-        <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
-      ) : null;
-
-    // Get transition time from current segment, default to 0.3s
-    const transitionTime = activeSlide?.transition?.time ?? 0.3;
-
-    // Notify parent when segment transition animation ends (e.g. for scroll-guard cleanup)
-    useEffect(() => {
-      const el = segmentContainerRef.current;
-      if (!el || !onSegmentTransitionEnd) {
-        return;
-      }
-      const handleAnimationEnd = (e: AnimationEvent) => {
-        if (e.animationName === 'fadeIn') {
-          el.removeEventListener('animationend', handleAnimationEnd);
-          onSegmentTransitionEnd();
-        }
-      };
-      el.addEventListener('animationend', handleAnimationEnd);
-      return () => el.removeEventListener('animationend', handleAnimationEnd);
-    }, [currentIndex, onSegmentTransitionEnd]);
-
+  if (!storyData || storyData?.storySegments?.length === 0) {
     return (
-      <div
-        ref={panelRef}
-        className={cn('jgis-story-viewer-panel', className)}
-        id="jgis-story-segment-panel"
-      >
-        <div
-          ref={topSentinelRef}
-          aria-hidden
-          data-story-scroll-sentinel="top"
-          style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-        />
-        <div
-          ref={segmentContainerRef}
-          key={currentIndex}
-          className="jgis-story-segment-container"
-          style={{
-            animationDuration: `${transitionTime}s`,
-          }}
-        >
-          <div id="jgis-story-segment-header">
-            <h1 className="jgis-story-viewer-title">
-              {layerName ?? `Slide ${currentIndex + 1}`}
-            </h1>
-            {activeSlide?.content?.image && imageLoaded ? (
-              <StoryImageSection
-                imageUrl={activeSlide.content.image}
-                imageLoaded={imageLoaded}
-                layerName={layerName ?? ''}
-                slideNumber={currentIndex}
-                navSlot={navPlacement === 'over-image' ? navSlot : null}
-              />
-            ) : (
-              <StoryTitleSection
-                title={storyData.title ?? ''}
-                navSlot={navPlacement === 'below-title' ? navSlot : null}
-              />
-            )}
-            <StorySubtitleSection
-              title={activeSlide?.content?.title ?? ''}
-              navSlot={
-                navPlacement === 'subtitle-specta' ||
-                navPlacement === 'subtitle-specta-mobile'
-                  ? navSlot
-                  : null
-              }
-            />
-          </div>
-          <div id="jgis-story-segment-content">
-            <StoryContentSection
-              markdown={activeSlide?.content?.markdown ?? ''}
-            />
-          </div>
-        </div>
-        <div
-          ref={bottomSentinelRef}
-          aria-hidden
-          data-story-scroll-sentinel="bottom"
-          style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-        />
+      <div style={{ padding: '1rem' }}>
+        <p>No Segments available. Add one using the Add Layer menu.</p>
       </div>
     );
-  },
-);
+  }
+
+  const storyNavBarProps = {
+    onPrev: handlePrev,
+    onNext: handleNext,
+    hasPrev,
+    hasNext,
+  };
+
+  const hasImage = !!(activeSlide?.content?.image && imageLoaded);
+  const storyType = storyData.storyType ?? 'guided';
+  const navPlacement = getStoryNavPlacement(
+    isSpecta,
+    hasImage,
+    storyType,
+    isMobile,
+  );
+
+  const navSlot =
+    navPlacement !== null ? (
+      <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
+    ) : null;
+
+  // Get transition time from current segment, default to 0.3s
+  const transitionTime = activeSlide?.transition?.time ?? 0.3;
+
+  return (
+    <div className="jgis-story-viewer-panel">
+      <div
+        ref={segmentContainerRef}
+        key={currentIndex}
+        className="jgis-story-segment-container"
+        style={{
+          animationDuration: `${transitionTime}s`,
+        }}
+      >
+        <div id="jgis-story-segment-header">
+          <h1 className="jgis-story-viewer-title">
+            {layerName ?? `Slide ${currentIndex + 1}`}
+          </h1>
+          {activeSlide?.content?.image && imageLoaded ? (
+            <StoryImageSection
+              imageUrl={activeSlide.content.image}
+              imageLoaded={imageLoaded}
+              layerName={layerName ?? ''}
+              slideNumber={currentIndex}
+              navSlot={navPlacement === 'over-image' ? navSlot : null}
+            />
+          ) : (
+            <StoryTitleSection
+              title={storyData.title ?? ''}
+              navSlot={navPlacement === 'below-title' ? navSlot : null}
+            />
+          )}
+          <StorySubtitleSection
+            title={activeSlide?.content?.title ?? ''}
+            navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
+          />
+        </div>
+        <div id="jgis-story-segment-content">
+          <StoryContentSection
+            markdown={activeSlide?.content?.markdown ?? ''}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 StoryViewerPanel.displayName = 'StoryViewerPanel';
 

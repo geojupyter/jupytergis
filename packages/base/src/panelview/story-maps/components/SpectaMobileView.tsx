@@ -1,5 +1,9 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { CSSProperties, useEffect, useState } from 'react';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
+import React, { RefObject, useEffect, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -7,7 +11,8 @@ import {
   DrawerContent,
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
-import StoryViewerPanel from './StoryViewerPanel';
+import StoryViewerPanel from '../StoryViewerPanel';
+import { getSpectaPresentationStyle } from '../hooks/useStoryMap';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
@@ -19,8 +24,18 @@ const SNAP_FIRST_DEFAULT = 0.7;
 /** Offset (px) for segment header height: margins from p and h1 in story content */
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
-interface IMobileSpectaPanelProps {
+interface ISpectaMobileViewProps {
   model: IJupyterGISModel;
+  segmentContainerRef: RefObject<HTMLDivElement>;
+  storyData: IJGISStoryMap | null;
+  currentIndex: number;
+  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  layerName: string;
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+  setIndex: (index: number) => void;
 }
 
 /**
@@ -49,25 +64,19 @@ function getFirstSnapFromSegmentHeader(
   return clamped;
 }
 
-/** Build inline styles for specta presentation (bg and text color from story). */
-function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
-  const story = model.getSelectedStory().story;
-  const bgColor = story?.presentationBgColor;
-  const textColor = story?.presentationTextColor;
-
-  const style: CSSProperties = {};
-  if (bgColor) {
-    (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
-    style.backgroundColor = bgColor;
-  }
-  if (textColor) {
-    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
-    style.color = textColor;
-  }
-  return style;
-}
-
-export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
+export function SpectaMobileView({
+  model,
+  segmentContainerRef,
+  storyData,
+  currentIndex,
+  activeSlide,
+  layerName,
+  handlePrev,
+  handleNext,
+  hasPrev,
+  hasNext,
+  setIndex,
+}: ISpectaMobileViewProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [snapPoints, setSnapPoints] = useState<number[]>([
     SNAP_FIRST_DEFAULT,
@@ -75,7 +84,7 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
   ]);
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
 
-  const presentationStyle = getSpectaPresentationStyle(model);
+  const presentationStyle = getSpectaPresentationStyle(storyData);
 
   // Keep active snap in sync with snapPoints so Vaul's --snap-point-height stays defined.
   useEffect(() => {
@@ -165,7 +174,23 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
           <Button>Open Story Panel</Button>
         </DrawerTrigger>
         <DrawerContent style={presentationStyle}>
-          <StoryViewerPanel isSpecta={true} isMobile={true} model={model} />
+          <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
+            <StoryViewerPanel
+              model={model}
+              isSpecta={true}
+              isMobile={true}
+              segmentContainerRef={segmentContainerRef}
+              storyData={storyData}
+              currentIndex={currentIndex}
+              activeSlide={activeSlide}
+              layerName={layerName}
+              handlePrev={handlePrev}
+              handleNext={handleNext}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              setIndex={setIndex}
+            />
+          </div>
         </DrawerContent>
       </Drawer>
     </div>

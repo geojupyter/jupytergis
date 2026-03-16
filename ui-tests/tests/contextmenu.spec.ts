@@ -50,11 +50,11 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByText('Move Selection Layers to Group').hover();
+    await page.getByText('Move Selection to Group').hover();
 
     const submenu = page.locator('#jp-gis-contextmenu-movelayer');
 
-    const firstItem = page.getByText('Move Selection to Root');
+    const firstItem = page.getByText('Move Selection to Root Group');
     await expect(firstItem).toBeVisible();
     await expect(submenu).toBeVisible();
   });
@@ -92,7 +92,9 @@ test.describe('context menu', () => {
     });
     await page.getByText('Add Layer').hover();
     await page.getByText('Add Raster Layer', { exact: true }).hover();
-    await page.getByText('New Raster Tile Layer', { exact: true }).click();
+    await page
+      .getByText('Open New Raster Tile Layer Creation Dialog', { exact: true })
+      .click();
 
     await page
       .getByRole('dialog')
