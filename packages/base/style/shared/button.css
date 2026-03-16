@@ -124,9 +124,7 @@
 }
 
 .jgis-button[data-variant='icon'] {
-  background-color: var(--jp-ui-font-color0);
   border: none;
-  color: var(--jp-layout-color0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,14 +132,6 @@
   width: 2rem;
   padding: 0;
   border-radius: 9999px;
-}
-
-.jgis-button[data-variant='icon']:hover {
-  background-color: color-mix(
-    in srgb,
-    var(--jp-accent-color0),
-    transparent 20%
-  );
 }
 
 /* sizing */

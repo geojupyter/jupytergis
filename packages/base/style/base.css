@@ -186,3 +186,24 @@ button.jp-mod-styled.jp-mod-reject {
 body[data-notebook='specta'] #main.jp-ThemedContainer {
   overflow: visible;
 }
+
+.jgis-center-content {
+  text-align: center;
+}
+
+.jgis-bg-transparent {
+  background-color: transparent;
+}
+
+.jgis-bg-transparent:hover {
+  background-color: transparent;
+}
+
+.jgis-rotate-90 {
+  rotate: 0deg;
+  transition: rotate 150ms ease;
+}
+
+[data-state='open'] > .jgis-rotate-90 {
+  rotate: 90deg;
+}

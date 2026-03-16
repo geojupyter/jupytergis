@@ -9,6 +9,12 @@ import {
   SYMBOLOGY_VALID_LAYER_TYPES,
   type IJupyterGISFormContext,
 } from '@/src/types';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/src/shared/components/Collapsible';
+import { ChevronRightIcon } from 'lucide-react';
 
 interface ILayerOverrideItemProps {
   item: ArrayFieldTemplateProps['items'][0];
@@ -89,26 +95,45 @@ function LayerOverrideItem({ item, formContext }: ILayerOverrideItemProps) {
 export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
   return (
     <>
-      <div>{props.title}</div>
+      <div>Symbology Overrides</div>
       <div
+        className="jgis-symbology-override-list"
         style={{
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          alignItems: 'center',
+          // alignItems: 'flex-start',
         }}
       >
         {props.items.map(item => (
-          <LayerOverrideItem
-            key={item.key}
-            item={item}
-            formContext={props.formContext}
-          />
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <span className="jgis-symbology-override-collapsible-trigger">
+                <Button
+                  size="icon-sm"
+                  variant="icon"
+                  className="jgis-rotate-90 jgis-bg-transparent"
+                >
+                  <ChevronRightIcon />
+                </Button>
+                <span>Layer Override</span>
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <LayerOverrideItem
+                key={item.key}
+                item={item}
+                formContext={props.formContext}
+              />
+            </CollapsibleContent>
+          </Collapsible>
         ))}
-        {props.canAdd && (
-          <Button onClick={props.onAddClick}>Add Layer Override</Button>
-        )}
       </div>
+      {props.canAdd && (
+        <div className="jgis-center-content" style={{ paddingTop: '1rem' }}>
+          <Button onClick={props.onAddClick}>Add Layer Override</Button>
+        </div>
+      )}
     </>
   );
 }
