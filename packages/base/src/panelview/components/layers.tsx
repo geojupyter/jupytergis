@@ -584,8 +584,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
   return (
     <div
-      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS} 
-                  ${isStorySegmentLayer ? 'jp-gis-storySegmentLayer' : ''} 
+      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
+                  ${isStorySegmentLayer ? 'jp-gis-storySegmentLayer' : ''}
                   ${selected ? ' jp-mod-selected' : ''}`}
       draggable={true}
       onDragStart={Private.onDragStart}
