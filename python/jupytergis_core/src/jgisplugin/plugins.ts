@@ -232,7 +232,7 @@ const activate = async (
 
     // Layer and group actions
     palette.addItem({
-      command: CommandIDs.moveLayerToNewGroup,
+      command: CommandIDs.moveSelectedToNewGroup,
       category: 'JupyterGIS',
     });
 

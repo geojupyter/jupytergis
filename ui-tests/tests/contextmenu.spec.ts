@@ -50,26 +50,26 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByText('Move Selected Layers to Group').hover();
+    await page.getByText('Move Selection Layers to Group').hover();
 
     const submenu = page.locator('#jp-gis-contextmenu-movelayer');
 
-    const firstItem = page.getByText('Move to Root');
+    const firstItem = page.getByText('Move Selection to Root');
     await expect(firstItem).toBeVisible();
     await expect(submenu).toBeVisible();
   });
 
-  test('move layer to new group', async ({ page }) => {
+  test('move selection to new group', async ({ page }) => {
     const layer = await page
       .getByLabel('Layers', { exact: true })
       .getByText('Open Topo Map');
 
     layer.click({ button: 'right' });
 
-    await page.getByText('Move Selected Layers to Group').hover();
+    await page.getByText('Move Selection to Group').hover();
     await page
       .locator('#jp-gis-contextmenu-movelayer')
-      .getByText('Move Selected Layers to New Group')
+      .getByText('Move Selection to New Group')
       .click();
     await page
       .getByLabel('Layers', { exact: true })
@@ -223,7 +223,7 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByText('Move Selected Layers to Group').hover();
+    await page.getByText('Move Selection to Group').hover();
 
     await page.getByText('level 2 group').click();
     await page.getByText('level 1 group').click();

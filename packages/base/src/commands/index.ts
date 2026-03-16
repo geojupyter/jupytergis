@@ -568,9 +568,11 @@ export function addCommands(
     ...icons.get(CommandIDs.removeSelected),
   });
 
-  commands.addCommand(CommandIDs.moveLayersToGroup, {
+  commands.addCommand(CommandIDs.moveSelectedToGroup, {
     label: args =>
-      args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
+      args['label']
+        ? (args['label'] as string)
+        : trans.__('Move Selection to Root'),
     execute: args => {
       const model = tracker.currentWidget?.model;
       const groupName = args['label'] as string;
@@ -585,8 +587,8 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.moveLayerToNewGroup, {
-    label: trans.__('Move Selected Layers to New Group'),
+  commands.addCommand(CommandIDs.moveSelectedToNewGroup, {
+    label: trans.__('Move Selection to New Group'),
     execute: async () => {
       const model = tracker.currentWidget?.model;
       const selectedLayers = model?.localState?.selected?.value;

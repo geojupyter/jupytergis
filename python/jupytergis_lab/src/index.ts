@@ -59,6 +59,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     };
 
     const LAYER = '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
+    const STORY_SEGMENT_LAYER =
+      '.jp-gis-layerItem:not(.jp-gis-layerGroup):not(.jp-gis-storySegmentLayer)';
 
     createDefaultLayerRegistry(layerBrowserRegistry);
     const stateDbManager = GlobalStateDbManager.getInstance();
@@ -89,7 +91,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.symbology,
-      selector: LAYER,
+      selector: STORY_SEGMENT_LAYER,
       rank: 1,
     });
 
@@ -130,7 +132,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // Add the Download submenu to the context menu
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: LAYER,
+      selector: STORY_SEGMENT_LAYER,
       rank: 2,
       submenu: downloadSubmenu,
     });
@@ -150,22 +152,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: LAYER,
+      selector: STORY_SEGMENT_LAYER,
       rank: 2,
       submenu: processingSubmenu,
     });
 
-    const moveLayerSubmenu = new Menu({ commands: app.commands });
-    moveLayerSubmenu.title.label = translator
+    const moveSelectedSubmenu = new Menu({ commands: app.commands });
+    moveSelectedSubmenu.title.label = translator
       .load('jupyterlab')
-      .__('Move Selected Layers to Group');
-    moveLayerSubmenu.id = 'jp-gis-contextmenu-movelayer';
+      .__('Move Selection to Group');
+    moveSelectedSubmenu.id = 'jp-gis-contextmenu-movelayer';
 
     app.contextMenu.addItem({
       type: 'submenu',
       selector: LAYER,
       rank: 2,
-      submenu: moveLayerSubmenu,
+      submenu: moveSelectedSubmenu,
     });
 
     app.contextMenu.opened.connect(() =>
@@ -293,19 +295,19 @@ function buildGroupsMenu(
   }
 
   submenu.addItem({
-    command: CommandIDs.moveLayersToGroup,
+    command: CommandIDs.moveSelectedToGroup,
     args: { label: '' },
   });
 
   groupNames.forEach(name => {
     submenu.addItem({
-      command: CommandIDs.moveLayersToGroup,
+      command: CommandIDs.moveSelectedToGroup,
       args: { label: name },
     });
   });
 
   submenu.addItem({
-    command: CommandIDs.moveLayerToNewGroup,
+    command: CommandIDs.moveSelectedToNewGroup,
   });
 }
 
