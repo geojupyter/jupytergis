@@ -1,20 +1,20 @@
 import type { IStorySegmentLayer } from '@jupytergis/schema';
 import { ArrayFieldTemplateProps } from '@rjsf/core';
+import { ChevronRightIcon } from 'lucide-react';
 import React from 'react';
 
 import { SymbologyWidget } from '@/src/dialogs/symbology/symbologyDialog';
 import { Button } from '@/src/shared/components/Button';
-import { GlobalStateDbManager } from '@/src/store';
-import {
-  SYMBOLOGY_VALID_LAYER_TYPES,
-  type IJupyterGISFormContext,
-} from '@/src/types';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
-import { ChevronRightIcon } from 'lucide-react';
+import { GlobalStateDbManager } from '@/src/store';
+import {
+  SYMBOLOGY_VALID_LAYER_TYPES,
+  type IJupyterGISFormContext,
+} from '@/src/types';
 
 interface ILayerOverrideItemProps {
   item: ArrayFieldTemplateProps['items'][0];
