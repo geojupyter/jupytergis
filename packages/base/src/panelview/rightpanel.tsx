@@ -13,15 +13,67 @@ import Draggable from 'react-draggable';
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
-import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
+import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
+import {
+  useStoryMap,
+  type IOverrideLayerEntry,
+} from './story-maps/hooks/useStoryMap';
 import {
   PanelTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
+
+/** Story viewer + useStoryMap hook
+ * only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden.
+ **/
+function RightPanelStoryViewer({
+  model,
+  addLayer,
+  removeLayer,
+}: {
+  model: IJupyterGISModel;
+  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  removeLayer?: (id: string) => void;
+}) {
+  const overrideLayerEntriesRef = React.useRef<IOverrideLayerEntry[]>([]);
+  const {
+    storyData,
+    currentIndex,
+    setIndex,
+    handlePrev,
+    handleNext,
+    hasPrev,
+    hasNext,
+    activeSlide,
+    layerName,
+  } = useStoryMap({
+    model,
+    overrideLayerEntriesRef,
+    removeLayer,
+    addLayer,
+    isSpecta: false,
+  });
+
+  return (
+    <StoryViewerPanel
+      model={model}
+      isSpecta={false}
+      storyData={storyData}
+      currentIndex={currentIndex}
+      activeSlide={activeSlide}
+      layerName={layerName}
+      handlePrev={handlePrev}
+      handleNext={handleNext}
+      hasPrev={hasPrev}
+      hasNext={hasNext}
+      setIndex={setIndex}
+    />
+  );
+}
 
 interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -182,14 +234,13 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
                   model={props.model}
                   commands={props.commands}
                 />
-              ) : (
-                <StoryViewerPanel
+              ) : curTab === 'storyPanel' ? (
+                <RightPanelStoryViewer
                   model={props.model}
-                  isSpecta={false}
                   addLayer={props.addLayer}
                   removeLayer={props.removeLayer}
                 />
-              )}
+              ) : null}
             </TabsContent>
           )}
 
