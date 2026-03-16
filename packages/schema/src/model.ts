@@ -43,7 +43,7 @@ import {
   SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
-import { IExtent, IViewState, Modes } from './types';
+import { IViewState, Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -84,7 +84,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._jgisSettings = { ...DEFAULT_SETTINGS };
 
     this._viewState = {
-      extents: new Map<string, IExtent>(),
+      extents: new Map(),
       lastUpdated: Date.now(),
     };
 
@@ -436,9 +436,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getLayer(id);
   }
 
-  getLayerExtent(layerId: string): number[] | undefined {
-    const layerExtent = this._viewState.extents.get(layerId);
-    return layerExtent?.extent;
+  getExtent(id: string): number[] | undefined {
+    return this._viewState.extents.get(id)?.extent;
   }
 
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined {
@@ -449,10 +448,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getLayerSource(id);
   }
 
-  getSourceExtent(sourceId: string): number[] | undefined {
-    const extent = this._viewState.extents.get(sourceId);
-    return extent?.extent;
-  }
   /**
    * Get a {[key: id]: name} dictionary of sources for a given source type
    * @param type The required source type
@@ -534,32 +529,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
-  updateLayerExtent(
-    layerId: string,
-    extent: number[],
-    projection?: string,
-  ): void {
-    this._viewState.extents.set(layerId, {
-      id: layerId,
-      type: 'layer',
+  updateExtent(id: string, extent: number[], projection?: string): void {
+    this._viewState.extents.set(id, {
       extent,
       projection,
-      ready: true,
-    });
-    this._viewState.lastUpdated = Date.now();
-  }
-
-  updateSourceExtent(
-    sourceId: string,
-    extent: number[],
-    projection?: string,
-  ): void {
-    this._viewState.extents.set(sourceId, {
-      id: sourceId,
-      type: 'source',
-      extent,
-      projection,
-      ready: true,
     });
 
     this._viewState.lastUpdated = Date.now();
@@ -805,7 +778,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       return null;
     }
 
-    const layerExtent = this.getLayerExtent(layerId);
+    const layerExtent = this.getExtent(layerId);
 
     if (!layerExtent) {
       return null;
@@ -834,6 +807,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
 
     segmentParams.layerOverride = [override];
+    segmentLayer.parameters = segmentParams;
 
     return segment;
   }

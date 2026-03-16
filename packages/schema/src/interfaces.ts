@@ -196,17 +196,8 @@ export interface IJupyterGISDocChange extends DocumentChange {
   stateChange?: StateChange<any>[];
 }
 
-export interface IExtent {
-  id: string;
-  type: 'layer' | 'source';
-  extent?: number[];
-  projection?: string;
-  ready: boolean;
-  error?: string;
-}
-
 export interface IViewState {
-  extents: Map<string, IExtent>;
+  extents: Map<string, { extent: number[]; projection?: string }>;
   lastUpdated: number;
 }
 
@@ -266,11 +257,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getViewState(): IViewState;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
-  getLayerExtent(layerId: string): number[] | undefined;
+  getExtent(id: string): number[] | undefined;
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
-  getSourceExtent(sourceId: string): number[] | undefined;
   getSourcesByType(type: SourceType): { [key: string]: string };
   getLayersBySource(id: string): string[];
   getLayerTree(): IJGISLayerTree;
@@ -280,16 +270,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     groupName?: string,
     position?: number,
   ): void;
-  updateLayerExtent(
-    layerId: string,
-    extent: number[],
-    projection?: string,
-  ): void;
-  updateSourceExtent(
-    sourceId: string,
-    extent: number[],
-    projection?: string,
-  ): void;
+  updateExtent(id: string, extent: number[], projection?: string): void;
   removeLayer(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;

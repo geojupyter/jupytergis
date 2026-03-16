@@ -1717,14 +1717,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const source: any = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
-    let extent = sourceId ? this._model.getSourceExtent(sourceId) : undefined;
+    let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
 
     if (!extent) {
       extent = this._computeExtent(olLayer, source);
     }
 
     if (extent) {
-      this._model.updateLayerExtent(layerId, extent);
+      this._model.updateExtent(layerId, extent);
     }
   }
 
@@ -1734,7 +1734,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (extent) {
       const projection = olSource?.getProjection?.()?.getCode?.();
 
-      this._model.updateSourceExtent(sourceId, extent, projection);
+      this._model.updateExtent(sourceId, extent, projection);
     }
   }
 
