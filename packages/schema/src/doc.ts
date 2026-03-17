@@ -200,6 +200,22 @@ export class JupyterGISDoc
     return JSONExt.deepCopy(this._sources.get(id));
   }
 
+  /**
+   * Get the list of layers using a source.
+   *
+   * @param id - the source id.
+   * @returns a list of layer ids that use the source.
+   */
+  getLayersBySource(id: string): string[] {
+    const usingLayers: string[] = [];
+    Object.entries(this.layers || {}).forEach(([layerId, layer]) => {
+      if (layer.parameters?.source === id) {
+        usingLayers.push(layerId);
+      }
+    });
+    return usingLayers;
+  }
+
   set options(options: IJGISOptions) {
     this.transact(() => {
       for (const [key, value] of Object.entries(options)) {
@@ -311,6 +327,15 @@ export class JupyterGISDoc
   }
 
   removeSource(id: string): void {
+    const layersUsingSource = this.getLayersBySource(id);
+
+    if (layersUsingSource.length > 0) {
+      console.debug(
+        `Skipping source removal: source ${id} still used by layers: ${layersUsingSource.join(', ')}`,
+      );
+      return;
+    }
+
     this.transact(() => {
       this._sources.delete(id);
     });

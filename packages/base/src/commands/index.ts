@@ -10,12 +10,11 @@ import {
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
@@ -748,6 +747,47 @@ export function addCommands(
     ...icons.get(CommandIDs.removeSelected),
   });
 
+  commands.addCommand(CommandIDs.duplicateSelected, {
+    label: trans.__('Duplicate'),
+
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      if (!selected) {
+        return false;
+      }
+
+      return Object.values(selected).some(item => item.type === 'layer');
+    },
+
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return;
+      }
+
+      for (const [layerId, selectedItem] of Object.entries(selected)) {
+        if (selectedItem.type !== 'layer') {
+          continue;
+        }
+
+        const layer = model.getLayer(layerId);
+        if (!layer) {
+          continue;
+        }
+
+        const clonedLayer = {
+          ...layer,
+          name: Private.generateCopyName(layer.name, model),
+        };
+
+        model.addLayer(UUID.uuid4(), clonedLayer);
+      }
+    },
+  });
+
   commands.addCommand(CommandIDs.moveSelectedToGroup, {
     label: args =>
       args['label']
@@ -905,25 +945,6 @@ export function addCommands(
       };
 
       model.addNewLayerGroup(selectedLayers, newLayerGroup);
-    },
-  });
-
-  /**
-   * Source actions
-   */
-  commands.addCommand(CommandIDs.renameSource, {
-    label: trans.__('Rename Source'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model);
-    },
-  });
-
-  commands.addCommand(CommandIDs.removeSource, {
-    label: trans.__('Remove Source'),
-    execute: () => {
-      const model = tracker.currentWidget?.model;
-      Private.removeSelectedSources(model);
     },
   });
 
@@ -1791,26 +1812,6 @@ namespace Private {
     model.setEditingItem(item.type, itemId);
   }
 
-  export function removeSelectedSources(model: IJupyterGISModel | undefined) {
-    const selected = model?.localState?.selected?.value;
-
-    if (!selected || !model) {
-      return;
-    }
-
-    for (const id of Object.keys(selected)) {
-      if (model.getLayersBySource(id).length > 0) {
-        showErrorMessage(
-          'Remove source error',
-          'The source is used by a layer.',
-        );
-        continue;
-      }
-
-      model.sharedModel.removeSource(id);
-    }
-  }
-
   export function executeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
     if (!current || !(current instanceof JupyterGISDocumentWidget)) {
@@ -1838,5 +1839,34 @@ namespace Private {
     }
 
     await current.content.toggleConsole(current.model.filePath);
+  }
+
+  export function generateCopyName(
+    baseName: string,
+    model: IJupyterGISModel,
+  ): string {
+    const layers = model.getLayers();
+    const existingNames = Object.values(layers).map(l => l.name);
+
+    const copyRegex = /(.*?)( Copy(_\d+)?)?$/;
+    const match = baseName.match(copyRegex);
+    const cleanBase = match ? match[1].trim() : baseName;
+
+    const firstCopyName = `${cleanBase} Copy`;
+    if (!existingNames.includes(firstCopyName)) {
+      return firstCopyName;
+    }
+
+    const pattern = new RegExp(`^${cleanBase} Copy_(\\d+)$`);
+    const numbers = existingNames
+      .map(name => {
+        const m = name.match(pattern);
+        return m ? parseInt(m[1], 10) : null;
+      })
+      .filter((n): n is number => n !== null);
+
+    const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+
+    return `${cleanBase} Copy_${nextNumber}`;
   }
 }

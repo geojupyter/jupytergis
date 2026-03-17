@@ -76,18 +76,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       completionProviderManager,
     );
 
-    app.contextMenu.addItem({
-      selector: '.jp-gis-source.jp-gis-sourceUnused',
-      rank: 1,
-      command: CommandIDs.removeSource,
-    });
-
-    app.contextMenu.addItem({
-      selector: '.jp-gis-source',
-      rank: 1,
-      command: CommandIDs.renameSource,
-    });
-
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.symbology,
@@ -110,6 +98,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       command: CommandIDs.renameSelected,
+      selector: GIS_ITEM,
+      rank: 2,
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.duplicateSelected,
       selector: GIS_ITEM,
       rank: 2,
     });
