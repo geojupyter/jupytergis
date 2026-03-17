@@ -498,7 +498,12 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   .jp-FormGroup-content
   fieldset
   .jp-inputFieldWrapper
-  > input {
+  > input,
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  > textarea {
   box-sizing: border-box;
   border: var(--jp-border-width) solid var(--jp-border-color1);
   background-color: var(--jp-layout-color0);

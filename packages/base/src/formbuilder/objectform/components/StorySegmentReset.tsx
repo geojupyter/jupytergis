@@ -33,7 +33,7 @@ function StorySegmentReset({ model, layerId }: IStorySegmentResetProps) {
   };
 
   return (
-    <div>
+    <div className="jgis-center-content">
       <Button
         title="Set story segment to current viewport"
         onClick={handleSetStorySegmentToCurrentView}
