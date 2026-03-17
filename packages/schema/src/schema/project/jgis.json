@@ -167,6 +167,7 @@
         "hideGradient": {
           "type": "boolean",
           "title": "Use solid background",
+          "description": "Toggle the gradient background in presentation mode.",
           "default": false
         },
         "presentationBgColor": {
