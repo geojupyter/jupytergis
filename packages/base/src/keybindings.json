@@ -30,16 +30,6 @@
     "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:removeSource",
-    "keys": ["Delete"],
-    "selector": ".data-jgis-keybinding .jp-gis-source.jp-gis-sourceUnused"
-  },
-  {
-    "command": "jupytergis:renameSource",
-    "keys": ["F2"],
-    "selector": ".data-jgis-keybinding .jp-gis-source"
-  },
-  {
     "command": "jupytergis:removeSelected",
     "keys": ["Delete"],
     "selector": ".data-jgis-keybinding"
