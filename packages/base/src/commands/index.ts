@@ -788,9 +788,11 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.moveLayersToGroup, {
+  commands.addCommand(CommandIDs.moveSelectedToGroup, {
     label: args =>
-      args['label'] ? (args['label'] as string) : trans.__('Move to Group'),
+      args['label']
+        ? (args['label'] as string)
+        : trans.__('Move Selection to Root Group'),
     caption:
       'Group layers together in a new group with name "groupName" for the JupyterGIS document "filepath"',
     describedBy: {
@@ -840,8 +842,8 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.moveLayerToNewGroup, {
-    label: trans.__('Move Selected Layers to New Group'),
+  commands.addCommand(CommandIDs.moveSelectedToNewGroup, {
+    label: trans.__('Move Selection to New Group'),
     caption:
       'Move selected layers to a new group in the current JupyterGIS document.',
     describedBy: {

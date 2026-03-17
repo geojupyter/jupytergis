@@ -457,6 +457,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
   const hasSupportedSymbology = symbology?.symbologyState !== undefined;
 
+  const isStorySegmentLayer = layer.type === 'StorySegmentLayer';
+
   const name = layer.name;
 
   useEffect(() => {
@@ -582,7 +584,9 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
   return (
     <div
-      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
+      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
+                  ${isStorySegmentLayer ? 'jp-gis-storySegmentLayer' : ''}
+                  ${selected ? ' jp-mod-selected' : ''}`}
       draggable={true}
       onDragStart={Private.onDragStart}
       onDragOver={Private.onDragOver}
@@ -614,7 +618,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         )}
 
         {/* Visibility toggle for normal layers, Slide number for story segments */}
-        {layer.type === 'StorySegmentLayer' ? (
+        {isStorySegmentLayer ? (
           <span className={LAYER_SLIDE_NUMBER_CLASS} title="Slide number">
             {getSlideNumber()}
           </span>
