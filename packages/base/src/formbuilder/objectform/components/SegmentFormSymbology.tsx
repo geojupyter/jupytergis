@@ -1,4 +1,4 @@
-import type { IStorySegmentLayer } from '@jupytergis/schema';
+import type { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import { ArrayFieldTemplateProps } from '@rjsf/core';
 import { ChevronRightIcon } from 'lucide-react';
 import React from 'react';
@@ -15,6 +15,12 @@ import {
   SYMBOLOGY_VALID_LAYER_TYPES,
   type IJupyterGISFormContext,
 } from '@/src/types';
+
+interface ILayerOverrideFormItem {
+  opacity: number;
+  targetLayer: string;
+  visible: boolean;
+}
 
 interface ILayerOverrideItemProps {
   item: ArrayFieldTemplateProps['items'][0];
@@ -93,33 +99,45 @@ function LayerOverrideItem({ item, formContext }: ILayerOverrideItemProps) {
 }
 
 export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
+  const { formData, formContext } = props;
+  const model = formContext.model as IJupyterGISModel;
+
   return (
     <>
       <div style={{ paddingBottom: '1rem' }}>Symbology Overrides</div>
       <div className="jgis-symbology-override-list">
-        {props.items.map(item => (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <div className="jgis-symbology-override-collapsible-trigger">
-                <Button
-                  size="icon-sm"
-                  variant="icon"
-                  className="jgis-rotate-90 jgis-bg-transparent"
-                >
-                  <ChevronRightIcon />
-                </Button>
-                <span>Layer Override</span>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <LayerOverrideItem
-                key={item.key}
-                item={item}
-                formContext={props.formContext}
-              />
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+        {props.items.map(item => {
+          const overrideData = (formData as ILayerOverrideFormItem[])?.[
+            item.index
+          ];
+
+          const layerName =
+            model.getLayer(overrideData?.targetLayer)?.name ?? 'Layer';
+
+          return (
+            <Collapsible key={item.key}>
+              <CollapsibleTrigger asChild>
+                <div className="jgis-symbology-override-collapsible-trigger">
+                  <Button
+                    size="icon-sm"
+                    variant="icon"
+                    className="jgis-rotate-90 jgis-bg-transparent"
+                  >
+                    <ChevronRightIcon />
+                  </Button>
+                  <span>{layerName} Override</span>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <LayerOverrideItem
+                  key={item.key}
+                  item={item}
+                  formContext={props.formContext}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </div>
       {props.canAdd && (
         <div className="jgis-center-content" style={{ paddingTop: '1rem' }}>
