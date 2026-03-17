@@ -1634,8 +1634,6 @@ export function addCommands(
       const layerId = Object.keys(selected)[0];
 
       model.createStorySegmentFromLayer(layerId);
-
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
   });
 

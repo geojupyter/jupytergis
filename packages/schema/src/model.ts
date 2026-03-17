@@ -85,7 +85,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._viewState = {
       extents: new Map(),
-      lastUpdated: Date.now(),
     };
 
     this.initSettings();
@@ -534,8 +533,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       extent,
       projection,
     });
-
-    this._viewState.lastUpdated = Date.now();
   }
 
   removeLayer(layer_id: string) {
