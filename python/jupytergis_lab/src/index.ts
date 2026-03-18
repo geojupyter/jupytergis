@@ -116,7 +116,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       command: CommandIDs.createStorySegmentFromLayer,
-      selector: LAYER,
+      selector: GIS_LAYER_ITEM,
       rank: 2,
     });
 
