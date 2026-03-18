@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import FilterComponent from '@/src/panelview/filter-panel/Filter';
 import {
   getColorCodeFeatureAttributes,
   getFeatureAttributes,
@@ -161,7 +162,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
     <>
       {selectedRenderTypeProps.isTabbed && (
         <div className="jp-gis-symbology-tabs">
-          {(['color', 'radius'] as const).map(tab => (
+          {(['color', 'radius', 'filter'] as const).map(tab => (
             <button
               key={tab}
               className={`jp-gis-tab ${symbologyTab === tab ? 'active' : ''}`}
@@ -172,47 +173,53 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
           ))}
         </div>
       )}
-      <div className="jp-gis-symbology-row">
-        <label htmlFor="render-type-select">Render Type:</label>
-        <div className="jp-select-wrapper">
-          <select
-            name="render-type-select"
-            id="render-type-select"
-            className="jp-mod-styled"
-            value={selectedRenderType}
-            onChange={event => {
-              setSelectedRenderType(event.target.value as VectorRenderType);
-            }}
-          >
-            {objectEntries(selectableRenderTypes)
-              .filter(
-                ([renderType, renderTypeProps]) =>
-                  renderTypeProps.layerTypeSupported &&
-                  !(renderType === 'Heatmap' && symbologyTab === 'radius'),
-              )
-              .map(([renderType, _]) => (
-                <option key={renderType} value={renderType}>
-                  {renderType}
-                </option>
-              ))}
-          </select>
+      {symbologyTab !== 'filters' && (
+        <div className="jp-gis-symbology-row">
+          <label htmlFor="render-type-select">Render Type:</label>
+          <div className="jp-select-wrapper">
+            <select
+              name="render-type-select"
+              id="render-type-select"
+              className="jp-mod-styled"
+              value={selectedRenderType}
+              onChange={event => {
+                setSelectedRenderType(event.target.value as VectorRenderType);
+              }}
+            >
+              {objectEntries(selectableRenderTypes)
+                .filter(
+                  ([renderType, renderTypeProps]) =>
+                    renderTypeProps.layerTypeSupported &&
+                    !(renderType === 'Heatmap' && symbologyTab === 'radius'),
+                )
+                .map(([renderType, _]) => (
+                  <option key={renderType} value={renderType}>
+                    {renderType}
+                  </option>
+                ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
-      <selectedRenderTypeProps.component
-        model={model}
-        okSignalPromise={okSignalPromise}
-        layerId={layerId}
-        isStorySegmentOverride={isStorySegmentOverride}
-        segmentId={segmentId}
-        {...(selectedRenderTypeProps.isTabbed ? { symbologyTab } : {})}
-        {...(selectedRenderTypeProps.selectableAttributesAndValues
-          ? {
-              selectableAttributesAndValues:
-                selectedRenderTypeProps.selectableAttributesAndValues,
-            }
-          : {})}
-      />
+      {symbologyTab === 'filters' ? (
+        <FilterComponent model={model} />
+      ) : (
+        <selectedRenderTypeProps.component
+          model={model}
+          okSignalPromise={okSignalPromise}
+          layerId={layerId}
+          isStorySegmentOverride={isStorySegmentOverride}
+          segmentId={segmentId}
+          {...(selectedRenderTypeProps.isTabbed ? { symbologyTab } : {})}
+          {...(selectedRenderTypeProps.selectableAttributesAndValues
+            ? {
+                selectableAttributesAndValues:
+                  selectedRenderTypeProps.selectableAttributesAndValues,
+              }
+            : {})}
+        />
+      )}
     </>
   );
 };

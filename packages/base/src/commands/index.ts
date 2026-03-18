@@ -1409,35 +1409,6 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.showFiltersTab, {
-    label: trans.__('Show Filters Tab'),
-    caption: 'Show the filters tab in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () =>
-      tracker.currentWidget
-        ? !tracker.currentWidget.model.jgisSettings.filtersDisabled
-        : false,
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-      const settings = await current.model.getSettings();
-      const currentValue =
-        settings?.composite?.filtersDisabled ??
-        current.model.jgisSettings.filtersDisabled ??
-        false;
-      await settings?.set('filtersDisabled', !currentValue);
-      commands.notifyCommandChanged(CommandIDs.showFiltersTab);
-    },
-  });
-
   // Right panel tabs
   commands.addCommand(CommandIDs.showObjectPropertiesTab, {
     label: trans.__('Show Object Properties Tab'),

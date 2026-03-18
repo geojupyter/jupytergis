@@ -13,7 +13,6 @@ import Draggable from 'react-draggable';
 
 import { CommandIDs } from '../constants';
 import { LayersBodyComponent } from './components/layers';
-import FilterComponent from './filter-panel/Filter';
 import {
   PanelTabs,
   TabsContent,
@@ -52,9 +51,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       : false,
     !props.settings.stacBrowserDisabled && !storyMapPresentationMode
       ? { name: 'stac', title: 'Stac Browser' }
-      : false,
-    !props.settings.filtersDisabled && !storyMapPresentationMode
-      ? { name: 'filters', title: 'Filters' }
       : false,
     !props.settings.storyMapsDisabled
       ? { name: 'segments', title: 'Segments' }
@@ -202,7 +198,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   const allLeftTabsDisabled =
     props.settings.layersDisabled &&
     props.settings.stacBrowserDisabled &&
-    props.settings.filtersDisabled &&
     props.settings.storyMapsDisabled;
 
   const leftPanelVisible =
@@ -258,12 +253,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
               className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
             >
               <StacPanel model={props.model} />
-            </TabsContent>
-          )}
-
-          {!props.settings.filtersDisabled && (
-            <TabsContent value="filters" className="jgis-panel-tab-content">
-              <FilterComponent model={props.model}></FilterComponent>
             </TabsContent>
           )}
 

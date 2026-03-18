@@ -14,7 +14,7 @@ export type ValueOf<T> = T[keyof T];
 
 export type JupyterGISTracker = WidgetTracker<IJupyterGISWidget>;
 
-export type SymbologyTab = 'color' | 'radius';
+export type SymbologyTab = 'color' | 'radius' | 'filters';
 
 type RgbColorValue =
   | [number, number, number]
