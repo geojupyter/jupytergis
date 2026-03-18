@@ -5,17 +5,24 @@ import {
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
+import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { debounce, loadFile } from '@/src/tools';
 import FilterRow from './FilterRow';
 
 interface IFilterComponentProps {
   model: IJupyterGISModel;
+  okSignalPromise: PromiseDelegate<Signal<any, null>>;
 }
 
-const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
+const FilterComponent: React.FC<IFilterComponentProps> = ({
+  model,
+  okSignalPromise,
+}) => {
   const featuresInLayerRef = useRef({});
   const [logicalOp, setLogicalOp] = useState('all');
   const [selectedLayer, setSelectedLayer] = useState('');
@@ -67,6 +74,10 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
       model?.sharedOptionsChanged.disconnect(handleSharedOptionsChanged);
     };
   }, [model]);
+
+  useOkSignal(okSignalPromise, () => {
+    updateLayerFilters(filterRows, logicalOp);
+  });
 
   useEffect(() => {
     // Reset filter stuff for new layer
@@ -184,10 +195,6 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
     setFilterRows([]);
   };
 
-  const submitFilter = () => {
-    updateLayerFilters(filterRows);
-  };
-
   const updateLayerFilters = (filters: IJGISFilterItem[], op?: string) => {
     const layer = model?.getLayer(selectedLayer);
     if (!layer) {
@@ -208,14 +215,11 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
           <div id="filter-container" className="jp-gis-filter-select-container">
             <select
               className="jp-mod-styled rjsf jp-gis-logical-select"
+              value={logicalOp}
               onChange={handleLogicalOpChange}
             >
-              <option key="all" value="all" selected={logicalOp === 'all'}>
-                All
-              </option>
-              <option key="any" value="any" selected={logicalOp === 'any'}>
-                Any
-              </option>
+              <option value="all">All</option>
+              <option value="any">Any</option>
             </select>
             {filterRows.map((row, index) => (
               <FilterRow
@@ -248,12 +252,6 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
                 Clear
               </Button>
             </div>
-            <Button
-              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-              onClick={submitFilter}
-            >
-              Submit
-            </Button>
           </div>
         </div>
       )}

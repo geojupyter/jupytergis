@@ -162,7 +162,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
     <>
       {selectedRenderTypeProps.isTabbed && (
         <div className="jp-gis-symbology-tabs">
-          {(['color', 'radius', 'filter'] as const).map(tab => (
+          {(['color', 'radius', 'filters'] as const).map(tab => (
             <button
               key={tab}
               className={`jp-gis-tab ${symbologyTab === tab ? 'active' : ''}`}
@@ -203,7 +203,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
       )}
 
       {symbologyTab === 'filters' ? (
-        <FilterComponent model={model} />
+        <FilterComponent model={model} okSignalPromise={okSignalPromise} />
       ) : (
         <selectedRenderTypeProps.component
           model={model}
