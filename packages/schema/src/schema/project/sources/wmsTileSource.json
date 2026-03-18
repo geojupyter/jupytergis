@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "description": "WmsTileSource",
+  "title": "IWmsTileSource",
+  "required": [],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The url to the tile provider"
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The attribution for the raster source",
+      "default": ""
+    },
+    "interpolate": {
+      "type": "boolean",
+      "title": "Interpolate",
+      "description": "Interpolate between grid cells when overzooming?",
+      "default": false
+    },
+    "params": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "properties": {
+        "layers": {
+          "type": "string",
+          "default": "Heatmap"
+        }
+      }
+    }
+  }
+}

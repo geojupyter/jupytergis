@@ -26,6 +26,7 @@ from jupytergis_core.schema import (
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
+    IWmsTileSource,
     IMarkerSource,
     IVideoSource,
     IWebGlLayer,
@@ -904,6 +905,7 @@ class JGISSource(BaseModel):
         | IGeoTiffSource
         | IRasterDemSource
         | IGeoParquetSource
+        | IWmsTileSource
     )
     _parent = Optional[GISDocument]
 
@@ -992,3 +994,4 @@ OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoParquetSource, IGeoParquetSource)
+OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
