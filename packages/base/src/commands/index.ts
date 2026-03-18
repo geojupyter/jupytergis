@@ -549,7 +549,7 @@ export function addCommands(
       createSource: true,
       layerData: { name: 'Custom WMS Layer' },
       sourceType: 'WmsTileSource',
-      layerType: 'RasterLayer',
+      layerType: 'WebGlLayer',
     }),
     ...icons.get(CommandIDs.openNewWmsDialog),
   });

@@ -34,6 +34,7 @@ import {
   JupyterGISModel,
   IMarkerSource,
   IStorySegmentLayer,
+  IWmsTileSource,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -92,6 +93,7 @@ import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
+  TileWMS as TileWMSSource,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
@@ -687,6 +689,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+
       case 'RasterDemSource': {
         const sourceParameters = source.parameters as IRasterDemSource;
 
@@ -698,6 +701,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+
       case 'VectorTileSource': {
         const sourceParameters = source.parameters as IVectorTileSource;
 
@@ -737,6 +741,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
@@ -766,6 +771,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
@@ -787,6 +793,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         });
         break;
       }
+
       case 'ImageSource': {
         const sourceParameters = source.parameters as IImageSource;
 
@@ -832,11 +839,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+
       case 'VideoSource': {
         console.warn('Video Tiles not supported with Open Layers');
 
         break;
       }
+
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
 
@@ -935,6 +944,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         newSource = new VectorSource({
           features: [marker],
         });
+
+        break;
+      }
+
+      case 'WmsTileSource': {
+        const sourceParameters = source.parameters as IWmsTileSource;
+        const url = sourceParameters.url;
+        const selectedLayer = sourceParameters?.params?.layers;
+
+        newSource = new TileWMSSource({
+          attributions: sourceParameters?.attribution,
+          url,
+          params: {
+            LAYERS: selectedLayer,
+            TILED: true,
+          },
+        });
+
+        break;
       }
     }
 
