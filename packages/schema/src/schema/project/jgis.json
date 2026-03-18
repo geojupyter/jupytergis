@@ -206,27 +206,20 @@
     "jGISViewState": {
       "title": "IJGISViewState",
       "type": "object",
-      "additionalProperties": false,
       "default": {},
-      "properties": {
-        "extents": {
-          "type": "object",
-          "default": {},
-          "additionalProperties": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "extent": {
-                "type": "array",
-                "items": { "type": "number" }
-              },
-              "projection": {
-                "type": "string"
-              }
-            },
-            "required": ["extent"]
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "extent": {
+            "type": "array",
+            "items": { "type": "number" }
+          },
+          "projection": {
+            "type": "string"
           }
-        }
+        },
+        "required": ["extent"]
       }
     },
     "jGISOptions": {

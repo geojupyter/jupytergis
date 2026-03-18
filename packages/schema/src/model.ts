@@ -83,9 +83,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._jgisSettings = { ...DEFAULT_SETTINGS };
 
-    this._viewState = {
-      extents: new Map(),
-    };
+    this._viewState = {};
 
     this.initSettings();
   }
@@ -436,7 +434,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getExtent(id: string): number[] | undefined {
-    return this._viewState.extents.get(id)?.extent;
+    return this._viewState[id]?.extent;
   }
 
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined {
@@ -529,10 +527,10 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   updateExtent(id: string, extent: number[], projection?: string): void {
-    this._viewState.extents.set(id, {
+    this._viewState[id] = {
       extent,
       projection,
-    });
+    };
   }
 
   removeLayer(layer_id: string) {

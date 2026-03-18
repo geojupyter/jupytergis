@@ -197,7 +197,10 @@ export interface IJupyterGISDocChange extends DocumentChange {
 }
 
 export interface IViewState {
-  extents: Map<string, { extent: number[]; projection?: string }>;
+  [id: string]: {
+    extent: number[];
+    projection?: string;
+  };
 }
 
 export interface IJupyterGISModel extends DocumentRegistry.IModel {
