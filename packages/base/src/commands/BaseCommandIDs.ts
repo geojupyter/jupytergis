@@ -31,12 +31,9 @@ export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 // Layer and group actions
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
-export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
-export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
-
-// Source actions
-export const renameSource = 'jupytergis:renameSource';
-export const removeSource = 'jupytergis:removeSource';
+export const duplicateSelected = 'jupytergis:duplicateSelected';
+export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
+export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
 
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';

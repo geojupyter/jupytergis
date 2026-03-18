@@ -149,6 +149,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
 
   sourceExists(id: string): boolean;
   getLayerSource(id: string): IJGISSource | undefined;
+  getLayersBySource(id: string): string[];
+
   removeSource(id: string): void;
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
@@ -264,7 +266,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
   getSourcesByType(type: SourceType): { [key: string]: string };
-  getLayersBySource(id: string): string[];
   getLayerTree(): IJGISLayerTree;
   addLayer(
     id: string,
@@ -274,6 +275,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   ): void;
   updateExtent(id: string, extent: number[], projection?: string): void;
   removeLayer(id: string): void;
+  removeSource(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
 

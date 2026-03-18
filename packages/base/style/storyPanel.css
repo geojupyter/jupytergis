@@ -233,3 +233,16 @@
 .jp-arrayFieldWrapper legend {
   border-bottom: none;
 }
+
+.jgis-symbology-override-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.jgis-symbology-override-collapsible-trigger {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  cursor: pointer;
+}
