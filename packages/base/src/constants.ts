@@ -45,6 +45,7 @@ const iconObject = {
   [CommandIDs.undo]: { icon: undoIcon },
   [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
   [CommandIDs.openNewRasterDialog]: { icon: rasterIcon },
+  [CommandIDs.openNewWmsDialog]: { icon: rasterIcon },
   [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },

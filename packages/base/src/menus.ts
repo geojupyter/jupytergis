@@ -48,6 +48,11 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewWmsDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.openNewHillshadeDialog,
   });
 
