@@ -164,11 +164,11 @@
             "type": "string"
           }
         },
-        "hideGradient": {
+        "showGradient": {
           "type": "boolean",
-          "title": "Use solid background",
+          "title": "Use gradient background",
           "description": "Toggle the gradient background in presentation mode.",
-          "default": false
+          "default": true
         },
         "presentationBgColor": {
           "type": "string",

@@ -29,7 +29,7 @@ interface ISpectaDesktopViewProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  hideGradient: boolean;
+  showGradient: boolean;
   setIndex: (index: number) => void;
 }
 
@@ -47,7 +47,7 @@ export function SpectaDesktopView({
   handleNext,
   hasPrev,
   hasNext,
-  hideGradient,
+  showGradient,
   setIndex,
 }: ISpectaDesktopViewProps): JSX.Element {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -99,14 +99,14 @@ export function SpectaDesktopView({
     <>
       <div
         className="jgis-specta-right-panel-container-mod jgis-right-panel-container"
-        style={hideGradient ? { width: '25%', borderRadius: 0 } : undefined}
+        style={showGradient ? undefined : { width: '25%', borderRadius: 0 }}
       >
         <div ref={containerRef} className="jgis-specta-story-panel-container">
           <div
             ref={scrollContainerRef}
             className="jgis-story-viewer-panel-specta-mod"
             id="jgis-story-segment-panel"
-            style={hideGradient ? { width: 'unset' } : undefined}
+            style={showGradient ? undefined : { width: 'unset' }}
           >
             <div
               ref={topSentinelRef}
