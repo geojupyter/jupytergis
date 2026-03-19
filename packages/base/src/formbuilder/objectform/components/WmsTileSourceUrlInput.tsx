@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
 import { GlobalStateDbManager } from '@/src/store';
+import { Button } from '@/src/shared/components/Button';
+import { Input } from '@/src/shared/components/Input';
 
 interface ILayerSelectFormContext {
   model?: IJupyterGISModel;
@@ -85,7 +87,9 @@ export function WmsTileSourceUrlInput(
       }
 
       const rootLayer = doc.querySelector('Capability > Layer');
-      const layerEls = Array.from(rootLayer?.querySelectorAll(':scope > Layer') ?? []);
+      const layerEls = Array.from(
+        rootLayer?.querySelectorAll(':scope > Layer') ?? [],
+      );
 
       const parsed = layerEls
         .map(layerEl => {
@@ -113,7 +117,7 @@ export function WmsTileSourceUrlInput(
   return (
     <>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-        <input
+        <Input
           id={id}
           name={name}
           type="text"
@@ -124,11 +128,16 @@ export function WmsTileSourceUrlInput(
           disabled={disabled}
           readOnly={readonly}
           placeholder="Enter WMS URL"
-          style={{ flex: 1 }}
         />
-        <button type="button" onClick={handleConnect} disabled={isLoading}>
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          onClick={handleConnect}
+          disabled={isLoading}
+        >
           {isLoading ? 'Connecting…' : 'Connect'}
-        </button>
+        </Button>
       </div>
       {error && (
         <div style={{ marginTop: '0.5rem', color: 'var(--jp-error-color1)' }}>
