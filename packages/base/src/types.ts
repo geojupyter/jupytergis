@@ -70,6 +70,10 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
 export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   model: IJupyterGISModel;
   formData: TFormData;
+  wmsAvailableLayers?: Array<{ name: string; title: string }>;
+  setWmsAvailableLayers?: (
+    layers: Array<{ name: string; title: string }>,
+  ) => void;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 

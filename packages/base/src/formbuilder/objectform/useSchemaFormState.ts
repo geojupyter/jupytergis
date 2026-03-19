@@ -40,8 +40,12 @@ export interface IUseSchemaFormStateResult {
   setFormData: Dispatch<SetStateAction<IDict>>;
   /** Schema to pass to SchemaForm (deep copy of schemaProp). */
   schema: RJSFSchema;
-  /** Form context value { model, formData } for SchemaForm. */
-  formContextValue: { model: IJupyterGISModel; formData: IDict };
+  /** Form context value for SchemaForm (available to custom fields/widgets). */
+  formContextValue: {
+    model: IJupyterGISModel;
+    formData: IDict;
+    updateFormData: (data: IDict) => void;
+  };
   /** Whether the form has a schema (false => form may render null). */
   hasSchema: boolean;
   /** Base change handler: setFormData, syncData, onAfterChange. Use or wrap. */
@@ -75,11 +79,6 @@ export function useSchemaFormState(
     [schemaProp],
   );
 
-  const formContextValue = useMemo(
-    () => ({ model, formData }),
-    [model, formData],
-  );
-
   const handleChangeBase = useCallback(
     (data: IDict) => {
       setFormData(data);
@@ -87,6 +86,11 @@ export function useSchemaFormState(
       onAfterChange?.(data);
     },
     [syncData, onAfterChange],
+  );
+
+  const formContextValue = useMemo(
+    () => ({ model, formData, updateFormData: handleChangeBase }),
+    [model, formData, handleChangeBase],
   );
 
   const handleSubmitBase = useCallback(

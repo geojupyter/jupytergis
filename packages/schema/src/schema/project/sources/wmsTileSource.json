@@ -2,12 +2,23 @@
   "type": "object",
   "description": "WmsTileSource",
   "title": "IWmsTileSource",
-  "required": [],
+  "required": ["url", "params"],
   "additionalProperties": false,
   "properties": {
     "url": {
       "type": "string",
       "description": "The url to the tile provider"
+    },
+    "params": {
+      "type": "object",
+      "title": "Params for URL query",
+      "required": ["layers"],
+      "properties": {
+        "layers": {
+          "type": "string",
+          "description": "WMS layer name to request"
+        }
+      }
     },
     "attribution": {
       "type": "string",
@@ -19,16 +30,6 @@
       "type": "boolean",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
-    },
-    "params": {
-      "type": "object",
-      "description": "The state of the symbology panel options",
-      "properties": {
-        "layers": {
-          "type": "string",
-          "default": "Heatmap"
-        }
-      }
     }
   }
 }
