@@ -24,32 +24,44 @@ test.describe('#filters', () => {
     await expect(main).toBeVisible();
 
     /// Open Layer
-    await page.getByText('Custom GeoJSON Layer', { exact: true }).click();
+    await page
+      .getByText('Custom GeoJSON Layer', { exact: true })
+      .click({ button: 'right' });
 
-    await page.getByText('Filters').click();
+    await page.getByText('Edit Symbology').click();
+
+    await page.getByRole('button', { name: 'Filters' }).click();
+
     // Add first filter
     await page.getByTestId('add-filter-button').click();
     await page.locator('#jp-gis-feature-select-0').selectOption('mag');
     await page.locator('#jp-gis-operator-select-0').selectOption('>');
     await page.locator('#jp-gis-value-select-0').selectOption('2.73');
-    await page.getByRole('button', { name: 'Submit' }).click();
 
     // Add second filter
     await page.getByTestId('add-filter-button').click();
     await page.locator('#jp-gis-feature-select-1').selectOption('felt');
     await page.locator('#jp-gis-operator-select-1').selectOption('>');
     await page.locator('#jp-gis-value-select-1').selectOption('10');
-    await page.getByRole('button', { name: 'Submit' }).click();
 
-    expect(await main.screenshot()).toMatchSnapshot({
+    expect(await page.screenshot()).toMatchSnapshot({
       name: 'two-filter.png',
       maxDiffPixelRatio: 0.01,
     });
 
+    await page.getByRole('button', { name: 'Ok' }).click();
+
+    await page
+      .getByText('Custom GeoJSON Layer', { exact: true })
+      .click({ button: 'right' });
+
+    await page.getByText('Edit Symbology').click();
+    await page.getByRole('button', { name: 'Filters' }).click();
+
     // Remove filter
     await page.locator('#jp-gis-remove-filter-1').click();
 
-    expect(await main.screenshot()).toMatchSnapshot({
+    expect(await page.screenshot()).toMatchSnapshot({
       name: 'one-filter.png',
       maxDiffPixelRatio: 0.01,
     });
@@ -57,7 +69,7 @@ test.describe('#filters', () => {
     // Clear filters
     await page.getByRole('button', { name: 'Clear' }).click();
 
-    expect(await main.screenshot()).toMatchSnapshot({
+    expect(await page.screenshot()).toMatchSnapshot({
       name: 'no-filter.png',
       maxDiffPixelRatio: 0.01,
     });

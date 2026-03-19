@@ -54,7 +54,6 @@ export const toggleRightPanel = 'jupytergis:toggleRightPanel';
 // Left panel tabs
 export const showLayersTab = 'jupytergis:showLayersTab';
 export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
-export const showFiltersTab = 'jupytergis:showFiltersTab';
 
 // Right panel tabs
 export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';

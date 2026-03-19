@@ -475,7 +475,6 @@ export interface IJupyterGISSettings {
   // Left panel tabs
   layersDisabled?: boolean;
   stacBrowserDisabled?: boolean;
-  filtersDisabled?: boolean;
 
   // Right panel tabs
   objectPropertiesDisabled?: boolean;

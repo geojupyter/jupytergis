@@ -34,12 +34,6 @@
       "description": "Disable STAC Browser tab from the Left Panel.",
       "default": false
     },
-    "filtersDisabled": {
-      "type": "boolean",
-      "title": "Disable Filters",
-      "description": "Disable Filters tab from the Left Panel.",
-      "default": false
-    },
     "objectPropertiesDisabled": {
       "type": "boolean",
       "title": "Disable Object Properties",
