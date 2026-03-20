@@ -16,7 +16,6 @@ interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
-  className?: string;
   /** Ref for the segment container (SpectaPanel uses it for animationend). */
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
@@ -80,7 +79,6 @@ function StoryViewerPanel({
   model,
   isSpecta,
   isMobile = false,
-  className,
   segmentContainerRef,
   storyData,
   currentIndex,
