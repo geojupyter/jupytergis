@@ -45,7 +45,7 @@ export function WmsTileSourceUrlInput(
     setError(undefined);
 
     const slash = text.endsWith('/') ? '' : '/';
-    const url = `${text}${slash}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetCapabilities`;
+    const url = `${text}${slash}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
 
     try {
       if (stateDb) {
@@ -106,7 +106,14 @@ export function WmsTileSourceUrlInput(
 
   return (
     <>
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          alignItems: 'center',
+          margin: '0 7px',
+        }}
+      >
         <Input
           id={id}
           name={name}
@@ -118,6 +125,7 @@ export function WmsTileSourceUrlInput(
           disabled={disabled}
           readOnly={readonly}
           placeholder="Enter WMS URL"
+          style={{ flexGrow: 1 }}
         />
         <Button
           variant="outline"
