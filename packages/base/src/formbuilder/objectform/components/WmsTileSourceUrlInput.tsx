@@ -44,7 +44,8 @@ export function WmsTileSourceUrlInput(
     setIsLoading(true);
     setError(undefined);
 
-    const url = `${text}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetCapabilities`;
+    const slash = text.endsWith('/') ? '' : '/';
+    const url = `${text}${slash}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetCapabilities`;
 
     try {
       if (stateDb) {
