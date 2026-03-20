@@ -165,8 +165,6 @@ export function QueryableComboBox({
         return (
           <Input
             type="text"
-            className="jgis-queryable-combo-input"
-            // style={{borderRadius: 0}}
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}
           />
