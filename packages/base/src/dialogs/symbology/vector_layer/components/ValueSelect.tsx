@@ -19,16 +19,18 @@ const ValueSelect: React.FC<IValueSelectProps> = ({
         onChange={event => setSelectedValue(event.target.value)}
         className="jp-mod-styled"
       >
-        {Object.keys(featureProperties).map((feature, index) => (
-          <option
-            key={index}
-            value={feature}
-            selected={feature === selectedValue}
-            className="jp-mod-styled"
-          >
-            {feature}
-          </option>
-        ))}
+        {Object.keys(featureProperties)
+          .sort((a, b) => a.localeCompare(b))
+          .map((feature, index) => (
+            <option
+              key={index}
+              value={feature}
+              selected={feature === selectedValue}
+              className="jp-mod-styled"
+            >
+              {feature}
+            </option>
+          ))}
       </select>
     </div>
   );
