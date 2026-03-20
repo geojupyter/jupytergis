@@ -44,7 +44,6 @@ export interface IUseSchemaFormStateResult {
   formContextValue: {
     model: IJupyterGISModel;
     formData: IDict;
-    updateFormData: (data: IDict) => void;
   };
   /** Whether the form has a schema (false => form may render null). */
   hasSchema: boolean;
@@ -79,6 +78,11 @@ export function useSchemaFormState(
     [schemaProp],
   );
 
+  const formContextValue = useMemo(
+    () => ({ model, formData }),
+    [model, formData],
+  );
+
   const handleChangeBase = useCallback(
     (data: IDict) => {
       setFormData(data);
@@ -86,11 +90,6 @@ export function useSchemaFormState(
       onAfterChange?.(data);
     },
     [syncData, onAfterChange],
-  );
-
-  const formContextValue = useMemo(
-    () => ({ model, formData, updateFormData: handleChangeBase }),
-    [model, formData, handleChangeBase],
   );
 
   const handleSubmitBase = useCallback(

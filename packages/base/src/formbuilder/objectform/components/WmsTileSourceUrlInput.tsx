@@ -1,13 +1,12 @@
 import { WidgetProps } from '@rjsf/utils';
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
-import { fetchWithProxies } from '@/src/tools';
-import { GlobalStateDbManager } from '@/src/store';
+import { WMS_AVAILABLE_LAYERS_CACHE } from '@/src/formbuilder/objectform/source';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
+import { GlobalStateDbManager } from '@/src/store';
+import { fetchWithProxies } from '@/src/tools';
 import type { IJupyterGISFormContext, IWmsLayerInfo } from '@/src/types';
-
-const WMS_AVAILABLE_LAYERS_CACHE = 'jgis:wmsTileSource:availableLayers';
 
 export function WmsTileSourceUrlInput(
   props: WidgetProps<string>,
@@ -25,20 +24,20 @@ export function WmsTileSourceUrlInput(
   } = props;
   const context = formContext as IJupyterGISFormContext | undefined;
   const model = context?.model;
+  const layers = context?.wmsAvailableLayers ?? [];
   const setWmsAvailableLayers = context?.setWmsAvailableLayers;
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+  const text = value === null ? '' : String(value);
 
-  const text = value == null ? '' : String(value);
-  const layers = context?.wmsAvailableLayers ?? [];
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value);
   };
 
   const handleConnect = async () => {
-    if (!model) {
+    if (!model || !setWmsAvailableLayers) {
       return null;
     }
 
@@ -55,8 +54,8 @@ export function WmsTileSourceUrlInput(
           | IWmsLayerInfo[]
           | undefined;
 
-        if (Array.isArray(cached) && cached.length > 0) {
-          setWmsAvailableLayers?.(cached);
+        if (cached && cached.length > 0) {
+          setWmsAvailableLayers(cached);
           return;
         }
       }
@@ -66,9 +65,9 @@ export function WmsTileSourceUrlInput(
       );
       const xml = typeof xmlText === 'string' ? xmlText : '';
       const doc = new DOMParser().parseFromString(xml, 'text/xml');
-
       const hasParseError = Boolean(doc.querySelector('parsererror'));
       const serviceException = doc.querySelector('ServiceExceptionReport');
+
       if (hasParseError || serviceException) {
         setError(
           serviceException?.textContent?.trim() ??
@@ -92,7 +91,7 @@ export function WmsTileSourceUrlInput(
         })
         .filter(layer => layer.name !== '' || layer.title !== '');
 
-      setWmsAvailableLayers?.(parsed);
+      setWmsAvailableLayers(parsed);
 
       if (stateDb) {
         const cacheKey = `${WMS_AVAILABLE_LAYERS_CACHE}:${text}`;
