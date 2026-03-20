@@ -1,4 +1,3 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
 import { WidgetProps } from '@rjsf/utils';
 import React, { useState } from 'react';
 
@@ -7,16 +6,7 @@ import { GlobalStateDbManager } from '@/src/store';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 
-interface ILayerSelectFormContext {
-  model?: IJupyterGISModel;
-  wmsAvailableLayers?: IWmsLayerInfo[];
-  setWmsAvailableLayers?: (layers: IWmsLayerInfo[]) => void;
-}
-
-interface IWmsLayerInfo {
-  name: string;
-  title: string;
-}
+import type { IJupyterGISFormContext, IWmsLayerInfo } from '@/src/types';
 
 export function WmsTileSourceUrlInput(
   props: WidgetProps<string>,
@@ -32,7 +22,7 @@ export function WmsTileSourceUrlInput(
     disabled,
     readonly,
   } = props;
-  const context = formContext as ILayerSelectFormContext | undefined;
+  const context = formContext as IJupyterGISFormContext | undefined;
   const model = context?.model;
   const setWmsAvailableLayers = context?.setWmsAvailableLayers;
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
@@ -50,7 +40,6 @@ export function WmsTileSourceUrlInput(
     if (!model) {
       return null;
     }
-    // https://ows.terrestris.de/osm/service?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetCapabilities
 
     setIsLoading(true);
     setError(undefined);
@@ -61,7 +50,7 @@ export function WmsTileSourceUrlInput(
       if (stateDb) {
         const cacheKey = `jgis:wmsTileSource:availableLayers:${text}`;
         const cached = (await stateDb.fetch(cacheKey)) as
-          | Array<IWmsLayerInfo>
+          | IWmsLayerInfo[]
           | undefined;
 
         if (Array.isArray(cached) && cached.length > 0) {

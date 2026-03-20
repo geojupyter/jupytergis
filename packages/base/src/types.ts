@@ -66,14 +66,17 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'HeatmapLayer',
 ];
 
+export interface IWmsLayerInfo {
+  name: string;
+  title: string;
+}
+
 /** Form context passed to SchemaForm and custom fields. */
 export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   model: IJupyterGISModel;
   formData: TFormData;
-  wmsAvailableLayers?: Array<{ name: string; title: string }>;
-  setWmsAvailableLayers?: (
-    layers: Array<{ name: string; title: string }>,
-  ) => void;
+  wmsAvailableLayers?: IWmsLayerInfo[];
+  setWmsAvailableLayers?: (layers: IWmsLayerInfo[]) => void;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 
