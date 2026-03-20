@@ -5,8 +5,9 @@ import { fetchWithProxies } from '@/src/tools';
 import { GlobalStateDbManager } from '@/src/store';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
-
 import type { IJupyterGISFormContext, IWmsLayerInfo } from '@/src/types';
+
+const WMS_AVAILABLE_LAYERS_CACHE = 'jgis:wmsTileSource:availableLayers';
 
 export function WmsTileSourceUrlInput(
   props: WidgetProps<string>,
@@ -49,7 +50,7 @@ export function WmsTileSourceUrlInput(
 
     try {
       if (stateDb) {
-        const cacheKey = `jgis:wmsTileSource:availableLayers:${text}`;
+        const cacheKey = `${WMS_AVAILABLE_LAYERS_CACHE}:${text}`;
         const cached = (await stateDb.fetch(cacheKey)) as
           | IWmsLayerInfo[]
           | undefined;
@@ -94,7 +95,7 @@ export function WmsTileSourceUrlInput(
       setWmsAvailableLayers?.(parsed);
 
       if (stateDb) {
-        const cacheKey = `jgis:wmsTileSource:availableLayers:${text}`;
+        const cacheKey = `${WMS_AVAILABLE_LAYERS_CACHE}:${text}`;
         await stateDb.save(cacheKey, parsed);
       }
     } catch (e) {
