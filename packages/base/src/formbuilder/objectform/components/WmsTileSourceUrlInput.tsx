@@ -27,7 +27,7 @@ export function WmsTileSourceUrlInput(
   const layers = context?.wmsAvailableLayers ?? [];
   const setWmsAvailableLayers = context?.setWmsAvailableLayers;
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-  const text = value === null ? '' : String(value);
+  const text = !value ? '' : String(value);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
