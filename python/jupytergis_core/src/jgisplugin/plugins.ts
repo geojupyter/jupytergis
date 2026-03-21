@@ -116,7 +116,6 @@ const activate = async (
     mimeTypes: ['text/json'],
     extensions: ['.jgis', '.JGIS'],
     fileFormat: 'text',
-    contentType: CONTENT_TYPE,
     icon: logoMiniIcon,
   });
 

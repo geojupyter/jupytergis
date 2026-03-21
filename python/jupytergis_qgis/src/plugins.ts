@@ -162,7 +162,6 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgs', '.QGS'],
     fileFormat: 'base64',
-    contentType: 'QGS',
     icon: logoMiniIcon,
   });
   app.docRegistry.addFileType({
@@ -171,7 +170,6 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgz', '.QGZ'],
     fileFormat: 'base64',
-    contentType: 'QGZ',
     icon: logoMiniIconQGZ,
   });
 
