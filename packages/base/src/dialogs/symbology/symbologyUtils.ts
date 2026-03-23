@@ -7,7 +7,12 @@ import {
 import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
 
-import { ColorRampName, findExprNode } from './colorRampUtils';
+import {
+  ColorRampName,
+  findExprNode,
+  D3SchemeName,
+  D3_CATEGORICAL_SCHEMES,
+} from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -251,12 +256,29 @@ export namespace Utils {
     nClasses: number,
     reverse = false,
   ) => {
-    const nShades = Math.max(nClasses, 9);
-    let colorMap = colormap({
-      colormap: selectedRamp,
-      nshades: nShades,
-      format: 'rgba',
-    });
+    const nshades = Math.max(nClasses, 9);
+
+    const isD3Scheme = selectedRamp in D3_CATEGORICAL_SCHEMES;
+
+    let colorMap: any[];
+
+    if (isD3Scheme) {
+      colorMap = [...D3_CATEGORICAL_SCHEMES[selectedRamp as D3SchemeName]];
+
+      if (colorMap.length < nClasses) {
+        colorMap = Array.from({ length: nClasses }, (_, i) => {
+          return colorMap[i % colorMap.length];
+        });
+      } else {
+        colorMap = colorMap.slice(0, nClasses);
+      }
+    } else {
+      colorMap = colormap({
+        colormap: selectedRamp,
+        nshades,
+        format: 'rgba',
+      });
+    }
 
     if (reverse) {
       colorMap = [...colorMap].reverse();
@@ -266,7 +288,7 @@ export namespace Utils {
 
     for (let i = 0; i < nClasses; i++) {
       const colorIndex =
-        nClasses === 1 ? 0 : Math.round((i / (nClasses - 1)) * (nShades - 1));
+        nClasses === 1 ? 0 : Math.round((i / (nClasses - 1)) * (nshades - 1));
       valueColorPairs.push({
         id: UUID.uuid4(),
         stop: stops[i],

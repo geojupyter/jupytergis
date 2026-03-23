@@ -12,12 +12,16 @@
 
 import React, { useEffect } from 'react';
 
-import { IColorMap } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  ColorRampName,
+  IColorMap,
+  drawColorRamp,
+} from '@/src/dialogs/symbology/colorRampUtils';
 
 interface IColorRampSelectorEntryProps {
   index: number;
   colorMap: IColorMap;
-  onClick: (item: any) => void;
+  onClick: (item: ColorRampName) => void;
 }
 
 const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
@@ -42,15 +46,10 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
       return;
     }
 
-    for (let i = 0; i <= 255; i++) {
-      ctx.beginPath();
+    const { colors, type } = colorMap;
 
-      const color = colorMap.colors[i];
-      ctx.fillStyle = color;
-
-      ctx.fillRect(i * 2, 0, 2, canvasHeight);
-    }
-  }, []);
+    drawColorRamp(ctx, colors, type, canvasWidth, canvasHeight);
+  }, [colorMap, index]);
 
   return (
     <div
