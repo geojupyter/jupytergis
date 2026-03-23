@@ -12,7 +12,7 @@ import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
 const StopRow: React.FC<{
   index: number;
-  dataValue: number;
+  dataValue: number | string;
   symbologyValue: SymbologyValue;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
@@ -37,7 +37,8 @@ const StopRow: React.FC<{
 
   const handleStopChange = (event: { target: { value: string } }) => {
     const newRows = [...stopRows];
-    newRows[index].stop = +event.target.value;
+    const value = event.target.value;
+    newRows[index].stop = useNumber ? +value : value;
     setStopRows(newRows);
   };
 
@@ -67,7 +68,7 @@ const StopRow: React.FC<{
     <div className="jp-gis-color-row">
       <input
         id={`jp-gis-color-value-${index}`}
-        type="number"
+        type={useNumber ? 'number' : 'text'}
         value={dataValue}
         onChange={handleStopChange}
         onBlur={handleBlur}
