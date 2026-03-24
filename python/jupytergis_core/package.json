@@ -43,7 +43,7 @@
     "install:extension": "jlpm build",
     "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
     "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
-    "cp:sqlwasm": "cp ../../node_modules/sql.js/dist/sql-wasm.wasm jupytergis_core/labextension/static",
+    "cp:sqlwasm": "cp ../../node_modules/sql.js/dist/sql-wasm.wasm jupytergis_core/labextension/static && cp ../../node_modules/sql.js/dist/sql-wasm.wasm jupytergis_core/labextension/static/sql-wasm-browser.wasm",
     "prettier": "jlpm prettier:base --write",
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
     "prettier:check": "jlpm prettier:base --check",
