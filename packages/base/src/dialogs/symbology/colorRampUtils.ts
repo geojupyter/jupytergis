@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
 
+export type RgbaColor = [number, number, number, number];
+
 export interface IColorMap {
   name: ColorRampName;
   colors: string[];
@@ -125,19 +127,20 @@ export const ensureHexColorCode = (color: number[] | string): string => {
 };
 
 /**
- * Convert hex to [r,g,b,a] array.
+ * Convert hex to [r,g,b,a] array where a is 0-1.
  */
-export function hexToRgb(hex: string): [number, number, number, number] {
+export function hexToRgb(hex: string): RgbaColor {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
   if (!result) {
     console.warn('Unable to parse hex value, defaulting to black');
-    return [0, 0, 0, 255];
+    return [0, 0, 0, 1];
   }
   return [
     parseInt(result[1], 16),
     parseInt(result[2], 16),
     parseInt(result[3], 16),
-    255, // TODO: Make alpha customizable?
+    1,
   ];
 }
+
