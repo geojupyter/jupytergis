@@ -985,6 +985,7 @@ __metadata:
     proj4-list: 1.0.4
     radix-ui: ^1.4.3
     react: ^18.0.1
+    react-colorful: ^5.6.1
     react-day-picker: ^9.7.0
     react-markdown: ^10.1.0
     rimraf: ^3.0.2
@@ -13240,6 +13241,16 @@ __metadata:
   dependencies:
     quickselect: ^3.0.0
   checksum: f221cfb2c6ed437f5914bf46b791ebd83cc4c51dff8c39a5cdc5a0d4b4cbc49353b66d185279707c9a7cc55a8c6a50b7dc0a348175db6ad63a86caa8a627c781
+  languageName: node
+  linkType: hard
+
+"react-colorful@npm:^5.6.1":
+  version: 5.6.1
+  resolution: "react-colorful@npm:5.6.1"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: e432b7cb0df57e8f0bcdc3b012d2e93fcbcb6092c9e0f85654788d5ebfc4442536d8cc35b2418061ba3c4afb8b7788cc101c606d86a1732407921de7a9244c8d
   languageName: node
   linkType: hard
 

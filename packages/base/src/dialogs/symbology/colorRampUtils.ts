@@ -144,3 +144,23 @@ export function hexToRgb(hex: string): RgbaColor {
   ];
 }
 
+/**
+ * Convert any color value (hex string or [r,g,b,a] array) to RgbaColor.
+ * Alpha is normalized to 0-1 range.
+ */
+export function colorToRgba(color: unknown): RgbaColor {
+  const defaultColor: RgbaColor = [51, 153, 204, 1]; // #3399CC
+  if (typeof color === 'string') {
+    return hexToRgb(color);
+  }
+  if (
+    Array.isArray(color) &&
+    color.length >= 3 &&
+    typeof color[0] === 'number'
+  ) {
+    const [r, g, b, a] = color as number[];
+    const alpha = a !== undefined ? (a > 1 ? a / 255 : a) : 1;
+    return [r, g, b, alpha];
+  }
+  return defaultColor;
+}

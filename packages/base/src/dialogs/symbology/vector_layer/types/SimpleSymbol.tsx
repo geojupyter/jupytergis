@@ -1,6 +1,9 @@
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useState } from 'react';
 
+import { colorToRgba, RgbaColor } from '@/src/dialogs/symbology/colorRampUtils';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
+
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
@@ -28,6 +31,10 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     radius: 5,
   });
   const styleRef = useLatest(style);
+  const [fillRgba, setFillRgba] = useState<RgbaColor>([51, 153, 204, 1]);
+  const [strokeRgba, setStrokeRgba] = useState<RgbaColor>([51, 153, 204, 1]);
+  const fillRgbaRef = useLatest(fillRgba);
+  const strokeRgbaRef = useLatest(strokeRgba);
 
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
@@ -47,6 +54,16 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       if (parsed) {
         setStyle(parsed);
       }
+      const fillColor =
+        params.color['circle-fill-color'] ?? params.color['fill-color'];
+      const strokeColor =
+        params.color['circle-stroke-color'] ?? params.color['stroke-color'];
+      if (fillColor !== undefined) {
+        setFillRgba(colorToRgba(fillColor));
+      }
+      if (strokeColor !== undefined) {
+        setStrokeRgba(colorToRgba(strokeColor));
+      }
     }
   }, [params]);
 
@@ -57,13 +74,13 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
 
     const styleExpr: FlatStyle = {
       'circle-radius': styleRef.current?.radius,
-      'circle-fill-color': styleRef.current?.fillColor,
-      'circle-stroke-color': styleRef.current?.strokeColor,
+      'circle-fill-color': fillRgbaRef.current as number[],
+      'circle-stroke-color': strokeRgbaRef.current as number[],
       'circle-stroke-width': styleRef.current?.strokeWidth,
       'circle-stroke-line-join': styleRef.current?.joinStyle,
       'circle-stroke-line-cap': styleRef.current?.capStyle,
-      'fill-color': styleRef.current?.fillColor,
-      'stroke-color': styleRef.current?.strokeColor,
+      'fill-color': fillRgbaRef.current as number[],
+      'stroke-color': strokeRgbaRef.current as number[],
       'stroke-width': styleRef.current?.strokeWidth,
       'stroke-line-join': styleRef.current?.joinStyle,
       'stroke-line-cap': styleRef.current?.capStyle,
@@ -103,31 +120,11 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     <>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
-        <input
-          type="color"
-          value={style.fillColor}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              fillColor: event.target.value,
-            }))
-          }
-        />
+        <RgbaColorPicker color={fillRgba} onChange={setFillRgba} />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Stroke Color:</label>
-        <input
-          type="color"
-          value={style.strokeColor}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              strokeColor: event.target.value,
-            }))
-          }
-        />
+        <RgbaColorPicker color={strokeRgba} onChange={setStrokeRgba} />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Stroke Width:</label>
