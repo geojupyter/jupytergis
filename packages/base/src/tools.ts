@@ -12,14 +12,12 @@ import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
-import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
 import { Source } from 'ol/source';
 import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
 import { getGdal } from './gdal';
 import LAYER_GALLERY from '@/layer_gallery.json';
 
