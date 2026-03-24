@@ -35,6 +35,7 @@ import {
   IMarkerSource,
   IStorySegmentLayer,
   IJupyterGISSettings,
+  DEFAULT_PROJECTION,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -276,7 +277,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
-    const projection = options.projection ?? 'EPSG:3857';
+    const projection = options.projection ?? DEFAULT_PROJECTION;
     const center =
       options.longitude !== undefined && options.latitude !== undefined
         ? fromLonLat([options.longitude, options.latitude], projection)
@@ -335,7 +336,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   async generateMap(
     center: number[],
     zoom: number,
-    projection = 'EPSG:3857',
+    projection = DEFAULT_PROJECTION,
   ): Promise<void> {
     const layers = this._model.getLayers();
 
