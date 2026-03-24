@@ -27,7 +27,9 @@ import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
 import { JupyterGISFormSchemaRegistry } from './schemaregistry';
 
-SqljsAdapter.setSqljsWasmLocateFile(() => wasmURL);
+SqljsAdapter.setSqljsWasmLocateFile((filename: string) => {
+  return wasmURL;
+});
 
 const NAME_SPACE = 'jupytergis';
 
