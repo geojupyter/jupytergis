@@ -18,8 +18,8 @@ import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import { getGdal } from './gdal';
 import LAYER_GALLERY from '@/layer_gallery.json';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -550,7 +550,7 @@ function loadGeoPackageVectorFile(
       const tableMap: GpkgTable = {};
       for (const name of Object.keys(tables)) {
         tableMap[name] = {
-          source: tables[name] as Source,
+          source: tables[name] ,
           sld: slds[name],
         };
       }
