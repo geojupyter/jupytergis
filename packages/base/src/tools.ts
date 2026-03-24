@@ -550,7 +550,7 @@ function loadGeoPackageVectorFile(
       const tableMap: GpkgTable = {};
       for (const name of Object.keys(tables)) {
         tableMap[name] = {
-          source: tables[name] ,
+          source: tables[name],
           sld: slds[name],
         };
       }
