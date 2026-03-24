@@ -201,9 +201,7 @@ export function CreationForm(props: ICreationFormProps) {
               );
             }
 
-            tableNames = requested.filter((t: string) =>
-              allTables.includes(t),
-            );
+            tableNames = requested.filter((t: string) => allTables.includes(t));
 
             if (!tableNames.length) {
               console.warn('No valid tables. Aborting.');
