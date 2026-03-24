@@ -59,6 +59,14 @@
             "pretty",
             "logarithmic"
           ]
+        },
+        "vmin": {
+          "type": "number",
+          "description": "Minimum value for color mapping"
+        },
+        "vmax": {
+          "type": "number",
+          "description": "Maximum value for color mapping"
         }
       },
       "additionalProperties": false,
