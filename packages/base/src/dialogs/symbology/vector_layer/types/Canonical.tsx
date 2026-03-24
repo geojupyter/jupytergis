@@ -29,9 +29,11 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
 
   useEffect(() => {
     const layerParams = layer.parameters as IVectorLayer;
+    const savedValue = layerParams.symbologyState?.value;
     const value =
-      layerParams.symbologyState?.value ??
-      Object.keys(selectableAttributesAndValues)[0];
+      savedValue && savedValue in selectableAttributesAndValues
+        ? savedValue
+        : Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedValue(value);
   }, [selectableAttributesAndValues]);
@@ -41,7 +43,14 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
       return;
     }
 
-    const colorExpr: ExpressionValue[] = ['get', selectedValueRef.current];
+    // Use coalesce so that features missing the color property (e.g. boundary
+    // or line features in a multi-layer MVT) fall back to transparent instead
+    // of returning undefined, which would cause OL to throw at render time.
+    const colorExpr: ExpressionValue = [
+      'coalesce',
+      ['get', selectedValueRef.current],
+      'rgba(0,0,0,0)',
+    ];
     const newStyle = { ...layer.parameters.color };
     newStyle['fill-color'] = colorExpr;
     newStyle['stroke-color'] = colorExpr;
