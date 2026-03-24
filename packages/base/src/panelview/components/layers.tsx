@@ -8,9 +8,14 @@ import {
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
-import { Button, LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
+import {
+  Button,
+  LabIcon,
+  caretDownIcon,
+  caretRightIcon,
+} from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
@@ -18,8 +23,14 @@ import React, {
 } from 'react';
 
 import { CommandIDs, icons } from '@/src/constants';
-import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
+import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
+import {
+  nonVisibilityIcon,
+  targetWithCenterIcon,
+  visibilityIcon,
+} from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
+import { LegendItem } from './legendItem';
 
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
@@ -29,19 +40,20 @@ const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
+const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
 
 interface IBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   state: IStateDB;
+  layerTree: IJGISLayerTree;
 }
 
 export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
-  const id = UUID.uuid4();
 
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
-    model?.getLayerTree() || [],
+    props.layerTree || [],
   );
 
   const notifyCommands = () => {
@@ -107,136 +119,101 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     );
   };
 
-  const onSelect = ({
-    type,
-    item,
-    nodeId,
-    event,
-  }: ILeftPanelClickHandlerParams) => {
-    if (!props.model || !nodeId) {
+  const onSelect = ({ type, item, event }: ILeftPanelClickHandlerParams) => {
+    if (!props.model) {
       return;
     }
 
-    const selectedValue = props.model.localState?.selected?.value;
-    const node = document.getElementById(nodeId);
-
-    if (!node) {
-      return;
-    }
-
-    node.tabIndex = 0;
-    node.focus();
-
-    // Early return if no selection exists
-    if (!selectedValue) {
-      resetSelected(type, nodeId, item);
-      return;
-    }
+    const selectedValue = props.model.selected;
 
     // Don't want to reset selected if right clicking a selected item
-    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+    if (
+      selectedValue &&
+      !event.ctrlKey &&
+      event.button === 2 &&
+      item in selectedValue
+    ) {
       return;
     }
 
-    // Reset selection for normal left click
-    if (!event.ctrlKey) {
-      resetSelected(type, nodeId, item);
-      return;
-    }
+    // Calculate the new selection value
+    let newSelection: { [key: string]: ISelection };
 
-    if (nodeId) {
+    // Early return if no selection exists - single selection
+    if (!selectedValue) {
+      newSelection = {
+        [item]: {
+          type,
+        },
+      };
+    } else if (!event.ctrlKey) {
+      // Reset selection for normal left click - single selection
+      newSelection = {
+        [item]: {
+          type,
+        },
+      };
+    } else {
       // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
         selection => selection.type === type,
       );
 
       if (!isSelectedSameType) {
-        // Selecting a new type, so reset selected
-        resetSelected(type, nodeId, item);
-        return;
+        // Selecting a new type, so reset selected - single selection
+        newSelection = {
+          [item]: {
+            type,
+          },
+        };
+      } else {
+        // If types are the same add the selection - multi-selection
+        newSelection = {
+          ...selectedValue,
+          [item]: { type },
+        };
       }
-
-      // If types are the same add the selection
-      const updatedSelectedValue = {
-        ...selectedValue,
-        [item]: { type, selectedNodeId: nodeId },
-      };
-
-      props.model.syncSelected(updatedSelectedValue, id);
-
-      notifyCommands();
     }
-  };
 
-  const resetSelected = (
-    type: SelectionType,
-    nodeId?: string,
-    item?: string,
-  ) => {
-    const selection: { [key: string]: ISelection } = {};
-    if (item && nodeId) {
-      selection[item] = {
-        type,
-        selectedNodeId: nodeId,
-      };
-    }
-    props.model.syncSelected(selection, id);
-
+    // Set the selection
+    props.model.selected = newSelection;
     notifyCommands();
   };
 
   /**
    * Propagate the layer selection.
    */
-  const onItemClick = ({
-    type,
-    item,
-    nodeId,
-    event,
-  }: ILeftPanelClickHandlerParams) => {
-    onSelect({ type, item, nodeId, event });
+  const onItemClick = ({ type, item, event }: ILeftPanelClickHandlerParams) => {
+    onSelect({ type, item, event });
   };
 
-  /**
-   * Listen to the layers and layer tree changes.
-   */
+  // Update layerTree when prop changes
   useEffect(() => {
-    const updateLayers = () => {
-      setLayerTree(model?.getLayerTree() || []);
-    };
-    model?.sharedModel.layersChanged.connect(updateLayers);
-    model?.sharedModel.layerTreeChanged.connect(updateLayers);
-
-    updateLayers();
-    return () => {
-      model?.sharedModel.layersChanged.disconnect(updateLayers);
-      model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
-    };
-  }, [model]);
+    if (props.layerTree) {
+      setLayerTree(props.layerTree);
+    }
+  }, [props.layerTree]);
 
   return (
     <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
-      {layerTree
-        .slice()
-        .reverse()
-        .map(layer =>
-          typeof layer === 'string' ? (
-            <LayerComponent
-              key={layer}
-              gisModel={model}
-              layerId={layer}
-              onClick={onItemClick}
-            />
-          ) : (
-            <LayerGroupComponent
-              key={layer.name}
-              gisModel={model}
-              group={layer}
-              onClick={onItemClick}
-              state={props.state}
-            />
-          ),
-        )}
+      {layerTree.map(layer =>
+        typeof layer === 'string' ? (
+          <LayerComponent
+            key={layer}
+            gisModel={model}
+            layerId={layer}
+            onClick={onItemClick}
+          />
+        ) : (
+          <LayerGroupComponent
+            key={layer.name}
+            gisModel={model}
+            group={layer}
+            onClick={onItemClick}
+            state={props.state}
+          />
+        ),
+      )}
     </div>
   );
 };
@@ -248,7 +225,7 @@ interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
   state: IStateDB;
-  onClick: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
+  onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
 /**
@@ -269,6 +246,8 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(group.name, gisModel),
   );
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     setId(DOMUtils.createDomID());
@@ -297,16 +276,68 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
     return () => {
       gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
     };
-  }, [gisModel]);
+  }, [gisModel, group.name]);
+
+  /**
+   * Listen to editing state changes.
+   */
+  useEffect(() => {
+    const onEditingChanged = (
+      sender: IJupyterGISModel,
+      editing: { type: SelectionType; itemId: string } | null,
+    ) => {
+      if (editing?.type === 'group' && editing.itemId === name) {
+        setIsEditing(true);
+        setEditValue(name);
+      } else {
+        setIsEditing(false);
+      }
+    };
+
+    // Check initial editing state
+    const editing = gisModel?.editing;
+    if (editing?.type === 'group' && editing.itemId === name) {
+      setIsEditing(true);
+      setEditValue(name);
+    }
+
+    gisModel?.editingChanged.connect(onEditingChanged);
+
+    return () => {
+      gisModel?.editingChanged.disconnect(onEditingChanged);
+    };
+  }, [gisModel, name]);
 
   const handleRightClick = (event: ReactMouseEvent<HTMLElement>) => {
-    const childId = event.currentTarget.children.namedItem(id)?.id;
-    onClick({ type: 'group', item: name, nodeId: childId, event });
+    onClick({ type: 'group', item: name, event });
   };
 
   const handleExpand = async () => {
     state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
+  };
+
+  const handleRenameSave = () => {
+    const newName = editValue.trim();
+    if (newName && newName !== name && gisModel) {
+      gisModel.renameLayerGroup(name, newName);
+    }
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameCancel = () => {
+    setEditValue(name);
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRenameSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleRenameCancel();
+    }
   };
 
   return (
@@ -329,9 +360,29 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
           className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
           tag={'span'}
         />
-        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
-          {name}
-        </span>
+        {isEditing ? (
+          <input
+            type="text"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onKeyDown={handleRenameKeyDown}
+            onBlur={handleRenameSave}
+            className={LAYER_TEXT_CLASS}
+            style={{
+              flex: 1,
+              border: '1px solid var(--jp-border-color1)',
+              borderRadius: '2px',
+              padding: '2px 4px',
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+            }}
+            autoFocus
+          />
+        ) : (
+          <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
+            {name}
+          </span>
+        )}
       </div>
       {open && (
         <div>
@@ -366,9 +417,10 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
  * Properties of the layer component.
  */
 interface ILayerProps {
+  // ! todo this should never be undefined, like it's not possible in the parent, it will never be undef here
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
-  onClick: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
+  onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
@@ -394,6 +446,19 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
   );
+  const [expanded, setExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+
+  const { symbology } = useGetSymbology({
+    layerId,
+    model: gisModel as IJupyterGISModel,
+  });
+
+  const hasSupportedSymbology = symbology?.symbologyState !== undefined;
+
+  const isStorySegmentLayer = layer.type === 'StorySegmentLayer';
+
   const name = layer.name;
 
   useEffect(() => {
@@ -416,7 +481,37 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     return () => {
       gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
     };
-  }, [gisModel]);
+  }, [gisModel, layerId]);
+
+  /**
+   * Listen to editing state changes.
+   */
+  useEffect(() => {
+    const onEditingChanged = (
+      sender: IJupyterGISModel,
+      editing: { type: SelectionType; itemId: string } | null,
+    ) => {
+      if (editing?.type === 'layer' && editing.itemId === layerId) {
+        setIsEditing(true);
+        setEditValue(name);
+      } else {
+        setIsEditing(false);
+      }
+    };
+
+    // Check initial editing state
+    const editing = gisModel?.editing;
+    if (editing?.type === 'layer' && editing.itemId === layerId) {
+      setIsEditing(true);
+      setEditValue(name);
+    }
+
+    gisModel?.editingChanged.connect(onEditingChanged);
+
+    return () => {
+      gisModel?.editingChanged.disconnect(onEditingChanged);
+    };
+  }, [gisModel, layerId, name]);
 
   /**
    * Toggle layer visibility.
@@ -427,40 +522,119 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   };
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
-    const childId = event.currentTarget.children.namedItem(id)?.id;
     onClick({
       type: 'layer',
       item: layerId,
-      nodeId: childId,
       event,
     });
   };
 
+  const handleRenameSave = () => {
+    const newName = editValue.trim();
+    if (newName && newName !== name && gisModel) {
+      const updatedLayer = { ...layer, name: newName };
+      gisModel.sharedModel.updateLayer(layerId, updatedLayer);
+    }
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameCancel = () => {
+    setEditValue(name);
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRenameSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleRenameCancel();
+    }
+  };
+
+  /**
+   * Set layer to current map view.
+   */
+  const moveToExtent = () => {
+    gisModel?.centerOnPosition(layerId);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    moveToExtent();
+  };
+
+  const getSlideNumber = () => {
+    if (!gisModel) {
+      return;
+    }
+
+    const { story } = gisModel.getSelectedStory();
+
+    if (!story?.storySegments) {
+      return;
+    }
+
+    const slideNum = story.storySegments.indexOf(layerId) + 1;
+
+    return slideNum;
+  };
+
   return (
     <div
-      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
+      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
+                  ${isStorySegmentLayer ? 'jp-gis-storySegmentLayer' : ''}
+                  ${selected ? ' jp-mod-selected' : ''}`}
       draggable={true}
       onDragStart={Private.onDragStart}
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
       data-id={layerId}
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
       <div
         className={LAYER_TITLE_CLASS}
         onClick={setSelection}
         onContextMenu={setSelection}
+        style={{ display: 'flex' }}
       >
-        <Button
-          title={layer.visible ? 'Hide layer' : 'Show layer'}
-          onClick={toggleVisibility}
-          minimal
-        >
-          <LabIcon.resolveReact
-            icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-            className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
-            tag="span"
-          />
-        </Button>
+        {/* Expand/collapse legend button (only if symbology is supported) */}
+        {hasSupportedSymbology && (
+          <Button
+            minimal
+            onClick={e => {
+              e.stopPropagation();
+              setExpanded(v => !v);
+            }}
+            title={expanded ? 'Hide legend' : 'Show legend'}
+          >
+            <LabIcon.resolveReact
+              icon={expanded ? caretDownIcon : caretRightIcon}
+              tag="span"
+            />
+          </Button>
+        )}
+
+        {/* Visibility toggle for normal layers, Slide number for story segments */}
+        {isStorySegmentLayer ? (
+          <span className={LAYER_SLIDE_NUMBER_CLASS} title="Slide number">
+            {getSlideNumber()}
+          </span>
+        ) : (
+          <Button
+            title={layer.visible ? 'Hide layer' : 'Show layer'}
+            onClick={toggleVisibility}
+            minimal
+          >
+            <LabIcon.resolveReact
+              icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
+              className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
+              tag="span"
+            />
+          </Button>
+        )}
 
         {icons.has(layer.type) && (
           <LabIcon.resolveReact
@@ -469,10 +643,55 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           />
         )}
 
-        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
-          {name}
-        </span>
+        {isEditing ? (
+          <input
+            type="text"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onKeyDown={handleRenameKeyDown}
+            onBlur={handleRenameSave}
+            className={LAYER_TEXT_CLASS}
+            style={{
+              flex: 1,
+              border: '1px solid var(--jp-border-color1)',
+              borderRadius: '2px',
+              padding: '2px 4px',
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+            }}
+            autoFocus
+          />
+        ) : (
+          <span
+            id={id}
+            className={LAYER_TEXT_CLASS}
+            tabIndex={-2}
+            onDoubleClick={handleDoubleClick}
+            title="Double-click to zoom to layer"
+          >
+            {name}
+          </span>
+        )}
+
+        <Button
+          title={'Move map to the extent of the layer'}
+          onClick={moveToExtent}
+          minimal
+        >
+          <LabIcon.resolveReact
+            icon={targetWithCenterIcon}
+            className={LAYER_ICON_CLASS}
+            tag="span"
+          />
+        </Button>
       </div>
+
+      {/* Show legend only if supported symbology */}
+      {expanded && gisModel && hasSupportedSymbology && (
+        <div style={{ marginTop: 6, width: '100%' }}>
+          <LegendItem layerId={layerId} model={gisModel} />
+        </div>
+      )}
     </div>
   );
 };

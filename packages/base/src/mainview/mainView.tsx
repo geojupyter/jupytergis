@@ -32,6 +32,9 @@ import {
   IWebGlLayer,
   JgisCoordinates,
   JupyterGISModel,
+  IMarkerSource,
+  IStorySegmentLayer,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -49,12 +52,25 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
-import { FullScreen, ScaleLine } from 'ol/control';
+import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { DragAndDrop, Select } from 'ol/interaction';
+import {
+  DragAndDrop,
+  DragPan,
+  DragRotate,
+  DragZoom,
+  KeyboardPan,
+  KeyboardZoom,
+  MouseWheelZoom,
+  PinchRotate,
+  PinchZoom,
+  DoubleClickZoom,
+  Select,
+} from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -83,7 +99,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -95,13 +111,17 @@ import * as React from 'react';
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
+import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import StatusBar from '@/src/statusbar/StatusBar';
 import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+import { SpectaPanel } from '../panelview/story-maps/SpectaPanel';
+import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
@@ -112,11 +132,14 @@ type OlLayerTypes =
   | HeatmapLayer
   | StacLayer
   | ImageLayer<any>;
-interface IProps {
+
+interface IMainViewProps {
   viewModel: MainViewModel;
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
+  isMobile: boolean;
 }
 
 interface IStates {
@@ -133,10 +156,13 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  jgisSettings: IJupyterGISSettings;
+  isSpectaPresentation: boolean;
+  initialLayersReady: boolean;
 }
 
-export class MainView extends React.Component<IProps, IStates> {
-  constructor(props: IProps) {
+export class MainView extends React.Component<IMainViewProps, IStates> {
+  constructor(props: IMainViewProps) {
     super(props);
     this._state = props.state;
 
@@ -196,6 +222,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
+    this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
     this._model.geolocationChanged.connect(
@@ -209,10 +236,13 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
+    Promise.resolve().then(() => {
+      this._syncSettingsFromRegistry();
+    });
+
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
-      const isIdentifying = this._model.isIdentifying;
-      if (!isIdentifying && this._highlightLayer) {
+      if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
         this._highlightLayer.getSource()?.clear();
       }
     });
@@ -229,6 +259,9 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      jgisSettings: this._model.jgisSettings,
+      isSpectaPresentation: this._model.isSpectaMode(),
+      initialLayersReady: false,
     };
 
     this._sources = [];
@@ -245,15 +278,25 @@ export class MainView extends React.Component<IProps, IStates> {
     const options = this._model.getOptions();
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude!, options.latitude!])
+        ? fromLonLat([options.longitude, options.latitude])
         : [0, 0];
-    const zoom = options.zoom !== undefined ? options.zoom! : 1;
+    const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom);
-    this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
+    }
+  }
+
+  componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
+    // Run setup when isSpectaPresentation changes from false/undefined to true
+    if (
+      this.state.isSpectaPresentation &&
+      !this._isSpectaPresentationInitialized
+    ) {
+      this._setupSpectaMode();
+      this._isSpectaPresentationInitialized = true;
     }
   }
 
@@ -268,6 +311,7 @@ export class MainView extends React.Component<IProps, IStates> {
     );
 
     this._model.themeChanged.disconnect(this._handleThemeChange, this);
+    this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
     this._model.sharedOptionsChanged.disconnect(
       this._onSharedOptionsChanged,
       this,
@@ -278,19 +322,46 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
+    // Clean up story scroll listener
+    this._cleanupStoryScrollListener();
+
     this._mainViewModel.dispose();
   }
 
   async generateMap(center: number[], zoom: number): Promise<void> {
+    const layers = this._model.getLayers();
+
+    this._initialLayersCount = Object.values(layers).filter(
+      layer => layer.type !== 'StorySegmentLayer',
+    ).length;
+
+    const scaleLine = new ScaleLine({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+
+    const fullScreen = new FullScreen({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+
+    const controls: Control[] = [scaleLine, fullScreen];
+
+    if (this._model.jgisSettings.zoomButtonsEnabled) {
+      this._zoomControl = new Zoom({
+        target: this.controlsToolbarRef.current || undefined,
+      });
+      controls.push(this._zoomControl);
+    }
+
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
+        keyboardEventTarget: document,
         layers: [],
         view: new View({
           center,
           zoom,
         }),
-        controls: [new ScaleLine(), new FullScreen()],
+        controls,
       });
 
       // Add map interactions
@@ -412,6 +483,7 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
+      this._Map.on('click', this._addMarker.bind(this));
 
       this._Map
         .getViewport()
@@ -519,7 +591,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return layer === this.getLayer(selectedLayerId);
       },
       condition: (event: MapBrowserEvent<any>) => {
-        return singleClick(event) && this._model.isIdentifying;
+        return singleClick(event) && this._model.currentMode === 'identifying';
       },
       style: styleFunction,
     });
@@ -541,6 +613,16 @@ export class MainView extends React.Component<IProps, IStates> {
 
   addContextMenu = (): void => {
     this._commands.addCommand(CommandIDs.addAnnotation, {
+      label: 'Add annotation',
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      isEnabled: () => {
+        return !!this._Map;
+      },
       execute: () => {
         if (!this._Map) {
           return;
@@ -557,10 +639,6 @@ export class MainView extends React.Component<IProps, IStates> {
           parent: this._Map.getViewport().id,
           open: true,
         });
-      },
-      label: 'Add annotation',
-      isEnabled: () => {
-        return !!this._Map;
       },
     });
 
@@ -672,9 +750,7 @@ export class MainView extends React.Component<IProps, IStates> {
           featureProjection: this._Map.getView().getProjection(),
         });
 
-        // TODO: Don't hardcode projection
         const featureArray = format.readFeatures(data, {
-          dataProjection: 'EPSG:4326',
           featureProjection: this._Map.getView().getProjection(),
         });
 
@@ -881,6 +957,38 @@ export class MainView extends React.Component<IProps, IStates> {
         });
         break;
       }
+
+      case 'MarkerSource': {
+        const parameters = source.parameters as IMarkerSource;
+
+        const point = new Point(parameters.feature.coords);
+        const marker = new Feature({
+          type: 'icon',
+          geometry: point,
+        });
+
+        // Replace color placeholder in SVG with the parameter color
+        const markerColor = parameters.color || '#3463a0';
+        const svgString = markerIcon.svgstr
+          .replace('{{COLOR}}', markerColor)
+          .replace('<svg', '<svg width="128" height="128"');
+
+        const iconStyle = new Style({
+          image: new Icon({
+            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
+            scale: 0.25,
+            anchor: [0.5, 1],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
+          }),
+        });
+
+        marker.setStyle(iconStyle);
+
+        newSource = new VectorSource({
+          features: [marker],
+        });
+      }
     }
 
     newSource.set('id', id);
@@ -927,7 +1035,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // create updated source
     await this.addSource(id, source);
     // change source of target layer
-    (mapLayer as Layer).setSource(this._sources[id]);
+    mapLayer.setSource(this._sources[id]);
   }
 
   /**
@@ -1025,7 +1133,8 @@ export class MainView extends React.Component<IProps, IStates> {
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
-    if (layer.type !== 'StacLayer') {
+    // Sourceless layers
+    if (!['StacLayer', 'StorySegmentLayer'].includes(layer.type)) {
       sourceId = layer.parameters?.source;
       if (!sourceId) {
         return;
@@ -1070,6 +1179,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer),
         });
@@ -1081,6 +1191,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new WebGlTileLayer({
           opacity: 0.3,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: {
             color: ['color', this.hillshadeMath()],
@@ -1094,6 +1205,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new ImageLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
         });
 
@@ -1105,6 +1217,7 @@ export class MainView extends React.Component<IProps, IStates> {
         // This is to handle python sending a None for the color
         const layerOptions: any = {
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
         };
 
@@ -1122,6 +1235,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new HeatmapLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
@@ -1148,6 +1262,11 @@ export class MainView extends React.Component<IProps, IStates> {
         }));
 
         break;
+      }
+
+      case 'StorySegmentLayer': {
+        // Special layer not for this
+        return;
       }
     }
 
@@ -1223,6 +1342,14 @@ export class MainView extends React.Component<IProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+
+        // doing +1 instead of calling method again
+        if (
+          !this.state.initialLayersReady &&
+          numLayers + 1 === this._initialLayersCount
+        ) {
+          this.setState(old => ({ ...old, initialLayersReady: true }));
+        }
       }
     } catch (error: any) {
       if (
@@ -1230,7 +1357,6 @@ export class MainView extends React.Component<IProps, IStates> {
           item => item.id === id && item.error === error.message,
         )
       ) {
-        this._loadingLayers.delete(id);
         return;
       }
 
@@ -1244,7 +1370,9 @@ export class MainView extends React.Component<IProps, IStates> {
         error: error.message || 'invalid file path',
         index,
       });
+    } finally {
       this._loadingLayers.delete(id);
+      this.setState(old => ({ ...old, loadingLayer: false }));
     }
   }
 
@@ -1369,7 +1497,7 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    mapLayer.setVisible(layer.visible);
+    layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
@@ -1780,10 +1908,55 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
+    // ! would prefer a model ready signal or something, this feels hacky
+    const enableSpectaPresentation = this._model.isSpectaMode();
+
+    // Handle initialization based on specta presentation state
+    if (!this._isSpectaPresentationInitialized) {
+      if (enableSpectaPresentation) {
+        // _setupSpectaMode will be called in componentDidUpdate when state changes
+        this.setState(old => ({ ...old, isSpectaPresentation: true }));
+      } else {
+        // Add context menu when not in specta mode
+        this.addContextMenu();
+        this._isSpectaPresentationInitialized = true;
+      }
+    }
+
     if (!this._isPositionInitialized) {
       const options = this._model.getOptions();
       this.updateOptions(options);
       this._isPositionInitialized = true;
+    }
+  }
+
+  private async _syncSettingsFromRegistry() {
+    const composite = this._model.jgisSettings;
+    if (composite) {
+      this.setState({ jgisSettings: composite });
+      this._onSettingsChanged();
+    }
+  }
+
+  private _onSettingsChanged(): void {
+    this.setState({ jgisSettings: this._model.jgisSettings });
+
+    if (!this._Map) {
+      return;
+    }
+
+    const enabled = this._model.jgisSettings.zoomButtonsEnabled;
+
+    if (!enabled && this._zoomControl) {
+      this._Map.removeControl(this._zoomControl);
+      this._zoomControl = undefined;
+    }
+
+    if (enabled && !this._zoomControl) {
+      this._zoomControl = new Zoom({
+        target: this.controlsToolbarRef.current || undefined,
+      });
+      this._Map.addControl(this._zoomControl);
     }
   }
 
@@ -1885,15 +2058,13 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     const layer = this.getLayer(id);
-    let nextIndex = index;
+
     // should not be undefined since the id exists above
     if (layer === undefined) {
       return;
     }
     this._Map.getLayers().removeAt(currentIndex);
-    if (currentIndex < index) {
-      nextIndex -= 1;
-    }
+
     // Adjust index to ensure it's within bounds
     const numLayers = this._Map.getLayers().getLength();
     const safeIndex = Math.min(index, numLayers);
@@ -1996,6 +2167,143 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  /**
+   * Handler for when story maps change in the model.
+   * Updates specta state and presentation colors when story data becomes available.
+   */
+  private _setupSpectaMode = (): void => {
+    this._removeAllInteractions();
+    this._setupStoryScrollListener();
+  };
+
+  private _removeAllInteractions = (): void => {
+    // Remove all default interactions
+    const interactions = this._Map.getInteractions();
+    const interactionArray = interactions.getArray();
+
+    // Remove each interaction type
+    const interactionsToRemove = [
+      DragPan,
+      DragRotate,
+      DragZoom,
+      KeyboardPan,
+      KeyboardZoom,
+      MouseWheelZoom,
+      PinchRotate,
+      PinchZoom,
+      DoubleClickZoom,
+      DragAndDrop,
+      Select,
+    ];
+
+    this._zoomControl && this._Map.removeControl(this._zoomControl);
+
+    interactionsToRemove.forEach(InteractionClass => {
+      const interaction = interactionArray.find(
+        interaction => interaction instanceof InteractionClass,
+      );
+      if (interaction) {
+        this._Map.removeInteraction(interaction);
+      }
+    });
+  };
+
+  private _setupStoryScrollListener = (): void => {
+    // Guard: block wheel-driven segment change until transition has ended
+    let segmentChangeInProgress = false;
+    const clearGuard = (): void => {
+      segmentChangeInProgress = false;
+    };
+    this._clearStoryScrollGuard = clearGuard;
+
+    let accumulatedDeltaY = 0;
+    let scrollContainer: HTMLDivElement | null =
+      this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+
+    const processStoryScrollFrame = (): void => {
+      this._pendingStoryScrollRafId = null;
+
+      const currentPanelHandle = this.storyViewerPanelRef.current;
+      if (!currentPanelHandle || !scrollContainer) {
+        accumulatedDeltaY = 0;
+        return;
+      }
+
+      const deltaY = accumulatedDeltaY;
+      accumulatedDeltaY = 0;
+
+      const isScrollingUp = deltaY < 0;
+      const isScrollingDown = deltaY > 0;
+      const isAtTop = currentPanelHandle.getAtTop();
+      const isAtBottom = currentPanelHandle.getAtBottom();
+
+      const hasOverflow = !(isAtTop && isAtBottom);
+      const canGoInDirection =
+        (isScrollingDown && currentPanelHandle.hasNext) ||
+        (isScrollingUp && currentPanelHandle.hasPrev);
+      const atEdge =
+        (isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop);
+      const wantSegmentChange = canGoInDirection && (!hasOverflow || atEdge);
+
+      if (wantSegmentChange) {
+        if (segmentChangeInProgress) {
+          return;
+        }
+        segmentChangeInProgress = true;
+        isScrollingDown
+          ? currentPanelHandle.handleNext()
+          : currentPanelHandle.handlePrev();
+        return;
+      }
+
+      scrollContainer.scrollBy({ top: deltaY });
+    };
+
+    const handleScroll = (event: Event) => {
+      event.preventDefault();
+
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer =
+          this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+      }
+      if (!scrollContainer) {
+        return;
+      }
+      // One physical scroll tick often fires ~4 wheel events (sometimes across
+      // frames on slow hardware). We accumulate deltaY and run flush once per
+      // frame via rAF—the frame boundary batches events without adding delay.
+      // So one scroll means one segment/scroll decision.
+      accumulatedDeltaY += (event as WheelEvent).deltaY;
+      if (this._pendingStoryScrollRafId === null) {
+        this._pendingStoryScrollRafId = requestAnimationFrame(
+          processStoryScrollFrame,
+        );
+      }
+    };
+
+    this._storyScrollHandler = handleScroll;
+    const container = document.querySelector('.jGIS-Mainview-Container');
+    if (container) {
+      container.addEventListener('wheel', handleScroll, { passive: false });
+    }
+  };
+
+  private _cleanupStoryScrollListener = (): void => {
+    if (this._pendingStoryScrollRafId !== null) {
+      cancelAnimationFrame(this._pendingStoryScrollRafId);
+      this._pendingStoryScrollRafId = null;
+    }
+    if (this._storyScrollHandler) {
+      const containerElement = document.querySelector(
+        '.jGIS-Mainview-Container',
+      );
+      if (containerElement) {
+        containerElement.removeEventListener('wheel', this._storyScrollHandler);
+      }
+      this._storyScrollHandler = null;
+    }
+  };
+
   private _onSharedMetadataChanged = (
     _: IJupyterGISModel,
     changes: MapChange,
@@ -2017,7 +2325,7 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
         } else {
-          jsonData = data as IAnnotation;
+          jsonData = data;
         }
 
         newState[key] = jsonData;
@@ -2054,6 +2362,7 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  // TODO this and flyToPosition need a rework
   private _onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2064,8 +2373,69 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // The id is a layer
     let extent;
-    const layer = this.getLayer(id) as Layer;
+    const layer = this.getLayer(id);
     const source = layer?.getSource();
+    const jgisLayer = this._model.getLayer(id);
+
+    /**
+     * Layer may be undefined in two cases:
+     * 1. StorySegmentLayer: These layers don't have an associated OpenLayers layer
+     * 2. StacLayer: When centerOnPosition is called immediately after adding the layer,
+     *    the OpenLayers layer hasn't been created yet, so we use the bbox from the
+     *    layer model's STAC data directly.
+     */
+    if (!layer) {
+      // Handle StacLayer that hasn't been added to the map yet
+      if (jgisLayer?.type === 'StacLayer') {
+        const layerParams = jgisLayer.parameters as IStacLayer;
+        const stacBbox = layerParams.data?.bbox;
+
+        if (stacBbox && stacBbox.length === 4) {
+          // STAC bbox format: [west, south, east, north] in EPSG:4326
+          const [west, south, east, north] = stacBbox;
+          const bboxExtent = [west, south, east, north];
+
+          // Convert from EPSG:4326 to view projection
+          const viewProjection = this._Map.getView().getProjection();
+          const transformedExtent =
+            viewProjection.getCode() !== 'EPSG:4326'
+              ? transformExtent(bboxExtent, 'EPSG:4326', viewProjection)
+              : bboxExtent;
+
+          this._Map.getView().fit(transformedExtent, {
+            size: this._Map.getSize(),
+            duration: 500,
+            padding: [250, 250, 250, 250],
+          });
+          return;
+        }
+      }
+
+      // Handle StorySegmentLayer
+      if (jgisLayer?.type === 'StorySegmentLayer') {
+        const layerParams = jgisLayer.parameters as IStorySegmentLayer;
+        const coords = getCenter(layerParams.extent);
+
+        // Don't move map if we're already centered on the segment
+        const viewCenter = this._Map.getView().getCenter();
+        const centersEqual =
+          viewCenter !== undefined &&
+          Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
+          Math.abs(viewCenter[1] - coords[1]) < 1e-9;
+        if (centersEqual) {
+          return;
+        }
+
+        this._flyToPosition(
+          { x: coords[0], y: coords[1] },
+          layerParams.zoom,
+          (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
+          layerParams.transition.type,
+        );
+
+        return;
+      }
+    }
 
     if (source instanceof VectorSource) {
       extent = source.getExtent();
@@ -2124,13 +2494,58 @@ export class MainView extends React.Component<IProps, IStates> {
     center: { x: number; y: number },
     zoom: number,
     duration = 1000,
+    transitionType?: 'linear' | 'immediate' | 'smooth',
   ) {
     const view = this._Map.getView();
-    view.animate({ zoom, duration });
-    view.animate({ center: [center.x, center.y], duration });
+
+    // Cancel any in-progress animations before starting new ones
+    view.cancelAnimations();
+
+    const targetCenter: Coordinate = [center.x, center.y];
+
+    if (transitionType === 'linear') {
+      // Linear: direct zoom
+      view.animate({
+        center: targetCenter,
+        zoom: zoom,
+        duration,
+      });
+
+      return;
+    }
+
+    if (transitionType === 'smooth') {
+      // Smooth: zoom out, center, and zoom in
+      // Centering takes full duration, zoom out completes halfway, zoom in starts halfway
+      // 3 shows most of the map
+      const zoomOutLevel = 3;
+
+      // Start centering (full duration) and zoom out (50% duration) simultaneously
+      view.animate({
+        center: targetCenter,
+        duration: duration,
+      });
+      // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
+      view.animate(
+        {
+          zoom: zoomOutLevel,
+          duration: duration * 0.5,
+        },
+        {
+          zoom: zoom,
+          duration: duration * 0.5,
+        },
+      );
+
+      return;
+    }
+
+    // Immediate move
+    view.setCenter(targetCenter);
+    view.setZoom(zoom);
   }
 
-  private _onPointerMove(e: MouseEvent) {
+  private _onPointerMove(e: PointerEvent) {
     const pixel = this._Map.getEventPixel(e);
     const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
@@ -2144,8 +2559,47 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
+  private async _addMarker(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [coordinate[0], coordinate[1]] },
+    };
+
+    const layerParams: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { renderType: 'Single Symbol' },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParams,
+    };
+
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
+
+    this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+  }
+
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (!this._model.isIdentifying) {
+    if (this._model.currentMode !== 'identifying') {
       return;
     }
 
@@ -2164,9 +2618,13 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: any[] = [];
+        let foundAny = false;
 
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          foundAny = true;
+
           let geom: Geometry | undefined;
+          let props = {};
 
           if (feature instanceof RenderFeature) {
             geom = toGeometry(feature);
@@ -2174,20 +2632,34 @@ export class MainView extends React.Component<IProps, IStates> {
             geom = feature.getGeometry();
           }
 
-          const props = feature.getProperties();
+          const rawProps = feature.getProperties();
+          const fid = feature.getId?.() ?? rawProps?.fid;
+
+          if (rawProps && Object.keys(rawProps).length > 1) {
+            const { ...clean } = rawProps;
+            props = clean;
+            if (fid !== null) {
+              // TODO Clean the cache under some condition?
+              this._featurePropertyCache.set(fid, props);
+            }
+          } else if (fid !== null && this._featurePropertyCache.has(fid)) {
+            props = this._featurePropertyCache.get(fid);
+          }
 
           if (geom) {
             geometries.push(geom);
           }
-          features.push({
-            ...props,
-          });
+          if (props && Object.keys(props).length > 0) {
+            features.push(props);
+          }
 
           return true;
         });
 
         if (features.length > 0) {
           this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+        } else if (!foundAny) {
+          this._model.syncIdentifiedFeatures([], this._mainViewModel.id);
         }
 
         if (geometries.length > 0) {
@@ -2242,13 +2714,17 @@ export class MainView extends React.Component<IProps, IStates> {
     // ? could send just the filters object and modify that instead of emitting whole layer
     const json = JSON.parse(args);
     const { layerId, layer: jgisLayer } = json;
+    const isSourceType =
+      typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
     const olLayer = this.getLayer(layerId);
 
+    if (isSourceType) {
+      this.updateSource(layerId, jgisLayer);
+    }
     if (!jgisLayer || !olLayer) {
-      console.log('Layer not found');
+      console.error('Failed to update layer -- layer not found');
       return;
     }
-
     this.updateLayer(layerId, jgisLayer, olLayer);
   }
 
@@ -2292,6 +2768,36 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
+    if (e.touches.length > 0) {
+      this._spectaTouchStartX = e.touches[0].clientX;
+    }
+  };
+
+  private _handleSpectaTouchEnd = (e: React.TouchEvent): void => {
+    if (e.changedTouches.length === 0) {
+      return;
+    }
+
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - this._spectaTouchStartX;
+    const threshold = 50;
+    const story = this._model.getSelectedStory().story;
+    const segmentCount = story?.storySegments?.length ?? 0;
+
+    if (segmentCount === 0) {
+      return;
+    }
+
+    const current = this._model.getCurrentSegmentIndex() ?? 0;
+
+    if (deltaX > threshold && current > 0) {
+      this._model.setCurrentSegmentIndex(current - 1);
+    } else if (deltaX < -threshold && current < segmentCount - 1) {
+      this._model.setCurrentSegmentIndex(current + 1);
+    }
+  };
+
   render(): JSX.Element {
     return (
       <>
@@ -2329,12 +2835,22 @@ export class MainView extends React.Component<IProps, IStates> {
           )}
           <div
             className="jGIS-Mainview data-jgis-keybinding"
-            tabIndex={-2}
+            tabIndex={0}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
                 : 'unset',
             }}
+            onTouchStart={
+              this.state.isSpectaPresentation && this.props.isMobile
+                ? this._handleSpectaTouchStart
+                : undefined
+            }
+            onTouchEnd={
+              this.state.isSpectaPresentation && this.props.isMobile
+                ? this._handleSpectaTouchEnd
+                : undefined
+            }
           >
             <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
@@ -2346,30 +2862,62 @@ export class MainView extends React.Component<IProps, IStates> {
                 width: '100%',
                 height: '100%',
               }}
-            />
+            >
+              <div className="jgis-panels-wrapper">
+                {!this.state.isSpectaPresentation ? (
+                  <>
+                    {this._state && (
+                      <LeftPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        state={this._state}
+                        settings={this.state.jgisSettings}
+                      />
+                    )}
+                    {this._formSchemaRegistry && this._annotationModel && (
+                      <RightPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        formSchemaRegistry={this._formSchemaRegistry}
+                        annotationModel={this._annotationModel}
+                        addLayer={this.addLayer.bind(this)}
+                        removeLayer={this.removeLayer.bind(this)}
+                        settings={this.state.jgisSettings}
+                      />
+                    )}
+                  </>
+                ) : (
+                  this.state.initialLayersReady && (
+                    <SpectaPanel
+                      model={this._model}
+                      isSpecta={this.state.isSpectaPresentation}
+                      isMobile={this.props.isMobile}
+                      onSegmentTransitionEnd={() =>
+                        this._clearStoryScrollGuard()
+                      }
+                      containerRef={this.spectaContainerRef}
+                      storyViewerPanelRef={this.storyViewerPanelRef}
+                      addLayer={this.addLayer.bind(this)}
+                      removeLayer={this.removeLayer.bind(this)}
+                    />
+                  )
+                )}
+              </div>
+              <div
+                ref={this.controlsToolbarRef}
+                className="jgis-controls-toolbar"
+              ></div>
+            </div>
           </div>
-          <StatusBar
-            jgisModel={this._model}
-            loading={this.state.loadingLayer}
-            projection={this.state.viewProjection}
-            scale={this.state.scale}
-          />
+          {!this.state.isSpectaPresentation && (
+            <StatusBar
+              jgisModel={this._model}
+              loading={this.state.loadingLayer}
+              projection={this.state.viewProjection}
+              scale={this.state.scale}
+            />
+          )}
         </div>
-
-        {this._state && (
-          <LeftPanel
-            model={this._model}
-            commands={this._mainViewModel.commands}
-            state={this._state}
-          ></LeftPanel>
-        )}
-        {this._formSchemaRegistry && this._annotationModel && (
-          <RightPanel
-            model={this._model}
-            formSchemaRegistry={this._formSchemaRegistry}
-            annotationModel={this._annotationModel}
-          ></RightPanel>
-        )}
       </>
     );
   }
@@ -2378,7 +2926,11 @@ export class MainView extends React.Component<IProps, IStates> {
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+  private controlsToolbarRef = React.createRef<HTMLDivElement>();
+  private spectaContainerRef = React.createRef<HTMLDivElement>();
+  private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private _Map: OlMap;
+  private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
@@ -2393,4 +2945,20 @@ export class MainView extends React.Component<IProps, IStates> {
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
+  private _featurePropertyCache: Map<string | number, any> = new Map();
+  private _isSpectaPresentationInitialized = false;
+  private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _clearStoryScrollGuard: () => void;
+  private _pendingStoryScrollRafId: number | null = null;
+  private _initialLayersCount: number;
+  private _spectaTouchStartX = 0;
 }
+
+// ! TODO make mainview a modern react component instead of a class
+/** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
+function MainViewWithMediaQuery(props: Omit<IMainViewProps, 'isMobile'>) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  return <MainView {...props} isMobile={isMobile} />;
+}
+
+export { MainViewWithMediaQuery };

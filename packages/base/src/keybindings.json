@@ -1,5 +1,15 @@
 [
   {
+    "command": "jupytergis:storyPrev",
+    "keys": ["ArrowLeft"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
+    "command": "jupytergis:storyNext",
+    "keys": ["ArrowRight"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
     "command": "jupytergis:undo",
     "keys": ["Accel Z"],
     "selector": ".data-jgis-keybinding"
@@ -20,34 +30,14 @@
     "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:removeSource",
+    "command": "jupytergis:removeSelected",
     "keys": ["Delete"],
-    "selector": ".data-jgis-keybinding .jp-gis-source.jp-gis-sourceUnused"
+    "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:renameSource",
+    "command": "jupytergis:renameSelected",
     "keys": ["F2"],
-    "selector": ".data-jgis-keybinding .jp-gis-source"
-  },
-  {
-    "command": "jupytergis:removeLayer",
-    "keys": ["Delete"],
-    "selector": ".data-jgis-keybinding .jp-gis-layerItem"
-  },
-  {
-    "command": "jupytergis:renameLayer",
-    "keys": ["F2"],
-    "selector": ".jp-gis-layerItem"
-  },
-  {
-    "command": "jupytergis:removeGroup",
-    "keys": ["Delete"],
-    "selector": ".data-jgis-keybinding .jp-gis-layerGroupHeader"
-  },
-  {
-    "command": "jupytergis:renameGroup",
-    "keys": ["F2"],
-    "selector": ".jp-gis-layerGroupHeader"
+    "selector": ".data-jgis-keybinding"
   },
   {
     "command": "jupytergis:executeConsole",

@@ -13,6 +13,3 @@ export async function getGdal() {
     useWorker: false,
   });
 }
-
-// Early load gdal
-getGdal();

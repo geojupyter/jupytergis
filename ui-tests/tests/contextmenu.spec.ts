@@ -10,7 +10,16 @@ test.describe('context menu', () => {
       '/testDir',
     );
   });
-  test.beforeEach(async ({ page }) => {
+
+  test.beforeEach(async ({ page, request }) => {
+    const content = galata.newContentsHelper(request);
+    // Ensure clean state
+    await content.deleteFile('/testDir/context-test.jGIS').catch(() => {});
+    // Upload fresh copy for every test
+    await content.uploadFile(
+      path.resolve(__dirname, './gis-files/context-test.jGIS'),
+      '/testDir/context-test.jGIS',
+    );
     await page.filebrowser.open('testDir/context-test.jGIS');
   });
 
@@ -24,14 +33,14 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    const text = page.getByRole('menu').getByText('Remove Layer');
+    const text = page.getByRole('menu').getByText('Remove');
     await expect(text).toBeVisible();
   });
 
   test('right click on group should open group menu', async ({ page }) => {
     await page.getByText('level 1 group').click({ button: 'right' });
 
-    const text = page.getByRole('menu').getByText('Remove Group');
+    const text = page.getByRole('menu').getByText('Remove');
     await expect(text).toBeVisible();
   });
 
@@ -41,26 +50,26 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByText('Move Selected Layers to Group').hover();
+    await page.getByText('Move Selection to Group').hover();
 
     const submenu = page.locator('#jp-gis-contextmenu-movelayer');
 
-    const firstItem = page.getByText('Move to Root');
+    const firstItem = page.getByText('Move Selection to Root Group');
     await expect(firstItem).toBeVisible();
     await expect(submenu).toBeVisible();
   });
 
-  test('move layer to new group', async ({ page }) => {
+  test('move selection to new group', async ({ page }) => {
     const layer = await page
       .getByLabel('Layers', { exact: true })
       .getByText('Open Topo Map');
 
     layer.click({ button: 'right' });
 
-    await page.getByText('Move Selected Layers to Group').hover();
+    await page.getByText('Move Selection to Group').hover();
     await page
       .locator('#jp-gis-contextmenu-movelayer')
-      .getByText('Move Selected Layers to New Group')
+      .getByText('Move Selection to New Group')
       .click();
     await page
       .getByLabel('Layers', { exact: true })
@@ -72,11 +81,9 @@ test.describe('context menu', () => {
       .press('Enter');
 
     await expect(page.getByText('new group', { exact: true })).toHaveCount(1);
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(layer).toBeVisible();
   });
 
-  test('clicking remove layer should remove the layer from the tree', async ({
+  test('clicking remove should remove the layer from the tree', async ({
     page,
   }) => {
     // Create new layer first
@@ -85,29 +92,33 @@ test.describe('context menu', () => {
     });
     await page.getByText('Add Layer').hover();
     await page.getByText('Add Raster Layer', { exact: true }).hover();
-    await page.getByText('New Raster Tile Layer', { exact: true }).click();
+    await page
+      .getByText('Open New Raster Tile Layer Creation Dialog', { exact: true })
+      .click();
 
     await page
+      .getByRole('dialog')
       .locator('input#root_url')
-      .type(
+      .fill(
         'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf',
       );
 
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
 
     const layerTitle = 'Custom Raster Tile Layer';
-    expect(page.getByText(layerTitle)).toBeVisible();
+    const layerInTree = page.getByText(layerTitle, { exact: true });
+    expect(layerInTree).toBeVisible();
 
-    await page.getByText(layerTitle).click({
+    await layerInTree.click({
       button: 'right',
     });
 
-    await page.getByRole('menu').getByText('Remove Layer').click();
+    await page.getByRole('menu').getByText('Remove').click();
 
-    expect(page.getByText(layerTitle)).not.toBeVisible();
+    expect(layerInTree).not.toBeVisible();
   });
 
-  test('clicking remove group should remove the group from the tree', async ({
+  test('clicking remove should remove the group from the tree', async ({
     page,
   }) => {
     const firstItem = page
@@ -119,52 +130,63 @@ test.describe('context menu', () => {
       .getByText('level 1 group')
       .click({ button: 'right' });
 
-    await page.getByRole('menu').getByText('Remove Group').click();
+    await page.getByRole('menu').getByText('Remove').click();
     await expect(firstItem).not.toBeVisible();
-
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(firstItem).toBeVisible();
   });
 
   test('pressing F2 should start rename for layer', async ({ page }) => {
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map')
-      .click();
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map')
-      .press('F2');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .fill('test name');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .press('Enter');
+    const layersPanel = page.getByLabel('Layers', { exact: true });
+    const layerName = 'Open Topo Map';
+    const layerText = layersPanel.getByText(layerName);
 
-    const newText = page.getByText('test name');
+    // Find the parent layer item container (which gets the selected class)
+    // Structure: div.jp-gis-layerItem > div.jp-gis-layerTitle > span.jp-gis-layerText
+    const layerItem = layerText.locator(
+      'xpath=ancestor::div[contains(@class, "jp-gis-layerItem")]',
+    );
 
-    await expect(newText).toBeVisible();
+    // Select the layer
+    await layerText.click();
+    await expect(layerItem).toHaveClass(/jp-mod-selected/);
 
-    // reset layer name
-    await page.locator('#jp-gis-layer-tree div').nth(2).click();
-    await page.locator('#jp-gis-layer-tree div').nth(2).press('F2');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .fill('Open Topo Map');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .press('Enter');
+    // Start rename with F2
+    await layerText.press('F2');
 
-    const restoredText = page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map');
+    // Wait for the textbox to appear and be focused
+    const textbox = layersPanel.getByRole('textbox');
+    await expect(textbox).toBeVisible();
+    await expect(textbox).toBeFocused();
 
-    await expect(restoredText).toBeVisible();
+    // Enter new name
+    await textbox.fill('test name');
+    await textbox.press('Enter');
+
+    // Wait for rename to complete and verify new name appears
+    await expect(layersPanel.getByText('test name')).toBeVisible();
+    await expect(layersPanel.getByText(layerName)).not.toBeVisible();
+
+    // Reset: rename back to original name
+    const renamedText = layersPanel.getByText('test name');
+    const renamedItem = renamedText.locator(
+      'xpath=ancestor::div[contains(@class, "jp-gis-layerItem")]',
+    );
+    await renamedText.click();
+    await page.waitForTimeout(1000);
+    await expect(renamedItem).toHaveClass(/jp-mod-selected/);
+    await renamedText.press('F2');
+
+    // Wait for textbox again
+    const resetTextbox = layersPanel.getByRole('textbox');
+    await expect(resetTextbox).toBeVisible();
+    await expect(resetTextbox).toBeFocused();
+
+    // Enter original name
+    await resetTextbox.fill(layerName);
+    await resetTextbox.press('Enter');
+
+    // Verify original name is restored
+    await expect(layersPanel.getByText(layerName)).toBeVisible();
+    await expect(layersPanel.getByText('test name')).not.toBeVisible();
   });
 
   test('pressing F2 should start rename for group', async ({ page }) => {
@@ -173,7 +195,7 @@ test.describe('context menu', () => {
       .getByText('level 1 group')
       .click({ button: 'right' });
 
-    await page.getByLabel('Layers', { exact: true }).press('Escape');
+    await page.keyboard.press('Escape');
     await page.getByText('level 1 group').press('F2');
     await page.getByRole('textbox').fill('test name');
     await page.getByRole('textbox').press('Enter');
@@ -187,7 +209,7 @@ test.describe('context menu', () => {
       .getByText('test name')
       .click({ button: 'right' });
 
-    await page.getByLabel('Layers', { exact: true }).press('Escape');
+    await page.keyboard.press('Escape');
     await page.getByText('test name').press('F2');
     await page.getByRole('textbox').fill('level 1 group');
     await page.getByRole('textbox').press('Enter');
@@ -203,7 +225,7 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByText('Move Selected Layers to Group').hover();
+    await page.getByText('Move Selection to Group').hover();
 
     await page.getByText('level 2 group').click();
     await page.getByText('level 1 group').click();

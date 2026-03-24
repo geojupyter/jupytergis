@@ -1,6 +1,7 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
 } from '@jupytergis/schema';
@@ -9,8 +10,8 @@ import * as React from 'react';
 
 import { deepCopy } from '@/src/tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
-import { LayerPropertiesForm } from './objectform/layer';
-import { SourcePropertiesForm } from './objectform/source';
+import type { ILayerProps } from './objectform/layer/layerform';
+import type { ISourceFormProps } from './objectform/source/sourceform';
 
 export interface IEditFormProps {
   /**
@@ -27,103 +28,124 @@ export interface IEditFormProps {
   model: IJupyterGISModel;
 }
 
+function syncObjectProperties(
+  model: IJupyterGISModel,
+  id: string | undefined,
+  properties: IDict,
+): void {
+  if (!id) {
+    return;
+  }
+  model.sharedModel.updateObjectParameters(id, properties);
+}
+
 /**
  * Form for editing a source, a layer or both at the same time
  */
-export class EditForm extends React.Component<IEditFormProps, any> {
-  async syncObjectProperties(
-    id: string | undefined,
-    properties: { [key: string]: any },
-  ) {
-    if (!id) {
-      return;
-    }
+export function EditForm(props: IEditFormProps): React.ReactElement | null {
+  const { layer: layerId, source: sourceId, formSchemaRegistry, model } = props;
 
-    this.props.model.sharedModel.updateObjectParameters(id, properties);
+  const sourceFormChangedSignalRef = React.useRef<Signal<
+    object,
+    IDict<any>
+  > | null>(null);
+  if (!sourceFormChangedSignalRef.current) {
+    sourceFormChangedSignalRef.current = new Signal<object, IDict<any>>({});
+  }
+  const sourceFormChangedSignal = sourceFormChangedSignalRef.current;
+
+  let layer: IJGISLayer | undefined;
+  let LayerForm: React.ComponentType<ILayerProps> | undefined;
+  let layerData: IDict | undefined;
+  let layerSchema: IDict | undefined;
+
+  if (layerId) {
+    layer = model.getLayer(layerId);
+    if (!layer) {
+      return null;
+    }
+    LayerForm = getLayerTypeForm(layer.type || 'RasterLayer');
+    layerData = deepCopy(layer.parameters || {});
+    layerSchema = deepCopy(formSchemaRegistry.getSchemas().get(layer.type));
+    if (!layerSchema) {
+      console.error(`Cannot find schema for ${layer.type}`);
+      return null;
+    }
+  } else {
+    layer = undefined;
+    LayerForm = undefined;
+    layerData = undefined;
+    layerSchema = undefined;
   }
 
-  render() {
-    let layerSchema: IDict | undefined = undefined;
-    let LayerForm: typeof LayerPropertiesForm | undefined = undefined;
-    let layerData: IDict | undefined = undefined;
-    if (this.props.layer) {
-      const layer = this.props.model.getLayer(this.props.layer);
-      if (!layer) {
-        return;
-      }
+  let source: IJGISSource | undefined;
+  let SourceForm: React.ComponentType<ISourceFormProps> | undefined;
+  let sourceData: IDict | undefined;
+  let sourceSchema: IDict | undefined;
 
-      LayerForm = getLayerTypeForm(layer?.type || 'RasterLayer');
-      layerData = deepCopy(layer?.parameters || {});
-      layerSchema = deepCopy(
-        this.props.formSchemaRegistry.getSchemas().get(layer.type),
-      );
+  if (sourceId) {
+    source = model.getSource(sourceId);
 
-      if (!layerSchema) {
-        console.error(`Cannot find schema for ${layer.type}`);
-        return;
-      }
+    if (!source) {
+      return null;
     }
 
-    let sourceSchema: IDict | undefined = undefined;
-    let SourceForm: typeof SourcePropertiesForm | undefined = undefined;
-    let sourceData: IDict | undefined = undefined;
-    let source: IJGISSource | undefined = undefined;
-    if (this.props.source) {
-      source = this.props.model.getSource(this.props.source);
-      if (!source) {
-        return;
-      }
+    SourceForm = getSourceTypeForm(source.type || 'RasterSource');
+    sourceData = deepCopy(source.parameters || {});
+    sourceSchema = deepCopy(formSchemaRegistry.getSchemas().get(source.type));
 
-      SourceForm = getSourceTypeForm(source?.type || 'RasterSource');
-      sourceData = deepCopy(source?.parameters || {});
-      sourceSchema = deepCopy(
-        this.props.formSchemaRegistry.getSchemas().get(source.type),
-      );
+    if (!sourceSchema) {
+      console.error(`Cannot find schema for ${source.type}`);
 
-      if (!sourceSchema) {
-        console.error(`Cannot find schema for ${source.type}`);
-        return;
-      }
+      return null;
     }
-
-    return (
-      <div>
-        {this.props.layer && LayerForm && (
-          <div>
-            <h3 style={{ paddingLeft: '5px' }}>Layer Properties</h3>
-            <LayerForm
-              formContext="update"
-              sourceType={source?.type || 'RasterSource'}
-              model={this.props.model}
-              filePath={this.props.model.filePath}
-              schema={layerSchema}
-              sourceData={layerData}
-              syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(this.props.layer, properties);
-              }}
-            />
-          </div>
-        )}
-        {this.props.source && SourceForm && (
-          <div>
-            <h3 style={{ paddingLeft: '5px' }}>Source Properties</h3>
-            <SourceForm
-              formContext="update"
-              model={this.props.model}
-              filePath={this.props.model.filePath}
-              schema={sourceSchema}
-              sourceData={sourceData}
-              syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(this.props.source, properties);
-              }}
-              formChangedSignal={this.sourceFormChangedSignal}
-              sourceType={source?.type || 'RasterSource'}
-            />
-          </div>
-        )}
-      </div>
-    );
+  } else {
+    source = undefined;
+    SourceForm = undefined;
+    sourceData = undefined;
+    sourceSchema = undefined;
   }
-  private sourceFormChangedSignal: Signal<React.Component<any>, IDict<any>> =
-    new Signal(this);
+
+  return (
+    <div>
+      {layerId && LayerForm && layerSchema && layerData !== undefined && (
+        <div>
+          <h3 style={{ paddingLeft: '5px' }}>Layer Properties</h3>
+          <LayerForm
+            key={`${layerId}-${source?.type}`}
+            formContext="update"
+            sourceType={source?.type || 'RasterSource'}
+            model={model}
+            filePath={model.filePath}
+            schema={layerSchema}
+            sourceData={layerData}
+            syncData={(properties: IDict) => {
+              syncObjectProperties(model, layerId, properties);
+            }}
+            formSchemaRegistry={formSchemaRegistry}
+          />
+        </div>
+      )}
+
+      {sourceId && SourceForm && sourceSchema && sourceData !== undefined && (
+        <div>
+          <h3 style={{ paddingLeft: '5px' }}>Source Properties</h3>
+          <SourceForm
+            key={`${sourceId}-${layer?.type}`}
+            formContext="update"
+            model={model}
+            filePath={model.filePath}
+            schema={sourceSchema}
+            sourceData={sourceData}
+            syncData={(properties: IDict) => {
+              syncObjectProperties(model, sourceId, properties);
+            }}
+            formChangedSignal={sourceFormChangedSignal}
+            sourceType={source?.type || 'RasterSource'}
+            formSchemaRegistry={formSchemaRegistry}
+          />
+        </div>
+      )}
+    </div>
+  );
 }

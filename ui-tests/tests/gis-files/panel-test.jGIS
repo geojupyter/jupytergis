@@ -28,8 +28,7 @@
       "parameters": {
         "color": "#e66100",
         "opacity": 0.6,
-        "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
-        "type": "line"
+        "source": "7d082e75-69d5-447a-82d8-b05cca5945ba"
       },
       "type": "VectorLayer",
       "visible": true

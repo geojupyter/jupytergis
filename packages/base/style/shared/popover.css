@@ -26,6 +26,7 @@
   box-shadow: 0 4px 6px
     color-mix(in srgb, var(--jp-ui-font-color0), transparent 90%);
   z-index: 50;
+  border: 1px solid var(--jp-border-color0);
 }
 
 .jgis-popover-content[data-state='open'] {

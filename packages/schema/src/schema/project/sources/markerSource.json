@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "description": "MarkerSource",
+  "title": "IMarkerSource",
+  "required": ["feature"],
+  "additionalProperties": false,
+  "properties": {
+    "color": {
+      "type": "string",
+      "description": "Color of the marker icon (hex, rgb, rgba, or named color)",
+      "default": ""
+    },
+    "feature": {
+      "type": "object",
+      "description": "Info for the marker",
+      "required": ["coords"],
+      "properties": {
+        "coords": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          },
+          "default": [0, 0]
+        }
+      },
+      "default": { "coords": [0, 0] }
+    }
+  }
+}

@@ -1,14 +1,16 @@
 <p align="center"><img width="100" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
 <h1 align="center">JupyterGIS - A JupyterLab extension for collaborative GIS</h1>
 
-[![lite-badge]][lite] [![docs-badge]][docs]
+[![lite-badge]][lite] [![docs-badge]][docs] [![jupytergis-badge]][marketplace]
 
 [lite-badge]: https://jupyterlite.rtfd.io/en/latest/_static/badge.svg
 [lite]: https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/
 [docs-badge]: https://readthedocs.org/projects/jupytergis/badge/?version=latest
 [docs]: https://jupytergis.readthedocs.io
+[jupytergis-badge]: https://labextensions.dev/api/badge/jupytergis?metric=downloads&leftColor=%23555&rightColor=%23F37620&style=flat
+[marketplace]: https://labextensions.dev/extensions/jupytergis
 
-![jupytergis](https://github.com/geojupyter/jupytergis/blob/main/jupytergis.png)
+![jupytergis](https://raw.githubusercontent.com/geojupyter/jupytergis/main/jupytergis.png)
 
 ## Features
 
@@ -16,11 +18,11 @@
 - **QGIS File Support**: Load, visualize, and manipulate QGIS project files (`.qgs`, `.qgz`), and other GIS data formats.
 - **Interactive Maps**: Render interactive maps and geospatial visualizations within Jupyter notebooks using the JupyterGIS Python API.
 
-## [🪄 Try JupyterGIS now! ✨](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS)
+## [🪄 Try JupyterGIS now in Notebook.link! ✨](https://notebook.link/github/geojupyter/jupytergis/lab/?path=examples%2Ffrance_hiking.jGIS)
 
-This demo runs a JupyterLab instance entirely in your browser with WebAssembly! 🤯
+This demo runs a JupyterLite instance entirely in your browser with WebAssembly! 🤯
 
-Powered by [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest).
+Powered by [Notebook.link](https://notebook.link) and [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest).
 Please note that [JupyterGIS' real-time collaboration features are not yet supported in JupyterLite](https://jupyterlite.readthedocs.io/en/latest/howto/configure/rtc.html).
 
 ## Installation
@@ -62,6 +64,28 @@ docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 
 Replace `latest` with a specific version number if you prefer.
 Docker build source is at <https://github.com/geojupyter/jupytergis-docker>.
+
+## Deploying JupyterGIS with JupyterLite
+
+You can run JupyterGIS entirely in the browser using **JupyterLite**.
+
+1. **Create a repository** using the [xeus-lite-demo](https://github.com/jupyterlite/xeus-lite-demo) template.
+2. In your fork, edit `environment.yml` and add:
+   ```yaml
+   - jupytergis-lite
+   ```
+3. **Add your data and jGIS files** under the `content/` directory of your repository.
+   These files will be available directly inside your Lite deployment.
+4. **Enable GitHub Pages** under _Settings → Pages_ for your repository.
+5. Once the build completes, your Lite deployment will be live at:
+   ```
+   https://<username>.github.io/<repo-name>/
+   ```
+
+This provides a lightweight, fully browser-based JupyterGIS environment — no server required.
+
+> [!IMPORTANT]
+> Collaboration is **not yet supported** in JupyterLite static deployments.
 
 ## Documentation
 

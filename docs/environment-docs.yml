@@ -3,14 +3,15 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python=3.12
+  - python
 
   # Build docs & JupyterLite
   - jupyterlite-core
   - jupyterlite-xeus
   - jupyterlite-sphinx
+  - jupytext =1.19.0
   - sphinx
-  - sphinx-tabs
+  - sphinx-inline-tabs
   - pydata-sphinx-theme
   - sphinx-autodoc-typehints
   - sphinx-exercise
@@ -18,7 +19,7 @@ dependencies:
   - sphinxcontrib-mermaid
   - myst-parser
   - xeus-python # TODO: Do we need this?
-
+  - specta
   - pip
   - pip:
       # Install JupyterGIS so we can autodoc.

@@ -3,8 +3,8 @@ import {
   IJupyterGISClientState,
   IJupyterGISModel,
 } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import * as React from 'react';
-import { v4 as uuid } from 'uuid';
 
 import { EditForm } from '@/src/formbuilder/editform';
 
@@ -28,7 +28,7 @@ export class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     super(props);
     this.state = {
       clientId: props.model.getClientId(),
-      id: uuid(),
+      id: UUID.uuid4(),
       model: props.model,
       selectedObject: props.selectedObject,
       setSelectedObject: props.setSelectedObject,

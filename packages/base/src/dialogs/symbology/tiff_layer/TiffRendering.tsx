@@ -6,10 +6,10 @@ import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 
 const TiffRendering: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  cancel,
   layerId,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
   const [selectedRenderType, setSelectedRenderType] = useState<string>();
@@ -36,10 +36,10 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
         RenderComponent = (
           <SingleBandPseudoColor
             model={model}
-            state={state}
             okSignalPromise={okSignalPromise}
-            cancel={cancel}
             layerId={layerId}
+            isStorySegmentOverride={isStorySegmentOverride}
+            segmentId={segmentId}
           />
         );
         break;
@@ -47,10 +47,10 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
         RenderComponent = (
           <MultibandColor
             model={model}
-            state={state}
             okSignalPromise={okSignalPromise}
-            cancel={cancel}
             layerId={layerId}
+            isStorySegmentOverride={isStorySegmentOverride}
+            segmentId={segmentId}
           />
         );
         break;

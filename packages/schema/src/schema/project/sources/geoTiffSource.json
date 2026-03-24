@@ -11,25 +11,32 @@
         "type": "object",
         "properties": {
           "url": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "min": {
-            "type": "number"
+            "type": "number",
+            "default": null
           },
           "max": {
-            "type": "number"
+            "type": "number",
+            "default": null
           }
-        }
+        },
+        "default": {}
       },
       "minItems": 1,
-      "description": "URLs"
+      "description": "URLs",
+      "default": []
     },
     "normalize": {
       "type": "boolean",
+      "description": "Enable to normalize values between 0 and 1 and displayed as RGB values; disable to keep raw band values",
       "default": true
     },
     "wrapX": {
       "type": "boolean",
+      "description": "Wrap the map horizontally?",
       "default": false
     },
     "interpolate": {

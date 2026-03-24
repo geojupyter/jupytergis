@@ -7,8 +7,7 @@
   min-height: 3em;
 }
 
-.jp-gis-layerItem,
-.jp-gis-source {
+.jp-gis-layerItem {
   padding: 2px 0 2px 12px;
 }
 
@@ -37,85 +36,71 @@
   transform: rotate(0deg);
 }
 
-.jp-gis-layer,
-.jp-gis-source {
+.jp-gis-layer {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  /* align-items: center; */
   color: var(--jp-ui-font-color1);
 }
 
 .jp-gis-layer.jp-mod-selected,
-.jp-gis-source.jp-mod-selected,
 .jp-gis-layerGroupHeader.jp-mod-selected {
   color: var(--jp-ui-inverse-font-color1);
   background: var(--jp-brand-color1);
 }
 
-.jp-gis-layer:hover:not(.jp-mod-selected),
-.jp-gis-source:hover:not(.jp-mod-selected) {
+.jp-gis-layer:hover:not(.jp-mod-selected) {
   cursor: pointer;
   background: var(--jp-layout-color2);
 }
 
 .jp-gis-layer.jp-mod-selected .jp-icon-selectable,
-.jp-gis-source.jp-mod-selected .jp-icon-selectable,
 .jp-gis-layerGroupHeader.jp-mod-selected .jp-icon-selectable {
   fill: var(--jp-ui-inverse-font-color1);
 }
-.jp-gis-layer.jp-mod-selected path,
-.jp-gis-source.jp-mod-selected path {
+.jp-gis-layer.jp-mod-selected path {
   fill: var(--jp-ui-inverse-font-color1);
 }
-.jp-gis-layer.jp-mod-selected button:hover,
-.jp-gis-source.jp-mod-selected button:hover {
+.jp-gis-layer.jp-mod-selected button:hover {
   background: none;
 }
 
-.jp-gis-layer button,
-.jp-gis-source button {
+.jp-gis-layer button {
   min-height: unset;
   min-width: unset;
   padding: unset;
   margin-right: 4px;
 }
 
-.jp-gis-layer.jp-mod-selected button:hover .jp-icon-selectable,
-.jp-gis-source.jp-mod-selected button:hover .jp-icon-selectable {
+.jp-gis-layer.jp-mod-selected button:hover .jp-icon-selectable {
   fill: var(--jp-ui-font-color1);
 }
 
-.jp-gis-layerIcon,
-.jp-gis-sourceIcon {
+.jp-gis-layerIcon {
   display: flex;
   align-items: center;
 }
 
-.jp-gis-layerIcon > svg,
-.jp-gis-sourceIcon > svg {
+.jp-gis-layerIcon > svg {
   height: 16px;
   width: 16px;
 }
 
-.jp-gis-layerTitle,
-.jp-gis-sourceTitle {
+.jp-gis-layerTitle {
   display: flex;
   flex-grow: 1;
   align-items: center;
 }
 
-.jp-gis-layerText:focus,
-.jp-gis-sourceText:focus {
+.jp-gis-layerText:focus {
   outline: none;
 }
 
-.jp-gis-layerTitle .jp-gis-layerIcon,
-.jp-gis-sourceTitle .jp-gis-sourceIcon {
+.jp-gis-layerTitle .jp-gis-layerIcon {
   padding-right: 4px;
 }
 
-.jp-gis-layerIcon.jp-gis-mod-hidden path,
-.jp-gis-sourceIcon.jp-gis-mod-hidden path {
+.jp-gis-layerIcon.jp-gis-mod-hidden path {
   fill: var(--jp-warn-color0);
 }
 
@@ -134,21 +119,31 @@
   border: 1px solid var(--jp-brand-color1);
 }
 
-.jp-gis-layerText,
-.jp-gis-sourceText {
+.jp-gis-layerText {
   padding: 3px 0;
   cursor: pointer;
+  flex-grow: 1;
+}
+
+.jp-gis-layerSlideNumber {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  margin-right: 4px;
+  background-color: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  border-radius: 9999px;
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  line-height: 1;
 }
 
 li .lm-Menu-itemLabel {
   text-transform: capitalize;
-}
-
-.jp-gis-sourceInfo {
-  font-size: var(--jp-ui-font-size0);
-  font-style: italic;
-  padding-left: 5px;
-  color: var(--jp-ui-font-color2);
 }
 
 #jp-drag-indicator {

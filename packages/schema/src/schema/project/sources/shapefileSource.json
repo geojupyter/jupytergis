@@ -7,7 +7,8 @@
   "properties": {
     "path": {
       "type": "string",
-      "description": "The path to the shapefile (.shp, .zip, or folder URL)."
+      "description": "The path to the shapefile (.shp, .zip, or folder URL).",
+      "default": ""
     },
     "attribution": {
       "type": "string",

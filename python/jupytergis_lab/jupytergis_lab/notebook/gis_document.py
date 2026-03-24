@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 import requests
 
@@ -28,8 +28,10 @@ from jupytergis_core.schema import (
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
+    IMarkerSource,
     IVideoSource,
     IWebGlLayer,
+    IStorySegmentLayer,
     LayerType,
     SourceType,
 )
@@ -53,7 +55,7 @@ class GISDocument(CommWidget):
 
     def __init__(
         self,
-        path: Optional[str | Path] = None,
+        path: str | Path | None = None,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
@@ -74,7 +76,17 @@ class GISDocument(CommWidget):
 
         self.ydoc["layers"] = self._layers = Map()
         self.ydoc["sources"] = self._sources = Map()
-        self.ydoc["options"] = self._options = Map()
+        self.ydoc["options"] = self._options = Map(
+            {
+                "latitude": 0,
+                "longitude": 0,
+                "zoom": 0,
+                "bearing": 0,
+                "pitch": 0,
+                "projection": "EPSG:3857",
+                "storyMapPresentationMode": False,
+            }
+        )
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
 
@@ -178,7 +190,7 @@ class GISDocument(CommWidget):
             "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity},
+            "parameters": {"source": source_id, "opacity": opacity, "color": {}},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -195,7 +207,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, float, float] | None = None,
+        value: str | float | float | None = None,
     ):
         """
         Add a Vector Tile Layer to the document.
@@ -252,7 +264,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | int | float | None = None,
         color_expr=None,
     ):
         """
@@ -290,6 +302,9 @@ class GISDocument(CommWidget):
         if data is not None:
             parameters["data"] = data
 
+        if color_expr is None:
+            color_expr = {}
+
         source = {
             "type": SourceType.GeoJSONSource,
             "name": f"{name} Source",
@@ -306,6 +321,10 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "color": color_expr,
                 "opacity": opacity,
+                "symbologyState": {
+                    "renderType": "Single Symbol",
+                    "mode": "equal interval",
+                },
             },
             "filters": {
                 "appliedFilters": [
@@ -450,8 +469,8 @@ class GISDocument(CommWidget):
         """
         Add a hillshade layer
 
-        :param str url: URL of the hillshade layer
-        :param str name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
+        :param url: URL of the hillshade layer
+        :param name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
         :param attribution: The attribution.
         """
         if urlParameters is None:
@@ -537,12 +556,12 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "color": gradient,
                 "opacity": opacity,
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
+                "symbologyState": {"renderType": "Heatmap"},
             },
         }
 
@@ -552,12 +571,11 @@ class GISDocument(CommWidget):
         self,
         path: str,
         name: str = "GeoParquetLayer",
-        type: "circle" | "fill" | "line" = "line",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | int | float | None = None,
         color_expr=None,
     ):
         """
@@ -565,7 +583,6 @@ class GISDocument(CommWidget):
 
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
-        :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
         :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
         :param feature: The feature to be filtered on
@@ -588,7 +605,6 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "opacity": opacity,
                 "color": color_expr,
             },
@@ -778,9 +794,9 @@ class GISDocument(CommWidget):
         """
         Create a color expression used to style the layer
 
-        :param Dict color_stops: Dictionary of stop values to [r, g, b, a] colors
-        :param float band: The band to be colored, defaults to 1.0
-        :param str interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
+        :param color_stops: Dictionary of stop values to [r, g, b, a] colors
+        :param band: The band to be colored, defaults to 1.0
+        :param interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
         """
 
         if interpolation_type not in ["linear", "discrete", "exact"]:
@@ -828,7 +844,7 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, int, float],
+        value: str | int | float,
     ):
         """
         Add a filter to a layer
@@ -874,7 +890,7 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, int, float],
+        value: str | int | float,
     ):
         """
         Update a filter applied to a layer
@@ -917,7 +933,7 @@ class GISDocument(CommWidget):
         """
         Clear filters on a layer
 
-        :param str layer_id: The ID of the layer to clear filters from
+        :param layer_id: The ID of the layer to clear filters from
         """
         layer = self._layers.get(layer_id)
 
@@ -994,15 +1010,16 @@ class JGISLayer(BaseModel):
     name: str
     type: LayerType
     visible: bool
-    parameters: Union[
-        IRasterLayer,
-        IVectorLayer,
-        IVectorTileLayer,
-        IHillshadeLayer,
-        IImageLayer,
-        IWebGlLayer,
-        IHeatmapLayer,
-    ]
+    parameters: (
+        IRasterLayer
+        | IVectorLayer
+        | IVectorTileLayer
+        | IHillshadeLayer
+        | IImageLayer
+        | IWebGlLayer
+        | IHeatmapLayer
+        | IStorySegmentLayer
+    )
     _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
@@ -1017,18 +1034,19 @@ class JGISSource(BaseModel):
 
     name: str
     type: SourceType
-    parameters: Union[
-        IRasterSource,
-        IVectorTileSource,
-        IGeoJSONSource,
-        IImageSource,
-        IVideoSource,
-        IGeoTiffSource,
-        IRasterDemSource,
-        IGeoParquetSource,
-        IGeoPackageVectorSource,
-        IGeoPackageRasterSource,
-    ]
+    parameters: (
+        IRasterSource
+        | IVectorTileSource
+        | IMarkerSource
+        | IGeoJSONSource
+        | IImageSource
+        | IVideoSource
+        | IGeoTiffSource
+        | IRasterDemSource
+        | IGeoParquetSource
+        | IGeoPackageVectorSource
+        | IGeoPackageRasterSource
+    )
     _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
@@ -1063,10 +1081,9 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         filters = data.get("filters", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
-            args = {}
             params = data["parameters"]
-            for field in Model.__fields__:
-                args[field] = params.get(field, None)
+            # Only pass params that are present so Pydantic uses schema defaults for the rest
+            args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
             return JGISLayer(
                 parent=parent,
@@ -1086,10 +1103,9 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         name: str = data.get("name", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
-            args = {}
             params = data["parameters"]
-            for field in Model.__fields__:
-                args[field] = params.get(field, None)
+            # Only pass params that are present so Pydantic uses schema defaults for the rest
+            args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
             return JGISSource(
                 parent=parent, name=name, type=object_type, parameters=obj_params
@@ -1107,8 +1123,10 @@ OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
+OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
+OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)

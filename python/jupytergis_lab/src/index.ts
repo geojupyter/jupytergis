@@ -49,7 +49,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator?: ITranslator,
     completionProviderManager?: ICompletionProviderManager,
   ): void => {
-    console.log('jupytergis:lab:main-menu is activated!');
+    console.debug('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
     const isEnabled = (): boolean => {
       return (
@@ -57,6 +57,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
         tracker.currentWidget === app.shell.currentWidget
       );
     };
+
+    const GIS_ITEM = '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
+    const GIS_LAYER_ITEM =
+      '.jp-gis-layerItem:not(.jp-gis-layerGroup):not(.jp-gis-storySegmentLayer)';
 
     createDefaultLayerRegistry(layerBrowserRegistry);
     const stateDbManager = GlobalStateDbManager.getInstance();
@@ -72,47 +76,41 @@ const plugin: JupyterFrontEndPlugin<void> = {
       completionProviderManager,
     );
 
-    app.contextMenu.addItem({
-      selector: '.jp-gis-source.jp-gis-sourceUnused',
-      rank: 1,
-      command: CommandIDs.removeSource,
-    });
-
-    app.contextMenu.addItem({
-      selector: '.jp-gis-source',
-      rank: 1,
-      command: CommandIDs.renameSource,
-    });
-
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.symbology,
-      selector: '.jp-gis-layerItem',
+      selector: GIS_LAYER_ITEM,
       rank: 1,
     });
 
     // Separator
     app.contextMenu.addItem({
       type: 'separator',
-      selector: '.jp-gis-layerPanel',
+      selector: GIS_ITEM,
       rank: 1,
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.removeLayer,
-      selector: '.jp-gis-layerItem',
+      command: CommandIDs.removeSelected,
+      selector: GIS_ITEM,
       rank: 2,
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.renameLayer,
-      selector: '.jp-gis-layerItem',
+      command: CommandIDs.renameSelected,
+      selector: GIS_ITEM,
+      rank: 2,
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.duplicateSelected,
+      selector: GIS_ITEM,
       rank: 2,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.zoomToLayer,
-      selector: '.jp-gis-layerItem',
+      selector: GIS_ITEM,
       rank: 2,
     });
 
@@ -128,7 +126,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // Add the Download submenu to the context menu
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerItem',
+      selector: GIS_LAYER_ITEM,
       rank: 2,
       submenu: downloadSubmenu,
     });
@@ -148,22 +146,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerItem',
+      selector: GIS_LAYER_ITEM,
       rank: 2,
       submenu: processingSubmenu,
     });
 
-    const moveLayerSubmenu = new Menu({ commands: app.commands });
-    moveLayerSubmenu.title.label = translator
+    const moveSelectedSubmenu = new Menu({ commands: app.commands });
+    moveSelectedSubmenu.title.label = translator
       .load('jupyterlab')
-      .__('Move Selected Layers to Group');
-    moveLayerSubmenu.id = 'jp-gis-contextmenu-movelayer';
+      .__('Move Selection to Group');
+    moveSelectedSubmenu.id = 'jp-gis-contextmenu-movelayer';
 
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerItem',
+      selector: GIS_ITEM,
       rank: 2,
-      submenu: moveLayerSubmenu,
+      submenu: moveSelectedSubmenu,
     });
 
     app.contextMenu.opened.connect(() =>
@@ -171,13 +169,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     );
 
     app.contextMenu.addItem({
-      command: CommandIDs.removeGroup,
+      command: CommandIDs.removeSelected,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2,
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.renameGroup,
+      command: CommandIDs.renameSelected,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2,
     });
@@ -207,6 +205,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       selector: '.jp-gis-layerPanel',
       rank: 3,
       submenu: newLayerSubMenu,
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-gis-layerPanel',
+      command: CommandIDs.addStorySegment,
+      rank: 4,
     });
 
     if (mainMenu) {
@@ -285,19 +289,19 @@ function buildGroupsMenu(
   }
 
   submenu.addItem({
-    command: CommandIDs.moveLayersToGroup,
+    command: CommandIDs.moveSelectedToGroup,
     args: { label: '' },
   });
 
   groupNames.forEach(name => {
     submenu.addItem({
-      command: CommandIDs.moveLayersToGroup,
+      command: CommandIDs.moveSelectedToGroup,
       args: { label: name },
     });
   });
 
   submenu.addItem({
-    command: CommandIDs.moveLayerToNewGroup,
+    command: CommandIDs.moveSelectedToNewGroup,
   });
 }
 

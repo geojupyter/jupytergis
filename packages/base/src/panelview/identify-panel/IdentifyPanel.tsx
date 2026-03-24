@@ -1,0 +1,185 @@
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  IDict,
+  IJupyterGISClientState,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
+import { User } from '@jupyterlab/services';
+import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
+import React, { useEffect, useRef, useState } from 'react';
+
+interface IIdentifyComponentProps {
+  model: IJupyterGISModel;
+}
+
+export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
+  model,
+}) => {
+  const [features, setFeatures] = useState<IDict<any>>();
+  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
+    0: true,
+  });
+  const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
+
+  const featuresRef = useRef(features);
+
+  // Reset state values when current widget changes
+
+  useEffect(() => {
+    featuresRef.current = features;
+  }, [features]);
+
+  useEffect(() => {
+    const handleClientStateChanged = (
+      sender: IJupyterGISModel,
+      clients: Map<number, IJupyterGISClientState>,
+    ) => {
+      const remoteUserId = model?.localState?.remoteUser;
+
+      // If following a collaborator
+      if (remoteUserId) {
+        const remoteState = clients.get(remoteUserId);
+        if (remoteState) {
+          if (remoteState.user?.username !== remoteUser?.username) {
+            setRemoteUser(remoteState.user);
+          }
+
+          setFeatures(remoteState.identifiedFeatures?.value ?? {});
+        }
+        return;
+      }
+
+      // If not following a collaborator
+      const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
+
+      if (!identifiedFeatures) {
+        setFeatures({});
+        return;
+      }
+
+      if (
+        model.currentMode === 'identifying' &&
+        featuresRef.current !== identifiedFeatures
+      ) {
+        setFeatures(identifiedFeatures);
+      }
+    };
+
+    model?.clientStateChanged.connect(handleClientStateChanged);
+
+    return () => {
+      model?.clientStateChanged.disconnect(handleClientStateChanged);
+    };
+  }, [model]);
+
+  const highlightFeatureOnMap = (feature: any) => {
+    model?.highlightFeatureSignal?.emit(feature);
+
+    const geometry = feature.geometry || feature._geometry;
+    model?.flyToGeometrySignal?.emit(geometry);
+  };
+
+  const toggleFeatureVisibility = (index: number) => {
+    setVisibleFeatures(prev => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const getFeatureNameOrId = (feature: any, featureIndex: number) => {
+    for (const key of Object.keys(feature)) {
+      const lowerCase = key.toLowerCase();
+
+      if ((lowerCase.includes('name') || lowerCase === 'id') && feature[key]) {
+        return feature[key];
+      }
+    }
+
+    return `Feature ${featureIndex + 1}`;
+  };
+
+  return (
+    <div
+      className="jgis-identify-wrapper"
+      style={{
+        border: model?.localState?.remoteUser
+          ? `solid 3px ${remoteUser?.color}`
+          : 'unset',
+      }}
+    >
+      {!Object.keys(features ?? {}).length && (
+        <div style={{ textAlign: 'center' }}>
+          Please select a layer from the layer list, then "i" from the toolbar
+          to start identifying features.
+        </div>
+      )}
+      {features &&
+        Object.values(features).map((feature, featureIndex) => (
+          <div key={featureIndex} className="jgis-identify-grid-item">
+            <div className="jgis-identify-grid-item-header">
+              <span onClick={() => toggleFeatureVisibility(featureIndex)}>
+                <LabIcon.resolveReact
+                  icon={caretDownIcon}
+                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
+                  tag={'span'}
+                />
+                <span>{getFeatureNameOrId(feature, featureIndex)}</span>
+              </span>
+
+              {(() => {
+                const isRasterFeature =
+                  !feature.geometry &&
+                  !feature._geometry &&
+                  typeof feature?.x !== 'number' &&
+                  typeof feature?.y !== 'number';
+
+                return (
+                  <button
+                    className="jgis-highlight-button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      highlightFeatureOnMap(feature);
+                    }}
+                    title={
+                      isRasterFeature
+                        ? 'Highlight not available for raster features'
+                        : 'Highlight feature on map'
+                    }
+                    disabled={isRasterFeature}
+                  >
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                  </button>
+                );
+              })()}
+            </div>
+            {visibleFeatures[featureIndex] && (
+              <>
+                {Object.entries(feature)
+                  .filter(
+                    ([key, value]) =>
+                      typeof value !== 'object' || value === null,
+                  )
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                  .map(([key, value]) => (
+                    <div key={key} className="jgis-identify-grid-body">
+                      <strong>{key}:</strong>
+                      {typeof value === 'string' &&
+                      /<\/?[a-z][\s\S]*>/i.test(value) ? (
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: `${value}`,
+                          }}
+                        />
+                      ) : (
+                        <span>{String(value)}</span>
+                      )}
+                    </div>
+                  ))}
+              </>
+            )}
+          </div>
+        ))}
+    </div>
+  );
+};

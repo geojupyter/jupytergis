@@ -1,6 +1,6 @@
 import {
   IJGISLayerBrowserRegistry,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
 } from '@jupytergis/schema';
 
 /**
@@ -10,10 +10,8 @@ import {
  * @class JupyterGISLayerBrowserRegistry
  * @implements IJGISLayerBrowserRegistry
  */
-export class JupyterGISLayerBrowserRegistry
-  implements IJGISLayerBrowserRegistry
-{
-  private _registry: IRasterLayerGalleryEntry[];
+export class JupyterGISLayerBrowserRegistry implements IJGISLayerBrowserRegistry {
+  private _registry: ILayerGalleryEntry[];
 
   constructor() {
     this._registry = [];
@@ -24,7 +22,7 @@ export class JupyterGISLayerBrowserRegistry
    * Returns a copy of the internal registry array to prevent external modifications.
    * @returns The current state of the registry layers.
    */
-  getRegistryLayers(): IRasterLayerGalleryEntry[] {
+  getRegistryLayers(): ILayerGalleryEntry[] {
     return [...this._registry];
   }
 
@@ -32,7 +30,7 @@ export class JupyterGISLayerBrowserRegistry
    * Adds a new raster layer gallery entry to the registry.
    * @param data - The raster layer gallery entry to add.
    */
-  addRegistryLayer(data: IRasterLayerGalleryEntry): void {
+  addRegistryLayer(data: ILayerGalleryEntry): void {
     this._registry.push(data);
   }
 

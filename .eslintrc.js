@@ -11,6 +11,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "import"],
   rules: {
+    "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/naming-convention": [
       "error",
       {
@@ -22,10 +23,16 @@ module.exports = {
         },
       },
     ],
-    "@typescript-eslint/no-unused-vars": ["warn", { args: "none" }],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        args: "none",
+        varsIgnorePattern: "^_$"
+      }
+    ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-namespace": "off",
-    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/quotes": [
       "error",
@@ -51,6 +58,7 @@ module.exports = {
       }
     ],
     "prefer-arrow-callback": "error",
+    "no-console": ["error", {"allow": ["error", "warn", "debug"]}],
     "no-duplicate-imports": "error",
   },
 };

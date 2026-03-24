@@ -1,0 +1,460 @@
+{
+  "__license__": "The MIT License (MIT) Copyright (c) 2015 Kristen M. Thyng Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in alL copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+
+  "ice": [
+    {
+      "index": 0.0,
+      "rgb": [3, 5, 18]
+    },
+    {
+      "index": 0.125,
+      "rgb": [33, 32, 65]
+    },
+    {
+      "index": 0.25,
+      "rgb": [56, 56, 116]
+    },
+    {
+      "index": 0.375,
+      "rgb": [62, 87, 163]
+    },
+    {
+      "index": 0.5,
+      "rgb": [66, 122, 183]
+    },
+    {
+      "index": 0.625,
+      "rgb": [88, 157, 195]
+    },
+    {
+      "index": 0.75,
+      "rgb": [122, 190, 208]
+    },
+    {
+      "index": 0.875,
+      "rgb": [176, 221, 225]
+    },
+    {
+      "index": 1.0,
+      "rgb": [234, 252, 253]
+    }
+  ],
+  "oxy": [
+    {
+      "index": 0.0,
+      "rgb": [63, 5, 5]
+    },
+    {
+      "index": 0.125,
+      "rgb": [118, 5, 15]
+    },
+    {
+      "index": 0.25,
+      "rgb": [91, 91, 90]
+    },
+    {
+      "index": 0.375,
+      "rgb": [122, 121, 121]
+    },
+    {
+      "index": 0.5,
+      "rgb": [154, 154, 153]
+    },
+    {
+      "index": 0.625,
+      "rgb": [190, 189, 188]
+    },
+    {
+      "index": 0.75,
+      "rgb": [229, 229, 228]
+    },
+    {
+      "index": 0.875,
+      "rgb": [232, 224, 50]
+    },
+    {
+      "index": 1.0,
+      "rgb": [220, 174, 25]
+    }
+  ],
+  "matter": [
+    {
+      "index": 0.0,
+      "rgb": [253, 237, 176]
+    },
+    {
+      "index": 0.125,
+      "rgb": [249, 192, 135]
+    },
+    {
+      "index": 0.25,
+      "rgb": [241, 148, 102]
+    },
+    {
+      "index": 0.375,
+      "rgb": [229, 105, 83]
+    },
+    {
+      "index": 0.5,
+      "rgb": [206, 67, 86]
+    },
+    {
+      "index": 0.625,
+      "rgb": [171, 41, 96]
+    },
+    {
+      "index": 0.75,
+      "rgb": [130, 27, 98]
+    },
+    {
+      "index": 0.875,
+      "rgb": [87, 22, 86]
+    },
+    {
+      "index": 1.0,
+      "rgb": [47, 15, 61]
+    }
+  ],
+  "amp": [
+    {
+      "index": 0.0,
+      "rgb": [241, 236, 236]
+    },
+    {
+      "index": 0.125,
+      "rgb": [226, 199, 190]
+    },
+    {
+      "index": 0.25,
+      "rgb": [215, 162, 144]
+    },
+    {
+      "index": 0.375,
+      "rgb": [204, 125, 99]
+    },
+    {
+      "index": 0.5,
+      "rgb": [191, 88, 58]
+    },
+    {
+      "index": 0.625,
+      "rgb": [174, 46, 36]
+    },
+    {
+      "index": 0.75,
+      "rgb": [142, 16, 40]
+    },
+    {
+      "index": 0.875,
+      "rgb": [100, 14, 35]
+    },
+    {
+      "index": 1.0,
+      "rgb": [60, 9, 17]
+    }
+  ],
+  "tempo": [
+    {
+      "index": 0.0,
+      "rgb": [254, 245, 244]
+    },
+    {
+      "index": 0.125,
+      "rgb": [210, 217, 198]
+    },
+    {
+      "index": 0.25,
+      "rgb": [161, 193, 161]
+    },
+    {
+      "index": 0.375,
+      "rgb": [105, 171, 137]
+    },
+    {
+      "index": 0.5,
+      "rgb": [42, 147, 127]
+    },
+    {
+      "index": 0.625,
+      "rgb": [17, 118, 118]
+    },
+    {
+      "index": 0.75,
+      "rgb": [26, 88, 103]
+    },
+    {
+      "index": 0.875,
+      "rgb": [26, 59, 84]
+    },
+    {
+      "index": 1.0,
+      "rgb": [20, 29, 67]
+    }
+  ],
+  "rain": [
+    {
+      "index": 0.0,
+      "rgb": [238, 237, 242]
+    },
+    {
+      "index": 0.125,
+      "rgb": [218, 203, 187]
+    },
+    {
+      "index": 0.25,
+      "rgb": [181, 178, 138]
+    },
+    {
+      "index": 0.375,
+      "rgb": [125, 160, 119]
+    },
+    {
+      "index": 0.5,
+      "rgb": [60, 142, 109]
+    },
+    {
+      "index": 0.625,
+      "rgb": [5, 116, 109]
+    },
+    {
+      "index": 0.75,
+      "rgb": [20, 86, 102]
+    },
+    {
+      "index": 0.875,
+      "rgb": [36, 56, 79]
+    },
+    {
+      "index": 1.0,
+      "rgb": [33, 26, 56]
+    }
+  ],
+  "topo": [
+    {
+      "index": 0.0,
+      "rgb": [39, 26, 44]
+    },
+    {
+      "index": 0.125,
+      "rgb": [64, 77, 139]
+    },
+    {
+      "index": 0.25,
+      "rgb": [72, 142, 157]
+    },
+    {
+      "index": 0.375,
+      "rgb": [121, 206, 162]
+    },
+    {
+      "index": 0.5,
+      "rgb": [13, 37, 19]
+    },
+    {
+      "index": 0.625,
+      "rgb": [59, 89, 38]
+    },
+    {
+      "index": 0.75,
+      "rgb": [144, 129, 63]
+    },
+    {
+      "index": 0.875,
+      "rgb": [210, 182, 118]
+    },
+    {
+      "index": 1.0,
+      "rgb": [248, 253, 228]
+    }
+  ],
+  "balance": [
+    {
+      "index": 0.0,
+      "rgb": [23, 28, 66]
+    },
+    {
+      "index": 0.125,
+      "rgb": [36, 72, 175]
+    },
+    {
+      "index": 0.25,
+      "rgb": [56, 135, 185]
+    },
+    {
+      "index": 0.375,
+      "rgb": [151, 185, 197]
+    },
+    {
+      "index": 0.5,
+      "rgb": [240, 236, 235]
+    },
+    {
+      "index": 0.625,
+      "rgb": [214, 161, 143]
+    },
+    {
+      "index": 0.75,
+      "rgb": [191, 87, 58]
+    },
+    {
+      "index": 0.875,
+      "rgb": [141, 15, 40]
+    },
+    {
+      "index": 1.0,
+      "rgb": [60, 9, 17]
+    }
+  ],
+  "delta": [
+    {
+      "index": 0.0,
+      "rgb": [16, 31, 63]
+    },
+    {
+      "index": 0.125,
+      "rgb": [28, 81, 156]
+    },
+    {
+      "index": 0.25,
+      "rgb": [51, 144, 169]
+    },
+    {
+      "index": 0.375,
+      "rgb": [151, 197, 190]
+    },
+    {
+      "index": 0.5,
+      "rgb": [254, 252, 203]
+    },
+    {
+      "index": 0.625,
+      "rgb": [200, 185, 67]
+    },
+    {
+      "index": 0.75,
+      "rgb": [93, 145, 12]
+    },
+    {
+      "index": 0.875,
+      "rgb": [11, 94, 44]
+    },
+    {
+      "index": 1.0,
+      "rgb": [23, 35, 18]
+    }
+  ],
+  "curl": [
+    {
+      "index": 0.0,
+      "rgb": [20, 29, 67]
+    },
+    {
+      "index": 0.125,
+      "rgb": [26, 89, 103]
+    },
+    {
+      "index": 0.25,
+      "rgb": [44, 148, 127]
+    },
+    {
+      "index": 0.375,
+      "rgb": [163, 194, 162]
+    },
+    {
+      "index": 0.5,
+      "rgb": [253, 245, 243]
+    },
+    {
+      "index": 0.625,
+      "rgb": [225, 166, 142]
+    },
+    {
+      "index": 0.75,
+      "rgb": [194, 88, 96]
+    },
+    {
+      "index": 0.875,
+      "rgb": [131, 31, 95]
+    },
+    {
+      "index": 1.0,
+      "rgb": [51, 13, 53]
+    }
+  ],
+  "diff": [
+    {
+      "index": 0.0,
+      "rgb": [7, 34, 63]
+    },
+    {
+      "index": 0.125,
+      "rgb": [49, 87, 113]
+    },
+    {
+      "index": 0.25,
+      "rgb": [116, 136, 151]
+    },
+    {
+      "index": 0.375,
+      "rgb": [184, 191, 197]
+    },
+    {
+      "index": 0.5,
+      "rgb": [245, 241, 239]
+    },
+    {
+      "index": 0.625,
+      "rgb": [193, 185, 166]
+    },
+    {
+      "index": 0.75,
+      "rgb": [140, 128, 91]
+    },
+    {
+      "index": 0.875,
+      "rgb": [86, 79, 32]
+    },
+    {
+      "index": 1.0,
+      "rgb": [28, 34, 6]
+    }
+  ],
+  "tarn": [
+    {
+      "index": 0.0,
+      "rgb": [22, 35, 13]
+    },
+    {
+      "index": 0.125,
+      "rgb": [79, 84, 19]
+    },
+    {
+      "index": 0.25,
+      "rgb": [169, 118, 49]
+    },
+    {
+      "index": 0.375,
+      "rgb": [221, 177, 141]
+    },
+    {
+      "index": 0.5,
+      "rgb": [252, 247, 245]
+    },
+    {
+      "index": 0.625,
+      "rgb": [180, 193, 161]
+    },
+    {
+      "index": 0.75,
+      "rgb": [84, 144, 132]
+    },
+    {
+      "index": 0.875,
+      "rgb": [25, 89, 110]
+    },
+    {
+      "index": 1.0,
+      "rgb": [15, 30, 79]
+    }
+  ]
+}

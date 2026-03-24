@@ -1,10 +1,12 @@
-import { LayerType, IJGISLayer } from '@jupytergis/schema';
+import { LayerType } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import FilterComponent from '@/src/panelview/filter-panel/Filter';
 import {
   getColorCodeFeatureAttributes,
+  getFeatureAttributes,
   getNumericFeatureAttributes,
   objectEntries,
 } from '@/src/tools';
@@ -53,7 +55,7 @@ const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   },
   Categorized: {
     component: Categorized,
-    attributeChecker: getNumericFeatureAttributes,
+    attributeChecker: getFeatureAttributes,
     supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },
@@ -87,54 +89,67 @@ const getSelectableRenderTypes = (
   return Object.fromEntries(entries);
 };
 
-const useLayerRenderType = (
-  layer: IJGISLayer,
-  setSelectedRenderType: React.Dispatch<
-    React.SetStateAction<VectorRenderType | undefined>
-  >,
-) =>
-  useEffect(() => {
-    let renderType = layer.parameters?.symbologyState?.renderType;
-    if (!renderType) {
-      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
-    }
-    setSelectedRenderType(renderType);
-  }, []);
-
 const VectorRendering: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  cancel,
   layerId,
+  isStorySegmentOverride = false,
+  segmentId,
 }) => {
+  const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
   const [selectedRenderType, setSelectedRenderType] = useState<
     VectorRenderType | undefined
   >();
-  const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
-  if (!layerId) {
-    return;
-  }
-  const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
-    return;
-  }
+  const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+
+  useEffect(() => {
+    if (!layer) {
+      return;
+    }
+
+    let renderType: VectorRenderType | undefined;
+
+    if (isStorySegmentOverride) {
+      const segment = segmentId ? model.getLayer(segmentId) : undefined;
+      if (!segment) {
+        return;
+      }
+      const override = segment.parameters?.layerOverride?.find(
+        (override: { targetLayer?: string }) =>
+          override.targetLayer === layerId,
+      );
+      if (!override) {
+        return;
+      }
+
+      renderType = override.symbologyState?.renderType;
+    } else {
+      renderType = layer.parameters?.symbologyState?.renderType;
+    }
+
+    if (!renderType) {
+      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
+    }
+
+    setSelectedRenderType(renderType);
+  }, []);
 
   const { featureProperties, isLoading: featuresLoading } = useGetProperties({
     layerId,
     model: model,
   });
 
-  useLayerRenderType(layer, setSelectedRenderType);
+  if (!layerId || !layer?.parameters) {
+    return null;
+  }
 
   if (featuresLoading) {
     return <p>Loading...</p>;
   }
 
   if (selectedRenderType === undefined) {
-    // typeguard
-    return;
+    return null;
   }
 
   const selectableRenderTypes = getSelectableRenderTypes(
@@ -147,7 +162,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
     <>
       {selectedRenderTypeProps.isTabbed && (
         <div className="jp-gis-symbology-tabs">
-          {(['color', 'radius'] as const).map(tab => (
+          {(['color', 'radius', 'filters'] as const).map(tab => (
             <button
               key={tab}
               className={`jp-gis-tab ${symbologyTab === tab ? 'active' : ''}`}
@@ -158,47 +173,53 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
           ))}
         </div>
       )}
-      <div className="jp-gis-symbology-row">
-        <label htmlFor="render-type-select">Render Type:</label>
-        <div className="jp-select-wrapper">
-          <select
-            name="render-type-select"
-            id="render-type-select"
-            className="jp-mod-styled"
-            value={selectedRenderType}
-            onChange={event => {
-              setSelectedRenderType(event.target.value as VectorRenderType);
-            }}
-          >
-            {objectEntries(selectableRenderTypes)
-              .filter(
-                ([renderType, renderTypeProps]) =>
-                  renderTypeProps.layerTypeSupported &&
-                  !(renderType === 'Heatmap' && symbologyTab === 'radius'),
-              )
-              .map(([renderType, _]) => (
-                <option key={renderType} value={renderType}>
-                  {renderType}
-                </option>
-              ))}
-          </select>
+      {symbologyTab !== 'filters' && (
+        <div className="jp-gis-symbology-row">
+          <label htmlFor="render-type-select">Render Type:</label>
+          <div className="jp-select-wrapper">
+            <select
+              name="render-type-select"
+              id="render-type-select"
+              className="jp-mod-styled"
+              value={selectedRenderType}
+              onChange={event => {
+                setSelectedRenderType(event.target.value as VectorRenderType);
+              }}
+            >
+              {objectEntries(selectableRenderTypes)
+                .filter(
+                  ([renderType, renderTypeProps]) =>
+                    renderTypeProps.layerTypeSupported &&
+                    !(renderType === 'Heatmap' && symbologyTab === 'radius'),
+                )
+                .map(([renderType, _]) => (
+                  <option key={renderType} value={renderType}>
+                    {renderType}
+                  </option>
+                ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
-      <selectedRenderTypeProps.component
-        model={model}
-        state={state}
-        okSignalPromise={okSignalPromise}
-        cancel={cancel}
-        layerId={layerId}
-        {...(selectedRenderTypeProps.isTabbed ? { symbologyTab } : {})}
-        {...(selectedRenderTypeProps.selectableAttributesAndValues
-          ? {
-              selectableAttributesAndValues:
-                selectedRenderTypeProps.selectableAttributesAndValues,
-            }
-          : {})}
-      />
+      {symbologyTab === 'filters' ? (
+        <FilterComponent model={model} okSignalPromise={okSignalPromise} />
+      ) : (
+        <selectedRenderTypeProps.component
+          model={model}
+          okSignalPromise={okSignalPromise}
+          layerId={layerId}
+          isStorySegmentOverride={isStorySegmentOverride}
+          segmentId={segmentId}
+          {...(selectedRenderTypeProps.isTabbed ? { symbologyTab } : {})}
+          {...(selectedRenderTypeProps.selectableAttributesAndValues
+            ? {
+                selectableAttributesAndValues:
+                  selectedRenderTypeProps.selectableAttributesAndValues,
+              }
+            : {})}
+        />
+      )}
     </>
   );
 };

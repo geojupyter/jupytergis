@@ -2,43 +2,64 @@ import { IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
-import ColorRamp, {
-  ColorRampOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls, {
+  ColorRampControlsOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
-import useGetBandInfo, {
-  IBandRow,
-} from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
   IStopRow,
   ISymbologyDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
-import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
+import {
+  saveSymbology,
+  Utils,
+  WebGlSymbologyParams,
+} from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
+import { useLatest } from '@/src/shared/hooks/useLatest';
 import { GlobalStateDbManager } from '@/src/store';
+import { ClassificationMode } from '@/src/types';
+import { ColorRampName } from '../../colorRampUtils';
+import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
 const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
-  cancel,
   layerId,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   if (!layerId) {
     return;
   }
   const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
+
+  const params = useEffectiveSymbologyParams<WebGlSymbologyParams>({
+    model,
+    layerId: layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
+
+  if (!params || !layer) {
     return;
   }
 
   const functions = ['discrete', 'linear', 'exact'];
-  const modeOptions = ['continuous', 'equal interval', 'quantile'];
+  const modeOptions = [
+    'continuous',
+    'equal interval',
+    'quantile',
+  ] as const satisfies ClassificationMode[];
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
@@ -50,40 +71,22 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
+    ColorRampControlsOptions | undefined
   >();
 
-  const stopRowsRef = useRef<IStopRow[]>();
-  const bandRowsRef = useRef<IBandRow[]>([]);
-  const selectedFunctionRef = useRef<InterpolationType>();
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
-  const selectedBandRef = useRef<number>();
+  const stopRowsRef = useLatest(stopRows);
+  const bandRowsRef = useLatest(bandRows);
+  const selectedFunctionRef = useLatest(selectedFunction);
+  const colorRampOptionsRef = useLatest(colorRampOptions);
+  const selectedBandRef = useLatest(selectedBand);
 
   useEffect(() => {
     populateOptions();
-
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
   }, []);
 
   useEffect(() => {
-    bandRowsRef.current = bandRows;
     buildColorInfo();
   }, [bandRows]);
-
-  useEffect(() => {
-    stopRowsRef.current = stopRows;
-    selectedFunctionRef.current = selectedFunction;
-    colorRampOptionsRef.current = colorRampOptions;
-    selectedBandRef.current = selectedBand;
-  }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
@@ -92,9 +95,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     setLayerState(layerState);
 
-    const layerParams = layer.parameters as IWebGlLayer;
-    const band = layerParams.symbologyState?.band ?? 1;
-    const interpolation = layerParams.symbologyState?.interpolation ?? 'linear';
+    const band = params.symbologyState?.band ?? 1;
+    const interpolation = params.symbologyState?.interpolation ?? 'linear';
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
@@ -102,22 +104,23 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
-    if (!layer.parameters?.color || !layerState) {
+    if (!params.color || !layerState) {
       return;
     }
 
-    const color = layer.parameters.color;
+    const color = params.color;
 
     // If color is a string we don't need to parse
-    if (typeof color === 'string') {
+    // Otherwise color expression should be an array (e.g. ['interpolate', ...] or ['case', ...])
+    if (!Array.isArray(color)) {
       return;
     }
 
+    // ! wtf ? dont use statedb just read from the file??
     const isQuantile = (layerState.selectedMode as string) === 'quantile';
 
     const valueColorPairs: IStopRow[] = [];
 
-    // So if it's not a string then it's an array and we parse
     // Color[0] is the operator used for the color expression
     switch (color[0]) {
       case 'interpolate': {
@@ -128,8 +131,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i], isQuantile),
-            output: color[i + 1],
+            stop: scaleValue(Number(color[i]), isQuantile),
+            output: color[i + 1] as IStopRow['output'],
           };
           valueColorPairs.push(obj);
         }
@@ -144,9 +147,14 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         // Fifth is color
         // Last element is fallback value
         for (let i = 3; i < color.length - 1; i += 2) {
+          const stopVal = Number(
+            Array.isArray(color[i])
+              ? (color[i] as (string | number)[])[2]
+              : color[i],
+          );
           const obj: IStopRow = {
-            stop: scaleValue(color[i][2], isQuantile),
-            output: color[i + 1],
+            stop: scaleValue(stopVal, isQuantile),
+            output: color[i + 1] as IStopRow['output'],
           };
           valueColorPairs.push(obj);
         }
@@ -158,32 +166,12 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const handleOk = () => {
-    // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
       return;
     }
-    const sourceId = layer.parameters?.source;
-    const source = model.getSource(sourceId);
-
-    if (!source || !source.parameters) {
-      return;
-    }
 
     const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
-
-    const sourceInfo = source.parameters.urls[0];
-    sourceInfo.min = bandRow.stats.minimum;
-    sourceInfo.max = bandRow.stats.maximum;
-
-    source.parameters.urls[0] = sourceInfo;
-
-    model.sharedModel.updateSource(sourceId, source);
-
-    // Update layer
-    if (!layer.parameters) {
-      return;
-    }
 
     // TODO: Different viewers will have different types
     let colorExpr: ExpressionValue[] = [];
@@ -252,17 +240,46 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       band: selectedBandRef.current,
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      nClasses:
+        colorRampOptionsRef.current?.numberOfShades !== undefined
+          ? String(colorRampOptionsRef.current.numberOfShades)
+          : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
-    };
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+    } as IWebGlLayer['symbologyState'];
 
-    layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = colorExpr;
-    layer.type = 'WebGlLayer';
+    if (!isStorySegmentOverride) {
+      // Update source
+      const sourceId = layer?.parameters?.source;
+      const source = model.getSource(sourceId);
+      if (!source || !source.parameters) {
+        return;
+      }
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+      const sourceInfo = source.parameters.urls[0];
+      sourceInfo.min = bandRow.stats.minimum;
+      sourceInfo.max = bandRow.stats.maximum;
+
+      source.parameters.urls[0] = sourceInfo;
+      model.sharedModel.updateSource(sourceId, source);
+    }
+
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: colorExpr,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        targetLayer.type = 'WebGlLayer';
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
 
   const addStopRow = () => {
     setStopRows([
@@ -282,9 +299,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const buildColorInfoFromClassification = async (
-    selectedMode: string,
-    numberOfShades: string,
-    selectedRamp: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
+    selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     // Update layer state with selected options
@@ -292,6 +310,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       selectedRamp,
       numberOfShades,
       selectedMode,
+      reverseRamp,
     });
 
     let stops: number[] = [];
@@ -299,7 +318,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     const currentBand = bandRows[selectedBand - 1];
     const source = model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
-    const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
+    const nClasses = selectedMode === 'continuous' ? 52 : numberOfShades;
 
     setIsLoading(true);
     switch (selectedMode) {
@@ -337,6 +356,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       stops,
       selectedRamp,
       nClasses,
+      reverseRamp,
     );
 
     setStopRows(valueColorPairs);
@@ -404,8 +424,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         </div>
       </div>
       {bandRows.length > 0 && (
-        <ColorRamp
-          layerParams={layer.parameters}
+        <ColorRampControls
+          layerParams={params}
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
@@ -428,8 +448,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           <StopRow
             key={`${index}-${stop.output}`}
             index={index}
-            value={stop.stop}
-            outputValue={stop.output}
+            dataValue={stop.stop}
+            symbologyValue={stop.output}
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}

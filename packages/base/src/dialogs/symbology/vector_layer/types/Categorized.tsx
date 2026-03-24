@@ -1,31 +1,36 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
   IStopRow,
   ISymbologyTabbedDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
-import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
+import {
+  Utils,
+  VectorSymbologyParams,
+  VectorUtils,
+  saveSymbology,
+} from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { SymbologyTab } from '@/src/types';
+import { useLatest } from '@/src/shared/hooks/useLatest';
+import { SymbologyTab, ClassificationMode } from '@/src/types';
+import { ColorRampName } from '../../colorRampUtils';
+import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
-  state,
   okSignalPromise,
-  cancel,
   layerId,
   symbologyTab,
   selectableAttributesAndValues,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
-  const selectedAttributeRef = useRef<string>();
-  const stopRowsRef = useRef<IStopRow[]>();
-  const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
-
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -37,38 +42,40 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     strokeWidth: 1.25,
     radius: 5,
   });
-  const manualStyleRef = useRef(manualStyle);
+  const manualStyleRef = useLatest(manualStyle);
+  const selectedAttributeRef = useLatest(selectedAttribute);
+  const stopRowsRef = useLatest(stopRows);
+  const colorRampOptionsRef = useLatest(colorRampOptions);
 
   if (!layerId) {
     return;
   }
   const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
+
+  const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
+    model,
+    layerId: layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
+
+  if (!params) {
     return;
   }
 
   useEffect(() => {
-    const valueColorPairs = VectorUtils.buildColorInfo(layer);
+    const valueColorPairs = VectorUtils.buildColorInfo(params);
 
     setStopRows(valueColorPairs);
-
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk, this);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
   }, []);
 
   useEffect(() => {
-    if (layer?.parameters?.color) {
-      const fillColor = layer.parameters.color['fill-color'];
-      const circleFillColor = layer.parameters.color['circle-fill-color'];
-      const strokeColor = layer.parameters.color['stroke-color'];
-      const circleStrokeColor = layer.parameters.color['circle-stroke-color'];
+    if (params.color) {
+      const fillColor = params.color['fill-color'];
+      const circleFillColor = params.color['circle-fill-color'];
+      const strokeColor = params.color['stroke-color'];
+      const circleStrokeColor = params.color['circle-stroke-color'];
 
       const isSimpleColor = (val: any) =>
         typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
@@ -87,45 +94,36 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             : '#3399CC',
 
         strokeWidth:
-          layer.parameters.color['stroke-width'] ||
-          layer.parameters.color['circle-stroke-width'] ||
+          params.color['stroke-width'] ||
+          params.color['circle-stroke-width'] ||
           1.25,
-        radius: layer.parameters.color['circle-radius'] || 5,
+        radius: params.color['circle-radius'] || 5,
       });
     }
   }, [layerId]);
 
   useEffect(() => {
-    manualStyleRef.current = manualStyle;
-  }, [manualStyle]);
-
-  useEffect(() => {
     // We only want number values here
-    const layerParams = layer.parameters as IVectorLayer;
     const attribute =
-      layerParams.symbologyState?.value ??
+      params.symbologyState?.value ||
       Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
 
-  useEffect(() => {
-    selectedAttributeRef.current = selectedAttribute;
-    stopRowsRef.current = stopRows;
-    colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedAttribute, stopRows, colorRampOptions]);
-
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
-    selectedRamp: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
+    selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     setColorRampOptions({
       selectedFunction: '',
       selectedRamp,
-      numberOfShades: '',
-      selectedMode: '',
+      numberOfShades,
+      selectedMode,
+      reverseRamp,
     });
 
     const stops = Array.from(
@@ -136,17 +134,14 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       stops,
       selectedRamp,
       stops.length,
+      reverseRamp,
     );
 
     setStopRows(valueColorPairs);
   };
 
   const handleOk = () => {
-    if (!layer.parameters) {
-      return;
-    }
-
-    const newStyle = { ...layer.parameters.color };
+    const newStyle = { ...params.color };
 
     if (stopRowsRef.current && stopRowsRef.current.length > 0) {
       // Classification applied (for color)
@@ -179,32 +174,37 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
-      symbologyTab,
-    };
+      method: symbologyTab,
+      reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+    } as IVectorLayer['symbologyState'];
 
-    layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = newStyle;
-
-    if (layer.type === 'HeatmapLayer') {
-      layer.type = 'VectorLayer';
-    }
-
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: newStyle,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        if (targetLayer.type === 'HeatmapLayer') {
+          targetLayer.type = 'VectorLayer';
+        }
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
 
   const handleReset = (method: SymbologyTab) => {
     if (!layer?.parameters) {
       return;
     }
 
-    const newStyle = { ...layer.parameters.color };
+    const newStyle = { ...params.color };
 
     if (method === 'color') {
-      console.log('delecol');
-
       delete newStyle['fill-color'];
       delete newStyle['stroke-color'];
       delete newStyle['circle-fill-color'];
@@ -214,8 +214,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       // Reset color classification options
       if (layer.parameters.symbologyState) {
         layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
       }
     }
 
@@ -314,8 +312,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           </div>
 
           <div className="jp-gis-layer-symbology-container">
-            <ColorRamp
-              layerParams={layer.parameters}
+            <ColorRampControls
+              layerParams={params}
               modeOptions={[]}
               classifyFunc={buildColorInfoFromClassification}
               showModeRow={false}

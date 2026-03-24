@@ -5,6 +5,7 @@ on:
     branches: main
   pull_request:
     branches: '*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -31,7 +32,7 @@ jobs:
             xyzservices
 
       - name: Setup pip cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
@@ -44,7 +45,7 @@ jobs:
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - name: Setup yarn cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -65,11 +66,11 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          pip install hatch
+          pip install build
           yarn build:packages
 
       - name: Upload extension packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}
           path: |
@@ -79,6 +80,30 @@ jobs:
             python/jupytergis_qgis/dist/jupytergis*
             python/jupytergis_lite/dist/jupytergis*
           if-no-files-found: error
+
+  validate-examples:
+    name: Validate example .jGIS files
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: gis
+          create-args: >-
+            python=3.12
+            yarn=3
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: yarn install
+
+      - name: Validate example .jGIS files against schema
+        shell: bash -l {0}
+        run: node packages/schema/scripts/validate-examples.js
 
   python_tests:
     runs-on: ubuntu-latest
@@ -98,7 +123,7 @@ jobs:
             qgis
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install
         shell: bash -l {0}
@@ -116,12 +141,39 @@ jobs:
         shell: bash -l {0}
         run: pytest --color=yes -v python/jupytergis_lab/
 
+  fresh_yarn_lock_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: gis
+          create-args: >-
+            pip
+            jupyterlab=4
+            yarn=3
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install build deps
+        shell: bash -l {0}
+        run: pip install -r requirements-build.txt
+
+      - name: Build with a fresh yarn
+        shell: bash -l {0}
+        run: |
+          rm yarn.lock
+          jlpm
+          jlpm run build:prod
+
   test_isolated:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: extension-artifacts
 
@@ -134,13 +186,10 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyterlab==4.4.2"
+          python -m pip install jupytergis*.whl "jupyterlab==4.5.1"
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
-          # jupyterlab.browser_check will fail due to the core extension jupyterlab_pygments.
-          # It does not support lab v4.0.0
-          #python -m jupyterlab.browser_check --no-chrome-test
 
   integration-tests:
     name: Integration tests
@@ -152,7 +201,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -161,12 +210,12 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
-            jupyterlab=4
+            jupyterlab
             ipywidgets
             qgis
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: extension-artifacts
 
@@ -175,7 +224,7 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab==4.4.2"
+          python -m pip install jupytergis*.whl "jupyter-collaboration>=4,<5" "jupyterlab==4.5.1"
 
       - name: Install
         shell: bash -l {0}
@@ -192,19 +241,12 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jupytergis-playwright-tests
           path: |
             ui-tests/test-results
             ui-tests/playwright-report
-
-      - name: Save artifact data
-        if: always()
-        uses: trungleduc/appsharingspace-pr-comment/.github/actions/save-artifact-link@v2
-        with:
-          output_name: galata-apss
-          artifact_link: 'https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}/artifacts/${{ steps.upload-galata-artifact.outputs.artifact-id }}'
 
   check_linting:
     name: Lint check
@@ -212,7 +254,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -235,11 +277,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
-          ignore_links: 'lite/'
+          ignore_links: >-
+            lite/
+            https://www\.npmjs\.com.*
+            ^/.*
+            https://blog\.jupyter\.org/.*
+            https://medium\.com/.*
 
   build-lite:
     name: Build JupyterLite artifacts
@@ -248,7 +295,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -261,9 +308,10 @@ jobs:
             jupyterlite-core
             jupyterlite-xeus
             jupyter_server
+            specta
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: extension-artifacts
 
@@ -285,11 +333,12 @@ jobs:
         working-directory: lite
         run: |
           set -eux
-          mkdir -p content && cp ../examples/*.jGIS ../examples/*.qgz ../examples/*.geojson ../examples/*.tif ../examples/*.zip ../examples/*.ipynb ../examples/*.gif ./content
+          cp --recursive --dereference ../ui-tests/content ./content
+          find ./content -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lite-artifacts
           path: ./lite/dist
@@ -305,7 +354,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -317,7 +366,7 @@ jobs:
             jupyterlab
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: lite-artifacts
           path: dist
@@ -330,7 +379,7 @@ jobs:
         run: jlpm install
 
       - name: Set up browser cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ github.workspace }}/pw-browsers
@@ -349,7 +398,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jupytergis-lite-playwright-tests
           path: |

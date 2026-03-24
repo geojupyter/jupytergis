@@ -1,4 +1,3 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   JupyterGISOutputWidget,
   JupyterGISPanel,
@@ -6,6 +5,7 @@ import {
   ToolbarWidget,
 } from '@jupytergis/base';
 import {
+  DEFAULT_JGIS_DOCUMENT_CONTENT,
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDoc,
@@ -24,7 +24,8 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { Contents } from '@jupyterlab/services';
+import { Contents, IDefaultDrive } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
@@ -65,8 +66,8 @@ export class YJupyterGISLuminoWidget extends Panel {
       if (args.stateChange) {
         args.stateChange.forEach((change: any) => {
           if (change.name === 'path') {
-            this.layout?.removeWidget(this._jgisWidget);
             this._jgisWidget.dispose();
+            this.layout?.removeWidget(this._jgisWidget);
             this._buildWidget(options);
           }
         });
@@ -126,7 +127,7 @@ interface IOptions {
   model: JupyterGISModel;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
-  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
   state?: IStateDB;
   annotationModel?: IAnnotationModel;
 }
@@ -134,24 +135,26 @@ interface IOptions {
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
+  requires: [IJGISFormSchemaRegistryToken],
   optional: [
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
-    ICollaborativeDrive,
+    IDefaultDrive,
     IStateDB,
-    IJGISFormSchemaRegistryToken,
     IAnnotationToken,
+    ISettingRegistry,
   ],
   activate: (
     app: JupyterFrontEnd,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
-    drive?: ICollaborativeDrive,
-    formSchemaRegistry?: IJGISFormSchemaRegistry,
+    drive?: Contents.IDrive,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
+    settingRegistry?: ISettingRegistry,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -194,7 +197,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             await app.serviceManager.contents.get(localPath);
           } catch (e) {
             await app.serviceManager.contents.save(localPath, {
-              content: btoa('{}'),
+              content: btoa(DEFAULT_JGIS_DOCUMENT_CONTENT),
               format: 'base64',
             });
           }
@@ -206,14 +209,26 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           );
         }
 
-        const sharedModel = drive!.sharedModelFactory.createNew({
+        const sharedFactory = app.serviceManager.contents.getSharedModelFactory(
+          localPath,
+          { contentProviderId: 'rtc' },
+        );
+
+        if (!sharedFactory) {
+          throw new Error(
+            'Cannot initialize JupyterGIS notebook renderer without a sharedModelFactory',
+          );
+        }
+
+        const sharedModel = sharedFactory.createNew({
           path: localPath,
           format: fileFormat,
           contentType,
           collaborative: true,
-        })!;
+        });
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc,
+          settingRegistry,
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;

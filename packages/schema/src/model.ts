@@ -3,7 +3,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PartialJSONObject } from '@lumino/coreutils';
+import { PartialJSONObject, UUID } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
@@ -18,7 +18,9 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
+  IJGISStoryMap,
 } from './_interface/project/jgis';
+import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -35,10 +37,25 @@ import {
   JgisCoordinates,
   Pointer,
   IJupyterGISSettings,
+  SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
+import { Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
+
+const DEFAULT_SETTINGS: IJupyterGISSettings = {
+  proxyUrl: 'https://corsproxy.io',
+  leftPanelDisabled: false,
+  rightPanelDisabled: false,
+  layersDisabled: false,
+  stacBrowserDisabled: false,
+  objectPropertiesDisabled: false,
+  annotationsDisabled: false,
+  identifyDisabled: false,
+  storyMapsDisabled: false,
+  zoomButtonsEnabled: false,
+};
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -58,24 +75,75 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
+    this._settingsChanged = new Signal<JupyterGISModel, string>(this);
+
+    this._jgisSettings = { ...DEFAULT_SETTINGS };
+
+    this.initSettings();
   }
 
   /**
    * Initialize custom settings for JupyterLab.
    */
-  async initSettings(): Promise<void> {
+  async initSettings() {
     if (this.settingRegistry) {
-      const setting = await this.settingRegistry.load(SETTINGS_ID);
-      this._settings = setting.composite as any;
+      try {
+        const setting = await this.settingRegistry.load(SETTINGS_ID);
+        this._settings = setting;
 
-      setting.changed.connect(() => {
-        this._settings = setting.composite as any;
-        console.log('JupyterGIS Settings updated:', this._settings);
-      });
+        this._updateLocalSettings();
+
+        setting.changed.connect(() => {
+          const oldSettings = { ...this._jgisSettings };
+          this._updateLocalSettings();
+          const newSettings = this._jgisSettings;
+
+          const keys = Object.keys(
+            DEFAULT_SETTINGS,
+          ) as (keyof IJupyterGISSettings)[];
+
+          keys.forEach(key => {
+            if (oldSettings[key] !== newSettings[key]) {
+              this._settingsChanged.emit(key);
+            }
+          });
+        });
+      } catch (error) {
+        console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
+        this._jgisSettings = { ...DEFAULT_SETTINGS };
+      }
     }
   }
 
-  getSettings(): IJupyterGISSettings {
+  private _updateLocalSettings(): void {
+    const composite = this._settings.composite;
+
+    this._jgisSettings = Object.entries(DEFAULT_SETTINGS).reduce(
+      (acc, [key, defaultValue]) => {
+        const typedKey = key as keyof IJupyterGISSettings;
+        const compositeValue = composite[typedKey];
+        (acc as any)[typedKey] = compositeValue ?? defaultValue;
+        return acc;
+      },
+      {} as typeof DEFAULT_SETTINGS,
+    );
+  }
+
+  get jgisSettings(): IJupyterGISSettings {
+    return this._jgisSettings;
+  }
+
+  /**
+   * Expose the settingsChanged signal for external use.
+   */
+  get settingsChanged(): ISignal<JupyterGISModel, string> {
+    return this._settingsChanged;
+  }
+
+  /**
+   * Return stored settings.
+   */
+  async getSettings(): Promise<ISettingRegistry.ISettings> {
     return this._settings;
   }
 
@@ -209,14 +277,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._zoomToPositionSignal;
   }
 
-  set isIdentifying(isIdentifying: boolean) {
-    this._isIdentifying = isIdentifying;
-  }
-
-  get isIdentifying(): boolean {
-    return this._isIdentifying;
-  }
-
   set isTemporalControllerActive(isActive: boolean) {
     this._isTemporalControllerActive = isActive;
   }
@@ -273,6 +333,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
+      this.sharedModel.stories = jsonData.stories ?? {};
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,
         longitude: 0,
@@ -362,6 +423,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getLayer(id);
   }
 
+  getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined {
+    return this.sharedModel.getLayer(id) ?? this.sharedModel.getLayerSource(id);
+  }
+
   getSource(id: string): IJGISSource | undefined {
     return this.sharedModel.getLayerSource(id);
   }
@@ -379,22 +444,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     }
     return sources;
-  }
-
-  /**
-   * Get the list of layers using a source.
-   *
-   * @param id - the source id.
-   * @returns a list of layer ids that use the source.
-   */
-  getLayersBySource(id: string): string[] {
-    const usingLayers: string[] = [];
-    Object.entries(this.getLayers() || {}).forEach(([layerId, layer]) => {
-      if (layer.parameters?.source === id) {
-        usingLayers.push(layerId);
-      }
-    });
-    return usingLayers;
   }
 
   /**
@@ -440,6 +489,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
+
+    this.syncSelected(
+      { [id]: { type: 'layer' } },
+      this.getClientId().toString(),
+    );
   }
 
   removeLayer(layer_id: string) {
@@ -448,7 +502,31 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
-    this.sharedModel.removeSource(source_id);
+
+    if (layer?.type === 'StorySegmentLayer') {
+      // remove this layer id from story maps
+      Object.entries(this.sharedModel.stories).forEach(
+        ([storyMapId, storyMap]) => {
+          if (storyMap.storySegments?.includes(layer_id)) {
+            const updatedStorySegments = storyMap.storySegments.filter(
+              id => id !== layer_id,
+            );
+            this.sharedModel.updateStoryMap(storyMapId, {
+              ...storyMap,
+              storySegments: updatedStorySegments,
+            });
+          }
+        },
+      );
+    } else {
+      if (source_id) {
+        this.removeSource(source_id);
+      }
+    }
+  }
+
+  removeSource(sourceId: string): void {
+    this.sharedModel.removeSource(sourceId);
   }
 
   setOptions(value: IJGISOptions) {
@@ -480,6 +558,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
+  get selected(): { [key: string]: ISelection } | undefined {
+    return this.localState?.selected?.value;
+  }
+
+  set selected(value: { [key: string]: ISelection } | undefined) {
+    this.syncSelected(value || {}, this.getClientId().toString());
+  }
+
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
       value: features,
@@ -493,8 +579,152 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  setEditingItem(type: SelectionType, itemId: string): void {
+    this._editing = { type, itemId };
+    this._editingChanged.emit(this._editing);
+  }
+
+  clearEditingItem(): void {
+    this._editing = null;
+    this._editingChanged.emit(null);
+  }
+
+  get editing(): { type: SelectionType; itemId: string } | null {
+    return this._editing;
+  }
+
+  get editingChanged(): ISignal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  > {
+    return this._editingChanged;
+  }
+
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
+  }
+
+  /**
+   * Check if the application is running in Specta mode.
+   * Specta mode is enabled when the URL contains 'specta' AND the model has stories.
+   *
+   * @returns True if running in Specta mode
+   */
+  isSpectaMode(): boolean {
+    const hasStories = Object.keys(this.sharedModel.stories).length > 0;
+    const isSpecta = !!document.querySelector('meta[name="specta-config"]');
+    const guidedMode = this.getSelectedStory().story?.storyType === 'guided';
+
+    return isSpecta && hasStories && guidedMode;
+  }
+
+  /**
+   * Placeholder in case we eventually want to support multiple stories
+   * @returns First/only story
+   */
+  getSelectedStory(): {
+    storyId: string;
+    story: IJGISStoryMap | undefined;
+  } {
+    const stories = this.sharedModel.stories;
+    const storyId = Object.keys(stories)[0];
+
+    return {
+      storyId: storyId,
+      story: this.sharedModel.getStoryMap(storyId),
+    };
+  }
+
+  /**
+   * Current slide index for the selected story (0-based).
+   */
+  getCurrentSegmentIndex(): number {
+    return this._currentSegmentIndex;
+  }
+
+  /**
+   * Set current slide index for the selected story.
+   */
+  setCurrentSegmentIndex(index: number): void {
+    this._currentSegmentIndex = index;
+    this._currentSegmentIndexChanged.emit(index);
+  }
+
+  get currentSegmentIndexChanged(): ISignal<this, number> {
+    return this._currentSegmentIndexChanged;
+  }
+
+  /**
+   * Adds a story segment from the current map view
+   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
+   */
+  addStorySegment(): { storySegmentId: string; storyId: string } | null {
+    const { zoom, extent } = this.getOptions();
+    const { storyId } = this.getSelectedStory();
+
+    if (!zoom || !extent) {
+      console.warn('No extent or zoom found');
+      return null;
+    }
+
+    const newStorySegmentId = UUID.uuid4();
+
+    const layerParams: IStorySegmentLayer = {
+      extent,
+      zoom,
+      transition: { type: 'linear', time: 1 },
+    };
+    const layerModel: IJGISLayer = {
+      type: 'StorySegmentLayer',
+      visible: true,
+      name: 'Story Segment',
+      parameters: layerParams,
+    };
+
+    this.addLayer(newStorySegmentId, layerModel);
+
+    // if story doesn't exist then add one
+    if (!storyId) {
+      const storyId = UUID.uuid4();
+
+      const title = 'New Story';
+      const storyType = 'guided';
+      const storySegments = [newStorySegmentId];
+
+      const storyMap: IJGISStoryMap = { title, storyType, storySegments };
+
+      this.sharedModel.addStoryMap(storyId, storyMap);
+      this._segmentAdded.emit({
+        storySegmentId: newStorySegmentId,
+        storyId,
+      });
+      return { storySegmentId: newStorySegmentId, storyId };
+    } else {
+      // else need to update story
+      const { story } = this.getSelectedStory();
+      if (!story) {
+        console.warn('No story found, something went wrong');
+        return null;
+      }
+      const newStory: IJGISStoryMap = {
+        ...story,
+        storySegments: [...(story.storySegments ?? []), newStorySegmentId],
+      };
+
+      this.sharedModel.updateStoryMap(storyId, newStory);
+      this._segmentAdded.emit({
+        storySegmentId: newStorySegmentId,
+        storyId,
+      });
+      return { storySegmentId: newStorySegmentId, storyId };
+    }
+  }
+
+  get segmentAdded(): ISignal<
+    this,
+    { storySegmentId: string; storyId: string }
+  > {
+    return this._segmentAdded;
   }
 
   /**
@@ -649,7 +879,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         layerTreeInfo.mainGroup,
       );
     } else {
-      console.log('Something went wrong when renaming layer');
+      console.error('Layer group rename failed -- could not get layer tree.');
     }
   }
 
@@ -684,8 +914,21 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  toggleIdentify() {
-    this._isIdentifying = !this._isIdentifying;
+  /**
+   * Toggle a map interaction mode on or off.
+   * Toggling off sets the mode to 'panning'.
+   * @param mode The mode to be toggled
+   */
+  toggleMode(mode: Modes) {
+    this._currentMode = this._currentMode === mode ? 'panning' : mode;
+  }
+
+  get currentMode(): Modes {
+    return this._currentMode;
+  }
+
+  set currentMode(value: Modes) {
+    this._currentMode = value;
   }
 
   toggleTemporalController() {
@@ -757,7 +1000,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._updateLayerSignal;
   }
 
-  triggerLayerUpdate = (layerId: string, layer: IJGISLayer) => {
+  triggerLayerUpdate = (layerId: string, layer: IJGISLayer | IJGISSource) => {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
@@ -779,7 +1022,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly annotationModel?: IAnnotationModel;
   readonly settingRegistry?: ISettingRegistry;
 
-  private _settings: IJupyterGISSettings;
+  private _settings: ISettingRegistry.ISettings;
+  private _settingsChanged: Signal<JupyterGISModel, string>;
+  private _jgisSettings: IJupyterGISSettings;
+
+  private _currentMode: Modes;
+
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;
@@ -805,16 +1053,29 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
 
+  private _segmentAdded = new Signal<
+    this,
+    { storySegmentId: string; storyId: string }
+  >(this);
+
   private _updateLayerSignal = new Signal<this, string>(this);
 
-  private _isIdentifying = false;
   private _isTemporalControllerActive = false;
+
+  private _editing: { type: SelectionType; itemId: string } | null = null;
+  private _editingChanged = new Signal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  >(this);
 
   static worker: Worker;
 
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  private _currentSegmentIndex: number;
+  private _currentSegmentIndexChanged = new Signal<this, number>(this);
+  stories: Map<string, IJGISStoryMap> = new Map();
 }
 
 export namespace JupyterGISModel {
@@ -825,8 +1086,7 @@ export namespace JupyterGISModel {
     return Private.layerTreeRecursion(model.sharedModel.layerTree);
   }
 
-  export interface IOptions
-    extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
+  export interface IOptions extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
     annotationModel?: IAnnotationModel;
     settingRegistry?: ISettingRegistry;
   }

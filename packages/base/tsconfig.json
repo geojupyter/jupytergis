@@ -16,6 +16,7 @@
     "src/schema/*.json",
     "src/_interface/*.json",
     "src/*.json",
-    "src/types/*"
+    "src/types/*",
+    "src/dialogs/symbology/components/color_ramp/cmocean.json"
   ]
 }

@@ -39,7 +39,7 @@ We use this package to make the JupyterLab extension.
 - Defines the map view. See `packages/base/src/mainview`.
 - Generates the layer gallery. See
   `packages/base/rasterlayer_gallery_generator.py`.
-- Defines "commands" that appear in various GUI menus and the command pallette
+- Defines "commands" that appear in various GUI menus and the command palette
   (`CTRL+SHIFT+C`).
   See `packages/base/src/commands/`.
   - Defines the toolbar and associated commands.
@@ -55,7 +55,7 @@ The source of truth for data structures in JupyterGIS.
 If you wish to add a new layer _type_, you would need to add it to the schema.
 
 Python classes and Typescript types are automatically generated from the schema at
-build-time (i.e. not commited to the repository) using
+build-time (i.e. not committed to the repository) using
 [`json2ts`](https://github.com/GregorBiswanger/json2ts) for TypeScript,
 and
 [`datamodel-code-generator`](https://docs.pydantic.dev/latest/integrations/datamodel_code_generator/)

@@ -1,17 +1,14 @@
-import {
-  ICollaborativeDrive,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
+  DEFAULT_JGIS_DOCUMENT_CONTENT,
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
   JupyterGISDoc,
-  SCHEMA_VERSION,
   ProcessingMerge,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
@@ -32,6 +29,7 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 
@@ -60,18 +58,15 @@ const activate = async (
   state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null,
+  collaborativeContentProvider: ICollaborativeContentProvider | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
 
-  let settings: ISettingRegistry.ISettings | null = null;
-
   try {
-    settings = await settingRegistry.load(SETTINGS_ID);
-    console.log(`Loaded settings for ${SETTINGS_ID}`, settings);
+    await settingRegistry.load(SETTINGS_ID);
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
@@ -128,8 +123,9 @@ const activate = async (
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
   };
-  if (drive) {
-    drive.sharedModelFactory.registerDocumentFactory(
+
+  if (collaborativeContentProvider) {
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
       CONTENT_TYPE,
       jGISSharedModelFactory,
     );
@@ -161,6 +157,22 @@ const activate = async (
 
   app.commands.addCommand(CommandIDs.createNew, {
     label: args => (args['label'] as string) ?? 'GIS Project',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          label: {
+            type: 'string',
+            description: 'The label for the file creation command',
+          },
+          cwd: {
+            type: 'string',
+            description:
+              'The current working directory where the file should be created',
+          },
+        },
+      },
+    },
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {
@@ -180,7 +192,7 @@ const activate = async (
         ...model,
         format: 'text',
         size: undefined,
-        content: `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`,
+        content: DEFAULT_JGIS_DOCUMENT_CONTENT,
       });
 
       // Open the newly created file with the 'Editor'
@@ -215,28 +227,28 @@ const activate = async (
 
     // Layers and Sources
     palette.addItem({
-      command: CommandIDs.newRasterEntry,
+      command: CommandIDs.openNewRasterDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newVectorTileEntry,
+      command: CommandIDs.openNewVectorTileDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newGeoJSONEntry,
+      command: CommandIDs.openNewGeoJSONDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newHillshadeEntry,
+      command: CommandIDs.openNewHillshadeDialog,
       category: 'JupyterGIS',
     });
 
     // Layer and group actions
     palette.addItem({
-      command: CommandIDs.moveLayerToNewGroup,
+      command: CommandIDs.moveSelectedToNewGroup,
       category: 'JupyterGIS',
     });
 
@@ -273,7 +285,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
+  optional: [ILauncher, ICommandPalette, ICollaborativeContentProvider],
   autoStart: true,
   activate,
 };

@@ -7,7 +7,7 @@ import {
   IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -15,14 +15,15 @@ import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import { CreationFormWrapper } from './layerCreationFormDialog';
-import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+import CUSTOM_RASTER_IMAGE from '../../layer_gallery/custom_raster.png';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
-  registry: IRasterLayerGalleryEntry[];
+  registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   cancel: () => void;
+  registerConfirmHandler?: (fn: () => void) => void;
 }
 
 export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
@@ -31,6 +32,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   formSchemaRegistry,
   okSignalPromise,
   cancel,
+  registerConfirmHandler,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
@@ -39,9 +41,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
-    useState<IRasterLayerGalleryEntry[]>(registry);
+    useState<ILayerGalleryEntry[]>(registry);
 
-  const providers = [...new Set(registry.map(item => item.source.provider))];
+  const providers = [...new Set(registry.map(item => item.provider))];
 
   const filteredGallery = galleryWithCategory.filter(item =>
     item.name.toLowerCase().includes(searchTerm),
@@ -80,9 +82,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
     const filteredGallery = sameAsOld
       ? registry
-      : registry.filter(item =>
-          item.source.provider?.includes(categoryTab.innerText),
-        );
+      : registry.filter(item => item.provider?.includes(categoryTab.innerText));
 
     setGalleryWithCategory(filteredGallery);
     setSearchTerm('');
@@ -97,20 +97,18 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
    * Add tile layer and source to model
    * @param tile Tile to add
    */
-  const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
+  const handleTileClick = (tile: ILayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
 
     const sourceModel: IJGISSource = {
-      type: 'RasterSource',
+      type: tile.sourceType,
       name: tile.name,
-      parameters: tile.source,
+      parameters: tile.sourceParameters,
     };
 
     const layerModel: IJGISLayer = {
-      type: 'RasterLayer',
-      parameters: {
-        source: sourceId,
-      },
+      type: tile.layerType,
+      parameters: { ...tile.layerParameters, source: sourceId },
       visible: true,
       name: tile.name + ' Layer',
     };
@@ -145,6 +143,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
           }}
           okSignalPromise={okSignalPromise}
           cancel={cancel}
+          registerConfirmHandler={registerConfirmHandler}
         />
       </div>
     );
@@ -231,8 +230,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
                   placeholder
                 </p> */}
               </div>
+              <div>{tile.sourceType}</div>
               <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-source">
-                {tile.source.attribution}
+                {tile.description}
               </p>
             </div>
           </div>
@@ -244,15 +244,19 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
 export interface ILayerBrowserOptions {
   model: IJupyterGISModel;
-  registry: IRasterLayerGalleryEntry[];
+  registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
 export class LayerBrowserWidget extends Dialog<boolean> {
   constructor(options: ILayerBrowserOptions) {
-    let cancelCallback: (() => void) | undefined = undefined;
-    cancelCallback = () => {
+    const cancelCallback = () => {
       this.resolve(0);
+    };
+
+    let confirmHandler: (() => void) | null = null;
+    const registerConfirmHandler = (fn: () => void) => {
+      confirmHandler = fn;
     };
 
     const okSignalPromise = new PromiseDelegate<
@@ -266,6 +270,7 @@ export class LayerBrowserWidget extends Dialog<boolean> {
         formSchemaRegistry={options.formSchemaRegistry}
         okSignalPromise={okSignalPromise}
         cancel={cancelCallback}
+        registerConfirmHandler={registerConfirmHandler}
       />
     );
 
@@ -273,6 +278,7 @@ export class LayerBrowserWidget extends Dialog<boolean> {
 
     this.id = 'jupytergis::layerBrowser';
 
+    this._getConfirmHandler = () => confirmHandler;
     this.okSignal = new Signal(this);
     okSignalPromise.resolve(this.okSignal);
 
@@ -286,9 +292,12 @@ export class LayerBrowserWidget extends Dialog<boolean> {
     }
 
     if (index === 1) {
+      this._getConfirmHandler()?.();
       this.okSignal.emit(1);
+      super.resolve(index);
     }
   }
 
+  private _getConfirmHandler: () => (() => void) | null;
   private okSignal: Signal<Dialog<any>, number>;
 }

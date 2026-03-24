@@ -1,19 +1,88 @@
 import { IDict } from '@jupytergis/schema';
+import { UiSchema } from '@rjsf/utils';
+import React, { useMemo } from 'react';
 
-import { LayerPropertiesForm } from './layerform';
+import { deepCopy } from '@/src/tools';
+import { SchemaForm } from '../SchemaForm';
+import { processBaseSchema, removeFormEntry } from '../schemaUtils';
+import { useSchemaFormState } from '../useSchemaFormState';
+import type { ILayerProps } from './layerform';
 
-/**
- * The form to modify a hillshade layer.
- */
-export class WebGlLayerPropertiesForm extends LayerPropertiesForm {
-  protected processSchema(
-    data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict,
-  ) {
-    this.removeFormEntry('color', data, schema, uiSchema);
-    this.removeFormEntry('symbologyState', data, schema, uiSchema);
+export function WebGlLayerPropertiesForm(
+  props: ILayerProps,
+): React.ReactElement | null {
+  const {
+    schema: schemaProp,
+    sourceData,
+    syncData,
+    model,
+    filePath,
+    formContext,
+    sourceType,
+    dialogOptions,
+    formErrorSignal,
+  } = props;
 
-    super.processSchema(data, schema, uiSchema);
+  const {
+    formData,
+    schema,
+    formContextValue,
+    hasSchema,
+    handleChangeBase,
+    handleSubmitBase,
+  } = useSchemaFormState({
+    sourceData,
+    schemaProp,
+    model,
+    syncData,
+    cancel: props.cancel,
+    onAfterChange: dialogOptions
+      ? (data: IDict) => {
+          dialogOptions.layerData = { ...data };
+        }
+      : undefined,
+  });
+
+  const uiSchema = useMemo(() => {
+    const builtUiSchema: UiSchema = {};
+    const dataCopy = deepCopy(formData);
+
+    removeFormEntry('color', formData, schema, builtUiSchema);
+    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
+
+    processBaseSchema(
+      dataCopy,
+      schema,
+      builtUiSchema,
+      formContext,
+      removeFormEntry,
+    );
+
+    if (schema.properties?.source) {
+      const availableSources = model.getSourcesByType(sourceType);
+
+      (schema.properties.source as IDict).enumNames =
+        Object.values(availableSources);
+      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+    }
+
+    return builtUiSchema;
+  }, [schema, formData, formContext, model, sourceType]);
+
+  if (!hasSchema) {
+    return null;
   }
+
+  return (
+    <SchemaForm
+      schema={schema}
+      formData={formData}
+      onChange={handleChangeBase}
+      onSubmit={handleSubmitBase}
+      formContext={formContextValue}
+      filePath={filePath}
+      uiSchema={uiSchema}
+      formErrorSignal={formErrorSignal}
+    />
+  );
 }

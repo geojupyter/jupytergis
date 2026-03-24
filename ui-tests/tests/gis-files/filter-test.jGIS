@@ -11,9 +11,18 @@
       },
       "name": "Custom GeoJSON Layer",
       "parameters": {
-        "color": "#865e3c",
+        "color": {},
         "opacity": 1.0,
         "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": 9.0,
+          "renderType": "Single Symbol",
+          "reverse": false,
+          "value": ""
+        },
         "type": "circle"
       },
       "type": "VectorLayer",
@@ -32,10 +41,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -18725462.128038723,
-      -1150839.9464547224,
-      -10253808.014958866,
-      10963485.869283857
+      -22151806.58398783,
+      -578619.4874163829,
+      -6827463.559009762,
+      10391265.410245512
     ],
     "latitude": 40.27731369212108,
     "longitude": -130.1626064604162,
@@ -64,5 +73,6 @@
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "stories": {}
 }
