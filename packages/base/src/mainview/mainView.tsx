@@ -276,13 +276,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
+    const projection = options.projection ?? 'EPSG:3857';
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude, options.latitude])
+        ? fromLonLat([options.longitude, options.latitude], projection)
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(center, zoom);
+    await this.generateMap(center, zoom, projection);
     if (this._Map) {
       this.updateOptions(options);
     }
@@ -331,7 +332,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  async generateMap(center: number[], zoom: number): Promise<void> {
+  async generateMap(
+    center: number[],
+    zoom: number,
+    projection = 'EPSG:3857',
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     this._initialLayersCount = Object.values(layers).filter(
@@ -363,6 +368,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         view: new View({
           center,
           zoom,
+          projection,
         }),
         controls,
       });
