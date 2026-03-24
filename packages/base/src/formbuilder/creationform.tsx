@@ -16,21 +16,72 @@ import { deepCopy, getGeoPackageTableNames } from '@/src/';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
+  /**
+   * Whether or not to create a layer
+   */
   createLayer: boolean;
+
+  /**
+   * Whether or not to create a source
+   */
   createSource: boolean;
+
+  /**
+   * The type of layer to create.
+   */
   layerType?: LayerType;
+
+  /**
+   * The type of source to create or to select in the case where we only create a layer.
+   */
   sourceType: SourceType;
+
+  /**
+   * The initial layer data, if it applies.
+   */
   layerData?: IDict;
+
+  /**
+   * The initial source data, if it applies.
+   */
   sourceData?: IDict;
+
+  /**
+   * Ok signal. This is the signal sent by the parent dialog upon "Ok" button click. No ok button will be displayed if defined.
+   */
   ok?: Signal<Dialog<any>, number>;
+
+  /**
+   * Cancel callback
+   */
   cancel?: () => void;
+
   formSchemaRegistry: IJGISFormSchemaRegistry;
   model: IJupyterGISModel;
+
+  /**
+   * A signal emitting when the form changed, with a boolean whether there are some
+   * extra errors or not.
+   */
   formErrorSignal?: Signal<Dialog<any>, boolean>;
+
+  /**
+   * Configuration options for the dialog, including settings for layer data, source data,
+   * and other form-related parameters.
+   */
   dialogOptions?: any;
+
+  /**
+   * When provided (e.g. by LayerCreationFormDialog), the form registers a handler
+   * that the dialog invokes on OK; the handler reads stored form data and runs
+   * addSource/addLayer. No ok signal is passed to the inner forms when using this path.
+   */
   registerConfirmHandler?: (fn: () => void) => void;
 }
 
+/**
+ * Form for creating a source, a layer or both at the same time
+ */
 export function CreationForm(props: ICreationFormProps) {
   const {
     createLayer,
@@ -73,6 +124,7 @@ export function CreationForm(props: ICreationFormProps) {
     if (createSource) {
       data.source = sourceId;
     }
+
     return data;
   }, [initialLayerData, createSource, sourceId]);
 
