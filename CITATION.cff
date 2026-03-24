@@ -23,8 +23,8 @@ contact:
   - name: "The GeoJupyter Community Chat"
     website: "https://jupyter.zulipchat.com"
 
-version: "0.14.0"
-date-released: "2026-03-18"
+version: "0.14.1"
+date-released: "2026-03-23"
 
 # TODO: More comprehensive authors list. Initialized from the JOSS paper.
 authors:
@@ -75,6 +75,9 @@ authors:
   - given-names: "Jessenia"
     family-names: "Chan"
     alias: "JesseniaChan"
+  - given-names: "John"
+    family-names: "Costa"
+    alias: "costajohnt"
   - family-names: "Corlay"
     given-names: "Sylvain"
     alias: "SylvainCorlay"

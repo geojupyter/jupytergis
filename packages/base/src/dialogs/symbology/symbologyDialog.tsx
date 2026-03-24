@@ -36,7 +36,7 @@ export interface ISymbologyWidgetOptions {
 }
 
 export interface IStopRow {
-  stop: number;
+  stop: number | string;
   output: SymbologyValue;
 }
 
