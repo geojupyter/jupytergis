@@ -1,7 +1,11 @@
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useState } from 'react';
 
-import { colorToRgba, RgbaColor } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  colorToRgba,
+  DEFAULT_COLOR,
+  RgbaColor,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
@@ -31,8 +35,8 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     radius: 5,
   });
   const styleRef = useLatest(style);
-  const [fillRgba, setFillRgba] = useState<RgbaColor>([51, 153, 204, 1]);
-  const [strokeRgba, setStrokeRgba] = useState<RgbaColor>([51, 153, 204, 1]);
+  const [fillRgba, setFillRgba] = useState<RgbaColor>(DEFAULT_COLOR);
+  const [strokeRgba, setStrokeRgba] = useState<RgbaColor>(DEFAULT_COLOR);
   const fillRgbaRef = useLatest(fillRgba);
   const strokeRgbaRef = useLatest(strokeRgba);
 

@@ -7,7 +7,12 @@ import ColorRampControls, {
   ColorRampControlsOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-import { colorToRgba, RgbaColor } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  colorToRgba,
+  DEFAULT_COLOR,
+  isColor,
+  RgbaColor,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
@@ -53,7 +58,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     strokeColor: RgbaColor;
     strokeWidth: number;
   }>({
-    strokeColor: [51, 153, 204, 1],
+    strokeColor: DEFAULT_COLOR,
     strokeWidth: 1.25,
   });
   const [radiusManualStyle, setRadiusManualStyle] = useState({
@@ -97,18 +102,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       const strokeColor = params.color['stroke-color'];
       const circleStrokeColor = params.color['circle-stroke-color'];
 
-      const isSolidColor = (val: unknown): boolean => {
-        if (typeof val === 'string') return /^#?[0-9A-Fa-f]{3,8}$/.test(val);
-        return (
-          Array.isArray(val) && val.length >= 3 && typeof val[0] === 'number'
-        );
-      };
-
-      const effectiveStroke = isSolidColor(strokeColor)
+      const effectiveStroke = isColor(strokeColor)
         ? strokeColor
-        : isSolidColor(circleStrokeColor)
+        : isColor(circleStrokeColor)
           ? circleStrokeColor
-          : '#3399CC';
+          : DEFAULT_COLOR;
 
       setColorManualStyle({
         strokeColor: colorToRgba(effectiveStroke),

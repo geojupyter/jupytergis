@@ -68,7 +68,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
             position: 'absolute',
             zIndex: 1000,
             top: '110%',
-            right: 0,
+            left: 0,
             background: 'var(--jp-layout-color1, #fff)',
             border: '1px solid var(--jp-border-color1, #ccc)',
             borderRadius: 6,

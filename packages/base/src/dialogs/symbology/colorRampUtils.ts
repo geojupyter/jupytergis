@@ -6,6 +6,21 @@ import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.js
 
 export type RgbaColor = [number, number, number, number];
 
+/** OpenLayers default blue, used as the fallback color throughout symbology dialogs. */
+export const DEFAULT_COLOR: RgbaColor = [51, 153, 204, 1];
+
+/**
+ * Returns true if `val` is a usable solid color: either a hex string or a
+ * plain [r,g,b,a] number array. Returns false for OL expression arrays like
+ * ['interpolate', ...] whose first element is a string.
+ */
+export function isColor(val: unknown): boolean {
+  if (typeof val === 'string') {
+    return /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+  }
+  return Array.isArray(val) && val.length >= 3 && typeof val[0] === 'number';
+}
+
 export interface IColorMap {
   name: ColorRampName;
   colors: string[];
@@ -127,40 +142,30 @@ export const ensureHexColorCode = (color: number[] | string): string => {
 };
 
 /**
- * Convert hex to [r,g,b,a] array where a is 0-1.
- */
-export function hexToRgb(hex: string): RgbaColor {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-  if (!result) {
-    console.warn('Unable to parse hex value, defaulting to black');
-    return [0, 0, 0, 1];
-  }
-  return [
-    parseInt(result[1], 16),
-    parseInt(result[2], 16),
-    parseInt(result[3], 16),
-    1,
-  ];
-}
-
-/**
  * Convert any color value (hex string or [r,g,b,a] array) to RgbaColor.
- * Alpha is normalized to 0-1 range.
+ * Alpha must be in 0-1 range; a warning is logged if it is not.
  */
 export function colorToRgba(color: unknown): RgbaColor {
-  const defaultColor: RgbaColor = [51, 153, 204, 1]; // #3399CC
   if (typeof color === 'string') {
-    return hexToRgb(color);
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+    if (!result) {
+      console.warn('Unable to parse hex color, using default');
+      return DEFAULT_COLOR;
+    }
+    return [
+      parseInt(result[1], 16),
+      parseInt(result[2], 16),
+      parseInt(result[3], 16),
+      1,
+    ];
   }
-  if (
-    Array.isArray(color) &&
-    color.length >= 3 &&
-    typeof color[0] === 'number'
-  ) {
+  if (isColor(color)) {
     const [r, g, b, a] = color as number[];
-    const alpha = a !== undefined ? (a > 1 ? a / 255 : a) : 1;
+    const alpha = a ?? 1;
+    if (alpha > 1) {
+      console.warn(`Color alpha ${alpha} is out of 0-1 range`);
+    }
     return [r, g, b, alpha];
   }
-  return defaultColor;
+  return DEFAULT_COLOR;
 }
