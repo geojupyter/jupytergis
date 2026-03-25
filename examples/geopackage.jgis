@@ -16,10 +16,24 @@
       },
       "name": "GeoPackage Layer Countries Layer",
       "parameters": {
-        "color": null,
+        "color": {
+          "circle-fill-color": "#ffffff",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#ffffff",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "41ba7c89-0986-4d8f-a3a2-72847069de89/Countries",
-        "symbologyState": null
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -31,10 +45,24 @@
       },
       "name": "GeoPackage Layer Parks Layer",
       "parameters": {
-        "color": null,
+        "color": {
+          "circle-fill-color": "#ffffff",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#ffffff",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "c0e58d6d-7dc7-4878-9aa4-b241f8172262/Parks",
-        "symbologyState": null
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -46,10 +74,24 @@
       },
       "name": "GeoPackage Layer Pizza Layer",
       "parameters": {
-        "color": null,
+        "color": {
+          "circle-fill-color": "#ffffff",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#ffffff",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "0033b340-eb92-4610-9510-377e43cd6438/Pizza",
-        "symbologyState": null
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -61,10 +103,24 @@
       },
       "name": "GeoPackage Layer Rivers + Lake Centrelines Layer",
       "parameters": {
-        "color": null,
+        "color": {
+          "circle-fill-color": "#3399CC",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#3399CC",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "8f10ffc3-7461-4ea7-bce8-fb29e2671289/Rivers + Lake Centrelines",
-        "symbologyState": null
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -89,10 +145,24 @@
       },
       "name": "GeoPackage Layer PointsOfInterest Layer",
       "parameters": {
-        "color": null,
+        "color": {
+          "circle-fill-color": "#ffffff",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#ffffff",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "9acdf695-c781-4b68-b415-eff3f66fa7eb/PointsOfInterest",
-        "symbologyState": null
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -104,10 +174,24 @@
       },
       "name": "GeoPackage Layer Lakes Layer",
       "parameters": {
-        "color": null,
+        "color": {
+          "circle-fill-color": "#ffffff",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#ffffff",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "9a0fd43f-5025-49a0-ab69-90b9f074424c/Lakes",
-        "symbologyState": null
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -117,15 +201,15 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -22832262.014248326,
-      -6601278.258703165,
-      17242754.67133016,
-      20037508.34278924
+      -19842877.16935108,
+      -7881795.1481665075,
+      20232139.51622741,
+      15407339.44226313
     ],
-    "latitude": 51.544133952400074,
-    "longitude": -25.105699384208396,
+    "latitude": 31.995897688426325,
+    "longitude": 1.7484015786562033,
     "projection": "EPSG:3857",
-    "zoom": 2.0070272668939686
+    "zoom": 2.2008986050384443
   },
   "schemaVersion": "0.5.0",
   "sources": {
