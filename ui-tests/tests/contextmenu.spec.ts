@@ -93,7 +93,7 @@ test.describe('context menu', () => {
     await page.getByText('Add Layer').hover();
     await page.getByText('Add Raster Layer', { exact: true }).hover();
     await page
-      .getByText('Open New Raster Tile Layer Creation Dialog', { exact: true })
+      .getByText('New Raster Tile Layer', { exact: true })
       .click();
 
     await page

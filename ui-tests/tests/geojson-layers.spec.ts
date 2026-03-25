@@ -54,7 +54,7 @@ test.describe('#geoJSONLayer', () => {
     await page.getByText('Add Vector Layer').hover();
     await page
       .locator('#jp-gis-toolbar-vector-menu')
-      .getByText('Open New GeoJSON Layer Creation Dialog')
+      .getByText('New GeoJSON Layer')
       .click();
 
     const dialog = page.locator('.jp-Dialog-content');
