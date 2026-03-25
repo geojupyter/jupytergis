@@ -4,6 +4,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
+import xml.etree.ElementTree as ET
 from uuid import uuid4
 import requests
 
@@ -152,6 +153,7 @@ class GISDocument(CommWidget):
 
         return export_project_to_qgis(path, virtual_file)
 
+    
     def add_raster_layer(
         self,
         url: str,
@@ -192,6 +194,7 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
 
     def add_vectortile_layer(
         self,
@@ -615,6 +618,168 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def get_wms_available_layers(
+        self,
+        wms_url: str,
+        version: str = '1.3.0',
+        timeout: float = 30.0,
+    ) -> List[Dict[str, str]]:
+        """
+        Fetch a WMS GetCapabilities document and parse available top-level layers.
+
+        Matches the behavior in the frontend WmsTileSourceUrlInput:
+        - Calls: ?SERVICE=WMS&VERSION=...&REQUEST=GetCapabilities
+        - Parses Capability > Layer (root Layer)
+        - Returns direct child Layer elements with `Name` and `Title`.
+
+        Returns a list of objects shaped like: { 'name': <layer name>, 'title': <layer title> }.
+        """
+
+        if not wms_url or not isinstance(wms_url, str):
+            raise ValueError('wms_url must be a non-empty string')
+
+        text = wms_url.strip()
+        if not text:
+            raise ValueError('wms_url must be a non-empty string')
+
+        # Normalize to a base endpoint (remove any existing query string).
+        base = text.split('?', 1)[0]
+        if not base.endswith('/'):
+            base += '/'
+
+        capabilities_url = (
+            f'{base}?SERVICE=WMS&VERSION={version}&REQUEST=GetCapabilities'
+        )
+
+        resp = requests.get(capabilities_url, timeout=timeout)
+        resp.raise_for_status()
+
+        xml_text = resp.text
+        try:
+            root = ET.fromstring(xml_text)
+        except ET.ParseError as e:
+            raise RuntimeError(
+                f'Failed to parse WMS GetCapabilities XML from {capabilities_url}'
+            ) from e
+
+        def local_name(tag: str) -> str:
+            # Handles tags like '{http://www.opengis.net/wms}Layer'
+            return tag.split('}', 1)[1] if '}' in tag else tag
+
+        service_exception = next(
+            (
+                el
+                for el in root.iter()
+                if local_name(el.tag) == 'ServiceExceptionReport'
+            ),
+            None,
+        )
+        if service_exception is not None:
+            msg = ''.join(service_exception.itertext()).strip()
+            raise RuntimeError(msg or 'Failed to fetch WMS capabilities.')
+
+        capability_el = next(
+            (el for el in root.iter() if local_name(el.tag) == 'Capability'),
+            None,
+        )
+        if capability_el is None:
+            return []
+
+        root_layer_el = next(
+            (child for child in capability_el if local_name(child.tag) == 'Layer'),
+            None,
+        )
+        if root_layer_el is None:
+            return []
+
+        results: List[Dict[str, str]] = []
+        for layer_el in list(root_layer_el):
+            if local_name(layer_el.tag) != 'Layer':
+                continue
+
+            name_el = next(
+                (el for el in layer_el.iter() if local_name(el.tag) == 'Name'),
+                None,
+            )
+            title_el = next(
+                (el for el in layer_el.iter() if local_name(el.tag) == 'Title'),
+                None,
+            )
+
+            name = (name_el.text or '').strip() if name_el is not None else ''
+            title = (
+                (title_el.text or '').strip() if title_el is not None else ''
+            )
+
+            if name or title:
+                results.append({'name': name, 'title': title})
+
+        return results
+
+    def add_wms_tile_layer(
+        self,
+        url: str,
+        layer_name: str,
+        name: str = 'WMS Layer',
+        attribution: str = '',
+        opacity: float = 1,
+        interpolate: bool = False,
+    ) -> str:
+        """
+        Add a WMS tile layer to the document.
+
+        url:
+            Base WMS service URL (without SERVICE/REQUEST parameters), e.g.
+            'https://ows.terrestris.de/osm/service'
+        layer_name:
+            WMS layer name to request (from GetCapabilities `Name`).
+        name:
+            Display name for the layer.
+        attribution:
+            Optional attribution text.
+        opacity:
+            Layer opacity in [0, 1].
+        interpolate:
+            Whether to interpolate between grid cells when overzooming.
+        """
+        if not url or not isinstance(url, str):
+            raise ValueError('url must be a non-empty string')
+        if not layer_name or not isinstance(layer_name, str):
+            raise ValueError('layer_name must be a non-empty string')
+
+        # Normalize: strip any existing query string since the frontend will
+        # add WMS params (LAYERS/TILED) itself.
+        base_url = url.strip().split('?', 1)[0]
+
+        source = {
+            'type': SourceType.WmsTileSource,
+            'name': f'{name} Source',
+            'parameters': {
+                'url': base_url,
+                'params': {
+                    'layers': layer_name,
+                },
+                'attribution': attribution,
+                'interpolate': interpolate,
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            'type': LayerType.RasterLayer,
+            'name': name,
+            'visible': True,
+            'parameters': {
+                'source': source_id,
+                'opacity': opacity,
+                'color': {},
+            },
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
 
     def remove_layer(self, layer_id: str):
         """
