@@ -414,7 +414,7 @@ export function addCommands(
    * Source and layers
    */
   commands.addCommand(CommandIDs.openNewRasterDialog, {
-    label: trans.__('Open New Raster Tile Layer Creation Dialog'),
+    label: trans.__('Raster Tile'),
     caption:
       'Open a dialog to create a new raster tile layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -442,7 +442,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewVectorTileDialog, {
-    label: trans.__('Open New Vector Tile Layer Creation Dialog'),
+    label: trans.__('Vector Tile'),
     caption:
       'Open a dialog to create a new vector tile layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -470,7 +470,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewGeoParquetDialog, {
-    label: trans.__('Open New GeoParquet Layer Creation Dialog'),
+    label: trans.__('GeoParquet'),
     caption:
       'Open a dialog to create a new GeoParquet layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -499,7 +499,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewGeoJSONDialog, {
-    label: trans.__('Open New GeoJSON Layer Creation Dialog'),
+    label: trans.__('GeoJSON'),
     caption:
       'Open a dialog to create a new GeoJSON layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -537,7 +537,7 @@ export function addCommands(
   );
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
-    label: trans.__('Open New Hillshade Layer Creation Dialog'),
+    label: trans.__('Hillshade'),
     caption:
       'Open a dialog to create a new hillshade layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -565,7 +565,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewImageDialog, {
-    label: trans.__('Open New Image Layer Creation Dialog'),
+    label: trans.__('Image'),
     caption:
       'Open a dialog to create a new image layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -603,7 +603,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewVideoDialog, {
-    label: trans.__('Open New Video Layer Creation Dialog'),
+    label: trans.__('Video'),
     caption:
       'Open a dialog to create a new video layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -644,7 +644,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
-    label: trans.__('Open New GeoTiff Layer Creation Dialog'),
+    label: trans.__('GeoTiff'),
     caption:
       'Open a dialog to create a new GeoTiff layer and source in the current JupyterGIS document.',
     describedBy: {
@@ -676,7 +676,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewShapefileDialog, {
-    label: trans.__('Open New Shapefile Layer Creation Dialog'),
+    label: trans.__('Shapefile'),
     caption:
       'Open a dialog to create a new shapefile layer and source in the current JupyterGIS document.',
     describedBy: {
