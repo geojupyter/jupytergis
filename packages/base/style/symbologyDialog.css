@@ -27,7 +27,8 @@ select option {
 }
 
 .jp-gis-symbology-row > .jp-select-wrapper,
-.jp-gis-symbology-row > .jp-mod-styled {
+.jp-gis-symbology-row > .jp-mod-styled,
+.jp-gis-symbology-row > .jp-gis-rgba-picker {
   flex: 1 0 50%;
   max-width: 50%;
 }

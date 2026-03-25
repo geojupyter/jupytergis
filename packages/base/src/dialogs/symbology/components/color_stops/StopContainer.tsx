@@ -41,7 +41,7 @@ const StopContainer: React.FC<IStopContainerProps> = ({
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
-            key={`${index}-${stop.output}`}
+            key={index}
             index={index}
             dataValue={stop.stop}
             symbologyValue={stop.output}

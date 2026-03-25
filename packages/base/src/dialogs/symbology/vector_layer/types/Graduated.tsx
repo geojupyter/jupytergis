@@ -6,6 +6,13 @@ import { VectorClassifications } from '@/src/dialogs/symbology/classificationMod
 import ColorRampControls, {
   ColorRampControlsOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
+import {
+  colorToRgba,
+  DEFAULT_COLOR,
+  isColor,
+  RgbaColor,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
@@ -47,8 +54,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampControlsOptions | undefined
   >();
-  const [colorManualStyle, setColorManualStyle] = useState({
-    strokeColor: '#3399CC',
+  const [colorManualStyle, setColorManualStyle] = useState<{
+    strokeColor: RgbaColor;
+    strokeWidth: number;
+  }>({
+    strokeColor: DEFAULT_COLOR,
     strokeWidth: 1.25,
   });
   const [radiusManualStyle, setRadiusManualStyle] = useState({
@@ -92,15 +102,14 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       const strokeColor = params.color['stroke-color'];
       const circleStrokeColor = params.color['circle-stroke-color'];
 
-      const isSimpleColor = (val: any) =>
-        typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+      const effectiveStroke = isColor(strokeColor)
+        ? strokeColor
+        : isColor(circleStrokeColor)
+          ? circleStrokeColor
+          : DEFAULT_COLOR;
 
       setColorManualStyle({
-        strokeColor: isSimpleColor(strokeColor)
-          ? strokeColor
-          : isSimpleColor(circleStrokeColor)
-            ? circleStrokeColor
-            : '#3399CC',
+        strokeColor: colorToRgba(effectiveStroke),
         strokeWidth:
           params.color['stroke-width'] ||
           params.color['circle-stroke-width'] ||
@@ -366,16 +375,14 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                 </p>
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Color:</label>
-                  <input
-                    type="color"
-                    className="jp-mod-styled"
-                    value={colorManualStyle.strokeColor}
-                    onChange={e => {
-                      setColorManualStyle({
-                        ...colorManualStyle,
-                        strokeColor: e.target.value,
-                      });
-                    }}
+                  <RgbaColorPicker
+                    color={colorManualStyle.strokeColor}
+                    onChange={color =>
+                      setColorManualStyle(prev => ({
+                        ...prev,
+                        strokeColor: color,
+                      }))
+                    }
                   />
                 </div>
                 <div className="jp-gis-symbology-row">
