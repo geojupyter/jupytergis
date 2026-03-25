@@ -70,7 +70,10 @@
       "visible": true
     },
     "c3e1b470-fd4e-4c57-ac0a-5b4a24e602ac/tiles": {
-      "filters": null,
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
       "name": "GeoPackage Layer tiles Layer",
       "parameters": {
         "opacity": 1.0,
