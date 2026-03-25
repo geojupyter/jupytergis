@@ -11,14 +11,8 @@
   "layers": {
     "03fa7c7c-4f88-49cf-b975-38a42ef38710/Countries": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
+        "appliedFilters": [],
+        "logicalOp": "all"
       },
       "name": "GeoPackage Layer Countries Layer",
       "parameters": {
@@ -32,14 +26,8 @@
     },
     "21467e04-77ba-445d-8e7b-638149deb9f4/Parks": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
+        "appliedFilters": [],
+        "logicalOp": "all"
       },
       "name": "GeoPackage Layer Parks Layer",
       "parameters": {
@@ -53,14 +41,8 @@
     },
     "3e335ea9-4358-4fc1-acb3-ceea34b852d5/Pizza": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
+        "appliedFilters": [],
+        "logicalOp": "all"
       },
       "name": "GeoPackage Layer Pizza Layer",
       "parameters": {
@@ -74,14 +56,8 @@
     },
     "58c36230-5fa7-4158-965d-cc4f5c2a0794/Rivers + Lake Centrelines": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
+        "appliedFilters": [],
+        "logicalOp": "all"
       },
       "name": "GeoPackage Layer Rivers + Lake Centrelines Layer",
       "parameters": {
@@ -105,14 +81,8 @@
     },
     "d090703f-5953-44b3-acde-c6286e125385/PointsOfInterest": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
+        "appliedFilters": [],
+        "logicalOp": "all"
       },
       "name": "GeoPackage Layer PointsOfInterest Layer",
       "parameters": {
@@ -126,14 +96,8 @@
     },
     "e811f15b-d11a-4113-bc5a-3726dde9976b/Lakes": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
+        "appliedFilters": [],
+        "logicalOp": "all"
       },
       "name": "GeoPackage Layer Lakes Layer",
       "parameters": {
@@ -150,15 +114,15 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -22036985.40727903,
-      -6817247.246847427,
-      18038031.278299443,
-      18065694.93156175
+      -22832262.014248323,
+      -6601278.258703161,
+      17242754.671330165,
+      20037508.342789244
     ],
-    "latitude": 45.01716292551504,
-    "longitude": -17.96160807277616,
+    "latitude": 51.544133952400074,
+    "longitude": -25.105699384208393,
     "projection": "EPSG:3857",
-    "zoom": 2.1032878084120226
+    "zoom": 2.0070272668939686
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -234,5 +198,6 @@
       },
       "type": "GeoPackageVectorSource"
     }
-  }
+  },
+  "stories": {}
 }
