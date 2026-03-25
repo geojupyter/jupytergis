@@ -285,9 +285,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom, projection);
-    if (this._Map) {
-      this.updateOptions(options);
-    }
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -520,12 +517,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ...old,
         loading: false,
         viewProjection: {
-          code: (
-            getProjection(this._model.getOptions().projection) ??
-            view.getProjection()
-          ).getCode(),
+          code: projection,
           units: (
-            getProjection(this._model.getOptions().projection) ??
+            getProjection(projection) ??
             view.getProjection()
           ).getUnits(),
         },
@@ -1943,7 +1937,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (newProjection) {
         this.setState(old => ({
           viewProjection: {
-            ...old.viewProjection,
             code: newProjection.getCode(),
             units: newProjection.getUnits(),
           },
