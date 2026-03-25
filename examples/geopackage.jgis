@@ -140,7 +140,7 @@
       "name": "GeoPackage Layer tiles Source",
       "parameters": {
         "attribution": null,
-        "interpolate": null,
+        "interpolate": false,
         "maxZoom": null,
         "minZoom": null,
         "path": "https://raw.githubusercontent.com/ngageoint/geopackage-js/master/docs/examples/GeoPackageToGo/StLouis.gpkg",
