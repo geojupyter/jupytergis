@@ -414,7 +414,7 @@ export function addCommands(
    * Source and layers
    */
   commands.addCommand(CommandIDs.openNewRasterDialog, {
-    label: trans.__('New Raster Tile Layer'),
+    label: trans.__('Raster Tile'),
     caption:
       'Open a dialog to create a new raster tile layer and source in the current JupyterGIS document.',
     describedBy: {
