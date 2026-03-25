@@ -4,6 +4,13 @@ import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
 import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
+import {
+  colorToRgba,
+  DEFAULT_COLOR,
+  isColor,
+  RgbaColor,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
@@ -36,9 +43,14 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ReadonlyJSONObject | undefined
   >();
-  const [manualStyle, setManualStyle] = useState({
-    fillColor: '#3399CC',
-    strokeColor: '#3399CC',
+  const [manualStyle, setManualStyle] = useState<{
+    fillColor: RgbaColor;
+    strokeColor: RgbaColor;
+    strokeWidth: number;
+    radius: number;
+  }>({
+    fillColor: DEFAULT_COLOR,
+    strokeColor: DEFAULT_COLOR,
     strokeWidth: 1.25,
     radius: 5,
   });
@@ -77,22 +89,21 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       const strokeColor = params.color['stroke-color'];
       const circleStrokeColor = params.color['circle-stroke-color'];
 
-      const isSimpleColor = (val: any) =>
-        typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+      const effectiveFill = isColor(fillColor)
+        ? fillColor
+        : isColor(circleFillColor)
+          ? circleFillColor
+          : DEFAULT_COLOR;
+
+      const effectiveStroke = isColor(strokeColor)
+        ? strokeColor
+        : isColor(circleStrokeColor)
+          ? circleStrokeColor
+          : DEFAULT_COLOR;
 
       setManualStyle({
-        fillColor: isSimpleColor(fillColor)
-          ? fillColor
-          : isSimpleColor(circleFillColor)
-            ? circleFillColor
-            : '#3399CC',
-
-        strokeColor: isSimpleColor(strokeColor)
-          ? strokeColor
-          : isSimpleColor(circleStrokeColor)
-            ? circleStrokeColor
-            : '#3399CC',
-
+        fillColor: colorToRgba(effectiveFill),
+        strokeColor: colorToRgba(effectiveStroke),
         strokeWidth:
           params.color['stroke-width'] ||
           params.color['circle-stroke-width'] ||
@@ -249,31 +260,21 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               <>
                 <div className="jp-gis-symbology-row">
                   <label>Fill Color:</label>
-                  <input
-                    type="color"
-                    className="jp-mod-styled"
-                    value={manualStyle.fillColor}
-                    onChange={e => {
+                  <RgbaColorPicker
+                    color={manualStyle.fillColor}
+                    onChange={color => {
                       handleReset('color');
-                      setManualStyle(prev => ({
-                        ...prev,
-                        fillColor: e.target.value,
-                      }));
+                      setManualStyle(prev => ({ ...prev, fillColor: color }));
                     }}
                   />
                 </div>
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Color:</label>
-                  <input
-                    type="color"
-                    className="jp-mod-styled"
-                    value={manualStyle.strokeColor}
-                    onChange={e => {
-                      setManualStyle(prev => ({
-                        ...prev,
-                        strokeColor: e.target.value,
-                      }));
-                    }}
+                  <RgbaColorPicker
+                    color={manualStyle.strokeColor}
+                    onChange={color =>
+                      setManualStyle(prev => ({ ...prev, strokeColor: color }))
+                    }
                   />
                 </div>
                 <div className="jp-gis-symbology-row">
