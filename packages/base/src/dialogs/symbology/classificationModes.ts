@@ -267,30 +267,20 @@ export namespace VectorClassifications {
     values: number[],
     nClasses: number,
   ) => {
-    const minimum = Math.min(...values);
-    const maximum = Math.max(...values);
-
-    let positiveMinimum = Number.MAX_VALUE;
-
-    let breaks = [];
-
-    positiveMinimum = minimum;
-
-    const actualLogMin = Math.log10(positiveMinimum);
-    let logMin = Math.floor(actualLogMin);
-    const logMax = Math.ceil(Math.log10(maximum));
-
-    let prettyBreaks = calculatePrettyBreaks([logMin, logMax], nClasses);
-
-    while (prettyBreaks.length > 0 && prettyBreaks[0] < actualLogMin) {
-      logMin += 1.0;
-      prettyBreaks = calculatePrettyBreaks([logMin, logMax], nClasses);
+    const positiveValues = values.filter(v => v > 0);
+    if (positiveValues.length === 0 || nClasses < 1) {
+      return [];
     }
 
-    breaks = prettyBreaks;
+    const minimum = Math.min(...positiveValues);
+    const maximum = Math.max(...positiveValues);
+    const logMin = Math.log10(minimum);
+    const logMax = Math.log10(maximum);
 
-    for (let i = 0; i < breaks.length; i++) {
-      breaks[i] = Math.pow(10, breaks[i]);
+    const breaks: number[] = [];
+    for (let i = 0; i < nClasses; i++) {
+      const t = nClasses === 1 ? 0 : i / (nClasses - 1);
+      breaks.push(Math.pow(10, logMin + t * (logMax - logMin)));
     }
 
     return breaks;

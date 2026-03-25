@@ -54,9 +54,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
   });
+  const [vmin, setVmin] = useState<string>('');
+  const [vmax, setVmax] = useState<string>('');
 
   const selectableAttributeRef = useLatest(selectedAttribute);
   const symbologyTabRef = useLatest(symbologyTab);
+  const vminRef = useLatest(vmin);
+  const vmaxRef = useLatest(vmax);
   const colorStopRowsRef = useLatest(colorStopRows);
   const radiusStopRowsRef = useLatest(radiusStopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
@@ -116,6 +120,28 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
 
+  useEffect(() => {
+    if (
+      !selectedAttribute ||
+      !selectableAttributesAndValues[selectedAttribute]
+    ) {
+      return;
+    }
+    if (params.symbologyState?.vmin !== undefined) {
+      setVmin(String(params.symbologyState.vmin));
+      setVmax(String(params.symbologyState.vmax ?? ''));
+      return;
+    }
+    const values = Array.from(
+      selectableAttributesAndValues[selectedAttribute],
+    ).filter(Number.isFinite);
+    if (values.length === 0) {
+      return;
+    }
+    setVmin(String(Math.min(...values)));
+    setVmax(String(Math.max(...values)));
+  }, [selectedAttribute]);
+
   const updateStopRowsBasedOnLayer = () => {
     if (!layer) {
       return;
@@ -168,6 +194,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       newStyle['circle-radius'] = radiusManualStyleRef.current.radius;
     }
 
+    const parsedVmin = parseFloat(vminRef.current);
+    const parsedVmax = parseFloat(vmaxRef.current);
     const symbologyState = {
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
@@ -176,6 +204,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+      ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
+      ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
     } as IVectorLayer['symbologyState'];
 
     saveSymbology({
@@ -212,7 +242,27 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     let stops: number[];
 
-    const values = Array.from(selectableAttributesAndValues[selectedAttribute]);
+    const allValues = Array.from(
+      selectableAttributesAndValues[selectedAttribute],
+    );
+    const parsed = (s: string) => {
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : undefined;
+    };
+    const parsedVmin = parsed(vmin);
+    const parsedVmax = parsed(vmax);
+    const values = allValues.filter(v => {
+      if (!Number.isFinite(v)) {
+        return false;
+      }
+      if (parsedVmin !== undefined && v < parsedVmin) {
+        return false;
+      }
+      if (parsedVmax !== undefined && v > parsedVmax) {
+        return false;
+      }
+      return true;
+    });
 
     switch (selectedMode) {
       case 'quantile':
@@ -363,6 +413,26 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             )}
           </div>
 
+          <div className="jp-gis-symbology-row">
+            <label>Min value:</label>
+            <input
+              type="text"
+              className="jp-mod-styled"
+              placeholder="auto"
+              value={vmin}
+              onChange={e => setVmin(e.target.value)}
+            />
+          </div>
+          <div className="jp-gis-symbology-row">
+            <label>Max value:</label>
+            <input
+              type="text"
+              className="jp-mod-styled"
+              placeholder="auto"
+              value={vmax}
+              onChange={e => setVmax(e.target.value)}
+            />
+          </div>
           <ColorRampControls
             layerParams={params}
             modeOptions={modeOptions}
