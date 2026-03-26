@@ -861,6 +861,117 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
+    def get_color_ramp(self, name, i, n_classes, reverse=False):
+        if n_classes <= 1:
+            t = 0
+        else:
+            t = i / (n_classes - 1)
+
+        if reverse:
+            t = 1 - t
+
+        if name == "heat":
+            if t < 0.33:
+                tt = t / 0.33
+                return [int(255 * tt), 0, 0, 1.0]
+            elif t < 0.66:
+                tt = (t - 0.33) / 0.33
+                return [255, int(255 * tt), 0, 1.0]
+            else:
+                tt = (t - 0.66) / 0.34
+                return [255, 255, int(255 * tt), 1.0]
+
+        if name == "coolwarm":
+            if t < 0.5:
+                tt = t / 0.5
+                return [int(255 * tt), int(255 * tt), 255, 1.0]
+            else:
+                tt = (t - 0.5) / 0.5
+                return [255, int(255 * (1 - tt)), int(255 * (1 - tt)), 1.0]
+
+        if name == "green-red":
+            if t < 0.5:
+                tt = t / 0.5
+                return [int(255 * tt), 255, 0, 1.0]
+            else:
+                tt = (t - 0.5) / 0.5
+                return [255, int(255 * (1 - tt)), 0, 1.0]
+
+        # fallback
+        return [int(255 * t), int(255 * (1 - t)), 150, 1.0]
+
+    def apply_graduated_symbology(
+        self,
+        layer_id: str,
+        value: str,
+        data: list[float],
+        method: str = "color",
+        color_ramp: str | None = None,
+        n_classes: int = 10,
+        mode: str = "equal interval",
+        reverse: bool = False,
+    ):
+        layer = self._layers.get(layer_id)
+
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if layer["type"] != "VectorLayer" and layer["type"] != "VectorTileLayer":
+            raise ValueError(
+                "Graduated symbology only supports VectorLayer and VectorTileLayer"
+            )
+
+        if not data:
+            raise ValueError("Data array is empty")
+
+        data = sorted(data)
+        vmin, vmax = float(min(data)), float(max(data))
+
+        # Compute class breaks (equal interval only for now)
+        step = (vmax - vmin) / n_classes
+        breaks = [vmin + i * step for i in range(n_classes + 1)]
+
+        # default ramp if none provided
+        if color_ramp is None:
+            color_ramp = "coolwarm"
+
+        color_stops = {
+            breaks[i]: self.get_color_ramp(color_ramp, i, len(breaks), reverse)
+            for i in range(len(breaks))
+        }
+
+        # Build interpolate expression
+        expr = ["interpolate", ["linear"], ["get", value]]
+
+        for val, color in sorted(color_stops.items()):
+            expr.append(val)
+            expr.append(color)
+
+        # Ensure parameters exist
+        params = layer.setdefault("parameters", {})
+
+        # Apply color styling
+        params["color"] = {
+            "fill-color": expr,
+            "stroke-color": expr,
+            "circle-fill-color": expr,
+            "circle-radius": 5.0,
+            "stroke-width": 1.25,
+        }
+
+        # Metadata
+        params["symbologyState"] = {
+            "renderType": "Graduated",
+            "value": value,
+            "method": method,
+            "colorRamp": color_ramp,
+            "nClasses": float(n_classes),
+            "mode": mode,
+            "reverseRamp": reverse,
+        }
+
+        self._layers[layer_id] = layer
+
 
 class JGISLayer(BaseModel):
     class Config:
