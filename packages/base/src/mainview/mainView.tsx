@@ -56,6 +56,7 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { ExpressionValue } from 'ol/expr/expression';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
@@ -1381,6 +1382,79 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const newStyle = { ...defaultStyle, ...layerParams.color };
 
     layerStyle.style = newStyle;
+
+    // When fallbackColor[3] === 0, add an OL filter so features that would be
+    // drawn with a transparent color are excluded from rendering entirely.
+    // alpha === 0 is the contract: the default TRANSPARENT [0,0,0,0] triggers
+    // this automatically, and a future dedicated picker option can set it.
+    const symbologyState = layerParams.symbologyState;
+    if (
+      Array.isArray(symbologyState?.fallbackColor) &&
+      symbologyState.fallbackColor[3] === 0
+    ) {
+      let matchFilter: ExpressionValue[] | undefined;
+
+      if (symbologyState.renderType === 'Categorized') {
+        const fillExpr = layerParams.color['fill-color'];
+        if (
+          Array.isArray(fillExpr) &&
+          fillExpr[0] === 'case' &&
+          fillExpr.length >= 4
+        ) {
+          // Extract conditions from ['case', cond, val, cond, val, ..., fallback],
+          // skipping any whose matched output color is also fully transparent.
+          const conditions: ExpressionValue[][] = [];
+          for (let i = 1; i < fillExpr.length - 1; i += 2) {
+            const output = fillExpr[i + 1];
+            if (Array.isArray(output) && output[3] === 0) {
+              continue;
+            }
+            conditions.push(fillExpr[i] as ExpressionValue[]);
+          }
+          // If every stop is transparent, use a never-true filter to hide all.
+          matchFilter =
+            conditions.length === 0
+              ? ['==', 0, 1]
+              : conditions.length === 1
+                ? conditions[0]
+                : ['any', ...conditions];
+        }
+      } else if (symbologyState.renderType === 'Graduated') {
+        const fillExpr = layerParams.color['fill-color'];
+        // Graduated fill is ['case', ['has', field], interpolateExpr, fallback].
+        // Features missing the attribute fall through to the fallback, so filter
+        // them out with the same ['has', field] condition.
+        if (
+          Array.isArray(fillExpr) &&
+          fillExpr[0] === 'case' &&
+          Array.isArray(fillExpr[1]) &&
+          fillExpr[1][0] === 'has'
+        ) {
+          matchFilter = fillExpr[1];
+        }
+      } else if (symbologyState.renderType === 'Canonical') {
+        const fillExpr = layerParams.color['fill-color'];
+        // Canonical fill is ['coalesce', ['get', field], fallback].
+        // Features missing the attribute fall through to the fallback, so filter
+        // them out with ['has', field]. Note: features that have the field but
+        // with a non-color value also get the fallback — that gap is accepted.
+        if (
+          Array.isArray(fillExpr) &&
+          fillExpr[0] === 'coalesce' &&
+          Array.isArray(fillExpr[1]) &&
+          fillExpr[1][0] === 'get'
+        ) {
+          matchFilter = ['has', fillExpr[1][1]];
+        }
+      }
+
+      if (matchFilter) {
+        // Combine with any existing user-applied filter.
+        layerStyle.filter = layerStyle.filter
+          ? ['all', layerStyle.filter, matchFilter]
+          : matchFilter;
+      }
+    }
 
     return [layerStyle];
   };
