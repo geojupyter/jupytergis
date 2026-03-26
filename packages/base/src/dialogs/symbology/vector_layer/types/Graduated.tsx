@@ -56,10 +56,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   >();
   const [colorManualStyle, setColorManualStyle] = useState<{
     strokeColor: RgbaColor;
-    strokeWidth: number;
+    strokeWidth: string;
   }>({
     strokeColor: DEFAULT_COLOR,
-    strokeWidth: 1.25,
+    strokeWidth: '1.25',
   });
   const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
@@ -110,10 +110,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
       setColorManualStyle({
         strokeColor: colorToRgba(effectiveStroke),
-        strokeWidth:
+        strokeWidth: String(
           params.color['stroke-width'] ||
-          params.color['circle-stroke-width'] ||
-          1.25,
+            params.color['circle-stroke-width'] ||
+            1.25,
+        ),
       });
       setRadiusManualStyle({
         radius: params.color['circle-radius'] || 5,
@@ -183,8 +184,14 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     newStyle['circle-stroke-color'] = colorManualStyleRef.current.strokeColor;
-    newStyle['stroke-width'] = colorManualStyleRef.current.strokeWidth;
-    newStyle['circle-stroke-width'] = colorManualStyleRef.current.strokeWidth;
+    newStyle['stroke-width'] = Math.max(
+      0,
+      parseFloat(colorManualStyleRef.current.strokeWidth),
+    );
+    newStyle['circle-stroke-width'] = Math.max(
+      0,
+      parseFloat(colorManualStyleRef.current.strokeWidth),
+    );
 
     // Apply radius symbology
     if (radiusStopRowsRef.current.length > 0) {
@@ -404,13 +411,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Width:</label>
                   <input
-                    type="number"
+                    type="text"
                     className="jp-mod-styled"
                     value={colorManualStyle.strokeWidth}
                     onChange={e => {
                       setColorManualStyle({
                         ...colorManualStyle,
-                        strokeWidth: +e.target.value,
+                        strokeWidth: e.target.value,
                       });
                     }}
                   />

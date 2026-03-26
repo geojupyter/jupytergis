@@ -46,12 +46,12 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [manualStyle, setManualStyle] = useState<{
     fillColor: RgbaColor;
     strokeColor: RgbaColor;
-    strokeWidth: number;
+    strokeWidth: string;
     radius: number;
   }>({
     fillColor: DEFAULT_COLOR,
     strokeColor: DEFAULT_COLOR,
-    strokeWidth: 1.25,
+    strokeWidth: '1.25',
     radius: 5,
   });
   const manualStyleRef = useLatest(manualStyle);
@@ -104,10 +104,11 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       setManualStyle({
         fillColor: colorToRgba(effectiveFill),
         strokeColor: colorToRgba(effectiveStroke),
-        strokeWidth:
+        strokeWidth: String(
           params.color['stroke-width'] ||
-          params.color['circle-stroke-width'] ||
-          1.25,
+            params.color['circle-stroke-width'] ||
+            1.25,
+        ),
         radius: params.color['circle-radius'] || 5,
       });
     }
@@ -176,8 +177,14 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
     }
 
-    newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
-    newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
+    newStyle['stroke-width'] = Math.max(
+      0,
+      parseFloat(manualStyleRef.current.strokeWidth),
+    );
+    newStyle['circle-stroke-width'] = Math.max(
+      0,
+      parseFloat(manualStyleRef.current.strokeWidth),
+    );
     newStyle['circle-radius'] = manualStyleRef.current.radius;
     newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
 
@@ -280,13 +287,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Width:</label>
                   <input
-                    type="number"
+                    type="text"
                     className="jp-mod-styled"
                     value={manualStyle.strokeWidth}
                     onChange={e => {
                       setManualStyle(prev => ({
                         ...prev,
-                        strokeWidth: +e.target.value,
+                        strokeWidth: e.target.value,
                       }));
                     }}
                   />
