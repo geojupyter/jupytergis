@@ -272,6 +272,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       return true;
     });
 
+    const dataMin = Math.min(...values);
+    const dataMax = Math.max(...values);
+    const rangeMin = parsedVmin ?? dataMin;
+    const rangeMax = parsedVmax ?? dataMax;
+    const rangeValues = [rangeMin, rangeMax];
+
     switch (selectedMode) {
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
@@ -281,7 +287,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
-          values,
+          rangeValues,
           numberOfShades,
         );
         break;
@@ -293,19 +299,30 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
-          values,
+          rangeValues,
           numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
-          values,
+          rangeValues,
           numberOfShades,
         );
         break;
       default:
         console.warn('No mode selected');
         return;
+    }
+
+    // Pin outer stops to the user-specified range for all modes.
+    // Range-based modes (equal interval, pretty, logarithmic) already receive
+    // rangeValues so their outer stops are correct; this clamp ensures
+    // data-driven modes (quantile, jenks) also honour vmin/vmax at the edges,
+    // which is useful e.g. for excluding outliers while keeping the ramp
+    // anchored to the chosen range.
+    if (stops.length > 0) {
+      stops[0] = rangeMin;
+      stops[stops.length - 1] = rangeMax;
     }
 
     const stopOutputPairs =
