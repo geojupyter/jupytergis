@@ -152,30 +152,50 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
       <p>Color features based on an attribute containing a hex color code.</p>
       {body}
       <div className="jp-gis-symbology-row">
-        <label>Stroke follows fill:</label>
-        <input
-          type="checkbox"
-          checked={strokeFollowsFill}
-          onChange={e => setStrokeFollowsFill(e.target.checked)}
-        />
-      </div>
-      {!strokeFollowsFill && (
-        <>
-          <div className="jp-gis-symbology-row">
-            <label>Stroke Color:</label>
+        <label>Stroke Color:</label>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flex: '1 0 50%',
+            maxWidth: '50%',
+          }}
+        >
+          <div
+            style={{
+              opacity: strokeFollowsFill ? 0.3 : 1,
+              pointerEvents: strokeFollowsFill ? 'none' : 'auto',
+            }}
+          >
             <RgbaColorPicker color={strokeColor} onChange={setStrokeColor} />
           </div>
-          <div className="jp-gis-symbology-row">
-            <label>Stroke Width:</label>
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              whiteSpace: 'nowrap',
+            }}
+          >
             <input
-              type="text"
-              className="jp-mod-styled"
-              value={strokeWidth}
-              onChange={e => setStrokeWidth(e.target.value)}
+              type="checkbox"
+              checked={strokeFollowsFill}
+              onChange={e => setStrokeFollowsFill(e.target.checked)}
             />
-          </div>
-        </>
-      )}
+            match fill
+          </label>
+        </div>
+      </div>
+      <div className="jp-gis-symbology-row">
+        <label>Stroke Width:</label>
+        <input
+          type="text"
+          className="jp-mod-styled"
+          value={strokeWidth}
+          onChange={e => setStrokeWidth(e.target.value)}
+        />
+      </div>
       <div className="jp-gis-symbology-row">
         <label>Fallback Color:</label>
         <RgbaColorPicker color={fallbackColor} onChange={setFallbackColor} />

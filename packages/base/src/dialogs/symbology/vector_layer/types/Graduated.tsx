@@ -430,17 +430,22 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                   symbology.
                 </p>
                 <div className="jp-gis-symbology-row">
-                  <label>Stroke follows fill:</label>
-                  <input
-                    type="checkbox"
-                    checked={strokeFollowsFill}
-                    onChange={e => setStrokeFollowsFill(e.target.checked)}
-                  />
-                </div>
-                {!strokeFollowsFill && (
-                  <>
-                    <div className="jp-gis-symbology-row">
-                      <label>Stroke Color:</label>
+                  <label>Stroke Color:</label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      flex: '1 0 50%',
+                      maxWidth: '50%',
+                    }}
+                  >
+                    <div
+                      style={{
+                        opacity: strokeFollowsFill ? 0.3 : 1,
+                        pointerEvents: strokeFollowsFill ? 'none' : 'auto',
+                      }}
+                    >
                       <RgbaColorPicker
                         color={colorManualStyle.strokeColor}
                         onChange={color =>
@@ -451,22 +456,37 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                         }
                       />
                     </div>
-                    <div className="jp-gis-symbology-row">
-                      <label>Stroke Width:</label>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       <input
-                        type="text"
-                        className="jp-mod-styled"
-                        value={colorManualStyle.strokeWidth}
-                        onChange={e => {
-                          setColorManualStyle({
-                            ...colorManualStyle,
-                            strokeWidth: e.target.value,
-                          });
-                        }}
+                        type="checkbox"
+                        checked={strokeFollowsFill}
+                        onChange={e => setStrokeFollowsFill(e.target.checked)}
                       />
-                    </div>
-                  </>
-                )}
+                      match fill
+                    </label>
+                  </div>
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Stroke Width:</label>
+                  <input
+                    type="text"
+                    className="jp-mod-styled"
+                    value={colorManualStyle.strokeWidth}
+                    onChange={e => {
+                      setColorManualStyle({
+                        ...colorManualStyle,
+                        strokeWidth: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
                 <div className="jp-gis-symbology-row">
                   <label>Fallback Color:</label>
                   <RgbaColorPicker
