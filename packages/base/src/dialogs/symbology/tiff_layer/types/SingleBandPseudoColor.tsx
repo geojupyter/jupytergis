@@ -375,7 +375,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     return (bandValue * (max - min)) / (1 - 0) + min;
   };
 
-  const unscaleValue = (value: number, isQuantile: boolean) => {
+  const unscaleValue = (value: number | string, isQuantile: boolean) => {
+    if (typeof value !== 'number') {
+      throw new Error('unscaleValue expects a number');
+    }
+
     const currentBand = bandRowsRef.current[selectedBand - 1];
 
     const min = isQuantile ? 1 : currentBand.stats.minimum;

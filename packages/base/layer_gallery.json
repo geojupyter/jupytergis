@@ -788,5 +788,151 @@
       "layerParameters": { "opacity": 1, "symbologyState": {} },
       "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)"
     }
+  },
+  "NaturalEarth": {
+    "Coastlines110m": {
+      "thumbnailPath": "layer_gallery/NaturalEarth-Coastlines110m.png",
+      "name": "NaturalEarth.Coastlines110m",
+      "layerType": "VectorLayer",
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_coastline.geojson"
+      },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "stroke-color": "#ffffff",
+          "stroke-width": 1.0,
+          "fill-color": "rgba(0,0,0,0)"
+        },
+        "symbologyState": { "renderType": "Single Symbol" }
+      },
+      "description": "Natural Earth 110m coastlines — transparent vector overlay, no API key required"
+    },
+    "Coastlines50m": {
+      "thumbnailPath": "layer_gallery/NaturalEarth-Coastlines50m.png",
+      "name": "NaturalEarth.Coastlines50m",
+      "layerType": "VectorLayer",
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_coastline.geojson"
+      },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "stroke-color": "#ffffff",
+          "stroke-width": 1.0,
+          "fill-color": "rgba(0,0,0,0)"
+        },
+        "symbologyState": { "renderType": "Single Symbol" }
+      },
+      "description": "Natural Earth 50m coastlines — transparent vector overlay, no API key required"
+    },
+    "Countries110m": {
+      "thumbnailPath": "layer_gallery/NaturalEarth-Countries110m.png",
+      "name": "NaturalEarth.Countries110m",
+      "layerType": "VectorLayer",
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+      },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "stroke-color": "#ffffff",
+          "stroke-width": 1.0,
+          "fill-color": "rgba(0,0,0,0)"
+        },
+        "symbologyState": { "renderType": "Single Symbol" }
+      },
+      "description": "Natural Earth 110m country boundaries — transparent vector overlay, no API key required"
+    },
+    "Countries50m": {
+      "thumbnailPath": "layer_gallery/NaturalEarth-Countries50m.png",
+      "name": "NaturalEarth.Countries50m",
+      "layerType": "VectorLayer",
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
+      },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "stroke-color": "#ffffff",
+          "stroke-width": 1.0,
+          "fill-color": "rgba(0,0,0,0)"
+        },
+        "symbologyState": { "renderType": "Single Symbol" }
+      },
+      "description": "Natural Earth 50m country boundaries — transparent vector overlay, no API key required"
+    },
+    "Rivers110m": {
+      "thumbnailPath": "layer_gallery/NaturalEarth-Rivers110m.png",
+      "name": "NaturalEarth.Rivers110m",
+      "layerType": "VectorLayer",
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_rivers_lake_centerlines.geojson"
+      },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "stroke-color": "#ffffff",
+          "stroke-width": 1.0,
+          "fill-color": "rgba(0,0,0,0)"
+        },
+        "symbologyState": { "renderType": "Single Symbol" }
+      },
+      "description": "Natural Earth 110m rivers and lake centerlines — transparent vector overlay, no API key required"
+    },
+    "Rivers50m": {
+      "thumbnailPath": "layer_gallery/NaturalEarth-Rivers50m.png",
+      "name": "NaturalEarth.Rivers50m",
+      "layerType": "VectorLayer",
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_rivers_lake_centerlines.geojson"
+      },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "stroke-color": "#ffffff",
+          "stroke-width": 1.0,
+          "fill-color": "rgba(0,0,0,0)"
+        },
+        "symbologyState": { "renderType": "Single Symbol" }
+      },
+      "description": "Natural Earth 50m rivers and lake centerlines — transparent vector overlay, no API key required"
+    },
+    "WorldBoundariesAndPlaces": {
+      "thumbnailPath": "layer_gallery/ESRI-WorldBoundariesAndPlaces.png",
+      "name": "Esri.WorldBoundariesAndPlaces",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "\u00a9 Esri, HERE, Garmin, \u00a9 OpenStreetMap contributors",
+        "maxZoom": 13,
+        "minZoom": 0,
+        "urlParameters": {}
+      },
+      "layerParameters": { "opacity": 1 },
+      "description": "\u00a9 Esri \u2014 Country boundaries and place labels as transparent overlay, no API key required"
+    },
+    "WorldOceanReference": {
+      "thumbnailPath": "layer_gallery/ESRI-WorldOceanReference.png",
+      "name": "Esri.WorldOceanReference",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "\u00a9 Esri, Garmin, GEBCO, NOAA NGDC",
+        "maxZoom": 13,
+        "minZoom": 0,
+        "urlParameters": {}
+      },
+      "layerParameters": { "opacity": 1 },
+      "description": "\u00a9 Esri \u2014 Coastlines and ocean reference labels as transparent overlay, no API key required"
+    }
   }
 }

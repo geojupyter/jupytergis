@@ -3,16 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef } from 'react';
 
-import {
-  ensureHexColorCode,
-  hexToRgb,
-} from '@/src/dialogs/symbology/colorRampUtils';
+import { colorToRgba, RgbaColor } from '@/src/dialogs/symbology/colorRampUtils';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
 const StopRow: React.FC<{
   index: number;
-  dataValue: number;
+  dataValue: number | string;
   symbologyValue: SymbologyValue;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
@@ -37,7 +35,8 @@ const StopRow: React.FC<{
 
   const handleStopChange = (event: { target: { value: string } }) => {
     const newRows = [...stopRows];
-    newRows[index].stop = +event.target.value;
+    const value = event.target.value;
+    newRows[index].stop = useNumber ? +value : value;
     setStopRows(newRows);
   };
 
@@ -57,9 +56,13 @@ const StopRow: React.FC<{
 
   const handleOutputChange = (event: { target: { value: any } }) => {
     const newRows = [...stopRows];
-    useNumber
-      ? (newRows[index].output = +event.target.value)
-      : (newRows[index].output = hexToRgb(event.target.value));
+    newRows[index].output = +event.target.value;
+    setStopRows(newRows);
+  };
+
+  const handleColorOutputChange = (color: RgbaColor) => {
+    const newRows = [...stopRows];
+    newRows[index].output = color;
     setStopRows(newRows);
   };
 
@@ -67,7 +70,7 @@ const StopRow: React.FC<{
     <div className="jp-gis-color-row">
       <input
         id={`jp-gis-color-value-${index}`}
-        type="number"
+        type={useNumber ? 'number' : 'text'}
         value={dataValue}
         onChange={handleStopChange}
         onBlur={handleBlur}
@@ -83,13 +86,9 @@ const StopRow: React.FC<{
           className="jp-mod-styled jp-gis-color-row-output-input"
         />
       ) : (
-        <input
-          id={`jp-gis-color-color-${index}`}
-          ref={inputRef}
-          value={ensureHexColorCode(symbologyValue as ColorValue)}
-          type="color"
-          onChange={handleOutputChange}
-          className="jp-mod-styled jp-gis-color-row-output-input"
+        <RgbaColorPicker
+          color={colorToRgba(symbologyValue as ColorValue)}
+          onChange={handleColorOutputChange}
         />
       )}
 

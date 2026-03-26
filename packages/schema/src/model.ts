@@ -53,7 +53,6 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   rightPanelDisabled: false,
   layersDisabled: false,
   stacBrowserDisabled: false,
-  filtersDisabled: false,
   objectPropertiesDisabled: false,
   annotationsDisabled: false,
   identifyDisabled: false,

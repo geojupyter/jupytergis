@@ -39,6 +39,7 @@ export function SpectaPanel({
     hasNext,
     activeSlide,
     layerName,
+    showGradient,
   } = useStoryMap({
     model,
     overrideLayerEntriesRef,
@@ -97,6 +98,7 @@ export function SpectaPanel({
       handleNext={handleNext}
       hasPrev={hasPrev}
       hasNext={hasNext}
+      showGradient={showGradient}
       setIndex={setIndex}
     />
   );
