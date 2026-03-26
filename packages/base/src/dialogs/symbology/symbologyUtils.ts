@@ -247,9 +247,10 @@ export namespace Utils {
     nClasses: number,
     reverse = false,
   ) => {
+    const nShades = Math.max(nClasses, 9);
     let colorMap = colormap({
       colormap: selectedRamp,
-      nshades: nClasses > 9 ? nClasses : 9,
+      nshades: nShades,
       format: 'rgba',
     });
 
@@ -259,25 +260,10 @@ export namespace Utils {
 
     const valueColorPairs: IStopRow[] = [];
 
-    // colormap requires 9 classes to generate the ramp
-    // so we do some tomfoolery to make it work with less than 9 stops
-    if (nClasses < 9) {
-      const midIndex = Math.floor(nClasses / 2);
-
-      // Get the first n/2 elements from the second array
-      const firstPart = colorMap.slice(0, midIndex);
-
-      // Get the last n/2 elements from the second array
-      const secondPart = colorMap.slice(
-        colorMap.length - (stops.length - firstPart.length),
-      );
-
-      // Create the new array by combining the first and last parts
-      colorMap = firstPart.concat(secondPart);
-    }
-
     for (let i = 0; i < nClasses; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+      const colorIndex =
+        nClasses === 1 ? 0 : Math.round((i / (nClasses - 1)) * (nShades - 1));
+      valueColorPairs.push({ stop: stops[i], output: colorMap[colorIndex] });
     }
 
     return valueColorPairs;
