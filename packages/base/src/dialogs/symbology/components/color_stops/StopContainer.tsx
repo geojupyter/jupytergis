@@ -1,5 +1,6 @@
 import { Button } from '@jupyterlab/ui-components';
 import React from 'react';
+import { UUID } from '@lumino/coreutils';
 
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 import StopRow from './StopRow';
@@ -18,6 +19,7 @@ const StopContainer: React.FC<IStopContainerProps> = ({
   const addStopRow = () => {
     setStopRows([
       {
+        id: UUID.uuid4(),
         stop: 0,
         output: [0, 0, 0, 1],
       },
@@ -41,7 +43,7 @@ const StopContainer: React.FC<IStopContainerProps> = ({
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
-            key={index}
+            key={stop.id}
             index={index}
             dataValue={stop.stop}
             symbologyValue={stop.output}
