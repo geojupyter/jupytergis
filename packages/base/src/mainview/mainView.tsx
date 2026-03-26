@@ -518,10 +518,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         loading: false,
         viewProjection: {
           code: projection,
-          units: (
-            getProjection(projection) ??
-            view.getProjection()
-          ).getUnits(),
+          units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
     }
