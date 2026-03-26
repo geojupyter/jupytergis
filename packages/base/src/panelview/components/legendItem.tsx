@@ -191,6 +191,23 @@ export const LegendItem: React.FC<{
       return;
     }
 
+    // Canonical
+    if (renderType === 'Canonical') {
+      setContent(
+        <div style={{ padding: 6 }}>
+          {property && (
+            <div style={{ fontSize: '1em' }}>
+              <strong>{property}</strong>
+            </div>
+          )}
+          <div style={{ fontSize: '0.8em', opacity: 0.7 }}>
+            hex color attribute
+          </div>
+        </div>,
+      );
+      return;
+    }
+
     // Categorized
     if (renderType === 'Categorized') {
       const cats = parseCaseCategories(fill || stroke);
