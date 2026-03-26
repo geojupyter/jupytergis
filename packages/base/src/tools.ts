@@ -970,8 +970,7 @@ export const getColorCodeFeatureAttributes = (
   featureProperties: Record<string, Set<any>>,
 ): Record<string, Set<string>> => {
   return getFeatureAttributes<string>(featureProperties, (_, value) => {
-    const regex = new RegExp('^#[0-9a-f]{6}$');
-    return typeof value === 'string' && regex.test(value);
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
   });
 };
 
