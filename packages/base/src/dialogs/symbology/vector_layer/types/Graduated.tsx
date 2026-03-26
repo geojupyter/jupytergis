@@ -179,10 +179,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       newStyle['stroke-color'] = colorExpr;
       newStyle['circle-stroke-color'] = colorExpr;
     } else {
-      // use manual style
+      newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
     }
 
-    newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
     newStyle['circle-stroke-color'] = colorManualStyleRef.current.strokeColor;
     newStyle['stroke-width'] = colorManualStyleRef.current.strokeWidth;
     newStyle['circle-stroke-width'] = colorManualStyleRef.current.strokeWidth;
