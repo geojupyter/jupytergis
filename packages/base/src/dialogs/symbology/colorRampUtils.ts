@@ -21,6 +21,30 @@ export function isColor(val: unknown): boolean {
   return Array.isArray(val) && val.length >= 3 && typeof val[0] === 'number';
 }
 
+/**
+ * Recursively searches an OL expression tree for the first node whose first
+ * element matches `operator` (e.g. `'interpolate'`, `'case'`).
+ * Returns the matching sub-expression, or `null` if not found.
+ */
+export function findExprNode(
+  expr: unknown,
+  operator: string,
+): unknown[] | null {
+  if (!Array.isArray(expr)) {
+    return null;
+  }
+  if (expr[0] === operator) {
+    return expr;
+  }
+  for (const child of expr) {
+    const found = findExprNode(child, operator);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+}
+
 export interface IColorMap {
   name: ColorRampName;
   colors: string[];
