@@ -70,6 +70,13 @@
         "vmax": {
           "type": "number",
           "description": "Maximum value for color mapping"
+        },
+        "fallbackColor": {
+          "type": "array",
+          "description": "RGBA fallback color for features with no matching category or outside the gradient range",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
         }
       },
       "additionalProperties": false,

@@ -43,6 +43,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ReadonlyJSONObject | undefined
   >();
+  const [fallbackColor, setFallbackColor] = useState<RgbaColor>([0, 0, 0, 0]);
+  const fallbackColorRef = useLatest(fallbackColor);
   const [manualStyle, setManualStyle] = useState<{
     fillColor: RgbaColor;
     strokeColor: RgbaColor;
@@ -112,6 +114,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         radius: params.color['circle-radius'] || 5,
       });
     }
+
+    setFallbackColor(
+      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+    );
   }, [layerId]);
 
   useEffect(() => {
@@ -165,7 +171,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       });
 
       if (symbologyTab === 'color') {
-        expr.push([0, 0, 0, 0.0]); // fallback color
+        expr.push(fallbackColorRef.current);
 
         newStyle['fill-color'] = expr;
         newStyle['circle-fill-color'] = expr;
@@ -194,6 +200,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       method: symbologyTab,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+      fallbackColor: fallbackColorRef.current,
     } as IVectorLayer['symbologyState'];
 
     saveSymbology({
@@ -296,6 +303,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                         strokeWidth: e.target.value,
                       }));
                     }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Fallback Color:</label>
+                  <RgbaColorPicker
+                    color={fallbackColor}
+                    onChange={setFallbackColor}
                   />
                 </div>
               </>

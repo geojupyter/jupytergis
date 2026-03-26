@@ -55,6 +55,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampControlsOptions | undefined
   >();
+  const [fallbackColor, setFallbackColor] = useState<RgbaColor>([0, 0, 0, 0]);
+  const fallbackColorRef = useLatest(fallbackColor);
   const [colorManualStyle, setColorManualStyle] = useState<{
     strokeColor: RgbaColor;
     strokeWidth: string;
@@ -121,6 +123,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         radius: params.color['circle-radius'] || 5,
       });
     }
+
+    setFallbackColor(
+      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+    );
   }, [layerId]);
 
   useEffect(() => {
@@ -167,15 +173,23 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     // Apply color symbology
     if (colorStopRowsRef.current.length > 0) {
-      const colorExpr: ExpressionValue[] = [
+      const interpolateExpr: ExpressionValue[] = [
         'interpolate',
         ['linear'],
         ['get', selectableAttributeRef.current],
       ];
       colorStopRowsRef.current.forEach(stop => {
-        colorExpr.push(stop.stop);
-        colorExpr.push(stop.output);
+        interpolateExpr.push(stop.stop);
+        interpolateExpr.push(stop.output);
       });
+      // Wrap in case so features missing the attribute use the fallback color
+      // instead of causing OL to throw at render time.
+      const colorExpr: ExpressionValue = [
+        'case',
+        ['has', selectableAttributeRef.current],
+        interpolateExpr,
+        fallbackColorRef.current,
+      ];
       newStyle['fill-color'] = colorExpr;
       newStyle['circle-fill-color'] = colorExpr;
       newStyle['stroke-color'] = colorExpr;
@@ -220,6 +234,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+      fallbackColor: fallbackColorRef.current,
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
     } as IVectorLayer['symbologyState'];
@@ -421,6 +436,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                         strokeWidth: e.target.value,
                       });
                     }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Fallback Color:</label>
+                  <RgbaColorPicker
+                    color={fallbackColor}
+                    onChange={setFallbackColor}
                   />
                 </div>
               </>
