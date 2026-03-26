@@ -74,6 +74,11 @@
           "items": { "type": "number" },
           "minItems": 4,
           "maxItems": 4
+        },
+        "strokeFollowsFill": {
+          "type": "boolean",
+          "description": "Whether the stroke color follows the fill color expression",
+          "default": false
         }
       },
       "additionalProperties": false,

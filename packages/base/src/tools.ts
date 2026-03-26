@@ -16,6 +16,7 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import LAYER_GALLERY from '@/layer_gallery.json';
+import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
 
 export const debounce = (
   func: CallableFunction,
@@ -305,7 +306,9 @@ export function parseColor(style: any): IParsedStyle | undefined {
     strokeColor:
       style['circle-stroke-color'] ?? style['stroke-color'] ?? '#3399CC',
     strokeWidth: String(
-      style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+      style['circle-stroke-width'] ??
+        style['stroke-width'] ??
+        DEFAULT_STROKE_WIDTH,
     ),
     joinStyle:
       style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
