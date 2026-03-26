@@ -6,7 +6,7 @@ import {
 } from '@jupytergis/schema';
 import colormap from 'colormap';
 
-import { ColorRampName } from './colorRampUtils';
+import { ColorRampName, findExprNode } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -170,36 +170,35 @@ export namespace VectorUtils {
         continue;
       }
 
-      switch (color[key][0]) {
-        case 'interpolate':
-          // First element is interpolate for linear selection
-          // Second element is type of interpolation (ie linear)
-          // Third is input value that stop values are compared with
-          // Fourth and on is value:color pairs
-          for (let i = COLOR_EXPR_STOPS_START; i < color[key].length; i += 2) {
-            const pairKey = `${color[key][i]}-${color[key][i + 1]}`;
+      const interpolate = findExprNode(color[key], 'interpolate');
+      if (interpolate) {
+        // Graduated: value:color pairs starting at index 3
+        for (let i = COLOR_EXPR_STOPS_START; i < interpolate.length; i += 2) {
+          const pairKey = `${interpolate[i]}-${interpolate[i + 1]}`;
+          if (!seenPairs.has(pairKey)) {
+            valueColorPairs.push({
+              stop: interpolate[i] as number,
+              output: interpolate[i + 1] as IStopRow['output'],
+            });
+            seenPairs.add(pairKey);
+          }
+        }
+      } else {
+        const caseExpr = findExprNode(color[key], 'case');
+        if (caseExpr) {
+          // Categorized: alternating [condition, color] pairs, last element is fallback
+          for (let i = 1; i < caseExpr.length - 1; i += 2) {
+            const condition = caseExpr[i] as unknown[];
+            const pairKey = `${condition[2]}-${caseExpr[i + 1]}`;
             if (!seenPairs.has(pairKey)) {
               valueColorPairs.push({
-                stop: color[key][i],
-                output: color[key][i + 1],
+                stop: condition[2] as IStopRow['stop'],
+                output: caseExpr[i + 1] as IStopRow['output'],
               });
               seenPairs.add(pairKey);
             }
           }
-          break;
-
-        case 'case':
-          for (let i = 1; i < color[key].length - 1; i += 2) {
-            const pairKey = `${color[key][i][2]}-${color[key][i + 1]}`;
-            if (!seenPairs.has(pairKey)) {
-              valueColorPairs.push({
-                stop: color[key][i][2],
-                output: color[key][i + 1],
-              });
-              seenPairs.add(pairKey);
-            }
-          }
-          break;
+        }
       }
     }
 

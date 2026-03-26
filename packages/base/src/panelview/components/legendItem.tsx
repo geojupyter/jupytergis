@@ -1,6 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
+import { findExprNode } from '@/src/dialogs/symbology/colorRampUtils';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
 
 export const LegendItem: React.FC<{
@@ -11,13 +12,16 @@ export const LegendItem: React.FC<{
   const [content, setContent] = useState<JSX.Element | null>(null);
 
   const parseColorStops = (expr: any): { value: number; color: string }[] => {
-    if (!Array.isArray(expr) || expr[0] !== 'interpolate') {
+    const interpolate = findExprNode(expr, 'interpolate');
+    if (!interpolate) {
       return [];
     }
     const stops: { value: number; color: string }[] = [];
-    for (let i = 3; i < expr.length; i += 2) {
-      const value = expr[i] as number;
-      const rgba = expr[i + 1] as [number, number, number, number] | string;
+    for (let i = 3; i < interpolate.length; i += 2) {
+      const value = interpolate[i] as number;
+      const rgba = interpolate[i + 1] as
+        | [number, number, number, number]
+        | string;
       const color = Array.isArray(rgba)
         ? `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]})`
         : String(rgba);
