@@ -121,10 +121,11 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   }, [layerId]);
 
   useEffect(() => {
-    // We only want number values here
+    const savedValue = params.symbologyState?.value;
     const attribute =
-      params.symbologyState?.value ||
-      Object.keys(selectableAttributesAndValues)[0];
+      savedValue && savedValue in selectableAttributesAndValues
+        ? savedValue
+        : Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
@@ -144,6 +145,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       reverseRamp,
     });
 
+    if (!selectableAttributesAndValues[selectedAttribute]) {
+      return;
+    }
     const stops = Array.from(
       selectableAttributesAndValues[selectedAttribute],
     ).sort((a, b) => a - b);

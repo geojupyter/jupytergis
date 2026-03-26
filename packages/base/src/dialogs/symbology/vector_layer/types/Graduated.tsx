@@ -130,9 +130,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   }, [layerId]);
 
   useEffect(() => {
+    const savedValue = params.symbologyState?.value;
     const attribute =
-      params.symbologyState?.value ||
-      Object.keys(selectableAttributesAndValues)[0];
+      savedValue && savedValue in selectableAttributesAndValues
+        ? savedValue
+        : Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
@@ -273,6 +275,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     let stops: number[];
 
+    if (!selectableAttributesAndValues[selectedAttribute]) {
+      return;
+    }
     const allValues = Array.from(
       selectableAttributesAndValues[selectedAttribute],
     );
