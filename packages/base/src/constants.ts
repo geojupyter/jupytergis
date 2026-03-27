@@ -69,7 +69,7 @@ const iconObject = {
   [CommandIDs.navigateToObjectPropertiesTab]: { iconClass: 'fa fa-sliders-h' },
   [CommandIDs.navigateToAnnotationsTab]: { iconClass: 'fa fa-comment' },
   [CommandIDs.navigateToIdentifyPanelTab]: {
-    iconClass: 'fa fa-magnifying-glass',
+    iconClass: 'fa fa-search',
   },
   [CommandIDs.navigateToStoryPanelTab]: {
     iconClass: 'fa fa-book-open',

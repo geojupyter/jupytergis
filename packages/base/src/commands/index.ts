@@ -1552,6 +1552,7 @@ export function addCommands(
   for (const def of navTabDefs) {
     commands.addCommand(def.id, {
       label: def.label,
+      ...icons.get(def.id),
       isEnabled: () => Boolean(tracker.currentWidget),
       execute: () => {
         const current = tracker.currentWidget;
