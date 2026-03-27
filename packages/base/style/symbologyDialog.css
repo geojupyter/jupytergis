@@ -229,3 +229,46 @@ select option {
 .jp-gis-selected-entry {
   width: 100%;
 }
+
+.jp-gis-rgba-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.jp-gis-rgba-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.jp-gis-rgba-field label {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  line-height: 1;
+}
+
+.jp-gis-rgba-field input {
+  width: 4ch;
+  text-align: center;
+  padding: 1px 2px;
+  -moz-appearance: textfield;
+}
+
+.jp-gis-rgba-field input::-webkit-outer-spin-button,
+.jp-gis-rgba-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.jp-gis-transparent-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: var(--jp-ui-font-size1);
+  cursor: pointer;
+  user-select: none;
+}

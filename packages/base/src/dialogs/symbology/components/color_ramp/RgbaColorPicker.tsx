@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RgbaColorPicker as ReactColorfulRgba } from 'react-colorful';
 
-import { RgbaColor } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  RgbaChannel,
+  RgbaColor,
+  RGBA_INDEX,
+} from '@/src/dialogs/symbology/colorRampUtils';
 
 export type { RgbaColor };
 
@@ -22,6 +26,24 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [r, g, b, a] = color;
+
+  const [inputs, setInputs] = useState({
+    r: String(Math.round(r)),
+    g: String(Math.round(g)),
+    b: String(Math.round(b)),
+    a: String(Math.round(a * 100)),
+  });
+
+  // Sync text inputs when color changes externally (e.g. picker drag)
+  useEffect(() => {
+    setInputs({
+      r: String(Math.round(r)),
+      g: String(Math.round(g)),
+      b: String(Math.round(b)),
+      a: String(Math.round(a * 100)),
+    });
+  }, [r, g, b, a]);
+
   const swatchStyle = {
     background: `rgba(${r},${g},${b},${a})`,
     width: 28,
@@ -32,12 +54,34 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
     flexShrink: 0,
   };
 
-  const handleChange = useCallback(
+  const handlePickerChange = useCallback(
     (c: { r: number; g: number; b: number; a: number }) => {
       onChange([c.r, c.g, c.b, c.a]);
     },
     [onChange],
   );
+
+  const handleChannelInput = (channel: RgbaChannel, value: string) => {
+    setInputs(prev => ({ ...prev, [channel]: value }));
+    const num = Number(value);
+    if (channel === 'a') {
+      if (num >= 0 && num <= 100) {
+        onChange([r, g, b, num / 100]);
+      }
+    } else {
+      if (num >= 0 && num <= 255) {
+        const newColor: RgbaColor = [...color];
+        newColor[RGBA_INDEX[channel]] = Math.round(num);
+        onChange(newColor);
+      }
+    }
+  };
+
+  const handleTransparentChange = (checked: boolean) => {
+    // Always restore to fully opaque rather than the previous alpha,
+    // which could have been near-zero and appear broken to the user.
+    onChange([r, g, b, checked ? 0 : 1]);
+  };
 
   useEffect(() => {
     if (!open) {
@@ -76,7 +120,44 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
             boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
           }}
         >
-          <ReactColorfulRgba color={{ r, g, b, a }} onChange={handleChange} />
+          <ReactColorfulRgba
+            color={{ r, g, b, a }}
+            onChange={handlePickerChange}
+          />
+          <div className="jp-gis-rgba-inputs">
+            {(['r', 'g', 'b'] as const).map(ch => (
+              <div key={ch} className="jp-gis-rgba-field">
+                <label>{ch.toUpperCase()}</label>
+                <input
+                  className="jp-mod-styled"
+                  type="number"
+                  min={0}
+                  max={255}
+                  value={inputs[ch]}
+                  onChange={e => handleChannelInput(ch, e.target.value)}
+                />
+              </div>
+            ))}
+            <div className="jp-gis-rgba-field">
+              <label>A%</label>
+              <input
+                className="jp-mod-styled"
+                type="number"
+                min={0}
+                max={100}
+                value={inputs.a}
+                onChange={e => handleChannelInput('a', e.target.value)}
+              />
+            </div>
+          </div>
+          <label className="jp-gis-transparent-label">
+            <input
+              type="checkbox"
+              checked={a === 0}
+              onChange={e => handleTransparentChange(e.target.checked)}
+            />
+            No color
+          </label>
         </div>
       )}
     </div>
