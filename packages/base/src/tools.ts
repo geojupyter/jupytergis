@@ -288,7 +288,7 @@ export async function getLayerTileInfo(
 export interface IParsedStyle {
   fillColor: string;
   strokeColor: string;
-  strokeWidth: number;
+  strokeWidth: string;
   joinStyle: string;
   capStyle: string;
   radius?: number;
@@ -304,7 +304,9 @@ export function parseColor(style: any): IParsedStyle | undefined {
     fillColor: style['circle-fill-color'] ?? style['fill-color'] ?? '#3399CC',
     strokeColor:
       style['circle-stroke-color'] ?? style['stroke-color'] ?? '#3399CC',
-    strokeWidth: style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+    strokeWidth: String(
+      style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+    ),
     joinStyle:
       style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
     capStyle:
@@ -970,8 +972,7 @@ export const getColorCodeFeatureAttributes = (
   featureProperties: Record<string, Set<any>>,
 ): Record<string, Set<string>> => {
   return getFeatureAttributes<string>(featureProperties, (_, value) => {
-    const regex = new RegExp('^#[0-9a-f]{6}$');
-    return typeof value === 'string' && regex.test(value);
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
   });
 };
 
