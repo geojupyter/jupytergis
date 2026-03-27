@@ -205,6 +205,11 @@ export interface IViewState {
   };
 }
 
+export interface IStorySegmentRef {
+  storySegmentId: string;
+  storyId: string;
+}
+
 export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
@@ -326,16 +331,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getCurrentSegmentIndex(): number;
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
-  addStorySegment(
-    extentOverride?: number[],
-  ): { storySegmentId: string; storyId: string } | null;
-  createStorySegmentFromLayer(
-    layerId: string,
-  ): { storySegmentId: string; storyId: string } | null;
-  segmentAdded: ISignal<
-    IJupyterGISModel,
-    { storySegmentId: string; storyId: string }
-  >;
+  addStorySegment(extentOverride?: number[]): IStorySegmentRef | null;
+  createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
+  segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
 }
 

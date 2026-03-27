@@ -35,6 +35,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   ISelection,
+  IStorySegmentRef,
   IUserData,
   IViewPortState,
   JgisCoordinates,
@@ -678,9 +679,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(
-    extentOverride?: number[],
-  ): { storySegmentId: string; storyId: string } | null {
+  addStorySegment(extentOverride?: number[]): IStorySegmentRef | null {
     const { zoom, extent } = this.getOptions();
     const finalExtent = extentOverride ?? extent;
     const { storyId } = this.getSelectedStory();
@@ -796,10 +795,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return segment;
   }
 
-  get segmentAdded(): ISignal<
-    this,
-    { storySegmentId: string; storyId: string }
-  > {
+  get segmentAdded(): ISignal<this, IStorySegmentRef> {
     return this._segmentAdded;
   }
 
@@ -1130,10 +1126,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
 
-  private _segmentAdded = new Signal<
-    this,
-    { storySegmentId: string; storyId: string }
-  >(this);
+  private _segmentAdded = new Signal<this, IStorySegmentRef>(this);
 
   private _updateLayerSignal = new Signal<this, string>(this);
 

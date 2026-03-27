@@ -1714,7 +1714,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Track layer extent in model's view state
    */
   private _trackLayerExtent(layerId: string, olLayer: Layer): void {
-    const source: any = olLayer.getSource();
+    const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
     let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
