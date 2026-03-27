@@ -225,6 +225,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
+  panelTabRequest: Signal<IJupyterGISModel, { panel: 'left' | 'right'; tab: string }>;
+  requestPanelTab(panel: 'left' | 'right', tab: string): void;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
