@@ -182,8 +182,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     props.settings.annotationsDisabled &&
     props.settings.identifyDisabled;
 
-  const rightPanelVisible =
-    !props.settings.rightPanelDisabled && !allRightTabsDisabled;
+
 
   const toggleEditor = () => {
     setEditorMode(!editorMode);
@@ -197,7 +196,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     >
       <div
         className="jgis-right-panel-container"
-        style={{ display: rightPanelVisible && !!curTab ? 'block' : 'none' }}
+        style={{ display: !allRightTabsDisabled && !!curTab ? 'block' : 'none' }}
       >
         <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
           <TabsList>

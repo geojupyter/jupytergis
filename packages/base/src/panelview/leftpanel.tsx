@@ -217,8 +217,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     props.settings.stacBrowserDisabled &&
     props.settings.storyMapsDisabled;
 
-  const leftPanelVisible =
-    !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   return (
     <Draggable
@@ -228,7 +226,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     >
       <div
         className="jgis-left-panel-container"
-        style={{ display: leftPanelVisible && !!curTab ? 'block' : 'none' }}
+        style={{ display: !allLeftTabsDisabled && !!curTab ? 'block' : 'none' }}
       >
         <PanelTabs curTab={curTab} className="jgis-panel-tabs">
           <TabsList>
