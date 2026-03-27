@@ -5,80 +5,34 @@ import {
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
-import Draggable from 'react-draggable';
 
+import StacPanel from '../stacBrowser/components/StacPanel';
 import { AnnotationsPanel } from './annotationPanel';
 import { ITabSpec, PanelContainer } from './components/PanelContainer';
+import { LayersBodyComponent } from './components/layers';
+import { useRightPanelOptions } from './hooks/useRightPanelOptions';
+import { useLayerTree } from './hooks/useLayerTree';
 import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
-import StoryViewerPanel from './story-maps/StoryViewerPanel';
 import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
-import {
-  useStoryMap,
-  type IOverrideLayerEntry,
-} from './story-maps/hooks/useStoryMap';
-import { useRightPanelOptions } from './hooks/useRightPanelOptions';
+import { RightPanelStoryViewer } from './rightpanel';
 
-/** Story viewer — only mounted when story tab is active. */
-export function RightPanelStoryViewer({
-  model,
-  addLayer,
-  removeLayer,
-}: {
+export interface IMergedPanelProps {
   model: IJupyterGISModel;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
-}) {
-  const overrideLayerEntriesRef = React.useRef<IOverrideLayerEntry[]>([]);
-  const {
-    storyData,
-    currentIndex,
-    setIndex,
-    handlePrev,
-    handleNext,
-    hasPrev,
-    hasNext,
-    activeSlide,
-    layerName,
-  } = useStoryMap({
-    model,
-    overrideLayerEntriesRef,
-    removeLayer,
-    addLayer,
-    isSpecta: false,
-  });
-
-  return (
-    <StoryViewerPanel
-      model={model}
-      isSpecta={false}
-      storyData={storyData}
-      currentIndex={currentIndex}
-      activeSlide={activeSlide}
-      layerName={layerName}
-      handlePrev={handlePrev}
-      handleNext={handleNext}
-      hasPrev={hasPrev}
-      hasNext={hasNext}
-      setIndex={setIndex}
-    />
-  );
-}
-
-interface IRightPanelProps {
-  formSchemaRegistry: IJGISFormSchemaRegistry;
-  annotationModel: IAnnotationModel;
-  model: IJupyterGISModel;
+  state: IStateDB;
   commands: CommandRegistry;
   settings: IJupyterGISSettings;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  annotationModel: IAnnotationModel;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
 }
 
-export const RightPanel: React.FC<IRightPanelProps> = props => {
+export const MergedPanel: React.FC<IMergedPanelProps> = props => {
   const [visible, setVisible] = React.useState(true);
 
   React.useEffect(() => {
@@ -87,38 +41,84 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     return () => window.removeEventListener('jgis:togglePanel', handler);
   }, []);
 
+  const [options, setOptions] = React.useState(props.model.getOptions());
+  const storyMapPresentationModeLeft = options.storyMapPresentationMode ?? false;
+
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
-  const [curTab, setCurTab] = React.useState<string>('');
-
-  const { storyMapPresentationMode, editorMode, setEditorMode, showEditor, storyPanelTitle } =
-    useRightPanelOptions(props.model, {
-      onPresentationModeEnabled: () => setCurTab('storyPanel'),
-      onIdentifyFeatures: () => setCurTab('identifyPanel'),
-    });
-
-  // Set initial tab once on mount
-  React.useEffect(() => {
-    if (storyMapPresentationMode) {
-      setCurTab('storyPanel');
-    } else if (!props.settings.objectPropertiesDisabled) {
-      setCurTab('objectProperties');
-    } else if (!props.settings.storyMapsDisabled) {
-      setCurTab('storyPanel');
-    } else if (!props.settings.annotationsDisabled) {
-      setCurTab('annotations');
-    } else if (!props.settings.identifyDisabled) {
-      setCurTab('identifyPanel');
+  const [curTab, setCurTab] = React.useState<string>(() => {
+    if (!props.settings.layersDisabled) {
+      return 'layers';
     }
-  }, []);
+    if (!props.settings.objectPropertiesDisabled) {
+      return 'objectProperties';
+    }
+    return '';
+  });
 
-  const allRightTabsDisabled =
-    props.settings.objectPropertiesDisabled &&
-    props.settings.annotationsDisabled &&
-    props.settings.identifyDisabled;
+  React.useEffect(() => {
+    const onOptionsChanged = () =>
+      setOptions({ ...props.model.getOptions() });
+    props.model.sharedOptionsChanged.connect(onOptionsChanged);
+    return () => {
+      props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
+    };
+  }, [props.model]);
+
+  const { filteredLayerTree, storySegmentLayerTree } = useLayerTree(
+    props.model,
+    props.commands,
+    { onSegmentAdded: () => setCurTab('segments') },
+  );
+
+  const {
+    storyMapPresentationMode,
+    editorMode,
+    setEditorMode,
+    showEditor,
+    storyPanelTitle,
+  } = useRightPanelOptions(props.model, {
+    onPresentationModeEnabled: () => setCurTab('storyPanel'),
+    onIdentifyFeatures: () => setCurTab('identifyPanel'),
+  });
 
   const tabs: ITabSpec[] = [
+    {
+      name: 'layers',
+      title: 'Layers',
+      enabled: !props.settings.layersDisabled,
+      contentClassName: 'jp-gis-layerPanel',
+      content: (
+        <LayersBodyComponent
+          model={props.model}
+          commands={props.commands}
+          state={props.state}
+          layerTree={filteredLayerTree}
+        />
+      ),
+    },
+    {
+      name: 'stac',
+      title: 'Stac Browser',
+      enabled:
+        !props.settings.stacBrowserDisabled && !storyMapPresentationModeLeft,
+      contentClassName: 'jgis-panel-tab-content-stac-panel',
+      content: <StacPanel model={props.model} />,
+    },
+    {
+      name: 'segments',
+      title: 'Segments',
+      enabled: !props.settings.storyMapsDisabled,
+      content: (
+        <LayersBodyComponent
+          model={props.model}
+          commands={props.commands}
+          state={props.state}
+          layerTree={storySegmentLayerTree}
+        />
+      ),
+    },
     {
       name: 'objectProperties',
       title: 'Object Properties',
@@ -181,18 +181,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   ];
 
   return (
-    <Draggable
-      handle=".jgis-tabs-list"
-      cancel=".jgis-tabs-trigger"
-      bounds=".jGIS-Mainview-Container"
-    >
-      <PanelContainer
-        tabs={tabs}
-        containerClassName="jgis-right-panel-container"
-        curTab={curTab}
-        onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
-        style={{ display: allRightTabsDisabled || !visible ? 'none' : 'block' }}
-      />
-    </Draggable>
+    <PanelContainer
+      tabs={tabs}
+      containerClassName="jgis-merged-panel-container"
+      curTab={curTab}
+      onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+      style={{ display: visible ? 'block' : 'none' }}
+    />
   );
 };

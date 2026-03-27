@@ -1281,72 +1281,14 @@ export function addCommands(
     icon: targetWithCenterIcon,
   });
 
-  // Panel visibility commands
-  commands.addCommand(CommandIDs.toggleLeftPanel, {
-    label: trans.__('Toggle Left Panel'),
-    caption: 'Toggle the left panel in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
+  // Panel visibility — transient toggle via CustomEvent (no persistent settings)
+  commands.addCommand(CommandIDs.togglePanel, {
+    label: trans.__('Toggle Panel'),
+    caption: 'Show or hide the panel.',
+    ...icons.get(CommandIDs.togglePanel),
     isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () => {
-      const current = tracker.currentWidget;
-      return current ? !current.model.jgisSettings.leftPanelDisabled : false;
-    },
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-
-      try {
-        const settings = await current.model.getSettings();
-        const currentValue =
-          settings?.composite?.leftPanelDisabled ??
-          current.model.jgisSettings.leftPanelDisabled ??
-          false;
-        await settings?.set('leftPanelDisabled', !currentValue);
-        commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
-      } catch (err) {
-        console.error('Failed to toggle Left Panel:', err);
-      }
-    },
-  });
-
-  commands.addCommand(CommandIDs.toggleRightPanel, {
-    label: trans.__('Toggle Right Panel'),
-    caption: 'Toggle the right panel in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () => {
-      const current = tracker.currentWidget;
-      return current ? !current.model.jgisSettings.rightPanelDisabled : false;
-    },
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-
-      try {
-        const settings = await current.model.getSettings();
-        const currentValue =
-          settings?.composite?.rightPanelDisabled ??
-          current.model.jgisSettings.rightPanelDisabled ??
-          false;
-        await settings?.set('rightPanelDisabled', !currentValue);
-        commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
-      } catch (err) {
-        console.error('Failed to toggle Right Panel:', err);
-      }
+    execute: () => {
+      window.dispatchEvent(new CustomEvent('jgis:togglePanel'));
     },
   });
 
