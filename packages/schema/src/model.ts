@@ -24,7 +24,7 @@ import {
   IStorySegmentLayer,
   LayerOverride,
 } from './_interface/project/layers/storySegmentLayer';
-import { JupyterGISDoc } from './doc';
+import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
   IDict,
@@ -346,7 +346,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         zoom: 0,
         bearing: 0,
         pitch: 0,
-        projection: 'EPSG:3857',
+        projection: DEFAULT_PROJECTION,
       };
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });

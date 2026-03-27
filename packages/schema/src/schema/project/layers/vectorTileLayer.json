@@ -29,7 +29,7 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"],
+          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
           "default": "Single Symbol"
         },
         "value": {

@@ -35,6 +35,7 @@ import {
   IMarkerSource,
   IStorySegmentLayer,
   IJupyterGISSettings,
+  DEFAULT_PROJECTION,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -277,13 +278,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
+    const projection = options.projection ?? DEFAULT_PROJECTION;
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude, options.latitude])
+        ? fromLonLat([options.longitude, options.latitude], projection)
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(center, zoom);
+    await this.generateMap(center, zoom, projection);
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -329,7 +331,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  async generateMap(center: number[], zoom: number): Promise<void> {
+  async generateMap(
+    center: number[],
+    zoom: number,
+    projection = DEFAULT_PROJECTION,
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     this._initialLayersCount = Object.values(layers).filter(
@@ -361,6 +367,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         view: new View({
           center,
           zoom,
+          projection,
         }),
         controls,
       });
@@ -449,7 +456,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const center = view.getCenter() || [0, 0];
         const zoom = view.getZoom() || 0;
 
-        const projection = view.getProjection();
+        const projection =
+          getProjection(currentOptions.projection) ?? view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
         const resolution = view.getResolution();
@@ -510,8 +518,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ...old,
         loading: false,
         viewProjection: {
-          code: view.getProjection().getCode(),
-          units: view.getProjection().getUnits(),
+          code: projection,
+          units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
     }
@@ -1920,6 +1928,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
+    if (!this._Map) {
+      return;
+    }
+
     // ! would prefer a model ready signal or something, this feels hacky
     const enableSpectaPresentation = this._model.isSpectaMode();
 
@@ -1989,12 +2001,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
+        this.setState(old => ({
+          viewProjection: {
+            code: newProjection.getCode(),
+            units: newProjection.getUnits(),
+          },
+        }));
         view = new View({ projection: newProjection });
       } else {
         console.warn(`Invalid projection: ${projection}`);
         return;
       }
     }
+
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
@@ -2013,10 +2034,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this._model.setOptions(options);
       }
     }
-
-    view.setRotation(bearing || 0);
-
-    this._Map.setView(view);
   }
 
   private _onViewChanged(

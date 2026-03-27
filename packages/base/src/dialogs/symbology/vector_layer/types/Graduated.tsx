@@ -56,10 +56,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   >();
   const [colorManualStyle, setColorManualStyle] = useState<{
     strokeColor: RgbaColor;
-    strokeWidth: number;
+    strokeWidth: string;
   }>({
     strokeColor: DEFAULT_COLOR,
-    strokeWidth: 1.25,
+    strokeWidth: '1.25',
   });
   const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
@@ -110,10 +110,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
       setColorManualStyle({
         strokeColor: colorToRgba(effectiveStroke),
-        strokeWidth:
+        strokeWidth: String(
           params.color['stroke-width'] ||
-          params.color['circle-stroke-width'] ||
-          1.25,
+            params.color['circle-stroke-width'] ||
+            1.25,
+        ),
       });
       setRadiusManualStyle({
         radius: params.color['circle-radius'] || 5,
@@ -179,13 +180,18 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       newStyle['stroke-color'] = colorExpr;
       newStyle['circle-stroke-color'] = colorExpr;
     } else {
-      // use manual style
+      newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
     }
 
-    newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
     newStyle['circle-stroke-color'] = colorManualStyleRef.current.strokeColor;
-    newStyle['stroke-width'] = colorManualStyleRef.current.strokeWidth;
-    newStyle['circle-stroke-width'] = colorManualStyleRef.current.strokeWidth;
+    newStyle['stroke-width'] = Math.max(
+      0,
+      parseFloat(colorManualStyleRef.current.strokeWidth),
+    );
+    newStyle['circle-stroke-width'] = Math.max(
+      0,
+      parseFloat(colorManualStyleRef.current.strokeWidth),
+    );
 
     // Apply radius symbology
     if (radiusStopRowsRef.current.length > 0) {
@@ -273,6 +279,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       return true;
     });
 
+    const dataMin = Math.min(...values);
+    const dataMax = Math.max(...values);
+    const rangeMin = parsedVmin ?? dataMin;
+    const rangeMax = parsedVmax ?? dataMax;
+    const rangeValues = [rangeMin, rangeMax];
+
     switch (selectedMode) {
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
@@ -282,7 +294,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
-          values,
+          rangeValues,
           numberOfShades,
         );
         break;
@@ -294,19 +306,30 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
-          values,
+          rangeValues,
           numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
-          values,
+          rangeValues,
           numberOfShades,
         );
         break;
       default:
         console.warn('No mode selected');
         return;
+    }
+
+    // Pin outer stops to the user-specified range for all modes.
+    // Range-based modes (equal interval, pretty, logarithmic) already receive
+    // rangeValues so their outer stops are correct; this clamp ensures
+    // data-driven modes (quantile, jenks) also honour vmin/vmax at the edges,
+    // which is useful e.g. for excluding outliers while keeping the ramp
+    // anchored to the chosen range.
+    if (stops.length > 0) {
+      stops[0] = rangeMin;
+      stops[stops.length - 1] = rangeMax;
     }
 
     const stopOutputPairs =
@@ -388,13 +411,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Width:</label>
                   <input
-                    type="number"
+                    type="text"
                     className="jp-mod-styled"
                     value={colorManualStyle.strokeWidth}
                     onChange={e => {
                       setColorManualStyle({
                         ...colorManualStyle,
-                        strokeWidth: +e.target.value,
+                        strokeWidth: e.target.value,
                       });
                     }}
                   />
