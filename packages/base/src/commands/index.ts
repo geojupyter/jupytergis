@@ -1284,7 +1284,7 @@ export function addCommands(
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Data Panel'),
-    caption: 'Toggle the data panel in the current JupyterGIS document.',
+    caption: 'Toggle the data panel.',
     ...icons.get(CommandIDs.toggleLeftPanel),
     describedBy: {
       args: {
@@ -1319,7 +1319,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleRightPanel, {
     label: trans.__('Property Panel'),
-    caption: 'Toggle the property panel in the current JupyterGIS document.',
+    caption: 'Toggle the property panel.',
     ...icons.get(CommandIDs.toggleRightPanel),
     describedBy: {
       args: {
