@@ -47,20 +47,7 @@ export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
 export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
 
-// Panel toggles
-export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
-export const toggleRightPanel = 'jupytergis:toggleRightPanel';
-
-// Left panel tabs
-export const showLayersTab = 'jupytergis:showLayersTab';
-export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
-
-// Right panel tabs
-export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
-export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
-export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
-
-// Navigate to panel tab (transient — does not change persistent settings)
+// Navigate to panel tab (transient, signal-based)
 export const navigateToLayersTab = 'jupytergis:navigateToLayersTab';
 export const navigateToStacBrowserTab = 'jupytergis:navigateToStacBrowserTab';
 export const navigateToSegmentsTab = 'jupytergis:navigateToSegmentsTab';
