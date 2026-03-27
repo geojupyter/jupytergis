@@ -165,20 +165,33 @@ button.jp-mod-styled.jp-mod-reject {
 @media (max-width: 768px) {
   .jgis-panels-wrapper {
     position: fixed;
-    top: 30px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 0 5px;
+    flex-direction: row;
     z-index: 1000;
-    width: 60%;
+    gap: 0;
   }
 
   .jgis-left-panel-container,
   .jgis-right-panel-container {
     position: relative;
+    flex: 1;
+    width: 50%;
+    max-width: 50%;
+    max-height: 50vh;
     margin: 0;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    /* Neutralize any drag offset so panels stay anchored to the bottom */
+    transform: none !important;
+  }
+
+  .jgis-left-panel-container .jgis-tabs-content,
+  .jgis-right-panel-container .jgis-tabs-content {
+    max-height: calc(50vh - 2.5rem);
+    overflow-y: auto;
   }
 }
 
