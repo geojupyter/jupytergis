@@ -176,6 +176,22 @@ export class ToolbarWidget extends ReactiveToolbar {
       );
       identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
 
+      this.addItem('separator-panels', new Separator());
+
+      const toggleLeftPanelButton = new CommandToolbarButton({
+        id: CommandIDs.toggleLeftPanel,
+        label: '',
+        commands: options.commands,
+      });
+      this.addItem('toggleLeftPanel', toggleLeftPanelButton);
+
+      const toggleRightPanelButton = new CommandToolbarButton({
+        id: CommandIDs.toggleRightPanel,
+        label: '',
+        commands: options.commands,
+      });
+      this.addItem('toggleRightPanel', toggleRightPanelButton);
+
       this.addItem('separator2', new Separator());
 
       const toggleConsoleButton = new CommandToolbarButton({

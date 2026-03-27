@@ -63,6 +63,8 @@ const iconObject = {
   },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.toggleLeftPanel]: { iconClass: 'fa fa-layer-group' },
+  [CommandIDs.toggleRightPanel]: { iconClass: 'fa fa-sliders-h' },
 };
 
 /**
