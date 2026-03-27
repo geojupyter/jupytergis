@@ -1,5 +1,6 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
+import { UUID } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
@@ -334,7 +335,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     const stopOutputPairs =
       symbologyTab === 'radius'
-        ? stops.map(v => ({ stop: v, output: v }))
+        ? stops.map(v => ({ id: UUID.uuid4(), stop: v, output: v }))
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
