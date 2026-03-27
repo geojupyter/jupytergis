@@ -1498,6 +1498,70 @@ export function addCommands(
     },
   });
 
+  // Navigate-to-tab commands (transient, signal-based, no persistent settings)
+  const navTabDefs: Array<{
+    id: string;
+    label: string;
+    panel: 'left' | 'right';
+    tab: string;
+  }> = [
+    {
+      id: CommandIDs.navigateToLayersTab,
+      label: trans.__('Layers'),
+      panel: 'left',
+      tab: 'layers',
+    },
+    {
+      id: CommandIDs.navigateToStacBrowserTab,
+      label: trans.__('STAC Browser'),
+      panel: 'left',
+      tab: 'stac',
+    },
+    {
+      id: CommandIDs.navigateToSegmentsTab,
+      label: trans.__('Segments'),
+      panel: 'left',
+      tab: 'segments',
+    },
+    {
+      id: CommandIDs.navigateToObjectPropertiesTab,
+      label: trans.__('Object Properties'),
+      panel: 'right',
+      tab: 'objectProperties',
+    },
+    {
+      id: CommandIDs.navigateToAnnotationsTab,
+      label: trans.__('Annotations'),
+      panel: 'right',
+      tab: 'annotations',
+    },
+    {
+      id: CommandIDs.navigateToIdentifyPanelTab,
+      label: trans.__('Identified Features'),
+      panel: 'right',
+      tab: 'identifyPanel',
+    },
+    {
+      id: CommandIDs.navigateToStoryPanelTab,
+      label: trans.__('Story Panel'),
+      panel: 'right',
+      tab: 'storyPanel',
+    },
+  ];
+
+  for (const def of navTabDefs) {
+    commands.addCommand(def.id, {
+      label: def.label,
+      isEnabled: () => Boolean(tracker.currentWidget),
+      execute: () => {
+        const current = tracker.currentWidget;
+        if (current) {
+          current.model.requestPanelTab(def.panel, def.tab);
+        }
+      },
+    });
+  }
+
   commands.addCommand(CommandIDs.addMarker, {
     label: trans.__('Add Marker'),
     isToggled: () => {

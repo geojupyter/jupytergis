@@ -366,6 +366,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
+  readonly panelTabRequest = new Signal<this, { panel: 'left' | 'right'; tab: string }>(this);
+
+  requestPanelTab(panel: 'left' | 'right', tab: string): void {
+    this.panelTabRequest.emit({ panel, tab });
+  }
 
   getContent(): IJGISContent {
     return {

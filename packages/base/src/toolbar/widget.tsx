@@ -176,6 +176,31 @@ export class ToolbarWidget extends ReactiveToolbar {
       );
       identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
 
+      this.addItem('separator-tabs', new Separator());
+
+      const tabButtons: Array<{ id: string; key: string }> = [
+        { id: CommandIDs.navigateToLayersTab, key: 'layersTab' },
+        { id: CommandIDs.navigateToStacBrowserTab, key: 'stacTab' },
+        { id: CommandIDs.navigateToSegmentsTab, key: 'segmentsTab' },
+        {
+          id: CommandIDs.navigateToObjectPropertiesTab,
+          key: 'objectPropertiesTab',
+        },
+        { id: CommandIDs.navigateToAnnotationsTab, key: 'annotationsTab' },
+        {
+          id: CommandIDs.navigateToIdentifyPanelTab,
+          key: 'identifyPanelTab',
+        },
+        { id: CommandIDs.navigateToStoryPanelTab, key: 'storyPanelTab' },
+      ];
+
+      for (const { id, key } of tabButtons) {
+        this.addItem(
+          key,
+          new CommandToolbarButton({ id, label: '', commands: options.commands }),
+        );
+      }
+
       this.addItem('separator2', new Separator());
 
       const toggleConsoleButton = new CommandToolbarButton({

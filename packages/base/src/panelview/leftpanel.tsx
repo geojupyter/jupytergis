@@ -116,6 +116,23 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
   }, [props.model]);
 
+  React.useEffect(() => {
+    const handler = (
+      _sender: IJupyterGISModel,
+      { panel, tab }: { panel: 'left' | 'right'; tab: string },
+    ) => {
+      if (panel !== 'left') {
+        return;
+      }
+      // Toggle: requesting the active tab again closes the panel
+      setCurTab(prev => (prev === tab ? '' : tab));
+    };
+    props.model.panelTabRequest.connect(handler);
+    return () => {
+      props.model.panelTabRequest.disconnect(handler);
+    };
+  }, [props.model]);
+
   // Since story segments are technically layers they are stored in the layer tree, so we separate them
   // from regular layers. Process the tree once to build both filtered and story segment trees.
   const { filteredLayerTree, storySegmentLayerTree } = React.useMemo(() => {
@@ -211,7 +228,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     >
       <div
         className="jgis-left-panel-container"
-        style={{ display: leftPanelVisible ? 'block' : 'none' }}
+        style={{ display: leftPanelVisible && !!curTab ? 'block' : 'none' }}
       >
         <PanelTabs curTab={curTab} className="jgis-panel-tabs">
           <TabsList>

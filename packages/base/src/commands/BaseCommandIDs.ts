@@ -60,6 +60,17 @@ export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 
+// Navigate to panel tab (transient — does not change persistent settings)
+export const navigateToLayersTab = 'jupytergis:navigateToLayersTab';
+export const navigateToStacBrowserTab = 'jupytergis:navigateToStacBrowserTab';
+export const navigateToSegmentsTab = 'jupytergis:navigateToSegmentsTab';
+export const navigateToObjectPropertiesTab =
+  'jupytergis:navigateToObjectPropertiesTab';
+export const navigateToAnnotationsTab = 'jupytergis:navigateToAnnotationsTab';
+export const navigateToIdentifyPanelTab =
+  'jupytergis:navigateToIdentifyPanelTab';
+export const navigateToStoryPanelTab = 'jupytergis:navigateToStoryPanelTab';
+
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const toggleStoryPresentationMode =

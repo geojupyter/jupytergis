@@ -63,6 +63,17 @@ const iconObject = {
   },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.navigateToLayersTab]: { iconClass: 'fa fa-layer-group' },
+  [CommandIDs.navigateToStacBrowserTab]: { iconClass: 'fa fa-satellite' },
+  [CommandIDs.navigateToSegmentsTab]: { iconClass: 'fa fa-film' },
+  [CommandIDs.navigateToObjectPropertiesTab]: { iconClass: 'fa fa-sliders-h' },
+  [CommandIDs.navigateToAnnotationsTab]: { iconClass: 'fa fa-comment' },
+  [CommandIDs.navigateToIdentifyPanelTab]: {
+    iconClass: 'fa fa-magnifying-glass',
+  },
+  [CommandIDs.navigateToStoryPanelTab]: {
+    iconClass: 'fa fa-book-open',
+  },
 };
 
 /**

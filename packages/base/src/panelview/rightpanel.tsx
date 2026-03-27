@@ -160,6 +160,23 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     };
   }, [props.model]);
 
+  React.useEffect(() => {
+    const handler = (
+      _sender: typeof props.model,
+      { panel, tab }: { panel: 'left' | 'right'; tab: string },
+    ) => {
+      if (panel !== 'right') {
+        return;
+      }
+      // Toggle: requesting the active tab again closes the panel
+      setCurTab(prev => (prev === tab ? '' : tab));
+    };
+    props.model.panelTabRequest.connect(handler);
+    return () => {
+      props.model.panelTabRequest.disconnect(handler);
+    };
+  }, [props.model]);
+
   const allRightTabsDisabled =
     props.settings.objectPropertiesDisabled &&
     props.settings.annotationsDisabled &&
@@ -180,7 +197,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     >
       <div
         className="jgis-right-panel-container"
-        style={{ display: rightPanelVisible ? 'block' : 'none' }}
+        style={{ display: rightPanelVisible && !!curTab ? 'block' : 'none' }}
       >
         <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
           <TabsList>
