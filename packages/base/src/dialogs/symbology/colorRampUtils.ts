@@ -13,6 +13,9 @@ export type RgbaChannel = keyof typeof RGBA_INDEX;
 /** OpenLayers default blue, used as the fallback color throughout symbology dialogs. */
 export const DEFAULT_COLOR: RgbaColor = [51, 153, 204, 1];
 
+/** Default stroke width in pixels, used as the initial value in all symbology dialogs. */
+export const DEFAULT_STROKE_WIDTH = 1.25;
+
 /**
  * Returns true if `val` is a usable solid color: either a hex string or a
  * plain [r,g,b,a] number array. Returns false for OL expression arrays like
