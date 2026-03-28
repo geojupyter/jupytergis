@@ -1627,7 +1627,11 @@ export function addCommands(
 
       const layerId = Object.keys(selected)[0];
 
-      model.createStorySegmentFromLayer(layerId);
+      const result = model.createStorySegmentFromLayer(layerId);
+
+      if (result) {
+        model.centerOnPosition(result.storySegmentId);
+      }
     },
   });
 
