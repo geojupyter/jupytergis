@@ -669,10 +669,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       },
     });
 
-    this._commands.addCommand('Copy-Coordinates-EPSG', {
+    this._commands.addCommand('Copy-Coordinates-LonLat', {
       label: () => {
         if (!this._Map || !this._clickCoords) {
-          return 'EPSG:4326 (WGS84)';
+          return 'Latitude/Longitude';
         }
 
         const lonLat = toLonLat(
@@ -680,7 +680,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this._Map.getView().getProjection(),
         );
 
-        return `EPSG:4326 — WGS84 (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
+        return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
       },
       execute: async () => {
         const lonLat = toLonLat(
@@ -708,7 +708,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     copyCoordinatesMenu.addItem({
-      command: 'Copy-Coordinates-EPSG',
+      command: 'Copy-Coordinates-LonLat',
     });
 
     this._contextMenu.addItem({
