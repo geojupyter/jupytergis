@@ -1630,7 +1630,7 @@ export function addCommands(
       const result = model.createStorySegmentFromLayer(layerId);
 
       if (result) {
-        model.centerOnPosition(result.storySegmentId);
+        model.centerOnPosition(layerId);
       }
     },
   });
