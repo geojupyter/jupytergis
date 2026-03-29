@@ -4,8 +4,8 @@ import {
   IVectorLayer,
   IWebGlLayer,
 } from '@jupytergis/schema';
-import colormap from 'colormap';
 import { UUID } from '@lumino/coreutils';
+import colormap from 'colormap';
 
 import { ColorRampName, findExprNode } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';

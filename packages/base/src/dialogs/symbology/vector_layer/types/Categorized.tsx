@@ -3,8 +3,6 @@ import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
-import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import {
   colorToRgba,
   DEFAULT_COLOR,
@@ -12,6 +10,8 @@ import {
   isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
+import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {

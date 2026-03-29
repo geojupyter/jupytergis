@@ -1,13 +1,9 @@
 import { IVectorLayer } from '@jupytergis/schema';
-import { ExpressionValue } from 'ol/expr/expression';
 import { UUID } from '@lumino/coreutils';
+import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
-import ColorRampControls, {
-  ColorRampControlsOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import {
   colorToRgba,
   DEFAULT_COLOR,
@@ -15,6 +11,10 @@ import {
   isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
+import ColorRampControls, {
+  ColorRampControlsOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {

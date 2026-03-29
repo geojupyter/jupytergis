@@ -1,8 +1,8 @@
 import { IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
-import { ExpressionValue } from 'ol/expr/expression';
 import { UUID } from '@lumino/coreutils';
+import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
 import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
