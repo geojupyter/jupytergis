@@ -2,7 +2,6 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import {
   colorToRgba,
   DEFAULT_COLOR,
@@ -10,6 +9,7 @@ import {
   isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { saveSymbology } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';

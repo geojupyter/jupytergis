@@ -1,6 +1,6 @@
 import { Button } from '@jupyterlab/ui-components';
-import React from 'react';
 import { UUID } from '@lumino/coreutils';
+import React from 'react';
 
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 import StopRow from './StopRow';
