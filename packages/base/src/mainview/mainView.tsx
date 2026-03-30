@@ -43,7 +43,7 @@ import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { ContextMenu } from '@lumino/widgets';
+import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
   MapBrowserEvent,
@@ -509,8 +509,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
         event.stopPropagation();
-        const coordinate = this._Map.getEventCoordinate(event);
-        this._clickCoords = coordinate;
+        if (this._lastPointerCoord) {
+          this._clickCoords = this._lastPointerCoord;
+        }
         this._contextMenu.open(event);
       });
 
@@ -651,10 +652,71 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       },
     });
 
+    this._commands.addCommand('Copy-Coordinates-Map-CRS', {
+      label: () => {
+        if (!this._Map || !this._clickCoords) {
+          return 'Map CRS';
+        }
+
+        const proj = this._Map.getView().getProjection().getCode();
+        const coord = this._clickCoords;
+
+        return `Map CRS — ${proj} (${coord[0].toFixed(0)}E, ${coord[1].toFixed(0)}N)`;
+      },
+      execute: async () => {
+        const coord = this._clickCoords;
+        const text = `${coord[0].toFixed(0)}, ${coord[1].toFixed(0)}`;
+        await navigator.clipboard.writeText(text);
+      },
+    });
+
+    this._commands.addCommand('Copy-Coordinates-LonLat', {
+      label: () => {
+        if (!this._Map || !this._clickCoords) {
+          return 'Latitude/Longitude';
+        }
+
+        const lonLat = toLonLat(
+          this._clickCoords,
+          this._Map.getView().getProjection(),
+        );
+
+        return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
+      },
+      execute: async () => {
+        const lonLat = toLonLat(
+          this._clickCoords,
+          this._Map.getView().getProjection(),
+        );
+
+        const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
+        await navigator.clipboard.writeText(text);
+      },
+    });
+
     this._contextMenu.addItem({
       command: CommandIDs.addAnnotation,
       selector: '.ol-viewport',
       rank: 1,
+    });
+
+    const copyCoordinatesMenu = new Menu({ commands: this._commands });
+
+    copyCoordinatesMenu.title.label = 'Copy Coordinates';
+
+    copyCoordinatesMenu.addItem({
+      command: 'Copy-Coordinates-Map-CRS',
+    });
+
+    copyCoordinatesMenu.addItem({
+      command: 'Copy-Coordinates-LonLat',
+    });
+
+    this._contextMenu.addItem({
+      type: 'submenu',
+      submenu: copyCoordinatesMenu,
+      selector: '.ol-viewport',
+      rank: 2,
     });
   };
 
@@ -2579,10 +2641,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     view.setZoom(zoom);
   }
 
+  private _lastPointerCoord: Coordinate | null = null;
   private _onPointerMove(e: PointerEvent) {
     const pixel = this._Map.getEventPixel(e);
     const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
+    this._lastPointerCoord = coordinates;
     this._syncPointer(coordinates);
   }
 
