@@ -13,6 +13,7 @@ import {
 import { SymbologyTab, VectorRenderType } from '@/src/types';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
+import Grammar from './types/Grammar';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
@@ -62,6 +63,11 @@ const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   Heatmap: {
     component: Heatmap,
     supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    isTabbed: false,
+  },
+  Grammar: {
+    component: Grammar,
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer'],
     isTabbed: false,
   },
 } as const;

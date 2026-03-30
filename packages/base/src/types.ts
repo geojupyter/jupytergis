@@ -33,7 +33,8 @@ export type VectorRenderType =
   | 'Canonical'
   | 'Graduated'
   | 'Categorized'
-  | 'Heatmap';
+  | 'Heatmap'
+  | 'Grammar';
 
 /**
  * Add jupytergisMaps object to the global variables.
