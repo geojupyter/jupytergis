@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          persist-credentials: false
       - name: Build draft PDF
         uses: openjournals/openjournals-draft-action@85a18372e48f551d8af9ddb7a747de685fbbb01c  # master
         with:
