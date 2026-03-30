@@ -362,26 +362,33 @@ select option {
   border: none;
   border-bottom: 1px solid var(--jp-border-color2);
   border-radius: 0;
-  background: transparent;
+  background: var(--jp-layout-color1);
 }
 
 .jp-gis-mapping-row .jp-select-wrapper:hover {
   border-bottom-color: var(--jp-brand-color1);
-  background: transparent;
+}
+
+.jp-gis-mapping-row:hover .jp-select-wrapper {
+  background: var(--jp-layout-color2);
 }
 
 .jp-gis-mapping-row .jp-select-wrapper select.jp-mod-styled {
   border: none;
-  background: transparent;
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color0);
   box-shadow: none;
   height: auto;
   padding: 1px 20px 1px 2px;
   font-size: var(--jp-ui-font-size1);
 }
 
+.jp-gis-mapping-row:hover .jp-select-wrapper select.jp-mod-styled {
+  background: var(--jp-layout-color2);
+}
+
 .jp-gis-mapping-row .jp-select-wrapper select.jp-mod-styled:focus {
   outline: none;
-  background: transparent;
 }
 
 .jp-gis-mapping-verb {

@@ -178,15 +178,29 @@ export const ensureHexColorCode = (color: number[] | string): string => {
  */
 export function colorToRgba(color: unknown): RgbaColor {
   if (typeof color === 'string') {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-    if (!result) {
+    // rgb(...) / rgba(...) format
+    const rgbaResult =
+      /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)$/i.exec(
+        color,
+      );
+    if (rgbaResult) {
+      return [
+        parseInt(rgbaResult[1], 10),
+        parseInt(rgbaResult[2], 10),
+        parseInt(rgbaResult[3], 10),
+        rgbaResult[4] !== undefined ? parseFloat(rgbaResult[4]) : 1,
+      ];
+    }
+    // #RRGGBB hex format
+    const hexResult = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+    if (!hexResult) {
       console.warn('Unable to parse hex color, using default');
       return DEFAULT_COLOR;
     }
     return [
-      parseInt(result[1], 16),
-      parseInt(result[2], 16),
-      parseInt(result[3], 16),
+      parseInt(hexResult[1], 16),
+      parseInt(hexResult[2], 16),
+      parseInt(hexResult[3], 16),
       1,
     ];
   }

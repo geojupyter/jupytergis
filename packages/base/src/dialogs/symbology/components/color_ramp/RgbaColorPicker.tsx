@@ -88,10 +88,13 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
       return;
     }
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      const target = e.target as Node;
+      // Ignore clicks on detached nodes (can happen when a React re-render
+      // removes the target between pointerdown and mousedown).
+      if (!document.documentElement.contains(target)) {
+        return;
+      }
+      if (containerRef.current && !containerRef.current.contains(target)) {
         setOpen(false);
       }
     };
@@ -119,6 +122,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
             padding: 8,
             boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
           }}
+          onMouseDown={e => e.stopPropagation()}
         >
           <ReactColorfulRgba
             color={{ r, g, b, a }}
