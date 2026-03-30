@@ -9,6 +9,6 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/binder-link@7bebe19dab1c58587eb734aca9184d8e59fdf911  # v1
+      - uses: jupyterlab/maintainer-tools/.github/actions/binder-link@7bebe19dab1c58587eb734aca9184d8e59fdf911 # v1
         with:
           github_token: ${{ secrets.github_token }}

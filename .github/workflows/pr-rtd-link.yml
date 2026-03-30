@@ -16,7 +16,7 @@ jobs:
   autolink-rtd-previews:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'mfisher87/readthedocs-actions/preview@382564110b66bee5eae9d1202b492bfe4f1adec7'  # main
+      - uses: 'mfisher87/readthedocs-actions/preview@382564110b66bee5eae9d1202b492bfe4f1adec7' # main
         with:
           project-slug: 'jupytergis'
           message-template: |
