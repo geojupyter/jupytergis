@@ -1,6 +1,6 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
@@ -59,6 +59,7 @@ export function useStacFilterExtension({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
+    hasLoadedInitialSearchState,
   } = useStacSearch({
     model,
   });
@@ -70,37 +71,44 @@ export function useStacFilterExtension({
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+  const hasLoadedInitialFilterStateRef = useRef(false);
+  /** Last auto-search request; skips duplicate consecutive fetches (React churn). */
+  const lastAutoQueryKeyRef = useRef<string | null>(null);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   // On mount, load saved filter state from StateDB (if present)
   useEffect(() => {
     async function loadFilterExtensionStateFromDb() {
-      const savedFilterState = (await stateDb?.fetch(
-        STAC_FILTER_EXTENSION_STATE_KEY,
-      )) as IStacFilterExtensionStateDb | undefined;
+      hasLoadedInitialFilterStateRef.current = false;
+      try {
+        const savedFilterState = (await stateDb?.fetch(
+          STAC_FILTER_EXTENSION_STATE_KEY,
+        )) as IStacFilterExtensionStateDb | undefined;
 
-      if (savedFilterState) {
-        if (savedFilterState.selectedCollection) {
-          setSelectedCollection(savedFilterState.selectedCollection);
+        if (savedFilterState) {
+          if (savedFilterState.selectedCollection) {
+            setSelectedCollection(savedFilterState.selectedCollection);
+          }
+          if (savedFilterState.queryableFilters) {
+            const restoredFilters: Record<string, IQueryableFilter> = {};
+            Object.entries(savedFilterState.queryableFilters).forEach(
+              ([key, filter]) => {
+                restoredFilters[key] = {
+                  operator: filter.operator,
+                  inputValue:
+                    filter.inputValue === null ? undefined : filter.inputValue,
+                };
+              },
+            );
+            setSelectedQueryables(restoredFilters);
+          }
+          if (savedFilterState.filterOperator) {
+            setFilterOperator(savedFilterState.filterOperator);
+          }
         }
-        if (savedFilterState.queryableFilters) {
-          // Convert null back to undefined for inputValue
-          const restoredFilters: Record<string, IQueryableFilter> = {};
-          Object.entries(savedFilterState.queryableFilters).forEach(
-            ([key, filter]) => {
-              restoredFilters[key] = {
-                operator: filter.operator,
-                inputValue:
-                  filter.inputValue === null ? undefined : filter.inputValue,
-              };
-            },
-          );
-          setSelectedQueryables(restoredFilters);
-        }
-        if (savedFilterState.filterOperator) {
-          setFilterOperator(savedFilterState.filterOperator);
-        }
+      } finally {
+        hasLoadedInitialFilterStateRef.current = true;
       }
     }
 
@@ -137,6 +145,7 @@ export function useStacFilterExtension({
 
   // Reset all state when URL changes
   useEffect(() => {
+    lastAutoQueryKeyRef.current = null;
     setQueryableFields(undefined);
     setCollections([]);
     setSelectedCollection('');
@@ -222,8 +231,8 @@ export function useStacFilterExtension({
           const { [qKey]: _, ...rest } = prev;
           return rest;
         }
-        // If inputValue is undefined but filter exists, keep it (user might be entering value)
-        // Only remove if explicitly set to null
+        // If inputValue is undefined but filter exists, keep it (user might be
+        // entering value). Only remove if explicitly set to null.
         return {
           ...prev,
           [qKey]: filter,
@@ -278,7 +287,6 @@ export function useStacFilterExtension({
       limit,
       'filter-lang': 'cql2-json',
     };
-
     // Only add filter if there are any conditions
     if (filterConditions.length > 0) {
       body.filter = {
@@ -314,17 +322,35 @@ export function useStacFilterExtension({
     const searchUrl = baseUrl.endsWith('/')
       ? `${baseUrl}search`
       : `${baseUrl}/search`;
+    lastAutoQueryKeyRef.current = JSON.stringify({
+      searchUrl,
+      queryBody,
+    });
     await executeQuery(queryBody, searchUrl);
-  }, [model, executeQuery, buildQuery, baseUrl]);
+  }, [model, buildQuery, baseUrl]);
 
   // Handle search when filters change
   useEffect(() => {
-    if (model && !isFirstRender && selectedCollection !== '') {
+    const hasLoadedInitialFilterState = hasLoadedInitialFilterStateRef.current;
+    if (
+      model &&
+      !isFirstRender &&
+      selectedCollection !== '' &&
+      hasLoadedInitialFilterState &&
+      hasLoadedInitialSearchState
+    ) {
       const queryBody = buildQuery();
       const searchUrl = baseUrl.endsWith('/')
         ? `${baseUrl}search`
         : `${baseUrl}/search`;
-      executeQuery(queryBody, searchUrl);
+      const autoQueryKey = JSON.stringify({ searchUrl, queryBody });
+
+      if (lastAutoQueryKeyRef.current === autoQueryKey) {
+        return;
+      }
+
+      lastAutoQueryKeyRef.current = autoQueryKey;
+      void executeQuery(queryBody, searchUrl);
     }
   }, [
     model,
@@ -336,8 +362,8 @@ export function useStacFilterExtension({
     endTime,
     currentBBox,
     buildQuery,
-    executeQuery,
     baseUrl,
+    hasLoadedInitialSearchState,
   ]);
 
   return {
