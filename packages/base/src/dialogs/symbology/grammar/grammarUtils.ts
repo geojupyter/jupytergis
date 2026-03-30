@@ -2,6 +2,10 @@ import { UUID } from '@lumino/coreutils';
 
 import { FieldType, IColorRampScale, IEncodingRule, IScale, OLStyleChannel } from './types';
 
+// ---------------------------------------------------------------------------
+// Channel groups
+// ---------------------------------------------------------------------------
+
 export const COLOR_CHANNELS: OLStyleChannel[] = [
   'fill-color',
   'stroke-color',
@@ -9,11 +13,15 @@ export const COLOR_CHANNELS: OLStyleChannel[] = [
   'circle-stroke-color',
 ];
 
-export const ALL_CHANNELS: OLStyleChannel[] = [
-  ...COLOR_CHANNELS,
+export const NUMERIC_CHANNELS: OLStyleChannel[] = [
   'stroke-width',
   'circle-radius',
   'circle-stroke-width',
+];
+
+export const ALL_CHANNELS: OLStyleChannel[] = [
+  ...COLOR_CHANNELS,
+  ...NUMERIC_CHANNELS,
 ];
 
 export const CHANNEL_LABELS: Record<OLStyleChannel, string> = {
@@ -25,6 +33,61 @@ export const CHANNEL_LABELS: Record<OLStyleChannel, string> = {
   'circle-radius': 'Marker Size',
   'circle-stroke-width': 'Marker Stroke Width',
 };
+
+// ---------------------------------------------------------------------------
+// Type system: input / output types for scales and channels
+// ---------------------------------------------------------------------------
+
+/**
+ * The value type a channel expects to receive.
+ *   color  → fill-color, stroke-color, circle-fill-color, circle-stroke-color
+ *   number → stroke-width, circle-radius, circle-stroke-width
+ */
+export type ChannelValueType = 'color' | 'number';
+
+/**
+ * The value type a scale produces.
+ *   color  → colorRamp, categorical
+ *   number → scalar
+ *   any    → constant (depends on user-supplied value), identity (pass-through)
+ */
+export type ScaleOutputType = 'color' | 'number' | 'any';
+
+export function channelType(channel: OLStyleChannel): ChannelValueType {
+  return (COLOR_CHANNELS as OLStyleChannel[]).includes(channel) ? 'color' : 'number';
+}
+
+export function scaleOutputType(scheme: IScale['scheme']): ScaleOutputType {
+  switch (scheme) {
+    case 'colorRamp':
+    case 'categorical':
+      return 'color';
+    case 'scalar':
+      return 'number';
+    case 'constant':
+    case 'identity':
+      return 'any';
+  }
+}
+
+/**
+ * Returns true when the scale's output type is compatible with the channel.
+ * 'any' scales (constant, identity) are always compatible.
+ */
+export function isSchemeCompatible(
+  scheme: IScale['scheme'],
+  channel: OLStyleChannel,
+): boolean {
+  const out = scaleOutputType(scheme);
+  if (out === 'any') {
+    return true;
+  }
+  return out === channelType(channel);
+}
+
+// ---------------------------------------------------------------------------
+// Categorical palette
+// ---------------------------------------------------------------------------
 
 /** Colors from ColorBrewer Set1, used for auto-assigning categorical values. */
 export const CATEGORICAL_PALETTE = [
@@ -38,6 +101,10 @@ export const CATEGORICAL_PALETTE = [
   '#999999',
   '#ffff33',
 ];
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 export function inferFieldType(values: Set<any>): FieldType {
   const arr = Array.from(values).filter(v => v !== null && v !== undefined);
@@ -60,9 +127,7 @@ export function computeDomain(values: Set<any>): [number, number] {
   return [Math.min(...nums), Math.max(...nums)];
 }
 
-export function defaultColorRampScale(
-  values: Set<any>,
-): IColorRampScale {
+export function defaultColorRampScale(values: Set<any>): IColorRampScale {
   return {
     scheme: 'colorRamp',
     name: 'viridis',
@@ -72,6 +137,25 @@ export function defaultColorRampScale(
     reverse: false,
     fallback: [0, 0, 0, 0],
   };
+}
+
+export function defaultScaleForChannel(
+  channel: OLStyleChannel,
+  field: string,
+  featureProperties: Record<string, Set<any>>,
+): IScale {
+  if (channelType(channel) === 'number') {
+    const values = featureProperties[field] ?? new Set();
+    return {
+      scheme: 'scalar',
+      domain: computeDomain(values),
+      range: [0, 10],
+      mode: 'equal interval',
+      nStops: 9,
+      fallback: 0,
+    };
+  }
+  return defaultScale(field, featureProperties);
 }
 
 export function defaultScale(
@@ -113,6 +197,6 @@ export function createDefaultRule(
     id: UUID.uuid4(),
     field,
     channel,
-    scale: defaultScale(field, featureProperties),
+    scale: defaultScaleForChannel(channel, field, featureProperties),
   };
 }

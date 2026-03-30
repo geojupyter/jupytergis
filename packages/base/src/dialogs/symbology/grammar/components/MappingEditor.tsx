@@ -7,9 +7,13 @@ import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaC
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   colorToRgba,
-  ensureHexColorCode,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
+
+/** Convert RgbaColor [r,g,b,a] (a in 0-1) to a CSS rgba string preserving alpha. */
+function colorToString(color: RgbaColor): string {
+  return `rgba(${color[0]},${color[1]},${color[2]},${color[3]})`;
+}
 import {
   CATEGORICAL_PALETTE,
   computeDomain,
@@ -187,7 +191,7 @@ const ColorRampScaleEditor: React.FC<IColorRampScaleEditorProps> = ({
         />
       </div>
 
-      <div className="jp-gis-symbology-row">
+      <div className="jp-gis-symbology-row jp-gis-symbology-row-pair">
         <label>Min:</label>
         <input
           type="number"
@@ -264,12 +268,12 @@ const CategoricalScaleEditor: React.FC<ICategoricalScaleEditorProps> = ({
   const updateColor = (key: string, color: RgbaColor) => {
     onChange({
       ...scale,
-      mapping: { ...mapping, [key]: ensureHexColorCode(color) },
+      mapping: { ...mapping, [key]: colorToString(color) },
     });
   };
 
   const updateFallback = (color: RgbaColor) => {
-    onChange({ ...scale, fallback: ensureHexColorCode(color) });
+    onChange({ ...scale, fallback: colorToString(color) });
   };
 
   return (
@@ -330,7 +334,7 @@ const ScalarScaleEditor: React.FC<IScalarScaleEditorProps> = ({
   const autoComputed = computeDomain(featureProperties[field] ?? new Set());
   const domain = scale.domain ?? autoComputed;
   const mode = scale.mode;
-  const nShades = 9;
+  const nShades = scale.nStops ?? 9;
 
   const update = (patch: Partial<Extract<IScale, { scheme: 'scalar' }>>) => {
     onChange({ ...scale, ...patch });
@@ -370,7 +374,7 @@ const ScalarScaleEditor: React.FC<IScalarScaleEditorProps> = ({
       breaks[breaks.length - 1] = domain[1];
     }
 
-    const scalarStops = breaks.map((stop, i) => {
+    const scalarStops = breaks.map((stop: number, i: number) => {
       const t = breaks.length === 1 ? 0 : i / (breaks.length - 1);
       const output = scale.range[0] + t * (scale.range[1] - scale.range[0]);
       return { stop, output };
@@ -416,6 +420,23 @@ const ScalarScaleEditor: React.FC<IScalarScaleEditorProps> = ({
       </div>
 
       <div className="jp-gis-symbology-row">
+        <label>Stops:</label>
+        <input
+          type="number"
+          className="jp-mod-styled"
+          min={2}
+          max={256}
+          value={nShades}
+          onChange={e =>
+            update({
+              nStops: Math.max(2, parseInt(e.target.value) || 9),
+              scalarStops: undefined,
+            })
+          }
+        />
+      </div>
+
+      <div className="jp-gis-symbology-row">
         <label>Input Min:</label>
         <input
           type="number"
@@ -436,7 +457,7 @@ const ScalarScaleEditor: React.FC<IScalarScaleEditorProps> = ({
         />
       </div>
 
-      <div className="jp-gis-symbology-row">
+      <div className="jp-gis-symbology-row jp-gis-symbology-row-pair">
         <label>Output Min:</label>
         <input
           type="number"
@@ -507,7 +528,7 @@ const ConstantScaleEditor: React.FC<IConstantScaleEditorProps> = ({
           <label>Color:</label>
           <RgbaColorPicker
             color={currentColor}
-            onChange={color => onChange({ ...scale, value: ensureHexColorCode(color) })}
+            onChange={color => onChange({ ...scale, value: colorToString(color) })}
           />
         </div>
       </div>

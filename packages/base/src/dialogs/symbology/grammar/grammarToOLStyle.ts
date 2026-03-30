@@ -37,32 +37,63 @@ export function grammarToOLStyle(
 ): Record<string, any> {
   const style: Record<string, any> = { ...(state.baseStyle ?? {}) };
 
+  // Group rules by channel so we can merge multiple rules on the same channel
+  // into a single `case` chain rather than silently overwriting.
+  const byChannel = new Map<OLStyleChannel, IEncodingRule[]>();
   for (const rule of state.rules) {
-    style[rule.channel] = compileRule(rule);
+    if (!byChannel.has(rule.channel)) {
+      byChannel.set(rule.channel, []);
+    }
+    byChannel.get(rule.channel)!.push(rule);
+  }
+
+  for (const [channel, rules] of byChannel) {
+    style[channel] = compileChannelRules(rules, channel, state.fallback?.[channel]);
   }
 
   return style;
 }
 
-// ---------------------------------------------------------------------------
-// Rule compilation
-// ---------------------------------------------------------------------------
+/**
+ * Compile all rules targeting the same channel into a single OL expression.
+ *
+ * Rules with `when` predicates form the branches of a `case` expression.
+ * The last unconditional rule (no `when`) — if any — is the default branch.
+ * Remaining unconditional rules earlier in the list are ignored (last wins).
+ */
+function compileChannelRules(
+  rules: IEncodingRule[],
+  channel: OLStyleChannel,
+  fallbackValue?: any,
+): ExpressionValue {
+  const conditional = rules.filter(r => r.when && r.when.length > 0);
+  const unconditional = rules.filter(r => !r.when || r.when.length === 0);
 
-function compileRule(rule: IEncodingRule): ExpressionValue {
-  const expr = compileScale(rule.field, rule.scale);
+  // Last unconditional rule wins; otherwise use explicit fallback or transparent zero.
+  const baseRule = unconditional[unconditional.length - 1];
+  const baseExpr: ExpressionValue = baseRule
+    ? compileScale(baseRule.field, baseRule.scale)
+    : (fallbackValue ?? channelFallback(channel));
 
-  if (!rule.when || rule.when.length === 0) {
-    return expr;
+  if (conditional.length === 0) {
+    return baseExpr;
   }
 
-  // Compile each predicate and AND them together.
-  const conditions = rule.when.map(compilePredicate);
-  const guard: ExpressionValue =
-    conditions.length === 1 ? conditions[0] : ['all', ...conditions];
-
-  // Features that don't match fall through to a typed zero-value for the channel.
-  return ['case', guard, expr, channelFallback(rule.channel)];
+  // Build ['case', cond1, expr1, cond2, expr2, ..., baseExpr]
+  const caseExpr: ExpressionValue[] = ['case'];
+  for (const rule of conditional) {
+    const conditions = rule.when!.map(compilePredicate);
+    const guard: ExpressionValue =
+      conditions.length === 1 ? conditions[0] : ['all', ...conditions];
+    caseExpr.push(guard, compileScale(rule.field, rule.scale));
+  }
+  caseExpr.push(baseExpr);
+  return caseExpr;
 }
+
+// ---------------------------------------------------------------------------
+// Predicate compilation
+// ---------------------------------------------------------------------------
 
 function compilePredicate(predicate: IPredicate): ExpressionValue {
   switch (predicate.type) {

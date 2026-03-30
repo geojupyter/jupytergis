@@ -137,6 +137,10 @@
           "type": "boolean",
           "description": "Whether the stroke color follows the fill color expression",
           "default": false
+        },
+        "fallback": {
+          "type": "object",
+          "description": "Per-channel fallback values for Grammar render type (the final else branch)"
         }
       },
       "additionalProperties": false,

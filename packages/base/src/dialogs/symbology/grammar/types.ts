@@ -89,6 +89,7 @@ export interface IScalarScale {
   domain: [number, number]; // always explicit; set from data on rule creation
   range: [number, number];  // output range in channel units (e.g. px)
   mode: ClassificationMode; // default: 'equal interval'
+  nStops: number;           // default: 9
   fallback: number;         // default: 0
   scalarStops?: Array<{ stop: number; output: number }>;
 }
@@ -155,11 +156,16 @@ export interface IEncodingRule {
 
 export interface IGrammarSymbologyState {
   renderType: 'Grammar';
-  /** Ordered list of encoding rules. Compiled in order; last rule wins on channel conflicts. */
+  /** Ordered list of encoding rules. Compiled in order; conditional rules chain into a case expression. */
   rules: IEncodingRule[];
   /**
-   * Fallback OL FlatStyle for channels not covered by any rule.
-   * Optional: defaults to {} at runtime. Not persisted to avoid schema conflicts.
+   * Per-channel fallback values: used as the final `else` branch in the compiled case chain
+   * when no unconditional rule covers a channel.  Exposed in the UI as a "Fallback Style" section.
+   */
+  fallback?: Partial<Record<OLStyleChannel, any>>;
+  /**
+   * Extra OL FlatStyle properties merged into the output *before* compiled rules.
+   * Optional: not persisted to avoid schema conflicts.
    */
   baseStyle?: Record<string, any>;
 }

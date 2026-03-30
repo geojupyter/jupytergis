@@ -28,6 +28,10 @@ import {
   VectorUtils,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import {
+  grammarRulesToGraduatedSeed,
+} from '@/src/dialogs/symbology/grammar/grammarConversions';
+import { IGrammarSymbologyState } from '@/src/dialogs/symbology/grammar/types';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';
@@ -99,6 +103,21 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
+  // When coming from Grammar, substitute a Graduated-compatible seed so that
+  // the existing useEffects and child components can read value/colorRamp/etc.
+  const normalizedState =
+    params.symbologyState?.renderType === 'Grammar'
+      ? grammarRulesToGraduatedSeed(
+          params.symbologyState as unknown as IGrammarSymbologyState,
+        )
+      : params.symbologyState;
+
+  // Params with normalizedState merged in, used where symbologyState fields are needed.
+  const normalizedParams =
+    normalizedState !== params.symbologyState
+      ? { ...params, symbologyState: normalizedState }
+      : params;
+
   useEffect(() => {
     updateStopRowsBasedOnLayer();
   }, []);
@@ -128,13 +147,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     setFallbackColor(
-      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+      colorToRgba(normalizedState?.fallbackColor ?? [0, 0, 0, 0]),
     );
-    setStrokeFollowsFill(params.symbologyState?.strokeFollowsFill ?? false);
+    setStrokeFollowsFill(normalizedState?.strokeFollowsFill ?? false);
   }, [layerId]);
 
   useEffect(() => {
-    const savedValue = params.symbologyState?.value;
+    const savedValue = normalizedState?.value;
     const attribute =
       savedValue && savedValue in selectableAttributesAndValues
         ? savedValue
@@ -150,9 +169,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     ) {
       return;
     }
-    if (params.symbologyState?.vmin !== undefined) {
-      setVmin(String(params.symbologyState.vmin));
-      setVmax(String(params.symbologyState.vmax ?? ''));
+    if (normalizedState?.vmin !== undefined) {
+      setVmin(String(normalizedState.vmin));
+      setVmax(String(normalizedState.vmax ?? ''));
       return;
     }
     const values = Array.from(
@@ -536,7 +555,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             />
           </div>
           <ColorRampControls
-            layerParams={params}
+            layerParams={normalizedParams}
             modeOptions={modeOptions}
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
