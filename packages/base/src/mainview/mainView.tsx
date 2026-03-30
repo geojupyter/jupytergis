@@ -1619,7 +1619,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       // Save original features on first filter application
       if (!Object.keys(this._originalFeatures).includes(id)) {
-        this._originalFeatures[id] = source.getFeatures();
+        this._originalFeatures[id] = source.getFeatures() ?? [];
       }
 
       // clear current features
@@ -1628,10 +1628,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const startTime = activeFilter.betweenMin ?? 0;
       const endTime = activeFilter.betweenMax ?? 1000;
 
-      const filteredFeatures = this._originalFeatures[id].filter(feature => {
-        const featureTime = feature.get(activeFilter.feature);
-        return featureTime >= startTime && featureTime <= endTime;
-      });
+      const filteredFeatures = (this._originalFeatures[id] ?? []).filter(
+        feature => {
+          const featureTime = feature.get(activeFilter.feature);
+          return featureTime >= startTime && featureTime <= endTime;
+        },
+      );
 
       // set state for restoration
       this.setState(old => ({
@@ -1645,7 +1647,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       source.addFeatures(filteredFeatures);
     } else {
       // Restore original features when no filters are applied
-      source.addFeatures(this._originalFeatures[id]);
+      source.addFeatures(this._originalFeatures[id] ?? []);
       delete this._originalFeatures[id];
     }
   };
