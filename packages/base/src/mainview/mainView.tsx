@@ -35,6 +35,7 @@ import {
   IMarkerSource,
   IStorySegmentLayer,
   IJupyterGISSettings,
+  DEFAULT_PROJECTION,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -42,7 +43,7 @@ import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { ContextMenu } from '@lumino/widgets';
+import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
   MapBrowserEvent,
@@ -55,6 +56,7 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { ExpressionValue } from 'ol/expr/expression';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
@@ -276,13 +278,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
+    const projection = options.projection ?? DEFAULT_PROJECTION;
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude, options.latitude])
+        ? fromLonLat([options.longitude, options.latitude], projection)
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(center, zoom);
+    await this.generateMap(center, zoom, projection);
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -328,7 +331,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  async generateMap(center: number[], zoom: number): Promise<void> {
+  async generateMap(
+    center: number[],
+    zoom: number,
+    projection = DEFAULT_PROJECTION,
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     this._initialLayersCount = Object.values(layers).filter(
@@ -360,6 +367,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         view: new View({
           center,
           zoom,
+          projection,
         }),
         controls,
       });
@@ -448,7 +456,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const center = view.getCenter() || [0, 0];
         const zoom = view.getZoom() || 0;
 
-        const projection = view.getProjection();
+        const projection =
+          getProjection(currentOptions.projection) ?? view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
         const resolution = view.getResolution();
@@ -500,8 +509,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
         event.stopPropagation();
-        const coordinate = this._Map.getEventCoordinate(event);
-        this._clickCoords = coordinate;
+        if (this._lastPointerCoord) {
+          this._clickCoords = this._lastPointerCoord;
+        }
         this._contextMenu.open(event);
       });
 
@@ -509,8 +519,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ...old,
         loading: false,
         viewProjection: {
-          code: view.getProjection().getCode(),
-          units: view.getProjection().getUnits(),
+          code: projection,
+          units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
     }
@@ -642,10 +652,71 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       },
     });
 
+    this._commands.addCommand('Copy-Coordinates-Map-CRS', {
+      label: () => {
+        if (!this._Map || !this._clickCoords) {
+          return 'Map CRS';
+        }
+
+        const proj = this._Map.getView().getProjection().getCode();
+        const coord = this._clickCoords;
+
+        return `Map CRS — ${proj} (${coord[0].toFixed(0)}E, ${coord[1].toFixed(0)}N)`;
+      },
+      execute: async () => {
+        const coord = this._clickCoords;
+        const text = `${coord[0].toFixed(0)}, ${coord[1].toFixed(0)}`;
+        await navigator.clipboard.writeText(text);
+      },
+    });
+
+    this._commands.addCommand('Copy-Coordinates-LonLat', {
+      label: () => {
+        if (!this._Map || !this._clickCoords) {
+          return 'Latitude/Longitude';
+        }
+
+        const lonLat = toLonLat(
+          this._clickCoords,
+          this._Map.getView().getProjection(),
+        );
+
+        return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
+      },
+      execute: async () => {
+        const lonLat = toLonLat(
+          this._clickCoords,
+          this._Map.getView().getProjection(),
+        );
+
+        const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
+        await navigator.clipboard.writeText(text);
+      },
+    });
+
     this._contextMenu.addItem({
       command: CommandIDs.addAnnotation,
       selector: '.ol-viewport',
       rank: 1,
+    });
+
+    const copyCoordinatesMenu = new Menu({ commands: this._commands });
+
+    copyCoordinatesMenu.title.label = 'Copy Coordinates';
+
+    copyCoordinatesMenu.addItem({
+      command: 'Copy-Coordinates-Map-CRS',
+    });
+
+    copyCoordinatesMenu.addItem({
+      command: 'Copy-Coordinates-LonLat',
+    });
+
+    this._contextMenu.addItem({
+      type: 'submenu',
+      submenu: copyCoordinatesMenu,
+      selector: '.ol-viewport',
+      rank: 2,
     });
   };
 
@@ -1431,6 +1502,79 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     layerStyle.style = newStyle;
 
+    // When fallbackColor[3] === 0, add an OL filter so features that would be
+    // drawn with a transparent color are excluded from rendering entirely.
+    // alpha === 0 is the contract: the default TRANSPARENT [0,0,0,0] triggers
+    // this automatically, and a future dedicated picker option can set it.
+    const symbologyState = layerParams.symbologyState;
+    if (
+      Array.isArray(symbologyState?.fallbackColor) &&
+      symbologyState.fallbackColor[3] === 0
+    ) {
+      let matchFilter: ExpressionValue[] | undefined;
+
+      if (symbologyState.renderType === 'Categorized') {
+        const fillExpr = layerParams.color['fill-color'];
+        if (
+          Array.isArray(fillExpr) &&
+          fillExpr[0] === 'case' &&
+          fillExpr.length >= 4
+        ) {
+          // Extract conditions from ['case', cond, val, cond, val, ..., fallback],
+          // skipping any whose matched output color is also fully transparent.
+          const conditions: ExpressionValue[][] = [];
+          for (let i = 1; i < fillExpr.length - 1; i += 2) {
+            const output = fillExpr[i + 1];
+            if (Array.isArray(output) && output[3] === 0) {
+              continue;
+            }
+            conditions.push(fillExpr[i] as ExpressionValue[]);
+          }
+          // If every stop is transparent, use a never-true filter to hide all.
+          matchFilter =
+            conditions.length === 0
+              ? ['==', 0, 1]
+              : conditions.length === 1
+                ? conditions[0]
+                : ['any', ...conditions];
+        }
+      } else if (symbologyState.renderType === 'Graduated') {
+        const fillExpr = layerParams.color['fill-color'];
+        // Graduated fill is ['case', ['has', field], interpolateExpr, fallback].
+        // Features missing the attribute fall through to the fallback, so filter
+        // them out with the same ['has', field] condition.
+        if (
+          Array.isArray(fillExpr) &&
+          fillExpr[0] === 'case' &&
+          Array.isArray(fillExpr[1]) &&
+          fillExpr[1][0] === 'has'
+        ) {
+          matchFilter = fillExpr[1];
+        }
+      } else if (symbologyState.renderType === 'Canonical') {
+        const fillExpr = layerParams.color['fill-color'];
+        // Canonical fill is ['coalesce', ['get', field], fallback].
+        // Features missing the attribute fall through to the fallback, so filter
+        // them out with ['has', field]. Note: features that have the field but
+        // with a non-color value also get the fallback — that gap is accepted.
+        if (
+          Array.isArray(fillExpr) &&
+          fillExpr[0] === 'coalesce' &&
+          Array.isArray(fillExpr[1]) &&
+          fillExpr[1][0] === 'get'
+        ) {
+          matchFilter = ['has', fillExpr[1][1]];
+        }
+      }
+
+      if (matchFilter) {
+        // Combine with any existing user-applied filter.
+        layerStyle.filter = layerStyle.filter
+          ? ['all', layerStyle.filter, matchFilter]
+          : matchFilter;
+      }
+    }
+
     return [layerStyle];
   };
 
@@ -1594,7 +1738,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       // Save original features on first filter application
       if (!Object.keys(this._originalFeatures).includes(id)) {
-        this._originalFeatures[id] = source.getFeatures();
+        this._originalFeatures[id] = source.getFeatures() ?? [];
       }
 
       // clear current features
@@ -1603,10 +1747,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const startTime = activeFilter.betweenMin ?? 0;
       const endTime = activeFilter.betweenMax ?? 1000;
 
-      const filteredFeatures = this._originalFeatures[id].filter(feature => {
-        const featureTime = feature.get(activeFilter.feature);
-        return featureTime >= startTime && featureTime <= endTime;
-      });
+      const filteredFeatures = (this._originalFeatures[id] ?? []).filter(
+        feature => {
+          const featureTime = feature.get(activeFilter.feature);
+          return featureTime >= startTime && featureTime <= endTime;
+        },
+      );
 
       // set state for restoration
       this.setState(old => ({
@@ -1620,7 +1766,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       source.addFeatures(filteredFeatures);
     } else {
       // Restore original features when no filters are applied
-      source.addFeatures(this._originalFeatures[id]);
+      source.addFeatures(this._originalFeatures[id] ?? []);
       delete this._originalFeatures[id];
     }
   };
@@ -1908,6 +2054,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
+    if (!this._Map) {
+      return;
+    }
+
     // ! would prefer a model ready signal or something, this feels hacky
     const enableSpectaPresentation = this._model.isSpectaMode();
 
@@ -1977,12 +2127,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
+        this.setState(old => ({
+          viewProjection: {
+            code: newProjection.getCode(),
+            units: newProjection.getUnits(),
+          },
+        }));
         view = new View({ projection: newProjection });
       } else {
         console.warn(`Invalid projection: ${projection}`);
         return;
       }
     }
+
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
@@ -2001,10 +2160,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this._model.setOptions(options);
       }
     }
-
-    view.setRotation(bearing || 0);
-
-    this._Map.setView(view);
   }
 
   private _onViewChanged(
@@ -2545,10 +2700,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     view.setZoom(zoom);
   }
 
+  private _lastPointerCoord: Coordinate | null = null;
   private _onPointerMove(e: PointerEvent) {
     const pixel = this._Map.getEventPixel(e);
     const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
+    this._lastPointerCoord = coordinates;
     this._syncPointer(coordinates);
   }
 

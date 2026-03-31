@@ -6,8 +6,8 @@ import {
   DEFAULT_COLOR,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
+import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
@@ -31,7 +31,7 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     joinStyle: 'round',
     strokeColor: '#3399CC',
     capStyle: 'round',
-    strokeWidth: 1.25,
+    strokeWidth: String(DEFAULT_STROKE_WIDTH),
     radius: 5,
   });
   const styleRef = useLatest(style);
@@ -80,12 +80,18 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       'circle-radius': styleRef.current?.radius,
       'circle-fill-color': fillRgbaRef.current as number[],
       'circle-stroke-color': strokeRgbaRef.current as number[],
-      'circle-stroke-width': styleRef.current?.strokeWidth,
+      'circle-stroke-width': Math.max(
+        0,
+        parseFloat(styleRef.current?.strokeWidth ?? '0'),
+      ),
       'circle-stroke-line-join': styleRef.current?.joinStyle,
       'circle-stroke-line-cap': styleRef.current?.capStyle,
       'fill-color': fillRgbaRef.current as number[],
       'stroke-color': strokeRgbaRef.current as number[],
-      'stroke-width': styleRef.current?.strokeWidth,
+      'stroke-width': Math.max(
+        0,
+        parseFloat(styleRef.current?.strokeWidth ?? '0'),
+      ),
       'stroke-line-join': styleRef.current?.joinStyle,
       'stroke-line-cap': styleRef.current?.capStyle,
     };
@@ -133,13 +139,13 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Stroke Width:</label>
         <input
-          type="number"
+          type="text"
           value={style.strokeWidth}
           className="jp-mod-styled"
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              strokeWidth: +event.target.value,
+              strokeWidth: event.target.value,
             }))
           }
         />
