@@ -33,6 +33,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
+from .symbology import GraduatedSymbology
 
 logger = logging.getLogger(__file__)
 
@@ -861,45 +862,44 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_graduated_symbology(
-        self,
-        layer_id: str,
-        value: str,
-        data: list[float],
-        method: str = "color",
-        color_ramp: str | None = None,
-        n_classes: int = 10,
-        mode: str = "equal interval",
-        reverse: bool = False,
-    ):
+    def apply_symbology(self, layer_id: str, symbology: GraduatedSymbology):
         layer = self._layers.get(layer_id)
 
         if layer is None:
             raise ValueError(f"No layer found with ID: {layer_id}")
 
-        if layer["type"] != "VectorLayer" and layer["type"] != "VectorTileLayer":
-            raise ValueError(
-                "Graduated symbology only supports VectorLayer and VectorTileLayer"
-            )
+        if symbology.type == "graduated":
+            self._apply_graduated_symbology(layer, symbology)
+        else:
+            raise ValueError(f"Unsupported symbology type: {symbology.type}")
 
+        self._layers[layer_id] = layer
+
+    def _apply_graduated_symbology(self, layer: dict, symbology: GraduatedSymbology):
+        if layer["type"] not in ("VectorLayer", "VectorTileLayer"):
+            raise ValueError("Graduated symbology only supports vector layers")
+
+        data = sorted(symbology.data)
         if not data:
             raise ValueError("Data array is empty")
 
-        data = sorted(data)
         vmin, vmax = float(min(data)), float(max(data))
 
-        # Compute class breaks (equal interval only for now)
-        step = (vmax - vmin) / n_classes
-        breaks = [vmin + i * step for i in range(n_classes + 1)]
+        if symbology.n_classes <= 0:
+            raise ValueError("n_classes must be > 0")
+
+        step = (vmax - vmin) / symbology.n_classes if vmax != vmin else 1
+
+        breaks = [vmin + (i + 1) * step for i in range(symbology.n_classes)]
 
         # Coolwarm ramp (blue → white → red)
         def ramp(i):
-            if n_classes <= 1:
+            if symbology.n_classes <= 1:
                 t = 0
             else:
-                t = i / (n_classes - 1)
+                t = i / (symbology.n_classes - 1)
 
-            if reverse:
+            if symbology.reverse:
                 t = 1 - t
 
             if t < 0.5:
@@ -921,39 +921,32 @@ class GISDocument(CommWidget):
                     1.0,
                 ]
 
-        color_stops = {breaks[i]: ramp(i) for i in range(len(breaks))}
+        expr = ["interpolate", ["linear"], ["get", symbology.value]]
 
-        # Build interpolate expression
-        expr = ["interpolate", ["linear"], ["get", value]]
-
-        for val, color in sorted(color_stops.items()):
+        for i, val in enumerate(breaks):
             expr.append(val)
-            expr.append(color)
+            expr.append(ramp(i))
 
-        # Ensure parameters exist
         params = layer.setdefault("parameters", {})
 
-        # Apply color styling
         params["color"] = {
             "fill-color": expr,
             "stroke-color": expr,
             "circle-fill-color": expr,
             "circle-radius": 5.0,
             "stroke-width": 1.25,
+            "circle-stroke-width": 1.25,
         }
 
-        # Metadata
         params["symbologyState"] = {
             "renderType": "Graduated",
-            "value": value,
-            "method": method,
-            "colorRamp": color_ramp,
-            "nClasses": float(n_classes),
-            "mode": mode,
-            "reverseRamp": reverse,
+            "value": symbology.value,
+            "method": symbology.method,
+            "colorRamp": symbology.color_ramp or "viridis",
+            "nClasses": float(symbology.n_classes),
+            "mode": symbology.mode,
+            "reverseRamp": symbology.reverse,
         }
-
-        self._layers[layer_id] = layer
 
 
 class JGISLayer(BaseModel):
