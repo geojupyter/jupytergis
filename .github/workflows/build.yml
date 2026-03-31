@@ -44,7 +44,7 @@ jobs:
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         shell: bash -l {0}
-        run: echo "dir=$(jlpm cache dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
 
       - name: Setup yarn cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
