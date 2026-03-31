@@ -510,9 +510,15 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
-  updateExtent(id: string, extent: number[], projection?: string): void {
+  updateExtent(
+    id: string,
+    extent: number[],
+    zoom: number,
+    projection?: string,
+  ): void {
     this._viewState[id] = {
       extent,
+      zoom,
       projection,
     };
   }
@@ -679,12 +685,14 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(extentOverride?: number[]): IStorySegmentRef | null {
-    const { zoom, extent } = this.getOptions();
-    const finalExtent = extentOverride ?? extent;
+  addStorySegment(viewState: {
+    extent: number[];
+    zoom: number;
+  }): IStorySegmentRef | null {
+    const { extent, zoom } = viewState;
     const { storyId } = this.getSelectedStory();
 
-    if (!zoom || !finalExtent) {
+    if (!zoom || !extent) {
       console.warn('No extent or zoom found');
       return null;
     }
@@ -692,7 +700,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const newStorySegmentId = UUID.uuid4();
 
     const layerParams: IStorySegmentLayer = {
-      extent: finalExtent,
+      extent,
       zoom,
       transition: { type: 'linear', time: 1 },
     };
@@ -761,13 +769,13 @@ export class JupyterGISModel implements IJupyterGISModel {
       return null;
     }
 
-    const layerExtent = this.getExtent(layerId);
+    const viewState = this.getViewState()[layerId];
 
-    if (!layerExtent) {
+    if (!viewState) {
       return null;
     }
 
-    const segment = this.addStorySegment(layerExtent);
+    const segment = this.addStorySegment(viewState);
     if (!segment) {
       return null;
     }

@@ -221,6 +221,9 @@
             "type": "array",
             "items": { "type": "number" }
           },
+          "zoom": {
+            "type": "number"
+          },
           "projection": {
             "type": "string"
           }

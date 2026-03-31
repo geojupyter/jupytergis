@@ -57,7 +57,6 @@ export class JupyterGISDoc
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
     this.undoManager.addToScope(this._stories);
-    this.undoManager.addToScope(this._viewState);
     this.undoManager.addToScope(this._layerTree);
 
     this._initialSyncReadyPromise = new Promise<void>(resolve => {

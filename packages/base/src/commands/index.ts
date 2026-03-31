@@ -31,6 +31,7 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 import { addLayerCreationCommands } from './operationCommands';
+import { MainView } from '../mainview';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -1543,7 +1544,14 @@ export function addCommands(
       if (!current) {
         return;
       }
-      current.model.addStorySegment();
+      const mainView = current.content as unknown as MainView;
+      const viewState = mainView.getCurrentViewState();
+
+      if (!viewState) {
+        return;
+      }
+
+      current.model.addStorySegment(viewState);
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
     ...icons.get(CommandIDs.addStorySegment),

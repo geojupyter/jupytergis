@@ -1718,6 +1718,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return undefined;
   }
 
+  private _computeZoomFromExtent(extent: number[]): number | null {
+    if (!this._Map) {
+      return null;
+    }
+
+    const view = this._Map.getView();
+    const size = this._Map.getSize();
+
+    if (!size) {
+      return null;
+    }
+
+    const resolution = view.getResolutionForExtent(extent, size);
+    const zoom = view.getZoomForResolution(resolution);
+
+    return zoom ?? view.getZoom() ?? 0;
+  }
+
   /**
    * Track layer extent in model's view state
    */
@@ -1732,7 +1750,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     if (extent) {
-      this._model.updateExtent(layerId, extent);
+      const zoom = this._computeZoomFromExtent(extent);
+
+      if (zoom === null) {
+        return;
+      }
+
+      this._model.updateExtent(layerId, extent, zoom);
     }
   }
 
@@ -1741,8 +1765,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (extent) {
       const projection = olSource?.getProjection?.()?.getCode?.();
+      const zoom = this._computeZoomFromExtent(extent);
 
-      this._model.updateExtent(sourceId, extent, projection);
+      if (zoom === null) {
+        return;
+      }
+
+      this._model.updateExtent(sourceId, extent, zoom, projection);
     }
   }
 
@@ -1802,6 +1831,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (mapLayer) {
       this._Map.removeLayer(mapLayer);
     }
+  }
+
+  getCurrentViewState(): { extent: number[]; zoom: number } | null {
+    if (!this._Map) {
+      return null;
+    }
+
+    const view = this._Map.getView();
+    const size = this._Map.getSize();
+
+    if (!size) {
+      return null;
+    }
+
+    const extent = view.calculateExtent(size);
+    const zoom = view.getZoom() ?? 0;
+
+    return { extent, zoom };
   }
 
   private _onClientSharedStateChanged = (
