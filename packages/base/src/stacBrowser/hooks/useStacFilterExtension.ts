@@ -31,6 +31,7 @@ interface IStacFilterExtensionStateDb {
 
 const STAC_FILTER_EXTENSION_STATE_KEY =
   'jupytergis:stac-filter-extension-state';
+const STAC_COLLECTIONS_CACHE_STATE_KEY = 'jupytergis:stac-collections-cache';
 
 interface IUseStacFilterExtensionProps {
   model?: IJupyterGISModel;
@@ -143,6 +144,11 @@ export function useStacFilterExtension({
     saveFilterExtensionStateToDb();
   }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
 
+  const getCollectionsCacheKey = useCallback(
+    () => `${STAC_COLLECTIONS_CACHE_STATE_KEY}:${baseUrl}`,
+    [baseUrl],
+  );
+
   // Reset all state when URL changes
   useEffect(() => {
     lastAutoQueryKeyRef.current = null;
@@ -161,6 +167,18 @@ export function useStacFilterExtension({
 
     const fetchCollections = async () => {
       if (!baseUrl) {
+        return;
+      }
+
+      const cachedCollections = (await stateDb?.fetch(
+        getCollectionsCacheKey(),
+      )) as FilteredCollection[] | undefined;
+
+      if (cachedCollections && cachedCollections.length > 0) {
+        setCollections(cachedCollections);
+        if (selectedCollection === '') {
+          setSelectedCollection(cachedCollections[0].id);
+        }
         return;
       }
 
@@ -207,6 +225,7 @@ export function useStacFilterExtension({
         });
 
       setCollections(collections);
+      await stateDb?.save(getCollectionsCacheKey(), collections);
       // Set first collection as default if one isn't loaded
       if (collections.length > 0 && !(selectedCollection === '')) {
         setSelectedCollection(collections[0].id);
@@ -214,7 +233,7 @@ export function useStacFilterExtension({
     };
 
     fetchCollections();
-  }, [model, baseUrl]);
+  }, [model, baseUrl, stateDb, selectedCollection, getCollectionsCacheKey]);
 
   // for queryables
   // ! TODO - support multiple collection selections
