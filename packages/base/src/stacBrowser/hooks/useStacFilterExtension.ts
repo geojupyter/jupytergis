@@ -73,12 +73,129 @@ export function useStacFilterExtension({
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+
   const hasLoadedInitialFilterStateRef = useRef(false);
   const hasLoadedInitialQueryablesRef = useRef(false);
   /** Last auto-search request; skips duplicate consecutive fetches (React churn). */
   const lastAutoQueryKeyRef = useRef<string | null>(null);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+  const getCollectionsCacheKey = useCallback(
+    () => `${STAC_COLLECTIONS_CACHE_STATE_KEY}:${baseUrl}`,
+    [baseUrl],
+  );
+
+  const getQueryablesCacheKey = useCallback(
+    () => `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}`,
+    [baseUrl],
+  );
+
+  const updateSelectedQueryables = useCallback(
+    (qKey: string, filter: IQueryableFilter | null) => {
+      setSelectedQueryables(prev => {
+        // If filter is null, remove the key entirely
+        if (filter === null) {
+          const { [qKey]: _, ...rest } = prev;
+          return rest;
+        }
+        // If inputValue is undefined but filter exists, keep it (user might be
+        // entering value). Only remove if explicitly set to null.
+        return {
+          ...prev,
+          [qKey]: filter,
+        };
+      });
+    },
+    [],
+  );
+
+  const buildQuery = useCallback((): IStacFilterExtensionQueryBody => {
+    const st = startTime
+      ? startTime.toISOString()
+      : startOfToday().toISOString();
+
+    const et = endTime ? endTime.toISOString() : endOfToday().toISOString();
+
+    // Build filter object from selectedQueryables
+    const filterConditions: IStacFilterCondition[] = Object.entries(
+      selectedQueryables,
+    )
+      .filter(([, filter]) => filter.inputValue !== undefined)
+      .map(([property, filter]): IStacFilterCondition => {
+        // Check if this property is a datetime type
+        const queryableField = queryableFields?.find(
+          ([key]) => key === property,
+        );
+        const isDateTime =
+          queryableField &&
+          queryableField[1]?.type === 'string' &&
+          queryableField[1]?.format === 'date-time';
+
+        // For datetime values, wrap in timestamp object; otherwise use value directly
+        const value = isDateTime
+          ? { timestamp: filter.inputValue as string }
+          : filter.inputValue;
+
+        const condition: IStacFilterCondition = {
+          op: filter.operator,
+          args: [{ property }, value] as [
+            { property: string },
+            string | number | { timestamp: string },
+          ],
+        };
+
+        return condition;
+      });
+
+    const body: IStacFilterExtensionQueryBody = {
+      bbox: currentBBox,
+      collections: [selectedCollection],
+      datetime: `${st}/${et}`,
+      limit,
+      'filter-lang': 'cql2-json',
+    };
+    // Only add filter if there are any conditions
+    if (filterConditions.length > 0) {
+      body.filter = {
+        op: filterOperator,
+        args: filterConditions,
+      };
+    }
+
+    return body;
+  }, [
+    startTime,
+    endTime,
+    currentBBox,
+    selectedCollection,
+    limit,
+    selectedQueryables,
+    filterOperator,
+    queryableFields,
+  ]);
+
+  // Register buildQuery with context
+  useEffect(() => {
+    registerBuildQuery(() => buildQuery());
+  }, [registerBuildQuery, buildQuery, baseUrl]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!model) {
+      return;
+    }
+
+    // Build query body and execute query
+    const queryBody = buildQuery();
+    const searchUrl = baseUrl.endsWith('/')
+      ? `${baseUrl}search`
+      : `${baseUrl}/search`;
+    lastAutoQueryKeyRef.current = JSON.stringify({
+      searchUrl,
+      queryBody,
+    });
+    await executeQuery(queryBody, searchUrl);
+  }, [model, buildQuery, baseUrl]);
 
   // On mount, load saved filter state from StateDB (if present)
   useEffect(() => {
@@ -145,16 +262,6 @@ export function useStacFilterExtension({
 
     saveFilterExtensionStateToDb();
   }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
-
-  const getCollectionsCacheKey = useCallback(
-    () => `${STAC_COLLECTIONS_CACHE_STATE_KEY}:${baseUrl}`,
-    [baseUrl],
-  );
-
-  const getQueryablesCacheKey = useCallback(
-    () => `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}`,
-    [baseUrl],
-  );
 
   // Reset all state when URL changes
   useEffect(() => {
@@ -288,112 +395,6 @@ export function useStacFilterExtension({
 
     fetchQueryables();
   }, [model, baseUrl, selectedCollection, stateDb, getQueryablesCacheKey]);
-
-  const updateSelectedQueryables = useCallback(
-    (qKey: string, filter: IQueryableFilter | null) => {
-      setSelectedQueryables(prev => {
-        // If filter is null, remove the key entirely
-        if (filter === null) {
-          const { [qKey]: _, ...rest } = prev;
-          return rest;
-        }
-        // If inputValue is undefined but filter exists, keep it (user might be
-        // entering value). Only remove if explicitly set to null.
-        return {
-          ...prev,
-          [qKey]: filter,
-        };
-      });
-    },
-    [],
-  );
-
-  const buildQuery = useCallback((): IStacFilterExtensionQueryBody => {
-    const st = startTime
-      ? startTime.toISOString()
-      : startOfToday().toISOString();
-
-    const et = endTime ? endTime.toISOString() : endOfToday().toISOString();
-
-    // Build filter object from selectedQueryables
-    const filterConditions: IStacFilterCondition[] = Object.entries(
-      selectedQueryables,
-    )
-      .filter(([, filter]) => filter.inputValue !== undefined)
-      .map(([property, filter]): IStacFilterCondition => {
-        // Check if this property is a datetime type
-        const queryableField = queryableFields?.find(
-          ([key]) => key === property,
-        );
-        const isDateTime =
-          queryableField &&
-          queryableField[1]?.type === 'string' &&
-          queryableField[1]?.format === 'date-time';
-
-        // For datetime values, wrap in timestamp object; otherwise use value directly
-        const value = isDateTime
-          ? { timestamp: filter.inputValue as string }
-          : filter.inputValue;
-
-        const condition: IStacFilterCondition = {
-          op: filter.operator,
-          args: [{ property }, value] as [
-            { property: string },
-            string | number | { timestamp: string },
-          ],
-        };
-
-        return condition;
-      });
-
-    const body: IStacFilterExtensionQueryBody = {
-      bbox: currentBBox,
-      collections: [selectedCollection],
-      datetime: `${st}/${et}`,
-      limit,
-      'filter-lang': 'cql2-json',
-    };
-    // Only add filter if there are any conditions
-    if (filterConditions.length > 0) {
-      body.filter = {
-        op: filterOperator,
-        args: filterConditions,
-      };
-    }
-
-    return body;
-  }, [
-    startTime,
-    endTime,
-    currentBBox,
-    selectedCollection,
-    limit,
-    selectedQueryables,
-    filterOperator,
-    queryableFields,
-  ]);
-
-  // Register buildQuery with context
-  useEffect(() => {
-    registerBuildQuery(() => buildQuery());
-  }, [registerBuildQuery, buildQuery, baseUrl]);
-
-  const handleSubmit = useCallback(async () => {
-    if (!model) {
-      return;
-    }
-
-    // Build query body and execute query
-    const queryBody = buildQuery();
-    const searchUrl = baseUrl.endsWith('/')
-      ? `${baseUrl}search`
-      : `${baseUrl}/search`;
-    lastAutoQueryKeyRef.current = JSON.stringify({
-      searchUrl,
-      queryBody,
-    });
-    await executeQuery(queryBody, searchUrl);
-  }, [model, buildQuery, baseUrl]);
 
   // Handle search when filters change
   useEffect(() => {
