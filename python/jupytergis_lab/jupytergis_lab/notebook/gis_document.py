@@ -33,7 +33,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
-from .symbology import GraduatedSymbology
+from .symbology import Symbology, GraduatedSymbology
 
 logger = logging.getLogger(__file__)
 
@@ -862,7 +862,7 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_symbology(self, layer_id: str, symbology: GraduatedSymbology):
+    def apply_symbology(self, layer_id: str, symbology: Symbology):
         layer = self._layers.get(layer_id)
 
         if layer is None:
