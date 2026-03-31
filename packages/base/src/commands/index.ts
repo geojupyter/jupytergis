@@ -527,7 +527,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewWmsDialog, {
-    label: trans.__('Open New WMS Layer Creation Dialog'),
+    label: trans.__('WMS Layer'),
     caption:
       'Open a dialog to create a new WMS layer and source in the current JupyterGIS document.',
     describedBy: {
