@@ -167,11 +167,16 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
           },
         };
       } else {
-        // If types are the same add the selection - multi-selection
-        newSelection = {
-          ...selectedValue,
-          [item]: { type },
-        };
+        // If types are the same modify the selection (either add or remove to multi-selection)
+        if (item in selectedValue) {
+          const { [item]: _, ...rest } = selectedValue;
+          newSelection = rest;
+        } else {
+          newSelection = {
+            ...selectedValue,
+            [item]: { type },
+          };
+        }
       }
     }
 
