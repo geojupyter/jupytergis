@@ -15,6 +15,7 @@ import {
   GeoTiffSourcePropertiesForm,
   PathBasedSourcePropertiesForm,
   TileSourcePropertiesForm,
+  WmsTileSourceForm,
   SourcePropertiesForm,
 } from './objectform/source';
 import type { ISourceFormProps } from './objectform/source/sourceform';
@@ -65,6 +66,9 @@ export function getSourceTypeForm(
       break;
     case 'GeoTiffSource':
       SourceForm = GeoTiffSourcePropertiesForm;
+      break;
+    case 'WmsTileSource':
+      SourceForm = WmsTileSourceForm;
       break;
     case 'RasterSource':
     case 'VectorTileSource':
