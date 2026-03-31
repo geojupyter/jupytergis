@@ -28,7 +28,7 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             jupyterlab=4
-            yarn=3
+            yarn=3.5.0
             pillow
             mercantile
             xyzservices
