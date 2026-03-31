@@ -32,6 +32,7 @@ interface IStacFilterExtensionStateDb {
 const STAC_FILTER_EXTENSION_STATE_KEY =
   'jupytergis:stac-filter-extension-state';
 const STAC_COLLECTIONS_CACHE_STATE_KEY = 'jupytergis:stac-collections-cache';
+const STAC_QUERYABLES_CACHE_STATE_KEY = 'jupytergis:stac-queryables-cache';
 
 interface IUseStacFilterExtensionProps {
   model?: IJupyterGISModel;
@@ -73,6 +74,7 @@ export function useStacFilterExtension({
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
   const hasLoadedInitialFilterStateRef = useRef(false);
+  const hasLoadedInitialQueryablesRef = useRef(false);
   /** Last auto-search request; skips duplicate consecutive fetches (React churn). */
   const lastAutoQueryKeyRef = useRef<string | null>(null);
 
@@ -149,9 +151,15 @@ export function useStacFilterExtension({
     [baseUrl],
   );
 
+  const getQueryablesCacheKey = useCallback(
+    () => `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}`,
+    [baseUrl],
+  );
+
   // Reset all state when URL changes
   useEffect(() => {
     lastAutoQueryKeyRef.current = null;
+    hasLoadedInitialQueryablesRef.current = false;
     setQueryableFields(undefined);
     setCollections([]);
     setSelectedCollection('');
@@ -243,13 +251,25 @@ export function useStacFilterExtension({
     }
 
     const fetchQueryables = async () => {
-      if (!baseUrl) {
+      if (!baseUrl || selectedCollection === '') {
+        return;
+      }
+
+      hasLoadedInitialQueryablesRef.current = false;
+      const cachedQueryables = (await stateDb?.fetch(
+        getQueryablesCacheKey(),
+      )) as Record<string, unknown> | undefined;
+
+      if (cachedQueryables !== undefined) {
+        setQueryableFields(Object.entries(cachedQueryables) as IStacQueryables);
+        hasLoadedInitialQueryablesRef.current = true;
         return;
       }
 
       const queryablesUrl = baseUrl.endsWith('/')
-        ? `${baseUrl}queryables`
-        : `${baseUrl}/queryables`;
+        ? `${baseUrl}collections/${encodeURIComponent(selectedCollection)}/queryables`
+        : `${baseUrl}/collections/${encodeURIComponent(selectedCollection)}/queryables`;
+
       const data = await fetchWithProxies(
         queryablesUrl,
         model,
@@ -257,11 +277,17 @@ export function useStacFilterExtension({
         undefined,
       );
 
-      setQueryableFields(Object.entries(data.properties));
+      const queryableProperties = data.properties as Record<string, unknown>;
+      setQueryableFields(
+        Object.entries(queryableProperties) as IStacQueryables,
+      );
+
+      await stateDb?.save(getQueryablesCacheKey(), queryableProperties as any);
+      hasLoadedInitialQueryablesRef.current = true;
     };
 
     fetchQueryables();
-  }, [model, baseUrl]);
+  }, [model, baseUrl, selectedCollection, stateDb, getQueryablesCacheKey]);
 
   const updateSelectedQueryables = useCallback(
     (qKey: string, filter: IQueryableFilter | null) => {
@@ -371,7 +397,10 @@ export function useStacFilterExtension({
 
   // Handle search when filters change
   useEffect(() => {
-    const hasLoadedInitialFilterState = hasLoadedInitialFilterStateRef.current;
+    const hasLoadedInitialFilterState =
+      hasLoadedInitialFilterStateRef.current &&
+      hasLoadedInitialQueryablesRef.current;
+
     if (
       model &&
       !isFirstRender &&
@@ -398,6 +427,7 @@ export function useStacFilterExtension({
     selectedCollection,
     selectedQueryables,
     filterOperator,
+    queryableFields,
     startTime,
     endTime,
     currentBBox,
