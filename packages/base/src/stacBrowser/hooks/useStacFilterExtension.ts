@@ -87,8 +87,9 @@ export function useStacFilterExtension({
   );
 
   const getQueryablesCacheKey = useCallback(
-    () => `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}`,
-    [baseUrl],
+    () =>
+      `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}:${selectedCollection}`,
+    [baseUrl, selectedCollection],
   );
 
   const updateSelectedQueryables = useCallback(
@@ -108,6 +109,22 @@ export function useStacFilterExtension({
       });
     },
     [],
+  );
+
+  const handleSelectedCollectionChange = useCallback(
+    (nextSelectedCollection: string) => {
+      if (
+        selectedCollection !== '' &&
+        nextSelectedCollection !== '' &&
+        selectedCollection !== nextSelectedCollection
+      ) {
+        setSelectedQueryables({});
+        setQueryableFields(undefined);
+        setFilterOperator('and');
+      }
+      setSelectedCollection(nextSelectedCollection);
+    },
+    [selectedCollection],
   );
 
   const buildQuery = useCallback((): IStacFilterExtensionQueryBody => {
@@ -208,7 +225,7 @@ export function useStacFilterExtension({
 
         if (savedFilterState) {
           if (savedFilterState.selectedCollection) {
-            setSelectedCollection(savedFilterState.selectedCollection);
+            handleSelectedCollectionChange(savedFilterState.selectedCollection);
           }
           if (savedFilterState.queryableFilters) {
             const restoredFilters: Record<string, IQueryableFilter> = {};
@@ -295,7 +312,7 @@ export function useStacFilterExtension({
           hasLoadedInitialQueryablesRef.current &&
           selectedCollection === ''
         ) {
-          setSelectedCollection(cachedCollections[0].id);
+          handleSelectedCollectionChange(cachedCollections[0].id);
         }
         return;
       }
@@ -350,12 +367,19 @@ export function useStacFilterExtension({
         collections.length > 0 &&
         !(selectedCollection === '')
       ) {
-        setSelectedCollection(collections[0].id);
+        handleSelectedCollectionChange(collections[0].id);
       }
     };
 
     fetchCollections();
-  }, [model, baseUrl, stateDb, selectedCollection, getCollectionsCacheKey]);
+  }, [
+    model,
+    baseUrl,
+    stateDb,
+    selectedCollection,
+    getCollectionsCacheKey,
+    handleSelectedCollectionChange,
+  ]);
 
   // for queryables
   // ! TODO - support multiple collection selections
@@ -448,7 +472,7 @@ export function useStacFilterExtension({
     queryableFields,
     collections,
     selectedCollection,
-    setSelectedCollection,
+    setSelectedCollection: handleSelectedCollectionChange,
     handleSubmit,
     startTime,
     endTime,
