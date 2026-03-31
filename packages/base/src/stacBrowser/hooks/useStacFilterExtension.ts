@@ -291,7 +291,10 @@ export function useStacFilterExtension({
 
       if (cachedCollections && cachedCollections.length > 0) {
         setCollections(cachedCollections);
-        if (selectedCollection === '') {
+        if (
+          hasLoadedInitialQueryablesRef.current &&
+          selectedCollection === ''
+        ) {
           setSelectedCollection(cachedCollections[0].id);
         }
         return;
@@ -342,7 +345,11 @@ export function useStacFilterExtension({
       setCollections(collections);
       await stateDb?.save(getCollectionsCacheKey(), collections);
       // Set first collection as default if one isn't loaded
-      if (collections.length > 0 && !(selectedCollection === '')) {
+      if (
+        hasLoadedInitialQueryablesRef.current &&
+        collections.length > 0 &&
+        !(selectedCollection === '')
+      ) {
         setSelectedCollection(collections[0].id);
       }
     };
