@@ -3,7 +3,15 @@ import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
+import {
+  colorToRgba,
+  DEFAULT_COLOR,
+  DEFAULT_STROKE_WIDTH,
+  isColor,
+  RgbaColor,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import {
@@ -36,10 +44,19 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ReadonlyJSONObject | undefined
   >();
-  const [manualStyle, setManualStyle] = useState({
-    fillColor: '#3399CC',
-    strokeColor: '#3399CC',
-    strokeWidth: 1.25,
+  const [fallbackColor, setFallbackColor] = useState<RgbaColor>([0, 0, 0, 0]);
+  const [strokeFollowsFill, setStrokeFollowsFill] = useState(false);
+  const fallbackColorRef = useLatest(fallbackColor);
+  const strokeFollowsFillRef = useLatest(strokeFollowsFill);
+  const [manualStyle, setManualStyle] = useState<{
+    fillColor: RgbaColor;
+    strokeColor: RgbaColor;
+    strokeWidth: string;
+    radius: number;
+  }>({
+    fillColor: DEFAULT_COLOR,
+    strokeColor: DEFAULT_COLOR,
+    strokeWidth: String(DEFAULT_STROKE_WIDTH),
     radius: 5,
   });
   const manualStyleRef = useLatest(manualStyle);
@@ -77,36 +94,42 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       const strokeColor = params.color['stroke-color'];
       const circleStrokeColor = params.color['circle-stroke-color'];
 
-      const isSimpleColor = (val: any) =>
-        typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+      const effectiveFill = isColor(fillColor)
+        ? fillColor
+        : isColor(circleFillColor)
+          ? circleFillColor
+          : DEFAULT_COLOR;
+
+      const effectiveStroke = isColor(strokeColor)
+        ? strokeColor
+        : isColor(circleStrokeColor)
+          ? circleStrokeColor
+          : DEFAULT_COLOR;
 
       setManualStyle({
-        fillColor: isSimpleColor(fillColor)
-          ? fillColor
-          : isSimpleColor(circleFillColor)
-            ? circleFillColor
-            : '#3399CC',
-
-        strokeColor: isSimpleColor(strokeColor)
-          ? strokeColor
-          : isSimpleColor(circleStrokeColor)
-            ? circleStrokeColor
-            : '#3399CC',
-
-        strokeWidth:
+        fillColor: colorToRgba(effectiveFill),
+        strokeColor: colorToRgba(effectiveStroke),
+        strokeWidth: String(
           params.color['stroke-width'] ||
-          params.color['circle-stroke-width'] ||
-          1.25,
+            params.color['circle-stroke-width'] ||
+            DEFAULT_STROKE_WIDTH,
+        ),
         radius: params.color['circle-radius'] || 5,
       });
     }
+
+    setFallbackColor(
+      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+    );
+    setStrokeFollowsFill(params.symbologyState?.strokeFollowsFill ?? false);
   }, [layerId]);
 
   useEffect(() => {
-    // We only want number values here
+    const savedValue = params.symbologyState?.value;
     const attribute =
-      params.symbologyState?.value ||
-      Object.keys(selectableAttributesAndValues)[0];
+      savedValue && savedValue in selectableAttributesAndValues
+        ? savedValue
+        : Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
@@ -126,6 +149,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       reverseRamp,
     });
 
+    if (!selectableAttributesAndValues[selectedAttribute]) {
+      return;
+    }
     const stops = Array.from(
       selectableAttributesAndValues[selectedAttribute],
     ).sort((a, b) => a - b);
@@ -153,22 +179,35 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       });
 
       if (symbologyTab === 'color') {
-        expr.push([0, 0, 0, 0.0]); // fallback color
+        expr.push(fallbackColorRef.current);
 
         newStyle['fill-color'] = expr;
         newStyle['circle-fill-color'] = expr;
-        newStyle['stroke-color'] = expr;
-        newStyle['circle-stroke-color'] = expr;
+
+        if (strokeFollowsFillRef.current) {
+          newStyle['stroke-color'] = expr;
+          newStyle['circle-stroke-color'] = expr;
+        } else {
+          newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
+          newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
+        }
       }
     } else {
       newStyle['fill-color'] = manualStyleRef.current.fillColor;
       newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
+      newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
+      newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
     }
 
-    newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
-    newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
+    newStyle['stroke-width'] = Math.max(
+      0,
+      parseFloat(manualStyleRef.current.strokeWidth),
+    );
+    newStyle['circle-stroke-width'] = Math.max(
+      0,
+      parseFloat(manualStyleRef.current.strokeWidth),
+    );
     newStyle['circle-radius'] = manualStyleRef.current.radius;
-    newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
 
     const symbologyState = {
       renderType: 'Categorized',
@@ -176,6 +215,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       method: symbologyTab,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+      fallbackColor: fallbackColorRef.current,
+      strokeFollowsFill: strokeFollowsFillRef.current,
     } as IVectorLayer['symbologyState'];
 
     saveSymbology({
@@ -249,45 +290,77 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               <>
                 <div className="jp-gis-symbology-row">
                   <label>Fill Color:</label>
-                  <input
-                    type="color"
-                    className="jp-mod-styled"
-                    value={manualStyle.fillColor}
-                    onChange={e => {
+                  <RgbaColorPicker
+                    color={manualStyle.fillColor}
+                    onChange={color => {
                       handleReset('color');
-                      setManualStyle(prev => ({
-                        ...prev,
-                        fillColor: e.target.value,
-                      }));
+                      setManualStyle(prev => ({ ...prev, fillColor: color }));
                     }}
                   />
                 </div>
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Color:</label>
-                  <input
-                    type="color"
-                    className="jp-mod-styled"
-                    value={manualStyle.strokeColor}
-                    onChange={e => {
-                      setManualStyle(prev => ({
-                        ...prev,
-                        strokeColor: e.target.value,
-                      }));
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      flex: '1 0 50%',
+                      maxWidth: '50%',
                     }}
-                  />
+                  >
+                    <div
+                      style={{
+                        opacity: strokeFollowsFill ? 0.3 : 1,
+                        pointerEvents: strokeFollowsFill ? 'none' : 'auto',
+                      }}
+                    >
+                      <RgbaColorPicker
+                        color={manualStyle.strokeColor}
+                        onChange={color =>
+                          setManualStyle(prev => ({
+                            ...prev,
+                            strokeColor: color,
+                          }))
+                        }
+                      />
+                    </div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={strokeFollowsFill}
+                        onChange={e => setStrokeFollowsFill(e.target.checked)}
+                      />
+                      match fill
+                    </label>
+                  </div>
                 </div>
                 <div className="jp-gis-symbology-row">
                   <label>Stroke Width:</label>
                   <input
-                    type="number"
+                    type="text"
                     className="jp-mod-styled"
                     value={manualStyle.strokeWidth}
                     onChange={e => {
                       setManualStyle(prev => ({
                         ...prev,
-                        strokeWidth: +e.target.value,
+                        strokeWidth: e.target.value,
                       }));
                     }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Fallback Color:</label>
+                  <RgbaColorPicker
+                    color={fallbackColor}
+                    onChange={setFallbackColor}
                   />
                 </div>
               </>

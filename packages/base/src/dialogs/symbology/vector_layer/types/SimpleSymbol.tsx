@@ -1,6 +1,13 @@
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useState } from 'react';
 
+import {
+  colorToRgba,
+  DEFAULT_COLOR,
+  RgbaColor,
+} from '@/src/dialogs/symbology/colorRampUtils';
+import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
+import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
@@ -24,10 +31,14 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     joinStyle: 'round',
     strokeColor: '#3399CC',
     capStyle: 'round',
-    strokeWidth: 1.25,
+    strokeWidth: String(DEFAULT_STROKE_WIDTH),
     radius: 5,
   });
   const styleRef = useLatest(style);
+  const [fillRgba, setFillRgba] = useState<RgbaColor>(DEFAULT_COLOR);
+  const [strokeRgba, setStrokeRgba] = useState<RgbaColor>(DEFAULT_COLOR);
+  const fillRgbaRef = useLatest(fillRgba);
+  const strokeRgbaRef = useLatest(strokeRgba);
 
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
@@ -47,6 +58,16 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       if (parsed) {
         setStyle(parsed);
       }
+      const fillColor =
+        params.color['circle-fill-color'] ?? params.color['fill-color'];
+      const strokeColor =
+        params.color['circle-stroke-color'] ?? params.color['stroke-color'];
+      if (fillColor !== undefined) {
+        setFillRgba(colorToRgba(fillColor));
+      }
+      if (strokeColor !== undefined) {
+        setStrokeRgba(colorToRgba(strokeColor));
+      }
     }
   }, [params]);
 
@@ -57,14 +78,20 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
 
     const styleExpr: FlatStyle = {
       'circle-radius': styleRef.current?.radius,
-      'circle-fill-color': styleRef.current?.fillColor,
-      'circle-stroke-color': styleRef.current?.strokeColor,
-      'circle-stroke-width': styleRef.current?.strokeWidth,
+      'circle-fill-color': fillRgbaRef.current as number[],
+      'circle-stroke-color': strokeRgbaRef.current as number[],
+      'circle-stroke-width': Math.max(
+        0,
+        parseFloat(styleRef.current?.strokeWidth ?? '0'),
+      ),
       'circle-stroke-line-join': styleRef.current?.joinStyle,
       'circle-stroke-line-cap': styleRef.current?.capStyle,
-      'fill-color': styleRef.current?.fillColor,
-      'stroke-color': styleRef.current?.strokeColor,
-      'stroke-width': styleRef.current?.strokeWidth,
+      'fill-color': fillRgbaRef.current as number[],
+      'stroke-color': strokeRgbaRef.current as number[],
+      'stroke-width': Math.max(
+        0,
+        parseFloat(styleRef.current?.strokeWidth ?? '0'),
+      ),
       'stroke-line-join': styleRef.current?.joinStyle,
       'stroke-line-cap': styleRef.current?.capStyle,
     };
@@ -103,42 +130,22 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     <>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
-        <input
-          type="color"
-          value={style.fillColor}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              fillColor: event.target.value,
-            }))
-          }
-        />
+        <RgbaColorPicker color={fillRgba} onChange={setFillRgba} />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Stroke Color:</label>
-        <input
-          type="color"
-          value={style.strokeColor}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              strokeColor: event.target.value,
-            }))
-          }
-        />
+        <RgbaColorPicker color={strokeRgba} onChange={setStrokeRgba} />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Stroke Width:</label>
         <input
-          type="number"
+          type="text"
           value={style.strokeWidth}
           className="jp-mod-styled"
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              strokeWidth: +event.target.value,
+              strokeWidth: event.target.value,
             }))
           }
         />

@@ -29,7 +29,7 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"],
+          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
           "default": "Single Symbol"
         },
         "value": {
@@ -59,6 +59,26 @@
             "pretty",
             "logarithmic"
           ]
+        },
+        "vmin": {
+          "type": "number",
+          "description": "Minimum value for color mapping"
+        },
+        "vmax": {
+          "type": "number",
+          "description": "Maximum value for color mapping"
+        },
+        "fallbackColor": {
+          "type": "array",
+          "description": "RGBA fallback color for features with no matching category or outside the gradient range",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "strokeFollowsFill": {
+          "type": "boolean",
+          "description": "Whether the stroke color follows the fill color expression",
+          "default": false
         }
       },
       "additionalProperties": false,

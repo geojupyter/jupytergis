@@ -16,6 +16,7 @@ interface IUseStacSearchReturn {
   setCurrentBBox: (bbox: [number, number, number, number]) => void;
   useWorldBBox: boolean;
   setUseWorldBBox: (val: boolean) => void;
+  hasLoadedInitialSearchState: boolean;
 }
 
 interface IStacSearchStateDb {
@@ -38,26 +39,33 @@ export function useStacSearch({
     [number, number, number, number]
   >([-180, -90, 180, 90]);
   const [useWorldBBox, setUseWorldBBox] = useState(false);
+  const [hasLoadedInitialSearchState, setHasLoadedInitialSearchState] =
+    useState(false);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   // Load saved state from StateDB on mount
   useEffect(() => {
     async function loadStacSearchStateFromDb() {
-      const savedState = (await stateDb?.fetch(STAC_SEARCH_STATE_KEY)) as
-        | IStacSearchStateDb
-        | undefined;
+      setHasLoadedInitialSearchState(false);
+      try {
+        const savedState = (await stateDb?.fetch(STAC_SEARCH_STATE_KEY)) as
+          | IStacSearchStateDb
+          | undefined;
 
-      if (savedState) {
-        if (savedState.startTime) {
-          setStartTime(new Date(savedState.startTime));
+        if (savedState) {
+          if (savedState.startTime) {
+            setStartTime(new Date(savedState.startTime));
+          }
+          if (savedState.endTime) {
+            setEndTime(new Date(savedState.endTime));
+          }
+          if (savedState.useWorldBBox !== undefined) {
+            setUseWorldBBox(savedState.useWorldBBox);
+          }
         }
-        if (savedState.endTime) {
-          setEndTime(new Date(savedState.endTime));
-        }
-        if (savedState.useWorldBBox !== undefined) {
-          setUseWorldBBox(savedState.useWorldBBox);
-        }
+      } finally {
+        setHasLoadedInitialSearchState(true);
       }
     }
 
@@ -106,5 +114,6 @@ export function useStacSearch({
     setCurrentBBox,
     useWorldBBox,
     setUseWorldBBox,
+    hasLoadedInitialSearchState,
   };
 }
