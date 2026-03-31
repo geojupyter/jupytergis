@@ -28,7 +28,6 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             jupyterlab=4
-            yarn=3.5.0
             pillow
             mercantile
             xyzservices
@@ -44,7 +43,8 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+        shell: bash -l {0}
+        run: echo "dir=$(jlpm cache dir)" >> $GITHUB_OUTPUT
 
       - name: Setup yarn cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
@@ -59,8 +59,8 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          yarn install
-          yarn dev
+          jlpm install
+          jlpm dev
           jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
           jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
 
@@ -69,7 +69,7 @@ jobs:
         run: |
           set -eux
           pip install build
-          yarn build:packages
+          jlpm build:packages
 
       - name: Upload extension packages
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
