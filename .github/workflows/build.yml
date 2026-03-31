@@ -123,7 +123,6 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             jupyterlab=4
-            yarn=3
             qgis
 
       - name: Checkout
@@ -158,7 +157,6 @@ jobs:
           create-args: >-
             pip
             jupyterlab=4
-            yarn=3
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -241,7 +239,7 @@ jobs:
         working-directory: ui-tests
         run: |
           jlpm install
-          yarn playwright install chromium
+          jlpm playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
@@ -275,7 +273,6 @@ jobs:
           create-args: >-
             python=3.12
             jupyterlab=4
-            yarn=3
 
       - name: Lint
         shell: bash -l {0}
