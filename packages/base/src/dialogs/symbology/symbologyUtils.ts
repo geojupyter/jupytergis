@@ -256,8 +256,6 @@ export namespace Utils {
     nClasses: number,
     reverse = false,
   ) => {
-    const nshades = Math.max(nClasses, 9);
-
     const isD3Scheme = selectedRamp in D3_CATEGORICAL_SCHEMES;
 
     let colorMap: any[];
@@ -273,9 +271,11 @@ export namespace Utils {
         colorMap = colorMap.slice(0, nClasses);
       }
     } else {
+      const nShades = Math.max(nClasses, 9);
+
       colorMap = colormap({
         colormap: selectedRamp,
-        nshades,
+        nshades: nShades,
         format: 'rgba',
       });
     }
@@ -287,8 +287,9 @@ export namespace Utils {
     const valueColorPairs: IStopRow[] = [];
 
     for (let i = 0; i < nClasses; i++) {
-      const colorIndex =
-        nClasses === 1 ? 0 : Math.round((i / (nClasses - 1)) * (nshades - 1));
+      const colorIndex = isD3Scheme
+        ? i
+        : Math.round((i / (nClasses - 1)) * (colorMap.length - 1));
       valueColorPairs.push({
         id: UUID.uuid4(),
         stop: stops[i],
