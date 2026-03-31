@@ -167,14 +167,35 @@ export function useStacFilterExtension({
       const collectionsUrl = baseUrl.endsWith('/')
         ? `${baseUrl}collections`
         : `${baseUrl}/collections`;
-      const data: IStacCollectionsReturn = await fetchWithProxies(
-        collectionsUrl,
-        model,
-        async response => await response.json(),
-        undefined,
-      );
 
-      const collections: FilteredCollection[] = data.collections
+      const allCollections: IStacCollection[] = [];
+      let nextUrl: string | null = collectionsUrl;
+
+      while (nextUrl) {
+        const page: IStacCollectionsReturn | null = await fetchWithProxies(
+          nextUrl,
+          model,
+          async response => await response.json(),
+          undefined,
+        );
+
+        if (!page) {
+          break;
+        }
+
+        allCollections.push(...page.collections);
+
+        const currentPageUrl: string = nextUrl;
+        const nextLinkHref: string | undefined = page.links.find(
+          link => link.rel === 'next',
+        )?.href;
+
+        nextUrl = nextLinkHref
+          ? new URL(nextLinkHref, currentPageUrl).toString()
+          : null;
+      }
+
+      const collections: FilteredCollection[] = allCollections
         .map((collection: IStacCollection) => ({
           title: collection.title ?? collection.id,
           id: collection.id,
