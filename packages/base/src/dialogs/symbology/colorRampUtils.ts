@@ -4,10 +4,17 @@ import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
 
+// RgbaColor is an array because OpenLayers and colormap expect arrays directly.
+// RGBA_INDEX bridges that to the named-channel style used by react-colorful and the color picker UI.
 export type RgbaColor = [number, number, number, number];
+export const RGBA_INDEX = { r: 0, g: 1, b: 2, a: 3 } as const;
+export type RgbaChannel = keyof typeof RGBA_INDEX;
 
 /** OpenLayers default blue, used as the fallback color throughout symbology dialogs. */
 export const DEFAULT_COLOR: RgbaColor = [51, 153, 204, 1];
+
+/** Default stroke width in pixels, used as the initial value in all symbology dialogs. */
+export const DEFAULT_STROKE_WIDTH = 1.25;
 
 /**
  * Returns true if `val` is a usable solid color: either a hex string or a

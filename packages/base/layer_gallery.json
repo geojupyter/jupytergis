@@ -764,7 +764,7 @@
       "layerType": "RasterLayer",
       "sourceType": "RasterSource",
       "sourceParameters": {
-        "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.png",
         "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)",
         "maxZoom": 18,
         "minZoom": 0,
@@ -779,13 +779,27 @@
       "layerType": "VectorTileLayer",
       "sourceType": "VectorTileSource",
       "sourceParameters": {
-        "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
+        "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
         "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)",
         "maxZoom": 18,
         "minZoom": 0,
         "urlParameters": {}
       },
-      "layerParameters": { "opacity": 1, "symbologyState": {} },
+      "layerParameters": {
+        "opacity": 1,
+        "color": {
+          "fill-color": ["coalesce", ["get", "color"], [0, 0, 0, 0]],
+          "circle-fill-color": ["coalesce", ["get", "color"], [0, 0, 0, 0]],
+          "stroke-color": ["coalesce", ["get", "color"], [0, 0, 0, 0]],
+          "circle-stroke-color": ["coalesce", ["get", "color"], [0, 0, 0, 0]]
+        },
+        "symbologyState": {
+          "renderType": "Canonical",
+          "value": "color",
+          "fallbackColor": [0, 0, 0, 0],
+          "strokeFollowsFill": true
+        }
+      },
       "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)"
     }
   },

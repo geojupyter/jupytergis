@@ -18,6 +18,7 @@ from .interfaces.project.sources.imageSource import IImageSource  # noqa
 from .interfaces.project.sources.geoTiffSource import IGeoTiffSource  # noqa
 from .interfaces.project.sources.rasterDemSource import IRasterDemSource  # noqa
 from .interfaces.project.sources.geoParquetSource import IGeoParquetSource  # noqa
+from .interfaces.project.sources.wmsTileSource import IWmsTileSource  # noqa
 
 from .interfaces.processing.buffer import IBuffer  # noqa
 

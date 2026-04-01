@@ -6,8 +6,8 @@ import {
   DEFAULT_COLOR,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
+import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
@@ -31,7 +31,7 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     joinStyle: 'round',
     strokeColor: '#3399CC',
     capStyle: 'round',
-    strokeWidth: '1.25',
+    strokeWidth: String(DEFAULT_STROKE_WIDTH),
     radius: 5,
   });
   const styleRef = useLatest(style);

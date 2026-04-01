@@ -4,6 +4,7 @@ import {
   IVectorLayer,
   IWebGlLayer,
 } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
 
 import { ColorRampName, findExprNode } from './colorRampUtils';
@@ -177,6 +178,7 @@ export namespace VectorUtils {
           const pairKey = `${interpolate[i]}-${interpolate[i + 1]}`;
           if (!seenPairs.has(pairKey)) {
             valueColorPairs.push({
+              id: UUID.uuid4(),
               stop: interpolate[i] as number,
               output: interpolate[i + 1] as IStopRow['output'],
             });
@@ -192,6 +194,7 @@ export namespace VectorUtils {
             const pairKey = `${condition[2]}-${caseExpr[i + 1]}`;
             if (!seenPairs.has(pairKey)) {
               valueColorPairs.push({
+                id: UUID.uuid4(),
                 stop: condition[2] as IStopRow['stop'],
                 output: caseExpr[i + 1] as IStopRow['output'],
               });
@@ -230,6 +233,7 @@ export namespace VectorUtils {
 
     for (let i = COLOR_EXPR_STOPS_START; i < circleRadius.length; i += 2) {
       const obj: IStopRow = {
+        id: UUID.uuid4(),
         stop: circleRadius[i],
         output: circleRadius[i + 1],
       };
@@ -263,7 +267,11 @@ export namespace Utils {
     for (let i = 0; i < nClasses; i++) {
       const colorIndex =
         nClasses === 1 ? 0 : Math.round((i / (nClasses - 1)) * (nShades - 1));
-      valueColorPairs.push({ stop: stops[i], output: colorMap[colorIndex] });
+      valueColorPairs.push({
+        id: UUID.uuid4(),
+        stop: stops[i],
+        output: colorMap[colorIndex],
+      });
     }
 
     return valueColorPairs;

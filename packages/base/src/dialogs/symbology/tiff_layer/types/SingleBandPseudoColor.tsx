@@ -1,6 +1,7 @@
 import { IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
+import { UUID } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
@@ -131,6 +132,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
+            id: UUID.uuid4(),
             stop: scaleValue(Number(color[i]), isQuantile),
             output: color[i + 1] as IStopRow['output'],
           };
@@ -153,6 +155,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
               : color[i],
           );
           const obj: IStopRow = {
+            id: UUID.uuid4(),
             stop: scaleValue(stopVal, isQuantile),
             output: color[i + 1] as IStopRow['output'],
           };
@@ -284,6 +287,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const addStopRow = () => {
     setStopRows([
       {
+        id: UUID.uuid4(),
         stop: 0,
         output: [0, 0, 0, 1],
       },
@@ -450,7 +454,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
-            key={`${index}-${stop.output}`}
+            key={stop.id}
             index={index}
             dataValue={stop.stop}
             symbologyValue={stop.output}

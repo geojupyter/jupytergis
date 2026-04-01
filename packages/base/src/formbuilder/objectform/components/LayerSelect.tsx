@@ -1,13 +1,11 @@
-import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
+import { IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/utils';
 import React from 'react';
 
 import { extractLayerOverrideIndex } from '@/src/tools';
+import type { IJupyterGISFormContext } from '@/src/types';
 
-interface ILayerSelectFormContext {
-  model?: IJupyterGISModel;
-  formData?: IStorySegmentLayer;
-}
+type StorySegmentFormContext = IJupyterGISFormContext<IStorySegmentLayer>;
 
 /**
  * Simple select populated with layers (valid types only).
@@ -15,7 +13,7 @@ interface ILayerSelectFormContext {
  */
 export function LayerSelect(props: FieldProps) {
   const { idSchema, formContext, formData, onChange } = props;
-  const context = formContext as ILayerSelectFormContext | undefined;
+  const context = formContext as StorySegmentFormContext | undefined;
   const model = context?.model;
   const fullFormData = context?.formData ?? (formData as IStorySegmentLayer);
 
