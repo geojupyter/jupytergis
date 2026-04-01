@@ -1,4 +1,10 @@
-import React, { useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { Combobox } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
@@ -11,6 +17,7 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/stacBrowser/types/types';
+import { debounce } from '@/src/tools';
 import SingleDatePicker from '../../../shared/components/SingleDatePicker';
 
 interface IQueryableComboProps {
@@ -29,6 +36,59 @@ export function QueryableComboBox({
   selectedQueryables,
   updateSelectedQueryables,
 }: IQueryableComboProps) {
+  const [draftValues, setDraftValues] = useState<
+    Record<string, string | number | undefined>
+  >({});
+  const selectedQueryablesRef = useRef(selectedQueryables);
+  const debouncedCommitByKeyRef = useRef<Record<string, CallableFunction>>({});
+
+  useEffect(() => {
+    selectedQueryablesRef.current = selectedQueryables;
+  }, [selectedQueryables]);
+
+  const normalizeInputValue = useCallback(
+    (schema: IStacQueryableSchema, value: string | number): string | number => {
+      let valueToStore: string | number = value;
+      if (
+        schema.type === 'string' &&
+        schema.format === 'date-time' &&
+        typeof value === 'string'
+      ) {
+        try {
+          const localDate = new Date(value);
+          valueToStore = localDate.toISOString();
+        } catch {
+          valueToStore = value;
+        }
+      }
+      return valueToStore;
+    },
+    [],
+  );
+
+  const scheduleQueryableCommit = useCallback(
+    (key: string, value: string | number) => {
+      if (!debouncedCommitByKeyRef.current[key]) {
+        debouncedCommitByKeyRef.current[key] = debounce(
+          (nextValue: string | number) => {
+            const latestFilter = selectedQueryablesRef.current[key];
+            if (!latestFilter) {
+              return;
+            }
+            updateSelectedQueryables(key, {
+              ...latestFilter,
+              inputValue: nextValue,
+            });
+          },
+          500,
+        );
+      }
+
+      debouncedCommitByKeyRef.current[key](value);
+    },
+    [updateSelectedQueryables],
+  );
+
   // Derive selected items from selectedQueryables
   const selectedItems = useMemo(() => {
     return queryables.filter(([key]) => key in selectedQueryables);
@@ -39,6 +99,11 @@ export function QueryableComboBox({
 
     if (isCurrentlySelected) {
       // Remove if already selected - pass null to explicitly remove
+      delete debouncedCommitByKeyRef.current[key];
+      setDraftValues(prev => {
+        const { [key]: _removed, ...rest } = prev;
+        return rest;
+      });
       updateSelectedQueryables(key, null);
     } else {
       // Add if not selected - initialize with default filter
@@ -252,28 +317,20 @@ export function QueryableComboBox({
             operator: operators[0]?.value || '=',
             inputValue: undefined,
           };
+          const inputValue =
+            draftValues[key] !== undefined
+              ? draftValues[key]
+              : currentFilter.inputValue;
 
           const handleInputChange = (value: string | number) => {
-            // For datetime values, convert local time to UTC ISO string
-            let valueToStore: string | number = value;
-            if (
-              val.type === 'string' &&
-              val.format === 'date-time' &&
-              typeof value === 'string'
-            ) {
-              try {
-                // Parse local time and convert to UTC ISO string
-                const localDate = new Date(value);
-                valueToStore = localDate.toISOString();
-              } catch {
-                valueToStore = value;
-              }
-            }
-
-            updateSelectedQueryables(key, {
-              ...currentFilter,
-              inputValue: valueToStore,
-            });
+            const normalizedValue = normalizeInputValue(val, value);
+            setDraftValues(prev => ({
+              ...prev,
+              [key]: normalizedValue,
+            }));
+            // Uses a stable per-field debounced function
+            // inline debounce would recreate each render and reset its timer
+            scheduleQueryableCommit(key, normalizedValue);
           };
 
           const handleOperatorChange = (operator: Operator) => {
@@ -292,7 +349,7 @@ export function QueryableComboBox({
               currentFilter={currentFilter}
               inputComponent={getInputBasedOnType(
                 val,
-                currentFilter.inputValue,
+                inputValue,
                 handleInputChange,
               )}
               onOperatorChange={handleOperatorChange}
