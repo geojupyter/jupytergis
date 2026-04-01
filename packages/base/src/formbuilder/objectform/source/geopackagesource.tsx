@@ -1,4 +1,5 @@
 import { IDict } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -8,7 +9,6 @@ import { FileSelectorWidget } from '../fileselectorwidget';
 import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ISourceFormProps } from './sourceform';
-import { showErrorMessage } from '@jupyterlab/apputils';
 
 export function GeoPackagePropertiesForm(
   props: ISourceFormProps,

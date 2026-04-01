@@ -19,8 +19,8 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import LAYER_GALLERY from '@/layer_gallery.json';
-import { getGdal } from './gdal';
 import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -730,7 +730,7 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageVectorSource': {
-        let projection = model.sharedModel.options.projection;
+        const projection = model.sharedModel.options.projection;
         if (!projection) {
           throw new Error(`Projection is not specified for ${filepath}`);
         }
@@ -867,7 +867,7 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageVectorSource': {
-        let projection = model.sharedModel.options.projection;
+        const projection = model.sharedModel.options.projection;
         if (!projection) {
           throw new Error(`Projection is not specified for ${filepath}`);
         }
