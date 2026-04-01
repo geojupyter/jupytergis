@@ -37,6 +37,7 @@ import {
   IWmsTileSource,
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
+  IViewState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -58,7 +59,7 @@ import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { ExpressionValue } from 'ol/expr/expression';
-import { getCenter } from 'ol/extent';
+import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import {
@@ -1042,7 +1043,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
 
-    this._trackSourceExtent(id, newSource);
+    this._trackSourceExtZoom(id, newSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -1329,7 +1330,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
 
-      this._trackLayerExtent(id, newMapLayer);
+      this._trackLayerExtZoom(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1890,11 +1891,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const view = this._Map.getView();
-    const size = this._Map.getSize();
-
-    if (!size) {
-      return null;
-    }
+    const size = this._Map.getSize() ?? getSize(extent);
 
     const resolution = view.getResolutionForExtent(extent, size);
     const zoom = view.getZoomForResolution(resolution);
@@ -1903,9 +1900,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
-   * Track layer extent in model's view state
+   * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerExtent(layerId: string, olLayer: Layer): void {
+  private _trackLayerExtZoom(layerId: string, olLayer: Layer): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
@@ -1922,11 +1919,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
 
-      this._model.updateExtent(layerId, extent, zoom);
+      const view: IViewState[string] = { extent, zoom };
+      this._model.updateExtZoom(layerId, view);
     }
   }
 
-  private _trackSourceExtent(sourceId: string, olSource: Source): void {
+  /**
+   * Track source's extent and zoom in model's view state
+   */
+  private _trackSourceExtZoom(sourceId: string, olSource: Source): void {
     const extent = this._computeExtent(undefined, olSource);
 
     if (extent) {
@@ -1937,7 +1938,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
 
-      this._model.updateExtent(sourceId, extent, zoom, projection);
+      const view: IViewState[string] = {
+        extent,
+        zoom,
+        ...(projection && { projection }),
+      };
+      this._model.updateExtZoom(sourceId, view);
     }
   }
 
@@ -1997,24 +2003,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (mapLayer) {
       this._Map.removeLayer(mapLayer);
     }
-  }
-
-  getCurrentViewState(): { extent: number[]; zoom: number } | null {
-    if (!this._Map) {
-      return null;
-    }
-
-    const view = this._Map.getView();
-    const size = this._Map.getSize();
-
-    if (!size) {
-      return null;
-    }
-
-    const extent = view.calculateExtent(size);
-    const zoom = view.getZoom() ?? 0;
-
-    return { extent, zoom };
   }
 
   private _onClientSharedStateChanged = (
@@ -2355,7 +2343,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
 
         if (mapLayer) {
-          this._trackLayerExtent(id, mapLayer);
+          this._trackLayerExtZoom(id, mapLayer);
         }
       } else {
         this.updateLayers(layerTree);

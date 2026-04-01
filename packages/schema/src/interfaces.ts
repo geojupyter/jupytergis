@@ -279,12 +279,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     groupName?: string,
     position?: number,
   ): void;
-  updateExtent(
-    id: string,
-    extent: number[],
-    zoom: number,
-    projection?: string,
-  ): void;
+  updateExtZoom(id: string, view: IViewState[string]): void;
   removeLayer(id: string): void;
   removeSource(id: string): void;
   getOptions(): IJGISOptions;
@@ -337,10 +332,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getCurrentSegmentIndex(): number;
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
-  addStorySegment(vieState: {
-    extent: number[];
-    zoom: number;
-  }): IStorySegmentRef | null;
+  addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null;
   createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
   segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;

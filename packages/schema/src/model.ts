@@ -510,16 +510,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
-  updateExtent(
-    id: string,
-    extent: number[],
-    zoom: number,
-    projection?: string,
-  ): void {
+  /**
+   * Update layer's extent and zoom in model's view state
+   */
+  updateExtZoom(id: string, view: IViewState[string]): void {
     this._viewState[id] = {
-      extent,
-      zoom,
-      projection,
+      ...this._viewState[id],
+      ...view,
     };
   }
 
@@ -685,11 +682,9 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(viewState: {
-    extent: number[];
-    zoom: number;
-  }): IStorySegmentRef | null {
-    const { extent, zoom } = viewState;
+  addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null {
+    const extent = viewState?.extent;
+    const zoom = viewState?.zoom;
     const { storyId } = this.getSelectedStory();
 
     if (!zoom || !extent) {
