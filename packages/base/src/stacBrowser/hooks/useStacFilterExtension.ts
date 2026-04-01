@@ -31,6 +31,8 @@ interface IStacFilterExtensionStateDb {
 
 const STAC_FILTER_EXTENSION_STATE_KEY =
   'jupytergis:stac-filter-extension-state';
+const STAC_COLLECTIONS_CACHE_STATE_KEY = 'jupytergis:stac-collections-cache';
+const STAC_QUERYABLES_CACHE_STATE_KEY = 'jupytergis:stac-queryables-cache';
 
 interface IUseStacFilterExtensionProps {
   model?: IJupyterGISModel;
@@ -71,157 +73,23 @@ export function useStacFilterExtension({
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+
   const hasLoadedInitialFilterStateRef = useRef(false);
+  const hasLoadedInitialQueryablesRef = useRef(false);
   /** Last auto-search request; skips duplicate consecutive fetches (React churn). */
   const lastAutoQueryKeyRef = useRef<string | null>(null);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  // On mount, load saved filter state from StateDB (if present)
-  useEffect(() => {
-    async function loadFilterExtensionStateFromDb() {
-      hasLoadedInitialFilterStateRef.current = false;
-      try {
-        const savedFilterState = (await stateDb?.fetch(
-          STAC_FILTER_EXTENSION_STATE_KEY,
-        )) as IStacFilterExtensionStateDb | undefined;
+  const getCollectionsCacheKey = useCallback(
+    () => `${STAC_COLLECTIONS_CACHE_STATE_KEY}:${baseUrl}`,
+    [baseUrl],
+  );
 
-        if (savedFilterState) {
-          if (savedFilterState.selectedCollection) {
-            setSelectedCollection(savedFilterState.selectedCollection);
-          }
-          if (savedFilterState.queryableFilters) {
-            const restoredFilters: Record<string, IQueryableFilter> = {};
-            Object.entries(savedFilterState.queryableFilters).forEach(
-              ([key, filter]) => {
-                restoredFilters[key] = {
-                  operator: filter.operator,
-                  inputValue:
-                    filter.inputValue === null ? undefined : filter.inputValue,
-                };
-              },
-            );
-            setSelectedQueryables(restoredFilters);
-          }
-          if (savedFilterState.filterOperator) {
-            setFilterOperator(savedFilterState.filterOperator);
-          }
-        }
-      } finally {
-        hasLoadedInitialFilterStateRef.current = true;
-      }
-    }
-
-    loadFilterExtensionStateFromDb();
-  }, [stateDb]);
-
-  // Save filter state to StateDB on change
-  useEffect(() => {
-    async function saveFilterExtensionStateToDb() {
-      // Clean queryableFilters to ensure JSON serialization works
-      const cleanedQueryableFilters: Record<
-        string,
-        { operator: Operator; inputValue: string | number | null }
-      > = {};
-      Object.entries(selectedQueryables).forEach(([key, filter]) => {
-        cleanedQueryableFilters[key] = {
-          operator: filter.operator,
-          inputValue: filter.inputValue ?? null,
-        };
-      });
-
-      await stateDb?.save(STAC_FILTER_EXTENSION_STATE_KEY, {
-        selectedCollection: selectedCollection || undefined,
-        queryableFilters:
-          Object.keys(cleanedQueryableFilters).length > 0
-            ? cleanedQueryableFilters
-            : undefined,
-        filterOperator,
-      });
-    }
-
-    saveFilterExtensionStateToDb();
-  }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
-
-  // Reset all state when URL changes
-  useEffect(() => {
-    lastAutoQueryKeyRef.current = null;
-    setQueryableFields(undefined);
-    setCollections([]);
-    setSelectedCollection('');
-    setSelectedQueryables({});
-    setFilterOperator('and');
-  }, [baseUrl]);
-
-  // for collections
-  useEffect(() => {
-    if (!model) {
-      return;
-    }
-
-    const fetchCollections = async () => {
-      if (!baseUrl) {
-        return;
-      }
-
-      const collectionsUrl = baseUrl.endsWith('/')
-        ? `${baseUrl}collections`
-        : `${baseUrl}/collections`;
-      const data: IStacCollectionsReturn = await fetchWithProxies(
-        collectionsUrl,
-        model,
-        async response => await response.json(),
-        undefined,
-      );
-
-      const collections: FilteredCollection[] = data.collections
-        .map((collection: IStacCollection) => ({
-          title: collection.title ?? collection.id,
-          id: collection.id,
-        }))
-        .sort((a: FilteredCollection, b: FilteredCollection) => {
-          const titleA = a.title?.toLowerCase() ?? '';
-          const titleB = b.title?.toLowerCase() ?? '';
-          return titleA.localeCompare(titleB);
-        });
-
-      setCollections(collections);
-      // Set first collection as default if one isn't loaded
-      if (collections.length > 0 && !(selectedCollection === '')) {
-        setSelectedCollection(collections[0].id);
-      }
-    };
-
-    fetchCollections();
-  }, [model, baseUrl]);
-
-  // for queryables
-  // ! TODO - support multiple collection selections
-  useEffect(() => {
-    if (!model) {
-      return;
-    }
-
-    const fetchQueryables = async () => {
-      if (!baseUrl) {
-        return;
-      }
-
-      const queryablesUrl = baseUrl.endsWith('/')
-        ? `${baseUrl}queryables`
-        : `${baseUrl}/queryables`;
-      const data = await fetchWithProxies(
-        queryablesUrl,
-        model,
-        async response => await response.json(),
-        undefined,
-      );
-
-      setQueryableFields(Object.entries(data.properties));
-    };
-
-    fetchQueryables();
-  }, [model, baseUrl]);
+  const getQueryablesCacheKey = useCallback(
+    () => `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}:${selectedCollection}`,
+    [baseUrl, selectedCollection],
+  );
 
   const updateSelectedQueryables = useCallback(
     (qKey: string, filter: IQueryableFilter | null) => {
@@ -240,6 +108,22 @@ export function useStacFilterExtension({
       });
     },
     [],
+  );
+
+  const handleSelectedCollectionChange = useCallback(
+    (nextSelectedCollection: string) => {
+      if (
+        selectedCollection !== '' &&
+        nextSelectedCollection !== '' &&
+        selectedCollection !== nextSelectedCollection
+      ) {
+        setSelectedQueryables({});
+        setQueryableFields(undefined);
+        setFilterOperator('and');
+      }
+      setSelectedCollection(nextSelectedCollection);
+    },
+    [selectedCollection],
   );
 
   const buildQuery = useCallback((): IStacFilterExtensionQueryBody => {
@@ -329,9 +213,225 @@ export function useStacFilterExtension({
     await executeQuery(queryBody, searchUrl);
   }, [model, buildQuery, baseUrl]);
 
+  // On mount, load saved filter state from StateDB (if present)
+  useEffect(() => {
+    async function loadFilterExtensionStateFromDb() {
+      hasLoadedInitialFilterStateRef.current = false;
+      try {
+        const savedFilterState = (await stateDb?.fetch(
+          STAC_FILTER_EXTENSION_STATE_KEY,
+        )) as IStacFilterExtensionStateDb | undefined;
+
+        if (savedFilterState) {
+          if (savedFilterState.selectedCollection) {
+            handleSelectedCollectionChange(savedFilterState.selectedCollection);
+          }
+          if (savedFilterState.queryableFilters) {
+            const restoredFilters: Record<string, IQueryableFilter> = {};
+            Object.entries(savedFilterState.queryableFilters).forEach(
+              ([key, filter]) => {
+                restoredFilters[key] = {
+                  operator: filter.operator,
+                  inputValue:
+                    filter.inputValue === null ? undefined : filter.inputValue,
+                };
+              },
+            );
+            setSelectedQueryables(restoredFilters);
+          }
+          if (savedFilterState.filterOperator) {
+            setFilterOperator(savedFilterState.filterOperator);
+          }
+        }
+      } finally {
+        hasLoadedInitialFilterStateRef.current = true;
+      }
+    }
+
+    loadFilterExtensionStateFromDb();
+  }, [stateDb]);
+
+  // Save filter state to StateDB on change
+  useEffect(() => {
+    async function saveFilterExtensionStateToDb() {
+      // Clean queryableFilters to ensure JSON serialization works
+      const cleanedQueryableFilters: Record<
+        string,
+        { operator: Operator; inputValue: string | number | null }
+      > = {};
+      Object.entries(selectedQueryables).forEach(([key, filter]) => {
+        cleanedQueryableFilters[key] = {
+          operator: filter.operator,
+          inputValue: filter.inputValue ?? null,
+        };
+      });
+
+      await stateDb?.save(STAC_FILTER_EXTENSION_STATE_KEY, {
+        selectedCollection: selectedCollection || undefined,
+        queryableFilters:
+          Object.keys(cleanedQueryableFilters).length > 0
+            ? cleanedQueryableFilters
+            : undefined,
+        filterOperator,
+      });
+    }
+
+    saveFilterExtensionStateToDb();
+  }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
+
+  // Reset all state when URL changes
+  useEffect(() => {
+    lastAutoQueryKeyRef.current = null;
+    hasLoadedInitialQueryablesRef.current = false;
+    setQueryableFields(undefined);
+    setCollections([]);
+    setSelectedCollection('');
+    setSelectedQueryables({});
+    setFilterOperator('and');
+  }, [baseUrl]);
+
+  // for collections
+  useEffect(() => {
+    if (!model) {
+      return;
+    }
+
+    const fetchCollections = async () => {
+      if (!baseUrl) {
+        return;
+      }
+
+      const cachedCollections = (await stateDb?.fetch(
+        getCollectionsCacheKey(),
+      )) as FilteredCollection[] | undefined;
+
+      if (cachedCollections && cachedCollections.length > 0) {
+        setCollections(cachedCollections);
+        if (
+          hasLoadedInitialQueryablesRef.current &&
+          selectedCollection === ''
+        ) {
+          handleSelectedCollectionChange(cachedCollections[0].id);
+        }
+        return;
+      }
+
+      const collectionsUrl = baseUrl.endsWith('/')
+        ? `${baseUrl}collections`
+        : `${baseUrl}/collections`;
+
+      const allCollections: IStacCollection[] = [];
+      let nextUrl: string | null = collectionsUrl;
+
+      while (nextUrl) {
+        const page: IStacCollectionsReturn | null = await fetchWithProxies(
+          nextUrl,
+          model,
+          async response => await response.json(),
+          undefined,
+        );
+
+        if (!page) {
+          break;
+        }
+
+        allCollections.push(...page.collections);
+
+        const currentPageUrl: string = nextUrl;
+        const nextLinkHref: string | undefined = page.links.find(
+          link => link.rel === 'next',
+        )?.href;
+
+        nextUrl = nextLinkHref
+          ? new URL(nextLinkHref, currentPageUrl).toString()
+          : null;
+      }
+
+      const collections: FilteredCollection[] = allCollections
+        .map((collection: IStacCollection) => ({
+          title: collection.title ?? collection.id,
+          id: collection.id,
+        }))
+        .sort((a: FilteredCollection, b: FilteredCollection) => {
+          const titleA = a.title?.toLowerCase() ?? '';
+          const titleB = b.title?.toLowerCase() ?? '';
+          return titleA.localeCompare(titleB);
+        });
+
+      setCollections(collections);
+      await stateDb?.save(getCollectionsCacheKey(), collections);
+      // Set first collection as default if one isn't loaded
+      if (
+        hasLoadedInitialQueryablesRef.current &&
+        collections.length > 0 &&
+        !(selectedCollection === '')
+      ) {
+        handleSelectedCollectionChange(collections[0].id);
+      }
+    };
+
+    fetchCollections();
+  }, [
+    model,
+    baseUrl,
+    stateDb,
+    selectedCollection,
+    getCollectionsCacheKey,
+    handleSelectedCollectionChange,
+  ]);
+
+  // for queryables
+  // ! TODO - support multiple collection selections
+  useEffect(() => {
+    if (!model) {
+      return;
+    }
+
+    const fetchQueryables = async () => {
+      if (!baseUrl || selectedCollection === '') {
+        return;
+      }
+
+      hasLoadedInitialQueryablesRef.current = false;
+      const cachedQueryables = (await stateDb?.fetch(
+        getQueryablesCacheKey(),
+      )) as Record<string, unknown> | undefined;
+
+      if (cachedQueryables !== undefined) {
+        setQueryableFields(Object.entries(cachedQueryables) as IStacQueryables);
+        hasLoadedInitialQueryablesRef.current = true;
+        return;
+      }
+
+      const queryablesUrl = baseUrl.endsWith('/')
+        ? `${baseUrl}collections/${encodeURIComponent(selectedCollection)}/queryables`
+        : `${baseUrl}/collections/${encodeURIComponent(selectedCollection)}/queryables`;
+
+      const data = await fetchWithProxies(
+        queryablesUrl,
+        model,
+        async response => await response.json(),
+        undefined,
+      );
+
+      const queryableProperties = data.properties as Record<string, unknown>;
+      setQueryableFields(
+        Object.entries(queryableProperties) as IStacQueryables,
+      );
+
+      await stateDb?.save(getQueryablesCacheKey(), queryableProperties as any);
+      hasLoadedInitialQueryablesRef.current = true;
+    };
+
+    fetchQueryables();
+  }, [model, baseUrl, selectedCollection, stateDb, getQueryablesCacheKey]);
+
   // Handle search when filters change
   useEffect(() => {
-    const hasLoadedInitialFilterState = hasLoadedInitialFilterStateRef.current;
+    const hasLoadedInitialFilterState =
+      hasLoadedInitialFilterStateRef.current &&
+      hasLoadedInitialQueryablesRef.current;
+
     if (
       model &&
       !isFirstRender &&
@@ -358,6 +458,7 @@ export function useStacFilterExtension({
     selectedCollection,
     selectedQueryables,
     filterOperator,
+    queryableFields,
     startTime,
     endTime,
     currentBBox,
@@ -370,7 +471,7 @@ export function useStacFilterExtension({
     queryableFields,
     collections,
     selectedCollection,
-    setSelectedCollection,
+    setSelectedCollection: handleSelectedCollectionChange,
     handleSubmit,
     startTime,
     endTime,
