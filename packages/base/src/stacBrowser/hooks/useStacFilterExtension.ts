@@ -87,8 +87,7 @@ export function useStacFilterExtension({
   );
 
   const getQueryablesCacheKey = useCallback(
-    () =>
-      `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}:${selectedCollection}`,
+    () => `${STAC_QUERYABLES_CACHE_STATE_KEY}:${baseUrl}:${selectedCollection}`,
     [baseUrl, selectedCollection],
   );
 

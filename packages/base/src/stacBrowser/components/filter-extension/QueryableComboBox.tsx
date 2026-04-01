@@ -101,7 +101,7 @@ export function QueryableComboBox({
       // Remove if already selected - pass null to explicitly remove
       delete debouncedCommitByKeyRef.current[key];
       setDraftValues(prev => {
-        const { [key]: _removed, ...rest } = prev;
+        const { [key]: _, ...rest } = prev;
         return rest;
       });
       updateSelectedQueryables(key, null);
