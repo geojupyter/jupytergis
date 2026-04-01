@@ -52,6 +52,7 @@
       "type": "string",
       "enum": [
         "RasterSource",
+        "WmsTileSource",
         "VectorTileSource",
         "GeoJSONSource",
         "RasterDemSource",

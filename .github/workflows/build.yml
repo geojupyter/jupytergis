@@ -28,7 +28,6 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             jupyterlab=4
-            yarn=3
             pillow
             mercantile
             xyzservices
@@ -44,7 +43,8 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        shell: bash -l {0}
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
 
       - name: Setup yarn cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
@@ -59,8 +59,8 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          yarn install
-          yarn dev
+          jlpm install
+          jlpm dev
           jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
           jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
 
@@ -69,7 +69,7 @@ jobs:
         run: |
           set -eux
           pip install build
-          yarn build:packages
+          jlpm build:packages
 
       - name: Upload extension packages
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
@@ -123,7 +123,6 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             jupyterlab=4
-            yarn=3
             qgis
 
       - name: Checkout
@@ -158,7 +157,6 @@ jobs:
           create-args: >-
             pip
             jupyterlab=4
-            yarn=3
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -241,7 +239,7 @@ jobs:
         working-directory: ui-tests
         run: |
           jlpm install
-          yarn playwright install chromium
+          jlpm playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
@@ -275,7 +273,6 @@ jobs:
           create-args: >-
             python=3.12
             jupyterlab=4
-            yarn=3
 
       - name: Lint
         shell: bash -l {0}

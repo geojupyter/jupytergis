@@ -526,6 +526,34 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewGeoJSONDialog),
   });
 
+  commands.addCommand(CommandIDs.openNewWmsDialog, {
+    label: trans.__('WMS Layer'),
+    caption:
+      'Open a dialog to create a new WMS layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create WMS Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom WMS Layer' },
+      sourceType: 'WmsTileSource',
+      layerType: 'WebGlLayer',
+    }),
+    ...icons.get(CommandIDs.openNewWmsDialog),
+  });
+
   //Add processing commands
   addProcessingCommands(
     app,

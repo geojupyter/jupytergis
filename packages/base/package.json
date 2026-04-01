@@ -37,6 +37,7 @@
     "clean:all": "jlpm run clean:lib",
     "watch": "tspc -w"
   },
+  "packageManager": "yarn@3.5.0",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",

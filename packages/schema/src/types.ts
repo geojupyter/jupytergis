@@ -13,6 +13,7 @@ export * from './_interface/project/sources/vectorTileSource';
 export * from './_interface/project/sources/videoSource';
 export * from './_interface/project/sources/geoParquetSource';
 export * from './_interface/project/sources/markerSource';
+export * from './_interface/project/sources/wmsTileSource';
 
 // Layers
 export * from './_interface/project/layers/heatmapLayer';
