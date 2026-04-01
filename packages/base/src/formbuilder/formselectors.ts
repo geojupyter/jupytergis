@@ -17,7 +17,7 @@ import {
   TileSourcePropertiesForm,
   WmsTileSourceForm,
   SourcePropertiesForm,
-  GeoPackagePropertiesForm
+  GeoPackagePropertiesForm,
 } from './objectform/source';
 import type { ISourceFormProps } from './objectform/source/sourceform';
 

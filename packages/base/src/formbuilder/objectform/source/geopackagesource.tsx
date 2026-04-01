@@ -58,8 +58,7 @@ export function GeoPackagePropertiesForm(
         valid = false;
         error = 'Path is required';
       } else {
-        const isUrl =
-          path.startsWith('http://') || path.startsWith('https://');
+        const isUrl = path.startsWith('http://') || path.startsWith('https://');
         if (!isUrl && !path.toLowerCase().endsWith('.gpkg')) {
           valid = false;
           error = `"${path}" does not appear to be a GeoPackage file (.gpkg).`;
@@ -92,7 +91,13 @@ export function GeoPackagePropertiesForm(
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
 
-    processBaseSchema(dataCopy, schema, builtUiSchema, formContext, removeFormEntry);
+    processBaseSchema(
+      dataCopy,
+      schema,
+      builtUiSchema,
+      formContext,
+      removeFormEntry,
+    );
 
     const docManager = formSchemaRegistry?.getDocManager();
 
