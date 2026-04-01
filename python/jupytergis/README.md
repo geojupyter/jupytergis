@@ -1,4 +1,5 @@
 <p align="center"><img width="100" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
+<p align="center"><sub>Logo by <a href="https://github.com/IsabelParedes">Isabel Paredes</a></sub></p>
 <h1 align="center">JupyterGIS - A JupyterLab extension for collaborative GIS</h1>
 
 [![lite-badge]][lite] [![docs-badge]][docs] [![jupytergis-badge]][marketplace]

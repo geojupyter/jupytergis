@@ -19,6 +19,7 @@ export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
 // Layer and source
 export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
+export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';
 export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
