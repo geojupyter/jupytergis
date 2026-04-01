@@ -732,7 +732,7 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewShapefileDialog),
   });
   commands.addCommand(CommandIDs.newGeoPackageVectorEntry, {
-    label: trans.__('New GeoPackage Layer'),
+    label: trans.__('GeoPackage'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -752,7 +752,7 @@ export function addCommands(
     ...icons.get(CommandIDs.newGeoPackageVectorEntry),
   });
   commands.addCommand(CommandIDs.newGeoPackageRasterEntry, {
-    label: trans.__('New GeoPackage Layer'),
+    label: trans.__('GeoPackage'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
