@@ -732,9 +732,7 @@ export const loadFile = async (fileInfo: {
       case 'GeoPackageVectorSource': {
         let projection = model.sharedModel.options.projection;
         if (!projection) {
-          //TODO: this error should be uncommented when PR #732 is merged
-          //throw new Error(`Projection is not specified for ${filepath}`);
-          projection = 'EPSG:3857';
+          throw new Error(`Projection is not specified for ${filepath}`);
         }
 
         const fileBlob = await fetchWithProxies(
@@ -871,9 +869,7 @@ export const loadFile = async (fileInfo: {
       case 'GeoPackageVectorSource': {
         let projection = model.sharedModel.options.projection;
         if (!projection) {
-          //TODO: this error should be uncommented when PR #732 is merged
-          //throw new Error(`Projection is not specified for ${filepath}`);
-          projection = 'EPSG:3857';
+          throw new Error(`Projection is not specified for ${filepath}`);
         }
         const blob = await base64ToBlob(file.content, getMimeType(filepath));
         return loadGeoPackageVectorFile(blob, projection, filepath + 'Vector');
