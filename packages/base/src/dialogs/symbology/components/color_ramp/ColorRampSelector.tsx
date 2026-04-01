@@ -75,22 +75,20 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       return;
     }
     canvas.style.visibility = 'hidden';
-    const ctx = canvas.getContext('2d');
 
-    if (!ctx) {
+    const ramp = colorMaps.find(c => c.name === rampName);
+    if (!ramp) {
       return;
     }
 
-    const ramp = colorMaps.filter(c => c.name === rampName)[0];
-    let colors = ramp.colors;
-    if (reverse) {
-      colors = [...colors].reverse();
-    }
+    const displayRamp: IColorMap = reverse
+      ? { ...ramp, colors: [...ramp.colors].reverse() }
+      : ramp;
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
-    drawColorRamp(ctx, colors, ramp.type, canvasWidth, canvasHeight);
+    drawColorRamp(canvas, displayRamp);
 
     canvas.style.visibility = 'initial';
   };

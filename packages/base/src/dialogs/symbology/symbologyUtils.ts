@@ -8,10 +8,10 @@ import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
 
 import {
-  ColorRampName,
   findExprNode,
   D3SchemeName,
   D3_CATEGORICAL_SCHEMES,
+  IColorMap,
 } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
@@ -252,16 +252,16 @@ export namespace VectorUtils {
 export namespace Utils {
   export const getValueColorPairs = (
     stops: number[],
-    selectedRamp: ColorRampName,
+    colorRamp: IColorMap,
     nClasses: number,
     reverse = false,
   ) => {
-    const isD3Scheme = selectedRamp in D3_CATEGORICAL_SCHEMES;
+    const isCategorical = colorRamp.type === 'categorical';
 
     let colorMap: any[];
 
-    if (isD3Scheme) {
-      colorMap = [...D3_CATEGORICAL_SCHEMES[selectedRamp as D3SchemeName]];
+    if (isCategorical) {
+      colorMap = [...D3_CATEGORICAL_SCHEMES[colorRamp.name as D3SchemeName]];
 
       if (colorMap.length < nClasses) {
         colorMap = Array.from({ length: nClasses }, (_, i) => {
@@ -274,7 +274,7 @@ export namespace Utils {
       const nShades = Math.max(nClasses, 9);
 
       colorMap = colormap({
-        colormap: selectedRamp,
+        colormap: colorRamp.name,
         nshades: nShades,
         format: 'rgba',
       });
@@ -287,7 +287,7 @@ export namespace Utils {
     const valueColorPairs: IStopRow[] = [];
 
     for (let i = 0; i < nClasses; i++) {
-      const colorIndex = isD3Scheme
+      const colorIndex = isCategorical
         ? i
         : Math.round((i / (nClasses - 1)) * (colorMap.length - 1));
       valueColorPairs.push({

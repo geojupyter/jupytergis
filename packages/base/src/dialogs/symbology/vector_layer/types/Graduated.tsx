@@ -8,6 +8,7 @@ import {
   colorToRgba,
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
+  getColorMapList,
   isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
@@ -365,15 +366,18 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       stops[stops.length - 1] = rangeMax;
     }
 
+    const colorRamp = getColorMapList().find(c => c.name === selectedRamp);
     const stopOutputPairs =
       symbologyTab === 'radius'
         ? stops.map(v => ({ id: UUID.uuid4(), stop: v, output: v }))
-        : Utils.getValueColorPairs(
-            stops,
-            selectedRamp,
-            numberOfShades,
-            reverseRamp,
-          );
+        : colorRamp
+          ? Utils.getValueColorPairs(
+              stops,
+              colorRamp,
+              numberOfShades,
+              reverseRamp,
+            )
+          : [];
 
     if (symbologyTab === 'radius') {
       setRadiusStopRows(stopOutputPairs);

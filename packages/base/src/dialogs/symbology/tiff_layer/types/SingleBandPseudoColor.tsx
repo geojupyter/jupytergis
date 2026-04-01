@@ -26,7 +26,7 @@ import { LoadingOverlay } from '@/src/shared/components/loading';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { GlobalStateDbManager } from '@/src/store';
 import { ClassificationMode } from '@/src/types';
-import { ColorRampName } from '../../colorRampUtils';
+import { ColorRampName, getColorMapList } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
@@ -356,9 +356,14 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     }
     setIsLoading(false);
 
+    const colorRamp = getColorMapList().find(c => c.name === selectedRamp);
+    if (!colorRamp) {
+      return;
+    }
+
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
-      selectedRamp,
+      colorRamp,
       nClasses,
       reverseRamp,
     );

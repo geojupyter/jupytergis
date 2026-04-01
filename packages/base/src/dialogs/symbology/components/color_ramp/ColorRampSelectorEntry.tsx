@@ -40,15 +40,7 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) {
-      return;
-    }
-
-    const { colors, type } = colorMap;
-
-    drawColorRamp(ctx, colors, type, canvasWidth, canvasHeight);
+    drawColorRamp(canvas, colorMap);
   }, [colorMap, index]);
 
   return (

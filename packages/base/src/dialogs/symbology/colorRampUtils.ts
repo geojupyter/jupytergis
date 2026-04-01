@@ -4,6 +4,7 @@ import * as d3Chromatic from 'd3-scale-chromatic';
 import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
+import { objectEntries } from '@/src/tools';
 
 // RgbaColor is an array because OpenLayers and colormap expect arrays directly.
 // RGBA_INDEX bridges that to the named-channel style used by react-colorful and the color picker UI.
@@ -159,9 +160,9 @@ export const getColorMapList = (): IColorMap[] => {
     colorMapList.push({ name, colors: colorRamp, type: 'continuous' });
   });
 
-  Object.entries(D3_CATEGORICAL_SCHEMES).forEach(([name, colors]) => {
+  objectEntries(D3_CATEGORICAL_SCHEMES).forEach(([name, colors]) => {
     colorMapList.push({
-      name: name as ColorRampName,
+      name,
       colors: colors.map(c => c.toString()),
       type: 'categorical',
     });
@@ -231,17 +232,19 @@ export function colorToRgba(color: unknown): RgbaColor {
  * Draw a color ramp to a canvas.
  */
 export const drawColorRamp = (
-  ctx: CanvasRenderingContext2D,
-  colors: string[],
-  type: 'continuous' | 'categorical',
-  width: number,
-  height: number,
+  canvas: HTMLCanvasElement,
+  colorRamp: IColorMap,
 ) => {
+  const ctx = canvas.getContext('2d');
+  const colors = colorRamp.colors;
   if (!ctx || !colors || colors.length === 0) {
     return;
   }
 
-  if (type === 'categorical') {
+  const width = canvas.width;
+  const height = canvas.height;
+
+  if (colorRamp.type === 'categorical') {
     const blockWidth = width / colors.length;
 
     colors.forEach((color, i) => {
