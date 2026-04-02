@@ -1,6 +1,5 @@
 # Add to the layer gallery
 
-
 ## Add a new entry to the config file
 
 First, edit `packages/base/layer_gallery.json` to add a new entry.
@@ -35,7 +34,6 @@ Layers are represented as objects, values of the 2nd-level keys. E.g.
 Follow established conventions in this file, and if it makes sense, start by copying an
 existing entry.
 
-
 ### `xyzservices`
 
 [`xyzservices`](https://github.com/geopandas/xyzservices) is used under the hood for
@@ -45,7 +43,6 @@ layer name match what's in `xyzservices`.
 
 If it's not in `xyzservices` you may need to edit `layer_gallery_generator.py` and
 extend `custom_providers` following the existing examples in that file.
-
 
 ## Add a thumbnail
 
@@ -74,7 +71,6 @@ mogrify -resize 50% /path/to/thumbnail.png
 
 Don't forget to optimize! Read on.
 
-
 ### Manual
 
 You have the option to manually create a thumbnail.
@@ -82,7 +78,6 @@ You have the option to manually create a thumbnail.
 Take a screenshot and crop or otherwise resize it to 256x256 pixels and save as a PNG.
 
 Don't forget to optimize! Read on.
-
 
 ### Optimizing
 
