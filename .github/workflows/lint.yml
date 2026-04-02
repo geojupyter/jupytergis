@@ -51,12 +51,16 @@ jobs:
         run: |
           failed=0
 
-          if [ "${ESLINT_OUTCOME}" != "success" ]; then
+          if [ "${ESLINT_OUTCOME}" == "success" ]; then
+            echo "🎉 ESLint check passed"
+          else
             echo "❌ ESLint check failed"
             failed=1
           fi
 
-          if [ "${PRETTIER_OUTCOME}" != "success" ]; then
+          if [ "${PRETTIER_OUTCOME}" == "success" ]; then
+            echo "🎉 Prettier format check passed"
+          else
             echo "❌ Prettier format check failed"
             failed=1
           fi
