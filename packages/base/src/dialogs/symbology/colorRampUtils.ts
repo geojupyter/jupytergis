@@ -1,8 +1,10 @@
 import colormap from 'colormap';
 import colorScale from 'colormap/colorScale.js';
+import * as d3Chromatic from 'd3-scale-chromatic';
 import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
+import { objectEntries } from '@/src/tools';
 
 // RgbaColor is an array because OpenLayers and colormap expect arrays directly.
 // RGBA_INDEX bridges that to the named-channel style used by react-colorful and the color picker UI.
@@ -55,6 +57,7 @@ export function findExprNode(
 export interface IColorMap {
   name: ColorRampName;
   colors: string[];
+  type: 'continuous' | 'categorical';
 }
 
 const { __license__: _, ...cmocean } = rawCmocean;
@@ -126,7 +129,23 @@ export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
   cubehelix: 16,
 } as const;
 
-export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
+export const D3_CATEGORICAL_SCHEMES = {
+  schemeCategory10: d3Chromatic.schemeCategory10,
+  schemeAccent: d3Chromatic.schemeAccent,
+  schemeDark2: d3Chromatic.schemeDark2,
+  schemeObservable10: d3Chromatic.schemeObservable10,
+  schemePaired: d3Chromatic.schemePaired,
+  schemePastel1: d3Chromatic.schemePastel1,
+  schemePastel2: d3Chromatic.schemePastel2,
+  schemeSet1: d3Chromatic.schemeSet1,
+  schemeSet2: d3Chromatic.schemeSet2,
+  schemeSet3: d3Chromatic.schemeSet3,
+  schemeTableau10: d3Chromatic.schemeTableau10,
+} as const;
+
+export type D3SchemeName = keyof typeof D3_CATEGORICAL_SCHEMES;
+
+export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number] | D3SchemeName;
 
 export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];
@@ -138,7 +157,15 @@ export const getColorMapList = (): IColorMap[] => {
       format: 'rgbaString',
     });
 
-    colorMapList.push({ name, colors: colorRamp });
+    colorMapList.push({ name, colors: colorRamp, type: 'continuous' });
+  });
+
+  objectEntries(D3_CATEGORICAL_SCHEMES).forEach(([name, colors]) => {
+    colorMapList.push({
+      name,
+      colors: colors.map(c => c.toString()),
+      type: 'categorical',
+    });
   });
 
   return colorMapList;
@@ -200,3 +227,40 @@ export function colorToRgba(color: unknown): RgbaColor {
   }
   return DEFAULT_COLOR;
 }
+
+/**
+ * Draw a color ramp to a canvas.
+ */
+export const drawColorRamp = (
+  canvas: HTMLCanvasElement,
+  colorRamp: IColorMap,
+) => {
+  const ctx = canvas.getContext('2d');
+  const colors = colorRamp.colors;
+  if (!ctx || !colors || colors.length === 0) {
+    return;
+  }
+
+  const width = canvas.width;
+  const height = canvas.height;
+
+  if (colorRamp.type === 'categorical') {
+    const blockWidth = width / colors.length;
+
+    colors.forEach((color, i) => {
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.fillRect(i * blockWidth, 0, blockWidth, height);
+    });
+  } else {
+    const gradient = ctx.createLinearGradient(0, 0, width, 0);
+    const step = 1 / (colors.length - 1);
+
+    colors.forEach((color, i) => {
+      gradient.addColorStop(i * step, color);
+    });
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+  }
+};

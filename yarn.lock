@@ -969,6 +969,7 @@ __metadata:
     clsx: ^2.1.1
     cmdk: ^1.1.1
     colormap: ^2.3.2
+    d3-scale-chromatic: ^3.0.0
     date-fns: ^4.1.0
     gdal3.js: ^2.8.1
     geojson-vt: ^4.0.2
@@ -7064,7 +7065,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-scale-chromatic@npm:3":
+"d3-scale-chromatic@npm:3, d3-scale-chromatic@npm:^3.0.0":
   version: 3.1.0
   resolution: "d3-scale-chromatic@npm:3.1.0"
   dependencies:

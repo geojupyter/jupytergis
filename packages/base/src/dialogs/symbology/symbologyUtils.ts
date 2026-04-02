@@ -7,7 +7,7 @@ import {
 import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
 
-import { ColorRampName, findExprNode } from './colorRampUtils';
+import { findExprNode, IColorMap } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -247,16 +247,33 @@ export namespace VectorUtils {
 export namespace Utils {
   export const getValueColorPairs = (
     stops: number[],
-    selectedRamp: ColorRampName,
+    colorRamp: IColorMap,
     nClasses: number,
     reverse = false,
   ) => {
-    const nShades = Math.max(nClasses, 9);
-    let colorMap = colormap({
-      colormap: selectedRamp,
-      nshades: nShades,
-      format: 'rgba',
-    });
+    const isCategorical = colorRamp.type === 'categorical';
+
+    let colorMap: any[];
+
+    if (isCategorical) {
+      colorMap = [...colorRamp.colors];
+
+      if (colorMap.length < nClasses) {
+        colorMap = Array.from({ length: nClasses }, (_, i) => {
+          return colorMap[i % colorMap.length];
+        });
+      } else {
+        colorMap = colorMap.slice(0, nClasses);
+      }
+    } else {
+      const nShades = Math.max(nClasses, 9);
+
+      colorMap = colormap({
+        colormap: colorRamp.name,
+        nshades: nShades,
+        format: 'rgba',
+      });
+    }
 
     if (reverse) {
       colorMap = [...colorMap].reverse();
@@ -265,8 +282,9 @@ export namespace Utils {
     const valueColorPairs: IStopRow[] = [];
 
     for (let i = 0; i < nClasses; i++) {
-      const colorIndex =
-        nClasses === 1 ? 0 : Math.round((i / (nClasses - 1)) * (nShades - 1));
+      const colorIndex = isCategorical
+        ? i
+        : Math.round((i / (nClasses - 1)) * (colorMap.length - 1));
       valueColorPairs.push({
         id: UUID.uuid4(),
         stop: stops[i],
