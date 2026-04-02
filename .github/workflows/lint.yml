@@ -44,16 +44,19 @@ jobs:
         run: jlpm run prettier:check
 
       - name: Report
+        env:
+          ESLINT_OUTCOME: ${{ steps.eslint.outcome }}
+          PRETTIER_OUTCOME: ${{ steps.prettier.outcome }}
         shell: bash -l {0}
         run: |
           failed=0
 
-          if [ "${{ steps.eslint.outcome }}" != "success" ]; then
+          if [ "${ESLINT_OUTCOME}" != "success" ]; then
             echo "❌ ESLint check failed"
             failed=1
           fi
 
-          if [ "${{ steps.prettier.outcome }}" != "success" ]; then
+          if [ "${PRETTIER_OUTCOME}" != "success" ]; then
             echo "❌ Prettier format check failed"
             failed=1
           fi
