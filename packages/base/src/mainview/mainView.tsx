@@ -118,7 +118,14 @@ import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import StatusBar from '@/src/statusbar/StatusBar';
-import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
+import {
+  debounce,
+  INTERNAL_PROXY_BASE,
+  isJupyterLite,
+  isLightTheme,
+  loadFile,
+  throttle,
+} from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -802,9 +809,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 ? `&headers=${encodeURIComponent(JSON.stringify(extraHeaders))}`
                 : '';
 
+            const proxyBase = isJupyterLite()
+              ? `${this._model.jgisSettings.proxyUrl}/`
+              : `${INTERNAL_PROXY_BASE}`;
+
             vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
               const vtTile = tile as VectorTile<RenderFeature>;
-              const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(tileUrl)}${headersParam}`;
+              const proxyUrl = `${proxyBase}?url=${encodeURIComponent(tileUrl)}${headersParam}`;
               vtTile.setLoader((extent, _resolution, projection) => {
                 fetch(proxyUrl)
                   .then(response => {

@@ -416,7 +416,7 @@ export const fetchWithProxies = async <T>(
 
   const strategies: Record<ProxyStrategy, (url: string) => string> = {
     direct: url => url,
-    internal: url => `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`,
+    internal: url => `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
     external: url => `${proxyUrl}/?url=${encodeURIComponent(url)}`,
   };
 
@@ -748,6 +748,8 @@ export const base64ToBlob = async (
 /**
  * A mapping of file extensions to their corresponding MIME types.
  */
+export const INTERNAL_PROXY_BASE = '/jupytergis_core/proxy';
+
 export const MIME_TYPES: { [ext: string]: string } = {
   // from https://github.com/python/cpython/blob/3.9/Lib/mimetypes.py
   '.a': 'application/octet-stream',
