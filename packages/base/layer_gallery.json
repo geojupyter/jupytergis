@@ -755,6 +755,21 @@
       },
       "layerParameters": { "opacity": 1 },
       "description": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ"
+    },
+    "WorldDarkGrayCanvas": {
+      "thumbnailPath": "layer_gallery/Esri-WorldDarkGrayCanvas.png",
+      "name": "Esri.WorldDarkGrayCanvas",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ",
+        "maxZoom": 16,
+        "minZoom": 0,
+        "urlParameters": { "variant": "Canvas/World_Dark_Gray_Base" }
+      },
+      "layerParameters": { "opacity": 1 },
+      "description": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ"
     }
   },
   "MacroStrat": {
