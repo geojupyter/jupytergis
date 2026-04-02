@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 import json
 from io import BytesIO
+from pathlib import Path
 import os
 import subprocess
 
@@ -11,10 +12,12 @@ from xyzservices import providers, TileProvider
 import string
 from requests.exceptions import RequestException
 
-with open("layer_gallery/thumbnail_config.json", "r", encoding="utf-8") as f:
-    provider_config = json.load(f)
 
-THUMBNAILS_LOCATION = "layer_gallery"
+THIS_DIR = Path(__file__).parent.resolve()
+THUMBNAILS_LOCATION = THIS_DIR / "layer_gallery"
+
+with open(THUMBNAILS_LOCATION / "thumbnail_config.json", "r", encoding="utf-8") as f:
+    PROVIDER_CONFIG = json.load(f)
 
 
 def snake_to_camel(s):
@@ -159,8 +162,8 @@ yesterday = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 def download_thumbnail(url_template, name, position, tile_size, **url_parameters):
-    file_path = f"{THUMBNAILS_LOCATION}/{name}.png"
-    if os.path.exists(file_path):
+    file_path = THUMBNAILS_LOCATION / f"{name}.png"
+    if file_path.is_file():
         return file_path
     thumbnail = create_thumbnail(
         url_template,
@@ -200,7 +203,7 @@ custom_providers["MacroStrat"] = {
 }
 
 # Fetch thumbnails and populate the dictionary
-for provider_key, provider_value in provider_config.items():
+for provider_key, provider_value in PROVIDER_CONFIG.items():
     xyzprovider = custom_providers[provider_key]
     config_is_flat = "layerType" in provider_value
     xyz_is_flat = "url" in xyzprovider
