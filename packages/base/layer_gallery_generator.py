@@ -114,7 +114,6 @@ def create_thumbnail(
     lat,
     lng,
     zoom,
-    thumbnail_path,
     tile_size=256,
     thumbnail_size=(512, 512),
     **url_parameters,
