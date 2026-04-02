@@ -163,19 +163,20 @@ yesterday = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 def download_thumbnail(url_template, name, position, tile_size, **url_parameters):
     file_path = THUMBNAILS_LOCATION / f"{name}.png"
+    relative_fp = str(file_path.relative_to(THIS_DIR))
     if file_path.is_file():
-        return file_path
+        return relative_fp
     thumbnail = create_thumbnail(
         url_template,
         position["lat"],
         position["lng"],
         position["zoom"],
-        file_path,
         tile_size,
         **url_parameters,
     )
     thumbnail.save(file_path)
-    return file_path
+
+    return relative_fp
 
 
 # Create thumbnail dir if needed
@@ -201,6 +202,15 @@ custom_providers["MacroStrat"] = {
         max_zoom=18,
     ),
 }
+# Not yet present in xyzproviders, but will be eventually.
+# See: https://github.com/geopandas/xyzservices/issues/200
+# TODO: Remove this once issue is resolved.
+custom_providers["Esri"]["WorldDarkGrayCanvas"] = TileProvider(
+    name="Esri.WorldDarkGrayCanvas",
+    url="https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+    attribution="Tiles (C) Esri -- Esri, DeLorme, NAVTEQ",
+    max_zoom=16,
+)
 
 # Fetch thumbnails and populate the dictionary
 for provider_id, layers in THUMBNAILS_CONFIG.items():
