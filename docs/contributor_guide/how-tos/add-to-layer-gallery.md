@@ -65,11 +65,30 @@ Finally you can execute:
 python packages/base/layer_gallery_generator.py
 ```
 
+Once this is done, you'll need to resize the thumbnail(s), as the script outputs in
+512x512, but we want 256x256:
+
+```bash
+mogrify -resize 50% /path/to/thumbnail.png
+```
+
+Don't forget to optimize! Read on.
+
 
 ### Manual
 
 You have the option to manually create a thumbnail.
 
 Take a screenshot and crop or otherwise resize it to 256x256 pixels and save as a PNG.
-The filesize should be as small as possible.
-Consider using a PNG optimizing tool like `optipng`!
+
+Don't forget to optimize! Read on.
+
+
+### Optimizing
+
+Whether you generate thumbnails automatically or create them manually, we'll need to
+optimize them for filesize before committing.
+
+```bash
+optipng "/path/to/thumbnail.png"
+```
