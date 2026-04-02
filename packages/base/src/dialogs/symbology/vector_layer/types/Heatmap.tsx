@@ -74,14 +74,6 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
 
     if (colorRamp?.type === 'categorical') {
       colorMap = [...colorRamp.colors];
-
-      if (colorMap.length < 9) {
-        colorMap = Array.from({ length: 9 }, (_, i) => {
-          return colorMap[i % colorMap.length];
-        });
-      } else {
-        colorMap = colorMap.slice(0, 9);
-      }
     } else {
       colorMap = colormap({
         colormap: selectedRampRef.current,
