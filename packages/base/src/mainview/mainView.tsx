@@ -803,10 +803,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 : '';
 
             vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
-              // tileLoadFunction receives Tile, but for VectorTileSource the
-              // actual object is a VectorTile. Cast via unknown to access the
-              // vector-tile-specific API (setLoader / getFormat / setFeatures).
-              const vtTile = tile as unknown as VectorTile<RenderFeature>;
+              const vtTile = tile as VectorTile<RenderFeature>;
               const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(tileUrl)}${headersParam}`;
               vtTile.setLoader((extent, _resolution, projection) => {
                 fetch(proxyUrl)
