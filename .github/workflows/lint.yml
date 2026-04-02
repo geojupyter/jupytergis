@@ -26,11 +26,35 @@ jobs:
             python=3.12
             jupyterlab=4
 
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: jlpm install
+
       - name: Lint
+        id: eslint
+        continue-on-error: true
+        shell: bash -l {0}
+        run: jlpm run eslint:check
+
+      - name: Check formatting
+        id: prettier
+        continue-on-error: true
+        shell: bash -l {0}
+        run: jlpm run prettier:check
+
+      - name: Report
         shell: bash -l {0}
         run: |
-          set -e
+          failed=0
 
-          jlpm install
-          jlpm run eslint:check
-          jlpm run prettier:check
+          if [ "${{ steps.eslint.outcome }}" != "success" ]; then
+            echo "❌ ESLint check failed"
+            failed=1
+          fi
+
+          if [ "${{ steps.prettier.outcome }}" != "success" ]; then
+            echo "❌ Prettier format check failed"
+            failed=1
+          fi
+
+          exit $failed
