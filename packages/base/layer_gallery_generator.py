@@ -207,6 +207,7 @@ custom_providers["MacroStrat"] = {
 custom_providers["Esri"]["WorldDarkGrayCanvas"] = TileProvider(
     name="Esri.WorldDarkGrayCanvas",
     url="https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+    variant="Canvas/World_Dark_Gray_Base",
     attribution="Tiles (C) Esri -- Esri, DeLorme, NAVTEQ",
     max_zoom=16,
 )
