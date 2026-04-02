@@ -62,7 +62,10 @@ export const FileSelectorWidget: React.FC<any> = props => {
         setUrlPath('');
         props.onChange(relativePath);
         const fileName = relativePath.split('/').pop()?.replace(/\.[^.]+$/, '') ?? '';
-        console.log('[FileSelectorWidget] file picked:', { relativePath, fileName });
+        //console.log('[FileSelectorWidget] file picked:', { relativePath, fileName });
+        if (fileName && formOptions.dialogOptions?.layerData) {
+          formOptions.dialogOptions.layerData.name = fileName;
+        }
 
         if (dialogElement) {
           if (formOptions.sourceType === 'GeoTiffSource') {
@@ -116,9 +119,13 @@ export const FileSelectorWidget: React.FC<any> = props => {
       try {
         const hostname = new URL(urlPath).hostname;
         const layerType = (formOptions.sourceType ?? '').replace('Source', '');
-        console.log('[FileSelectorWidget] URL blur:', { urlPath, hostname, layerType });
+        //console.log('[FileSelectorWidget] URL blur:', { urlPath, hostname, layerType });
+        const suggestedName = `${hostname} ${layerType}`;
+        if (formOptions.dialogOptions?.layerData) {
+          formOptions.dialogOptions.layerData.name = suggestedName;
+        }
       } catch {
-        console.log('[FileSelectorWidget] URL blur: invalid URL', urlPath);
+        //console.log('[FileSelectorWidget] URL blur: invalid URL', urlPath);
       }
     }
   };
