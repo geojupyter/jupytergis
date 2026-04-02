@@ -360,4 +360,4 @@ subprocess.run(["bash", "-lc", cmd], check=True)
 """
 
 with open(THIS_DIR / f"layer_gallery.json", "w") as f:
-    json.dump(provider_gallery, f)
+    json.dump(provider_gallery, f, indent=2)
