@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: '*'
 
+permissions: {}
+
 jobs:
   check_links:
     name: Check Links
