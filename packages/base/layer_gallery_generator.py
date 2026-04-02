@@ -190,13 +190,13 @@ custom_providers = providers.copy()
 custom_providers["MacroStrat"] = {
     "CartoRaster": TileProvider(
         name="MacroStrat.CartoRaster",
-        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        url="https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.png",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
         max_zoom=18,
     ),
     "CartoVector": TileProvider(
         name="MacroStrat.CartoVector",
-        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
+        url="https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC‑BY 4.0)",
         max_zoom=18,
     ),
