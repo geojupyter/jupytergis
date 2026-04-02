@@ -499,6 +499,18 @@
           "zoom": 5
         }
       }
+    },
+    "WorldDarkGrayCanvas": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
+      }
     }
   },
   "MacroStrat": {
