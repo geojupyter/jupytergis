@@ -22,7 +22,7 @@ with open(THUMBNAILS_LOCATION / "thumbnail_config.json", "r", encoding="utf-8") 
 
 def snake_to_camel(s):
     """
-    Convect snake case strings into camel case ones
+    Convert snake case strings into camel case ones
     """
     parts = s.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
@@ -30,7 +30,7 @@ def snake_to_camel(s):
 
 def dict_keys_to_camel(obj):
     """
-    Convect keys of a dict from snake case to camel case
+    Convert keys of a dict from snake case to camel case
     """
     if isinstance(obj, dict):
         return {snake_to_camel(k): dict_keys_to_camel(v) for k, v in obj.items()}
