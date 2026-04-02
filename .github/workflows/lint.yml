@@ -29,6 +29,8 @@ jobs:
       - name: Lint
         shell: bash -l {0}
         run: |
+          set -e
+
           jlpm install
           jlpm run eslint:check
           jlpm run prettier:check
