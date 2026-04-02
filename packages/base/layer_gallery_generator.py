@@ -349,5 +349,5 @@ cmd = (
 subprocess.run(["bash", "-lc", cmd], check=True)
 """
 
-with open(f"layer_gallery.json", "w") as f:
+with open(THIS_DIR / f"layer_gallery.json", "w") as f:
     json.dump(provider_gallery, f)
