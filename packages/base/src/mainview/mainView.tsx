@@ -54,6 +54,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
@@ -782,7 +783,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const url = this.computeSourceUrl(source);
 
         if (!pmTiles) {
-          newSource = new VectorTileSource({
+          const vtSourceOptions: ConstructorParameters<
+            typeof VectorTileSource
+          >[0] = {
             attributions: sourceParameters.attribution,
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
@@ -790,7 +793,47 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             format: new MVT({
               featureClass: RenderFeature,
             }),
-          });
+          };
+
+          if (sourceParameters.useProxy) {
+            const extraHeaders = sourceParameters.httpHeaders ?? {};
+            const headersParam =
+              Object.keys(extraHeaders).length > 0
+                ? `&headers=${encodeURIComponent(JSON.stringify(extraHeaders))}`
+                : '';
+
+            vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
+              // tileLoadFunction receives Tile, but for VectorTileSource the
+              // actual object is a VectorTile. Cast via unknown to access the
+              // vector-tile-specific API (setLoader / getFormat / setFeatures).
+              const vtTile = tile as unknown as VectorTile<RenderFeature>;
+              const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(tileUrl)}${headersParam}`;
+              vtTile.setLoader((extent, _resolution, projection) => {
+                fetch(proxyUrl)
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error(
+                        `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                      );
+                    }
+                    return response.arrayBuffer();
+                  })
+                  .then(data => {
+                    const features = vtTile.getFormat().readFeatures(data, {
+                      extent,
+                      featureProjection: projection,
+                    }) ;
+                    vtTile.setFeatures(features);
+                  })
+                  .catch(err => {
+                    console.error('Vector tile proxy load error:', err);
+                    tile.setState(TileState.ERROR);
+                  });
+              });
+            };
+          }
+
+          newSource = new VectorTileSource(vtSourceOptions);
         } else {
           newSource = new PMTilesVectorSource({
             attributions: sourceParameters.attribution,
