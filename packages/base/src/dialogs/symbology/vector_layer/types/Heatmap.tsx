@@ -9,7 +9,7 @@ import {
   VectorSymbologyParams,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { ColorRampName } from '../../colorRampUtils';
+import { ColorRampName, getColorMapList } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
@@ -66,11 +66,29 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   };
 
   const handleOk = () => {
-    let colorMap = colormap({
-      colormap: selectedRampRef.current,
-      nshades: 9,
-      format: 'hex',
-    });
+    const colorRamp = getColorMapList().find(
+      ramp => ramp.name === selectedRampRef.current,
+    );
+
+    let colorMap: string[] = [];
+
+    if (colorRamp?.type === 'categorical') {
+      colorMap = [...colorRamp.colors];
+
+      if (colorMap.length < 9) {
+        colorMap = Array.from({ length: 9 }, (_, i) => {
+          return colorMap[i % colorMap.length];
+        });
+      } else {
+        colorMap = colorMap.slice(0, 9);
+      }
+    } else {
+      colorMap = colormap({
+        colormap: selectedRampRef.current,
+        nshades: 9,
+        format: 'hex',
+      });
+    }
 
     if (reverseRampRef.current) {
       colorMap = [...colorMap].reverse();
