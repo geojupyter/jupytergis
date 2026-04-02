@@ -367,17 +367,22 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     const colorRamp = getColorMapList().find(c => c.name === selectedRamp);
-    const stopOutputPairs =
-      symbologyTab === 'radius'
-        ? stops.map(v => ({ id: UUID.uuid4(), stop: v, output: v }))
-        : colorRamp
-          ? Utils.getValueColorPairs(
-              stops,
-              colorRamp,
-              numberOfShades,
-              reverseRamp,
-            )
-          : [];
+    const getStopOutputPairs = (): IStopRow[] => {
+      if (symbologyTab === 'radius') {
+        return stops.map(v => ({ id: UUID.uuid4(), stop: v, output: v }));
+      }
+
+      return colorRamp
+        ? Utils.getValueColorPairs(
+            stops,
+            colorRamp,
+            numberOfShades,
+            reverseRamp,
+          )
+        : [];
+    };
+
+    const stopOutputPairs = getStopOutputPairs();
 
     if (symbologyTab === 'radius') {
       setRadiusStopRows(stopOutputPairs);

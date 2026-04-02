@@ -7,12 +7,7 @@ import {
 import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
 
-import {
-  findExprNode,
-  D3SchemeName,
-  D3_CATEGORICAL_SCHEMES,
-  IColorMap,
-} from './colorRampUtils';
+import { findExprNode, IColorMap } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -261,7 +256,7 @@ export namespace Utils {
     let colorMap: any[];
 
     if (isCategorical) {
-      colorMap = [...D3_CATEGORICAL_SCHEMES[colorRamp.name as D3SchemeName]];
+      colorMap = [...colorRamp.colors];
 
       if (colorMap.length < nClasses) {
         colorMap = Array.from({ length: nClasses }, (_, i) => {
