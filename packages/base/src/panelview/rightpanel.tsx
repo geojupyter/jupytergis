@@ -10,7 +10,7 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { AnnotationsPanel } from './annotationPanel';
+import { AnnotationsPanel } from '../features/annotations';
 import { IdentifyPanelComponent } from '../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
