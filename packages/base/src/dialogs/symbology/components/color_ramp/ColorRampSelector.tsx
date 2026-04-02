@@ -18,6 +18,7 @@ import {
   ColorRampName,
   useColorMapList,
   IColorMap,
+  drawColorRamp,
 } from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
@@ -52,7 +53,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     setIsOpen(!isOpen);
   };
 
-  const selectItem = (item: any) => {
+  const selectItem = (item: ColorRampName) => {
     setSelected(item);
     setIsOpen(false);
     updateCanvas(item);
@@ -74,29 +75,21 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       return;
     }
     canvas.style.visibility = 'hidden';
-    const ctx = canvas.getContext('2d');
 
-    if (!ctx) {
+    const ramp = colorMaps.find(c => c.name === rampName);
+    if (!ramp) {
       return;
     }
 
-    const ramp = colorMaps.filter(c => c.name === rampName)[0];
-    let colors = ramp.colors;
-    if (reverse) {
-      colors = [...colors].reverse();
-    }
+    const displayRamp: IColorMap = reverse
+      ? { ...ramp, colors: [...ramp.colors].reverse() }
+      : ramp;
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
-    for (let i = 0; i <= 255; i++) {
-      ctx.beginPath();
+    drawColorRamp(canvas, displayRamp);
 
-      const color = colors[i];
-      ctx.fillStyle = color;
-
-      ctx.fillRect(i * 2, 0, 2, canvasHeight);
-    }
     canvas.style.visibility = 'initial';
   };
 
