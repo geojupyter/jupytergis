@@ -35,6 +35,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
+from .symbology import Symbology, GraduatedSymbology
 
 logger = logging.getLogger(__file__)
 
@@ -1020,6 +1021,92 @@ class GISDocument(CommWidget):
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
             "metadata": self._metadata.to_py(),
+        }
+
+    def apply_symbology(self, layer_id: str, symbology: Symbology):
+        layer = self._layers.get(layer_id)
+
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if symbology.type == "graduated":
+            self._apply_graduated_symbology(layer, symbology)
+        else:
+            raise ValueError(f"Unsupported symbology type: {symbology.type}")
+
+        self._layers[layer_id] = layer
+
+    def _apply_graduated_symbology(self, layer: dict, symbology: GraduatedSymbology):
+        if layer["type"] not in ("VectorLayer", "VectorTileLayer"):
+            raise ValueError("Graduated symbology only supports vector layers")
+
+        data = sorted(symbology.data)
+        if not data:
+            raise ValueError("Data array is empty")
+
+        vmin, vmax = float(min(data)), float(max(data))
+
+        if symbology.n_classes <= 0:
+            raise ValueError("n_classes must be > 0")
+
+        step = (vmax - vmin) / symbology.n_classes if vmax != vmin else 1
+
+        breaks = [vmin + (i + 1) * step for i in range(symbology.n_classes)]
+
+        # Coolwarm ramp (blue → white → red)
+        def ramp(i):
+            if symbology.n_classes <= 1:
+                t = 0
+            else:
+                t = i / (symbology.n_classes - 1)
+
+            if symbology.reverse:
+                t = 1 - t
+
+            if t < 0.5:
+                # blue → white
+                tt = t / 0.5
+                return [
+                    int(255 * tt),
+                    int(255 * tt),
+                    255,
+                    1.0,
+                ]
+            else:
+                # white → red
+                tt = (t - 0.5) / 0.5
+                return [
+                    255,
+                    int(255 * (1 - tt)),
+                    int(255 * (1 - tt)),
+                    1.0,
+                ]
+
+        expr = ["interpolate", ["linear"], ["get", symbology.value]]
+
+        for i, val in enumerate(breaks):
+            expr.append(val)
+            expr.append(ramp(i))
+
+        params = layer.setdefault("parameters", {})
+
+        params["color"] = {
+            "fill-color": expr,
+            "stroke-color": expr,
+            "circle-fill-color": expr,
+            "circle-radius": 5.0,
+            "stroke-width": 1.25,
+            "circle-stroke-width": 1.25,
+        }
+
+        params["symbologyState"] = {
+            "renderType": "Graduated",
+            "value": symbology.value,
+            "method": symbology.method,
+            "colorRamp": symbology.color_ramp or "viridis",
+            "nClasses": float(symbology.n_classes),
+            "mode": symbology.mode,
+            "reverseRamp": symbology.reverse,
         }
 
 
