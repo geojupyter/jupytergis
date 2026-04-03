@@ -61,7 +61,11 @@ export const FileSelectorWidget: React.FC<any> = props => {
         setServerFilePath(relativePath);
         setUrlPath('');
         props.onChange(relativePath);
-        const fileName = relativePath.split('/').pop()?.replace(/\.[^.]+$/, '') ?? '';
+        const fileName =
+          relativePath
+            .split('/')
+            .pop()
+            ?.replace(/\.[^.]+$/, '') ?? '';
         //console.log('[FileSelectorWidget] file picked:', { relativePath, fileName });
         if (fileName && formOptions.dialogOptions?.layerData) {
           formOptions.dialogOptions.layerData.name = fileName;
@@ -115,19 +119,6 @@ export const FileSelectorWidget: React.FC<any> = props => {
 
   const handleURLBlur = () => {
     isTypingURL.current = false;
-    if (urlPath) {
-      try {
-        const hostname = new URL(urlPath).hostname;
-        const layerType = (formOptions.sourceType ?? '').replace('Source', '');
-        //console.log('[FileSelectorWidget] URL blur:', { urlPath, hostname, layerType });
-        const suggestedName = `${hostname} ${layerType}`;
-        if (formOptions.dialogOptions?.layerData) {
-          formOptions.dialogOptions.layerData.name = suggestedName;
-        }
-      } catch {
-        //console.log('[FileSelectorWidget] URL blur: invalid URL', urlPath);
-      }
-    }
   };
 
   return (
