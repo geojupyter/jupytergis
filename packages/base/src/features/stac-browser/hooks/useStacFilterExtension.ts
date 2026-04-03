@@ -3,8 +3,8 @@ import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
-import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
-import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
+import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
+import { useStacSearch } from '@/src/features/stac-browser/hooks/useStacSearch';
 import {
   FilterOperator,
   IQueryableFilter,
@@ -14,7 +14,7 @@ import {
   IStacFilterExtensionQueryBody,
   IStacQueryables,
   Operator,
-} from '@/src/stacBrowser/types/types';
+} from '@/src/features/stac-browser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
 

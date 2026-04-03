@@ -11,7 +11,7 @@ import {
   PaginationPrevious,
 } from '@/src/shared/components/Pagination';
 import { LoadingIcon } from '@/src/shared/components/loading';
-import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
+import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 
 function getPageItems(
   currentPage: number,

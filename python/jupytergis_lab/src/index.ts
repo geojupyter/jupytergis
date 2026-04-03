@@ -140,7 +140,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     for (const processingElement of ProcessingMerge) {
       processingSubmenu.addItem({
-        command: processingElement.name,
+        command: `jupytergis:${processingElement.name}`,
       });
     }
 

@@ -8,13 +8,13 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
-import StacFilterExtensionPanel from '@/src/stacBrowser/components/filter-extension/StacFilterExtensionPanel';
-import StacGeodesFilterPanel from '@/src/stacBrowser/components/geodes/StacGeodesFilterPanel';
-import StacPanelResults from '@/src/stacBrowser/components/shared/StacPanelResults';
+import StacFilterExtensionPanel from '@/src/features/stac-browser/components/filter-extension/StacFilterExtensionPanel';
+import StacGeodesFilterPanel from '@/src/features/stac-browser/components/geodes/StacGeodesFilterPanel';
+import StacPanelResults from '@/src/features/stac-browser/components/shared/StacPanelResults';
 import {
   StacResultsProvider,
   useStacResultsContext,
-} from '@/src/stacBrowser/context/StacResultsContext';
+} from '@/src/features/stac-browser/context/StacResultsContext';
 
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
 const COPERNICUS_URL = 'https://stac.dataspace.copernicus.eu/v1/';

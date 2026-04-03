@@ -5,7 +5,7 @@ import {
   IQueryableFilter,
   IStacQueryableSchema,
   Operator,
-} from '@/src/stacBrowser/types/types';
+} from '@/src/features/stac-browser/types/types';
 
 interface IOperatorOption {
   value: Operator;
