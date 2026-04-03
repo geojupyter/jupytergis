@@ -9,7 +9,7 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
 
 import { selectedLayerIsOfType, processLayer } from './index';
-import { JupyterGISTracker } from '../types';
+import { JupyterGISTracker } from '../../types';
 
 export function replaceInSql(
   sql: string,
