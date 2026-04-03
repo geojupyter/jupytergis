@@ -176,15 +176,15 @@ export const getColorMapList = (): IColorMap[] => {
  */
 export const useColorMapList = (
   setColorMaps: (maps: IColorMap[]) => void,
-  excludeCategorical = false,
+  excludeDiscrete = false,
 ) => {
   useEffect(() => {
     const maps = getColorMapList();
-    const filtered = excludeCategorical
-      ? maps.filter(m => m.type === 'continuous')
+    const filtered = excludeDiscrete
+      ? maps.filter(m => m.type !== 'categorical')
       : maps;
     setColorMaps(filtered);
-  }, [setColorMaps, excludeCategorical]);
+  }, [setColorMaps, excludeDiscrete]);
 };
 
 /**

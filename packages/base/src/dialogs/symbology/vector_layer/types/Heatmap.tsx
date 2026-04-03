@@ -111,7 +111,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
           setSelected={setSelectedRamp}
           reverse={reverseRamp}
           setReverse={setReverseRamp}
-          excludeCategorical={true}
+          excludeDiscrete={true}
         />
       </div>
       <div className="jp-gis-symbology-row">
