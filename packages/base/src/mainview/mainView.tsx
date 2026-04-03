@@ -112,7 +112,7 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
-import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
+import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
@@ -2357,6 +2357,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _setupSpectaMode = (): void => {
     this._removeAllInteractions();
     this._setupStoryScrollListener();
+
+    // Ensure keybindings have a focused target in Specta mode.
+    window.requestAnimationFrame(() => {
+      this.mainViewRef.current?.focus();
+    });
   };
 
   private _removeAllInteractions = (): void => {
@@ -3019,6 +3024,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             />
           )}
           <div
+            ref={this.mainViewRef}
             className="jGIS-Mainview data-jgis-keybinding"
             tabIndex={0}
             style={{
@@ -3111,6 +3117,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+  private mainViewRef = React.createRef<HTMLDivElement>();
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();

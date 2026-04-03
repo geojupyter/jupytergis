@@ -46,6 +46,7 @@ class YQGISBase(YBaseDoc):
     def metadata(self) -> Map:
         return self._ymetadata
 
+    @property
     def version(self) -> str:
         return SCHEMA_VERSION
 

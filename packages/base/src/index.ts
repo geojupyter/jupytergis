@@ -1,4 +1,4 @@
-export * from './annotations';
+export * from './features/annotations';
 export * from './commands/index';
 export * from './constants';
 export * from './dialogs/layerCreationFormDialog';

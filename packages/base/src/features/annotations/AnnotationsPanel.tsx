@@ -1,7 +1,7 @@
 import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
 import React, { Component } from 'react';
 
-import Annotation from '@/src/annotations/components/Annotation';
+import Annotation from './components/Annotation';
 
 interface IAnnotationPanelProps {
   annotationModel: IAnnotationModel;

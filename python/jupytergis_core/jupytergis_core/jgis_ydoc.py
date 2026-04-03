@@ -18,6 +18,7 @@ class YJGIS(YBaseDoc):
         self._ydoc["layerTree"] = self._ylayerTree = Array()
         self._ydoc["metadata"] = self._ymetadata = Map()
 
+    @property
     def version(self) -> str:
         return SCHEMA_VERSION
 
