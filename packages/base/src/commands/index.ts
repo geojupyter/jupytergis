@@ -731,6 +731,46 @@ export function addCommands(
     }),
     ...icons.get(CommandIDs.openNewShapefileDialog),
   });
+  commands.addCommand(CommandIDs.newGeoPackageVectorEntry, {
+    label: trans.__('GeoPackage'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoPackage Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoPackage Vector Source' },
+      layerData: { name: 'Custom GeoPackage Vector Layer' },
+      sourceType: 'GeoPackageVectorSource',
+      layerType: 'VectorLayer',
+    }),
+    ...icons.get(CommandIDs.newGeoPackageVectorEntry),
+  });
+  commands.addCommand(CommandIDs.newGeoPackageRasterEntry, {
+    label: trans.__('GeoPackage'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoPackage Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoPackage Raster Source' },
+      layerData: { name: 'Custom GeoPackage Raster Layer' },
+      sourceType: 'GeoPackageRasterSource',
+      layerType: 'RasterLayer',
+    }),
+    ...icons.get(CommandIDs.newGeoPackageRasterEntry),
+  });
 
   /**
    * LAYERS and LAYER GROUP actions.

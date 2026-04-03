@@ -28,6 +28,8 @@ export const openNewImageDialog = 'jupytergis:openNewImageDialog';
 export const openNewVideoDialog = 'jupytergis:openNewVideoDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
+export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
+export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 
 // Layer and group actions
 export const renameSelected = 'jupytergis:renameSelected';
