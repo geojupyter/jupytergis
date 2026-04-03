@@ -203,6 +203,8 @@ export interface IViewState {
     extent: number[];
     zoom: number;
     projection?: string;
+    layerId?: string;
+    layerName?: string;
   };
 }
 
@@ -279,7 +281,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     groupName?: string,
     position?: number,
   ): void;
-  updateExtZoom(id: string, view: IViewState[string]): void;
+  updateLayerViewState(id: string, view: IViewState[string]): void;
   removeLayer(id: string): void;
   removeSource(id: string): void;
   getOptions(): IJGISOptions;

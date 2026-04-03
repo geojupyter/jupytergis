@@ -1330,7 +1330,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
 
-      this._trackLayerExtZoom(id, newMapLayer);
+      this._trackLayerViewState(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1902,7 +1902,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   /**
    * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerExtZoom(layerId: string, olLayer: Layer): void {
+  private _trackLayerViewState(layerId: string, olLayer: Layer): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
@@ -1920,7 +1920,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       const view: IViewState[string] = { extent, zoom };
-      this._model.updateExtZoom(layerId, view);
+      this._model.updateLayerViewState(layerId, view);
     }
   }
 
@@ -1943,7 +1943,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         zoom,
         ...(projection && { projection }),
       };
-      this._model.updateExtZoom(sourceId, view);
+      this._model.updateLayerViewState(sourceId, view);
     }
   }
 
@@ -2343,7 +2343,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
 
         if (mapLayer) {
-          this._trackLayerExtZoom(id, mapLayer);
+          this._trackLayerViewState(id, mapLayer);
         }
       } else {
         this.updateLayers(layerTree);

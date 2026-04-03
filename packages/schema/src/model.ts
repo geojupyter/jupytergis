@@ -513,10 +513,13 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Update layer's extent and zoom in model's view state
    */
-  updateExtZoom(id: string, view: IViewState[string]): void {
+  updateLayerViewState(id: string, view: IViewState[string]): void {
+    const layer = this.getLayer(id);
     this._viewState[id] = {
       ...this._viewState[id],
       ...view,
+      layerId: id,
+      layerName: layer?.name,
     };
   }
 
@@ -702,7 +705,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layerModel: IJGISLayer = {
       type: 'StorySegmentLayer',
       visible: true,
-      name: this._generateStorySegmentName(),
+      name: this._generateStorySegmentName(viewState),
       parameters: layerParams,
     };
 
@@ -748,10 +751,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Generates a name for the next story segment based on the number of existing segments in the current story.
    */
-  private _generateStorySegmentName(): string {
+  private _generateStorySegmentName(viewState?: IViewState[string]): string {
     const { story } = this.getSelectedStory();
     const count = story?.storySegments?.length ?? 0;
-    return count === 0 ? 'Story Segment' : `Story Segment ${count}`;
+    const basename = count === 0 ? 'Story Segment' : `Story Segment ${count}`;
+
+    return viewState?.layerName
+      ? `${viewState.layerName} - ${basename}`
+      : basename;
   }
 
   /**
@@ -765,7 +772,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     const viewState = this.getViewState()[layerId];
-
     if (!viewState) {
       return null;
     }
