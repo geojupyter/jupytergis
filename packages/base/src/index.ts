@@ -7,7 +7,7 @@ export * from './mainview';
 export * from './menus';
 export * from './panelview';
 export * from './store';
-export * from './stacBrowser';
+export * from './features/stac-browser';
 export * from './toolbar';
 export * from './tools';
 export * from './types';

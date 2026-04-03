@@ -1,6 +1,6 @@
 import React from 'react';
 
-import SingleDatePicker from '../../../shared/components/SingleDatePicker';
+import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
 interface IStacTemporalExtentProps {
   startTime: Date | undefined;

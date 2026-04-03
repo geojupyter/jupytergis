@@ -1,15 +1,15 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import StacFilterSection from '@/src/stacBrowser/components/geodes/StacFilterSection';
-import StacSpatialExtent from '@/src/stacBrowser/components/shared/StacSpatialExtent';
-import StacTemporalExtent from '@/src/stacBrowser/components/shared/StacTemporalExtent';
+import StacFilterSection from '@/src/features/stac-browser/components/geodes/StacFilterSection';
+import StacSpatialExtent from '@/src/features/stac-browser/components/shared/StacSpatialExtent';
+import StacTemporalExtent from '@/src/features/stac-browser/components/shared/StacTemporalExtent';
 import {
   datasets as datasetsList,
   platforms as platformsList,
   products as productsList,
-} from '@/src/stacBrowser/constants';
-import useGeodesSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
+} from '@/src/features/stac-browser/constants';
+import useGeodesSearch from '@/src/features/stac-browser/hooks/useGeodesSearch';
 
 interface IStacGeodesFilterPanelProps {
   model?: IJupyterGISModel;

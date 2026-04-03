@@ -9,16 +9,16 @@ import React, {
 import { Combobox } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
 import { Select } from '@/src/shared/components/Select';
-import QueryableRow from '@/src/stacBrowser/components/filter-extension/QueryableRow';
+import QueryableRow from '@/src/features/stac-browser/components/filter-extension/QueryableRow';
 import {
   IQueryableFilter,
   IStacQueryableSchema,
   IStacQueryables,
   Operator,
   UpdateSelectedQueryables,
-} from '@/src/stacBrowser/types/types';
+} from '@/src/features/stac-browser/types/types';
 import { debounce } from '@/src/tools';
-import SingleDatePicker from '../../../shared/components/SingleDatePicker';
+import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
 interface IQueryableComboProps {
   queryables: IStacQueryables;
