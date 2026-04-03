@@ -9,7 +9,11 @@ import {
   VectorSymbologyParams,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { ColorRampName } from '../../colorRampUtils';
+import {
+  ColorRampName,
+  IColorMap,
+  useColorMapList,
+} from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
@@ -42,10 +46,15 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     blur: 15,
   });
   const [reverseRamp, setReverseRamp] = useState<boolean>(false);
+  const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
 
   const selectedRampRef = useLatest(selectedRamp);
   const heatmapOptionsRef = useLatest(heatmapOptions);
   const reverseRampRef = useLatest(reverseRamp);
+
+  useColorMapList(setColorMaps);
+
+  const continuousMaps = colorMaps.filter(m => m.type === 'continuous');
 
   useEffect(() => {
     populateOptions();
@@ -111,7 +120,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
           setSelected={setSelectedRamp}
           reverse={reverseRamp}
           setReverse={setReverseRamp}
-          excludeDiscrete={true}
+          colorMaps={continuousMaps}
         />
       </div>
       <div className="jp-gis-symbology-row">
