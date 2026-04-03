@@ -13,7 +13,7 @@ import React, {
 import StoryViewerPanel, {
   type IStoryViewerPanelHandle,
 } from '@/src/panelview/story-maps/StoryViewerPanel';
-import SpectaPresentationProgressBar from '@/src/statusbar/SpectaPresentationProgressBar';
+import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 interface ISpectaDesktopViewProps {
   model: IJupyterGISModel;
