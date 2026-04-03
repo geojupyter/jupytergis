@@ -3157,7 +3157,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const logger = this._loggerRegistry?.getLogger(this._model.filePath);
     if (logger) {
       logger.log({ type: 'text', level, data: message });
-    } else {
+
       level === 'error' || level === 'critical'
         ? console.error(message)
         : console.warn(message);
