@@ -8,6 +8,7 @@ import {
 import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -104,6 +105,7 @@ export class JupyterGISPanel extends SplitPanel {
     commandRegistry,
     formSchemaRegistry,
     annotationModel,
+    loggerRegistry,
     ...consoleOption
   }: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
@@ -116,7 +118,7 @@ export class JupyterGISPanel extends SplitPanel {
 
     readyPromise.then(() => {
       this._initModel({ model, commandRegistry });
-      this._initView(formSchemaRegistry, annotationModel);
+      this._initView(formSchemaRegistry, annotationModel, loggerRegistry);
     });
   }
 
@@ -135,12 +137,14 @@ export class JupyterGISPanel extends SplitPanel {
   _initView(
     formSchemaRegistry?: IJGISFormSchemaRegistry,
     annotationModel?: IAnnotationModel,
+    loggerRegistry?: ILoggerRegistry,
   ) {
     this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel({
       mainViewModel: this._mainViewModel,
       state: this._state,
       formSchemaRegistry: formSchemaRegistry,
       annotationModel: annotationModel,
+      loggerRegistry: loggerRegistry,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
@@ -282,5 +286,6 @@ export namespace JupyterGISPanel {
     consoleTracker?: IConsoleTracker;
     formSchemaRegistry?: IJGISFormSchemaRegistry;
     annotationModel?: IAnnotationModel;
+    loggerRegistry?: ILoggerRegistry;
   }
 }

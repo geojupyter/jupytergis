@@ -39,6 +39,7 @@ import {
   DEFAULT_PROJECTION,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -150,6 +151,7 @@ interface IMainViewProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
 }
@@ -181,6 +183,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._formSchemaRegistry = props.formSchemaRegistry;
 
     this._annotationModel = props.annotationModel;
+
+    this._loggerRegistry = props.loggerRegistry;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -830,11 +834,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                     const features = vtTile.getFormat().readFeatures(data, {
                       extent,
                       featureProjection: projection,
-                    }) ;
+                    });
                     vtTile.setFeatures(features);
+                    this._log('debug', `Proxy tile loaded: ${tileUrl}`);
                   })
                   .catch(err => {
-                    console.error('Vector tile proxy load error:', err);
+                    this._log(
+                      'error',
+                      `Proxy tile error for ${tileUrl}: ${err.message}`,
+                    );
                     tile.setState(TileState.ERROR);
                   });
               });
@@ -963,7 +971,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       case 'VideoSource': {
-        console.warn('Video Tiles not supported with Open Layers');
+        this._log('warning', 'Video Tiles not supported with Open Layers');
 
         break;
       }
@@ -1176,7 +1184,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
-        console.warn(
+        this._log(
+          'warning',
           `Layer with ID ${layerId} does not exist in the shared model.`,
         );
         continue;
@@ -1385,7 +1394,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   addProjection(newMapLayer: Layer) {
     const sourceProjection = newMapLayer.getSource()?.getProjection();
     if (!sourceProjection) {
-      console.warn('Layer source projection is undefined or invalid');
+      this._log('warning', 'Layer source projection is undefined or invalid');
       return;
     }
 
@@ -1395,7 +1404,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!isProjectionRegistered) {
       // Check if the projection exists in proj4list
       if (!proj4list[projectionCode]) {
-        console.warn(
+        this._log(
+          'warning',
           `Projection code '${projectionCode}' not found in proj4list`,
         );
         return;
@@ -1405,7 +1415,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         proj4.defs([proj4list[projectionCode]]);
         register(proj4);
       } catch (error: any) {
-        console.warn(
+        this._log(
+          'warning',
           `Failed to register projection '${projectionCode}'. Error: ${error.message}`,
         );
         return;
@@ -1795,7 +1806,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
-      console.warn('Invalid geometry for flyToGeometry:', geometry);
+      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
       return;
     }
 
@@ -1819,7 +1830,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       featureOrGeometry;
 
     if (!geometry) {
-      console.warn('No geometry found in feature:', featureOrGeometry);
+      this._log(
+        'warning',
+        `No geometry found in feature: ${featureOrGeometry}`,
+      );
       return;
     }
 
@@ -2157,7 +2171,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }));
         view = new View({ projection: newProjection });
       } else {
-        console.warn(`Invalid projection: ${projection}`);
+        this._log('warning', `Invalid projection: ${projection}`);
         return;
       }
     }
@@ -2503,7 +2517,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           try {
             jsonData = JSON.parse(data);
           } catch (e) {
-            console.warn(`Failed to parse annotation data for ${key}:`, e);
+            this._log(
+              'warning',
+              `Failed to parse annotation data for ${key}: ${e}`,
+            );
             return;
           }
         } else {
@@ -2634,7 +2651,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     if (!extent) {
-      console.warn('Layer has no extent.');
+      this._log('warning', 'Layer has no extent.');
       return;
     }
 
@@ -2791,7 +2808,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const selectedLayer = localState?.selected?.value;
 
     if (!selectedLayer) {
-      console.warn('Layer must be selected to use identify tool');
+      this._log('warning', 'Layer must be selected to use identify tool');
       return;
     }
 
@@ -2906,7 +2923,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.updateSource(layerId, jgisLayer);
     }
     if (!jgisLayer || !olLayer) {
-      console.error('Failed to update layer -- layer not found');
+      this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
     this.updateLayer(layerId, jgisLayer, olLayer);
@@ -3131,6 +3148,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
+  private _loggerRegistry?: ILoggerRegistry;
+
+  private _log(
+    level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+    message: string,
+  ): void {
+    const logger = this._loggerRegistry?.getLogger(this._model.filePath);
+    if (logger) {
+      logger.log({ type: 'text', level, data: message });
+    } else {
+      level === 'error' || level === 'critical'
+        ? console.error(message)
+        : console.warn(message);
+    }
+  }
+
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;

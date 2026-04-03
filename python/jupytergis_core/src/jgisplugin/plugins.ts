@@ -28,6 +28,7 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
+import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -59,6 +60,7 @@ const activate = async (
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   collaborativeContentProvider: ICollaborativeContentProvider | null,
+  loggerRegistry: ILoggerRegistry | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -87,6 +89,7 @@ const activate = async (
     consoleTracker,
     state: state,
     annotationModel: annotationModel,
+    loggerRegistry: loggerRegistry ?? undefined,
   });
 
   // Registering the widget factory
@@ -284,7 +287,12 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ILauncher, ICommandPalette, ICollaborativeContentProvider],
+  optional: [
+    ILauncher,
+    ICommandPalette,
+    ICollaborativeContentProvider,
+    ILoggerRegistry,
+  ],
   autoStart: true,
   activate,
 };

@@ -946,6 +946,7 @@ __metadata:
     "@jupyterlab/docregistry": ^4.3.0
     "@jupyterlab/filebrowser": ^4.3.0
     "@jupyterlab/launcher": ^4.3.0
+    "@jupyterlab/logconsole": ^4.3.0
     "@jupyterlab/observables": ^5.3.0
     "@jupyterlab/services": ^7.3.0
     "@jupyterlab/translation": ^4.3.0
@@ -1014,6 +1015,7 @@ __metadata:
     "@jupyterlab/docregistry": ^4.3.0
     "@jupyterlab/filebrowser": ^4.3.0
     "@jupyterlab/launcher": ^4.3.0
+    "@jupyterlab/logconsole": ^4.3.0
     "@jupyterlab/mainmenu": ^4.3.0
     "@jupyterlab/services": ^7.3.0
     "@jupyterlab/translation": ^4.3.0
@@ -1541,6 +1543,25 @@ __metadata:
     "@lumino/widgets": ^2.7.5
     react: ^18.2.0
   checksum: 54be3d21a3356636b97d5e370c0f4f26a941d228503b8dc63ef51c89eec84c07f2cd4e06abc73c0d1dca3388d5adfa7ef398669ca4a4d6755145997c9c1aff29
+  languageName: node
+  linkType: hard
+
+"@jupyterlab/logconsole@npm:^4.3.0":
+  version: 4.5.6
+  resolution: "@jupyterlab/logconsole@npm:4.5.6"
+  dependencies:
+    "@jupyterlab/coreutils": ^6.5.6
+    "@jupyterlab/nbformat": ^4.5.6
+    "@jupyterlab/outputarea": ^4.5.6
+    "@jupyterlab/rendermime": ^4.5.6
+    "@jupyterlab/services": ^7.5.6
+    "@jupyterlab/translation": ^4.5.6
+    "@lumino/coreutils": ^2.2.2
+    "@lumino/disposable": ^2.1.5
+    "@lumino/messaging": ^2.0.4
+    "@lumino/signaling": ^2.1.5
+    "@lumino/widgets": ^2.7.5
+  checksum: 07b562987673d932830a3ec233cb623773ce1277ca2bba908531da5f95dfc3d92a8998816e0dda89615c1bfe4819e8e3af2f02f4b8343ce40f1ea77f0220df98
   languageName: node
   linkType: hard
 

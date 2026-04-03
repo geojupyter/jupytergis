@@ -54,6 +54,7 @@
     "@jupyterlab/docregistry": "^4.3.0",
     "@jupyterlab/filebrowser": "^4.3.0",
     "@jupyterlab/launcher": "^4.3.0",
+    "@jupyterlab/logconsole": "^4.3.0",
     "@jupyterlab/observables": "^5.3.0",
     "@jupyterlab/services": "^7.3.0",
     "@jupyterlab/translation": "^4.3.0",

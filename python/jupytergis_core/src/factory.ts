@@ -13,6 +13,7 @@ import {
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -32,6 +33,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   state: IStateDB;
   annotationModel: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
 }
 
 export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
@@ -82,6 +84,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       state: this.options.state,
       formSchemaRegistry: this.options.formSchemaRegistry,
       annotationModel: this.options.annotationModel,
+      loggerRegistry: this.options.loggerRegistry,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,

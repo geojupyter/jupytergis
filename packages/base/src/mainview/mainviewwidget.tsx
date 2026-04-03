@@ -1,5 +1,6 @@
 import { IAnnotationModel, IJGISFormSchemaRegistry } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
@@ -11,6 +12,7 @@ export interface IOptions {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
 }
 
 export class JupyterGISMainViewPanel extends ReactWidget {
@@ -31,6 +33,7 @@ export class JupyterGISMainViewPanel extends ReactWidget {
         viewModel={this._options.mainViewModel}
         formSchemaRegistry={this._options.formSchemaRegistry}
         annotationModel={this._options.annotationModel}
+        loggerRegistry={this._options.loggerRegistry}
       />
     );
   }

@@ -61,6 +61,7 @@
     "@jupyterlab/docregistry": "^4.3.0",
     "@jupyterlab/filebrowser": "^4.3.0",
     "@jupyterlab/launcher": "^4.3.0",
+    "@jupyterlab/logconsole": "^4.3.0",
     "@jupyterlab/mainmenu": "^4.3.0",
     "@jupyterlab/services": "^7.3.0",
     "@jupyterlab/translation": "^4.3.0",
@@ -115,6 +116,10 @@
         "bundled": true
       },
       "@jupyter/docprovider": {
+        "singleton": true,
+        "bundled": false
+      },
+      "@jupyterlab/logconsole": {
         "singleton": true,
         "bundled": false
       }
