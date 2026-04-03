@@ -116,7 +116,7 @@ import AnnotationFloater from '@/src/features/annotations/components/AnnotationF
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
-import StatusBar from '@/src/statusbar/StatusBar';
+import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
