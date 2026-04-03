@@ -13,6 +13,7 @@ import {
   ColorRampName,
   IColorMap,
   useColorMapList,
+  COLOR_RAMP_DEFAULTS,
 } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
@@ -54,7 +55,14 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
 
   useColorMapList(setColorMaps);
 
-  const continuousMaps = colorMaps.filter(m => m.type === 'continuous');
+  // Filter: only continuous colormaps with class requirement <= 9 nshades
+  const continuousMaps = colorMaps.filter(m => {
+    if (m.type !== 'continuous') {
+      return false;
+    }
+    const minShades = COLOR_RAMP_DEFAULTS[m.name];
+    return !minShades || minShades <= 9;
+  });
 
   useEffect(() => {
     populateOptions();
