@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/schema",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "A JupyterGIS schema package.",
   "keywords": [
     "jupytergis"
@@ -39,6 +39,7 @@
     "clean:all": "jlpm run clean:lib",
     "watch": "tsc -w"
   },
+  "packageManager": "yarn@3.5.0",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0",

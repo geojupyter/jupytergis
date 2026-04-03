@@ -7,6 +7,7 @@ import {
   colorToRgba,
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
+  getColorMapList,
   isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
@@ -155,10 +156,15 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const stops = Array.from(
       selectableAttributesAndValues[selectedAttribute],
     ).sort((a, b) => a - b);
+    const colorRamp = getColorMapList().find(c => c.name === selectedRamp);
+
+    if (!colorRamp) {
+      return;
+    }
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
-      selectedRamp,
+      colorRamp,
       stops.length,
       reverseRamp,
     );

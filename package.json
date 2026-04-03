@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-root",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "private": true,
   "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {
@@ -51,6 +51,7 @@
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
     "build:lab": "lerna run"
   },
+  "packageManager": "yarn@3.5.0",
   "resolutions": {
     "@jupyterlab/apputils": "^4.0.0",
     "@lumino/coreutils": "^2.0.0",
