@@ -174,10 +174,17 @@ export const getColorMapList = (): IColorMap[] => {
 /**
  * Hook that loads and sets color maps.
  */
-export const useColorMapList = (setColorMaps: (maps: IColorMap[]) => void) => {
+export const useColorMapList = (
+  setColorMaps: (maps: IColorMap[]) => void,
+  excludeCategorical = false,
+) => {
   useEffect(() => {
-    setColorMaps(getColorMapList());
-  }, [setColorMaps]);
+    const maps = getColorMapList();
+    const filtered = excludeCategorical
+      ? maps.filter(m => m.type === 'continuous')
+      : maps;
+    setColorMaps(filtered);
+  }, [setColorMaps, excludeCategorical]);
 };
 
 /**

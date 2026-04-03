@@ -9,7 +9,7 @@ import {
   VectorSymbologyParams,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { ColorRampName, getColorMapList } from '../../colorRampUtils';
+import { ColorRampName } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
@@ -66,21 +66,11 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   };
 
   const handleOk = () => {
-    const colorRamp = getColorMapList().find(
-      ramp => ramp.name === selectedRampRef.current,
-    );
-
-    let colorMap: string[] = [];
-
-    if (colorRamp?.type === 'categorical') {
-      colorMap = [...colorRamp.colors];
-    } else {
-      colorMap = colormap({
-        colormap: selectedRampRef.current,
-        nshades: 9,
-        format: 'hex',
-      });
-    }
+    let colorMap = colormap({
+      colormap: selectedRampRef.current,
+      nshades: 9,
+      format: 'hex',
+    });
 
     if (reverseRampRef.current) {
       colorMap = [...colorMap].reverse();
@@ -121,6 +111,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
           setSelected={setSelectedRamp}
           reverse={reverseRamp}
           setReverse={setReverseRamp}
+          excludeCategorical={true}
         />
       </div>
       <div className="jp-gis-symbology-row">

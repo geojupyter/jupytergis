@@ -27,6 +27,7 @@ interface IColorRampSelectorProps {
   setSelected: (value: ColorRampName) => void;
   reverse: boolean;
   setReverse: React.Dispatch<React.SetStateAction<boolean>>;
+  excludeCategorical?: boolean;
 }
 
 const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
@@ -34,6 +35,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   setSelected,
   reverse,
   setReverse,
+  excludeCategorical = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -41,7 +43,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   const canvasWidth = 512;
   const canvasHeight = 30;
 
-  useColorMapList(setColorMaps);
+  useColorMapList(setColorMaps, excludeCategorical);
 
   useEffect(() => {
     if (colorMaps.length > 0) {
