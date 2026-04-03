@@ -10,7 +10,11 @@ import React, { useMemo } from 'react';
 import { deepCopy } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
 import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
+import {
+  applyProxyFieldVisibility,
+  processBaseSchema,
+  removeFormEntry,
+} from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 
 export interface ISourceFormProps extends IBaseFormProps {
@@ -75,6 +79,8 @@ export function SourcePropertiesForm(
       formContext,
       removeFormEntry,
     );
+
+    applyProxyFieldVisibility(formData, dataCopy, schema, builtUiSchema);
 
     return builtUiSchema;
   }, [schema, formData, formContext]);

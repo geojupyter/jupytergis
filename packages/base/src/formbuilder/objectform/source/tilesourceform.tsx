@@ -4,7 +4,11 @@ import React, { useMemo } from 'react';
 
 import { deepCopy } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
+import {
+  applyProxyFieldVisibility,
+  processBaseSchema,
+  removeFormEntry,
+} from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ISourceFormProps } from './sourceform';
 
@@ -72,6 +76,8 @@ export function TileSourcePropertiesForm(
       formContext,
       removeFormEntry,
     );
+
+    applyProxyFieldVisibility(formData, dataCopy, schema, builtUiSchema);
 
     if (schema.properties && formData?.url) {
       const urlParams = getUrlParameters(formData.url);

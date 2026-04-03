@@ -29,6 +29,20 @@ export function removeFormEntry(
 }
 
 /**
+ * Remove httpHeaders from the form entirely unless useProxy is enabled.
+ */
+export function applyProxyFieldVisibility(
+  formData: IDict | undefined,
+  data: IDict | undefined,
+  schema: RJSFSchema,
+  uiSchema: UiSchema,
+): void {
+  if (!formData?.useProxy) {
+    removeFormEntry('httpHeaders', data, schema, uiSchema);
+  }
+}
+
+/**
  * Apply base processSchema: array options, opacity field, readOnly handling.
  * Mutates schema, uiSchema, and optionally data (for readOnly removal in update).
  */

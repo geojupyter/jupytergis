@@ -5,6 +5,7 @@ import React, { ReactElement, useEffect, useMemo, useState } from 'react';
 import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
 import { WmsTileSourceUrlInput } from '@/src/formbuilder/objectform/components/WmsTileSourceUrlInput';
 import {
+  applyProxyFieldVisibility,
   processBaseSchema,
   removeFormEntry,
 } from '@/src/formbuilder/objectform/schemaUtils';
@@ -99,6 +100,8 @@ export function WmsTileSourceForm(
       formContext,
       removeFormEntry,
     );
+
+    applyProxyFieldVisibility(formData, dataCopy, schema, builtUiSchema);
 
     const layerNames = wmsAvailableLayers
       .map(layer => layer.name)

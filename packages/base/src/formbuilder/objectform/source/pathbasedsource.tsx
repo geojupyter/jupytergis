@@ -6,7 +6,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { deepCopy, loadFile } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
 import { FileSelectorWidget } from '../fileselectorwidget';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
+import {
+  applyProxyFieldVisibility,
+  processBaseSchema,
+  removeFormEntry,
+} from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ISourceFormProps } from './sourceform';
 
@@ -102,6 +106,8 @@ export function PathBasedSourcePropertiesForm(
       formContext,
       removeFormEntry,
     );
+
+    applyProxyFieldVisibility(formData, dataCopy, schema, builtUiSchema);
 
     const docManager = formSchemaRegistry?.getDocManager();
 
