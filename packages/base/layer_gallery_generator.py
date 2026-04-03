@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 import json
 from io import BytesIO
+from pathlib import Path
 import os
 import subprocess
 
@@ -11,15 +12,17 @@ from xyzservices import providers, TileProvider
 import string
 from requests.exceptions import RequestException
 
-with open("layer_gallery/thumbnail_config.json", "r", encoding="utf-8") as f:
-    provider_config = json.load(f)
 
-THUMBNAILS_LOCATION = "layer_gallery"
+THIS_DIR = Path(__file__).parent.resolve()
+THUMBNAILS_LOCATION = THIS_DIR / "layer_gallery"
+
+with open(THUMBNAILS_LOCATION / "thumbnail_config.json", "r", encoding="utf-8") as f:
+    THUMBNAILS_CONFIG = json.load(f)
 
 
 def snake_to_camel(s):
     """
-    Convect snake case strings into camel case ones
+    Convert snake case strings into camel case ones
     """
     parts = s.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
@@ -27,7 +30,7 @@ def snake_to_camel(s):
 
 def dict_keys_to_camel(obj):
     """
-    Convect keys of a dict from snake case to camel case
+    Convert keys of a dict from snake case to camel case
     """
     if isinstance(obj, dict):
         return {snake_to_camel(k): dict_keys_to_camel(v) for k, v in obj.items()}
@@ -111,7 +114,6 @@ def create_thumbnail(
     lat,
     lng,
     zoom,
-    thumbnail_path,
     tile_size=256,
     thumbnail_size=(512, 512),
     **url_parameters,
@@ -159,20 +161,21 @@ yesterday = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 def download_thumbnail(url_template, name, position, tile_size, **url_parameters):
-    file_path = f"{THUMBNAILS_LOCATION}/{name}.png"
-    if os.path.exists(file_path):
-        return file_path
+    file_path = THUMBNAILS_LOCATION / f"{name}.png"
+    relative_fp = str(file_path.relative_to(THIS_DIR))
+    if file_path.is_file():
+        return relative_fp
     thumbnail = create_thumbnail(
         url_template,
         position["lat"],
         position["lng"],
         position["zoom"],
-        file_path,
         tile_size,
         **url_parameters,
     )
     thumbnail.save(file_path)
-    return file_path
+
+    return relative_fp
 
 
 # Create thumbnail dir if needed
@@ -187,22 +190,32 @@ custom_providers = providers.copy()
 custom_providers["MacroStrat"] = {
     "CartoRaster": TileProvider(
         name="MacroStrat.CartoRaster",
-        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        url="https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.png",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
         max_zoom=18,
     ),
     "CartoVector": TileProvider(
         name="MacroStrat.CartoVector",
-        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
+        url="https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC‑BY 4.0)",
         max_zoom=18,
     ),
 }
+# Not yet present in xyzproviders, but will be eventually.
+# See: https://github.com/geopandas/xyzservices/issues/200
+# TODO: Remove this once issue is resolved.
+custom_providers["Esri"]["WorldDarkGrayCanvas"] = TileProvider(
+    name="Esri.WorldDarkGrayCanvas",
+    url="https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+    variant="Canvas/World_Dark_Gray_Base",
+    attribution="Tiles (C) Esri -- Esri, DeLorme, NAVTEQ",
+    max_zoom=16,
+)
 
 # Fetch thumbnails and populate the dictionary
-for provider_key, provider_value in provider_config.items():
-    xyzprovider = custom_providers[provider_key]
-    config_is_flat = "layerType" in provider_value
+for provider_id, layers in THUMBNAILS_CONFIG.items():
+    xyzprovider = custom_providers[provider_id]
+    config_is_flat = "layerType" in layers
     xyz_is_flat = "url" in xyzprovider
 
     if config_is_flat and xyz_is_flat:
@@ -211,23 +224,23 @@ for provider_key, provider_value in provider_config.items():
         url_template = tile_provider["url"]
         url_parameters = build_url_parameters(tile_provider)
 
-        thumbnail_config = provider_value["thumbnail"]
+        thumbnail_config = layers["thumbnail"]
         position = thumbnail_config["Special Rules"].get(
-            provider_key, thumbnail_config["Default"]
+            provider_id, thumbnail_config["Default"]
         )
         tile_size = thumbnail_config.get("TileSize", 256)
         file_path = download_thumbnail(
-            url_template, provider_key, position, tile_size, **url_parameters
+            url_template, provider_id, position, tile_size, **url_parameters
         )
-        if provider_value["layerType"] == "VectorTileLayer":
+        if layers["layerType"] == "VectorTileLayer":
             layerParameters = {"opacity": 1, "symbologyState": {}}
         else:
             layerParameters = {"opacity": 1}
-        provider_gallery[provider_key] = {
+        provider_gallery[provider_id] = {
             "thumbnailPath": file_path,
-            "name": provider_key,
-            "layerType": provider_value["layerType"],
-            "sourceType": provider_value["sourceType"],
+            "name": provider_id,
+            "layerType": layers["layerType"],
+            "sourceType": layers["sourceType"],
             "sourceParameters": {
                 "url": url_template,
                 "attribution": xyzprovider.get("attribution"),
@@ -245,7 +258,7 @@ for provider_key, provider_value in provider_config.items():
             url_template = tile_provider["url"]
             url_parameters = build_url_parameters(tile_provider)
 
-            thumbnail_config = provider_value["thumbnail"]
+            thumbnail_config = layers["thumbnail"]
             position = thumbnail_config["Special Rules"].get(
                 map_name, thumbnail_config["Default"]
             )
@@ -257,16 +270,16 @@ for provider_key, provider_value in provider_config.items():
                 url_template, name, position, tile_size, **url_parameters
             )
 
-            if provider_value["layerType"] == "VectorTileLayer":
+            if layers["layerType"] == "VectorTileLayer":
                 layerParameters = {"opacity": 1, "symbologyState": {}}
             else:
                 layerParameters = {"opacity": 1}
 
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
-                "name": provider_key + "." + map_name,
-                "layerType": provider_value["layerType"],
-                "sourceType": provider_value["sourceType"],
+                "name": provider_id + "." + map_name,
+                "layerType": layers["layerType"],
+                "sourceType": layers["sourceType"],
                 "sourceParameters": {
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
@@ -278,11 +291,11 @@ for provider_key, provider_value in provider_config.items():
                 "description": tile_provider.get("attribution"),
             }
 
-        provider_gallery[provider_key] = providers_maps
+        provider_gallery[provider_id] = providers_maps
 
     elif not config_is_flat and not xyz_is_flat:
         providers_maps = {}
-        for map_name, map_config in provider_value.items():
+        for map_name, map_config in layers.items():
             tile_provider = xyzprovider[map_name]
             url_template = tile_provider["url"]
             url_parameters = build_url_parameters(tile_provider)
@@ -306,7 +319,7 @@ for provider_key, provider_value in provider_config.items():
 
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
-                "name": provider_key + "." + map_name,
+                "name": provider_id + "." + map_name,
                 "layerType": map_config["layerType"],
                 "sourceType": map_config["sourceType"],
                 "sourceParameters": {
@@ -320,10 +333,10 @@ for provider_key, provider_value in provider_config.items():
                 "description": tile_provider.get("attribution"),
             }
 
-        provider_gallery[provider_key] = providers_maps
+        provider_gallery[provider_id] = providers_maps
 
     else:
-        raise ValueError(f"Inconsistent config for provider '{provider_key}'")
+        raise ValueError(f"Inconsistent config for provider '{provider_id}'")
 
 """
 # compress each images of THUMBNAILS_LOCATION
@@ -346,5 +359,5 @@ cmd = (
 subprocess.run(["bash", "-lc", cmd], check=True)
 """
 
-with open(f"layer_gallery.json", "w") as f:
-    json.dump(provider_gallery, f)
+with open(THIS_DIR / f"layer_gallery.json", "w") as f:
+    json.dump(provider_gallery, f, indent=2)
