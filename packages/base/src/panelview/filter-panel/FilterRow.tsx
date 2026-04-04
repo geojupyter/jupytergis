@@ -71,7 +71,7 @@ const FilterRow: React.FC<{
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const newFilters = [...filterRows];
-    newFilters[index].operator = event.target.value;
+    newFilters[index].operator = event.target.value as IJGISFilterItem['operator'];
     setFilterRows(newFilters);
   };
 
