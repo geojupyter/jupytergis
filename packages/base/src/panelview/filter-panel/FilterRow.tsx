@@ -1,20 +1,21 @@
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IJGISFilterItem } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
 const FilterRow: React.FC<{
   index: number;
   features: Record<string, Set<string | number>>;
-  filterRows: any;
-  setFilterRows: any;
+  filterRows: IJGISFilterItem[];
+  setFilterRows: React.Dispatch<React.SetStateAction<IJGISFilterItem[]>>;
   deleteRow: () => void;
 }> = ({ index, features, filterRows, setFilterRows, deleteRow }) => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
-  const [sortedFeatures, setSortedFeatures] = useState<{ [key: string]: any }>(
-    {},
-  );
+  const [sortedFeatures, setSortedFeatures] = useState<
+    Record<string, (string | number)[]>
+  >({});
   const [selectedFeature, setSelectedFeature] = useState(
     filterRows[index].feature || Object.keys(features)[0],
   );
@@ -26,7 +27,7 @@ const FilterRow: React.FC<{
 
   useEffect(() => {
     const sortedKeys = Object.keys(features).sort();
-    const sortedResult: { [key: string]: any } = {};
+    const sortedResult: Record<string, (string | number)[]> = {};
 
     for (const key of sortedKeys) {
       // Convert each Set to a sorted array
