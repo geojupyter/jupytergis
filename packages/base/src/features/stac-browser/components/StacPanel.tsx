@@ -1,13 +1,6 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/src/shared/components/Tabs';
 import StacFilterExtensionPanel from '@/src/features/stac-browser/components/filter-extension/StacFilterExtensionPanel';
 import StacGeodesFilterPanel from '@/src/features/stac-browser/components/geodes/StacGeodesFilterPanel';
 import StacPanelResults from '@/src/features/stac-browser/components/shared/StacPanelResults';
@@ -15,6 +8,13 @@ import {
   StacResultsProvider,
   useStacResultsContext,
 } from '@/src/features/stac-browser/context/StacResultsContext';
+import { Select, type ISelectItem } from '@/src/shared/components/Select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/src/shared/components/Tabs';
 
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
 const COPERNICUS_URL = 'https://stac.dataspace.copernicus.eu/v1/';

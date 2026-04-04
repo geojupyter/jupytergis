@@ -13,13 +13,13 @@ import Draggable from 'react-draggable';
 
 import { CommandIDs } from '../constants';
 import { LayersBodyComponent } from './components/layers';
+import StacPanel from '../features/stac-browser/components/StacPanel';
 import {
   PanelTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StacPanel from '../features/stac-browser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;

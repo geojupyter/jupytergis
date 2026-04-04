@@ -2,7 +2,6 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacSearch } from '@/src/features/stac-browser/hooks/useStacSearch';
 import {
@@ -15,6 +14,7 @@ import {
   IStacQueryables,
   Operator,
 } from '@/src/features/stac-browser/types/types';
+import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
 

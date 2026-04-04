@@ -583,7 +583,7 @@ async function loadGeoPackageRasterFile(
     try {
       let bytes: Uint8Array;
       if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
-        bytes = await loadGkpgFromUrl(filepath, model!);
+        bytes = await loadGkpgFromUrl(filepath, model);
       } else {
         const arrayBuffer = await stringToArrayBuffer(file_content as string);
         bytes = new Uint8Array(arrayBuffer);

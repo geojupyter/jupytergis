@@ -2,7 +2,6 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { startOfYesterday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
-import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { products } from '@/src/features/stac-browser/constants';
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacSearch } from '@/src/features/stac-browser/hooks/useStacSearch';
@@ -11,6 +10,7 @@ import {
   StacFilterSetters,
   StacFilterStateStateDb,
 } from '@/src/features/stac-browser/types/types';
+import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { GlobalStateDbManager } from '@/src/store';
 
 interface IUseGeodesSearchProps {

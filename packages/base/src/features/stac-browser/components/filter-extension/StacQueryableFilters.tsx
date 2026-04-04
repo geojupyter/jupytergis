@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { RadioGroup, RadioGroupItem } from '@/src/shared/components/RadioGroup';
 import { QueryableComboBox } from '@/src/features/stac-browser/components/filter-extension/QueryableComboBox';
 import {
   FilterOperator,
@@ -8,6 +7,7 @@ import {
   IStacQueryables,
   UpdateSelectedQueryables,
 } from '@/src/features/stac-browser/types/types';
+import { RadioGroup, RadioGroupItem } from '@/src/shared/components/RadioGroup';
 
 interface IStacQueryableFilterListProps {
   queryableFields: IStacQueryables;
