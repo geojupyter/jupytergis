@@ -19,18 +19,18 @@ import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
 import { CommandIDs, icons } from '../constants';
+import { addLayerCreationCommands } from './operationCommands';
 import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
 import { LayerBrowserWidget } from '../dialogs/layerBrowserDialog';
 import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
 import { SymbologyWidget } from '../dialogs/symbology/symbologyDialog';
-import { targetWithCenterIcon } from '../icons';
-import keybindings from '../keybindings.json';
 import { getSingleSelectedLayer } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import { targetWithCenterIcon } from '../icons';
+import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
-import { addLayerCreationCommands } from './operationCommands';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { Button } from '@/src/shared/components/Button';
 import {
   Pagination,
@@ -11,7 +12,6 @@ import {
   PaginationPrevious,
 } from '@/src/shared/components/Pagination';
 import { LoadingIcon } from '@/src/shared/components/loading';
-import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 
 function getPageItems(
   currentPage: number,

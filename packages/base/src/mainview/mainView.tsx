@@ -114,11 +114,10 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
-import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
+import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
-import StatusBar from '@/src/statusbar/StatusBar';
 import {
   debounce,
   INTERNAL_PROXY_BASE,
@@ -135,6 +134,7 @@ import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 import { SpectaPanel } from '../panelview/story-maps/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
+import StatusBar from '../workspace/statusbar/StatusBar';
 
 type OlLayerTypes =
   | TileLayer
