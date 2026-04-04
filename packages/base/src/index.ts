@@ -1,4 +1,4 @@
-export * from './annotations';
+export * from './features/annotations';
 export * from './commands/index';
 export * from './constants';
 export * from './dialogs/layerCreationFormDialog';
@@ -7,8 +7,8 @@ export * from './mainview';
 export * from './menus';
 export * from './panelview';
 export * from './store';
-export * from './stacBrowser';
-export * from './toolbar';
+export * from './features/stac-browser';
+export * from './workspace/toolbar';
 export * from './tools';
 export * from './types';
 export * from './widget';

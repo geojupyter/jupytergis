@@ -17,6 +17,8 @@ from .interfaces.project.sources.videoSource import IVideoSource  # noqa
 from .interfaces.project.sources.imageSource import IImageSource  # noqa
 from .interfaces.project.sources.geoTiffSource import IGeoTiffSource  # noqa
 from .interfaces.project.sources.rasterDemSource import IRasterDemSource  # noqa
+from .interfaces.project.sources.geoPackageVectorSource import IGeoPackageVectorSource  # noqa
+from .interfaces.project.sources.geoPackageRasterSource import IGeoPackageRasterSource  # noqa
 from .interfaces.project.sources.geoParquetSource import IGeoParquetSource  # noqa
 from .interfaces.project.sources.wmsTileSource import IWmsTileSource  # noqa
 

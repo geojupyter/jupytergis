@@ -17,7 +17,7 @@ import {
   IStacQueryBodyUnion,
   IStacSearchResult,
   SetResultsFunction,
-} from '@/src/stacBrowser/types/types';
+} from '@/src/features/stac-browser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
 

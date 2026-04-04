@@ -3,14 +3,14 @@ import { startOfYesterday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
-import { products } from '@/src/stacBrowser/constants';
-import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
-import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
+import { products } from '@/src/features/stac-browser/constants';
+import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
+import { useStacSearch } from '@/src/features/stac-browser/hooks/useStacSearch';
 import {
   StacFilterState,
   StacFilterSetters,
   StacFilterStateStateDb,
-} from '@/src/stacBrowser/types/types';
+} from '@/src/features/stac-browser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
 
 interface IUseGeodesSearchProps {

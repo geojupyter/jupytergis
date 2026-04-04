@@ -21,7 +21,7 @@ import {
   DatasetsType,
   PlatformsType,
   ProductsType,
-} from '@/src/stacBrowser/constants';
+} from '@/src/features/stac-browser/constants';
 
 // Discriminated union for props
 type StacFilterSectionProps =

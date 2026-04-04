@@ -19,7 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StacPanel from '../stacBrowser/components/StacPanel';
+import StacPanel from '../features/stac-browser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;

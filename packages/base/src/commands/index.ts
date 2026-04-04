@@ -25,8 +25,8 @@ import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
 import { SymbologyWidget } from '../dialogs/symbology/symbologyDialog';
 import { targetWithCenterIcon } from '../icons';
 import keybindings from '../keybindings.json';
-import { getSingleSelectedLayer } from '../processing/index';
-import { addProcessingCommands } from '../processing/processingCommands';
+import { getSingleSelectedLayer } from '../features/processing/index';
+import { addProcessingCommands } from '../features/processing/processingCommands';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
@@ -730,6 +730,46 @@ export function addCommands(
       layerType: 'VectorLayer',
     }),
     ...icons.get(CommandIDs.openNewShapefileDialog),
+  });
+  commands.addCommand(CommandIDs.newGeoPackageVectorEntry, {
+    label: trans.__('GeoPackage'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoPackage Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoPackage Vector Source' },
+      layerData: { name: 'Custom GeoPackage Vector Layer' },
+      sourceType: 'GeoPackageVectorSource',
+      layerType: 'VectorLayer',
+    }),
+    ...icons.get(CommandIDs.newGeoPackageVectorEntry),
+  });
+  commands.addCommand(CommandIDs.newGeoPackageRasterEntry, {
+    label: trans.__('GeoPackage'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoPackage Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoPackage Raster Source' },
+      layerData: { name: 'Custom GeoPackage Raster Layer' },
+      sourceType: 'GeoPackageRasterSource',
+      layerType: 'RasterLayer',
+    }),
+    ...icons.get(CommandIDs.newGeoPackageRasterEntry),
   });
 
   /**

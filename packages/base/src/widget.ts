@@ -17,7 +17,7 @@ import { MessageLoop } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
 
-import { ConsoleView } from './console';
+import { ConsoleView } from './features/console';
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
 

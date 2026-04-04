@@ -31,6 +31,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
     command: CommandIDs.openNewGeoParquetDialog,
   });
 
+  subMenu.addItem({
+    type: 'command',
+    command: CommandIDs.newGeoPackageVectorEntry,
+  });
+
   return subMenu;
 };
 
@@ -64,6 +69,11 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
   subMenu.addItem({
     type: 'command',
     command: CommandIDs.openNewGeoTiffDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
+    command: CommandIDs.newGeoPackageRasterEntry,
   });
 
   return subMenu;
