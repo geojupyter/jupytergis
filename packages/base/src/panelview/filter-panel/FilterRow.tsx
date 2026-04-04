@@ -27,7 +27,7 @@ const FilterRow: React.FC<{
 
   useEffect(() => {
     const sortedKeys = Object.keys(features).sort();
-    const sortedResult: Record<string, (string | number)[]> = {};
+    const sortedResult: typeof sortedFeatures = {};
 
     for (const key of sortedKeys) {
       // Convert each Set to a sorted array
