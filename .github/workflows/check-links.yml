@@ -1,4 +1,4 @@
-name: Check links
+name: Build
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   check_links:
-    name: Check links
+    name: Check Links
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
