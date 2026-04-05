@@ -41,7 +41,11 @@ jobs:
       - name: Build
         run: |
           # Avoid installing jupyterlab to run the build
-          alias jlpm=yarn
+          function jlpm() {
+            yarn "$@"
+          }
+          export -f jlpm
+
           yarn run build
 
       - name: Lint
