@@ -39,7 +39,10 @@ jobs:
       # the types for cross-package dependencies won't be available and we'll
       # see false positives and negatives in our lint jobs.
       - name: Build
-        run: yarn run build
+        run: |
+          # Avoid installing jupyterlab to run the build
+          alias jlpm=yarn
+          yarn run build
 
       - name: Lint
         id: eslint
