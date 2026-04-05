@@ -19,53 +19,41 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
-        with:
-          environment-name: gis
-          create-args: >-
-            python=3.12
-            jupyterlab=4
+      - name: Enable Corepack
+        run: corepack enable
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        shell: bash -l {0}
-        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
-
-      - name: Setup yarn cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
-        id: yarn-cache
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: yarn-
+          node-version: '20.x'
+          cache: 'yarn'
 
       - name: Install dependencies
         shell: bash -l {0}
         run: |
           set -e
 
-          jlpm install
-          jlpm info
+          yarn install
+          yarn info
 
       - name: Lint
         id: eslint
         continue-on-error: true
         shell: bash -l {0}
-        run: jlpm run eslint:check
+        run: yarn run eslint:check
 
       - name: Check formatting
         id: prettier
         continue-on-error: true
         shell: bash -l {0}
         run: |
-          jlpm run prettier:check
+          yarn run prettier:check
           rc=$?
 
           if [ $rc -ne 0 ]; then
             # Show what was changed -- useful if CI is reporting an error and
             # local prettier run is not (╯°□°)╯︵ ┻━┻
-            jlpm run prettier
+            yarn run prettier
             git diff
             git restore .
           fi
