@@ -1,4 +1,4 @@
-name: Build
+name: Lint JavaScript
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
 permissions: {}
 
 jobs:
-  check_linting:
-    name: Lint check
+  lint-js:
+    name: Lint JavaScript
     runs-on: ubuntu-latest
 
     steps:
