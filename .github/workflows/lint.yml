@@ -36,6 +36,12 @@ jobs:
           yarn install
           yarn info
 
+      # Unfortunately, we need to build to properly lint. If we don't build,
+      # the types for cross-package dependencies won't be available and we'll
+      # see false positives and negatives in our lint jobs.
+      - name: Build
+        run: yarn run build
+
       - name: Lint
         id: eslint
         continue-on-error: true
