@@ -295,33 +295,61 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       logger.level = 'debug';
 
       // eslint-disable-next-line no-console
-      this._origConsole = { log: console.log, warn: console.warn, error: console.error, info: console.info, debug: console.debug };
+      this._origConsole = {
+        log: console.log,
+        warn: console.warn,
+        error: console.error,
+        info: console.info,
+        debug: console.debug,
+      };
 
-      const fwd = (lvl: 'debug' | 'info' | 'warning' | 'error', ...args: any[]) => {
-        const text = args.map(a => {
-          if (typeof a === 'string') {
-            return a;
-          }
-          if (a instanceof Error) {
-            return `${a.message}\n${a.stack ?? ''}`;
-          }
-          try {
-            return JSON.stringify(a);
-          } catch {
-            return String(a);
-          }
-        }).join(' ');
-        this._loggerRegistry?.getLogger(this._model.filePath).log({ type: 'text', level: lvl, data: text });
+      const fwd = (
+        lvl: 'debug' | 'info' | 'warning' | 'error',
+        ...args: any[]
+      ) => {
+        const text = args
+          .map(a => {
+            if (typeof a === 'string') {
+              return a;
+            }
+            if (a instanceof Error) {
+              return `${a.message}\n${a.stack ?? ''}`;
+            }
+            try {
+              return JSON.stringify(a);
+            } catch {
+              return String(a);
+            }
+          })
+          .join(' ');
+        this._loggerRegistry
+          ?.getLogger(this._model.filePath)
+          .log({ type: 'text', level: lvl, data: text });
       };
 
       const orig = this._origConsole;
       // eslint-disable-next-line no-console
-      console.log   = (...a) => { orig.log(...a);   fwd('info',    ...a); };
+      console.log = (...a) => {
+        orig.log(...a);
+        fwd('info', ...a);
+      };
       // eslint-disable-next-line no-console
-      console.info  = (...a) => { orig.info(...a);  fwd('info',    ...a); };
-      console.debug = (...a) => { orig.debug(...a); fwd('debug',   ...a); };
-      console.warn  = (...a) => { orig.warn(...a);  fwd('warning', ...a); };
-      console.error = (...a) => { orig.error(...a); fwd('error',   ...a); };
+      console.info = (...a) => {
+        orig.info(...a);
+        fwd('info', ...a);
+      };
+      console.debug = (...a) => {
+        orig.debug(...a);
+        fwd('debug', ...a);
+      };
+      console.warn = (...a) => {
+        orig.warn(...a);
+        fwd('warning', ...a);
+      };
+      console.error = (...a) => {
+        orig.error(...a);
+        fwd('error', ...a);
+      };
     }
 
     window.addEventListener('resize', this._handleWindowResize);
@@ -354,11 +382,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   componentWillUnmount(): void {
     if (this._origConsole) {
       // eslint-disable-next-line no-console
-      console.log   = this._origConsole.log;
+      console.log = this._origConsole.log;
       // eslint-disable-next-line no-console
-      console.info  = this._origConsole.info;
+      console.info = this._origConsole.info;
       console.debug = this._origConsole.debug;
-      console.warn  = this._origConsole.warn;
+      console.warn = this._origConsole.warn;
       console.error = this._origConsole.error;
     }
 
@@ -1201,7 +1229,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // OL's own events are the only reliable interception point.
     newSource.on('tileloaderror', (evt: any) => {
       const url = evt?.tile?.getKey?.() ?? '';
-      this._log('error', `Tile load error for source "${id}"${url ? ': ' + url : ''}`);
+      this._log(
+        'error',
+        `Tile load error for source "${id}"${url ? ': ' + url : ''}`,
+      );
     });
     newSource.on('featuresloaderror', () => {
       this._log('error', `Features load error for source "${id}"`);
@@ -3263,7 +3294,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
-  private _origConsole?: Pick<Console, 'log' | 'info' | 'debug' | 'warn' | 'error'>;
+  private _origConsole?: Pick<
+    Console,
+    'log' | 'info' | 'debug' | 'warn' | 'error'
+  >;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
