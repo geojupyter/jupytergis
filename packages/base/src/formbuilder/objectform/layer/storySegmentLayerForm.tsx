@@ -110,8 +110,8 @@ export function StorySegmentLayerPropertiesForm(
     const layerOverrideItems = schema.properties?.layerOverride as
       | IDict
       | undefined;
-    const itemsProps = layerOverrideItems?.items ;
-    const itemsProperties = itemsProps?.properties ;
+    const itemsProps = layerOverrideItems?.items;
+    const itemsProperties = itemsProps?.properties;
 
     if (itemsProperties) {
       delete itemsProperties.color;
