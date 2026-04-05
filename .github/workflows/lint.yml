@@ -27,6 +27,19 @@ jobs:
             python=3.12
             jupyterlab=4
 
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        shell: bash -l {0}
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Setup yarn cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-
+
       - name: Install dependencies
         shell: bash -l {0}
         run: |
