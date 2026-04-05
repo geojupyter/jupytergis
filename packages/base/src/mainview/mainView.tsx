@@ -290,6 +290,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   async componentDidMount(): Promise<void> {
+    if (this._loggerRegistry) {
+      const logger = this._loggerRegistry.getLogger(this._model.filePath);
+      logger.level = 'debug';
+
+      // eslint-disable-next-line no-console
+      this._origConsole = { log: console.log, warn: console.warn, error: console.error, info: console.info, debug: console.debug };
+
+      const fwd = (lvl: 'debug' | 'info' | 'warning' | 'error', ...args: any[]) => {
+        const text = args.map(a => {
+          if (typeof a === 'string') {
+            return a;
+          }
+          if (a instanceof Error) {
+            return `${a.message}\n${a.stack ?? ''}`;
+          }
+          try {
+            return JSON.stringify(a);
+          } catch {
+            return String(a);
+          }
+        }).join(' ');
+        this._loggerRegistry?.getLogger(this._model.filePath).log({ type: 'text', level: lvl, data: text });
+      };
+
+      const orig = this._origConsole;
+      // eslint-disable-next-line no-console
+      console.log   = (...a) => { orig.log(...a);   fwd('info',    ...a); };
+      // eslint-disable-next-line no-console
+      console.info  = (...a) => { orig.info(...a);  fwd('info',    ...a); };
+      console.debug = (...a) => { orig.debug(...a); fwd('debug',   ...a); };
+      console.warn  = (...a) => { orig.warn(...a);  fwd('warning', ...a); };
+      console.error = (...a) => { orig.error(...a); fwd('error',   ...a); };
+    }
+
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
@@ -318,6 +352,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
+    if (this._origConsole) {
+      // eslint-disable-next-line no-console
+      console.log   = this._origConsole.log;
+      // eslint-disable-next-line no-console
+      console.info  = this._origConsole.info;
+      console.debug = this._origConsole.debug;
+      console.warn  = this._origConsole.warn;
+      console.error = this._origConsole.error;
+    }
+
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       delete window.jupytergisMaps[this._documentPath];
     }
@@ -1150,6 +1194,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     newSource.set('id', id);
+
+    // Forward OL tile/feature load errors to the JupyterLab log console.
+    // These errors (CORS failures, network errors, etc.) are written directly
+    // by the browser to DevTools and cannot be captured by console patching —
+    // OL's own events are the only reliable interception point.
+    newSource.on('tileloaderror', (evt: any) => {
+      const url = evt?.tile?.getKey?.() ?? '';
+      this._log('error', `Tile load error for source "${id}"${url ? ': ' + url : ''}`);
+    });
+    newSource.on('featuresloaderror', () => {
+      this._log('error', `Features load error for source "${id}"`);
+    });
+
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
   }
@@ -3206,19 +3263,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
+  private _origConsole?: Pick<Console, 'log' | 'info' | 'debug' | 'warn' | 'error'>;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
     message: string,
   ): void {
-    const logger = this._loggerRegistry?.getLogger(this._model.filePath);
-    if (logger) {
-      logger.log({ type: 'text', level, data: message });
-
-      level === 'error' || level === 'critical'
-        ? console.error(message)
-        : console.warn(message);
+    // Always mirror to the browser console regardless of whether the JupyterLab
+    // logger is available.
+    if (level === 'error' || level === 'critical') {
+      // eslint-disable-next-line no-console
+      console.error(message);
+    } else if (level === 'warning') {
+      // eslint-disable-next-line no-console
+      console.warn(message);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(message);
     }
+
+    // Forward to JupyterLab log console when available.
+    this._loggerRegistry
+      ?.getLogger(this._model.filePath)
+      .log({ type: 'text', level, data: message });
   }
 
   private _featurePropertyCache: Map<string | number, any> = new Map();
