@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: '*'
 
+permissions: {}
+
 jobs:
   test_build_without_lockfile:
     name: Test-build without lockfile
