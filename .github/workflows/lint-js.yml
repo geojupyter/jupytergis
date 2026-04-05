@@ -36,6 +36,10 @@ jobs:
             pip-${{ matrix.python-version }}-
             pip-
 
+      - name: Install Python build deps
+        shell: bash -l {0}
+        run: pip install -r requirements-build.txt
+
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         shell: bash -l {0}
@@ -43,16 +47,13 @@ jobs:
 
       - name: Setup yarn cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             yarn-
 
-      - name: Install Python build deps
-        shell: bash -l {0}
-        run: pip install -r requirements-build.txt
 
       - name: Install JS build deps
         run: |
