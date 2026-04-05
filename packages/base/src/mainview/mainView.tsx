@@ -294,11 +294,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const logger = this._loggerRegistry.getLogger(this._model.filePath);
       logger.level = 'debug';
 
-      // eslint-disable-next-line no-console
       this._origConsole = {
+        // eslint-disable-next-line no-console
         log: console.log,
         warn: console.warn,
         error: console.error,
+        // eslint-disable-next-line no-console
         info: console.info,
         debug: console.debug,
       };
