@@ -9,7 +9,12 @@ import {
   VectorSymbologyParams,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { ColorRampName } from '../../colorRampUtils';
+import {
+  ColorRampName,
+  IColorMap,
+  useColorMapList,
+  COLOR_RAMP_DEFAULTS,
+} from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
@@ -42,10 +47,23 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     blur: 15,
   });
   const [reverseRamp, setReverseRamp] = useState<boolean>(false);
+  const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
 
   const selectedRampRef = useLatest(selectedRamp);
   const heatmapOptionsRef = useLatest(heatmapOptions);
   const reverseRampRef = useLatest(reverseRamp);
+
+  useColorMapList(setColorMaps);
+
+  // Filter: only continuous colormaps with class requirement <= 9 nshades
+  // because heatmap does not support nshades > 9
+  const continuousMaps = colorMaps.filter(m => {
+    if (m.type !== 'continuous') {
+      return false;
+    }
+    const minShades = COLOR_RAMP_DEFAULTS[m.name];
+    return !minShades || minShades <= 9;
+  });
 
   useEffect(() => {
     populateOptions();
@@ -111,6 +129,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
           setSelected={setSelectedRamp}
           reverse={reverseRamp}
           setReverse={setReverseRamp}
+          colorMaps={continuousMaps}
         />
       </div>
       <div className="jp-gis-symbology-row">
