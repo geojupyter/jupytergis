@@ -45,13 +45,17 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
 
   useColorMapList(setColorMaps);
 
-  const displayColorRamps = propColorMaps ?? colorMaps;
+  useEffect(() => {
+    if (propColorMaps) {
+      setColorMaps(propColorMaps);
+    }
+  }, [propColorMaps]);
 
   useEffect(() => {
-    if (displayColorRamps.length > 0) {
+    if (colorMaps.length > 0) {
       updateCanvas(selectedRamp);
     }
-  }, [selectedRamp, displayColorRamps, reverse]);
+  }, [selectedRamp, colorMaps, reverse]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -80,7 +84,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     }
     canvas.style.visibility = 'hidden';
 
-    const ramp = displayColorRamps.find(c => c.name === rampName);
+    const ramp = colorMaps.find(c => c.name === rampName);
     if (!ramp) {
       return;
     }
@@ -124,7 +128,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       <div
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
-        {displayColorRamps.map((item, index) => (
+        {colorMaps.map((item, index) => (
           <ColorRampSelectorEntry
             index={index}
             colorMap={item}

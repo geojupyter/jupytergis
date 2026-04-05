@@ -56,6 +56,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   useColorMapList(setColorMaps);
 
   // Filter: only continuous colormaps with class requirement <= 9 nshades
+  // because heatmap does not support nshades > 9
   const continuousMaps = colorMaps.filter(m => {
     if (m.type !== 'continuous') {
       return false;
