@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: '*'
 
+permissions: {}
+
 jobs:
   unit-test-python:
     name: Run Python unit tests
