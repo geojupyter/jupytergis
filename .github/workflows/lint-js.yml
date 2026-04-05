@@ -1,4 +1,4 @@
-name: Lint
+name: Lint JavaScript
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
 permissions: {}
 
 jobs:
-  lint:
-    name: Lint
+  lint-js:
+    name: Lint JavaScript
     runs-on: ubuntu-latest
 
     steps:
@@ -19,58 +19,71 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
         with:
-          node-version: '20.x'
-          cache: 'yarn'
+          environment-name: gis
+          create-args: >-
+            pip
+            qgis
 
-      - name: Install dependencies
+      - name: Setup pip cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        shell: bash -l {0}
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Setup yarn cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Install Python build deps
+        shell: bash -l {0}
+        run: pip install -r requirements-build.txt
+
+      - name: Install JS build deps
         run: |
           set -e
 
-          yarn install
-          yarn info
+          jlpm install
+          jlpm info
 
       # Unfortunately, we need to build to properly lint. If we don't build,
       # the types for cross-package dependencies won't be available and we'll
       # see false positives and negatives in our lint jobs.
       - name: Build
-        run: |
-          # Avoid installing jupyterlab to run the build
-          # This is more complicated than desired because a simple bash alias
-          # or function won't get picked up by yarn when running the "build"
-          # script in package.json :(
-          mkdir -p $HOME/.local/bin
-          cat << 'EOF' > $HOME/.local/bin/jlpm
-          #!/bin/bash
-          exec yarn "$@"
-          EOF
-          chmod +x $HOME/.local/bin/jlpm
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-          yarn run build
+        run: jlpm run build
 
       - name: Lint
         id: eslint
         continue-on-error: true
-        run: yarn run eslint:check
+        run: jlpm run eslint:check
 
       - name: Check formatting
         id: prettier
         continue-on-error: true
         shell: bash -l {0}
         run: |
-          yarn run prettier:check
+          jlpm run prettier:check
           rc=$?
 
           if [ $rc -ne 0 ]; then
             # Show what was changed -- useful if CI is reporting an error and
             # local prettier run is not (╯°□°)╯︵ ┻━┻
-            yarn run prettier
+            jlpm run prettier
             git diff
             git restore .
           fi
