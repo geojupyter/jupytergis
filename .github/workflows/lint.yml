@@ -29,7 +29,11 @@ jobs:
 
       - name: Install dependencies
         shell: bash -l {0}
-        run: jlpm install
+        run: |
+          set -e
+
+          jlpm install
+          jlpm info
 
       - name: Lint
         id: eslint
