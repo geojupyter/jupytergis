@@ -22,6 +22,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
         with:
+          cache-environment: true
           environment-name: gis
           create-args: >-
             pip
