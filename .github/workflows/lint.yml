@@ -1,4 +1,4 @@
-name: Build
+name: Lint
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
 permissions: {}
 
 jobs:
-  check_linting:
-    name: Lint check
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
