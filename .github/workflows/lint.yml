@@ -41,10 +41,16 @@ jobs:
       - name: Build
         run: |
           # Avoid installing jupyterlab to run the build
-          function jlpm() {
-            yarn "$@"
-          }
-          export -f jlpm
+          # This is more complicated than desired because a simple bash alias
+          # or function won't get picked up by yarn when running the "build"
+          # script in package.json :(
+          mkdir -p $HOME/.local/bin
+          cat << 'EOF' > $HOME/.local/bin/jlpm
+          #!/bin/bash
+          exec yarn "$@"
+          EOF
+          chmod +x $HOME/.local/bin/jlpm
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
           yarn run build
 
