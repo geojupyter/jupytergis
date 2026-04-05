@@ -22,14 +22,53 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
         with:
+          cache-environment: true
           environment-name: gis
           create-args: >-
-            python=3.12
-            jupyterlab=4
+            pip
+            qgis
 
-      - name: Install dependencies
+      - name: Setup pip cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python build deps
         shell: bash -l {0}
-        run: jlpm install
+        run: pip install -r requirements-build.txt
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        shell: bash -l {0}
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Setup yarn cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Install JS build deps
+        shell: bash -l {0}
+        run: |
+          set -e
+
+          jlpm install
+          jlpm info
+
+      # Unfortunately, we need to build to properly lint. If we don't build,
+      # the types for cross-package dependencies won't be available and we'll
+      # see false positives and negatives in our lint jobs.
+      - name: Build
+        shell: bash -l {0}
+        run: jlpm run build
 
       - name: Lint
         id: eslint
