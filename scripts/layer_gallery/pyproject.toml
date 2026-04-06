@@ -10,7 +10,7 @@ dependencies = [
     "mercantile",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest",
 ]

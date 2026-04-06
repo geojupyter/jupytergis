@@ -188,7 +188,7 @@ dependencies = [
     { name = "xyzservices" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "pytest" },
 ]
@@ -198,11 +198,12 @@ requires-dist = [
     { name = "mercantile" },
     { name = "pillow" },
     { name = "pydantic", specifier = ">=2" },
-    { name = "pytest", marker = "extra == 'dev'" },
     { name = "requests" },
     { name = "xyzservices" },
 ]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest" }]
 
 [[package]]
 name = "mercantile"
