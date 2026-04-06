@@ -8,7 +8,7 @@ import {
   colorToRgba,
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
-  getColorMapList,
+  getColorMap,
   isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
@@ -366,7 +366,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       stops[stops.length - 1] = rangeMax;
     }
 
-    const colorRamp = getColorMapList().find(c => c.name === selectedRamp);
+    const colorRamp = getColorMap(selectedRamp);
     const getStopOutputPairs = (): IStopRow[] => {
       if (symbologyTab === 'radius') {
         return stops.map(v => ({ id: UUID.uuid4(), stop: v, output: v }));

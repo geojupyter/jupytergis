@@ -181,6 +181,19 @@ export const useColorMapList = (setColorMaps: (maps: IColorMap[]) => void) => {
 };
 
 /**
+ * Get a color map by name.
+ * Caches the full list on first call for efficiency, since generating color ramps is expensive.
+ */
+let colorMapCache: IColorMap[] | null = null;
+
+export const getColorMap = (name: ColorRampName): IColorMap | undefined => {
+  if (!colorMapCache) {
+    colorMapCache = getColorMapList();
+  }
+  return colorMapCache.find(c => c.name === name);
+};
+
+/**
  * Ensure we always get a valid hex string from either an RGB(A) array or string.
  */
 export const ensureHexColorCode = (color: number[] | string): string => {
