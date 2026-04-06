@@ -112,12 +112,12 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
-import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
+import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
-import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
+import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';

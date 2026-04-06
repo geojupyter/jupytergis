@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import {
   colorToRgba,
   DEFAULT_COLOR,
+  DEFAULT_STROKE_WIDTH,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
-import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';

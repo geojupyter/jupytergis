@@ -1,14 +1,14 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import { Input } from '@/src/shared/components/Input';
-import { Select } from '@/src/shared/components/Select';
 import StacQueryableFilters from '@/src/features/stac-browser/components/filter-extension/StacQueryableFilters';
 import StacSpatialExtent from '@/src/features/stac-browser/components/shared/StacSpatialExtent';
 import StacTemporalExtent from '@/src/features/stac-browser/components/shared/StacTemporalExtent';
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacFilterExtension } from '@/src/features/stac-browser/hooks/useStacFilterExtension';
 import { IStacCollection } from '@/src/features/stac-browser/types/types';
+import { Input } from '@/src/shared/components/Input';
+import { Select } from '@/src/shared/components/Select';
 
 interface IStacFilterExtensionPanelProps {
   model?: IJupyterGISModel;
