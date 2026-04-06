@@ -1,1 +1,3 @@
+jupytergis_lab/labextension
+jupytergis_lab/_version.py
 jupytergis_lab/notebook/objects/_schema
