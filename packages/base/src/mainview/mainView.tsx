@@ -57,7 +57,6 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
-import { ExpressionValue } from 'ol/expr/expression';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
@@ -112,12 +111,18 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
-import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
+import {
+  DEFAULT_FLAT_STYLE,
+  buildTransparentFallbackFilter,
+  buildVectorFlatStyle,
+} from '@/src/dialogs/symbology/styleBuilder';
+import { migrateLegacyLayerSymbology } from '@/src/dialogs/symbology/symbologyMigration';
+import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
-import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
+import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -1330,6 +1335,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'HeatmapLayer': {
+        // Migrate legacy `parameters.color` into `symbologyState.gradient`
+        // before instantiating the OL HeatmapLayer.
+        migrateLegacyLayerSymbology(layer);
         layerParameters = layer.parameters as IHeatmapLayer;
 
         newMapLayer = new HeatmapLayer({
@@ -1338,7 +1346,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.color,
+          gradient: layerParameters.symbologyState?.gradient,
         });
 
         break;
@@ -1476,27 +1484,32 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
-    const layerParams = layer.parameters;
+    const layerParams = layer.parameters as IVectorLayer | undefined;
     if (!layerParams) {
       return;
     }
 
-    const defaultStyle = {
-      'fill-color': 'rgba(255,255,255,0.4)',
-      'stroke-color': '#3399CC',
-      'stroke-width': 1.25,
-      'circle-radius': 5,
-      'circle-fill-color': 'rgba(255,255,255,0.4)',
-      'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC',
+    // Migrate any legacy `parameters.color` into `symbologyState` in place.
+    // After this call, the FlatStyle is derived purely from symbologyState.
+    migrateLegacyLayerSymbology(layer);
+
+    // Extract feature values for the symbology attribute field if the source
+    // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
+    // array – the comment on buildVectorFlatStyle says this is acceptable.
+    const field = layerParams.symbologyState?.value;
+    const source = this._sources[layerParams.source];
+    const featureValues: unknown[] =
+      field && source instanceof VectorSource
+        ? source.getFeatures().map(f => (f as Feature).get(field))
+        : [];
+
+    const layerStyle: Rule = {
+      style:
+        buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
+        DEFAULT_FLAT_STYLE,
     };
 
-    const defaultRules: Rule = {
-      style: defaultStyle,
-    };
-
-    const layerStyle = { ...defaultRules };
-
+    // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
       const buildCondition = (filter: IJGISFilterItem): any[] => {
         const base = [filter.operator, ['get', filter.feature]];
@@ -1505,102 +1518,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           : [...base, filter.value];
       };
 
-      let filterExpr: any[];
-
       // 'Any' and 'All' operators require more than one argument
       // So if there's only one filter, skip that part to avoid error
-      if (layer.filters.appliedFilters.length === 1) {
-        filterExpr = buildCondition(layer.filters.appliedFilters[0]);
-      } else {
-        // Arguments for "Any" and 'All' need to be wrapped in brackets
-        filterExpr = [
-          layer.filters.logicalOp,
-          ...layer.filters.appliedFilters.map(buildCondition),
-        ];
-      }
-
-      layerStyle.filter = filterExpr;
+      layerStyle.filter =
+        layer.filters.appliedFilters.length === 1
+          ? buildCondition(layer.filters.appliedFilters[0])
+          : [
+              layer.filters.logicalOp,
+              ...layer.filters.appliedFilters.map(buildCondition),
+            ];
     }
 
-    if (!layerParams.color) {
-      return [layerStyle];
-    }
-
-    const newStyle = { ...defaultStyle, ...layerParams.color };
-
-    layerStyle.style = newStyle;
-
-    // When fallbackColor[3] === 0, add an OL filter so features that would be
-    // drawn with a transparent color are excluded from rendering entirely.
-    // alpha === 0 is the contract: the default TRANSPARENT [0,0,0,0] triggers
-    // this automatically, and a future dedicated picker option can set it.
-    const symbologyState = layerParams.symbologyState;
-    if (
-      Array.isArray(symbologyState?.fallbackColor) &&
-      symbologyState.fallbackColor[3] === 0
-    ) {
-      let matchFilter: ExpressionValue[] | undefined;
-
-      if (symbologyState.renderType === 'Categorized') {
-        const fillExpr = layerParams.color['fill-color'];
-        if (
-          Array.isArray(fillExpr) &&
-          fillExpr[0] === 'case' &&
-          fillExpr.length >= 4
-        ) {
-          // Extract conditions from ['case', cond, val, cond, val, ..., fallback],
-          // skipping any whose matched output color is also fully transparent.
-          const conditions: ExpressionValue[][] = [];
-          for (let i = 1; i < fillExpr.length - 1; i += 2) {
-            const output = fillExpr[i + 1];
-            if (Array.isArray(output) && output[3] === 0) {
-              continue;
-            }
-            conditions.push(fillExpr[i] as ExpressionValue[]);
-          }
-          // If every stop is transparent, use a never-true filter to hide all.
-          matchFilter =
-            conditions.length === 0
-              ? ['==', 0, 1]
-              : conditions.length === 1
-                ? conditions[0]
-                : ['any', ...conditions];
-        }
-      } else if (symbologyState.renderType === 'Graduated') {
-        const fillExpr = layerParams.color['fill-color'];
-        // Graduated fill is ['case', ['has', field], interpolateExpr, fallback].
-        // Features missing the attribute fall through to the fallback, so filter
-        // them out with the same ['has', field] condition.
-        if (
-          Array.isArray(fillExpr) &&
-          fillExpr[0] === 'case' &&
-          Array.isArray(fillExpr[1]) &&
-          fillExpr[1][0] === 'has'
-        ) {
-          matchFilter = fillExpr[1];
-        }
-      } else if (symbologyState.renderType === 'Canonical') {
-        const fillExpr = layerParams.color['fill-color'];
-        // Canonical fill is ['coalesce', ['get', field], fallback].
-        // Features missing the attribute fall through to the fallback, so filter
-        // them out with ['has', field]. Note: features that have the field but
-        // with a non-color value also get the fallback — that gap is accepted.
-        if (
-          Array.isArray(fillExpr) &&
-          fillExpr[0] === 'coalesce' &&
-          Array.isArray(fillExpr[1]) &&
-          fillExpr[1][0] === 'get'
-        ) {
-          matchFilter = ['has', fillExpr[1][1]];
-        }
-      }
-
-      if (matchFilter) {
-        // Combine with any existing user-applied filter.
-        layerStyle.filter = layerStyle.filter
-          ? ['all', layerStyle.filter, matchFilter]
-          : matchFilter;
-      }
+    // When `fallbackColor` alpha is 0, exclude features that would render with
+    // the fallback color. This was previously done by introspecting the
+    // generated OL expressions; now the filter is derived directly from
+    // symbologyState (see styleBuilder.buildTransparentFallbackFilter).
+    const transparentFilter = buildTransparentFallbackFilter(
+      layerParams.symbologyState,
+      featureValues,
+    );
+    if (transparentFilter) {
+      layerStyle.filter = layerStyle.filter
+        ? ['all', layerStyle.filter, transparentFilter]
+        : transparentFilter;
     }
 
     return [layerStyle];
@@ -1716,6 +1656,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'HeatmapLayer': {
+        // Migrate legacy `parameters.color` into `symbologyState.gradient`
+        // before reading from symbologyState.
+        migrateLegacyLayerSymbology(layer);
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
@@ -1723,7 +1666,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         heatmap.setBlur(layerParams.blur ?? 15);
         heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
-          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00'],
+          layerParams.symbologyState?.gradient ?? [
+            '#00f',
+            '#0ff',
+            '#0f0',
+            '#ff0',
+            '#f00',
+          ],
         );
 
         this.handleTemporalController(id, layer);

@@ -58,8 +58,8 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       colorRamp = params.symbologyState.colorRamp as ColorRampName;
     }
 
-    if (typeof params.symbologyState?.reverse === 'boolean') {
-      setReverseRamp(params.symbologyState.reverse);
+    if (typeof params.symbologyState?.reverseRamp === 'boolean') {
+      setReverseRamp(params.symbologyState.reverseRamp);
     }
 
     setSelectedRamp(colorRamp);
@@ -76,11 +76,16 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       colorMap = [...colorMap].reverse();
     }
 
+    // The Heatmap dialog converts a vector layer to a heatmap layer via
+    // mutateLayerBeforeSave; the symbologyState it writes is structurally
+    // a heatmap state (renderType: 'Heatmap', with a gradient array) but
+    // needs to be accepted on VectorSymbologyParams here, hence the cast.
     const symbologyState = {
       renderType: 'Heatmap',
       colorRamp: selectedRampRef.current,
-      reverse: reverseRampRef.current,
-    };
+      reverseRamp: reverseRampRef.current,
+      gradient: colorMap,
+    } as unknown as VectorSymbologyParams['symbologyState'];
 
     saveSymbology({
       model,
@@ -89,12 +94,14 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       segmentId,
       payload: {
         symbologyState,
-        color: colorMap,
       },
       mutateLayerBeforeSave: targetLayer => {
         targetLayer.parameters.blur = heatmapOptionsRef.current.blur;
         targetLayer.parameters.radius = heatmapOptionsRef.current.radius;
         targetLayer.type = 'HeatmapLayer';
+        if (targetLayer.parameters?.color !== undefined) {
+          delete targetLayer.parameters.color;
+        }
       },
     });
   };

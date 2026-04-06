@@ -29,6 +29,7 @@
     },
     "color": {
       "type": "array",
+      "description": "DEPRECATED. Legacy gradient cache. New files should not set this; symbologyState.gradient is the source of truth. Retained only so that legacy .jGIS files can be migrated on load.",
       "items": {
         "type": "string"
       },
@@ -36,7 +37,7 @@
     },
     "symbologyState": {
       "type": "object",
-      "description": "The state of the symbology panel options",
+      "description": "The symbology configuration. Source of truth for how the heatmap is rendered.",
       "required": ["renderType"],
       "properties": {
         "renderType": {
@@ -46,6 +47,11 @@
         "colorRamp": {
           "type": "string",
           "default": "viridis"
+        },
+        "gradient": {
+          "type": "array",
+          "description": "Ordered list of CSS color strings used to build the heatmap gradient.",
+          "items": { "type": "string" }
         }
       },
       "default": {}

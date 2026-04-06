@@ -558,12 +558,14 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "color": gradient,
                 "opacity": opacity,
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
-                "symbologyState": {"renderType": "Heatmap"},
+                "symbologyState": {
+                    "renderType": "Heatmap",
+                    "gradient": gradient,
+                },
             },
         }
 

@@ -1,12 +1,10 @@
 import { IVectorLayer } from '@jupytergis/schema';
-import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
 import {
   colorToRgba,
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
-  isColor,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
@@ -48,25 +46,18 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
 
   useEffect(() => {
     const layerParams = layer.parameters as IVectorLayer;
-    const savedValue = layerParams.symbologyState?.value;
+    const state = layerParams.symbologyState;
+    const savedValue = state?.value;
     const value =
       savedValue && savedValue in selectableAttributesAndValues
         ? savedValue
         : Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedValue(value);
-    setFallbackColor(
-      colorToRgba(layerParams.symbologyState?.fallbackColor ?? TRANSPARENT),
-    );
-    setStrokeFollowsFill(layerParams.symbologyState?.strokeFollowsFill ?? true);
-
-    const savedStroke = layerParams.color?.['stroke-color'];
-    setStrokeColor(
-      isColor(savedStroke) ? colorToRgba(savedStroke) : DEFAULT_COLOR,
-    );
-    setStrokeWidth(
-      String(layerParams.color?.['stroke-width'] ?? DEFAULT_STROKE_WIDTH),
-    );
+    setFallbackColor(colorToRgba(state?.fallbackColor ?? TRANSPARENT));
+    setStrokeFollowsFill(state?.strokeFollowsFill ?? true);
+    setStrokeColor(colorToRgba(state?.strokeColor ?? DEFAULT_COLOR));
+    setStrokeWidth(String(state?.strokeWidth ?? DEFAULT_STROKE_WIDTH));
   }, [selectableAttributesAndValues]);
 
   const handleOk = () => {
@@ -74,39 +65,15 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
       return;
     }
 
-    // Use coalesce so that features missing the color property (e.g. boundary
-    // or line features in a multi-layer MVT) fall back to the user-chosen color
-    // instead of returning undefined, which would cause OL to throw at render time.
-    const colorExpr: ExpressionValue = [
-      'coalesce',
-      ['get', selectedValueRef.current],
-      fallbackColorRef.current,
-    ];
-    const newStyle = { ...layer.parameters.color };
-    newStyle['fill-color'] = colorExpr;
-    newStyle['circle-fill-color'] = colorExpr;
+    const strokeWidth = Math.max(0, parseFloat(strokeWidthRef.current));
 
-    if (strokeFollowsFillRef.current) {
-      newStyle['stroke-color'] = colorExpr;
-      newStyle['circle-stroke-color'] = colorExpr;
-    } else {
-      newStyle['stroke-color'] = strokeColorRef.current;
-      newStyle['circle-stroke-color'] = strokeColorRef.current;
-      newStyle['stroke-width'] = Math.max(
-        0,
-        parseFloat(strokeWidthRef.current),
-      );
-      newStyle['circle-stroke-width'] = Math.max(
-        0,
-        parseFloat(strokeWidthRef.current),
-      );
-    }
-
-    const symbologyState = {
+    const symbologyState: IVectorLayer['symbologyState'] = {
       renderType: 'Canonical',
       value: selectedValueRef.current,
       fallbackColor: fallbackColorRef.current,
       strokeFollowsFill: strokeFollowsFillRef.current,
+      strokeColor: strokeColorRef.current,
+      strokeWidth,
     };
 
     saveSymbology({
@@ -116,11 +83,13 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
       segmentId,
       payload: {
         symbologyState,
-        color: newStyle,
       },
       mutateLayerBeforeSave: targetLayer => {
         if (targetLayer.type === 'HeatmapLayer') {
           targetLayer.type = 'VectorLayer';
+        }
+        if (targetLayer.parameters?.color !== undefined) {
+          delete targetLayer.parameters.color;
         }
       },
     });

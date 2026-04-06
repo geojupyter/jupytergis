@@ -7,17 +7,27 @@ import {
 import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
 
-import { findExprNode, IColorMap } from './colorRampUtils';
+import { IColorMap } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
-const COLOR_EXPR_STOPS_START = 3;
-
-/** Payload when saving symbology; shape matches vector or WebGl layer params. */
+/**
+ * Payload when saving symbology. As of #698, only `symbologyState` is persisted
+ * for vector layers — the OpenLayers FlatStyle is derived at render time from
+ * `symbologyState` via `styleBuilder.buildVectorFlatStyle`. WebGl layers still
+ * accept an optional `color` because their `color` field is used for band-math
+ * expressions, not symbology duplication.
+ */
 export interface ISymbologyPayload {
   symbologyState:
     | IVectorLayer['symbologyState']
     | IWebGlLayer['symbologyState'];
-  color?: IVectorLayer['color'] | IWebGlLayer['color'];
+  /**
+   * Only used by WebGl band-math (`IWebGlLayer['color']`); never set for
+   * vector layers. Typed as `unknown` because the WebGl schema's color type
+   * is a nested numeric-array expression that doesn't round-trip cleanly
+   * through the JSON-schema generator.
+   */
+  color?: unknown;
 }
 
 export interface ISaveSymbologyOptions {
@@ -93,7 +103,7 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
 
     layer.parameters.symbologyState = payload.symbologyState;
     if (payload.color !== undefined) {
-      layer.parameters.color = payload.color;
+      (layer.parameters as { color?: unknown }).color = payload.color;
     }
 
     mutateLayerBeforeSave?.(layer);
@@ -149,98 +159,34 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
   model.sharedModel.updateLayer(segmentId, segment);
 }
 export namespace VectorUtils {
-  export const buildColorInfo = (layerParamers: VectorSymbologyParams) => {
-    // This it to parse a color object on the layer
-    if (!layerParamers?.color) {
-      return [];
-    }
-
-    const color = layerParamers.color;
-
-    // If color is a string we don't need to parse
-    if (typeof color === 'string') {
-      return [];
-    }
-
-    const keys = ['fill-color', 'circle-fill-color'];
-    const valueColorPairs: IStopRow[] = [];
-    const seenPairs = new Set<string>();
-
-    for (const key of keys) {
-      if (!color[key]) {
-        continue;
-      }
-
-      const interpolate = findExprNode(color[key], 'interpolate');
-      if (interpolate) {
-        // Graduated: value:color pairs starting at index 3
-        for (let i = COLOR_EXPR_STOPS_START; i < interpolate.length; i += 2) {
-          const pairKey = `${interpolate[i]}-${interpolate[i + 1]}`;
-          if (!seenPairs.has(pairKey)) {
-            valueColorPairs.push({
-              id: UUID.uuid4(),
-              stop: interpolate[i] as number,
-              output: interpolate[i + 1] as IStopRow['output'],
-            });
-            seenPairs.add(pairKey);
-          }
-        }
-      } else {
-        const caseExpr = findExprNode(color[key], 'case');
-        if (caseExpr) {
-          // Categorized: alternating [condition, color] pairs, last element is fallback
-          for (let i = 1; i < caseExpr.length - 1; i += 2) {
-            const condition = caseExpr[i] as unknown[];
-            const pairKey = `${condition[2]}-${caseExpr[i + 1]}`;
-            if (!seenPairs.has(pairKey)) {
-              valueColorPairs.push({
-                id: UUID.uuid4(),
-                stop: condition[2] as IStopRow['stop'],
-                output: caseExpr[i + 1] as IStopRow['output'],
-              });
-              seenPairs.add(pairKey);
-            }
-          }
-        }
-      }
-    }
-
-    return valueColorPairs;
+  /**
+   * Load color stop rows from `symbologyState.stops`. Each persisted stop
+   * is a plain `{value, color}`; dialogs expect `{id, stop, output}` for
+   * their UI state, so we rehydrate that shape here.
+   */
+  export const buildColorInfo = (params: VectorSymbologyParams): IStopRow[] => {
+    const stops = params?.symbologyState?.stops ?? [];
+    return stops.map(s => ({
+      id: UUID.uuid4(),
+      stop: s.value as IStopRow['stop'],
+      output: s.color as IStopRow['output'],
+    }));
   };
 
-  export const buildRadiusInfo = (layer: IJGISLayer) => {
-    if (!layer.parameters?.color) {
-      return [];
-    }
-
-    const color = layer.parameters.color;
-
-    // If color is a string we don't need to parse
-    if (typeof color === 'string') {
-      return [];
-    }
-
-    const stopOutputPairs: IStopRow[] = [];
-
-    const circleRadius = color['circle-radius'];
-
-    if (
-      !Array.isArray(circleRadius) ||
-      circleRadius.length <= COLOR_EXPR_STOPS_START
-    ) {
-      return [];
-    }
-
-    for (let i = COLOR_EXPR_STOPS_START; i < circleRadius.length; i += 2) {
-      const obj: IStopRow = {
+  /**
+   * Load radius stop rows from `symbologyState.radiusStops`.
+   */
+  export const buildRadiusInfo = (layer: IJGISLayer): IStopRow[] => {
+    const radiusStops =
+      (layer.parameters as IVectorLayer | undefined)?.symbologyState
+        ?.radiusStops ?? [];
+    return radiusStops
+      .filter(s => s.value !== undefined && s.radius !== undefined)
+      .map(s => ({
         id: UUID.uuid4(),
-        stop: circleRadius[i],
-        output: circleRadius[i + 1],
-      };
-      stopOutputPairs.push(obj);
-    }
-
-    return stopOutputPairs;
+        stop: s.value as number,
+        output: s.radius as number,
+      }));
   };
 }
 

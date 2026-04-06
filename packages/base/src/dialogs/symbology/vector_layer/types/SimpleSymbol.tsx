@@ -1,12 +1,12 @@
-import { FlatStyle } from 'ol/style/flat';
+import { IVectorLayer } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import {
   colorToRgba,
   DEFAULT_COLOR,
+  DEFAULT_STROKE_WIDTH,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
-import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
 import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
 import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
@@ -16,7 +16,7 @@ import {
   VectorSymbologyParams,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { IParsedStyle, parseColor } from '@/src/tools';
+import { IParsedStyle } from '@/src/tools';
 
 const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
@@ -53,20 +53,21 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     if (!params) {
       return;
     }
-    if (params.symbologyState?.renderType === 'Single Symbol' && params.color) {
-      const parsed = parseColor(params.color);
-      if (parsed) {
-        setStyle(parsed);
+    const state = params.symbologyState;
+    if (state?.renderType === 'Single Symbol') {
+      setStyle({
+        fillColor: '#3399CC',
+        strokeColor: '#3399CC',
+        joinStyle: state.joinStyle ?? 'round',
+        capStyle: state.capStyle ?? 'round',
+        strokeWidth: String(state.strokeWidth ?? DEFAULT_STROKE_WIDTH),
+        radius: state.radius ?? 5,
+      });
+      if (state.fillColor) {
+        setFillRgba(colorToRgba(state.fillColor));
       }
-      const fillColor =
-        params.color['circle-fill-color'] ?? params.color['fill-color'];
-      const strokeColor =
-        params.color['circle-stroke-color'] ?? params.color['stroke-color'];
-      if (fillColor !== undefined) {
-        setFillRgba(colorToRgba(fillColor));
-      }
-      if (strokeColor !== undefined) {
-        setStrokeRgba(colorToRgba(strokeColor));
+      if (state.strokeColor) {
+        setStrokeRgba(colorToRgba(state.strokeColor));
       }
     }
   }, [params]);
@@ -76,28 +77,20 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       return;
     }
 
-    const styleExpr: FlatStyle = {
-      'circle-radius': styleRef.current?.radius,
-      'circle-fill-color': fillRgbaRef.current as number[],
-      'circle-stroke-color': strokeRgbaRef.current as number[],
-      'circle-stroke-width': Math.max(
-        0,
-        parseFloat(styleRef.current?.strokeWidth ?? '0'),
-      ),
-      'circle-stroke-line-join': styleRef.current?.joinStyle,
-      'circle-stroke-line-cap': styleRef.current?.capStyle,
-      'fill-color': fillRgbaRef.current as number[],
-      'stroke-color': strokeRgbaRef.current as number[],
-      'stroke-width': Math.max(
-        0,
-        parseFloat(styleRef.current?.strokeWidth ?? '0'),
-      ),
-      'stroke-line-join': styleRef.current?.joinStyle,
-      'stroke-line-cap': styleRef.current?.capStyle,
-    };
+    const strokeWidth = Math.max(
+      0,
+      parseFloat(styleRef.current?.strokeWidth ?? '0'),
+    );
 
-    const symbologyState = {
+    type SymbologyState = NonNullable<IVectorLayer['symbologyState']>;
+    const symbologyState: SymbologyState = {
       renderType: 'Single Symbol',
+      fillColor: fillRgbaRef.current,
+      strokeColor: strokeRgbaRef.current,
+      strokeWidth,
+      radius: styleRef.current?.radius,
+      joinStyle: styleRef.current?.joinStyle as SymbologyState['joinStyle'],
+      capStyle: styleRef.current?.capStyle as SymbologyState['capStyle'],
     };
 
     saveSymbology({
@@ -107,11 +100,13 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       segmentId,
       payload: {
         symbologyState,
-        color: styleExpr,
       },
       mutateLayerBeforeSave: targetLayer => {
         if (targetLayer.type === 'HeatmapLayer') {
           targetLayer.type = 'VectorLayer';
+        }
+        if (targetLayer.parameters?.color !== undefined) {
+          delete targetLayer.parameters.color;
         }
       },
     });
