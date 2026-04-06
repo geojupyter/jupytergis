@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
 import {
   IQueryableFilter,
   IStacQueryableSchema,
   Operator,
 } from '@/src/features/stac-browser/types/types';
+import { Select, type ISelectItem } from '@/src/shared/components/Select';
 
 interface IOperatorOption {
   value: Operator;

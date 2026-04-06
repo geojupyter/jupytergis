@@ -10,11 +10,11 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { AnnotationsPanel } from '../features/annotations';
-import { IdentifyPanelComponent } from '../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
+import { AnnotationsPanel } from '../features/annotations';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
+import { IdentifyPanelComponent } from '../features/identify/IdentifyPanel';
 import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
 import {
   useStoryMap,

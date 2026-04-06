@@ -3,6 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ChevronRight } from 'lucide-react';
 import React, { useMemo } from 'react';
 
+import {
+  DatasetsType,
+  PlatformsType,
+  ProductsType,
+} from '@/src/features/stac-browser/constants';
 import Badge from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -17,11 +22,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
-import {
-  DatasetsType,
-  PlatformsType,
-  ProductsType,
-} from '@/src/features/stac-browser/constants';
 
 // Discriminated union for props
 type StacFilterSectionProps =

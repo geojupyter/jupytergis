@@ -6,9 +6,6 @@ import React, {
   useState,
 } from 'react';
 
-import { Combobox } from '@/src/shared/components/Combobox';
-import { Input } from '@/src/shared/components/Input';
-import { Select } from '@/src/shared/components/Select';
 import QueryableRow from '@/src/features/stac-browser/components/filter-extension/QueryableRow';
 import {
   IQueryableFilter,
@@ -17,6 +14,9 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/features/stac-browser/types/types';
+import { Combobox } from '@/src/shared/components/Combobox';
+import { Input } from '@/src/shared/components/Input';
+import { Select } from '@/src/shared/components/Select';
 import { debounce } from '@/src/tools';
 import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
