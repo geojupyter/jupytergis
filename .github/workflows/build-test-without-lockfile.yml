@@ -31,7 +31,7 @@ jobs:
         shell: bash -l {0}
         run: pip install -r requirements-build.txt
 
-      - name: Build with a fresh yarn
+      - name: Test build without lockfile
         shell: bash -l {0}
         run: |
           rm yarn.lock
