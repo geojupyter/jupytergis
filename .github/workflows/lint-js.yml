@@ -98,7 +98,6 @@ jobs:
         env:
           ESLINT_OUTCOME: ${{ steps.eslint.outcome }}
           PRETTIER_OUTCOME: ${{ steps.prettier.outcome }}
-        shell: bash -l {0}
         run: |
           failed=0
 
