@@ -27,6 +27,7 @@ interface IColorRampSelectorProps {
   setSelected: (value: ColorRampName) => void;
   reverse: boolean;
   setReverse: React.Dispatch<React.SetStateAction<boolean>>;
+  colorMaps?: IColorMap[];
 }
 
 const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
@@ -34,6 +35,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   setSelected,
   reverse,
   setReverse,
+  colorMaps: propColorMaps,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -42,6 +44,12 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   const canvasHeight = 30;
 
   useColorMapList(setColorMaps);
+
+  useEffect(() => {
+    if (propColorMaps) {
+      setColorMaps(propColorMaps);
+    }
+  }, [propColorMaps]);
 
   useEffect(() => {
     if (colorMaps.length > 0) {
