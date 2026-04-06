@@ -126,6 +126,7 @@ import {
   loadFile,
   throttle,
 } from '@/src/tools';
+import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';

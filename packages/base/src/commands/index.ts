@@ -18,6 +18,7 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
+import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { addLayerCreationCommands } from './operationCommands';
 import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
