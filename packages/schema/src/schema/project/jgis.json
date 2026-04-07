@@ -23,6 +23,9 @@
     "stories": {
       "$ref": "#/definitions/jGISStoryMap"
     },
+    "viewState": {
+      "$ref": "#/definitions/jGISViewState"
+    },
     "metadata": {
       "type": "object",
       "patternProperties": {
@@ -207,6 +210,28 @@
       "default": [],
       "items": {
         "$ref": "#/definitions/jGISLayerItem"
+      }
+    },
+    "jGISViewState": {
+      "title": "IJGISViewState",
+      "type": "object",
+      "default": {},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "extent": {
+            "type": "array",
+            "items": { "type": "number" }
+          },
+          "zoom": {
+            "type": "number"
+          },
+          "projection": {
+            "type": "string"
+          }
+        },
+        "required": ["extent"]
       }
     },
     "jGISOptions": {

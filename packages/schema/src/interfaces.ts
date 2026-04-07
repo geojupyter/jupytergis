@@ -198,11 +198,27 @@ export interface IJupyterGISDocChange extends DocumentChange {
   stateChange?: StateChange<any>[];
 }
 
+export interface IViewState {
+  [id: string]: {
+    extent: number[];
+    zoom: number;
+    projection?: string;
+    layerId?: string;
+    layerName?: string;
+  };
+}
+
+export interface IStorySegmentRef {
+  storySegmentId: string;
+  storyId: string;
+}
+
 export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
   geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
+  viewState?: IViewState;
   annotationModel?: IAnnotationModel;
   currentMode: Modes;
   themeChanged: Signal<
@@ -250,8 +266,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   settingsChanged: ISignal<IJupyterGISModel, string>;
   jgisSettings: IJupyterGISSettings;
   getContent(): IJGISContent;
+  getViewState(): IViewState;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
+  getExtent(id: string): number[] | undefined;
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
@@ -263,6 +281,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     groupName?: string,
     position?: number,
   ): void;
+  updateLayerViewState(id: string, view: IViewState[string]): void;
   removeLayer(id: string): void;
   removeSource(id: string): void;
   getOptions(): IJGISOptions;
@@ -315,11 +334,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getCurrentSegmentIndex(): number;
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
-  addStorySegment(): { storySegmentId: string; storyId: string } | null;
-  segmentAdded: ISignal<
-    IJupyterGISModel,
-    { storySegmentId: string; storyId: string }
-  >;
+  addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null;
+  createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
+  segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
 }
 

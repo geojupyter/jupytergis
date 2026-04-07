@@ -20,7 +20,10 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
-import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
+import {
+  IStorySegmentLayer,
+  LayerOverride,
+} from './_interface/project/layers/storySegmentLayer';
 import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -32,6 +35,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   ISelection,
+  IStorySegmentRef,
   IUserData,
   IViewPortState,
   JgisCoordinates,
@@ -40,7 +44,7 @@ import {
   SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
-import { Modes } from './types';
+import { IViewState, Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -78,6 +82,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
 
     this._jgisSettings = { ...DEFAULT_SETTINGS };
+
+    this._viewState = {};
 
     this.initSettings();
   }
@@ -377,6 +383,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
+  getViewState(): IViewState {
+    return this._viewState;
+  }
+
   /**
    * Getter for the contents manager.
    */
@@ -421,6 +431,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getLayer(id: string): IJGISLayer | undefined {
     return this.sharedModel.getLayer(id);
+  }
+
+  getExtent(id: string): number[] | undefined {
+    return this._viewState[id]?.extent;
   }
 
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined {
@@ -494,6 +508,19 @@ export class JupyterGISModel implements IJupyterGISModel {
       { [id]: { type: 'layer' } },
       this.getClientId().toString(),
     );
+  }
+
+  /**
+   * Update layer's extent and zoom in model's view state
+   */
+  updateLayerViewState(id: string, view: IViewState[string]): void {
+    const layer = this.getLayer(id);
+    this._viewState[id] = {
+      ...this._viewState[id],
+      ...view,
+      layerId: id,
+      layerName: layer?.name,
+    };
   }
 
   removeLayer(layer_id: string) {
@@ -658,8 +685,9 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(): { storySegmentId: string; storyId: string } | null {
-    const { zoom, extent } = this.getOptions();
+  addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null {
+    const extent = viewState?.extent;
+    const zoom = viewState?.zoom;
     const { storyId } = this.getSelectedStory();
 
     if (!zoom || !extent) {
@@ -677,7 +705,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layerModel: IJGISLayer = {
       type: 'StorySegmentLayer',
       visible: true,
-      name: 'Story Segment',
+      name: this._generateStorySegmentName(viewState),
       parameters: layerParams,
     };
 
@@ -720,10 +748,63 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  get segmentAdded(): ISignal<
-    this,
-    { storySegmentId: string; storyId: string }
-  > {
+  /**
+   * Generates a name for the next story segment based on the number of existing segments in the current story.
+   */
+  private _generateStorySegmentName(viewState?: IViewState[string]): string {
+    const { story } = this.getSelectedStory();
+    const count = story?.storySegments?.length ?? 0;
+    const basename = count === 0 ? 'Story Segment' : `Story Segment ${count}`;
+
+    return viewState?.layerName
+      ? `${viewState.layerName} - ${basename}`
+      : basename;
+  }
+
+  /**
+   * Adds a story segment from a layer
+   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
+   */
+  createStorySegmentFromLayer(layerId: string) {
+    const layer = this.getLayer(layerId);
+    if (!layer) {
+      return null;
+    }
+
+    const viewState = this.getViewState()[layerId];
+    if (!viewState) {
+      return null;
+    }
+
+    const segment = this.addStorySegment(viewState);
+    if (!segment) {
+      return null;
+    }
+
+    const segmentLayer = this.getLayer(segment.storySegmentId);
+    if (!segmentLayer) {
+      return null;
+    }
+
+    const segmentParams = segmentLayer.parameters as IStorySegmentLayer;
+
+    const layerParams = layer.parameters;
+
+    const override: LayerOverride[number] = {
+      targetLayer: layerId,
+      visible: layer.visible,
+      color: layerParams?.color,
+      opacity: layerParams?.opacity,
+      symbologyState: layerParams?.symbologyState,
+    };
+
+    segmentParams.layerOverride = [override];
+    segmentLayer.parameters = segmentParams;
+
+    return segment;
+  }
+
+  get segmentAdded(): ISignal<this, IStorySegmentRef> {
     return this._segmentAdded;
   }
 
@@ -1040,6 +1121,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _pathChanged: Signal<IJupyterGISModel, string>;
 
+  private _viewState: IViewState;
   private _disposed = new Signal<this, void>(this);
   private _contentChanged = new Signal<this, void>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
@@ -1053,10 +1135,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
 
-  private _segmentAdded = new Signal<
-    this,
-    { storySegmentId: string; storyId: string }
-  >(this);
+  private _segmentAdded = new Signal<this, IStorySegmentRef>(this);
 
   private _updateLayerSignal = new Signal<this, string>(this);
 

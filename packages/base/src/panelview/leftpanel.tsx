@@ -4,6 +4,7 @@ import {
   IJGISLayerTree,
   SelectionType,
   IJupyterGISSettings,
+  IStorySegmentRef,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -91,7 +92,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
     const onSegmentAdded = (
       _sender: IJupyterGISModel,
-      payload: { storySegmentId: string; storyId: string },
+      payload: IStorySegmentRef,
     ) => {
       props.model.syncSelected(
         { [payload.storySegmentId]: { type: 'layer' } },

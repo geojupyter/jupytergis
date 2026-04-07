@@ -37,6 +37,7 @@ import {
   IWmsTileSource,
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
+  IViewState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -58,7 +59,7 @@ import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { ExpressionValue } from 'ol/expr/expression';
-import { getCenter } from 'ol/extent';
+import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import {
@@ -95,6 +96,7 @@ import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
+  Source,
   TileWMS as TileWMSSource,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
@@ -1093,6 +1095,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     newSource.set('id', id);
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
+
+    this._trackSourceExtZoom(id, newSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -1382,6 +1386,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
+
+      this._trackLayerViewState(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1901,6 +1907,104 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
+   * Compute extent for layer or source
+   */
+  private _computeExtent(
+    layer?: Layer | StacLayer,
+    source?: any,
+  ): number[] | undefined {
+    try {
+      if (source instanceof VectorSource) {
+        const extent = source.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+
+      if (source instanceof TileSource || source instanceof VectorTileSource) {
+        const tileGrid = source.getTileGrid();
+        const extent = tileGrid?.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+
+      if (layer instanceof StacLayer) {
+        const extent = layer.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to compute extent:', error);
+    }
+
+    return undefined;
+  }
+
+  private _computeZoomFromExtent(extent: number[]): number | null {
+    if (!this._Map) {
+      return null;
+    }
+
+    const view = this._Map.getView();
+    const size = this._Map.getSize() ?? getSize(extent);
+
+    const resolution = view.getResolutionForExtent(extent, size);
+    const zoom = view.getZoomForResolution(resolution);
+
+    return zoom ?? view.getZoom() ?? 0;
+  }
+
+  /**
+   * Track layer's extent and zoom in model's view state
+   */
+  private _trackLayerViewState(layerId: string, olLayer: Layer): void {
+    const source = olLayer.getSource();
+    const sourceId = source?.get?.('id');
+
+    let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
+
+    if (!extent) {
+      extent = this._computeExtent(olLayer, source);
+    }
+
+    if (extent) {
+      const zoom = this._computeZoomFromExtent(extent);
+
+      if (zoom === null) {
+        return;
+      }
+
+      const view: IViewState[string] = { extent, zoom };
+      this._model.updateLayerViewState(layerId, view);
+    }
+  }
+
+  /**
+   * Track source's extent and zoom in model's view state
+   */
+  private _trackSourceExtZoom(sourceId: string, olSource: Source): void {
+    const extent = this._computeExtent(undefined, olSource);
+
+    if (extent) {
+      const projection = olSource?.getProjection?.()?.getCode?.();
+      const zoom = this._computeZoomFromExtent(extent);
+
+      if (zoom === null) {
+        return;
+      }
+
+      const view: IViewState[string] = {
+        extent,
+        zoom,
+        ...(projection && { projection }),
+      };
+      this._model.updateLayerViewState(sourceId, view);
+    }
+  }
+
+  /**
    * Wait for all layers to be loaded.
    */
   private _waitForReady(): Promise<void> {
@@ -2294,6 +2398,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
+
+        if (mapLayer) {
+          this._trackLayerViewState(id, mapLayer);
+        }
       } else {
         this.updateLayers(layerTree);
       }
@@ -2560,7 +2668,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     // The id is a layer
-    let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
     const jgisLayer = this._model.getLayer(id);
@@ -2625,22 +2732,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     }
 
-    if (source instanceof VectorSource) {
-      extent = source.getExtent();
-    }
-
-    if (source instanceof TileSource) {
-      // Tiled sources don't have getExtent() so we get it from the grid
-      const tileGrid = source.getTileGrid();
-      extent = tileGrid?.getExtent();
-    }
-
-    if (layer instanceof StacLayer) {
-      extent = layer.getExtent();
-    }
-
+    const extent = this._computeExtent(layer, source);
     if (!extent) {
-      console.warn('Layer has no extent.');
+      console.warn(`Layer ${id} has no extent.`);
       return;
     }
 
