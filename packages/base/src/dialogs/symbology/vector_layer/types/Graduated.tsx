@@ -7,7 +7,7 @@ import {
   colorToRgba,
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
-  getColorMapList,
+  getColorMap,
   RgbaColor,
 } from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampControls, {

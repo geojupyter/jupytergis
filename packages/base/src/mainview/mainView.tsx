@@ -58,7 +58,7 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
-import { getCenter } from 'ol/extent';
+import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import {
