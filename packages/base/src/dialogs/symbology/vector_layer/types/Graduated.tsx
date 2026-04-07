@@ -1,6 +1,6 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
 import {
@@ -24,7 +24,6 @@ import {
   saveSymbology,
   Utils,
   VectorSymbologyParams,
-  VectorUtils,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { useLatest } from '@/src/shared/hooks/useLatest';
@@ -76,8 +75,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const symbologyTabRef = useLatest(symbologyTab);
   const vminRef = useLatest(vmin);
   const vmaxRef = useLatest(vmax);
-  const colorStopRowsRef = useLatest(colorStopRows);
-  const radiusStopRowsRef = useLatest(radiusStopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
 
   const colorManualStyleRef = useLatest(colorManualStyle);
@@ -98,9 +95,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
-  useEffect(() => {
-    updateStopRowsBasedOnLayer();
-  }, []);
+  // Auto-classify on first load once selectedAttribute + vmin/vmax are ready.
+  const hasAutoClassified = useRef(false);
 
   useEffect(() => {
     const state = params.symbologyState;
@@ -152,30 +148,34 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     setVmax(String(Math.max(...values)));
   }, [selectedAttribute]);
 
-  const updateStopRowsBasedOnLayer = () => {
-    if (!layer) {
+  // Once selectedAttribute + vmin + vmax are populated, auto-classify using saved config.
+  useEffect(() => {
+    if (hasAutoClassified.current) {
       return;
     }
-
-    setColorStopRows(VectorUtils.buildColorInfo(params));
-    setRadiusStopRows(VectorUtils.buildRadiusInfo(layer));
-  };
+    if (!selectedAttribute || !vmin || !vmax) {
+      return;
+    }
+    if (!selectableAttributesAndValues[selectedAttribute]) {
+      return;
+    }
+    const state = params.symbologyState;
+    if (state?.renderType === 'Graduated') {
+      hasAutoClassified.current = true;
+      buildColorInfoFromClassification(
+        (state.mode ?? 'equal interval') as ClassificationMode,
+        state.nClasses ?? 9,
+        (state.colorRamp ?? 'viridis') as ColorRampName,
+        state.reverseRamp ?? false,
+      );
+    }
+  }, [selectedAttribute, vmin, vmax]);
 
   const handleOk = () => {
     const strokeWidth = Math.max(
       0,
       parseFloat(colorManualStyleRef.current.strokeWidth),
     );
-
-    // Convert UI stop rows to the persisted `{value, color}` / `{value, radius}` shape.
-    const stops = colorStopRowsRef.current.map(row => ({
-      value: row.stop,
-      color: row.output as [number, number, number, number],
-    }));
-    const radiusStops = radiusStopRowsRef.current.map(row => ({
-      value: row.stop as number,
-      radius: row.output as number,
-    }));
 
     const parsedVmin = parseFloat(vminRef.current);
     const parsedVmax = parseFloat(vmaxRef.current);
@@ -185,6 +185,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       symbologyTabRef.current === 'radius'
         ? ('radius' as const)
         : ('color' as const);
+    // Only persist the minimal config — stops are computed at runtime from
+    // nClasses + colorRamp + mode + feature values.
     const symbologyState: SymbologyState = {
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
@@ -198,8 +200,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       strokeColor: colorManualStyleRef.current.strokeColor,
       strokeWidth,
       radius: radiusManualStyleRef.current.radius,
-      ...(stops.length > 0 && { stops }),
-      ...(radiusStops.length > 0 && { radiusStops }),
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
     };
@@ -352,13 +352,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const state = { ...(layer.parameters.symbologyState ?? {}) };
 
     if (method === 'color') {
-      delete state.stops;
       setColorStopRows([]);
       setColorRampOptions(undefined);
     }
 
     if (method === 'radius') {
-      delete state.radiusStops;
       setRadiusStopRows([]);
     }
 

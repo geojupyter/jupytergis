@@ -1,11 +1,9 @@
 import { IJGISLayer, IHeatmapLayer, IVectorLayer } from '@jupytergis/schema';
 
-import { findExprNode, isColor, RgbaColor } from './colorRampUtils';
+import { isColor, RgbaColor } from './colorRampUtils';
 import { GeometryType } from './styleBuilder';
 
 type VectorSymbologyState = NonNullable<IVectorLayer['symbologyState']>;
-type StopRow = NonNullable<VectorSymbologyState['stops']>[number];
-type RadiusStopRow = NonNullable<VectorSymbologyState['radiusStops']>[number];
 
 /**
  * Migrate a layer in place if it still uses the legacy `parameters.color`
@@ -34,7 +32,7 @@ export function migrateLegacyLayerSymbology(
 
 function migrateVector(params: IVectorLayer): void {
   const legacyColor = params.color;
-  // Nothing to migrate, or already migrated (stops present).
+  // Nothing to migrate if legacy color is absent or not an object.
   if (
     !legacyColor ||
     typeof legacyColor !== 'object' ||
@@ -50,11 +48,9 @@ function migrateVector(params: IVectorLayer): void {
     params.symbologyState ??
     ({ renderType: 'Single Symbol' } as VectorSymbologyState);
 
-  // If stops is already populated, the layer is either new-format or was
-  // previously migrated. Drop the legacy cache and move on.
+  // If config fields are already populated, the layer is either new-format or
+  // was previously migrated. Drop the legacy cache and move on.
   const alreadyMigrated =
-    (state.stops && state.stops.length > 0) ||
-    (state.radiusStops && state.radiusStops.length > 0) ||
     state.fillColor !== undefined ||
     state.strokeColor !== undefined;
   if (alreadyMigrated) {
@@ -105,18 +101,6 @@ function migrateVector(params: IVectorLayer): void {
     state.fillColor = solidFill;
   }
 
-  // Stops: reverse-parse the first fill-color / circle-fill-color expression.
-  const stops = parseColorStops(legacyColor);
-  if (stops.length > 0) {
-    state.stops = stops;
-  }
-
-  // Radius stops: reverse-parse circle-radius if it is an expression.
-  const radiusStops = parseRadiusStops(legacyColor['circle-radius']);
-  if (radiusStops.length > 0) {
-    state.radiusStops = radiusStops;
-  }
-
   params.symbologyState = state;
   delete params.color;
 }
@@ -156,82 +140,6 @@ function pickNumber(...candidates: unknown[]): number | undefined {
     }
   }
   return undefined;
-}
-
-function parseColorStops(color: Record<string, unknown>): StopRow[] {
-  const candidates = [color['fill-color'], color['circle-fill-color']];
-  for (const candidate of candidates) {
-    if (!candidate) {
-      continue;
-    }
-    const interpolate = findExprNode(candidate, 'interpolate');
-    if (interpolate) {
-      // ['interpolate', ['linear'], ['get', field], v0, c0, v1, c1, ...]
-      const rows: StopRow[] = [];
-      for (let i = 3; i < interpolate.length; i += 2) {
-        const value = interpolate[i];
-        const rgba = interpolate[i + 1];
-        if (
-          (typeof value === 'number' ||
-            typeof value === 'string' ||
-            typeof value === 'boolean') &&
-          Array.isArray(rgba) &&
-          rgba.length === 4
-        ) {
-          rows.push({
-            value,
-            color: rgba as [number, number, number, number],
-          });
-        }
-      }
-      if (rows.length > 0) {
-        return rows;
-      }
-    }
-
-    const caseExpr = findExprNode(candidate, 'case');
-    if (caseExpr) {
-      // ['case', cond, c0, cond, c1, ..., fallback]
-      const rows: StopRow[] = [];
-      for (let i = 1; i < caseExpr.length - 1; i += 2) {
-        const cond = caseExpr[i] as unknown[];
-        const rgba = caseExpr[i + 1];
-        // cond is typically ['==', ['get', field], value]
-        const value = Array.isArray(cond) ? cond[2] : undefined;
-        if (
-          (typeof value === 'number' ||
-            typeof value === 'string' ||
-            typeof value === 'boolean') &&
-          Array.isArray(rgba) &&
-          rgba.length === 4
-        ) {
-          rows.push({
-            value,
-            color: rgba as [number, number, number, number],
-          });
-        }
-      }
-      if (rows.length > 0) {
-        return rows;
-      }
-    }
-  }
-  return [];
-}
-
-function parseRadiusStops(circleRadius: unknown): RadiusStopRow[] {
-  if (!Array.isArray(circleRadius) || circleRadius[0] !== 'interpolate') {
-    return [];
-  }
-  const rows: RadiusStopRow[] = [];
-  for (let i = 3; i < circleRadius.length; i += 2) {
-    const value = circleRadius[i];
-    const radius = circleRadius[i + 1];
-    if (typeof value === 'number' && typeof radius === 'number') {
-      rows.push({ value, radius });
-    }
-  }
-  return rows;
 }
 
 // Heatmap migration

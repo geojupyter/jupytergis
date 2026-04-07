@@ -15,6 +15,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
     QgsFillSymbol,
+    QgsGradientColorRamp,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsLineSymbol,
@@ -199,22 +200,15 @@ def qgis_layer_to_jgis(
 
         elif isinstance(renderer, QgsCategorizedSymbolRenderer):
             field_name = renderer.classAttribute()
-            stops = []
             cat_symbol = None
             for category in renderer.categories():
                 cat_symbol = category.symbol()
-                category_color = cat_symbol.color().name()
-                r, g, b, a = hex_to_rgba(category_color)
-                stops.append({"value": category.value(), "color": [r, g, b, a / 255]})
 
             symb_state.update(
                 renderType="Categorized",
                 value=field_name,
                 colorRamp="viridis",
-                mode="equal interval",
-                nClasses=9,
                 fallbackColor=[0.0, 0.0, 0.0, 0.0],
-                stops=stops,
             )
 
             if cat_symbol is not None:
@@ -239,24 +233,18 @@ def qgis_layer_to_jgis(
 
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
             field_name = renderer.classAttribute()
-            stops = []
             range_symbol = None
             for rng in renderer.ranges():
                 range_symbol = rng.symbol()
-                opacity = range_symbol.opacity()
-                alpha = opacity
-                r, g, b, _ = range_symbol.color().getRgbF()
-                stops.append(
-                    {
-                        "value": rng.upperValue(),
-                        "color": [r * 255, g * 255, b * 255, alpha],
-                    }
-                )
+
+            n_classes = len(renderer.ranges())
 
             symb_state.update(
                 renderType="Graduated",
                 value=field_name,
-                stops=stops,
+                colorRamp="viridis",
+                nClasses=n_classes,
+                mode="equal interval",
             )
 
             if range_symbol is not None:
@@ -540,17 +528,23 @@ def get_base_symbol(geometry_type, symb_state, opacity):
     return symbol
 
 
-def create_categorized_renderer(symbology_state, geometry_type, base_symbol):
-    """Creates a categorized renderer from symbologyState.stops."""
-    stops = symbology_state.get("stops", [])
-    renderer = QgsCategorizedSymbolRenderer(symbology_state.get("value"))
+def create_categorized_renderer(symbology_state, geometry_type, base_symbol, map_layer):
+    """Creates a categorized renderer by computing categories from the layer data."""
+    field_name = symbology_state.get("value")
+    renderer = QgsCategorizedSymbolRenderer(field_name)
 
-    for stop in stops:
-        value = stop.get("value")
-        rgba = stop.get("color", [0, 0, 0, 1])
+    idx = map_layer.fields().indexOf(field_name) if map_layer else -1
+    unique_values = sorted(map_layer.uniqueValues(idx)) if idx >= 0 else []
+
+    n = len(unique_values)
+    color_ramp = QgsGradientColorRamp(QColor(68, 1, 84), QColor(253, 231, 37))
+
+    for i, value in enumerate(unique_values):
+        ratio = i / max(n - 1, 1)
+        color = color_ramp.color(ratio)
 
         category_symbol = base_symbol.clone()
-        category_symbol.setColor(_rgba_to_qcolor(rgba))
+        category_symbol.setColor(color)
 
         if geometry_type == "circle":
             radius = symbology_state.get("radius", 5)
@@ -562,30 +556,21 @@ def create_categorized_renderer(symbology_state, geometry_type, base_symbol):
     return renderer
 
 
-def create_graduated_renderer(symbology_state, geometry_type, base_symbol):
-    """Creates a graduated renderer from symbologyState.stops."""
-    stops = symbology_state.get("stops", [])
-    radius_stops = symbology_state.get("radiusStops", [])
+def create_graduated_renderer(symbology_state, geometry_type, base_symbol, map_layer):
+    """Creates a graduated renderer by computing classification breaks from the layer data."""
+    field_name = symbology_state.get("value")
+    n_classes = symbology_state.get("nClasses", 9)
 
-    ranges = []
-    for i, stop in enumerate(stops):
-        rgba = stop.get("color", [0, 0, 0, 1])
-        upper = stop.get("value", 0)
-        lower = stops[i - 1].get("value", 0) if i > 0 else 0
+    renderer = QgsGraduatedSymbolRenderer(field_name)
+    renderer.setSourceSymbol(base_symbol.clone())
 
-        range_symbol = base_symbol.clone()
-        range_symbol.setColor(_rgba_to_qcolor(rgba))
+    color_ramp = QgsGradientColorRamp(QColor(68, 1, 84), QColor(253, 231, 37))
+    renderer.setSourceColorRamp(color_ramp)
 
-        if geometry_type == "circle":
-            if i < len(radius_stops):
-                range_symbol.setSize(2 * radius_stops[i].get("radius", 5))
-            else:
-                range_symbol.setSize(2 * symbology_state.get("radius", 5))
+    if map_layer:
+        renderer.updateClasses(map_layer, n_classes)
 
-        g_range = QgsRendererRange(lower, upper, range_symbol, f"{lower} - {upper}")
-        ranges.append(g_range)
-
-    return QgsGraduatedSymbolRenderer(symbology_state.get("value"), ranges)
+    return renderer
 
 
 def jgis_layer_to_qgis(
@@ -735,11 +720,13 @@ def jgis_layer_to_qgis(
 
         elif render_type == "Categorized":
             renderer = create_categorized_renderer(
-                symbology_state, geometry_type, symbol
+                symbology_state, geometry_type, symbol, map_layer
             )
 
         elif render_type == "Graduated":
-            renderer = create_graduated_renderer(symbology_state, geometry_type, symbol)
+            renderer = create_graduated_renderer(
+                symbology_state, geometry_type, symbol, map_layer
+            )
 
         map_layer.setRenderer(renderer)
 

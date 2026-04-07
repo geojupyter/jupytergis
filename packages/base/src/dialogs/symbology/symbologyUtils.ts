@@ -158,37 +158,6 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
 
   model.sharedModel.updateLayer(segmentId, segment);
 }
-export namespace VectorUtils {
-  /**
-   * Load color stop rows from `symbologyState.stops`. Each persisted stop
-   * is a plain `{value, color}`; dialogs expect `{id, stop, output}` for
-   * their UI state, so we rehydrate that shape here.
-   */
-  export const buildColorInfo = (params: VectorSymbologyParams): IStopRow[] => {
-    const stops = params?.symbologyState?.stops ?? [];
-    return stops.map(s => ({
-      id: UUID.uuid4(),
-      stop: s.value as IStopRow['stop'],
-      output: s.color as IStopRow['output'],
-    }));
-  };
-
-  /**
-   * Load radius stop rows from `symbologyState.radiusStops`.
-   */
-  export const buildRadiusInfo = (layer: IJGISLayer): IStopRow[] => {
-    const radiusStops =
-      (layer.parameters as IVectorLayer | undefined)?.symbologyState
-        ?.radiusStops ?? [];
-    return radiusStops
-      .filter(s => s.value !== undefined && s.radius !== undefined)
-      .map(s => ({
-        id: UUID.uuid4(),
-        stop: s.value as number,
-        output: s.radius as number,
-      }));
-  };
-}
 
 export namespace Utils {
   export const getValueColorPairs = (

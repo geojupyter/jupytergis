@@ -1,6 +1,6 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import {
   colorToRgba,
@@ -20,7 +20,6 @@ import {
 import {
   Utils,
   VectorSymbologyParams,
-  VectorUtils,
   saveSymbology,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
@@ -60,7 +59,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   });
   const manualStyleRef = useLatest(manualStyle);
   const selectedAttributeRef = useLatest(selectedAttribute);
-  const stopRowsRef = useLatest(stopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
 
   if (!layerId) {
@@ -80,11 +78,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
-  useEffect(() => {
-    const valueColorPairs = VectorUtils.buildColorInfo(params);
-
-    setStopRows(valueColorPairs);
-  }, []);
+  // Auto-classify on first load once selectedAttribute is ready.
+  const hasAutoClassified = useRef(false);
 
   useEffect(() => {
     const state = params.symbologyState;
@@ -112,6 +107,31 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
+
+  // Auto-classify once selectedAttribute is available.
+  useEffect(() => {
+    if (hasAutoClassified.current) {
+      return;
+    }
+    if (!selectedAttribute || !selectableAttributesAndValues[selectedAttribute]) {
+      return;
+    }
+    const state = params.symbologyState;
+    if (state?.renderType === 'Categorized') {
+      hasAutoClassified.current = true;
+      const rampName = (state.colorRamp ?? 'viridis') as ColorRampName;
+      const reverse = state.reverseRamp ?? false;
+      const stops = Array.from(
+        selectableAttributesAndValues[selectedAttribute],
+      ).sort((a, b) => a - b);
+      const colorRamp = getColorMapList().find(c => c.name === rampName);
+      if (colorRamp && stops.length > 0) {
+        setStopRows(
+          Utils.getValueColorPairs(stops, colorRamp, stops.length, reverse),
+        );
+      }
+    }
+  }, [selectedAttribute]);
 
   const buildColorInfoFromClassification = (
     selectedMode: ClassificationMode,
@@ -156,13 +176,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       parseFloat(manualStyleRef.current.strokeWidth),
     );
 
-    const stops = (stopRowsRef.current ?? []).map(row => ({
-      value: row.stop,
-      color: row.output as [number, number, number, number],
-    }));
-
     const method =
       symbologyTab === 'radius' ? ('radius' as const) : ('color' as const);
+    // Only persist the minimal config — stops are computed at runtime from
+    // colorRamp + feature values.
     const symbologyState: IVectorLayer['symbologyState'] = {
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
@@ -179,7 +196,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       strokeColor: manualStyleRef.current.strokeColor,
       strokeWidth,
       radius: manualStyleRef.current.radius,
-      ...(stops.length > 0 && { stops }),
     };
 
     saveSymbology({
@@ -210,7 +226,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const state = { ...(layer.parameters.symbologyState ?? {}) };
 
     if (method === 'color') {
-      delete state.stops;
       delete state.fillColor;
       delete state.strokeColor;
       state.colorRamp = undefined;
@@ -218,7 +233,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     if (method === 'radius') {
-      delete state.radiusStops;
       delete state.radius;
     }
 

@@ -122,33 +122,6 @@
           "type": "string",
           "enum": ["fill", "circle", "line"],
           "description": "Which OpenLayers style keys to emit (fill-*, circle-*, or stroke-*). Inferred from source geometry at save time."
-        },
-        "stops": {
-          "type": "array",
-          "description": "Persisted color stop rows used for UI state (Graduated/Categorized). Each entry is {value, color}.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "value": {},
-              "color": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 4,
-                "maxItems": 4
-              }
-            }
-          }
-        },
-        "radiusStops": {
-          "type": "array",
-          "description": "Persisted radius stop rows used for UI state (Graduated method=radius). Each entry is {value, radius}.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "value": { "type": "number" },
-              "radius": { "type": "number" }
-            }
-          }
         }
       },
       "additionalProperties": false,
