@@ -8,10 +8,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { deepCopy, loadFile } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
 import { FileSelectorWidget } from '../fileselectorwidget';
-import {
-  processBaseSchema,
-  removeFormEntry,
-} from '../schemaUtils';
+import { processBaseSchema, removeFormEntry } from '../schemaUtils';
 import { useSchemaFormState } from '../useSchemaFormState';
 import type { ISourceFormProps } from './sourceform';
 
