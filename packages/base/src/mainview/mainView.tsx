@@ -135,7 +135,6 @@ import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 import { SpectaPanel } from '../panelview/story-maps/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
-import StatusBar from '../workspace/statusbar/StatusBar';
 
 type OlLayerTypes =
   | TileLayer

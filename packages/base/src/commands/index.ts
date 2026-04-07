@@ -20,7 +20,6 @@ import { fromLonLat } from 'ol/proj';
 
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
-import { addLayerCreationCommands } from './operationCommands';
 import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
 import { LayerBrowserWidget } from '../dialogs/layerBrowserDialog';
 import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
