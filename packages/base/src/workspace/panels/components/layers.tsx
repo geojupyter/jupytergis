@@ -29,7 +29,7 @@ import {
   targetWithCenterIcon,
   visibilityIcon,
 } from '@/src/icons';
-import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
+import { ILeftPanelClickHandlerParams } from '@/src/workspace/panels/leftpanel';
 import { LegendItem } from './legendItem';
 
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';

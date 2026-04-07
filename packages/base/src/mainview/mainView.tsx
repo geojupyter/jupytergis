@@ -124,10 +124,10 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { markerIcon } from '../icons';
-import { LeftPanel, RightPanel } from '../panelview';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
+import { markerIcon } from '../icons';
+import { LeftPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
   | TileLayer

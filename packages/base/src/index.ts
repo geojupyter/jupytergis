@@ -5,7 +5,7 @@ export * from './dialogs/layerCreationFormDialog';
 export * from './icons';
 export * from './mainview';
 export * from './menus';
-export * from './panelview';
+export * from './workspace/panels';
 export * from './store';
 export * from './features/stac-browser';
 export * from './features/objectproperties';

@@ -12,15 +12,15 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { CommandIDs } from '../constants';
+import { CommandIDs } from '../../constants';
 import { LayersBodyComponent } from './components/layers';
-import StacPanel from '../features/stac-browser/components/StacPanel';
+import StacPanel from '../../features/stac-browser/components/StacPanel';
 import {
   PanelTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '../shared/components/Tabs';
+} from '../../shared/components/Tabs';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
