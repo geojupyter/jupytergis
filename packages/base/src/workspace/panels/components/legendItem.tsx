@@ -1,8 +1,8 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
-import { findExprNode } from '@/src/dialogs/symbology/colorRampUtils';
-import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
+import { findExprNode } from '@/src/features/layers/symbology/colorRampUtils';
+import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
 
 export const LegendItem: React.FC<{
   layerId: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { IBandRow } from '@/src/features/layers/symbology/hooks/useGetBandInfo';
 
 interface IBandRowProps {
   label: string;

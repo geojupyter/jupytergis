@@ -2,7 +2,7 @@ import { Button } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import React from 'react';
 
-import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
+import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import StopRow from './StopRow';
 
 interface IStopContainerProps {

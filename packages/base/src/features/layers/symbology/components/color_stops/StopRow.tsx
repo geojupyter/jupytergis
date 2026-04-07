@@ -3,9 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef } from 'react';
 
-import { colorToRgba, RgbaColor } from '@/src/dialogs/symbology/colorRampUtils';
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  colorToRgba,
+  RgbaColor,
+} from '@/src/features/layers/symbology/colorRampUtils';
+import RgbaColorPicker from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
 const StopRow: React.FC<{
