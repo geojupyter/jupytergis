@@ -126,8 +126,8 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
-import { SpectaPanel } from '../panelview/story-maps/SpectaPanel';
-import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
+import { SpectaPanel } from '../features/story/SpectaPanel';
+import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
