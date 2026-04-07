@@ -59,11 +59,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     };
   }, [props.model]);
 
-  const { layerTree, segmentTree } = useLayerTree(
-    props.model,
-    props.commands,
-    { onSegmentAdded: () => setCurTab('segments') },
-  );
+  const { layerTree, segmentTree } = useLayerTree(props.model, props.commands, {
+    onSegmentAdded: () => setCurTab('segments'),
+  });
 
   const allLeftTabsDisabled =
     props.settings.layersDisabled &&

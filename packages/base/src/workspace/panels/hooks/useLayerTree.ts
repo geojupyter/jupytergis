@@ -120,7 +120,8 @@ export function useLayerTree(
       }
 
       return {
-        layer: groupLayers.length > 0 ? { ...layer, layers: groupLayers } : null,
+        layer:
+          groupLayers.length > 0 ? { ...layer, layers: groupLayers } : null,
         segment:
           groupSegments.length > 0 ? { ...layer, layers: groupSegments } : null,
       };
