@@ -686,8 +686,10 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
   addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null {
-    const extent = viewState?.extent;
-    const zoom = viewState?.zoom;
+    const state = viewState ?? Object.values(this.getViewState())[0];
+
+    const extent = state?.extent;
+    const zoom = state?.zoom;
     const { storyId } = this.getSelectedStory();
 
     if (!zoom || !extent) {
