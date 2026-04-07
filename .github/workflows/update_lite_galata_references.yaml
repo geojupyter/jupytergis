@@ -42,7 +42,7 @@ jobs:
         run: |
             pip install jupyterlab
             jlpm install
-            yarn playwright install
+            jlpm playwright install
 
       - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@7bebe19dab1c58587eb734aca9184d8e59fdf911  # main
         with:
