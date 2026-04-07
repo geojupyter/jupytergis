@@ -21,7 +21,7 @@ import {
   type IOverrideLayerEntry,
 } from '../../features/story/hooks/useStoryMap';
 import {
-  PanelTabs,
+  TabsRoot,
   TabsContent,
   TabsList,
   TabsTrigger,
@@ -132,7 +132,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
-        <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
+        <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
           <TabsList>
             {tabInfo.map(tab => (
               <TabsTrigger
@@ -213,7 +213,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               ></IdentifyPanelComponent>
             </TabsContent>
           )}
-        </PanelTabs>
+        </TabsRoot>
       </div>
     </Draggable>
   );

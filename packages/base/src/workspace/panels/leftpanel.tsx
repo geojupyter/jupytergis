@@ -9,7 +9,7 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { ITabSpec, PanelContainer } from './components/PanelContainer';
+import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
@@ -70,7 +70,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     props.settings.stacBrowserDisabled &&
     props.settings.storyMapsDisabled;
 
-  const tabs: ITabSpec[] = [
+  const tabs: ITabConfig[] = [
     {
       name: 'layers',
       title: 'Layers',
@@ -113,7 +113,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
       cancel=".jgis-tabs-trigger"
       bounds=".jGIS-Mainview-Container"
     >
-      <PanelContainer
+      <TabbedPanel
         tabs={tabs}
         containerClassName="jgis-left-panel-container"
         curTab={curTab}
