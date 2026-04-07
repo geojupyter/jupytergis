@@ -86,15 +86,37 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const [curTab, setCurTab] = React.useState<string>(() => {
+    const initialPresentationMode =
+      props.model.getOptions().storyMapPresentationMode ?? false;
+    if (initialPresentationMode) {
+      return 'storyPanel';
+    }
+    if (!props.settings.objectPropertiesDisabled) {
+      return 'objectProperties';
+    }
+    if (!props.settings.storyMapsDisabled) {
+      return 'storyPanel';
+    }
+    if (!props.settings.annotationsDisabled) {
+      return 'annotations';
+    }
+    if (!props.settings.identifyDisabled) {
+      return 'identifyPanel';
+    }
+    return '';
+  });
+
   const {
     storyMapPresentationMode,
     editorMode,
     showEditor,
     storyPanelTitle,
-    curTab,
-    setCurTab,
     toggleEditor,
-  } = useRightPanelOptions(props.model, props.settings);
+  } = useRightPanelOptions(props.model, {
+    onPresentationModeEnabled: () => setCurTab('storyPanel'),
+    onIdentifyFeatures: () => setCurTab('identifyPanel'),
+  });
 
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
