@@ -8,6 +8,7 @@ export * from './menus';
 export * from './panelview';
 export * from './store';
 export * from './features/stac-browser';
+export * from './features/objectproperties';
 export * from './workspace/toolbar';
 export * from './tools';
 export * from './types';
