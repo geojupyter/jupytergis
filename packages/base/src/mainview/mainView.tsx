@@ -114,12 +114,6 @@ import proj4list from 'proj4-list';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import {
-  DEFAULT_FLAT_STYLE,
-  buildTransparentFallbackFilter,
-  buildVectorFlatStyle,
-} from '@/src/dialogs/symbology/styleBuilder';
-import { migrateLegacyLayerSymbology } from '@/src/dialogs/symbology/symbologyMigration';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
@@ -129,6 +123,12 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import {
+  DEFAULT_FLAT_STYLE,
+  buildTransparentFallbackFilter,
+  buildVectorFlatStyle,
+} from '../features/layers/symbology/styleBuilder';
+import { migrateLegacyLayerSymbology } from '../features/layers/symbology/symbologyMigration';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { markerIcon } from '../icons';

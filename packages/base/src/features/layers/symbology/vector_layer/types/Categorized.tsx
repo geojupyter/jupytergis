@@ -9,21 +9,21 @@ import {
   getColorMap,
   getColorMapList,
   RgbaColor,
-} from '@/src/dialogs/symbology/colorRampUtils';
-import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
+} from '@/src/features/layers/symbology/colorRampUtils';
+import ColorRampControls from '@/src/features/layers/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import {
   IStopRow,
   ISymbologyTabbedDialogWithAttributesProps,
-} from '@/src/dialogs/symbology/symbologyDialog';
+} from '@/src/features/layers/symbology/symbologyDialog';
 import {
   Utils,
   VectorSymbologyParams,
   saveSymbology,
-} from '@/src/dialogs/symbology/symbologyUtils';
-import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+} from '@/src/features/layers/symbology/symbologyUtils';
+import ValueSelect from '@/src/features/layers/symbology/vector_layer/components/ValueSelect';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { SymbologyTab, ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';

@@ -19,7 +19,7 @@ import {
   useColorMapList,
   IColorMap,
   drawColorRamp,
-} from '@/src/dialogs/symbology/colorRampUtils';
+} from '@/src/features/layers/symbology/colorRampUtils';
 import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
 interface IColorRampSelectorProps {

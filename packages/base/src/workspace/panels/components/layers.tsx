@@ -23,7 +23,7 @@ import React, {
 } from 'react';
 
 import { CommandIDs, icons } from '@/src/constants';
-import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
+import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
 import {
   nonVisibilityIcon,
   targetWithCenterIcon,

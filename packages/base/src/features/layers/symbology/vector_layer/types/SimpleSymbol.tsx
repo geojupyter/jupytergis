@@ -6,15 +6,15 @@ import {
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
   RgbaColor,
-} from '@/src/dialogs/symbology/colorRampUtils';
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
-import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+} from '@/src/features/layers/symbology/colorRampUtils';
+import RgbaColorPicker from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
+import { ISymbologyTabbedDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
   VectorSymbologyParams,
-} from '@/src/dialogs/symbology/symbologyUtils';
+} from '@/src/features/layers/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { IParsedStyle } from '@/src/tools';
 

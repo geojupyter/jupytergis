@@ -1,13 +1,13 @@
 import colormap from 'colormap';
 import React, { useEffect, useState } from 'react';
 
-import ColorRampSelector from '@/src/dialogs/symbology/components/color_ramp/ColorRampSelector';
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
-import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import ColorRampSelector from '@/src/features/layers/symbology/components/color_ramp/ColorRampSelector';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
+import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
   VectorSymbologyParams,
-} from '@/src/dialogs/symbology/symbologyUtils';
+} from '@/src/features/layers/symbology/symbologyUtils';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import {
   ColorRampName,

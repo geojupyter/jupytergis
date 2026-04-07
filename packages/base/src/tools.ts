@@ -19,7 +19,7 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import LAYER_GALLERY from '@/layer_gallery.json';
-import { DEFAULT_STROKE_WIDTH } from '@/src/dialogs/symbology/colorRampUtils';
+import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
 import { getGdal } from './gdal';
 
 export const debounce = (
