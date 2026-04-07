@@ -17,7 +17,10 @@ export function useLayerTree(
       storyId: string;
     }) => void;
   },
-): { filteredLayerTree: IJGISLayerTree; storySegmentLayerTree: IJGISLayerTree } {
+): {
+  filteredLayerTree: IJGISLayerTree;
+  storySegmentLayerTree: IJGISLayerTree;
+} {
   const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
     model.getLayerTree(),
   );
@@ -36,8 +39,7 @@ export function useLayerTree(
       if (!hasSyncedInitialSelectionRef.current && freshTree.length > 0) {
         hasSyncedInitialSelectionRef.current = true;
         const lastItem = freshTree[freshTree.length - 1];
-        const lastId =
-          typeof lastItem === 'string' ? lastItem : lastItem?.name;
+        const lastId = typeof lastItem === 'string' ? lastItem : lastItem?.name;
         const lastType = typeof lastItem === 'string' ? 'layer' : 'group';
         if (lastId) {
           model.syncSelected(
@@ -128,7 +130,10 @@ export function useLayerTree(
     }
 
     filtered.reverse();
-    return { filteredLayerTree: filtered, storySegmentLayerTree: storySegments };
+    return {
+      filteredLayerTree: filtered,
+      storySegmentLayerTree: storySegments,
+    };
   }, [layerTree]);
 
   // Sync story segments order back to the story map

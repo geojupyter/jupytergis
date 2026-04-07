@@ -9,10 +9,10 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import StacPanel from '../../features/stac-browser/components/StacPanel';
-import { LayersBodyComponent } from './components/layers';
 import { ITabSpec, PanelContainer } from './components/PanelContainer';
+import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
+import StacPanel from '../../features/stac-browser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -52,8 +52,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   });
 
   React.useEffect(() => {
-    const onOptionsChanged = () =>
-      setOptions({ ...props.model.getOptions() });
+    const onOptionsChanged = () => setOptions({ ...props.model.getOptions() });
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     return () => {
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
@@ -89,8 +88,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     {
       name: 'stac',
       title: 'Stac Browser',
-      enabled:
-        !props.settings.stacBrowserDisabled && !storyMapPresentationMode,
+      enabled: !props.settings.stacBrowserDisabled && !storyMapPresentationMode,
       contentClassName: 'jgis-panel-tab-content-stac-panel',
       content: <StacPanel model={props.model} />,
     },
