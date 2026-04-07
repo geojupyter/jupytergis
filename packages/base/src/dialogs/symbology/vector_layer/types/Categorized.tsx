@@ -114,7 +114,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     if (hasAutoClassified.current) {
       return;
     }
-    if (!selectedAttribute || !selectableAttributesAndValues[selectedAttribute]) {
+    if (
+      !selectedAttribute ||
+      !selectableAttributesAndValues[selectedAttribute]
+    ) {
       return;
     }
     const state = params.symbologyState;

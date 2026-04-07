@@ -51,8 +51,7 @@ function migrateVector(params: IVectorLayer): void {
   // If config fields are already populated, the layer is either new-format or
   // was previously migrated. Drop the legacy cache and move on.
   const alreadyMigrated =
-    state.fillColor !== undefined ||
-    state.strokeColor !== undefined;
+    state.fillColor !== undefined || state.strokeColor !== undefined;
   if (alreadyMigrated) {
     delete params.color;
     params.symbologyState = state;
