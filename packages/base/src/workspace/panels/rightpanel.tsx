@@ -10,22 +10,22 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { ObjectPropertiesReact } from './objectproperties';
-import { AnnotationsPanel } from '../features/annotations';
-import StoryEditorPanel from './story-maps/StoryEditorPanel';
-import StoryViewerPanel from './story-maps/StoryViewerPanel';
-import { IdentifyPanelComponent } from '../features/identify/IdentifyPanel';
-import { PreviewModeSwitch } from './story-maps/components/PreviewModeSwitch';
+import { AnnotationsPanel } from '../../features/annotations';
+import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
+import { ObjectPropertiesReact } from '../../features/objectproperties';
+import StoryEditorPanel from '../../features/story/StoryEditorPanel';
+import StoryViewerPanel from '../../features/story/StoryViewerPanel';
+import { PreviewModeSwitch } from '../../features/story/components/PreviewModeSwitch';
 import {
   useStoryMap,
   type IOverrideLayerEntry,
-} from './story-maps/hooks/useStoryMap';
+} from '../../features/story/hooks/useStoryMap';
 import {
   PanelTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '../shared/components/Tabs';
+} from '../../shared/components/Tabs';
 
 /** Story viewer + useStoryMap hook
  * only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden.
