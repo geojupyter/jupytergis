@@ -26,6 +26,10 @@ import {
   saveSymbology,
 } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import {
+  grammarRulesToCategorizedSeed,
+} from '@/src/dialogs/symbology/grammar/grammarConversions';
+import { IGrammarSymbologyState } from '@/src/dialogs/symbology/grammar/types';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { SymbologyTab, ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';
@@ -82,6 +86,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
+  const normalizedState =
+    params.symbologyState?.renderType === 'Grammar'
+      ? grammarRulesToCategorizedSeed(
+          params.symbologyState as unknown as IGrammarSymbologyState,
+        )
+      : params.symbologyState;
+
   useEffect(() => {
     const valueColorPairs = VectorUtils.buildColorInfo(params);
 
@@ -120,13 +131,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     setFallbackColor(
-      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+      colorToRgba(normalizedState?.fallbackColor ?? [0, 0, 0, 0]),
     );
-    setStrokeFollowsFill(params.symbologyState?.strokeFollowsFill ?? false);
+    setStrokeFollowsFill(normalizedState?.strokeFollowsFill ?? false);
   }, [layerId]);
 
   useEffect(() => {
-    const savedValue = params.symbologyState?.value;
+    const savedValue = normalizedState?.value;
     const attribute =
       savedValue && savedValue in selectableAttributesAndValues
         ? savedValue

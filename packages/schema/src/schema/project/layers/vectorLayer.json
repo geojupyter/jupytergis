@@ -29,8 +29,63 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
+          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical", "Grammar"],
           "default": "Single Symbol"
+        },
+        "rules": {
+          "type": "array",
+          "description": "Encoding rules for Grammar render type. Each rule maps an input field to a visual channel via a scale.",
+          "items": {
+            "type": "object",
+            "required": ["id", "field", "channel", "scale"],
+            "properties": {
+              "id": { "type": "string" },
+              "field": { "type": "string" },
+              "channel": {
+                "type": "string",
+                "enum": [
+                  "fill-color",
+                  "stroke-color",
+                  "stroke-width",
+                  "circle-fill-color",
+                  "circle-stroke-color",
+                  "circle-stroke-width",
+                  "circle-radius"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": ["quantitative", "ordinal", "nominal"]
+              },
+              "when": {
+                "type": "array",
+                "description": "Guard predicates (AND-ed). Rule applies only when all pass.",
+                "items": {
+                  "type": "object",
+                  "required": ["type"],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["geometryType", "hasField", "fieldEquals"]
+                    },
+                    "value": {},
+                    "field": { "type": "string" }
+                  }
+                }
+              },
+              "scale": {
+                "type": "object",
+                "required": ["scheme"],
+                "properties": {
+                  "scheme": {
+                    "type": "string",
+                    "enum": ["colorRamp", "categorical", "scalar", "constant", "identity"]
+                  }
+                }
+              }
+            }
+          },
+          "default": []
         },
         "value": {
           "type": "string"
@@ -82,6 +137,10 @@
           "type": "boolean",
           "description": "Whether the stroke color follows the fill color expression",
           "default": false
+        },
+        "fallback": {
+          "type": "object",
+          "description": "Per-channel fallback values for Grammar render type (the final else branch)"
         }
       },
       "additionalProperties": false,

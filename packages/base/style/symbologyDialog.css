@@ -33,6 +33,13 @@ select option {
   max-width: 50%;
 }
 
+/* Rows with two label+input pairs (e.g. Min/Max): each input gets ~25% */
+.jp-gis-symbology-row-pair > .jp-mod-styled {
+  flex: 1 1 0;
+  max-width: none;
+  min-width: 0;
+}
+
 .jp-gis-color-ramp-div {
   display: flex;
   flex: 1 1 50%;
@@ -271,4 +278,350 @@ select option {
   font-size: var(--jp-ui-font-size1);
   cursor: pointer;
   user-select: none;
+}
+
+/* ── Grammar Symbology ─────────────────────────────────────────────────── */
+
+.jp-gis-grammar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-gis-grammar-fallback {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.jp-gis-grammar-fallback-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  padding: 2px 0;
+  width: 100%;
+  text-align: left;
+}
+
+.jp-gis-grammar-fallback-toggle:hover {
+  color: var(--jp-brand-color1);
+}
+
+.jp-gis-grammar-fallback-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0 2px 12px;
+}
+
+.jp-gis-mapping-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jp-gis-mapping-empty {
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color2);
+  margin: 4px 0;
+}
+
+.jp-gis-mapping-row-wrapper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid transparent;
+  border-radius: var(--jp-border-radius);
+}
+
+.jp-gis-mapping-row-wrapper.jp-gis-mapping-row-expanded {
+  border-color: var(--jp-border-color2);
+}
+
+/* The triple: subject ── [verb] ──▶ object, all on one line */
+.jp-gis-mapping-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.jp-gis-mapping-row:hover {
+  background: var(--jp-layout-color2);
+}
+
+.jp-gis-mapping-row .jp-select-wrapper {
+  flex: 1 1 0;
+  margin-bottom: 0;
+  min-width: 0;
+  /* strip the box — underline only */
+  border: none;
+  border-bottom: 1px solid var(--jp-border-color2);
+  border-radius: 0;
+  background: var(--jp-layout-color1);
+}
+
+.jp-gis-mapping-row .jp-select-wrapper:hover {
+  border-bottom-color: var(--jp-brand-color1);
+}
+
+.jp-gis-mapping-row:hover .jp-select-wrapper {
+  background: var(--jp-layout-color2);
+}
+
+.jp-gis-mapping-row .jp-select-wrapper select.jp-mod-styled {
+  border: none;
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color0);
+  box-shadow: none;
+  height: auto;
+  padding: 1px 20px 1px 2px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-gis-mapping-row:hover .jp-select-wrapper select.jp-mod-styled {
+  background: var(--jp-layout-color2);
+}
+
+.jp-gis-mapping-row .jp-select-wrapper select.jp-mod-styled:focus {
+  outline: none;
+}
+
+.jp-gis-mapping-verb {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  flex: 1.5 1 0;
+  min-width: 0;
+}
+
+.jp-gis-mapping-verb .jp-select-wrapper {
+  flex: 1 1 0;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.jp-gis-mapping-arrow {
+  white-space: nowrap;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-gis-mapping-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jp-ui-font-color2);
+  font-size: 1rem;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.jp-gis-mapping-delete:hover {
+  color: var(--jp-error-color1);
+}
+
+/* Inline method editor — shown below the triple row when expanded */
+.jp-gis-mapping-editor-inline {
+  padding: 8px;
+  border-top: 1px solid var(--jp-border-color2);
+}
+
+.jp-gis-mapping-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-gis-mapping-add {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.jp-gis-categorical-row {
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.jp-gis-categorical-label {
+  font-size: var(--jp-ui-font-size1);
+  min-width: 8rem;
+}
+
+.jp-gis-scale-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Type mismatch: scheme output type doesn't match channel expected type */
+.jp-gis-scheme-mismatch select {
+  border-color: var(--jp-warn-color1, #f57c00) !important;
+  color: var(--jp-warn-color1, #f57c00);
+}
+
+/* When-conditions row — sits below the triple row */
+.jp-gis-when-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 4px 4px;
+}
+
+.jp-gis-predicate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  background: transparent;
+  border: 1px solid var(--jp-border-color3, rgba(128, 128, 128, 0.3));
+  border-radius: 10px;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+.jp-gis-predicate-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jp-ui-font-color2);
+  padding: 0 0 0 2px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.jp-gis-predicate-remove:hover {
+  color: var(--jp-error-color1);
+}
+
+.jp-gis-predicate-add-btn {
+  background: none;
+  border: 1px dashed var(--jp-border-color2);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  padding: 1px 8px;
+}
+
+.jp-gis-predicate-add-btn:hover {
+  border-color: var(--jp-brand-color1);
+  color: var(--jp-brand-color1);
+}
+
+.jp-gis-predicate-form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.jp-gis-predicate-form .jp-select-wrapper {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.jp-gis-predicate-add-ok,
+.jp-gis-predicate-add-cancel {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  font-size: var(--jp-ui-font-size0);
+}
+
+/* ── Scale preview (collapsed mapping row indicator) ───────────────────── */
+
+.jp-gis-scale-preview-container {
+  flex: 0 0 auto;
+  width: 120px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Shared color swatch (constant color / categorical dot) */
+.jp-gis-scale-preview-swatch {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  flex-shrink: 0;
+}
+
+/* Color-ramp preview: gradient bar + label side by side */
+.jp-gis-scale-preview-ramp {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.jp-gis-scale-preview-ramp-bar {
+  flex: 0 0 40px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.jp-gis-scale-preview-ramp-label {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Categorical dots */
+.jp-gis-scale-preview-categorical {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.jp-gis-scale-preview-more {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+/* Generic small text (constant number, scalar) */
+.jp-gis-scale-preview-text {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.jp-gis-scale-preview-scalar em {
+  font-style: normal;
+  color: var(--jp-ui-font-color3);
+}
+
+.jp-gis-scale-preview-ramp-label em {
+  font-style: normal;
+  color: var(--jp-ui-font-color3);
+}
+
+.jp-gis-scale-preview-arrow {
+  margin: 0 2px;
+  color: var(--jp-ui-font-color3);
 }
