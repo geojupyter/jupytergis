@@ -59,7 +59,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     };
   }, [props.model]);
 
-  const { filteredLayerTree, storySegmentLayerTree } = useLayerTree(
+  const { layerTree, segmentTree } = useLayerTree(
     props.model,
     props.commands,
     { onSegmentAdded: () => setCurTab('segments') },
@@ -81,7 +81,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
           model={props.model}
           commands={props.commands}
           state={props.state}
-          layerTree={filteredLayerTree}
+          layerTree={layerTree}
         />
       ),
     },
@@ -101,7 +101,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
           model={props.model}
           commands={props.commands}
           state={props.state}
-          layerTree={storySegmentLayerTree}
+          layerTree={segmentTree}
         />
       ),
     },

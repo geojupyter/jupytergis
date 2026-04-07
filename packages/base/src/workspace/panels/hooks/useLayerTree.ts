@@ -8,6 +8,14 @@ import * as React from 'react';
 
 import { CommandIDs } from '../../../constants';
 
+/**
+ * Subscribes to the model's layer tree and splits it into two derived trees:
+ * - `layerTree`: regular map layers (excludes StorySegmentLayers)
+ * - `segmentTree`: story segment layers only
+ *
+ * Also pre-selects the last item on first load, and syncs segment order back
+ * to the story map whenever the segment tree changes.
+ */
 export function useLayerTree(
   model: IJupyterGISModel,
   commands: CommandRegistry,
@@ -18,14 +26,14 @@ export function useLayerTree(
     }) => void;
   },
 ): {
-  filteredLayerTree: IJGISLayerTree;
-  storySegmentLayerTree: IJGISLayerTree;
+  layerTree: IJGISLayerTree;
+  segmentTree: IJGISLayerTree;
 } {
-  const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
+  const [rawLayerTree, setRawLayerTree] = React.useState<IJGISLayerTree>(
     model.getLayerTree(),
   );
   const hasSyncedInitialSelectionRef = React.useRef(false);
-  // Keep a stable ref to the callback to avoid stale closures
+  // Ref keeps the callback fresh without re-registering the signal handler on every render
   const onSegmentAddedRef = React.useRef(opts?.onSegmentAdded);
   React.useEffect(() => {
     onSegmentAddedRef.current = opts?.onSegmentAdded;
@@ -34,7 +42,7 @@ export function useLayerTree(
   React.useEffect(() => {
     const updateLayerTree = () => {
       const freshTree = model.getLayerTree() || [];
-      setLayerTree(freshTree);
+      setRawLayerTree(freshTree);
 
       if (!hasSyncedInitialSelectionRef.current && freshTree.length > 0) {
         hasSyncedInitialSelectionRef.current = true;
@@ -75,68 +83,61 @@ export function useLayerTree(
     };
   }, [model]);
 
-  const { filteredLayerTree, storySegmentLayerTree } = React.useMemo(() => {
-    const filtered: IJGISLayerTree = [];
-    const storySegments: IJGISLayerTree = [];
+  // Split the raw tree into regular layers and story segment layers
+  const { layerTree, segmentTree } = React.useMemo(() => {
+    const layers: IJGISLayerTree = [];
+    const segments: IJGISLayerTree = [];
 
     const processLayer = (
       layer: IJGISLayerItem,
     ): {
-      filtered: IJGISLayerItem | null;
-      storySegment: IJGISLayerItem | null;
+      layer: IJGISLayerItem | null;
+      segment: IJGISLayerItem | null;
     } => {
       if (typeof layer === 'string') {
         const layerData = model.getLayer(layer);
         const isStorySegment = layerData?.type === 'StorySegmentLayer';
         return {
-          filtered: isStorySegment ? null : layer,
-          storySegment: isStorySegment ? layer : null,
+          layer: isStorySegment ? null : layer,
+          segment: isStorySegment ? layer : null,
         };
       }
 
-      const filteredGroupLayers: IJGISLayerItem[] = [];
-      const storySegmentGroupLayers: IJGISLayerItem[] = [];
+      const groupLayers: IJGISLayerItem[] = [];
+      const groupSegments: IJGISLayerItem[] = [];
 
       for (const groupLayer of layer.layers) {
         const result = processLayer(groupLayer);
-        if (result.filtered !== null) {
-          filteredGroupLayers.push(result.filtered);
+        if (result.layer !== null) {
+          groupLayers.push(result.layer);
         }
-        if (result.storySegment !== null) {
-          storySegmentGroupLayers.push(result.storySegment);
+        if (result.segment !== null) {
+          groupSegments.push(result.segment);
         }
       }
 
       return {
-        filtered:
-          filteredGroupLayers.length > 0
-            ? { ...layer, layers: filteredGroupLayers }
-            : null,
-        storySegment:
-          storySegmentGroupLayers.length > 0
-            ? { ...layer, layers: storySegmentGroupLayers }
-            : null,
+        layer: groupLayers.length > 0 ? { ...layer, layers: groupLayers } : null,
+        segment:
+          groupSegments.length > 0 ? { ...layer, layers: groupSegments } : null,
       };
     };
 
-    for (const layer of layerTree) {
-      const result = processLayer(layer);
-      if (result.filtered !== null) {
-        filtered.push(result.filtered);
+    for (const item of rawLayerTree) {
+      const result = processLayer(item);
+      if (result.layer !== null) {
+        layers.push(result.layer);
       }
-      if (result.storySegment !== null) {
-        storySegments.push(result.storySegment);
+      if (result.segment !== null) {
+        segments.push(result.segment);
       }
     }
 
-    filtered.reverse();
-    return {
-      filteredLayerTree: filtered,
-      storySegmentLayerTree: storySegments,
-    };
-  }, [layerTree]);
+    layers.reverse();
+    return { layerTree: layers, segmentTree: segments };
+  }, [rawLayerTree]);
 
-  // Sync story segments order back to the story map
+  // Sync segment order back to the story map when it changes
   React.useEffect(() => {
     const { storyId, story } = model.getSelectedStory();
     if (!story) {
@@ -144,9 +145,9 @@ export function useLayerTree(
     }
     model.sharedModel.updateStoryMap(storyId, {
       ...story,
-      storySegments: storySegmentLayerTree as string[],
+      storySegments: segmentTree as string[],
     });
-  }, [storySegmentLayerTree]);
+  }, [segmentTree]);
 
-  return { filteredLayerTree, storySegmentLayerTree };
+  return { layerTree, segmentTree };
 }
