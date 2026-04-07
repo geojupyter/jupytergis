@@ -121,7 +121,7 @@
         "geometryType": {
           "type": "string",
           "enum": ["fill", "circle", "line"],
-          "description": "Which OpenLayers style keys to emit (fill-*, circle-*, or stroke-*). Inferred from source geometry at save time."
+          "description": "The type of geometry."
         }
       },
       "additionalProperties": false,
