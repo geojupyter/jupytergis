@@ -4,7 +4,7 @@ channels:
 dependencies:
   # runtime dependencies
   - python >=3.10,<3.12
-  - nodejs >=16,<17
+  - nodejs >=24,<25
   - yarn
 
   # Dependencies
