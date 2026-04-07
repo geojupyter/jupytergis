@@ -40,23 +40,26 @@ export function useLayerTree(
   });
 
   React.useEffect(() => {
+    const syncInitialSelection = (tree: IJGISLayerTree) => {
+      if (hasSyncedInitialSelectionRef.current || tree.length === 0) {
+        return;
+      }
+      hasSyncedInitialSelectionRef.current = true;
+      const lastItem = tree[tree.length - 1];
+      const lastId = typeof lastItem === 'string' ? lastItem : lastItem?.name;
+      const lastType = typeof lastItem === 'string' ? 'layer' : 'group';
+      if (lastId) {
+        model.syncSelected(
+          { [lastId]: { type: lastType } },
+          model.getClientId().toString(),
+        );
+      }
+    };
+
     const updateLayerTree = () => {
       const freshTree = model.getLayerTree() || [];
       setRawLayerTree(freshTree);
-
-      if (!hasSyncedInitialSelectionRef.current && freshTree.length > 0) {
-        hasSyncedInitialSelectionRef.current = true;
-        const lastItem = freshTree[freshTree.length - 1];
-        const lastId = typeof lastItem === 'string' ? lastItem : lastItem?.name;
-        const lastType = typeof lastItem === 'string' ? 'layer' : 'group';
-        if (lastId) {
-          model.syncSelected(
-            { [lastId]: { type: lastType } },
-            model.getClientId().toString(),
-          );
-        }
-      }
-
+      syncInitialSelection(freshTree);
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     };
 
