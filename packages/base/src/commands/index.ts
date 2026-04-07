@@ -1611,6 +1611,7 @@ export function addCommands(
       if (!current) {
         return;
       }
+
       current.model.addStorySegment();
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
@@ -1659,6 +1660,48 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
     ...icons.get(CommandIDs.toggleStoryPresentationMode),
+  });
+
+  commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
+    label: trans.__('Create Story Segment for Layer'),
+
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      if (Object.keys(selected).length !== 1) {
+        return false;
+      }
+
+      const layerId = Object.keys(selected)[0];
+
+      return !!model.getLayer(layerId);
+    },
+
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const model = current.model;
+      const selected = model?.localState?.selected?.value;
+      if (!selected) {
+        return;
+      }
+
+      const layerId = Object.keys(selected)[0];
+
+      const result = model.createStorySegmentFromLayer(layerId);
+
+      if (result) {
+        model.centerOnPosition(layerId);
+      }
+    },
   });
 
   /* Needs to be enabled in Specta mode, so add without Specta-aware wrapper */
