@@ -5,7 +5,7 @@ import {
   RgbaChannel,
   RgbaColor,
   RGBA_INDEX,
-} from '@/src/dialogs/symbology/colorRampUtils';
+} from '@/src/features/layers/symbology/colorRampUtils';
 
 export type { RgbaColor };
 

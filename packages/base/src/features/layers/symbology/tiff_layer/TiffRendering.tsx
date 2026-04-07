@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import MultibandColor from './types/MultibandColor';
 import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 

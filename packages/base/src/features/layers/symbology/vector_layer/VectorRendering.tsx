@@ -1,9 +1,9 @@
 import { LayerType } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
-import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import FilterComponent from '@/src/features/filter/Filter';
+import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
+import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   getColorCodeFeatureAttributes,
   getFeatureAttributes,

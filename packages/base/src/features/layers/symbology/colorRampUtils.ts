@@ -3,7 +3,7 @@ import colorScale from 'colormap/colorScale.js';
 import * as d3Chromatic from 'd3-scale-chromatic';
 import { useEffect } from 'react';
 
-import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
+import rawCmocean from '@/src/features/layers/symbology/components/color_ramp/cmocean.json';
 import { objectEntries } from '@/src/tools';
 
 // RgbaColor is an array because OpenLayers and colormap expect arrays directly.

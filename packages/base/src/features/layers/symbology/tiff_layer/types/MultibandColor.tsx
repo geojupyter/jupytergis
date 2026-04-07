@@ -2,14 +2,14 @@ import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
-import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
-import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
+import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
   WebGlSymbologyParams,
-} from '@/src/dialogs/symbology/symbologyUtils';
-import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
+} from '@/src/features/layers/symbology/symbologyUtils';
+import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';

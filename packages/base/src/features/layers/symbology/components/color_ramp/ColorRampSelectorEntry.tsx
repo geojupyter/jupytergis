@@ -16,7 +16,7 @@ import {
   ColorRampName,
   IColorMap,
   drawColorRamp,
-} from '@/src/dialogs/symbology/colorRampUtils';
+} from '@/src/features/layers/symbology/colorRampUtils';
 
 interface IColorRampSelectorEntryProps {
   index: number;

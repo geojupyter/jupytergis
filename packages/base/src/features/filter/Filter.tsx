@@ -10,7 +10,7 @@ import { Signal } from '@lumino/signaling';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import { debounce, loadFile } from '@/src/tools';
 import FilterRow from './FilterRow';
 

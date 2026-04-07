@@ -3,7 +3,7 @@ import { UUID } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
-import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
+import { VectorClassifications } from '@/src/features/layers/symbology/classificationModes';
 import {
   colorToRgba,
   DEFAULT_COLOR,
@@ -11,24 +11,24 @@ import {
   getColorMap,
   isColor,
   RgbaColor,
-} from '@/src/dialogs/symbology/colorRampUtils';
+} from '@/src/features/layers/symbology/colorRampUtils';
 import ColorRampControls, {
   ColorRampControlsOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
-import RgbaColorPicker from '@/src/dialogs/symbology/components/color_ramp/RgbaColorPicker';
-import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
+} from '@/src/features/layers/symbology/components/color_ramp/ColorRampControls';
+import RgbaColorPicker from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import {
   IStopRow,
   ISymbologyTabbedDialogWithAttributesProps,
-} from '@/src/dialogs/symbology/symbologyDialog';
+} from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
   Utils,
   VectorSymbologyParams,
   VectorUtils,
-} from '@/src/dialogs/symbology/symbologyUtils';
-import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+} from '@/src/features/layers/symbology/symbologyUtils';
+import ValueSelect from '@/src/features/layers/symbology/vector_layer/components/ValueSelect';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';

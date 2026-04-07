@@ -4,23 +4,23 @@ import { ReadonlyJSONObject, UUID } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
-import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
+import { GeoTiffClassifications } from '@/src/features/layers/symbology/classificationModes';
 import ColorRampControls, {
   ColorRampControlsOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
-import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
-import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
-import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
+} from '@/src/features/layers/symbology/components/color_ramp/ColorRampControls';
+import StopRow from '@/src/features/layers/symbology/components/color_stops/StopRow';
+import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import {
   IStopRow,
   ISymbologyDialogProps,
-} from '@/src/dialogs/symbology/symbologyDialog';
+} from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
   Utils,
   WebGlSymbologyParams,
-} from '@/src/dialogs/symbology/symbologyUtils';
-import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
+} from '@/src/features/layers/symbology/symbologyUtils';
+import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { useLatest } from '@/src/shared/hooks/useLatest';
 import { GlobalStateDbManager } from '@/src/store';

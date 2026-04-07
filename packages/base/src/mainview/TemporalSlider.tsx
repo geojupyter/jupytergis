@@ -20,7 +20,7 @@ import {
 } from 'date-fns/constants';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
+import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 
 interface ITemporalSliderProps {
   model: IJupyterGISModel;
