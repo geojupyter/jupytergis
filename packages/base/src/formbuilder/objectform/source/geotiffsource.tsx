@@ -7,7 +7,6 @@ import { deepCopy, getMimeType } from '@/src/tools';
 import { SchemaForm } from '../SchemaForm';
 import { FileSelectorWidget } from '../fileselectorwidget';
 import {
-  applyProxyFieldVisibility,
   processBaseSchema,
   removeFormEntry,
 } from '../schemaUtils';
@@ -137,8 +136,6 @@ export function GeoTiffSourcePropertiesForm(
       formContext,
       removeFormEntry,
     );
-
-    applyProxyFieldVisibility(formData, dataCopy, schema, builtUiSchema);
 
     const docManager = formSchemaRegistry?.getDocManager();
 

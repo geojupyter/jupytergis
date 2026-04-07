@@ -11,7 +11,6 @@ import { deepCopy } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
 import { SchemaForm } from '../SchemaForm';
 import {
-  applyProxyFieldVisibility,
   processBaseSchema,
   removeFormEntry,
 } from '../schemaUtils';
@@ -79,8 +78,6 @@ export function SourcePropertiesForm(
       formContext,
       removeFormEntry,
     );
-
-    applyProxyFieldVisibility(formData, dataCopy, schema, builtUiSchema);
 
     return builtUiSchema;
   }, [schema, formData, formContext]);
