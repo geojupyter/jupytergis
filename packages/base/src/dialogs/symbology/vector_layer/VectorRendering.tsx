@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
-import FilterComponent from '@/src/panelview/filter-panel/Filter';
+import FilterComponent from '@/src/features/filter/Filter';
 import {
   getColorCodeFeatureAttributes,
   getFeatureAttributes,

@@ -12,7 +12,7 @@ import React, {
 
 import StoryViewerPanel, {
   type IStoryViewerPanelHandle,
-} from '@/src/panelview/story-maps/StoryViewerPanel';
+} from '@/src/features/story/StoryViewerPanel';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 interface ISpectaDesktopViewProps {

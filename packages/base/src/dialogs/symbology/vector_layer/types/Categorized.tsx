@@ -154,8 +154,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const stops = Array.from(
       selectableAttributesAndValues[selectedAttribute],
     ).sort((a, b) => a - b);
-    const colorRamp = getColorMapList().find(c => c.name === selectedRamp);
 
+    const colorRamp = getColorMap(selectedRamp);
     if (!colorRamp) {
       return;
     }

@@ -4,6 +4,7 @@ import {
   IJGISLayerTree,
   SelectionType,
   IJupyterGISSettings,
+  IStorySegmentRef,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -11,15 +12,15 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { CommandIDs } from '../constants';
+import { CommandIDs } from '../../constants';
 import { LayersBodyComponent } from './components/layers';
-import StacPanel from '../features/stac-browser/components/StacPanel';
+import StacPanel from '../../features/stac-browser/components/StacPanel';
 import {
   PanelTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '../shared/components/Tabs';
+} from '../../shared/components/Tabs';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -91,7 +92,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
     const onSegmentAdded = (
       _sender: IJupyterGISModel,
-      payload: { storySegmentId: string; storyId: string },
+      payload: IStorySegmentRef,
     ) => {
       props.model.syncSelected(
         { [payload.storySegmentId]: { type: 'layer' } },

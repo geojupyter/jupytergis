@@ -114,6 +114,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2,
     });
 
+    app.contextMenu.addItem({
+      command: CommandIDs.createStorySegmentFromLayer,
+      selector: GIS_LAYER_ITEM,
+      rank: 2,
+    });
+
     // Create the Download submenu
     const downloadSubmenu = new Menu({ commands: app.commands });
     downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
