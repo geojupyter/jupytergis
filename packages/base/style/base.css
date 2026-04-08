@@ -130,6 +130,24 @@ button.jp-mod-styled.jp-mod-reject {
   left: 0;
 }
 
+/* Mobile bottom sheet — merged panel only */
+@media (max-width: 768px) {
+  .jgis-merged-panel-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-content[data-state='active'] {
+    height: 30vh;
+    overflow-y: auto;
+  }
+}
+
 .jgis-icon-adjust {
   padding-top: 5px;
 }

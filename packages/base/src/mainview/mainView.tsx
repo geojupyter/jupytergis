@@ -137,7 +137,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { LeftPanel, RightPanel } from '../workspace/panels';
+import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
   | TileLayer
@@ -3308,24 +3308,42 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               <div className="jgis-panels-wrapper">
                 {!this.state.isSpectaPresentation ? (
                   <>
-                    {this._state && (
-                      <LeftPanel
+                    {this.props.isMobile &&
+                    this._state &&
+                    this._formSchemaRegistry &&
+                    this._annotationModel ? (
+                      <MergedPanel
                         model={this._model}
                         commands={this._mainViewModel.commands}
                         state={this._state}
                         settings={this.state.jgisSettings}
-                      />
-                    )}
-                    {this._formSchemaRegistry && this._annotationModel && (
-                      <RightPanel
-                        model={this._model}
-                        commands={this._mainViewModel.commands}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
                         addLayer={this.addLayer.bind(this)}
                         removeLayer={this.removeLayer.bind(this)}
-                        settings={this.state.jgisSettings}
                       />
+                    ) : (
+                      <>
+                        {this._state && (
+                          <LeftPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            state={this._state}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                        {this._formSchemaRegistry && this._annotationModel && (
+                          <RightPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            formSchemaRegistry={this._formSchemaRegistry}
+                            annotationModel={this._annotationModel}
+                            addLayer={this.addLayer.bind(this)}
+                            removeLayer={this.removeLayer.bind(this)}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                      </>
                     )}
                   </>
                 ) : (
