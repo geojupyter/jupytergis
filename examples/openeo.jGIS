@@ -1,0 +1,163 @@
+{
+  "layerTree": [
+    "f863dc97-d9cb-427a-9e48-6471cf7a3d4d",
+    "4dcd8312-243a-409d-ad33-f0084f7cdfc5"
+  ],
+  "layers": {
+    "4dcd8312-243a-409d-ad33-f0084f7cdfc5": {
+      "name": "Manhattan OpenEO",
+      "parameters": {
+        "opacity": 0.9,
+        "source": "c58398c5-1ae0-4ec9-b8ab-6926d663be20"
+      },
+      "type": "OpenEOLayer",
+      "visible": true
+    },
+    "f863dc97-d9cb-427a-9e48-6471cf7a3d4d": {
+      "name": "USGS.USTopo Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "b66534a2-9959-47d2-9323-d484d6753e5e"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -8257793.768403825,
+      4956836.698606058,
+      -8203487.542771273,
+      4987857.435421129
+    ],
+    "latitude": 40.728292284845764,
+    "longitude": -73.93710299009813,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "storyMapPresentationMode": false,
+    "zoom": 11.938880796543467
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "b66534a2-9959-47d2-9323-d484d6753e5e": {
+      "name": "USGS.USTopo",
+      "parameters": {
+        "attribution": "Tiles courtesy of the U.S. Geological Survey",
+        "interpolate": false,
+        "maxZoom": 20.0,
+        "minZoom": 0.0,
+        "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "c58398c5-1ae0-4ec9-b8ab-6926d663be20": {
+      "name": "OpenEO Graph",
+      "parameters": {
+        "processGraph": {
+          "apply1": {
+            "arguments": {
+              "data": {
+                "from_node": "reducedimension1"
+              },
+              "process": {
+                "process_graph": {
+                  "linearscalerange1": {
+                    "arguments": {
+                      "inputMax": 10000.0,
+                      "inputMin": 0.0,
+                      "outputMax": 255.0,
+                      "x": {
+                        "from_parameter": "x"
+                      }
+                    },
+                    "process_id": "linear_scale_range"
+                  },
+                  "trunc1": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "linearscalerange1"
+                      }
+                    },
+                    "process_id": "trunc",
+                    "result": true
+                  }
+                }
+              }
+            },
+            "process_id": "apply"
+          },
+          "colorformula1": {
+            "arguments": {
+              "data": {
+                "from_node": "apply1"
+              },
+              "formula": "Gamma RGB 1.5 Sigmoidal RGB 6 0.3 Saturation 1"
+            },
+            "process_id": "color_formula"
+          },
+          "loadcollection1": {
+            "arguments": {
+              "bands": [
+                "B04",
+                "B03",
+                "B02"
+              ],
+              "id": "sentinel-2-global-mosaics",
+              "properties": {},
+              "spatial_extent": {
+                "east": -73.9,
+                "north": 40.8,
+                "south": 40.7,
+                "west": -74.0
+              },
+              "temporal_extent": [
+                "2022-04-15T00:00:00Z",
+                "2022-12-31T00:00:00Z"
+              ]
+            },
+            "process_id": "load_collection"
+          },
+          "reducedimension1": {
+            "arguments": {
+              "data": {
+                "from_node": "loadcollection1"
+              },
+              "dimension": "time",
+              "reducer": {
+                "process_graph": {
+                  "first1": {
+                    "arguments": {
+                      "data": {
+                        "from_parameter": "data"
+                      }
+                    },
+                    "process_id": "first",
+                    "result": true
+                  }
+                }
+              }
+            },
+            "process_id": "reduce_dimension"
+          },
+          "saveresult1": {
+            "arguments": {
+              "data": {
+                "from_node": "colorformula1"
+              },
+              "format": "PNG",
+              "options": {}
+            },
+            "process_id": "save_result",
+            "result": true
+          }
+        }
+      },
+      "type": "OpenEOSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
