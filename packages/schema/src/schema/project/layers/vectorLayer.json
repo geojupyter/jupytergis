@@ -123,7 +123,7 @@
           "enum": ["fill", "circle", "line"],
           "description": "The type of geometry."
         },
-        "colorsOverride": {
+        "colorStopsOverride": {
           "type": "array",
           "description": "User-customized color stops that override the computed classification. Saved only when the user manually edits stop colors in the dialog.",
           "items": {
