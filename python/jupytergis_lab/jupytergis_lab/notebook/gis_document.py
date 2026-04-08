@@ -31,6 +31,8 @@ from jupytergis_core.schema import (
     IVectorTileSource,
     IVideoSource,
     IWmsTileSource,
+    IOpenEOSource,
+    IOpenEOLayer,
     LayerType,
     SourceType,
 )
@@ -398,6 +400,33 @@ class GISDocument(CommWidget):
                 ],
                 "logicalOp": logical_op,
             },
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_openeo_tile_layer(
+        self,
+        graph,
+        name = 'OpenEO Tiles',
+        opacity: float = 1,
+    ):
+        source = {
+            "type": SourceType.OpenEOSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "processGraph": graph.flat_graph(),
+                "serverUrl": graph.connection.root_url,
+                "authBearer": graph.connection.auth.bearer
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.OpenEOLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -1296,6 +1325,7 @@ class JGISLayer(BaseModel):
         | IGeoTiffLayer
         | IHeatmapLayer
         | IStorySegmentLayer
+        | IOpenEOLayer
     )
     _parent = GISDocument | None
 
@@ -1324,6 +1354,7 @@ class JGISSource(BaseModel):
         | IGeoPackageVectorSource
         | IGeoPackageRasterSource
         | IWmsTileSource
+        | IOpenEOSource
     )
     _parent = GISDocument | None
 
@@ -1409,6 +1440,7 @@ OBJECT_FACTORY.register_factory(LayerType.GeoTiffLayer, IGeoTiffLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
+OBJECT_FACTORY.register_factory(LayerType.OpenEOLayer, IOpenEOLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
@@ -1428,3 +1460,4 @@ OBJECT_FACTORY.register_factory(
     IGeoPackageRasterSource,
 )
 OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
+OBJECT_FACTORY.register_factory(SourceType.OpenEOSource, IOpenEOSource)

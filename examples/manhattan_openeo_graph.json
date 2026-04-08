@@ -1,0 +1,93 @@
+{
+  "process_graph": {
+    "loadcollection1": {
+      "process_id": "load_collection",
+      "arguments": {
+        "bands": ["B04", "B03", "B02"],
+        "id": "sentinel-2-global-mosaics",
+        "properties": {},
+        "spatial_extent": {
+          "east": -73.9,
+          "north": 40.8,
+          "south": 40.7,
+          "west": -74.0
+        },
+        "temporal_extent": ["2022-04-15T00:00:00Z", "2022-12-31T00:00:00Z"]
+      }
+    },
+    "reducedimension1": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "dimension": "time",
+        "reducer": {
+          "process_graph": {
+            "first1": {
+              "process_id": "first",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "apply1": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension1"
+        },
+        "process": {
+          "process_graph": {
+            "linearscalerange1": {
+              "process_id": "linear_scale_range",
+              "arguments": {
+                "inputMax": 10000,
+                "inputMin": 0,
+                "outputMax": 255,
+                "x": {
+                  "from_parameter": "x"
+                }
+              }
+            },
+            "trunc1": {
+              "process_id": "trunc",
+              "arguments": {
+                "x": {
+                  "from_node": "linearscalerange1"
+                }
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "colorformula1": {
+      "process_id": "color_formula",
+      "arguments": {
+        "data": {
+          "from_node": "apply1"
+        },
+        "formula": "Gamma RGB 1.5 Sigmoidal RGB 6 0.3 Saturation 1"
+      }
+    },
+    "saveresult1": {
+      "process_id": "save_result",
+      "arguments": {
+        "data": {
+          "from_node": "colorformula1"
+        },
+        "format": "PNG",
+        "options": {}
+      },
+      "result": true
+    }
+  }
+}
