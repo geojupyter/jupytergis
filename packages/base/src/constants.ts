@@ -65,6 +65,7 @@ const iconObject = {
   [CommandIDs.toggleStoryPresentationMode]: {
     iconClass: 'fa fa-book jgis-icon-adjust',
   },
+  [CommandIDs.togglePanel]: { iconClass: 'fa fa-layer-group' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
 };

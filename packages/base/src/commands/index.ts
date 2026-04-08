@@ -1418,6 +1418,16 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.togglePanel, {
+    label: trans.__('Toggle Panel'),
+    caption: 'Toggle the panel in the current JupyterGIS document.',
+    iconClass: 'fa fa-layer-group',
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      window.dispatchEvent(new CustomEvent('jgis:togglePanel'));
+    },
+  });
+
   // Left panel tabs
   commands.addCommand(CommandIDs.showLayersTab, {
     label: trans.__('Show Layers Tab'),
