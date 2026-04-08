@@ -34,7 +34,7 @@ export interface IOpenEOConnectionInfo {
   /**
    * The authentication token.
    */
-  token: string;
+  token?: string;
 }
 
 export interface IOpenEOLayerOptions {
@@ -104,7 +104,8 @@ export class OpenEOSource extends ImageTileSource {
     // Encode POST as URL (simple approach)
     const encoded = encodeURIComponent(JSON.stringify(body));
 
-    return `${url}/result?request=${encoded}&token=${token}`;
+
+    return `${url}/result?request=${encoded}${token ? `&token=${token}` : ''}`;
   }
 
   processGraph: TProcessGraph;

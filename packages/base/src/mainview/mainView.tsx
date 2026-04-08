@@ -921,10 +921,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         newSource = new OpenEOSource({
           processGraph: sourceParameters.processGraph,
-          // TODO
+          // TODO make those settings?
           connectionInfo: {
-            url: '',
-            token: '',
+            url: 'http://localhost:8085',
+            // token: '',
           },
         });
         break;
