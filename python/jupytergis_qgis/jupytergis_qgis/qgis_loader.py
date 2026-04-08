@@ -61,17 +61,17 @@ def rgb_to_hex(rgb_str):
 
 
 def hex_to_rgba(hex_color):
-    """Convert a hex color to an RGBA tuple."""
+    """Convert a hex color to an RGBA tuple with alpha normalized to 0-1."""
     hex_color = hex_color.lstrip("#")
     if len(hex_color) == 6:
         r, g, b = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
-        a = 255  # Default alpha value
+        a = 255
     elif len(hex_color) == 8:
         r, g, b, a = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4, 6))
     else:
         raise ValueError(f"Invalid hex color: {hex_color}")
 
-    return r, g, b, a
+    return r, g, b, a / 255
 
 
 def qgis_layer_to_jgis(
@@ -237,7 +237,7 @@ def qgis_layer_to_jgis(
             for rng in renderer.ranges():
                 range_symbol = rng.symbol()
 
-            n_classes = len(renderer.ranges())
+            n_classes = len(renderer.ranges()) or 9
 
             symb_state.update(
                 renderType="Graduated",
@@ -275,7 +275,7 @@ def qgis_layer_to_jgis(
 
         if symbol:
             r, g, b, a = hex_to_rgba(symbol.color().name())
-            fill_color = [r, g, b, a / 255]
+            fill_color = [r, g, b, a]
 
             if isinstance(symbol, QgsMarkerSymbol):
                 symb_state["fillColor"] = fill_color
@@ -491,7 +491,7 @@ def _rgba_to_qcolor(rgba):
     """Convert an [r,g,b,a] list (a in 0-1) to QColor."""
     if isinstance(rgba, str) and rgba.startswith("#"):
         r, g, b, a = hex_to_rgba(rgba)
-        return QColor(int(r), int(g), int(b), int(a))
+        return QColor(int(r), int(g), int(b), int(a * 255))
     if isinstance(rgba, list) and len(rgba) == 4:
         r, g, b, a = rgba
         return QColor(int(r), int(g), int(b), int(a * 255))
