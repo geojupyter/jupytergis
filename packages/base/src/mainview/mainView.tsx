@@ -23,6 +23,8 @@ import {
   IRasterDemSource,
   IRasterLayer,
   IRasterSource,
+  IOpenEOLayer,
+  IOpenEOSource,
   IShapefileSource,
   IStacLayer,
   IVectorLayer,
@@ -122,6 +124,7 @@ import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
+import { OpenEOLayer, OpenEOSource } from './OpenEOLayer';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { SpectaPanel } from '../features/story/SpectaPanel';
@@ -913,6 +916,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
 
+      case 'OpenEOSource': {
+        const sourceParameters = source.parameters as IOpenEOSource;
+
+        newSource = new OpenEOSource({
+          processGraph: sourceParameters.processGraph,
+          // TODO
+          connectionInfo: {
+            url: '',
+            token: '',
+          },
+        });
+        break;
+      }
+
       case 'VideoSource': {
         console.warn('Video Tiles not supported with Open Layers');
 
@@ -1312,6 +1329,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           source: this._sources[layerParameters.source],
         });
 
+        break;
+      }
+      case 'OpenEOLayer': {
+        layerParameters = layer.parameters as IOpenEOLayer;
+
+        newMapLayer = new OpenEOLayer({
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          source: this._sources[layerParameters.source],
+        });
         break;
       }
       case 'WebGlLayer': {
