@@ -217,8 +217,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     // produced a string (e.g. user typed "4" into the value field).
     const colorsOverride = hasColorOverrides.current
       ? colorStopRowsRef.current.map(row => ({
-          value:
-            typeof row.stop === 'string' ? parseFloat(row.stop) : row.stop,
+          value: typeof row.stop === 'string' ? parseFloat(row.stop) : row.stop,
           color: row.output as [number, number, number, number],
         }))
       : undefined;

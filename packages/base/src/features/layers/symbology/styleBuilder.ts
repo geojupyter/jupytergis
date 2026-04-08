@@ -548,7 +548,8 @@ function buildCategorized(
   };
 
   if (field) {
-    const stops = overrideToComputedStops(state.colorsOverride) ??
+    const stops =
+      overrideToComputedStops(state.colorsOverride) ??
       computeCategorizedColorStops(state, featureValues);
     if (stops.length > 0) {
       const caseExpr: ExpressionValue[] = ['case'];
