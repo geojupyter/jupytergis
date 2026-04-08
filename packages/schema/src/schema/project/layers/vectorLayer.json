@@ -122,6 +122,22 @@
           "type": "string",
           "enum": ["fill", "circle", "line"],
           "description": "The type of geometry."
+        },
+        "colorsOverride": {
+          "type": "array",
+          "description": "User-customized color stops that override the computed classification. Saved only when the user manually edits stop colors in the dialog.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {},
+              "color": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4
+              }
+            }
+          }
         }
       },
       "additionalProperties": false,

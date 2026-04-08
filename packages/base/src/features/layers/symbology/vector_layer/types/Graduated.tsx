@@ -75,10 +75,20 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const symbologyTabRef = useLatest(symbologyTab);
   const vminRef = useLatest(vmin);
   const vmaxRef = useLatest(vmax);
+  const colorStopRowsRef = useLatest(colorStopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
 
   const colorManualStyleRef = useLatest(colorManualStyle);
   const radiusManualStyleRef = useLatest(radiusManualStyle);
+
+  // Tracks whether the user manually edited stop colors (vs computed by Classify).
+  const hasColorOverrides = useRef(false);
+
+  // Wrapper: manual edits via StopContainer set the override flag.
+  const handleManualColorStopEdit = (rows: IStopRow[]) => {
+    hasColorOverrides.current = true;
+    setColorStopRows(rows);
+  };
 
   if (!layerId) {
     return;
@@ -148,7 +158,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     setVmax(String(Math.max(...values)));
   }, [selectedAttribute]);
 
-  // Once selectedAttribute + vmin + vmax are populated, auto-classify using saved config.
+  // Once selectedAttribute + vmin + vmax are populated, restore overrides or auto-classify.
   useEffect(() => {
     if (hasAutoClassified.current) {
       return;
@@ -162,6 +172,22 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const state = params.symbologyState;
     if (state?.renderType === 'Graduated') {
       hasAutoClassified.current = true;
+
+      // If user previously saved manual overrides, restore them.
+      if (state.colorsOverride && state.colorsOverride.length > 0) {
+        setColorStopRows(
+          state.colorsOverride
+            .filter(s => s.value !== undefined && s.color !== undefined)
+            .map(s => ({
+              id: UUID.uuid4(),
+              stop: s.value as number | string,
+              output: s.color as [number, number, number, number],
+            })),
+        );
+        hasColorOverrides.current = true;
+        return;
+      }
+
       buildColorInfoFromClassification(
         (state.mode ?? 'equal interval') as ClassificationMode,
         state.nClasses ?? 9,
@@ -185,8 +211,18 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       symbologyTabRef.current === 'radius'
         ? ('radius' as const)
         : ('color' as const);
-    // Only persist the minimal config — stops are computed at runtime from
-    // nClasses + colorRamp + mode + feature values.
+    // Only persist the minimal config — stops are computed at runtime.
+    // If user manually edited colors, save them as colorsOverride.
+    // Graduated stop values are always numeric — coerce in case the text input
+    // produced a string (e.g. user typed "4" into the value field).
+    const colorsOverride = hasColorOverrides.current
+      ? colorStopRowsRef.current.map(row => ({
+          value:
+            typeof row.stop === 'string' ? parseFloat(row.stop) : row.stop,
+          color: row.output as [number, number, number, number],
+        }))
+      : undefined;
+
     const symbologyState: SymbologyState = {
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
@@ -202,6 +238,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       radius: radiusManualStyleRef.current.radius,
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
+      ...(colorsOverride && colorsOverride.length > 0 && { colorsOverride }),
     };
 
     saveSymbology({
@@ -341,6 +378,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       setRadiusStopRows(stopOutputPairs);
     } else {
       setColorStopRows(stopOutputPairs);
+      // Classify resets manual overrides — stops are now computed.
+      hasColorOverrides.current = false;
     }
   };
 
@@ -509,7 +548,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             selectedMethod={symbologyTab || 'color'}
             stopRows={symbologyTab === 'color' ? colorStopRows : radiusStopRows}
             setStopRows={
-              symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
+              symbologyTab === 'color'
+                ? handleManualColorStopEdit
+                : setRadiusStopRows
             }
           />
         </>

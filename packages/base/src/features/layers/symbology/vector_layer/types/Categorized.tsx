@@ -1,5 +1,5 @@
 import { IVectorLayer } from '@jupytergis/schema';
-import { ReadonlyJSONObject } from '@lumino/coreutils';
+import { ReadonlyJSONObject, UUID } from '@lumino/coreutils';
 import React, { useEffect, useRef, useState } from 'react';
 
 import {
@@ -60,7 +60,16 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   });
   const manualStyleRef = useLatest(manualStyle);
   const selectedAttributeRef = useLatest(selectedAttribute);
+  const stopRowsRef = useLatest(stopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
+
+  // Tracks whether the user manually edited stop colors.
+  const hasColorOverrides = useRef(false);
+
+  const handleManualStopEdit = (rows: IStopRow[]) => {
+    hasColorOverrides.current = true;
+    setStopRows(rows);
+  };
 
   if (!layerId) {
     return;
@@ -109,7 +118,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
 
-  // Auto-classify once selectedAttribute is available.
+  // Auto-classify once selectedAttribute is available, or restore overrides.
   useEffect(() => {
     if (hasAutoClassified.current) {
       return;
@@ -123,6 +132,22 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const state = params.symbologyState;
     if (state?.renderType === 'Categorized') {
       hasAutoClassified.current = true;
+
+      // If user previously saved manual overrides, restore them.
+      if (state.colorsOverride && state.colorsOverride.length > 0) {
+        setStopRows(
+          state.colorsOverride
+            .filter(s => s.value !== undefined && s.color !== undefined)
+            .map(s => ({
+              id: UUID.uuid4(),
+              stop: s.value as number | string,
+              output: s.color as [number, number, number, number],
+            })),
+        );
+        hasColorOverrides.current = true;
+        return;
+      }
+
       const rampName = (state.colorRamp ?? 'viridis') as ColorRampName;
       const reverse = state.reverseRamp ?? false;
       const stops = Array.from(
@@ -172,6 +197,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     );
 
     setStopRows(valueColorPairs);
+    hasColorOverrides.current = false;
   };
 
   const handleOk = () => {
@@ -182,8 +208,15 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     const method =
       symbologyTab === 'radius' ? ('radius' as const) : ('color' as const);
-    // Only persist the minimal config — stops are computed at runtime from
-    // colorRamp + feature values.
+
+    // Save manual color overrides if user edited stops.
+    const colorsOverride = hasColorOverrides.current
+      ? (stopRowsRef.current ?? []).map(row => ({
+          value: row.stop,
+          color: row.output as [number, number, number, number],
+        }))
+      : undefined;
+
     const symbologyState: IVectorLayer['symbologyState'] = {
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
@@ -200,6 +233,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       strokeColor: manualStyleRef.current.strokeColor,
       strokeWidth,
       radius: manualStyleRef.current.radius,
+      ...(colorsOverride && colorsOverride.length > 0 && { colorsOverride }),
     };
 
     saveSymbology({
@@ -376,7 +410,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             <StopContainer
               selectedMethod={''}
               stopRows={stopRows}
-              setStopRows={setStopRows}
+              setStopRows={handleManualStopEdit}
             />
           </div>
         </>
