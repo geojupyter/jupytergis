@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import json
 import os
 import sys
 from pathlib import Path
@@ -298,6 +299,27 @@ def qgis_layer_to_jgis(
                 stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
                 symb_state["strokeColor"] = list(stroke_rgba)
                 symb_state["geometryType"] = "fill"
+
+        # Override with stored custom properties (survive round-trip without data).
+        jgis_geom_type = layer.customProperty("jgis_geometryType")
+        if jgis_geom_type:
+            symb_state["geometryType"] = jgis_geom_type
+
+        jgis_stroke_color = layer.customProperty("jgis_strokeColor")
+        if jgis_stroke_color:
+            symb_state["strokeColor"] = json.loads(jgis_stroke_color)
+
+        jgis_cap_style = layer.customProperty("jgis_capStyle")
+        if jgis_cap_style:
+            symb_state["capStyle"] = jgis_cap_style
+
+        jgis_join_style = layer.customProperty("jgis_joinStyle")
+        if jgis_join_style:
+            symb_state["joinStyle"] = jgis_join_style
+
+        jgis_stroke_width = layer.customProperty("jgis_strokeWidth")
+        if jgis_stroke_width is not None:
+            symb_state["strokeWidth"] = float(jgis_stroke_width)
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -729,6 +751,23 @@ def jgis_layer_to_qgis(
             )
 
         map_layer.setRenderer(renderer)
+
+        # Store symbology metadata as custom properties so they survive
+        # round-trip even when remote data can't be loaded in the target env.
+        if geometry_type:
+            map_layer.setCustomProperty("jgis_geometryType", geometry_type)
+        stroke_color = symbology_state.get("strokeColor")
+        if stroke_color is not None:
+            map_layer.setCustomProperty("jgis_strokeColor", json.dumps(stroke_color))
+        cap_style = symbology_state.get("capStyle")
+        if cap_style is not None:
+            map_layer.setCustomProperty("jgis_capStyle", cap_style)
+        join_style = symbology_state.get("joinStyle")
+        if join_style is not None:
+            map_layer.setCustomProperty("jgis_joinStyle", join_style)
+        stroke_width = symbology_state.get("strokeWidth")
+        if stroke_width is not None:
+            map_layer.setCustomProperty("jgis_strokeWidth", stroke_width)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})

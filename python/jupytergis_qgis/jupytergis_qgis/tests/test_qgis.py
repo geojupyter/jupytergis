@@ -244,6 +244,7 @@ def test_qgis_saver():
                         "renderType": "Categorized",
                         "value": "min_label",
                         "geometryType": "line",
+                        "strokeColor": [0, 0, 0, 1.0],
                         "capStyle": "square",
                         "joinStyle": "bevel",
                         "strokeWidth": 1.0,
