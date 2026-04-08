@@ -233,7 +233,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       strokeColor: manualStyleRef.current.strokeColor,
       strokeWidth,
       radius: manualStyleRef.current.radius,
-      ...(colorStopsOverride && colorStopsOverride.length > 0 && { colorStopsOverride }),
+      ...(colorStopsOverride &&
+        colorStopsOverride.length > 0 && { colorStopsOverride }),
     };
 
     saveSymbology({
