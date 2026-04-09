@@ -12,9 +12,12 @@ from utils import build_url_parameters, resolve_tile_provider
 def generate_thumbnail(
     *,
     entry: LayerEntry,
-) -> Image:
+) -> Image.Image:
     """Fetch a 2×2 tile grid, stitch, resize to 256×256, and save optimized PNG."""
     tile_provider = resolve_tile_provider(entry)
+    if tile_provider is None:
+        raise RuntimeError("Programmer error.")
+
     url_parameters = build_url_parameters(tile_provider)
 
     tile_size = entry.thumbnail.tile_size
@@ -32,9 +35,15 @@ def generate_thumbnail(
     for dy in range(2):
         row = []
         for dx in range(2):
-            img = _fetch_tile(url_template=url_template, x=x+dx, y=y+dy, z=z, **url_parameters)
+            img = _fetch_tile(
+                url_template=url_template,
+                x=x + dx,
+                y=y + dy,
+                z=z,
+                **url_parameters,
+            )
             if img.size != (tile_size, tile_size):
-                img = img.resize((tile_size, tile_size), Image.LANCZOS)
+                img = img.resize((tile_size, tile_size), Image.Resampling.LANCZOS)
             row.append(img)
         rows.append(row)
 
@@ -43,7 +52,7 @@ def generate_thumbnail(
         for dx, img in enumerate(row):
             canvas.paste(img, (dx * tile_size, dy * tile_size))
 
-    return canvas.resize((256, 256), Image.LANCZOS)
+    return canvas.resize((256, 256), Image.Resampling.LANCZOS)
 
 
 def _fetch_tile(
@@ -53,8 +62,8 @@ def _fetch_tile(
     y: int,
     z: int,
     s: str = "a",
-    **kwargs,
-) -> Image:
+    **kwargs: str | int,
+) -> Image.Image:
     """Fetch a tile or return a placeholder if fetch fails."""
     try:
         url = url_template.format(x=x, y=y, z=z, s=s, **kwargs)

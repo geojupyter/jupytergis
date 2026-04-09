@@ -7,7 +7,10 @@ from xyzservices import TileProvider
 from models import GeoJSONLayer, LayerEntry, ThumbnailConfig, XYZServicesRef
 
 
-def make_raster_entry(name="Esri.WorldGrayCanvas", use_xyz=True):
+def make_raster_entry(
+    name: str = "Esri.WorldGrayCanvas",
+    use_xyz: bool = True,
+) -> LayerEntry:
     thumb = ThumbnailConfig(lat=37.77, lng=-122.42, zoom=5)
     if use_xyz:
         return LayerEntry(
@@ -31,7 +34,7 @@ def make_raster_entry(name="Esri.WorldGrayCanvas", use_xyz=True):
     )
 
 
-def make_geojson_entry():
+def make_geojson_entry() -> LayerEntry:
     return LayerEntry(
         name="NaturalEarth.Coastlines110m",
         layer_type="VectorLayer",
@@ -45,7 +48,9 @@ def make_geojson_entry():
     )
 
 
-def fake_tile_response(color=(100, 150, 200)):
+def fake_tile_response(
+    color: tuple[int, int, int] = (100, 150, 200),
+) -> mock.MagicMock:
     img = Image.new("RGB", (256, 256), color)
     buf = BytesIO()
     img.save(buf, format="PNG")

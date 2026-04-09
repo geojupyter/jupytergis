@@ -20,7 +20,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 
 THIS_DIR = Path(__file__).parent
@@ -97,7 +97,7 @@ def _layer_parameters(entry: LayerEntry) -> dict[str, Any]:
     return {"opacity": 1}
 
 
-def _write_gallery_json(data: ...) -> None:
+def _write_gallery_json(data: dict[str, Any]) -> None:
     GALLERY_JSON_PATH.parent.mkdir(exist_ok=True)
     with open(GALLERY_JSON_PATH, "w") as f:
         json.dump(data, f, indent=2)
@@ -127,7 +127,7 @@ def _handle_thumbnail_orphans() -> None:
             print(f"🗑️  {path}")
 
 
-def _build_gallery_entry(entry: LayerEntry) -> dict:
+def _build_gallery_entry(entry: LayerEntry) -> dict[str, Any]:
     thumb_path = THUMBNAILS_DIR / entry.thumbnail_filename
     relative_thumb = str(thumb_path.relative_to(PACKAGES_BASE_DIR))
 
@@ -135,6 +135,8 @@ def _build_gallery_entry(entry: LayerEntry) -> dict:
         source_params = dict(entry.data_source)
     else:
         tile_provider = resolve_tile_provider(entry)
+        if tile_provider is None:
+            raise RuntimeError("Programmer error.")
         source_params = {
             "url": tile_provider["url"],
             "attribution": tile_provider.get("attribution"),

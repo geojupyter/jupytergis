@@ -3,7 +3,10 @@ from functools import reduce
 from typing import Any, Literal
 
 from pydantic import BaseModel, RootModel, model_validator
-from xyzservices import TileProvider, providers as xyzcatalog
+from xyzservices import (
+    TileProvider as TileProvider,
+    providers as xyzcatalog,
+)
 
 
 type GallerySpecification = dict[str, dict[str, LayerEntry]]
@@ -30,7 +33,7 @@ class XYZServicesRef(RootModel[list[str]]):
     """
 
     @property
-    def resolve(self):
+    def resolve(self) -> TileProvider:
         return reduce(operator.getitem, self.root, xyzcatalog)
 
 
@@ -57,7 +60,7 @@ class LayerEntry(BaseModel):
     description: str | None = None
 
     @property
-    def thumbnail_filename(self):
+    def thumbnail_filename(self) -> str:
         return self._thumbnail_filename(self.name)
 
     @staticmethod

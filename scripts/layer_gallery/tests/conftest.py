@@ -16,7 +16,7 @@ class GalleryDirs:
 
 
 @pytest.fixture
-def gallery_dirs(tmp_path, monkeypatch) -> GalleryDirs:
+def gallery_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> GalleryDirs:
     gallery_dirs = GalleryDirs(
         PACKAGES_BASE_DIR=tmp_path,
         THUMBNAILS_DIR=tmp_path / "thumbnails",
@@ -30,16 +30,3 @@ def gallery_dirs(tmp_path, monkeypatch) -> GalleryDirs:
     monkeypatch.setattr("generate.GALLERY_JSON_PATH", gallery_dirs.GALLERY_JSON_PATH)
 
     return gallery_dirs
-
-
-@pytest.fixture
-def _fake_tile_response(color=(100, 150, 200)) -> mock.MagicMock:
-    img = Image.new("RGB", (256, 256), color)
-    buf = BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-
-    mock_resp = mock.MagicMock()
-    mock_resp.content = buf.read()
-    mock_resp.raise_for_status = mock.MagicMock()
-    return mock_resp

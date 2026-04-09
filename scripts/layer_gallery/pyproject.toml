@@ -13,6 +13,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest",
+    "mypy>=1.20.0",
+    "types-requests",
 ]
 
 [build-system]
@@ -25,3 +27,16 @@ packages = ["."]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.mypy]
+files = ["."]
+python_version = "3.12"
+strict = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = [
+    "xyzservices",
+    "mercantile",
+]
+ignore_missing_imports = true

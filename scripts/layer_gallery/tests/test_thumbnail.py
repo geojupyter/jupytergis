@@ -9,7 +9,7 @@ from .helpers import fake_tile_response
 
 
 class TestGenerateThumbnail:
-    def test_generate_thumbnail_creates_256x256_png(self):
+    def test_generate_thumbnail_creates_256x256_png(self) -> None:
         entry = LayerEntry(
             name="Test",
             layer_type="RasterLayer",
@@ -26,4 +26,5 @@ class TestGenerateThumbnail:
         with mock.patch("requests.get", return_value=fake_tile_response()):
             thumbnail = generate_thumbnail(entry=entry)
 
+        assert thumbnail is not None
         assert thumbnail.size == (256, 256)

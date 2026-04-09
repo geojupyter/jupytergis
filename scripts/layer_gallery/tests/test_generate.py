@@ -22,12 +22,18 @@ from .helpers import make_geojson_entry, make_raster_entry, fake_tile_response
 
 class TestCheckMissingThumbnails:
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
-    def test_check_missing_thumbnails_all_present(self, gallery_dirs: GalleryDirs):
+    def test_check_missing_thumbnails_all_present(
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         assert _check_missing_thumbnails() == []
 
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
-    def test_check_missing_thumbnails_reports_missing(self, gallery_dirs: GalleryDirs):
+    def test_check_missing_thumbnails_reports_missing(
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         missing = _check_missing_thumbnails()
         assert len(missing) == 1
         assert missing[0] == gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png"
@@ -35,7 +41,10 @@ class TestCheckMissingThumbnails:
     @mock.patch(
         "generate.gallery", {"NaturalEarth": {"Coastlines110m": make_geojson_entry()}}
     )
-    def test_check_missing_thumbnails_includes_geojson(self, gallery_dirs: GalleryDirs):
+    def test_check_missing_thumbnails_includes_geojson(
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         missing = _check_missing_thumbnails()
         assert len(missing) == 1
         assert (
@@ -46,13 +55,14 @@ class TestCheckMissingThumbnails:
 
 class TestFindOrphanImages:
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
-    def test_find_orphan_images_none(self, gallery_dirs: GalleryDirs):
+    def test_find_orphan_images_none(self, gallery_dirs: GalleryDirs) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         assert _find_orphan_images() == []
 
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
     def test_find_orphan_images_detects_extra_png(
-        self, gallery_dirs: GalleryDirs
+        self,
+        gallery_dirs: GalleryDirs,
     ) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         (gallery_dirs.THUMBNAILS_DIR / "OldEntry-Removed.png").touch()
@@ -61,7 +71,10 @@ class TestFindOrphanImages:
         assert len(orphans) == 1
         assert orphans[0].name == "OldEntry-Removed.png"
 
-    def test_find_orphan_images_detects_non_png(self, gallery_dirs: GalleryDirs):
+    def test_find_orphan_images_detects_non_png(
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         (gallery_dirs.THUMBNAILS_DIR / "stray.jpg").touch()
         gallery = {"Esri": {"WorldGrayCanvas": make_raster_entry()}}
@@ -70,8 +83,9 @@ class TestFindOrphanImages:
 
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
     def test_find_orphan_images_ignores_non_image_files(
-        self, gallery_dirs: GalleryDirs
-    ):
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         (gallery_dirs.THUMBNAILS_DIR / "README.md").touch()
         assert _find_orphan_images() == []
@@ -92,7 +106,7 @@ class TestBuildGalleryEntry:
             }
         },
     )
-    def test_build_gallery_entry_tile_provider(self, gallery_dirs: GalleryDirs):
+    def test_build_gallery_entry_tile_provider(self, gallery_dirs: GalleryDirs) -> None:
         actual = _build_gallery_entry(make_raster_entry())
 
         assert actual == {
@@ -111,7 +125,7 @@ class TestBuildGalleryEntry:
             "description": "Esri",
         }
 
-    def test_build_gallery_entry_geojson(self, gallery_dirs: GalleryDirs):
+    def test_build_gallery_entry_geojson(self, gallery_dirs: GalleryDirs) -> None:
         actual = _build_gallery_entry(make_geojson_entry())
 
         assert actual == {
@@ -131,8 +145,9 @@ class TestBuildGalleryEntry:
         }
 
     def test_build_gallery_entry_vector_tile_default_layer_params(
-        self, gallery_dirs: GalleryDirs
-    ):
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         actual = _build_gallery_entry(
             LayerEntry(
                 name="MacroStrat.CartoVector",
@@ -169,7 +184,7 @@ class TestRun:
         },
     )
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
-    def test_run_build_mode_writes_json(self, gallery_dirs: GalleryDirs):
+    def test_run_build_mode_writes_json(self, gallery_dirs: GalleryDirs) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
 
         run(generate_thumbnails=False)
@@ -180,7 +195,10 @@ class TestRun:
         assert "WorldGrayCanvas" in gallery_json["Esri"]
 
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
-    def test_run_build_mode_exits_on_missing_thumbnail(self, gallery_dirs: GalleryDirs):
+    def test_run_build_mode_exits_on_missing_thumbnail(
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         with pytest.raises(SystemExit) as exc_info:
             run(generate_thumbnails=False)
 
@@ -201,7 +219,10 @@ class TestRun:
         },
     )
     @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
-    def test_run_thumbnails_mode_generates_missing(self, gallery_dirs: GalleryDirs):
+    def test_run_thumbnails_mode_generates_missing(
+        self,
+        gallery_dirs: GalleryDirs,
+    ) -> None:
         with mock.patch("requests.get", return_value=fake_tile_response()):
             run(generate_thumbnails=True)
 
@@ -215,7 +236,7 @@ class TestRun:
         },
     )
     @pytest.mark.usefixtures("gallery_dirs")
-    def test_run_thumbnails_mode_skips_geojson(self, gallery_dirs: GalleryDirs):
+    def test_run_thumbnails_mode_skips_geojson(self, gallery_dirs: GalleryDirs) -> None:
         with mock.patch("requests.get") as mock_get:
             run(generate_thumbnails=True)
             mock_get.assert_not_called()
