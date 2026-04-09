@@ -71,13 +71,13 @@ class TestFindOrphanImages:
         assert len(orphans) == 1
         assert orphans[0].name == "OldEntry-Removed.png"
 
+    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
     def test_find_orphan_images_detects_non_png(
         self,
         gallery_dirs: GalleryDirs,
     ) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         (gallery_dirs.THUMBNAILS_DIR / "stray.jpg").touch()
-        gallery = {"Esri": {"WorldGrayCanvas": make_raster_entry()}}
         orphans = _find_orphan_images()
         assert any(o.name == "stray.jpg" for o in orphans)
 
