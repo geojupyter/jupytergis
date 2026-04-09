@@ -39,7 +39,7 @@ GALLERY_JSON_PATH = PACKAGES_BASE_DIR / "_generated" / "layer_gallery.json"
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".tiff"}
 
 
-def check_missing_thumbnails() -> list[Path]:
+def _check_missing_thumbnails() -> list[Path]:
     """Return paths of expected thumbnails that don't exist on disk."""
     missing = []
     for layers in gallery.values():
@@ -50,7 +50,26 @@ def check_missing_thumbnails() -> list[Path]:
     return missing
 
 
-def find_orphan_images() -> list[Path]:
+def _report_on_missing_thumbnails(
+    *,
+    severity: Literal["Warning"] | Literal["Error"],
+    exit_on_missing: bool = False,
+) -> None:
+    missing = _check_missing_thumbnails()
+    if missing:
+        print(f"{severity}: Missing thumbnails:")
+
+        icon = "❌" if severity == "Error" else "⚠️"
+        for path in missing:
+            print(f"{icon}  {path}")
+
+        print("\nRun this script with the `--thumbnails` flag to generate thumbnails.")
+
+        if exit_on_missing:
+            sys.exit(1)
+
+
+def _find_orphan_images() -> list[Path]:
     """Return image files in thumbnail_dir with no corresponding gallery entry."""
     expected = {
         THUMBNAILS_DIR / entry.thumbnail_filename
@@ -78,40 +97,6 @@ def _layer_parameters(entry: LayerEntry) -> dict[str, Any]:
     return {"opacity": 1}
 
 
-def build_gallery_json() -> dict:
-    """Build the layer_gallery.json dict from the gallery config."""
-    result = {}
-    for category, layers in gallery.items():
-        category_result = {}
-        for layer_id, entry in layers.items():
-            thumb_path = THUMBNAILS_DIR / entry.thumbnail_filename
-            relative_thumb = str(thumb_path.relative_to(PACKAGES_BASE_DIR))
-
-            if isinstance(entry.data_source, GeoJSONLayer):
-                source_params = dict(entry.data_source)
-            else:
-                tile_provider = resolve_tile_provider(entry)
-                source_params = {
-                    "url": tile_provider["url"],
-                    "attribution": tile_provider.get("attribution"),
-                    "maxZoom": tile_provider.get("max_zoom"),
-                    "minZoom": tile_provider.get("min_zoom") or 0,
-                    "urlParameters": build_url_parameters(tile_provider),
-                }
-
-            category_result[layer_id] = {
-                "thumbnailPath": relative_thumb,
-                "name": entry.name,
-                "layerType": entry.layer_type,
-                "sourceType": entry.source_type,
-                "sourceParameters": source_params,
-                "layerParameters": _layer_parameters(entry),
-                "description": entry.description or source_params["attribution"],
-            }
-        result[category] = category_result
-    return result
-
-
 def _write_gallery_json(data: ...) -> None:
     GALLERY_JSON_PATH.parent.mkdir(exist_ok=True)
     with open(GALLERY_JSON_PATH, "w") as f:
@@ -119,47 +104,77 @@ def _write_gallery_json(data: ...) -> None:
     print(f"Wrote {GALLERY_JSON_PATH}")
 
 
-def run_build_mode() -> None:
-    missing = check_missing_thumbnails()
-    if missing:
-        print("Error: Missing thumbnails:")
-        for path in missing:
-            print(f"❌  {path}")
-        print(
-            "\nRun `python scripts/layer_gallery/generate.py --thumbnails` to generate them."
-        )
-        sys.exit(1)
+def _make_thumbnail(entry: LayerEntry) -> None:
+    thumbnail_path = THUMBNAILS_DIR / entry.thumbnail_filename
+    if thumbnail_path.exists():
+        return
 
-    data = build_gallery_json()
-    _write_gallery_json(data)
+    if isinstance(entry.data_source, GeoJSONLayer):
+        print(f"⚠️  Skipping {entry.name} (GeoJSON — create thumbnail manually)")
+        return
+
+    print(f"  Generating {thumbnail_path.name} ...")
+    thumbnail = generate_thumbnail(entry=entry)
+    thumbnail.save(thumbnail_path, optimize=True)
+    print(f"  Generated {thumbnail_path.name}")
 
 
-def run_thumbnails_mode() -> None:
-    THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
-
-    for layers in gallery.values():
-        for entry in layers.values():
-            out_path = THUMBNAILS_DIR / entry.thumbnail_filename
-            if out_path.exists():
-                continue
-
-            if isinstance(entry.data_source, GeoJSONLayer):
-                print(f"⚠️  Skipping {entry.name} (GeoJSON — create thumbnail manually)")
-                continue
-
-            print(f"  Generating {out_path.name} ...")
-            thumbnail = generate_thumbnail(entry=entry)
-            thumbnail.save(out_path, optimize=True)
-            print(f"  Generated {out_path.name}")
-
-    orphans = find_orphan_images()
+def _handle_thumbnail_orphans() -> None:
+    orphans = _find_orphan_images()
     if orphans:
         print("\nOrphan images (no corresponding gallery entry) — delete manually:")
         for path in orphans:
             print(f"🗑️  {path}")
 
-    data = build_gallery_json()
-    _write_gallery_json(data)
+
+def _build_gallery_entry(entry: LayerEntry) -> dict:
+    thumb_path = THUMBNAILS_DIR / entry.thumbnail_filename
+    relative_thumb = str(thumb_path.relative_to(PACKAGES_BASE_DIR))
+
+    if isinstance(entry.data_source, GeoJSONLayer):
+        source_params = dict(entry.data_source)
+    else:
+        tile_provider = resolve_tile_provider(entry)
+        source_params = {
+            "url": tile_provider["url"],
+            "attribution": tile_provider.get("attribution"),
+            "maxZoom": tile_provider.get("max_zoom"),
+            "minZoom": tile_provider.get("min_zoom") or 0,
+            "urlParameters": build_url_parameters(tile_provider),
+        }
+
+    return {
+        "thumbnailPath": relative_thumb,
+        "name": entry.name,
+        "layerType": entry.layer_type,
+        "sourceType": entry.source_type,
+        "sourceParameters": source_params,
+        "layerParameters": _layer_parameters(entry),
+        "description": entry.description or source_params["attribution"],
+    }
+
+
+def run(*, generate_thumbnails: bool) -> None:
+    if generate_thumbnails:
+        THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
+    else:
+        _report_on_missing_thumbnails(severity="Error", exit_on_missing=True)
+
+    result = {}
+    for category, layers in gallery.items():
+        category_entries = {}
+        for layer_id, entry in layers.items():
+            if generate_thumbnails:
+                _make_thumbnail(entry)
+                _handle_thumbnail_orphans()
+
+            category_entries[layer_id] = _build_gallery_entry(entry)
+        result[category] = category_entries
+
+    if generate_thumbnails:
+        _report_on_missing_thumbnails(severity="Warning")
+
+    _write_gallery_json(result)
 
 
 def main() -> None:
@@ -171,10 +186,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.thumbnails:
-        run_thumbnails_mode()
-    else:
-        run_build_mode()
+    run(generate_thumbnails=args.thumbnails)
 
 
 if __name__ == "__main__":
