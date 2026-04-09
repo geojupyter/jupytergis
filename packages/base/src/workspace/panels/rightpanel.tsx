@@ -2,7 +2,6 @@ import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
   IJGISLayer,
-  IJupyterGISClientState,
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
@@ -10,6 +9,7 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
+import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from '../../features/objectproperties';
@@ -21,7 +21,7 @@ import {
   type IOverrideLayerEntry,
 } from '../../features/story/hooks/useStoryMap';
 import {
-  PanelTabs,
+  TabsRoot,
   TabsContent,
   TabsList,
   TabsTrigger,
@@ -86,31 +86,47 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const [editorMode, setEditorMode] = React.useState(true);
-  const [storyMapPresentationMode, setStoryMapPresentationMode] =
-    React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
+  const [curTab, setCurTab] = React.useState<string>(() => {
+    const initialPresentationMode =
+      props.model.getOptions().storyMapPresentationMode ?? false;
+    if (initialPresentationMode) {
+      return 'storyPanel';
+    }
+    if (!props.settings.objectPropertiesDisabled) {
+      return 'objectProperties';
+    }
+    if (!props.settings.storyMapsDisabled) {
+      return 'storyPanel';
+    }
+    if (!props.settings.annotationsDisabled) {
+      return 'annotations';
+    }
+    if (!props.settings.identifyDisabled) {
+      return 'identifyPanel';
+    }
+    return '';
+  });
+
+  const {
+    storyMapPresentationMode,
+    editorMode,
+    showEditor,
+    storyPanelTitle,
+    toggleEditor,
+  } = useRightPanelOptions(props.model, {
+    onPresentationModeEnabled: () => setCurTab('storyPanel'),
+    onIdentifyFeatures: () => setCurTab('identifyPanel'),
+  });
+
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
-
-  // Only show editor when not in presentation mode and editorMode is true
-  const showEditor = !storyMapPresentationMode && editorMode;
-
-  // Tab title: "Story Map" in presentation mode, otherwise based on editorMode
-  const storyPanelTitle = storyMapPresentationMode
-    ? 'Story Map'
-    : editorMode
-      ? 'Story Editor'
-      : 'Story Map';
 
   const tabInfo = [
     !props.settings.objectPropertiesDisabled && !storyMapPresentationMode
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
     !props.settings.storyMapsDisabled
-      ? {
-          name: 'storyPanel',
-          title: storyPanelTitle,
-        }
+      ? { name: 'storyPanel', title: storyPanelTitle }
       : false,
     !props.settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
@@ -120,46 +136,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
-  const [curTab, setCurTab] = React.useState<string>(() => {
-    if (storyMapPresentationMode) {
-      return 'storyPanel';
-    }
-    return tabInfo.length > 0 ? tabInfo[0].name : '';
-  });
-
-  React.useEffect(() => {
-    const onOptionsChanged = () => {
-      const { storyMapPresentationMode } = props.model.getOptions();
-      setStoryMapPresentationMode(storyMapPresentationMode ?? false);
-      storyMapPresentationMode && setCurTab('storyPanel');
-    };
-    let currentlyIdentifiedFeatures: any = undefined;
-    const onAwerenessChanged = (
-      _: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
-      const clientId = props.model.getClientId();
-      const localState = clientId ? clients.get(clientId) : null;
-
-      if (
-        localState &&
-        localState.identifiedFeatures?.value &&
-        localState.identifiedFeatures.value !== currentlyIdentifiedFeatures
-      ) {
-        currentlyIdentifiedFeatures = localState.identifiedFeatures.value;
-        setCurTab('identifyPanel');
-      }
-    };
-
-    props.model.sharedOptionsChanged.connect(onOptionsChanged);
-    props.model.clientStateChanged.connect(onAwerenessChanged);
-
-    return () => {
-      props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
-      props.model.clientStateChanged.disconnect(onAwerenessChanged);
-    };
-  }, [props.model]);
-
   const allRightTabsDisabled =
     props.settings.objectPropertiesDisabled &&
     props.settings.annotationsDisabled &&
@@ -167,10 +143,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
 
   const rightPanelVisible =
     !props.settings.rightPanelDisabled && !allRightTabsDisabled;
-
-  const toggleEditor = () => {
-    setEditorMode(!editorMode);
-  };
 
   return (
     <Draggable
@@ -182,7 +154,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
-        <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
+        <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
           <TabsList>
             {tabInfo.map(tab => (
               <TabsTrigger
@@ -263,7 +235,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               ></IdentifyPanelComponent>
             </TabsContent>
           )}
-        </PanelTabs>
+        </TabsRoot>
       </div>
     </Draggable>
   );
