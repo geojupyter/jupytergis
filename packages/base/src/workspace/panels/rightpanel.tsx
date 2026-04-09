@@ -86,14 +86,6 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const [visible, setVisible] = React.useState(true);
-
-  React.useEffect(() => {
-    const handler = () => setVisible(v => !v);
-    window.addEventListener('jgis:togglePanel', handler);
-    return () => window.removeEventListener('jgis:togglePanel', handler);
-  }, []);
-
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =
       props.model.getOptions().storyMapPresentationMode ?? false;
@@ -150,7 +142,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     props.settings.identifyDisabled;
 
   const rightPanelVisible =
-    visible && !props.settings.rightPanelDisabled && !allRightTabsDisabled;
+    !props.settings.rightPanelDisabled && !allRightTabsDisabled;
 
   return (
     <Draggable

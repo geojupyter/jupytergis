@@ -30,14 +30,6 @@ interface ILeftPanelProps {
 export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   const [options, setOptions] = React.useState(props.model.getOptions());
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
-  const [visible, setVisible] = React.useState(true);
-
-  React.useEffect(() => {
-    const handler = () => setVisible(v => !v);
-    window.addEventListener('jgis:togglePanel', handler);
-    return () => window.removeEventListener('jgis:togglePanel', handler);
-  }, []);
-
   const [curTab, setCurTab] = React.useState<string>(() => {
     if (!props.settings.layersDisabled) {
       return 'layers';
@@ -116,7 +108,12 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
         containerClassName="jgis-left-panel-container"
         curTab={curTab}
         onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
-        style={{ display: allLeftTabsDisabled || !visible ? 'none' : 'block' }}
+        style={{
+          display:
+            allLeftTabsDisabled || props.settings.leftPanelDisabled
+              ? 'none'
+              : 'block',
+        }}
       />
     </Draggable>
   );
