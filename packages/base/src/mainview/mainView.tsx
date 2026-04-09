@@ -1386,8 +1386,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
-
-      this._trackLayerViewState(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1447,6 +1445,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+
+        const shouldZoom = this.state.initialLayersReady;
+        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -1959,7 +1960,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   /**
    * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerViewState(layerId: string, olLayer: Layer): void {
+  private _trackLayerViewState(
+    layerId: string,
+    olLayer: Layer,
+    shouldZoom = false,
+  ): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
@@ -1978,6 +1983,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
+    }
+
+    if (shouldZoom) {
+      this._model.centerOnPosition(layerId);
     }
   }
 
