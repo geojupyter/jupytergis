@@ -1,9 +1,11 @@
 import TileLayer from 'ol/layer/Tile';
 import { ProjectionLike } from 'ol/proj';
 import {
-  default as ImageTileSource,
-  Options as ImageTileOptions,
-} from 'ol/source/ImageTile';
+  Options as XYZOptions,
+} from 'ol/source/XYZ';
+import {
+  XYZ as XYZSource
+} from 'ol/source';
 
 function tileToBBox(z: number, x: number, y: number) {
   const n = Math.pow(2, z);
@@ -48,7 +50,7 @@ export class OpenEOLayer extends TileLayer {
   // Just an alias
 }
 
-export interface IOpenEOSourceOptions extends ImageTileOptions {
+export interface IOpenEOSourceOptions extends XYZOptions {
   /**
    * The process graph value.
    */
@@ -60,52 +62,65 @@ export interface IOpenEOSourceOptions extends ImageTileOptions {
   connectionInfo: IOpenEOConnectionInfo;
 }
 
-export class OpenEOSource extends ImageTileSource {
+export class OpenEOSource extends XYZSource {
   constructor(options: IOpenEOSourceOptions) {
     const { processGraph, connectionInfo } = options;
 
     super({
       ...options,
-      url: (z: number, x: number, y: number, options: any) => {
-        // TODO Remove or use this
-        console.log(options);
-        return this.buildOpenEOTileURL(z, x, y, processGraph, connectionInfo);
+      url: '{z},{x},{y}',
+      tileLoadFunction: (tile: any, src) => {
+        const [z, x, y] = tile.tileCoord;
+
+        const body = this.buildOpenEORequest(z, x, y, processGraph);
+        const headers: any = {
+          'Content-Type': 'application/json',
+        }
+        if (connectionInfo.token) {
+          headers['Authorization'] = `Bearer ${connectionInfo.token}`
+        }
+
+        // TODO Use await
+        fetch(connectionInfo.url + '/result', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body)
+        })
+          .then(res => res.blob())
+          .then(blob => {
+            tile.getImage().src = URL.createObjectURL(blob);
+          });
       },
     });
   }
 
-  private buildOpenEOTileURL(
+  private buildOpenEORequest(
     z: number,
     x: number,
     y: number,
-    processGraph: TProcessGraph,
-    connectionInfo: IOpenEOConnectionInfo,
+    processGraph: TProcessGraph
   ) {
-    const { url, token } = connectionInfo;
-
     const bbox = tileToBBox(z, x, y);
 
-    const body = {
+    return {
       process: {
-        process_graph: processGraph,
+        process_graph: processGraph
       },
+
+      // Dynamically derived from tile
       spatial_extent: {
         west: bbox[0],
         south: bbox[1],
         east: bbox[2],
         north: bbox[3],
-        crs: 'EPSG:4326',
+        crs: "EPSG:4326"
       },
+
+      // Optional but usually needed
       output: {
-        format: 'PNG',
-      },
+        format: "PNG"
+      }
     };
-
-    // Encode POST as URL (simple approach)
-    const encoded = encodeURIComponent(JSON.stringify(body));
-
-
-    return `${url}/result?request=${encoded}${token ? `&token=${token}` : ''}`;
   }
 
   processGraph: TProcessGraph;

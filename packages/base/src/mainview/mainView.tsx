@@ -924,7 +924,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           // TODO make those settings?
           connectionInfo: {
             url: 'http://localhost:8085',
-            // token: '',
+            token: 'todo',
           },
         });
         break;
