@@ -32,7 +32,6 @@ class XYZServicesRef(RootModel[list[str]]):
         * `["OPNVKarte"]` resolves to `xyz.OPNVKarte`
     """
 
-    @property
     def resolve(self) -> TileProvider:
         return reduce(operator.getitem, self.root, xyzcatalog)
 
