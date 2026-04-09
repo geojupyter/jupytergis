@@ -1423,29 +1423,8 @@ export function addCommands(
     caption: 'Toggle the panel in the current JupyterGIS document.',
     iconClass: 'fa fa-layer-group',
     isEnabled: () => Boolean(tracker.currentWidget),
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-      try {
-        const settings = await current.model.getSettings();
-        const leftDisabled =
-          settings?.composite?.leftPanelDisabled ??
-          current.model.jgisSettings.leftPanelDisabled ??
-          false;
-        const rightDisabled =
-          settings?.composite?.rightPanelDisabled ??
-          current.model.jgisSettings.rightPanelDisabled ??
-          false;
-        // If either panel is visible, hide both; if both are hidden, show both.
-        const hide = !leftDisabled || !rightDisabled;
-        await settings?.set('leftPanelDisabled', hide);
-        await settings?.set('rightPanelDisabled', hide);
-        commands.notifyCommandChanged(CommandIDs.togglePanel);
-      } catch (err) {
-        console.error('Failed to toggle panels:', err);
-      }
+    execute: () => {
+      window.dispatchEvent(new CustomEvent('jgis:togglePanel'));
     },
   });
 
