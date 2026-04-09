@@ -18,6 +18,7 @@
   width: 100%;
   font-size: 9px;
   overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .jgis-tabs-list:active {

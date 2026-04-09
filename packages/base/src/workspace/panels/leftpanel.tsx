@@ -12,6 +12,7 @@ import Draggable from 'react-draggable';
 import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
+import { useUIState } from './hooks/useUIState';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
@@ -30,13 +31,11 @@ interface ILeftPanelProps {
 export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   const [options, setOptions] = React.useState(props.model.getOptions());
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
-  const [visible, setVisible] = React.useState(true);
-
-  React.useEffect(() => {
-    const handler = () => setVisible(v => !v);
-    window.addEventListener('jgis:togglePanel', handler);
-    return () => window.removeEventListener('jgis:togglePanel', handler);
-  }, []);
+  const [leftPanelOpen, setLeftPanelOpen] = useUIState(
+    'leftPanelOpen',
+    props.model,
+    props.settings.syncUIState ?? true,
+  );
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     if (!props.settings.layersDisabled) {
@@ -105,19 +104,34 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     },
   ];
 
+  const nodeRef = React.useRef<HTMLDivElement>(null);
+
   return (
     <Draggable
+      nodeRef={nodeRef}
       handle=".jgis-tabs-list"
-      cancel=".jgis-tabs-trigger"
+      cancel=".jgis-panel-tab-content"
       bounds=".jGIS-Mainview-Container"
     >
-      <TabbedPanel
-        tabs={tabs}
-        containerClassName="jgis-left-panel-container"
-        curTab={curTab}
-        onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
-        style={{ display: allLeftTabsDisabled || !visible ? 'none' : 'block' }}
-      />
+      <div
+        ref={nodeRef}
+        className="jgis-left-panel-container"
+        style={{
+          display:
+            allLeftTabsDisabled ||
+            props.settings.leftPanelDisabled ||
+            !leftPanelOpen
+              ? 'none'
+              : 'block',
+        }}
+      >
+        <TabbedPanel
+          tabs={tabs}
+          curTab={curTab}
+          onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+          onMinimize={() => setLeftPanelOpen(false)}
+        />
+      </div>
     </Draggable>
   );
 };

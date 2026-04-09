@@ -10,6 +10,7 @@ import * as React from 'react';
 import Draggable from 'react-draggable';
 
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
+import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from '../../features/objectproperties';
@@ -86,13 +87,11 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const [visible, setVisible] = React.useState(true);
-
-  React.useEffect(() => {
-    const handler = () => setVisible(v => !v);
-    window.addEventListener('jgis:togglePanel', handler);
-    return () => window.removeEventListener('jgis:togglePanel', handler);
-  }, []);
+  const [rightPanelOpen, setRightPanelOpen] = useUIState(
+    'rightPanelOpen',
+    props.model,
+    props.settings.syncUIState ?? true,
+  );
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =
@@ -150,18 +149,29 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     props.settings.identifyDisabled;
 
   const rightPanelVisible =
-    visible && !props.settings.rightPanelDisabled && !allRightTabsDisabled;
+    rightPanelOpen &&
+    !props.settings.rightPanelDisabled &&
+    !allRightTabsDisabled;
+
+  const nodeRef = React.useRef<HTMLDivElement>(null);
 
   return (
     <Draggable
+      nodeRef={nodeRef}
       handle=".jgis-tabs-list"
-      cancel=".jgis-tabs-trigger"
+      cancel=".jgis-panel-tab-content"
       bounds=".jGIS-Mainview-Container"
     >
       <div
+        ref={nodeRef}
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
+        <button
+          className="jgis-panel-minimize-btn"
+          onClick={() => setRightPanelOpen(false)}
+          title="Minimize panel"
+        />
         <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
           <TabsList>
             {tabInfo.map(tab => (

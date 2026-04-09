@@ -18,23 +18,28 @@ export interface ITabConfig {
 
 interface ITabbedPanelProps {
   tabs: ITabConfig[];
-  containerClassName: string;
   curTab: string;
   onTabClick: (name: string) => void;
-  style?: React.CSSProperties;
+  onMinimize?: () => void;
 }
 
 export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   tabs,
-  containerClassName,
   curTab,
   onTabClick,
-  style,
+  onMinimize,
 }) => {
   const enabledTabs = tabs.filter(tab => tab.enabled);
 
   return (
-    <div className={containerClassName} style={style}>
+    <>
+      {onMinimize && (
+        <button
+          className="jgis-panel-minimize-btn"
+          onClick={onMinimize}
+          title="Minimize panel"
+        />
+      )}
       <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
         <TabsList>
           {enabledTabs.map(tab => (
@@ -58,6 +63,6 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
           </TabsContent>
         ))}
       </TabsRoot>
-    </div>
+    </>
   );
 };

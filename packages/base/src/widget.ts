@@ -190,6 +190,9 @@ export class JupyterGISPanel extends SplitPanel {
   }
 
   get consoleOpened(): boolean {
+    if (this._mainViewModel) {
+      return this._mainViewModel.jGISModel.getUIState().consoleOpen ?? false;
+    }
     return this._consoleOpened;
   }
 
@@ -204,6 +207,7 @@ export class JupyterGISPanel extends SplitPanel {
       this._consoleView.dispose();
       this._consoleView = undefined;
       this._consoleOpened = false;
+      this._setConsoleUIState(false);
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
       }, 250);
@@ -241,6 +245,7 @@ export class JupyterGISPanel extends SplitPanel {
         this.addWidget(this._consoleView);
         this.setRelativeSizes([2, 1]);
         this._consoleOpened = true;
+        this._setConsoleUIState(true);
         await consolePanel.console.inject(
           `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")`,
         );
@@ -253,15 +258,26 @@ export class JupyterGISPanel extends SplitPanel {
     } else {
       if (this._consoleOpened) {
         this._consoleOpened = false;
+        this._setConsoleUIState(false);
         this.setRelativeSizes([1, 0]);
       } else {
         this._consoleOpened = true;
+        this._setConsoleUIState(true);
         this.setRelativeSizes([2, 1]);
       }
     }
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 250);
+  }
+
+  private _setConsoleUIState(open: boolean): void {
+    if (
+      this._mainViewModel &&
+      (this._mainViewModel.jGISModel.jgisSettings.syncUIState ?? true)
+    ) {
+      this._mainViewModel.jGISModel.setUIState({ consoleOpen: open });
+    }
   }
 
   private _state: IStateDB | undefined;
