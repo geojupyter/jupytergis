@@ -26,6 +26,9 @@
     "viewState": {
       "$ref": "#/definitions/jGISViewState"
     },
+    "uiState": {
+      "$ref": "#/definitions/jGISUIState"
+    },
     "metadata": {
       "type": "object",
       "patternProperties": {
@@ -210,6 +213,30 @@
       "default": [],
       "items": {
         "$ref": "#/definitions/jGISLayerItem"
+      }
+    },
+    "jGISUIState": {
+      "title": "IJGISUIState",
+      "type": "object",
+      "default": {},
+      "additionalProperties": false,
+      "properties": {
+        "leftPanelOpen": {
+          "type": "boolean",
+          "default": true
+        },
+        "rightPanelOpen": {
+          "type": "boolean",
+          "default": true
+        },
+        "consoleOpen": {
+          "type": "boolean",
+          "default": false
+        },
+        "temporalControllerOpen": {
+          "type": "boolean",
+          "default": false
+        }
       }
     },
     "jGISViewState": {

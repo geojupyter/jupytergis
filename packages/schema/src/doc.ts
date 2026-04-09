@@ -12,6 +12,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISUIState,
 } from './_interface/project/jgis';
 import { SCHEMA_VERSION } from './_interface/version';
 import {
@@ -27,6 +28,14 @@ import {
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
+/** Default uiState written into every document (new and on first open). */
+const DEFAULT_UI_STATE: IJGISUIState = {
+  leftPanelOpen: true,
+  rightPanelOpen: true,
+  consoleOpen: false,
+  temporalControllerOpen: false,
+};
+
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
@@ -34,6 +43,7 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"sources": {},
   "stories": {},
   "viewState": {},
+  "uiState": ${JSON.stringify(DEFAULT_UI_STATE)},
 	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}", "storyMapPresentationMode": false},
 	"layerTree": [],
 	"metadata": {}
@@ -52,6 +62,7 @@ export class JupyterGISDoc
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
     this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
+    this._uiState = this.ydoc.getMap<any>('uiState');
     this._metadata = this.ydoc.getMap<string>('metadata');
 
     this.undoManager.addToScope(this._layers);
@@ -68,6 +79,7 @@ export class JupyterGISDoc
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._stories.observeDeep(this._storyMapsObserver.bind(this));
     this._viewState.observe(this._viewStateObserver.bind(this));
+    this._uiState.observe(this._uiStateObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._metadata.observe(this._metaObserver.bind(this));
   }
@@ -91,6 +103,7 @@ export class JupyterGISDoc
     const sources = this._sources.toJSON();
     const stories = this._stories.toJSON();
     const viewState = this._viewState.toJSON();
+    const uiState = this._uiState.toJSON();
     const metadata = this._metadata.toJSON();
 
     return {
@@ -99,6 +112,7 @@ export class JupyterGISDoc
       sources,
       stories,
       viewState,
+      uiState,
       options,
       metadata,
     };
@@ -142,6 +156,14 @@ export class JupyterGISDoc
       const viewState = value['viewState'] ?? {};
       Object.entries(viewState).forEach(([key, val]) =>
         this._viewState.set(key, val),
+      );
+
+      const uiState = {
+        ...DEFAULT_UI_STATE,
+        ...((value['uiState'] as Record<string, unknown>) ?? {}),
+      };
+      Object.entries(uiState).forEach(([key, val]) =>
+        this._uiState.set(key, val),
       );
 
       const metadata = value['metadata'] ?? {};
@@ -258,6 +280,28 @@ export class JupyterGISDoc
 
   get options(): IJGISOptions {
     return JSONExt.deepCopy(this._options.toJSON()) as IJGISOptions;
+  }
+
+  set uiState(uiState: Partial<IJGISUIState>) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(uiState)) {
+        this._uiState.set(key, value);
+      }
+    });
+  }
+
+  get uiState(): IJGISUIState {
+    return {
+      leftPanelOpen: true,
+      rightPanelOpen: true,
+      consoleOpen: false,
+      temporalControllerOpen: false,
+      ...JSONExt.deepCopy(this._uiState.toJSON()),
+    };
+  }
+
+  get uiStateChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._uiStateChanged;
   }
 
   get layersChanged(): ISignal<IJupyterGISDoc, IJGISLayerDocChange> {
@@ -560,6 +604,18 @@ export class JupyterGISDoc
     this._viewStateChanged.emit(changes);
   };
 
+  private _uiStateObserver = (event: Y.YMapEvent<any>): void => {
+    const changes = new Map();
+    event.changes.keys.forEach((change, key) => {
+      changes.set(key, {
+        action: change.action,
+        oldValue: change.oldValue,
+        newValue: this._uiState.get(key),
+      });
+    });
+    this._uiStateChanged.emit(changes);
+  };
+
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
     const changes = new Map();
     event.changes.keys.forEach((event, key) => {
@@ -590,6 +646,7 @@ export class JupyterGISDoc
   private _sources: Y.Map<any>;
   private _stories: Y.Map<any>;
   private _viewState: Y.Map<any>;
+  private _uiState: Y.Map<any>;
   private _options: Y.Map<any>;
   private _metadata: Y.Map<string>;
 
@@ -609,6 +666,7 @@ export class JupyterGISDoc
     IJGISStoryMapDocChange
   >(this);
   private _viewStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+  private _uiStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 
   private _initialSyncReadyPromise: Promise<void>;

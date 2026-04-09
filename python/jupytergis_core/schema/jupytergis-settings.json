@@ -63,6 +63,12 @@
       "title": "Enable Zoom Buttons",
       "description": "Enable + / − zoom buttons on the map.",
       "default": false
+    },
+    "syncUIState": {
+      "type": "boolean",
+      "title": "Sync UI State",
+      "description": "When enabled, panel visibility and workspace layout changes are written to the document and shared with collaborators. When disabled, layout changes stay local and are lost on reload.",
+      "default": true
     }
   }
 }

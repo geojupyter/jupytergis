@@ -19,6 +19,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISUIState,
 } from './_interface/project/jgis';
 import {
   IStorySegmentLayer,
@@ -59,6 +60,7 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   identifyDisabled: false,
   storyMapsDisabled: false,
   zoomButtonsEnabled: false,
+  syncUIState: true,
 };
 
 export class JupyterGISModel implements IJupyterGISModel {
@@ -76,6 +78,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._metadataChangedHandler,
       this,
     );
+    this._sharedModel.uiStateChanged.connect(this._uiStateChangedHandler, this);
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -284,11 +287,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   set isTemporalControllerActive(isActive: boolean) {
-    this._isTemporalControllerActive = isActive;
+    this.setUIState({ temporalControllerOpen: isActive });
   }
 
   get isTemporalControllerActive(): boolean {
-    return this._isTemporalControllerActive;
+    return this._sharedModel.uiState.temporalControllerOpen ?? false;
   }
 
   centerOnPosition(id: string) {
@@ -297,6 +300,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
     this._sharedMetadataChanged.emit(args);
+  }
+
+  private _uiStateChangedHandler(_: IJupyterGISDoc, __: MapChange) {
+    this._uiStateChanged.emit(this._sharedModel.uiState);
   }
 
   addMetadata(key: string, value: string): void {
@@ -562,6 +569,18 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getOptions(): IJGISOptions {
     return this._sharedModel.options;
+  }
+
+  setUIState(value: Partial<IJGISUIState>): void {
+    this._sharedModel.uiState = value;
+  }
+
+  getUIState(): IJGISUIState {
+    return this._sharedModel.uiState;
+  }
+
+  get uiStateChanged(): ISignal<IJupyterGISModel, IJGISUIState> {
+    return this._uiStateChanged;
   }
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
@@ -1015,12 +1034,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   toggleTemporalController() {
-    this._isTemporalControllerActive = !this._isTemporalControllerActive;
-
-    this.sharedModel.awareness.setLocalStateField(
-      'isTemporalControllerActive',
-      this._isTemporalControllerActive,
-    );
+    const current = this._sharedModel.uiState.temporalControllerOpen ?? false;
+    this.setUIState({ temporalControllerOpen: !current });
   }
 
   private _getLayerTreeInfo(groupName: string):
@@ -1141,7 +1156,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _updateLayerSignal = new Signal<this, string>(this);
 
-  private _isTemporalControllerActive = false;
+  private _uiStateChanged = new Signal<this, IJGISUIState>(this);
 
   private _editing: { type: SelectionType; itemId: string } | null = null;
   private _editingChanged = new Signal<

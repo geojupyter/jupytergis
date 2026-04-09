@@ -27,6 +27,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISUIState,
   LayerType,
   SourceType,
 } from './_interface/project/jgis';
@@ -123,6 +124,7 @@ export interface IJupyterGISClientState {
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
+  uiState: IJGISUIState;
   layers: IJGISLayers;
   sources: IJGISSources;
   stories: IJGISStoryMaps;
@@ -177,6 +179,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removeMetadata(key: string): void;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  uiStateChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
@@ -286,6 +289,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeSource(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
+  getUIState(): IJGISUIState;
+  setUIState(value: Partial<IJGISUIState>): void;
+  uiStateChanged: ISignal<IJupyterGISModel, IJGISUIState>;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;
@@ -503,4 +509,7 @@ export interface IJupyterGISSettings {
 
   // Map controls
   zoomButtonsEnabled?: boolean;
+
+  // Collaboration
+  syncUIState?: boolean;
 }
