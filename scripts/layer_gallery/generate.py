@@ -50,7 +50,7 @@ def _check_missing_thumbnails() -> list[Path]:
     return missing
 
 
-def _report_on_missing_thumbnails(
+def _report_missing_thumbnails(
     *,
     severity: Literal["Warning"] | Literal["Error"],
     exit_on_missing: bool = False,
@@ -119,7 +119,7 @@ def _make_thumbnail(entry: LayerEntry) -> None:
     print(f"  Generated {thumbnail_path.name}")
 
 
-def _handle_thumbnail_orphans() -> None:
+def _report_thumbnail_orphans() -> None:
     orphans = _find_orphan_images()
     if orphans:
         print("\nOrphan images (no corresponding gallery entry) — delete manually:")
@@ -160,7 +160,7 @@ def run(*, generate_thumbnails: bool) -> None:
     if generate_thumbnails:
         THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
     else:
-        _report_on_missing_thumbnails(severity="Error", exit_on_missing=True)
+        _report_missing_thumbnails(severity="Error", exit_on_missing=True)
 
     result = {}
     for category, layers in gallery.items():
@@ -173,8 +173,8 @@ def run(*, generate_thumbnails: bool) -> None:
         result[category] = category_entries
 
     if generate_thumbnails:
-        _report_on_missing_thumbnails(severity="Warning")
-        _handle_thumbnail_orphans()
+        _report_missing_thumbnails(severity="Warning")
+        _report_thumbnail_orphans()
 
     _write_gallery_json(result)
 
