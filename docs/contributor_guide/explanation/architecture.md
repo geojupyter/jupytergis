@@ -96,6 +96,8 @@ It mediates changes with Conflict-free Replicated Data Types (CRDTs), which is h
 by `yjs`.
 It is the "magic sauce" that enables collaboration!
 
+For a full explanation of where different kinds of state live (document, Settings, StateDB, React state), see [State management](state-management.md).
+
 :::tip
 You can view the shared model in many contexts by writing
 `console.log(model.sharedModel)` in a TypeScript file!
