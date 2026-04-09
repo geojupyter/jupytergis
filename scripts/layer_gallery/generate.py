@@ -168,13 +168,13 @@ def run(*, generate_thumbnails: bool) -> None:
         for layer_id, entry in layers.items():
             if generate_thumbnails:
                 _make_thumbnail(entry)
-                _handle_thumbnail_orphans()
 
             category_entries[layer_id] = _build_gallery_entry(entry)
         result[category] = category_entries
 
     if generate_thumbnails:
         _report_on_missing_thumbnails(severity="Warning")
+        _handle_thumbnail_orphans()
 
     _write_gallery_json(result)
 
