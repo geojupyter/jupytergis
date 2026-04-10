@@ -6,11 +6,9 @@ That JSON file is _not_ committed to this repository.
 
 All commands below should be run from this directory.
 
-
 ## Editing
 
 Edit `config.py`.
-
 
 ## Local usage
 
@@ -25,7 +23,6 @@ orphaned thumbnails that aren't represented in the config.
 
 This will also generate the layer gallery JSON so you can take a look if you like.
 
-
 ## Testing
 
 ```bash
@@ -33,7 +30,6 @@ uv run pytest
 ```
 
 This will also run in CI.
-
 
 ## Typechecking
 
