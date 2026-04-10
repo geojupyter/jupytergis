@@ -107,9 +107,9 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 /* Height constrained to 0.5rem less than .jGIS-Mainview-Container */
-.jgis-right-panel-container,
-.jgis-left-panel-container {
+.jgis-panel-container {
   position: absolute;
+  width: 330px;
   margin: 0.25rem;
   z-index: 40;
   max-height: calc(100% - 0.5rem);
@@ -118,16 +118,6 @@ button.jp-mod-styled.jp-mod-reject {
   box-shadow:
     0 4px 8px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.jgis-right-panel-container {
-  width: 330px;
-  right: 0;
-}
-
-.jgis-left-panel-container {
-  width: 250px;
-  left: 0;
 }
 
 .jgis-panel-minimize-btn {
@@ -154,8 +144,7 @@ button.jp-mod-styled.jp-mod-reject {
   border-radius: 1px;
 }
 
-.jgis-right-panel-container:hover .jgis-panel-minimize-btn,
-.jgis-left-panel-container:hover .jgis-panel-minimize-btn {
+.jgis-panel-container:hover .jgis-panel-minimize-btn {
   opacity: 0.3;
 }
 
@@ -209,8 +198,7 @@ button.jp-mod-styled.jp-mod-reject {
     width: 60%;
   }
 
-  .jgis-left-panel-container,
-  .jgis-right-panel-container {
+  .jgis-panel-container {
     position: relative;
     margin: 0;
   }

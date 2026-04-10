@@ -8,17 +8,19 @@
 
 .jgis-tabs-list {
   display: inline-flex;
-  height: 2.5rem;
+  height: 1.5rem;
   align-items: center;
   justify-content: space-evenly;
   background-color: var(--jp-layout-color2);
   color: var(--jp-ui-font-color0);
   cursor: grab;
-  gap: 1rem;
+  gap: 0.5rem;
   width: 100%;
   font-size: 9px;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 20%, transparent) transparent;
 }
 
 .jgis-tabs-list:active {
@@ -31,9 +33,9 @@
   justify-content: center;
   white-space: nowrap;
   border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.125rem 0.375rem;
   font-size: var(--jp-ui-font-size2);
-  font-weight: 500;
+  font-weight: 400;
   outline: none;
   transition: all 0.3s ease;
   border: 1px solid transparent;
@@ -52,10 +54,7 @@
 }
 
 .jgis-tabs-trigger[data-state='active'] {
-  background-color: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color0);
-  box-shadow: 0 1px 2px
-    color-mix(in srgb, var(--jp-layout-color0), transparent 90%);
+  font-weight: 600;
 }
 
 .jgis-tabs-content {

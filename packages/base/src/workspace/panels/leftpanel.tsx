@@ -115,8 +115,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     >
       <div
         ref={nodeRef}
-        className="jgis-left-panel-container"
+        className="jgis-panel-container"
         style={{
+          left: 0,
           display:
             allLeftTabsDisabled ||
             props.settings.leftPanelDisabled ||

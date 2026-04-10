@@ -164,8 +164,8 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     >
       <div
         ref={nodeRef}
-        className="jgis-right-panel-container"
-        style={{ display: rightPanelVisible ? 'block' : 'none' }}
+        className="jgis-panel-container"
+        style={{ right: 0, display: rightPanelVisible ? 'block' : 'none' }}
       >
         <button
           className="jgis-panel-minimize-btn"
@@ -176,7 +176,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           <TabsList>
             {tabInfo.map(tab => (
               <TabsTrigger
-                className="jGIS-layer-browser-category"
                 key={`${tab.name}-${tab.title}`}
                 value={tab.name}
                 onClick={() => {
