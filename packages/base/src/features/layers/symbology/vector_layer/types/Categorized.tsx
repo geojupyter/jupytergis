@@ -134,9 +134,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       hasAutoClassified.current = true;
 
       // If user previously saved manual overrides, restore them.
-      if (state.colorStopsOverride && state.colorStopsOverride.length > 0) {
+      if (state.stopsOverride && state.stopsOverride.length > 0) {
         setStopRows(
-          state.colorStopsOverride
+          state.stopsOverride
             .filter(s => s.value !== undefined && s.color !== undefined)
             .map(s => ({
               id: UUID.uuid4(),
@@ -210,7 +210,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       symbologyTab === 'radius' ? ('radius' as const) : ('color' as const);
 
     // Save manual color overrides if user edited stops.
-    const colorStopsOverride = hasColorOverrides.current
+    const stopsOverride = hasColorOverrides.current
       ? (stopRowsRef.current ?? []).map(row => ({
           value: row.stop,
           color: row.output as [number, number, number, number],
@@ -233,8 +233,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       strokeColor: manualStyleRef.current.strokeColor,
       strokeWidth,
       radius: manualStyleRef.current.radius,
-      ...(colorStopsOverride &&
-        colorStopsOverride.length > 0 && { colorStopsOverride }),
+      ...(stopsOverride &&
+        stopsOverride.length > 0 && { stopsOverride }),
     };
 
     saveSymbology({

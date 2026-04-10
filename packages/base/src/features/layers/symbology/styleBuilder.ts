@@ -126,7 +126,7 @@ export function buildTransparentFallbackFilter(
 // Helpers
 
 /**
- * Convert persisted `colorStopsOverride` to `IComputedStop[]`, or return
+ * Convert persisted `stopsOverride` to `IComputedStop[]`, or return
  * `undefined` if no override is present so callers fall through to
  * the computed path.
  *
@@ -134,7 +134,7 @@ export function buildTransparentFallbackFilter(
  *                       When false, keep them as-is (Categorized).
  */
 function overrideToComputedStops(
-  overrides: SymbologyState['colorStopsOverride'],
+  overrides: SymbologyState['stopsOverride'],
   numericValues = false,
 ): IComputedStop[] | undefined {
   if (!overrides || overrides.length === 0) {
@@ -464,7 +464,7 @@ function buildGraduated(
   // Color stops (method='color' or unset)
   if (field && state.method !== 'radius') {
     const colorStops =
-      overrideToComputedStops(state.colorStopsOverride, true) ??
+      overrideToComputedStops(state.stopsOverride, true) ??
       computeGraduatedColorStops(state, numericValues);
     if (colorStops.length > 0) {
       const interpolate: ExpressionValue[] = [
@@ -549,7 +549,7 @@ function buildCategorized(
 
   if (field) {
     const stops =
-      overrideToComputedStops(state.colorStopsOverride) ??
+      overrideToComputedStops(state.stopsOverride) ??
       computeCategorizedColorStops(state, featureValues);
     if (stops.length > 0) {
       const caseExpr: ExpressionValue[] = ['case'];

@@ -174,9 +174,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       hasAutoClassified.current = true;
 
       // If user previously saved manual overrides, restore them.
-      if (state.colorStopsOverride && state.colorStopsOverride.length > 0) {
+      if (state.stopsOverride && state.stopsOverride.length > 0) {
         setColorStopRows(
-          state.colorStopsOverride
+          state.stopsOverride
             .filter(s => s.value !== undefined && s.color !== undefined)
             .map(s => ({
               id: UUID.uuid4(),
@@ -212,10 +212,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         ? ('radius' as const)
         : ('color' as const);
     // Only persist the minimal config — stops are computed at runtime.
-    // If user manually edited colors, save them as colorStopsOverride.
+    // If user manually edited colors, save them as stopsOverride.
     // Graduated stop values are always numeric — coerce in case the text input
     // produced a string (e.g. user typed "4" into the value field).
-    const colorStopsOverride = hasColorOverrides.current
+    const stopsOverride = hasColorOverrides.current
       ? colorStopRowsRef.current.map(row => ({
           value: typeof row.stop === 'string' ? parseFloat(row.stop) : row.stop,
           color: row.output as [number, number, number, number],
@@ -237,8 +237,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       radius: radiusManualStyleRef.current.radius,
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
-      ...(colorStopsOverride &&
-        colorStopsOverride.length > 0 && { colorStopsOverride }),
+      ...(stopsOverride &&
+        stopsOverride.length > 0 && { stopsOverride }),
     };
 
     saveSymbology({
