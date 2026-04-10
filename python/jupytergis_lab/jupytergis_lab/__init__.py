@@ -7,7 +7,7 @@ except ImportError:
     import warnings
 
     warnings.warn(
-        f"Importing 'jupytergis_lab' outside a proper installation."
+        "Importing 'jupytergis_lab' outside a proper installation."
         " It's highly recommended to install the package from a stable release or"
         " in editable mode.",
         stacklevel=2,
