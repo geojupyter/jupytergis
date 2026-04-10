@@ -1,16 +1,15 @@
-from datetime import date, timedelta
 import json
+import os
+import string
+from datetime import date, timedelta
 from io import BytesIO
 from pathlib import Path
-import os
 
+import mercantile
 import requests
 from PIL import Image
-import mercantile
-from xyzservices import providers, TileProvider
-import string
 from requests.exceptions import RequestException
-
+from xyzservices import TileProvider, providers
 
 THIS_DIR = Path(__file__).parent.resolve()
 THUMBNAILS_LOCATION = THIS_DIR / "layer_gallery"
