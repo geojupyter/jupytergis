@@ -5,7 +5,6 @@ Edit **`scripts/layer_gallery/config.py`**. This is the only file you need to to
 The `gallery` dict is structured as `gallery[category][layer_id] = LayerEntry(...)`.
 Category keys become the tab labels in the gallery UI.
 
-
 ## If your layer is in the xyzservices catalog
 
 Use `XYZServicesRef` to point at an existing entry in the
@@ -31,7 +30,6 @@ gallery = {
 
 The layer gallery generator script (`/scripts/layer_gallery/`) fills in the URL,
 attribution, and zoom levels from `xyzservices` at build time.
-
 
 ## If your layer is not in the xyzservices catalog
 
@@ -75,7 +73,6 @@ For vector tile layers, use `layer_type="VectorTileLayer"` and `source_type="Vec
 
 Thumbnails live in `packages/base/layer_gallery_thumbnails/` and are committed to the repo.
 
-
 ### Generate automatically (raster tile layers)
 
 ```bash
@@ -98,7 +95,6 @@ For example, `NaturalEarth.Coastlines110m` → `NaturalEarth-Coastlines110m.png`
 Optimize this `png` with `optipng`.
 
 Commit the file.
-
 
 ## Verify
 

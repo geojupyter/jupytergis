@@ -1,34 +1,33 @@
-name: "Typecheck Python (layer gallery script only)"
+name: 'Typecheck Python (layer gallery script only)'
 
 on:
   push:
-    branches: "main"
+    branches: 'main'
   pull_request:
-    branches: "*"
-
+    branches: '*'
 
 concurrency:
-  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}'
   cancel-in-progress: true
 
 jobs:
   mypy:
-    runs-on: "ubuntu-latest"
+    runs-on: 'ubuntu-latest'
     steps:
-      - name: "Checkout"
-        uses: "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" # v4
+      - name: 'Checkout'
+        uses: 'actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5' # v4
         with:
           persist-credentials: false
 
-      - name: "Install the latest version of uv"
-        uses: "astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78" # v7
+      - name: 'Install the latest version of uv'
+        uses: 'astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78' # v7
 
-      - name: "Install dependencies"
-        working-directory: "./scripts/layer_gallery"
-        run: "uv sync"
+      - name: 'Install dependencies'
+        working-directory: './scripts/layer_gallery'
+        run: 'uv sync'
         with:
           enable-cache: true
 
-      - name: "Run mypy"
-        working-directory: "./scripts/layer_gallery"
-        run: "uv run mypy"
+      - name: 'Run mypy'
+        working-directory: './scripts/layer_gallery'
+        run: 'uv run mypy'
