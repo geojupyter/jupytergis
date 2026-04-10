@@ -37,7 +37,7 @@ jobs:
 
       - name: Install test packages
         shell: bash -l {0}
-        run: pip install pytest dirty-equals
+        run: pip install --group test
 
       - name: Run tests
         shell: bash -l {0}

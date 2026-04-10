@@ -8,6 +8,12 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 
+[dependency-groups]
+test = [
+    "pytest",
+    "dirty-equals",
+]
+
 
 [tool.hatch.version]
 path = "python/jupytergis/jupytergis/__init__.py"
