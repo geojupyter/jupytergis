@@ -21,7 +21,6 @@ def generate_thumbnail(
     url_parameters = build_url_parameters(tile_provider)
 
     tile_size = entry.thumbnail.tile_size
-    url_template = tile_provider["url"]
 
     tile = mercantile.tile(
         entry.thumbnail.lng,
@@ -36,7 +35,7 @@ def generate_thumbnail(
         row = []
         for dx in range(2):
             img = _fetch_tile(
-                url_template=url_template,
+                url_template=tile_provider["url"],
                 x=x + dx,
                 y=y + dy,
                 z=z,
