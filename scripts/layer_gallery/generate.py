@@ -22,15 +22,12 @@ import sys
 from pathlib import Path
 from typing import Any, Literal
 
-
-THIS_DIR = Path(__file__).parent
-
-sys.path.insert(0, str(THIS_DIR))
 from config import gallery
 from models import TileProvider, LayerEntry, GeoJSONLayer
 from thumbnail import generate_thumbnail
 from utils import build_url_parameters, resolve_tile_provider
 
+THIS_DIR = Path(__file__).parent
 REPO_ROOT = THIS_DIR.parent.parent
 PACKAGES_BASE_DIR = REPO_ROOT / "packages" / "base"
 THUMBNAILS_DIR = PACKAGES_BASE_DIR / "layer_gallery_thumbnails"
