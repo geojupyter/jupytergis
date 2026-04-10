@@ -30,7 +30,8 @@ testpaths = ["tests"]
 pythonpath = ["."]
 
 [tool.mypy]
-files = ["."]
+mypy_path = [".."]
+packages = ["layer_gallery"]
 python_version = "3.12"
 strict = true
 explicit_package_bases = true
