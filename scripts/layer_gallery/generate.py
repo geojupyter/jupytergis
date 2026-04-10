@@ -98,7 +98,7 @@ def _write_gallery_json(data: dict[str, Any]) -> None:
     GALLERY_JSON_PATH.parent.mkdir(exist_ok=True)
     with open(GALLERY_JSON_PATH, "w") as f:
         json.dump(data, f, indent=2)
-    print(f"Wrote {GALLERY_JSON_PATH}")
+    print(f"Generated {GALLERY_JSON_PATH}")
 
 
 def _make_thumbnail(entry: LayerEntry) -> None:
@@ -110,10 +110,9 @@ def _make_thumbnail(entry: LayerEntry) -> None:
         print(f"⚠️  Skipping {entry.name} (GeoJSON — create thumbnail manually)")
         return
 
-    print(f"  Generating {thumbnail_path.name} ...")
     thumbnail = generate_thumbnail(entry=entry)
     thumbnail.save(thumbnail_path, optimize=True)
-    print(f"  Generated {thumbnail_path.name}")
+    print(f"Generated {thumbnail_path.name}")
 
 
 def _report_thumbnail_orphans() -> None:
