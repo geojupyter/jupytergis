@@ -1,6 +1,6 @@
 import string
 from datetime import date, timedelta
-from typing import Any, cast
+from typing import Any, cast, TypeVar
 
 from xyzservices import TileProvider
 
@@ -52,7 +52,10 @@ def build_url_parameters(tile_provider: TileProvider) -> dict[str, Any]:
     return kwargs
 
 
-def dict_keys_to_camel[T](obj: T) -> T:
+T = TypeVar("T")
+
+
+def dict_keys_to_camel(obj: T) -> T:
     if isinstance(obj, dict):
         return cast(
             T,
