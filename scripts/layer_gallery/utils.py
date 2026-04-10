@@ -49,19 +49,19 @@ def build_url_parameters(tile_provider: TileProvider) -> dict[str, Any]:
         if name == "time" and tile_provider["time"] == "":
             kwargs[name] = yesterday
 
-    return _dict_keys_to_camel(kwargs)
+    return kwargs
 
 
-def _dict_keys_to_camel[T](obj: T) -> T:
+def dict_keys_to_camel[T](obj: T) -> T:
     if isinstance(obj, dict):
         return cast(
             T,
-            {_snake_to_camel(k): _dict_keys_to_camel(v) for k, v in obj.items()},
+            {_snake_to_camel(k): dict_keys_to_camel(v) for k, v in obj.items()},
         )
     if isinstance(obj, list):
         return cast(
             T,
-            [_dict_keys_to_camel(i) for i in obj],
+            [dict_keys_to_camel(i) for i in obj],
         )
     return obj
 

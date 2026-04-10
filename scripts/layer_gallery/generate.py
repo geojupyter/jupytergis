@@ -25,7 +25,7 @@ from typing import Any, Literal
 from config import gallery
 from models import TileProvider, LayerEntry, GeoJSONLayer
 from thumbnail import generate_thumbnail
-from utils import build_url_parameters, resolve_tile_provider
+from utils import build_url_parameters, dict_keys_to_camel, resolve_tile_provider
 
 THIS_DIR = Path(__file__).parent
 REPO_ROOT = THIS_DIR.parent.parent
@@ -138,7 +138,7 @@ def _build_gallery_entry(entry: LayerEntry) -> dict[str, Any]:
             "attribution": tile_provider.get("attribution"),
             "maxZoom": tile_provider.get("max_zoom"),
             "minZoom": tile_provider.get("min_zoom") or 0,
-            "urlParameters": build_url_parameters(tile_provider),
+            "urlParameters": dict_keys_to_camel(build_url_parameters(tile_provider)),
         }
 
     return {
