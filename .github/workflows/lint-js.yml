@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Python build deps
         shell: bash -l {0}
-        run: pip install -r requirements-build.txt
+        run: pip install --group build
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path

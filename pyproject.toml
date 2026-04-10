@@ -13,6 +13,22 @@ test = [
     "pytest",
     "dirty-equals",
 ]
+build = [
+    "build",
+    "datamodel-code-generator>=0.23.0",
+    "hatchling>=1.5.0,<2",
+    "jupyterlab>=4.5.1",
+    # TODO: Why do we need these at build-time?
+    "jupyter-collaboration>=4,<5",
+    "jupyter-collaboration-ui>=2,<3",
+    "jupyter-docprovider>=2,<3",
+    "jupyter-server-ydoc>=2,<3",
+    "mercantile>=1.2",
+    "pillow>=10",
+    "pydantic>=2.4.2,<3",
+    "ruff>=0.6",
+    "xyzservices>=2024.6.0",
+]
 
 
 [tool.hatch.version]
@@ -35,7 +51,7 @@ python_packages = [
 [tool.jupyter-releaser.hooks]
 before-bump-version = ["python -m pip install hatch 'jupyterlab>=4.0.0'"]
 before-build-npm = [
-    "python -m pip install -r requirements-build.txt",
+    "python -m pip install --group build",
     "jlpm",
     "jlpm build:prod",
 ]
