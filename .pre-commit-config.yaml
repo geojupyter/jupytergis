@@ -1,8 +1,7 @@
 ci:
   # pre-commit.ci will open PRs updating our hooks once a month
   autoupdate_schedule: quarterly
-  # skip any check that needs internet access
-  autofix_prs: true
+  autofix_prs: false
 
 exclude: '.*\.jgis$'
 repos:
