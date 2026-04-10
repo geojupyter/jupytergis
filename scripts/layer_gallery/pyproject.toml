@@ -8,6 +8,7 @@ dependencies = [
     "requests",
     "pillow",
     "mercantile",
+    "pyoxipng>=9.1.1",
 ]
 
 [dependency-groups]

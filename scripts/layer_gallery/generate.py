@@ -18,7 +18,9 @@ python generate.py --thumbnails
 
 import argparse
 import json
+import oxipng
 import sys
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
 
@@ -115,7 +117,10 @@ def _make_thumbnail(entry: LayerEntry) -> None:
         return
 
     thumbnail = generate_thumbnail(entry=entry)
-    thumbnail.save(thumbnail_path, optimize=True)
+
+    buf = BytesIO()
+    thumbnail.save(buf, format="PNG")
+    thumbnail_path.write_bytes(oxipng.optimize_from_memory(buf.getvalue(), level=6))
     print(f"Generated {thumbnail_path.name}")
 
 
