@@ -5,8 +5,8 @@ import requests
 from PIL import Image
 from requests.exceptions import RequestException
 
-from models import LayerEntry
-from utils import build_url_parameters, resolve_tile_provider
+from layer_gallery.models import LayerEntry
+from layer_gallery.utils import build_url_parameters, resolve_tile_provider
 
 
 def generate_thumbnail(

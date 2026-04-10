@@ -4,15 +4,15 @@ from unittest import mock
 
 from xyzservices import TileProvider
 
-from models import LayerEntry, ThumbnailConfig, XYZServicesRef
-from utils import build_url_parameters, resolve_tile_provider
+from layer_gallery.models import LayerEntry, ThumbnailConfig, XYZServicesRef
+from layer_gallery.utils import build_url_parameters, resolve_tile_provider
 
 from .helpers import make_geojson_entry, make_raster_entry
 
 
 class TestResolveTileProvider:
     @mock.patch(
-        "models.xyzcatalog",
+        "layer_gallery.models.xyzcatalog",
         {
             "Esri": {
                 "WorldGrayCanvas": TileProvider(
@@ -31,7 +31,7 @@ class TestResolveTileProvider:
         assert tp["name"] == "Esri.WorldGrayCanvas"
 
     @mock.patch(
-        "models.xyzcatalog",
+        "layer_gallery.models.xyzcatalog",
         {
             "OPNVKarte": TileProvider(
                 name="OPNVKarte",

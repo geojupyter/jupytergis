@@ -1,6 +1,6 @@
 from xyzservices import TileProvider
 
-from models import (
+from layer_gallery.models import (
     GallerySpecification,
     GeoJSONLayer,
     LayerEntry,

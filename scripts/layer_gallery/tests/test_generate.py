@@ -4,8 +4,8 @@ from unittest import mock
 import pytest
 from xyzservices import TileProvider
 
-from models import LayerEntry, ThumbnailConfig
-from generate import (
+from layer_gallery.models import LayerEntry, ThumbnailConfig
+from layer_gallery.generate import (
     _build_gallery_entry,
     _check_missing_thumbnails,
     _find_orphan_images,
@@ -17,7 +17,10 @@ from .helpers import make_geojson_entry, make_raster_entry, fake_tile_response
 
 
 class TestCheckMissingThumbnails:
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_check_missing_thumbnails_all_present(
         self,
         gallery_dirs: GalleryDirs,
@@ -25,7 +28,10 @@ class TestCheckMissingThumbnails:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         assert _check_missing_thumbnails() == []
 
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_check_missing_thumbnails_reports_missing(
         self,
         gallery_dirs: GalleryDirs,
@@ -35,7 +41,8 @@ class TestCheckMissingThumbnails:
         assert missing[0] == gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png"
 
     @mock.patch(
-        "generate.gallery", {"NaturalEarth": {"Coastlines110m": make_geojson_entry()}}
+        "layer_gallery.generate.gallery",
+        {"NaturalEarth": {"Coastlines110m": make_geojson_entry()}},
     )
     def test_check_missing_thumbnails_includes_geojson(
         self,
@@ -50,12 +57,18 @@ class TestCheckMissingThumbnails:
 
 
 class TestFindOrphanImages:
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_find_orphan_images_none(self, gallery_dirs: GalleryDirs) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
         assert _find_orphan_images() == []
 
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_find_orphan_images_detects_extra_png(
         self,
         gallery_dirs: GalleryDirs,
@@ -67,7 +80,10 @@ class TestFindOrphanImages:
         assert len(orphans) == 1
         assert orphans[0].name == "OldEntry-Removed.png"
 
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_find_orphan_images_detects_non_png(
         self,
         gallery_dirs: GalleryDirs,
@@ -77,7 +93,10 @@ class TestFindOrphanImages:
         orphans = _find_orphan_images()
         assert any(o.name == "stray.jpg" for o in orphans)
 
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_find_orphan_images_ignores_non_image_files(
         self,
         gallery_dirs: GalleryDirs,
@@ -89,7 +108,7 @@ class TestFindOrphanImages:
 
 class TestBuildGalleryEntry:
     @mock.patch(
-        "models.xyzcatalog",
+        "layer_gallery.models.xyzcatalog",
         {
             "Esri": {
                 "WorldGrayCanvas": TileProvider(
@@ -166,7 +185,7 @@ class TestBuildGalleryEntry:
 
 class TestRun:
     @mock.patch(
-        "models.xyzcatalog",
+        "layer_gallery.models.xyzcatalog",
         {
             "Esri": {
                 "WorldGrayCanvas": TileProvider(
@@ -179,7 +198,10 @@ class TestRun:
             }
         },
     )
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_run_build_mode_writes_json(self, gallery_dirs: GalleryDirs) -> None:
         (gallery_dirs.THUMBNAILS_DIR / "Esri-WorldGrayCanvas.png").touch()
 
@@ -190,7 +212,10 @@ class TestRun:
         assert "Esri" in gallery_json
         assert "WorldGrayCanvas" in gallery_json["Esri"]
 
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_run_build_mode_exits_on_missing_thumbnail(
         self,
         gallery_dirs: GalleryDirs,
@@ -202,7 +227,7 @@ class TestRun:
         assert not gallery_dirs.GALLERY_JSON_PATH.exists()
 
     @mock.patch(
-        "models.xyzcatalog",
+        "layer_gallery.models.xyzcatalog",
         {
             "Esri": {
                 "WorldGrayCanvas": TileProvider(
@@ -214,7 +239,10 @@ class TestRun:
             }
         },
     )
-    @mock.patch("generate.gallery", {"Esri": {"WorldGrayCanvas": make_raster_entry()}})
+    @mock.patch(
+        "layer_gallery.generate.gallery",
+        {"Esri": {"WorldGrayCanvas": make_raster_entry()}},
+    )
     def test_run_thumbnails_mode_generates_missing(
         self,
         gallery_dirs: GalleryDirs,
@@ -226,7 +254,7 @@ class TestRun:
         assert gallery_dirs.GALLERY_JSON_PATH.exists()
 
     @mock.patch(
-        "generate.gallery",
+        "layer_gallery.generate.gallery",
         {
             "NaturalEarth": {"Coastlines110m": make_geojson_entry()},
         },

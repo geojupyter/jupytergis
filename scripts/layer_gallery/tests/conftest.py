@@ -21,8 +21,14 @@ def gallery_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> GalleryDirs
 
     gallery_dirs.THUMBNAILS_DIR.mkdir()
 
-    monkeypatch.setattr("generate.PACKAGES_BASE_DIR", gallery_dirs.PACKAGES_BASE_DIR)
-    monkeypatch.setattr("generate.THUMBNAILS_DIR", gallery_dirs.THUMBNAILS_DIR)
-    monkeypatch.setattr("generate.GALLERY_JSON_PATH", gallery_dirs.GALLERY_JSON_PATH)
+    monkeypatch.setattr(
+        "layer_gallery.generate.PACKAGES_BASE_DIR", gallery_dirs.PACKAGES_BASE_DIR
+    )
+    monkeypatch.setattr(
+        "layer_gallery.generate.THUMBNAILS_DIR", gallery_dirs.THUMBNAILS_DIR
+    )
+    monkeypatch.setattr(
+        "layer_gallery.generate.GALLERY_JSON_PATH", gallery_dirs.GALLERY_JSON_PATH
+    )
 
     return gallery_dirs

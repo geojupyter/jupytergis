@@ -22,10 +22,14 @@ import sys
 from pathlib import Path
 from typing import Any, Literal
 
-from config import gallery
-from models import LayerEntry, GeoJSONLayer
-from thumbnail import generate_thumbnail
-from utils import build_url_parameters, dict_keys_to_camel, resolve_tile_provider
+from layer_gallery.config import gallery
+from layer_gallery.models import LayerEntry, GeoJSONLayer
+from layer_gallery.thumbnail import generate_thumbnail
+from layer_gallery.utils import (
+    build_url_parameters,
+    dict_keys_to_camel,
+    resolve_tile_provider,
+)
 
 THIS_DIR = Path(__file__).parent
 REPO_ROOT = THIS_DIR.parent.parent

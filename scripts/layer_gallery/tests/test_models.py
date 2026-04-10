@@ -1,6 +1,6 @@
 import pytest
 
-from models import LayerEntry, XYZServicesRef
+from layer_gallery.models import LayerEntry, XYZServicesRef
 
 
 class TestXYZServicesRef:
