@@ -7,7 +7,6 @@ import pytest
 @dataclass
 class GalleryDirs:
     PACKAGES_BASE_DIR: Path
-    # TODO: Do we need these? They are both relative to PACKAGES_BASE_DIR...
     THUMBNAILS_DIR: Path
     GALLERY_JSON_PATH: Path
 
