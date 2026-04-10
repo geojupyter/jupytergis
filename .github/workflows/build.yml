@@ -130,7 +130,7 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyterlab==4.5.1"
+          python -m pip install jupytergis*.whl
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
@@ -156,8 +156,6 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
-            jupyterlab
-            ipywidgets
             qgis
 
       - name: Download extension package
