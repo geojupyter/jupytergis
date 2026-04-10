@@ -48,7 +48,8 @@
         "ImageLayer",
         "HeatmapLayer",
         "StacLayer",
-        "StorySegmentLayer"
+        "StorySegmentLayer",
+        "OpenEOLayer"
       ]
     },
     "sourceType": {
@@ -66,7 +67,8 @@
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
-        "MarkerSource"
+        "MarkerSource",
+        "OpenEOSource"
       ]
     },
     "jGISLayer": {

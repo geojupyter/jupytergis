@@ -37,6 +37,7 @@ const iconObject = {
   ShapefileSource: { iconClass: 'fa fa-file' },
 
   RasterLayer: { icon: rasterIcon },
+  OpenEOLayer: { icon: rasterIcon },
   VectorLayer: { iconClass: 'fa fa-vector-square' },
   HillshadeLayer: { icon: moundIcon },
   ImageLayer: { iconClass: 'fa fa-image' },

@@ -14,6 +14,7 @@ export * from './_interface/project/sources/videoSource';
 export * from './_interface/project/sources/geoParquetSource';
 export * from './_interface/project/sources/markerSource';
 export * from './_interface/project/sources/wmsTileSource';
+export * from './_interface/project/sources/openeoSource';
 
 // Layers
 export * from './_interface/project/layers/heatmapLayer';
@@ -25,6 +26,7 @@ export * from './_interface/project/layers/imageLayer';
 export * from './_interface/project/layers/stacLayer';
 export * from './_interface/project/layers/vectorTileLayer';
 export * from './_interface/project/layers/webGlLayer';
+export * from './_interface/project/layers/openeoLayer';
 
 // Processing
 export * from './processing/_generated/exportProcessingSchema';

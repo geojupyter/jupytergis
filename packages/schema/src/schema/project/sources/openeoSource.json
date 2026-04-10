@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "description": "OpenEOSource",
+  "title": "IOpenEOSource",
+  "required": ["processGraph"],
+  "additionalProperties": false,
+  "properties": {
+    "processGraph": {
+      "type": "object",
+      "readOnly": true,
+      "description": "The process graph for the OpenEO layer.",
+      "default": {}
+    }
+  }
+}

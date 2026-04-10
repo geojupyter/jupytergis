@@ -1,0 +1,215 @@
+{
+  "layerTree": [
+    "4dcd8312-243a-409d-ad33-f0084f7cdfc5"
+  ],
+  "layers": {
+    "4dcd8312-243a-409d-ad33-f0084f7cdfc5": {
+      "name": "OpenEO Layer test",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "c58398c5-1ae0-4ec9-b8ab-6926d663be20"
+      },
+      "type": "OpenEOLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -1367230.755594947,
+      265850.8069634102,
+      293680.0753325834,
+      1741701.9352806306
+    ],
+    "latitude": 8.980083301453135,
+    "longitude": -4.821934921782953,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "storyMapPresentationMode": false,
+    "zoom": 6.665459128864533
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "c58398c5-1ae0-4ec9-b8ab-6926d663be20": {
+      "name": "OpenEO Graph",
+      "parameters": {
+        "processGraph": {
+          "loadcollection1": {
+            "arguments": {
+              "bands": [
+                "B02",
+                "B04",
+                "B08"
+              ],
+              "id": "SENTINEL2_L2A",
+              "spatial_extent": {
+                "east": 5.17,
+                "north": 51.19,
+                "south": 51.17,
+                "west": 5.14
+              },
+              "temporal_extent": [
+                "2021-02-01",
+                "2021-04-30"
+              ]
+            },
+            "process_id": "load_collection"
+          },
+          "reducedimension1": {
+            "arguments": {
+              "data": {
+                "from_node": "loadcollection1"
+              },
+              "dimension": "bands",
+              "reducer": {
+                "process_graph": {
+                  "add1": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "multiply1"
+                      },
+                      "y": {
+                        "from_node": "multiply4"
+                      }
+                    },
+                    "process_id": "add"
+                  },
+                  "add2": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "subtract2"
+                      },
+                      "y": 1.0
+                    },
+                    "process_id": "add"
+                  },
+                  "arrayelement1": {
+                    "arguments": {
+                      "data": {
+                        "from_parameter": "data"
+                      },
+                      "index": 2.0
+                    },
+                    "process_id": "array_element"
+                  },
+                  "arrayelement2": {
+                    "arguments": {
+                      "data": {
+                        "from_parameter": "data"
+                      },
+                      "index": 1.0
+                    },
+                    "process_id": "array_element"
+                  },
+                  "arrayelement3": {
+                    "arguments": {
+                      "data": {
+                        "from_parameter": "data"
+                      },
+                      "index": 0.0
+                    },
+                    "process_id": "array_element"
+                  },
+                  "divide1": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "multiply3"
+                      },
+                      "y": {
+                        "from_node": "add2"
+                      }
+                    },
+                    "process_id": "divide",
+                    "result": true
+                  },
+                  "multiply1": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "arrayelement1"
+                      },
+                      "y": 0.0001
+                    },
+                    "process_id": "multiply"
+                  },
+                  "multiply2": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "arrayelement2"
+                      },
+                      "y": 0.0001
+                    },
+                    "process_id": "multiply"
+                  },
+                  "multiply3": {
+                    "arguments": {
+                      "x": 2.5,
+                      "y": {
+                        "from_node": "subtract1"
+                      }
+                    },
+                    "process_id": "multiply"
+                  },
+                  "multiply4": {
+                    "arguments": {
+                      "x": 6.0,
+                      "y": {
+                        "from_node": "multiply2"
+                      }
+                    },
+                    "process_id": "multiply"
+                  },
+                  "multiply5": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "arrayelement3"
+                      },
+                      "y": 0.0001
+                    },
+                    "process_id": "multiply"
+                  },
+                  "multiply6": {
+                    "arguments": {
+                      "x": 7.5,
+                      "y": {
+                        "from_node": "multiply5"
+                      }
+                    },
+                    "process_id": "multiply"
+                  },
+                  "subtract1": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "multiply1"
+                      },
+                      "y": {
+                        "from_node": "multiply2"
+                      }
+                    },
+                    "process_id": "subtract"
+                  },
+                  "subtract2": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "add1"
+                      },
+                      "y": {
+                        "from_node": "multiply6"
+                      }
+                    },
+                    "process_id": "subtract"
+                  }
+                }
+              }
+            },
+            "process_id": "reduce_dimension",
+            "result": true
+          }
+        }
+      },
+      "type": "OpenEOSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
