@@ -1,10 +1,11 @@
 import json
-from typing import Any, Callable
 from functools import partial
-from packaging.version import Version
+from typing import Any, Callable
 
-from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
+from packaging.version import Version
+from pycrdt import Array, Map
+
 from .schema import SCHEMA_VERSION
 
 

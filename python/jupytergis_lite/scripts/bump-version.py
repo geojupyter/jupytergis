@@ -1,9 +1,10 @@
+import argparse
 from pathlib import Path
 from subprocess import run
 from typing import List
-from packaging.version import parse as parse_version
+
 import tomlkit
-import argparse
+from packaging.version import parse as parse_version
 
 HATCH_VERSION = "hatch version"
 ROOT = Path(__file__).parent.parent
