@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from layer_gallery.config import gallery
-from layer_gallery.models import LayerEntry, GeoJSONLayer
+from layer_gallery.models import GeoJSONLayer, LayerEntry
 from layer_gallery.thumbnail import generate_thumbnail
 from layer_gallery.utils import (
     build_url_parameters,

@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from xyzservices import TileProvider
 
-from layer_gallery.models import LayerEntry, GeoJSONLayer, XYZServicesRef
+from layer_gallery.models import GeoJSONLayer, LayerEntry, XYZServicesRef
 
 
 def resolve_tile_provider(entry: LayerEntry) -> TileProvider | None:

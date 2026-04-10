@@ -1,7 +1,7 @@
-import pytest
 from datetime import date, timedelta
 from unittest import mock
 
+import pytest
 from xyzservices import TileProvider
 
 from layer_gallery.models import LayerEntry, ThumbnailConfig, XYZServicesRef

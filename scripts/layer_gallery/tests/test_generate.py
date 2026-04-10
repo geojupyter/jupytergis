@@ -4,16 +4,16 @@ from unittest import mock
 import pytest
 from xyzservices import TileProvider
 
-from layer_gallery.models import LayerEntry, ThumbnailConfig
 from layer_gallery.generate import (
     _build_gallery_entry,
     _check_missing_thumbnails,
     _find_orphan_images,
     run,
 )
+from layer_gallery.models import LayerEntry, ThumbnailConfig
 
 from .conftest import GalleryDirs
-from .helpers import make_geojson_entry, make_raster_entry, fake_tile_response
+from .helpers import fake_tile_response, make_geojson_entry, make_raster_entry
 
 
 class TestCheckMissingThumbnails:
