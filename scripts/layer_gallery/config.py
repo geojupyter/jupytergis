@@ -698,7 +698,7 @@ gallery: GallerySpecification = {
             thumbnail=_sanfrancisco_thumbnail,
         ),
         "WorldBoundariesAndPlaces": LayerEntry(
-            name="NaturalEarth.WorldBoundariesAndPlaces",
+            name="WorldBoundariesAndPlaces",
             layer_type="RasterLayer",
             source_type="RasterSource",
             data_source=TileProvider(
@@ -711,7 +711,7 @@ gallery: GallerySpecification = {
             description="\u00a9 Esri \u2014 Country boundaries and place labels as transparent overlay, no API key required",
         ),
         "WorldOceanReference": LayerEntry(
-            name="NaturalEarth.WorldOceanReference",
+            name="WorldOceanReference",
             layer_type="RasterLayer",
             source_type="RasterSource",
             data_source=TileProvider(
