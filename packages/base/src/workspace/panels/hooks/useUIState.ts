@@ -2,27 +2,21 @@ import { IJGISUIState, IJupyterGISModel } from '@jupytergis/schema';
 import * as React from 'react';
 
 /**
- * Read and write a single uiState field.
+ * Read and write a single uiState field, backed by the model.
  *
- * When syncUIState is true the value is backed by the shared document model:
- * remote changes are applied and local changes are written back.
- *
- * When syncUIState is false the value is local React state only, initialised
- * from the document on mount. Changes stay in memory and are lost on reload.
+ * The model handles syncUIState routing: when sync is disabled it stores
+ * changes locally (in-memory) and emits the signal without touching the
+ * shared document, so remote peers are unaffected.
  */
 export function useUIState<K extends keyof IJGISUIState>(
   key: K,
   model: IJupyterGISModel,
-  syncUIState: boolean,
 ): [IJGISUIState[K], (value: IJGISUIState[K]) => void] {
   const [value, setValue] = React.useState<IJGISUIState[K]>(
     () => model.getUIState()[key],
   );
 
   React.useEffect(() => {
-    if (!syncUIState) {
-      return;
-    }
     const handler = (_: IJupyterGISModel, state: IJGISUIState) => {
       setValue(state[key]);
     };
@@ -30,16 +24,14 @@ export function useUIState<K extends keyof IJGISUIState>(
     return () => {
       model.uiStateChanged.disconnect(handler);
     };
-  }, [model, key, syncUIState]);
+  }, [model, key]);
 
   const setUIStateValue = React.useCallback(
     (newValue: IJGISUIState[K]) => {
       setValue(newValue);
-      if (syncUIState) {
-        model.setUIState({ [key]: newValue } as Partial<IJGISUIState>);
-      }
+      model.setUIState({ [key]: newValue } as Partial<IJGISUIState>);
     },
-    [model, key, syncUIState],
+    [model, key],
   );
 
   return [value, setUIStateValue];

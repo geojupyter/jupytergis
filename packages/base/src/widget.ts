@@ -272,10 +272,7 @@ export class JupyterGISPanel extends SplitPanel {
   }
 
   private _setConsoleUIState(open: boolean): void {
-    if (
-      this._mainViewModel &&
-      (this._mainViewModel.jGISModel.jgisSettings.syncUIState ?? true)
-    ) {
+    if (this._mainViewModel) {
       this._mainViewModel.jGISModel.setUIState({ consoleOpen: open });
     }
   }

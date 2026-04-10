@@ -34,7 +34,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   const [leftPanelOpen, setLeftPanelOpen] = useUIState(
     'leftPanelOpen',
     props.model,
-    props.settings.syncUIState ?? true,
   );
 
   const [curTab, setCurTab] = React.useState<string>(() => {
@@ -109,8 +108,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   return (
     <Draggable
       nodeRef={nodeRef}
-      handle=".jgis-tabs-list"
-      cancel=".jgis-panel-tab-content"
+      handle=".jgis-tabs-list-wrapper"
+      cancel=".jgis-panel-tab-content, .jgis-tabs-scroll-btn"
       bounds=".jGIS-Mainview-Container"
     >
       <div

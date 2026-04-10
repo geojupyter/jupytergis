@@ -291,7 +291,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   get isTemporalControllerActive(): boolean {
-    return this._sharedModel.uiState.temporalControllerOpen ?? false;
+    return this.getUIState().temporalControllerOpen ?? false;
   }
 
   centerOnPosition(id: string) {
@@ -303,7 +303,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   private _uiStateChangedHandler(_: IJupyterGISDoc, __: MapChange) {
-    this._uiStateChanged.emit(this._sharedModel.uiState);
+    if (this._jgisSettings.syncUIState ?? true) {
+      this._uiStateChanged.emit(this._sharedModel.uiState);
+    }
   }
 
   addMetadata(key: string, value: string): void {
@@ -572,11 +574,19 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   setUIState(value: Partial<IJGISUIState>): void {
-    this._sharedModel.uiState = value;
+    if (this._jgisSettings.syncUIState ?? true) {
+      this._sharedModel.uiState = value;
+    } else {
+      this._localUIState = { ...this._localUIState, ...value };
+      this._uiStateChanged.emit(this.getUIState());
+    }
   }
 
   getUIState(): IJGISUIState {
-    return this._sharedModel.uiState;
+    if (this._jgisSettings.syncUIState ?? true) {
+      return this._sharedModel.uiState;
+    }
+    return { ...this._sharedModel.uiState, ...this._localUIState };
   }
 
   get uiStateChanged(): ISignal<IJupyterGISModel, IJGISUIState> {
@@ -1156,6 +1166,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _updateLayerSignal = new Signal<this, string>(this);
 
+  private _localUIState: Partial<IJGISUIState> = {};
   private _uiStateChanged = new Signal<this, IJGISUIState>(this);
 
   private _editing: { type: SelectionType; itemId: string } | null = null;

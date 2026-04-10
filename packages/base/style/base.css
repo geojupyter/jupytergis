@@ -126,10 +126,8 @@ button.jp-mod-styled.jp-mod-reject {
   padding: 0;
   border: none;
   border-radius: 8px 8px 0 0;
-  background: transparent;
+  background: var(--jp-layout-color2);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,15 +140,16 @@ button.jp-mod-styled.jp-mod-reject {
   height: 2px;
   background: currentColor;
   border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.15s;
 }
 
-.jgis-panel-container:hover .jgis-panel-minimize-btn {
+.jgis-panel-container:hover .jgis-panel-minimize-btn::before {
   opacity: 0.3;
 }
 
-.jgis-panel-minimize-btn:hover {
+.jgis-panel-minimize-btn:hover::before {
   opacity: 0.7 !important;
-  background: rgba(128, 128, 128, 0.15);
 }
 
 .jgis-icon-adjust {
