@@ -47,5 +47,6 @@ jobs:
         run: pytest --color=yes -v python/jupytergis_lab/
 
       - name: Run layer gallery generator tests
+        working-directory: ./scripts/layer_gallery
         shell: bash -l {0}
-        run: pytest --color=yes -v scripts/layer_gallery/
+        run: uv run pytest --color=yes -v
