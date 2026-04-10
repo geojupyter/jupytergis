@@ -9,9 +9,6 @@ from xyzservices import (
 )
 
 
-GallerySpecification: TypeAlias = dict[str, dict[str, LayerEntry]]
-
-
 class ThumbnailConfig(BaseModel):
     """Configuration pertaining to generation of thumbnails for a layer."""
 
@@ -65,3 +62,6 @@ class LayerEntry(BaseModel):
     @staticmethod
     def _thumbnail_filename(val: str) -> str:
         return val.replace(".", "-") + ".png"
+
+
+GallerySpecification: TypeAlias = dict[str, dict[str, LayerEntry]]
