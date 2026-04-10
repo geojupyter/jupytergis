@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from config import gallery
-from models import TileProvider, LayerEntry, GeoJSONLayer
+from models import LayerEntry, GeoJSONLayer
 from thumbnail import generate_thumbnail
 from utils import build_url_parameters, dict_keys_to_camel, resolve_tile_provider
 

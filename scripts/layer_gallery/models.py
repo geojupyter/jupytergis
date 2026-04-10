@@ -2,7 +2,7 @@ import operator
 from functools import reduce
 from typing import Any, Literal
 
-from pydantic import BaseModel, RootModel, model_validator
+from pydantic import BaseModel, RootModel
 from xyzservices import (
     TileProvider as TileProvider,
     providers as xyzcatalog,
