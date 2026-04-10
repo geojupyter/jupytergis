@@ -23,7 +23,6 @@ jobs:
           environment-name: gis
           create-args: >-
             python=${{ matrix.python-version }}
-            jupyterlab=4
             qgis
 
       - name: Checkout
