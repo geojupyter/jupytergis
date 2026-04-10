@@ -10,7 +10,6 @@ import tornado
 class BackendCheckHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
-        body = self.get_json_body()
         qgis_installed = True
         try:
             import qgis  # noqa

@@ -245,7 +245,6 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "opacity": opacity,
                 "color": color_expr,
-                "opacity": opacity,
             },
             "filters": {
                 "appliedFilters": [
