@@ -1,4 +1,3 @@
-import base64
 import sqlite3
 import uuid
 from enum import Enum

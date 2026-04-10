@@ -1,7 +1,7 @@
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Optional
-import re
 
 from jupytergis_lab import GISDocument
 

@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 processingSchemaDir = "src/schema/processing"
 processingConfigDir = "src/processing/config"
