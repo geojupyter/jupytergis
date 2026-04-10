@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
 
 from pydantic import BaseModel, RootModel
 from xyzservices import (
@@ -9,7 +9,7 @@ from xyzservices import (
 )
 
 
-type GallerySpecification = dict[str, dict[str, LayerEntry]]
+GallerySpecification: TypeAlias = dict[str, dict[str, LayerEntry]]
 
 
 class ThumbnailConfig(BaseModel):
