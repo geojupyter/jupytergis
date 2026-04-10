@@ -237,8 +237,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       radius: radiusManualStyleRef.current.radius,
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
-      ...(stopsOverride &&
-        stopsOverride.length > 0 && { stopsOverride }),
+      ...(stopsOverride && stopsOverride.length > 0 && { stopsOverride }),
     };
 
     saveSymbology({

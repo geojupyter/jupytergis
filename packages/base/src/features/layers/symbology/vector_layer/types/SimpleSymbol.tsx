@@ -89,8 +89,8 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       strokeColor: strokeRgbaRef.current,
       strokeWidth,
       radius: styleRef.current?.radius,
-      joinStyle: styleRef.current?.joinStyle as SymbologyState['joinStyle'],
-      capStyle: styleRef.current?.capStyle as SymbologyState['capStyle'],
+      joinStyle: styleRef.current?.joinStyle,
+      capStyle: styleRef.current?.capStyle,
     };
 
     saveSymbology({
