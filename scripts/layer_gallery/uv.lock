@@ -219,7 +219,7 @@ wheels = [
 [[package]]
 name = "layer-gallery"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "mercantile" },
     { name = "pillow" },

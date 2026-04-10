@@ -34,7 +34,7 @@ from layer_gallery.utils import (
 )
 
 THIS_DIR = Path(__file__).parent
-REPO_ROOT = THIS_DIR.parent.parent
+REPO_ROOT = THIS_DIR.parent.parent.parent
 PACKAGES_BASE_DIR = REPO_ROOT / "packages" / "base"
 THUMBNAILS_DIR = PACKAGES_BASE_DIR / "layer_gallery_thumbnails"
 GALLERY_JSON_PATH = PACKAGES_BASE_DIR / "_generated" / "layer_gallery.json"
@@ -184,7 +184,7 @@ def run(*, generate_thumbnails: bool) -> None:
     _write_gallery_json(result)
 
 
-def main() -> None:
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Layer gallery generator")
     parser.add_argument(
         "--thumbnails",
@@ -197,4 +197,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    cli()
