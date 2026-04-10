@@ -3,7 +3,6 @@ import json
 from io import BytesIO
 from pathlib import Path
 import os
-import subprocess
 
 import requests
 from PIL import Image
@@ -359,5 +358,5 @@ cmd = (
 subprocess.run(["bash", "-lc", cmd], check=True)
 """
 
-with open(THIS_DIR / f"layer_gallery.json", "w") as f:
+with open(THIS_DIR / "layer_gallery.json", "w") as f:
     json.dump(provider_gallery, f, indent=2)
