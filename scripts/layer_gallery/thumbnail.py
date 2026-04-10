@@ -64,7 +64,7 @@ def _fetch_tile(
     s: str = "a",
     **kwargs: str | int,
 ) -> Image.Image:
-    """Fetch a tile or return a placeholder if fetch fails."""
+    """Fetch a tile."""
     try:
         url = url_template.format(x=x, y=y, z=z, s=s, **kwargs)
         resp = requests.get(url, headers={"User-Agent": "JupyterGIS"}, timeout=10)
