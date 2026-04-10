@@ -71,5 +71,4 @@ def _fetch_tile(
         resp.raise_for_status()
         return Image.open(BytesIO(resp.content))
     except RequestException as e:
-        print(f"  ⚠️ Tile fetch failed: {e}")
-        return Image.new("RGB", (256, 256), (220, 220, 220))
+        raise RuntimeError("Failed to fetch tile") from e
