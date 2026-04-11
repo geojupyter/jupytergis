@@ -86,6 +86,9 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._viewState = {};
 
+    this.settingsReady = new Promise(resolve => {
+      this._settingsReadyResolve = resolve;
+    });
     this.initSettings();
   }
 
@@ -99,6 +102,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         this._settings = setting;
 
         this._updateLocalSettings();
+        this._settingsReadyResolve();
 
         setting.changed.connect(() => {
           const oldSettings = { ...this._jgisSettings };
@@ -118,7 +122,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       } catch (error) {
         console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
         this._jgisSettings = { ...DEFAULT_SETTINGS };
+        this._settingsReadyResolve();
       }
+    } else {
+      this._settingsReadyResolve();
     }
   }
 
@@ -1119,6 +1126,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly annotationModel?: IAnnotationModel;
   readonly settingRegistry?: ISettingRegistry;
 
+  settingsReady: Promise<void>;
+  private _settingsReadyResolve: () => void;
   private _settings: ISettingRegistry.ISettings;
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;

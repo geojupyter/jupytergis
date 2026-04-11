@@ -184,7 +184,9 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('togglePanel', this._togglePanelButton);
       this._togglePanelButton.node.dataset.testid = 'toggle-panel-button';
-      this._updateTogglePanelVisibility();
+      options.model.settingsReady.then(() =>
+        this._updateTogglePanelVisibility(),
+      );
 
       this.addItem('separator2', new Separator());
 

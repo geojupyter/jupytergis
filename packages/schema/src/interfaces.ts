@@ -268,6 +268,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   }) => void;
 
   getSettings(): Promise<ISettingRegistry.ISettings>;
+  settingsReady: Promise<void>;
   settingsChanged: ISignal<IJupyterGISModel, string>;
   jgisSettings: IJupyterGISSettings;
   getContent(): IJGISContent;
