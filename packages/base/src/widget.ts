@@ -114,8 +114,16 @@ export class JupyterGISPanel extends SplitPanel {
 
     const readyPromise = model.sharedModel.initialSyncReady;
 
-    readyPromise.then(() => {
+    readyPromise.then(async () => {
       this._initModel({ model, commandRegistry });
+      if (this._state) {
+        const stored = await this._state.fetch(
+          `jupytergis:localUIState:${model.filePath}`,
+        );
+        if (stored !== undefined) {
+          model.setUIState(stored as any);
+        }
+      }
       this._initView(formSchemaRegistry, annotationModel);
     });
   }

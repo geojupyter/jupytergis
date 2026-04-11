@@ -66,6 +66,7 @@ export class ToolbarWidget extends ReactiveToolbar {
   private _model: JupyterGISModel;
   private _newSubMenu: MenuSvg | null = null;
   private _hasSetSpectaVisibility = false;
+  private _togglePanelButton: CommandToolbarButton | null = null;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
@@ -176,6 +177,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       );
       identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
 
+      this._togglePanelButton = new CommandToolbarButton({
+        id: CommandIDs.togglePanel,
+        label: '',
+        commands: options.commands,
+      });
+      this.addItem('togglePanel', this._togglePanelButton);
+      this._togglePanelButton.node.dataset.testid = 'toggle-panel-button';
+      this._updateTogglePanelVisibility();
+
       this.addItem('separator2', new Separator());
 
       const toggleConsoleButton = new CommandToolbarButton({
@@ -241,9 +251,21 @@ export class ToolbarWidget extends ReactiveToolbar {
   /**
    * Handles settings changes
    */
+  private _updateTogglePanelVisibility(): void {
+    if (!this._togglePanelButton) {
+      return;
+    }
+    const { leftPanelDisabled, rightPanelDisabled } = this._model.jgisSettings;
+    this._togglePanelButton.node.style.display =
+      leftPanelDisabled && rightPanelDisabled ? 'none' : '';
+  }
+
   private _onSettingsChanged = (sender: JupyterGISModel, key: string): void => {
     if (key === 'storyMapsDisabled') {
       this._updateStorySegmentMenuItem();
+    }
+    if (key === 'leftPanelDisabled' || key === 'rightPanelDisabled') {
+      this._updateTogglePanelVisibility();
     }
   };
 

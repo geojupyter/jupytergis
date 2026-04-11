@@ -1362,25 +1362,20 @@ export function addCommands(
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
-      return current ? !current.model.jgisSettings.leftPanelDisabled : false;
+      if (!current) {
+        return false;
+      }
+      const open = current.model.getUIState().leftPanelOpen;
+      return open !== false;
     },
-    execute: async () => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-
-      try {
-        const settings = await current.model.getSettings();
-        const currentValue =
-          settings?.composite?.leftPanelDisabled ??
-          current.model.jgisSettings.leftPanelDisabled ??
-          false;
-        await settings?.set('leftPanelDisabled', !currentValue);
-        commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
-      } catch (err) {
-        console.error('Failed to toggle Left Panel:', err);
-      }
+      const open = current.model.getUIState().leftPanelOpen;
+      current.model.setUIState({ leftPanelOpen: open === false });
+      commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
     },
   });
 
@@ -1396,25 +1391,51 @@ export function addCommands(
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
-      return current ? !current.model.jgisSettings.rightPanelDisabled : false;
+      if (!current) {
+        return false;
+      }
+      const open = current.model.getUIState().rightPanelOpen;
+      return open !== false;
     },
-    execute: async () => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
+      const open = current.model.getUIState().rightPanelOpen;
+      current.model.setUIState({ rightPanelOpen: open === false });
+      commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
+    },
+  });
 
-      try {
-        const settings = await current.model.getSettings();
-        const currentValue =
-          settings?.composite?.rightPanelDisabled ??
-          current.model.jgisSettings.rightPanelDisabled ??
-          false;
-        await settings?.set('rightPanelDisabled', !currentValue);
-        commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
-      } catch (err) {
-        console.error('Failed to toggle Right Panel:', err);
+  commands.addCommand(CommandIDs.togglePanel, {
+    label: trans.__('Toggle Panel'),
+    caption: 'Toggle the panel in the current JupyterGIS document.',
+    iconClass: 'fa fa-layer-group',
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
       }
+      const { leftPanelDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+      const { leftPanelOpen = true, rightPanelOpen = true } =
+        current.model.getUIState();
+      // Show all if any non-disabled panel is hidden; hide all otherwise.
+      const show =
+        (!leftPanelDisabled && !leftPanelOpen) ||
+        (!rightPanelDisabled && !rightPanelOpen);
+      const newState: { leftPanelOpen?: boolean; rightPanelOpen?: boolean } =
+        {};
+      if (!leftPanelDisabled) {
+        newState.leftPanelOpen = show;
+      }
+      if (!rightPanelDisabled) {
+        newState.rightPanelOpen = show;
+      }
+      current.model.setUIState(newState);
+      commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
   });
 

@@ -31,6 +31,7 @@ import {
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
+  IJGISUIState,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -1014,6 +1015,19 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._currentMode = value;
   }
 
+  setUIState(value: Partial<IJGISUIState>): void {
+    this._localUIState = { ...this._localUIState, ...value };
+    this._uiStateChanged.emit(this._localUIState as IJGISUIState);
+  }
+
+  getUIState(): IJGISUIState {
+    return this._localUIState as IJGISUIState;
+  }
+
+  get uiStateChanged(): ISignal<this, IJGISUIState> {
+    return this._uiStateChanged;
+  }
+
   toggleTemporalController() {
     this._isTemporalControllerActive = !this._isTemporalControllerActive;
 
@@ -1157,6 +1171,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
   stories: Map<string, IJGISStoryMap> = new Map();
+
+  private _localUIState: Partial<IJGISUIState> = {};
+  private _uiStateChanged = new Signal<this, IJGISUIState>(this);
 }
 
 export namespace JupyterGISModel {
