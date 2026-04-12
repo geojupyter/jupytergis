@@ -29,6 +29,7 @@ interface ILeftPanelProps {
 }
 
 export const LeftPanel: React.FC<ILeftPanelProps> = props => {
+  const nodeRef = React.useRef<HTMLDivElement>(null);
   const [options, setOptions] = React.useState(props.model.getOptions());
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const [leftPanelOpen] = useUIState('leftPanelOpen', props.model);
@@ -102,15 +103,14 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
 
   return (
     <Draggable
+      nodeRef={nodeRef}
       handle=".jgis-tabs-list"
       cancel=".jgis-tabs-trigger"
       bounds=".jGIS-Mainview-Container"
     >
-      <TabbedPanel
-        tabs={tabs}
-        containerClassName="jgis-left-panel-container"
-        curTab={curTab}
-        onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+      <div
+        ref={nodeRef}
+        className="jgis-left-panel-container"
         style={{
           display:
             props.settings.leftPanelDisabled ||
@@ -119,7 +119,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
               ? 'none'
               : 'block',
         }}
-      />
+      >
+        <TabbedPanel
+          tabs={tabs}
+          curTab={curTab}
+          onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+        />
+      </div>
     </Draggable>
   );
 };
