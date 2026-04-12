@@ -1446,7 +1446,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
 
-        const shouldZoom = this.state.initialLayersReady;
+        const myId = this._model.getClientId();
+        const othersId = this._model.users.filter(u => u.userId !== myId);
+
+        const isColloborative = othersId.length > 0;
+        const shouldZoom = this.state.initialLayersReady && !isColloborative;
         this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
