@@ -1376,6 +1376,7 @@ export function addCommands(
       const open = current.model.getUIState().leftPanelOpen;
       current.model.setUIState({ leftPanelOpen: open === false });
       commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
+      commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
   });
 
@@ -1405,6 +1406,7 @@ export function addCommands(
       const open = current.model.getUIState().rightPanelOpen;
       current.model.setUIState({ rightPanelOpen: open === false });
       commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
+      commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
   });
 
@@ -1413,6 +1415,20 @@ export function addCommands(
     caption: 'Toggle the panel in the current JupyterGIS document.',
     iconClass: 'fa fa-layer-group',
     isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+      const { leftPanelDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+      const { leftPanelOpen = true, rightPanelOpen = true } =
+        current.model.getUIState();
+      const show =
+        (!leftPanelDisabled && !leftPanelOpen) ||
+        (!rightPanelDisabled && !rightPanelOpen);
+      return !show;
+    },
     execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
