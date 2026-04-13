@@ -54,6 +54,11 @@ import {
 } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
+export interface IJGISUIState {
+  leftPanelOpen?: boolean;
+  rightPanelOpen?: boolean;
+}
+
 export interface IJGISStoryMaps {
   [k: string]: IJGISStoryMap;
 }
@@ -263,6 +268,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   }) => void;
 
   getSettings(): Promise<ISettingRegistry.ISettings>;
+  settingsReady: Promise<void>;
   settingsChanged: ISignal<IJupyterGISModel, string>;
   jgisSettings: IJupyterGISSettings;
   getContent(): IJGISContent;
@@ -338,6 +344,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
   segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
+
+  setUIState(value: Partial<IJGISUIState>): void;
+  getUIState(): IJGISUIState;
+  uiStateChanged: ISignal<IJupyterGISModel, IJGISUIState>;
 }
 
 export interface IUserData {

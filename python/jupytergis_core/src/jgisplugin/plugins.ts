@@ -248,6 +248,20 @@ const activate = async (
       category: 'JupyterGIS',
     });
 
+    // Panel toggles
+    palette.addItem({
+      command: CommandIDs.togglePanel,
+      category: 'JupyterGIS',
+    });
+    palette.addItem({
+      command: CommandIDs.toggleLeftPanel,
+      category: 'JupyterGIS',
+    });
+    palette.addItem({
+      command: CommandIDs.toggleRightPanel,
+      category: 'JupyterGIS',
+    });
+
     // Layer and group actions
     palette.addItem({
       command: CommandIDs.moveSelectedToNewGroup,

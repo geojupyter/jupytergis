@@ -10,6 +10,7 @@ import * as React from 'react';
 import Draggable from 'react-draggable';
 
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
+import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from '../../features/objectproperties';
@@ -141,8 +142,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     props.settings.annotationsDisabled &&
     props.settings.identifyDisabled;
 
+  const [rightPanelOpen] = useUIState('rightPanelOpen', props.model);
+
   const rightPanelVisible =
-    !props.settings.rightPanelDisabled && !allRightTabsDisabled;
+    !props.settings.rightPanelDisabled &&
+    !allRightTabsDisabled &&
+    rightPanelOpen !== false;
 
   return (
     <Draggable
