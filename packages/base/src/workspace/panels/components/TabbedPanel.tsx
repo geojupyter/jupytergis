@@ -18,46 +18,40 @@ export interface ITabConfig {
 
 interface ITabbedPanelProps {
   tabs: ITabConfig[];
-  containerClassName: string;
   curTab: string;
   onTabClick: (name: string) => void;
-  style?: React.CSSProperties;
 }
 
 export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   tabs,
-  containerClassName,
   curTab,
   onTabClick,
-  style,
 }) => {
   const enabledTabs = tabs.filter(tab => tab.enabled);
 
   return (
-    <div className={containerClassName} style={style}>
-      <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
-        <TabsList>
-          {enabledTabs.map(tab => (
-            <TabsTrigger
-              className="jGIS-layer-browser-category"
-              key={tab.name}
-              value={tab.name}
-              onClick={() => onTabClick(tab.name)}
-            >
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+    <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
+      <TabsList>
         {enabledTabs.map(tab => (
-          <TabsContent
+          <TabsTrigger
+            className="jGIS-layer-browser-category"
             key={tab.name}
             value={tab.name}
-            className={cn('jgis-panel-tab-content', tab.contentClassName)}
+            onClick={() => onTabClick(tab.name)}
           >
-            {tab.content}
-          </TabsContent>
+            {tab.title}
+          </TabsTrigger>
         ))}
-      </TabsRoot>
-    </div>
+      </TabsList>
+      {enabledTabs.map(tab => (
+        <TabsContent
+          key={tab.name}
+          value={tab.name}
+          className={cn('jgis-panel-tab-content', tab.contentClassName)}
+        >
+          {tab.content}
+        </TabsContent>
+      ))}
+    </TabsRoot>
   );
 };
