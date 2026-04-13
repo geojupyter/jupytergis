@@ -19,6 +19,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsDataSourceUri,
     QgsFillSymbol,
     QgsGradientColorRamp,
+    QgsGraduatedSymbolRenderer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsLineSymbol,
@@ -30,17 +31,11 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsRectangle,
     QgsReferencedRectangle,
     QgsRendererCategory,
-    QgsRendererRange,
     QgsSettings,
     QgsSingleBandPseudoColorRenderer,
     QgsSingleSymbolRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
-    QgsSingleSymbolRenderer,
-    QgsCategorizedSymbolRenderer,
-    QgsRendererCategory,
-    QgsGraduatedSymbolRenderer,
-    Qgis,
 )
 
 # Prevent any Qt application and event loop to spawn when
