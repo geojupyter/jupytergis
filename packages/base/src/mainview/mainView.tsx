@@ -2216,16 +2216,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.setState(old => ({ ...old, clientPointers }));
     });
 
-    // Temporal controller bit
-    // ? There's probably a better way to get changes in the model to trigger react rerenders
-    const isTemporalControllerActive = localState.isTemporalControllerActive;
+    // Compute displayTemporalController: active AND current selection is valid
+    const isTemporalControllerActive = !!localState.isTemporalControllerActive;
+    const selectedLayers = localState.selected?.value;
+    const selectedLayerId = selectedLayers
+      ? (Object.keys(selectedLayers)[0] ?? null)
+      : null;
+    const layerType = selectedLayerId
+      ? this._model.getLayer(selectedLayerId)?.type
+      : null;
+    const isSelectionValid =
+      !!selectedLayers &&
+      Object.keys(selectedLayers).length === 1 &&
+      !this._model.getSource(selectedLayerId!) &&
+      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
+    const displayTemporalController =
+      isTemporalControllerActive && isSelectionValid;
 
-    if (isTemporalControllerActive !== this.state.displayTemporalController) {
-      this.setState(old => ({
-        ...old,
-        displayTemporalController: isTemporalControllerActive,
-      }));
-
+    if (displayTemporalController !== this.state.displayTemporalController) {
+      this.setState(old => ({ ...old, displayTemporalController }));
       this._mainViewModel.commands.notifyCommandChanged(
         CommandIDs.temporalController,
       );
@@ -3068,6 +3077,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const olLayer = this.getLayer(layerId);
     const source = olLayer.getSource() as VectorSource;
 
+    if (typeof source.forEachFeature !== 'function') {
+      return;
+    }
+
     source.forEachFeature(feature => {
       const time = feature.get(selectedFeature);
       const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
@@ -3161,12 +3174,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         })}
 
         <div className="jGIS-Mainview-Container">
-          {this.state.displayTemporalController && (
-            <TemporalSlider
-              model={this._model}
-              filterStates={this.state.filterStates}
-            />
-          )}
+          <TemporalSlider
+            model={this._model}
+            filterStates={this.state.filterStates}
+            style={{
+              display: this.state.displayTemporalController ? 'block' : 'none',
+            }}
+          />
           <div
             ref={this.mainViewRef}
             className="jGIS-Mainview data-jgis-keybinding"
