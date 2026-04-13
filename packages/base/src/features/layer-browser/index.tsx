@@ -111,6 +111,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
       parameters: { ...tile.layerParameters, source: sourceId },
       visible: true,
       name: tile.name + ' Layer',
+      metadata: {
+        creatorId: model.getClientId(),
+      },
     };
 
     model.sharedModel.addSource(sourceId, sourceModel);

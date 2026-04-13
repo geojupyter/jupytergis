@@ -406,6 +406,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             type: 'line',
             source: sourceId,
           },
+          metadata: {
+            creatorId: this._model.getClientId(),
+          },
         };
 
         this.addLayer(layerId, layerModel, this.getLayerIDs().length);
@@ -1446,12 +1449,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
 
-        const myId = this._model.getClientId();
-        const othersId = this._model.users.filter(u => u.userId !== myId);
-
-        const isColloborative = othersId.length > 0;
-        const shouldZoom = this.state.initialLayersReady && !isColloborative;
-        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
+        const creatorId = layer.metadata?.creatorId;
+        const shouldZoom = this.state.initialLayersReady;
+        this._trackLayerViewState(
+          id,
+          newMapLayer as Layer,
+          shouldZoom,
+          creatorId,
+        );
 
         // doing +1 instead of calling method again
         if (
@@ -1968,6 +1973,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     layerId: string,
     olLayer: Layer,
     shouldZoom = false,
+    creatorId?: number,
   ): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
@@ -1989,7 +1995,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.updateLayerViewState(layerId, view);
     }
 
-    if (shouldZoom) {
+    if (shouldZoom && creatorId === this._model.getClientId()) {
       this._model.centerOnPosition(layerId);
     }
   }
@@ -2886,6 +2892,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       visible: true,
       name: 'Marker',
       parameters: layerParams,
+      metadata: {
+        creatorId: this._model.getClientId(),
+      },
     };
 
     this._model.sharedModel.addSource(sourceId, sourceModel);

@@ -237,6 +237,9 @@ export function CreationForm(props: ICreationFormProps) {
                 parameters: { source: childId },
                 visible: true,
                 name: `${sourceName ?? 'Layer'} ${tableName} Layer`,
+                metadata: {
+                  creatorId: currentModel.getClientId(),
+                },
               };
 
               currentModel.addLayer(UUID.uuid4(), layerModel);
@@ -276,6 +279,9 @@ export function CreationForm(props: ICreationFormProps) {
           parameters: layerParams,
           visible: true,
           name: actualName,
+          metadata: {
+            creatorId: currentModel.getClientId(),
+          },
         };
 
         currentModel.addLayer(UUID.uuid4(), layerModel);

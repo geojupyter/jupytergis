@@ -90,6 +90,15 @@
         },
         "filters": {
           "$ref": "#/definitions/jGISFilter"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "creatorId": {
+              "type": "number"
+            }
+          }
         }
       }
     },

@@ -219,9 +219,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const users: IUserData[] = [];
     if (this._usersMap) {
       this._usersMap.forEach((val, key) => {
-        if (val.user) {
-          users.push({ userId: key, userData: val.user });
-        }
+        users.push({ userId: key, userData: val.user });
       });
     }
     return users;

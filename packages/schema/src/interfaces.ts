@@ -27,6 +27,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISViewState,
   LayerType,
   SourceType,
 } from './_interface/project/jgis';
@@ -127,6 +128,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   sources: IJGISSources;
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
+  viewState: IJGISViewState;
   metadata: any;
 
   readonly editable: boolean;
@@ -221,7 +223,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   viewState?: IViewState;
   annotationModel?: IAnnotationModel;
   currentMode: Modes;
-  users: IUserData[];
   themeChanged: Signal<
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
