@@ -123,10 +123,6 @@
       "@jupyter/docprovider": {
         "singleton": true,
         "bundled": false
-      },
-      "@jupyterlab/logconsole": {
-        "singleton": true,
-        "bundled": false
       }
     }
   }
