@@ -3119,6 +3119,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const olLayer = this.getLayer(layerId);
     const source = olLayer.getSource() as VectorSource;
 
+    if (typeof source.forEachFeature !== 'function') {
+      return;
+    }
+
     source.forEachFeature(feature => {
       const time = feature.get(selectedFeature);
       const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
