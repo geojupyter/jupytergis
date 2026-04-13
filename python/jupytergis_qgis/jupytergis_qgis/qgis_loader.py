@@ -35,7 +35,6 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsCategorizedSymbolRenderer,
     QgsRendererCategory,
     QgsGraduatedSymbolRenderer,
-    QgsRendererRange,
     Qgis,
 )
 
@@ -550,47 +549,129 @@ def get_base_symbol(geometry_type, symb_state, opacity):
     return symbol
 
 
+# Lookup table mapping frontend colorRamp names to (start, end) QColor pairs.
+# Covers the most common ramps; anything not listed falls back to viridis.
+_COLOR_RAMP_ENDPOINTS: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
+    "viridis": ((68, 1, 84), (253, 231, 37)),
+    "inferno": ((0, 0, 4), (252, 255, 164)),
+    "magma": ((0, 0, 4), (252, 253, 191)),
+    "plasma": ((13, 8, 135), (240, 249, 33)),
+    "hot": ((0, 0, 0), (255, 255, 255)),
+    "cool": ((0, 255, 255), (255, 0, 255)),
+    "greys": ((255, 255, 255), (0, 0, 0)),
+    "RdBu": ((103, 0, 31), (5, 48, 97)),
+    "bluered": ((0, 0, 255), (255, 0, 0)),
+    "jet": ((0, 0, 131), (128, 0, 0)),
+    "rainbow": ((150, 0, 90), (255, 0, 0)),
+    "YiGnBu": ((255, 255, 217), (8, 29, 88)),
+    "YiOrRd": ((255, 255, 204), (128, 0, 38)),
+    "greens": ((247, 252, 245), (0, 68, 27)),
+    "earth": ((0, 0, 0), (255, 255, 255)),
+    "copper": ((0, 0, 0), (255, 199, 127)),
+}
+
+_VIRIDIS_START = (68, 1, 84)
+_VIRIDIS_END = (253, 231, 37)
+
+
+def _build_color_ramp(symbology_state):
+    """Build a QgsGradientColorRamp from the symbologyState colorRamp/reverseRamp fields."""
+    ramp_name = symbology_state.get("colorRamp", "viridis")
+    reverse = symbology_state.get("reverseRamp", False)
+
+    start_rgb, end_rgb = _COLOR_RAMP_ENDPOINTS.get(
+        ramp_name, (_VIRIDIS_START, _VIRIDIS_END)
+    )
+    c1 = QColor(*start_rgb)
+    c2 = QColor(*end_rgb)
+
+    if reverse:
+        c1, c2 = c2, c1
+
+    return QgsGradientColorRamp(c1, c2)
+
+
+# Map jGIS classification mode names to QgsGraduatedSymbolRenderer method constants.
+_GRADUATED_MODE_MAP = {
+    "equal interval": 0,  # EqualInterval
+    "quantile": 1,  # Quantile
+    "jenks": 2,  # Jenks
+    "pretty": 4,  # Pretty
+    "logarithmic": 3,  # StdDev (closest match)
+}
+
+
 def create_categorized_renderer(symbology_state, geometry_type, base_symbol, map_layer):
-    """Creates a categorized renderer by computing categories from the layer data."""
+    """Creates a categorized renderer by computing categories from the layer data.
+
+    If stopsOverride is present, uses those custom stops instead of computing from data.
+    """
     field_name = symbology_state.get("value")
     renderer = QgsCategorizedSymbolRenderer(field_name)
+    stops_override = symbology_state.get("stopsOverride")
 
-    idx = map_layer.fields().indexOf(field_name) if map_layer else -1
-    unique_values = sorted(map_layer.uniqueValues(idx)) if idx >= 0 else []
+    if stops_override:
+        for stop in stops_override:
+            value = stop.get("value")
+            rgba = stop.get("color", [0, 0, 0, 1])
+            category_symbol = base_symbol.clone()
+            category_symbol.setColor(_rgba_to_qcolor(rgba))
+            if geometry_type == "circle":
+                category_symbol.setSize(2 * symbology_state.get("radius", 5))
+            renderer.addCategory(
+                QgsRendererCategory(value, category_symbol, str(value))
+            )
+    else:
+        idx = map_layer.fields().indexOf(field_name) if map_layer else -1
+        unique_values = sorted(map_layer.uniqueValues(idx)) if idx >= 0 else []
+        n = len(unique_values)
+        color_ramp = _build_color_ramp(symbology_state)
 
-    n = len(unique_values)
-    color_ramp = QgsGradientColorRamp(QColor(68, 1, 84), QColor(253, 231, 37))
-
-    for i, value in enumerate(unique_values):
-        ratio = i / max(n - 1, 1)
-        color = color_ramp.color(ratio)
-
-        category_symbol = base_symbol.clone()
-        category_symbol.setColor(color)
-
-        if geometry_type == "circle":
-            radius = symbology_state.get("radius", 5)
-            category_symbol.setSize(2 * radius)
-
-        category = QgsRendererCategory(value, category_symbol, str(value))
-        renderer.addCategory(category)
+        for i, value in enumerate(unique_values):
+            ratio = i / max(n - 1, 1)
+            color = color_ramp.color(ratio)
+            category_symbol = base_symbol.clone()
+            category_symbol.setColor(color)
+            if geometry_type == "circle":
+                category_symbol.setSize(2 * symbology_state.get("radius", 5))
+            renderer.addCategory(
+                QgsRendererCategory(value, category_symbol, str(value))
+            )
 
     return renderer
 
 
 def create_graduated_renderer(symbology_state, geometry_type, base_symbol, map_layer):
-    """Creates a graduated renderer by computing classification breaks from the layer data."""
+    """Creates a graduated renderer by computing classification breaks from the layer data.
+
+    If stopsOverride is present, uses those custom stops instead of computing from data.
+    """
     field_name = symbology_state.get("value")
     n_classes = symbology_state.get("nClasses", 9)
 
     renderer = QgsGraduatedSymbolRenderer(field_name)
     renderer.setSourceSymbol(base_symbol.clone())
 
-    color_ramp = QgsGradientColorRamp(QColor(68, 1, 84), QColor(253, 231, 37))
+    color_ramp = _build_color_ramp(symbology_state)
     renderer.setSourceColorRamp(color_ramp)
 
-    if map_layer:
-        renderer.updateClasses(map_layer, n_classes)
+    stops_override = symbology_state.get("stopsOverride")
+    if stops_override:
+        from qgis.core import QgsRendererRange  # type: ignore[import-untyped]
+
+        for i, stop in enumerate(stops_override):
+            rgba = stop.get("color", [0, 0, 0, 1])
+            upper = stop.get("value", 0)
+            lower = stops_override[i - 1].get("value", 0) if i > 0 else 0
+            range_symbol = base_symbol.clone()
+            range_symbol.setColor(_rgba_to_qcolor(rgba))
+            renderer.addClassRange(
+                QgsRendererRange(lower, upper, range_symbol, f"{lower} - {upper}")
+            )
+    elif map_layer:
+        mode = symbology_state.get("mode", "equal interval")
+        qgis_mode = _GRADUATED_MODE_MAP.get(mode, 0)
+        renderer.updateClasses(map_layer, qgis_mode, n_classes)
 
     return renderer
 
@@ -717,10 +798,36 @@ def jgis_layer_to_qgis(
         layer_params = layer.get("parameters", {})
         symbology_state = layer_params.get("symbologyState", {})
         geometry_type = symbology_state.get("geometryType") or layer_params.get("type")
+
+        # Infer geometry type from the QGIS layer when not set in jGIS data
+        if not geometry_type and map_layer and map_layer.isValid():
+            qgis_geom = map_layer.geometryType()
+            geom_map = {
+                Qgis.GeometryType.Point: "circle",
+                Qgis.GeometryType.Line: "line",
+                Qgis.GeometryType.Polygon: "fill",
+            }
+            geometry_type = geom_map.get(qgis_geom)
+
+        # infer from symbologyState fields
+        if not geometry_type:
+            if symbology_state.get("radius") is not None:
+                geometry_type = "circle"
+            elif symbology_state.get("fillColor") is not None:
+                geometry_type = "fill"
+            else:
+                geometry_type = "line"
+
         opacity = layer_params.get("opacity", 1.0)
         render_type = symbology_state.get("renderType", "Single Symbol")
 
         symbol = get_base_symbol(geometry_type, symbology_state, opacity)
+
+        if symbol is None:
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: unknown geometry type '{geometry_type}'."
+            )
+            return
 
         if render_type == "Single Symbol":
             fill_color = _rgba_to_qcolor(
