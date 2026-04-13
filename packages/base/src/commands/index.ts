@@ -352,19 +352,11 @@ export function addCommands(
       }
 
       // Selection should only be one vector or heatmap layer
-      const isSelectionValid =
+      return (
         Object.keys(selectedLayers).length === 1 &&
         !model.getSource(layerId) &&
-        ['VectorLayer', 'HeatmapLayer'].includes(layerType);
-
-      if (!isSelectionValid && model.isTemporalControllerActive) {
-        model.toggleTemporalController();
-        commands.notifyCommandChanged(CommandIDs.temporalController);
-
-        return false;
-      }
-
-      return true;
+        ['VectorLayer', 'HeatmapLayer'].includes(layerType)
+      );
     },
 
     execute: (args?: { filePath?: string }) => {
