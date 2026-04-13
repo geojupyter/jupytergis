@@ -452,6 +452,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
         const resolution = view.getResolution();
+        const extent = view.calculateExtent();
 
         const updatedOptions: Partial<IJGISOptions> = {
           latitude: latLng[1],
@@ -459,9 +460,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           bearing,
           projection: projection.getCode(),
           zoom,
+          extent,
         };
-
-        updatedOptions.extent = view.calculateExtent();
 
         this._model.setOptions({
           ...currentOptions,
