@@ -39,6 +39,7 @@ from jupytergis_core.schema import (
 
 logger = logging.getLogger(__file__)
 
+
 @dataclass
 class ExtentBounds:
     west: float
@@ -334,7 +335,7 @@ class GISDocument(CommWidget):
                             "using unprocessed slice. "
                             f"error={process_error!r}"
                         )
-                        
+
                 if compute:
                     print("Computing processed slice eagerly")
                     sliced = sliced.compute()
@@ -347,7 +348,7 @@ class GISDocument(CommWidget):
                         )
                 print("Slice complete, invoking on_slice callback")
                 on_slice(sliced)
-                
+
                 print("on_slice callback finished")
             except Exception as e:
                 print("Extent slice callback failed")
