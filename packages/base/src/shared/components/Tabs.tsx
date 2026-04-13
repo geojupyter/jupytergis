@@ -21,7 +21,7 @@ const Tabs: React.FC<React.ComponentProps<typeof TabsPrimitive.Root>> = ({
   );
 };
 
-const PanelTabs: React.FC<IPanelTabProps> = ({
+const TabsRoot: React.FC<IPanelTabProps> = ({
   className,
   curTab,
   children,
@@ -76,4 +76,4 @@ const TabsContent: React.FC<
   );
 };
 
-export { Tabs, TabsContent, TabsList, TabsTrigger, PanelTabs };
+export { Tabs, TabsContent, TabsList, TabsTrigger, TabsRoot };

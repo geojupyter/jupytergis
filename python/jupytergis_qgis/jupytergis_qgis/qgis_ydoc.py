@@ -1,12 +1,11 @@
 import base64
 import tempfile
-
-from typing import Any, Callable
 from functools import partial
+from typing import Any, Callable
 
-from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
 from jupytergis_core.schema import SCHEMA_VERSION
+from pycrdt import Array, Map
 
 
 def reversed_tree(root):

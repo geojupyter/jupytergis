@@ -11,7 +11,9 @@ from uuid import uuid4
 
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
+    Qgis,
     QgsApplication,
+    QgsCategorizedSymbolRenderer,
     QgsColorRampShader,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
@@ -27,8 +29,11 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsRasterShader,
     QgsRectangle,
     QgsReferencedRectangle,
+    QgsRendererCategory,
+    QgsRendererRange,
     QgsSettings,
     QgsSingleBandPseudoColorRenderer,
+    QgsSingleSymbolRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
     QgsSingleSymbolRenderer,

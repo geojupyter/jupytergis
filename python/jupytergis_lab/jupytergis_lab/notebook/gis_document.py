@@ -2,41 +2,41 @@ from __future__ import annotations
 
 import json
 import logging
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
-import xml.etree.ElementTree as ET
 from uuid import uuid4
+
 import requests
-
-from pycrdt import Array, Map
-from pydantic import BaseModel
-from sidecar import Sidecar
-from ypywidgets.comm import CommWidget
-
 from jupytergis_core.schema import (
     IGeoJSONSource,
-    IGeoParquetSource,
-    IGeoPackageVectorSource,
     IGeoPackageRasterSource,
+    IGeoPackageVectorSource,
+    IGeoParquetSource,
     IGeoTiffSource,
     IHeatmapLayer,
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
+    IMarkerSource,
     IRasterDemSource,
     IRasterLayer,
     IRasterSource,
+    IStorySegmentLayer,
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
-    IWmsTileSource,
-    IMarkerSource,
     IVideoSource,
     IWebGlLayer,
-    IStorySegmentLayer,
+    IWmsTileSource,
     LayerType,
     SourceType,
 )
+from pycrdt import Array, Map
+from pydantic import BaseModel
+from sidecar import Sidecar
+from ypywidgets.comm import CommWidget
+
 from jupytergis_lab.notebook.utils import get_gpkg_layers
 
 logger = logging.getLogger(__file__)
@@ -245,7 +245,6 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "opacity": opacity,
                 "color": color_expr,
-                "opacity": opacity,
             },
             "filters": {
                 "appliedFilters": [

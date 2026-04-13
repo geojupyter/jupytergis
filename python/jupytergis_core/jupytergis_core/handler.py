@@ -112,6 +112,37 @@ class ProxyHandler(APIHandler):
         """Process POST requests with validation and error handling."""
         await self._handle_request("POST")
 
+    def _parse_headers(self) -> Dict[str, str]:
+        """Parse and validate optional forwarded headers from the request.
+
+        The caller may pass a JSON-encoded object via the ``headers`` query
+        parameter.  Only string keys and values are accepted; any other shape
+        raises a ValidationError.
+
+        Returns:
+            A (possibly empty) dict of header name → value pairs.
+
+        Raises:
+            ValidationError: If the ``headers`` parameter is present but
+                cannot be decoded or is not a flat string→string mapping.
+        """
+        raw = self.get_argument("headers", None)
+        if raw is None:
+            return {}
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValidationError("Invalid JSON in 'headers' parameter") from exc
+        if not isinstance(parsed, dict) or not all(
+            isinstance(k, str) and isinstance(v, str) for k, v in parsed.items()
+        ):
+            raise ValidationError(
+                "'headers' must be a flat JSON object with string keys and values"
+            )
+        # Block headers that could interfere with the proxy itself.
+        blocked = {"host", "content-length", "transfer-encoding", "connection"}
+        return {k: v for k, v in parsed.items() if k.lower() not in blocked}
+
     async def _handle_request(self, method: str) -> None:
         """Central request handling method.
 
@@ -128,11 +159,12 @@ class ProxyHandler(APIHandler):
             # Validate and parse input
             url = self._validate_url(self.get_argument("url"))
             body = await self._validate_body(method)
+            extra_headers = self._parse_headers()
 
             logger.info("Proxying %s request to: %s", method, url)
 
             # Make async HTTP request
-            response = await self._make_request(url, method, body)
+            response = await self._make_request(url, method, body, extra_headers)
 
             # Forward response
             self._set_response_headers(response)
@@ -221,7 +253,11 @@ class ProxyHandler(APIHandler):
         return None
 
     async def _make_request(
-        self, url: str, method: str, body: Optional[str] = None
+        self,
+        url: str,
+        method: str,
+        body: Optional[str] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> HTTPResponse:
         """Execute proxy request with safety controls.
 
@@ -229,6 +265,8 @@ class ProxyHandler(APIHandler):
             url: The target URL
             method: The HTTP method to use
             body: Optional request body
+            extra_headers: Optional headers to forward to the upstream server
+                (e.g. Authorization, X-API-Key).
 
         Returns:
             The HTTP response
@@ -244,11 +282,17 @@ class ProxyHandler(APIHandler):
             validate_cert = host not in self.proxy_config.exempt_domains
             logger.info("validate_cert: %s", validate_cert)
 
+            headers: Dict[str, str] = {}
+            if body:
+                headers["Content-Type"] = "application/json"
+            if extra_headers:
+                headers.update(extra_headers)
+
             request = HTTPRequest(
                 url=url,
                 method=method,
                 body=body,
-                headers={"Content-Type": "application/json"} if body else None,
+                headers=headers if headers else None,
                 validate_cert=validate_cert,
                 allow_nonstandard_methods=False,
                 decompress_response=True,
