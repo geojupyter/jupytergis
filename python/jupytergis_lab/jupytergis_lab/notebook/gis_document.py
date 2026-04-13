@@ -103,6 +103,13 @@ class GISDocument(CommWidget):
             self._options["projection"] = projection
 
     @property
+    def sources(self) -> Dict:
+        """
+        Get the sources list
+        """
+        return self._sources.to_py()
+
+    @property
     def layers(self) -> Dict:
         """
         Get the layer list
