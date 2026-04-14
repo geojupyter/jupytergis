@@ -55,7 +55,9 @@ test.describe('#graduatedLines', () => {
     await expect(renderTypeSelect).toHaveValue('Graduated');
 
     // Verify the attribute is set to speed_limit
-    const attributeSelect = dialog.locator('select[name="vector-value-select"]');
+    const attributeSelect = dialog.locator(
+      'select[name="vector-value-select"]',
+    );
     await expect(attributeSelect).toHaveValue('speed_limit');
 
     // Verify the "match fill" (strokeFollowsFill) checkbox is checked
