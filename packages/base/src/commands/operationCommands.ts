@@ -87,9 +87,6 @@ function createLayerCommand(
         name: name,
         visible: true,
         parameters: spec.buildParameters(parameters, sourceId),
-        metadata: {
-          creatorId: model.getClientId(),
-        },
       };
       model.addLayer(layerId, layerModel);
     }) as any,

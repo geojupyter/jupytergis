@@ -278,9 +278,6 @@ export async function executeSQLProcessing(
       parameters: { source: newSourceId },
       visible: true,
       name: layerName,
-      metadata: {
-        creatorId: model.getClientId(),
-      },
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);

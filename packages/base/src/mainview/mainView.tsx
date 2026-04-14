@@ -406,9 +406,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             type: 'line',
             source: sourceId,
           },
-          metadata: {
-            creatorId: this._model.getClientId(),
-          },
         };
 
         this.addLayer(layerId, layerModel, this.getLayerIDs().length);
@@ -1449,14 +1446,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
 
-        const creatorId = layer.metadata?.creatorId;
         const shouldZoom = this.state.initialLayersReady;
-        this._trackLayerViewState(
-          id,
-          newMapLayer as Layer,
-          shouldZoom,
-          creatorId,
-        );
+        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -1966,6 +1957,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
+  private _getLayerCreatorId(layerId: string): number | undefined {
+    const states = this._model.sharedModel.awareness.getStates();
+
+    for (const state of states.values()) {
+      if (state?.lastAddedLayer?.layerId === layerId) {
+        return state.lastAddedLayer.clientId;
+      }
+    }
+
+    return undefined;
+  }
+
   /**
    * Track layer's extent and zoom in model's view state
    */
@@ -1973,7 +1976,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     layerId: string,
     olLayer: Layer,
     shouldZoom = false,
-    creatorId?: number,
   ): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
@@ -1993,10 +1995,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
-    }
 
-    if (shouldZoom && creatorId === this._model.getClientId()) {
-      this._model.centerOnPosition(layerId);
+      if (shouldZoom) {
+        const creatorId = this._getLayerCreatorId(layerId);
+        const currentClientId = this._model.getClientId();
+
+        if (creatorId === currentClientId) {
+          this._model.centerOnPosition(layerId);
+        }
+      }
     }
   }
 
@@ -2892,9 +2899,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       visible: true,
       name: 'Marker',
       parameters: layerParams,
-      metadata: {
-        creatorId: this._model.getClientId(),
-      },
     };
 
     this._model.sharedModel.addSource(sourceId, sourceModel);

@@ -369,9 +369,6 @@ export function StacResultsProvider({
         parameters: { data: stacData },
         visible: true,
         name: stacData.properties?.title ?? stacData.id,
-        metadata: {
-          creatorId: model.getClientId(),
-        },
       };
 
       model.addLayer(layerId, layerModel);
