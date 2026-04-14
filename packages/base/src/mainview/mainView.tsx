@@ -1960,9 +1960,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _getLayerCreatorId(layerId: string): number | undefined {
     const states = this._model.sharedModel.awareness.getStates();
 
-    for (const state of states.values()) {
+    for (const [clientId, state] of states.entries()) {
       if (state?.lastAddedLayer?.layerId === layerId) {
-        return state.lastAddedLayer.clientId;
+        return clientId;
       }
     }
 

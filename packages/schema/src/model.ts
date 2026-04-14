@@ -589,7 +589,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncLastAddedLayer(layerId: string): void {
     this.sharedModel.awareness.setLocalStateField('lastAddedLayer', {
       layerId,
-      clientId: this.getClientId(),
     });
   }
   get selected(): { [key: string]: ISelection } | undefined {
