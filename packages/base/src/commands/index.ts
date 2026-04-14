@@ -20,10 +20,10 @@ import { fromLonLat } from 'ol/proj';
 
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
-import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
 import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import { getSingleSelectedLayer } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import { targetWithCenterIcon } from '../icons';
