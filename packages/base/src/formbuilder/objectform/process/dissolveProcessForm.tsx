@@ -60,9 +60,9 @@ export function DissolveForm(
 
   const {
     formData,
+    setFormData,
     formContextValue,
     hasSchema,
-    handleChangeBase,
     handleSubmitBase,
   } = useSchemaFormState({ sourceData, schemaProp, model, syncData });
   const [features, setFeatures] = useState<string[]>([]);
@@ -126,7 +126,7 @@ export function DissolveForm(
     <SchemaForm
       schema={schema}
       formData={formData}
-      onChange={handleChangeBase}
+      onChange={setFormData}
       onSubmit={handleSubmitBase}
       formContext={formContextValue}
       filePath={filePath}

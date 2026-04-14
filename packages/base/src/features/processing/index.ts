@@ -11,8 +11,8 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { UUID } from '@lumino/coreutils';
 
+import { ProcessingFormDialog } from './ProcessingFormDialog';
 import { processingFormToParam } from './processingFormToParam';
-import { ProcessingFormDialog } from '../../dialogs/ProcessingFormDialog';
 import { getGdal } from '../../gdal';
 import { getGeoJSONDataFromLayerSource } from '../../tools';
 import { JupyterGISTracker } from '../../types';
