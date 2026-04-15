@@ -1,7 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 
 interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;
