@@ -7,12 +7,12 @@ import argparse
 import json
 import re
 from datetime import datetime
-from typing import List
-from packaging.version import parse as parse_version
 from pathlib import Path
 from subprocess import run
+from typing import List
 
 import tomlkit
+from packaging.version import parse as parse_version
 
 ENC = dict(encoding="utf-8")
 HATCH_VERSION = "hatch version"

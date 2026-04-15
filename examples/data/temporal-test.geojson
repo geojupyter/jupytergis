@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [2.35, 48.85] },
+      "properties": { "name": "Paris", "time": "2024-01-01" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [13.40, 52.52] },
+      "properties": { "name": "Berlin", "time": "2024-06-01" }
+    }
+  ]
+}

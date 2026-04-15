@@ -31,6 +31,7 @@ import {
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
+  IJGISUIState,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -85,6 +86,9 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._viewState = {};
 
+    this.settingsReady = new Promise(resolve => {
+      this._settingsReadyResolve = resolve;
+    });
     this.initSettings();
   }
 
@@ -98,6 +102,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         this._settings = setting;
 
         this._updateLocalSettings();
+        this._settingsReadyResolve();
 
         setting.changed.connect(() => {
           const oldSettings = { ...this._jgisSettings };
@@ -117,7 +122,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       } catch (error) {
         console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
         this._jgisSettings = { ...DEFAULT_SETTINGS };
+        this._settingsReadyResolve();
       }
+    } else {
+      this._settingsReadyResolve();
     }
   }
 
@@ -1014,6 +1022,19 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._currentMode = value;
   }
 
+  setUIState(value: Partial<IJGISUIState>): void {
+    this._localUIState = { ...this._localUIState, ...value };
+    this._uiStateChanged.emit(this._localUIState as IJGISUIState);
+  }
+
+  getUIState(): IJGISUIState {
+    return this._localUIState as IJGISUIState;
+  }
+
+  get uiStateChanged(): ISignal<this, IJGISUIState> {
+    return this._uiStateChanged;
+  }
+
   toggleTemporalController() {
     this._isTemporalControllerActive = !this._isTemporalControllerActive;
 
@@ -1105,6 +1126,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly annotationModel?: IAnnotationModel;
   readonly settingRegistry?: ISettingRegistry;
 
+  settingsReady: Promise<void>;
+  private _settingsReadyResolve: () => void;
   private _settings: ISettingRegistry.ISettings;
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
@@ -1157,6 +1180,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
   stories: Map<string, IJGISStoryMap> = new Map();
+
+  private _localUIState: Partial<IJGISUIState> = {};
+  private _uiStateChanged = new Signal<this, IJGISUIState>(this);
 }
 
 export namespace JupyterGISModel {

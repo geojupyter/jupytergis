@@ -40,6 +40,7 @@ import {
   IViewState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -55,6 +56,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
@@ -118,7 +120,15 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
-import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
+import { markerIcon } from '@/src/shared/icons';
+import {
+  debounce,
+  INTERNAL_PROXY_BASE,
+  isJupyterLite,
+  isLightTheme,
+  loadFile,
+  throttle,
+} from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
@@ -126,7 +136,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
@@ -144,6 +153,7 @@ interface IMainViewProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
 }
@@ -175,6 +185,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._formSchemaRegistry = props.formSchemaRegistry;
 
     this._annotationModel = props.annotationModel;
+
+    this._loggerRegistry = props.loggerRegistry;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -280,6 +292,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   async componentDidMount(): Promise<void> {
+    if (this._loggerRegistry) {
+      const logger = this._loggerRegistry.getLogger(this._model.filePath);
+      logger.level = 'debug';
+    }
+
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
@@ -731,368 +748,443 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * @param source - the source object.
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
+    this._log('info', `Loading source "${source.name ?? id}" (${source.type})`);
     let newSource;
 
-    switch (source.type) {
-      case 'RasterSource': {
-        const sourceParameters = source.parameters as IRasterSource;
+    try {
+      switch (source.type) {
+        case 'RasterSource': {
+          const sourceParameters = source.parameters as IRasterSource;
 
-        const pmTiles =
-          sourceParameters.url.endsWith('.pmtiles') ||
-          sourceParameters.url.endsWith('pmtiles.gz');
-        const url = this.computeSourceUrl(source);
+          const pmTiles =
+            sourceParameters.url.endsWith('.pmtiles') ||
+            sourceParameters.url.endsWith('pmtiles.gz');
+          const url = this.computeSourceUrl(source);
 
-        if (!pmTiles) {
-          newSource = new XYZSource({
-            interpolate: sourceParameters.interpolate,
-            attributions: sourceParameters.attribution,
-            minZoom: sourceParameters.minZoom,
-            maxZoom: sourceParameters.maxZoom,
-            tileSize: 256,
-            url: url,
-          });
-        } else {
-          newSource = new PMTilesRasterSource({
-            interpolate: sourceParameters.interpolate,
-            attributions: sourceParameters.attribution,
-            tileSize: 256,
-            url: url,
-          });
-        }
-
-        break;
-      }
-
-      case 'RasterDemSource': {
-        const sourceParameters = source.parameters as IRasterDemSource;
-
-        newSource = new ImageTileSource({
-          interpolate: sourceParameters.interpolate,
-          url: this.computeSourceUrl(source),
-          attributions: sourceParameters.attribution,
-        });
-
-        break;
-      }
-
-      case 'VectorTileSource': {
-        const sourceParameters = source.parameters as IVectorTileSource;
-
-        const pmTiles =
-          sourceParameters.url.endsWith('.pmtiles') ||
-          sourceParameters.url.endsWith('pmtiles.gz');
-        const url = this.computeSourceUrl(source);
-
-        if (!pmTiles) {
-          newSource = new VectorTileSource({
-            attributions: sourceParameters.attribution,
-            minZoom: sourceParameters.minZoom,
-            maxZoom: sourceParameters.maxZoom,
-            url: url,
-            format: new MVT({
-              featureClass: RenderFeature,
-            }),
-          });
-        } else {
-          newSource = new PMTilesVectorSource({
-            attributions: sourceParameters.attribution,
-            url: url,
-          });
-        }
-
-        newSource.on('tileloadend', (event: TileSourceEvent) => {
-          const tile = event.tile as VectorTile<FeatureLike>;
-          const features = tile.getFeatures();
-
-          if (features && features.length > 0) {
-            this._model.syncTileFeatures({
-              sourceId: id,
-              features,
+          if (!pmTiles) {
+            newSource = new XYZSource({
+              interpolate: sourceParameters.interpolate,
+              attributions: sourceParameters.attribution,
+              minZoom: sourceParameters.minZoom,
+              maxZoom: sourceParameters.maxZoom,
+              tileSize: 256,
+              url: url,
+            });
+          } else {
+            newSource = new PMTilesRasterSource({
+              interpolate: sourceParameters.interpolate,
+              attributions: sourceParameters.attribution,
+              tileSize: 256,
+              url: url,
             });
           }
-        });
 
-        break;
-      }
+          break;
+        }
 
-      case 'GeoJSONSource': {
-        const data =
-          source.parameters?.data ||
-          (await loadFile({
-            filepath: source.parameters?.path,
-            type: 'GeoJSONSource',
-            model: this._model,
-          }));
+        case 'RasterDemSource': {
+          const sourceParameters = source.parameters as IRasterDemSource;
 
-        const format = new GeoJSON({
-          featureProjection: this._Map.getView().getProjection(),
-        });
+          newSource = new ImageTileSource({
+            interpolate: sourceParameters.interpolate,
+            url: this.computeSourceUrl(source),
+            attributions: sourceParameters.attribution,
+          });
 
-        const featureArray = format.readFeatures(data, {
-          featureProjection: this._Map.getView().getProjection(),
-        });
+          break;
+        }
 
-        const featureCollection = new Collection(featureArray);
+        case 'VectorTileSource': {
+          const sourceParameters = source.parameters as IVectorTileSource;
 
-        featureCollection.forEach(feature => {
-          feature.setId(getUid(feature));
-        });
+          const pmTiles =
+            sourceParameters.url.endsWith('.pmtiles') ||
+            sourceParameters.url.endsWith('pmtiles.gz');
+          const url = this.computeSourceUrl(source);
 
-        newSource = new VectorSource({
-          features: featureCollection,
-        });
+          if (!pmTiles) {
+            const vtSourceOptions: ConstructorParameters<
+              typeof VectorTileSource
+            >[0] = {
+              attributions: sourceParameters.attribution,
+              minZoom: sourceParameters.minZoom,
+              maxZoom: sourceParameters.maxZoom,
+              url: url,
+              format: new MVT({
+                featureClass: RenderFeature,
+              }),
+            };
 
-        break;
-      }
+            if (sourceParameters.useProxy) {
+              const extraHeaders = sourceParameters.httpHeaders ?? {};
+              const headersParam =
+                Object.keys(extraHeaders).length > 0
+                  ? `&headers=${encodeURIComponent(JSON.stringify(extraHeaders))}`
+                  : '';
 
-      case 'ShapefileSource': {
-        const parameters = source.parameters as IShapefileSource;
+              const proxyBase = isJupyterLite()
+                ? `${this._model.jgisSettings.proxyUrl}/`
+                : `${INTERNAL_PROXY_BASE}`;
 
-        const geojson = await loadFile({
-          filepath: parameters.path,
-          type: 'ShapefileSource',
-          model: this._model,
-        });
-
-        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
-
-        const format = new GeoJSON();
-
-        newSource = new VectorSource({
-          features: format.readFeatures(geojsonData, {
-            dataProjection: 'EPSG:4326',
-            featureProjection: this._Map.getView().getProjection(),
-          }),
-        });
-        break;
-      }
-
-      case 'ImageSource': {
-        const sourceParameters = source.parameters as IImageSource;
-
-        // Convert lon/lat array to extent
-        // Get lon/lat from source coordinates
-        const leftSide = Math.min(
-          ...sourceParameters.coordinates.map(corner => corner[0]),
-        );
-        const bottomSide = Math.min(
-          ...sourceParameters.coordinates.map(corner => corner[1]),
-        );
-        const rightSide = Math.max(
-          ...sourceParameters.coordinates.map(corner => corner[0]),
-        );
-        const topSide = Math.max(
-          ...sourceParameters.coordinates.map(corner => corner[1]),
-        );
-
-        // Convert lon/lat to OpenLayer coordinates
-        const topLeft = fromLonLat([leftSide, topSide]);
-        const bottomRight = fromLonLat([rightSide, bottomSide]);
-
-        // Get extent from coordinates
-        const minX = topLeft[0];
-        const maxY = topLeft[1];
-        const maxX = bottomRight[0];
-        const minY = bottomRight[1];
-
-        const extent = [minX, minY, maxX, maxY];
-
-        const imageUrl = await loadFile({
-          filepath: sourceParameters.path,
-          type: 'ImageSource',
-          model: this._model,
-        });
-
-        newSource = new Static({
-          interpolate: sourceParameters.interpolate,
-          imageExtent: extent,
-          url: imageUrl,
-          crossOrigin: '',
-        });
-
-        break;
-      }
-
-      case 'VideoSource': {
-        console.warn('Video Tiles not supported with Open Layers');
-
-        break;
-      }
-
-      case 'GeoTiffSource': {
-        const sourceParameters = source.parameters as IGeoTiffSource;
-
-        const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
-          return { ...url, nodata: 0 };
-        };
-        const sources = await Promise.all(
-          sourceParameters.urls.map(async sourceInfo => {
-            const isRemote =
-              sourceInfo.url?.startsWith('http://') ||
-              sourceInfo.url?.startsWith('https://');
-
-            if (isRemote) {
-              return {
-                ...addNoData(sourceInfo),
-                min: sourceInfo.min,
-                max: sourceInfo.max,
-                url: sourceInfo.url,
-              };
-            } else {
-              const geotiff = await loadFile({
-                filepath: sourceInfo.url ?? '',
-                type: 'GeoTiffSource',
-                model: this._model,
-              });
-              return {
-                ...addNoData(sourceInfo),
-                min: sourceInfo.min,
-                max: sourceInfo.max,
-                geotiff,
-                url: URL.createObjectURL(geotiff.file),
+              vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
+                const vtTile = tile as VectorTile<RenderFeature>;
+                const proxyUrl = `${proxyBase}?url=${encodeURIComponent(tileUrl)}${headersParam}`;
+                vtTile.setLoader(async (extent, _resolution, projection) => {
+                  try {
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) {
+                      throw new Error(
+                        `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                      );
+                    }
+                    const data = await response.arrayBuffer();
+                    const features = vtTile.getFormat().readFeatures(data, {
+                      extent,
+                      featureProjection: projection,
+                    });
+                    vtTile.setFeatures(features);
+                    this._log('debug', `Proxy tile loaded: ${tileUrl}`);
+                  } catch (err: any) {
+                    this._log(
+                      'error',
+                      `Proxy tile error for ${tileUrl}: ${err.message}`,
+                    );
+                    tile.setState(TileState.ERROR);
+                  }
+                });
               };
             }
-          }),
-        );
 
-        newSource = new GeoTIFFSource({
-          interpolate: sourceParameters.interpolate,
-          sources,
-          normalize: sourceParameters.normalize,
-          wrapX: sourceParameters.wrapX,
-        });
+            newSource = new VectorTileSource(vtSourceOptions);
+          } else {
+            newSource = new PMTilesVectorSource({
+              attributions: sourceParameters.attribution,
+              url: url,
+            });
+          }
 
-        break;
-      }
+          newSource.on('tileloadend', (event: TileSourceEvent) => {
+            const tile = event.tile as VectorTile<FeatureLike>;
+            const features = tile.getFeatures();
 
-      case 'GeoPackageVectorSource': {
-        const sourceParameters = source.parameters;
+            if (features && features.length > 0) {
+              this._model.syncTileFeatures({
+                sourceId: id,
+                features,
+              });
+            }
+          });
 
-        if (!sourceParameters) {
-          throw new Error('GeoPackageSource has no parameters');
+          break;
         }
 
-        const tableMap = await loadFile({
-          filepath: sourceParameters.path,
-          type: 'GeoPackageVectorSource',
-          model: this._model,
-        });
+        case 'GeoJSONSource': {
+          const data =
+            source.parameters?.data ||
+            (await loadFile({
+              filepath: source.parameters?.path,
+              type: 'GeoJSONSource',
+              model: this._model,
+            }));
 
-        const table = tableMap[sourceParameters.tables];
-        const vectorSource = table.source;
-        vectorSource['projection'] = getProjection(sourceParameters.projection);
-        newSource = vectorSource;
-        break;
-      }
-
-      case 'GeoPackageRasterSource': {
-        const sourceParameters = source.parameters;
-
-        if (!sourceParameters) {
-          throw new Error('GeoPackageSource has no parameters');
-        }
-
-        const tableMap = await loadFile({
-          filepath: sourceParameters.path,
-          type: 'GeoPackageRasterSource',
-          model: this._model,
-        });
-
-        const { gpr, tileDao } = tableMap[sourceParameters.tables];
-
-        const rasterSource = new XYZSource({
-          minZoom: sourceParameters.minZoom ?? tileDao.minWebMapZoom,
-          maxZoom: sourceParameters.maxZoom ?? tileDao.maxWebMapZoom,
-          interpolate: sourceParameters.interpolate,
-          url: '{z},{x},{y}',
-          tileLoadFunction(tile: any, src) {
-            const [z, x, y] = src.split(',').map(Number);
-            gpr
-              .getTile(x, y, z)
-              .then((dataUri: any) => (tile.getImage().src = dataUri));
-          },
-          attributions: sourceParameters.attribution,
-        });
-
-        newSource = rasterSource;
-        break;
-      }
-
-      case 'GeoParquetSource': {
-        const parameters = source.parameters as IGeoParquetSource;
-
-        const geojson = await loadFile({
-          filepath: parameters.path,
-          type: 'GeoParquetSource',
-          model: this._model,
-        });
-
-        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
-
-        const format = new GeoJSON();
-
-        newSource = new VectorSource({
-          features: format.readFeatures(geojsonData, {
-            dataProjection: parameters.projection,
+          const format = new GeoJSON({
             featureProjection: this._Map.getView().getProjection(),
-          }),
-        });
-        break;
+          });
+
+          const featureArray = format.readFeatures(data, {
+            featureProjection: this._Map.getView().getProjection(),
+          });
+
+          const featureCollection = new Collection(featureArray);
+
+          featureCollection.forEach(feature => {
+            feature.setId(getUid(feature));
+          });
+
+          newSource = new VectorSource({
+            features: featureCollection,
+          });
+
+          break;
+        }
+
+        case 'ShapefileSource': {
+          const parameters = source.parameters as IShapefileSource;
+
+          const geojson = await loadFile({
+            filepath: parameters.path,
+            type: 'ShapefileSource',
+            model: this._model,
+          });
+
+          const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+          const format = new GeoJSON();
+
+          newSource = new VectorSource({
+            features: format.readFeatures(geojsonData, {
+              dataProjection: 'EPSG:4326',
+              featureProjection: this._Map.getView().getProjection(),
+            }),
+          });
+          break;
+        }
+
+        case 'ImageSource': {
+          const sourceParameters = source.parameters as IImageSource;
+
+          // Convert lon/lat array to extent
+          // Get lon/lat from source coordinates
+          const leftSide = Math.min(
+            ...sourceParameters.coordinates.map(corner => corner[0]),
+          );
+          const bottomSide = Math.min(
+            ...sourceParameters.coordinates.map(corner => corner[1]),
+          );
+          const rightSide = Math.max(
+            ...sourceParameters.coordinates.map(corner => corner[0]),
+          );
+          const topSide = Math.max(
+            ...sourceParameters.coordinates.map(corner => corner[1]),
+          );
+
+          // Convert lon/lat to OpenLayer coordinates
+          const topLeft = fromLonLat([leftSide, topSide]);
+          const bottomRight = fromLonLat([rightSide, bottomSide]);
+
+          // Get extent from coordinates
+          const minX = topLeft[0];
+          const maxY = topLeft[1];
+          const maxX = bottomRight[0];
+          const minY = bottomRight[1];
+
+          const extent = [minX, minY, maxX, maxY];
+
+          const imageUrl = await loadFile({
+            filepath: sourceParameters.path,
+            type: 'ImageSource',
+            model: this._model,
+          });
+
+          newSource = new Static({
+            interpolate: sourceParameters.interpolate,
+            imageExtent: extent,
+            url: imageUrl,
+            crossOrigin: '',
+          });
+
+          break;
+        }
+
+        case 'VideoSource': {
+          this._log('warning', 'Video Tiles not supported with Open Layers');
+
+          break;
+        }
+
+        case 'GeoTiffSource': {
+          const sourceParameters = source.parameters as IGeoTiffSource;
+
+          const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
+            return { ...url, nodata: 0 };
+          };
+          const sources = await Promise.all(
+            sourceParameters.urls.map(async sourceInfo => {
+              const isRemote =
+                sourceInfo.url?.startsWith('http://') ||
+                sourceInfo.url?.startsWith('https://');
+
+              if (isRemote) {
+                return {
+                  ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
+                  url: sourceInfo.url,
+                };
+              } else {
+                const geotiff = await loadFile({
+                  filepath: sourceInfo.url ?? '',
+                  type: 'GeoTiffSource',
+                  model: this._model,
+                });
+                return {
+                  ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
+                  geotiff,
+                  url: URL.createObjectURL(geotiff.file),
+                };
+              }
+            }),
+          );
+
+          newSource = new GeoTIFFSource({
+            interpolate: sourceParameters.interpolate,
+            sources,
+            normalize: sourceParameters.normalize,
+            wrapX: sourceParameters.wrapX,
+          });
+
+          break;
+        }
+
+        case 'GeoPackageVectorSource': {
+          const sourceParameters = source.parameters;
+
+          if (!sourceParameters) {
+            throw new Error('GeoPackageSource has no parameters');
+          }
+
+          const tableMap = await loadFile({
+            filepath: sourceParameters.path,
+            type: 'GeoPackageVectorSource',
+            model: this._model,
+          });
+
+          const table = tableMap[sourceParameters.tables];
+          const vectorSource = table.source;
+          vectorSource['projection'] = getProjection(
+            sourceParameters.projection,
+          );
+          newSource = vectorSource;
+          break;
+        }
+
+        case 'GeoPackageRasterSource': {
+          const sourceParameters = source.parameters;
+
+          if (!sourceParameters) {
+            throw new Error('GeoPackageSource has no parameters');
+          }
+
+          const tableMap = await loadFile({
+            filepath: sourceParameters.path,
+            type: 'GeoPackageRasterSource',
+            model: this._model,
+          });
+
+          const { gpr, tileDao } = tableMap[sourceParameters.tables];
+
+          const rasterSource = new XYZSource({
+            minZoom: sourceParameters.minZoom ?? tileDao.minWebMapZoom,
+            maxZoom: sourceParameters.maxZoom ?? tileDao.maxWebMapZoom,
+            interpolate: sourceParameters.interpolate,
+            url: '{z},{x},{y}',
+            tileLoadFunction(tile: any, src) {
+              const [z, x, y] = src.split(',').map(Number);
+              gpr
+                .getTile(x, y, z)
+                .then((dataUri: any) => (tile.getImage().src = dataUri));
+            },
+            attributions: sourceParameters.attribution,
+          });
+
+          newSource = rasterSource;
+          break;
+        }
+
+        case 'GeoParquetSource': {
+          const parameters = source.parameters as IGeoParquetSource;
+
+          const geojson = await loadFile({
+            filepath: parameters.path,
+            type: 'GeoParquetSource',
+            model: this._model,
+          });
+
+          const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+          const format = new GeoJSON();
+
+          newSource = new VectorSource({
+            features: format.readFeatures(geojsonData, {
+              dataProjection: parameters.projection,
+              featureProjection: this._Map.getView().getProjection(),
+            }),
+          });
+          break;
+        }
+
+        case 'MarkerSource': {
+          const parameters = source.parameters as IMarkerSource;
+
+          const point = new Point(parameters.feature.coords);
+          const marker = new Feature({
+            type: 'icon',
+            geometry: point,
+          });
+
+          // Replace color placeholder in SVG with the parameter color
+          const markerColor = parameters.color || '#3463a0';
+          const svgString = markerIcon.svgstr
+            .replace('{{COLOR}}', markerColor)
+            .replace('<svg', '<svg width="128" height="128"');
+
+          const iconStyle = new Style({
+            image: new Icon({
+              src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
+              scale: 0.25,
+              anchor: [0.5, 1],
+              anchorXUnits: 'fraction',
+              anchorYUnits: 'fraction',
+            }),
+          });
+
+          marker.setStyle(iconStyle);
+
+          newSource = new VectorSource({
+            features: [marker],
+          });
+
+          break;
+        }
+
+        case 'WmsTileSource': {
+          const sourceParameters = source.parameters as IWmsTileSource;
+          const url = sourceParameters.url;
+          const selectedLayer = sourceParameters?.params?.layers;
+
+          newSource = new TileWMSSource({
+            attributions: sourceParameters?.attribution,
+            url,
+            params: {
+              LAYERS: selectedLayer,
+              TILED: true,
+            },
+          });
+
+          break;
+        }
       }
-
-      case 'MarkerSource': {
-        const parameters = source.parameters as IMarkerSource;
-
-        const point = new Point(parameters.feature.coords);
-        const marker = new Feature({
-          type: 'icon',
-          geometry: point,
-        });
-
-        // Replace color placeholder in SVG with the parameter color
-        const markerColor = parameters.color || '#3463a0';
-        const svgString = markerIcon.svgstr
-          .replace('{{COLOR}}', markerColor)
-          .replace('<svg', '<svg width="128" height="128"');
-
-        const iconStyle = new Style({
-          image: new Icon({
-            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
-            scale: 0.25,
-            anchor: [0.5, 1],
-            anchorXUnits: 'fraction',
-            anchorYUnits: 'fraction',
-          }),
-        });
-
-        marker.setStyle(iconStyle);
-
-        newSource = new VectorSource({
-          features: [marker],
-        });
-
-        break;
-      }
-
-      case 'WmsTileSource': {
-        const sourceParameters = source.parameters as IWmsTileSource;
-        const url = sourceParameters.url;
-        const selectedLayer = sourceParameters?.params?.layers;
-
-        newSource = new TileWMSSource({
-          attributions: sourceParameters?.attribution,
-          url,
-          params: {
-            LAYERS: selectedLayer,
-            TILED: true,
-          },
-        });
-
-        break;
-      }
+    } catch (err: any) {
+      this._log(
+        'error',
+        `Failed to load source "${source.name ?? id}" (${source.type}): ${err.message}`,
+      );
+      return;
     }
 
+    this._log(
+      'info',
+      `Source "${source.name ?? id}" (${source.type}) loaded successfully`,
+    );
     newSource.set('id', id);
+
+    // Forward OL tile/feature load errors to the JupyterLab log console.
+    // These errors (CORS failures, network errors, etc.) are written directly
+    // by the browser to DevTools and cannot be captured by console patching —
+    // OL's own events are the only reliable interception point.
+    newSource.on('tileloaderror', (evt: any) => {
+      const url = evt?.tile?.getKey?.() ?? '';
+      this._log(
+        'error',
+        `Tile load error for source "${id}"${url ? ': ' + url : ''}`,
+      );
+    });
+    newSource.on('featuresloaderror', () => {
+      this._log('error', `Features load error for source "${id}"`);
+    });
+
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
 
@@ -1186,7 +1278,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       if (!layer) {
-        console.warn(
+        this._log(
+          'warning',
           `Layer with ID ${layerId} does not exist in the shared model.`,
         );
         continue;
@@ -1397,7 +1490,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   addProjection(newMapLayer: Layer) {
     const sourceProjection = newMapLayer.getSource()?.getProjection();
     if (!sourceProjection) {
-      console.warn('Layer source projection is undefined or invalid');
+      this._log('warning', 'Layer source projection is undefined or invalid');
       return;
     }
 
@@ -1407,7 +1500,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!isProjectionRegistered) {
       // Check if the projection exists in proj4list
       if (!proj4list[projectionCode]) {
-        console.warn(
+        this._log(
+          'warning',
           `Projection code '${projectionCode}' not found in proj4list`,
         );
         return;
@@ -1417,7 +1511,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         proj4.defs([proj4list[projectionCode]]);
         register(proj4 as any);
       } catch (error: any) {
-        console.warn(
+        this._log(
+          'warning',
           `Failed to register projection '${projectionCode}'. Error: ${error.message}`,
         );
         return;
@@ -1807,7 +1902,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
-      console.warn('Invalid geometry for flyToGeometry:', geometry);
+      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
       return;
     }
 
@@ -1831,7 +1926,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       featureOrGeometry;
 
     if (!geometry) {
-      console.warn('No geometry found in feature:', featureOrGeometry);
+      this._log(
+        'warning',
+        `No geometry found in feature: ${featureOrGeometry}`,
+      );
       return;
     }
 
@@ -1936,7 +2034,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
       }
     } catch (error) {
-      console.warn('Failed to compute extent:', error);
+      this._log('warning', `Failed to compute extent: ${error}`);
     }
 
     return undefined;
@@ -2169,16 +2267,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.setState(old => ({ ...old, clientPointers }));
     });
 
-    // Temporal controller bit
-    // ? There's probably a better way to get changes in the model to trigger react rerenders
-    const isTemporalControllerActive = localState.isTemporalControllerActive;
+    // Compute displayTemporalController: active AND current selection is valid
+    const isTemporalControllerActive = !!localState.isTemporalControllerActive;
+    const selectedLayers = localState.selected?.value;
+    const selectedLayerId = selectedLayers
+      ? (Object.keys(selectedLayers)[0] ?? null)
+      : null;
+    const layerType = selectedLayerId
+      ? this._model.getLayer(selectedLayerId)?.type
+      : null;
+    const isSelectionValid =
+      !!selectedLayers &&
+      Object.keys(selectedLayers).length === 1 &&
+      !this._model.getSource(selectedLayerId!) &&
+      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
+    const displayTemporalController =
+      isTemporalControllerActive && isSelectionValid;
 
-    if (isTemporalControllerActive !== this.state.displayTemporalController) {
-      this.setState(old => ({
-        ...old,
-        displayTemporalController: isTemporalControllerActive,
-      }));
-
+    if (displayTemporalController !== this.state.displayTemporalController) {
+      this.setState(old => ({ ...old, displayTemporalController }));
       this._mainViewModel.commands.notifyCommandChanged(
         CommandIDs.temporalController,
       );
@@ -2267,7 +2374,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }));
         view = new View({ projection: newProjection });
       } else {
-        console.warn(`Invalid projection: ${projection}`);
+        this._log('warning', `Invalid projection: ${projection}`);
         return;
       }
     }
@@ -2617,7 +2724,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           try {
             jsonData = JSON.parse(data);
           } catch (e) {
-            console.warn(`Failed to parse annotation data for ${key}:`, e);
+            this._log(
+              'warning',
+              `Failed to parse annotation data for ${key}: ${e}`,
+            );
             return;
           }
         } else {
@@ -2734,7 +2844,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const extent = this._computeExtent(layer, source);
     if (!extent) {
-      console.warn(`Layer ${id} has no extent.`);
+      this._log('warning', 'Layer ${id} has no extent.');
       return;
     }
 
@@ -2891,7 +3001,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const selectedLayer = localState?.selected?.value;
 
     if (!selectedLayer) {
-      console.warn('Layer must be selected to use identify tool');
+      this._log('warning', 'Layer must be selected to use identify tool');
       return;
     }
 
@@ -3006,7 +3116,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.updateSource(layerId, jgisLayer);
     }
     if (!jgisLayer || !olLayer) {
-      console.error('Failed to update layer -- layer not found');
+      this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
     this.updateLayer(layerId, jgisLayer, olLayer);
@@ -3017,6 +3127,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const { id: layerId, selectedFeature } = json;
     const olLayer = this.getLayer(layerId);
     const source = olLayer.getSource() as VectorSource;
+
+    if (typeof source.forEachFeature !== 'function') {
+      return;
+    }
 
     source.forEachFeature(feature => {
       const time = feature.get(selectedFeature);
@@ -3111,12 +3225,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         })}
 
         <div className="jGIS-Mainview-Container">
-          {this.state.displayTemporalController && (
-            <TemporalSlider
-              model={this._model}
-              filterStates={this.state.filterStates}
-            />
-          )}
+          <TemporalSlider
+            model={this._model}
+            filterStates={this.state.filterStates}
+            style={{
+              display: this.state.displayTemporalController ? 'block' : 'none',
+            }}
+          />
           <div
             ref={this.mainViewRef}
             className="jGIS-Mainview data-jgis-keybinding"
@@ -3231,6 +3346,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
+  private _loggerRegistry?: ILoggerRegistry;
+
+  private _log(
+    level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+    message: string,
+  ): void {
+    // Always mirror to the browser console regardless of whether the JupyterLab
+    // logger is available.
+    if (level === 'error' || level === 'critical') {
+      // eslint-disable-next-line no-console
+      console.error(message);
+    } else if (level === 'warning') {
+      // eslint-disable-next-line no-console
+      console.warn(message);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(message);
+    }
+
+    // Forward to JupyterLab log console when available.
+    this._loggerRegistry
+      ?.getLogger(this._model.filePath)
+      .log({ type: 'text', level, data: message });
+  }
+
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;

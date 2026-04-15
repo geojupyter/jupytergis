@@ -18,15 +18,15 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
+import { targetWithCenterIcon } from '@/src/shared/icons';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
-import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
-import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from '../features/layer-browser';
+import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import { getSingleSelectedLayer } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
-import { targetWithCenterIcon } from '../icons';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
@@ -352,19 +352,11 @@ export function addCommands(
       }
 
       // Selection should only be one vector or heatmap layer
-      const isSelectionValid =
+      return (
         Object.keys(selectedLayers).length === 1 &&
         !model.getSource(layerId) &&
-        ['VectorLayer', 'HeatmapLayer'].includes(layerType);
-
-      if (!isSelectionValid && model.isTemporalControllerActive) {
-        model.toggleTemporalController();
-        commands.notifyCommandChanged(CommandIDs.temporalController);
-
-        return false;
-      }
-
-      return true;
+        ['VectorLayer', 'HeatmapLayer'].includes(layerType)
+      );
     },
 
     execute: (args?: { filePath?: string }) => {
@@ -1362,25 +1354,21 @@ export function addCommands(
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
-      return current ? !current.model.jgisSettings.leftPanelDisabled : false;
+      if (!current) {
+        return false;
+      }
+      const open = current.model.getUIState().leftPanelOpen;
+      return open !== false;
     },
-    execute: async () => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-
-      try {
-        const settings = await current.model.getSettings();
-        const currentValue =
-          settings?.composite?.leftPanelDisabled ??
-          current.model.jgisSettings.leftPanelDisabled ??
-          false;
-        await settings?.set('leftPanelDisabled', !currentValue);
-        commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
-      } catch (err) {
-        console.error('Failed to toggle Left Panel:', err);
-      }
+      const open = current.model.getUIState().leftPanelOpen;
+      current.model.setUIState({ leftPanelOpen: open === false });
+      commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
+      commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
   });
 
@@ -1396,25 +1384,66 @@ export function addCommands(
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
-      return current ? !current.model.jgisSettings.rightPanelDisabled : false;
+      if (!current) {
+        return false;
+      }
+      const open = current.model.getUIState().rightPanelOpen;
+      return open !== false;
     },
-    execute: async () => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
+      const open = current.model.getUIState().rightPanelOpen;
+      current.model.setUIState({ rightPanelOpen: open === false });
+      commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
+      commands.notifyCommandChanged(CommandIDs.togglePanel);
+    },
+  });
 
-      try {
-        const settings = await current.model.getSettings();
-        const currentValue =
-          settings?.composite?.rightPanelDisabled ??
-          current.model.jgisSettings.rightPanelDisabled ??
-          false;
-        await settings?.set('rightPanelDisabled', !currentValue);
-        commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
-      } catch (err) {
-        console.error('Failed to toggle Right Panel:', err);
+  commands.addCommand(CommandIDs.togglePanel, {
+    label: trans.__('Toggle Panel'),
+    caption: 'Toggle the panel in the current JupyterGIS document.',
+    iconClass: 'fa fa-layer-group',
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
       }
+      const { leftPanelDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+      const { leftPanelOpen = true, rightPanelOpen = true } =
+        current.model.getUIState();
+      const show =
+        (!leftPanelDisabled && !leftPanelOpen) ||
+        (!rightPanelDisabled && !rightPanelOpen);
+      return !show;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const { leftPanelDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+      const { leftPanelOpen = true, rightPanelOpen = true } =
+        current.model.getUIState();
+      // Show all if any non-disabled panel is hidden; hide all otherwise.
+      const show =
+        (!leftPanelDisabled && !leftPanelOpen) ||
+        (!rightPanelDisabled && !rightPanelOpen);
+      const newState: { leftPanelOpen?: boolean; rightPanelOpen?: boolean } =
+        {};
+      if (!leftPanelDisabled) {
+        newState.leftPanelOpen = show;
+      }
+      if (!rightPanelDisabled) {
+        newState.rightPanelOpen = show;
+      }
+      current.model.setUIState(newState);
+      commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
   });
 

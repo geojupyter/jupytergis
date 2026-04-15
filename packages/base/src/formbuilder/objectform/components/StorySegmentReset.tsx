@@ -2,8 +2,8 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { LabIcon } from '@jupyterlab/ui-components';
 import React from 'react';
 
-import { targetWithCenterIcon } from '@/src/icons';
 import { Button } from '@/src/shared/components/Button';
+import { targetWithCenterIcon } from '@/src/shared/icons';
 
 interface IStorySegmentResetProps {
   model?: IJupyterGISModel;

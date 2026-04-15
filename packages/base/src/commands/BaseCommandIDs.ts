@@ -53,6 +53,7 @@ export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
 // Panel toggles
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
 export const toggleRightPanel = 'jupytergis:toggleRightPanel';
+export const togglePanel = 'jupytergis:togglePanel';
 
 // Left panel tabs
 export const showLayersTab = 'jupytergis:showLayersTab';

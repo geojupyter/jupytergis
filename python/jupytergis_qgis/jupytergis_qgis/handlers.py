@@ -2,15 +2,14 @@ import json
 import os
 from urllib.error import HTTPError
 
+import tornado
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
-import tornado
 
 
 class BackendCheckHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
-        body = self.get_json_body()
         qgis_installed = True
         try:
             import qgis  # noqa
