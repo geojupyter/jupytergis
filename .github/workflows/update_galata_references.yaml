@@ -20,7 +20,7 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@v0.31.1  # main
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@v0.31.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,7 +58,7 @@ jobs:
           jlpm install
           jlpm playwright install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@v0.31.1  # main
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@v0.31.1
         with:
           npm_client: jlpm
           browser: chromium
