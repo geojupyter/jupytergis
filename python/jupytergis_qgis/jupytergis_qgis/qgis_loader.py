@@ -556,46 +556,32 @@ def get_base_symbol(geometry_type, symb_state, opacity):
     return symbol
 
 
-# Lookup table mapping frontend colorRamp names to (start, end) QColor pairs.
-# Covers the most common ramps; anything not listed falls back to viridis.
-_COLOR_RAMP_ENDPOINTS: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
-    "viridis": ((68, 1, 84), (253, 231, 37)),
-    "inferno": ((0, 0, 4), (252, 255, 164)),
-    "magma": ((0, 0, 4), (252, 253, 191)),
-    "plasma": ((13, 8, 135), (240, 249, 33)),
-    "hot": ((0, 0, 0), (255, 255, 255)),
-    "cool": ((0, 255, 255), (255, 0, 255)),
-    "greys": ((255, 255, 255), (0, 0, 0)),
-    "RdBu": ((103, 0, 31), (5, 48, 97)),
-    "bluered": ((0, 0, 255), (255, 0, 0)),
-    "jet": ((0, 0, 131), (128, 0, 0)),
-    "rainbow": ((150, 0, 90), (255, 0, 0)),
-    "YiGnBu": ((255, 255, 217), (8, 29, 88)),
-    "YiOrRd": ((255, 255, 204), (128, 0, 38)),
-    "greens": ((247, 252, 245), (0, 68, 27)),
-    "earth": ((0, 0, 0), (255, 255, 255)),
-    "copper": ((0, 0, 0), (255, 199, 127)),
-}
-
-_VIRIDIS_START = (68, 1, 84)
-_VIRIDIS_END = (253, 231, 37)
-
-
 def _build_color_ramp(symbology_state):
-    """Build a QgsGradientColorRamp from the symbologyState colorRamp/reverseRamp fields."""
+    """Build a QgsGradientColorRamp from the symbologyState colorRamp/reverseRamp fields.
+
+    Uses the shared ``jupytergis_core.color_ramps`` module (backed by branca)
+    to resolve the frontend ramp name and sample the start/end colours.
+    """
+    from jupytergis_core.color_ramps import sample_colors
+
     ramp_name = symbology_state.get("colorRamp", "viridis")
     reverse = symbology_state.get("reverseRamp", False)
 
-    start_rgb, end_rgb = _COLOR_RAMP_ENDPOINTS.get(
-        ramp_name, (_VIRIDIS_START, _VIRIDIS_END)
-    )
-    c1 = QColor(*start_rgb)
-    c2 = QColor(*end_rgb)
-
-    if reverse:
-        c1, c2 = c2, c1
+    endpoints = sample_colors(ramp_name, n=2, reverse=reverse)
+    c1 = QColor(*endpoints[0])
+    c2 = QColor(*endpoints[1])
 
     return QgsGradientColorRamp(c1, c2)
+
+
+def _sample_qcolors(symbology_state, n):
+    """Sample *n* QColors from the ramp specified in symbologyState."""
+    from jupytergis_core.color_ramps import sample_colors
+
+    ramp_name = symbology_state.get("colorRamp", "viridis")
+    reverse = symbology_state.get("reverseRamp", False)
+
+    return [QColor(*rgba) for rgba in sample_colors(ramp_name, n=n, reverse=reverse)]
 
 
 # Map jGIS classification mode names to QgsGraduatedSymbolRenderer method constants.
@@ -632,13 +618,11 @@ def create_categorized_renderer(symbology_state, geometry_type, base_symbol, map
         idx = map_layer.fields().indexOf(field_name) if map_layer else -1
         unique_values = sorted(map_layer.uniqueValues(idx)) if idx >= 0 else []
         n = len(unique_values)
-        color_ramp = _build_color_ramp(symbology_state)
+        colors = _sample_qcolors(symbology_state, max(n, 1))
 
         for i, value in enumerate(unique_values):
-            ratio = i / max(n - 1, 1)
-            color = color_ramp.color(ratio)
             category_symbol = base_symbol.clone()
-            category_symbol.setColor(color)
+            category_symbol.setColor(colors[i])
             if geometry_type == "circle":
                 category_symbol.setSize(2 * symbology_state.get("radius", 5))
             renderer.addCategory(
