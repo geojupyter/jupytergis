@@ -1,5 +1,6 @@
 {
   "layerTree": [
+    "f863dc97-d9cb-427a-9e48-6471cf7a3d4d",
     "4dcd8312-243a-409d-ad33-f0084f7cdfc5"
   ],
   "layers": {
@@ -11,47 +12,110 @@
       },
       "type": "OpenEOLayer",
       "visible": true
+    },
+    "f863dc97-d9cb-427a-9e48-6471cf7a3d4d": {
+      "name": "USGS.USTopo Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "b66534a2-9959-47d2-9323-d484d6753e5e"
+      },
+      "type": "RasterLayer",
+      "visible": true
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      -1367230.755594947,
-      265850.8069634102,
-      293680.0753325834,
-      1741701.9352806306
+      -8247587.1201931015,
+      4964492.665577036,
+      -8225914.937872179,
+      4983840.942076382
     ],
-    "latitude": 8.980083301453135,
-    "longitude": -4.821934921782953,
+    "latitude": 40.740679068731794,
+    "longitude": -73.99199340867216,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "storyMapPresentationMode": false,
-    "zoom": 6.665459128864533
+    "zoom": 13.118258016583779
   },
   "schemaVersion": "0.5.0",
   "sources": {
+    "b66534a2-9959-47d2-9323-d484d6753e5e": {
+      "name": "USGS.USTopo",
+      "parameters": {
+        "attribution": "Tiles courtesy of the U.S. Geological Survey",
+        "interpolate": false,
+        "maxZoom": 20.0,
+        "minZoom": 0.0,
+        "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
     "c58398c5-1ae0-4ec9-b8ab-6926d663be20": {
       "name": "OpenEO Graph",
       "parameters": {
         "processGraph": {
+          "apply1": {
+            "arguments": {
+              "data": {
+                "from_node": "reducedimension1"
+              },
+              "process": {
+                "process_graph": {
+                  "linearscalerange1": {
+                    "arguments": {
+                      "inputMax": 10000.0,
+                      "inputMin": 0.0,
+                      "outputMax": 255.0,
+                      "x": {
+                        "from_parameter": "x"
+                      }
+                    },
+                    "process_id": "linear_scale_range"
+                  },
+                  "trunc1": {
+                    "arguments": {
+                      "x": {
+                        "from_node": "linearscalerange1"
+                      }
+                    },
+                    "process_id": "trunc",
+                    "result": true
+                  }
+                }
+              }
+            },
+            "process_id": "apply"
+          },
+          "colorformula1": {
+            "arguments": {
+              "data": {
+                "from_node": "apply1"
+              },
+              "formula": "Gamma RGB 1.5 Sigmoidal RGB 6 0.3 Saturation 1"
+            },
+            "process_id": "color_formula"
+          },
           "loadcollection1": {
             "arguments": {
               "bands": [
-                "B02",
                 "B04",
-                "B08"
+                "B03",
+                "B02"
               ],
-              "id": "SENTINEL2_L2A",
+              "id": "sentinel-2-global-mosaics",
+              "properties": {},
               "spatial_extent": {
-                "east": 5.17,
-                "north": 51.19,
-                "south": 51.17,
-                "west": 5.14
+                "east": -73.9,
+                "north": 40.8,
+                "south": 40.7,
+                "west": -74.0
               },
               "temporal_extent": [
-                "2021-02-01",
-                "2021-04-30"
+                "2022-04-15T00:00:00Z",
+                "2022-12-31T00:00:00Z"
               ]
             },
             "process_id": "load_collection"
@@ -61,148 +125,32 @@
               "data": {
                 "from_node": "loadcollection1"
               },
-              "dimension": "bands",
+              "dimension": "time",
               "reducer": {
                 "process_graph": {
-                  "add1": {
+                  "first1": {
                     "arguments": {
-                      "x": {
-                        "from_node": "multiply1"
-                      },
-                      "y": {
-                        "from_node": "multiply4"
+                      "data": {
+                        "from_parameter": "data"
                       }
                     },
-                    "process_id": "add"
-                  },
-                  "add2": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "subtract2"
-                      },
-                      "y": 1.0
-                    },
-                    "process_id": "add"
-                  },
-                  "arrayelement1": {
-                    "arguments": {
-                      "data": {
-                        "from_parameter": "data"
-                      },
-                      "index": 2.0
-                    },
-                    "process_id": "array_element"
-                  },
-                  "arrayelement2": {
-                    "arguments": {
-                      "data": {
-                        "from_parameter": "data"
-                      },
-                      "index": 1.0
-                    },
-                    "process_id": "array_element"
-                  },
-                  "arrayelement3": {
-                    "arguments": {
-                      "data": {
-                        "from_parameter": "data"
-                      },
-                      "index": 0.0
-                    },
-                    "process_id": "array_element"
-                  },
-                  "divide1": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "multiply3"
-                      },
-                      "y": {
-                        "from_node": "add2"
-                      }
-                    },
-                    "process_id": "divide",
+                    "process_id": "first",
                     "result": true
-                  },
-                  "multiply1": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "arrayelement1"
-                      },
-                      "y": 0.0001
-                    },
-                    "process_id": "multiply"
-                  },
-                  "multiply2": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "arrayelement2"
-                      },
-                      "y": 0.0001
-                    },
-                    "process_id": "multiply"
-                  },
-                  "multiply3": {
-                    "arguments": {
-                      "x": 2.5,
-                      "y": {
-                        "from_node": "subtract1"
-                      }
-                    },
-                    "process_id": "multiply"
-                  },
-                  "multiply4": {
-                    "arguments": {
-                      "x": 6.0,
-                      "y": {
-                        "from_node": "multiply2"
-                      }
-                    },
-                    "process_id": "multiply"
-                  },
-                  "multiply5": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "arrayelement3"
-                      },
-                      "y": 0.0001
-                    },
-                    "process_id": "multiply"
-                  },
-                  "multiply6": {
-                    "arguments": {
-                      "x": 7.5,
-                      "y": {
-                        "from_node": "multiply5"
-                      }
-                    },
-                    "process_id": "multiply"
-                  },
-                  "subtract1": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "multiply1"
-                      },
-                      "y": {
-                        "from_node": "multiply2"
-                      }
-                    },
-                    "process_id": "subtract"
-                  },
-                  "subtract2": {
-                    "arguments": {
-                      "x": {
-                        "from_node": "add1"
-                      },
-                      "y": {
-                        "from_node": "multiply6"
-                      }
-                    },
-                    "process_id": "subtract"
                   }
                 }
               }
             },
-            "process_id": "reduce_dimension",
+            "process_id": "reduce_dimension"
+          },
+          "saveresult1": {
+            "arguments": {
+              "data": {
+                "from_node": "colorformula1"
+              },
+              "format": "PNG",
+              "options": {}
+            },
+            "process_id": "save_result",
             "result": true
           }
         }
