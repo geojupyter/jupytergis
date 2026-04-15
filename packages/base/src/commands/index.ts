@@ -18,6 +18,7 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
+import { targetWithCenterIcon } from '@/src/shared/icons';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -26,7 +27,6 @@ import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import { getSingleSelectedLayer } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
-import { targetWithCenterIcon } from '../icons';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';

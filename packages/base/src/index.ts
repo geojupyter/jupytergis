@@ -2,7 +2,7 @@ export * from './features/annotations';
 export * from './commands/index';
 export * from './constants';
 export * from './features/layers/layerCreationFormDialog';
-export * from './icons';
+export * from './shared/icons';
 export * from './mainview';
 export * from './menus';
 export * from './workspace/panels';
