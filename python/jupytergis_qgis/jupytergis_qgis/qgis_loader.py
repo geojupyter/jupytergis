@@ -53,14 +53,31 @@ def closeQgis():
     qgs.exitQgis()
 
 
+_VSICURL_PREFIX = "/vsicurl/"
+
+
+def _strip_vsicurl(path: str) -> str:
+    """Remove the GDAL /vsicurl/ prefix so the stored jgis path stays clean."""
+    if path.startswith(_VSICURL_PREFIX):
+        return path[len(_VSICURL_PREFIX) :]
+    return path
+
+
+def _to_gdal_readable_path(path: str) -> str:
+    """Wrap remote HTTP(S) URLs with /vsicurl/ so GDAL/OGR can read them."""
+    if path.startswith(("http://", "https://")):
+        return _VSICURL_PREFIX + path
+    return path
+
+
 def _parse_ogr_gpkg_source(source: str) -> tuple[str, str | None] | None:
     """Parse a QGIS OGR source string like '/path/file.gpkg|layername=foo' or
     '/path/file.gpkg|layerid=0'. Returns (path, table_name) if the source points
-    to a GeoPackage, else None.
+    to a GeoPackage, else None. /vsicurl/ prefixes are stripped from the path.
     """
     # Strip any provider options that come after a `|`
     head, sep, tail = source.partition("|")
-    path = head
+    path = _strip_vsicurl(head)
     if not path.lower().endswith(".gpkg"):
         return None
 
@@ -81,17 +98,18 @@ def _parse_ogr_gpkg_source(source: str) -> tuple[str, str | None] | None:
 def _parse_gdal_gpkg_source(source: str) -> tuple[str, str | None] | None:
     """Parse a GDAL GPKG raster source string of the form 'GPKG:<path>:<table>'.
     Returns (path, table_name) if the source is a GeoPackage raster, else None.
+    /vsicurl/ prefixes are stripped from the path.
     """
     if not source.upper().startswith("GPKG:"):
         return None
     rest = source[5:]
     if rest.lower().endswith(".gpkg"):
-        return rest, None
+        return _strip_vsicurl(rest), None
     # Path may itself contain ':' on Windows ('C:/...'); parse from the right.
     path, sep, table = rest.rpartition(":")
     if not sep or not path.lower().endswith(".gpkg"):
         return None
-    return path, table or None
+    return _strip_vsicurl(path), table or None
 
 
 def rgb_to_hex(rgb_str):
@@ -803,7 +821,8 @@ def jgis_layer_to_qgis(
                 f"Layer {layer_id} not exported: GeoPackage raster source missing 'path'."
             )
             return
-        uri = f"GPKG:{gpkg_path}:{table}" if table else f"GPKG:{gpkg_path}"
+        readable_path = _to_gdal_readable_path(gpkg_path)
+        uri = f"GPKG:{readable_path}:{table}" if table else f"GPKG:{readable_path}"
         map_layer = QgsRasterLayer(uri, layer_name, "gdal")
 
     if layer_type == "VectorLayer" and source_type == "GeoPackageVectorSource":
@@ -815,7 +834,8 @@ def jgis_layer_to_qgis(
                 f"Layer {layer_id} not exported: GeoPackage vector source missing 'path'."
             )
             return
-        uri = f"{gpkg_path}|layername={table}" if table else gpkg_path
+        readable_path = _to_gdal_readable_path(gpkg_path)
+        uri = f"{readable_path}|layername={table}" if table else readable_path
         map_layer = QgsVectorLayer(uri, layer_name, "ogr")
         projection = source_parameters.get("projection")
         if projection:

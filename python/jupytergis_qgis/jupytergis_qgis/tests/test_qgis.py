@@ -4,7 +4,13 @@ from uuid import uuid4
 
 from dirty_equals import IsPartialDict, IsStr
 
-from ..qgis_loader import export_project_to_qgis, import_project_from_qgis
+from ..qgis_loader import (
+    _parse_gdal_gpkg_source,
+    _parse_ogr_gpkg_source,
+    _to_gdal_readable_path,
+    export_project_to_qgis,
+    import_project_from_qgis,
+)
 
 FILES = Path(__file__).parent / "files"
 
@@ -397,6 +403,24 @@ def test_qgis_saver():
     imported_jgis = import_project_from_qgis(filename)
 
     assert jgis == imported_jgis
+
+
+def test_gpkg_uri_helpers_handle_remote_urls():
+    """Remote GeoPackage sources must be wrapped in /vsicurl/ for GDAL/OGR,
+    and that prefix must be stripped again on import so the jgis path stays
+    clean."""
+    url = "https://example.com/data.gpkg"
+    assert _to_gdal_readable_path(url) == "/vsicurl/" + url
+    assert _to_gdal_readable_path("/local/file.gpkg") == "/local/file.gpkg"
+
+    assert _parse_ogr_gpkg_source(f"/vsicurl/{url}|layername=foo") == (url, "foo")
+    assert _parse_ogr_gpkg_source("/a/b.gpkg|layername=bar") == ("/a/b.gpkg", "bar")
+    assert _parse_ogr_gpkg_source("/not/a/gpkg") is None
+
+    assert _parse_gdal_gpkg_source(f"GPKG:/vsicurl/{url}:tiles") == (url, "tiles")
+    assert _parse_gdal_gpkg_source("GPKG:/a/b.gpkg:tiles") == ("/a/b.gpkg", "tiles")
+    assert _parse_gdal_gpkg_source("GPKG:/a/b.gpkg") == ("/a/b.gpkg", None)
+    assert _parse_gdal_gpkg_source("/not/gpkg") is None
 
 
 def _base_options():
