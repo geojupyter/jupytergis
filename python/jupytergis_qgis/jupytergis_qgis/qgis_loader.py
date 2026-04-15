@@ -38,6 +38,13 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsVectorTileLayer,
 )
 
+# Custom property keys stored on QGIS layers to survive round-trip.
+PROP_GEOMETRY_TYPE = "jgis_symbology_geometryType"
+PROP_STROKE_COLOR = "jgis_symbology_strokeColor"
+PROP_CAP_STYLE = "jgis_symbology_capStyle"
+PROP_JOIN_STYLE = "jgis_symbology_joinStyle"
+PROP_STROKE_WIDTH = "jgis_symbology_strokeWidth"
+
 # Prevent any Qt application and event loop to spawn when
 # using the QGIS Python app
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
@@ -300,23 +307,23 @@ def qgis_layer_to_jgis(
                 symb_state["geometryType"] = "fill"
 
         # Override with stored custom properties (survive round-trip without data).
-        jgis_geom_type = layer.customProperty("jgis_geometryType")
+        jgis_geom_type = layer.customProperty(PROP_GEOMETRY_TYPE)
         if jgis_geom_type:
             symb_state["geometryType"] = jgis_geom_type
 
-        jgis_stroke_color = layer.customProperty("jgis_strokeColor")
+        jgis_stroke_color = layer.customProperty(PROP_STROKE_COLOR)
         if jgis_stroke_color:
             symb_state["strokeColor"] = json.loads(jgis_stroke_color)
 
-        jgis_cap_style = layer.customProperty("jgis_capStyle")
+        jgis_cap_style = layer.customProperty(PROP_CAP_STYLE)
         if jgis_cap_style:
             symb_state["capStyle"] = jgis_cap_style
 
-        jgis_join_style = layer.customProperty("jgis_joinStyle")
+        jgis_join_style = layer.customProperty(PROP_JOIN_STYLE)
         if jgis_join_style:
             symb_state["joinStyle"] = jgis_join_style
 
-        jgis_stroke_width = layer.customProperty("jgis_strokeWidth")
+        jgis_stroke_width = layer.customProperty(PROP_STROKE_WIDTH)
         if jgis_stroke_width is not None:
             symb_state["strokeWidth"] = float(jgis_stroke_width)
 
@@ -862,19 +869,19 @@ def jgis_layer_to_qgis(
         # Store symbology metadata as custom properties so they survive
         # round-trip even when remote data can't be loaded in the target env.
         if geometry_type:
-            map_layer.setCustomProperty("jgis_geometryType", geometry_type)
+            map_layer.setCustomProperty(PROP_GEOMETRY_TYPE, geometry_type)
         stroke_color = symbology_state.get("strokeColor")
         if stroke_color is not None:
-            map_layer.setCustomProperty("jgis_strokeColor", json.dumps(stroke_color))
+            map_layer.setCustomProperty(PROP_STROKE_COLOR, json.dumps(stroke_color))
         cap_style = symbology_state.get("capStyle")
         if cap_style is not None:
-            map_layer.setCustomProperty("jgis_capStyle", cap_style)
+            map_layer.setCustomProperty(PROP_CAP_STYLE, cap_style)
         join_style = symbology_state.get("joinStyle")
         if join_style is not None:
-            map_layer.setCustomProperty("jgis_joinStyle", join_style)
+            map_layer.setCustomProperty(PROP_JOIN_STYLE, join_style)
         stroke_width = symbology_state.get("strokeWidth")
         if stroke_width is not None:
-            map_layer.setCustomProperty("jgis_strokeWidth", stroke_width)
+            map_layer.setCustomProperty(PROP_STROKE_WIDTH, stroke_width)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
