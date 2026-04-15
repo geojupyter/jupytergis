@@ -14,7 +14,7 @@ import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
-import { CreationFormWrapper } from '@/src/dialogs/layerCreationFormDialog';
+import { CreationFormWrapper } from '@/src/features/layers/layerCreationFormDialog';
 import CUSTOM_RASTER_IMAGE from '../../../layer_gallery/custom_raster.png';
 
 interface ILayerBrowserDialogProps {
