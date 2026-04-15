@@ -33,6 +33,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsSettings,
     QgsSingleBandPseudoColorRenderer,
     QgsSingleSymbolRenderer,
+    QgsVectorFileWriter,
     QgsVectorLayer,
     QgsVectorTileLayer,
 )
@@ -50,6 +51,47 @@ qgs.initQgis()
 @atexit.register
 def closeQgis():
     qgs.exitQgis()
+
+
+def _parse_ogr_gpkg_source(source: str) -> tuple[str, str | None] | None:
+    """Parse a QGIS OGR source string like '/path/file.gpkg|layername=foo' or
+    '/path/file.gpkg|layerid=0'. Returns (path, table_name) if the source points
+    to a GeoPackage, else None.
+    """
+    # Strip any provider options that come after a `|`
+    head, sep, tail = source.partition("|")
+    path = head
+    if not path.lower().endswith(".gpkg"):
+        return None
+
+    table = None
+    if sep:
+        for part in tail.split("|"):
+            if part.startswith("layername="):
+                table = part[len("layername=") :]
+                break
+            if part.startswith("layerid="):
+                # We don't resolve layerid -> name here; leave table empty so
+                # the consumer falls back to "all tables".
+                table = ""
+                break
+    return path, table
+
+
+def _parse_gdal_gpkg_source(source: str) -> tuple[str, str | None] | None:
+    """Parse a GDAL GPKG raster source string of the form 'GPKG:<path>:<table>'.
+    Returns (path, table_name) if the source is a GeoPackage raster, else None.
+    """
+    if not source.upper().startswith("GPKG:"):
+        return None
+    rest = source[5:]
+    if rest.lower().endswith(".gpkg"):
+        return rest, None
+    # Path may itself contain ':' on Windows ('C:/...'); parse from the right.
+    path, sep, table = rest.rpartition(":")
+    if not sep or not path.lower().endswith(".gpkg"):
+        return None
+    return path, table or None
 
 
 def rgb_to_hex(rgb_str):
@@ -93,8 +135,17 @@ def qgis_layer_to_jgis(
     source_parameters = {}
 
     if isinstance(layer, QgsRasterLayer):
+        gpkg_raster = _parse_gdal_gpkg_source(layer.source())
+        if gpkg_raster is not None:
+            gpkg_path, gpkg_table = gpkg_raster
+            layer_type = "RasterLayer"
+            source_type = "GeoPackageRasterSource"
+            source_parameters.update(
+                path=gpkg_path,
+                tables=gpkg_table or "",
+            )
         # QGIS treats tif layers as raster layer
-        if layer.source().endswith(".tif"):
+        elif layer.source().endswith(".tif"):
             layer_type = "WebGlLayer"
             source_type = "GeoTiffSource"
 
@@ -174,17 +225,29 @@ def qgis_layer_to_jgis(
             )
     if isinstance(layer, QgsVectorLayer):
         layer_type = "VectorLayer"
-        source_type = "GeoJSONSource"
         source = layer.source()
 
-        if source.startswith("http://") or source.startswith("https://"):
-            file_name = source
+        gpkg_vector = _parse_ogr_gpkg_source(source)
+        if gpkg_vector is not None:
+            gpkg_path, gpkg_table = gpkg_vector
+            source_type = "GeoPackageVectorSource"
+            crs = layer.crs()
+            source_parameters.update(
+                path=gpkg_path,
+                tables=gpkg_table or "",
+                projection=crs.authid() if crs.isValid() else "EPSG:3857",
+            )
         else:
-            components = source.split("/")
-            file_name = components[-1]
-            file_name = file_name.split("|")[0]
+            source_type = "GeoJSONSource"
 
-        source_parameters.update(path=file_name)
+            if source.startswith("http://") or source.startswith("https://"):
+                file_name = source
+            else:
+                components = source.split("/")
+                file_name = components[-1]
+                file_name = file_name.split("|")[0]
+
+            source_parameters.update(path=file_name)
 
         renderer = layer.renderer()
 
@@ -731,6 +794,35 @@ def jgis_layer_to_qgis(
         uri = build_uri(source_parameters, "RasterSource")
         map_layer = QgsRasterLayer(uri, layer_name, "wms")
 
+    if layer_type == "RasterLayer" and source_type == "GeoPackageRasterSource":
+        source_parameters = source.get("parameters", {})
+        gpkg_path = source_parameters.get("path")
+        table = source_parameters.get("tables", "")
+        if not gpkg_path:
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: GeoPackage raster source missing 'path'."
+            )
+            return
+        uri = f"GPKG:{gpkg_path}:{table}" if table else f"GPKG:{gpkg_path}"
+        map_layer = QgsRasterLayer(uri, layer_name, "gdal")
+
+    if layer_type == "VectorLayer" and source_type == "GeoPackageVectorSource":
+        source_parameters = source.get("parameters", {})
+        gpkg_path = source_parameters.get("path")
+        table = source_parameters.get("tables", "")
+        if not gpkg_path:
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: GeoPackage vector source missing 'path'."
+            )
+            return
+        uri = f"{gpkg_path}|layername={table}" if table else gpkg_path
+        map_layer = QgsVectorLayer(uri, layer_name, "ogr")
+        projection = source_parameters.get("projection")
+        if projection:
+            crs = QgsCoordinateReferenceSystem(projection)
+            if crs.isValid():
+                map_layer.setCrs(crs)
+
     if layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         source_parameters = source.get("parameters", {})
         color_params = layer["parameters"]["color"]
@@ -1032,6 +1124,83 @@ def jgis_layer_group_to_qgis(
             )
 
 
+def _bundle_local_vector_sources_to_gpkg(
+    project_path: str,
+    sources: dict[str, dict[str, Any]],
+    logs: dict[str, list[str]],
+) -> dict[str, dict[str, Any]]:
+    """Pack any local-file vector sources (GeoJSON/Shapefile) into a sidecar
+    '<project>.gpkg' next to the QGIS project, returning a mutated copy of
+    `sources` where those entries are converted to GeoPackageVectorSource
+    referencing the sidecar. Remote (http/https) sources and already-GeoPackage
+    sources are left untouched.
+    """
+    bundleable = ("GeoJSONSource", "ShapefileSource")
+    project_dir = os.path.dirname(os.path.abspath(project_path))
+    project_stem = os.path.splitext(os.path.basename(project_path))[0]
+    sidecar_path = os.path.join(project_dir, f"{project_stem}.gpkg")
+
+    bundled = dict(sources)
+    sidecar_initialized = False
+    for source_id, source in sources.items():
+        if source.get("type") not in bundleable:
+            continue
+        params = source.get("parameters", {}) or {}
+        src_path = params.get("path")
+        if not src_path or src_path.startswith(("http://", "https://")):
+            continue
+
+        # Resolve relative paths against the project directory.
+        resolved = src_path
+        if not os.path.isabs(resolved):
+            resolved = os.path.join(project_dir, resolved)
+        if not os.path.exists(resolved):
+            logs["warnings"].append(
+                f"Source {source_id} not bundled: file not found at {resolved}"
+            )
+            continue
+
+        layer_name = os.path.splitext(os.path.basename(resolved))[0]
+        vlayer = QgsVectorLayer(resolved, layer_name, "ogr")
+        if not vlayer.isValid():
+            logs["warnings"].append(
+                f"Source {source_id} not bundled: failed to read {resolved}"
+            )
+            continue
+
+        opts = QgsVectorFileWriter.SaveVectorOptions()
+        opts.driverName = "GPKG"
+        opts.layerName = layer_name
+        if sidecar_initialized:
+            opts.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+
+        result = QgsVectorFileWriter.writeAsVectorFormatV3(
+            vlayer,
+            sidecar_path,
+            vlayer.transformContext(),
+            opts,
+        )
+        if result and result[0] != QgsVectorFileWriter.NoError:
+            logs["warnings"].append(
+                f"Source {source_id} not bundled: writer error {result}"
+            )
+            continue
+        sidecar_initialized = True
+
+        crs = vlayer.crs()
+        bundled[source_id] = {
+            "name": source.get("name", layer_name),
+            "type": "GeoPackageVectorSource",
+            "parameters": {
+                "path": sidecar_path,
+                "tables": layer_name,
+                "projection": crs.authid() if crs.isValid() else "EPSG:3857",
+            },
+        }
+
+    return bundled
+
+
 def export_project_to_qgis(
     path: str | Path, virtual_file: dict[str, Any]
 ) -> dict[str, list[str]]:
@@ -1059,10 +1228,14 @@ def export_project_to_qgis(
 
     logs = {"warnings": [], "errors": []}
 
+    bundled_sources = _bundle_local_vector_sources_to_gpkg(
+        path, virtual_file["sources"], logs
+    )
+
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],
         virtual_file["layers"],
-        virtual_file["sources"],
+        bundled_sources,
         root,
         project,
         qgis_settings,
