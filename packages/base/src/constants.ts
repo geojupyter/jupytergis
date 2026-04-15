@@ -12,7 +12,7 @@ import {
   rasterIcon,
   vectorSquareIcon,
   markerIcon,
-} from './icons';
+} from './shared/icons';
 
 /**
  * The command IDs.

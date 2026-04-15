@@ -120,6 +120,7 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
+import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
   INTERNAL_PROXY_BASE,
@@ -135,7 +136,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =

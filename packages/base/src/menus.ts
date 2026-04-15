@@ -2,7 +2,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { Menu } from '@lumino/widgets';
 
 import { CommandIDs } from './constants';
-import { rasterIcon } from './icons';
+import { rasterIcon } from './shared/icons';
 
 export const vectorSubMenu = (commands: CommandRegistry) => {
   const subMenu = new Menu({ commands });
