@@ -2,13 +2,16 @@ import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
-import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
 import type { ILayerProps } from './layerform';
 
-export function VectorLayerPropertiesForm(
+export function WebGlLayerPropertiesForm(
   props: ILayerProps,
 ): React.ReactElement | null {
   const {
@@ -60,6 +63,7 @@ export function VectorLayerPropertiesForm(
 
     if (schema.properties?.source) {
       const availableSources = model.getSourcesByType(sourceType);
+
       (schema.properties.source as IDict).enumNames =
         Object.values(availableSources);
       (schema.properties.source as IDict).enum = Object.keys(availableSources);

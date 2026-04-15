@@ -2,10 +2,13 @@ import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
-import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
 import type { ISourceFormProps } from './sourceform';
 
 function getUrlParameters(url: string | undefined): string[] {
