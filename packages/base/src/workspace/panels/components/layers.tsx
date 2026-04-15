@@ -28,7 +28,7 @@ import {
   nonVisibilityIcon,
   targetWithCenterIcon,
   visibilityIcon,
-} from '@/src/icons';
+} from '@/src/shared/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/workspace/panels/leftpanel';
 import { LegendItem } from './legendItem';
 

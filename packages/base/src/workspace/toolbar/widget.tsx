@@ -18,8 +18,8 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { terminalToolbarIcon } from '@/src/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/menus';
+import { terminalToolbarIcon } from '@/src/shared/icons';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
 export const TOOLBAR_GROUPNAME_CLASS = 'jGIS-Toolbar-GroupName';
