@@ -82,6 +82,7 @@ import {
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
+  VectorImage as VectorImageLayer,
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
@@ -141,6 +142,7 @@ import { LeftPanel, RightPanel } from '../workspace/panels';
 type OlLayerTypes =
   | TileLayer
   | VectorLayer
+  | VectorImageLayer
   | VectorTileLayer
   | WebGlTileLayer
   | WebGlTileLayer
@@ -1361,7 +1363,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newMapLayer = new VectorLayer({
+        newMapLayer = new VectorImageLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
@@ -1782,7 +1784,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(
+        (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
 
