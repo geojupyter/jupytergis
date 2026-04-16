@@ -37,6 +37,24 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
   const [leftPanelOpen] = useUIState('leftPanelOpen', props.model);
   const [rightPanelOpen] = useUIState('rightPanelOpen', props.model);
 
+  const [panelHeight, setPanelHeight] = React.useState<number | null>(null);
+
+  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
+      return;
+    }
+    const newHeight = window.innerHeight - e.clientY;
+    setPanelHeight(Math.max(60, Math.min(newHeight, window.innerHeight * 0.9)));
+  };
+
+  const onResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
   const [curTab, setCurTab] = React.useState<string>(() => {
     const { leftPanelDisabled, rightPanelDisabled } = props.settings;
     if (!leftPanelDisabled && !props.settings.layersDisabled) {
@@ -179,9 +197,16 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
           (leftPanelDisabled || leftPanelOpen === false) &&
           (rightPanelDisabled || rightPanelOpen === false)
             ? 'none'
-            : 'block',
+            : undefined,
+        ...(panelHeight !== null ? { height: `${panelHeight}px` } : {}),
       }}
     >
+      <div
+        className="jgis-resize-handle"
+        onPointerDown={onResizePointerDown}
+        onPointerMove={onResizePointerMove}
+        onPointerUp={onResizePointerUp}
+      />
       <TabbedPanel
         tabs={tabs}
         curTab={effectiveCurTab}
