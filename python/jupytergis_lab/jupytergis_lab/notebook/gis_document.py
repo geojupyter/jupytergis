@@ -267,6 +267,7 @@ class GISDocument(CommWidget):
         operator: str | None = None,
         value: str | int | float | None = None,
         color_expr=None,
+        vega_expr: str | None = None,
     ):
         """
         Add a GeoJSON Layer to the document.
@@ -276,6 +277,7 @@ class GISDocument(CommWidget):
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
+        :param vega_expr: A Vega expression string will be converted to OpenLayers expression in the frontend.
         """
         if isinstance(path, Path):
             path = str(path)
@@ -306,6 +308,11 @@ class GISDocument(CommWidget):
         if color_expr is None:
             color_expr = {}
 
+        if vega_expr is not None:
+            parameters_vega = vega_expr
+        else:
+            parameters_vega = None
+
         source = {
             "type": SourceType.GeoJSONSource,
             "name": f"{name} Source",
@@ -321,6 +328,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "color": color_expr,
+                "vega": parameters_vega,
                 "opacity": opacity,
                 "symbologyState": {
                     "renderType": "Single Symbol",

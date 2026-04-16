@@ -115,6 +115,7 @@ import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
+import { vega2ol } from 'vega2ol';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
@@ -1582,6 +1583,32 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    const vegaExpr = layerParams.vega;
+
+    let vegaStyle: Record<string, any> | null = null;
+
+    if (vegaExpr) {
+      try {
+        const converted = vega2ol(vegaExpr);
+
+        if (Array.isArray(converted) || typeof converted === 'string') {
+          vegaStyle = {
+            'fill-color': converted,
+            'stroke-color': converted,
+            'stroke-width': 1.25,
+            'circle-radius': 5,
+            'circle-fill-color': converted,
+            'circle-stroke-width': 1.25,
+            'circle-stroke-color': converted,
+          };
+        } else if (typeof converted === 'object' && converted !== null) {
+          vegaStyle = converted;
+        }
+      } catch (e) {
+        console.error('Vega conversion failed:', e);
+      }
+    }
+
     const defaultStyle = {
       'fill-color': 'rgba(255,255,255,0.4)',
       'stroke-color': '#3399CC',
@@ -1627,8 +1654,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return [layerStyle];
     }
 
-    const newStyle = { ...defaultStyle, ...layerParams.color };
-
+    const newStyle = {
+      ...defaultStyle,
+      ...layerParams.color,
+      ...(vegaStyle ?? {}),
+    };
     layerStyle.style = newStyle;
 
     // When fallbackColor[3] === 0, add an OL filter so features that would be

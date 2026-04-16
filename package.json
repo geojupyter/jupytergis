@@ -73,6 +73,7 @@
     "react-draggable": "^4.5.0",
     "rimraf": "^3.0.2",
     "typescript": "^5",
+    "vega2ol": "1.1.1",
     "webpack": "^5.76.3"
   }
 }
