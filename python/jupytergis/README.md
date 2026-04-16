@@ -102,7 +102,7 @@ We welcome contributions from the community! To contribute:
 - Make your changes
 - Submit a pull request
 
-For more details, check out our [CONTRIBUTING.md](https://github.com/geojupyter/jupytergis/blob/main/CONTRIBUTING.md).
+For more details, check out our [Contributer Guide](https://jupytergis.readthedocs.io/en/latest/contributor_guide/index.html).
 
 ## License
 
