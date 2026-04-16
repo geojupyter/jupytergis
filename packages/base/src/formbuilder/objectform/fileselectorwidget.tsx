@@ -66,7 +66,6 @@ export const FileSelectorWidget: React.FC<any> = props => {
             .split('/')
             .pop()
             ?.replace(/\.[^.]+$/, '') ?? '';
-        //console.log('[FileSelectorWidget] file picked:', { relativePath, fileName });
         if (fileName && formOptions.dialogOptions?.layerData) {
           formOptions.dialogOptions.layerData.name = fileName;
         }
