@@ -6,7 +6,7 @@ export * from './shared/icons';
 export * from './mainview';
 export * from './menus';
 export * from './workspace/panels';
-export * from './store';
+export * from './shared/store';
 export * from './features/stac-browser';
 export * from './features/objectproperties';
 export * from './workspace/toolbar';
