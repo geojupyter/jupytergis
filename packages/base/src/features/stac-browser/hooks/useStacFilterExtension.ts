@@ -15,7 +15,7 @@ import {
   Operator,
 } from '@/src/features/stac-browser/types/types';
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import { fetchWithProxies } from '@/src/tools';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;

@@ -4,7 +4,7 @@ import React, { ChangeEvent, useState } from 'react';
 import { WMS_AVAILABLE_LAYERS_CACHE } from '@/src/formbuilder/objectform/source';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import { fetchWithProxies } from '@/src/tools';
 import type { IJupyterGISFormContext, IWmsLayerInfo } from '@/src/types';
 

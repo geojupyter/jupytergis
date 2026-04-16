@@ -23,7 +23,7 @@ import {
 import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { useLatest } from '@/src/shared/hooks/useLatest';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import { ClassificationMode } from '@/src/types';
 import { ColorRampName, getColorMap } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';

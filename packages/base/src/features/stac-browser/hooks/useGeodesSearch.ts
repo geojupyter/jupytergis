@@ -11,7 +11,7 @@ import {
   StacFilterStateStateDb,
 } from '@/src/features/stac-browser/types/types';
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 
 interface IUseGeodesSearchProps {
   model: IJupyterGISModel | undefined;
