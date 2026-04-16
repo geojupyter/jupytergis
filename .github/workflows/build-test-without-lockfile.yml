@@ -20,7 +20,6 @@ jobs:
           environment-name: gis
           create-args: >-
             pip
-            jupyterlab=4
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -29,7 +28,7 @@ jobs:
 
       - name: Install build deps
         shell: bash -l {0}
-        run: pip install -r requirements-build.txt
+        run: pip install --group build
 
       - name: Test build without lockfile
         shell: bash -l {0}
