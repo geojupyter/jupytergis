@@ -834,28 +834,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
                 const proxyUrl = `${proxyBase}?url=${encodeURIComponent(tileUrl)}${headersParam}`;
-                vtTile.setLoader(async (extent, _resolution, projection) => {
-                  try {
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) {
-                      throw new Error(
-                        `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                vtTile.setLoader((extent, _resolution, projection) => {
+                  return fetch(proxyUrl)
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error(
+                          `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                        );
+                      }
+                      return response.arrayBuffer();
+                    })
+                    .then(data => {
+                      const features = vtTile.getFormat().readFeatures(data, {
+                        extent,
+                        featureProjection: projection,
+                      });
+                      vtTile.setFeatures(features);
+                      this._log('debug', `Proxy tile loaded: ${tileUrl}`);
+                      return features;
+                    })
+                    .catch((err: any) => {
+                      this._log(
+                        'error',
+                        `Proxy tile error for ${tileUrl}: ${err.message}`,
                       );
-                    }
-                    const data = await response.arrayBuffer();
-                    const features = vtTile.getFormat().readFeatures(data, {
-                      extent,
-                      featureProjection: projection,
+                      tile.setState(TileState.ERROR);
+                      return [];
                     });
-                    vtTile.setFeatures(features);
-                    this._log('debug', `Proxy tile loaded: ${tileUrl}`);
-                  } catch (err: any) {
-                    this._log(
-                      'error',
-                      `Proxy tile error for ${tileUrl}: ${err.message}`,
-                    );
-                    tile.setState(TileState.ERROR);
-                  }
                 });
               };
             }
