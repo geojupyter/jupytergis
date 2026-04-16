@@ -184,12 +184,22 @@ function computeGraduatedColorStops(
     return true;
   });
 
-  if (values.length === 0) {
+  // If no feature values are in range but vmin/vmax are explicitly set (e.g.
+  // for VectorTile sources where getFeatures() is unavailable), use them as a
+  // synthetic range so stops can still be computed.
+  const effectiveValues =
+    values.length > 0
+      ? values
+      : parsedVmin !== undefined && parsedVmax !== undefined
+        ? [parsedVmin, parsedVmax]
+        : [];
+
+  if (effectiveValues.length === 0) {
     return [];
   }
 
-  const dataMin = Math.min(...values);
-  const dataMax = Math.max(...values);
+  const dataMin = Math.min(...effectiveValues);
+  const dataMax = Math.max(...effectiveValues);
   const rangeMin = parsedVmin ?? dataMin;
   const rangeMax = parsedVmax ?? dataMax;
   const rangeValues = [rangeMin, rangeMax];
@@ -197,7 +207,10 @@ function computeGraduatedColorStops(
   let stops: number[];
   switch (mode) {
     case 'quantile':
-      stops = VectorClassifications.calculateQuantileBreaks(values, nClasses);
+      stops = VectorClassifications.calculateQuantileBreaks(
+        effectiveValues,
+        nClasses,
+      );
       break;
     case 'equal interval':
       stops = VectorClassifications.calculateEqualIntervalBreaks(
@@ -206,7 +219,10 @@ function computeGraduatedColorStops(
       );
       break;
     case 'jenks':
-      stops = VectorClassifications.calculateJenksBreaks(values, nClasses);
+      stops = VectorClassifications.calculateJenksBreaks(
+        effectiveValues,
+        nClasses,
+      );
       break;
     case 'pretty':
       stops = VectorClassifications.calculatePrettyBreaks(
