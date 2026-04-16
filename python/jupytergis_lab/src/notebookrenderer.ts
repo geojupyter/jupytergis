@@ -50,6 +50,10 @@ export const CLASS_NAME = 'jupytergis-notebook-widget';
 
 export class YJupyterGISModel extends JupyterYModel {
   jupyterGISModel: JupyterGISModel;
+
+  get awareness() {
+    return this.jupyterGISModel?.sharedModel?.awareness;
+  }
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
