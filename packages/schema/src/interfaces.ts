@@ -68,6 +68,7 @@ export type JgisCoordinates = { x: number; y: number };
 export interface IViewPortState {
   coordinates: JgisCoordinates;
   zoom: number;
+  extent: [number, number, number, number];
 }
 
 export type Pointer = {

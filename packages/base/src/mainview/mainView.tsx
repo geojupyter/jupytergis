@@ -435,34 +435,43 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view = this._Map.getView();
 
-      view.on('change:center', () => this._updateCenter());
+      const syncViewportThrottled = throttle(() => {
+        // Not syncing center if following someone else
+        if (this._model.localState?.remoteUser) {
+          return;
+        }
 
-      // TODO: Note for the future, will need to update listeners if view changes
-      view.on(
-        'change:center',
-        throttle(() => {
-          // Not syncing center if following someone else
-          if (this._model.localState?.remoteUser) {
-            return;
-          }
-          const view = this._Map.getView();
-          const center = view.getCenter();
-          const zoom = view.getZoom();
-          if (!center || !zoom) {
-            return;
-          }
-          this._model.syncViewport(
-            {
-              coordinates: {
-                x: center[0],
-                y: center[1],
-              },
-              zoom,
+        const view = this._Map.getView();
+        const center = view.getCenter();
+        const zoom = view.getZoom();
+
+        if (!center || !zoom) {
+          return;
+        }
+
+        const currentExtent = view.calculateExtent(this._Map.getSize());
+        this._model.syncViewport(
+          {
+            coordinates: {
+              x: center[0],
+              y: center[1],
             },
-            this._mainViewModel.id,
-          );
-        }),
-      );
+            zoom,
+            extent: [
+              currentExtent[0],
+              currentExtent[1],
+              currentExtent[2],
+              currentExtent[3],
+            ],
+          },
+          this._mainViewModel.id,
+        );
+      }, 200);
+
+      view.on('change:center', () => {
+        this._updateCenter();
+        syncViewportThrottled();
+      });
 
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
