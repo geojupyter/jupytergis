@@ -8,8 +8,8 @@ import {
   LayerPropertiesForm,
   VectorLayerPropertiesForm,
   WebGlLayerPropertiesForm,
-} from './objectform/layer';
-import type { ILayerProps } from './objectform/layer/layerform';
+} from '@/src/features/layers/forms/layer';
+import type { ILayerProps } from '@/src/features/layers/forms/layer/layerform';
 import {
   GeoJSONSourcePropertiesForm,
   GeoTiffSourcePropertiesForm,
@@ -18,8 +18,8 @@ import {
   WmsTileSourceForm,
   SourcePropertiesForm,
   GeoPackagePropertiesForm,
-} from './objectform/source';
-import type { ISourceFormProps } from './objectform/source/sourceform';
+} from '@/src/features/layers/forms/source';
+import type { ISourceFormProps } from '@/src/features/layers/forms/source/sourceform';
 
 export function getLayerTypeForm(
   layerType: LayerType,
