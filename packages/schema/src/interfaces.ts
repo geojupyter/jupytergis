@@ -27,6 +27,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISViewState,
   LayerType,
   SourceType,
 } from './_interface/project/jgis';
@@ -132,6 +133,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   sources: IJGISSources;
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
+  viewState: IJGISViewState;
   metadata: any;
 
   readonly editable: boolean;
@@ -305,6 +307,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   selected: { [key: string]: ISelection } | undefined;
+  syncLastAddedLayer(layerId: string): void;
   setEditingItem(type: SelectionType, itemId: string): void;
   clearEditingItem(): void;
   readonly editing: { type: SelectionType; itemId: string } | null;

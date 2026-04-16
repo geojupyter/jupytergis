@@ -1486,8 +1486,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
-
-      this._trackLayerViewState(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1549,6 +1547,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+
+        const shouldZoom = this.state.initialLayersReady;
+        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -2061,10 +2062,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
+  private _getLayerCreatorId(layerId: string): number | undefined {
+    const states = this._model.sharedModel.awareness.getStates();
+
+    for (const [clientId, state] of states.entries()) {
+      if (state?.lastAddedLayer?.layerId === layerId) {
+        return clientId;
+      }
+    }
+
+    return undefined;
+  }
+
   /**
    * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerViewState(layerId: string, olLayer: Layer): void {
+  private _trackLayerViewState(
+    layerId: string,
+    olLayer: Layer,
+    shouldZoom = false,
+  ): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
@@ -2083,6 +2100,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
+
+      if (shouldZoom) {
+        const creatorId = this._getLayerCreatorId(layerId);
+        const currentClientId = this._model.getClientId();
+
+        if (creatorId === currentClientId) {
+          this._model.centerOnPosition(layerId);
+        }
+      }
     }
   }
 

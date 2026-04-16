@@ -508,6 +508,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   ): void {
     if (!this.getLayer(id)) {
       this.sharedModel.addLayer(id, layer);
+      this.syncLastAddedLayer(id);
     }
 
     this._addLayerTreeItem(id, groupName, position);
@@ -593,6 +594,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
+  syncLastAddedLayer(layerId: string): void {
+    this.sharedModel.awareness.setLocalStateField('lastAddedLayer', {
+      layerId,
+    });
+  }
   get selected(): { [key: string]: ISelection } | undefined {
     return this.localState?.selected?.value;
   }
