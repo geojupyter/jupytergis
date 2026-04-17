@@ -31,7 +31,7 @@ import {
 /** Story viewer + useStoryMap hook
  * only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden.
  **/
-function RightPanelStoryViewer({
+export function RightPanelStoryViewer({
   model,
   addLayer,
   removeLayer,
