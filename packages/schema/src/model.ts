@@ -518,11 +518,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
-
-    // this.syncSelected(
-    //   { [id]: { type: 'layer' } },
-    //   this.getClientId().toString(),
-    // );
   }
 
   /**
@@ -1121,16 +1116,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   };
 
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
-    console.log('model check');
     const selectedSource = this.getSource(layer.parameters?.source);
-    if (
+
+    return (
       selectedSource?.type === 'GeoJSONSource' &&
-      selectedSource?.parameters?.data
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+      selectedSource?.parameters?.data?.type === 'FeatureCollection'
+    );
   }
 
   updateEditingVectorLayer(): void {

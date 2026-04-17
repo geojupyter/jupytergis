@@ -1633,58 +1633,68 @@ export function addCommands(
       },
     },
     isToggled: () => {
-      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
-        const model = tracker.currentWidget?.content?.currentViewModel
-          .jGISModel as IJupyterGISModel;
-        const selectedLayer = getSingleSelectedLayer(tracker);
-        if (!selectedLayer) {
-          return false;
-        } else if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
-          return model.editingVectorLayer;
-        } else {
-          model.editingVectorLayer === false;
-          return false;
-        }
-      } else {
+      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
         return false;
       }
+
+      const model = tracker.currentWidget?.content?.currentViewModel
+        ?.jGISModel as IJupyterGISModel | undefined;
+
+      if (!model) {
+        return false;
+      }
+
+      const selectedLayer = getSingleSelectedLayer(tracker);
+
+      if (!selectedLayer) {
+        return false;
+      }
+
+      if (!model.checkIfIsADrawVectorLayer(selectedLayer)) {
+        return false;
+      }
+
+      return model.editingVectorLayer;
     },
     isEnabled: () => {
-      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
-        const model = tracker.currentWidget?.content.currentViewModel
-          .jGISModel as IJupyterGISModel;
-        const selectedLayer = getSingleSelectedLayer(tracker);
-
-        if (!selectedLayer) {
-          return false;
-        }
-        if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
+      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
         return false;
       }
+
+      const model = tracker.currentWidget?.content?.currentViewModel
+        ?.jGISModel as IJupyterGISModel | undefined;
+
+      if (!model) {
+        return false;
+      }
+
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+
+      return model.checkIfIsADrawVectorLayer(selectedLayer) === true;
     },
     execute: async () => {
-      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
-        const selectedLayer = getSingleSelectedLayer(tracker);
-        const model = tracker.currentWidget?.content.currentViewModel
-          .jGISModel as IJupyterGISModel;
-        if (!selectedLayer) {
-          return false;
-        } else {
-          if (model.editingVectorLayer === false) {
-            model.editingVectorLayer = true;
-          } else {
-            model.editingVectorLayer = false;
-          }
-        }
-
-        model.updateEditingVectorLayer();
-        commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
+        return;
       }
+
+      const model = tracker.currentWidget?.content.currentViewModel
+        ?.jGISModel as IJupyterGISModel;
+      if (!model) {
+        return false;
+      }
+
+      const selectedLayer = getSingleSelectedLayer(tracker);
+
+      if (!selectedLayer) {
+        return false;
+      }
+
+      model.editingVectorLayer = !model.editingVectorLayer;
+      model.updateEditingVectorLayer();
+      commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
     },
   });
 

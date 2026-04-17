@@ -141,14 +141,13 @@ export function CreationForm(props: ICreationFormProps) {
   const createSourceRef = useRef(createSource);
   const sourceTypeRef = useRef(sourceType);
   const layerTypeRef = useRef(layerType);
-  const dialogOptionsRef = useRef(dialogOptions);
+  // const dialogOptionsRef = useRef(dialogOptions);
 
   modelRef.current = model;
   createLayerRef.current = createLayer;
   createSourceRef.current = createSource;
   sourceTypeRef.current = sourceType;
   layerTypeRef.current = layerType;
-  dialogOptionsRef.current = dialogOptions;
 
   useEffect(() => {
     if (!registerConfirmHandler) {
@@ -163,16 +162,13 @@ export function CreationForm(props: ICreationFormProps) {
       const currentLayerType = layerTypeRef.current;
       const currentSourceId = sourceIdRef.current;
 
-      console.log('check');
-      let sourceData: IDict = {
-        ...(dialogOptionsRef.current?.sourceData as IDict | undefined),
-        ...(sourceFormDataRef.current ?? {}),
-      };
+      let sourceData = sourceFormDataRef.current ?? {};
 
       if (
         currentCreateSource &&
         currentSourceType === 'GeoJSONSource' &&
-        !sourceData.path
+        !sourceData.path &&
+        !sourceData.data
       ) {
         sourceData = {
           ...sourceData,
@@ -184,12 +180,6 @@ export function CreationForm(props: ICreationFormProps) {
       }
 
       sourceFormDataRef.current = sourceData;
-      const opts = dialogOptionsRef.current as
-        | { sourceData?: IDict }
-        | undefined;
-      if (opts) {
-        opts.sourceData = sourceData;
-      }
 
       const layerData = layerFormDataRef.current ?? {};
 
