@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
+from jupytergis_core.color_ramps import sample_colors
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
@@ -562,8 +563,6 @@ def _build_color_ramp(symbology_state):
     Uses the shared ``jupytergis_core.color_ramps`` module (backed by branca)
     to resolve the frontend ramp name and sample the start/end colours.
     """
-    from jupytergis_core.color_ramps import sample_colors
-
     ramp_name = symbology_state.get("colorRamp", "viridis")
     reverse = symbology_state.get("reverseRamp", False)
 
@@ -576,8 +575,6 @@ def _build_color_ramp(symbology_state):
 
 def _sample_qcolors(symbology_state, n):
     """Sample *n* QColors from the ramp specified in symbologyState."""
-    from jupytergis_core.color_ramps import sample_colors
-
     ramp_name = symbology_state.get("colorRamp", "viridis")
     reverse = symbology_state.get("reverseRamp", False)
 
