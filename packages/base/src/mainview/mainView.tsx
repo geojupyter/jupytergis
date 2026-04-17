@@ -2298,7 +2298,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     // Compute displayTemporalController: active AND current selection is valid
-    const isTemporalControllerActive = !!localState.isTemporalControllerActive;
+    const isTemporalControllerActive =
+      localState.isTemporalControllerActive === true;
+
     const selectedLayers = localState.selected?.value;
     const selectedLayerId = selectedLayers
       ? (Object.keys(selectedLayers)[0] ?? null)
