@@ -1,6 +1,6 @@
 """Build all JupyterGIS packages.
 
-IMPORTANT: Requires dependencies in requirements-build.txt
+IMPORTANT: Requires dependencies in the "build" dependency group
 """
 
 import subprocess

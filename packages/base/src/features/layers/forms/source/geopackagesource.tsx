@@ -1,18 +1,19 @@
 import { IDict } from '@jupytergis/schema';
-import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 import { showErrorMessage } from '@jupyterlab/apputils';
-import { UiSchema } from '@rjsf/utils';
-import { Ajv, type ValidateFunction } from 'ajv';
+import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { deepCopy, loadFile } from '@/src/tools';
-import { SchemaForm } from '../SchemaForm';
-import { FileSelectorWidget } from '../fileselectorwidget';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { FileSelectorWidget } from '@/src/formbuilder/objectform/fileselectorwidget';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+import { deepCopy } from '@/src/tools';
 import type { ISourceFormProps } from './sourceform';
 
-export function GeoJSONSourcePropertiesForm(
+export function GeoPackagePropertiesForm(
   props: ISourceFormProps,
 ): React.ReactElement | null {
   const {
@@ -22,6 +23,7 @@ export function GeoJSONSourcePropertiesForm(
     model,
     filePath,
     formContext,
+    sourceType,
     dialogOptions,
     formErrorSignal,
     formSchemaRegistry,
@@ -30,7 +32,6 @@ export function GeoJSONSourcePropertiesForm(
 
   const {
     formData,
-    schema,
     formContextValue,
     hasSchema,
     handleChangeBase,
@@ -47,49 +48,28 @@ export function GeoJSONSourcePropertiesForm(
         }
       : undefined,
   });
+
   const [extraErrors, setExtraErrors] = useState<IDict>({});
 
-  const validateGeoJSON = useMemo((): ValidateFunction => {
-    const ajv = new Ajv();
-    return ajv.compile(geojson as any);
-  }, []);
-
   const validatePath = useCallback(
-    async (path: string | undefined) => {
+    (path: string) => {
       const nextErrors: IDict = {};
       let valid = true;
       let error = '';
 
-      if (!path || !path.trim()) {
+      if (!path) {
         valid = false;
         error = 'Path is required';
       } else {
-        try {
-          const geoJSONData = await loadFile({
-            filepath: path,
-            type: 'GeoJSONSource',
-            model,
-          });
-
-          valid = validateGeoJSON(geoJSONData);
-
-          if (!valid) {
-            error = `"${path}" is not a valid GeoJSON file`;
-          }
-        } catch (e) {
+        const isUrl = path.startsWith('http://') || path.startsWith('https://');
+        if (!isUrl && !path.toLowerCase().endsWith('.gpkg')) {
           valid = false;
-          error = `"${path}" is not a valid GeoJSON file: ${e}`;
+          error = `"${path}" does not appear to be a GeoPackage file (.gpkg).`;
         }
       }
 
       if (!valid) {
         nextErrors.path = { __errors: [error] };
-
-        if (validateGeoJSON.errors?.length) {
-          validateGeoJSON.errors.reverse().forEach(err => {
-            (nextErrors.path.__errors as string[]).push(err.message ?? '');
-          });
-        }
       } else {
         nextErrors.path = { __errors: [] };
       }
@@ -97,19 +77,22 @@ export function GeoJSONSourcePropertiesForm(
       setExtraErrors(nextErrors);
       formErrorSignal?.emit(!valid);
     },
-    [model, validateGeoJSON, formErrorSignal],
+    [formErrorSignal],
   );
+
+  const schema = useMemo(() => {
+    const schemaCopy = deepCopy(schemaProp ?? {}) as RJSFSchema;
+
+    if (schemaCopy.properties) {
+      delete (schemaCopy.properties as IDict).valid;
+    }
+
+    return schemaCopy;
+  }, [schemaProp]);
 
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
-
-    removeFormEntry('data', dataCopy, schema, builtUiSchema);
-
-    if (formContext === 'create' && schema.properties?.path) {
-      (schema.properties.path as IDict).description =
-        'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)';
-    }
 
     processBaseSchema(
       dataCopy,
@@ -126,13 +109,16 @@ export function GeoJSONSourcePropertiesForm(
         'ui:widget': FileSelectorWidget,
         'ui:options': {
           docManager,
-          formOptions: props,
+          formOptions: {
+            ...props,
+            sourceType,
+          },
         },
       };
     }
 
     return builtUiSchema;
-  }, [schema, formData, formContext, formSchemaRegistry, props]);
+  }, [schema, formData, formContext, formSchemaRegistry, props, sourceType]);
 
   const handleChange = useCallback(
     (data: IDict) => {
@@ -149,30 +135,16 @@ export function GeoJSONSourcePropertiesForm(
     (data: IDict) => {
       if (extraErrors?.path?.__errors?.length >= 1) {
         showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
-
         return;
       }
 
-      let submitted = { ...data };
-
-      if (!submitted.path) {
-        submitted = {
-          ...submitted,
-          data: {
-            type: 'FeatureCollection',
-            features: [],
-          },
-        };
-      }
-      handleSubmitBase(submitted);
+      handleSubmitBase(data);
     },
     [extraErrors, handleSubmitBase],
   );
 
   useEffect(() => {
-    if (formData?.path) {
-      validatePath(formData?.path);
-    }
+    validatePath(formData?.path ?? '');
   }, []);
 
   if (!hasSchema) {

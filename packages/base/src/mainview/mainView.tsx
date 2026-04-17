@@ -442,34 +442,43 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view = this._Map.getView();
 
-      view.on('change:center', () => this._updateCenter());
+      const syncViewportThrottled = throttle(() => {
+        // Not syncing center if following someone else
+        if (this._model.localState?.remoteUser) {
+          return;
+        }
 
-      // TODO: Note for the future, will need to update listeners if view changes
-      view.on(
-        'change:center',
-        throttle(() => {
-          // Not syncing center if following someone else
-          if (this._model.localState?.remoteUser) {
-            return;
-          }
-          const view = this._Map.getView();
-          const center = view.getCenter();
-          const zoom = view.getZoom();
-          if (!center || !zoom) {
-            return;
-          }
-          this._model.syncViewport(
-            {
-              coordinates: {
-                x: center[0],
-                y: center[1],
-              },
-              zoom,
+        const view = this._Map.getView();
+        const center = view.getCenter();
+        const zoom = view.getZoom();
+
+        if (!center || !zoom) {
+          return;
+        }
+
+        const currentExtent = view.calculateExtent(this._Map.getSize());
+        this._model.syncViewport(
+          {
+            coordinates: {
+              x: center[0],
+              y: center[1],
             },
-            this._mainViewModel.id,
-          );
-        }),
-      );
+            zoom,
+            extent: [
+              currentExtent[0],
+              currentExtent[1],
+              currentExtent[2],
+              currentExtent[3],
+            ],
+          },
+          this._mainViewModel.id,
+        );
+      }, 200);
+
+      view.on('change:center', () => {
+        this._updateCenter();
+        syncViewportThrottled();
+      });
 
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
@@ -1494,8 +1503,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
-
-      this._trackLayerViewState(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1557,6 +1564,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+
+        const shouldZoom = this.state.initialLayersReady;
+        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -2010,10 +2020,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
+  private _getLayerCreatorId(layerId: string): number | undefined {
+    const states = this._model.sharedModel.awareness.getStates();
+
+    for (const [clientId, state] of states.entries()) {
+      if (state?.lastAddedLayer?.layerId === layerId) {
+        return clientId;
+      }
+    }
+
+    return undefined;
+  }
+
   /**
    * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerViewState(layerId: string, olLayer: Layer): void {
+  private _trackLayerViewState(
+    layerId: string,
+    olLayer: Layer,
+    shouldZoom = false,
+  ): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
@@ -2032,6 +2058,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
+
+      if (shouldZoom) {
+        const creatorId = this._getLayerCreatorId(layerId);
+        const currentClientId = this._model.getClientId();
+
+        if (creatorId === currentClientId) {
+          this._model.centerOnPosition(layerId);
+        }
+      }
     }
   }
 

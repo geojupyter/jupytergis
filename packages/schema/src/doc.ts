@@ -12,6 +12,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISViewState,
 } from './_interface/project/jgis';
 import { SCHEMA_VERSION } from './_interface/version';
 import {
@@ -195,11 +196,11 @@ export class JupyterGISDoc
     return JSONExt.deepCopy(this._stories.toJSON());
   }
 
-  get viewState(): JSONObject {
+  get viewState(): IJGISViewState {
     return JSONExt.deepCopy(this._viewState.toJSON());
   }
 
-  set viewState(viewState: JSONObject) {
+  set viewState(viewState: IJGISViewState) {
     this.transact(() => {
       for (const [key, value] of Object.entries(viewState)) {
         this._viewState.set(key, value);
