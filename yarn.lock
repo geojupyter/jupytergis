@@ -974,6 +974,7 @@ __metadata:
     "@mapbox/vector-tile": ^2.0.3
     "@naisutech/react-tree": ^3.0.1
     "@ngageoint/geopackage": ^4.2.6
+    "@openeo/js-client": ^2.11.0
     "@radix-ui/react-checkbox": ^1.3.2
     "@radix-ui/react-dropdown-menu": ^2.1.15
     "@radix-ui/react-popover": ^1.1.14
@@ -2907,6 +2908,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openeo/js-client@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "@openeo/js-client@npm:2.11.0"
+  dependencies:
+    "@openeo/js-commons": ^1.5.0
+    "@radiantearth/stac-migrate": ^1.0.0
+    axios: ^1.0.0
+    oidc-client: ^1.11.5
+    regexp.escape: ^2.0.1
+  checksum: 697712b70b15f9a8456214ac31088f311b9e8f8935555c59a99ffcd97166f034b339ab2de494f5c413b22f842d1e948d67a33a824861f5199a9b60c90eb26f91
+  languageName: node
+  linkType: hard
+
+"@openeo/js-commons@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@openeo/js-commons@npm:1.5.0"
+  dependencies:
+    compare-versions: ^6.0.0
+    fast-deep-equal: ^3.1.3
+  checksum: b9de1aa65055d809f561479d2dab554aec39646f9f431f8125bab6f349d3e40fbd920a7a2557b321a2921c07d92302485057e6a068c184c863b6c32bc3093bdd
+  languageName: node
+  linkType: hard
+
 "@petamoriken/float16@npm:^3.4.7, @petamoriken/float16@npm:^3.9.3":
   version: 3.9.3
   resolution: "@petamoriken/float16@npm:3.9.3"
@@ -2925,6 +2949,19 @@ __metadata:
   version: 0.2.9
   resolution: "@pkgr/core@npm:0.2.9"
   checksum: bb2fb86977d63f836f8f5b09015d74e6af6488f7a411dcd2bfdca79d76b5a681a9112f41c45bdf88a9069f049718efc6f3900d7f1de66a2ec966068308ae517f
+  languageName: node
+  linkType: hard
+
+"@radiantearth/stac-migrate@npm:^1.0.0":
+  version: 1.6.0
+  resolution: "@radiantearth/stac-migrate@npm:1.6.0"
+  dependencies:
+    compare-versions: ^3.6.0
+    multihashes: ^3.1.2
+    yargs: ^17.6.2
+  bin:
+    stac-migrate: bin/cli.js
+  checksum: 5b75a55d024b4cdb129359f1c323dd98f409de9a2bac5543c57641c110b055c91b84b95c6dcb0ea12baf85d43974a630edada24f59246f22e9537f05bf58cc9b
   languageName: node
   linkType: hard
 
@@ -5831,6 +5868,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"acorn@npm:^7.4.1":
+  version: 7.4.1
+  resolution: "acorn@npm:7.4.1"
+  bin:
+    acorn: bin/acorn
+  checksum: 1860f23c2107c910c6177b7b7be71be350db9e1080d814493fae143ae37605189504152d1ba8743ba3178d0b37269ce1ffc42b101547fdc1827078f82671e407
+  languageName: node
+  linkType: hard
+
 "acorn@npm:^8.1.0, acorn@npm:^8.11.0, acorn@npm:^8.15.0, acorn@npm:^8.16.0, acorn@npm:^8.8.1, acorn@npm:^8.9.0":
   version: 8.16.0
   resolution: "acorn@npm:8.16.0"
@@ -6203,6 +6249,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:^1.0.0":
+  version: 1.15.0
+  resolution: "axios@npm:1.15.0"
+  dependencies:
+    follow-redirects: ^1.15.11
+    form-data: ^4.0.5
+    proxy-from-env: ^2.1.0
+  checksum: 95a8455554867a083ab3772fcadba42a22ec4bb546dccc66011556d837a07e544ae006675a30a5c43453f3e37e7c0982e934cec482c06b75abead2a2c157448a
+  languageName: node
+  linkType: hard
+
 "axios@npm:^1.8.3":
   version: 1.14.0
   resolution: "axios@npm:1.14.0"
@@ -6250,7 +6307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:^1.3.1":
+"base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
@@ -6959,6 +7016,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"compare-versions@npm:^6.0.0":
+  version: 6.1.1
+  resolution: "compare-versions@npm:6.1.1"
+  checksum: 73fe6c4f52d22efe28f0a3be10df2afd704e10b3593360cd963e86b33a7a263c263b41a1361b69c30a0fe68bfa70fef90860c1cf2ef41502629d4402890fcd57
+  languageName: node
+  linkType: hard
+
 "compute-gcd@npm:^1.2.1":
   version: 1.2.1
   resolution: "compute-gcd@npm:1.2.1"
@@ -7131,6 +7195,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"core-js@npm:^3.8.3":
+  version: 3.49.0
+  resolution: "core-js@npm:3.49.0"
+  checksum: 0e2c7ce0d6639ac6b0c040c6e82d415e84f94a542fb6523388d204a1c5c2e503870aa64de180115d56a7bc7c780e43b5eab4b925a6f821a9d27f4b92d191713d
+  languageName: node
+  linkType: hard
+
 "core-util-is@npm:~1.0.0":
   version: 1.0.3
   resolution: "core-util-is@npm:1.0.3"
@@ -7201,6 +7272,13 @@ __metadata:
     shebang-command: ^2.0.0
     which: ^2.0.1
   checksum: 8d306efacaf6f3f60e0224c287664093fa9185680b2d195852ba9a863f85d02dcc737094c6e512175f8ee0161f9b87c73c6826034c2422e39de7d6569cf4503b
+  languageName: node
+  linkType: hard
+
+"crypto-js@npm:^4.0.0":
+  version: 4.2.0
+  resolution: "crypto-js@npm:4.2.0"
+  checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
   languageName: node
   linkType: hard
 
@@ -8351,6 +8429,68 @@ __metadata:
     unbox-primitive: ^1.1.0
     which-typed-array: ^1.1.19
   checksum: 84896f97ac812bd9d884f1e5372ae71dbdbef364d2e178defdb712a0aae8c9df66f447b472ad54e3e1fa5aa9a84f3c11b5f35007d629cf975699c5f885aeb0c5
+  languageName: node
+  linkType: hard
+
+"es-abstract@npm:^1.23.3":
+  version: 1.24.2
+  resolution: "es-abstract@npm:1.24.2"
+  dependencies:
+    array-buffer-byte-length: ^1.0.2
+    arraybuffer.prototype.slice: ^1.0.4
+    available-typed-arrays: ^1.0.7
+    call-bind: ^1.0.8
+    call-bound: ^1.0.4
+    data-view-buffer: ^1.0.2
+    data-view-byte-length: ^1.0.2
+    data-view-byte-offset: ^1.0.1
+    es-define-property: ^1.0.1
+    es-errors: ^1.3.0
+    es-object-atoms: ^1.1.1
+    es-set-tostringtag: ^2.1.0
+    es-to-primitive: ^1.3.0
+    function.prototype.name: ^1.1.8
+    get-intrinsic: ^1.3.0
+    get-proto: ^1.0.1
+    get-symbol-description: ^1.1.0
+    globalthis: ^1.0.4
+    gopd: ^1.2.0
+    has-property-descriptors: ^1.0.2
+    has-proto: ^1.2.0
+    has-symbols: ^1.1.0
+    hasown: ^2.0.2
+    internal-slot: ^1.1.0
+    is-array-buffer: ^3.0.5
+    is-callable: ^1.2.7
+    is-data-view: ^1.0.2
+    is-negative-zero: ^2.0.3
+    is-regex: ^1.2.1
+    is-set: ^2.0.3
+    is-shared-array-buffer: ^1.0.4
+    is-string: ^1.1.1
+    is-typed-array: ^1.1.15
+    is-weakref: ^1.1.1
+    math-intrinsics: ^1.1.0
+    object-inspect: ^1.13.4
+    object-keys: ^1.1.1
+    object.assign: ^4.1.7
+    own-keys: ^1.0.1
+    regexp.prototype.flags: ^1.5.4
+    safe-array-concat: ^1.1.3
+    safe-push-apply: ^1.0.0
+    safe-regex-test: ^1.1.0
+    set-proto: ^1.0.0
+    stop-iteration-iterator: ^1.1.0
+    string.prototype.trim: ^1.2.10
+    string.prototype.trimend: ^1.0.9
+    string.prototype.trimstart: ^1.0.8
+    typed-array-buffer: ^1.0.3
+    typed-array-byte-length: ^1.0.3
+    typed-array-byte-offset: ^1.0.4
+    typed-array-length: ^1.0.7
+    unbox-primitive: ^1.1.0
+    which-typed-array: ^1.1.19
+  checksum: 25ddb06725159050d896986a10df5351c658a35113dcfb328bc2e117557440cb956e2ebf61c1a977974c14551fac3bd43449c96e63cb876c5e72bde306714b98
   languageName: node
   linkType: hard
 
@@ -12999,6 +13139,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oidc-client@npm:^1.11.5":
+  version: 1.11.5
+  resolution: "oidc-client@npm:1.11.5"
+  dependencies:
+    acorn: ^7.4.1
+    base64-js: ^1.5.1
+    core-js: ^3.8.3
+    crypto-js: ^4.0.0
+    serialize-javascript: ^4.0.0
+  checksum: 3d0a84667de96936d7bab1a57c80389e333f2883c4f20e9d6366bdbacde7e4d56bda3625b5df8bd44420df093d4cebe591e6dba3ef6d214bc70c5f86ef41452c
+  languageName: node
+  linkType: hard
+
 "ol-load-geopackage@npm:^1.0.3":
   version: 1.0.3
   resolution: "ol-load-geopackage@npm:1.0.3"
@@ -14508,6 +14661,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"regexp.escape@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "regexp.escape@npm:2.0.1"
+  dependencies:
+    call-bind: ^1.0.7
+    define-properties: ^1.2.1
+    es-abstract: ^1.23.3
+    es-errors: ^1.3.0
+    for-each: ^0.3.3
+    safe-regex-test: ^1.0.3
+  checksum: b99212b02714135b316934a9fe388804c466e6d76197008a850722cae3208500726e1232ea55e3ba43290d292fa14c2786b50475140cb06c7fcc2903dfcaa837
+  languageName: node
+  linkType: hard
+
 "regexp.prototype.flags@npm:^1.5.4":
   version: 1.5.4
   resolution: "regexp.prototype.flags@npm:1.5.4"
@@ -14830,7 +14997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-regex-test@npm:^1.1.0":
+"safe-regex-test@npm:^1.0.3, safe-regex-test@npm:^1.1.0":
   version: 1.1.0
   resolution: "safe-regex-test@npm:1.1.0"
   dependencies:
@@ -14945,6 +15112,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 9b4a6a58e98b9723fafcafa393c9d4e8edefaa60b8dfbe39e30892a3604cf1f45f52df9cfb1ae1a22b44c8b3d57fec8a9bb7b3e1645431587cb272399ede152e
+  languageName: node
+  linkType: hard
+
+"serialize-javascript@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "serialize-javascript@npm:4.0.0"
+  dependencies:
+    randombytes: ^2.1.0
+  checksum: 3273b3394b951671fcf388726e9577021870dfbf85e742a1183fb2e91273e6101bdccea81ff230724f6659a7ee4cef924b0ff9baca32b79d9384ec37caf07302
   languageName: node
   linkType: hard
 

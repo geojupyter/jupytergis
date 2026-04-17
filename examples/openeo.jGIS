@@ -20,24 +20,24 @@
         "source": "b66534a2-9959-47d2-9323-d484d6753e5e"
       },
       "type": "RasterLayer",
-      "visible": true
+      "visible": false
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8247587.1201931015,
-      4964492.665577036,
-      -8225914.937872179,
-      4983840.942076382
+      -8246727.392825443,
+      4965752.163617272,
+      -8223716.132557105,
+      4978886.984225318
     ],
-    "latitude": 40.740679068731794,
-    "longitude": -73.99199340867216,
+    "latitude": 40.728105124169275,
+    "longitude": -73.97825577539278,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "storyMapPresentationMode": false,
-    "zoom": 13.118258016583779
+    "zoom": 13.17871725405322
   },
   "schemaVersion": "0.5.0",
   "sources": {

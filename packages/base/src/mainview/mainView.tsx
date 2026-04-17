@@ -124,7 +124,7 @@ import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
-import { OpenEOLayer, OpenEOSource } from './OpenEOLayer';
+import { connect, OpenEOLayer, OpenEOSource } from './OpenEOLayer';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { SpectaPanel } from '../features/story/SpectaPanel';
@@ -919,13 +919,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'OpenEOSource': {
         const sourceParameters = source.parameters as IOpenEOSource;
 
-        newSource = new OpenEOSource({
-          processGraph: sourceParameters.processGraph,
-          // TODO make those settings?
-          connectionInfo: {
+        const tileurl = await connect(
+          {
             url: 'http://localhost:8085',
-            token: 'todo',
+            username: 'test',
+            password: 'test',
           },
+          sourceParameters.processGraph,
+        );
+
+        newSource = new OpenEOSource({
+          url: tileurl,
         });
         break;
       }
