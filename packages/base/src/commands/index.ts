@@ -1696,6 +1696,7 @@ export function addCommands(
       model.updateEditingVectorLayer();
       commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
     },
+    ...icons.get(CommandIDs.toggleDrawFeatures),
   });
 
   commands.addCommand(CommandIDs.addStorySegment, {
