@@ -130,6 +130,82 @@ button.jp-mod-styled.jp-mod-reject {
   left: 0;
 }
 
+/* Mobile bottom sheet — merged panel only */
+@media (max-width: 768px) {
+  .jgis-merged-panel-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 30vh;
+  }
+
+  /* Drag-to-resize handle — visual pill only */
+  .jgis-resize-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 14px;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  .jgis-resize-handle::before {
+    content: '';
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--jp-border-color1);
+  }
+
+  /* Panel tabs fill the remaining height */
+  .jgis-merged-panel-container .jgis-panel-tabs {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-content[data-state='active'] {
+    flex: 1;
+    min-height: 0;
+    height: unset;
+    overflow-y: auto;
+  }
+
+  /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
+  .jgis-merged-panel-container .jgis-tabs-list {
+    cursor: ns-resize;
+    justify-content: flex-start;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+    scrollbar-color: var(--jp-border-color1) transparent;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list:active {
+    cursor: ns-resize;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar-thumb {
+    background-color: var(--jp-border-color1);
+    border-radius: 2px;
+  }
+}
+
 .jgis-icon-adjust {
   padding-top: 5px;
 }
