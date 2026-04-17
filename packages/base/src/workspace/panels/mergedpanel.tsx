@@ -38,21 +38,74 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
   const [rightPanelOpen] = useUIState('rightPanelOpen', props.model);
 
   const [panelHeight, setPanelHeight] = React.useState<number | null>(null);
+  const panelHeightRef = React.useRef<number | null>(null);
+  const isDraggingRef = React.useRef(false);
 
-  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const startTabListInteract = (startX: number, startY: number) => {
+    const startHeight = panelHeightRef.current ?? window.innerHeight * 0.3;
+    let gesture: 'undecided' | 'vertical' | 'horizontal' = 'undecided';
+
+    const classify = (dx: number, dy: number) => {
+      if (Math.hypot(dx, dy) > 6) {
+        gesture = Math.abs(dy) >= Math.abs(dx) ? 'vertical' : 'horizontal';
+      }
+    };
+
+    const applyResize = (clientY: number) => {
+      const clamped = Math.max(
+        60,
+        Math.min(startHeight + (startY - clientY), window.innerHeight * 0.9),
+      );
+      panelHeightRef.current = clamped;
+      setPanelHeight(clamped);
+    };
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (gesture === 'undecided') {
+        classify(ev.clientX - startX, ev.clientY - startY);
+      }
+      if (gesture === 'vertical') {
+        isDraggingRef.current = true;
+        applyResize(ev.clientY);
+      }
+    };
+
+    const onTouchMove = (ev: TouchEvent) => {
+      const t = ev.touches[0];
+      if (gesture === 'undecided') {
+        classify(t.clientX - startX, t.clientY - startY);
+      }
+      if (gesture === 'vertical') {
+        ev.preventDefault();
+        isDraggingRef.current = true;
+        applyResize(t.clientY);
+      }
+    };
+
+    const cleanup = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', cleanup);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', cleanup);
+      // Reset after click fires (click follows mouseup synchronously)
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 0);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', cleanup);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', cleanup);
   };
 
-  const onResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
-      return;
-    }
-    const newHeight = window.innerHeight - e.clientY;
-    setPanelHeight(Math.max(60, Math.min(newHeight, window.innerHeight * 0.9)));
+  const onTabListMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    startTabListInteract(e.clientX, e.clientY);
   };
 
-  const onResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.releasePointerCapture(e.pointerId);
+  const onTabListTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    startTabListInteract(t.clientX, t.clientY);
   };
 
   const [curTab, setCurTab] = React.useState<string>(() => {
@@ -201,16 +254,18 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
         ...(panelHeight !== null ? { height: `${panelHeight}px` } : {}),
       }}
     >
-      <div
-        className="jgis-resize-handle"
-        onPointerDown={onResizePointerDown}
-        onPointerMove={onResizePointerMove}
-        onPointerUp={onResizePointerUp}
-      />
+      <div className="jgis-resize-handle" />
       <TabbedPanel
         tabs={tabs}
         curTab={effectiveCurTab}
-        onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+        onTabClick={name => {
+          if (isDraggingRef.current) {
+            return;
+          }
+          setCurTab(prev => (prev === name ? '' : name));
+        }}
+        onTabListMouseDown={onTabListMouseDown}
+        onTabListTouchStart={onTabListTouchStart}
       />
     </div>
   );

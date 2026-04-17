@@ -145,15 +145,14 @@ button.jp-mod-styled.jp-mod-reject {
     height: 30vh;
   }
 
-  /* Drag-to-resize handle */
+  /* Drag-to-resize handle — visual pill only */
   .jgis-resize-handle {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 18px;
+    height: 14px;
     flex-shrink: 0;
-    cursor: ns-resize;
-    touch-action: none;
+    pointer-events: none;
   }
 
   .jgis-resize-handle::before {
@@ -182,14 +181,15 @@ button.jp-mod-styled.jp-mod-reject {
 
   /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
   .jgis-merged-panel-container .jgis-tabs-list {
-    cursor: default;
+    cursor: ns-resize;
     justify-content: flex-start;
+    touch-action: pan-x;
     scrollbar-width: thin;
     scrollbar-color: var(--jp-border-color1) transparent;
   }
 
   .jgis-merged-panel-container .jgis-tabs-list:active {
-    cursor: default;
+    cursor: ns-resize;
   }
 
   .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar {
