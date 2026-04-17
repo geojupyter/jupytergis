@@ -1,7 +1,6 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import { ExpressionValue } from 'ol/expr/expression';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/features/layers/symbology/classificationModes';
 import {
@@ -9,7 +8,6 @@ import {
   DEFAULT_COLOR,
   DEFAULT_STROKE_WIDTH,
   getColorMap,
-  isColor,
   RgbaColor,
 } from '@/src/features/layers/symbology/colorRampUtils';
 import ColorRampControls, {
@@ -26,7 +24,6 @@ import {
   saveSymbology,
   Utils,
   VectorSymbologyParams,
-  VectorUtils,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import ValueSelect from '@/src/features/layers/symbology/vector_layer/components/ValueSelect';
 import { useLatest } from '@/src/shared/hooks/useLatest';
@@ -79,11 +76,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const vminRef = useLatest(vmin);
   const vmaxRef = useLatest(vmax);
   const colorStopRowsRef = useLatest(colorStopRows);
-  const radiusStopRowsRef = useLatest(radiusStopRows);
   const colorRampOptionsRef = useLatest(colorRampOptions);
 
   const colorManualStyleRef = useLatest(colorManualStyle);
   const radiusManualStyleRef = useLatest(radiusManualStyle);
+
+  // Tracks whether the user manually edited stop colors (vs computed by Classify).
+  const hasColorOverrides = useRef(false);
+
+  // Wrapper: manual edits via StopContainer set the override flag.
+  const handleManualColorStopEdit = (rows: IStopRow[]) => {
+    hasColorOverrides.current = true;
+    setColorStopRows(rows);
+  };
 
   if (!layerId) {
     return;
@@ -100,31 +105,18 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
-  useEffect(() => {
-    updateStopRowsBasedOnLayer();
-  }, []);
+  // Auto-classify on first load once selectedAttribute + vmin/vmax are ready.
+  const hasAutoClassified = useRef(false);
 
   useEffect(() => {
-    if (params.color) {
-      const strokeColor = params.color['stroke-color'];
-      const circleStrokeColor = params.color['circle-stroke-color'];
-
-      const effectiveStroke = isColor(strokeColor)
-        ? strokeColor
-        : isColor(circleStrokeColor)
-          ? circleStrokeColor
-          : DEFAULT_COLOR;
-
+    const state = params.symbologyState;
+    if (state) {
       setColorManualStyle({
-        strokeColor: colorToRgba(effectiveStroke),
-        strokeWidth: String(
-          params.color['stroke-width'] ||
-            params.color['circle-stroke-width'] ||
-            DEFAULT_STROKE_WIDTH,
-        ),
+        strokeColor: colorToRgba(state.strokeColor ?? DEFAULT_COLOR),
+        strokeWidth: String(state.strokeWidth ?? DEFAULT_STROKE_WIDTH),
       });
       setRadiusManualStyle({
-        radius: params.color['circle-radius'] || 5,
+        radius: state.radius ?? 5,
       });
     }
 
@@ -166,93 +158,87 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     setVmax(String(Math.max(...values)));
   }, [selectedAttribute]);
 
-  const updateStopRowsBasedOnLayer = () => {
-    if (!layer) {
+  // Once selectedAttribute + vmin + vmax are populated, restore overrides or auto-classify.
+  useEffect(() => {
+    if (hasAutoClassified.current) {
       return;
     }
+    if (!selectedAttribute || !vmin || !vmax) {
+      return;
+    }
+    if (!selectableAttributesAndValues[selectedAttribute]) {
+      return;
+    }
+    const state = params.symbologyState;
+    if (state?.renderType === 'Graduated') {
+      hasAutoClassified.current = true;
 
-    setColorStopRows(VectorUtils.buildColorInfo(params));
-    setRadiusStopRows(VectorUtils.buildRadiusInfo(layer));
-  };
+      // If user previously saved manual overrides, restore them.
+      if (state.stopsOverride && state.stopsOverride.length > 0) {
+        setColorStopRows(
+          state.stopsOverride
+            .filter(s => s.value !== undefined && s.color !== undefined)
+            .map(s => ({
+              id: UUID.uuid4(),
+              stop: s.value as number | string,
+              output: s.color as [number, number, number, number],
+            })),
+        );
+        hasColorOverrides.current = true;
+        return;
+      }
+
+      buildColorInfoFromClassification(
+        (state.mode ?? 'equal interval') as ClassificationMode,
+        state.nClasses ?? 9,
+        (state.colorRamp ?? 'viridis') as ColorRampName,
+        state.reverseRamp ?? false,
+      );
+    }
+  }, [selectedAttribute, vmin, vmax]);
 
   const handleOk = () => {
-    const newStyle = { ...params.color };
-
-    // Apply color symbology
-    if (colorStopRowsRef.current.length > 0) {
-      const interpolateExpr: ExpressionValue[] = [
-        'interpolate',
-        ['linear'],
-        ['get', selectableAttributeRef.current],
-      ];
-      colorStopRowsRef.current.forEach(stop => {
-        interpolateExpr.push(stop.stop);
-        interpolateExpr.push(stop.output);
-      });
-      // Wrap in case so features missing the attribute use the fallback color
-      // instead of causing OL to throw at render time.
-      const colorExpr: ExpressionValue = [
-        'case',
-        ['has', selectableAttributeRef.current],
-        interpolateExpr,
-        fallbackColorRef.current,
-      ];
-      newStyle['fill-color'] = colorExpr;
-      newStyle['circle-fill-color'] = colorExpr;
-
-      if (strokeFollowsFillRef.current) {
-        newStyle['stroke-color'] = colorExpr;
-        newStyle['circle-stroke-color'] = colorExpr;
-      } else {
-        newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
-        newStyle['circle-stroke-color'] =
-          colorManualStyleRef.current.strokeColor;
-      }
-    } else {
-      // use manual style
-      newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
-      newStyle['circle-stroke-color'] = colorManualStyleRef.current.strokeColor;
-    }
-    newStyle['stroke-width'] = Math.max(
+    const strokeWidth = Math.max(
       0,
       parseFloat(colorManualStyleRef.current.strokeWidth),
     );
-    newStyle['circle-stroke-width'] = Math.max(
-      0,
-      parseFloat(colorManualStyleRef.current.strokeWidth),
-    );
-
-    // Apply radius symbology
-    if (radiusStopRowsRef.current.length > 0) {
-      const radiusExpr: ExpressionValue[] = [
-        'interpolate',
-        ['linear'],
-        ['get', selectableAttributeRef.current],
-      ];
-      radiusStopRowsRef.current.forEach(stop => {
-        radiusExpr.push(stop.stop);
-        radiusExpr.push(stop.output);
-      });
-      newStyle['circle-radius'] = radiusExpr;
-    } else {
-      newStyle['circle-radius'] = radiusManualStyleRef.current.radius;
-    }
 
     const parsedVmin = parseFloat(vminRef.current);
     const parsedVmax = parseFloat(vmaxRef.current);
-    const symbologyState = {
+
+    type SymbologyState = NonNullable<IVectorLayer['symbologyState']>;
+    const method =
+      symbologyTabRef.current === 'radius'
+        ? ('radius' as const)
+        : ('color' as const);
+    // Only persist the minimal config — stops are computed at runtime.
+    // If user manually edited colors, save them as stopsOverride.
+    // Graduated stop values are always numeric — coerce in case the text input
+    // produced a string (e.g. user typed "4" into the value field).
+    const stopsOverride = hasColorOverrides.current
+      ? colorStopRowsRef.current.map(row => ({
+          value: typeof row.stop === 'string' ? parseFloat(row.stop) : row.stop,
+          color: row.output as [number, number, number, number],
+        }))
+      : undefined;
+
+    const symbologyState: SymbologyState = {
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
-      method: symbologyTabRef.current,
+      method,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
+      mode: colorRampOptionsRef.current?.selectedMode as SymbologyState['mode'],
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
       fallbackColor: fallbackColorRef.current,
       strokeFollowsFill: strokeFollowsFillRef.current,
+      strokeColor: colorManualStyleRef.current.strokeColor,
+      strokeWidth,
+      radius: radiusManualStyleRef.current.radius,
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
-    } as IVectorLayer['symbologyState'];
+      ...(stopsOverride && stopsOverride.length > 0 && { stopsOverride }),
+    };
 
     saveSymbology({
       model,
@@ -261,11 +247,14 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       segmentId,
       payload: {
         symbologyState,
-        color: newStyle,
       },
       mutateLayerBeforeSave: targetLayer => {
         if (targetLayer.type === 'HeatmapLayer') {
           targetLayer.type = 'VectorLayer';
+        }
+        // Drop any legacy color cache — symbologyState is the source of truth now.
+        if (targetLayer.parameters?.color !== undefined) {
+          delete targetLayer.parameters.color;
         }
       },
     });
@@ -388,29 +377,32 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       setRadiusStopRows(stopOutputPairs);
     } else {
       setColorStopRows(stopOutputPairs);
+      // Classify resets manual overrides — stops are now computed.
+      hasColorOverrides.current = false;
     }
   };
 
   const handleReset = (method: string) => {
-    const newStyle = { ...params.color };
+    const layer = model.getLayer(layerId);
+    if (!layer?.parameters) {
+      return;
+    }
+    const state = { ...(layer.parameters.symbologyState ?? {}) };
 
     if (method === 'color') {
-      delete newStyle['stroke-color'];
       setColorStopRows([]);
       setColorRampOptions(undefined);
     }
 
     if (method === 'radius') {
-      delete newStyle['circle-radius'];
       setRadiusStopRows([]);
     }
 
-    const layer = model.getLayer(layerId);
-    if (!layer?.parameters) {
-      return;
+    layer.parameters.symbologyState = state as IVectorLayer['symbologyState'];
+    // Drop any stale legacy color cache.
+    if (layer.parameters.color !== undefined) {
+      delete layer.parameters.color;
     }
-
-    layer.parameters.color = newStyle;
     model.sharedModel.updateLayer(layerId, layer);
   };
 
@@ -555,7 +547,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             selectedMethod={symbologyTab || 'color'}
             stopRows={symbologyTab === 'color' ? colorStopRows : radiusStopRows}
             setStopRows={
-              symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
+              symbologyTab === 'color'
+                ? handleManualColorStopEdit
+                : setRadiusStopRows
             }
           />
         </>

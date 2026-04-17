@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { findExprNode } from '@/src/features/layers/symbology/colorRampUtils';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
+import { buildVectorFlatStyle } from '@/src/features/layers/symbology/styleBuilder';
 
 export const LegendItem: React.FC<{
   layerId: string;
@@ -73,11 +74,40 @@ export const LegendItem: React.FC<{
 
     const renderType = symbology.symbologyState?.renderType;
     const property = symbology.symbologyState?.value;
-    const fill =
-      symbology.color?.['fill-color'] ?? symbology.color?.['circle-fill-color'];
-    const stroke =
-      symbology.color?.['stroke-color'] ??
-      symbology.color?.['circle-stroke-color'];
+    const state = symbology.symbologyState;
+
+    // Compute the flat style from symbologyState. For sources where feature
+    // values are unavailable (e.g. VectorTile), use vmin/vmax as a synthetic
+    // range so graduated/categorized stops can still be derived.
+    const syntheticValues =
+      state?.vmin !== undefined && state?.vmax !== undefined
+        ? [state.vmin, state.vmax]
+        : [];
+    const computedStyle = buildVectorFlatStyle(state, syntheticValues);
+
+    const toColorString = (v: unknown): string | undefined => {
+      if (typeof v === 'string') {
+        return v;
+      }
+      if (
+        Array.isArray(v) &&
+        v.length === 4 &&
+        v.every(x => typeof x === 'number')
+      ) {
+        return `rgba(${v[0]},${v[1]},${v[2]},${v[3]})`;
+      }
+      return undefined;
+    };
+
+    // Raw OL expressions — used by graduated/categorized parsers.
+    const rawFill =
+      computedStyle?.['fill-color'] ?? computedStyle?.['circle-fill-color'];
+    const rawStroke =
+      computedStyle?.['stroke-color'] ?? computedStyle?.['circle-stroke-color'];
+
+    // Plain CSS color strings — used by single symbol rendering.
+    const fill = toColorString(rawFill);
+    const stroke = toColorString(rawStroke);
 
     // Single Symbol
     if (renderType === 'Single Symbol') {
@@ -119,7 +149,7 @@ export const LegendItem: React.FC<{
 
     // Graduated
     if (renderType === 'Graduated') {
-      const stops = parseColorStops(fill || stroke);
+      const stops = parseColorStops(rawFill ?? rawStroke);
       if (!stops.length) {
         setContent(<p style={{ fontSize: '0.8em' }}>No graduated symbology</p>);
         return;
@@ -210,7 +240,7 @@ export const LegendItem: React.FC<{
 
     // Categorized
     if (renderType === 'Categorized') {
-      const cats = parseCaseCategories(fill || stroke);
+      const cats = parseCaseCategories(rawFill ?? rawStroke);
       if (!cats.length) {
         setContent(
           <p style={{ fontSize: '0.8em' }}>No categorized symbology</p>,
@@ -259,14 +289,16 @@ export const LegendItem: React.FC<{
 
     // Heatmap
     if (renderType === 'Heatmap') {
-      const colors = Array.isArray(symbology.color) ? symbology.color : [];
+      const colors = Array.isArray(symbology.symbologyState?.gradient)
+        ? symbology.symbologyState.gradient
+        : [];
       if (!colors.length) {
         setContent(<p style={{ fontSize: '0.8em' }}>No heatmap colors</p>);
         return;
       }
 
       const gradient = `linear-gradient(to right, ${colors.join(', ')})`;
-      const reversed = symbology.symbologyState?.reverse;
+      const reversed = symbology.symbologyState?.reverseRamp;
 
       setContent(
         <div style={{ padding: 6, width: '90%' }}>
