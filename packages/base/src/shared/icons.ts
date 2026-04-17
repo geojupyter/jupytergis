@@ -26,6 +26,7 @@ import targetWithoutCenterSvgStr from '../../style/icons/target_without_center.s
 import terminalToolbarSvgStr from '../../style/icons/terminal_toolbar.svg';
 import vectorSquareSvgStr from '../../style/icons/vector_square.svg';
 import visibilitySvgStr from '../../style/icons/visibility.svg';
+import pencilSolidSvgStr from '../../style/icons/pencil_solid.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
@@ -110,6 +111,11 @@ export const targetWithoutCenterIcon = new LabIcon({
 export const targetWithCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithoutCenter',
   svgstr: targetWithoutCenterSvgStr,
+});
+
+export const pencilSolidIcon = new LabIcon({
+  name: 'jupytergis::pencilSolid',
+  svgstr: pencilSolidSvgStr,
 });
 
 export const geoPackageIcon = new LabIcon({

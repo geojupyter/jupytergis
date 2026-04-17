@@ -60,6 +60,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     // Notify commands that need updating
     props.commands.notifyCommandChanged(CommandIDs.identify);
     props.commands.notifyCommandChanged(CommandIDs.temporalController);
+    props.commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   };
 
   const _onDragOver = (e: React.DragEvent) => {

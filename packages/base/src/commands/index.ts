@@ -1623,6 +1623,72 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
+  commands.addCommand(CommandIDs.toggleDrawFeatures, {
+    label: trans.__('Edit Features'),
+    caption: 'Toggle feature editing for the selected draw-compatible layer.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isToggled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content?.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        const selectedLayer = getSingleSelectedLayer(tracker);
+        if (!selectedLayer) {
+          return false;
+        } else if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
+          return model.editingVectorLayer;
+        } else {
+          model.editingVectorLayer === false;
+          return false;
+        }
+      } else {
+        return false;
+      }
+    },
+    isEnabled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        const selectedLayer = getSingleSelectedLayer(tracker);
+
+        if (!selectedLayer) {
+          return false;
+        }
+        if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    },
+    execute: async () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const selectedLayer = getSingleSelectedLayer(tracker);
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        if (!selectedLayer) {
+          return false;
+        } else {
+          if (model.editingVectorLayer === false) {
+            model.editingVectorLayer = true;
+          } else {
+            model.editingVectorLayer = false;
+          }
+        }
+
+        model.updateEditingVectorLayer();
+        commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+      }
+    },
+    ...icons.get(CommandIDs.toggleDrawFeatures),
+  });
+
   commands.addCommand(CommandIDs.addStorySegment, {
     label: trans.__('Add Story Segment'),
     isEnabled: () => {
