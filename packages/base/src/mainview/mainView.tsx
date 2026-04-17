@@ -1619,6 +1619,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this.setState(old => ({ ...old, initialLayersReady: true }));
         }
       }
+
+      this._model.syncSelected(
+        { [id]: { type: 'layer' } },
+        this._model.getClientId().toString(),
+      );
     } catch (error: any) {
       if (
         this.state.loadingErrors.find(
