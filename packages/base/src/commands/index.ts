@@ -1680,8 +1680,7 @@ export function addCommands(
         return;
       }
 
-      const model = tracker.currentWidget?.content.currentViewModel
-        ?.jGISModel as IJupyterGISModel;
+      const model = tracker.currentWidget?.content.currentViewModel?.jGISModel;
       if (!model) {
         return false;
       }
