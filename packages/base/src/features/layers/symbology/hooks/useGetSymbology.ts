@@ -70,12 +70,16 @@ export const useGetSymbology = ({
     // initial load
     fetchSymbology();
 
-    model.sharedModel.awareness.on('change', () => {
+    const awareness = model.sharedModel.awareness;
+    const awarenessChangeHandler = () => {
       fetchSymbology();
-    });
+    };
+
+    awareness.on('change', awarenessChangeHandler);
 
     return () => {
       disposed = true;
+      awareness.off('change', awarenessChangeHandler);
     };
   }, [layerId, model]);
 
