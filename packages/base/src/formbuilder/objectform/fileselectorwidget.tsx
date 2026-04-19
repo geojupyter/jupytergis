@@ -61,6 +61,14 @@ export const FileSelectorWidget: React.FC<any> = props => {
         setServerFilePath(relativePath);
         setUrlPath('');
         props.onChange(relativePath);
+        const fileName =
+          relativePath
+            .split('/')
+            .pop()
+            ?.replace(/\.[^.]+$/, '') ?? '';
+        if (fileName && formOptions.dialogOptions?.layerData) {
+          formOptions.dialogOptions.layerData.name = fileName;
+        }
 
         if (dialogElement) {
           if (formOptions.sourceType === 'GeoTiffSource') {

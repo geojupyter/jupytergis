@@ -20,18 +20,37 @@ interface ITabbedPanelProps {
   tabs: ITabConfig[];
   curTab: string;
   onTabClick: (name: string) => void;
+  onTabListMouseDown?: React.MouseEventHandler<HTMLDivElement>;
+  onTabListTouchStart?: React.TouchEventHandler<HTMLDivElement>;
 }
 
 export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   tabs,
   curTab,
   onTabClick,
+  onTabListMouseDown,
+  onTabListTouchStart,
 }) => {
   const enabledTabs = tabs.filter(tab => tab.enabled);
+  const tabsListRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const list = tabsListRef.current;
+    const active = list?.querySelector<HTMLElement>('[data-state="active"]');
+    if (list && active) {
+      const listCenter = list.offsetWidth / 2;
+      const triggerCenter = active.offsetLeft + active.offsetWidth / 2;
+      list.scrollLeft = triggerCenter - listCenter;
+    }
+  }, [curTab]);
 
   return (
     <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
-      <TabsList>
+      <TabsList
+        ref={tabsListRef}
+        onMouseDown={onTabListMouseDown}
+        onTouchStart={onTabListTouchStart}
+      >
         {enabledTabs.map(tab => (
           <TabsTrigger
             className="jGIS-layer-browser-category"

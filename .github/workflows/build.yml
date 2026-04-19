@@ -27,10 +27,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=${{ matrix.python-version }}
-            jupyterlab=4
-            pillow
-            mercantile
-            xyzservices
+            pip
 
       - name: Setup pip cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
@@ -41,10 +38,17 @@ jobs:
             pip-${{ matrix.python-version }}-
             pip-
 
+      - name: Install build dependencies
+        shell: bash -l {0}
+        run: pip install --group build
+
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         shell: bash -l {0}
-        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+        run: |
+          set -e
+          CACHE_DIR="$(jlpm config get cacheFolder)"
+          echo "dir=${CACHE_DIR}" >> $GITHUB_OUTPUT
 
       - name: Setup yarn cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
@@ -68,7 +72,6 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          pip install build
           jlpm build:packages
 
       - name: Upload extension packages
@@ -127,7 +130,7 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyterlab==4.5.1"
+          python -m pip install jupytergis*.whl
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
@@ -153,8 +156,6 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
-            jupyterlab
-            ipywidgets
             qgis
 
       - name: Download extension package
@@ -167,7 +168,7 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyter-collaboration>=4,<5" "jupyterlab==4.5.1"
+          python -m pip install jupytergis*.whl
 
       - name: Install
         shell: bash -l {0}

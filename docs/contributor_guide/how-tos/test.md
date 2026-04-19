@@ -2,10 +2,10 @@
 
 ## Python unit tests
 
-Requires `pytest` and `dirty-equals`:
+Install testing dependencies:
 
 ```bash
-pip install pytest dirty-equals
+pip install --group test
 ```
 
 Run the tests:

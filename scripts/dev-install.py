@@ -8,10 +8,6 @@ def execute(cmd: str, cwd=None):
 
 def install_dev():
     root_path = Path(__file__).parents[1]
-    requirements_build_path = root_path / "requirements-build.txt"
-    install_build_deps = f"python -m pip install -r {requirements_build_path}"
-    install_js_deps = "jlpm install"
-    build_js = "jlpm build"
 
     python_package_prefix = "python"
     python_packages = [
@@ -20,9 +16,9 @@ def install_dev():
         "jupytergis_qgis",
     ]
 
-    execute(install_build_deps)
-    execute(install_js_deps)
-    execute(build_js)
+    execute("python -m pip install --group build")
+    execute("jlpm install")
+    execute("jlpm build")
     for py_package in python_packages:
         execute(f"pip uninstall {py_package} -y")
         execute("jlpm clean:all", cwd=root_path / "python" / py_package)

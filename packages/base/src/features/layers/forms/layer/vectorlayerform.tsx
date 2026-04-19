@@ -1,37 +1,18 @@
-/**
- * Base (default) source form and props.
- * Used for RasterSource and any source type without a dedicated form.
- */
-import { IDict, SourceType } from '@jupytergis/schema';
-import { Signal } from '@lumino/signaling';
+import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
-import type { IBaseFormProps } from '@/src/types';
-import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
+import type { ILayerProps } from './layerform';
 
-export interface ISourceFormProps extends IBaseFormProps {
-  /**
-   * The source type for this form.
-   */
-  sourceType: SourceType;
-
-  /**
-   * The signal emitted when the source form has changed.
-   */
-  sourceFormChangedSignal?: Signal<any, IDict<any>>;
-
-  /**
-   * Configuration options for the dialog, including settings for source data and other parameters.
-   */
-  dialogOptions?: any;
-}
-
-export function SourcePropertiesForm(
-  props: ISourceFormProps,
+export function VectorLayerPropertiesForm(
+  props: ILayerProps,
 ): React.ReactElement | null {
   const {
     schema: schemaProp,
@@ -40,8 +21,8 @@ export function SourcePropertiesForm(
     model,
     filePath,
     formContext,
+    sourceType,
     dialogOptions,
-    cancel,
     formErrorSignal,
   } = props;
 
@@ -57,10 +38,10 @@ export function SourcePropertiesForm(
     schemaProp,
     model,
     syncData,
-    cancel,
+    cancel: props.cancel,
     onAfterChange: dialogOptions
       ? (data: IDict) => {
-          dialogOptions.sourceData = { ...data };
+          dialogOptions.layerData = { ...data };
         }
       : undefined,
   });
@@ -68,6 +49,10 @@ export function SourcePropertiesForm(
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
+
+    removeFormEntry('color', formData, schema, builtUiSchema);
+    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
+
     processBaseSchema(
       dataCopy,
       schema,
@@ -76,8 +61,15 @@ export function SourcePropertiesForm(
       removeFormEntry,
     );
 
+    if (schema.properties?.source) {
+      const availableSources = model.getSourcesByType(sourceType);
+      (schema.properties.source as IDict).enumNames =
+        Object.values(availableSources);
+      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+    }
+
     return builtUiSchema;
-  }, [schema, formData, formContext]);
+  }, [schema, formData, formContext, model, sourceType]);
 
   if (!hasSchema) {
     return null;

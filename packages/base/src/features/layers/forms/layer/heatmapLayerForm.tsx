@@ -2,10 +2,13 @@ import { IDict, IGeoJSONSource, IHeatmapLayer } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, loadFile } from '@/src/tools';
-import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
 import type { ILayerProps } from './layerform';
 
 async function fetchFeatureNames(
