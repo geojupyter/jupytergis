@@ -1,10 +1,6 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  IDict,
-  IJupyterGISClientState,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
@@ -31,10 +27,9 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   }, [features]);
 
   useEffect(() => {
-    const handleClientStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
+    const handleIdentifyStateChanged = () => {
+      console.log('ident panel handleIdentifyStateChanged');
+      const clients = model.sharedModel.awareness.getStates();
       const remoteUserId = model?.localState?.remoteUser;
 
       // If following a collaborator
@@ -66,12 +61,15 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       }
     };
 
-    model?.clientStateChanged.connect(handleClientStateChanged);
+    model?.identifiedFeaturesChanged.connect(handleIdentifyStateChanged);
+    model?.remoteUserChanged.connect(handleIdentifyStateChanged);
+    handleIdentifyStateChanged();
 
     return () => {
-      model?.clientStateChanged.disconnect(handleClientStateChanged);
+      model?.identifiedFeaturesChanged.disconnect(handleIdentifyStateChanged);
+      model?.remoteUserChanged.disconnect(handleIdentifyStateChanged);
     };
-  }, [model]);
+  }, [model, remoteUser]);
 
   const highlightFeatureOnMap = (feature: any) => {
     model?.highlightFeatureSignal?.emit(feature);
