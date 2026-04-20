@@ -132,8 +132,6 @@ The symbology panel enables users to style vector layers with graduated, categor
 
 ![Screenshot of JupyterGIS' advanced symbology: a graduated colormap of earthquake magnitudes](JupyterGIS-symbology-colormap.png)
 
-![Screenshot of JupyterGIS' advanced symbology: a colormap applied to a single band of a Cloud Optimized Geotiff (COG) file](JupyterGIS-symbology-cog.png)
-
 ## Interactive Tools and Dynamic Visualizations
 
 - The “identify” tool allows clicking on features to view their attributes.
@@ -223,8 +221,6 @@ This API will interact with the collaborative editing framework and the underlyi
 We will integrate JupyterGIS with JupyterLite-AI by exposing JupyterGIS features as tools to Large Lanaguage Models (LLMs). By leveraging the JupyterLab application framework, we ensured that all user actions are backed by JupyterLab commands, which are exposed to JupyterLite-AI's tool calling system.
 
 In the screenshot below, we showcase an early example of such an integration.
-
-![Screenshot of the JupyterLite-AI integration with JupyterGIS](JupyterGIS-AI.png)
 
 # Acknowledgments
 
