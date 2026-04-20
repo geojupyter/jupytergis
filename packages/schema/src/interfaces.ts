@@ -128,6 +128,26 @@ export interface IJupyterGISClientState {
   isTemporalControllerActive: boolean;
 }
 
+export const AWARENESS_FIELD_KEYS = [
+  'selected',
+  'pointer',
+  'viewportState',
+  'identifiedFeatures',
+  'remoteUser',
+  'isTemporalControllerActive',
+] as const;
+
+export type AwarenessFieldKey = (typeof AWARENESS_FIELD_KEYS)[number];
+
+export interface IAwarenessFieldChange<T = any> {
+  clientId: number;
+  field: AwarenessFieldKey;
+  previousValue: T | undefined;
+  currentValue: T | undefined;
+  fullState: IJupyterGISClientState | undefined;
+  isLocalClient: boolean;
+}
+
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
@@ -233,9 +253,37 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
   >;
+  /**
+   * @deprecated Prefer field-specific awareness signals such as
+   * `selectedChanged`, `pointerChanged`, and `identifiedFeaturesChanged`.
+   */
   clientStateChanged: ISignal<
     IJupyterGISModel,
     Map<number, IJupyterGISClientState>
+  >;
+  selectedChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['selected']>
+  >;
+  pointerChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['pointer']>
+  >;
+  viewportStateChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['viewportState']>
+  >;
+  identifiedFeaturesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  >;
+  remoteUserChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
+  >;
+  temporalControllerActiveChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['isTemporalControllerActive']>
   >;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
