@@ -79,10 +79,10 @@ When the user asks to add an OpenStreetMap basemap (or a default basemap) to a J
 
 The frontmatter fields are:
 
-| Field         | Required | Description                                                           |
-| ------------- | -------- | --------------------------------------------------------------------- |
-| `name`        | Yes      | Short identifier used to load the skill.                              |
-| `description` | Yes      | One-sentence summary of what the skill does and when to use it.       |
+| Field         | Required | Description                                                     |
+| ------------- | -------- | --------------------------------------------------------------- |
+| `name`        | Yes      | Short identifier used to load the skill.                        |
+| `description` | Yes      | One-sentence summary of what the skill does and when to use it. |
 
 :::{admonition} Discoverability depends on the description
 :class: tip
@@ -155,7 +155,7 @@ To load skills from a different location (for example a shared `.claude/skills/`
 
 ## Sharing skills with a JupyterLite deployment
 
-Skills bundled under `_agents/skills/` (or `.agents/skills/` with hidden files enabled) in a JupyterLite build become part of the deployed site, so visitors get the same JupyterGIS-aware chat behavior with no extra setup. This is a convenient way to ship a curated set of JupyterGIS skills alongside a [story map deployment](./story-maps.md#share-story-maps-with-a-jupyterlite-deployment).
+Skills bundled under `_agents/skills/` (or `.agents/skills/` with hidden files enabled) in a JupyterLite build become part of the deployed site, so visitors get the same JupyterGIS-aware chat behavior with no extra setup. This is a convenient way to ship a curated set of JupyterGIS skills alongside a [story map deployment](./story-maps.md).
 
 ## Security considerations
 
