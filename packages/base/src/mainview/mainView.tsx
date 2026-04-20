@@ -295,12 +295,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._syncSettingsFromRegistry();
     });
 
-    // Watch isIdentifying and clear the highlight when Identify Tool is turned off
-    this._model.sharedModel.awareness.on('change', () => {
-      if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
-        this._highlightLayer.getSource()?.clear();
-      }
-    });
+    // Watch identify-related awareness changes and clear highlight when
+    // Identify tool is turned off.
+    this._model.identifiedFeaturesChanged.connect(
+      this._clearHighlightWhenIdentifyDisabled,
+      this,
+    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -382,6 +382,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._model.clientStateChanged.disconnect(
       this._onClientSharedStateChanged,
+      this,
+    );
+    this._model.identifiedFeaturesChanged.disconnect(
+      this._clearHighlightWhenIdentifyDisabled,
       this,
     );
 
@@ -2620,6 +2624,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     }
   };
+
+  private _clearHighlightWhenIdentifyDisabled(): void {
+    if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
+      this._highlightLayer.getSource()?.clear();
+    }
+  }
 
   /**
    * Handler for when story maps change in the model.
