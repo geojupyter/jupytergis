@@ -13,7 +13,9 @@ import { buildVectorFlatStyle, SymbologyState } from './styleBuilder';
 // The graduated fill-color expression has the shape:
 //   ['case', ['has', field], ['interpolate', ['linear'], ['get', field], v0, c0, v1, c1, …], fallback]
 // Pull out just the stop values from the interpolate sub-expression.
-function graduatedStopValues(style: ReturnType<typeof buildVectorFlatStyle>): number[] {
+function graduatedStopValues(
+  style: ReturnType<typeof buildVectorFlatStyle>,
+): number[] {
   const fillColor = (style as any)['fill-color'] as any[];
   const interpolate = fillColor[2] as any[];
   const values: number[] = [];
@@ -45,7 +47,11 @@ describe('buildVectorFlatStyle — Single Symbol', () => {
 });
 
 describe('buildVectorFlatStyle — Graduated (equal interval)', () => {
-  const state = { ...BASE_STATE, vmin: 0, vmax: 100 } as unknown as SymbologyState;
+  const state = {
+    ...BASE_STATE,
+    vmin: 0,
+    vmax: 100,
+  } as unknown as SymbologyState;
 
   it('produces an interpolate expression for fill-color', () => {
     const style = buildVectorFlatStyle(state, []);
