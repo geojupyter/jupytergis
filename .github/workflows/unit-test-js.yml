@@ -53,5 +53,4 @@ jobs:
 
       - name: Run unit tests
         shell: bash -l {0}
-        working-directory: packages/base
-        run: jlpm test
+        run: jlpm lerna run test --scope @jupytergis/base
