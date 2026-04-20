@@ -8,30 +8,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      {
-        isolatedModules: true,
-        tsconfig: {
-          // Jest runs in CommonJS; override the project's esnext module setting
-          module: 'commonjs',
-          paths: { '@/*': ['./*'] },
-          types: ['jest', 'node'],
-        },
-      },
-    ],
-    '^.+\\.js$': [
-      'ts-jest',
-      {
-        isolatedModules: true,
-        tsconfig: {
-          module: 'commonjs',
-          allowJs: true,
-          paths: { '@/*': ['./*'] },
-          types: ['jest', 'node'],
-        },
-      },
-    ],
+    '^.+\\.(tsx?|js)$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
   },
   // Transform ESM-only packages that have no CommonJS build
   transformIgnorePatterns: ['/node_modules/(?!(d3-.*)/)'],
