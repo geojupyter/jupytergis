@@ -1605,8 +1605,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
-
-        const shouldZoom = this.state.initialLayersReady;
+        // const newLayerExtent = newMapLayer.getExtent();
+        // const shouldZoom = Boolean(
+        //   this.state.initialLayersReady && newLayerExtent,
+        // );
+        const shouldZoom = Boolean(this.state.initialLayersReady);
         this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
@@ -2901,6 +2904,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    if (!extent.every(value => Number.isFinite(value))) {
+      this._log(
+        'warning',
+        `Layer ${id} has an invalid extent: ${extent.join(', ')}`,
+      );
+      return;
+    }
+
     // Convert layer extent value to view projection if needed
     const sourceProjection = source?.getProjection();
     const viewProjection = this._Map.getView().getProjection();
@@ -2909,6 +2920,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       sourceProjection && sourceProjection !== viewProjection
         ? transformExtent(extent, sourceProjection, viewProjection)
         : extent;
+    if (!transformedExtent.every(value => Number.isFinite(value))) {
+      this._log(
+        'warning',
+        `Layer ${id} has an invalid transformed extent: ${transformedExtent.join(', ')}`,
+      );
+      return;
+    }
 
     this._Map.getView().fit(transformedExtent, {
       size: this._Map.getSize(),
