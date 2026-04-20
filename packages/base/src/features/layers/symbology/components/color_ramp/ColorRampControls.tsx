@@ -64,7 +64,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [warning, setWarning] = useState<string | null>(null);
-  const symbologyState = layerParams.symbologyState;
+  const symbologyState = layerParams.symbologyState ?? {};
 
   useEffect(() => {
     if (symbologyState) {
