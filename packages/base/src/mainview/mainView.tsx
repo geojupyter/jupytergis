@@ -262,6 +262,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onClientSharedStateChanged,
       this,
     );
+    this._model.temporalControllerActiveChanged.connect(
+      this._syncTemporalControllerVisibility,
+      this,
+    );
+    this._model.selectedChanged.connect(
+      this._syncTemporalControllerVisibility,
+      this,
+    );
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -346,6 +354,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom, projection);
+    this._syncTemporalControllerVisibility();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -382,6 +391,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._model.clientStateChanged.disconnect(
       this._onClientSharedStateChanged,
+      this,
+    );
+    this._model.temporalControllerActiveChanged.disconnect(
+      this._syncTemporalControllerVisibility,
+      this,
+    );
+    this._model.selectedChanged.disconnect(
+      this._syncTemporalControllerVisibility,
       this,
     );
     this._model.identifiedFeaturesChanged.disconnect(
@@ -2304,10 +2321,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.setState(old => ({ ...old, clientPointers }));
     });
 
-    // Compute displayTemporalController: active AND current selection is valid
+    /* check if the currently selected layer is a drawVector layer
+    and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
+    const selectedLayers = localState.selected?.value;
+    if (!selectedLayers) {
+      return;
+    }
+
+    const selectedLayerID = Object.keys(selectedLayers)[0];
+    const JGISLayer = this._model.getLayer(selectedLayerID);
+    if (JGISLayer && !this._model.checkIfIsADrawVectorLayer(JGISLayer)) {
+      this._model.editingVectorLayer = false;
+      this._updateEditingVectorLayer();
+    }
+  };
+
+  private _syncTemporalControllerVisibility(): void {
+    const localState = this._model.localState;
+    if (!localState) {
+      return;
+    }
+
     const isTemporalControllerActive =
       localState.isTemporalControllerActive === true;
-
     const selectedLayers = localState.selected?.value;
     const selectedLayerId = selectedLayers
       ? (Object.keys(selectedLayers)[0] ?? null)
@@ -2343,7 +2379,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.editingVectorLayer = false;
       this._updateEditingVectorLayer();
     }
-  };
+  }
 
   private _onSharedOptionsChanged(): void {
     if (!this._Map) {
