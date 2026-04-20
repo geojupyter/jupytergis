@@ -2,14 +2,17 @@ import { IDict } from '@jupytergis/schema';
 import { RegistryFieldsType, UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { ArrayFieldTemplate } from '@/src/formbuilder/objectform/components/SegmentFormSymbology';
+import { SourcePropertiesField } from '@/src/formbuilder/objectform/components/SourcePropertiesField';
+import StorySegmentReset from '@/src/formbuilder/objectform/components/StorySegmentReset';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
-import { SchemaForm } from '../SchemaForm';
 import type { ILayerProps } from './layerform';
-import { ArrayFieldTemplate } from '../components/SegmentFormSymbology';
-import { SourcePropertiesField } from '../components/SourcePropertiesField';
-import StorySegmentReset from '../components/StorySegmentReset';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
 
 function getFirstSelectedStorySegmentLayerId(
   model: ILayerProps['model'],

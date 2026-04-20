@@ -8,11 +8,11 @@ import {
   processBaseSchema,
   removeFormEntry,
 } from '@/src/formbuilder/objectform/schemaUtils';
-import type { ISourceFormProps } from '@/src/formbuilder/objectform/source/sourceform';
 import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import { deepCopy } from '@/src/tools';
 import { IWmsLayerInfo } from '@/src/types';
+import type { ISourceFormProps } from './sourceform';
 
 export const WMS_AVAILABLE_LAYERS_CACHE = 'jgis:wmsTileSource:availableLayers';
 

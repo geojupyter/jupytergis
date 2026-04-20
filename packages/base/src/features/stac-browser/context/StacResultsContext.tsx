@@ -18,7 +18,7 @@ import {
   IStacSearchResult,
   SetResultsFunction,
 } from '@/src/features/stac-browser/types/types';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import { fetchWithProxies } from '@/src/tools';
 
 interface IStacResultsContext {

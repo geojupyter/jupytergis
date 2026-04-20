@@ -60,7 +60,6 @@ import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
-import { ExpressionValue } from 'ol/expr/expression';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
@@ -82,6 +81,7 @@ import {
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
+  VectorImage as VectorImageLayer,
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
@@ -134,13 +134,20 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import {
+  DEFAULT_FLAT_STYLE,
+  buildTransparentFallbackFilter,
+  buildVectorFlatStyle,
+} from '../features/layers/symbology/styleBuilder';
+import { migrateLegacyLayerSymbology } from '../features/layers/symbology/symbologyMigration';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { LeftPanel, RightPanel } from '../workspace/panels';
+import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
   | TileLayer
   | VectorLayer
+  | VectorImageLayer
   | VectorTileLayer
   | WebGlTileLayer
   | WebGlTileLayer
@@ -435,34 +442,43 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view = this._Map.getView();
 
-      view.on('change:center', () => this._updateCenter());
+      const syncViewportThrottled = throttle(() => {
+        // Not syncing center if following someone else
+        if (this._model.localState?.remoteUser) {
+          return;
+        }
 
-      // TODO: Note for the future, will need to update listeners if view changes
-      view.on(
-        'change:center',
-        throttle(() => {
-          // Not syncing center if following someone else
-          if (this._model.localState?.remoteUser) {
-            return;
-          }
-          const view = this._Map.getView();
-          const center = view.getCenter();
-          const zoom = view.getZoom();
-          if (!center || !zoom) {
-            return;
-          }
-          this._model.syncViewport(
-            {
-              coordinates: {
-                x: center[0],
-                y: center[1],
-              },
-              zoom,
+        const view = this._Map.getView();
+        const center = view.getCenter();
+        const zoom = view.getZoom();
+
+        if (!center || !zoom) {
+          return;
+        }
+
+        const currentExtent = view.calculateExtent(this._Map.getSize());
+        this._model.syncViewport(
+          {
+            coordinates: {
+              x: center[0],
+              y: center[1],
             },
-            this._mainViewModel.id,
-          );
-        }),
-      );
+            zoom,
+            extent: [
+              currentExtent[0],
+              currentExtent[1],
+              currentExtent[2],
+              currentExtent[3],
+            ],
+          },
+          this._mainViewModel.id,
+        );
+      }, 200);
+
+      view.on('change:center', () => {
+        this._updateCenter();
+        syncViewportThrottled();
+      });
 
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
@@ -829,28 +845,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
                 const proxyUrl = `${proxyBase}?url=${encodeURIComponent(tileUrl)}${headersParam}`;
-                vtTile.setLoader(async (extent, _resolution, projection) => {
-                  try {
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) {
-                      throw new Error(
-                        `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                vtTile.setLoader((extent, _resolution, projection) => {
+                  return fetch(proxyUrl)
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error(
+                          `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                        );
+                      }
+                      return response.arrayBuffer();
+                    })
+                    .then(data => {
+                      const features = vtTile.getFormat().readFeatures(data, {
+                        extent,
+                        featureProjection: projection,
+                      });
+                      vtTile.setFeatures(features);
+                      this._log('debug', `Proxy tile loaded: ${tileUrl}`);
+                      return features;
+                    })
+                    .catch((err: any) => {
+                      this._log(
+                        'error',
+                        `Proxy tile error for ${tileUrl}: ${err.message}`,
                       );
-                    }
-                    const data = await response.arrayBuffer();
-                    const features = vtTile.getFormat().readFeatures(data, {
-                      extent,
-                      featureProjection: projection,
+                      tile.setState(TileState.ERROR);
+                      return [];
                     });
-                    vtTile.setFeatures(features);
-                    this._log('debug', `Proxy tile loaded: ${tileUrl}`);
-                  } catch (err: any) {
-                    this._log(
-                      'error',
-                      `Proxy tile error for ${tileUrl}: ${err.message}`,
-                    );
-                    tile.setState(TileState.ERROR);
-                  }
                 });
               };
             }
@@ -1361,7 +1382,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newMapLayer = new VectorLayer({
+        newMapLayer = new VectorImageLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
@@ -1427,6 +1448,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'HeatmapLayer': {
+        // Migrate legacy `parameters.color` into `symbologyState.gradient`
+        // before instantiating the OL HeatmapLayer.
+        migrateLegacyLayerSymbology(layer);
         layerParameters = layer.parameters as IHeatmapLayer;
 
         newMapLayer = new HeatmapLayer({
@@ -1435,7 +1459,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.color,
+          gradient: layerParameters.symbologyState?.gradient,
         });
 
         break;
@@ -1479,8 +1503,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
-
-      this._trackLayerViewState(id, newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -1543,6 +1565,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
 
+        const shouldZoom = this.state.initialLayersReady;
+        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
+
         // doing +1 instead of calling method again
         if (
           !this.state.initialLayersReady &&
@@ -1577,27 +1602,32 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
-    const layerParams = layer.parameters;
+    const layerParams = layer.parameters as IVectorLayer | undefined;
     if (!layerParams) {
       return;
     }
 
-    const defaultStyle = {
-      'fill-color': 'rgba(255,255,255,0.4)',
-      'stroke-color': '#3399CC',
-      'stroke-width': 1.25,
-      'circle-radius': 5,
-      'circle-fill-color': 'rgba(255,255,255,0.4)',
-      'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC',
+    // Migrate any legacy `parameters.color` into `symbologyState` in place.
+    // After this call, the FlatStyle is derived purely from symbologyState.
+    migrateLegacyLayerSymbology(layer);
+
+    // Extract feature values for the symbology attribute field if the source
+    // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
+    // array – the comment on buildVectorFlatStyle says this is acceptable.
+    const field = layerParams.symbologyState?.value;
+    const source = this._sources[layerParams.source];
+    const featureValues: unknown[] =
+      field && source instanceof VectorSource
+        ? source.getFeatures().map(f => (f as Feature).get(field))
+        : [];
+
+    const layerStyle: Rule = {
+      style:
+        buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
+        DEFAULT_FLAT_STYLE,
     };
 
-    const defaultRules: Rule = {
-      style: defaultStyle,
-    };
-
-    const layerStyle = { ...defaultRules };
-
+    // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
       const buildCondition = (filter: IJGISFilterItem): any[] => {
         const base = [filter.operator, ['get', filter.feature]];
@@ -1606,102 +1636,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           : [...base, filter.value];
       };
 
-      let filterExpr: any[];
-
       // 'Any' and 'All' operators require more than one argument
       // So if there's only one filter, skip that part to avoid error
-      if (layer.filters.appliedFilters.length === 1) {
-        filterExpr = buildCondition(layer.filters.appliedFilters[0]);
-      } else {
-        // Arguments for "Any" and 'All' need to be wrapped in brackets
-        filterExpr = [
-          layer.filters.logicalOp,
-          ...layer.filters.appliedFilters.map(buildCondition),
-        ];
-      }
-
-      layerStyle.filter = filterExpr;
+      layerStyle.filter =
+        layer.filters.appliedFilters.length === 1
+          ? buildCondition(layer.filters.appliedFilters[0])
+          : [
+              layer.filters.logicalOp,
+              ...layer.filters.appliedFilters.map(buildCondition),
+            ];
     }
 
-    if (!layerParams.color) {
-      return [layerStyle];
-    }
-
-    const newStyle = { ...defaultStyle, ...layerParams.color };
-
-    layerStyle.style = newStyle;
-
-    // When fallbackColor[3] === 0, add an OL filter so features that would be
-    // drawn with a transparent color are excluded from rendering entirely.
-    // alpha === 0 is the contract: the default TRANSPARENT [0,0,0,0] triggers
-    // this automatically, and a future dedicated picker option can set it.
-    const symbologyState = layerParams.symbologyState;
-    if (
-      Array.isArray(symbologyState?.fallbackColor) &&
-      symbologyState.fallbackColor[3] === 0
-    ) {
-      let matchFilter: ExpressionValue[] | undefined;
-
-      if (symbologyState.renderType === 'Categorized') {
-        const fillExpr = layerParams.color['fill-color'];
-        if (
-          Array.isArray(fillExpr) &&
-          fillExpr[0] === 'case' &&
-          fillExpr.length >= 4
-        ) {
-          // Extract conditions from ['case', cond, val, cond, val, ..., fallback],
-          // skipping any whose matched output color is also fully transparent.
-          const conditions: ExpressionValue[][] = [];
-          for (let i = 1; i < fillExpr.length - 1; i += 2) {
-            const output = fillExpr[i + 1];
-            if (Array.isArray(output) && output[3] === 0) {
-              continue;
-            }
-            conditions.push(fillExpr[i] as ExpressionValue[]);
-          }
-          // If every stop is transparent, use a never-true filter to hide all.
-          matchFilter =
-            conditions.length === 0
-              ? ['==', 0, 1]
-              : conditions.length === 1
-                ? conditions[0]
-                : ['any', ...conditions];
-        }
-      } else if (symbologyState.renderType === 'Graduated') {
-        const fillExpr = layerParams.color['fill-color'];
-        // Graduated fill is ['case', ['has', field], interpolateExpr, fallback].
-        // Features missing the attribute fall through to the fallback, so filter
-        // them out with the same ['has', field] condition.
-        if (
-          Array.isArray(fillExpr) &&
-          fillExpr[0] === 'case' &&
-          Array.isArray(fillExpr[1]) &&
-          fillExpr[1][0] === 'has'
-        ) {
-          matchFilter = fillExpr[1];
-        }
-      } else if (symbologyState.renderType === 'Canonical') {
-        const fillExpr = layerParams.color['fill-color'];
-        // Canonical fill is ['coalesce', ['get', field], fallback].
-        // Features missing the attribute fall through to the fallback, so filter
-        // them out with ['has', field]. Note: features that have the field but
-        // with a non-color value also get the fallback — that gap is accepted.
-        if (
-          Array.isArray(fillExpr) &&
-          fillExpr[0] === 'coalesce' &&
-          Array.isArray(fillExpr[1]) &&
-          fillExpr[1][0] === 'get'
-        ) {
-          matchFilter = ['has', fillExpr[1][1]];
-        }
-      }
-
-      if (matchFilter) {
-        // Combine with any existing user-applied filter.
-        layerStyle.filter = layerStyle.filter
-          ? ['all', layerStyle.filter, matchFilter]
-          : matchFilter;
-      }
+    // When `fallbackColor` alpha is 0, exclude features that would render with
+    // the fallback color. This was previously done by introspecting the
+    // generated OL expressions; now the filter is derived directly from
+    // symbologyState (see styleBuilder.buildTransparentFallbackFilter).
+    const transparentFilter = buildTransparentFallbackFilter(
+      layerParams.symbologyState,
+      featureValues,
+    );
+    if (transparentFilter) {
+      layerStyle.filter = layerStyle.filter
+        ? ['all', layerStyle.filter, transparentFilter]
+        : transparentFilter;
     }
 
     return [layerStyle];
@@ -1782,7 +1739,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(
+        (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
 
@@ -1817,6 +1774,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'HeatmapLayer': {
+        // Migrate legacy `parameters.color` into `symbologyState.gradient`
+        // before reading from symbologyState.
+        migrateLegacyLayerSymbology(layer);
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
@@ -1824,7 +1784,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         heatmap.setBlur(layerParams.blur ?? 15);
         heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
-          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00'],
+          layerParams.symbologyState?.gradient ?? [
+            '#00f',
+            '#0ff',
+            '#0f0',
+            '#ff0',
+            '#f00',
+          ],
         );
 
         this.handleTemporalController(id, layer);
@@ -2054,10 +2020,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
+  private _getLayerCreatorId(layerId: string): number | undefined {
+    const states = this._model.sharedModel.awareness.getStates();
+
+    for (const [clientId, state] of states.entries()) {
+      if (state?.lastAddedLayer?.layerId === layerId) {
+        return clientId;
+      }
+    }
+
+    return undefined;
+  }
+
   /**
    * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerViewState(layerId: string, olLayer: Layer): void {
+  private _trackLayerViewState(
+    layerId: string,
+    olLayer: Layer,
+    shouldZoom = false,
+  ): void {
     const source = olLayer.getSource();
     const sourceId = source?.get?.('id');
 
@@ -2076,6 +2058,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
+
+      if (shouldZoom) {
+        const creatorId = this._getLayerCreatorId(layerId);
+        const currentClientId = this._model.getClientId();
+
+        if (creatorId === currentClientId) {
+          this._model.centerOnPosition(layerId);
+        }
+      }
     }
   }
 
@@ -3266,24 +3257,42 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               <div className="jgis-panels-wrapper">
                 {!this.state.isSpectaPresentation ? (
                   <>
-                    {this._state && (
-                      <LeftPanel
+                    {this.props.isMobile &&
+                    this._state &&
+                    this._formSchemaRegistry &&
+                    this._annotationModel ? (
+                      <MergedPanel
                         model={this._model}
                         commands={this._mainViewModel.commands}
                         state={this._state}
                         settings={this.state.jgisSettings}
-                      />
-                    )}
-                    {this._formSchemaRegistry && this._annotationModel && (
-                      <RightPanel
-                        model={this._model}
-                        commands={this._mainViewModel.commands}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
                         addLayer={this.addLayer.bind(this)}
                         removeLayer={this.removeLayer.bind(this)}
-                        settings={this.state.jgisSettings}
                       />
+                    ) : (
+                      <>
+                        {this._state && (
+                          <LeftPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            state={this._state}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                        {this._formSchemaRegistry && this._annotationModel && (
+                          <RightPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            formSchemaRegistry={this._formSchemaRegistry}
+                            annotationModel={this._annotationModel}
+                            addLayer={this.addLayer.bind(this)}
+                            removeLayer={this.removeLayer.bind(this)}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                      </>
                     )}
                   </>
                 ) : (

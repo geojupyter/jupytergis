@@ -1,7 +1,7 @@
 import { IJGISUIState, IJupyterGISModel } from '@jupytergis/schema';
 import * as React from 'react';
 
-import { GlobalStateDbManager } from '../../../store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 
 const STATE_DB_KEY_PREFIX = 'jupytergis:localUIState:';
 

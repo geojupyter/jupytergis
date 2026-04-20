@@ -53,6 +53,12 @@ class GISDocument(CommWidget):
     Create a new GISDocument object.
 
     :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
+
+    Collaborative client state from the front end is mirrored into :mod:`ypywidgets`
+    ``Awareness`` on the kernel. Subscribe with ``on_awareness_change(callback)``
+    (returns a subscription id; use ``unobserve_awareness(id)`` to remove). The
+    current snapshot is available as ``awareness.states`` on the underlying
+    ``pycrdt.Awareness`` via the inherited ``awareness`` property.
     """
 
     def __init__(
@@ -557,12 +563,14 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "color": gradient,
                 "opacity": opacity,
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
-                "symbologyState": {"renderType": "Heatmap"},
+                "symbologyState": {
+                    "renderType": "Heatmap",
+                    "gradient": gradient,
+                },
             },
         }
 

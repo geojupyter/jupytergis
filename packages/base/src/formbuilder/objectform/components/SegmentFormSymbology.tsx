@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import {
   SYMBOLOGY_VALID_LAYER_TYPES,
   type IJupyterGISFormContext,

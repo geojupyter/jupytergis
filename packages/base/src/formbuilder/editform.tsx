@@ -8,10 +8,10 @@ import {
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
+import type { ILayerProps } from '@/src/features/layers/forms/layer/layerform';
+import type { ISourceFormProps } from '@/src/features/layers/forms/source/sourceform';
 import { deepCopy } from '@/src/tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
-import type { ILayerProps } from './objectform/layer/layerform';
-import type { ISourceFormProps } from './objectform/source/sourceform';
 
 export interface IEditFormProps {
   /**
