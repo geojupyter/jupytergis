@@ -266,6 +266,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._syncTemporalControllerVisibility,
       this,
     );
+    this._model.pointerChanged.connect(this._syncClientPointers, this);
     this._model.selectedChanged.connect(
       this._syncTemporalControllerVisibility,
       this,
@@ -354,6 +355,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom, projection);
+    this._syncClientPointers();
     this._syncTemporalControllerVisibility();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
@@ -397,6 +399,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._syncTemporalControllerVisibility,
       this,
     );
+    this._model.pointerChanged.disconnect(this._syncClientPointers, this);
     this._model.selectedChanged.disconnect(
       this._syncTemporalControllerVisibility,
       this,
@@ -2261,66 +2264,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     }
 
-    // cursors
-    clients.forEach((client, clientId) => {
-      if (!client?.user) {
-        return;
-      }
-
-      const pointer = client.pointer?.value;
-
-      // We already display our own cursor on mouse move
-      if (this._model.getClientId() === clientId) {
-        return;
-      }
-
-      const clientPointers = { ...this.state.clientPointers };
-      let currentClientPointer = clientPointers[clientId];
-
-      if (pointer) {
-        const pixel = this._Map.getPixelFromCoordinate([
-          pointer.coordinates.x,
-          pointer.coordinates.y,
-        ]);
-
-        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
-
-        if (!currentClientPointer) {
-          currentClientPointer = {
-            username: client.user.username,
-            displayName: client.user.display_name,
-            color: client.user.color,
-            coordinates: {
-              x: pixel[0],
-              y: pixel[1],
-            },
-            lonLat: {
-              longitude: lonLat[0],
-              latitude: lonLat[1],
-            },
-          };
-        } else {
-          currentClientPointer = {
-            ...currentClientPointer,
-            coordinates: {
-              x: pixel[0],
-              y: pixel[1],
-            },
-            lonLat: {
-              longitude: lonLat[0],
-              latitude: lonLat[1],
-            },
-          };
-        }
-
-        clientPointers[clientId] = currentClientPointer;
-      } else {
-        delete clientPointers[clientId];
-      }
-
-      this.setState(old => ({ ...old, clientPointers }));
-    });
-
     /* check if the currently selected layer is a drawVector layer
     and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
     const selectedLayers = localState.selected?.value;
@@ -2379,6 +2322,65 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.editingVectorLayer = false;
       this._updateEditingVectorLayer();
     }
+  }
+
+  private _syncClientPointers(): void {
+    const clients = this._model.sharedModel.awareness.getStates() as Map<
+      number,
+      IJupyterGISClientState
+    >;
+    const clientPointers = { ...this.state.clientPointers };
+
+    clients.forEach((client, clientId) => {
+      if (!client?.user || this._model.getClientId() === clientId) {
+        return;
+      }
+
+      const pointer = client.pointer?.value;
+      let currentClientPointer = clientPointers[clientId];
+
+      if (pointer) {
+        const pixel = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y,
+        ]);
+        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
+
+        if (!currentClientPointer) {
+          currentClientPointer = {
+            username: client.user.username,
+            displayName: client.user.display_name,
+            color: client.user.color,
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
+          };
+        } else {
+          currentClientPointer = {
+            ...currentClientPointer,
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
+          };
+        }
+
+        clientPointers[clientId] = currentClientPointer;
+      } else {
+        delete clientPointers[clientId];
+      }
+    });
+
+    this.setState(old => ({ ...old, clientPointers }));
   }
 
   private _onSharedOptionsChanged(): void {
