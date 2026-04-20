@@ -11,6 +11,7 @@ module.exports = {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
+        isolatedModules: true,
         tsconfig: {
           // Jest runs in CommonJS; override the project's esnext module setting
           module: 'commonjs',
@@ -19,7 +20,19 @@ module.exports = {
         },
       },
     ],
+    '^.+\\.js$': [
+      'ts-jest',
+      {
+        isolatedModules: true,
+        tsconfig: {
+          module: 'commonjs',
+          allowJs: true,
+          paths: { '@/*': ['./*'] },
+          types: ['jest', 'node'],
+        },
+      },
+    ],
   },
   // Transform ESM-only packages that have no CommonJS build
-  transformIgnorePatterns: ['/node_modules/(?!(d3-scale-chromatic|d3-color)/)'],
+  transformIgnorePatterns: ['/node_modules/(?!(d3-.*)/)'],
 };
