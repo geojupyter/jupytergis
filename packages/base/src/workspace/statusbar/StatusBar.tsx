@@ -25,7 +25,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleClientStateChanged = () => {
+    const syncPointerCoords = () => {
       const pointer = jgisModel?.localState?.pointer?.value;
 
       if (!pointer) {
@@ -35,10 +35,11 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       setCoords({ x: pointer?.coordinates.x, y: pointer?.coordinates.y });
     };
 
-    jgisModel.clientStateChanged.connect(handleClientStateChanged);
+    jgisModel.pointerChanged.connect(syncPointerCoords);
+    syncPointerCoords();
 
     return () => {
-      jgisModel.clientStateChanged.disconnect(handleClientStateChanged);
+      jgisModel.pointerChanged.disconnect(syncPointerCoords);
     };
   }, [jgisModel]);
 
