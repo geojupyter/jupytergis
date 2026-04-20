@@ -4,11 +4,14 @@ import { Signal } from '@lumino/signaling';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, loadFile } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
-import { SchemaForm } from '../SchemaForm';
-import { processBaseSchema, removeFormEntry } from '../schemaUtils';
-import { useSchemaFormState } from '../useSchemaFormState';
 
 export interface IDissolveFormProps extends IBaseFormProps {
   ok?: Signal<Dialog<any>, number>;

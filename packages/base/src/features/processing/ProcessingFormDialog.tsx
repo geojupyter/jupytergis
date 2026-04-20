@@ -4,9 +4,9 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { DissolveForm } from '@/src/formbuilder/objectform/process';
-import { DefaultProcessingForm } from '@/src/formbuilder/objectform/processingForm';
 import type { IBaseFormProps } from '@/src/types';
+import { DissolveForm } from './forms/dissolveProcessForm';
+import { DefaultProcessingForm } from './forms/processingForm';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
