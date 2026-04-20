@@ -49,7 +49,10 @@ class TestGeoParquetLayer(TestDocument):
         geoparquet_layer = self.doc.add_geoparquet_layer(
             TEST_GEOPARQUET, color_expr=color
         )
-        assert self.doc.layers[geoparquet_layer]["parameters"]["color"] == color
+        state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
+        assert state["renderType"] == "Single Symbol"
+        assert state["fillColor"] == [0, 255, 0, 1.0]
+        assert state["strokeColor"] == [255, 0, 0, 1.0]
 
 
 class TestLayerManipulation(TestDocument):

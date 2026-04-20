@@ -48,6 +48,96 @@ def reversed_tree(root):
     return root
 
 
+def _parse_hex_color(hex_str: str) -> Optional[List[float]]:
+    """Parse a CSS hex color (#rgb, #rrggbb, #rrggbbaa) into an [r, g, b, a] list
+    with r/g/b in 0-255 and a in 0-1. Returns None if the string is not a valid
+    hex color.
+    """
+    if not isinstance(hex_str, str):
+        return None
+    s = hex_str.lstrip("#")
+    try:
+        if len(s) == 3:
+            r, g, b = (int(c * 2, 16) for c in s)
+            return [r, g, b, 1.0]
+        if len(s) == 6:
+            r, g, b = (int(s[i : i + 2], 16) for i in (0, 2, 4))
+            return [r, g, b, 1.0]
+        if len(s) == 8:
+            r, g, b, a = (int(s[i : i + 2], 16) for i in (0, 2, 4, 6))
+            return [r, g, b, a / 255]
+    except ValueError:
+        return None
+    return None
+
+
+def _color_to_rgba(value: Any) -> Optional[List[float]]:
+    """Coerce an OL-flavored color value (hex string or [r, g, b, a] array)
+    into an [r, g, b, a] list. Returns None if `value` is an OL expression
+    (e.g. ["interpolate", ...]) or otherwise unparseable.
+    """
+    if isinstance(value, str):
+        return _parse_hex_color(value)
+    if (
+        isinstance(value, (list, tuple))
+        and value
+        and isinstance(value[0], (int, float))
+    ):
+        rgba = list(value) + [1.0] * (4 - len(value))
+        return [float(c) for c in rgba[:4]]
+    return None
+
+
+def _vector_symbology_state_from_color_expr(color_expr: Any) -> Dict[str, Any]:
+    """Translate a legacy ``color_expr`` dict (OpenLayers FlatStyle keys such as
+    ``fill-color``, ``stroke-color``, ``circle-radius``) into a ``symbologyState``
+    dict that matches the current schema. Expression values that aren't solid
+    colors are ignored — those require richer Single Symbol configuration that
+    the Python API doesn't yet surface.
+    """
+    state: Dict[str, Any] = {
+        "renderType": "Single Symbol",
+        "method": "color",
+        "colorRamp": "viridis",
+        "nClasses": 9,
+        "mode": "equal interval",
+    }
+
+    if not isinstance(color_expr, dict):
+        return state
+
+    fill = _color_to_rgba(
+        color_expr.get("fill-color") or color_expr.get("circle-fill-color")
+    )
+    if fill is not None:
+        state["fillColor"] = fill
+
+    stroke = _color_to_rgba(
+        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color")
+    )
+    if stroke is not None:
+        state["strokeColor"] = stroke
+
+    stroke_width = color_expr.get("stroke-width") or color_expr.get(
+        "circle-stroke-width"
+    )
+    if isinstance(stroke_width, (int, float)):
+        state["strokeWidth"] = stroke_width
+
+    radius = color_expr.get("circle-radius")
+    if isinstance(radius, (int, float)):
+        state["radius"] = radius
+
+    if "circle-fill-color" in color_expr or "circle-radius" in color_expr:
+        state["geometryType"] = "circle"
+    elif "fill-color" in color_expr:
+        state["geometryType"] = "fill"
+    elif "stroke-color" in color_expr or "stroke-width" in color_expr:
+        state["geometryType"] = "line"
+
+    return state
+
+
 class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
@@ -250,7 +340,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "color": color_expr,
+                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
                 "appliedFilters": [
@@ -326,12 +416,8 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "color": color_expr,
                 "opacity": opacity,
-                "symbologyState": {
-                    "renderType": "Single Symbol",
-                    "mode": "equal interval",
-                },
+                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
                 "appliedFilters": [
@@ -615,7 +701,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "color": color_expr,
+                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
                 "appliedFilters": [
@@ -691,7 +777,9 @@ class GISDocument(CommWidget):
                     "source": source_id,
                     "type": type,
                     "opacity": opacity,
-                    "color": color_expr,
+                    "symbologyState": _vector_symbology_state_from_color_expr(
+                        color_expr
+                    ),
                 },
                 "filters": {
                     "appliedFilters": [
