@@ -57,7 +57,9 @@ describe('VectorClassifications.calculateQuantileBreaks', () => {
 
   it('places stops at equal-count quantile boundaries for uniform data', () => {
     // [1,2,3,4,5] split into 4 equal-count intervals → integer boundaries
-    expect(calculateQuantileBreaks([1, 2, 3, 4, 5], 5)).toEqual([1, 2, 3, 4, 5]);
+    expect(calculateQuantileBreaks([1, 2, 3, 4, 5], 5)).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
   });
 
   it('places the midpoint correctly for two stops', () => {
@@ -114,14 +116,17 @@ describe('VectorClassifications.calculateLogarithmicBreaks', () => {
 describe('VectorClassifications.calculatePrettyBreaks', () => {
   it('snaps all stops to round values, including the endpoints', () => {
     // vmin=2.7 → pretty lower bound is 0 (start*unit); all stops are multiples of 20
-    expect(calculatePrettyBreaks([2.7, 100], 6)).toEqual([0, 20, 40, 60, 80, 100]);
+    expect(calculatePrettyBreaks([2.7, 100], 6)).toEqual([
+      0, 20, 40, 60, 80, 100,
+    ]);
   });
 
   it('includes zero when the range crosses zero', () => {
     const breaks = calculatePrettyBreaks([-50, 50], 5);
     expect(breaks.some(b => b === 0)).toBe(true);
     // endpoints should also be snapped to round values
-    expect(breaks[0] % 10).toBe(0);
-    expect(breaks[breaks.length - 1] % 10).toBe(0);
+    // toBeCloseTo avoids Object.is(-0, 0) === false when JS % returns -0
+    expect(breaks[0] % 10).toBeCloseTo(0);
+    expect(breaks[breaks.length - 1] % 10).toBeCloseTo(0);
   });
 });
