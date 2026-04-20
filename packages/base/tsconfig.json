@@ -11,6 +11,7 @@
       { "transform": "typescript-transform-paths", "afterDeclarations": true }
     ]
   },
+  "exclude": ["**/*.spec.ts"],
   "include": [
     "src/**/*",
     "src/schema/*.json",
