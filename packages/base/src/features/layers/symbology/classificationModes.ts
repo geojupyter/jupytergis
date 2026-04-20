@@ -5,10 +5,8 @@ import { Pool, fromUrl, TypedArray } from 'geotiff';
 import { InterpolationType } from './tiff_layer/types/SingleBandPseudoColor';
 
 export namespace VectorClassifications {
-  export const calculateQuantileBreaks = (
-    values: number[],
-    nClasses: number,
-  ) => {
+  export const calculateQuantileBreaks = (values: number[], nStops: number) => {
+    // Returns nStops anchor points: vmin, (nStops-2) interior quantile boundaries, vmax.
     // q-th quantile of a data set:
     // value where q fraction of data is below and (1-q) fraction is above this value
     // Xq = (1 - r) * X_NI1 + r * X_NI2
@@ -19,67 +17,66 @@ export namespace VectorClassifications {
 
     const sortedValues = [...values].sort((a, b) => a - b);
 
-    const breaks = [];
-
-    if (!sortedValues) {
+    if (sortedValues.length === 0) {
       return [];
     }
 
     const n = sortedValues.length;
+    const breaks = [sortedValues[0]]; // vmin
 
-    let xq: number = n > 0 ? sortedValues[0] : 0;
-
-    for (let i = 1; i < nClasses; i++) {
+    for (let i = 1; i < nStops - 1; i++) {
       if (n > 1) {
-        const q = i / nClasses;
+        const q = i / (nStops - 1);
         const a = q * (n - 1);
         const aa = Math.floor(a);
-
         const r = a - aa;
-        xq = (1 - r) * sortedValues[aa] + r * sortedValues[aa + 1];
+        const xq =
+          (1 - r) * sortedValues[aa] +
+          r * sortedValues[Math.min(aa + 1, n - 1)];
+        breaks.push(xq);
       }
-      breaks.push(xq);
     }
 
-    breaks.push(sortedValues[n - 1]);
+    breaks.push(sortedValues[n - 1]); // vmax
 
     return breaks;
   };
 
   export const calculateEqualIntervalBreaks = (
     values: number[],
-    nClasses: number,
+    nStops: number,
   ) => {
+    // Returns nStops evenly-spaced anchor points from vmin to vmax (linspace contract).
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
 
-    const breaks: number[] = [];
-    const step = (maximum - minimum) / nClasses;
-
-    let value = minimum;
-
-    for (let i = 0; i < nClasses; i++) {
-      value += step;
-      breaks.push(value);
+    if (nStops <= 1) {
+      return [minimum];
     }
 
-    breaks[nClasses - 1] = maximum;
+    const breaks: number[] = [];
+    const step = (maximum - minimum) / (nStops - 1);
+
+    for (let i = 0; i < nStops; i++) {
+      breaks.push(minimum + i * step);
+    }
+    breaks[nStops - 1] = maximum; // pin to avoid floating-point drift
 
     return breaks;
   };
 
-  export const calculateJenksBreaks = (values: number[], nClasses: number) => {
+  export const calculateJenksBreaks = (values: number[], nStops: number) => {
     const maximum = Math.max(...values);
 
     if (values.length === 0) {
       return [];
     }
 
-    if (nClasses <= 1) {
+    if (nStops <= 1) {
       return [maximum];
     }
 
-    if (nClasses >= values.length) {
+    if (nStops >= values.length) {
       return values;
     }
 
@@ -87,13 +84,13 @@ export namespace VectorClassifications {
     const n = sample.length;
 
     const matrixOne = Array.from({ length: n + 1 }, () =>
-      Array(nClasses + 1).fill(0),
+      Array(nStops + 1).fill(0),
     );
     const matrixTwo = Array.from({ length: n + 1 }, () =>
-      Array(nClasses + 1).fill(Number.MAX_VALUE),
+      Array(nStops + 1).fill(Number.MAX_VALUE),
     );
 
-    for (let i = 1; i <= nClasses; i++) {
+    for (let i = 1; i <= nStops; i++) {
       matrixOne[0][i] = 1;
       matrixOne[1][i] = 1;
       matrixTwo[0][i] = 0.0;
@@ -121,7 +118,7 @@ export namespace VectorClassifications {
         v = s2 - (s1 * s1) / w;
         const i4 = i3 - 1;
         if (i4 !== 0) {
-          for (let j = 2; j <= nClasses; j++) {
+          for (let j = 2; j <= nStops; j++) {
             if (matrixTwo[l][j] >= v + matrixTwo[i4][j - 1]) {
               matrixOne[l][j] = i4;
               matrixTwo[l][j] = v + matrixTwo[i4][j - 1];
@@ -133,34 +130,39 @@ export namespace VectorClassifications {
       matrixTwo[l][1] = v;
     }
 
-    const breaks = Array(nClasses);
-    breaks[nClasses - 1] = sample[n - 1];
+    // Returns nStops anchor points: vmin, (nStops-2) natural-break upper bounds, vmax.
+    // Interior breaks use the upper bound of each class (last element before the next
+    // class starts) rather than the lower bound (first element of the next class).
+    const breaks = Array(nStops);
+    breaks[0] = sample[0]; // vmin
+    breaks[nStops - 1] = sample[n - 1]; // vmax
 
-    for (let j = nClasses, k = n; j >= 2; j--) {
-      const id = matrixOne[k][j] - 1;
-      breaks[j - 2] = sample[id];
-      k = matrixOne[k][j] - 1;
+    let k = n;
+    for (let j = nStops; j >= 3; j--) {
+      const id = matrixOne[k][j] - 1; // 0-based start index of class j
+      breaks[j - 2] = sample[id - 1]; // upper bound of class j-1
+      k = id;
     }
 
     return breaks;
   };
 
-  export const calculatePrettyBreaks = (values: number[], nClasses: number) => {
+  export const calculatePrettyBreaks = (values: number[], nStops: number) => {
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
 
     const breaks = [];
 
-    if (nClasses < 1) {
+    if (nStops < 1) {
       breaks.push(maximum);
       return breaks;
     }
 
-    const minimumCount = Math.floor(nClasses / 3);
+    const minimumCount = Math.floor(nStops / 3);
     const shrink = 0.75;
     const highBias = 1.5;
     const adjustBias = 0.5 + 1.5 * highBias;
-    const divisions = nClasses;
+    const divisions = nStops;
     const h = highBias;
     let cell;
     let small = false;
@@ -230,19 +232,14 @@ export namespace VectorClassifications {
     const minimumBreak = start * unit;
     const count = end - start;
 
-    for (let i = 1; i < count + 1; i++) {
+    // Include the pretty lower bound (i=0) so all stops snap to round values,
+    // even when minimumBreak < vmin (that is the point of pretty breaks).
+    for (let i = 0; i < count + 1; i++) {
       breaks.push(minimumBreak + i * unit);
     }
 
     if (breaks.length === 0) {
       return breaks;
-    }
-
-    if (breaks[0] < minimum) {
-      breaks[0] = minimum;
-    }
-    if (breaks[breaks.length - 1] > maximum) {
-      breaks[breaks.length - 1] = maximum;
     }
 
     if (minimum < 0.0 && maximum > 0.0) {
@@ -265,10 +262,10 @@ export namespace VectorClassifications {
 
   export const calculateLogarithmicBreaks = (
     values: number[],
-    nClasses: number,
+    nStops: number,
   ) => {
     const positiveValues = values.filter(v => v > 0);
-    if (positiveValues.length === 0 || nClasses < 1) {
+    if (positiveValues.length === 0 || nStops < 1) {
       return [];
     }
 
@@ -278,8 +275,8 @@ export namespace VectorClassifications {
     const logMax = Math.log10(maximum);
 
     const breaks: number[] = [];
-    for (let i = 0; i < nClasses; i++) {
-      const t = nClasses === 1 ? 0 : i / (nClasses - 1);
+    for (let i = 0; i < nStops; i++) {
+      const t = nStops === 1 ? 0 : i / (nStops - 1);
       breaks.push(Math.pow(10, logMin + t * (logMax - logMin)));
     }
 
