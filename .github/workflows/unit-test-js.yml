@@ -51,6 +51,10 @@ jobs:
         shell: bash -l {0}
         run: jlpm install
 
+      - name: Build
+        shell: bash -l {0}
+        run: jlpm run build
+
       - name: Run unit tests
         shell: bash -l {0}
         run: jlpm lerna run test --scope @jupytergis/base
