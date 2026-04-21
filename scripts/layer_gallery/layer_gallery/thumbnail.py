@@ -1,3 +1,5 @@
+"""Functions related to generating thumbnails."""
+
 from io import BytesIO
 
 import mercantile

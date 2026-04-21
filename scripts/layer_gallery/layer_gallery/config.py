@@ -1,3 +1,5 @@
+"""Specification for layers to be generated for the layer gallery."""
+
 from xyzservices import TileProvider
 
 from layer_gallery.models import (

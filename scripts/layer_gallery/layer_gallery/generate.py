@@ -162,6 +162,7 @@ def _build_gallery_entry(entry: LayerEntry) -> dict[str, Any]:
 
 
 def run(*, generate_thumbnails: bool) -> None:
+    """The main internal entrypoint for the layer gallery generator."""  # noqa: D401
     if generate_thumbnails:
         THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
     else:
@@ -185,6 +186,7 @@ def run(*, generate_thumbnails: bool) -> None:
 
 
 def cli() -> None:
+    """The main user entrypoint for the layer gallery generator."""  # noqa: D401
     parser = argparse.ArgumentParser(description="Layer gallery generator")
     parser.add_argument(
         "--thumbnails",

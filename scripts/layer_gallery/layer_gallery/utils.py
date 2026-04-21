@@ -1,3 +1,5 @@
+"""Miscellaneous utilities."""
+
 import string
 from datetime import date, timedelta
 from typing import Any, TypeVar, cast
@@ -57,6 +59,7 @@ T = TypeVar("T")
 
 
 def dict_keys_to_camel(obj: T) -> T:
+    """Convert every dict key (recursively) in `obj` to camel case."""
     if isinstance(obj, dict):
         return cast(
             "T",
@@ -71,5 +74,6 @@ def dict_keys_to_camel(obj: T) -> T:
 
 
 def _snake_to_camel(s: str) -> str:
+    """Convert snake_case to camelCase."""
     parts = s.split("_")
     return parts[0] + "".join(w.capitalize() for w in parts[1:])

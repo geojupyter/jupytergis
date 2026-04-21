@@ -1,3 +1,5 @@
+"""Data models for this package."""
+
 import operator
 from functools import reduce
 from typing import Any, Literal, TypeAlias
@@ -32,10 +34,13 @@ class XYZServicesRef(RootModel[list[str]]):
     """
 
     def resolve(self) -> TileProvider:
+        """Resolve the XYZServicesRef to a fully formed TileProvider."""
         return reduce(operator.getitem, self.root, xyzcatalog)
 
 
 class GeoJSONLayer(BaseModel):
+    """A layer defined by a GeoJSON file URL."""
+
     path: str
     attribution: str
 
@@ -59,6 +64,7 @@ class LayerEntry(BaseModel):
 
     @property
     def thumbnail_filename(self) -> str:
+        """Generate filename for thumbnail."""
         return self._thumbnail_filename(self.name)
 
     @staticmethod
