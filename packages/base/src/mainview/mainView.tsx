@@ -258,19 +258,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onSharedOptionsChanged,
       this,
     );
-    this._model.clientStateChanged.connect(
-      this._onClientSharedStateChanged,
-      this,
-    );
     this._model.temporalControllerActiveChanged.connect(
       this._syncTemporalControllerVisibility,
       this,
     );
+    this._model.remoteUserChanged.connect(this._syncRemoteUserState, this);
+    this._model.viewportStateChanged.connect(this._syncRemoteUserState, this);
     this._model.pointerChanged.connect(this._syncClientPointers, this);
     this._model.selectedChanged.connect(
       this._syncTemporalControllerVisibility,
       this,
     );
+    this._model.selectedChanged.connect(this._syncEditingVectorLayer, this);
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -355,8 +354,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom, projection);
+    this._syncRemoteUserState();
     this._syncClientPointers();
     this._syncTemporalControllerVisibility();
+    this._syncEditingVectorLayer();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -391,12 +392,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
-    this._model.clientStateChanged.disconnect(
-      this._onClientSharedStateChanged,
-      this,
-    );
     this._model.temporalControllerActiveChanged.disconnect(
       this._syncTemporalControllerVisibility,
+      this,
+    );
+    this._model.remoteUserChanged.disconnect(this._syncRemoteUserState, this);
+    this._model.viewportStateChanged.disconnect(
+      this._syncRemoteUserState,
       this,
     );
     this._model.pointerChanged.disconnect(this._syncClientPointers, this);
@@ -404,6 +406,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._syncTemporalControllerVisibility,
       this,
     );
+    this._model.selectedChanged.disconnect(this._syncEditingVectorLayer, this);
     this._model.identifiedFeaturesChanged.disconnect(
       this._clearHighlightWhenIdentifyDisabled,
       this,
@@ -2217,51 +2220,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _onClientSharedStateChanged = (
-    sender: IJupyterGISModel,
-    clients: Map<number, IJupyterGISClientState>,
-  ): void => {
+  private _syncEditingVectorLayer = (): void => {
     const localState = this._model.localState;
     if (!localState) {
       return;
-    }
-
-    const remoteUser = localState.remoteUser;
-    // If we are in following mode, we update our position and selection
-    if (remoteUser) {
-      const remoteState = clients.get(remoteUser);
-      if (!remoteState) {
-        return;
-      }
-
-      if (remoteState.user?.username !== this.state.remoteUser?.username) {
-        this.setState(old => ({
-          ...old,
-          remoteUser: remoteState.user,
-        }));
-      }
-
-      const remoteViewport = remoteState.viewportState;
-
-      if (remoteViewport.value) {
-        const { x, y } = remoteViewport.value.coordinates;
-        const zoom = remoteViewport.value.zoom;
-
-        this._moveToPosition({ x, y }, zoom, 0);
-      }
-    } else {
-      // If we are unfollowing a remote user, we reset our center and zoom to their previous values
-      if (this.state.remoteUser !== null) {
-        this.setState(old => ({
-          ...old,
-          remoteUser: null,
-        }));
-        const viewportState = localState.viewportState?.value;
-
-        if (viewportState) {
-          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
-        }
-      }
     }
 
     /* check if the currently selected layer is a drawVector layer
@@ -2321,6 +2283,54 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (JGISLayer && !this._model.checkIfIsADrawVectorLayer(JGISLayer)) {
       this._model.editingVectorLayer = false;
       this._updateEditingVectorLayer();
+    }
+  }
+
+  private _syncRemoteUserState(): void {
+    const localState = this._model.localState;
+    if (!localState) {
+      return;
+    }
+
+    const remoteUser = localState.remoteUser;
+    const clients = this._model.sharedModel.awareness.getStates() as Map<
+      number,
+      IJupyterGISClientState
+    >;
+
+    // If we are in following mode, update UI and viewport from the remote user.
+    if (remoteUser) {
+      const remoteState = clients.get(remoteUser);
+      if (!remoteState) {
+        return;
+      }
+
+      if (remoteState.user?.username !== this.state.remoteUser?.username) {
+        this.setState(old => ({
+          ...old,
+          remoteUser: remoteState.user,
+        }));
+      }
+
+      const remoteViewport = remoteState.viewportState;
+      if (remoteViewport.value) {
+        const { x, y } = remoteViewport.value.coordinates;
+        const zoom = remoteViewport.value.zoom;
+        this._moveToPosition({ x, y }, zoom, 0);
+      }
+      return;
+    }
+
+    // If we are unfollowing, reset to local viewport and clear follow UI.
+    if (this.state.remoteUser !== null) {
+      this.setState(old => ({
+        ...old,
+        remoteUser: null,
+      }));
+      const viewportState = localState.viewportState?.value;
+      if (viewportState) {
+        this._moveToPosition(viewportState.coordinates, viewportState.zoom);
+      }
     }
   }
 
