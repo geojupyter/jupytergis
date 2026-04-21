@@ -9,7 +9,6 @@ from uuid import uuid4
 
 import requests
 from IPython.display import display
-from jupyter_xarray_tiler.titiler import add_data_array
 from jupytergis_core.colors import try_hex_to_rgba
 from jupytergis_core.schema import (
     IGeoJSONSource,
@@ -878,6 +877,14 @@ class GISDocument(CommWidget):
         algorithm: BaseAlgorithm | None = None,
         **params,
     ):
+        try:
+            from jupyter_xarray_tiler.titiler import add_data_array
+        except ImportError as e:
+            raise RuntimeError(
+                "This method requires 'jupyter-xarray-tiler'."
+                " To resolve, `pip install jupytergis[tiler]`."
+            ) from e
+
         url = add_data_array(
             data_array,
             colormap_name=colormap_name,
