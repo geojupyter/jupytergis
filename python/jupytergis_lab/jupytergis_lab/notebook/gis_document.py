@@ -885,7 +885,7 @@ class GISDocument(CommWidget):
                 " To resolve, `pip install jupytergis[tiler]`."
             ) from e
 
-        url = add_data_array(
+        url = await add_data_array(
             data_array,
             colormap_name=colormap_name,
             rescale=rescale,
@@ -893,6 +893,8 @@ class GISDocument(CommWidget):
             algorithm=algorithm,
             **params,
         )
+
+        source_id = str(uuid4())
         source = {
             "type": SourceType.RasterSource,
             "name": f"{name} Source",
@@ -903,6 +905,7 @@ class GISDocument(CommWidget):
             },
         }
         self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+
         layer = {
             "type": LayerType.RasterLayer,
             "name": name,
