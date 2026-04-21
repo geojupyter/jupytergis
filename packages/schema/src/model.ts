@@ -262,10 +262,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.awareness.getLocalState() as IJupyterGISClientState | null;
   }
 
-  get clientStateChanged(): ISignal<this, Map<number, IJupyterGISClientState>> {
-    return this._clientStateChanged;
-  }
-
   get selectedChanged(): ISignal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['selected']>
@@ -1131,23 +1127,12 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  // changed is clientID where the changes happened
-  // clients has the actual state
   private _onClientStateChanged = (changed: any) => {
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState
     >;
     this._emitAwarenessFieldDeltas(changed, clients);
-
-    // Remove after adding all the new signals
-    this._clientStateChanged.emit(clients);
-
-    if (changed.added.length || changed.removed.length) {
-      this._userChanged.emit(this.users);
-    }
-
-    // ? reuse map?
     this._previousClientStates = new Map(clients);
   };
 
@@ -1321,10 +1306,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _contentChanged = new Signal<this, void>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
   private _themeChanged = new Signal<this, IChangedArgs<any>>(this);
-  private _clientStateChanged = new Signal<
-    this,
-    Map<number, IJupyterGISClientState>
-  >(this);
   private _selectedChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['selected']>
