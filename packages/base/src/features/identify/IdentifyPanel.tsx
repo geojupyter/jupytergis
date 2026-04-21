@@ -27,8 +27,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   }, [features]);
 
   useEffect(() => {
-    const handleIdentifyStateChanged = () => {
-      console.log('ident panel handleIdentifyStateChanged');
+    const handleIdentifyFeaturesChanged = () => {
       const clients = model.sharedModel.awareness.getStates();
       const remoteUserId = model?.localState?.remoteUser;
 
@@ -61,13 +60,18 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       }
     };
 
-    model?.identifiedFeaturesChanged.connect(handleIdentifyStateChanged);
-    model?.remoteUserChanged.connect(handleIdentifyStateChanged);
-    handleIdentifyStateChanged();
+    const signals = [
+      model?.identifiedFeaturesChanged,
+      model?.remoteUserChanged,
+    ];
+
+    signals.forEach(signal => signal.connect(handleIdentifyFeaturesChanged));
+    handleIdentifyFeaturesChanged();
 
     return () => {
-      model?.identifiedFeaturesChanged.disconnect(handleIdentifyStateChanged);
-      model?.remoteUserChanged.disconnect(handleIdentifyStateChanged);
+      signals.forEach(signal =>
+        signal.disconnect(handleIdentifyFeaturesChanged),
+      );
     };
   }, [model, remoteUser]);
 

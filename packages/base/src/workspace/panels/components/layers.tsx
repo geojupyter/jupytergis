@@ -272,15 +272,15 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
-    const syncSelected = () => {
+    const handleSelectedChanged = () => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(group.name, gisModel));
     };
-    gisModel?.selectedChanged.connect(syncSelected);
-    syncSelected();
+    gisModel?.selectedChanged.connect(handleSelectedChanged);
+    handleSelectedChanged();
 
     return () => {
-      gisModel?.selectedChanged.disconnect(syncSelected);
+      gisModel?.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, [gisModel, group.name]);
 
@@ -475,15 +475,15 @@ const LayerComponent: React.FC<ILayerProps> = props => {
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
-    const syncSelected = () => {
+    const handleSelectedChanged = () => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(layerId, gisModel));
     };
-    gisModel?.selectedChanged.connect(syncSelected);
-    syncSelected();
+    gisModel?.selectedChanged.connect(handleSelectedChanged);
+    handleSelectedChanged();
 
     return () => {
-      gisModel?.selectedChanged.disconnect(syncSelected);
+      gisModel?.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, [gisModel, layerId]);
 
