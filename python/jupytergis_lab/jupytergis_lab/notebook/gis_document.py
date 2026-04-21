@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 
 import requests
+from jupytergis_core.colors import try_hex_to_rgba
 from jupytergis_core.schema import (
     IGeoJSONSource,
     IGeoPackageRasterSource,
@@ -46,6 +47,74 @@ def reversed_tree(root):
     if isinstance(root, list):
         return reversed([reversed_tree(el) for el in root])
     return root
+
+
+def _color_to_rgba(value: Any) -> Optional[List[float]]:
+    """Coerce an OL-flavored color value (hex string or [r, g, b, a] array)
+    into an ``[r, g, b, a]`` list. Returns ``None`` if ``value`` is an OL
+    expression (e.g. ``["interpolate", ...]``) or otherwise unparseable.
+    """
+    if isinstance(value, str):
+        rgba = try_hex_to_rgba(value)
+        return list(rgba) if rgba else None
+    if (
+        isinstance(value, (list, tuple))
+        and value
+        and isinstance(value[0], (int, float))
+    ):
+        rgba = list(value) + [1.0] * (4 - len(value))
+        return [float(c) for c in rgba[:4]]
+    return None
+
+
+# NOTE: Kept intentionally minimal and aligned with the frontend migration in
+# ``symbologyMigration.ts`` — the only mandatory field is ``renderType``. Other
+# defaults (``method``, ``colorRamp``, ``nClasses``, ``mode``) live in the
+# schema (``packages/schema/src/schema/project/layers/vectorLayer.json``) and
+# are applied by the schema consumer on the frontend. Duplicating them here
+# would create a drift risk if the schema defaults ever change.
+def _vector_symbology_state_from_color_expr(color_expr: Any) -> Dict[str, Any]:
+    """Translate a legacy ``color_expr`` dict (OpenLayers FlatStyle keys such as
+    ``fill-color``, ``stroke-color``, ``circle-radius``) into a ``symbologyState``
+    dict that satisfies the schema. Expression values that aren't solid colors
+    are ignored — those require richer Single Symbol configuration that the
+    Python API doesn't yet surface.
+    """
+    state: Dict[str, Any] = {"renderType": "Single Symbol"}
+
+    if not isinstance(color_expr, dict):
+        return state
+
+    fill = _color_to_rgba(
+        color_expr.get("fill-color") or color_expr.get("circle-fill-color")
+    )
+    if fill is not None:
+        state["fillColor"] = fill
+
+    stroke = _color_to_rgba(
+        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color")
+    )
+    if stroke is not None:
+        state["strokeColor"] = stroke
+
+    stroke_width = color_expr.get("stroke-width") or color_expr.get(
+        "circle-stroke-width"
+    )
+    if isinstance(stroke_width, (int, float)):
+        state["strokeWidth"] = stroke_width
+
+    radius = color_expr.get("circle-radius")
+    if isinstance(radius, (int, float)):
+        state["radius"] = radius
+
+    if "circle-fill-color" in color_expr or "circle-radius" in color_expr:
+        state["geometryType"] = "circle"
+    elif "fill-color" in color_expr:
+        state["geometryType"] = "fill"
+    elif "stroke-color" in color_expr or "stroke-width" in color_expr:
+        state["geometryType"] = "line"
+
+    return state
 
 
 class GISDocument(CommWidget):
@@ -250,7 +319,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "color": color_expr,
+                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
                 "appliedFilters": [
@@ -326,12 +395,8 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "color": color_expr,
                 "opacity": opacity,
-                "symbologyState": {
-                    "renderType": "Single Symbol",
-                    "mode": "equal interval",
-                },
+                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
                 "appliedFilters": [
@@ -615,7 +680,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "color": color_expr,
+                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
                 "appliedFilters": [
@@ -691,7 +756,9 @@ class GISDocument(CommWidget):
                     "source": source_id,
                     "type": type,
                     "opacity": opacity,
-                    "color": color_expr,
+                    "symbologyState": _vector_symbology_state_from_color_expr(
+                        color_expr
+                    ),
                 },
                 "filters": {
                     "appliedFilters": [
