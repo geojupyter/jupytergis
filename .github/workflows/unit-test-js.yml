@@ -5,6 +5,11 @@ on:
     branches: main
   pull_request:
     branches: '*'
+    paths:
+      - 'packages/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/unit-test-js.yml'
 
 permissions: {}
 
