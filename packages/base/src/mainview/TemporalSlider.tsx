@@ -75,7 +75,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
 
   useEffect(() => {
     // This is for when the selected layer changes
-    const handleClientStateChanged = () => {
+    const syncSelectedLayer = () => {
       if (!model.localState?.selected?.value) {
         return;
       }
@@ -119,13 +119,13 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     };
 
     // Initial state
-    handleClientStateChanged();
+    syncSelectedLayer();
 
-    model.clientStateChanged.connect(handleClientStateChanged);
+    model.selectedChanged.connect(syncSelectedLayer);
     model.sharedLayersChanged.connect(handleLayerChange);
 
     return () => {
-      model.clientStateChanged.disconnect(handleClientStateChanged);
+      model.selectedChanged.disconnect(syncSelectedLayer);
       model.sharedLayersChanged.disconnect(handleLayerChange);
       removeFilter();
       if (intervalRef.current) {
