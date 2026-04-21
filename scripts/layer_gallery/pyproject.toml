@@ -31,6 +31,9 @@ packages = ["."]
 [tool.ruff]
 src = ["."]
 
+[tool.ruff.lint]
+select = ["ALL"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
