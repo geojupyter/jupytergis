@@ -31,7 +31,7 @@ def install_dev():
             f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
         )
 
-    execute(f"pip install -e {python_package_prefix}/jupytergis")
+    execute(f"pip install -e {python_package_prefix}/jupytergis[tiler]")
 
 
 if __name__ == "__main__":
