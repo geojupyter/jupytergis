@@ -55,7 +55,7 @@ export function useRightPanelOptions(
 
     let currentlyIdentifiedFeatures: any = undefined;
 
-    const syncIdentifiedFeatures = () => {
+    const handleIdentifiedFeaturesChanged = () => {
       const identifiedFeatures = model.localState?.identifiedFeatures?.value;
       if (!identifiedFeatures) {
         return;
@@ -68,12 +68,12 @@ export function useRightPanelOptions(
     };
 
     model.sharedOptionsChanged.connect(onOptionsChanged);
-    model.identifiedFeaturesChanged.connect(syncIdentifiedFeatures);
-    syncIdentifiedFeatures();
+    model.identifiedFeaturesChanged.connect(handleIdentifiedFeaturesChanged);
+    handleIdentifiedFeaturesChanged();
 
     return () => {
       model.sharedOptionsChanged.disconnect(onOptionsChanged);
-      model.identifiedFeaturesChanged.disconnect(syncIdentifiedFeatures);
+      model.identifiedFeaturesChanged.disconnect(handleIdentifiedFeaturesChanged);
     };
   }, [model]);
 

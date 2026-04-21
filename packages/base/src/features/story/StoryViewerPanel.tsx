@@ -128,7 +128,7 @@ function StoryViewerPanel({
   // Listen for layer selection changes in unguided mode
   useEffect(() => {
     // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
-    const handleSelectedStorySegmentChange = () => {
+    const handleSelectedStorySegmentChanged = () => {
       // This is just to update the displayed content
       // So bail early if we don't need to do that
       if (!storyData || storyData.storyType !== 'unguided') {
@@ -162,11 +162,11 @@ function StoryViewerPanel({
     };
 
     // ! TODO really only want to connect this un unguided mode
-    model.selectedChanged.connect(handleSelectedStorySegmentChange);
-    handleSelectedStorySegmentChange();
+    model.selectedChanged.connect(handleSelectedStorySegmentChanged);
+    handleSelectedStorySegmentChanged();
 
     return () => {
-      model.selectedChanged.disconnect(handleSelectedStorySegmentChange);
+      model.selectedChanged.disconnect(handleSelectedStorySegmentChanged);
     };
   }, [model, storyData, setIndex]);
 

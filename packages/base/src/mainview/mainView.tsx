@@ -259,17 +259,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.temporalControllerActiveChanged.connect(
-      this._syncTemporalControllerVisibility,
+      this._handleTemporalControllerActiveChanged,
       this,
     );
-    this._model.remoteUserChanged.connect(this._syncRemoteUserState, this);
-    this._model.viewportStateChanged.connect(this._syncRemoteUserState, this);
-    this._model.pointerChanged.connect(this._syncClientPointers, this);
+    const remoteUserSignals = [
+      this._model.remoteUserChanged,
+      this._model.viewportStateChanged,
+    ];
+    remoteUserSignals.forEach(signal =>
+      signal.connect(this._handleRemoteUserChanged, this),
+    );
+    this._model.pointerChanged.connect(this._handlePointerChanged, this);
     this._model.selectedChanged.connect(
-      this._syncTemporalControllerVisibility,
+      this._handleTemporalControllerActiveChanged,
       this,
     );
-    this._model.selectedChanged.connect(this._syncEditingVectorLayer, this);
+    this._model.selectedChanged.connect(this._handleSelectedChanged, this);
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -354,10 +359,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom, projection);
-    this._syncRemoteUserState();
-    this._syncClientPointers();
-    this._syncTemporalControllerVisibility();
-    this._syncEditingVectorLayer();
+    this._handleRemoteUserChanged();
+    this._handlePointerChanged();
+    this._handleTemporalControllerActiveChanged();
+    this._handleSelectedChanged();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -393,20 +398,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
 
     this._model.temporalControllerActiveChanged.disconnect(
-      this._syncTemporalControllerVisibility,
+      this._handleTemporalControllerActiveChanged,
       this,
     );
-    this._model.remoteUserChanged.disconnect(this._syncRemoteUserState, this);
-    this._model.viewportStateChanged.disconnect(
-      this._syncRemoteUserState,
-      this,
+    const remoteUserSignals = [
+      this._model.remoteUserChanged,
+      this._model.viewportStateChanged,
+    ];
+    remoteUserSignals.forEach(signal =>
+      signal.disconnect(this._handleRemoteUserChanged, this),
     );
-    this._model.pointerChanged.disconnect(this._syncClientPointers, this);
+    this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
     this._model.selectedChanged.disconnect(
-      this._syncTemporalControllerVisibility,
+      this._handleTemporalControllerActiveChanged,
       this,
     );
-    this._model.selectedChanged.disconnect(this._syncEditingVectorLayer, this);
+    this._model.selectedChanged.disconnect(this._handleSelectedChanged, this);
     this._model.identifiedFeaturesChanged.disconnect(
       this._clearHighlightWhenIdentifyDisabled,
       this,
@@ -2220,14 +2227,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _syncEditingVectorLayer = (): void => {
+  private _handleSelectedChanged = (): void => {
     const localState = this._model.localState;
     if (!localState) {
       return;
     }
 
-    /* check if the currently selected layer is a drawVector layer
-    and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
     const selectedLayers = localState.selected?.value;
     if (!selectedLayers) {
       return;
@@ -2235,13 +2240,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const selectedLayerID = Object.keys(selectedLayers)[0];
     const JGISLayer = this._model.getLayer(selectedLayerID);
-    if (JGISLayer && !this._model.checkIfIsADrawVectorLayer(JGISLayer)) {
+    this._handleDrawVectorLayerSelectionChanged(JGISLayer);
+  };
+
+  /* check if the currently selected layer is a drawVector layer
+  and update isDrawVectorLayer to remove the display of the 
+  geometry selection overlay if required */
+  private _handleDrawVectorLayerSelectionChanged(
+    layer: IJGISLayer | undefined,
+  ): void {
+    if (layer && !this._model.checkIfIsADrawVectorLayer(layer)) {
       this._model.editingVectorLayer = false;
       this._updateEditingVectorLayer();
     }
-  };
+  }
 
-  private _syncTemporalControllerVisibility(): void {
+  private _handleTemporalControllerActiveChanged(): void {
     const localState = this._model.localState;
     if (!localState) {
       return;
@@ -2286,7 +2300,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _syncRemoteUserState(): void {
+  private _handleRemoteUserChanged(): void {
     const localState = this._model.localState;
     if (!localState) {
       return;
@@ -2334,7 +2348,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _syncClientPointers(): void {
+  private _handlePointerChanged(): void {
     const clients = this._model.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState

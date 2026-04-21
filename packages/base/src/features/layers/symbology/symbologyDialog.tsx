@@ -54,7 +54,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   let LayerSymbology: React.JSX.Element;
 
   useEffect(() => {
-    const syncSelectedLayer = () => {
+    const handleSelectedChanged = () => {
       if (!model.localState?.selected?.value) {
         return;
       }
@@ -65,12 +65,12 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
     };
 
     // Initial state
-    syncSelectedLayer();
+    handleSelectedChanged();
 
-    model.selectedChanged.connect(syncSelectedLayer);
+    model.selectedChanged.connect(handleSelectedChanged);
 
     return () => {
-      model.selectedChanged.disconnect(syncSelectedLayer);
+      model.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, []);
 
