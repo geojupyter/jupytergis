@@ -37,7 +37,7 @@ def migrate(doc: dict[str, Any], to_version: str | None = None) -> dict[str, Any
         )
 
     result = dict(doc)
-    for from_v, to_v, fn in STEPS:
+    for _from_v, to_v, fn in STEPS:
         if current < Version(to_v) and Version(to_v) <= target:
             result = fn(result)
             result["schemaVersion"] = to_v

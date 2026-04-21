@@ -3,7 +3,6 @@ from functools import partial
 from typing import Any, Callable
 
 from jupyter_ydoc.ybasedoc import YBaseDoc
-from packaging.version import Version
 from pycrdt import Array, Map
 
 from .migrations import migrate
