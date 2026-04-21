@@ -6,11 +6,14 @@ import { Signal } from '@lumino/signaling';
 import { UiSchema } from '@rjsf/utils';
 import React, { useEffect, useMemo, useRef } from 'react';
 
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
-import { SchemaForm } from './SchemaForm';
-import { processBaseSchema, removeFormEntry } from './schemaUtils';
-import { useSchemaFormState } from './useSchemaFormState';
 
 export interface IProcessingFormWrapperProps extends IBaseFormProps {
   /** Signal emitted by the dialog when OK is clicked; form submits when this fires. */
