@@ -18,11 +18,12 @@ python generate.py --thumbnails
 
 import argparse
 import json
-import oxipng
 import sys
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
+
+import oxipng
 
 from layer_gallery.config import gallery
 from layer_gallery.models import GeoJSONLayer, LayerEntry
@@ -55,7 +56,7 @@ def _check_missing_thumbnails() -> list[Path]:
 
 def _report_missing_thumbnails(
     *,
-    severity: Literal["Warning"] | Literal["Error"],
+    severity: Literal["Warning", "Error"],
     exit_on_missing: bool = False,
 ) -> None:
     missing = _check_missing_thumbnails()

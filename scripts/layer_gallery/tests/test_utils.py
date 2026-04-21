@@ -20,8 +20,8 @@ class TestResolveTileProvider:
                     url="https://example.com/{z}/{x}/{y}",
                     attribution="Esri",
                     max_zoom=16,
-                )
-            }
+                ),
+            },
         },
     )
     def test_resolve_tile_provider_from_xyz_nested(self) -> None:
@@ -38,7 +38,7 @@ class TestResolveTileProvider:
                 url="https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
                 attribution="memomaps",
                 max_zoom=18,
-            )
+            ),
         },
     )
     def test_resolve_tile_provider_from_xyz_flat(self) -> None:

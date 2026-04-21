@@ -117,8 +117,8 @@ class TestBuildGalleryEntry:
                     attribution="Esri",
                     max_zoom=16,
                     variant="Canvas/World_Light_Gray_Base",
-                )
-            }
+                ),
+            },
         },
     )
     def test_build_gallery_entry_tile_provider(self, gallery_dirs: GalleryDirs) -> None:
@@ -175,7 +175,7 @@ class TestBuildGalleryEntry:
                     max_zoom=18,
                 ),
                 thumbnail=ThumbnailConfig(lat=47.04, lng=1.30, zoom=5),
-            )
+            ),
         )
         assert actual["layerParameters"] == {
             "opacity": 1,
@@ -194,8 +194,8 @@ class TestRun:
                     attribution="Esri",
                     max_zoom=16,
                     variant="test",
-                )
-            }
+                ),
+            },
         },
     )
     @mock.patch(
@@ -235,8 +235,8 @@ class TestRun:
                     url="https://example.com/{z}/{x}/{y}.png",
                     attribution="Esri",
                     max_zoom=16,
-                )
-            }
+                ),
+            },
         },
     )
     @mock.patch(

@@ -12,7 +12,9 @@ from layer_gallery.models import (
 # Reusable thumbnail positions
 # ---------------------------------------------------------------------------
 _france_thumbnail = ThumbnailConfig(
-    lat=47.040182144806664, lng=1.2963867187500002, zoom=5
+    lat=47.040182144806664,
+    lng=1.2963867187500002,
+    zoom=5,
 )
 _sanfrancisco_thumbnail = ThumbnailConfig(lat=37.7749, lng=-122.4194, zoom=5)
 
@@ -35,7 +37,9 @@ gallery: GallerySpecification = {
             source_type="RasterSource",
             data_source=XYZServicesRef(["OpenStreetMap", "BZH"]),
             thumbnail=ThumbnailConfig(
-                lat=47.76702233051035, lng=-3.4675598144531254, zoom=8
+                lat=47.76702233051035,
+                lng=-3.4675598144531254,
+                zoom=8,
             ),
         ),
         "CAT": LayerEntry(
