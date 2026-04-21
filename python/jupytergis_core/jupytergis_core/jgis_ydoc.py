@@ -64,7 +64,7 @@ class YJGIS(YBaseDoc):
         file_version = (
             Version(valueDict["schemaVersion"])
             if "schemaVersion" in valueDict
-            else Version("0.5.0")
+            else Version("0.6.0")
         )
         if file_version > Version(SCHEMA_VERSION):
             raise ValueError(f"Cannot load file version {file_version}")
