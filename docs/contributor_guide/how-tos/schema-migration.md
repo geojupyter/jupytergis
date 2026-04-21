@@ -74,7 +74,7 @@ import { migrate as migrateV0_6ToV0_7 } from './v0_6_to_v0_7';
 
 const STEPS: IMigrationStep[] = [
   { from: '0.5.0', to: '0.6.0', migrate: migrateV0_5ToV0_6 },
-  { from: '0.6.0', to: '0.7.0', migrate: migrateV0_6ToV0_7 },  // new
+  { from: '0.6.0', to: '0.7.0', migrate: migrateV0_6ToV0_7 }, // new
 ];
 ```
 
