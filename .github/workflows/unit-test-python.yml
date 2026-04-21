@@ -8,6 +8,7 @@ on:
     paths:
       - 'python/**'
       - 'scripts/**'
+      - 'pyproject.toml'
       - '.github/workflows/unit-test-python.yml'
 
 permissions: {}
