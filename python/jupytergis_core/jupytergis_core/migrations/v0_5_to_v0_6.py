@@ -45,9 +45,7 @@ def _vector_symbology_from_color(color_expr: Any) -> dict[str, Any]:
     if not isinstance(color_expr, dict):
         return state
 
-    fill = _to_rgba(
-        color_expr.get("fill-color") or color_expr.get("circle-fill-color")
-    )
+    fill = _to_rgba(color_expr.get("fill-color") or color_expr.get("circle-fill-color"))
     if fill is not None:
         state["fillColor"] = fill
 

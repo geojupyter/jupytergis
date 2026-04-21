@@ -9,7 +9,7 @@
 export function migrate(doc: Record<string, any>): Record<string, any> {
   const layers: Record<string, any> = { ...doc.layers };
 
-  for (const [id, layer] of Object.entries(layers) as [string, any][]) {
+  for (const [id, layer] of Object.entries(layers)) {
     const params = layer?.parameters;
     if (!params || !('color' in params)) {
       continue;
@@ -61,8 +61,7 @@ function _vectorSymbologyFromColor(
     state.strokeColor = stroke;
   }
 
-  const sw =
-    colorExpr['stroke-width'] ?? colorExpr['circle-stroke-width'];
+  const sw = colorExpr['stroke-width'] ?? colorExpr['circle-stroke-width'];
   if (typeof sw === 'number') {
     state.strokeWidth = sw;
   }

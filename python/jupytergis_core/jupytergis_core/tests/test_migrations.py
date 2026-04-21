@@ -15,11 +15,7 @@ import pytest
 from jupytergis_core.migrations import migrate
 
 FIXTURES_ROOT = (
-    Path(__file__).parents[4]
-    / "packages"
-    / "schema"
-    / "test-fixtures"
-    / "migrations"
+    Path(__file__).parents[4] / "packages" / "schema" / "test-fixtures" / "migrations"
 )
 
 VERSION_PAIRS = [

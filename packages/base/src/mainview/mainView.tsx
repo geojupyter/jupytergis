@@ -139,7 +139,6 @@ import {
   buildTransparentFallbackFilter,
   buildVectorFlatStyle,
 } from '../features/layers/symbology/styleBuilder';
-
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
