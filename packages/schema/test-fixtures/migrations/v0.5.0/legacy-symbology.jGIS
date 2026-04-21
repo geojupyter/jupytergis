@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "0.5.0",
+  "layers": {
+    "vector-fill-id": {
+      "name": "Fill Layer",
+      "type": "VectorLayer",
+      "visible": true,
+      "parameters": {
+        "source": "source-id",
+        "opacity": 1,
+        "color": {
+          "fill-color": [255, 0, 0, 1],
+          "stroke-color": [0, 0, 0, 1],
+          "stroke-width": 2
+        }
+      }
+    },
+    "vector-line-id": {
+      "name": "Line Layer",
+      "type": "VectorLayer",
+      "visible": true,
+      "parameters": {
+        "source": "source-id",
+        "opacity": 1,
+        "color": {
+          "stroke-color": [0, 0, 255, 1],
+          "stroke-width": 1.5
+        }
+      }
+    },
+    "vector-circle-id": {
+      "name": "Circle Layer",
+      "type": "VectorLayer",
+      "visible": true,
+      "parameters": {
+        "source": "source-id",
+        "opacity": 1,
+        "color": {
+          "circle-fill-color": [0, 255, 0, 1],
+          "circle-stroke-color": [0, 0, 0, 1],
+          "circle-radius": 4.5
+        }
+      }
+    },
+    "heatmap-id": {
+      "name": "Heatmap Layer",
+      "type": "HeatmapLayer",
+      "visible": true,
+      "parameters": {
+        "source": "source-id",
+        "opacity": 1,
+        "color": ["#ff0000", "#ffff00", "#00ff00"]
+      }
+    },
+    "raster-id": {
+      "name": "Raster Layer",
+      "type": "RasterLayer",
+      "visible": true,
+      "parameters": {
+        "source": "source-id",
+        "opacity": 1
+      }
+    }
+  },
+  "sources": {
+    "source-id": {
+      "name": "Source",
+      "type": "GeoJSONSource",
+      "parameters": {
+        "path": "data.geojson"
+      }
+    }
+  },
+  "layerTree": ["vector-fill-id", "vector-line-id", "vector-circle-id", "heatmap-id", "raster-id"],
+  "options": {
+    "latitude": 0,
+    "longitude": 0,
+    "zoom": 4,
+    "bearing": 0,
+    "pitch": 0,
+    "projection": "EPSG:3857"
+  },
+  "metadata": {}
+}
