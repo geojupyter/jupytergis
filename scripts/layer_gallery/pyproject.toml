@@ -40,6 +40,7 @@ select = ["ALL"]
   "ANN201",  # Require type annotation for return
   "ARG001",  # Forbid unused function arguments (e.g. test fixtures)
   "D",       # Require docstrings
+  "DTZ011",  # Forbid naive datetimes
   "S101",    # Forbid assertion statements
   "SLF001",  # Forbid private member access
 ]
