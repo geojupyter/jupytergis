@@ -35,14 +35,18 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       if (remoteUserId) {
         const remoteState = clients.get(remoteUserId);
         if (remoteState) {
-          if (remoteState.user?.username !== remoteUser?.username) {
-            setRemoteUser(remoteState.user);
-          }
+          setRemoteUser(previousUser =>
+            previousUser?.username === remoteState.user?.username
+              ? previousUser
+              : remoteState.user,
+          );
 
           setFeatures(remoteState.identifiedFeatures?.value ?? {});
         }
         return;
       }
+
+      setRemoteUser(previousUser => (previousUser ? null : previousUser));
 
       // If not following a collaborator
       const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
@@ -73,7 +77,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
         signal.disconnect(handleIdentifyFeaturesChanged),
       );
     };
-  }, [model, remoteUser]);
+  }, [model]);
 
   const highlightFeatureOnMap = (feature: any) => {
     model?.highlightFeatureSignal?.emit(feature);

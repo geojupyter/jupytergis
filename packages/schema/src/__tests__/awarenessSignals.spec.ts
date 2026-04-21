@@ -1,13 +1,16 @@
-// JupyterGISModel reads from `document` during initialization.
-// Provide a minimal DOM stub for node test environment before importing it.
-(globalThis as any).document = {
-  querySelectorAll: () => [],
-};
-
 import { JupyterGISModel } from '../model';
 
 describe('awareness field signals', () => {
   let model: JupyterGISModel;
+  const originalDocument = (globalThis as any).document;
+
+  beforeAll(() => {
+    // JupyterGISModel reads from `document` during initialization.
+    // Provide a minimal DOM stub for node test environment.
+    (globalThis as any).document = {
+      querySelectorAll: () => [],
+    };
+  });
 
   beforeEach(() => {
     model = new JupyterGISModel({});
@@ -15,6 +18,10 @@ describe('awareness field signals', () => {
 
   afterEach(() => {
     model.dispose();
+  });
+
+  afterAll(() => {
+    (globalThis as any).document = originalDocument;
   });
 
   it('emits selectedChanged when selected changes', () => {
