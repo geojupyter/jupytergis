@@ -3,9 +3,9 @@
 jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
 // SingleBandPseudoColor imports OpenLayers (ESM); only its TypeScript type is
 // used in classificationModes so mock the whole module to avoid pulling in OL.
-jest.mock('./tiff_layer/types/SingleBandPseudoColor', () => ({}));
+jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 
-import { VectorClassifications } from './classificationModes';
+import { VectorClassifications } from '../classificationModes';
 
 const {
   calculateEqualIntervalBreaks,

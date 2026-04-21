@@ -5,10 +5,10 @@ jest.mock('ol/style/flat', () => ({}));
 jest.mock('@jupytergis/schema', () => ({}));
 // Transitive deps of classificationModes and colorRampUtils.
 jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
-jest.mock('./tiff_layer/types/SingleBandPseudoColor', () => ({}));
+jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 jest.mock('@/src/tools', () => ({ objectEntries: Object.entries }));
 
-import { buildVectorFlatStyle, SymbologyState } from './styleBuilder';
+import { buildVectorFlatStyle, SymbologyState } from '../styleBuilder';
 
 // The graduated fill-color expression has the shape:
 //   ['case', ['has', field], ['interpolate', ['linear'], ['get', field], v0, c0, v1, c1, …], fallback]
