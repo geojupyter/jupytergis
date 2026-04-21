@@ -38,10 +38,15 @@ jobs:
         shell: bash -l {0}
         run: pip install --group test
 
-      - name: Run tests
+      - name: Run QGIS tests
         shell: bash -l {0}
         run: pytest --color=yes -v python/jupytergis_qgis/jupytergis_qgis/tests
 
       - name: Run Python API tests
         shell: bash -l {0}
         run: pytest --color=yes -v python/jupytergis_lab/
+
+      - name: Run layer gallery generator tests
+        working-directory: ./scripts/layer_gallery
+        shell: bash -l {0}
+        run: uv run pytest --color=yes -v

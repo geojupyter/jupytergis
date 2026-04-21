@@ -153,3 +153,5 @@ packages/schema/src/processing/_generated/*
 
 # Local example files
 examples/local_examples/*
+
+packages/base/_generated/
