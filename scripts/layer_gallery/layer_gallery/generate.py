@@ -102,7 +102,7 @@ def _layer_parameters(entry: LayerEntry) -> dict[str, Any]:
 
 def _write_gallery_json(data: dict[str, Any]) -> None:
     GALLERY_JSON_PATH.parent.mkdir(exist_ok=True)
-    with open(GALLERY_JSON_PATH, "w") as f:
+    with GALLERY_JSON_PATH.open("w") as f:
         json.dump(data, f, indent=2)
     print(f"Generated {GALLERY_JSON_PATH}")
 
