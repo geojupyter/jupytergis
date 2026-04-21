@@ -121,7 +121,8 @@ class TestBuildGalleryEntry:
             },
         },
     )
-    def test_build_gallery_entry_tile_provider(self, gallery_dirs: GalleryDirs) -> None:
+    @pytest.mark.usefixtures("gallery_dirs")
+    def test_build_gallery_entry_tile_provider(self) -> None:
         actual = _build_gallery_entry(make_raster_entry())
 
         assert actual == {
@@ -140,7 +141,8 @@ class TestBuildGalleryEntry:
             "description": "Esri",
         }
 
-    def test_build_gallery_entry_geojson(self, gallery_dirs: GalleryDirs) -> None:
+    @pytest.mark.usefixtures("gallery_dirs")
+    def test_build_gallery_entry_geojson(self) -> None:
         actual = _build_gallery_entry(make_geojson_entry())
 
         assert actual == {
@@ -159,10 +161,8 @@ class TestBuildGalleryEntry:
             "description": "Example",
         }
 
-    def test_build_gallery_entry_vector_tile_default_layer_params(
-        self,
-        gallery_dirs: GalleryDirs,
-    ) -> None:
+    @pytest.mark.usefixtures("gallery_dirs")
+    def test_build_gallery_entry_vector_tile_default_layer_params(self) -> None:
         actual = _build_gallery_entry(
             LayerEntry(
                 name="MacroStrat.CartoVector",
