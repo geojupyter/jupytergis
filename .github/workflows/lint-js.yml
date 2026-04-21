@@ -7,8 +7,15 @@ on:
     branches: '*'
     paths:
       - 'packages/**'
+      - 'docs/**'
       - 'package.json'
       - 'yarn.lock'
+      - '.eslintrc.js'
+      - '.eslintignore'
+      - '.prettierrc'
+      - '.prettierignore'
+      - 'tsconfigbase.json'
+      - 'tsconfig.eslint.json'
       - '.github/workflows/lint-js.yml'
 
 permissions: {}
