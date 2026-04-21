@@ -42,7 +42,8 @@ def build_url_parameters(tile_provider: TileProvider) -> dict[str, Any]:
     for name in placeholders - reserved:
         if name not in tile_provider or tile_provider[name] is None:
             raise KeyError(
-                f"Placeholder '{name}' not found in TileProvider '{tile_provider.get('name')}'",
+                f"Placeholder '{name}' not found in TileProvider"
+                f" '{tile_provider.get('name')}'",
             )
 
         kwargs[name] = tile_provider[name]

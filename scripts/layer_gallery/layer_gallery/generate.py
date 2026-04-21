@@ -9,7 +9,7 @@ python generate.py
 
 python generate.py --thumbnails
     Thumbnail mode, run manually by developers when adding or updating gallery entries.
-    Fetches tiles for entries that lack a thumbnail and saves 256×256 PNGs to
+    Fetches tiles for entries that lack a thumbnail and saves 256*256 PNGs to
     packages/base/layer_gallery_thumbnails/. GeoJSON entries are skipped (create their
     thumbnails manually). Reports any orphaned images. Writes layer_gallery.json at the
     end even if GeoJSON thumbnails are still missing, so developers can inspect the
@@ -80,12 +80,11 @@ def _find_orphan_images() -> list[Path]:
         for layers in gallery.values()
         for entry in layers.values()
     }
-    orphans = [
+    return [
         f
         for f in sorted(THUMBNAILS_DIR.iterdir())
         if f.suffix.lower() in IMAGE_EXTENSIONS and f not in expected
     ]
-    return orphans
 
 
 def _layer_parameters(entry: LayerEntry) -> dict[str, Any]:
