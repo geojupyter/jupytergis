@@ -34,6 +34,15 @@ src = ["."]
 [tool.ruff.lint]
 select = ["ALL"]
 
+[tool.ruff.lint.per-file-ignores]
+"{tests/**/*.py}" = [
+  "ANN001",  # Require type annotations for args (e.g. test fixtures)
+  "ANN201",  # Require type annotation for return
+  "ARG001",  # Forbid unused function arguments (e.g. test fixtures)
+  "S101",    # Forbid assertion statements
+  "SLF001",  # Forbid private member access
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
