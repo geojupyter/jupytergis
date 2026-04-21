@@ -1,8 +1,6 @@
-[build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling>=1.5.0,<2", "tomlkit>=0.13.2,<0.14"]
-
 [project]
+name = "jupytergis"
+description = "Collaborative GIS extension for JupyterLab"
 classifiers = [
   "Framework :: Jupyter",
   "Framework :: Jupyter :: JupyterLab",
@@ -19,6 +17,10 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
+dynamic = ["version"]
+license = {file = "LICENSE"}
+readme = "README.md"
+requires-python = ">=3.10"
 dependencies = [
   "jupytergis_core==0.15.0",
   "jupytergis_lab==0.15.0",
@@ -29,12 +31,6 @@ dependencies = [
   "jupyter-collaboration-ui>=2,<3",
   "jupyterlab>=4.5.1",
 ]
-description = "Collaborative GIS extension for JupyterLab"
-dynamic = ["version"]
-license = {file = "LICENSE"}
-name = "jupytergis"
-readme = "README.md"
-requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "https://github.com/geojupyter/jupytergis"
@@ -42,6 +38,9 @@ Documentation = "https://jupytergis.readthedocs.io"
 Repository = "https://github.com/geojupyter/jupytergis.git"
 Issues = "https://github.com/geojupyter/jupytergis/issues"
 
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling>=1.5.0,<2", "tomlkit>=0.13.2,<0.14"]
 
 [tool.hatch.version]
 path = "jupytergis/__init__.py"
