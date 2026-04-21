@@ -53,7 +53,7 @@ import {
   IWebGlLayer,
   Modes,
 } from './types';
-export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
