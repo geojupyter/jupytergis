@@ -34,6 +34,8 @@ src = ["."]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    "D203",    # Require blank line before class docstring
+    "D213",    # Require multi-line docstrings to start on the line after opening triple-quotes
     "DTZ011",  # Forbid naive datetimes
     "EM101",   # Forbid string literals in exception messages
     "EM102",   # Forbid f-strings in exception messages
