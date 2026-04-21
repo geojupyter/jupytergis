@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 
 import requests
+from jupytergis_core.colors import try_hex_to_rgba
 from jupytergis_core.schema import (
     IGeoJSONSource,
     IGeoPackageRasterSource,
@@ -48,36 +49,14 @@ def reversed_tree(root):
     return root
 
 
-def _parse_hex_color(hex_str: str) -> Optional[List[float]]:
-    """Parse a CSS hex color (#rgb, #rrggbb, #rrggbbaa) into an [r, g, b, a] list
-    with r/g/b in 0-255 and a in 0-1. Returns None if the string is not a valid
-    hex color.
-    """
-    if not isinstance(hex_str, str):
-        return None
-    s = hex_str.lstrip("#")
-    try:
-        if len(s) == 3:
-            r, g, b = (int(c * 2, 16) for c in s)
-            return [r, g, b, 1.0]
-        if len(s) == 6:
-            r, g, b = (int(s[i : i + 2], 16) for i in (0, 2, 4))
-            return [r, g, b, 1.0]
-        if len(s) == 8:
-            r, g, b, a = (int(s[i : i + 2], 16) for i in (0, 2, 4, 6))
-            return [r, g, b, a / 255]
-    except ValueError:
-        return None
-    return None
-
-
 def _color_to_rgba(value: Any) -> Optional[List[float]]:
     """Coerce an OL-flavored color value (hex string or [r, g, b, a] array)
-    into an [r, g, b, a] list. Returns None if `value` is an OL expression
-    (e.g. ["interpolate", ...]) or otherwise unparseable.
+    into an ``[r, g, b, a]`` list. Returns ``None`` if ``value`` is an OL
+    expression (e.g. ``["interpolate", ...]``) or otherwise unparseable.
     """
     if isinstance(value, str):
-        return _parse_hex_color(value)
+        rgba = try_hex_to_rgba(value)
+        return list(rgba) if rgba else None
     if (
         isinstance(value, (list, tuple))
         and value
@@ -88,20 +67,20 @@ def _color_to_rgba(value: Any) -> Optional[List[float]]:
     return None
 
 
+# NOTE: Kept intentionally minimal and aligned with the frontend migration in
+# ``symbologyMigration.ts`` — the only mandatory field is ``renderType``. Other
+# defaults (``method``, ``colorRamp``, ``nClasses``, ``mode``) live in the
+# schema (``packages/schema/src/schema/project/layers/vectorLayer.json``) and
+# are applied by the schema consumer on the frontend. Duplicating them here
+# would create a drift risk if the schema defaults ever change.
 def _vector_symbology_state_from_color_expr(color_expr: Any) -> Dict[str, Any]:
     """Translate a legacy ``color_expr`` dict (OpenLayers FlatStyle keys such as
     ``fill-color``, ``stroke-color``, ``circle-radius``) into a ``symbologyState``
-    dict that matches the current schema. Expression values that aren't solid
-    colors are ignored — those require richer Single Symbol configuration that
-    the Python API doesn't yet surface.
+    dict that satisfies the schema. Expression values that aren't solid colors
+    are ignored — those require richer Single Symbol configuration that the
+    Python API doesn't yet surface.
     """
-    state: Dict[str, Any] = {
-        "renderType": "Single Symbol",
-        "method": "color",
-        "colorRamp": "viridis",
-        "nClasses": 9,
-        "mode": "equal interval",
-    }
+    state: Dict[str, Any] = {"renderType": "Single Symbol"}
 
     if not isinstance(color_expr, dict):
         return state

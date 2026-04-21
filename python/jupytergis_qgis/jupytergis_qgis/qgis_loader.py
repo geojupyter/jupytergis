@@ -10,6 +10,7 @@ from urllib.parse import unquote
 from uuid import uuid4
 
 from jupytergis_core.color_ramps import sample_colors
+from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
@@ -59,27 +60,6 @@ qgs.initQgis()
 @atexit.register
 def closeQgis():
     qgs.exitQgis()
-
-
-def rgb_to_hex(rgb_str):
-    """Converts an RGB string (comma-separated) to a hex color code."""
-    rgb_values = rgb_str.split(",")[:3]
-    r, g, b = [int(val) for val in rgb_values]
-    return f"#{r:02x}{g:02x}{b:02x}"
-
-
-def hex_to_rgba(hex_color):
-    """Convert a hex color to an RGBA tuple with alpha normalized to 0-1."""
-    hex_color = hex_color.lstrip("#")
-    if len(hex_color) == 6:
-        r, g, b = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
-        a = 255
-    elif len(hex_color) == 8:
-        r, g, b, a = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4, 6))
-    else:
-        raise ValueError(f"Invalid hex color: {hex_color}")
-
-    return r, g, b, a / 255
 
 
 def qgis_layer_to_jgis(
