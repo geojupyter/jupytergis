@@ -253,14 +253,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
   >;
-  /**
-   * @deprecated Prefer field-specific awareness signals such as
-   * `selectedChanged`, `pointerChanged`, and `identifiedFeaturesChanged`.
-   */
-  clientStateChanged: ISignal<
-    IJupyterGISModel,
-    Map<number, IJupyterGISClientState>
-  >;
   selectedChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['selected']>
