@@ -10,9 +10,6 @@ from layer_gallery.models import (
     XYZServicesRef,
 )
 
-# ---------------------------------------------------------------------------
-# Reusable thumbnail positions
-# ---------------------------------------------------------------------------
 _france_thumbnail = ThumbnailConfig(
     lat=47.040182144806664,
     lng=1.2963867187500002,
@@ -20,11 +17,7 @@ _france_thumbnail = ThumbnailConfig(
 )
 _sanfrancisco_thumbnail = ThumbnailConfig(lat=37.7749, lng=-122.4194, zoom=5)
 
-# ---------------------------------------------------------------------------
-# Gallery
-# ---------------------------------------------------------------------------
 gallery: GallerySpecification = {
-    # -----------------------------------------------------------------------
     "OpenStreetMap": {
         "Mapnik": LayerEntry(
             name="OpenStreetMap.Mapnik",
@@ -80,11 +73,7 @@ gallery: GallerySpecification = {
             thumbnail=_france_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
-    # NASAGIBS entries use TileProvider directly — URLs have changed across
-    # xyzservices versions. Set time="" to have the generator substitute
-    # yesterday's date at build time.
-    # -----------------------------------------------------------------------
+    # NOTE: `time=""` tells the generator to substitute yesterday's date at build time.
     "NASAGIBS": {
         "ModisTerraTrueColorCR": LayerEntry(
             name="NASAGIBS.ModisTerraTrueColorCR",
@@ -205,7 +194,6 @@ gallery: GallerySpecification = {
             ),
             thumbnail=_france_thumbnail,
         ),
-        # GIBS direct-URL entries (no {variant}/{tilematrixset}/{format} — just {time})
         "ModisTerraBands721CR": LayerEntry(
             name="NASAGIBS.ModisTerraBands721CR",
             layer_type="RasterLayer",
@@ -271,7 +259,6 @@ gallery: GallerySpecification = {
             thumbnail=_france_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
     "WaymarkedTrails": {
         "hiking": LayerEntry(
             name="WaymarkedTrails.hiking",
@@ -316,7 +303,6 @@ gallery: GallerySpecification = {
             thumbnail=_france_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
     "USGS": {
         "USTopo": LayerEntry(
             name="USGS.USTopo",
@@ -340,8 +326,6 @@ gallery: GallerySpecification = {
             thumbnail=_sanfrancisco_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
-    # Gaode URLs are used directly — the xyzservices entry may vary by version
     "Gaode": {
         "Normal": LayerEntry(
             name="Gaode.Normal",
@@ -368,8 +352,6 @@ gallery: GallerySpecification = {
             thumbnail=_sanfrancisco_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
-    # Strava URLs are used directly — xyzservices entry requires auth tokens
     "Strava": {
         "All": LayerEntry(
             name="Strava.All",
@@ -432,7 +414,6 @@ gallery: GallerySpecification = {
             thumbnail=_france_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
     "Esri": {
         "WorldStreetMap": LayerEntry(
             name="Esri.WorldStreetMap",
@@ -497,7 +478,7 @@ gallery: GallerySpecification = {
             data_source=XYZServicesRef(["Esri", "WorldGrayCanvas"]),
             thumbnail=_sanfrancisco_thumbnail,
         ),
-        # Not yet in xyzservices — use TileProvider directly
+        # Not (yet) in xyzservices  # noqa: ERA001
         "WorldDarkGrayCanvas": LayerEntry(
             name="Esri.WorldDarkGrayCanvas",
             layer_type="RasterLayer",
@@ -512,7 +493,6 @@ gallery: GallerySpecification = {
             thumbnail=_sanfrancisco_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
     "MacroStrat": {
         "CartoRaster": LayerEntry(
             name="MacroStrat.CartoRaster",
@@ -554,10 +534,7 @@ gallery: GallerySpecification = {
             thumbnail=_france_thumbnail,
         ),
     },
-    # -----------------------------------------------------------------------
-    # NaturalEarth: GeoJSON vector overlays + raster tiles
-    #   IMPORTANT: GeoJSON entries have manually-created thumbnails.
-    # -----------------------------------------------------------------------
+    # NOTE: GeoJSON entries have manually-created thumbnails.
     "NaturalEarth": {
         "Coastlines110m": LayerEntry(
             name="NaturalEarth.Coastlines110m",
@@ -680,7 +657,6 @@ gallery: GallerySpecification = {
             description="Natural Earth 50m rivers and lake centerlines — transparent vector overlay, no API key required",
         ),
     },
-    # -----------------------------------------------------------------------
     "Other": {
         "OPNVKarte": LayerEntry(
             name="OPNVKarte",
