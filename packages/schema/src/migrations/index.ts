@@ -6,16 +6,16 @@
  * order and form a contiguous chain.
  */
 
-import { SCHEMA_VERSION } from '../_interface/version';
 import { migrate as migrateV0_5ToV0_6 } from './v0_5_to_v0_6';
+import { SCHEMA_VERSION } from '../_interface/version';
 
-interface MigrationStep {
+interface IMigrationStep {
   from: string;
   to: string;
   migrate: (doc: Record<string, any>) => Record<string, any>;
 }
 
-const STEPS: MigrationStep[] = [
+const STEPS: IMigrationStep[] = [
   { from: '0.5.0', to: '0.6.0', migrate: migrateV0_5ToV0_6 },
 ];
 
