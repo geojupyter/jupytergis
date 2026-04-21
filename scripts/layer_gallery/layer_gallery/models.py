@@ -5,9 +5,7 @@ from functools import reduce
 from typing import Any, Literal, TypeAlias
 
 from pydantic import BaseModel, RootModel
-from xyzservices import (
-    TileProvider as TileProvider,
-)
+from xyzservices import TileProvider
 from xyzservices import (
     providers as xyzcatalog,
 )
