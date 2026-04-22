@@ -18,7 +18,7 @@ import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import LAYER_GALLERY from '@/layer_gallery.json';
+import LAYER_GALLERY from '@/_generated/layer_gallery.json';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
 import { getGdal } from './gdal';
 
@@ -169,7 +169,7 @@ export function createDefaultLayerRegistry(
   };
 
   const context = require.context(
-    '../layer_gallery',
+    '../layer_gallery_thumbnails',
     false,
     /\.(png|jpe?g|gif|svg)$/,
   );
@@ -660,6 +660,10 @@ export const loadFile = async (fileInfo: {
   model: IJupyterGISModel;
 }) => {
   const { filepath, type, model } = fileInfo;
+
+  if (!filepath) {
+    return;
+  }
 
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {

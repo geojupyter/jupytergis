@@ -3,9 +3,9 @@ from functools import partial
 from typing import Any, Callable
 
 from jupyter_ydoc.ybasedoc import YBaseDoc
-from packaging.version import Version
 from pycrdt import Array, Map
 
+from .migrations import migrate
 from .schema import SCHEMA_VERSION
 
 
@@ -58,16 +58,7 @@ class YJGIS(YBaseDoc):
         :param value: The content of the document.
         :type value: Any
         """
-        valueDict = json.loads(value)
-
-        # Assuming file version 0.5.0 if the version is not specified
-        file_version = (
-            Version(valueDict["schemaVersion"])
-            if "schemaVersion" in valueDict
-            else Version("0.5.0")
-        )
-        if file_version > Version(SCHEMA_VERSION):
-            raise ValueError(f"Cannot load file version {file_version}")
+        valueDict = migrate(json.loads(value))
 
         with self._ydoc.transaction():
             self._ylayers.clear()

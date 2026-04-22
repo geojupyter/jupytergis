@@ -12,6 +12,7 @@ import {
   rasterIcon,
   vectorSquareIcon,
   markerIcon,
+  pencilSolidIcon,
 } from './shared/icons';
 
 /**
@@ -61,6 +62,7 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.toggleStoryPresentationMode]: {
     iconClass: 'fa fa-book jgis-icon-adjust',

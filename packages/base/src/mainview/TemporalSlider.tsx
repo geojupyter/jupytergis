@@ -25,7 +25,6 @@ import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetPr
 interface ITemporalSliderProps {
   model: IJupyterGISModel;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  style?: React.CSSProperties;
 }
 
 // List of common date formats to try
@@ -57,7 +56,6 @@ const stepMap = {
 const TemporalSlider: React.FC<ITemporalSliderProps> = ({
   model,
   filterStates,
-  style,
 }) => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
@@ -114,7 +112,9 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
         Object.keys(newValue).length === 0 ||
         newValue.type !== oldValue.type
       ) {
-        model.toggleTemporalController();
+        if (model.isTemporalControllerActive) {
+          model.toggleTemporalController();
+        }
       }
     };
 
@@ -356,7 +356,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
   };
 
   return (
-    <div className="jp-gis-temporal-slider-container" style={style}>
+    <div className="jp-gis-temporal-slider-container">
       <div className="jp-gis-temporal-slider-row">
         {/* Feature select */}
         <div>
