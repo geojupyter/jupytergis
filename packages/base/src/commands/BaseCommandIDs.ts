@@ -64,6 +64,9 @@ export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 
+// Processing
+export const toggleServerProcessing = 'jupytergis:toggleServerProcessing';
+
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const toggleStoryPresentationMode =

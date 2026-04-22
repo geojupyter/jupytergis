@@ -13,6 +13,10 @@ import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
 import { processingFormToParam } from './processingFormToParam';
+import {
+  isServerProcessingEnabled,
+  runServerProcessing,
+} from './serverProcessing';
 import { getGdal } from '../../gdal';
 import { getGeoJSONDataFromLayerSource } from '../../tools';
 import { JupyterGISTracker } from '../../types';
@@ -227,24 +231,39 @@ export async function executeSQLProcessing(
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,
 ) {
-  const geoFile = new File(
-    [new Blob([geojsonString], { type: 'application/geo+json' })],
-    'data.geojson',
-    { type: 'application/geo+json' },
-  );
+  let processedGeoJSONString: string;
 
-  const Gdal = await getGdal();
-  const result = await Gdal.open(geoFile);
+  if (isServerProcessingEnabled()) {
+    // Server-side GDAL via subprocess
+    const outputName = 'output.geojson';
+    const response = await runServerProcessing({
+      operation: gdalFunction,
+      options,
+      geojson: geojsonString,
+      outputName,
+    });
+    processedGeoJSONString = response.result;
+  } else {
+    // Client-side GDAL via WASM
+    const geoFile = new File(
+      [new Blob([geojsonString], { type: 'application/geo+json' })],
+      'data.geojson',
+      { type: 'application/geo+json' },
+    );
 
-  if (result.datasets.length === 0) {
-    return;
+    const Gdal = await getGdal();
+    const result = await Gdal.open(geoFile);
+
+    if (result.datasets.length === 0) {
+      return;
+    }
+
+    const dataset = result.datasets[0] as any;
+    const outputFilePath = await Gdal[gdalFunction](dataset, options);
+    const processedBytes = await Gdal.getFileBytes(outputFilePath);
+    processedGeoJSONString = new TextDecoder().decode(processedBytes);
+    Gdal.close(dataset);
   }
-
-  const dataset = result.datasets[0] as any;
-  const outputFilePath = await Gdal[gdalFunction](dataset, options);
-  const processedBytes = await Gdal.getFileBytes(outputFilePath);
-  const processedGeoJSONString = new TextDecoder().decode(processedBytes);
-  Gdal.close(dataset);
 
   const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
 

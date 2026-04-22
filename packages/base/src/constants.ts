@@ -67,6 +67,7 @@ const iconObject = {
   },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.toggleServerProcessing]: { iconClass: 'fa fa-server' },
 };
 
 /**

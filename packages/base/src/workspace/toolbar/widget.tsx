@@ -199,6 +199,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
+      const serverProcessingButton = new CommandToolbarButton({
+        id: CommandIDs.toggleServerProcessing,
+        commands: options.commands,
+        label: '',
+      });
+      this.addItem('serverProcessing', serverProcessingButton);
+      serverProcessingButton.node.dataset.testid =
+        'server-processing-toggle-button';
+
       const spacer = ReactiveToolbar.createSpacerItem();
       spacer.node.tabIndex = -1;
       this.addItem('spacer', spacer);
