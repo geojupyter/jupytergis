@@ -44,6 +44,7 @@ import {
   IJupyterGISSettings,
   SelectionType,
 } from './interfaces';
+import { migrateDocument } from './migrations';
 import jgisSchema from './schema/project/jgis.json';
 import { IViewState, Modes } from './types';
 
@@ -330,7 +331,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   fromString(data: string): void {
-    const jsonData: IJGISContent = JSON.parse(data);
+    const jsonData: IJGISContent = migrateDocument(
+      JSON.parse(data),
+    ) as IJGISContent;
     const ajv = new Ajv();
     const validate = ajv.compile(jgisSchema);
     const valid = validate(jsonData);

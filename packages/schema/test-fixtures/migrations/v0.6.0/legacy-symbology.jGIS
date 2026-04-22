@@ -1,0 +1,128 @@
+{
+  "layerTree": [
+    "vector-fill-id",
+    "vector-line-id",
+    "vector-circle-id",
+    "heatmap-id",
+    "raster-id"
+  ],
+  "layers": {
+    "heatmap-id": {
+      "name": "Heatmap Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id",
+        "symbologyState": {
+          "gradient": [
+            "#ff0000",
+            "#ffff00",
+            "#00ff00"
+          ],
+          "renderType": "Heatmap"
+        }
+      },
+      "type": "HeatmapLayer",
+      "visible": true
+    },
+    "raster-id": {
+      "name": "Raster Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "vector-circle-id": {
+      "name": "Circle Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id",
+        "symbologyState": {
+          "fillColor": [
+            0.0,
+            255.0,
+            0.0,
+            1.0
+          ],
+          "geometryType": "circle",
+          "radius": 4.5,
+          "renderType": "Single Symbol",
+          "strokeColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "vector-fill-id": {
+      "name": "Fill Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id",
+        "symbologyState": {
+          "fillColor": [
+            255.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "geometryType": "fill",
+          "renderType": "Single Symbol",
+          "strokeColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "strokeWidth": 2.0
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "vector-line-id": {
+      "name": "Line Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id",
+        "symbologyState": {
+          "geometryType": "line",
+          "renderType": "Single Symbol",
+          "strokeColor": [
+            0.0,
+            0.0,
+            255.0,
+            1.0
+          ],
+          "strokeWidth": 1.5
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "pitch": 0,
+    "projection": "EPSG:3857",
+    "zoom": 4
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "source-id": {
+      "name": "Source",
+      "parameters": {
+        "path": "data.geojson"
+      },
+      "type": "GeoJSONSource"
+    }
+  }
+}

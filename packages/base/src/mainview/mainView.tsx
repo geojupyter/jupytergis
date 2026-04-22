@@ -139,7 +139,6 @@ import {
   buildTransparentFallbackFilter,
   buildVectorFlatStyle,
 } from '../features/layers/symbology/styleBuilder';
-import { migrateLegacyLayerSymbology } from '../features/layers/symbology/symbologyMigration';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
@@ -1448,9 +1447,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'HeatmapLayer': {
-        // Migrate legacy `parameters.color` into `symbologyState.gradient`
-        // before instantiating the OL HeatmapLayer.
-        migrateLegacyLayerSymbology(layer);
         layerParameters = layer.parameters as IHeatmapLayer;
 
         newMapLayer = new HeatmapLayer({
@@ -1606,10 +1602,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!layerParams) {
       return;
     }
-
-    // Migrate any legacy `parameters.color` into `symbologyState` in place.
-    // After this call, the FlatStyle is derived purely from symbologyState.
-    migrateLegacyLayerSymbology(layer);
 
     // Extract feature values for the symbology attribute field if the source
     // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
@@ -1774,9 +1766,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'HeatmapLayer': {
-        // Migrate legacy `parameters.color` into `symbologyState.gradient`
-        // before reading from symbologyState.
-        migrateLegacyLayerSymbology(layer);
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
