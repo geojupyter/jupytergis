@@ -280,6 +280,7 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         color_expr=None,
+        vega_expr: str | None = None,
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
@@ -319,6 +320,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
+                "vega": vega_expr,
                 "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
@@ -659,6 +661,7 @@ class GISDocument(CommWidget):
         operator: str | None = None,
         value: str | int | float | None = None,
         color_expr=None,
+        vega_expr: str | None = None,
     ):
         """
         Add a GeoParquet Layer to the document
@@ -671,6 +674,7 @@ class GISDocument(CommWidget):
         :param operator: The operator used to compare the feature and value
         :param value: The value to be filtered on
         :param color_expr: The style expression used to style the layer
+        :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
         """
 
         source = {
@@ -688,6 +692,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
+                "vega": vega_expr,
                 "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
@@ -712,6 +717,7 @@ class GISDocument(CommWidget):
         operator: str | None = None,
         value: Union[str, int, float] | None = None,
         color_expr=None,
+        vega_expr: str | None = None,
     ):
         """
         Add a GeoPackage Vector Layer to the document
@@ -726,6 +732,7 @@ class GISDocument(CommWidget):
         :param operator: The operator used to compare the feature and value
         :param value: The value to be filtered on
         :param color_expr: The style expression used to style the layer
+        :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
         """
 
         if isinstance(table_names, str):
@@ -764,6 +771,7 @@ class GISDocument(CommWidget):
                     "source": source_id,
                     "type": type,
                     "opacity": opacity,
+                    "vega": vega_expr,
                     "symbologyState": _vector_symbology_state_from_color_expr(
                         color_expr
                     ),
