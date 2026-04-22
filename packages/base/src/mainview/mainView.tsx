@@ -422,11 +422,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
-    this._model.sharedModel.awareness.off(
-      'change',
-      this._onSelectedLayerChange,
-    );
-
     this._mainViewModel.dispose();
   }
 
@@ -631,13 +626,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
-
-      // Track changes of selected layers and rebind edit interactions when
-      // the user switches the currently selected draw-vector layer.
-      this._model.sharedModel.awareness.on(
-        'change',
-        this._onSelectedLayerChange,
-      );
     }
   }
 
@@ -2238,21 +2226,63 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const selectedLayerID = Object.keys(selectedLayers)[0];
-    const JGISLayer = this._model.getLayer(selectedLayerID);
-    this._handleDrawVectorLayerSelectionChanged(JGISLayer);
+    const selectedLayerId = Object.keys(selectedLayers)[0];
+    const JGISLayer = this._model.getLayer(selectedLayerId);
+    if (!JGISLayer) {
+      return;
+    }
+
+    this._syncVectorDrawingFromSelection(JGISLayer, selectedLayerId);
   };
 
-  /* check if the currently selected layer is a drawVector layer
-  and update isDrawVectorLayer to remove the display of the 
-  geometry selection overlay if required */
-  private _handleDrawVectorLayerSelectionChanged(
-    layer: IJGISLayer | undefined,
-  ): void {
-    if (layer && !this._model.checkIfIsADrawVectorLayer(layer)) {
+  private _syncVectorDrawingFromSelection = (
+    layer: IJGISLayer,
+    selectedLayerId: string,
+  ): void => {
+    const decision = this._getVectorDrawingSelectionDecision(
+      layer,
+      selectedLayerId,
+    );
+    if (decision.disableEditing) {
       this._model.editingVectorLayer = false;
       this._updateEditingVectorLayer();
+      return;
     }
+    if (!decision.shouldRebind) {
+      return;
+    }
+
+    this._previousDrawLayerID = selectedLayerId;
+    this._currentDrawLayerID = selectedLayerId;
+    this._editVectorLayer();
+  };
+
+  /**
+   * Decide how selection changes should affect vector drawing state.
+   *
+   * This helper only computes whether
+   * draw mode must be disabled (non-draw layer selected) and whether draw
+   * interactions should be rebound (draw mode enabled and selected draw layer
+   * changed).
+   */
+  private _getVectorDrawingSelectionDecision(
+    layer: IJGISLayer,
+    selectedLayerId: string,
+  ): { disableEditing: boolean; shouldRebind: boolean } {
+    const isDrawVectorLayer = this._model.checkIfIsADrawVectorLayer(layer);
+    if (!isDrawVectorLayer) {
+      return { disableEditing: true, shouldRebind: false };
+    }
+
+    if (!this._model.editingVectorLayer) {
+      return { disableEditing: false, shouldRebind: false };
+    }
+
+    if (selectedLayerId === this._previousDrawLayerID) {
+      return { disableEditing: false, shouldRebind: false };
+    }
+
+    return { disableEditing: false, shouldRebind: true };
   }
 
   private _handleTemporalControllerActiveChanged(): void {
@@ -2283,20 +2313,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._mainViewModel.commands.notifyCommandChanged(
         CommandIDs.temporalController,
       );
-    }
-
-    /* check if the currently selected layer is a drawVector layer
-    and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
-    // const selectedLayers = localState?.selected?.value;
-    if (!selectedLayers) {
-      return;
-    }
-
-    const selectedLayerID = Object.keys(selectedLayers)[0];
-    const JGISLayer = this._model.getLayer(selectedLayerID);
-    if (JGISLayer && !this._model.checkIfIsADrawVectorLayer(JGISLayer)) {
-      this._model.editingVectorLayer = false;
-      this._updateEditingVectorLayer();
     }
   }
 
@@ -3348,8 +3364,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _updateEditingVectorLayer() {
     const editingVectorLayer: boolean = this._model.editingVectorLayer;
     this.setState(old => ({ ...old, editingVectorLayer }));
+
+    if (editingVectorLayer === true) {
+      this._editVectorLayer();
+    }
+
     if (editingVectorLayer === false && this._draw) {
       this._removeDrawInteraction();
+      this._currentDrawLayerID = undefined;
     }
   }
 
@@ -3525,33 +3547,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _removeModifyInteraction = () => {
     this._modify.setActive(false);
     this._Map.removeInteraction(this._modify);
-  };
-
-  private _onSelectedLayerChange = () => {
-    const selectedLayers =
-      this._model.sharedModel.awareness.getLocalState()?.selected?.value;
-
-    const selectedLayerId = selectedLayers
-      ? Object.keys(selectedLayers)[0]
-      : undefined;
-
-    if (!selectedLayerId || selectedLayerId === this._previousDrawLayerID) {
-      return;
-    }
-
-    const selectedLayer = this._model.getLayer(selectedLayerId);
-
-    if (!selectedLayer) {
-      return;
-    }
-
-    if (!this._model.checkIfIsADrawVectorLayer(selectedLayer)) {
-      return;
-    }
-
-    this._previousDrawLayerID = selectedLayerId;
-    this._currentDrawLayerID = selectedLayerId;
-    this._editVectorLayer();
   };
 
   render(): JSX.Element {
