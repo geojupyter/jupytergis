@@ -116,11 +116,12 @@ class TestBuildGalleryEntry:
                     attribution="Esri",
                     max_zoom=16,
                     variant="Canvas/World_Light_Gray_Base",
-                )
-            }
+                ),
+            },
         },
     )
-    def test_build_gallery_entry_tile_provider(self, gallery_dirs: GalleryDirs) -> None:
+    @pytest.mark.usefixtures("gallery_dirs")
+    def test_build_gallery_entry_tile_provider(self) -> None:
         actual = _build_gallery_entry(make_raster_entry())
 
         assert actual == {
@@ -139,7 +140,8 @@ class TestBuildGalleryEntry:
             "description": "Esri",
         }
 
-    def test_build_gallery_entry_geojson(self, gallery_dirs: GalleryDirs) -> None:
+    @pytest.mark.usefixtures("gallery_dirs")
+    def test_build_gallery_entry_geojson(self) -> None:
         actual = _build_gallery_entry(make_geojson_entry())
 
         assert actual == {
@@ -158,10 +160,8 @@ class TestBuildGalleryEntry:
             "description": "Example",
         }
 
-    def test_build_gallery_entry_vector_tile_default_layer_params(
-        self,
-        gallery_dirs: GalleryDirs,
-    ) -> None:
+    @pytest.mark.usefixtures("gallery_dirs")
+    def test_build_gallery_entry_vector_tile_default_layer_params(self) -> None:
         actual = _build_gallery_entry(
             LayerEntry(
                 name="MacroStrat.CartoVector",
@@ -174,7 +174,7 @@ class TestBuildGalleryEntry:
                     max_zoom=18,
                 ),
                 thumbnail=ThumbnailConfig(lat=47.04, lng=1.30, zoom=5),
-            )
+            ),
         )
         assert actual["layerParameters"] == {
             "opacity": 1,
@@ -193,8 +193,8 @@ class TestRun:
                     attribution="Esri",
                     max_zoom=16,
                     variant="test",
-                )
-            }
+                ),
+            },
         },
     )
     @mock.patch(
@@ -234,8 +234,8 @@ class TestRun:
                     url="https://example.com/{z}/{x}/{y}.png",
                     attribution="Esri",
                     max_zoom=16,
-                )
-            }
+                ),
+            },
         },
     )
     @mock.patch(

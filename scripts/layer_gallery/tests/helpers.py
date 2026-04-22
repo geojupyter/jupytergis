@@ -12,6 +12,7 @@ from xyzservices import TileProvider
 
 
 def make_raster_entry(
+    *,
     name: str = "Esri.WorldGrayCanvas",
     use_xyz: bool = True,
 ) -> LayerEntry:
