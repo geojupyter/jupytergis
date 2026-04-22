@@ -18,11 +18,12 @@ python generate.py --thumbnails
 
 import argparse
 import json
-import oxipng
 import sys
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
+
+import oxipng
 
 from layer_gallery.config import gallery
 from layer_gallery.models import GeoJSONLayer, LayerEntry

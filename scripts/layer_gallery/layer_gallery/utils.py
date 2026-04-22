@@ -1,6 +1,6 @@
 import string
 from datetime import date, timedelta
-from typing import Any, cast, TypeVar
+from typing import Any, TypeVar, cast
 
 from xyzservices import TileProvider
 

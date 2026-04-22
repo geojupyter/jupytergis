@@ -1,5 +1,4 @@
 import pytest
-
 from layer_gallery.models import LayerEntry, XYZServicesRef
 
 

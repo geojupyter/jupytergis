@@ -1,15 +1,14 @@
 from io import BytesIO
 from unittest import mock
 
-from PIL import Image
-from xyzservices import TileProvider
-
 from layer_gallery.models import (
     GeoJSONLayer,
     LayerEntry,
     ThumbnailConfig,
     XYZServicesRef,
 )
+from PIL import Image
+from xyzservices import TileProvider
 
 
 def make_raster_entry(

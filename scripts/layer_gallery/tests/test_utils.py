@@ -2,10 +2,9 @@ from datetime import date, timedelta
 from unittest import mock
 
 import pytest
-from xyzservices import TileProvider
-
 from layer_gallery.models import LayerEntry, ThumbnailConfig, XYZServicesRef
 from layer_gallery.utils import build_url_parameters, resolve_tile_provider
+from xyzservices import TileProvider
 
 from .helpers import make_geojson_entry, make_raster_entry
 
