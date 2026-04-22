@@ -3531,13 +3531,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         )}
 
         <div className="jGIS-Mainview-Container">
-          <TemporalSlider
-            model={this._model}
-            filterStates={this.state.filterStates}
-            style={{
-              display: this.state.displayTemporalController ? 'block' : 'none',
-            }}
-          />
+          {this.state.displayTemporalController && (
+            <TemporalSlider
+              model={this._model}
+              filterStates={this.state.filterStates}
+            />
+          )}
           <div
             ref={this.mainViewRef}
             className="jGIS-Mainview data-jgis-keybinding"
