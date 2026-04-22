@@ -1,8 +1,9 @@
 from unittest import mock
 
+from xyzservices import TileProvider
+
 from layer_gallery.models import LayerEntry, ThumbnailConfig
 from layer_gallery.thumbnail import generate_thumbnail
-from xyzservices import TileProvider
 
 from .helpers import fake_tile_response
 

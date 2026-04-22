@@ -2,6 +2,8 @@ import json
 from unittest import mock
 
 import pytest
+from xyzservices import TileProvider
+
 from layer_gallery.generate import (
     _build_gallery_entry,
     _check_missing_thumbnails,
@@ -9,7 +11,6 @@ from layer_gallery.generate import (
     run,
 )
 from layer_gallery.models import LayerEntry, ThumbnailConfig
-from xyzservices import TileProvider
 
 from .conftest import GalleryDirs
 from .helpers import fake_tile_response, make_geojson_entry, make_raster_entry
