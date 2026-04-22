@@ -1,89 +1,107 @@
 # Add to the layer gallery
 
-## Add a new entry to the config file
+Edit **`scripts/layer_gallery/config.py`**. This is the only file you need to touch.
 
-First, edit `packages/base/layer_gallery.json` to add a new entry.
+The `gallery` dict is structured as `gallery[category][layer_id] = LayerEntry(...)`.
+Category keys become the tab labels in the gallery UI.
 
-The top level keys are layer provider IDs (shown as tabs at the top of the gallery), and
-the 2nd level keys are the ids of the layers.
+## If your layer is in the xyzservices catalog
 
-Layers are represented as objects, values of the 2nd-level keys. E.g.
-`OpenStreetmap.Mapnik`:
+Use `XYZServicesRef` to point at an existing entry in the
+[xyzservices catalog](https://xyzservices.readthedocs.io/en/stable/introduction.html):
 
-```json
-{
-  "OpenStreetMap": {
-    "Mapnik": {
-      "thumbnailPath": "layer_gallery/OpenStreetMap-Mapnik.png",
-      "name": "OpenStreetMap.Mapnik",
-      "layerType": "RasterLayer",
-      "sourceType": "RasterSource",
-      "sourceParameters": {
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "attribution": "(C) OpenStreetMap contributors",
-        "maxZoom": 19,
-        "minZoom": 0,
-        "urlParameters": {}
-      },
-      "layerParameters": { "opacity": 1 },
-      "description": "(C) OpenStreetMap contributors"
+```python
+from models import LayerEntry, ThumbnailConfig, XYZServicesRef
+
+gallery = {
+    ...
+    "OpenStreetMap": {
+        ...
+        "MyNewLayer": LayerEntry(
+            name="OpenStreetMap.MyNewLayer",
+            layer_type="RasterLayer",
+            source_type="RasterSource",
+            xyzservices=XYZServicesRef(provider="OpenStreetMap", layer="MyNewLayer"),
+            thumbnail=ThumbnailConfig(lat=47.04, lng=1.30, zoom=5),
+        ),
     },
-    // ...
+}
 ```
 
-Follow established conventions in this file, and if it makes sense, start by copying an
-existing entry.
+The layer gallery generator script (`/scripts/layer_gallery/`) fills in the URL,
+attribution, and zoom levels from `xyzservices` at build time.
 
-### `xyzservices`
+## If your layer is not in the xyzservices catalog
 
-[`xyzservices`](https://github.com/geopandas/xyzservices) is used under the hood for
-thumbnail generation.
-For simplicity, if your layer exists in `xyzservices` ensure the provider and
-layer name match what's in `xyzservices`.
+Use `TileProvider` from the `xyzservices` library to specify parameters directly:
 
-If it's not in `xyzservices` you may need to edit `layer_gallery_generator.py` and
-extend `custom_providers` following the existing examples in that file.
+```python
+from xyzservices import TileProvider
+from models import LayerEntry, ThumbnailConfig
+
+gallery = {
+    ...
+    "MyProvider": {
+        "MyLayer": LayerEntry(
+            name="MyProvider.MyLayer",
+            layer_type="RasterLayer",
+            source_type="RasterSource",
+            tile_provider=TileProvider(
+                name="MyProvider.MyLayer",
+                url="https://tiles.example.com/{z}/{x}/{y}.png",
+                attribution="© My Provider",
+                max_zoom=18,
+            ),
+            thumbnail=ThumbnailConfig(lat=47.04, lng=1.30, zoom=5),
+        ),
+    },
+}
+```
+
+For URLs with template variables beyond `{z}/{x}/{y}` (e.g. `{variant}`), add them as
+extra kwargs to `TileProvider`. They become `urlParameters` in the output JSON.
+
+## Specify a layer and source type
+
+The layer and source types that JupyterGIS will use to add these layers to the map.
+
+For raster tile layers, use `layer_type="RasterLayer"` and `source_type="RasterSource"`.
+
+For vector tile layers, use `layer_type="VectorTileLayer"` and `source_type="VectorTileSource"`.
 
 ## Add a thumbnail
 
-### Generate
+Thumbnails live in `packages/base/layer_gallery_thumbnails/` and are committed to the repo.
 
-The `packages/base/layer_gallery_generator.py` script can automatically generate
-thumbnails for you.
-
-You'll first need to configure the `packages/base/layer_gallery/thumbnail_config.json`.
-This is arranged similarly to the `layer_gallery.json` file but exclusively includes
-thumbnail config.
-It may be easiest to start by copying an existing thumbnail configuration.
-
-Finally you can execute:
+### Generate automatically (raster tile layers)
 
 ```bash
-python packages/base/layer_gallery_generator.py
+python scripts/layer_gallery/generate.py --thumbnails
 ```
 
-Once this is done, you'll need to resize the thumbnail(s), as the script outputs in
-512x512, but we want 256x256:
+This fetches tiles, stitches a 256×256 PNG, and optimizes it. Commit the result.
+
+### Create manually (GeoJSON / vector layers, or custom screenshots)
+
+Save a 256×256 PNG to:
+
+```
+packages/base/layer_gallery_thumbnails/<Name>.png
+```
+
+where `<Name>` is `entry.name` with the first `.` replaced by `-`.
+For example, `NaturalEarth.Coastlines110m` → `NaturalEarth-Coastlines110m.png`.
+
+Optimize this `png` with `optipng`.
+
+Commit the file.
+
+## Verify
 
 ```bash
-mogrify -resize 50% /path/to/thumbnail.png
+python scripts/layer_gallery/generate.py
 ```
 
-Don't forget to optimize! Read on.
-
-### Manual
-
-You have the option to manually create a thumbnail.
-
-Take a screenshot and crop or otherwise resize it to 256x256 pixels and save as a PNG.
-
-Don't forget to optimize! Read on.
-
-### Optimizing
-
-Whether you generate thumbnails automatically or create them manually, we'll need to
-optimize them for filesize before committing.
-
-```bash
-optipng "/path/to/thumbnail.png"
-```
+This runs automatically at build time.
+It fails with a listing of missing thumbnail paths, and does not write
+`packages/base/_generated/layer_gallery.json` until all thumbnails are present.

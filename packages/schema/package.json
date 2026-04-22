@@ -25,6 +25,7 @@
     "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
+    "test": "jest",
     "build": "jlpm build:schema && jlpm build:lib",
     "build:schema": "jlpm run build:processing && node ./cacheGeoJSONSchema.js && jlpm build:schema:registry && jlpm build:schema:js && jlpm build:schema:py",
     "build:processing": "python scripts/process.py",
