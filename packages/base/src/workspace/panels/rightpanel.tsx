@@ -1,5 +1,6 @@
 import {
   IAnnotationModel,
+  IJGISSource,
   IJGISFormSchemaRegistry,
   IJGISLayer,
   IJupyterGISModel,
@@ -84,6 +85,10 @@ interface IRightPanelProps {
   settings: IJupyterGISSettings;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
+  persistAndRefreshSource?: (
+    id: string,
+    source: IJGISSource,
+  ) => Promise<void>;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
@@ -237,6 +242,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             >
               <IdentifyPanelComponent
                 model={props.model}
+                persistAndRefreshSource={props.persistAndRefreshSource}
               ></IdentifyPanelComponent>
             </TabsContent>
           )}

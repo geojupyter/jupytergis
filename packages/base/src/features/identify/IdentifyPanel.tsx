@@ -1,17 +1,20 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { IDict, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface IIdentifyComponentProps {
   model: IJupyterGISModel;
+  persistAndRefreshSource?: (id: string, source: IJGISSource) => Promise<void>;
 }
 
 export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
+  persistAndRefreshSource,
 }) => {
+  void persistAndRefreshSource;
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
     0: true,

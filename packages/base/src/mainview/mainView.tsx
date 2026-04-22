@@ -3671,6 +3671,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                             addLayer={this.addLayer.bind(this)}
                             removeLayer={this.removeLayer.bind(this)}
                             settings={this.state.jgisSettings}
+                            persistAndRefreshSource={
+                              this.persistAndRefreshSource
+                            }
                           />
                         )}
                       </>
@@ -3778,6 +3781,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
+
+  /**
+   * Shared source update wrapper for child components that need to mutate a
+   * source and refresh corresponding map layers.
+   */
+  persistAndRefreshSource = async (
+    id: string,
+    source: IJGISSource,
+  ): Promise<void> => {
+    this._model.sharedModel.updateSource(id, source);
+    await this.updateSource(id, source);
+  };
 }
 
 // ! TODO make mainview a modern react component instead of a class
