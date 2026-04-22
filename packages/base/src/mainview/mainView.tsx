@@ -63,6 +63,7 @@ import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
+import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
   DragPan,
@@ -76,6 +77,9 @@ import {
   DoubleClickZoom,
   Select,
 } from 'ol/interaction';
+import Draw from 'ol/interaction/Draw';
+import Modify from 'ol/interaction/Modify';
+import Snap from 'ol/interaction/Snap';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -108,6 +112,7 @@ import {
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
 import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
+import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -154,6 +159,24 @@ type OlLayerTypes =
   | StacLayer
   | ImageLayer<any>;
 
+const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
+
+const drawInteractionStyle = new Style({
+  fill: new Fill({
+    color: 'rgba(255, 255, 255, 0.2)',
+  }),
+  stroke: new Stroke({
+    color: '#ffcc33',
+    width: 2,
+  }),
+  image: new CircleStyle({
+    radius: 7,
+    fill: new Fill({
+      color: '#ffcc33',
+    }),
+  }),
+});
+
 interface IMainViewProps {
   viewModel: MainViewModel;
   state?: IStateDB;
@@ -178,6 +201,8 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  editingVectorLayer: boolean;
+  drawGeometryLabel: string | undefined;
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
@@ -254,6 +279,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
+    // Keep draw editing UI/interactions in sync with the shared editing mode.
+    this._model.editingVectorLayerChanged.connect(
+      this._updateEditingVectorLayer,
+      this,
+    );
+
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
       this.highlightFeatureOnMap,
@@ -283,6 +314,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      editingVectorLayer: false,
+      drawGeometryLabel: '',
       jgisSettings: this._model.jgisSettings,
       isSpectaPresentation: this._model.isSpectaMode(),
       initialLayersReady: false,
@@ -354,6 +387,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
+
+    this._model.sharedModel.awareness.off(
+      'change',
+      this._onSelectedLayerChange,
+    );
 
     this._mainViewModel.dispose();
   }
@@ -559,6 +597,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
+
+      // Track changes of selected layers and rebind edit interactions when
+      // the user switches the currently selected draw-vector layer.
+      this._model.sharedModel.awareness.on(
+        'change',
+        this._onSelectedLayerChange,
+      );
     }
   }
 
@@ -1560,8 +1605,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
-
-        const shouldZoom = this.state.initialLayersReady;
+        // const newLayerExtent = newMapLayer.getExtent();
+        // const shouldZoom = Boolean(
+        //   this.state.initialLayersReady && newLayerExtent,
+        // );
+        const shouldZoom = Boolean(this.state.initialLayersReady);
         this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
@@ -1572,6 +1620,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this.setState(old => ({ ...old, initialLayersReady: true }));
         }
       }
+
+      this._model.syncSelected(
+        { [id]: { type: 'layer' } },
+        this._model.getClientId().toString(),
+      );
     } catch (error: any) {
       if (
         this.state.loadingErrors.find(
@@ -2248,7 +2301,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     // Compute displayTemporalController: active AND current selection is valid
-    const isTemporalControllerActive = !!localState.isTemporalControllerActive;
+    const isTemporalControllerActive =
+      localState.isTemporalControllerActive === true;
+
     const selectedLayers = localState.selected?.value;
     const selectedLayerId = selectedLayers
       ? (Object.keys(selectedLayers)[0] ?? null)
@@ -2269,6 +2324,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._mainViewModel.commands.notifyCommandChanged(
         CommandIDs.temporalController,
       );
+    }
+
+    /* check if the currently selected layer is a drawVector layer
+    and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
+    // const selectedLayers = localState?.selected?.value;
+    if (!selectedLayers) {
+      return;
+    }
+
+    const selectedLayerID = Object.keys(selectedLayers)[0];
+    const JGISLayer = this._model.getLayer(selectedLayerID);
+    if (JGISLayer && !this._model.checkIfIsADrawVectorLayer(JGISLayer)) {
+      this._model.editingVectorLayer = false;
+      this._updateEditingVectorLayer();
     }
   };
 
@@ -2472,6 +2541,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
+        if (this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)) {
+          this._model.editingVectorLayer = false;
+          this._updateEditingVectorLayer();
+          this._mainViewModel.commands.notifyCommandChanged(
+            CommandIDs.toggleDrawFeatures,
+          );
+        }
         return;
       }
 
@@ -2828,6 +2904,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    if (!extent.every(value => Number.isFinite(value))) {
+      this._log(
+        'warning',
+        `Layer ${id} has an invalid extent: ${extent.join(', ')}`,
+      );
+      return;
+    }
+
     // Convert layer extent value to view projection if needed
     const sourceProjection = source?.getProjection();
     const viewProjection = this._Map.getView().getProjection();
@@ -2836,6 +2920,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       sourceProjection && sourceProjection !== viewProjection
         ? transformExtent(extent, sourceProjection, viewProjection)
         : extent;
+    if (!transformedExtent.every(value => Number.isFinite(value))) {
+      this._log(
+        'warning',
+        `Layer ${id} has an invalid transformed extent: ${transformedExtent.join(', ')}`,
+      );
+      return;
+    }
 
     this._Map.getView().fit(transformedExtent, {
       size: this._Map.getSize(),
@@ -2934,7 +3025,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private async _addMarker(e: MapBrowserEvent<any>) {
-    if (this._model.currentMode !== 'marking') {
+    if (
+      this.state.editingVectorLayer ||
+      this._model.currentMode !== 'marking'
+    ) {
       return;
     }
 
@@ -2973,7 +3067,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (this._model.currentMode !== 'identifying') {
+    if (
+      this.state.editingVectorLayer ||
+      this._model.currentMode !== 'identifying'
+    ) {
       return;
     }
 
@@ -3176,6 +3273,215 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
+  private _updateEditingVectorLayer() {
+    const editingVectorLayer: boolean = this._model.editingVectorLayer;
+    this.setState(old => ({ ...old, editingVectorLayer }));
+    if (editingVectorLayer === false && this._draw) {
+      this._removeDrawInteraction();
+    }
+  }
+
+  private _handleDrawGeometryTypeChange = (
+    /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const drawGeometryLabel = event.target.value;
+
+    this._currentDrawGeometry = drawGeometryLabel as Type;
+
+    this._updateInteractions();
+    this._updateDrawSource();
+
+    this.setState(old => ({
+      ...old,
+      drawGeometryLabel,
+    }));
+  };
+
+  private _getVectorSourceFromLayerID = (
+    layerID: string,
+  ): VectorSource | undefined => {
+    /* get the OpenLayers VectorSource corresponding to the JGIS currentDrawLayerID */
+    const layers = this._Map.getLayers();
+    const layerArray = layers.getArray();
+    const matchingLayer = layerArray.find(layer => layer.get('id') === layerID);
+    const source = matchingLayer?.get('source');
+
+    this._currentVectorSource = source;
+
+    return this._currentVectorSource;
+  };
+
+  _getDrawSourceFromSelectedLayer = () => {
+    const selectedLayers =
+      this._model?.sharedModel.awareness.getLocalState()?.selected?.value;
+
+    if (!selectedLayers) {
+      return;
+    }
+
+    const selectedLayerID = Object.keys(selectedLayers)[0];
+    this._currentDrawLayerID = selectedLayerID;
+
+    const JGISLayer = this._model.getLayer(selectedLayerID);
+    this._currentDrawSourceID = (JGISLayer as any)?.parameters?.source;
+
+    if (this._currentDrawSourceID) {
+      this._currentDrawSource = this._model.getSource(
+        this._currentDrawSourceID,
+      );
+    }
+  };
+
+  _onVectorSourceChange = () => {
+    if (
+      !this._currentVectorSource ||
+      !this._currentDrawSource ||
+      !this._currentDrawSourceID
+    ) {
+      return;
+    }
+
+    const geojsonWriter = new GeoJSON({
+      featureProjection: this._Map.getView().getProjection(),
+    });
+
+    const features = this._currentVectorSource
+      .getFeatures()
+      .map(feature => geojsonWriter.writeFeatureObject(feature));
+
+    const updatedData = {
+      type: 'FeatureCollection',
+      features: features,
+    };
+
+    const updatedJGISLayerSource: IJGISSource = {
+      name: this._currentDrawSource.name,
+      type: this._currentDrawSource.type,
+      parameters: {
+        data: updatedData,
+      },
+    };
+
+    this._currentDrawSource = updatedJGISLayerSource;
+    this._model.sharedModel.updateSource(
+      this._currentDrawSourceID,
+      updatedJGISLayerSource,
+    );
+  };
+
+  _updateDrawSource = () => {
+    if (this._currentVectorSource) {
+      this._currentVectorSource.on('change', this._onVectorSourceChange);
+    }
+  };
+
+  _updateInteractions = () => {
+    if (this._draw) {
+      this._removeDrawInteraction();
+    }
+
+    if (this._select) {
+      this._removeSelectInteraction();
+    }
+
+    if (this._modify) {
+      this._removeModifyInteraction();
+    }
+
+    if (this._snap) {
+      this._removeSnapInteraction();
+    }
+
+    this._draw = new Draw({
+      style: drawInteractionStyle,
+      type: this._currentDrawGeometry,
+      source: this._currentVectorSource,
+    });
+    this._select = new Select();
+    this._modify = new Modify({
+      features: this._select.getFeatures(),
+    });
+    this._snap = new Snap({
+      source: this._currentVectorSource,
+    });
+
+    this._Map.addInteraction(this._draw);
+    this._Map.addInteraction(this._select);
+    this._Map.addInteraction(this._modify);
+    this._Map.addInteraction(this._snap);
+
+    this._draw.setActive(true);
+    this._select.setActive(false);
+    this._modify.setActive(false);
+    this._snap.setActive(true);
+  };
+
+  _editVectorLayer = () => {
+    this._getDrawSourceFromSelectedLayer();
+    if (!this._currentDrawLayerID) {
+      return;
+    }
+
+    this._currentVectorSource = this._getVectorSourceFromLayerID(
+      this._currentDrawLayerID,
+    );
+
+    if (!this._currentVectorSource || !this._currentDrawGeometry) {
+      return;
+    }
+
+    this._updateInteractions(); /* remove previous interactions and instantiate new ones */
+    this._updateDrawSource(); /*add new features, update source and get changes reported to the JGIS Document in geoJSON format */
+  };
+
+  private _removeDrawInteraction = () => {
+    this._draw.setActive(false);
+    this._Map.removeInteraction(this._draw);
+  };
+
+  private _removeSelectInteraction = () => {
+    this._select.setActive(false);
+    this._Map.removeInteraction(this._select);
+  };
+
+  private _removeSnapInteraction = () => {
+    this._snap.setActive(false);
+    this._Map.removeInteraction(this._snap);
+  };
+
+  private _removeModifyInteraction = () => {
+    this._modify.setActive(false);
+    this._Map.removeInteraction(this._modify);
+  };
+
+  private _onSelectedLayerChange = () => {
+    const selectedLayers =
+      this._model.sharedModel.awareness.getLocalState()?.selected?.value;
+
+    const selectedLayerId = selectedLayers
+      ? Object.keys(selectedLayers)[0]
+      : undefined;
+
+    if (!selectedLayerId || selectedLayerId === this._previousDrawLayerID) {
+      return;
+    }
+
+    const selectedLayer = this._model.getLayer(selectedLayerId);
+
+    if (!selectedLayer) {
+      return;
+    }
+
+    if (!this._model.checkIfIsADrawVectorLayer(selectedLayer)) {
+      return;
+    }
+
+    this._previousDrawLayerID = selectedLayerId;
+    this._currentDrawLayerID = selectedLayerId;
+    this._editVectorLayer();
+  };
+
   render(): JSX.Element {
     return (
       <>
@@ -3203,6 +3509,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             )
           );
         })}
+
+        {this.state.editingVectorLayer && (
+          <div className="jgis-geometry-type-selector-overlay">
+            <select
+              className="geometry-type-selector"
+              id="geometry-type-selector"
+              value={this.state.drawGeometryLabel ?? ''}
+              onChange={this._handleDrawGeometryTypeChange}
+            >
+              <option value="" disabled hidden>
+                Geometry type
+              </option>
+              {DRAW_GEOMETRIES.map(geometryType => (
+                <option key={geometryType} value={geometryType}>
+                  {geometryType}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="jGIS-Mainview-Container">
           <TemporalSlider
@@ -3340,6 +3666,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _draw: Draw;
+  private _snap: Snap;
+  private _modify: Modify;
+  private _select: Select;
+  private _currentDrawLayerID: string | undefined;
+  private _previousDrawLayerID: string | undefined;
+  private _currentDrawSource: IJGISSource | undefined;
+  private _currentVectorSource: VectorSource | undefined;
+  private _currentDrawSourceID: string | undefined;
+  private _currentDrawGeometry: Type;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;

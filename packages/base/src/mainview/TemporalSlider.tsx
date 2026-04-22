@@ -114,7 +114,9 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
         Object.keys(newValue).length === 0 ||
         newValue.type !== oldValue.type
       ) {
-        model.toggleTemporalController();
+        if (model.isTemporalControllerActive) {
+          model.toggleTemporalController();
+        }
       }
     };
 
