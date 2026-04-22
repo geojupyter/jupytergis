@@ -1,3 +1,5 @@
+"""Functions related to generating thumbnails."""
+
 from io import BytesIO
 
 import mercantile
@@ -13,7 +15,7 @@ def generate_thumbnail(
     *,
     entry: LayerEntry,
 ) -> Image.Image:
-    """Fetch a 2×2 tile grid, stitch, resize to 256×256, and return."""
+    """Fetch a 2*2 tile grid, stitch, resize to 256*256, and return."""
     tile_provider = resolve_tile_provider(entry)
     if tile_provider is None:
         raise RuntimeError("Programmer error.")

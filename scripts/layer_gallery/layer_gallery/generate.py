@@ -9,7 +9,7 @@ python generate.py
 
 python generate.py --thumbnails
     Thumbnail mode, run manually by developers when adding or updating gallery entries.
-    Fetches tiles for entries that lack a thumbnail and saves 256×256 PNGs to
+    Fetches tiles for entries that lack a thumbnail and saves 256*256 PNGs to
     packages/base/layer_gallery_thumbnails/. GeoJSON entries are skipped (create their
     thumbnails manually). Reports any orphaned images. Writes layer_gallery.json at the
     end even if GeoJSON thumbnails are still missing, so developers can inspect the
@@ -18,11 +18,12 @@ python generate.py --thumbnails
 
 import argparse
 import json
-import oxipng
 import sys
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
+
+import oxipng
 
 from layer_gallery.config import gallery
 from layer_gallery.models import GeoJSONLayer, LayerEntry
@@ -55,7 +56,7 @@ def _check_missing_thumbnails() -> list[Path]:
 
 def _report_missing_thumbnails(
     *,
-    severity: Literal["Warning"] | Literal["Error"],
+    severity: Literal["Warning", "Error"],
     exit_on_missing: bool = False,
 ) -> None:
     missing = _check_missing_thumbnails()
@@ -79,12 +80,11 @@ def _find_orphan_images() -> list[Path]:
         for layers in gallery.values()
         for entry in layers.values()
     }
-    orphans = [
+    return [
         f
         for f in sorted(THUMBNAILS_DIR.iterdir())
         if f.suffix.lower() in IMAGE_EXTENSIONS and f not in expected
     ]
-    return orphans
 
 
 def _layer_parameters(entry: LayerEntry) -> dict[str, Any]:
@@ -102,7 +102,7 @@ def _layer_parameters(entry: LayerEntry) -> dict[str, Any]:
 
 def _write_gallery_json(data: dict[str, Any]) -> None:
     GALLERY_JSON_PATH.parent.mkdir(exist_ok=True)
-    with open(GALLERY_JSON_PATH, "w") as f:
+    with GALLERY_JSON_PATH.open("w") as f:
         json.dump(data, f, indent=2)
     print(f"Generated {GALLERY_JSON_PATH}")
 
@@ -162,6 +162,7 @@ def _build_gallery_entry(entry: LayerEntry) -> dict[str, Any]:
 
 
 def run(*, generate_thumbnails: bool) -> None:
+    """The main internal entrypoint for the layer gallery generator."""  # noqa: D401
     if generate_thumbnails:
         THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
     else:
@@ -185,6 +186,7 @@ def run(*, generate_thumbnails: bool) -> None:
 
 
 def cli() -> None:
+    """The main user entrypoint for the layer gallery generator."""  # noqa: D401
     parser = argparse.ArgumentParser(description="Layer gallery generator")
     parser.add_argument(
         "--thumbnails",
