@@ -27,8 +27,9 @@
     "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
-    "build": "tspc -b && jlpm run cp:gdal",
-    "build:gallery": "python rasterlayer_gallery_generator.py",
+    "test": "jest",
+    "build": "jlpm build:gallery && tspc -b && jlpm run cp:gdal",
+    "build:gallery": "uv run --directory ../../scripts/layer_gallery python layer_gallery",
     "cp:gdal": "cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.data lib && cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm lib",
     "build:prod": "jlpm run clean && jlpm run build",
     "build:dev": "tspc -b && jlpm run cp:gdal",

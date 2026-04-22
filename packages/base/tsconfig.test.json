@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "isolatedModules": true,
+    "allowJs": true,
+    "paths": { "@/*": ["./*"] },
+    "types": ["jest", "node"]
+  },
+  "exclude": []
+}

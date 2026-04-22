@@ -15,7 +15,7 @@ import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import { CreationFormWrapper } from '@/src/features/layers/layerCreationFormDialog';
-import CUSTOM_RASTER_IMAGE from '../../../layer_gallery/custom_raster.png';
+import CUSTOM_RASTER_IMAGE from '../../../custom_raster.png';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;

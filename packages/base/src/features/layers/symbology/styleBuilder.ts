@@ -167,6 +167,7 @@ function computeGraduatedColorStops(
   numericValues: number[],
 ): IComputedStop[] {
   const nClasses = state.nClasses ?? 9;
+  const nStops = nClasses + 1; // classification functions use anchor-point count
   const mode = state.mode ?? 'equal interval';
   const rampName = state.colorRamp ?? 'viridis';
   const reverse = state.reverseRamp ?? false;
@@ -209,47 +210,38 @@ function computeGraduatedColorStops(
     case 'quantile':
       stops = VectorClassifications.calculateQuantileBreaks(
         effectiveValues,
-        nClasses,
+        nStops,
       );
       break;
     case 'equal interval':
       stops = VectorClassifications.calculateEqualIntervalBreaks(
         rangeValues,
-        nClasses,
+        nStops,
       );
       break;
     case 'jenks':
       stops = VectorClassifications.calculateJenksBreaks(
         effectiveValues,
-        nClasses,
+        nStops,
       );
       break;
     case 'pretty':
-      stops = VectorClassifications.calculatePrettyBreaks(
-        rangeValues,
-        nClasses,
-      );
+      stops = VectorClassifications.calculatePrettyBreaks(rangeValues, nStops);
       break;
     case 'logarithmic':
       stops = VectorClassifications.calculateLogarithmicBreaks(
         rangeValues,
-        nClasses,
+        nStops,
       );
       break;
     default:
       stops = VectorClassifications.calculateEqualIntervalBreaks(
         rangeValues,
-        nClasses,
+        nStops,
       );
   }
 
-  // Pin outer stops to the range.
-  if (stops.length > 0) {
-    stops[0] = rangeMin;
-    stops[stops.length - 1] = rangeMax;
-  }
-
-  return mapStopsToColors(stops, rampName, nClasses, reverse);
+  return mapStopsToColors(stops, rampName, stops.length, reverse);
 }
 
 /**
