@@ -44,3 +44,9 @@ repos:
     rev: "b6045d78aac9e02b039703b030588d54d53262ac"
     hooks:
       - id: validate-cff
+
+  # Strip output cells from notebooks
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.5.0
+    hooks:
+      - id: nbstripout
