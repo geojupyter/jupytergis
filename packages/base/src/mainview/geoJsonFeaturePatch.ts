@@ -1,0 +1,97 @@
+import {
+  IDict,
+  IGeoJSONSource,
+  IJGISSource,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
+
+import { deepCopy } from '@/src/tools';
+
+export interface IPatchGeoJSONFeatureContext {
+  model: IJupyterGISModel;
+  persistAndRefreshSource: (
+    sourceId: string,
+    source: IJGISSource,
+  ) => Promise<void>;
+}
+
+export type PatchGeoJSONFeatureProperties = (
+  sourceId: string,
+  target: { featureId: string | number },
+  propertyUpdates: IDict<any>,
+) => Promise<boolean>;
+
+// ! TODO refine this?
+interface IGeoJSONFeatureLike {
+  type: 'Feature';
+  id?: string | number;
+  geometry?: {
+    type: string;
+    coordinates?: unknown;
+  } | null;
+  properties?: (IDict<any> & { _id?: string | number }) | null;
+}
+
+/**
+ * Only concerned with features added via draw tool for now
+ */
+async function patchGeoJSONFeatureProperties(
+  context: IPatchGeoJSONFeatureContext,
+  sourceId: string,
+  target: { featureId: string | number },
+  propertyUpdates: IDict<any>,
+): Promise<boolean> {
+  if (!context.model.sharedModel.editable) {
+    return false;
+  }
+
+  const source = context.model.getSource(sourceId);
+  if (!source || source.type !== 'GeoJSONSource') {
+    return false;
+  }
+
+  const parameters = source.parameters as IGeoJSONSource;
+  const data = parameters.data;
+
+  if (!data || data.type !== 'FeatureCollection') {
+    return false;
+  }
+
+  const features = data.features as IGeoJSONFeatureLike[];
+
+  const featureId = target.featureId;
+  const index = features.findIndex(
+    feature => feature.properties?._id === featureId,
+  );
+
+  if (index < 0 || index >= features.length) {
+    return false;
+  }
+
+  const updatedSource = deepCopy(source);
+  const updatedParameters = updatedSource.parameters as IDict<any>;
+  const updatedData = updatedParameters.data as {
+    type: string;
+    features: IGeoJSONFeatureLike[];
+  };
+  const updatedFeature = updatedData.features[index];
+  updatedFeature.properties = {
+    ...(updatedFeature.properties ?? {}),
+    ...propertyUpdates,
+  };
+
+  await context.persistAndRefreshSource(sourceId, updatedSource);
+
+  return true;
+}
+
+export function createGeoJSONFeaturePatcher(
+  context: IPatchGeoJSONFeatureContext,
+): PatchGeoJSONFeatureProperties {
+  return (
+    sourceId: string,
+    target: { featureId: string | number },
+    propertyUpdates: IDict<any>,
+  ) =>
+    patchGeoJSONFeatureProperties(context, sourceId, target, propertyUpdates);
+}

@@ -10,7 +10,7 @@ interface IIdentifyComponentProps {
   persistAndRefreshSource?: (id: string, source: IJGISSource) => Promise<void>;
   patchGeoJSONFeatureProperties?: (
     sourceId: string,
-    target: { featureId?: string | number; featureIndex?: number },
+    target: { featureId: string | number },
     propertyUpdates: IDict<any>,
   ) => Promise<boolean>;
 }
@@ -19,12 +19,17 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
   patchGeoJSONFeatureProperties,
 }) => {
-  void patchGeoJSONFeatureProperties;
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
     0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
+  const [editingFeatureIndex, setEditingFeatureIndex] = useState<number | null>(
+    null,
+  );
+  const [newPropertyKey, setNewPropertyKey] = useState('');
+  const [newPropertyValue, setNewPropertyValue] = useState('');
+  const [isSavingProperty, setIsSavingProperty] = useState(false);
 
   const featuresRef = useRef(features);
 
@@ -113,6 +118,63 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     return `Feature ${featureIndex + 1}`;
   };
 
+  const resetAddPropertyEditor = () => {
+    setEditingFeatureIndex(null);
+    setNewPropertyKey('');
+    setNewPropertyValue('');
+    setIsSavingProperty(false);
+  };
+
+  const handleAddProperty = async (feature: any, featureIndex: number) => {
+    const key = newPropertyKey.trim();
+    if (!patchGeoJSONFeatureProperties || !key || isSavingProperty) {
+      return;
+    }
+
+    const selectedLayers = model.localState?.selected?.value;
+    if (!selectedLayers) {
+      return;
+    }
+
+    const selectedLayerId = Object.keys(selectedLayers)[0];
+    const selectedLayer = model.getLayer(selectedLayerId);
+    const sourceId = selectedLayer?.parameters?.source;
+    if (!sourceId) {
+      return;
+    }
+
+    setIsSavingProperty(true);
+    const success = await patchGeoJSONFeatureProperties(
+      sourceId,
+      { featureId: feature._id },
+      { [key]: newPropertyValue },
+    );
+
+    if (success) {
+      setFeatures(previous => {
+        if (!previous) {
+          return previous;
+        }
+
+        const updatedFeatures = { ...previous };
+        const targetFeature = updatedFeatures[featureIndex];
+
+        if (targetFeature) {
+          updatedFeatures[featureIndex] = {
+            ...targetFeature,
+            [key]: newPropertyValue,
+          };
+        }
+
+        return updatedFeatures;
+      });
+      resetAddPropertyEditor();
+      return;
+    }
+
+    setIsSavingProperty(false);
+  };
+
   return (
     <div
       className="jgis-identify-wrapper"
@@ -130,6 +192,8 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       )}
       {features &&
         Object.values(features).map((feature, featureIndex) => (
+          // TODO: Break this nested feature/property rendering into smaller
+          // components (feature card, property list, add-property editor).
           <div key={featureIndex} className="jgis-identify-grid-item">
             <div className="jgis-identify-grid-item-header">
               <span onClick={() => toggleFeatureVisibility(featureIndex)}>
@@ -178,18 +242,46 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
                   .map(([key, value]) => (
                     <div key={key} className="jgis-identify-grid-body">
                       <strong>{key}:</strong>
-                      {typeof value === 'string' &&
-                      /<\/?[a-z][\s\S]*>/i.test(value) ? (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: `${value}`,
-                          }}
-                        />
-                      ) : (
-                        <span>{String(value)}</span>
-                      )}
+                      <span>{String(value)}</span>
                     </div>
                   ))}
+                {editingFeatureIndex === featureIndex ? (
+                  <div className="jgis-identify-grid-body">
+                    <input
+                      type="text"
+                      placeholder="key"
+                      value={newPropertyKey}
+                      onChange={event => setNewPropertyKey(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="value"
+                      value={newPropertyValue}
+                      onChange={event =>
+                        setNewPropertyValue(event.target.value)
+                      }
+                    />
+                    <button
+                      onClick={() => handleAddProperty(feature, featureIndex)}
+                      disabled={!newPropertyKey.trim() || isSavingProperty}
+                    >
+                      Save
+                    </button>
+                    <button onClick={resetAddPropertyEditor}>Cancel</button>
+                  </div>
+                ) : (
+                  <div className="jgis-identify-grid-body">
+                    <button
+                      onClick={() => {
+                        setEditingFeatureIndex(featureIndex);
+                        setNewPropertyKey('');
+                        setNewPropertyValue('');
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
