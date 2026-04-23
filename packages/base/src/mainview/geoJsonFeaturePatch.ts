@@ -75,10 +75,15 @@ async function patchGeoJSONFeatureProperties(
     features: IGeoJSONFeatureLike[];
   };
   const updatedFeature = updatedData.features[index];
-  updatedFeature.properties = {
-    ...(updatedFeature.properties ?? {}),
-    ...propertyUpdates,
-  };
+  const nextProperties: IDict<any> = { ...(updatedFeature.properties ?? {}) };
+  Object.entries(propertyUpdates).forEach(([key, value]) => {
+    if (value === undefined) {
+      delete nextProperties[key];
+      return;
+    }
+    nextProperties[key] = value;
+  });
+  updatedFeature.properties = nextProperties;
 
   await context.persistAndRefreshSource(sourceId, updatedSource);
 

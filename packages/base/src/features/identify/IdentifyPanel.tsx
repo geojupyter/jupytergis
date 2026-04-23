@@ -19,12 +19,14 @@ interface IFeatureRowProps {
   propertyKey: string;
   value: any;
   showEditButton: boolean;
+  onEditProperty: (propertyKey: string, value: any) => void;
 }
 
 const FeatureRow: React.FC<IFeatureRowProps> = ({
   propertyKey,
   value,
   showEditButton,
+  onEditProperty,
 }) => {
   return (
     <div className="jgis-identify-grid-body">
@@ -36,6 +38,7 @@ const FeatureRow: React.FC<IFeatureRowProps> = ({
           title="Edit property"
           onClick={event => {
             event.stopPropagation();
+            onEditProperty(propertyKey, value);
           }}
         >
           Edit
@@ -100,46 +103,30 @@ const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
 
 interface IFeaturePropertyListProps {
   feature: any;
-}
-
-const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({ feature }) => {
-  const isFeatureEditable = feature?._fromDrawTool === true;
-
-  return (
-    <>
-      {Object.entries(feature)
-        .filter(([_, value]) => typeof value !== 'object' || value === null)
-        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-        .map(([key, value]) => (
-          <FeatureRow
-            key={key}
-            propertyKey={key}
-            value={value}
-            showEditButton={isFeatureEditable && !key.startsWith('_')}
-          />
-        ))}
-    </>
-  );
-};
-
-interface IAddPropertyEditorProps {
-  feature: any;
   featureIndex: number;
-  isEditingProperty: boolean;
+  editingFeatureIndex: number | null;
+  editorMode: 'add' | 'edit' | null;
+  editingPropertyKey: string | null;
   newPropertyKey: string;
   newPropertyValue: string;
   isSavingProperty: boolean;
-  onEditProperty: (featureIndex: number) => void;
+  onEditProperty: (
+    featureIndex: number,
+    propertyKey: string,
+    value: any,
+  ) => void;
   onSaveProperty: (feature: any, featureIndex: number) => void;
   onCancelProperty: () => void;
   onNewPropertyKeyChange: (value: string) => void;
   onNewPropertyValueChange: (value: string) => void;
 }
 
-const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
+const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
   feature,
   featureIndex,
-  isEditingProperty,
+  editingFeatureIndex,
+  editorMode,
+  editingPropertyKey,
   newPropertyKey,
   newPropertyValue,
   isSavingProperty,
@@ -149,7 +136,91 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
   onNewPropertyKeyChange,
   onNewPropertyValueChange,
 }) => {
-  if (isEditingProperty) {
+  const isFeatureEditable = feature?._fromDrawTool === true;
+
+  return (
+    <>
+      {Object.entries(feature)
+        .filter(([_, value]) => typeof value !== 'object' || value === null)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) => {
+          const isEditingThisRow =
+            editingFeatureIndex === featureIndex &&
+            editorMode === 'edit' &&
+            editingPropertyKey === key;
+
+          if (isEditingThisRow) {
+            return (
+              <div key={key} className="jgis-identify-grid-body">
+                <input
+                  type="text"
+                  placeholder="key"
+                  value={newPropertyKey}
+                  onChange={event => onNewPropertyKeyChange(event.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="value"
+                  value={newPropertyValue}
+                  onChange={event =>
+                    onNewPropertyValueChange(event.target.value)
+                  }
+                />
+                <button
+                  onClick={() => onSaveProperty(feature, featureIndex)}
+                  disabled={!newPropertyKey.trim() || isSavingProperty}
+                >
+                  Save
+                </button>
+                <button onClick={onCancelProperty}>Cancel</button>
+              </div>
+            );
+          }
+
+          return (
+            <FeatureRow
+              key={key}
+              propertyKey={key}
+              value={value}
+              showEditButton={isFeatureEditable && !key.startsWith('_')}
+              onEditProperty={(propertyKey, propertyValue) =>
+                onEditProperty(featureIndex, propertyKey, propertyValue)
+              }
+            />
+          );
+        })}
+    </>
+  );
+};
+
+interface IAddPropertyEditorProps {
+  feature: any;
+  featureIndex: number;
+  editorMode: 'add' | 'edit' | null;
+  newPropertyKey: string;
+  newPropertyValue: string;
+  isSavingProperty: boolean;
+  onStartAddProperty: (featureIndex: number) => void;
+  onSaveProperty: (feature: any, featureIndex: number) => void;
+  onCancelProperty: () => void;
+  onNewPropertyKeyChange: (value: string) => void;
+  onNewPropertyValueChange: (value: string) => void;
+}
+
+const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
+  feature,
+  featureIndex,
+  editorMode,
+  newPropertyKey,
+  newPropertyValue,
+  isSavingProperty,
+  onStartAddProperty,
+  onSaveProperty,
+  onCancelProperty,
+  onNewPropertyKeyChange,
+  onNewPropertyValueChange,
+}) => {
+  if (editorMode === 'add') {
     return (
       <div className="jgis-identify-grid-body">
         <input
@@ -177,7 +248,7 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
 
   return (
     <div className="jgis-identify-grid-body">
-      <button onClick={() => onEditProperty(featureIndex)}>+</button>
+      <button onClick={() => onStartAddProperty(featureIndex)}>+</button>
     </div>
   );
 };
@@ -186,14 +257,20 @@ interface IFeatureCardProps {
   feature: any;
   featureIndex: number;
   isVisible: boolean;
-  isEditingProperty: boolean;
+  editorMode: 'add' | 'edit' | null;
+  editingPropertyKey: string | null;
   featureTitle: string;
   newPropertyKey: string;
   newPropertyValue: string;
   isSavingProperty: boolean;
   onToggleVisibility: (index: number) => void;
   onHighlightFeature: (feature: any) => void;
-  onEditProperty: (featureIndex: number) => void;
+  onEditProperty: (
+    featureIndex: number,
+    propertyKey: string,
+    value: any,
+  ) => void;
+  onStartAddProperty: (featureIndex: number) => void;
   onSaveProperty: (feature: any, featureIndex: number) => void;
   onCancelProperty: () => void;
   onNewPropertyKeyChange: (value: string) => void;
@@ -204,7 +281,8 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
   feature,
   featureIndex,
   isVisible,
-  isEditingProperty: isEditingFeature,
+  editorMode,
+  editingPropertyKey,
   featureTitle,
   newPropertyKey,
   newPropertyValue,
@@ -212,6 +290,7 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
   onToggleVisibility,
   onHighlightFeature,
   onEditProperty,
+  onStartAddProperty,
   onSaveProperty,
   onCancelProperty,
   onNewPropertyKeyChange,
@@ -229,15 +308,29 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
       />
       {isVisible && (
         <>
-          <FeaturePropertyList feature={feature} />
-          <AddPropertyEditor
+          <FeaturePropertyList
             feature={feature}
             featureIndex={featureIndex}
-            isEditingProperty={isEditingFeature}
+            editingFeatureIndex={editorMode ? featureIndex : null}
+            editorMode={editorMode}
+            editingPropertyKey={editingPropertyKey}
             newPropertyKey={newPropertyKey}
             newPropertyValue={newPropertyValue}
             isSavingProperty={isSavingProperty}
             onEditProperty={onEditProperty}
+            onSaveProperty={onSaveProperty}
+            onCancelProperty={onCancelProperty}
+            onNewPropertyKeyChange={onNewPropertyKeyChange}
+            onNewPropertyValueChange={onNewPropertyValueChange}
+          />
+          <AddPropertyEditor
+            feature={feature}
+            featureIndex={featureIndex}
+            editorMode={editorMode}
+            newPropertyKey={newPropertyKey}
+            newPropertyValue={newPropertyValue}
+            isSavingProperty={isSavingProperty}
+            onStartAddProperty={onStartAddProperty}
             onSaveProperty={onSaveProperty}
             onCancelProperty={onCancelProperty}
             onNewPropertyKeyChange={onNewPropertyKeyChange}
@@ -259,6 +352,10 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
   const [editingFeatureIndex, setEditingFeatureIndex] = useState<number | null>(
+    null,
+  );
+  const [editorMode, setEditorMode] = useState<'add' | 'edit' | null>(null);
+  const [editingPropertyKey, setEditingPropertyKey] = useState<string | null>(
     null,
   );
   const [newPropertyKey, setNewPropertyKey] = useState('');
@@ -354,13 +451,25 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
 
   const resetAddPropertyEditor = () => {
     setEditingFeatureIndex(null);
+    setEditorMode(null);
+    setEditingPropertyKey(null);
     setNewPropertyKey('');
     setNewPropertyValue('');
     setIsSavingProperty(false);
   };
 
+  const startAddProperty = (featureIndex: number) => {
+    setEditingFeatureIndex(featureIndex);
+    setEditorMode('add');
+    setEditingPropertyKey(null);
+    setNewPropertyKey('');
+    setNewPropertyValue('');
+  };
+
   const handleAddProperty = async (feature: any, featureIndex: number) => {
     const key = newPropertyKey.trim();
+    const previousKey =
+      editorMode === 'edit' ? editingPropertyKey?.trim() : undefined;
     if (!patchGeoJSONFeatureProperties || !key || isSavingProperty) {
       return;
     }
@@ -378,10 +487,15 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }
 
     setIsSavingProperty(true);
+    const propertyUpdates: IDict<any> = { [key]: newPropertyValue };
+    if (previousKey && previousKey !== key) {
+      propertyUpdates[previousKey] = undefined;
+    }
+
     const success = await patchGeoJSONFeatureProperties(
       sourceId,
       { featureId: feature._id },
-      { [key]: newPropertyValue },
+      propertyUpdates,
     );
 
     if (success) {
@@ -394,10 +508,12 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
         const targetFeature = updatedFeatures[featureIndex];
 
         if (targetFeature) {
-          updatedFeatures[featureIndex] = {
-            ...targetFeature,
-            [key]: newPropertyValue,
-          };
+          const updatedTargetFeature: IDict<any> = { ...targetFeature };
+          if (previousKey && previousKey !== key) {
+            delete updatedTargetFeature[previousKey];
+          }
+          updatedTargetFeature[key] = newPropertyValue;
+          updatedFeatures[featureIndex] = updatedTargetFeature;
         }
 
         return updatedFeatures;
@@ -431,18 +547,24 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
             feature={feature}
             featureIndex={featureIndex}
             isVisible={!!visibleFeatures[featureIndex]}
-            isEditingProperty={editingFeatureIndex === featureIndex}
+            editorMode={
+              editingFeatureIndex === featureIndex ? editorMode : null
+            }
+            editingPropertyKey={editingPropertyKey}
             featureTitle={getFeatureNameOrId(feature, featureIndex)}
             newPropertyKey={newPropertyKey}
             newPropertyValue={newPropertyValue}
             isSavingProperty={isSavingProperty}
             onToggleVisibility={toggleFeatureVisibility}
             onHighlightFeature={highlightFeatureOnMap}
-            onEditProperty={index => {
+            onEditProperty={(index, propertyKey, value) => {
               setEditingFeatureIndex(index);
-              setNewPropertyKey('');
-              setNewPropertyValue('');
+              setEditorMode('edit');
+              setEditingPropertyKey(propertyKey);
+              setNewPropertyKey(propertyKey);
+              setNewPropertyValue(String(value ?? ''));
             }}
+            onStartAddProperty={startAddProperty}
             onSaveProperty={handleAddProperty}
             onCancelProperty={resetAddPropertyEditor}
             onNewPropertyKeyChange={setNewPropertyKey}
