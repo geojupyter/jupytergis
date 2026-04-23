@@ -833,6 +833,54 @@ class GISDocument(CommWidget):
 
         return layer_ids
 
+    async def add_tiler_layer(
+        self,
+        data_array: DataArray,
+        colormap_name: str = "viridis",
+        rescale: tuple[float, float] | None = None,
+        scale: int = 1,
+        name: str = "Tiler layer",
+        opacity: float = 1,
+        algorithm: BaseAlgorithm | None = None,
+        **params,
+    ):
+        try:
+            from jupyter_xarray_tiler.titiler import add_data_array
+        except ImportError as e:
+            raise RuntimeError(
+                "This method requires 'jupyter-xarray-tiler'."
+                " To resolve, `pip install jupytergis[tiler]`."
+            ) from e
+
+        url = await add_data_array(
+            data_array,
+            colormap_name=colormap_name,
+            rescale=rescale,
+            scale=scale,
+            algorithm=algorithm,
+            **params,
+        )
+
+        source_id = str(uuid4())
+        source = {
+            "type": SourceType.RasterSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": 0,
+                "maxZoom": 24,
+            },
+        }
+        self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
     def get_wms_available_layers(
         self,
         wms_url: str,
