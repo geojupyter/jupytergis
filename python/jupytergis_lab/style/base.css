@@ -213,6 +213,16 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border: solid 1.5px red;
 }
 
+.jGIS-toolbar-widget svg path {
+  fill: var(--jp-ui-font-color2) !important;
+}
+.jGIS-toolbar-widget .fa {
+  color: var(--jp-ui-font-color2) !important;
+}
+.jGIS-toolbar-widget svg .jp-icon-accent1 {
+  fill: #ffffff !important;
+}
+
 .jGIS-Mainview-Container {
   display: flex;
   flex-direction: column;

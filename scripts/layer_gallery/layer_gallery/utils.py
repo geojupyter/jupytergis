@@ -1,6 +1,8 @@
+"""Miscellaneous utilities."""
+
 import string
 from datetime import date, timedelta
-from typing import Any, cast, TypeVar
+from typing import Any, TypeVar, cast
 
 from xyzservices import TileProvider
 
@@ -42,7 +44,8 @@ def build_url_parameters(tile_provider: TileProvider) -> dict[str, Any]:
     for name in placeholders - reserved:
         if name not in tile_provider or tile_provider[name] is None:
             raise KeyError(
-                f"Placeholder '{name}' not found in TileProvider '{tile_provider.get('name')}'"
+                f"Placeholder '{name}' not found in TileProvider"
+                f" '{tile_provider.get('name')}'",
             )
 
         kwargs[name] = tile_provider[name]
@@ -56,19 +59,21 @@ T = TypeVar("T")
 
 
 def dict_keys_to_camel(obj: T) -> T:
+    """Convert every dict key (recursively) in `obj` to camel case."""
     if isinstance(obj, dict):
         return cast(
-            T,
+            "T",
             {_snake_to_camel(k): dict_keys_to_camel(v) for k, v in obj.items()},
         )
     if isinstance(obj, list):
         return cast(
-            T,
+            "T",
             [dict_keys_to_camel(i) for i in obj],
         )
     return obj
 
 
 def _snake_to_camel(s: str) -> str:
+    """Convert snake_case to camelCase."""
     parts = s.split("_")
     return parts[0] + "".join(w.capitalize() for w in parts[1:])

@@ -237,6 +237,7 @@ class GISDocument(CommWidget):
         name: str = "Raster Layer",
         attribution: str = "",
         opacity: float = 1,
+        url_parameters: Optional[Dict[str, Any]] = None,
     ):
         """
         Add a Raster Layer to the document.
@@ -245,6 +246,7 @@ class GISDocument(CommWidget):
         :param url: The tiles url.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
+        :param url_parameters: Extra URL parameters for tile requests.
         """
         source = {
             "type": SourceType.RasterSource,
@@ -257,7 +259,7 @@ class GISDocument(CommWidget):
                 "htmlAttribution": attribution,
                 "provider": "",
                 "bounds": [],
-                "urlParameters": {},
+                "urlParameters": url_parameters or {},
             },
         }
 
