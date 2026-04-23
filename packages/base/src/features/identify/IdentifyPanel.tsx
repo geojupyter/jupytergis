@@ -18,13 +18,29 @@ interface IIdentifyComponentProps {
 interface IFeatureRowProps {
   propertyKey: string;
   value: any;
+  showEditButton: boolean;
 }
 
-const FeatureRow: React.FC<IFeatureRowProps> = ({ propertyKey, value }) => {
+const FeatureRow: React.FC<IFeatureRowProps> = ({
+  propertyKey,
+  value,
+  showEditButton,
+}) => {
   return (
     <div className="jgis-identify-grid-body">
       <strong>{propertyKey}:</strong>
       <span>{String(value)}</span>
+      {showEditButton && (
+        <button
+          type="button"
+          title="Edit property"
+          onClick={event => {
+            event.stopPropagation();
+          }}
+        >
+          Edit
+        </button>
+      )}
     </div>
   );
 };
@@ -87,13 +103,20 @@ interface IFeaturePropertyListProps {
 }
 
 const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({ feature }) => {
+  const isFeatureEditable = feature?._fromDrawTool === true;
+
   return (
     <>
       {Object.entries(feature)
         .filter(([_, value]) => typeof value !== 'object' || value === null)
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
         .map(([key, value]) => (
-          <FeatureRow key={key} propertyKey={key} value={value} />
+          <FeatureRow
+            key={key}
+            propertyKey={key}
+            value={value}
+            showEditButton={isFeatureEditable && !key.startsWith('_')}
+          />
         ))}
     </>
   );
