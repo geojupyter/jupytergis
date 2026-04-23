@@ -15,6 +15,217 @@ interface IIdentifyComponentProps {
   ) => Promise<boolean>;
 }
 
+interface IFeatureRowProps {
+  propertyKey: string;
+  value: any;
+}
+
+const FeatureRow: React.FC<IFeatureRowProps> = ({ propertyKey, value }) => {
+  return (
+    <div className="jgis-identify-grid-body">
+      <strong>{propertyKey}:</strong>
+      <span>{String(value)}</span>
+    </div>
+  );
+};
+
+interface IFeatureCardHeaderProps {
+  feature: any;
+  featureIndex: number;
+  isVisible: boolean;
+  featureTitle: string;
+  onToggleVisibility: (index: number) => void;
+  onHighlightFeature: (feature: any) => void;
+}
+
+const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
+  feature,
+  featureIndex,
+  isVisible,
+  featureTitle,
+  onToggleVisibility,
+  onHighlightFeature,
+}) => {
+  const isRasterFeature =
+    !feature.geometry &&
+    !feature._geometry &&
+    typeof feature?.x !== 'number' &&
+    typeof feature?.y !== 'number';
+
+  return (
+    <div className="jgis-identify-grid-item-header">
+      <span onClick={() => onToggleVisibility(featureIndex)}>
+        <LabIcon.resolveReact
+          icon={caretDownIcon}
+          className={`jp-gis-layerGroupCollapser${isVisible ? ' jp-mod-expanded' : ''}`}
+          tag={'span'}
+        />
+        <span>{featureTitle}</span>
+      </span>
+
+      <button
+        className="jgis-highlight-button"
+        onClick={e => {
+          e.stopPropagation();
+          onHighlightFeature(feature);
+        }}
+        title={
+          isRasterFeature
+            ? 'Highlight not available for raster features'
+            : 'Highlight feature on map'
+        }
+        disabled={isRasterFeature}
+      >
+        <FontAwesomeIcon icon={faMagnifyingGlass} />
+      </button>
+    </div>
+  );
+};
+
+interface IFeaturePropertyListProps {
+  feature: any;
+}
+
+const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({ feature }) => {
+  return (
+    <>
+      {Object.entries(feature)
+        .filter(([_, value]) => typeof value !== 'object' || value === null)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) => (
+          <FeatureRow key={key} propertyKey={key} value={value} />
+        ))}
+    </>
+  );
+};
+
+interface IAddPropertyEditorProps {
+  feature: any;
+  featureIndex: number;
+  isEditingProperty: boolean;
+  newPropertyKey: string;
+  newPropertyValue: string;
+  isSavingProperty: boolean;
+  onEditProperty: (featureIndex: number) => void;
+  onSaveProperty: (feature: any, featureIndex: number) => void;
+  onCancelProperty: () => void;
+  onNewPropertyKeyChange: (value: string) => void;
+  onNewPropertyValueChange: (value: string) => void;
+}
+
+const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
+  feature,
+  featureIndex,
+  isEditingProperty,
+  newPropertyKey,
+  newPropertyValue,
+  isSavingProperty,
+  onEditProperty,
+  onSaveProperty,
+  onCancelProperty,
+  onNewPropertyKeyChange,
+  onNewPropertyValueChange,
+}) => {
+  if (isEditingProperty) {
+    return (
+      <div className="jgis-identify-grid-body">
+        <input
+          type="text"
+          placeholder="key"
+          value={newPropertyKey}
+          onChange={event => onNewPropertyKeyChange(event.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="value"
+          value={newPropertyValue}
+          onChange={event => onNewPropertyValueChange(event.target.value)}
+        />
+        <button
+          onClick={() => onSaveProperty(feature, featureIndex)}
+          disabled={!newPropertyKey.trim() || isSavingProperty}
+        >
+          Save
+        </button>
+        <button onClick={onCancelProperty}>Cancel</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="jgis-identify-grid-body">
+      <button onClick={() => onEditProperty(featureIndex)}>+</button>
+    </div>
+  );
+};
+
+interface IFeatureCardProps {
+  feature: any;
+  featureIndex: number;
+  isVisible: boolean;
+  isEditingProperty: boolean;
+  featureTitle: string;
+  newPropertyKey: string;
+  newPropertyValue: string;
+  isSavingProperty: boolean;
+  onToggleVisibility: (index: number) => void;
+  onHighlightFeature: (feature: any) => void;
+  onEditProperty: (featureIndex: number) => void;
+  onSaveProperty: (feature: any, featureIndex: number) => void;
+  onCancelProperty: () => void;
+  onNewPropertyKeyChange: (value: string) => void;
+  onNewPropertyValueChange: (value: string) => void;
+}
+
+const FeatureCard: React.FC<IFeatureCardProps> = ({
+  feature,
+  featureIndex,
+  isVisible,
+  isEditingProperty: isEditingFeature,
+  featureTitle,
+  newPropertyKey,
+  newPropertyValue,
+  isSavingProperty,
+  onToggleVisibility,
+  onHighlightFeature,
+  onEditProperty,
+  onSaveProperty,
+  onCancelProperty,
+  onNewPropertyKeyChange,
+  onNewPropertyValueChange,
+}) => {
+  return (
+    <div className="jgis-identify-grid-item">
+      <FeatureCardHeader
+        feature={feature}
+        featureIndex={featureIndex}
+        isVisible={isVisible}
+        featureTitle={featureTitle}
+        onToggleVisibility={onToggleVisibility}
+        onHighlightFeature={onHighlightFeature}
+      />
+      {isVisible && (
+        <>
+          <FeaturePropertyList feature={feature} />
+          <AddPropertyEditor
+            feature={feature}
+            featureIndex={featureIndex}
+            isEditingProperty={isEditingFeature}
+            newPropertyKey={newPropertyKey}
+            newPropertyValue={newPropertyValue}
+            isSavingProperty={isSavingProperty}
+            onEditProperty={onEditProperty}
+            onSaveProperty={onSaveProperty}
+            onCancelProperty={onCancelProperty}
+            onNewPropertyKeyChange={onNewPropertyKeyChange}
+            onNewPropertyValueChange={onNewPropertyValueChange}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
 export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
   patchGeoJSONFeatureProperties,
@@ -192,99 +403,28 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       )}
       {features &&
         Object.values(features).map((feature, featureIndex) => (
-          // TODO: Break this nested feature/property rendering into smaller
-          // components (feature card, property list, add-property editor).
-          <div key={featureIndex} className="jgis-identify-grid-item">
-            <div className="jgis-identify-grid-item-header">
-              <span onClick={() => toggleFeatureVisibility(featureIndex)}>
-                <LabIcon.resolveReact
-                  icon={caretDownIcon}
-                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
-                  tag={'span'}
-                />
-                <span>{getFeatureNameOrId(feature, featureIndex)}</span>
-              </span>
-
-              {(() => {
-                const isRasterFeature =
-                  !feature.geometry &&
-                  !feature._geometry &&
-                  typeof feature?.x !== 'number' &&
-                  typeof feature?.y !== 'number';
-
-                return (
-                  <button
-                    className="jgis-highlight-button"
-                    onClick={e => {
-                      e.stopPropagation();
-                      highlightFeatureOnMap(feature);
-                    }}
-                    title={
-                      isRasterFeature
-                        ? 'Highlight not available for raster features'
-                        : 'Highlight feature on map'
-                    }
-                    disabled={isRasterFeature}
-                  >
-                    <FontAwesomeIcon icon={faMagnifyingGlass} />
-                  </button>
-                );
-              })()}
-            </div>
-            {visibleFeatures[featureIndex] && (
-              <>
-                {Object.entries(feature)
-                  .filter(
-                    ([key, value]) =>
-                      typeof value !== 'object' || value === null,
-                  )
-                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-                  .map(([key, value]) => (
-                    <div key={key} className="jgis-identify-grid-body">
-                      <strong>{key}:</strong>
-                      <span>{String(value)}</span>
-                    </div>
-                  ))}
-                {editingFeatureIndex === featureIndex ? (
-                  <div className="jgis-identify-grid-body">
-                    <input
-                      type="text"
-                      placeholder="key"
-                      value={newPropertyKey}
-                      onChange={event => setNewPropertyKey(event.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="value"
-                      value={newPropertyValue}
-                      onChange={event =>
-                        setNewPropertyValue(event.target.value)
-                      }
-                    />
-                    <button
-                      onClick={() => handleAddProperty(feature, featureIndex)}
-                      disabled={!newPropertyKey.trim() || isSavingProperty}
-                    >
-                      Save
-                    </button>
-                    <button onClick={resetAddPropertyEditor}>Cancel</button>
-                  </div>
-                ) : (
-                  <div className="jgis-identify-grid-body">
-                    <button
-                      onClick={() => {
-                        setEditingFeatureIndex(featureIndex);
-                        setNewPropertyKey('');
-                        setNewPropertyValue('');
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <FeatureCard
+            key={featureIndex}
+            feature={feature}
+            featureIndex={featureIndex}
+            isVisible={!!visibleFeatures[featureIndex]}
+            isEditingProperty={editingFeatureIndex === featureIndex}
+            featureTitle={getFeatureNameOrId(feature, featureIndex)}
+            newPropertyKey={newPropertyKey}
+            newPropertyValue={newPropertyValue}
+            isSavingProperty={isSavingProperty}
+            onToggleVisibility={toggleFeatureVisibility}
+            onHighlightFeature={highlightFeatureOnMap}
+            onEditProperty={index => {
+              setEditingFeatureIndex(index);
+              setNewPropertyKey('');
+              setNewPropertyValue('');
+            }}
+            onSaveProperty={handleAddProperty}
+            onCancelProperty={resetAddPropertyEditor}
+            onNewPropertyKeyChange={setNewPropertyKey}
+            onNewPropertyValueChange={setNewPropertyValue}
+          />
         ))}
     </div>
   );

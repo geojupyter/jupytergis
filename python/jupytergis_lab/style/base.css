@@ -697,6 +697,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   grid-template-rows: auto auto;
   position: relative;
   gap: 1px;
+  border: 1px solid black;
 }
 
 .jgis-identify-grid-item-header {
