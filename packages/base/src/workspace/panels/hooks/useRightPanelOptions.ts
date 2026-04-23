@@ -73,7 +73,9 @@ export function useRightPanelOptions(
 
     return () => {
       model.sharedOptionsChanged.disconnect(onOptionsChanged);
-      model.identifiedFeaturesChanged.disconnect(handleIdentifiedFeaturesChanged);
+      model.identifiedFeaturesChanged.disconnect(
+        handleIdentifiedFeaturesChanged,
+      );
     };
   }, [model]);
 
