@@ -1,6 +1,6 @@
 import {
   IAnnotationModel,
-  IJGISSource,
+  IDict,
   IJGISFormSchemaRegistry,
   IJGISLayer,
   IJupyterGISModel,
@@ -85,13 +85,16 @@ interface IRightPanelProps {
   settings: IJupyterGISSettings;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
-  persistAndRefreshSource?: (
-    id: string,
-    source: IJGISSource,
-  ) => Promise<void>;
+  patchGeoJSONFeatureProperties?: (
+    sourceId: string,
+    target: { featureId?: string | number; featureIndex?: number },
+    propertyUpdates: IDict<any>,
+  ) => Promise<boolean>;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const { patchGeoJSONFeatureProperties } = props;
+
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =
       props.model.getOptions().storyMapPresentationMode ?? false;
@@ -242,7 +245,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             >
               <IdentifyPanelComponent
                 model={props.model}
-                persistAndRefreshSource={props.persistAndRefreshSource}
+                patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
               ></IdentifyPanelComponent>
             </TabsContent>
           )}
