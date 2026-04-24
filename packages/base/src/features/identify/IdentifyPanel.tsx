@@ -25,9 +25,9 @@ interface IPropertyEditorState {
 }
 
 interface IPropertyEditorActions {
-  onEditProperty: (featureIndex: number, propertyKey: string, value: any) => void;
-  onStartAddProperty: (featureIndex: number) => void;
-  onSaveProperty: (feature: any, featureIndex: number) => void;
+  onEditProperty: (rowIndex: number, propertyKey: string, value: any) => void;
+  onStartAddProperty: (rowIndex: number) => void;
+  onSaveProperty: (feature: any, rowIndex: number) => void;
   onCancelProperty: () => void;
   onNewPropertyKeyChange: (value: string) => void;
   onNewPropertyValueChange: (value: string) => void;
@@ -191,18 +191,62 @@ const FeatureRow: React.FC<IFeatureRowProps> = ({
   );
 };
 
+interface IPropertyRowEditorProps {
+  feature: any;
+  rowIndex: number;
+  editorState: IPropertyEditorState;
+  editorActions: IPropertyEditorActions;
+}
+
+const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
+  feature,
+  rowIndex,
+  editorState,
+  editorActions,
+}) => {
+  return (
+    <div className="jgis-identify-grid-body">
+      <input
+        type="text"
+        placeholder="key"
+        value={editorState.newPropertyKey}
+        onChange={event =>
+          editorActions.onNewPropertyKeyChange(event.target.value)
+        }
+      />
+      <input
+        type="text"
+        placeholder="value"
+        value={editorState.newPropertyValue}
+        onChange={event =>
+          editorActions.onNewPropertyValueChange(event.target.value)
+        }
+      />
+      <button
+        onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
+        disabled={
+          !editorState.newPropertyKey.trim() || editorState.isSavingProperty
+        }
+      >
+        Save
+      </button>
+      <button onClick={editorActions.onCancelProperty}>Cancel</button>
+    </div>
+  );
+};
+
 interface IFeatureCardHeaderProps {
   feature: any;
-  featureIndex: number;
+  rowIndex: number;
   isVisible: boolean;
   featureTitle: string;
-  onToggleVisibility: (index: number) => void;
+  onToggleVisibility: (rowIndex: number) => void;
   onHighlightFeature: (feature: any) => void;
 }
 
 const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
   feature,
-  featureIndex,
+  rowIndex,
   isVisible,
   featureTitle,
   onToggleVisibility,
@@ -216,7 +260,7 @@ const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
 
   return (
     <div className="jgis-identify-grid-item-header">
-      <span onClick={() => onToggleVisibility(featureIndex)}>
+      <span onClick={() => onToggleVisibility(rowIndex)}>
         <LabIcon.resolveReact
           icon={caretDownIcon}
           className={`jp-gis-layerGroupCollapser${isVisible ? ' jp-mod-expanded' : ''}`}
@@ -246,14 +290,14 @@ const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
 
 interface IFeaturePropertyListProps {
   feature: any;
-  featureIndex: number;
+  rowIndex: number;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
 }
 
 const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
   feature,
-  featureIndex,
+  rowIndex,
   editorState,
   editorActions,
 }) => {
@@ -266,40 +310,19 @@ const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
         .map(([key, value]) => {
           const isEditingThisRow =
-            editorState.editingFeatureIndex === featureIndex &&
+            editorState.editingFeatureIndex === rowIndex &&
             editorState.editorMode === 'edit' &&
             editorState.editingPropertyKey === key;
 
           if (isEditingThisRow) {
             return (
-              <div key={key} className="jgis-identify-grid-body">
-                <input
-                  type="text"
-                  placeholder="key"
-                  value={editorState.newPropertyKey}
-                  onChange={event =>
-                    editorActions.onNewPropertyKeyChange(event.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="value"
-                  value={editorState.newPropertyValue}
-                  onChange={event =>
-                    editorActions.onNewPropertyValueChange(event.target.value)
-                  }
-                />
-                <button
-                  onClick={() => editorActions.onSaveProperty(feature, featureIndex)}
-                  disabled={
-                    !editorState.newPropertyKey.trim() ||
-                    editorState.isSavingProperty
-                  }
-                >
-                  Save
-                </button>
-                <button onClick={editorActions.onCancelProperty}>Cancel</button>
-              </div>
+              <PropertyRowEditor
+                key={key}
+                feature={feature}
+                rowIndex={rowIndex}
+                editorState={editorState}
+                editorActions={editorActions}
+              />
             );
           }
 
@@ -310,7 +333,7 @@ const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
               value={value}
               showEditButton={isFeatureEditable && !key.startsWith('_')}
               onEditProperty={(propertyKey, propertyValue) =>
-                editorActions.onEditProperty(featureIndex, propertyKey, propertyValue)
+                editorActions.onEditProperty(rowIndex, propertyKey, propertyValue)
               }
             />
           );
@@ -321,14 +344,14 @@ const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
 
 interface IAddPropertyEditorProps {
   feature: any;
-  featureIndex: number;
+  rowIndex: number;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
 }
 
 const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
   feature,
-  featureIndex,
+  rowIndex,
   editorState,
   editorActions,
 }) => {
@@ -352,7 +375,7 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
           }
         />
         <button
-          onClick={() => editorActions.onSaveProperty(feature, featureIndex)}
+          onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
           disabled={
             !editorState.newPropertyKey.trim() || editorState.isSavingProperty
           }
@@ -366,7 +389,7 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
 
   return (
     <div className="jgis-identify-grid-body">
-      <button onClick={() => editorActions.onStartAddProperty(featureIndex)}>
+      <button onClick={() => editorActions.onStartAddProperty(rowIndex)}>
         +
       </button>
     </div>
@@ -375,18 +398,18 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
 
 interface IFeatureCardProps {
   feature: any;
-  featureIndex: number;
+  rowIndex: number;
   isVisible: boolean;
   featureTitle: string;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
-  onToggleVisibility: (index: number) => void;
+  onToggleVisibility: (rowIndex: number) => void;
   onHighlightFeature: (feature: any) => void;
 }
 
 const FeatureCard: React.FC<IFeatureCardProps> = ({
   feature,
-  featureIndex,
+  rowIndex,
   isVisible,
   featureTitle,
   editorState,
@@ -395,7 +418,7 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
   onHighlightFeature,
 }) => {
   const cardEditorState: IPropertyEditorState =
-    editorState.editingFeatureIndex === featureIndex
+    editorState.editingFeatureIndex === rowIndex
       ? editorState
       : {
           editingFeatureIndex: null,
@@ -410,7 +433,7 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
     <div className="jgis-identify-grid-item">
       <FeatureCardHeader
         feature={feature}
-        featureIndex={featureIndex}
+        rowIndex={rowIndex}
         isVisible={isVisible}
         featureTitle={featureTitle}
         onToggleVisibility={onToggleVisibility}
@@ -420,13 +443,13 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
         <>
           <FeaturePropertyList
             feature={feature}
-            featureIndex={featureIndex}
+            rowIndex={rowIndex}
             editorState={cardEditorState}
             editorActions={editorActions}
           />
           <AddPropertyEditor
             feature={feature}
-            featureIndex={featureIndex}
+            rowIndex={rowIndex}
             editorState={cardEditorState}
             editorActions={editorActions}
           />
@@ -441,7 +464,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   patchGeoJSONFeatureProperties,
 }) => {
   const [features, setFeatures] = useState<IDict<any>>();
-  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
+  const [visibleRows, setVisibleRows] = useState<IDict<any>>({
     0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
@@ -519,10 +542,10 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     model?.flyToGeometrySignal?.emit(geometry);
   };
 
-  const toggleFeatureVisibility = (index: number) => {
-    setVisibleFeatures(prev => ({
+  const toggleFeatureVisibility = (rowIndex: number) => {
+    setVisibleRows(prev => ({
       ...prev,
-      [index]: !prev[index],
+      [rowIndex]: !prev[rowIndex],
     }));
   };
 
@@ -554,13 +577,13 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
         </div>
       )}
       {features &&
-        Object.values(features).map((feature, featureIndex) => (
+        Object.values(features).map((feature, rowIndex) => (
           <FeatureCard
-            key={featureIndex}
+            key={rowIndex}
             feature={feature}
-            featureIndex={featureIndex}
-            isVisible={!!visibleFeatures[featureIndex]}
-            featureTitle={getFeatureNameOrId(feature, featureIndex)}
+            rowIndex={rowIndex}
+            isVisible={!!visibleRows[rowIndex]}
+            featureTitle={getFeatureNameOrId(feature, rowIndex)}
             editorState={editorState}
             editorActions={editorActions}
             onToggleVisibility={toggleFeatureVisibility}
