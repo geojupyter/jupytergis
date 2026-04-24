@@ -1,17 +1,27 @@
 import { Button } from '@/src/shared/components/Button';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/src/shared/components/Collapsible';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
 import { Input } from '@/src/shared/components/Input';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
-import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
-import { Ban, CirclePlus, Ellipsis, Pencil, Save } from 'lucide-react';
+import {
+  Ban,
+  ChevronRightIcon,
+  CirclePlus,
+  Ellipsis,
+  Pencil,
+  Save,
+  Search,
+} from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface IIdentifyComponentProps {
@@ -249,10 +259,7 @@ const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
             editorActions.onSaveProperty(feature, rowIndex);
           }}
         >
-          <Save
-            data-icon="inline-start"
-            className="jgis-inline-icon"
-          />
+          <Save data-icon="inline-start" className="jgis-inline-icon" />
           Save
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -262,10 +269,7 @@ const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
             editorActions.onCancelProperty();
           }}
         >
-          <Ban
-            data-icon="inline-start"
-            className="jgis-inline-icon"
-          />
+          <Ban data-icon="inline-start" className="jgis-inline-icon" />
           Cancel
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -294,19 +298,15 @@ const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
 
 interface IFeatureCardHeaderProps {
   feature: any;
-  rowIndex: number;
-  isVisible: boolean;
+  isOpen: boolean;
   featureTitle: string;
-  onToggleVisibility: (rowIndex: number) => void;
   onHighlightFeature: (feature: any) => void;
 }
 
 const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
   feature,
-  rowIndex,
-  isVisible,
+  isOpen,
   featureTitle,
-  onToggleVisibility,
   onHighlightFeature,
 }) => {
   const isRasterFeature =
@@ -316,19 +316,24 @@ const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
     typeof feature?.y !== 'number';
 
   return (
-    <div className="jgis-identify-grid-item-header identify-v2-card-header">
-      <span onClick={() => onToggleVisibility(rowIndex)}>
-        <LabIcon.resolveReact
-          icon={caretDownIcon}
-          className={`jp-gis-layerGroupCollapser${isVisible ? ' jp-mod-expanded' : ''}`}
-          tag={'span'}
-        />
+    <div className="identify-v2-card-header">
+      <div className="jgis-symbology-override-collapsible-trigger">
+        <Button
+          size="icon-sm"
+          variant="icon"
+          className="jgis-rotate-90 jgis-bg-transparent"
+        >
+          <ChevronRightIcon />
+        </Button>
         <span>{featureTitle}</span>
-      </span>
+      </div>
 
-      <button
-        className="jgis-highlight-button identify-v2-highlight"
+      <Button
+        size="icon-md"
+        variant="icon"
+        className="jgis-inline-icon"
         onClick={e => {
+          e.preventDefault();
           e.stopPropagation();
           onHighlightFeature(feature);
         }}
@@ -339,8 +344,8 @@ const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
         }
         disabled={isRasterFeature}
       >
-        <FontAwesomeIcon icon={faMagnifyingGlass} />
-      </button>
+        <Search />
+      </Button>
     </div>
   );
 };
@@ -487,7 +492,7 @@ interface IFeatureCardProps {
   featureTitle: string;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
-  onToggleVisibility: (rowIndex: number) => void;
+  onToggleVisibility: (rowIndex: number, isOpen: boolean) => void;
   onHighlightFeature: (feature: any) => void;
 }
 
@@ -515,16 +520,21 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
 
   return (
     <div className="jgis-identify-grid-item identify-v2-card">
-      <FeatureCardHeader
-        feature={feature}
-        rowIndex={rowIndex}
-        isVisible={isVisible}
-        featureTitle={featureTitle}
-        onToggleVisibility={onToggleVisibility}
-        onHighlightFeature={onHighlightFeature}
-      />
-      {isVisible && (
-        <>
+      <Collapsible
+        open={isVisible}
+        onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
+      >
+        <CollapsibleTrigger asChild>
+          <div>
+            <FeatureCardHeader
+              feature={feature}
+              isOpen={isVisible}
+              featureTitle={featureTitle}
+              onHighlightFeature={onHighlightFeature}
+            />
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
           <div className="identify-v2-content">
             <FeaturePropertyList
               feature={feature}
@@ -539,8 +549,8 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
             editorState={cardEditorState}
             editorActions={editorActions}
           />
-        </>
-      )}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };
@@ -628,10 +638,10 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     model?.flyToGeometrySignal?.emit(geometry);
   };
 
-  const toggleFeatureVisibility = (rowIndex: number) => {
+  const toggleFeatureVisibility = (rowIndex: number, isOpen: boolean) => {
     setVisibleRows(prev => ({
       ...prev,
-      [rowIndex]: !prev[rowIndex],
+      [rowIndex]: isOpen,
     }));
   };
 

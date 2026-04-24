@@ -838,7 +838,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   flex: 0 0 clamp(7rem, 30%, 12rem);
   min-width: 0;
   max-width: clamp(7rem, 30%, 12rem);
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

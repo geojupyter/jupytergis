@@ -300,7 +300,7 @@ body[data-notebook='specta'] #main.jp-ThemedContainer {
   transition: rotate 150ms ease;
 }
 
-[data-state='open'] > .jgis-rotate-90 {
+[data-state='open'] .jgis-rotate-90 {
   rotate: 90deg;
 }
 
