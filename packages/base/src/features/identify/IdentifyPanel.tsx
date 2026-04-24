@@ -1,4 +1,5 @@
 import { Button } from '@/src/shared/components/Button';
+import { Input } from '@/src/shared/components/Input';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
@@ -183,7 +184,7 @@ const FeatureRow: React.FC<IFeatureRowProps> = ({
       {showEditButton && (
         <Button
           type="button"
-          className="identify-v2-col-actions"
+          className="identify-v2-col-actions identify-v2-col-actions--primary"
           title="Edit property"
           variant="icon"
           size="icon-md"
@@ -195,6 +196,10 @@ const FeatureRow: React.FC<IFeatureRowProps> = ({
           <Pencil />
         </Button>
       )}
+      {!showEditButton && (
+        <span className="identify-v2-col-actions identify-v2-col-actions--primary" />
+      )}
+      <span className="identify-v2-col-actions identify-v2-col-actions--secondary" />
     </div>
   );
 };
@@ -215,21 +220,25 @@ const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
   return (
     <div className="identify-v2-row identify-v2-row--editor">
       <PropertyFields editorState={editorState} editorActions={editorActions} />
-      <button
-        className="identify-v2-col-actions"
+      <Button
+        className="identify-v2-col-actions identify-v2-col-actions--primary"
         onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
+        variant="outline"
+        size="sm"
         disabled={
           !editorState.newPropertyKey.trim() || editorState.isSavingProperty
         }
       >
         Save
-      </button>
-      <button
-        className="identify-v2-col-actions"
+      </Button>
+      <Button
+        className="identify-v2-col-actions identify-v2-col-actions--secondary"
+        variant="destructive"
+        size="sm"
         onClick={editorActions.onCancelProperty}
       >
         Cancel
-      </button>
+      </Button>
     </div>
   );
 };
@@ -386,14 +395,17 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
 
   return (
     <div className="identify-v2-row identify-v2-row--add">
+      <span className="identify-v2-col-key" />
+      <span className="identify-v2-col-value" />
       <Button
-        className="identify-v2-col-actions"
+        className="identify-v2-col-actions identify-v2-col-actions--primary"
         onClick={() => editorActions.onStartAddProperty(rowIndex)}
         variant="icon"
         size="icon-md"
       >
         <CirclePlus />
       </Button>
+      <span className="identify-v2-col-actions identify-v2-col-actions--secondary" />
     </div>
   );
 };
@@ -409,7 +421,7 @@ const PropertyFields: React.FC<IPropertyFieldsProps> = ({
 }) => {
   return (
     <>
-      <input
+      <Input
         className="identify-v2-col-key"
         type="text"
         placeholder="key"
@@ -418,7 +430,7 @@ const PropertyFields: React.FC<IPropertyFieldsProps> = ({
           editorActions.onNewPropertyKeyChange(event.target.value)
         }
       />
-      <input
+      <Input
         className="identify-v2-col-value"
         type="text"
         placeholder="value"
@@ -476,12 +488,14 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
       />
       {isVisible && (
         <>
-          <FeaturePropertyList
-            feature={feature}
-            rowIndex={rowIndex}
-            editorState={cardEditorState}
-            editorActions={editorActions}
-          />
+          <div className="identify-v2-grid">
+            <FeaturePropertyList
+              feature={feature}
+              rowIndex={rowIndex}
+              editorState={cardEditorState}
+              editorActions={editorActions}
+            />
+          </div>
           <AddPropertyEditor
             feature={feature}
             rowIndex={rowIndex}

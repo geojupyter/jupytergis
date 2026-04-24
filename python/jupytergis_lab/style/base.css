@@ -801,7 +801,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0 0 0.75rem 0.5rem;
+  padding: 0 0.5rem 0.75rem 0.5rem;
 }
 
 .identify-v2-card-header {
@@ -814,33 +814,52 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   line-height: 1.5rem;
 }
 
-.identify-v2-row {
+.identify-v2-grid {
   display: grid;
-  grid-template-columns: minmax(90px, 1fr) minmax(120px, 2fr) auto auto;
-  align-items: center;
+  grid-template-columns: max-content minmax(0, 1fr) max-content max-content;
   column-gap: 8px;
+  row-gap: 0.25rem;
+}
+
+.identify-v2-row {
+  display: contents;
 }
 
 .identify-v2-row--add {
-  grid-template-columns: 1fr auto;
+  display: contents;
 }
 
 .identify-v2-row--editor {
-  grid-template-columns: minmax(90px, 1fr) minmax(120px, 2fr) auto auto;
+  display: contents;
 }
 
 .identify-v2-col-key {
+  grid-column: 1;
+  align-self: center;
   min-width: 0;
   font-weight: 600;
 }
 
 .identify-v2-col-value {
+  grid-column: 2;
+  align-self: center;
   min-width: 0;
-  overflow-wrap: anywhere;
+  /* overflow-wrap: anywhere; */
 }
 
 .identify-v2-col-actions {
+  align-self: center;
+  display: inline-flex;
+  flex: 0 0 auto;
   justify-self: end;
+}
+
+.identify-v2-col-actions--primary {
+  grid-column: 3;
+}
+
+.identify-v2-col-actions--secondary {
+  grid-column: 4;
 }
 
 .jp-gis-stop-container-wrapper {
