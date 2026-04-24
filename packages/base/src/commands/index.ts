@@ -10,6 +10,7 @@ import {
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
@@ -374,6 +375,27 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.temporalController);
     },
     ...icons.get(CommandIDs.temporalController),
+  });
+
+  commands.addCommand(CommandIDs.proccessingGenerator, {
+    label: trans.__('Processing Generator'),
+    caption:
+      'Open the processing generator library to generate a geoprocessing cell based on input parameters.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: async () => {
+      await showDialog({
+        title: trans.__('Processing Generator'),
+        body: '',
+        buttons: [Dialog.okButton()],
+      });
+    },
+    ...icons.get(CommandIDs.proccessingGenerator),
   });
 
   /**
