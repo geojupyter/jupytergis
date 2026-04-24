@@ -1,12 +1,12 @@
 import sqlite3
 import uuid
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 
-class MESSAGE_ACTION(str, Enum):
+class MESSAGE_ACTION(StrEnum):
     CONNECT_ROOM = "connect_room"
     DISCONNECT_ROOM = "disconnect_room"
 
