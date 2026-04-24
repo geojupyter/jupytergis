@@ -56,6 +56,8 @@ extend-include = ["*.ipynb"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "E501",
-    "E731",
+    "E501",    # Forbid too-long lines
+    "E731",    # Forbid lambda assignment
+    "D203",    # Require blank line before class docstring
+    "D213",    # Require multi-line docstrings to start on the line after opening triple-quotes
 ]
