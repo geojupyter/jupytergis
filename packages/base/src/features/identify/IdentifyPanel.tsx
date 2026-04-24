@@ -206,22 +206,7 @@ const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
 }) => {
   return (
     <div className="jgis-identify-grid-body">
-      <input
-        type="text"
-        placeholder="key"
-        value={editorState.newPropertyKey}
-        onChange={event =>
-          editorActions.onNewPropertyKeyChange(event.target.value)
-        }
-      />
-      <input
-        type="text"
-        placeholder="value"
-        value={editorState.newPropertyValue}
-        onChange={event =>
-          editorActions.onNewPropertyValueChange(event.target.value)
-        }
-      />
+      <PropertyFields editorState={editorState} editorActions={editorActions} />
       <button
         onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
         disabled={
@@ -358,22 +343,7 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
   if (editorState.editorMode === 'add') {
     return (
       <div className="jgis-identify-grid-body">
-        <input
-          type="text"
-          placeholder="key"
-          value={editorState.newPropertyKey}
-          onChange={event =>
-            editorActions.onNewPropertyKeyChange(event.target.value)
-          }
-        />
-        <input
-          type="text"
-          placeholder="value"
-          value={editorState.newPropertyValue}
-          onChange={event =>
-            editorActions.onNewPropertyValueChange(event.target.value)
-          }
-        />
+        <PropertyFields editorState={editorState} editorActions={editorActions} />
         <button
           onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
           disabled={
@@ -393,6 +363,35 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
         +
       </button>
     </div>
+  );
+};
+
+interface IPropertyFieldsProps {
+  editorState: IPropertyEditorState;
+  editorActions: IPropertyEditorActions;
+}
+
+const PropertyFields: React.FC<IPropertyFieldsProps> = ({
+  editorState,
+  editorActions,
+}) => {
+  return (
+    <>
+      <input
+        type="text"
+        placeholder="key"
+        value={editorState.newPropertyKey}
+        onChange={event => editorActions.onNewPropertyKeyChange(event.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="value"
+        value={editorState.newPropertyValue}
+        onChange={event =>
+          editorActions.onNewPropertyValueChange(event.target.value)
+        }
+      />
+    </>
   );
 };
 
