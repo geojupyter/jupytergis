@@ -24,7 +24,7 @@ class ExportToQgisHandler(APIHandler):
         body = self.get_json_body()
         qgis_installed = True
         try:
-            from .qgis_loader import export_project_to_qgis  # noqa
+            from .qgis_loader import export_project_to_qgis
         except ImportError:
             qgis_installed = False
 
