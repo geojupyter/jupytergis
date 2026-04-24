@@ -691,13 +691,14 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   cursor: crosshair;
 }
 
+/* TODO delete */
 .jgis-identify-grid-item {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
   position: relative;
   gap: 1px;
-  border: 1px solid black;
+  outline: 1px solid white;
 }
 
 .jgis-identify-grid-item-header {
@@ -787,6 +788,59 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: auto;
+}
+
+/* Identify panel layout v2 (kept alongside legacy classes) */
+.identify-v2-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.identify-v2-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0 0.75rem 0.5rem;
+}
+
+.identify-v2-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: var(--jp-ui-font-size1);
+  cursor: pointer;
+  line-height: 1.5rem;
+}
+
+.identify-v2-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(120px, 2fr) auto auto;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.identify-v2-row--add {
+  grid-template-columns: 1fr auto;
+}
+
+.identify-v2-row--editor {
+  grid-template-columns: minmax(90px, 1fr) minmax(120px, 2fr) auto auto;
+}
+
+.identify-v2-col-key {
+  min-width: 0;
+  font-weight: 600;
+}
+
+.identify-v2-col-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.identify-v2-col-actions {
+  justify-self: end;
 }
 
 .jp-gis-stop-container-wrapper {
