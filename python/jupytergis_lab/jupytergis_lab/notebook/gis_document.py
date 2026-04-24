@@ -687,7 +687,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | float | None = None,
         color_expr=None,
     ):
         """Add a GeoPackage Vector Layer to the document
