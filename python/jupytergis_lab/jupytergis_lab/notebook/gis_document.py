@@ -1152,13 +1152,13 @@ class GISDocument(CommWidget):
         layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
-    def _add_source(self, new_object: JGISObject, id: str | None = None) -> str:
+    def _add_source(self, new_object, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object: JGISObject, id: str | None = None) -> str:
+    def _add_layer(self, new_object, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
