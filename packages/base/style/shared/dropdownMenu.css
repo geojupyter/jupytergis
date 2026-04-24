@@ -126,6 +126,17 @@
   opacity: 0.5;
 }
 
+.jgis-dropdown-menu-item[data-variant='destructive'] {
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-error-color1);
+  transition: background-color 0.2s ease;
+}
+
+.jgis-dropdown-menu-item[data-variant='destructive']:focus {
+  background-color: color-mix(in srgb, var(--jp-error-color1), transparent 85%);
+  color: var(--jp-ui-font-color0);
+}
+
 .jgis-dropdown-menu-checkbox-item {
   position: relative;
   display: flex;
