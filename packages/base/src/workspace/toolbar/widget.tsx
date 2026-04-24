@@ -156,10 +156,22 @@ export class ToolbarWidget extends ReactiveToolbar {
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
 
-      const processingGeneratorButton = new CommandToolbarButton({
-        id: CommandIDs.proccessingGenerator,
+      const processingSubMenu = new MenuSvg({ commands: options.commands });
+      const ctx = require.context('../../processingLibrary', false, /\.js$/);
+      ctx.keys().forEach(key => {
+        const item = ctx(key).default;
+        const id = `jupytergis:processingLibrary:${key}`;
+        options.commands!.addCommand(id, { label: item.label, execute: item.execute });
+        processingSubMenu.addItem({ command: id });
+      });
+
+      const processingGeneratorButton = new ToolbarButton({
         label: '⚗️',
-        commands: options.commands,
+        noFocusOnClick: false,
+        onClick: () => {
+          const bbox = processingGeneratorButton.node.getBoundingClientRect();
+          processingSubMenu.open(bbox.x, bbox.bottom);
+        },
       });
 
       this.addItem('processingGenerator', processingGeneratorButton);
