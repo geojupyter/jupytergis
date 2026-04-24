@@ -167,11 +167,3 @@
   width: 1rem;
   flex-shrink: 0;
 }
-
-.jgis-button [data-icon='inline-start'] {
-  margin-right: 0.375rem;
-}
-
-.jgis-button [data-icon='inline-end'] {
-  margin-left: 0.375rem;
-}

@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
-import { CirclePlus, Ellipsis, Pencil } from 'lucide-react';
+import { Ban, CirclePlus, Ellipsis, Pencil, Save } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface IIdentifyComponentProps {
@@ -249,15 +249,23 @@ const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
             editorActions.onSaveProperty(feature, rowIndex);
           }}
         >
+          <Save
+            data-icon="inline-start"
+            className="jgis-inline-icon"
+          />
           Save
         </DropdownMenuItem>
         <DropdownMenuItem
+          variant="destructive"
           onSelect={event => {
             event.preventDefault();
             editorActions.onCancelProperty();
           }}
-          variant="destructive"
         >
+          <Ban
+            data-icon="inline-start"
+            className="jgis-inline-icon"
+          />
           Cancel
         </DropdownMenuItem>
       </DropdownMenuContent>
