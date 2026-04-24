@@ -2,7 +2,7 @@
 
 import string
 from datetime import date, timedelta
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 from xyzservices import TileProvider
 
@@ -55,10 +55,7 @@ def build_url_parameters(tile_provider: TileProvider) -> dict[str, Any]:
     return kwargs
 
 
-T = TypeVar("T")
-
-
-def dict_keys_to_camel(obj: T) -> T:
+def dict_keys_to_camel[T](obj: T) -> T:
     """Convert every dict key (recursively) in `obj` to camel case."""
     if isinstance(obj, dict):
         return cast(
