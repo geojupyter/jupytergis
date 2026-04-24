@@ -93,7 +93,6 @@ ignore = [
     "EXE002",  # shebang-missing-executable-file
     "EXE003",  # shebang-missing-python
     "EXE005",  # shebang-not-first-line
-    "F821",    # undefined-name
     "FBT001",  # boolean-type-hint-positional-argument
     "FBT002",  # boolean-default-value-positional-argument
     "FBT003",  # boolean-positional-value-in-call
