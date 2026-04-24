@@ -54,21 +54,8 @@ ignore = ["W002"]
 extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
-select = [
-    "B",  # bugbear
-    "E",  # pycodestyle
-    # pyflakes rules which are autofixable:
-    "F401",
-    "F504",
-    "F522",
-    "F523",
-    "F541",
-    "F601",
-    "F602",
-    "F631",
-    "F811",
-    "F841",
-    "F901",
-    "I",  # isort
+select = ["ALL"]
+ignore = [
+    "E501",
+    "E731",
 ]
-ignore = ["E501", "E731"]
