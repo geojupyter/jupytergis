@@ -682,7 +682,7 @@ class GISDocument(CommWidget):
         path: str,
         table_names: list[str] | str | None = None,
         name: str = "GeoPackage Layer",
-        type: circle | fill | line = "line",
+        type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
