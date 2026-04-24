@@ -441,12 +441,13 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
   return (
     <div className="identify-v2-row identify-v2-row--add">
       <Button
-        className="identify-v2-col-actions"
+        className="identify-v2-add-button"
         onClick={() => editorActions.onStartAddProperty(rowIndex)}
-        variant="icon"
-        size="icon-md"
+        variant="outline"
+        size="sm"
       >
-        <CirclePlus />
+        <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
+        Add Property
       </Button>
     </div>
   );
@@ -519,7 +520,7 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
         };
 
   return (
-    <div className="jgis-identify-grid-item identify-v2-card">
+    <div className="identify-v2-card">
       <Collapsible
         open={isVisible}
         onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
