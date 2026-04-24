@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']
+        python-version: ['3.12', '3.14']
 
     steps:
       - name: Checkout
@@ -209,7 +209,7 @@ jobs:
           micromamba-version: '1.5.5-0'
           environment-name: build-env
           create-args: >-
-            python=3.10
+            python=3.12
             pip
             jupyterlite-core
             jupyterlite-xeus
