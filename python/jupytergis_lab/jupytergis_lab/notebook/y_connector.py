@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from ypywidgets import Widget
 
@@ -7,7 +6,7 @@ logger = logging.getLogger(__file__)
 
 
 class YDocConnector(Widget):
-    def __init__(self, path: Optional[str | Path], **kwargs) -> None:
+    def __init__(self, path: str | Path | None, **kwargs) -> None:
         self.path = None
         self._format = None
         self._contentType = None

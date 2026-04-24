@@ -6,10 +6,8 @@ Used by both ``jupytergis_qgis`` (QGIS import/export) and ``jupytergis_lab``
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
 
-
-def hex_to_rgba(hex_color: str) -> Tuple[int, int, int, float]:
+def hex_to_rgba(hex_color: str) -> tuple[int, int, int, float]:
     """Convert a CSS hex string (``#rgb``, ``#rrggbb``, ``#rrggbbaa``) to an
     ``(r, g, b, a)`` tuple with r/g/b in 0-255 and a in 0-1.
 
@@ -28,7 +26,7 @@ def hex_to_rgba(hex_color: str) -> Tuple[int, int, int, float]:
     raise ValueError(f"Invalid hex color: {hex_color}")
 
 
-def try_hex_to_rgba(hex_color: str) -> Optional[Tuple[int, int, int, float]]:
+def try_hex_to_rgba(hex_color: str) -> tuple[int, int, int, float] | None:
     """Non-raising variant of :func:`hex_to_rgba`. Returns ``None`` on any
     parse failure instead of raising.
     """

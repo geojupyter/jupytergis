@@ -33,7 +33,7 @@ def migrate(doc: dict[str, Any], to_version: str | None = None) -> dict[str, Any
     if current > Version(SCHEMA_VERSION):
         raise ValueError(
             f"Cannot load file with schema version {current} "
-            f"(current: {SCHEMA_VERSION})"
+            f"(current: {SCHEMA_VERSION})",
         )
 
     result = dict(doc)

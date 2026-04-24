@@ -14,7 +14,7 @@ except ImportError:
     )
     __version__ = "dev"
 
-from .notebook import GISDocument  # noqa
+from .notebook import GISDocument
 from .notebook.explore import explore
 
 

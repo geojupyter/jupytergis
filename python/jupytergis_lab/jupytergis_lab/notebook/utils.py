@@ -41,7 +41,7 @@ def get_gpkg_layers(gpkg_path: str, data_type: str) -> list[str]:
     conn = sqlite3.connect(gpkg_path)
     cursor = conn.cursor()
     cursor.execute(
-        f"""SELECT table_name FROM gpkg_contents WHERE data_type = '{data_type}'"""
+        f"""SELECT table_name FROM gpkg_contents WHERE data_type = '{data_type}'""",
     )
     layers = [row[0] for row in cursor.fetchall()]
     conn.close()

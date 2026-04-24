@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from jupytergis_lab import GISDocument
 
@@ -46,7 +46,7 @@ _basemaps: dict[BasemapChoice, list[Basemap]] = {
 def explore(
     data: str | Path | Any,
     *,
-    layer_name: Optional[str] = "Exploration layer",
+    layer_name: str | None = "Exploration layer",
     basemap: BasemapChoice = "topo",
 ) -> GISDocument:
     """Run a JupyterGIS data interaction interface alongside a Notebook.
@@ -100,8 +100,7 @@ def _add_layer(
     if isinstance(data, str):
         if re.match(r"^(http|https)://", data) is not None:
             raise NotImplementedError("URLs not yet supported.")
-        else:
-            data = Path(data)
+        data = Path(data)
 
     if isinstance(data, Path):
         if not data.exists():
@@ -111,10 +110,9 @@ def _add_layer(
 
         if ext in [".geojson", ".json"]:
             return doc.add_geojson_layer(path=data, name=name)
-        elif ext in [".tif", ".tiff"]:
+        if ext in [".tif", ".tiff"]:
             raise NotImplementedError("GeoTIFFs not yet supported.")
-        else:
-            raise ValueError(f"Unsupported file type: {data}")
+        raise ValueError(f"Unsupported file type: {data}")
 
     try:
         from geopandas import GeoDataFrame

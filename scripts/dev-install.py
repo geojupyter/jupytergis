@@ -28,7 +28,7 @@ def install_dev():
             execute("jupyter server extension enable jupytergis_qgis")
 
         execute(
-            f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
+            f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite",
         )
 
     execute(f"pip install -e {python_package_prefix}/jupytergis")

@@ -4,7 +4,7 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import uuid4
 
 import requests
@@ -49,7 +49,7 @@ def reversed_tree(root):
     return root
 
 
-def _color_to_rgba(value: Any) -> Optional[List[float]]:
+def _color_to_rgba(value: Any) -> list[float] | None:
     """Coerce an OL-flavored color value (hex string or [r, g, b, a] array)
     into an ``[r, g, b, a]`` list. Returns ``None`` if ``value`` is an OL
     expression (e.g. ``["interpolate", ...]``) or otherwise unparseable.
@@ -73,32 +73,32 @@ def _color_to_rgba(value: Any) -> Optional[List[float]]:
 # schema (``packages/schema/src/schema/project/layers/vectorLayer.json``) and
 # are applied by the schema consumer on the frontend. Duplicating them here
 # would create a drift risk if the schema defaults ever change.
-def _vector_symbology_state_from_color_expr(color_expr: Any) -> Dict[str, Any]:
+def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
     """Translate a legacy ``color_expr`` dict (OpenLayers FlatStyle keys such as
     ``fill-color``, ``stroke-color``, ``circle-radius``) into a ``symbologyState``
     dict that satisfies the schema. Expression values that aren't solid colors
     are ignored — those require richer Single Symbol configuration that the
     Python API doesn't yet surface.
     """
-    state: Dict[str, Any] = {"renderType": "Single Symbol"}
+    state: dict[str, Any] = {"renderType": "Single Symbol"}
 
     if not isinstance(color_expr, dict):
         return state
 
     fill = _color_to_rgba(
-        color_expr.get("fill-color") or color_expr.get("circle-fill-color")
+        color_expr.get("fill-color") or color_expr.get("circle-fill-color"),
     )
     if fill is not None:
         state["fillColor"] = fill
 
     stroke = _color_to_rgba(
-        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color")
+        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color"),
     )
     if stroke is not None:
         state["strokeColor"] = stroke
 
     stroke_width = color_expr.get("stroke-width") or color_expr.get(
-        "circle-stroke-width"
+        "circle-stroke-width",
     )
     if isinstance(stroke_width, (int, float)):
         state["strokeWidth"] = stroke_width
@@ -118,8 +118,7 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> Dict[str, Any]:
 
 
 class GISDocument(CommWidget):
-    """
-    Create a new GISDocument object.
+    """Create a new GISDocument object.
 
     :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
 
@@ -133,13 +132,13 @@ class GISDocument(CommWidget):
     def __init__(
         self,
         path: str | Path | None = None,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-        zoom: Optional[float] = None,
-        extent: Optional[List[float]] = None,
-        bearing: Optional[float] = None,
-        pitch: Optional[float] = None,
-        projection: Optional[str] = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        zoom: float | None = None,
+        extent: list[float] | None = None,
+        bearing: float | None = None,
+        pitch: float | None = None,
+        projection: str | None = None,
     ):
         if isinstance(path, Path):
             path = str(path)
@@ -148,7 +147,7 @@ class GISDocument(CommWidget):
             comm_metadata={
                 "ymodel_name": "@jupytergis:widget",
                 **self._make_comm(path=path),
-            }
+            },
         )
 
         self.ydoc["layers"] = self._layers = Map()
@@ -162,7 +161,7 @@ class GISDocument(CommWidget):
                 "pitch": 0,
                 "projection": "EPSG:3857",
                 "storyMapPresentationMode": False,
-            }
+            },
         )
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
@@ -183,17 +182,13 @@ class GISDocument(CommWidget):
             self._options["projection"] = projection
 
     @property
-    def layers(self) -> Dict:
-        """
-        Get the layer list
-        """
+    def layers(self) -> dict:
+        """Get the layer list"""
         return self._layers.to_py()
 
     @property
-    def layer_tree(self) -> List[str | Dict]:
-        """
-        Get the layer tree
-        """
+    def layer_tree(self) -> list[str | dict]:
+        """Get the layer tree"""
         return self._layerTree.to_py()
 
     def sidecar(
@@ -237,10 +232,9 @@ class GISDocument(CommWidget):
         name: str = "Raster Layer",
         attribution: str = "",
         opacity: float = 1,
-        url_parameters: Optional[Dict[str, Any]] = None,
+        url_parameters: dict[str, Any] | None = None,
     ):
-        """
-        Add a Raster Layer to the document.
+        """Add a Raster Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param url: The tiles url.
@@ -286,17 +280,15 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: str | float | float | None = None,
+        value: str | float | None = None,
     ):
-        """
-        Add a Vector Tile Layer to the document.
+        """Add a Vector Tile Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param url: The tiles url.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         """
-
         source = {
             "type": SourceType.VectorTileSource,
             "name": f"{name} Source",
@@ -325,7 +317,7 @@ class GISDocument(CommWidget):
             },
             "filters": {
                 "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value}
+                    {"feature": feature, "operator": operator, "value": value},
                 ],
                 "logicalOp": logical_op,
             },
@@ -336,17 +328,16 @@ class GISDocument(CommWidget):
     def add_geojson_layer(
         self,
         path: str | Path | None = None,
-        data: Dict | None = None,
+        data: dict | None = None,
         name: str = "GeoJSON Layer",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: str | int | float | None = None,
+        value: str | float | None = None,
         color_expr=None,
     ):
-        """
-        Add a GeoJSON Layer to the document.
+        """Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param path: The path to the JSON file or URL to embed into the jGIS file.
@@ -374,7 +365,7 @@ class GISDocument(CommWidget):
                 # We cannot put the path to the file in the model
                 # We don't know where the kernel runs/live
                 # The front-end would have no way of finding the file reliably
-                with open(path, "r") as fobj:
+                with open(path) as fobj:
                     parameters["data"] = json.load(fobj)
 
         if data is not None:
@@ -402,7 +393,7 @@ class GISDocument(CommWidget):
             },
             "filters": {
                 "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value}
+                    {"feature": feature, "operator": operator, "value": value},
                 ],
                 "logicalOp": logical_op,
             },
@@ -417,15 +408,13 @@ class GISDocument(CommWidget):
         name: str = "Image Layer",
         opacity: float = 1,
     ):
-        """
-        Add a Image Layer to the document.
+        """Add a Image Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param url: The image url.
         :param coordinates: Corners of image specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
         """
-
         if url is None or coordinates is None:
             raise ValueError("URL and Coordinates are required")
 
@@ -448,13 +437,12 @@ class GISDocument(CommWidget):
 
     def add_video_layer(
         self,
-        urls: List,
+        urls: list,
         name: str = "Image Layer",
-        coordinates: Optional[List] = None,
+        coordinates: list | None = None,
         opacity: float = 1,
     ):
-        """
-        Add a Video Layer to the document.
+        """Add a Video Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param urls: URLs to video content in order of preferred format.
@@ -496,8 +484,7 @@ class GISDocument(CommWidget):
         opacity: float = 1.0,
         color_expr=None,
     ):
-        """
-        Add a tiff layer
+        """Add a tiff layer
 
         :param url: URL of the tif
         :param min: Minimum pixel value to be displayed, defaults to letting the map display set the value
@@ -508,7 +495,6 @@ class GISDocument(CommWidget):
         :param opacity: The opacity, between 0 and 1, defaults to 1.0
         :param color_expr: The style expression used to style the layer, defaults to None
         """
-
         source = {
             "type": SourceType.GeoTiffSource,
             "name": f"{name} Source",
@@ -537,11 +523,10 @@ class GISDocument(CommWidget):
         self,
         url: str,
         name: str = "Hillshade Layer",
-        urlParameters: Optional[Dict] = None,
+        urlParameters: dict | None = None,
         attribution: str = "",
     ):
-        """
-        Add a hillshade layer
+        """Add a hillshade layer
 
         :param url: URL of the hillshade layer
         :param name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
@@ -574,15 +559,14 @@ class GISDocument(CommWidget):
         self,
         feature: str,
         path: str | Path | None = None,
-        data: Dict | None = None,
+        data: dict | None = None,
         name: str = "Heatmap Layer",
         opacity: float = 1,
         blur: int = 15,
         radius: int = 8,
-        gradient: Optional[List[str]] = None,
+        gradient: list[str] | None = None,
     ):
-        """
-        Add a Heatmap Layer to the document.
+        """Add a Heatmap Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param path: The path to the JSON file to embed into the jGIS file.
@@ -607,7 +591,7 @@ class GISDocument(CommWidget):
             # We don't know where the kernel runs/live
             # The front-end would have no way of finding the file reliably
             # TODO Support urls to JSON files, in that case, don't embed the data
-            with open(path, "r") as fobj:
+            with open(path) as fobj:
                 parameters = {"data": json.loads(fobj.read())}
 
         if data is not None:
@@ -651,11 +635,10 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: str | int | float | None = None,
+        value: str | float | None = None,
         color_expr=None,
     ):
-        """
-        Add a GeoParquet Layer to the document
+        """Add a GeoParquet Layer to the document
 
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
@@ -666,7 +649,6 @@ class GISDocument(CommWidget):
         :param value: The value to be filtered on
         :param color_expr: The style expression used to style the layer
         """
-
         source = {
             "type": SourceType.GeoParquetSource,
             "name": f"{name} Source",
@@ -686,7 +668,7 @@ class GISDocument(CommWidget):
             },
             "filters": {
                 "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value}
+                    {"feature": feature, "operator": operator, "value": value},
                 ],
                 "logicalOp": logical_op,
             },
@@ -699,7 +681,7 @@ class GISDocument(CommWidget):
         path: str,
         table_names: list[str] | str | None = None,
         name: str = "GeoPackage Layer",
-        type: "circle" | "fill" | "line" = "line",
+        type: circle | fill | line = "line",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
@@ -707,8 +689,7 @@ class GISDocument(CommWidget):
         value: Union[str, int, float] | None = None,
         color_expr=None,
     ):
-        """
-        Add a GeoPackage Vector Layer to the document
+        """Add a GeoPackage Vector Layer to the document
 
         :param path: The path to the GeoPackage file to embed into the jGIS file.
         :param table_names: A list of table names to create layers for.
@@ -721,7 +702,6 @@ class GISDocument(CommWidget):
         :param value: The value to be filtered on
         :param color_expr: The style expression used to style the layer
         """
-
         if isinstance(table_names, str):
             table_names = [part.strip() for part in table_names.split(",")]
 
@@ -759,12 +739,12 @@ class GISDocument(CommWidget):
                     "type": type,
                     "opacity": opacity,
                     "symbologyState": _vector_symbology_state_from_color_expr(
-                        color_expr
+                        color_expr,
                     ),
                 },
                 "filters": {
                     "appliedFilters": [
-                        {"feature": feature, "operator": operator, "value": value}
+                        {"feature": feature, "operator": operator, "value": value},
                     ],
                     "logicalOp": logical_op,
                 },
@@ -772,7 +752,7 @@ class GISDocument(CommWidget):
 
             layer_id = str(uuid4()) + "/" + str(table_name)
             layer_ids.append(
-                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id)
+                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id),
             )
 
         return layer_ids
@@ -785,8 +765,7 @@ class GISDocument(CommWidget):
         attribution: str = "",
         opacity: float = 1,
     ):
-        """
-        Add a GeoPackage Raster Layer to the document.
+        """Add a GeoPackage Raster Layer to the document.
 
         :param path: The tiles path.
         :param table_names: A list of table names to create layers for.
@@ -794,7 +773,6 @@ class GISDocument(CommWidget):
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         """
-
         if isinstance(table_names, str):
             table_names = [part.strip() for part in table_names.split(",")]
 
@@ -828,7 +806,7 @@ class GISDocument(CommWidget):
 
             layer_id = str(uuid4()) + "/" + str(table_name)
             layer_ids.append(
-                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id)
+                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id),
             )
 
         return layer_ids
@@ -838,9 +816,8 @@ class GISDocument(CommWidget):
         wms_url: str,
         version: str = "1.3.0",
         timeout: float = 30.0,
-    ) -> List[Dict[str, str]]:
-        """
-        Fetch a WMS GetCapabilities document and parse available top-level layers.
+    ) -> list[dict[str, str]]:
+        """Fetch a WMS GetCapabilities document and parse available top-level layers.
 
         Matches the behavior in the frontend WmsTileSourceUrlInput:
         - Calls: ?SERVICE=WMS&VERSION=...&REQUEST=GetCapabilities
@@ -849,7 +826,6 @@ class GISDocument(CommWidget):
 
         Returns a list of objects shaped like: { 'name': <layer name>, 'title': <layer title> }.
         """
-
         if not wms_url or not isinstance(wms_url, str):
             raise ValueError("wms_url must be a non-empty string")
 
@@ -874,7 +850,7 @@ class GISDocument(CommWidget):
             root = ET.fromstring(xml_text)
         except ET.ParseError as e:
             raise RuntimeError(
-                f"Failed to parse WMS GetCapabilities XML from {capabilities_url}"
+                f"Failed to parse WMS GetCapabilities XML from {capabilities_url}",
             ) from e
 
         def local_name(tag: str) -> str:
@@ -907,7 +883,7 @@ class GISDocument(CommWidget):
         if root_layer_el is None:
             return []
 
-        results: List[Dict[str, str]] = []
+        results: list[dict[str, str]] = []
         for layer_el in list(root_layer_el):
             if local_name(layer_el.tag) != "Layer":
                 continue
@@ -938,8 +914,7 @@ class GISDocument(CommWidget):
         opacity: float = 1,
         interpolate: bool = False,
     ) -> str:
-        """
-        Add a WMS tile layer to the document.
+        """Add a WMS tile layer to the document.
 
         url:
             Base WMS service URL (without SERVICE/REQUEST parameters), e.g.
@@ -993,13 +968,11 @@ class GISDocument(CommWidget):
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def remove_layer(self, layer_id: str):
-        """
-        Remove a layer from the GIS document.
+        """Remove a layer from the GIS document.
 
         :param layer_id: The ID of the layer to remove.
         :raises KeyError: If the layer does not exist.
         """
-
         layer = self._layers.get(layer_id)
 
         if layer is None:
@@ -1024,21 +997,19 @@ class GISDocument(CommWidget):
 
     def create_color_expr(
         self,
-        color_stops: Dict,
+        color_stops: dict,
         band: float = 1.0,
         interpolation_type: str = "linear",
     ):
-        """
-        Create a color expression used to style the layer
+        """Create a color expression used to style the layer
 
         :param color_stops: Dictionary of stop values to [r, g, b, a] colors
         :param band: The band to be colored, defaults to 1.0
         :param interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
         """
-
         if interpolation_type not in ["linear", "discrete", "exact"]:
             raise ValueError(
-                "Interpolation type must be one of linear, discrete, or exact"
+                "Interpolation type must be one of linear, discrete, or exact",
             )
 
         color = []
@@ -1081,10 +1052,9 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: str | int | float,
+        value: str | float,
     ):
-        """
-        Add a filter to a layer
+        """Add a filter to a layer
 
         :param layer_id: The ID of the layer to filter
         :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
@@ -1102,7 +1072,7 @@ class GISDocument(CommWidget):
         if "filters" not in layer:
             layer["filters"] = {
                 "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value}
+                    {"feature": feature, "operator": operator, "value": value},
                 ],
                 "logicalOp": logical_op,
             }
@@ -1113,7 +1083,7 @@ class GISDocument(CommWidget):
         # Add new filter
         filters = layer["filters"]
         filters["appliedFilters"].append(
-            {"feature": feature, "operator": operator, "value": value}
+            {"feature": feature, "operator": operator, "value": value},
         )
 
         # update the logical operation
@@ -1127,10 +1097,9 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: str | int | float,
+        value: str | float,
     ):
-        """
-        Update a filter applied to a layer
+        """Update a filter applied to a layer
 
         :param layer_id: The ID of the layer to filter
         :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
@@ -1154,7 +1123,7 @@ class GISDocument(CommWidget):
         )
         if feature is None:
             raise ValueError(
-                f"No feature found with ID: {feature} in layer: {layer_id}"
+                f"No feature found with ID: {feature} in layer: {layer_id}",
             )
             return
 
@@ -1167,8 +1136,7 @@ class GISDocument(CommWidget):
         self._layers[layer_id] = layer
 
     def clear_filters(self, layer_id: str):
-        """
-        Clear filters on a layer
+        """Clear filters on a layer
 
         :param layer_id: The ID of the layer to clear filters from
         """
@@ -1184,13 +1152,13 @@ class GISDocument(CommWidget):
         layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
-    def _add_source(self, new_object: "JGISObject", id: str | None = None) -> str:
+    def _add_source(self, new_object: JGISObject, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object: "JGISObject", id: str | None = None) -> str:
+    def _add_layer(self, new_object: JGISObject, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
@@ -1198,7 +1166,7 @@ class GISDocument(CommWidget):
         return _id
 
     @classmethod
-    def _make_comm(cls, *, path: Optional[str]) -> Dict:
+    def _make_comm(cls, *, path: str | None) -> dict:
         format = None
         contentType = None
 
@@ -1304,19 +1272,21 @@ class SingletonMeta(type):
 
 class ObjectFactoryManager(metaclass=SingletonMeta):
     def __init__(self):
-        self._factories: Dict[str, type[BaseModel]] = {}
+        self._factories: dict[str, type[BaseModel]] = {}
 
     def register_factory(self, shape_type: str, cls: type[BaseModel]) -> None:
         if shape_type not in self._factories:
             self._factories[shape_type] = cls
 
     def create_layer(
-        self, data: Dict, parent: Optional[GISDocument] = None
-    ) -> Optional[JGISLayer]:
-        object_type = data.get("type", None)
-        name: str = data.get("name", None)
+        self,
+        data: dict,
+        parent: GISDocument | None = None,
+    ) -> JGISLayer | None:
+        object_type = data.get("type")
+        name: str = data.get("name")
         visible: str = data.get("visible", True)
-        filters = data.get("filters", None)
+        filters = data.get("filters")
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             params = data["parameters"]
@@ -1335,10 +1305,12 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         return None
 
     def create_source(
-        self, data: Dict, parent: Optional[GISDocument] = None
-    ) -> Optional[JGISSource]:
-        object_type = data.get("type", None)
-        name: str = data.get("name", None)
+        self,
+        data: dict,
+        parent: GISDocument | None = None,
+    ) -> JGISSource | None:
+        object_type = data.get("type")
+        name: str = data.get("name")
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             params = data["parameters"]
@@ -1346,7 +1318,10 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
             return JGISSource(
-                parent=parent, name=name, type=object_type, parameters=obj_params
+                parent=parent,
+                name=name,
+                type=object_type,
+                parameters=obj_params,
             )
 
         return None
@@ -1373,9 +1348,11 @@ OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoParquetSource, IGeoParquetSource)
 OBJECT_FACTORY.register_factory(
-    SourceType.GeoPackageVectorSource, IGeoPackageVectorSource
+    SourceType.GeoPackageVectorSource,
+    IGeoPackageVectorSource,
 )
 OBJECT_FACTORY.register_factory(
-    SourceType.GeoPackageRasterSource, IGeoPackageRasterSource
+    SourceType.GeoPackageRasterSource,
+    IGeoPackageRasterSource,
 )
 OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
