@@ -156,6 +156,16 @@ export class ToolbarWidget extends ReactiveToolbar {
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
 
+      const processingGeneratorButton = new CommandToolbarButton({
+        id: CommandIDs.proccessingGenerator,
+        label: '⚗️',
+        commands: options.commands,
+      });
+
+      this.addItem('processingGenerator', processingGeneratorButton);
+      processingGeneratorButton.node.dataset.testid =
+        'processing-generator-button';
+
       const addMarkerButton = new CommandToolbarButton({
         id: CommandIDs.addMarker,
         label: '',
