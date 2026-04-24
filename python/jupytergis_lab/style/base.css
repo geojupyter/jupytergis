@@ -814,52 +814,47 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   line-height: 1.5rem;
 }
 
-.identify-v2-grid {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content max-content;
-  column-gap: 8px;
-  row-gap: 0.25rem;
+.identify-v2-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .identify-v2-row {
-  display: contents;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .identify-v2-row--add {
-  display: contents;
+  justify-content: flex-end;
 }
 
 .identify-v2-row--editor {
-  display: contents;
+  align-items: center;
 }
 
 .identify-v2-col-key {
-  grid-column: 1;
-  align-self: center;
+  flex: 0 0 clamp(7rem, 30%, 12rem);
   min-width: 0;
+  max-width: clamp(7rem, 30%, 12rem);
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .identify-v2-col-value {
-  grid-column: 2;
-  align-self: center;
+  flex: 1 1 auto;
   min-width: 0;
-  /* overflow-wrap: anywhere; */
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .identify-v2-col-actions {
-  align-self: center;
   display: inline-flex;
   flex: 0 0 auto;
-  justify-self: end;
-}
-
-.identify-v2-col-actions--primary {
-  grid-column: 3;
-}
-
-.identify-v2-col-actions--secondary {
-  grid-column: 4;
+  align-self: center;
 }
 
 .jp-gis-stop-container-wrapper {

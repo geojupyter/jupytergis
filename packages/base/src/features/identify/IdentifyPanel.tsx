@@ -1,11 +1,17 @@
 import { Button } from '@/src/shared/components/Button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/src/shared/components/DropdownMenu';
 import { Input } from '@/src/shared/components/Input';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
-import { CirclePlus, Pencil } from 'lucide-react';
+import { CirclePlus, Ellipsis, Pencil } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface IIdentifyComponentProps {
@@ -184,7 +190,7 @@ const FeatureRow: React.FC<IFeatureRowProps> = ({
       {showEditButton && (
         <Button
           type="button"
-          className="identify-v2-col-actions identify-v2-col-actions--primary"
+          className="identify-v2-col-actions"
           title="Edit property"
           variant="icon"
           size="icon-md"
@@ -196,10 +202,6 @@ const FeatureRow: React.FC<IFeatureRowProps> = ({
           <Pencil />
         </Button>
       )}
-      {!showEditButton && (
-        <span className="identify-v2-col-actions identify-v2-col-actions--primary" />
-      )}
-      <span className="identify-v2-col-actions identify-v2-col-actions--secondary" />
     </div>
   );
 };
@@ -211,6 +213,58 @@ interface IPropertyRowEditorProps {
   editorActions: IPropertyEditorActions;
 }
 
+interface IPropertyActionMenuProps {
+  feature: any;
+  rowIndex: number;
+  editorState: IPropertyEditorState;
+  editorActions: IPropertyEditorActions;
+}
+
+const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
+  feature,
+  rowIndex,
+  editorState,
+  editorActions,
+}) => {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          className="identify-v2-col-actions"
+          title="Property actions"
+          variant="icon"
+          size="icon-md"
+        >
+          <Ellipsis />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="left">
+        <DropdownMenuItem
+          disabled={
+            !editorState.newPropertyKey.trim() || editorState.isSavingProperty
+          }
+          onSelect={event => {
+            event.preventDefault();
+            editorActions.onSaveProperty(feature, rowIndex);
+          }}
+        >
+          Save
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={event => {
+            event.preventDefault();
+            editorActions.onCancelProperty();
+          }}
+          variant="destructive"
+        >
+          Cancel
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
   feature,
   rowIndex,
@@ -220,25 +274,12 @@ const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
   return (
     <div className="identify-v2-row identify-v2-row--editor">
       <PropertyFields editorState={editorState} editorActions={editorActions} />
-      <Button
-        className="identify-v2-col-actions identify-v2-col-actions--primary"
-        onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
-        variant="outline"
-        size="sm"
-        disabled={
-          !editorState.newPropertyKey.trim() || editorState.isSavingProperty
-        }
-      >
-        Save
-      </Button>
-      <Button
-        className="identify-v2-col-actions identify-v2-col-actions--secondary"
-        variant="destructive"
-        size="sm"
-        onClick={editorActions.onCancelProperty}
-      >
-        Cancel
-      </Button>
+      <PropertyActionMenu
+        feature={feature}
+        rowIndex={rowIndex}
+        editorState={editorState}
+        editorActions={editorActions}
+      />
     </div>
   );
 };
@@ -374,38 +415,26 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
           editorState={editorState}
           editorActions={editorActions}
         />
-        <button
-          className="identify-v2-col-actions"
-          onClick={() => editorActions.onSaveProperty(feature, rowIndex)}
-          disabled={
-            !editorState.newPropertyKey.trim() || editorState.isSavingProperty
-          }
-        >
-          Save
-        </button>
-        <button
-          className="identify-v2-col-actions"
-          onClick={editorActions.onCancelProperty}
-        >
-          Cancel
-        </button>
+        <PropertyActionMenu
+          feature={feature}
+          rowIndex={rowIndex}
+          editorState={editorState}
+          editorActions={editorActions}
+        />
       </div>
     );
   }
 
   return (
     <div className="identify-v2-row identify-v2-row--add">
-      <span className="identify-v2-col-key" />
-      <span className="identify-v2-col-value" />
       <Button
-        className="identify-v2-col-actions identify-v2-col-actions--primary"
+        className="identify-v2-col-actions"
         onClick={() => editorActions.onStartAddProperty(rowIndex)}
         variant="icon"
         size="icon-md"
       >
         <CirclePlus />
       </Button>
-      <span className="identify-v2-col-actions identify-v2-col-actions--secondary" />
     </div>
   );
 };
@@ -488,7 +517,7 @@ const FeatureCard: React.FC<IFeatureCardProps> = ({
       />
       {isVisible && (
         <>
-          <div className="identify-v2-grid">
+          <div className="identify-v2-content">
             <FeaturePropertyList
               feature={feature}
               rowIndex={rowIndex}
