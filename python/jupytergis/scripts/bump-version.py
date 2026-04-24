@@ -9,7 +9,6 @@ import re
 from datetime import datetime
 from pathlib import Path
 from subprocess import run
-from typing import List
 
 import tomlkit
 from packaging.version import parse as parse_version
@@ -39,9 +38,9 @@ def next_version():
 
 
 def bump_jupytergis_deps(py_version: str):
-    with open(PACKAGE_ROOT / "pyproject.toml", "r") as f:
+    with open(PACKAGE_ROOT / "pyproject.toml") as f:
         data = tomlkit.load(f)
-    dependencies: List[str] = data["project"]["dependencies"]
+    dependencies: list[str] = data["project"]["dependencies"]
 
     for index, value in enumerate(dependencies):
         if value.startswith("jupytergis"):
@@ -67,7 +66,7 @@ def bump_citation_cff(py_version: str):
 
     if nsubs != 1:
         raise ValueError(
-            f"Expected exactly 1 'version' replacement in CITATION.cff, but made {nsubs} replacements"
+            f"Expected exactly 1 'version' replacement in CITATION.cff, but made {nsubs} replacements",
         )
 
     # Replace `date-released: "{anything}"` with `date-released: "{today}"`
@@ -82,7 +81,7 @@ def bump_citation_cff(py_version: str):
 
     if nsubs != 1:
         raise ValueError(
-            f"Expected exactly 1 'date-released' replacement in CITATION.cff, but made {nsubs} replacements"
+            f"Expected exactly 1 'date-released' replacement in CITATION.cff, but made {nsubs} replacements",
         )
 
     citation_file.write_text(content, encoding="utf-8")

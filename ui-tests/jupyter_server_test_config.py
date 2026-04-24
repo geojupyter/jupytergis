@@ -7,8 +7,8 @@ JavaScript objects through the global window variable.
 
 from jupyterlab.galata import configure_jupyter_server
 
-configure_jupyter_server(c)  # noqa F821
-c.LabApp.collaborative = True  # noqa F821
+configure_jupyter_server(c)  # noqa: F821
+c.LabApp.collaborative = True  # noqa: F821
 # Uncomment to set server log level to debug level
 # c.ServerApp.log_level = "DEBUG"
-c.FileContentsManager.delete_to_trash = False
+c.FileContentsManager.delete_to_trash = False  # noqa: F821

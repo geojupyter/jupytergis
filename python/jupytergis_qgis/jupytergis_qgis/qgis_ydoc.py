@@ -1,7 +1,8 @@
 import base64
 import tempfile
+from collections.abc import Callable
 from functools import partial
-from typing import Any, Callable
+from typing import Any
 
 from jupyter_ydoc.ybasedoc import YBaseDoc
 from jupytergis_core.schema import SCHEMA_VERSION
@@ -88,22 +89,22 @@ class YQGISBase(YBaseDoc):
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
         self._subscriptions[self._ystate] = self._ystate.observe(
-            partial(callback, "state")
+            partial(callback, "state"),
         )
         self._subscriptions[self._ylayers] = self._ylayers.observe_deep(
-            partial(callback, "layers")
+            partial(callback, "layers"),
         )
         self._subscriptions[self._ysources] = self._ysources.observe_deep(
-            partial(callback, "sources")
+            partial(callback, "sources"),
         )
         self._subscriptions[self._yoptions] = self._yoptions.observe_deep(
-            partial(callback, "options")
+            partial(callback, "options"),
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
-            partial(callback, "layerTree")
+            partial(callback, "layerTree"),
         )
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
-            partial(callback, "meta")
+            partial(callback, "meta"),
         )
 
     def _load(self, source: str):
@@ -111,7 +112,8 @@ class YQGISBase(YBaseDoc):
         from .qgis_loader import import_project_from_qgis
 
         with tempfile.NamedTemporaryFile(
-            delete=False, suffix=self._file_extension
+            delete=False,
+            suffix=self._file_extension,
         ) as tmp:
             file_content = base64.b64decode(source)
             tmp.write(file_content)
@@ -123,7 +125,8 @@ class YQGISBase(YBaseDoc):
         from .qgis_loader import export_project_to_qgis
 
         with tempfile.NamedTemporaryFile(
-            delete=False, suffix=self._file_extension
+            delete=False,
+            suffix=self._file_extension,
         ) as tmp:
             if export_project_to_qgis(tmp.name, virtual_file):
                 with open(tmp.name, "rb") as fd:
