@@ -8,6 +8,7 @@ from typing import Any, Literal, Optional
 from uuid import uuid4
 
 import requests
+from IPython.display import display
 from jupytergis_core.colors import try_hex_to_rgba
 from jupytergis_core.schema import (
     IGeoJSONSource,
