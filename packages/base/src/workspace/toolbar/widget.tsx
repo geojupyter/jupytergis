@@ -4,7 +4,7 @@ import {
   IJGISExternalCommand,
   JupyterGISModel,
 } from '@jupytergis/schema';
-import { CommandToolbarButton } from '@jupyterlab/apputils';
+import { CommandToolbarButton, showDialog} from '@jupyterlab/apputils';
 import {
   MenuSvg,
   ReactWidget,
@@ -161,7 +161,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       ctx.keys().forEach(key => {
         const item = ctx(key).default;
         const id = `jupytergis:processingLibrary:${key}`;
-        options.commands!.addCommand(id, { label: item.label, execute: item.execute });
+        options.commands!.addCommand(id, {
+          label: item.label,
+          execute: () => {
+            showDialog({
+            title: item.label,
+            body: ReactWidget.create(<item.form />)
+    });
+  }
+});
         processingSubMenu.addItem({ command: id });
       });
 
