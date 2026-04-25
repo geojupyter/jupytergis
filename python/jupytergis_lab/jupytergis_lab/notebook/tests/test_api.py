@@ -50,7 +50,8 @@ class TestGeoParquetLayer(TestDocument):
     def test_sourcelayer(self):
         color = {"fill-color": "#00FF00", "stroke-color": "#FF0000"}
         geoparquet_layer = self.doc.add_geoparquet_layer(
-            TEST_GEOPARQUET, color_expr=color
+            TEST_GEOPARQUET,
+            color_expr=color,
         )
         state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
         assert state["renderType"] == "Single Symbol"

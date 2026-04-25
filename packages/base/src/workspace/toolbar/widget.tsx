@@ -165,6 +165,16 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
+      const toggleDrawFeaturesButton = new CommandToolbarButton({
+        id: CommandIDs.toggleDrawFeatures,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('toggleDrawFeatures', toggleDrawFeaturesButton);
+      toggleDrawFeaturesButton.node.dataset.testid =
+        'toggle-draw-features-button';
+
       const storyModePresentationToggleButton = new CommandToolbarButton({
         id: CommandIDs.toggleStoryPresentationMode,
         label: '',

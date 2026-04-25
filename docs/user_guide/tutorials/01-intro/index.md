@@ -118,7 +118,7 @@ Let's do an exercise to practice adding a new layer.
 
 1. Add a new Shapefile Layer to your map:
    ```
-   https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip
+   https://docs-archive.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip
    ```
 2. Zoom over New-York (USA) and check if you can see the newly added layer.
 3. Rename both the newly added layer and its corresponding source, e.g. 'NYC Roads'.

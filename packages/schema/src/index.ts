@@ -1,4 +1,5 @@
 export * from './interfaces';
+export { migrateDocument } from './migrations';
 export * from './model';
 export * from './token';
 export * from './doc';

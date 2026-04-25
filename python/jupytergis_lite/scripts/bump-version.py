@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
 from subprocess import run
-from typing import List
 
 import tomlkit
 from packaging.version import parse as parse_version
@@ -23,9 +22,9 @@ def next_version():
 
 
 def bump_jupytergis_deps(py_version: str):
-    with open(ROOT / "pyproject.toml", "r") as f:
+    with open(ROOT / "pyproject.toml") as f:
         data = tomlkit.load(f)
-    dependencies: List[str] = data["project"]["dependencies"]
+    dependencies: list[str] = data["project"]["dependencies"]
 
     for index, value in enumerate(dependencies):
         if value.startswith("jupytergis"):

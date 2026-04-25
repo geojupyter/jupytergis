@@ -141,6 +141,7 @@ export function CreationForm(props: ICreationFormProps) {
   const createSourceRef = useRef(createSource);
   const sourceTypeRef = useRef(sourceType);
   const layerTypeRef = useRef(layerType);
+  // const dialogOptionsRef = useRef(dialogOptions);
 
   modelRef.current = model;
   createLayerRef.current = createLayer;
@@ -161,7 +162,25 @@ export function CreationForm(props: ICreationFormProps) {
       const currentLayerType = layerTypeRef.current;
       const currentSourceId = sourceIdRef.current;
 
-      const sourceData = sourceFormDataRef.current ?? {};
+      let sourceData = sourceFormDataRef.current ?? {};
+
+      if (
+        currentCreateSource &&
+        currentSourceType === 'GeoJSONSource' &&
+        !sourceData.path &&
+        !sourceData.data
+      ) {
+        sourceData = {
+          ...sourceData,
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
+        };
+      }
+
+      sourceFormDataRef.current = sourceData;
+
       const layerData = layerFormDataRef.current ?? {};
 
       // GeoPackage handling

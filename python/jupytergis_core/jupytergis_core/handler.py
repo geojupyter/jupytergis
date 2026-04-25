@@ -3,7 +3,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Set
+from typing import Any
 from urllib.parse import urlparse
 
 import tornado
@@ -22,7 +22,7 @@ class ProxyConfig:
     rate_limit_requests: int
     rate_limit_window: int
     cors_origin: str
-    exempt_domains: Set[str]
+    exempt_domains: set[str]
 
 
 def load_config() -> ProxyConfig:
@@ -52,19 +52,13 @@ logger = logging.getLogger(__name__)
 class ProxyError(Exception):
     """Base exception for proxy-related errors."""
 
-    pass
-
 
 class ValidationError(ProxyError):
     """Raised when request validation fails."""
 
-    pass
-
 
 class RateLimitError(ProxyError):
     """Raised when rate limit is exceeded."""
-
-    pass
 
 
 class ProxyHandler(APIHandler):
@@ -80,7 +74,7 @@ class ProxyHandler(APIHandler):
                 "request_timeout": self.proxy_config.default_timeout,
                 "max_redirects": self.proxy_config.max_redirects,
                 "max_body_size": self.proxy_config.max_body_size,
-            }
+            },
         )
 
     def _check_rate_limit(self) -> None:
@@ -88,6 +82,7 @@ class ProxyHandler(APIHandler):
 
         Raises:
             RateLimitError: If rate limit is exceeded
+
         """
         current_time = time.time()
         window_start = current_time - self.proxy_config.rate_limit_window
@@ -112,7 +107,7 @@ class ProxyHandler(APIHandler):
         """Process POST requests with validation and error handling."""
         await self._handle_request("POST")
 
-    def _parse_headers(self) -> Dict[str, str]:
+    def _parse_headers(self) -> dict[str, str]:
         """Parse and validate optional forwarded headers from the request.
 
         The caller may pass a JSON-encoded object via the ``headers`` query
@@ -125,6 +120,7 @@ class ProxyHandler(APIHandler):
         Raises:
             ValidationError: If the ``headers`` parameter is present but
                 cannot be decoded or is not a flat string→string mapping.
+
         """
         raw = self.get_argument("headers", None)
         if raw is None:
@@ -137,7 +133,7 @@ class ProxyHandler(APIHandler):
             isinstance(k, str) and isinstance(v, str) for k, v in parsed.items()
         ):
             raise ValidationError(
-                "'headers' must be a flat JSON object with string keys and values"
+                "'headers' must be a flat JSON object with string keys and values",
             )
         # Block headers that could interfere with the proxy itself.
         blocked = {"host", "content-length", "transfer-encoding", "connection"}
@@ -151,6 +147,7 @@ class ProxyHandler(APIHandler):
 
         Raises:
             tornado.web.HTTPError: If the request fails validation or processing
+
         """
         try:
             # Check rate limit
@@ -179,8 +176,8 @@ class ProxyHandler(APIHandler):
                         "error": "Rate limit exceeded",
                         "code": "rate_limit_error",
                         "message": str(e),
-                    }
-                )
+                    },
+                ),
             )
 
         except ValidationError as e:
@@ -192,8 +189,8 @@ class ProxyHandler(APIHandler):
                         "error": "Validation error",
                         "code": "validation_error",
                         "message": str(e),
-                    }
-                )
+                    },
+                ),
             )
 
         except tornado.web.HTTPError as e:
@@ -215,6 +212,7 @@ class ProxyHandler(APIHandler):
 
         Raises:
             ValidationError: If the URL is invalid
+
         """
         parsed = urlparse(url)
 
@@ -223,7 +221,7 @@ class ProxyHandler(APIHandler):
 
         return url
 
-    async def _validate_body(self, method: str) -> Optional[str]:
+    async def _validate_body(self, method: str) -> str | None:
         """Validate and prepare request body.
 
         Args:
@@ -234,11 +232,12 @@ class ProxyHandler(APIHandler):
 
         Raises:
             ValidationError: If the body is invalid
+
         """
         if method == "POST":
             try:
                 body = self.get_json_body()
-                if not body or not isinstance(body, Dict):
+                if not body or not isinstance(body, dict):
                     raise ValidationError("Invalid JSON body")
 
                 # Validate body size
@@ -256,8 +255,8 @@ class ProxyHandler(APIHandler):
         self,
         url: str,
         method: str,
-        body: Optional[str] = None,
-        extra_headers: Optional[Dict[str, str]] = None,
+        body: str | None = None,
+        extra_headers: dict[str, str] | None = None,
     ) -> HTTPResponse:
         """Execute proxy request with safety controls.
 
@@ -273,6 +272,7 @@ class ProxyHandler(APIHandler):
 
         Raises:
             tornado.web.HTTPError: If the request fails
+
         """
         try:
             parsed_url = urlparse(url)
@@ -282,7 +282,7 @@ class ProxyHandler(APIHandler):
             validate_cert = host not in self.proxy_config.exempt_domains
             logger.info("validate_cert: %s", validate_cert)
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if body:
                 headers["Content-Type"] = "application/json"
             if extra_headers:
@@ -292,7 +292,7 @@ class ProxyHandler(APIHandler):
                 url=url,
                 method=method,
                 body=body,
-                headers=headers if headers else None,
+                headers=headers or None,
                 validate_cert=validate_cert,
                 allow_nonstandard_methods=False,
                 decompress_response=True,
@@ -313,6 +313,7 @@ class ProxyHandler(APIHandler):
 
         Args:
             response: The HTTP response to get headers from
+
         """
         self.set_header("Access-Control-Allow-Origin", self.proxy_config.cors_origin)
         self.set_header("Access-Control-Allow-Methods", "GET, POST")
@@ -322,7 +323,8 @@ class ProxyHandler(APIHandler):
         )
         self.set_header("Content-Security-Policy", "default-src 'none'")
         self.set_header(
-            "Content-Type", response.headers.get("Content-Type", "application/json")
+            "Content-Type",
+            response.headers.get("Content-Type", "application/json"),
         )
 
     def _handle_error_response(self, error: Exception) -> None:
@@ -330,6 +332,7 @@ class ProxyHandler(APIHandler):
 
         Args:
             error: The exception that occurred
+
         """
         self.set_status(500)
         self.finish(
@@ -338,8 +341,8 @@ class ProxyHandler(APIHandler):
                     "error": "Internal server error",
                     "code": "internal_error",
                     "message": str(error),
-                }
-            )
+                },
+            ),
         )
 
 
@@ -348,6 +351,7 @@ def setup_handlers(web_app: Any) -> None:
 
     Args:
         web_app: The Jupyter web application instance
+
     """
     host_pattern = ".*$"
     base_url = web_app.settings["base_url"]

@@ -1,11 +1,12 @@
 import json
+from collections.abc import Callable
 from functools import partial
-from typing import Any, Callable
+from typing import Any
 
 from jupyter_ydoc.ybasedoc import YBaseDoc
-from packaging.version import Version
 from pycrdt import Array, Map
 
+from .migrations import migrate
 from .schema import SCHEMA_VERSION
 
 
@@ -25,8 +26,7 @@ class YJGIS(YBaseDoc):
         return SCHEMA_VERSION
 
     def get(self) -> str:
-        """
-        Returns the content of the document.
+        """Returns the content of the document.
         :return: Document's content.
         :rtype: Any
         """
@@ -53,21 +53,11 @@ class YJGIS(YBaseDoc):
         )
 
     def set(self, value: str) -> None:
-        """
-        Sets the content of the document.
+        """Sets the content of the document.
         :param value: The content of the document.
         :type value: Any
         """
-        valueDict = json.loads(value)
-
-        # Assuming file version 0.5.0 if the version is not specified
-        file_version = (
-            Version(valueDict["schemaVersion"])
-            if "schemaVersion" in valueDict
-            else Version("0.5.0")
-        )
-        if file_version > Version(SCHEMA_VERSION):
-            raise ValueError(f"Cannot load file version {file_version}")
+        valueDict = migrate(json.loads(value))
 
         with self._ydoc.transaction():
             self._ylayers.clear()
@@ -94,26 +84,26 @@ class YJGIS(YBaseDoc):
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
         self._subscriptions[self._ystate] = self._ystate.observe(
-            partial(callback, "state")
+            partial(callback, "state"),
         )
         self._subscriptions[self._ylayers] = self._ylayers.observe_deep(
-            partial(callback, "layers")
+            partial(callback, "layers"),
         )
         self._subscriptions[self._ysources] = self._ysources.observe_deep(
-            partial(callback, "sources")
+            partial(callback, "sources"),
         )
         self._subscriptions[self._ystories] = self._ystories.observe_deep(
-            partial(callback, "stories")
+            partial(callback, "stories"),
         )
         self._subscriptions[self._yviewState] = self._yviewState.observe_deep(
-            partial(callback, "viewState")
+            partial(callback, "viewState"),
         )
         self._subscriptions[self._yoptions] = self._yoptions.observe_deep(
-            partial(callback, "options")
+            partial(callback, "options"),
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
-            partial(callback, "layerTree")
+            partial(callback, "layerTree"),
         )
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
-            partial(callback, "meta")
+            partial(callback, "meta"),
         )

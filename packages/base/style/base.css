@@ -238,6 +238,21 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0.125rem;
 }
 
+.jgis-geometry-type-selector-overlay {
+  position: absolute;
+  bottom: 20px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  gap: 8px;
+  z-index: 9999;
+}
+
 @media (max-width: 768px) {
   .jgis-panels-wrapper {
     position: fixed;
