@@ -53,7 +53,7 @@ import {
   IWebGlLayer,
   Modes,
 } from './types';
-export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
@@ -126,6 +126,26 @@ export interface IJupyterGISClientState {
   remoteUser?: number;
   toolbarForm?: IDict;
   isTemporalControllerActive: boolean;
+}
+
+export const AWARENESS_FIELD_KEYS = [
+  'selected',
+  'pointer',
+  'viewportState',
+  'identifiedFeatures',
+  'remoteUser',
+  'isTemporalControllerActive',
+] as const;
+
+export type AwarenessFieldKey = (typeof AWARENESS_FIELD_KEYS)[number];
+
+export interface IAwarenessFieldChange<T = any> {
+  clientId: number;
+  field: AwarenessFieldKey;
+  previousValue: T | undefined;
+  currentValue: T | undefined;
+  fullState: IJupyterGISClientState | undefined;
+  isLocalClient: boolean;
 }
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
@@ -233,9 +253,29 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
   >;
-  clientStateChanged: ISignal<
+  selectedChanged: ISignal<
     IJupyterGISModel,
-    Map<number, IJupyterGISClientState>
+    IAwarenessFieldChange<IJupyterGISClientState['selected']>
+  >;
+  pointerChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['pointer']>
+  >;
+  viewportStateChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['viewportState']>
+  >;
+  identifiedFeaturesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  >;
+  remoteUserChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
+  >;
+  temporalControllerActiveChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['isTemporalControllerActive']>
   >;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
