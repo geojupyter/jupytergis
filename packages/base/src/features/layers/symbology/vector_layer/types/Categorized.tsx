@@ -75,6 +75,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
   const layer = model.getLayer(layerId);
+  const isTileSource =
+    model.getSource(layer?.parameters?.source)?.type === 'VectorTileSource';
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -133,7 +135,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     if (state?.renderType === 'Categorized') {
       hasAutoClassified.current = true;
 
-      // If user previously saved manual overrides, restore them.
+      // If user previously saved overrides, restore them.
       if (state.stopsOverride && state.stopsOverride.length > 0) {
         setStopRows(
           state.stopsOverride
@@ -144,7 +146,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               output: s.color as [number, number, number, number],
             })),
         );
-        hasColorOverrides.current = true;
+        // For non-tile sources, re-arm the flag so OK re-saves the overrides.
+        if (!isTileSource) {
+          hasColorOverrides.current = true;
+        }
         return;
       }
 
@@ -209,13 +214,17 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const method =
       symbologyTab === 'radius' ? ('radius' as const) : ('color' as const);
 
-    // Save manual color overrides if user edited stops.
-    const stopsOverride = hasColorOverrides.current
-      ? (stopRowsRef.current ?? []).map(row => ({
-          value: row.stop,
-          color: row.output as [number, number, number, number],
-        }))
-      : undefined;
+    // For tile sources, stops must be persisted because features cannot be
+    // enumerated at render time. For in-memory sources, only persist when the
+    // user manually edited colors; otherwise the renderer recomputes from the
+    // color ramp and live feature data.
+    const stopsOverride =
+      isTileSource || hasColorOverrides.current
+        ? (stopRowsRef.current ?? []).map(row => ({
+            value: row.stop,
+            color: row.output as [number, number, number, number],
+          }))
+        : undefined;
 
     const symbologyState: IVectorLayer['symbologyState'] = {
       renderType: 'Categorized',
