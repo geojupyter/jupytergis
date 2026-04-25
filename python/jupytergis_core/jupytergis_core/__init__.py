@@ -31,7 +31,9 @@ def _load_jupyter_server_extension(server_app):
 
     """
     from .handler import setup_handlers
+    from .processing import setup_processing_handlers
 
     setup_handlers(server_app.web_app)
+    setup_processing_handlers(server_app.web_app)
     name = "jupytergis_core"
     print(f"Registered {name} server extension")
