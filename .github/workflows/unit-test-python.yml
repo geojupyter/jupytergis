@@ -5,6 +5,11 @@ on:
     branches: main
   pull_request:
     branches: '*'
+    paths:
+      - 'python/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - '.github/workflows/unit-test-python.yml'
 
 permissions: {}
 
