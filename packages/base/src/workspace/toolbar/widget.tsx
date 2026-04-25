@@ -4,7 +4,7 @@ import {
   IJGISExternalCommand,
   JupyterGISModel,
 } from '@jupytergis/schema';
-import { CommandToolbarButton } from '@jupyterlab/apputils';
+import { CommandToolbarButton, showDialog} from '@jupyterlab/apputils';
 import {
   MenuSvg,
   ReactWidget,
@@ -155,6 +155,36 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('temporalController', temporalControllerButton);
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
+
+      const processingSubMenu = new MenuSvg({ commands: options.commands });
+      const ctx = require.context('../../processingLibrary', false, /\.js$/);
+      ctx.keys().forEach(key => {
+        const item = ctx(key).default;
+        const id = `jupytergis:processingLibrary:${key}`;
+        options.commands!.addCommand(id, {
+          label: item.label,
+          execute: () => {
+            showDialog({
+            title: item.label,
+            body: ReactWidget.create(<item.form />)
+    });
+  }
+});
+        processingSubMenu.addItem({ command: id });
+      });
+
+      const processingGeneratorButton = new ToolbarButton({
+        label: '⚗️',
+        noFocusOnClick: false,
+        onClick: () => {
+          const bbox = processingGeneratorButton.node.getBoundingClientRect();
+          processingSubMenu.open(bbox.x, bbox.bottom);
+        },
+      });
+
+      this.addItem('processingGenerator', processingGeneratorButton);
+      processingGeneratorButton.node.dataset.testid =
+        'processing-generator-button';
 
       const addMarkerButton = new CommandToolbarButton({
         id: CommandIDs.addMarker,
