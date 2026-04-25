@@ -1689,6 +1689,7 @@ __metadata:
     rimraf: ^3.0.2
     ts-jest: ^29.4.9
     typescript: ^5
+    vega2ol: 1.1.1
     webpack: ^5.76.3
   languageName: unknown
   linkType: soft
@@ -18295,6 +18296,32 @@ __metadata:
     react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
     react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
   checksum: e8f72775f066318daab44701e77c88c99f2b179f196093a32a57cf91e39b1fc3258e608c92359eee39ce47604298c1da68db1d11e19cb485507c28138d9f27ea
+  languageName: node
+  linkType: hard
+
+"vega-expression@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "vega-expression@npm:6.1.0"
+  dependencies:
+    "@types/estree": ^1.0.8
+    vega-util: ^2.1.0
+  checksum: 1fada9471bef7131a1fba9b2ad2b8185d058cc1cce66b243a2dee1e8eb029c5b14564acd9b61dcd46e1500e406a448b9cf50c32dbf33c14dc818324d66ca118e
+  languageName: node
+  linkType: hard
+
+"vega-util@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "vega-util@npm:2.1.0"
+  checksum: 6e4e3e2b4b414ab5a1f8a1379ac974bce863fc8ad75b123d5a65daef5bf5a20724694a0cd45837338670c90271b94ee29a6dc74ca64c03f64b79b7eb757cefe7
+  languageName: node
+  linkType: hard
+
+"vega2ol@npm:1.1.1":
+  version: 1.1.1
+  resolution: "vega2ol@npm:1.1.1"
+  dependencies:
+    vega-expression: ^6.1.0
+  checksum: 83656e196deccac1f20f190e344eadc25362f1407147905e4f1ca377f9471a465355416c6bc5ed5cd620d0bb098613e0ac00b8203f190be9f77fca518f0dcac4
   languageName: node
   linkType: hard
 

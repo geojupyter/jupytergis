@@ -76,6 +76,7 @@
     "rimraf": "^3.0.2",
     "ts-jest": "^29.4.9",
     "typescript": "^5",
+    "vega2ol": "1.1.1",
     "webpack": "^5.76.3"
   }
 }
