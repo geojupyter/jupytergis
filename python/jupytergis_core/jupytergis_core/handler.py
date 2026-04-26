@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import subprocess
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Set
@@ -10,6 +11,8 @@ import tornado
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse
+
+from .processing import ALLOWED_OPERATIONS, gdal_available, run_gdal
 
 
 @dataclass
@@ -343,6 +346,119 @@ class ProxyHandler(APIHandler):
         )
 
 
+class ProcessingHandler(APIHandler):
+    """Handler for server-side GDAL processing operations.
+
+    GET  — returns whether server-side GDAL is available.
+    POST — runs a GDAL CLI operation and returns the result.
+    """
+
+    @tornado.web.authenticated
+    async def get(self):
+        """Return GDAL availability status."""
+        available = gdal_available()
+        version = None
+        if available:
+            try:
+                result = subprocess.run(
+                    ["ogr2ogr", "--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                version = result.stdout.strip()
+            except Exception:
+                pass
+
+        self.finish(json.dumps({"available": available, "version": version}))
+
+    @tornado.web.authenticated
+    async def post(self):
+        """Run a GDAL processing operation.
+
+        Expected JSON body:
+        {
+            "operation": "ogr2ogr" | "gdal_rasterize" | ...,
+            "options": ["-f", "GeoJSON", ...],
+            "geojson": "<geojson string>",
+            "outputName": "output.geojson"
+        }
+
+        Returns:
+        {
+            "result": "<output content>",
+            "format": "text" | "base64"
+        }
+        """
+        try:
+            body = json.loads(self.request.body)
+        except json.JSONDecodeError:
+            self.set_status(400)
+            self.finish(json.dumps({"error": "Invalid JSON body"}))
+            return
+
+        operation = body.get("operation")
+        options = body.get("options", [])
+        geojson = body.get("geojson")
+        output_name = body.get("outputName", "output.geojson")
+
+        if operation not in ALLOWED_OPERATIONS:
+            self.set_status(400)
+            self.finish(
+                json.dumps(
+                    {
+                        "error": f"Unsupported operation: {operation}. "
+                        f"Allowed: {sorted(ALLOWED_OPERATIONS)}"
+                    }
+                )
+            )
+            return
+
+        if not geojson:
+            self.set_status(400)
+            self.finish(json.dumps({"error": "Missing 'geojson' field"}))
+            return
+
+        if not gdal_available():
+            self.set_status(503)
+            self.finish(
+                json.dumps({"error": "GDAL CLI tools are not installed on the server"})
+            )
+            return
+
+        if not isinstance(options, list) or not all(
+            isinstance(o, str) for o in options
+        ):
+            self.set_status(400)
+            self.finish(json.dumps({"error": "'options' must be a list of strings"}))
+            return
+
+        try:
+            (
+                result_content,
+                result_format,
+            ) = await tornado.ioloop.IOLoop.current().run_in_executor(
+                None,
+                lambda: run_gdal(operation, options, geojson, output_name),
+            )
+        except subprocess.TimeoutExpired:
+            self.set_status(504)
+            self.finish(json.dumps({"error": "GDAL operation timed out"}))
+            return
+        except subprocess.CalledProcessError as e:
+            logger.error("GDAL %s failed: %s", operation, e.stderr)
+            self.set_status(500)
+            self.finish(json.dumps({"error": f"GDAL error: {e.stderr.strip()}"}))
+            return
+        except Exception as e:
+            logger.error("Processing error: %s", e)
+            self.set_status(500)
+            self.finish(json.dumps({"error": str(e)}))
+            return
+
+        self.finish(json.dumps({"result": result_content, "format": result_format}))
+
+
 def setup_handlers(web_app: Any) -> None:
     """Register handlers with configuration validation.
 
@@ -354,7 +470,14 @@ def setup_handlers(web_app: Any) -> None:
 
     # Configure proxy route
     proxy_route = url_path_join(base_url, "jupytergis_core", "proxy")
-    handlers = [(proxy_route, ProxyHandler)]
+
+    # Configure processing route
+    processing_route = url_path_join(base_url, "jupytergis_core", "processing")
+
+    handlers = [
+        (proxy_route, ProxyHandler),
+        (processing_route, ProcessingHandler),
+    ]
 
     # Add feature flags
     if os.environ.get("JGIS_EXPOSE_MAPS", False):
@@ -363,3 +486,4 @@ def setup_handlers(web_app: Any) -> None:
 
     web_app.add_handlers(host_pattern, handlers)
     logger.info("JupyterGIS proxy endpoint initialized at: %s", proxy_route)
+    logger.info("JupyterGIS processing endpoint initialized at: %s", processing_route)

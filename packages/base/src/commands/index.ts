@@ -30,6 +30,7 @@ import { addProcessingCommands } from '../features/processing/processingCommands
 import {
   checkServerAvailability,
   getServerProcessingToggle,
+  resetServerAvailabilityCache,
   setServerProcessingEnabled,
 } from '../features/processing/serverProcessing';
 import keybindings from '../keybindings.json';
@@ -574,10 +575,13 @@ export function addCommands(
       const current = !getServerProcessingToggle();
 
       if (current) {
+        resetServerAvailabilityCache();
         const available = await checkServerAvailability();
         if (!available) {
-          console.warn(
-            'Server-side GDAL is not available. Staying in WASM mode.',
+          alert(
+            'Server-side GDAL is not available.\n\n' +
+              'Install GDAL in your environment (e.g. conda install -c conda-forge gdal) ' +
+              'and restart JupyterLab.',
           );
           return;
         }
@@ -586,6 +590,7 @@ export function addCommands(
       setServerProcessingEnabled(current);
       commands.notifyCommandChanged(CommandIDs.toggleServerProcessing);
     },
+    ...icons.get(CommandIDs.toggleServerProcessing),
   });
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
