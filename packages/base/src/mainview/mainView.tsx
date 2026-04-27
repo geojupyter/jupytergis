@@ -3475,8 +3475,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _updateEditingVectorLayer() {
     const editingVectorLayer: boolean = this._model.editingVectorLayer;
     this.setState(old => ({ ...old, editingVectorLayer }));
+
+    if (editingVectorLayer === true) {
+      this._editVectorLayer();
+    }
+
     if (editingVectorLayer === false && this._draw) {
       this._removeDrawInteraction();
+      this._currentDrawLayerID = undefined;
     }
   }
 
@@ -3661,33 +3667,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _removeModifyInteraction = () => {
     this._modify.setActive(false);
     this._Map.removeInteraction(this._modify);
-  };
-
-  private _onSelectedLayerChange = () => {
-    const selectedLayers =
-      this._model.sharedModel.awareness.getLocalState()?.selected?.value;
-
-    const selectedLayerId = selectedLayers
-      ? Object.keys(selectedLayers)[0]
-      : undefined;
-
-    if (!selectedLayerId || selectedLayerId === this._previousDrawLayerID) {
-      return;
-    }
-
-    const selectedLayer = this._model.getLayer(selectedLayerId);
-
-    if (!selectedLayer) {
-      return;
-    }
-
-    if (!this._model.checkIfIsADrawVectorLayer(selectedLayer)) {
-      return;
-    }
-
-    this._previousDrawLayerID = selectedLayerId;
-    this._currentDrawLayerID = selectedLayerId;
-    this._editVectorLayer();
   };
 
   render(): JSX.Element {

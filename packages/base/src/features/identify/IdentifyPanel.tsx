@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
 import { Input } from '@/src/shared/components/Input';
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { IDict, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import {
   Ban,
@@ -144,7 +144,10 @@ function useIdentifyPropertyEditor(args: {
           updatedFeatures[featureIndex] = updatedTargetFeature;
         }
 
-        model.syncIdentifiedFeatures(updatedFeatures, model.getClientId().toString());
+        model.syncIdentifiedFeatures(
+          updatedFeatures,
+          model.getClientId().toString(),
+        );
 
         return updatedFeatures;
       });
