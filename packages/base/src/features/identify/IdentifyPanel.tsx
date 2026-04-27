@@ -21,8 +21,6 @@ interface IIdentifyComponentProps {
   ) => Promise<boolean>;
 }
 
-const IDENTIFY_FLOATER_ROWS_FIELD = 'identifyFeatureFloaterRows';
-
 export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
   patchGeoJSONFeatureProperties,
@@ -45,17 +43,6 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   useEffect(() => {
     featuresRef.current = features;
   }, [features]);
-
-  // ! TODO will need new signal when that PR gets merged
-  useEffect(() => {
-    model.sharedModel.awareness.setLocalStateField(
-      IDENTIFY_FLOATER_ROWS_FIELD,
-      {
-        value: visibleRows,
-        emitter: model.getClientId().toString(),
-      },
-    );
-  }, [model, visibleRows]);
 
   useEffect(() => {
     const handleIdentifyFeaturesChanged = () => {
@@ -124,6 +111,28 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }));
   };
 
+  const toggleFeatureFloater = (rowIndex: number) => {
+    setFeatures(previous => {
+      if (!previous) {
+        return previous;
+      }
+
+      const nextFeatures = { ...previous };
+      const target = nextFeatures[rowIndex];
+      if (!target) {
+        return previous;
+      }
+
+      nextFeatures[rowIndex] = {
+        ...target,
+        floaterOpen: !target.floaterOpen,
+      };
+
+      model.syncIdentifiedFeatures(nextFeatures, model.getClientId().toString());
+      return nextFeatures;
+    });
+  };
+
   const getFeatureNameOrId = (
     feature: IIdentifiedFeature,
     featureIndex: number,
@@ -165,6 +174,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
             editorState={editorState}
             editorActions={editorActions}
             onToggleVisibility={toggleFeatureVisibility}
+            onToggleFloater={toggleFeatureFloater}
             onHighlightFeature={highlightFeatureOnMap}
           />
         ))}

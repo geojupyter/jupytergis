@@ -117,7 +117,7 @@ export interface IIdentifiedFeature {
   _fromDrawTool?: boolean;
   geometry?: unknown;
   _geometry?: unknown;
-  opened?: boolean;
+  floaterOpen?: boolean;
   [key: string]: unknown;
 }
 

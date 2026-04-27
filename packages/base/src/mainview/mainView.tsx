@@ -2731,11 +2731,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _handleIdentifiedFeaturesChanged = (): void => {
-    console.log(
-      'this._model.localState?.identifiedFeatures',
-      this._model.localState?.identifiedFeatures,
-    );
-    this._onIdentifyFloaterRowsChange();
+    this.setState(old => ({
+      ...old,
+      identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
+    }));
     this._clearHighlightWhenIdentifyDisabled();
   };
 
@@ -2973,38 +2972,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _getVisibleDrawIdentifiedFeatures(): Array<[string, any]> {
     const identifiedFeatures: IIdentifiedFeatures =
       this._model.localState?.identifiedFeatures?.value ?? {};
-    const visibleRows = this._getIdentifyFloaterVisibleRows();
 
-    return Object.entries(identifiedFeatures as Record<string, any>).filter(
-      ([rowIndex, feature]) => {
-        if (!visibleRows[rowIndex]) {
-          return false;
-        }
-        return feature?._fromDrawTool === true;
-      },
+    return Object.entries(identifiedFeatures).filter(
+      ([_, feature]) =>
+        feature?._fromDrawTool === true && feature?.floaterOpen === true,
     );
   }
-
-  private _getIdentifyFloaterVisibleRows(): Record<string, boolean> {
-    const localState = this._model.sharedModel.awareness.getLocalState() as
-      | any
-      | null;
-    return localState?.identifyFeatureFloaterRows?.value ?? {};
-  }
-
-  private _onIdentifyFloaterRowsChange = () => {
-    const nextSerialized = JSON.stringify(
-      this._getIdentifyFloaterVisibleRows(),
-    );
-    if (nextSerialized === this._previousIdentifyFloaterRows) {
-      return;
-    }
-    this._previousIdentifyFloaterRows = nextSerialized;
-    this.setState(old => ({
-      ...old,
-      identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
-    }));
-  };
 
   private _updateFeatureFloaters() {
     this._getVisibleDrawIdentifiedFeatures().forEach(([rowIndex, feature]) => {
@@ -3917,7 +3890,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
-  private _previousIdentifyFloaterRows = '';
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
 

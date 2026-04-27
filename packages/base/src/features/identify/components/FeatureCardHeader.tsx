@@ -1,11 +1,12 @@
 import { Button } from '@/src/shared/components/Button';
-import { ChevronRightIcon, Search } from 'lucide-react';
+import { ChevronRightIcon, Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
 
 interface IFeatureCardHeaderProps {
   feature: any;
   featureTitle: string;
   isOpen: boolean;
+  onToggleFloater: (feature: any) => void;
   onHighlightFeature: (feature: any) => void;
 }
 
@@ -13,6 +14,7 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
   feature,
   featureTitle,
   isOpen,
+  onToggleFloater,
   onHighlightFeature,
 }) => {
   const isRasterFeature =
@@ -33,6 +35,20 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
         </Button>
         <span>{featureTitle}</span>
       </div>
+
+      <Button
+        size="icon-md"
+        variant="icon"
+        className="jgis-inline-icon"
+        onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleFloater(feature);
+        }}
+        title={feature?.floaterOpen ? 'Hide map floater' : 'Show map floater'}
+      >
+        {feature?.floaterOpen ? <EyeOff /> : <Eye />}
+      </Button>
 
       <Button
         size="icon-md"
