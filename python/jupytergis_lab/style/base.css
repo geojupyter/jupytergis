@@ -240,6 +240,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   position: absolute;
   opacity: 1;
   transition: opacity 0.1s linear 0.15s;
+  z-index: 40;
 }
 
 .jGIS-Annotation {
@@ -262,6 +263,46 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   z-index: 40;
   max-height: 400px;
   overflow: auto;
+}
+
+.jGIS-FeatureFloater {
+  min-width: 180px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--jp-border-color1);
+  background: var(--jp-layout-color1);
+  box-shadow: var(--jp-elevation-z6);
+}
+
+.jGIS-FeatureFloater-Wrapper {
+  transform: translate(10px, calc(-100% - 10px));
+}
+
+.jGIS-FeatureFloater-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.jGIS-FeatureFloater-row {
+  display: flex;
+  gap: 0.375rem;
+  align-items: flex-start;
+}
+
+.jGIS-FeatureFloater-key {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.jGIS-FeatureFloater-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .jGIS-Annotation-Card {

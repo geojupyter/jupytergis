@@ -123,6 +123,7 @@ import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
+import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { markerIcon } from '@/src/shared/icons';
@@ -210,6 +211,7 @@ interface IStates {
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
+  identifyFeatureFloatersVersion: number;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -323,6 +325,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
+    // ! signal when awareness PR merged
+    this._model.sharedModel.awareness.on(
+      'change',
+      this._onIdentifyFloaterRowsChange,
+    );
+
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
@@ -340,6 +348,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       jgisSettings: this._model.jgisSettings,
       isSpectaPresentation: this._model.isSpectaMode(),
       initialLayersReady: false,
+      identifyFeatureFloatersVersion: 0,
     };
 
     this._sources = [];
@@ -425,6 +434,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.identifiedFeaturesChanged.disconnect(
       this._clearHighlightWhenIdentifyDisabled,
       this,
+    );
+    this._model.sharedModel.awareness.off(
+      'change',
+      this._onIdentifyFloaterRowsChange,
     );
 
     // Clean up story scroll listener
@@ -558,6 +571,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (this.state.annotations) {
           this._updateAnnotation();
         }
+        this._updateFeatureFloaters();
       });
 
       this._Map.on('moveend', () => {
@@ -2659,6 +2673,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this.updateLayers(layerTree);
       }
     });
+
+    // this.setState(old => ({
+    //   ...old,
+    //   identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
+    // }));
   }
 
   private _onLayerTreeChange(
@@ -2689,6 +2708,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
       }
     });
+
+    this.setState(old => ({
+      ...old,
+      identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
+    }));
   }
 
   private _onSharedModelStateChange = (
@@ -2917,6 +2941,85 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
         }
       }
+    });
+  }
+
+  private _computeFeatureFloaterPosition(
+    feature: any,
+  ): { x: number; y: number } | undefined {
+    const geometry = feature?.geometry ?? feature?._geometry;
+    if (!geometry) {
+      return undefined;
+    }
+
+    if (typeof geometry.getExtent === 'function') {
+      const extent = geometry.getExtent();
+      const center = getCenter(extent);
+      const pixels = this._Map.getPixelFromCoordinate(center);
+      if (pixels) {
+        return { x: pixels[0], y: pixels[1] };
+      }
+      return undefined;
+    }
+
+    if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
+      const pixels = this._Map.getPixelFromCoordinate(geometry.coordinates);
+      if (pixels) {
+        return { x: pixels[0], y: pixels[1] };
+      }
+    }
+
+    return undefined;
+  }
+
+  private _getVisibleDrawIdentifiedFeatures(): Array<[string, any]> {
+    const identifiedFeatures =
+      this._model.localState?.identifiedFeatures?.value ?? {};
+    const visibleRows = this._getIdentifyFloaterVisibleRows();
+
+    return Object.entries(identifiedFeatures as Record<string, any>).filter(
+      ([rowIndex, feature]) => {
+        if (!visibleRows[rowIndex]) {
+          return false;
+        }
+        return feature?._fromDrawTool === true;
+      },
+    );
+  }
+
+  private _getIdentifyFloaterVisibleRows(): Record<string, boolean> {
+    const localState = this._model.sharedModel.awareness.getLocalState() as
+      | any
+      | null;
+    return localState?.identifyFeatureFloaterRows?.value ?? {};
+  }
+
+  private _onIdentifyFloaterRowsChange = () => {
+    const nextSerialized = JSON.stringify(
+      this._getIdentifyFloaterVisibleRows(),
+    );
+    if (nextSerialized === this._previousIdentifyFloaterRows) {
+      return;
+    }
+    this._previousIdentifyFloaterRows = nextSerialized;
+    this.setState(old => ({
+      ...old,
+      identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
+    }));
+  };
+
+  private _updateFeatureFloaters() {
+    this._getVisibleDrawIdentifiedFeatures().forEach(([rowIndex, feature]) => {
+      const el = document.getElementById(`feature-floater-${rowIndex}`);
+      if (!el) {
+        return;
+      }
+      const screenPosition = this._computeFeatureFloaterPosition(feature);
+      if (!screenPosition) {
+        return;
+      }
+      el.style.left = `${Math.round(screenPosition.x)}px`;
+      el.style.top = `${Math.round(screenPosition.y)}px`;
     });
   }
 
@@ -3614,6 +3717,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             )
           );
         })}
+        {this._getVisibleDrawIdentifiedFeatures().map(([rowIndex, feature]) => {
+          const screenPosition = this._computeFeatureFloaterPosition(feature);
+          if (!screenPosition) {
+            return null;
+          }
+
+          return (
+            <div
+              key={`feature-floater-${rowIndex}`}
+              id={`feature-floater-${rowIndex}`}
+              style={{
+                left: screenPosition.x,
+                top: screenPosition.y,
+              }}
+              className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
+            >
+              <FeatureFloater feature={feature} />
+            </div>
+          );
+        })}
 
         {this.state.editingVectorLayer && (
           <div className="jgis-geometry-type-selector-overlay">
@@ -3817,6 +3940,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
+  private _previousIdentifyFloaterRows = '';
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
 

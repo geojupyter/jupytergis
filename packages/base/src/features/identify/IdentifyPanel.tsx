@@ -144,6 +144,8 @@ function useIdentifyPropertyEditor(args: {
           updatedFeatures[featureIndex] = updatedTargetFeature;
         }
 
+        model.syncIdentifiedFeatures(updatedFeatures, model.getClientId().toString());
+
         return updatedFeatures;
       });
       resetAddPropertyEditor();
@@ -453,6 +455,8 @@ const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
   );
 };
 
+const IDENTIFY_FLOATER_ROWS_FIELD = 'identifyFeatureFloaterRows';
+
 interface IPropertyFieldsProps {
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
@@ -578,6 +582,17 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   useEffect(() => {
     featuresRef.current = features;
   }, [features]);
+
+  // ! TODO will need new signal when that PR gets merged
+  useEffect(() => {
+    model.sharedModel.awareness.setLocalStateField(
+      IDENTIFY_FLOATER_ROWS_FIELD,
+      {
+        value: visibleRows,
+        emitter: model.getClientId().toString(),
+      },
+    );
+  }, [model, visibleRows]);
 
   useEffect(() => {
     const handleIdentifyFeaturesChanged = () => {
