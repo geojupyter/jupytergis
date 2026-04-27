@@ -256,8 +256,7 @@ const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
           disabled={
             !editorState.newPropertyKey.trim() || editorState.isSavingProperty
           }
-          onSelect={event => {
-            event.preventDefault();
+          onSelect={() => {
             editorActions.onSaveProperty(feature, rowIndex);
           }}
         >
@@ -266,8 +265,7 @@ const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
-          onSelect={event => {
-            event.preventDefault();
+          onSelect={() => {
             editorActions.onCancelProperty();
           }}
         >
