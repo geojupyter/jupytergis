@@ -1,4 +1,9 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IIdentifiedFeature,
+  IIdentifiedFeatures,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 import React, { useState } from 'react';
 
 import {
@@ -13,7 +18,9 @@ export function useIdentifyPropertyEditor(args: {
     target: { featureId: string | number },
     propertyUpdates: IDict<any>,
   ) => Promise<boolean>;
-  setFeatures: React.Dispatch<React.SetStateAction<IDict<any> | undefined>>;
+  setFeatures: React.Dispatch<
+    React.SetStateAction<IIdentifiedFeatures | undefined>
+  >;
 }): {
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
@@ -48,7 +55,15 @@ export function useIdentifyPropertyEditor(args: {
     setNewPropertyValue('');
   };
 
-  const handleAddProperty = async (feature: any, featureIndex: number) => {
+  const handleAddProperty = async (
+    feature: IIdentifiedFeature,
+    featureIndex: number,
+  ) => {
+    const featureId = feature._id;
+    if (featureId === undefined) {
+      return;
+    }
+
     const key = newPropertyKey.trim();
     const previousKey =
       editorMode === 'edit' ? editingPropertyKey?.trim() : undefined;
@@ -76,7 +91,7 @@ export function useIdentifyPropertyEditor(args: {
 
     const success = await patchGeoJSONFeatureProperties(
       sourceId,
-      { featureId: feature._id },
+      { featureId },
       propertyUpdates,
     );
 

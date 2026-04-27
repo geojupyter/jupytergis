@@ -1,4 +1,10 @@
-import { IDict, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IIdentifiedFeature,
+  IIdentifiedFeatures,
+  IJGISSource,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -21,7 +27,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
   patchGeoJSONFeatureProperties,
 }) => {
-  const [features, setFeatures] = useState<IDict<any>>();
+  const [features, setFeatures] = useState<IIdentifiedFeatures>();
   const [visibleRows, setVisibleRows] = useState<IDict<any>>({
     0: true,
   });
@@ -104,7 +110,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     };
   }, [model]);
 
-  const highlightFeatureOnMap = (feature: any) => {
+  const highlightFeatureOnMap = (feature: IIdentifiedFeature) => {
     model?.highlightFeatureSignal?.emit(feature);
 
     const geometry = feature.geometry || feature._geometry;
@@ -118,12 +124,15 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }));
   };
 
-  const getFeatureNameOrId = (feature: any, featureIndex: number) => {
+  const getFeatureNameOrId = (
+    feature: IIdentifiedFeature,
+    featureIndex: number,
+  ): string => {
     for (const key of Object.keys(feature)) {
       const lowerCase = key.toLowerCase();
 
       if ((lowerCase.includes('name') || lowerCase === 'id') && feature[key]) {
-        return feature[key];
+        return String(feature[key]);
       }
     }
 

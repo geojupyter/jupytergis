@@ -16,6 +16,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IIdentifiedFeatures,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISDocChange,
@@ -2730,6 +2731,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _handleIdentifiedFeaturesChanged = (): void => {
+    console.log(
+      'this._model.localState?.identifiedFeatures',
+      this._model.localState?.identifiedFeatures,
+    );
     this._onIdentifyFloaterRowsChange();
     this._clearHighlightWhenIdentifyDisabled();
   };
@@ -2966,7 +2971,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _getVisibleDrawIdentifiedFeatures(): Array<[string, any]> {
-    const identifiedFeatures =
+    const identifiedFeatures: IIdentifiedFeatures =
       this._model.localState?.identifiedFeatures?.value ?? {};
     const visibleRows = this._getIdentifyFloaterVisibleRows();
 

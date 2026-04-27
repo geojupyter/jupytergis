@@ -112,6 +112,17 @@ export interface ISelection {
   parent?: string;
 }
 
+export interface IIdentifiedFeature {
+  _id?: string | number;
+  _fromDrawTool?: boolean;
+  geometry?: unknown;
+  _geometry?: unknown;
+  opened?: boolean;
+  [key: string]: unknown;
+}
+
+export type IIdentifiedFeatures = Record<string, IIdentifiedFeature>;
+
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   lastAddedLayer?: { layerId?: string };
@@ -122,7 +133,7 @@ export interface IJupyterGISClientState {
   };
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
-  identifiedFeatures: { value?: any; emitter?: string | null };
+  identifiedFeatures: { value?: IIdentifiedFeatures; emitter?: string | null };
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
