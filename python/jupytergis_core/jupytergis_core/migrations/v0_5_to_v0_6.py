@@ -50,13 +50,13 @@ def _vector_symbology_from_color(color_expr: Any) -> dict[str, Any]:
         state["fillColor"] = fill
 
     stroke = _to_rgba(
-        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color")
+        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color"),
     )
     if stroke is not None:
         state["strokeColor"] = stroke
 
     stroke_width = color_expr.get("stroke-width") or color_expr.get(
-        "circle-stroke-width"
+        "circle-stroke-width",
     )
     if isinstance(stroke_width, (int, float)):
         state["strokeWidth"] = float(stroke_width)

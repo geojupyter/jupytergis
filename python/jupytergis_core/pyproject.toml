@@ -13,8 +13,6 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -27,7 +25,7 @@ dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}
 name = "jupytergis_core"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 [project.entry-points.jupyter_ydoc]
 jgis = "jupytergis_core.jgis_ydoc:YJGIS"

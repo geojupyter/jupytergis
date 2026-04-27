@@ -310,21 +310,21 @@ def test_qgis_saver():
             source_ids[4]: {
                 "name": "Custom GeoJSON Layer Source",
                 "parameters": {
-                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
                 },
                 "type": "GeoJSONSource",
             },
             source_ids[5]: {
                 "name": "Custom GeoJSON Layer Source",
                 "parameters": {
-                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
                 },
                 "type": "GeoJSONSource",
             },
             source_ids[6]: {
                 "name": "Custom GeoJSON Layer Source",
                 "parameters": {
-                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson"
+                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
                 },
                 "type": "GeoJSONSource",
             },

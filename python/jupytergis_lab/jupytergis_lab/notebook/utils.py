@@ -1,12 +1,12 @@
 import sqlite3
 import uuid
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 
-class MESSAGE_ACTION(str, Enum):
+class MESSAGE_ACTION(StrEnum):
     CONNECT_ROOM = "connect_room"
     DISCONNECT_ROOM = "disconnect_room"
 
@@ -41,7 +41,7 @@ def get_gpkg_layers(gpkg_path: str, data_type: str) -> list[str]:
     conn = sqlite3.connect(gpkg_path)
     cursor = conn.cursor()
     cursor.execute(
-        f"""SELECT table_name FROM gpkg_contents WHERE data_type = '{data_type}'"""
+        f"""SELECT table_name FROM gpkg_contents WHERE data_type = '{data_type}'""",
     )
     layers = [row[0] for row in cursor.fetchall()]
     conn.close()

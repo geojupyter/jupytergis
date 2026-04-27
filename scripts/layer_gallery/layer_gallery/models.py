@@ -2,7 +2,7 @@
 
 import operator
 from functools import reduce
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 from pydantic import BaseModel, RootModel
 from xyzservices import TileProvider
@@ -70,4 +70,4 @@ class LayerEntry(BaseModel):
         return val.replace(".", "-") + ".png"
 
 
-GallerySpecification: TypeAlias = dict[str, dict[str, LayerEntry]]
+type GallerySpecification = dict[str, dict[str, LayerEntry]]

@@ -102,11 +102,19 @@ export function buildTransparentFallbackFilter(
       return ['has', field];
 
     case 'Categorized': {
-      // For categorized, only show features whose value is in the unique-values
-      // list (i.e. has a matching stop).
-      const uniqueValues = [
-        ...new Set(featureValues.filter(v => v !== undefined && v !== null)),
-      ];
+      // For categorized, only show features whose value is in the stop list.
+      // Prefer stopsOverride (persisted by the dialog for all source types),
+      // fall back to featureValues for in-memory VectorSource layers.
+      let uniqueValues: unknown[];
+      if (state.stopsOverride && state.stopsOverride.length > 0) {
+        uniqueValues = state.stopsOverride
+          .map(s => s.value)
+          .filter(v => v !== undefined && v !== null);
+      } else {
+        uniqueValues = [
+          ...new Set(featureValues.filter(v => v !== undefined && v !== null)),
+        ];
+      }
       if (uniqueValues.length === 0) {
         return ['==', 0, 1];
       }

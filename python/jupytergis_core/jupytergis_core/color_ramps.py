@@ -64,6 +64,7 @@ def get_color_ramp(
         If ``True``, reverse the color order.
     vmin, vmax : float
         The value range the colormap should cover.
+
     """
     cm = _resolve(name).scale(vmin, vmax)
     if reverse:
