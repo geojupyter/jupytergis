@@ -7,12 +7,12 @@ import {
   LayerType,
   SourceType,
 } from '@jupytergis/schema';
-import { Dialog } from '@jupyterlab/apputils';
+import { Dialog, showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useMemo, useRef } from 'react';
 
-import { deepCopy } from '@/src/tools';
+import { deepCopy, getGeoPackageTableNames } from '@/src/';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
@@ -141,6 +141,7 @@ export function CreationForm(props: ICreationFormProps) {
   const createSourceRef = useRef(createSource);
   const sourceTypeRef = useRef(sourceType);
   const layerTypeRef = useRef(layerType);
+  // const dialogOptionsRef = useRef(dialogOptions);
 
   modelRef.current = model;
   createLayerRef.current = createLayer;
@@ -161,10 +162,114 @@ export function CreationForm(props: ICreationFormProps) {
       const currentLayerType = layerTypeRef.current;
       const currentSourceId = sourceIdRef.current;
 
+      let sourceData = sourceFormDataRef.current ?? {};
+
+      if (
+        currentCreateSource &&
+        currentSourceType === 'GeoJSONSource' &&
+        !sourceData.path &&
+        !sourceData.data
+      ) {
+        sourceData = {
+          ...sourceData,
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
+        };
+      }
+
+      sourceFormDataRef.current = sourceData;
+
+      const layerData = layerFormDataRef.current ?? {};
+
+      // GeoPackage handling
+      if (
+        currentSourceType === 'GeoPackageVectorSource' ||
+        currentSourceType === 'GeoPackageRasterSource'
+      ) {
+        (async () => {
+          if (!currentCreateSource) {
+            console.error('GeoPackage handling requires source creation');
+            return;
+          }
+
+          const { name: sourceName, ...sourceParams } = sourceData;
+
+          const allTables = await getGeoPackageTableNames(
+            sourceParams.path,
+            currentSourceType,
+          );
+
+          let tableNames: string[];
+
+          if (sourceParams.tables) {
+            const requested = sourceParams.tables
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean);
+
+            const invalid = requested.filter(
+              (t: string) => !allTables.includes(t),
+            );
+
+            if (invalid.length) {
+              showErrorMessage(
+                'Invalid GeoPackage Tables',
+                `Invalid: ${invalid.join(', ')}. Available: ${allTables.join(', ')}`,
+              );
+            }
+
+            tableNames = requested.filter((t: string) => allTables.includes(t));
+
+            if (!tableNames.length) {
+              console.warn('No valid tables. Aborting.');
+              return;
+            }
+          } else {
+            tableNames = allTables;
+          }
+
+          for (const tableName of tableNames) {
+            const childId = `${currentSourceId}/${tableName}`;
+
+            if (currentCreateSource) {
+              const sourceModel: IJGISSource = {
+                type: currentSourceType,
+                name: `${sourceName ?? 'Source'} ${tableName} Source`,
+                parameters: {
+                  ...sourceParams,
+                  tables: tableName,
+                },
+              };
+
+              currentModel.sharedModel.addSource(childId, sourceModel);
+            }
+
+            if (currentCreateLayer) {
+              const layerModel: IJGISLayer = {
+                type:
+                  currentLayerType ||
+                  (currentSourceType === 'GeoPackageVectorSource'
+                    ? 'VectorLayer'
+                    : 'RasterLayer'),
+                parameters: { source: childId },
+                visible: true,
+                name: `${sourceName ?? 'Layer'} ${tableName} Layer`,
+              };
+
+              currentModel.addLayer(UUID.uuid4(), layerModel);
+            }
+          }
+        })();
+
+        return;
+      }
+
+      // Normal flow
       if (currentCreateSource) {
-        const sourceData = sourceFormDataRef.current ?? {};
         const { name, ...sourceParams } = sourceData;
-        const layerData = layerFormDataRef.current as IDict | undefined;
+
         const actualName =
           name ||
           (currentCreateLayer && layerData?.name
@@ -181,8 +286,8 @@ export function CreationForm(props: ICreationFormProps) {
       }
 
       if (currentCreateLayer) {
-        const layerData = layerFormDataRef.current ?? {};
         const { name, ...layerParams } = layerData;
+
         const actualName = name || `${layerData.name ?? 'Layer'} Layer`;
 
         const layerModel: IJGISLayer = {
@@ -213,7 +318,6 @@ export function CreationForm(props: ICreationFormProps) {
     }
 
     const raw = formSchemaRegistry.getSchemas().get(layerType);
-
     if (!raw) {
       return undefined;
     }
@@ -235,11 +339,9 @@ export function CreationForm(props: ICreationFormProps) {
 
   const layerData = useMemo(() => {
     const data = deepCopy(initialLayerData || {});
-
     if (createSource) {
       data.source = sourceId;
     }
-
     return data;
   }, [initialLayerData, createSource, sourceId]);
 
@@ -249,7 +351,6 @@ export function CreationForm(props: ICreationFormProps) {
     }
 
     const raw = formSchemaRegistry.getSchemas().get(sourceType);
-
     if (!raw) {
       return undefined;
     }

@@ -20,10 +20,16 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
+import { SqljsAdapter } from '@ngageoint/geopackage';
+import wasmURL from 'rtree-sql.js/dist/sql-wasm.wasm';
 
 import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
 import { JupyterGISFormSchemaRegistry } from './schemaregistry';
+
+SqljsAdapter.setSqljsWasmLocateFile((filename: string) => {
+  return wasmURL;
+});
 
 const NAME_SPACE = 'jupytergis';
 

@@ -8,16 +8,18 @@ import {
   LayerPropertiesForm,
   VectorLayerPropertiesForm,
   WebGlLayerPropertiesForm,
-} from './objectform/layer';
-import type { ILayerProps } from './objectform/layer/layerform';
+} from '@/src/features/layers/forms/layer';
+import type { ILayerProps } from '@/src/features/layers/forms/layer/layerform';
 import {
   GeoJSONSourcePropertiesForm,
   GeoTiffSourcePropertiesForm,
   PathBasedSourcePropertiesForm,
   TileSourcePropertiesForm,
+  WmsTileSourceForm,
   SourcePropertiesForm,
-} from './objectform/source';
-import type { ISourceFormProps } from './objectform/source/sourceform';
+  GeoPackagePropertiesForm,
+} from '@/src/features/layers/forms/source';
+import type { ISourceFormProps } from '@/src/features/layers/forms/source/sourceform';
 
 export function getLayerTypeForm(
   layerType: LayerType,
@@ -66,9 +68,18 @@ export function getSourceTypeForm(
     case 'GeoTiffSource':
       SourceForm = GeoTiffSourcePropertiesForm;
       break;
+    case 'WmsTileSource':
+      SourceForm = WmsTileSourceForm;
+      break;
     case 'RasterSource':
     case 'VectorTileSource':
       SourceForm = TileSourcePropertiesForm;
+      break;
+    case 'GeoPackageVectorSource':
+      SourceForm = GeoPackagePropertiesForm;
+      break;
+    case 'GeoPackageRasterSource':
+      SourceForm = GeoPackagePropertiesForm;
       break;
     case 'GeoParquetSource':
       SourceForm = PathBasedSourcePropertiesForm;

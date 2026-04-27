@@ -40,8 +40,11 @@ export interface IUseSchemaFormStateResult {
   setFormData: Dispatch<SetStateAction<IDict>>;
   /** Schema to pass to SchemaForm (deep copy of schemaProp). */
   schema: RJSFSchema;
-  /** Form context value { model, formData } for SchemaForm. */
-  formContextValue: { model: IJupyterGISModel; formData: IDict };
+  /** Form context value for SchemaForm (available to custom fields/widgets). */
+  formContextValue: {
+    model: IJupyterGISModel;
+    formData: IDict;
+  };
   /** Whether the form has a schema (false => form may render null). */
   hasSchema: boolean;
   /** Base change handler: setFormData, syncData, onAfterChange. Use or wrap. */

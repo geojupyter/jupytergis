@@ -217,6 +217,29 @@ test.describe('context menu', () => {
     await expect(restoredText).toBeVisible();
   });
 
+  test('processing submenu should show on vector layer', async ({ page }) => {
+    // Expand the group to see the vector layer
+    await page.getByText('level 1 group').click();
+    await page.getByText('level 2 group').click();
+
+    // Right-click on the vector layer
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Regions France')
+      .click({ button: 'right' });
+
+    // Hover over Processing submenu
+    await page.getByText('Processing').hover();
+
+    // Verify Processing submenu appears with expected commands
+    const processingMenu = page.locator('#jp-gis-contextmenu-processing');
+    await expect(processingMenu).toBeVisible();
+
+    // Verify at least one processing command is visible (Buffer is a common one)
+    await expect(processingMenu.getByText('Buffer')).toBeVisible();
+    await expect(processingMenu.getByText('Dissolve')).toBeVisible();
+  });
+
   test('move layer to group should move layer', async ({ page }) => {
     await page
       .getByLabel('Layers', { exact: true })

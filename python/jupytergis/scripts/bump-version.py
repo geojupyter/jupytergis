@@ -7,12 +7,11 @@ import argparse
 import json
 import re
 from datetime import datetime
-from typing import List
-from packaging.version import parse as parse_version
 from pathlib import Path
 from subprocess import run
 
 import tomlkit
+from packaging.version import parse as parse_version
 
 ENC = dict(encoding="utf-8")
 HATCH_VERSION = "hatch version"
@@ -39,9 +38,9 @@ def next_version():
 
 
 def bump_jupytergis_deps(py_version: str):
-    with open(PACKAGE_ROOT / "pyproject.toml", "r") as f:
+    with open(PACKAGE_ROOT / "pyproject.toml") as f:
         data = tomlkit.load(f)
-    dependencies: List[str] = data["project"]["dependencies"]
+    dependencies: list[str] = data["project"]["dependencies"]
 
     for index, value in enumerate(dependencies):
         if value.startswith("jupytergis"):
@@ -67,7 +66,7 @@ def bump_citation_cff(py_version: str):
 
     if nsubs != 1:
         raise ValueError(
-            f"Expected exactly 1 'version' replacement in CITATION.cff, but made {nsubs} replacements"
+            f"Expected exactly 1 'version' replacement in CITATION.cff, but made {nsubs} replacements",
         )
 
     # Replace `date-released: "{anything}"` with `date-released: "{today}"`
@@ -82,7 +81,7 @@ def bump_citation_cff(py_version: str):
 
     if nsubs != 1:
         raise ValueError(
-            f"Expected exactly 1 'date-released' replacement in CITATION.cff, but made {nsubs} replacements"
+            f"Expected exactly 1 'date-released' replacement in CITATION.cff, but made {nsubs} replacements",
         )
 
     citation_file.write_text(content, encoding="utf-8")
@@ -100,7 +99,7 @@ def bump():
     root_json = json.loads(package_json.read_text(encoding="utf-8"))
     root_json["version"] = js_version
     package_json.write_text(json.dumps(root_json), encoding="utf-8")
-    run(["yarn", "install"], check=True)
+    run(["jlpm", "install"], check=True)
     run(
         [
             "node",
@@ -117,7 +116,7 @@ def bump():
     # update CITATION.cff metadata
     bump_citation_cff(py_version)
     # bump the JS version with lerna
-    run(f"yarn run bump:js:version {js_version}", shell=True, check=True)
+    run(f"jlpm run bump:js:version {js_version}", shell=True, check=True)
 
 
 if __name__ == "__main__":

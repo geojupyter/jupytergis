@@ -1,0 +1,187 @@
+import { IDict } from '@jupytergis/schema';
+import { RegistryFieldsType, UiSchema } from '@rjsf/utils';
+import React, { useMemo } from 'react';
+
+import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { ArrayFieldTemplate } from '@/src/formbuilder/objectform/components/SegmentFormSymbology';
+import { SourcePropertiesField } from '@/src/formbuilder/objectform/components/SourcePropertiesField';
+import StorySegmentReset from '@/src/formbuilder/objectform/components/StorySegmentReset';
+import {
+  processBaseSchema,
+  removeFormEntry,
+} from '@/src/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+import { deepCopy } from '@/src/tools';
+import type { ILayerProps } from './layerform';
+
+function getFirstSelectedStorySegmentLayerId(
+  model: ILayerProps['model'],
+): string | undefined {
+  const selected = model.selected;
+
+  if (!selected) {
+    return undefined;
+  }
+
+  for (const key of Object.keys(selected)) {
+    const layer = model.getLayer(key);
+
+    if (layer?.type === 'StorySegmentLayer') {
+      return key;
+    }
+  }
+
+  return undefined;
+}
+
+const StorySegmentResetField: RegistryFieldsType[string] = (props: any) => {
+  const ctx = props.formContext as {
+    model?: ILayerProps['model'];
+    layerId?: string;
+  };
+
+  return <StorySegmentReset model={ctx?.model} layerId={ctx?.layerId} />;
+};
+
+export function StorySegmentLayerPropertiesForm(
+  props: ILayerProps,
+): React.ReactElement | null {
+  const {
+    schema: schemaProp,
+    sourceData,
+    syncData,
+    model,
+    filePath,
+    formContext,
+    sourceType,
+    dialogOptions,
+    formErrorSignal,
+    formSchemaRegistry,
+  } = props;
+
+  const {
+    formData,
+    schema,
+    formContextValue: baseFormContext,
+    hasSchema,
+    handleChangeBase,
+    handleSubmitBase,
+  } = useSchemaFormState({
+    sourceData,
+    schemaProp,
+    model,
+    syncData,
+    cancel: props.cancel,
+    onAfterChange: dialogOptions
+      ? (data: IDict) => {
+          dialogOptions.layerData = { ...data };
+        }
+      : undefined,
+  });
+
+  const layerId = useMemo(
+    () => getFirstSelectedStorySegmentLayerId(model),
+    [model, model.selected],
+  );
+
+  const formContextValue = useMemo(
+    () => ({ ...baseFormContext, layerId, formSchemaRegistry }),
+    [baseFormContext, layerId],
+  );
+
+  const uiSchema = useMemo(() => {
+    const builtUiSchema: UiSchema = {};
+    const dataCopy = deepCopy(formData);
+    processBaseSchema(
+      dataCopy,
+      schema,
+      builtUiSchema,
+      formContext,
+      removeFormEntry,
+    );
+
+    if (schema.properties?.source) {
+      const availableSources = model.getSourcesByType(sourceType);
+
+      (schema.properties.source as IDict).enumNames =
+        Object.values(availableSources);
+      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+    }
+
+    removeFormEntry('zoom', dataCopy, schema, builtUiSchema);
+
+    const layerOverrideItems = schema.properties?.layerOverride as
+      | IDict
+      | undefined;
+    const itemsProps = layerOverrideItems?.items;
+    const itemsProperties = itemsProps?.properties;
+
+    if (itemsProperties) {
+      delete itemsProperties.color;
+      delete itemsProperties.symbologyState;
+    }
+
+    if (model.selected) {
+      builtUiSchema.extent = {
+        'ui:field': 'storySegmentReset',
+      };
+    }
+
+    builtUiSchema.content = {
+      ...(builtUiSchema.content as IDict),
+      markdown: {
+        'ui:widget': 'textarea',
+        'ui:options': {
+          rows: 10,
+        },
+      },
+    };
+
+    builtUiSchema.layerOverride = {
+      ...(builtUiSchema.layerOverride as IDict),
+      items: {
+        'ui:title': '',
+        targetLayer: {
+          'ui:field': 'layerSelect',
+        },
+        opacity: {
+          'ui:field': 'opacity',
+        },
+        sourceProperties: {
+          'ui:field': SourcePropertiesField,
+        },
+      },
+      'ui:options': {
+        orderable: false,
+      },
+      'ui:ArrayFieldTemplate': ArrayFieldTemplate,
+    };
+
+    return builtUiSchema;
+  }, [schema, formData, formContext, model, sourceType]);
+
+  const additionalFields = useMemo<RegistryFieldsType>(
+    () => ({
+      storySegmentReset: StorySegmentResetField,
+    }),
+    [],
+  );
+
+  if (!hasSchema) {
+    return null;
+  }
+
+  return (
+    <SchemaForm
+      schema={schema}
+      formData={formData}
+      onChange={handleChangeBase}
+      onSubmit={handleSubmitBase}
+      formContext={formContextValue}
+      filePath={filePath}
+      uiSchema={uiSchema}
+      additionalFields={additionalFields}
+      formErrorSignal={formErrorSignal}
+    />
+  );
+}

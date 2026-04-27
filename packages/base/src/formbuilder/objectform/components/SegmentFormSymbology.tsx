@@ -3,14 +3,14 @@ import { ArrayFieldTemplateProps } from '@rjsf/core';
 import { ChevronRightIcon } from 'lucide-react';
 import React from 'react';
 
-import { SymbologyWidget } from '@/src/dialogs/symbology/symbologyDialog';
+import { SymbologyWidget } from '@/src/features/layers/symbology/symbologyDialog';
 import { Button } from '@/src/shared/components/Button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
-import { GlobalStateDbManager } from '@/src/store';
+import { GlobalStateDbManager } from '@/src/shared/store';
 import {
   SYMBOLOGY_VALID_LAYER_TYPES,
   type IJupyterGISFormContext,

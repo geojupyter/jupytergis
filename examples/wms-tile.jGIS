@@ -1,0 +1,48 @@
+{
+  "layerTree": [
+    "54ae7d71-0dcc-427d-884f-74d7652e5ea3"
+  ],
+  "layers": {
+    "54ae7d71-0dcc-427d-884f-74d7652e5ea3": {
+      "name": "Custom WMS Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "30749238-2094-4741-957e-03fab2951da8"
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -20037508.34278924,
+      -13924060.897584872,
+      20037508.34278924,
+      13924060.897584872
+    ],
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "storyMapPresentationMode": false,
+    "zoom": 2.100662339005199
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "30749238-2094-4741-957e-03fab2951da8": {
+      "name": "Custom WMS Layer Source",
+      "parameters": {
+        "attribution": "",
+        "interpolate": false,
+        "params": {
+          "layers": "OSM-WMS"
+        },
+        "url": "https://ows.terrestris.de/osm/service"
+      },
+      "type": "WmsTileSource"
+    }
+  },
+  "stories": {}
+}

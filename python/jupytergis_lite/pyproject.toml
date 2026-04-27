@@ -13,22 +13,20 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "jupytergis_core==0.14.1",
-  "jupytergis_lab==0.14.1",
+  "jupytergis_core==0.15.0",
+  "jupytergis_lab==0.15.0",
   "my-jupyter-shared-drive>=0.2.2",
 ]
 dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "jupytergis-lite"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 
 [tool.hatch.version]

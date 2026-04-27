@@ -12,6 +12,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISViewState,
 } from './_interface/project/jgis';
 import { SCHEMA_VERSION } from './_interface/version';
 import {
@@ -25,12 +26,16 @@ import {
   IJupyterGISDocChange,
 } from './interfaces';
 
+export const DEFAULT_PROJECTION = 'EPSG:3857';
+
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
 	"layers": {},
 	"sources": {},
-	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857", "storyMapPresentationMode": false},
+  "stories": {},
+  "viewState": {},
+	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}", "storyMapPresentationMode": false},
 	"layerTree": [],
 	"metadata": {}
 }`;
@@ -47,6 +52,7 @@ export class JupyterGISDoc
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
+    this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
     this._metadata = this.ydoc.getMap<string>('metadata');
 
     this.undoManager.addToScope(this._layers);
@@ -62,6 +68,7 @@ export class JupyterGISDoc
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._stories.observeDeep(this._storyMapsObserver.bind(this));
+    this._viewState.observe(this._viewStateObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._metadata.observe(this._metaObserver.bind(this));
   }
@@ -84,9 +91,18 @@ export class JupyterGISDoc
     const options = this._options.toJSON();
     const sources = this._sources.toJSON();
     const stories = this._stories.toJSON();
+    const viewState = this._viewState.toJSON();
     const metadata = this._metadata.toJSON();
 
-    return { layers, layerTree, sources, stories, options, metadata };
+    return {
+      layers,
+      layerTree,
+      sources,
+      stories,
+      viewState,
+      options,
+      metadata,
+    };
   }
 
   setSource(value: JSONObject | string): void {
@@ -122,6 +138,11 @@ export class JupyterGISDoc
       const stories = value['stories'] ?? {};
       Object.entries(stories).forEach(([key, val]) =>
         this._stories.set(key, val),
+      );
+
+      const viewState = value['viewState'] ?? {};
+      Object.entries(viewState).forEach(([key, val]) =>
+        this._viewState.set(key, val),
       );
 
       const metadata = value['metadata'] ?? {};
@@ -173,6 +194,18 @@ export class JupyterGISDoc
 
   get stories(): IJGISStoryMaps {
     return JSONExt.deepCopy(this._stories.toJSON());
+  }
+
+  get viewState(): IJGISViewState {
+    return JSONExt.deepCopy(this._viewState.toJSON());
+  }
+
+  set viewState(viewState: IJGISViewState) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(viewState)) {
+        this._viewState.set(key, value);
+      }
+    });
   }
 
   get layerTree(): IJGISLayerTree {
@@ -242,6 +275,10 @@ export class JupyterGISDoc
 
   get storyMapsChanged(): ISignal<IJupyterGISDoc, IJGISStoryMapDocChange> {
     return this._storyMapsChanged;
+  }
+
+  get viewStateChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._viewStateChanged;
   }
 
   get optionsChanged(): ISignal<IJupyterGISDoc, MapChange> {
@@ -512,6 +549,18 @@ export class JupyterGISDoc
     }
   }
 
+  private _viewStateObserver = (event: Y.YMapEvent<any>): void => {
+    const changes = new Map();
+    event.changes.keys.forEach((event, key) => {
+      changes.set(key, {
+        action: event.action,
+        oldValue: event.oldValue,
+        newValue: this._viewState.get(key),
+      });
+    });
+    this._viewStateChanged.emit(changes);
+  };
+
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
     const changes = new Map();
     event.changes.keys.forEach((event, key) => {
@@ -541,6 +590,7 @@ export class JupyterGISDoc
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
   private _stories: Y.Map<any>;
+  private _viewState: Y.Map<any>;
   private _options: Y.Map<any>;
   private _metadata: Y.Map<string>;
 
@@ -559,6 +609,7 @@ export class JupyterGISDoc
     IJupyterGISDoc,
     IJGISStoryMapDocChange
   >(this);
+  private _viewStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 
   private _initialSyncReadyPromise: Promise<void>;

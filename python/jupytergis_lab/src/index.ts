@@ -114,6 +114,24 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2,
     });
 
+    app.contextMenu.addItem({
+      command: CommandIDs.createStorySegmentFromLayer,
+      selector: GIS_LAYER_ITEM,
+      rank: 2,
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.zoomToLayer,
+      selector: '.jp-gis-layerItem',
+      rank: 2,
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.toggleDrawFeatures,
+      selector: '.jp-gis-layerItem',
+      rank: 2,
+    });
+
     // Create the Download submenu
     const downloadSubmenu = new Menu({ commands: app.commands });
     downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
@@ -140,7 +158,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     for (const processingElement of ProcessingMerge) {
       processingSubmenu.addItem({
-        command: processingElement.name,
+        command: `jupytergis:${processingElement.name}`,
       });
     }
 

@@ -27,6 +27,7 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  IJGISViewState,
   LayerType,
   SourceType,
 } from './_interface/project/jgis';
@@ -52,7 +53,12 @@ import {
   IWebGlLayer,
   Modes,
 } from './types';
-export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+
+export interface IJGISUIState {
+  leftPanelOpen?: boolean;
+  rightPanelOpen?: boolean;
+}
 
 export interface IJGISStoryMaps {
   [k: string]: IJGISStoryMap;
@@ -63,6 +69,7 @@ export type JgisCoordinates = { x: number; y: number };
 export interface IViewPortState {
   coordinates: JgisCoordinates;
   zoom: number;
+  extent: [number, number, number, number];
 }
 
 export type Pointer = {
@@ -107,6 +114,7 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  lastAddedLayer?: { layerId?: string };
   selectedPropField?: {
     id: string | null;
     value: any;
@@ -121,12 +129,39 @@ export interface IJupyterGISClientState {
   isTemporalControllerActive: boolean;
 }
 
+export const AWARENESS_STATE_FIELDS = {
+  selected: 'selected',
+  pointer: 'pointer',
+  viewportState: 'viewportState',
+  identifiedFeatures: 'identifiedFeatures',
+  remoteUser: 'remoteUser',
+  isTemporalControllerActive: 'isTemporalControllerActive',
+  lastAddedLayer: 'lastAddedLayer',
+} as const;
+
+export type AwarenessFieldKey =
+  (typeof AWARENESS_STATE_FIELDS)[keyof typeof AWARENESS_STATE_FIELDS];
+
+export const AWARENESS_FIELD_KEYS = Object.values(
+  AWARENESS_STATE_FIELDS,
+) as AwarenessFieldKey[];
+
+export interface IAwarenessFieldChange<T = any> {
+  clientId: number;
+  field: AwarenessFieldKey;
+  previousValue: T | undefined;
+  currentValue: T | undefined;
+  fullState: IJupyterGISClientState | undefined;
+  isLocalClient: boolean;
+}
+
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
+  viewState: IJGISViewState;
   metadata: any;
 
   readonly editable: boolean;
@@ -198,20 +233,56 @@ export interface IJupyterGISDocChange extends DocumentChange {
   stateChange?: StateChange<any>[];
 }
 
+export interface IViewState {
+  [id: string]: {
+    extent: number[];
+    zoom: number;
+    projection?: string;
+    layerId?: string;
+    layerName?: string;
+  };
+}
+
+export interface IStorySegmentRef {
+  storySegmentId: string;
+  storyId: string;
+}
+
 export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
   geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
+  viewState?: IViewState;
   annotationModel?: IAnnotationModel;
   currentMode: Modes;
   themeChanged: Signal<
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
   >;
-  clientStateChanged: ISignal<
+  selectedChanged: ISignal<
     IJupyterGISModel,
-    Map<number, IJupyterGISClientState>
+    IAwarenessFieldChange<IJupyterGISClientState['selected']>
+  >;
+  pointerChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['pointer']>
+  >;
+  viewportStateChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['viewportState']>
+  >;
+  identifiedFeaturesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  >;
+  remoteUserChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
+  >;
+  temporalControllerActiveChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['isTemporalControllerActive']>
   >;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
@@ -225,6 +296,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
+  editingVectorLayerChanged: ISignal<IJupyterGISModel, boolean>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
@@ -247,11 +319,14 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   }) => void;
 
   getSettings(): Promise<ISettingRegistry.ISettings>;
+  settingsReady: Promise<void>;
   settingsChanged: ISignal<IJupyterGISModel, string>;
   jgisSettings: IJupyterGISSettings;
   getContent(): IJGISContent;
+  getViewState(): IViewState;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
+  getExtent(id: string): number[] | undefined;
   getLayerOrSource(id: string): IJGISLayer | IJGISSource | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
@@ -263,6 +338,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     groupName?: string,
     position?: number,
   ): void;
+  updateLayerViewState(id: string, view: IViewState[string]): void;
   removeLayer(id: string): void;
   removeSource(id: string): void;
   getOptions(): IJGISOptions;
@@ -280,6 +356,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   selected: { [key: string]: ISelection } | undefined;
+  syncLastAddedLayer(layerId: string): void;
   setEditingItem(type: SelectionType, itemId: string): void;
   clearEditingItem(): void;
   readonly editing: { type: SelectionType; itemId: string } | null;
@@ -298,6 +375,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
+  editingVectorLayer: boolean;
+  updateEditingVectorLayer(): void;
+  checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean;
 
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;
@@ -315,12 +395,14 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getCurrentSegmentIndex(): number;
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
-  addStorySegment(): { storySegmentId: string; storyId: string } | null;
-  segmentAdded: ISignal<
-    IJupyterGISModel,
-    { storySegmentId: string; storyId: string }
-  >;
+  addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null;
+  createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
+  segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
+
+  setUIState(value: Partial<IJGISUIState>): void;
+  getUIState(): IJGISUIState;
+  uiStateChanged: ISignal<IJupyterGISModel, IJGISUIState>;
 }
 
 export interface IUserData {

@@ -34,15 +34,19 @@ import {
   JupyterGISModel,
   IMarkerSource,
   IStorySegmentLayer,
+  IWmsTileSource,
   IJupyterGISSettings,
+  DEFAULT_PROJECTION,
+  IViewState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { ContextMenu } from '@lumino/widgets';
+import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
   MapBrowserEvent,
@@ -52,12 +56,14 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
-import { getCenter } from 'ol/extent';
+import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
+import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
   DragPan,
@@ -71,11 +77,15 @@ import {
   DoubleClickZoom,
   Select,
 } from 'ol/interaction';
+import Draw from 'ol/interaction/Draw';
+import Modify from 'ol/interaction/Modify';
+import Snap from 'ol/interaction/Snap';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
+  VectorImage as VectorImageLayer,
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
@@ -92,6 +102,8 @@ import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
+  Source,
+  TileWMS as TileWMSSource,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
@@ -100,6 +112,7 @@ import {
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
 import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
+import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -108,24 +121,37 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
-import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
+import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
-import StatusBar from '@/src/statusbar/StatusBar';
-import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
+import { markerIcon } from '@/src/shared/icons';
+import {
+  debounce,
+  INTERNAL_PROXY_BASE,
+  isJupyterLite,
+  isLightTheme,
+  loadFile,
+  throttle,
+} from '@/src/tools';
+import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { markerIcon } from '../icons';
-import { LeftPanel, RightPanel } from '../panelview';
-import { SpectaPanel } from '../panelview/story-maps/SpectaPanel';
-import type { IStoryViewerPanelHandle } from '../panelview/story-maps/StoryViewerPanel';
+import {
+  DEFAULT_FLAT_STYLE,
+  buildTransparentFallbackFilter,
+  buildVectorFlatStyle,
+} from '../features/layers/symbology/styleBuilder';
+import { SpectaPanel } from '../features/story/SpectaPanel';
+import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
+import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
   | TileLayer
   | VectorLayer
+  | VectorImageLayer
   | VectorTileLayer
   | WebGlTileLayer
   | WebGlTileLayer
@@ -133,11 +159,30 @@ type OlLayerTypes =
   | StacLayer
   | ImageLayer<any>;
 
+const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
+
+const drawInteractionStyle = new Style({
+  fill: new Fill({
+    color: 'rgba(255, 255, 255, 0.2)',
+  }),
+  stroke: new Stroke({
+    color: '#ffcc33',
+    width: 2,
+  }),
+  image: new CircleStyle({
+    radius: 7,
+    fill: new Fill({
+      color: '#ffcc33',
+    }),
+  }),
+});
+
 interface IMainViewProps {
   viewModel: MainViewModel;
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
 }
@@ -156,6 +201,8 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  editingVectorLayer: boolean;
+  drawGeometryLabel: string | undefined;
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
@@ -169,6 +216,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._formSchemaRegistry = props.formSchemaRegistry;
 
     this._annotationModel = props.annotationModel;
+
+    this._loggerRegistry = props.loggerRegistry;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -209,10 +258,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onSharedOptionsChanged,
       this,
     );
-    this._model.clientStateChanged.connect(
-      this._onClientSharedStateChanged,
+    this._model.temporalControllerActiveChanged.connect(
+      this._handleTemporalControllerActiveChanged,
       this,
     );
+    const remoteUserSignals = [
+      this._model.remoteUserChanged,
+      this._model.viewportStateChanged,
+    ];
+    remoteUserSignals.forEach(signal =>
+      signal.connect(this._handleRemoteUserChanged, this),
+    );
+    this._model.pointerChanged.connect(this._handlePointerChanged, this);
+    this._model.selectedChanged.connect(
+      this._handleTemporalControllerActiveChanged,
+      this,
+    );
+    this._model.selectedChanged.connect(this._handleSelectedChanged, this);
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -230,6 +292,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
+    // Keep draw editing UI/interactions in sync with the shared editing mode.
+    this._model.editingVectorLayerChanged.connect(
+      this._updateEditingVectorLayer,
+      this,
+    );
+
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
       this.highlightFeatureOnMap,
@@ -240,12 +308,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._syncSettingsFromRegistry();
     });
 
-    // Watch isIdentifying and clear the highlight when Identify Tool is turned off
-    this._model.sharedModel.awareness.on('change', () => {
-      if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
-        this._highlightLayer.getSource()?.clear();
-      }
-    });
+    // Watch identify-related awareness changes and clear highlight when
+    // Identify tool is turned off.
+    this._model.identifiedFeaturesChanged.connect(
+      this._clearHighlightWhenIdentifyDisabled,
+      this,
+    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -259,6 +327,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      editingVectorLayer: false,
+      drawGeometryLabel: '',
       jgisSettings: this._model.jgisSettings,
       isSpectaPresentation: this._model.isSpectaMode(),
       initialLayersReady: false,
@@ -274,15 +344,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   async componentDidMount(): Promise<void> {
+    if (this._loggerRegistry) {
+      const logger = this._loggerRegistry.getLogger(this._model.filePath);
+      logger.level = 'debug';
+    }
+
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
+    const projection = options.projection ?? DEFAULT_PROJECTION;
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude, options.latitude])
+        ? fromLonLat([options.longitude, options.latitude], projection)
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(center, zoom);
+    await this.generateMap(center, zoom, projection);
+    this._handleRemoteUserChanged();
+    this._handlePointerChanged();
+    this._handleTemporalControllerActiveChanged();
+    this._handleSelectedChanged();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -317,8 +397,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
-    this._model.clientStateChanged.disconnect(
-      this._onClientSharedStateChanged,
+    this._model.temporalControllerActiveChanged.disconnect(
+      this._handleTemporalControllerActiveChanged,
+      this,
+    );
+    const remoteUserSignals = [
+      this._model.remoteUserChanged,
+      this._model.viewportStateChanged,
+    ];
+    remoteUserSignals.forEach(signal =>
+      signal.disconnect(this._handleRemoteUserChanged, this),
+    );
+    this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
+    this._model.selectedChanged.disconnect(
+      this._handleTemporalControllerActiveChanged,
+      this,
+    );
+    this._model.selectedChanged.disconnect(this._handleSelectedChanged, this);
+    this._model.identifiedFeaturesChanged.disconnect(
+      this._clearHighlightWhenIdentifyDisabled,
       this,
     );
 
@@ -328,7 +425,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  async generateMap(center: number[], zoom: number): Promise<void> {
+  async generateMap(
+    center: number[],
+    zoom: number,
+    projection = DEFAULT_PROJECTION,
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     this._initialLayersCount = Object.values(layers).filter(
@@ -360,6 +461,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         view: new View({
           center,
           zoom,
+          projection,
         }),
         controls,
       });
@@ -406,34 +508,43 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view = this._Map.getView();
 
-      view.on('change:center', () => this._updateCenter());
+      const syncViewportThrottled = throttle(() => {
+        // Not syncing center if following someone else
+        if (this._model.localState?.remoteUser) {
+          return;
+        }
 
-      // TODO: Note for the future, will need to update listeners if view changes
-      view.on(
-        'change:center',
-        throttle(() => {
-          // Not syncing center if following someone else
-          if (this._model.localState?.remoteUser) {
-            return;
-          }
-          const view = this._Map.getView();
-          const center = view.getCenter();
-          const zoom = view.getZoom();
-          if (!center || !zoom) {
-            return;
-          }
-          this._model.syncViewport(
-            {
-              coordinates: {
-                x: center[0],
-                y: center[1],
-              },
-              zoom,
+        const view = this._Map.getView();
+        const center = view.getCenter();
+        const zoom = view.getZoom();
+
+        if (!center || !zoom) {
+          return;
+        }
+
+        const currentExtent = view.calculateExtent(this._Map.getSize());
+        this._model.syncViewport(
+          {
+            coordinates: {
+              x: center[0],
+              y: center[1],
             },
-            this._mainViewModel.id,
-          );
-        }),
-      );
+            zoom,
+            extent: [
+              currentExtent[0],
+              currentExtent[1],
+              currentExtent[2],
+              currentExtent[3],
+            ],
+          },
+          this._mainViewModel.id,
+        );
+      }, 200);
+
+      view.on('change:center', () => {
+        this._updateCenter();
+        syncViewportThrottled();
+      });
 
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
@@ -448,7 +559,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const center = view.getCenter() || [0, 0];
         const zoom = view.getZoom() || 0;
 
-        const projection = view.getProjection();
+        const projection =
+          getProjection(currentOptions.projection) ?? view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
         const resolution = view.getResolution();
@@ -500,8 +612,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
         event.stopPropagation();
-        const coordinate = this._Map.getEventCoordinate(event);
-        this._clickCoords = coordinate;
+        if (this._lastPointerCoord) {
+          this._clickCoords = this._lastPointerCoord;
+        }
         this._contextMenu.open(event);
       });
 
@@ -509,8 +622,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ...old,
         loading: false,
         viewProjection: {
-          code: view.getProjection().getCode(),
-          units: view.getProjection().getUnits(),
+          code: projection,
+          units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
     }
@@ -642,10 +755,71 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       },
     });
 
+    this._commands.addCommand('Copy-Coordinates-Map-CRS', {
+      label: () => {
+        if (!this._Map || !this._clickCoords) {
+          return 'Map CRS';
+        }
+
+        const proj = this._Map.getView().getProjection().getCode();
+        const coord = this._clickCoords;
+
+        return `Map CRS — ${proj} (${coord[0].toFixed(0)}E, ${coord[1].toFixed(0)}N)`;
+      },
+      execute: async () => {
+        const coord = this._clickCoords;
+        const text = `${coord[0].toFixed(0)}, ${coord[1].toFixed(0)}`;
+        await navigator.clipboard.writeText(text);
+      },
+    });
+
+    this._commands.addCommand('Copy-Coordinates-LonLat', {
+      label: () => {
+        if (!this._Map || !this._clickCoords) {
+          return 'Latitude/Longitude';
+        }
+
+        const lonLat = toLonLat(
+          this._clickCoords,
+          this._Map.getView().getProjection(),
+        );
+
+        return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
+      },
+      execute: async () => {
+        const lonLat = toLonLat(
+          this._clickCoords,
+          this._Map.getView().getProjection(),
+        );
+
+        const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
+        await navigator.clipboard.writeText(text);
+      },
+    });
+
     this._contextMenu.addItem({
       command: CommandIDs.addAnnotation,
       selector: '.ol-viewport',
       rank: 1,
+    });
+
+    const copyCoordinatesMenu = new Menu({ commands: this._commands });
+
+    copyCoordinatesMenu.title.label = 'Copy Coordinates';
+
+    copyCoordinatesMenu.addItem({
+      command: 'Copy-Coordinates-Map-CRS',
+    });
+
+    copyCoordinatesMenu.addItem({
+      command: 'Copy-Coordinates-LonLat',
+    });
+
+    this._contextMenu.addItem({
+      type: 'submenu',
+      submenu: copyCoordinatesMenu,
+      selector: '.ol-viewport',
+      rank: 2,
     });
   };
 
@@ -656,291 +830,452 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * @param source - the source object.
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
+    this._log('info', `Loading source "${source.name ?? id}" (${source.type})`);
     let newSource;
 
-    switch (source.type) {
-      case 'RasterSource': {
-        const sourceParameters = source.parameters as IRasterSource;
+    try {
+      switch (source.type) {
+        case 'RasterSource': {
+          const sourceParameters = source.parameters as IRasterSource;
 
-        const pmTiles =
-          sourceParameters.url.endsWith('.pmtiles') ||
-          sourceParameters.url.endsWith('pmtiles.gz');
-        const url = this.computeSourceUrl(source);
+          const pmTiles =
+            sourceParameters.url.endsWith('.pmtiles') ||
+            sourceParameters.url.endsWith('pmtiles.gz');
+          const url = this.computeSourceUrl(source);
 
-        if (!pmTiles) {
-          newSource = new XYZSource({
-            interpolate: sourceParameters.interpolate,
-            attributions: sourceParameters.attribution,
-            minZoom: sourceParameters.minZoom,
-            maxZoom: sourceParameters.maxZoom,
-            tileSize: 256,
-            url: url,
-          });
-        } else {
-          newSource = new PMTilesRasterSource({
-            interpolate: sourceParameters.interpolate,
-            attributions: sourceParameters.attribution,
-            tileSize: 256,
-            url: url,
-          });
-        }
-
-        break;
-      }
-      case 'RasterDemSource': {
-        const sourceParameters = source.parameters as IRasterDemSource;
-
-        newSource = new ImageTileSource({
-          interpolate: sourceParameters.interpolate,
-          url: this.computeSourceUrl(source),
-          attributions: sourceParameters.attribution,
-        });
-
-        break;
-      }
-      case 'VectorTileSource': {
-        const sourceParameters = source.parameters as IVectorTileSource;
-
-        const pmTiles =
-          sourceParameters.url.endsWith('.pmtiles') ||
-          sourceParameters.url.endsWith('pmtiles.gz');
-        const url = this.computeSourceUrl(source);
-
-        if (!pmTiles) {
-          newSource = new VectorTileSource({
-            attributions: sourceParameters.attribution,
-            minZoom: sourceParameters.minZoom,
-            maxZoom: sourceParameters.maxZoom,
-            url: url,
-            format: new MVT({
-              featureClass: RenderFeature,
-            }),
-          });
-        } else {
-          newSource = new PMTilesVectorSource({
-            attributions: sourceParameters.attribution,
-            url: url,
-          });
-        }
-
-        newSource.on('tileloadend', (event: TileSourceEvent) => {
-          const tile = event.tile as VectorTile<FeatureLike>;
-          const features = tile.getFeatures();
-
-          if (features && features.length > 0) {
-            this._model.syncTileFeatures({
-              sourceId: id,
-              features,
+          if (!pmTiles) {
+            newSource = new XYZSource({
+              interpolate: sourceParameters.interpolate,
+              attributions: sourceParameters.attribution,
+              minZoom: sourceParameters.minZoom,
+              maxZoom: sourceParameters.maxZoom,
+              tileSize: 256,
+              url: url,
+            });
+          } else {
+            newSource = new PMTilesRasterSource({
+              interpolate: sourceParameters.interpolate,
+              attributions: sourceParameters.attribution,
+              tileSize: 256,
+              url: url,
             });
           }
-        });
 
-        break;
-      }
-      case 'GeoJSONSource': {
-        const data =
-          source.parameters?.data ||
-          (await loadFile({
-            filepath: source.parameters?.path,
-            type: 'GeoJSONSource',
-            model: this._model,
-          }));
+          break;
+        }
 
-        const format = new GeoJSON({
-          featureProjection: this._Map.getView().getProjection(),
-        });
+        case 'RasterDemSource': {
+          const sourceParameters = source.parameters as IRasterDemSource;
 
-        const featureArray = format.readFeatures(data, {
-          featureProjection: this._Map.getView().getProjection(),
-        });
+          newSource = new ImageTileSource({
+            interpolate: sourceParameters.interpolate,
+            url: this.computeSourceUrl(source),
+            attributions: sourceParameters.attribution,
+          });
 
-        const featureCollection = new Collection(featureArray);
+          break;
+        }
 
-        featureCollection.forEach(feature => {
-          feature.setId(getUid(feature));
-        });
+        case 'VectorTileSource': {
+          const sourceParameters = source.parameters as IVectorTileSource;
 
-        newSource = new VectorSource({
-          features: featureCollection,
-        });
+          const pmTiles =
+            sourceParameters.url.endsWith('.pmtiles') ||
+            sourceParameters.url.endsWith('pmtiles.gz');
+          const url = this.computeSourceUrl(source);
 
-        break;
-      }
-      case 'ShapefileSource': {
-        const parameters = source.parameters as IShapefileSource;
+          if (!pmTiles) {
+            const vtSourceOptions: ConstructorParameters<
+              typeof VectorTileSource
+            >[0] = {
+              attributions: sourceParameters.attribution,
+              minZoom: sourceParameters.minZoom,
+              maxZoom: sourceParameters.maxZoom,
+              url: url,
+              format: new MVT({
+                featureClass: RenderFeature,
+              }),
+            };
 
-        const geojson = await loadFile({
-          filepath: parameters.path,
-          type: 'ShapefileSource',
-          model: this._model,
-        });
+            if (sourceParameters.useProxy) {
+              const extraHeaders = sourceParameters.httpHeaders ?? {};
+              const headersParam =
+                Object.keys(extraHeaders).length > 0
+                  ? `&headers=${encodeURIComponent(JSON.stringify(extraHeaders))}`
+                  : '';
 
-        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+              const proxyBase = isJupyterLite()
+                ? `${this._model.jgisSettings.proxyUrl}/`
+                : `${INTERNAL_PROXY_BASE}`;
 
-        const format = new GeoJSON();
-
-        newSource = new VectorSource({
-          features: format.readFeatures(geojsonData, {
-            dataProjection: 'EPSG:4326',
-            featureProjection: this._Map.getView().getProjection(),
-          }),
-        });
-        break;
-      }
-      case 'ImageSource': {
-        const sourceParameters = source.parameters as IImageSource;
-
-        // Convert lon/lat array to extent
-        // Get lon/lat from source coordinates
-        const leftSide = Math.min(
-          ...sourceParameters.coordinates.map(corner => corner[0]),
-        );
-        const bottomSide = Math.min(
-          ...sourceParameters.coordinates.map(corner => corner[1]),
-        );
-        const rightSide = Math.max(
-          ...sourceParameters.coordinates.map(corner => corner[0]),
-        );
-        const topSide = Math.max(
-          ...sourceParameters.coordinates.map(corner => corner[1]),
-        );
-
-        // Convert lon/lat to OpenLayer coordinates
-        const topLeft = fromLonLat([leftSide, topSide]);
-        const bottomRight = fromLonLat([rightSide, bottomSide]);
-
-        // Get extent from coordinates
-        const minX = topLeft[0];
-        const maxY = topLeft[1];
-        const maxX = bottomRight[0];
-        const minY = bottomRight[1];
-
-        const extent = [minX, minY, maxX, maxY];
-
-        const imageUrl = await loadFile({
-          filepath: sourceParameters.path,
-          type: 'ImageSource',
-          model: this._model,
-        });
-
-        newSource = new Static({
-          interpolate: sourceParameters.interpolate,
-          imageExtent: extent,
-          url: imageUrl,
-          crossOrigin: '',
-        });
-
-        break;
-      }
-      case 'VideoSource': {
-        console.warn('Video Tiles not supported with Open Layers');
-
-        break;
-      }
-      case 'GeoTiffSource': {
-        const sourceParameters = source.parameters as IGeoTiffSource;
-
-        const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
-          return { ...url, nodata: 0 };
-        };
-        const sources = await Promise.all(
-          sourceParameters.urls.map(async sourceInfo => {
-            const isRemote =
-              sourceInfo.url?.startsWith('http://') ||
-              sourceInfo.url?.startsWith('https://');
-
-            if (isRemote) {
-              return {
-                ...addNoData(sourceInfo),
-                min: sourceInfo.min,
-                max: sourceInfo.max,
-                url: sourceInfo.url,
-              };
-            } else {
-              const geotiff = await loadFile({
-                filepath: sourceInfo.url ?? '',
-                type: 'GeoTiffSource',
-                model: this._model,
-              });
-              return {
-                ...addNoData(sourceInfo),
-                min: sourceInfo.min,
-                max: sourceInfo.max,
-                geotiff,
-                url: URL.createObjectURL(geotiff.file),
+              vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
+                const vtTile = tile as VectorTile<RenderFeature>;
+                const proxyUrl = `${proxyBase}?url=${encodeURIComponent(tileUrl)}${headersParam}`;
+                vtTile.setLoader((extent, _resolution, projection) => {
+                  return fetch(proxyUrl)
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error(
+                          `Tile proxy request failed: ${response.status} ${response.statusText}`,
+                        );
+                      }
+                      return response.arrayBuffer();
+                    })
+                    .then(data => {
+                      const features = vtTile.getFormat().readFeatures(data, {
+                        extent,
+                        featureProjection: projection,
+                      });
+                      vtTile.setFeatures(features);
+                      this._log('debug', `Proxy tile loaded: ${tileUrl}`);
+                      return features;
+                    })
+                    .catch((err: any) => {
+                      this._log(
+                        'error',
+                        `Proxy tile error for ${tileUrl}: ${err.message}`,
+                      );
+                      tile.setState(TileState.ERROR);
+                      return [];
+                    });
+                });
               };
             }
-          }),
-        );
 
-        newSource = new GeoTIFFSource({
-          interpolate: sourceParameters.interpolate,
-          sources,
-          normalize: sourceParameters.normalize,
-          wrapX: sourceParameters.wrapX,
-        });
+            newSource = new VectorTileSource(vtSourceOptions);
+          } else {
+            newSource = new PMTilesVectorSource({
+              attributions: sourceParameters.attribution,
+              url: url,
+            });
+          }
 
-        break;
-      }
+          newSource.on('tileloadend', (event: TileSourceEvent) => {
+            const tile = event.tile as VectorTile<FeatureLike>;
+            const features = tile.getFeatures();
 
-      case 'GeoParquetSource': {
-        const parameters = source.parameters as IGeoParquetSource;
+            if (features && features.length > 0) {
+              this._model.syncTileFeatures({
+                sourceId: id,
+                features,
+              });
+            }
+          });
 
-        const geojson = await loadFile({
-          filepath: parameters.path,
-          type: 'GeoParquetSource',
-          model: this._model,
-        });
+          break;
+        }
 
-        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+        case 'GeoJSONSource': {
+          const data =
+            source.parameters?.data ||
+            (await loadFile({
+              filepath: source.parameters?.path,
+              type: 'GeoJSONSource',
+              model: this._model,
+            }));
 
-        const format = new GeoJSON();
-
-        newSource = new VectorSource({
-          features: format.readFeatures(geojsonData, {
-            dataProjection: parameters.projection,
+          const format = new GeoJSON({
             featureProjection: this._Map.getView().getProjection(),
-          }),
-        });
-        break;
+          });
+
+          const featureArray = format.readFeatures(data, {
+            featureProjection: this._Map.getView().getProjection(),
+          });
+
+          const featureCollection = new Collection(featureArray);
+
+          featureCollection.forEach(feature => {
+            feature.setId(getUid(feature));
+          });
+
+          newSource = new VectorSource({
+            features: featureCollection,
+          });
+
+          break;
+        }
+
+        case 'ShapefileSource': {
+          const parameters = source.parameters as IShapefileSource;
+
+          const geojson = await loadFile({
+            filepath: parameters.path,
+            type: 'ShapefileSource',
+            model: this._model,
+          });
+
+          const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+          const format = new GeoJSON();
+
+          newSource = new VectorSource({
+            features: format.readFeatures(geojsonData, {
+              dataProjection: 'EPSG:4326',
+              featureProjection: this._Map.getView().getProjection(),
+            }),
+          });
+          break;
+        }
+
+        case 'ImageSource': {
+          const sourceParameters = source.parameters as IImageSource;
+
+          // Convert lon/lat array to extent
+          // Get lon/lat from source coordinates
+          const leftSide = Math.min(
+            ...sourceParameters.coordinates.map(corner => corner[0]),
+          );
+          const bottomSide = Math.min(
+            ...sourceParameters.coordinates.map(corner => corner[1]),
+          );
+          const rightSide = Math.max(
+            ...sourceParameters.coordinates.map(corner => corner[0]),
+          );
+          const topSide = Math.max(
+            ...sourceParameters.coordinates.map(corner => corner[1]),
+          );
+
+          // Convert lon/lat to OpenLayer coordinates
+          const topLeft = fromLonLat([leftSide, topSide]);
+          const bottomRight = fromLonLat([rightSide, bottomSide]);
+
+          // Get extent from coordinates
+          const minX = topLeft[0];
+          const maxY = topLeft[1];
+          const maxX = bottomRight[0];
+          const minY = bottomRight[1];
+
+          const extent = [minX, minY, maxX, maxY];
+
+          const imageUrl = await loadFile({
+            filepath: sourceParameters.path,
+            type: 'ImageSource',
+            model: this._model,
+          });
+
+          newSource = new Static({
+            interpolate: sourceParameters.interpolate,
+            imageExtent: extent,
+            url: imageUrl,
+            crossOrigin: '',
+          });
+
+          break;
+        }
+
+        case 'VideoSource': {
+          this._log('warning', 'Video Tiles not supported with Open Layers');
+
+          break;
+        }
+
+        case 'GeoTiffSource': {
+          const sourceParameters = source.parameters as IGeoTiffSource;
+
+          const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
+            return { ...url, nodata: 0 };
+          };
+          const sources = await Promise.all(
+            sourceParameters.urls.map(async sourceInfo => {
+              const isRemote =
+                sourceInfo.url?.startsWith('http://') ||
+                sourceInfo.url?.startsWith('https://');
+
+              if (isRemote) {
+                return {
+                  ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
+                  url: sourceInfo.url,
+                };
+              } else {
+                const geotiff = await loadFile({
+                  filepath: sourceInfo.url ?? '',
+                  type: 'GeoTiffSource',
+                  model: this._model,
+                });
+                return {
+                  ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
+                  geotiff,
+                  url: URL.createObjectURL(geotiff.file),
+                };
+              }
+            }),
+          );
+
+          newSource = new GeoTIFFSource({
+            interpolate: sourceParameters.interpolate,
+            sources,
+            normalize: sourceParameters.normalize,
+            wrapX: sourceParameters.wrapX,
+          });
+
+          break;
+        }
+
+        case 'GeoPackageVectorSource': {
+          const sourceParameters = source.parameters;
+
+          if (!sourceParameters) {
+            throw new Error('GeoPackageSource has no parameters');
+          }
+
+          const tableMap = await loadFile({
+            filepath: sourceParameters.path,
+            type: 'GeoPackageVectorSource',
+            model: this._model,
+          });
+
+          const table = tableMap[sourceParameters.tables];
+          const vectorSource = table.source;
+          vectorSource['projection'] = getProjection(
+            sourceParameters.projection,
+          );
+          newSource = vectorSource;
+          break;
+        }
+
+        case 'GeoPackageRasterSource': {
+          const sourceParameters = source.parameters;
+
+          if (!sourceParameters) {
+            throw new Error('GeoPackageSource has no parameters');
+          }
+
+          const tableMap = await loadFile({
+            filepath: sourceParameters.path,
+            type: 'GeoPackageRasterSource',
+            model: this._model,
+          });
+
+          const { gpr, tileDao } = tableMap[sourceParameters.tables];
+
+          const rasterSource = new XYZSource({
+            minZoom: sourceParameters.minZoom ?? tileDao.minWebMapZoom,
+            maxZoom: sourceParameters.maxZoom ?? tileDao.maxWebMapZoom,
+            interpolate: sourceParameters.interpolate,
+            url: '{z},{x},{y}',
+            tileLoadFunction(tile: any, src) {
+              const [z, x, y] = src.split(',').map(Number);
+              gpr
+                .getTile(x, y, z)
+                .then((dataUri: any) => (tile.getImage().src = dataUri));
+            },
+            attributions: sourceParameters.attribution,
+          });
+
+          newSource = rasterSource;
+          break;
+        }
+
+        case 'GeoParquetSource': {
+          const parameters = source.parameters as IGeoParquetSource;
+
+          const geojson = await loadFile({
+            filepath: parameters.path,
+            type: 'GeoParquetSource',
+            model: this._model,
+          });
+
+          const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+          const format = new GeoJSON();
+
+          newSource = new VectorSource({
+            features: format.readFeatures(geojsonData, {
+              dataProjection: parameters.projection,
+              featureProjection: this._Map.getView().getProjection(),
+            }),
+          });
+          break;
+        }
+
+        case 'MarkerSource': {
+          const parameters = source.parameters as IMarkerSource;
+
+          const point = new Point(parameters.feature.coords);
+          const marker = new Feature({
+            type: 'icon',
+            geometry: point,
+          });
+
+          // Replace color placeholder in SVG with the parameter color
+          const markerColor = parameters.color || '#3463a0';
+          const svgString = markerIcon.svgstr
+            .replace('{{COLOR}}', markerColor)
+            .replace('<svg', '<svg width="128" height="128"');
+
+          const iconStyle = new Style({
+            image: new Icon({
+              src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
+              scale: 0.25,
+              anchor: [0.5, 1],
+              anchorXUnits: 'fraction',
+              anchorYUnits: 'fraction',
+            }),
+          });
+
+          marker.setStyle(iconStyle);
+
+          newSource = new VectorSource({
+            features: [marker],
+          });
+
+          break;
+        }
+
+        case 'WmsTileSource': {
+          const sourceParameters = source.parameters as IWmsTileSource;
+          const url = sourceParameters.url;
+          const selectedLayer = sourceParameters?.params?.layers;
+
+          newSource = new TileWMSSource({
+            attributions: sourceParameters?.attribution,
+            url,
+            params: {
+              LAYERS: selectedLayer,
+              TILED: true,
+            },
+          });
+
+          break;
+        }
       }
-
-      case 'MarkerSource': {
-        const parameters = source.parameters as IMarkerSource;
-
-        const point = new Point(parameters.feature.coords);
-        const marker = new Feature({
-          type: 'icon',
-          geometry: point,
-        });
-
-        // Replace color placeholder in SVG with the parameter color
-        const markerColor = parameters.color || '#3463a0';
-        const svgString = markerIcon.svgstr
-          .replace('{{COLOR}}', markerColor)
-          .replace('<svg', '<svg width="128" height="128"');
-
-        const iconStyle = new Style({
-          image: new Icon({
-            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
-            scale: 0.25,
-            anchor: [0.5, 1],
-            anchorXUnits: 'fraction',
-            anchorYUnits: 'fraction',
-          }),
-        });
-
-        marker.setStyle(iconStyle);
-
-        newSource = new VectorSource({
-          features: [marker],
-        });
-      }
+    } catch (err: any) {
+      this._log(
+        'error',
+        `Failed to load source "${source.name ?? id}" (${source.type}): ${err.message}`,
+      );
+      return;
     }
 
+    this._log(
+      'info',
+      `Source "${source.name ?? id}" (${source.type}) loaded successfully`,
+    );
     newSource.set('id', id);
+
+    // Forward OL tile/feature load errors to the JupyterLab log console.
+    // These errors (CORS failures, network errors, etc.) are written directly
+    // by the browser to DevTools and cannot be captured by console patching —
+    // OL's own events are the only reliable interception point.
+    newSource.on('tileloaderror', (evt: any) => {
+      const url = evt?.tile?.getKey?.() ?? '';
+      this._log(
+        'error',
+        `Tile load error for source "${id}"${url ? ': ' + url : ''}`,
+      );
+    });
+    newSource.on('featuresloaderror', () => {
+      this._log('error', `Features load error for source "${id}"`);
+    });
+
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
+
+    this._trackSourceExtZoom(id, newSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -1025,8 +1360,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const layerId = layerIds[targetLayerPosition];
       const layer = this._model.sharedModel.getLayer(layerId);
 
+      if (this._loadingLayers.has(layerId)) {
+        continue;
+      }
+
       if (!layer) {
-        console.warn(
+        this._log(
+          'warning',
           `Layer with ID ${layerId} does not exist in the shared model.`,
         );
         continue;
@@ -1108,7 +1448,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newMapLayer = new VectorLayer({
+        newMapLayer = new VectorImageLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
@@ -1182,7 +1522,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.color,
+          gradient: layerParameters.symbologyState?.gradient,
         });
 
         break;
@@ -1235,7 +1575,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   addProjection(newMapLayer: Layer) {
     const sourceProjection = newMapLayer.getSource()?.getProjection();
     if (!sourceProjection) {
-      console.warn('Layer source projection is undefined or invalid');
+      this._log('warning', 'Layer source projection is undefined or invalid');
       return;
     }
 
@@ -1245,7 +1585,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!isProjectionRegistered) {
       // Check if the projection exists in proj4list
       if (!proj4list[projectionCode]) {
-        console.warn(
+        this._log(
+          'warning',
           `Projection code '${projectionCode}' not found in proj4list`,
         );
         return;
@@ -1253,9 +1594,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       try {
         proj4.defs([proj4list[projectionCode]]);
-        register(proj4);
+        register(proj4 as any);
       } catch (error: any) {
-        console.warn(
+        this._log(
+          'warning',
           `Failed to register projection '${projectionCode}'. Error: ${error.message}`,
         );
         return;
@@ -1285,6 +1627,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+        // const newLayerExtent = newMapLayer.getExtent();
+        // const shouldZoom = Boolean(
+        //   this.state.initialLayersReady && newLayerExtent,
+        // );
+        const shouldZoom = Boolean(this.state.initialLayersReady);
+        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -1294,6 +1642,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this.setState(old => ({ ...old, initialLayersReady: true }));
         }
       }
+
+      this._model.syncSelected(
+        { [id]: { type: 'layer' } },
+        this._model.getClientId().toString(),
+      );
     } catch (error: any) {
       if (
         this.state.loadingErrors.find(
@@ -1320,27 +1673,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
-    const layerParams = layer.parameters;
+    const layerParams = layer.parameters as IVectorLayer | undefined;
     if (!layerParams) {
       return;
     }
 
-    const defaultStyle = {
-      'fill-color': 'rgba(255,255,255,0.4)',
-      'stroke-color': '#3399CC',
-      'stroke-width': 1.25,
-      'circle-radius': 5,
-      'circle-fill-color': 'rgba(255,255,255,0.4)',
-      'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC',
+    // Extract feature values for the symbology attribute field if the source
+    // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
+    // array – the comment on buildVectorFlatStyle says this is acceptable.
+    const field = layerParams.symbologyState?.value;
+    const source = this._sources[layerParams.source];
+    const featureValues: unknown[] =
+      field && source instanceof VectorSource
+        ? source.getFeatures().map(f => (f as Feature).get(field))
+        : [];
+
+    const layerStyle: Rule = {
+      style:
+        buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
+        DEFAULT_FLAT_STYLE,
     };
 
-    const defaultRules: Rule = {
-      style: defaultStyle,
-    };
-
-    const layerStyle = { ...defaultRules };
-
+    // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
       const buildCondition = (filter: IJGISFilterItem): any[] => {
         const base = [filter.operator, ['get', filter.feature]];
@@ -1349,30 +1703,30 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           : [...base, filter.value];
       };
 
-      let filterExpr: any[];
-
       // 'Any' and 'All' operators require more than one argument
       // So if there's only one filter, skip that part to avoid error
-      if (layer.filters.appliedFilters.length === 1) {
-        filterExpr = buildCondition(layer.filters.appliedFilters[0]);
-      } else {
-        // Arguments for "Any" and 'All' need to be wrapped in brackets
-        filterExpr = [
-          layer.filters.logicalOp,
-          ...layer.filters.appliedFilters.map(buildCondition),
-        ];
-      }
-
-      layerStyle.filter = filterExpr;
+      layerStyle.filter =
+        layer.filters.appliedFilters.length === 1
+          ? buildCondition(layer.filters.appliedFilters[0])
+          : [
+              layer.filters.logicalOp,
+              ...layer.filters.appliedFilters.map(buildCondition),
+            ];
     }
 
-    if (!layerParams.color) {
-      return [layerStyle];
+    // When `fallbackColor` alpha is 0, exclude features that would render with
+    // the fallback color. This was previously done by introspecting the
+    // generated OL expressions; now the filter is derived directly from
+    // symbologyState (see styleBuilder.buildTransparentFallbackFilter).
+    const transparentFilter = buildTransparentFallbackFilter(
+      layerParams.symbologyState,
+      featureValues,
+    );
+    if (transparentFilter) {
+      layerStyle.filter = layerStyle.filter
+        ? ['all', layerStyle.filter, transparentFilter]
+        : transparentFilter;
     }
-
-    const newStyle = { ...defaultStyle, ...layerParams.color };
-
-    layerStyle.style = newStyle;
 
     return [layerStyle];
   };
@@ -1452,7 +1806,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(
+        (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
 
@@ -1494,7 +1848,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         heatmap.setBlur(layerParams.blur ?? 15);
         heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
-          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00'],
+          layerParams.symbologyState?.gradient ?? [
+            '#00f',
+            '#0ff',
+            '#0f0',
+            '#ff0',
+            '#f00',
+          ],
         );
 
         this.handleTemporalController(id, layer);
@@ -1537,7 +1897,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       // Save original features on first filter application
       if (!Object.keys(this._originalFeatures).includes(id)) {
-        this._originalFeatures[id] = source.getFeatures();
+        this._originalFeatures[id] = source.getFeatures() ?? [];
       }
 
       // clear current features
@@ -1546,10 +1906,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const startTime = activeFilter.betweenMin ?? 0;
       const endTime = activeFilter.betweenMax ?? 1000;
 
-      const filteredFeatures = this._originalFeatures[id].filter(feature => {
-        const featureTime = feature.get(activeFilter.feature);
-        return featureTime >= startTime && featureTime <= endTime;
-      });
+      const filteredFeatures = (this._originalFeatures[id] ?? []).filter(
+        feature => {
+          const featureTime = feature.get(activeFilter.feature);
+          return featureTime >= startTime && featureTime <= endTime;
+        },
+      );
 
       // set state for restoration
       this.setState(old => ({
@@ -1563,14 +1925,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       source.addFeatures(filteredFeatures);
     } else {
       // Restore original features when no filters are applied
-      source.addFeatures(this._originalFeatures[id]);
+      source.addFeatures(this._originalFeatures[id] ?? []);
       delete this._originalFeatures[id];
     }
   };
 
   private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
-      console.warn('Invalid geometry for flyToGeometry:', geometry);
+      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
       return;
     }
 
@@ -1594,7 +1956,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       featureOrGeometry;
 
     if (!geometry) {
-      console.warn('No geometry found in feature:', featureOrGeometry);
+      this._log(
+        'warning',
+        `No geometry found in feature: ${featureOrGeometry}`,
+      );
       return;
     }
 
@@ -1670,6 +2035,129 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
+   * Compute extent for layer or source
+   */
+  private _computeExtent(
+    layer?: Layer | StacLayer,
+    source?: any,
+  ): number[] | undefined {
+    try {
+      if (source instanceof VectorSource) {
+        const extent = source.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+
+      if (source instanceof TileSource || source instanceof VectorTileSource) {
+        const tileGrid = source.getTileGrid();
+        const extent = tileGrid?.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+
+      if (layer instanceof StacLayer) {
+        const extent = layer.getExtent();
+        if (extent) {
+          return extent;
+        }
+      }
+    } catch (error) {
+      this._log('warning', `Failed to compute extent: ${error}`);
+    }
+
+    return undefined;
+  }
+
+  private _computeZoomFromExtent(extent: number[]): number | null {
+    if (!this._Map) {
+      return null;
+    }
+
+    const view = this._Map.getView();
+    const size = this._Map.getSize() ?? getSize(extent);
+
+    const resolution = view.getResolutionForExtent(extent, size);
+    const zoom = view.getZoomForResolution(resolution);
+
+    return zoom ?? view.getZoom() ?? 0;
+  }
+
+  private _getLayerCreatorId(layerId: string): number | undefined {
+    const states = this._model.sharedModel.awareness.getStates();
+
+    for (const [clientId, state] of states.entries()) {
+      if (state?.lastAddedLayer?.layerId === layerId) {
+        return clientId;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Track layer's extent and zoom in model's view state
+   */
+  private _trackLayerViewState(
+    layerId: string,
+    olLayer: Layer,
+    shouldZoom = false,
+  ): void {
+    const source = olLayer.getSource();
+    const sourceId = source?.get?.('id');
+
+    let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
+
+    if (!extent) {
+      extent = this._computeExtent(olLayer, source);
+    }
+
+    if (extent) {
+      const zoom = this._computeZoomFromExtent(extent);
+
+      if (zoom === null) {
+        return;
+      }
+
+      const view: IViewState[string] = { extent, zoom };
+      this._model.updateLayerViewState(layerId, view);
+
+      if (shouldZoom) {
+        const creatorId = this._getLayerCreatorId(layerId);
+        const currentClientId = this._model.getClientId();
+
+        if (creatorId === currentClientId) {
+          this._model.centerOnPosition(layerId);
+        }
+      }
+    }
+  }
+
+  /**
+   * Track source's extent and zoom in model's view state
+   */
+  private _trackSourceExtZoom(sourceId: string, olSource: Source): void {
+    const extent = this._computeExtent(undefined, olSource);
+
+    if (extent) {
+      const projection = olSource?.getProjection?.()?.getCode?.();
+      const zoom = this._computeZoomFromExtent(extent);
+
+      if (zoom === null) {
+        return;
+      }
+
+      const view: IViewState[string] = {
+        extent,
+        zoom,
+        ...(projection && { projection }),
+      };
+      this._model.updateLayerViewState(sourceId, view);
+    }
+  }
+
+  /**
    * Wait for all layers to be loaded.
    */
   private _waitForReady(): Promise<void> {
@@ -1727,17 +2215,120 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _onClientSharedStateChanged = (
-    sender: IJupyterGISModel,
-    clients: Map<number, IJupyterGISClientState>,
+  private _handleSelectedChanged = (): void => {
+    const localState = this._model.localState;
+    if (!localState) {
+      return;
+    }
+
+    const selectedLayers = localState.selected?.value;
+    if (!selectedLayers) {
+      return;
+    }
+
+    const selectedLayerId = Object.keys(selectedLayers)[0];
+    const JGISLayer = this._model.getLayer(selectedLayerId);
+    if (!JGISLayer) {
+      return;
+    }
+
+    this._syncVectorDrawingFromSelection(JGISLayer, selectedLayerId);
+  };
+
+  private _syncVectorDrawingFromSelection = (
+    layer: IJGISLayer,
+    selectedLayerId: string,
   ): void => {
+    const decision = this._getVectorDrawingSelectionDecision(
+      layer,
+      selectedLayerId,
+    );
+    if (decision.disableEditing) {
+      this._model.editingVectorLayer = false;
+      this._updateEditingVectorLayer();
+      return;
+    }
+    if (!decision.shouldRebind) {
+      return;
+    }
+
+    this._previousDrawLayerID = selectedLayerId;
+    this._currentDrawLayerID = selectedLayerId;
+    this._editVectorLayer();
+  };
+
+  /**
+   * Decide how selection changes should affect vector drawing state.
+   *
+   * This helper only computes whether
+   * draw mode must be disabled (non-draw layer selected) and whether draw
+   * interactions should be rebound (draw mode enabled and selected draw layer
+   * changed).
+   */
+  private _getVectorDrawingSelectionDecision(
+    layer: IJGISLayer,
+    selectedLayerId: string,
+  ): { disableEditing: boolean; shouldRebind: boolean } {
+    const isDrawVectorLayer = this._model.checkIfIsADrawVectorLayer(layer);
+    if (!isDrawVectorLayer) {
+      return { disableEditing: true, shouldRebind: false };
+    }
+
+    if (!this._model.editingVectorLayer) {
+      return { disableEditing: false, shouldRebind: false };
+    }
+
+    if (selectedLayerId === this._previousDrawLayerID) {
+      return { disableEditing: false, shouldRebind: false };
+    }
+
+    return { disableEditing: false, shouldRebind: true };
+  }
+
+  private _handleTemporalControllerActiveChanged(): void {
+    const localState = this._model.localState;
+    if (!localState) {
+      return;
+    }
+
+    const isTemporalControllerActive =
+      localState.isTemporalControllerActive === true;
+    const selectedLayers = localState.selected?.value;
+    const selectedLayerId = selectedLayers
+      ? (Object.keys(selectedLayers)[0] ?? null)
+      : null;
+    const layerType = selectedLayerId
+      ? this._model.getLayer(selectedLayerId)?.type
+      : null;
+    const isSelectionValid =
+      !!selectedLayers &&
+      Object.keys(selectedLayers).length === 1 &&
+      !this._model.getSource(selectedLayerId!) &&
+      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
+    const displayTemporalController =
+      isTemporalControllerActive && isSelectionValid;
+
+    if (displayTemporalController !== this.state.displayTemporalController) {
+      this.setState(old => ({ ...old, displayTemporalController }));
+      this._mainViewModel.commands.notifyCommandChanged(
+        CommandIDs.temporalController,
+      );
+    }
+  }
+
+  private _handleRemoteUserChanged(): void {
     const localState = this._model.localState;
     if (!localState) {
       return;
     }
 
     const remoteUser = localState.remoteUser;
-    // If we are in following mode, we update our position and selection
+    const clients = this._model.sharedModel.awareness.getStates() as Map<
+      number,
+      IJupyterGISClientState
+    >;
+
+    // If we are in following mode, update UI and viewport from the remote user.
     if (remoteUser) {
       const remoteState = clients.get(remoteUser);
       if (!remoteState) {
@@ -1752,42 +2343,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       const remoteViewport = remoteState.viewportState;
-
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
-
         this._moveToPosition({ x, y }, zoom, 0);
       }
-    } else {
-      // If we are unfollowing a remote user, we reset our center and zoom to their previous values
-      if (this.state.remoteUser !== null) {
-        this.setState(old => ({
-          ...old,
-          remoteUser: null,
-        }));
-        const viewportState = localState.viewportState?.value;
-
-        if (viewportState) {
-          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
-        }
-      }
+      return;
     }
 
-    // cursors
+    // If we are unfollowing, reset to local viewport and clear follow UI.
+    if (this.state.remoteUser !== null) {
+      this.setState(old => ({
+        ...old,
+        remoteUser: null,
+      }));
+      const viewportState = localState.viewportState?.value;
+      if (viewportState) {
+        this._moveToPosition(viewportState.coordinates, viewportState.zoom);
+      }
+    }
+  }
+
+  private _handlePointerChanged(): void {
+    const clients = this._model.sharedModel.awareness.getStates() as Map<
+      number,
+      IJupyterGISClientState
+    >;
+    const clientPointers = { ...this.state.clientPointers };
+
     clients.forEach((client, clientId) => {
-      if (!client?.user) {
+      if (!client?.user || this._model.getClientId() === clientId) {
         return;
       }
 
       const pointer = client.pointer?.value;
-
-      // We already display our own cursor on mouse move
-      if (this._model.getClientId() === clientId) {
-        return;
-      }
-
-      const clientPointers = { ...this.state.clientPointers };
       let currentClientPointer = clientPointers[clientId];
 
       if (pointer) {
@@ -1795,7 +2384,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           pointer.coordinates.x,
           pointer.coordinates.y,
         ]);
-
         const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
 
         if (!currentClientPointer) {
@@ -1830,27 +2418,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       } else {
         delete clientPointers[clientId];
       }
-
-      this.setState(old => ({ ...old, clientPointers }));
     });
 
-    // Temporal controller bit
-    // ? There's probably a better way to get changes in the model to trigger react rerenders
-    const isTemporalControllerActive = localState.isTemporalControllerActive;
-
-    if (isTemporalControllerActive !== this.state.displayTemporalController) {
-      this.setState(old => ({
-        ...old,
-        displayTemporalController: isTemporalControllerActive,
-      }));
-
-      this._mainViewModel.commands.notifyCommandChanged(
-        CommandIDs.temporalController,
-      );
-    }
-  };
+    this.setState(old => ({ ...old, clientPointers }));
+  }
 
   private _onSharedOptionsChanged(): void {
+    if (!this._Map) {
+      return;
+    }
+
     // ! would prefer a model ready signal or something, this feels hacky
     const enableSpectaPresentation = this._model.isSpectaMode();
 
@@ -1920,12 +2497,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
+        this.setState(old => ({
+          viewProjection: {
+            code: newProjection.getCode(),
+            units: newProjection.getUnits(),
+          },
+        }));
         view = new View({ projection: newProjection });
       } else {
-        console.warn(`Invalid projection: ${projection}`);
+        this._log('warning', `Invalid projection: ${projection}`);
         return;
       }
     }
+
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
@@ -1944,10 +2530,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this._model.setOptions(options);
       }
     }
-
-    view.setRotation(bearing || 0);
-
-    this._Map.setView(view);
   }
 
   private _onViewChanged(
@@ -2041,6 +2623,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
+        if (this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)) {
+          this._model.editingVectorLayer = false;
+          this._updateEditingVectorLayer();
+          this._mainViewModel.commands.notifyCommandChanged(
+            CommandIDs.toggleDrawFeatures,
+          );
+        }
         return;
       }
 
@@ -2054,6 +2643,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
+
+        if (mapLayer) {
+          this._trackLayerViewState(id, mapLayer);
+        }
       } else {
         this.updateLayers(layerTree);
       }
@@ -2110,6 +2703,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
+  private _clearHighlightWhenIdentifyDisabled(): void {
+    if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
+      this._highlightLayer.getSource()?.clear();
+    }
+  }
+
   /**
    * Handler for when story maps change in the model.
    * Updates specta state and presentation colors when story data becomes available.
@@ -2117,6 +2716,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _setupSpectaMode = (): void => {
     this._removeAllInteractions();
     this._setupStoryScrollListener();
+
+    // Ensure keybindings have a focused target in Specta mode.
+    window.requestAnimationFrame(() => {
+      this.mainViewRef.current?.focus();
+    });
   };
 
   private _removeAllInteractions = (): void => {
@@ -2264,7 +2868,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           try {
             jsonData = JSON.parse(data);
           } catch (e) {
-            console.warn(`Failed to parse annotation data for ${key}:`, e);
+            this._log(
+              'warning',
+              `Failed to parse annotation data for ${key}: ${e}`,
+            );
             return;
           }
         } else {
@@ -2315,7 +2922,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     // The id is a layer
-    let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
     const jgisLayer = this._model.getLayer(id);
@@ -2380,22 +2986,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     }
 
-    if (source instanceof VectorSource) {
-      extent = source.getExtent();
-    }
-
-    if (source instanceof TileSource) {
-      // Tiled sources don't have getExtent() so we get it from the grid
-      const tileGrid = source.getTileGrid();
-      extent = tileGrid?.getExtent();
-    }
-
-    if (layer instanceof StacLayer) {
-      extent = layer.getExtent();
-    }
-
+    const extent = this._computeExtent(layer, source);
     if (!extent) {
-      console.warn('Layer has no extent.');
+      this._log('warning', 'Layer ${id} has no extent.');
+      return;
+    }
+
+    if (!extent.every(value => Number.isFinite(value))) {
+      this._log(
+        'warning',
+        `Layer ${id} has an invalid extent: ${extent.join(', ')}`,
+      );
       return;
     }
 
@@ -2407,6 +3008,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       sourceProjection && sourceProjection !== viewProjection
         ? transformExtent(extent, sourceProjection, viewProjection)
         : extent;
+    if (!transformedExtent.every(value => Number.isFinite(value))) {
+      this._log(
+        'warning',
+        `Layer ${id} has an invalid transformed extent: ${transformedExtent.join(', ')}`,
+      );
+      return;
+    }
 
     this._Map.getView().fit(transformedExtent, {
       size: this._Map.getSize(),
@@ -2488,10 +3096,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     view.setZoom(zoom);
   }
 
+  private _lastPointerCoord: Coordinate | null = null;
   private _onPointerMove(e: PointerEvent) {
     const pixel = this._Map.getEventPixel(e);
     const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
+    this._lastPointerCoord = coordinates;
     this._syncPointer(coordinates);
   }
 
@@ -2503,7 +3113,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private async _addMarker(e: MapBrowserEvent<any>) {
-    if (this._model.currentMode !== 'marking') {
+    if (
+      this.state.editingVectorLayer ||
+      this._model.currentMode !== 'marking'
+    ) {
       return;
     }
 
@@ -2542,7 +3155,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (this._model.currentMode !== 'identifying') {
+    if (
+      this.state.editingVectorLayer ||
+      this._model.currentMode !== 'identifying'
+    ) {
       return;
     }
 
@@ -2550,7 +3166,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const selectedLayer = localState?.selected?.value;
 
     if (!selectedLayer) {
-      console.warn('Layer must be selected to use identify tool');
+      this._log('warning', 'Layer must be selected to use identify tool');
       return;
     }
 
@@ -2665,7 +3281,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.updateSource(layerId, jgisLayer);
     }
     if (!jgisLayer || !olLayer) {
-      console.error('Failed to update layer -- layer not found');
+      this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
     this.updateLayer(layerId, jgisLayer, olLayer);
@@ -2676,6 +3292,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const { id: layerId, selectedFeature } = json;
     const olLayer = this.getLayer(layerId);
     const source = olLayer.getSource() as VectorSource;
+
+    if (typeof source.forEachFeature !== 'function') {
+      return;
+    }
 
     source.forEachFeature(feature => {
       const time = feature.get(selectedFeature);
@@ -2741,6 +3361,194 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
+  private _updateEditingVectorLayer() {
+    const editingVectorLayer: boolean = this._model.editingVectorLayer;
+    this.setState(old => ({ ...old, editingVectorLayer }));
+
+    if (editingVectorLayer === true) {
+      this._editVectorLayer();
+    }
+
+    if (editingVectorLayer === false && this._draw) {
+      this._removeDrawInteraction();
+      this._currentDrawLayerID = undefined;
+    }
+  }
+
+  private _handleDrawGeometryTypeChange = (
+    /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const drawGeometryLabel = event.target.value;
+
+    this._currentDrawGeometry = drawGeometryLabel as Type;
+
+    this._updateInteractions();
+    this._updateDrawSource();
+
+    this.setState(old => ({
+      ...old,
+      drawGeometryLabel,
+    }));
+  };
+
+  private _getVectorSourceFromLayerID = (
+    layerID: string,
+  ): VectorSource | undefined => {
+    /* get the OpenLayers VectorSource corresponding to the JGIS currentDrawLayerID */
+    const layers = this._Map.getLayers();
+    const layerArray = layers.getArray();
+    const matchingLayer = layerArray.find(layer => layer.get('id') === layerID);
+    const source = matchingLayer?.get('source');
+
+    this._currentVectorSource = source;
+
+    return this._currentVectorSource;
+  };
+
+  _getDrawSourceFromSelectedLayer = () => {
+    const selectedLayers =
+      this._model?.sharedModel.awareness.getLocalState()?.selected?.value;
+
+    if (!selectedLayers) {
+      return;
+    }
+
+    const selectedLayerID = Object.keys(selectedLayers)[0];
+    this._currentDrawLayerID = selectedLayerID;
+
+    const JGISLayer = this._model.getLayer(selectedLayerID);
+    this._currentDrawSourceID = (JGISLayer as any)?.parameters?.source;
+
+    if (this._currentDrawSourceID) {
+      this._currentDrawSource = this._model.getSource(
+        this._currentDrawSourceID,
+      );
+    }
+  };
+
+  _onVectorSourceChange = () => {
+    if (
+      !this._currentVectorSource ||
+      !this._currentDrawSource ||
+      !this._currentDrawSourceID
+    ) {
+      return;
+    }
+
+    const geojsonWriter = new GeoJSON({
+      featureProjection: this._Map.getView().getProjection(),
+    });
+
+    const features = this._currentVectorSource
+      .getFeatures()
+      .map(feature => geojsonWriter.writeFeatureObject(feature));
+
+    const updatedData = {
+      type: 'FeatureCollection',
+      features: features,
+    };
+
+    const updatedJGISLayerSource: IJGISSource = {
+      name: this._currentDrawSource.name,
+      type: this._currentDrawSource.type,
+      parameters: {
+        data: updatedData,
+      },
+    };
+
+    this._currentDrawSource = updatedJGISLayerSource;
+    this._model.sharedModel.updateSource(
+      this._currentDrawSourceID,
+      updatedJGISLayerSource,
+    );
+  };
+
+  _updateDrawSource = () => {
+    if (this._currentVectorSource) {
+      this._currentVectorSource.on('change', this._onVectorSourceChange);
+    }
+  };
+
+  _updateInteractions = () => {
+    if (this._draw) {
+      this._removeDrawInteraction();
+    }
+
+    if (this._select) {
+      this._removeSelectInteraction();
+    }
+
+    if (this._modify) {
+      this._removeModifyInteraction();
+    }
+
+    if (this._snap) {
+      this._removeSnapInteraction();
+    }
+
+    this._draw = new Draw({
+      style: drawInteractionStyle,
+      type: this._currentDrawGeometry,
+      source: this._currentVectorSource,
+    });
+    this._select = new Select();
+    this._modify = new Modify({
+      features: this._select.getFeatures(),
+    });
+    this._snap = new Snap({
+      source: this._currentVectorSource,
+    });
+
+    this._Map.addInteraction(this._draw);
+    this._Map.addInteraction(this._select);
+    this._Map.addInteraction(this._modify);
+    this._Map.addInteraction(this._snap);
+
+    this._draw.setActive(true);
+    this._select.setActive(false);
+    this._modify.setActive(false);
+    this._snap.setActive(true);
+  };
+
+  _editVectorLayer = () => {
+    this._getDrawSourceFromSelectedLayer();
+    if (!this._currentDrawLayerID) {
+      return;
+    }
+
+    this._currentVectorSource = this._getVectorSourceFromLayerID(
+      this._currentDrawLayerID,
+    );
+
+    if (!this._currentVectorSource || !this._currentDrawGeometry) {
+      return;
+    }
+
+    this._updateInteractions(); /* remove previous interactions and instantiate new ones */
+    this._updateDrawSource(); /*add new features, update source and get changes reported to the JGIS Document in geoJSON format */
+  };
+
+  private _removeDrawInteraction = () => {
+    this._draw.setActive(false);
+    this._Map.removeInteraction(this._draw);
+  };
+
+  private _removeSelectInteraction = () => {
+    this._select.setActive(false);
+    this._Map.removeInteraction(this._select);
+  };
+
+  private _removeSnapInteraction = () => {
+    this._snap.setActive(false);
+    this._Map.removeInteraction(this._snap);
+  };
+
+  private _removeModifyInteraction = () => {
+    this._modify.setActive(false);
+    this._Map.removeInteraction(this._modify);
+  };
+
   render(): JSX.Element {
     return (
       <>
@@ -2769,6 +3577,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           );
         })}
 
+        {this.state.editingVectorLayer && (
+          <div className="jgis-geometry-type-selector-overlay">
+            <select
+              className="geometry-type-selector"
+              id="geometry-type-selector"
+              value={this.state.drawGeometryLabel ?? ''}
+              onChange={this._handleDrawGeometryTypeChange}
+            >
+              <option value="" disabled hidden>
+                Geometry type
+              </option>
+              {DRAW_GEOMETRIES.map(geometryType => (
+                <option key={geometryType} value={geometryType}>
+                  {geometryType}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="jGIS-Mainview-Container">
           {this.state.displayTemporalController && (
             <TemporalSlider
@@ -2777,6 +3605,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             />
           )}
           <div
+            ref={this.mainViewRef}
             className="jGIS-Mainview data-jgis-keybinding"
             tabIndex={0}
             style={{
@@ -2809,24 +3638,42 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               <div className="jgis-panels-wrapper">
                 {!this.state.isSpectaPresentation ? (
                   <>
-                    {this._state && (
-                      <LeftPanel
+                    {this.props.isMobile &&
+                    this._state &&
+                    this._formSchemaRegistry &&
+                    this._annotationModel ? (
+                      <MergedPanel
                         model={this._model}
                         commands={this._mainViewModel.commands}
                         state={this._state}
                         settings={this.state.jgisSettings}
-                      />
-                    )}
-                    {this._formSchemaRegistry && this._annotationModel && (
-                      <RightPanel
-                        model={this._model}
-                        commands={this._mainViewModel.commands}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
                         addLayer={this.addLayer.bind(this)}
                         removeLayer={this.removeLayer.bind(this)}
-                        settings={this.state.jgisSettings}
                       />
+                    ) : (
+                      <>
+                        {this._state && (
+                          <LeftPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            state={this._state}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                        {this._formSchemaRegistry && this._annotationModel && (
+                          <RightPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            formSchemaRegistry={this._formSchemaRegistry}
+                            annotationModel={this._annotationModel}
+                            addLayer={this.addLayer.bind(this)}
+                            removeLayer={this.removeLayer.bind(this)}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                      </>
                     )}
                   </>
                 ) : (
@@ -2869,6 +3716,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+  private mainViewRef = React.createRef<HTMLDivElement>();
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
@@ -2884,10 +3732,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _draw: Draw;
+  private _snap: Snap;
+  private _modify: Modify;
+  private _select: Select;
+  private _currentDrawLayerID: string | undefined;
+  private _previousDrawLayerID: string | undefined;
+  private _currentDrawSource: IJGISSource | undefined;
+  private _currentVectorSource: VectorSource | undefined;
+  private _currentDrawSourceID: string | undefined;
+  private _currentDrawGeometry: Type;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
+  private _loggerRegistry?: ILoggerRegistry;
+
+  private _log(
+    level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+    message: string,
+  ): void {
+    // Always mirror to the browser console regardless of whether the JupyterLab
+    // logger is available.
+    if (level === 'error' || level === 'critical') {
+      // eslint-disable-next-line no-console
+      console.error(message);
+    } else if (level === 'warning') {
+      // eslint-disable-next-line no-console
+      console.warn(message);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(message);
+    }
+
+    // Forward to JupyterLab log console when available.
+    this._loggerRegistry
+      ?.getLogger(this._model.filePath)
+      .log({ type: 'text', level, data: message });
+  }
+
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;

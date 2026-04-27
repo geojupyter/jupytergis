@@ -13,16 +13,14 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "jupytergis_core==0.14.1",
-  "jupytergis_lab==0.14.1",
-  "jupytergis_qgis==0.14.1",
+  "jupytergis_core==0.15.0",
+  "jupytergis_lab==0.15.0",
+  "jupytergis_qgis==0.15.0",
   "jupyter-collaboration>=4,<5",
   "jupyter-docprovider>=2,<3",
   "jupyter-server-ydoc>=2,<3",
@@ -34,7 +32,7 @@ dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "jupytergis"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 [project.urls]
 Homepage = "https://github.com/geojupyter/jupytergis"

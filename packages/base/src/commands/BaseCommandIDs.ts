@@ -19,6 +19,7 @@ export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
 // Layer and source
 export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
+export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';
 export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
@@ -27,6 +28,9 @@ export const openNewImageDialog = 'jupytergis:openNewImageDialog';
 export const openNewVideoDialog = 'jupytergis:openNewVideoDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
+export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
+export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
+export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
 
 // Layer and group actions
 export const renameSelected = 'jupytergis:renameSelected';
@@ -50,6 +54,7 @@ export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
 // Panel toggles
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
 export const toggleRightPanel = 'jupytergis:toggleRightPanel';
+export const togglePanel = 'jupytergis:togglePanel';
 
 // Left panel tabs
 export const showLayersTab = 'jupytergis:showLayersTab';
@@ -64,5 +69,7 @@ export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const toggleStoryPresentationMode =
   'jupytergis:toggleStoryPresentationMode';
+export const createStorySegmentFromLayer =
+  'jupytergis:createStorySegmentFromLayer';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';

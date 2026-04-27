@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 processingSchemaDir = "src/schema/processing"
 processingConfigDir = "src/processing/config"
@@ -65,13 +65,13 @@ if __name__ == "__main__":
         schemaFilename = f"{processingSchemaDir}/{filename}"
 
         processingParams = {}
-        with open(schemaFilename, "r") as f:
+        with open(schemaFilename) as f:
             e = json.loads(f.read())
 
             processingParams["description"] = e["description"]
 
         configName = f"{processingConfigDir}/{filename}"
-        with open(configName, "r") as f:
+        with open(configName) as f:
             e = json.loads(f.read())
             for x in e:
                 processingParams[x] = e[x]

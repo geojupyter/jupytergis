@@ -159,6 +159,8 @@
   top: unset;
   box-shadow: unset;
   max-height: unset;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .jgis-specta-story-panel-container {

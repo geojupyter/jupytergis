@@ -6,12 +6,14 @@ import {
   bookOpenIcon,
   clockIcon,
   geoJSONIcon,
+  geoPackageIcon,
   infoIcon,
   moundIcon,
   rasterIcon,
   vectorSquareIcon,
   markerIcon,
-} from './icons';
+  pencilSolidIcon,
+} from './shared/icons';
 
 /**
  * The command IDs.
@@ -45,11 +47,14 @@ const iconObject = {
   [CommandIDs.undo]: { icon: undoIcon },
   [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
   [CommandIDs.openNewRasterDialog]: { icon: rasterIcon },
+  [CommandIDs.openNewWmsDialog]: { iconClass: 'fa fa-server' },
   [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },
   [CommandIDs.openNewVideoDialog]: { iconClass: 'fa fa-video' },
+  [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },
+  [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
   [CommandIDs.openNewShapefileDialog]: { iconClass: 'fa fa-file' },
   [CommandIDs.openNewGeoTiffDialog]: { iconClass: 'fa fa-image' },
   [CommandIDs.openNewGeoParquetDialog]: { iconClass: 'fa fa-file' },
@@ -57,6 +62,7 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.toggleStoryPresentationMode]: {
     iconClass: 'fa fa-book jgis-icon-adjust',

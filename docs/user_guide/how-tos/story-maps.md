@@ -113,7 +113,7 @@ If your story map or project references other files (e.g. GeoJSON, images, or ra
 
 **Step 5 (optional): Enable Specta**
 
-[Specta](https://github.com/trungleduc/specta) with JupyterGIS is a full-screen story map presentation mode (minimal UI, previous/next navigation, segment content). To enable it in your JupyterLite deployment, add `specta` to the **dependencies** in `.github/build-environment.yml`, alongside the existing JupyterLite packages. For example:
+[Specta](https://github.com/notebook-link/specta) with JupyterGIS is a full-screen story map presentation mode (minimal UI, previous/next navigation, segment content). To enable it in your JupyterLite deployment, add `specta` to the **dependencies** in `.github/build-environment.yml`, alongside the existing JupyterLite packages. For example:
 
 ```yaml
 # .github/build-environment.yml

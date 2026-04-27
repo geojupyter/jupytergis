@@ -20,12 +20,12 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@main
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@93556350e3433849ea434d68e8b8f7d9e9a402a4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download extension package
-        uses: dawidd6/action-download-artifact@v16
+        uses: dawidd6/action-download-artifact@8a338493df3d275e4a7a63bcff3b8fe97e51a927  # v19
         with:
           pr: ${{github.event.issue.number}}
           workflow: 'build.yml'
@@ -42,9 +42,9 @@ jobs:
         run: |
             pip install jupyterlab
             jlpm install
-            yarn playwright install
+            jlpm playwright install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@main
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@93556350e3433849ea434d68e8b8f7d9e9a402a4
         with:
           npm_client: jlpm
           browser: chromium
