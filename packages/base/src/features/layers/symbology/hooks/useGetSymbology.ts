@@ -70,14 +70,15 @@ export const useGetSymbology = ({
     // initial load
     fetchSymbology();
 
-    const handleSelectedChanged = () => {
+    const handleLayersChanged = () => {
       fetchSymbology();
     };
-    model.selectedChanged.connect(handleSelectedChanged);
+
+    model.sharedLayersChanged.connect(handleLayersChanged);
 
     return () => {
       disposed = true;
-      model.selectedChanged.disconnect(handleSelectedChanged);
+      model.sharedLayersChanged.disconnect(handleLayersChanged);
     };
   }, [layerId, model]);
 
