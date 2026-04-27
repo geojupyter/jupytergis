@@ -27,6 +27,7 @@ import {
 import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
   AWARENESS_FIELD_KEYS,
+  AWARENESS_STATE_FIELDS,
   AwarenessFieldKey,
   IAwarenessFieldChange,
   IAnnotationModel,
@@ -616,30 +617,36 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('viewportState', {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.viewportState,
+      {
       value: viewport,
       emitter,
-    });
+      },
+    );
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('pointer', {
+    this.sharedModel.awareness.setLocalStateField(AWARENESS_STATE_FIELDS.pointer, {
       value: pointer,
       emitter,
     });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('selected', {
+    this.sharedModel.awareness.setLocalStateField(AWARENESS_STATE_FIELDS.selected, {
       value,
       emitter,
     });
   }
 
   syncLastAddedLayer(layerId: string): void {
-    this.sharedModel.awareness.setLocalStateField('lastAddedLayer', {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.lastAddedLayer,
+      {
       layerId,
-    });
+      },
+    );
   }
   get selected(): { [key: string]: ISelection } | undefined {
     return this.localState?.selected?.value;
@@ -650,15 +657,21 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
-      value: features,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.identifiedFeatures,
+      {
+        value: features,
+        emitter,
+      },
+    );
   }
 
   setUserToFollow(userId?: number): void {
     if (this._sharedModel) {
-      this._sharedModel.awareness.setLocalStateField('remoteUser', userId);
+      this._sharedModel.awareness.setLocalStateField(
+        AWARENESS_STATE_FIELDS.remoteUser,
+        userId,
+      );
     }
   }
 
@@ -1087,7 +1100,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isTemporalControllerActive = !this._isTemporalControllerActive;
 
     this.sharedModel.awareness.setLocalStateField(
-      'isTemporalControllerActive',
+      AWARENESS_STATE_FIELDS.isTemporalControllerActive,
       this._isTemporalControllerActive,
     );
   }
@@ -1178,42 +1191,42 @@ export class JupyterGISModel implements IJupyterGISModel {
         };
 
         switch (field) {
-          case 'selected':
+          case AWARENESS_STATE_FIELDS.selected:
             this._selectedChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['selected']
               >,
             );
             break;
-          case 'pointer':
+          case AWARENESS_STATE_FIELDS.pointer:
             this._pointerChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['pointer']
               >,
             );
             break;
-          case 'viewportState':
+          case AWARENESS_STATE_FIELDS.viewportState:
             this._viewportStateChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['viewportState']
               >,
             );
             break;
-          case 'identifiedFeatures':
+          case AWARENESS_STATE_FIELDS.identifiedFeatures:
             this._identifiedFeaturesChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['identifiedFeatures']
               >,
             );
             break;
-          case 'remoteUser':
+          case AWARENESS_STATE_FIELDS.remoteUser:
             this._remoteUserChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['remoteUser']
               >,
             );
             break;
-          case 'isTemporalControllerActive':
+          case AWARENESS_STATE_FIELDS.isTemporalControllerActive:
             this._temporalControllerActiveChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['isTemporalControllerActive']

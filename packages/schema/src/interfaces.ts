@@ -114,6 +114,7 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  lastAddedLayer?: { layerId?: string };
   selectedPropField?: {
     id: string | null;
     value: any;
@@ -128,16 +129,22 @@ export interface IJupyterGISClientState {
   isTemporalControllerActive: boolean;
 }
 
-export const AWARENESS_FIELD_KEYS = [
-  'selected',
-  'pointer',
-  'viewportState',
-  'identifiedFeatures',
-  'remoteUser',
-  'isTemporalControllerActive',
-] as const;
+export const AWARENESS_STATE_FIELDS = {
+  selected: 'selected',
+  pointer: 'pointer',
+  viewportState: 'viewportState',
+  identifiedFeatures: 'identifiedFeatures',
+  remoteUser: 'remoteUser',
+  isTemporalControllerActive: 'isTemporalControllerActive',
+  lastAddedLayer: 'lastAddedLayer',
+} as const;
 
-export type AwarenessFieldKey = (typeof AWARENESS_FIELD_KEYS)[number];
+export type AwarenessFieldKey =
+  (typeof AWARENESS_STATE_FIELDS)[keyof typeof AWARENESS_STATE_FIELDS];
+
+export const AWARENESS_FIELD_KEYS = Object.values(
+  AWARENESS_STATE_FIELDS,
+) as AwarenessFieldKey[];
 
 export interface IAwarenessFieldChange<T = any> {
   clientId: number;
