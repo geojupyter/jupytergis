@@ -620,31 +620,37 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.awareness.setLocalStateField(
       AWARENESS_STATE_FIELDS.viewportState,
       {
-      value: viewport,
-      emitter,
+        value: viewport,
+        emitter,
       },
     );
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField(AWARENESS_STATE_FIELDS.pointer, {
-      value: pointer,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.pointer,
+      {
+        value: pointer,
+        emitter,
+      },
+    );
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField(AWARENESS_STATE_FIELDS.selected, {
-      value,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.selected,
+      {
+        value,
+        emitter,
+      },
+    );
   }
 
   syncLastAddedLayer(layerId: string): void {
     this.sharedModel.awareness.setLocalStateField(
       AWARENESS_STATE_FIELDS.lastAddedLayer,
       {
-      layerId,
+        layerId,
       },
     );
   }
