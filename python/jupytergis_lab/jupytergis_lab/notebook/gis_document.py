@@ -126,6 +126,11 @@ def _python_expr_to_vega_expr(python_expr: str | None) -> str | None:
     if not isinstance(python_expr, str) or not python_expr.strip():
         raise ValueError("python_expr must be a non-empty string")
     try:
+        # `py2vega.Variable` requires an explicit list of allowed members for
+        # attribute access (e.g. `datum.code`, `datum.mag`). Since the Python
+        # API accepts arbitrary user expressions and we don't know those field
+        # names ahead of time, we extract the `datum.<field>` accesses from the
+        # expression and use them to build the whitelist dynamically.
         members = sorted(
             set(re.findall(r"\bdatum\.([A-Za-z_][A-Za-z0-9_]*)\b", python_expr)),
         )
