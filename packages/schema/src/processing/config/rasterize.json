@@ -1,0 +1,14 @@
+{
+  "name": "rasterize",
+  "label": "Rasterize",
+  "operationParams": [
+    "pixelSize",
+    "attributeField",
+    "burnValue",
+    "noDataValue"
+  ],
+  "operations": {
+    "gdalFunction": "gdal_rasterize"
+  },
+  "type": "raster"
+}

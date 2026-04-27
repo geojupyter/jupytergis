@@ -220,6 +220,205 @@ export async function processLayer(
   );
 }
 
+/**
+ * Rasterize a vector layer to a GeoTIFF on disk and add it as a WebGlLayer.
+ */
+export async function rasterizeLayer(
+  tracker: JupyterGISTracker,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  processingType: ProcessingType,
+  gdalFunction: GdalFunctions,
+  app: JupyterFrontEnd,
+  filePath?: string,
+  processingInputs?: Record<string, any>,
+) {
+  const widget = filePath
+    ? tracker.find(w => w.model.filePath === filePath)
+    : tracker.currentWidget;
+  if (!widget) {
+    return;
+  }
+
+  const model = widget.model;
+  const sources = model.sharedModel.sources ?? {};
+  const layers = model.sharedModel.layers ?? {};
+
+  let selected: IJGISLayer | null = null;
+  if (processingInputs?.inputLayer) {
+    selected = layers[processingInputs.inputLayer];
+  } else {
+    selected = getSingleSelectedLayer(tracker);
+  }
+  if (!selected) {
+    return;
+  }
+
+  const geojsonString = await getLayerGeoJSON(selected, sources, model);
+  if (!geojsonString) {
+    return;
+  }
+
+  let processParam: any;
+  let outputFileName = 'rasterized.tif';
+
+  if (processingInputs) {
+    processParam = processingInputs;
+    outputFileName = processingInputs.outputFileName || outputFileName;
+  } else {
+    const schema = {
+      ...(formSchemaRegistry.getSchemas().get(processingType) as IDict),
+    };
+    const selectedLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
+
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
+        schema,
+        model,
+        sourceData: {
+          inputLayer: selectedLayerId,
+          outputFileName: `${selected!.name.replace(/\s+/g, '_')}_rasterized.tif`,
+        },
+        formContext: 'create',
+        processingType,
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
+    });
+
+    if (!formValues) {
+      return;
+    }
+
+    processParam = processingFormToParam(formValues, processingType);
+    outputFileName = formValues.outputFileName || outputFileName;
+  }
+
+  const pixelSize = String(processParam.pixelSize ?? 0.01);
+  const noDataValue = String(processParam.noDataValue ?? 0);
+  const burnValue = String(processParam.burnValue ?? 1);
+  const attributeField: string = (processParam.attributeField || '').trim();
+
+  const options: string[] = [
+    '-of',
+    'GTiff',
+    '-at',
+    '-tr',
+    pixelSize,
+    pixelSize,
+  ];
+  if (attributeField) {
+    options.push('-a', attributeField);
+  } else {
+    options.push('-burn', burnValue);
+  }
+  options.push('-a_nodata', noDataValue);
+
+  const outputName = 'output.tif';
+
+  let tiffBytes: Uint8Array;
+
+  if (isServerProcessingEnabled()) {
+    console.log(
+      `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+    );
+    const t0 = performance.now();
+    const response = await runServerProcessing({
+      operation: gdalFunction,
+      options,
+      geojson: geojsonString,
+      outputName,
+    });
+    if (response.format !== 'base64') {
+      throw new Error('Expected base64 response for raster output');
+    }
+    const binary = atob(response.result);
+    tiffBytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      tiffBytes[i] = binary.charCodeAt(i);
+    }
+    console.log(
+      `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+    );
+  } else {
+    console.log(
+      `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+    );
+    const t0 = performance.now();
+    const geoFile = new File(
+      [new Blob([geojsonString], { type: 'application/geo+json' })],
+      'data.geojson',
+      { type: 'application/geo+json' },
+    );
+    const Gdal = await getGdal();
+    const result = await Gdal.open(geoFile);
+    const dataset = result.datasets[0] as any;
+    const outputFilePath = await (Gdal as any)[gdalFunction](
+      dataset,
+      options,
+      outputName,
+    );
+    tiffBytes = await Gdal.getFileBytes(outputFilePath);
+    Gdal.close(dataset);
+    console.log(
+      `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+    );
+  }
+
+  // Save .tif to disk next to the .jGIS project file
+  const jgisFilePath = widget.model.filePath;
+  const jgisDir = jgisFilePath
+    ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+    : '';
+  const savePath = jgisDir ? `${jgisDir}/${outputFileName}` : outputFileName;
+
+  const base64Content = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const comma = dataUrl.indexOf(',');
+      resolve(comma >= 0 ? dataUrl.slice(comma + 1) : '');
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(
+      new Blob([tiffBytes as BlobPart], { type: 'image/tiff' }),
+    );
+  });
+
+  await app.serviceManager.contents.save(savePath, {
+    type: 'file',
+    format: 'base64',
+    content: base64Content,
+  });
+
+  const newSourceId = UUID.uuid4();
+  const sourceModel: IJGISSource = {
+    type: 'GeoTiffSource',
+    name: `${selected.name} Rasterized Source`,
+    parameters: {
+      urls: [{ url: outputFileName }],
+      normalize: true,
+      wrapX: false,
+      interpolate: false,
+    },
+  };
+
+  const layerModel: IJGISLayer = {
+    type: 'WebGlLayer',
+    parameters: { source: newSourceId },
+    visible: true,
+    name: `${selected.name} Rasterized`,
+  };
+
+  model.sharedModel.addSource(newSourceId, sourceModel);
+  model.addLayer(UUID.uuid4(), layerModel);
+}
+
 export async function executeSQLProcessing(
   model: IJupyterGISModel,
   geojsonString: string,
@@ -235,6 +434,10 @@ export async function executeSQLProcessing(
 
   if (isServerProcessingEnabled()) {
     // Server-side GDAL via subprocess
+    console.log(
+      `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+    );
+    const t0 = performance.now();
     const outputName = 'output.geojson';
     const response = await runServerProcessing({
       operation: gdalFunction,
@@ -243,8 +446,15 @@ export async function executeSQLProcessing(
       outputName,
     });
     processedGeoJSONString = response.result;
+    console.log(
+      `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+    );
   } else {
     // Client-side GDAL via WASM
+    console.log(
+      `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+    );
+    const t0 = performance.now();
     const geoFile = new File(
       [new Blob([geojsonString], { type: 'application/geo+json' })],
       'data.geojson',
@@ -263,6 +473,9 @@ export async function executeSQLProcessing(
     const processedBytes = await Gdal.getFileBytes(outputFilePath);
     processedGeoJSONString = new TextDecoder().decode(processedBytes);
     Gdal.close(dataset);
+    console.log(
+      `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+    );
   }
 
   const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
