@@ -101,8 +101,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     setSelectedBand(band);
     setSelectedFunction(interpolation);
 
-    if (layerParams.symbologyState?.stops) {
-      setStopRows(layerParams.symbologyState.stops as IStopRow[]);
+    if (params.symbologyState?.stops) {
+      setStopRows(params.symbologyState.stops as IStopRow[]);
     } else {
       buildColorInfo();
     }
