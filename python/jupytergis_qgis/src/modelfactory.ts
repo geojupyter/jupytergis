@@ -10,9 +10,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 /**
  * A Model factory to create new instances of JupyterGISModel.
  */
-export class JupyterGISModelFactoryBase
-  implements DocumentRegistry.IModelFactory<JupyterGISModel>
-{
+export class JupyterGISModelFactoryBase implements DocumentRegistry.IModelFactory<JupyterGISModel> {
   constructor(options: JupyterGISModelFactoryBase.IOptions) {
     this._annotationModel = options.annotationModel;
   }

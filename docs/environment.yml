@@ -14,7 +14,7 @@ dependencies:
   - sidecar
   - pip:
       - yjs-widgets>=0.4,<0.5
-      - my-jupyter-shared-drive<0.2.0
+      - my-jupyter-shared-drive>=0.2.2
       - ../python/jupytergis_lab
       - ../python/jupytergis_core
       - ../python/jupytergis_lite

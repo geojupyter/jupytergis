@@ -11,7 +11,8 @@
     },
     "color": {
       "type": "object",
-      "description": "The color of the the object"
+      "description": "The color of the the object",
+      "default": {}
     },
     "opacity": {
       "type": "number",
@@ -20,6 +21,68 @@
       "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "required": ["renderType"],
+      "properties": {
+        "renderType": {
+          "type": "string",
+          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
+          "default": "Single Symbol"
+        },
+        "value": {
+          "type": "string",
+          "default": ""
+        },
+        "method": {
+          "type": "string",
+          "enum": ["color", "radius"],
+          "default": "color"
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "viridis"
+        },
+        "nClasses": {
+          "type": "string",
+          "default": "9"
+        },
+        "mode": {
+          "type": "string",
+          "default": "equal interval",
+          "enum": [
+            "quantile",
+            "equal interval",
+            "jenks",
+            "pretty",
+            "logarithmic"
+          ]
+        },
+        "vmin": {
+          "type": "number",
+          "description": "Minimum value for color mapping"
+        },
+        "vmax": {
+          "type": "number",
+          "description": "Maximum value for color mapping"
+        },
+        "fallbackColor": {
+          "type": "array",
+          "description": "RGBA fallback color for features with no matching category or outside the gradient range",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "strokeFollowsFill": {
+          "type": "boolean",
+          "description": "Whether the stroke color follows the fill color expression",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "default": {}
     }
   }
 }

@@ -1,4 +1,3 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
@@ -14,6 +13,7 @@ import {
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -29,10 +29,11 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   rendermime?: IRenderMimeRegistry;
   consoleTracker?: IConsoleTracker;
   backendCheck?: () => boolean;
-  drive?: ICollaborativeDrive | null;
+  drive?: Contents.IDrive | null;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   state: IStateDB;
   annotationModel: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
 }
 
 export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
@@ -41,7 +42,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
 > {
   constructor(private options: IOptions) {
     const { backendCheck, externalCommandRegistry, ...rest } = options;
-    super(rest);
+    super({ ...rest, contentProviderId: 'rtc' });
     this._backendCheck = backendCheck;
     this._commands = options.commands;
     this._externalCommandRegistry = externalCommandRegistry;
@@ -83,12 +84,14 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       state: this.options.state,
       formSchemaRegistry: this.options.formSchemaRegistry,
       annotationModel: this.options.annotationModel,
+      loggerRegistry: this.options.loggerRegistry,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
       model,
       externalCommands: this._externalCommandRegistry.getCommands(),
     });
+
     return new JupyterGISDocumentWidget({
       context,
       content,

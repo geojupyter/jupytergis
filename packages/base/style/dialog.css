@@ -6,3 +6,8 @@
 .jGIS-property-panel .rjsf .jp-select-wrapper select {
   background-image: unset;
 }
+
+/* Collapse the form-group row that contains our hidden field marker */
+.jp-root .form-group:has(.jGIS-hidden-field) {
+  display: none !important;
+}

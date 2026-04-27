@@ -7,10 +7,29 @@
     "148f2fb3-3077-4dcb-8d70-831570d5021f": {
       "name": "Buildings Vector Tile",
       "parameters": {
-        "color": "#086600",
+        "color": {
+          "circle-fill-color": "#f66151",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#f66151",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#f66151",
+          "stroke-color": "#f66151",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4",
-        "type": "fill"
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": "9",
+          "renderType": "Single Symbol",
+          "value": ""
+        }
       },
       "type": "VectorTileLayer",
       "visible": true
@@ -29,10 +48,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -10107593.611347267,
-      4920123.006032353,
-      -9404772.661753202,
-      5362043.946537534
+      -10018807.154509751,
+      4968969.924033576,
+      -9493559.118590718,
+      5313197.028536311
     ],
     "latitude": 41.86704023051257,
     "longitude": -87.64128426232207,
@@ -45,8 +64,10 @@
     "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4": {
       "name": "Vector Tile Source",
       "parameters": {
-        "maxZoom": 13.0,
-        "minZoom": 0.0,
+        "attribution": "",
+        "maxZoom": 12.0,
+        "minZoom": 1.0,
+        "provider": "",
         "url": "https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
         "urlParameters": {}
       },
@@ -56,6 +77,8 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
@@ -65,5 +88,6 @@
       },
       "type": "RasterSource"
     }
-  }
+  },
+  "stories": {}
 }

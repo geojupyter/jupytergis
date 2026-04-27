@@ -2,15 +2,14 @@ import json
 import os
 from urllib.error import HTTPError
 
+import tornado
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
-import tornado
 
 
 class BackendCheckHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
-        body = self.get_json_body()
         qgis_installed = True
         try:
             import qgis  # noqa
@@ -25,7 +24,7 @@ class ExportToQgisHandler(APIHandler):
         body = self.get_json_body()
         qgis_installed = True
         try:
-            from .qgis_loader import export_project_to_qgis  # noqa
+            from .qgis_loader import export_project_to_qgis
         except ImportError:
             qgis_installed = False
 
@@ -36,17 +35,18 @@ class ExportToQgisHandler(APIHandler):
         virtual_file = body.get("virtual_file", "")
         if not path:
             raise HTTPError(400, "The file path is missing")
-        elif not virtual_file:
+        if not virtual_file:
             raise HTTPError(400, "The file content is missing")
 
         absolute_path = os.path.join(
-            os.path.expanduser(self.settings["server_root_dir"]), path
+            os.path.expanduser(self.settings["server_root_dir"]),
+            path,
         )
         logs = export_project_to_qgis(absolute_path, virtual_file)
         self.finish(
             json.dumps(
-                {"exported": len(logs["errors"]) == 0, "path": path, "logs": logs}
-            )
+                {"exported": len(logs["errors"]) == 0, "path": path, "logs": logs},
+            ),
         )
 
 

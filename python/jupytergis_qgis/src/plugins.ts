@@ -1,7 +1,4 @@
-import {
-  ICollaborativeDrive,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterGISDocumentWidget,
   logoMiniIcon,
@@ -37,6 +34,11 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import {
+  Contents,
+  IDefaultDrive,
+  SharedDocumentFactory,
+} from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
@@ -75,7 +77,7 @@ const activate = async (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
-  drive: ICollaborativeDrive,
+  drive: Contents.IDrive,
   externalCommandRegistry: IJGISExternalCommandRegistry,
   contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
@@ -86,6 +88,7 @@ const activate = async (
   formSchemaRegistry: IJGISFormSchemaRegistry,
   state: IStateDB,
   commandPalette: ICommandPalette | null,
+  collaborativeContentProvider: ICollaborativeContentProvider | null,
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',
@@ -159,7 +162,6 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgs', '.QGS'],
     fileFormat: 'base64',
-    contentType: 'QGS',
     icon: logoMiniIcon,
   });
   app.docRegistry.addFileType({
@@ -168,21 +170,23 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgz', '.QGZ'],
     fileFormat: 'base64',
-    contentType: 'QGZ',
     icon: logoMiniIconQGZ,
   });
 
   const QGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
   };
-  drive.sharedModelFactory.registerDocumentFactory(
-    'QGS',
-    QGISSharedModelFactory,
-  );
-  drive.sharedModelFactory.registerDocumentFactory(
-    'QGZ',
-    QGISSharedModelFactory,
-  );
+
+  if (collaborativeContentProvider) {
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
+      'QGS',
+      QGISSharedModelFactory,
+    );
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
+      'QGZ',
+      QGISSharedModelFactory,
+    );
+  }
 
   const widgetCreatedCallback = (
     sender: any,
@@ -214,6 +218,18 @@ const activate = async (
   if (installed) {
     app.commands.addCommand(CommandIDs.exportQgis, {
       label: 'Export To QGZ',
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {
+            filepath: {
+              type: 'string',
+              description:
+                'Optional. Destination filename (with or without .qgz extension) for the exported QGIS project.',
+            },
+          },
+        },
+      },
       isEnabled: () =>
         tracker.currentWidget
           ? tracker.currentWidget.model.sharedModel.editable
@@ -315,8 +331,7 @@ const activate = async (
       });
     }
   }
-
-  console.log('@jupytergis/jupytergis-qgis:qgisplugin is activated!');
+  console.debug('@jupytergis/jupytergis-qgis:qgisplugin is activated!');
 };
 
 export const qgisplugin: JupyterFrontEndPlugin<void> = {
@@ -324,7 +339,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
   requires: [
     IJupyterGISDocTracker,
     IThemeManager,
-    ICollaborativeDrive,
+    IDefaultDrive,
     IJGISExternalCommandRegistryToken,
     ConsolePanel.IContentFactory,
     IEditorServices,
@@ -335,7 +350,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ICommandPalette],
+  optional: [ICommandPalette, ICollaborativeContentProvider],
   autoStart: true,
   activate,
 };

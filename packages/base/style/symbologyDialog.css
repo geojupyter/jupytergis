@@ -23,11 +23,12 @@ select option {
 
 .jp-gis-symbology-row label {
   font-size: var(--jp-ui-font-size2);
-  flex: 0 1 20%;
+  flex: 0 1 auto;
 }
 
 .jp-gis-symbology-row > .jp-select-wrapper,
-.jp-gis-symbology-row > .jp-mod-styled {
+.jp-gis-symbology-row > .jp-mod-styled,
+.jp-gis-symbology-row > .jp-gis-rgba-picker {
   flex: 1 0 50%;
   max-width: 50%;
 }
@@ -158,9 +159,9 @@ select option {
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   border-radius: 0;
   outline: none;
-  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
 }
 
 .jp-gis-open {
@@ -172,21 +173,26 @@ select option {
   align-items: center;
   font-size: var(--jp-ui-font-size2);
   color: var(--jp-ui-font-color0);
-  appearance: none;
   text-transform: capitalize;
   cursor: pointer;
+  position: relative;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
 }
 
 .jp-gis-color-label {
   color: white;
+  padding-left: 10px;
   position: absolute;
+  text-shadow: 0px 0px 4px black;
+
   transition: transform 0.3s ease;
+  transform-origin: left bottom;
 }
 
-.jp-gis-color-ramp-entry:hover .jp-gis-color-label {
-  transform: scale(1.2);
+.jp-gis-color-ramp-entry:not(.jp-gis-selected-entry):hover .jp-gis-color-label {
+  transform: translateX(6px);
 }
 
 .jp-gis-color-canvas {
@@ -215,8 +221,54 @@ select option {
 }
 
 #jp-gis-canvas-button.jp-gis-canvas-button {
-  visibility: hidden;
   margin: 0;
   padding: 0 1px 0 0;
   width: 100%;
+}
+
+.jp-gis-selected-entry {
+  width: 100%;
+}
+
+.jp-gis-rgba-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.jp-gis-rgba-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.jp-gis-rgba-field label {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  line-height: 1;
+}
+
+.jp-gis-rgba-field input {
+  width: 4ch;
+  text-align: center;
+  padding: 1px 2px;
+  -moz-appearance: textfield;
+}
+
+.jp-gis-rgba-field input::-webkit-outer-spin-button,
+.jp-gis-rgba-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.jp-gis-transparent-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: var(--jp-ui-font-size1);
+  cursor: pointer;
+  user-select: none;
 }

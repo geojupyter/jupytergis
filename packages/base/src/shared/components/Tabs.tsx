@@ -1,4 +1,4 @@
-import * as TabsPrimitive from '@radix-ui/react-tabs';
+import { Tabs as TabsPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 import { cn } from './utils';
@@ -21,7 +21,7 @@ const Tabs: React.FC<React.ComponentProps<typeof TabsPrimitive.Root>> = ({
   );
 };
 
-const PanelTabs: React.FC<IPanelTabProps> = ({
+const TabsRoot: React.FC<IPanelTabProps> = ({
   className,
   curTab,
   children,
@@ -39,18 +39,19 @@ const PanelTabs: React.FC<IPanelTabProps> = ({
   );
 };
 
-const TabsList: React.FC<React.ComponentProps<typeof TabsPrimitive.List>> = ({
-  className,
-  ...props
-}) => {
+const TabsList = React.forwardRef<
+  React.ComponentRef<typeof TabsPrimitive.List>,
+  React.ComponentProps<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => {
   return (
     <TabsPrimitive.List
+      ref={ref}
       data-slot="tabs-list"
       className={cn('jgis-tabs-list', className)}
       {...props}
     />
   );
-};
+});
 
 const TabsTrigger: React.FC<
   React.ComponentProps<typeof TabsPrimitive.Trigger>
@@ -76,4 +77,4 @@ const TabsContent: React.FC<
   );
 };
 
-export { Tabs, TabsContent, TabsList, TabsTrigger, PanelTabs };
+export { Tabs, TabsContent, TabsList, TabsTrigger, TabsRoot };

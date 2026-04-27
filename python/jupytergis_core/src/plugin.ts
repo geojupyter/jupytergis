@@ -20,10 +20,16 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
+import { SqljsAdapter } from '@ngageoint/geopackage';
+import wasmURL from 'rtree-sql.js/dist/sql-wasm.wasm';
 
 import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
 import { JupyterGISFormSchemaRegistry } from './schemaregistry';
+
+SqljsAdapter.setSqljsWasmLocateFile((filename: string) => {
+  return wasmURL;
+});
 
 const NAME_SPACE = 'jupytergis';
 
@@ -41,7 +47,7 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
     const tracker = new WidgetTracker<IJupyterGISWidget>({
       namespace: NAME_SPACE,
     });
-    console.log('jupytergis:core:tracker is activated!');
+    console.debug('jupytergis:core:tracker is activated!');
     return tracker;
   },
 };
@@ -80,8 +86,7 @@ export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowser
     requires: [],
     provides: IJGISLayerBrowserRegistryToken,
     activate: (app: JupyterFrontEnd) => {
-      console.log('jupytergis:core:layer-browser-registry is activated');
-
+      console.debug('jupytergis:core:layer-browser-registry is activated');
       const registry = new JupyterGISLayerBrowserRegistry();
       return registry;
     },

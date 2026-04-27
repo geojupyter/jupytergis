@@ -1,0 +1,76 @@
+[project]
+name = "layer-gallery"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2",
+    "xyzservices",
+    "requests",
+    "pillow",
+    "mercantile",
+    "pyoxipng>=9.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "mypy>=1.20.0",
+    "types-requests",
+]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+
+[tool.ruff]
+src = ["."]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D203",    # Require blank line before class docstring
+    "D213",    # Require multi-line docstrings to start on the line after opening triple-quotes
+    "DTZ011",  # Forbid naive datetimes
+    "EM101",   # Forbid string literals in exception messages
+    "EM102",   # Forbid f-strings in exception messages
+    "FIX",     # Rules for TODO/FIXME messages
+    "T201",    # Forbid print
+    "TD",      # Rules for TODO/FIXME messages
+    "TRY003",  # Forbid long exception messages at instantiation
+]
+
+[tool.ruff.lint.per-file-ignores]
+"{tests/**/*.py}" = [
+    "ANN001",  # Require type annotations for args (e.g. test fixtures)
+    "ANN201",  # Require type annotation for return
+    "ARG001",  # Forbid unused function arguments (e.g. test fixtures)
+    "D",       # Require docstrings
+    "S101",    # Forbid assertion statements
+    "SLF001",  # Forbid private member access
+]
+"layer_gallery/config.py" = [
+    "E501",    # Forbid long lines
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+packages = ["layer_gallery"]
+python_version = "3.12"
+strict = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = [
+    "xyzservices",
+    "mercantile",
+]
+ignore_missing_imports = true

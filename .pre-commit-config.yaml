@@ -1,14 +1,13 @@
 ci:
   # pre-commit.ci will open PRs updating our hooks once a month
   autoupdate_schedule: quarterly
-  # skip any check that needs internet access
-  autofix_prs: true
+  autofix_prs: false
 
 exclude: '.*\.jgis$'
 repos:
   # Autoformat and linting, misc. details
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: forbid-new-submodules
       - id: end-of-file-fixer
@@ -26,12 +25,12 @@ repos:
       - id: trailing-whitespace
         exclude: .bumpversion.cfg
 
-  # Autoformat: Python code
+  # Autoformat & lint: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.2
+    rev: v0.15.9
     hooks:
       - id: ruff
-        args: ['--fix']
+        args: ['--fix', '--show-fixes', '--exit-non-zero-on-fix']
       - id: ruff-format
 
   - repo: https://github.com/rstcheck/rstcheck
@@ -39,3 +38,9 @@ repos:
     hooks:
       - id: rstcheck
         args: ['--ignore-directives=jupyterlite,tabs,toctree,autoclass,cssclass,include', '--report-level=warning']
+
+  # Validate citation metadata
+  - repo: https://github.com/citation-file-format/cffconvert
+    rev: "b6045d78aac9e02b039703b030588d54d53262ac"
+    hooks:
+      - id: validate-cff

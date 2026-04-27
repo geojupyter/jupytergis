@@ -11,31 +11,51 @@
         "type": "object",
         "properties": {
           "url": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "min": {
-            "type": "number"
+            "type": "number",
+            "default": null
           },
           "max": {
-            "type": "number"
+            "type": "number",
+            "default": null
           }
-        }
+        },
+        "default": {}
       },
       "minItems": 1,
-      "description": "URLs"
+      "description": "URLs",
+      "default": []
     },
     "normalize": {
       "type": "boolean",
+      "description": "Enable to normalize values between 0 and 1 and displayed as RGB values; disable to keep raw band values",
       "default": true
     },
     "wrapX": {
       "type": "boolean",
+      "description": "Wrap the map horizontally?",
       "default": false
     },
     "interpolate": {
       "type": "boolean",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "default": "",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

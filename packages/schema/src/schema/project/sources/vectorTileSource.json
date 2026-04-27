@@ -13,25 +13,43 @@
       "type": "number",
       "minimum": 0,
       "maximum": 24,
-      "description": "The minimum zoom level for the vector source"
+      "description": "The minimum zoom level for the vector source",
+      "default": 0
     },
     "maxZoom": {
       "type": "number",
       "minimum": 0,
       "maximum": 24,
-      "description": "The maximum zoom level for the vector source"
+      "description": "The maximum zoom level for the vector source",
+      "default": 24
     },
     "attribution": {
       "type": "string",
-      "description": "The attribution for the vector source"
+      "description": "The attribution for the vector source",
+      "default": ""
     },
     "provider": {
       "type": "string",
       "readOnly": true,
-      "description": "The map provider"
+      "description": "The map provider",
+      "default": ""
     },
     "urlParameters": {
       "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route tile requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream tile server when useProxy is true.",
+      "default": "",
       "additionalProperties": {
         "type": "string"
       }

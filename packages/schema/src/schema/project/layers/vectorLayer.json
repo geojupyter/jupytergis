@@ -11,7 +11,8 @@
     },
     "color": {
       "type": "object",
-      "description": "The color of the the object"
+      "description": "DEPRECATED. Legacy OpenLayers FlatStyle cache. New files should not set this; symbologyState is the source of truth. Retained only so that legacy .jGIS files can be migrated on load.",
+      "default": {}
     },
     "opacity": {
       "type": "number",
@@ -23,27 +24,34 @@
     },
     "symbologyState": {
       "type": "object",
-      "description": "The state of the symbology panel options",
+      "description": "The symbology configuration. This is the single source of truth for how the layer is rendered; the OpenLayers style is derived from it on the fly.",
       "required": ["renderType"],
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"]
+          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
+          "default": "Single Symbol"
         },
         "value": {
-          "type": "string"
+          "type": "string",
+          "description": "Attribute field used by Graduated/Categorized/Canonical render types"
         },
         "method": {
           "type": "string",
-          "enum": ["color", "radius"]
+          "enum": ["color", "radius"],
+          "default": "color"
         },
         "colorRamp": {
           "type": "string",
           "default": "viridis"
         },
         "nClasses": {
-          "type": "string",
-          "default": "9"
+          "type": "number",
+          "default": 9.0
+        },
+        "reverseRamp": {
+          "type": "boolean",
+          "default": false
         },
         "mode": {
           "type": "string",
@@ -55,9 +63,91 @@
             "pretty",
             "logarithmic"
           ]
+        },
+        "vmin": {
+          "type": "number",
+          "description": "Minimum value for color mapping"
+        },
+        "vmax": {
+          "type": "number",
+          "description": "Maximum value for color mapping"
+        },
+        "fallbackColor": {
+          "type": "array",
+          "description": "RGBA fallback color for features with no matching category or outside the gradient range",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "strokeFollowsFill": {
+          "type": "boolean",
+          "description": "Whether the stroke color follows the fill color expression",
+          "default": false
+        },
+        "fillColor": {
+          "type": "array",
+          "description": "Manual RGBA fill color. Used for Single Symbol, and as the base fill for Categorized when no stops are defined.",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "strokeColor": {
+          "type": "array",
+          "description": "Manual RGBA stroke color",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "strokeWidth": {
+          "type": "number",
+          "description": "Stroke width in pixels",
+          "default": 1.25
+        },
+        "radius": {
+          "type": "number",
+          "description": "Circle radius in pixels for point geometries (Single Symbol, and the base for Graduated radius)",
+          "default": 5
+        },
+        "joinStyle": {
+          "type": "string",
+          "enum": ["bevel", "round", "miter"],
+          "default": "round"
+        },
+        "capStyle": {
+          "type": "string",
+          "enum": ["butt", "round", "square"],
+          "default": "round"
+        },
+        "geometryType": {
+          "type": "string",
+          "enum": ["fill", "circle", "line"],
+          "description": "The type of geometry."
+        },
+        "stopsOverride": {
+          "type": "array",
+          "description": "User-customized color stops that override the computed classification. Saved only when the user manually edits stop colors in the dialog.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {},
+              "color": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4
+              }
+            }
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "default": {
+        "renderType": "Single Symbol",
+        "method": "color",
+        "colorRamp": "viridis",
+        "nClasses": 9,
+        "mode": "equal interval"
+      }
     }
   }
 }

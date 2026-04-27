@@ -1,10 +1,13 @@
-import os
-
 import pytest
 
 from jupytergis_lab import GISDocument
+from jupytergis_lab.notebook.gis_document import (
+    _vector_symbology_state_from_color_expr,
+)
 
 TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
+TEST_GPKG_VECTOR = "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg"
+TEST_GPKG_RASTER = "https://cdn.jsdelivr.net/gh/ngageoint/geopackage-js@master/docs/examples/GeoPackageToGo/StLouis.gpkg"
 TEST_GEOPARQUET = "https://raw.githubusercontent.com/opengeospatial/geoparquet/main/examples/example.parquet"
 
 
@@ -31,13 +34,82 @@ class TestTiffLayer(TestDocument):
         assert self.doc.layers[tif_layer]["parameters"]["color"] == color
 
 
+class TestGeoPackageVectorLayer(TestDocument):
+    def test_sourcelayer(self):
+        gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
+        assert all(name in self.doc.layers for name in gpkg_layers)
+
+
+class TestGeoPackageRasterLayer(TestDocument):
+    def test_sourcelayer(self):
+        gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
+        assert all(name in self.doc.layers for name in gpkg_layers)
+
+
 class TestGeoParquetLayer(TestDocument):
     def test_sourcelayer(self):
         color = {"fill-color": "#00FF00", "stroke-color": "#FF0000"}
         geoparquet_layer = self.doc.add_geoparquet_layer(
-            TEST_GEOPARQUET, color_expr=color
+            TEST_GEOPARQUET,
+            color_expr=color,
         )
-        assert self.doc.layers[geoparquet_layer]["parameters"]["color"] == color
+        state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
+        assert state["renderType"] == "Single Symbol"
+        assert state["fillColor"] == [0, 255, 0, 1.0]
+        assert state["strokeColor"] == [255, 0, 0, 1.0]
+
+
+# Frozen fixtures for `_vector_symbology_state_from_color_expr`. The same
+# `color_expr` → `symbologyState` mapping is reimplemented on the frontend in
+# `packages/base/src/features/layers/symbology/symbologyMigration.ts`. If the
+# Python helper or the JS migration drifts from these expectations, these tests
+# fail and the parallel change must be made on the other side. See issue #1320
+# (centralized schema migration infrastructure) for the long-term plan to
+# remove this duplication.
+SYMBOLOGY_FIXTURES = [
+    pytest.param(None, {"renderType": "Single Symbol"}, id="none"),
+    pytest.param({}, {"renderType": "Single Symbol"}, id="empty-dict"),
+    pytest.param(
+        {"fill-color": "#00FF00", "stroke-color": "#FF0000"},
+        {
+            "renderType": "Single Symbol",
+            "fillColor": [0, 255, 0, 1.0],
+            "strokeColor": [255, 0, 0, 1.0],
+            "geometryType": "fill",
+        },
+        id="fill-and-stroke-hex",
+    ),
+    pytest.param(
+        {"stroke-color": "#123456", "stroke-width": 3},
+        {
+            "renderType": "Single Symbol",
+            "strokeColor": [18, 52, 86, 1.0],
+            "strokeWidth": 3,
+            "geometryType": "line",
+        },
+        id="line-with-width",
+    ),
+    pytest.param(
+        {"circle-fill-color": "#abcdef", "circle-radius": 4.5},
+        {
+            "renderType": "Single Symbol",
+            "fillColor": [171, 205, 239, 1.0],
+            "radius": 4.5,
+            "geometryType": "circle",
+        },
+        id="circle",
+    ),
+    pytest.param(
+        {"fill-color": ["interpolate", ["linear"], 0.0, [0, 0, 0, 1]]},
+        {"renderType": "Single Symbol", "geometryType": "fill"},
+        id="ol-expression-dropped",
+    ),
+]
+
+
+@pytest.mark.parametrize("color_expr,expected", SYMBOLOGY_FIXTURES)
+def test_vector_symbology_state_from_color_expr(color_expr, expected):
+    assert _vector_symbology_state_from_color_expr(color_expr) == expected
 
 
 class TestLayerManipulation(TestDocument):

@@ -1,0 +1,258 @@
+@keyframes sheet-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sheet-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-slide-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes sheet-slide-in-top {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-slide-out-top {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes sheet-slide-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-slide-out-bottom {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.jgis-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, black, transparent 90%);
+  backdrop-filter: blur(2px);
+  transition-duration: 0.1s;
+}
+
+.jgis-sheet-overlay[data-state='open'] {
+  animation: sheet-fade-in 0.1s ease-out;
+}
+
+.jgis-sheet-overlay[data-state='closed'] {
+  animation: sheet-fade-out 0.1s ease-in;
+}
+
+.jgis-sheet-content {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 0.875rem;
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+  border-color: var(--jp-border-color0);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
+  background-clip: padding-box;
+}
+
+/* Right */
+.jgis-sheet-content[data-side='right'] {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 75%;
+  border-left-width: 1px;
+  border-left-style: solid;
+}
+
+.jgis-sheet-content[data-side='right'][data-state='open'] {
+  animation:
+    sheet-fade-in 0.2s ease-out,
+    sheet-slide-in-right 0.2s ease-out;
+}
+
+.jgis-sheet-content[data-side='right'][data-state='closed'] {
+  animation:
+    sheet-fade-out 0.2s ease-in,
+    sheet-slide-out-right 0.2s ease-in;
+}
+
+@media (min-width: 640px) {
+  .jgis-sheet-content[data-side='right'] {
+    max-width: 24rem;
+  }
+}
+
+/* Left */
+.jgis-sheet-content[data-side='left'] {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  width: 75%;
+  border-right-width: 1px;
+  border-right-style: solid;
+}
+
+.jgis-sheet-content[data-side='left'][data-state='open'] {
+  animation:
+    sheet-fade-in 0.2s ease-out,
+    sheet-slide-in-left 0.2s ease-out;
+}
+
+.jgis-sheet-content[data-side='left'][data-state='closed'] {
+  animation:
+    sheet-fade-out 0.2s ease-in,
+    sheet-slide-out-left 0.2s ease-in;
+}
+
+@media (min-width: 640px) {
+  .jgis-sheet-content[data-side='left'] {
+    max-width: 24rem;
+  }
+}
+
+/* Top */
+.jgis-sheet-content[data-side='top'] {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: auto;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.jgis-sheet-content[data-side='top'][data-state='open'] {
+  animation:
+    sheet-fade-in 0.2s ease-out,
+    sheet-slide-in-top 0.2s ease-out;
+}
+
+.jgis-sheet-content[data-side='top'][data-state='closed'] {
+  animation:
+    sheet-fade-out 0.2s ease-in,
+    sheet-slide-out-top 0.2s ease-in;
+}
+
+/* Bottom */
+.jgis-sheet-content[data-side='bottom'] {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: auto;
+  border-top-width: 1px;
+  border-top-style: solid;
+}
+
+.jgis-sheet-content[data-side='bottom'][data-state='open'] {
+  animation:
+    sheet-fade-in 0.2s ease-out,
+    sheet-slide-in-bottom 0.2s ease-out;
+}
+
+.jgis-sheet-content[data-side='bottom'][data-state='closed'] {
+  animation:
+    sheet-fade-out 0.2s ease-in,
+    sheet-slide-out-bottom 0.2s ease-in;
+}
+
+.jgis-sheet-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.jgis-sheet-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 1rem;
+}
+
+.jgis-sheet-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-top: auto;
+}
+
+.jgis-sheet-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--jp-ui-font-color0);
+}
+
+.jgis-sheet-description {
+  font-size: 0.875rem;
+  color: var(--jp-ui-font-color2);
+}

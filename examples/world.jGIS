@@ -7,92 +7,34 @@
     "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6": {
       "name": "World",
       "parameters": {
-        "color": {
-          "fill-color": [
-            "interpolate",
-            [
-              "linear"
-            ],
-            [
-              "get",
-              "POP_RANK"
-            ],
-            2.888888888888889,
-            [
-              125.0,
-              0.0,
-              179.0,
-              1.0
-            ],
-            4.777777777777778,
-            [
-              116.0,
-              0.0,
-              218.0,
-              1.0
-            ],
-            6.666666666666666,
-            [
-              98.0,
-              74.0,
-              237.0,
-              1.0
-            ],
-            8.555555555555555,
-            [
-              68.0,
-              146.0,
-              231.0,
-              1.0
-            ],
-            10.444444444444445,
-            [
-              0.0,
-              204.0,
-              197.0,
-              1.0
-            ],
-            12.333333333333334,
-            [
-              0.0,
-              247.0,
-              146.0,
-              1.0
-            ],
-            14.222222222222223,
-            [
-              0.0,
-              255.0,
-              88.0,
-              1.0
-            ],
-            16.11111111111111,
-            [
-              40.0,
-              255.0,
-              8.0,
-              1.0
-            ],
-            18.0,
-            [
-              147.0,
-              255.0,
-              0.0,
-              1.0
-            ]
-          ]
-        },
         "opacity": 1.0,
         "source": "b4287bea-e217-443c-b527-58f7559c824c",
         "symbologyState": {
           "colorRamp": "cool",
+          "fallbackColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
           "method": "color",
           "mode": "equal interval",
-          "nClasses": "9",
+          "nClasses": 9.0,
+          "radius": 5.0,
           "renderType": "Graduated",
-          "value": "POP_RANK"
-        },
-        "type": "fill"
+          "reverseRamp": false,
+          "strokeColor": [
+            51.0,
+            153.0,
+            204.0,
+            1.0
+          ],
+          "strokeFollowsFill": false,
+          "strokeWidth": 1.25,
+          "value": "POP_RANK",
+          "vmax": 18.0,
+          "vmin": 1.0
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -101,8 +43,14 @@
       "name": "France",
       "parameters": {
         "color": {
-          "fill-color": "#ff0000",
-          "stroke-color": "#3399CC",
+          "circle-fill-color": "#c01c28",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#1c71d8",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#c01c28",
+          "stroke-color": "#1c71d8",
           "stroke-line-cap": "round",
           "stroke-line-join": "round",
           "stroke-width": 1.25
@@ -111,8 +59,7 @@
         "source": "5970d6c9-26be-4cc6-84c9-16593dd3edfe",
         "symbologyState": {
           "renderType": "Single Symbol"
-        },
-        "type": "line"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -122,32 +69,35 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -19065470.770224873,
-      -8769327.524723822,
-      21009545.915353607,
-      10612866.079810677
+      -7804330.790911825,
+      -17406763.264961343,
+      28543797.03441047,
+      20037508.342789244
     ],
-    "latitude": 8.251719751227498,
-    "longitude": 8.731962081730105,
+    "latitude": 11.733312406978698,
+    "longitude": 93.15289755507854,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.634811050171718
+    "zoom": 1.8360503550580693
   },
   "schemaVersion": "0.5.0",
   "sources": {
     "5970d6c9-26be-4cc6-84c9-16593dd3edfe": {
       "name": "France",
       "parameters": {
-        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json"
+        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json",
+        "valid": false
       },
       "type": "GeoJSONSource"
     },
     "b4287bea-e217-443c-b527-58f7559c824c": {
       "name": "World",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+        "valid": false
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "stories": {}
 }

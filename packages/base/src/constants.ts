@@ -1,4 +1,4 @@
-import { IDict, ProcessingCommandIDs } from '@jupytergis/schema';
+import { ProcessingCommandIDs } from '@jupytergis/schema';
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
 import * as BaseCommandIDs from './commands/BaseCommandIDs';
@@ -6,17 +6,19 @@ import {
   bookOpenIcon,
   clockIcon,
   geoJSONIcon,
+  geoPackageIcon,
   infoIcon,
   moundIcon,
   rasterIcon,
   vectorSquareIcon,
-} from './icons';
+  markerIcon,
+  pencilSolidIcon,
+} from './shared/icons';
 
 /**
  * The command IDs.
  */
-
-export const CommandIDs: IDict = {
+export const CommandIDs: typeof BaseCommandIDs & typeof ProcessingCommandIDs = {
   ...BaseCommandIDs,
   ...ProcessingCommandIDs,
 };
@@ -44,18 +46,29 @@ const iconObject = {
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
   [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
-  [CommandIDs.newRasterEntry]: { icon: rasterIcon },
-  [CommandIDs.newVectorTileEntry]: { icon: vectorSquareIcon },
-  [CommandIDs.newGeoJSONEntry]: { icon: geoJSONIcon },
-  [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
-  [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
-  [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
-  [CommandIDs.newShapefileEntry]: { iconClass: 'fa fa-file' },
-  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
-  [CommandIDs.newGeoParquetEntry]: { iconClass: 'fa fa-file' },
+  [CommandIDs.openNewRasterDialog]: { icon: rasterIcon },
+  [CommandIDs.openNewWmsDialog]: { iconClass: 'fa fa-server' },
+  [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
+  [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
+  [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
+  [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },
+  [CommandIDs.openNewVideoDialog]: { iconClass: 'fa fa-video' },
+  [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },
+  [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
+  [CommandIDs.openNewShapefileDialog]: { iconClass: 'fa fa-file' },
+  [CommandIDs.openNewGeoTiffDialog]: { iconClass: 'fa fa-image' },
+  [CommandIDs.openNewGeoParquetDialog]: { iconClass: 'fa fa-file' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
+  [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
+  [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
+  [CommandIDs.toggleStoryPresentationMode]: {
+    iconClass: 'fa fa-book jgis-icon-adjust',
+  },
+  [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
+  [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
 };
 
 /**

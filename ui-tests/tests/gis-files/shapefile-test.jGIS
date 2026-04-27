@@ -8,8 +8,7 @@
       "name": "Custom Shapefile Layer",
       "parameters": {
         "opacity": 1.0,
-        "source": "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1",
-        "type": "line"
+        "source": "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1"
       },
       "type": "VectorLayer",
       "visible": true

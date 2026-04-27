@@ -1,9 +1,10 @@
 import { IAnnotationModel, IJGISFormSchemaRegistry } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
+import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
-import { MainView } from './mainView';
+import { MainViewWithMediaQuery } from './mainView';
 import { MainViewModel } from './mainviewmodel';
 
 export interface IOptions {
@@ -11,6 +12,7 @@ export interface IOptions {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  loggerRegistry?: ILoggerRegistry;
 }
 
 export class JupyterGISMainViewPanel extends ReactWidget {
@@ -26,11 +28,12 @@ export class JupyterGISMainViewPanel extends ReactWidget {
 
   render(): JSX.Element {
     return (
-      <MainView
+      <MainViewWithMediaQuery
         state={this._state}
         viewModel={this._options.mainViewModel}
         formSchemaRegistry={this._options.formSchemaRegistry}
         annotationModel={this._options.annotationModel}
+        loggerRegistry={this._options.loggerRegistry}
       />
     );
   }

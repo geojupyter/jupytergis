@@ -7,22 +7,38 @@
   "properties": {
     "url": {
       "type": "string",
-      "description": "The url to the tile provider"
+      "description": "The url to the tile provider",
+      "default": ""
     },
     "attribution": {
       "type": "string",
-      "description": "The attribution for the raster-dem source"
+      "description": "The attribution for the raster-dem source",
+      "default": ""
     },
     "urlParameters": {
       "type": "object",
       "additionalProperties": {
         "type": "string"
-      }
+      },
+      "default": {}
     },
     "interpolate": {
       "type": "boolean",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route tile requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream tile server when useProxy is true.",
+      "default": "",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

@@ -7,7 +7,8 @@
   "properties": {
     "path": {
       "type": "string",
-      "description": "The path to the shapefile (.shp, .zip, or folder URL)."
+      "description": "The path to the shapefile (.shp, .zip, or folder URL).",
+      "default": ""
     },
     "attribution": {
       "type": "string",
@@ -32,6 +33,19 @@
         "type": "string"
       },
       "default": {}
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "default": "",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

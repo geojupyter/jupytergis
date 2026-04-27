@@ -7,6 +7,20 @@ name = "jupytergis-root"
 readme = "README.md"
 license = { file = "LICENSE" }
 dynamic = ["version"]
+requires-python = ">=3.12"
+
+[dependency-groups]
+test = [
+    "pytest",
+    "dirty-equals",
+]
+build = [
+    "build",
+    "datamodel-code-generator>=0.23.0",
+    "hatchling>=1.5.0,<2",
+    "jupyterlab>=4.5.1",
+    "uv",  # Only used for the layer gallery build
+]
 
 
 [tool.hatch.version]
@@ -29,7 +43,7 @@ python_packages = [
 [tool.jupyter-releaser.hooks]
 before-bump-version = ["python -m pip install hatch 'jupyterlab>=4.0.0'"]
 before-build-npm = [
-    "python -m pip install -r requirements-build.txt",
+    "python -m pip install --group build",
     "jlpm",
     "jlpm build:prod",
 ]
@@ -41,10 +55,98 @@ ignore = ["W002"]
 extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
-select = [
-    # pycodestyle
-    "E",
-    # bugbear
-    "B",
+select = ["ALL"]
+ignore = [
+    "A001",    # builtin-variable-shadowing
+    "A002",    # builtin-argument-shadowing
+    "ANN001",  # missing-type-function-argument
+    "ANN002",  # missing-type-args
+    "ANN003",  # missing-type-kwargs
+    "ANN201",  # missing-return-type-undocumented-public-function
+    "ANN202",  # missing-return-type-private-function
+    "ANN204",  # missing-return-type-special-method
+    "ANN401",  # any-type
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument
+    "C408",    # unnecessary-collection-call
+    "C419",    # unnecessary-comprehension-in-call
+    "C901",    # complex-structure
+    "D100",    # undocumented-public-module
+    "D101",    # undocumented-public-class
+    "D102",    # undocumented-public-method
+    "D103",    # undocumented-public-function
+    "D104",    # undocumented-public-package
+    "D106",    # undocumented-public-nested-class
+    "D107",    # undocumented-public-init
+    "D203",    # Require blank line before class docstring
+    "D205",    # missing-blank-line-after-summary
+    "D213",    # Require multi-line docstrings to start on the line after opening triple-quotes
+    "D400",    # missing-trailing-period
+    "D401",    # non-imperative-mood
+    "D415",    # missing-terminal-punctuation
+    "DTZ005",  # call-datetime-now-without-tzinfo
+    "E501",    # Forbid too-long lines
+    "E731",    # Forbid lambda assignment
+    "EM101",   # raw-string-in-exception
+    "EM102",   # f-string-in-exception
+    "ERA001",  # commented-out-code
+    "EXE001",  # shebang-not-executable
+    "EXE002",  # shebang-missing-executable-file
+    "EXE003",  # shebang-missing-python
+    "EXE005",  # shebang-not-first-line
+    "FBT001",  # boolean-type-hint-positional-argument
+    "FBT002",  # boolean-default-value-positional-argument
+    "FBT003",  # boolean-positional-value-in-call
+    "FIX002",  # line-contains-todo
+    "FURB116", # f-string-number-format
+    "G004",    # logging-f-string
+    "INP001",  # implicit-namespace-package
+    "LOG002",  # invalid-get-logger-argument
+    "N801",    # invalid-class-name
+    "N802",    # invalid-function-name
+    "N803",    # invalid-argument-name
+    "N806",    # non-lowercase-variable-in-function
+    "N816",    # mixed-case-variable-in-global-scope
+    "PGH004",  # blanket-noqa
+    "PIE810",  # multiple-starts-ends-with
+    "PLC0415", # import-outside-top-level
+    "PLR0911", # too-many-return-statements
+    "PLR0912", # too-many-branches
+    "PLR0913", # too-many-arguments
+    "PLR0915", # too-many-statements
+    "PLR2004", # magic-value-comparison
+    "PLW1508", # invalid-envvar-default
+    "PLW2901", # redefined-loop-name
+    "PT006",   # pytest-parametrize-names-wrong-type
+    "PTH103",  # os-makedirs
+    "PTH107",  # os-remove
+    "PTH110",  # os-path-exists
+    "PTH111",  # os-path-expanduser
+    "PTH118",  # os-path-join
+    "PTH123",  # builtin-open
+    "PTH208",  # os-listdir
+    "RET503",  # implicit-return
+    "RET504",  # unnecessary-assign
+    "RUF003",  # ambiguous-unicode-character-comment
+    "RUF012",  # mutable-class-default
+    "RUF013",  # implicit-optional
+    "S101",    # assert
+    "S113",    # request-without-timeout
+    "S310",    # suspicious-url-open-usage
+    "S314",    # suspicious-xml-element-tree-usage
+    "S602",    # subprocess-popen-with-shell-equals-true
+    "S603",    # subprocess-without-shell-equals-true
+    "S607",    # start-process-with-partial-path
+    "S608",    # hardcoded-sql-expression
+    "SLF001",  # private-member-access
+    "T201",    # print
+    "TD002",   # missing-todo-author
+    "TD003",   # missing-todo-link
+    "TD004",   # missing-todo-colon
+    "TID252",  # relative-imports
+    "TRY002",  # raise-vanilla-class
+    "TRY003",  # raise-vanilla-args
+    "TRY300",  # try-consider-else
+    "TRY400",  # error-instead-of-exception
+    "UP045",   # non-pep604-annotation-optional
 ]
-ignore = ["E501", "E731"]

@@ -20,7 +20,7 @@ import {
 } from 'date-fns/constants';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
+import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 
 interface ITemporalSliderProps {
   model: IJupyterGISModel;
@@ -75,7 +75,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
 
   useEffect(() => {
     // This is for when the selected layer changes
-    const handleClientStateChanged = () => {
+    const handleSelectedChanged = () => {
       if (!model.localState?.selected?.value) {
         return;
       }
@@ -91,7 +91,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     };
 
     // this is for when the layer itself changes
-    const handleLayerChange = (
+    const handleSharedLayersChanged = (
       _: IJupyterGISDoc,
       change: IJGISLayerDocChange,
     ) => {
@@ -112,19 +112,21 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
         Object.keys(newValue).length === 0 ||
         newValue.type !== oldValue.type
       ) {
-        model.toggleTemporalController();
+        if (model.isTemporalControllerActive) {
+          model.toggleTemporalController();
+        }
       }
     };
 
     // Initial state
-    handleClientStateChanged();
+    handleSelectedChanged();
 
-    model.clientStateChanged.connect(handleClientStateChanged);
-    model.sharedLayersChanged.connect(handleLayerChange);
+    model.selectedChanged.connect(handleSelectedChanged);
+    model.sharedLayersChanged.connect(handleSharedLayersChanged);
 
     return () => {
-      model.clientStateChanged.disconnect(handleClientStateChanged);
-      model.sharedLayersChanged.disconnect(handleLayerChange);
+      model.selectedChanged.disconnect(handleSelectedChanged);
+      model.sharedLayersChanged.disconnect(handleSharedLayersChanged);
       removeFilter();
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

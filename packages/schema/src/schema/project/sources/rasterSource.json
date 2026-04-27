@@ -57,6 +57,7 @@
     },
     "urlParameters": {
       "type": "object",
+      "title": "URL parameters",
       "additionalProperties": {
         "type": "string"
       },
@@ -64,8 +65,22 @@
     },
     "interpolate": {
       "type": "boolean",
+      "title": "Interpolate",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route tile requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream tile server when useProxy is true.",
+      "default": "",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

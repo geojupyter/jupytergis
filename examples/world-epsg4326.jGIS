@@ -1,0 +1,56 @@
+{
+  "layerTree": [
+    "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6"
+  ],
+  "layers": {
+    "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6": {
+      "name": "World",
+      "parameters": {
+        "color": {
+          "circle-fill-color": "#3399CC",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#3399CC",
+          "stroke-color": "#3399CC",
+          "stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "b4287bea-e217-443c-b527-58f7559c824c",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -167.34375,
+      -90.00000000000001,
+      167.34375000000006,
+      90.00000000000001
+    ],
+    "latitude": 0.0,
+    "longitude": 1.4210854715202004e-14,
+    "pitch": 0.0,
+    "projection": "EPSG:4326",
+    "useExtent": true,
+    "zoom": 2.321928094887362
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "b4287bea-e217-443c-b527-58f7559c824c": {
+      "name": "World",
+      "parameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+        "valid": false
+      },
+      "type": "GeoJSONSource"
+    }
+  },
+  "stories": {}
+}

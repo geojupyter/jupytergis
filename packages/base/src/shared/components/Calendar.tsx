@@ -1,5 +1,3 @@
-'use client';
-
 import { differenceInCalendarDays } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
@@ -22,7 +20,7 @@ export type CalendarProps = DayPickerProps & {
   yearRange?: number;
 
   /**
-   * Wether to show the year switcher in the caption.
+   * Whether to show the year switcher in the caption.
    * @default true
    */
   showYearSwitcher?: boolean;

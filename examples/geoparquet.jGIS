@@ -7,6 +7,7 @@
     "9556ca29-a5ec-41af-bf14-4b543c52aafe": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "2a52082b-7992-40dc-92d6-75e309a1ed27"
       },
       "type": "RasterLayer",
@@ -15,8 +16,24 @@
     "d7a2ad84-0750-4e9b-82c0-542fcc6b3265": {
       "name": "GeoParquet Vector Layer",
       "parameters": {
+        "color": {
+          "circle-fill-color": "#99c1f1",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#1a5fb4",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#99c1f1",
+          "stroke-color": "#1a5fb4",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
-        "source": "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4"
+        "source": "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -27,14 +44,14 @@
     "bearing": 0.0,
     "extent": [
       -20037508.342789244,
-      -18740664.52872547,
+      -13131802.513490982,
       20037508.342789244,
-      18740664.52872547
+      13131802.513490982
     ],
     "latitude": 0.0,
     "longitude": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 1.6220518194563762
+    "zoom": 1.8360503550580693
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -42,6 +59,9 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -59,5 +79,6 @@
       },
       "type": "GeoParquetSource"
     }
-  }
+  },
+  "stories": {}
 }

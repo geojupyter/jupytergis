@@ -17,7 +17,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinxcontrib.mermaid",
-    "sphinx_tabs.tabs",
+    "sphinx_inline_tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
     "myst_parser",
@@ -48,6 +48,10 @@ todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+
+nitpick_ignore = [
+    ("py:mod", "ypywidgets"),
+]
 
 jupyterlite_ignore_contents = [
     r".*\.qgz$",

@@ -1,4 +1,4 @@
-export * from './objectform/baseform';
-export * from './objectform/source';
-export * from './objectform/layer';
+export * from './objectform/SchemaForm';
+export * from '../features/layers/forms/source';
+export * from '../features/layers/forms/layer';
 export * from './creationform';

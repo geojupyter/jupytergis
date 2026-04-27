@@ -1,6 +1,8 @@
 export * from './_interface/project/jgis';
 
 // Sources
+export * from './_interface/project/sources/geoPackageVectorSource';
+export * from './_interface/project/sources/geoPackageRasterSource';
 export * from './_interface/project/sources/geoJsonSource';
 export * from './_interface/project/sources/geoTiffSource';
 export * from './_interface/project/sources/imageSource';
@@ -10,10 +12,13 @@ export * from './_interface/project/sources/shapefileSource';
 export * from './_interface/project/sources/vectorTileSource';
 export * from './_interface/project/sources/videoSource';
 export * from './_interface/project/sources/geoParquetSource';
+export * from './_interface/project/sources/markerSource';
+export * from './_interface/project/sources/wmsTileSource';
 
 // Layers
 export * from './_interface/project/layers/heatmapLayer';
 export * from './_interface/project/layers/hillshadeLayer';
+export * from './_interface/project/layers/storySegmentLayer';
 export * from './_interface/project/layers/rasterLayer';
 export * from './_interface/project/layers/vectorLayer';
 export * from './_interface/project/layers/imageLayer';
@@ -34,3 +39,5 @@ export * from './index';
 export * from './interfaces';
 export * from './model';
 export * from './token';
+
+export type Modes = 'panning' | 'identifying' | 'marking';

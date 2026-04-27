@@ -3,15 +3,18 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+@import url('ol/ol.css');
 @import url('./dialog.css');
 @import url('./layerBrowser.css');
 @import url('./leftPanel.css');
 @import url('./filterPanel.css');
 @import url('./symbologyDialog.css');
 @import url('./statusBar.css');
+@import url('./spectaProgressBar.css');
 @import url('./temporalSlider.css');
 @import url('./tabPanel.css');
-@import url('ol/ol.css');
+@import url('./stacBrowser.css');
+@import url('./storyPanel.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
@@ -20,6 +23,15 @@
 @import url('./shared/dropdownMenu.css');
 @import url('./shared/badge.css');
 @import url('./shared/checkbox.css');
+@import url('./shared/radioGroup.css');
+@import url('./shared/dialog.css');
+@import url('./shared/drawer.css');
+@import url('./shared/sheet.css');
+@import url('./shared/switch.css');
+@import url('./shared/popover.css');
+@import url('./shared/command.css');
+@import url('./shared/combobox.css');
+@import url('./shared/input.css');
 
 .errors {
   color: var(--jp-warn-color0);
@@ -57,6 +69,14 @@
   flex-direction: column;
 }
 
+.jGIS-symbology-override-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: solid 1px var(--jp-border-color0);
+}
+
 .jp-gis-text-label {
   margin: 0;
   padding: 0;
@@ -86,20 +106,151 @@ button.jp-mod-styled.jp-mod-reject {
   border-width: 0;
 }
 
+/* Height constrained to 0.5rem less than .jGIS-Mainview-Container */
+.jgis-right-panel-container,
+.jgis-left-panel-container {
+  position: absolute;
+  margin: 0.25rem;
+  z-index: 40;
+  max-height: calc(100% - 0.5rem);
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
 .jgis-right-panel-container {
   width: 330px;
-  top: 30px;
-  right: 0px;
-  position: absolute;
-  margin: 5px;
+  right: 0;
 }
 
 .jgis-left-panel-container {
-  position: absolute;
   width: 250px;
-  top: 30px;
-  left: 0px;
-  margin: 5px;
+  left: 0;
+}
+
+/* Mobile bottom sheet — merged panel only */
+@media (max-width: 768px) {
+  .jgis-merged-panel-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 30vh;
+  }
+
+  /* Drag-to-resize handle — visual pill only */
+  .jgis-resize-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 14px;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  .jgis-resize-handle::before {
+    content: '';
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--jp-border-color1);
+  }
+
+  /* Panel tabs fill the remaining height */
+  .jgis-merged-panel-container .jgis-panel-tabs {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-content[data-state='active'] {
+    flex: 1;
+    min-height: 0;
+    height: unset;
+    overflow-y: auto;
+  }
+
+  /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
+  .jgis-merged-panel-container .jgis-tabs-list {
+    cursor: ns-resize;
+    justify-content: flex-start;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+    scrollbar-color: var(--jp-border-color1) transparent;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list:active {
+    cursor: ns-resize;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar-thumb {
+    background-color: var(--jp-border-color1);
+    border-radius: 2px;
+  }
+}
+
+.jgis-icon-adjust {
+  padding-top: 5px;
+}
+
+.jgis-controls-toolbar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  gap: 0.5rem;
+  position: absolute;
+  bottom: 0.125rem;
+  z-index: 1;
+  padding: 0 0.125rem;
+}
+
+.jgis-controls-toolbar .ol-control,
+.jgis-controls-toolbar .ol-scale-line,
+.jgis-controls-toolbar .ol-full-screen {
+  position: relative;
+  top: unset;
+  bottom: unset;
+  left: unset;
+  right: unset;
+  margin: 0;
+}
+
+.jgis-controls-toolbar .ol-zoom {
+  position: fixed;
+  right: 0.125rem;
+}
+
+.jgis-geometry-type-selector-overlay {
+  position: absolute;
+  bottom: 20px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  gap: 8px;
+  z-index: 9999;
 }
 
 @media (max-width: 768px) {
@@ -120,4 +271,30 @@ button.jp-mod-styled.jp-mod-reject {
     position: relative;
     margin: 0;
   }
+}
+
+/* Fix for map in mobile specta view */
+body[data-notebook='specta'] #main.jp-ThemedContainer {
+  overflow: visible;
+}
+
+.jgis-center-content {
+  text-align: center;
+}
+
+.jgis-bg-transparent {
+  background-color: transparent;
+}
+
+.jgis-bg-transparent:hover {
+  background-color: transparent;
+}
+
+.jgis-rotate-90 {
+  rotate: 0deg;
+  transition: rotate 150ms ease;
+}
+
+[data-state='open'] > .jgis-rotate-90 {
+  rotate: 90deg;
 }

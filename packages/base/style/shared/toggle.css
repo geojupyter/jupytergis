@@ -46,7 +46,7 @@
 }
 
 .jgis-toggle-outline {
-  border: 1px solid var(--jp-accent-color0);
+  border: 1px solid var(--jp-border-color0);
   background-color: transparent;
   transition:
     background-color 0.3s,

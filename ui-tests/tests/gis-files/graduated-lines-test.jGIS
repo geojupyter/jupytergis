@@ -1,0 +1,161 @@
+{
+  "layerTree": [
+    "a1b2c3d4-0000-4000-8000-000000000001",
+    "a1b2c3d4-0000-4000-8000-000000000002"
+  ],
+  "layers": {
+    "a1b2c3d4-0000-4000-8000-000000000001": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "a1b2c3d4-0000-4000-8000-000000000003"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "a1b2c3d4-0000-4000-8000-000000000002": {
+      "name": "Roads (Graduated)",
+      "parameters": {
+        "color": {
+          "fill-color": [
+            "case",
+            ["has", "speed_limit"],
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "speed_limit"],
+              30.0,
+              [68.0, 1.0, 84.0, 1.0],
+              50.0,
+              [59.0, 82.0, 139.0, 1.0],
+              70.0,
+              [33.0, 145.0, 140.0, 1.0],
+              90.0,
+              [94.0, 201.0, 97.0, 1.0],
+              110.0,
+              [253.0, 231.0, 37.0, 1.0]
+            ],
+            [0.0, 0.0, 0.0, 0.0]
+          ],
+          "circle-fill-color": [
+            "case",
+            ["has", "speed_limit"],
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "speed_limit"],
+              30.0,
+              [68.0, 1.0, 84.0, 1.0],
+              50.0,
+              [59.0, 82.0, 139.0, 1.0],
+              70.0,
+              [33.0, 145.0, 140.0, 1.0],
+              90.0,
+              [94.0, 201.0, 97.0, 1.0],
+              110.0,
+              [253.0, 231.0, 37.0, 1.0]
+            ],
+            [0.0, 0.0, 0.0, 0.0]
+          ],
+          "stroke-color": [
+            "case",
+            ["has", "speed_limit"],
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "speed_limit"],
+              30.0,
+              [68.0, 1.0, 84.0, 1.0],
+              50.0,
+              [59.0, 82.0, 139.0, 1.0],
+              70.0,
+              [33.0, 145.0, 140.0, 1.0],
+              90.0,
+              [94.0, 201.0, 97.0, 1.0],
+              110.0,
+              [253.0, 231.0, 37.0, 1.0]
+            ],
+            [0.0, 0.0, 0.0, 0.0]
+          ],
+          "circle-stroke-color": [
+            "case",
+            ["has", "speed_limit"],
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "speed_limit"],
+              30.0,
+              [68.0, 1.0, 84.0, 1.0],
+              50.0,
+              [59.0, 82.0, 139.0, 1.0],
+              70.0,
+              [33.0, 145.0, 140.0, 1.0],
+              90.0,
+              [94.0, 201.0, 97.0, 1.0],
+              110.0,
+              [253.0, 231.0, 37.0, 1.0]
+            ],
+            [0.0, 0.0, 0.0, 0.0]
+          ],
+          "stroke-width": 3.0,
+          "circle-stroke-width": 3.0,
+          "circle-radius": 5.0
+        },
+        "opacity": 1.0,
+        "source": "a1b2c3d4-0000-4000-8000-000000000004",
+        "type": "line",
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": 5.0,
+          "renderType": "Graduated",
+          "reverseRamp": false,
+          "strokeFollowsFill": true,
+          "value": "speed_limit",
+          "vmin": 30.0,
+          "vmax": 110.0
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -225000.0,
+      6125000.0,
+      -208000.0,
+      6136000.0
+    ],
+    "latitude": 48.02,
+    "longitude": -1.95,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 12.0
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "a1b2c3d4-0000-4000-8000-000000000003": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "a1b2c3d4-0000-4000-8000-000000000004": {
+      "name": "Roads Test Source",
+      "parameters": {
+        "path": "roads-test.geojson"
+      },
+      "type": "GeoJSONSource"
+    }
+  },
+  "stories": {}
+}

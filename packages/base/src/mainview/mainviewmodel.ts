@@ -6,9 +6,8 @@ import {
 } from '@jupytergis/schema';
 import { ObservableMap } from '@jupyterlab/observables';
 import { CommandRegistry } from '@lumino/commands';
-import { JSONValue } from '@lumino/coreutils';
+import { JSONValue, UUID } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
-import { v4 as uuid } from 'uuid';
 
 export class MainViewModel implements IDisposable {
   constructor(options: MainViewModel.IOptions) {
@@ -56,7 +55,7 @@ export class MainViewModel implements IDisposable {
   }
 
   addAnnotation(value: IAnnotation): void {
-    this._jGISModel.annotationModel?.addAnnotation(uuid(), value);
+    this._jGISModel.annotationModel?.addAnnotation(UUID.uuid4(), value);
   }
 
   private async _onsharedLayersChanged(

@@ -4,19 +4,23 @@ import {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
   SourceType,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
-import * as d3Color from 'd3-color';
+import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 import { compressors } from 'hyparquet-compressors';
+import { Source } from 'ol/source';
+import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import LAYER_GALLERY from '@/_generated/layer_gallery.json';
+import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -76,11 +80,19 @@ export function nearest(n: number, tol: number): number {
   }
 }
 
-export function getCSSVariableColor(name: string): string {
-  const color =
-    window.getComputedStyle(document.body).getPropertyValue(name) || '#ffffff';
+/** Read a CSS variable from the document root and return the value. */
+export function getCssVarAsColor(cssVar: string): string {
+  if (typeof document === 'undefined') {
+    return '';
+  }
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(cssVar)
+    .trim();
+  if (!value) {
+    return '';
+  }
 
-  return d3Color.rgb(color).formatHex();
+  return value;
 }
 
 /**
@@ -111,7 +123,10 @@ export async function requestAPI<T>(
     try {
       data = JSON.parse(data);
     } catch (error) {
-      console.log('Not a JSON response body.', response);
+      console.error(
+        'Jupyter API request failed -- not a JSON response body:',
+        response,
+      );
     }
   }
 
@@ -141,7 +156,7 @@ export function deepCopy<T = IDict<any>>(value: T): T {
 export function createDefaultLayerRegistry(
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
 ): void {
-  const RASTER_THUMBNAILS: { [key: string]: string } = {};
+  const LAYER_THUMBNAILS: { [key: string]: string } = {};
 
   /**
    * Generate object to hold thumbnail URLs
@@ -149,28 +164,30 @@ export function createDefaultLayerRegistry(
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
     r.keys().forEach(key => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
-      RASTER_THUMBNAILS[imageName] = r(key);
+      LAYER_THUMBNAILS[imageName] = r(key);
     });
   };
 
   const context = require.context(
-    '../rasterlayer_gallery',
+    '../layer_gallery_thumbnails',
     false,
     /\.(png|jpe?g|gif|svg)$/,
   );
   importAll(context);
 
-  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
-    const xyzprovider: any = (RASTER_LAYER_GALLERY as any)[entry];
+  for (const entry of Object.keys(LAYER_GALLERY)) {
+    const layerProvider: any = (LAYER_GALLERY as any)[entry];
 
-    if ('url' in xyzprovider) {
-      const tile = convertToRegistryEntry(entry, xyzprovider);
+    if ('thumbnailPath' in layerProvider) {
+      /*flat layer provider*/
+      const tile = convertToRegistryEntry(entry, layerProvider);
       layerBrowserRegistry.addRegistryLayer(tile);
     } else {
-      Object.keys(xyzprovider).forEach(mapName => {
+      /* nested layer provider */
+      Object.keys(layerProvider).forEach(mapName => {
         const tile = convertToRegistryEntry(
-          xyzprovider[mapName]['name'],
-          xyzprovider[mapName],
+          layerProvider[mapName]['name'],
+          layerProvider[mapName],
           entry,
         );
 
@@ -181,43 +198,27 @@ export function createDefaultLayerRegistry(
 
   // TODO: These need better names
   /**
-   * Parse tile information from providers to be useable in the layer registry
+   * Parse tile information from providers to be usable in the layer registry
    *
    * @param entry - The name of the entry, which may also serve as the default provider name if none is specified.
-   * @param xyzprovider - An object containing the XYZ provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
+   * @param layerProvider - An object containing the provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
    * @param provider - Optional. Specifies the provider name. If not provided, the `entry` parameter is used as the default provider name.
    * @returns - An object representing the registry entry
    */
   function convertToRegistryEntry(
     entry: string,
-    xyzprovider: { [x: string]: any },
+    layerProvider: { [x: string]: any },
     provider?: string | undefined,
-  ): IRasterLayerGalleryEntry {
-    const urlParameters: any = {};
-    if (xyzprovider.time) {
-      urlParameters.time = xyzprovider.time;
-    }
-    if (xyzprovider.variant) {
-      urlParameters.variant = xyzprovider.variant;
-    }
-    if (xyzprovider.tilematrixset) {
-      urlParameters.tilematrixset = xyzprovider.tilematrixset;
-    }
-    if (xyzprovider.format) {
-      urlParameters.format = xyzprovider.format;
-    }
-
+  ): ILayerGalleryEntry {
     return {
       name: entry,
-      thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
-      source: {
-        url: xyzprovider['url'],
-        minZoom: xyzprovider['min_zoom'] || 0,
-        maxZoom: xyzprovider['max_zoom'] || 24,
-        attribution: xyzprovider['attribution'] || '',
-        provider: provider ?? entry,
-        urlParameters,
-      },
+      thumbnail: LAYER_THUMBNAILS[layerProvider['name'].replace('.', '-')],
+      sourceType: layerProvider['sourceType'],
+      layerType: layerProvider['layerType'],
+      sourceParameters: layerProvider['sourceParameters'],
+      layerParameters: layerProvider['layerParameters'],
+      provider: provider ?? entry.split('.', 1)[0],
+      description: layerProvider['description'],
     };
   }
 }
@@ -292,7 +293,7 @@ export async function getLayerTileInfo(
 export interface IParsedStyle {
   fillColor: string;
   strokeColor: string;
-  strokeWidth: number;
+  strokeWidth: string;
   joinStyle: string;
   capStyle: string;
   radius?: number;
@@ -308,7 +309,11 @@ export function parseColor(style: any): IParsedStyle | undefined {
     fillColor: style['circle-fill-color'] ?? style['fill-color'] ?? '#3399CC',
     strokeColor:
       style['circle-stroke-color'] ?? style['stroke-color'] ?? '#3399CC',
-    strokeWidth: style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+    strokeWidth: String(
+      style['circle-stroke-width'] ??
+        style['stroke-width'] ??
+        DEFAULT_STROKE_WIDTH,
+    ),
     joinStyle:
       style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
     capStyle:
@@ -415,7 +420,7 @@ export const fetchWithProxies = async <T>(
 
   const strategies: Record<ProxyStrategy, (url: string) => string> = {
     direct: url => url,
-    internal: url => `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`,
+    internal: url => `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
     external: url => `${proxyUrl}/?url=${encodeURIComponent(url)}`,
   };
 
@@ -492,6 +497,157 @@ export const loadGeoTiff = async (
   };
 };
 
+interface IVectorEntry {
+  source: Source;
+  sld: string | undefined;
+}
+
+interface ITileEntry {
+  gpr: GeoPackageTileRetriever;
+  tileDao: object;
+}
+
+type GpkgTable = Record<string, IVectorEntry | ITileEntry>;
+
+const geoPackageCache = new Map<string, Promise<GpkgTable>>();
+
+/**
+ * Convert curved geometries to linear geometries for a given GeoPackage vector file, and reproject the data
+ *
+ * @param fileBlob GeoPackage file as a blob
+ * @returns Blob URL created from converted file
+ */
+async function linearizeReprojectGpkg(
+  fileBlob: Blob,
+  projection: string,
+): Promise<string> {
+  const gdal = await getGdal();
+  const file = new File([fileBlob], 'input.gpkg', {
+    type: 'application/geopackage+sqlite3',
+  });
+  const ds = await gdal.open(file);
+  await gdal.ogr2ogr(
+    ds.datasets[0],
+    ['-f', 'GPKG', '-nlt', 'CONVERT_TO_LINEAR', '-t_srs', projection],
+    'output',
+  );
+  const bytes = await gdal.getFileBytes('/output/output.gpkg');
+  const blob = new Blob([new Uint8Array(bytes)], {
+    type: 'application/geopackage+sqlite3',
+  });
+  const url = URL.createObjectURL(blob);
+  return url;
+}
+
+function loadGeoPackageVectorFile(
+  fileBlob: Blob,
+  projection: string,
+  cacheFilename: string,
+): Promise<GpkgTable> {
+  if (geoPackageCache.has(cacheFilename)) {
+    return geoPackageCache.get(cacheFilename)!;
+  }
+
+  const loader = (async (): Promise<GpkgTable> => {
+    try {
+      const url = await linearizeReprojectGpkg(fileBlob, projection);
+      const [tables, slds] = await loadGpkg(url, projection);
+      const tableMap: GpkgTable = {};
+      for (const name of Object.keys(tables)) {
+        tableMap[name] = {
+          source: tables[name],
+          sld: slds[name],
+        };
+      }
+      return tableMap;
+    } catch (e: any) {
+      showErrorMessage('Failed to load GeoPackage file', e);
+      throw e;
+    }
+  })();
+  geoPackageCache.set(cacheFilename, loader);
+  return loader;
+}
+
+async function loadGeoPackageRasterFile(
+  filepath: string,
+  cacheFilename: string,
+  model?: IJupyterGISModel,
+  file_content?: string,
+): Promise<GpkgTable> {
+  if (geoPackageCache.has(cacheFilename)) {
+    return geoPackageCache.get(cacheFilename)!;
+  }
+
+  const loader = (async (): Promise<GpkgTable> => {
+    try {
+      let bytes: Uint8Array;
+      if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
+        bytes = await loadGkpgFromUrl(filepath, model!);
+      } else {
+        const arrayBuffer = await stringToArrayBuffer(file_content as string);
+        bytes = new Uint8Array(arrayBuffer);
+      }
+
+      const geoPackage = await GeoPackageAPI.open(bytes);
+      const tileTables = await geoPackage.getTileTables();
+      const tableMap: GpkgTable = {};
+
+      tileTables.forEach(tableName => {
+        const tileDao = geoPackage.getTileDao(tableName);
+
+        const tileWidth = tileDao.tileMatrices[0].tile_width;
+        const tileHeight = tileDao.tileMatrices[0].tile_height;
+
+        tableMap[tableName] = {
+          gpr: new GeoPackageTileRetriever(tileDao, tileWidth, tileHeight),
+          tileDao,
+        };
+      });
+
+      return tableMap;
+    } catch (error: any) {
+      showErrorMessage(
+        `Failed to load GeoPackage file: ${cacheFilename}`,
+        error,
+      );
+      throw error;
+    }
+  })();
+
+  geoPackageCache.set(cacheFilename, loader);
+  return loader;
+}
+
+async function loadGkpgFromUrl(
+  filepath: string,
+  model: IJupyterGISModel,
+): Promise<Uint8Array> {
+  const response = await fetchWithProxies(filepath, model, async response => {
+    const arrayBuffer = await response.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
+  });
+  if (!response) {
+    throw new Error(`Failed to fetch GeoPackage from URL: ${filepath}`);
+  }
+  return response;
+}
+
+export async function getGeoPackageTableNames(
+  filepath: string,
+  type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
+) {
+  const cacheKey =
+    filepath + (type === 'GeoPackageRasterSource' ? 'Raster' : 'Vector');
+
+  const tableMap = await geoPackageCache.get(cacheKey);
+  if (!tableMap) {
+    return [];
+  }
+
+  return Object.keys(tableMap);
+}
+
 /**
  * Generalized file reader for different source types.
  *
@@ -504,6 +660,10 @@ export const loadFile = async (fileInfo: {
   model: IJupyterGISModel;
 }) => {
   const { filepath, type, model } = fileInfo;
+
+  if (!filepath) {
+    return;
+  }
 
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
@@ -573,6 +733,34 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
+      case 'GeoPackageVectorSource': {
+        const projection = model.sharedModel.options.projection;
+        if (!projection) {
+          throw new Error(`Projection is not specified for ${filepath}`);
+        }
+
+        const fileBlob = await fetchWithProxies(
+          filepath,
+          model,
+          async response => response.blob(),
+        );
+
+        if (!fileBlob) {
+          showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+          throw new Error(`Failed to fetch ${filepath}`);
+        }
+
+        return loadGeoPackageVectorFile(
+          fileBlob,
+          projection,
+          filepath + 'Vector',
+        );
+      }
+
+      case 'GeoPackageRasterSource': {
+        return loadGeoPackageRasterFile(filepath, filepath + 'Raster', model);
+      }
+
       case 'GeoParquetSource': {
         const cached = await getFromIndexedDB(filepath);
         if (cached) {
@@ -619,19 +807,42 @@ export const loadFile = async (fileInfo: {
 
     switch (type) {
       case 'GeoJSONSource': {
-        return typeof file.content === 'string'
-          ? JSON.parse(file.content)
-          : file.content;
+        switch (file.format) {
+          case 'base64': {
+            return JSON.parse(atob(file.content));
+          }
+          case 'text': {
+            return JSON.parse(file.content);
+          }
+          case 'json': {
+            return file.content;
+          }
+        }
+        break;
       }
 
       case 'ShapefileSource': {
-        const arrayBuffer = await stringToArrayBuffer(file.content as string);
-        const geojson = await shp(arrayBuffer);
+        let buffer: ArrayBuffer;
+        switch (file.format) {
+          case 'base64': {
+            buffer = await base64ToArrayBuffer(file.content);
+            break;
+          }
+          case 'text': {
+            buffer = await stringToArrayBuffer(file.content);
+            break;
+          }
+          case 'json':
+          default: {
+            throw new Error(`Invalid Shapefile format: ${file.format}.`);
+          }
+        }
+        const geojson = await shp(buffer);
         return geojson;
       }
 
       case 'ImageSource': {
-        if (typeof file.content === 'string') {
+        if (file.format === 'base64') {
           const mimeType = getMimeType(filepath);
           if (!mimeType.startsWith('image/')) {
             throw new Error(`Invalid image file. MIME type: ${mimeType}`);
@@ -659,16 +870,44 @@ export const loadFile = async (fileInfo: {
         }
       }
 
-      case 'GeoParquetSource': {
-        if (typeof file.content === 'string') {
-          const { toGeoJson } = await import('geoparquet');
-
-          const arrayBuffer = await stringToArrayBuffer(file.content);
-
-          return await toGeoJson({ file: arrayBuffer, compressors });
-        } else {
-          throw new Error('Invalid file format for GeoParquet content.');
+      case 'GeoPackageVectorSource': {
+        const projection = model.sharedModel.options.projection;
+        if (!projection) {
+          throw new Error(`Projection is not specified for ${filepath}`);
         }
+        const blob = await base64ToBlob(file.content, getMimeType(filepath));
+        return loadGeoPackageVectorFile(blob, projection, filepath + 'Vector');
+      }
+
+      case 'GeoPackageRasterSource': {
+        return loadGeoPackageRasterFile(
+          filepath,
+          filepath + 'Raster',
+          undefined,
+          file.content,
+        );
+      }
+
+      case 'GeoParquetSource': {
+        let buffer: ArrayBuffer;
+        switch (file.format) {
+          case 'base64': {
+            buffer = await base64ToArrayBuffer(file.content);
+            break;
+          }
+          case 'text': {
+            buffer = await stringToArrayBuffer(file.content);
+            break;
+          }
+          case 'json':
+          default: {
+            throw new Error(`Invalid Geoparquet format: ${file.format}.`);
+          }
+        }
+
+        const { toGeoJson } = await import('geoparquet');
+
+        return await toGeoJson({ file: buffer, compressors });
       }
 
       default: {
@@ -714,6 +953,8 @@ export const base64ToBlob = async (
 /**
  * A mapping of file extensions to their corresponding MIME types.
  */
+export const INTERNAL_PROXY_BASE = '/jupytergis_core/proxy';
+
 export const MIME_TYPES: { [ext: string]: string } = {
   // from https://github.com/python/cpython/blob/3.9/Lib/mimetypes.py
   '.a': 'application/octet-stream',
@@ -742,6 +983,7 @@ export const MIME_TYPES: { [ext: string]: string } = {
   '.etx': 'text/x-setext',
   '.exe': 'application/octet-stream',
   '.gif': 'image/gif',
+  '.gpkg': 'application/geopackage+vnd.sqlite3',
   '.gtar': 'application/x-gtar',
   '.h': 'text/plain',
   '.hdf': 'application/x-hdf',
@@ -881,16 +1123,24 @@ export const getMimeType = (filename: string): string => {
  * @param content - File content as a base64 string.
  * @returns An ArrayBuffer.
  */
-export const stringToArrayBuffer = async (
-  content: string,
-): Promise<ArrayBuffer> => {
+const base64ToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
   const base64Response = await fetch(
     `data:application/octet-stream;base64,${content}`,
   );
   return await base64Response.arrayBuffer();
 };
 
-const getFeatureAttributes = <T>(
+/**
+ * Helper to convert a raw string to ArrayBuffer.
+ *
+ * @param content - Raw string content.
+ * @returns An ArrayBuffer.
+ */
+const stringToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
+  return new TextEncoder().encode(content).buffer;
+};
+
+export const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
   predicate: (key: string, value: any) => boolean = (key: string, value) =>
     true,
@@ -933,8 +1183,7 @@ export const getColorCodeFeatureAttributes = (
   featureProperties: Record<string, Set<any>>,
 ): Record<string, Set<string>> => {
   return getFeatureAttributes<string>(featureProperties, (_, value) => {
-    const regex = new RegExp('^#[0-9a-f]{6}$');
-    return typeof value === 'string' && regex.test(value);
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
   });
 };
 
@@ -999,3 +1248,14 @@ export const objectEntries = Object.entries as <
 >(
   obj: T,
 ) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
+
+/**
+ * Extract the layerOverride array index from an RJSF idSchema (e.g. from $id like "root_layerOverride_0_sourceProperties").
+ */
+export function extractLayerOverrideIndex(idSchema: {
+  $id?: string;
+}): number | undefined {
+  const id = idSchema?.$id ?? '';
+  const match = id.match(/layerOverride_(\d+)/);
+  return match ? parseInt(match[1], 10) : undefined;
+}
