@@ -1,4 +1,4 @@
-import { IJupyterGISClientState, IJupyterGISModel } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import * as React from 'react';
 
 interface IUseRightPanelOptionsResult {
@@ -52,30 +52,30 @@ export function useRightPanelOptions(
         onPresentationModeEnabledRef.current?.();
       }
     };
-    let currentlyIdentifiedFeatures: any = undefined;
-    const onAwarenessChanged = (
-      _: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
-      const clientId = model.getClientId();
-      const localState = clientId ? clients.get(clientId) : null;
 
-      if (
-        localState &&
-        localState.identifiedFeatures?.value &&
-        localState.identifiedFeatures.value !== currentlyIdentifiedFeatures
-      ) {
-        currentlyIdentifiedFeatures = localState.identifiedFeatures.value;
+    let currentlyIdentifiedFeatures: any = undefined;
+
+    const handleIdentifiedFeaturesChanged = () => {
+      const identifiedFeatures = model.localState?.identifiedFeatures?.value;
+      if (!identifiedFeatures) {
+        return;
+      }
+
+      if (identifiedFeatures !== currentlyIdentifiedFeatures) {
+        currentlyIdentifiedFeatures = identifiedFeatures;
         onIdentifyFeaturesRef.current?.();
       }
     };
 
     model.sharedOptionsChanged.connect(onOptionsChanged);
-    model.clientStateChanged.connect(onAwarenessChanged);
+    model.identifiedFeaturesChanged.connect(handleIdentifiedFeaturesChanged);
+    handleIdentifiedFeaturesChanged();
 
     return () => {
       model.sharedOptionsChanged.disconnect(onOptionsChanged);
-      model.clientStateChanged.disconnect(onAwarenessChanged);
+      model.identifiedFeaturesChanged.disconnect(
+        handleIdentifiedFeaturesChanged,
+      );
     };
   }, [model]);
 

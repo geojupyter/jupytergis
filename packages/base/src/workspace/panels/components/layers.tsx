@@ -1,7 +1,6 @@
 import {
   IJGISLayerGroup,
   IJGISLayerTree,
-  IJupyterGISClientState,
   IJupyterGISModel,
   ISelection,
   SelectionType,
@@ -273,14 +272,15 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
-    const onClientSharedStateChanged = () => {
+    const handleSelectedChanged = () => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(group.name, gisModel));
     };
-    gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
+    gisModel?.selectedChanged.connect(handleSelectedChanged);
+    handleSelectedChanged();
 
     return () => {
-      gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
+      gisModel?.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, [gisModel, group.name]);
 
@@ -475,17 +475,15 @@ const LayerComponent: React.FC<ILayerProps> = props => {
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
-    const onClientSharedStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
+    const handleSelectedChanged = () => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(layerId, gisModel));
     };
-    gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
+    gisModel?.selectedChanged.connect(handleSelectedChanged);
+    handleSelectedChanged();
 
     return () => {
-      gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
+      gisModel?.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, [gisModel, layerId]);
 

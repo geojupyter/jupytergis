@@ -53,7 +53,7 @@ import {
   IWebGlLayer,
   Modes,
 } from './types';
-export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
@@ -114,6 +114,7 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  lastAddedLayer?: { layerId?: string };
   selectedPropField?: {
     id: string | null;
     value: any;
@@ -126,6 +127,32 @@ export interface IJupyterGISClientState {
   remoteUser?: number;
   toolbarForm?: IDict;
   isTemporalControllerActive: boolean;
+}
+
+export const AWARENESS_STATE_FIELDS = {
+  selected: 'selected',
+  pointer: 'pointer',
+  viewportState: 'viewportState',
+  identifiedFeatures: 'identifiedFeatures',
+  remoteUser: 'remoteUser',
+  isTemporalControllerActive: 'isTemporalControllerActive',
+  lastAddedLayer: 'lastAddedLayer',
+} as const;
+
+export type AwarenessFieldKey =
+  (typeof AWARENESS_STATE_FIELDS)[keyof typeof AWARENESS_STATE_FIELDS];
+
+export const AWARENESS_FIELD_KEYS = Object.values(
+  AWARENESS_STATE_FIELDS,
+) as AwarenessFieldKey[];
+
+export interface IAwarenessFieldChange<T = any> {
+  clientId: number;
+  field: AwarenessFieldKey;
+  previousValue: T | undefined;
+  currentValue: T | undefined;
+  fullState: IJupyterGISClientState | undefined;
+  isLocalClient: boolean;
 }
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
@@ -233,9 +260,29 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
   >;
-  clientStateChanged: ISignal<
+  selectedChanged: ISignal<
     IJupyterGISModel,
-    Map<number, IJupyterGISClientState>
+    IAwarenessFieldChange<IJupyterGISClientState['selected']>
+  >;
+  pointerChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['pointer']>
+  >;
+  viewportStateChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['viewportState']>
+  >;
+  identifiedFeaturesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  >;
+  remoteUserChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
+  >;
+  temporalControllerActiveChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['isTemporalControllerActive']>
   >;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
