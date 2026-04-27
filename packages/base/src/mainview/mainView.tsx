@@ -293,6 +293,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onSharedMetadataChanged,
       this,
     );
+
+    this._model.identifiedFeaturesChanged.connect(
+      this._handleIdentifiedFeaturesChanged,
+      this,
+    );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
@@ -317,19 +322,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     Promise.resolve().then(() => {
       this._syncSettingsFromRegistry();
     });
-
-    // Watch identify-related awareness changes and clear highlight when
-    // Identify tool is turned off.
-    this._model.identifiedFeaturesChanged.connect(
-      this._clearHighlightWhenIdentifyDisabled,
-      this,
-    );
-
-    // ! signal when awareness PR merged
-    this._model.sharedModel.awareness.on(
-      'change',
-      this._onIdentifyFloaterRowsChange,
-    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -432,12 +424,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.selectedChanged.disconnect(this._handleSelectedChanged, this);
     this._model.identifiedFeaturesChanged.disconnect(
-      this._clearHighlightWhenIdentifyDisabled,
+      this._handleIdentifiedFeaturesChanged,
       this,
-    );
-    this._model.sharedModel.awareness.off(
-      'change',
-      this._onIdentifyFloaterRowsChange,
     );
 
     // Clean up story scroll listener
@@ -2740,6 +2728,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._highlightLayer.getSource()?.clear();
     }
   }
+
+  private _handleIdentifiedFeaturesChanged = (): void => {
+    this._onIdentifyFloaterRowsChange();
+    this._clearHighlightWhenIdentifyDisabled();
+  };
 
   /**
    * Handler for when story maps change in the model.
