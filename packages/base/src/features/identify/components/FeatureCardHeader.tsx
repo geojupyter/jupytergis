@@ -25,7 +25,7 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
 
   return (
     <div className="identify-v2-card-header">
-      <div className="jgis-symbology-override-collapsible-trigger">
+      <div className="identify-v2-card-header-actions">
         <Button
           size="icon-sm"
           variant="icon"
@@ -36,38 +36,40 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
         <span>{featureTitle}</span>
       </div>
 
-      <Button
-        size="icon-md"
-        variant="icon"
-        className="jgis-inline-icon"
-        onClick={e => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggleFloater(feature);
-        }}
-        title={feature?.floaterOpen ? 'Hide map floater' : 'Show map floater'}
-      >
-        {feature?.floaterOpen ? <EyeOff /> : <Eye />}
-      </Button>
+      <div className="identify-v2-card-header-actions">
+        <Button
+          size="icon-md"
+          variant="icon"
+          className="jgis-inline-icon"
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFloater(feature);
+          }}
+          title={feature?.floaterOpen ? 'Hide map floater' : 'Show map floater'}
+        >
+          {feature?.floaterOpen ? <EyeOff /> : <Eye />}
+        </Button>
 
-      <Button
-        size="icon-md"
-        variant="icon"
-        className="jgis-inline-icon"
-        onClick={e => {
-          e.preventDefault();
-          e.stopPropagation();
-          onHighlightFeature(feature);
-        }}
-        title={
-          isRasterFeature
-            ? 'Highlight not available for raster features'
-            : 'Highlight feature on map'
-        }
-        disabled={isRasterFeature}
-      >
-        <Search />
-      </Button>
+        <Button
+          size="icon-md"
+          variant="icon"
+          className="jgis-inline-icon"
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            onHighlightFeature(feature);
+          }}
+          title={
+            isRasterFeature
+              ? 'Highlight not available for raster features'
+              : 'Highlight feature on map'
+          }
+          disabled={isRasterFeature}
+        >
+          <Search />
+        </Button>
+      </div>
     </div>
   );
 };

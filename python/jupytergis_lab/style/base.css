@@ -855,6 +855,12 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   line-height: 1.5rem;
 }
 
+.identify-v2-card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .identify-v2-content {
   display: flex;
   flex-direction: column;

@@ -55,7 +55,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
         onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
       >
         <CollapsibleTrigger asChild>
-          <div>
+          <div className="jgis-symbology-override-collapsible-trigger">
             <FeatureCardHeader
               feature={feature}
               isOpen={isVisible}
