@@ -95,8 +95,9 @@
           "default": "equal interval",
           "enum": ["continuous", "equal interval", "quantile"]
         },
-        "stops": {
-          "type": "array"
+        "stopsOverride": {
+          "type": "array",
+          "description": "User-customized color stops that override the computed classification. Saved only when the user manually edits stop colors in the dialog."
         }
       },
       "additionalProperties": false,

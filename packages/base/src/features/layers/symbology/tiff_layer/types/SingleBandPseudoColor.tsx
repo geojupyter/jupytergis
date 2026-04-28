@@ -73,12 +73,14 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampControlsOptions | undefined
   >();
+  const [stopsAltered, setStopsAltered] = useState(false);
 
   const stopRowsRef = useLatest(stopRows);
   const bandRowsRef = useLatest(bandRows);
   const selectedFunctionRef = useLatest(selectedFunction);
   const colorRampOptionsRef = useLatest(colorRampOptions);
   const selectedBandRef = useLatest(selectedBand);
+  const stopsAlteredRef = useLatest(stopsAltered);
 
   useEffect(() => {
     populateOptions();
@@ -101,8 +103,9 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     setSelectedBand(band);
     setSelectedFunction(interpolation);
 
-    if (params.symbologyState?.stops) {
-      setStopRows(params.symbologyState.stops as IStopRow[]);
+    if (params.symbologyState?.stopsOverride) {
+      setStopRows(params.symbologyState.stopsOverride as IStopRow[]);
+      setStopsAltered(true);
     } else {
       buildColorInfo();
     }
@@ -171,6 +174,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     }
 
     setStopRows(valueColorPairs);
+    setStopsAltered(false);
   };
 
   const handleOk = () => {
@@ -253,8 +257,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           ? String(colorRampOptionsRef.current.numberOfShades)
           : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
-      stops: stopRowsRef.current,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+      ...(stopsAlteredRef.current
+        ? { stopsOverride: stopRowsRef.current }
+        : {}),
     } as IWebGlLayer['symbologyState'];
 
     if (!isStorySegmentOverride) {
@@ -291,6 +297,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   useOkSignal(okSignalPromise, handleOk);
 
   const addStopRow = () => {
+    setStopsAltered(true);
     setStopRows([
       {
         id: UUID.uuid4(),
@@ -302,12 +309,17 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const deleteStopRow = (index: number) => {
+    setStopsAltered(true);
     const newFilters = [...stopRows];
     newFilters.splice(index, 1);
 
     setStopRows(newFilters);
   };
 
+  const updateStopRows = (rows: IStopRow[]) => {
+    setStopsAltered(true);
+    setStopRows(rows);
+  };
   const buildColorInfoFromClassification = async (
     selectedMode: ClassificationMode,
     numberOfShades: number,
@@ -375,6 +387,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     );
 
     setStopRows(valueColorPairs);
+    setStopsAltered(false);
   };
 
   const scaleValue = (bandValue: number, isQuantile: boolean) => {
@@ -470,7 +483,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
             dataValue={stop.stop}
             symbologyValue={stop.output}
             stopRows={stopRows}
-            setStopRows={setStopRows}
+            setStopRows={updateStopRows}
             deleteRow={() => deleteStopRow(index)}
           />
         ))}
