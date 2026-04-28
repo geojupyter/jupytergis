@@ -363,15 +363,19 @@ class ProcessingHandler(APIHandler):
         version = None
         if available:
             try:
-                result = subprocess.run(
-                    ["ogr2ogr", "--version"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
+                result = await tornado.ioloop.IOLoop.current().run_in_executor(
+                    None,
+                    lambda: subprocess.run(
+                        ["ogr2ogr", "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        check=False,
+                    ),
                 )
                 version = result.stdout.strip()
-            except Exception:
-                pass
+            except (subprocess.SubprocessError, OSError) as e:
+                logger.warning("Failed to read GDAL version: %s", e)
 
         self.finish(json.dumps({"available": available, "version": version}))
 
@@ -392,6 +396,7 @@ class ProcessingHandler(APIHandler):
             "result": "<output content>",
             "format": "text" | "base64"
         }
+
         """
         try:
             body = json.loads(self.request.body)
@@ -411,9 +416,9 @@ class ProcessingHandler(APIHandler):
                 json.dumps(
                     {
                         "error": f"Unsupported operation: {operation}. "
-                        f"Allowed: {sorted(ALLOWED_OPERATIONS)}"
-                    }
-                )
+                        f"Allowed: {sorted(ALLOWED_OPERATIONS)}",
+                    },
+                ),
             )
             return
 
@@ -425,7 +430,7 @@ class ProcessingHandler(APIHandler):
         if not gdal_available():
             self.set_status(503)
             self.finish(
-                json.dumps({"error": "GDAL CLI tools are not installed on the server"})
+                json.dumps({"error": "GDAL CLI tools are not installed on the server"}),
             )
             return
 
@@ -454,7 +459,7 @@ class ProcessingHandler(APIHandler):
             self.finish(json.dumps({"error": f"GDAL error: {e.stderr.strip()}"}))
             return
         except Exception as e:
-            logger.error("Processing error: %s", e)
+            logger.exception("Processing error")
             self.set_status(500)
             self.finish(json.dumps({"error": str(e)}))
             return

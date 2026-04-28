@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tempfile
 from base64 import b64encode
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -65,25 +66,29 @@ def run_gdal(
             text=True,
             timeout=120,
             cwd=tmpdir,
+            check=False,
         )
 
         if result.returncode != 0:
             raise subprocess.CalledProcessError(
-                result.returncode, cmd, result.stdout, result.stderr
+                result.returncode,
+                cmd,
+                result.stdout,
+                result.stderr,
             )
 
         if not os.path.exists(output_path):
             raise FileNotFoundError(
-                f"GDAL operation did not produce expected output: {output_name}"
+                f"GDAL operation did not produce expected output: {output_name}",
             )
 
         # Determine output format based on file extension
-        _, ext = os.path.splitext(output_name)
+        ext = Path(output_name).suffix
         is_binary = ext.lower() in {".tif", ".tiff", ".gpkg", ".shp"}
 
         if is_binary:
             with open(output_path, "rb") as f:
                 return b64encode(f.read()).decode("ascii"), "base64"
         else:
-            with open(output_path, "r") as f:
+            with open(output_path) as f:
                 return f.read(), "text"
