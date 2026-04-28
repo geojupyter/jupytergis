@@ -22,7 +22,7 @@ interface IFeatureCardProps {
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
   onToggleVisibility: (rowIndex: number, isOpen: boolean) => void;
-  onToggleFloater: (rowIndex: number) => void;
+  onToggleFloater: () => void;
   onHighlightFeature: (feature: any) => void;
 }
 
@@ -62,7 +62,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
               feature={feature}
               isFloaterOpen={isFloaterOpen}
               featureTitle={featureTitle}
-              onToggleFloater={() => onToggleFloater(rowIndex)}
+              onToggleFloater={onToggleFloater}
               onHighlightFeature={onHighlightFeature}
             />
           </div>

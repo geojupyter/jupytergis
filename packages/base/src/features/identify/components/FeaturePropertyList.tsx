@@ -23,7 +23,7 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
   const isFeatureEditable = feature?._fromDrawTool === true;
 
   return (
-    <>
+    <div className="jgis-identify-property-rows">
       {Object.entries(feature)
         .filter(([_, value]) => typeof value !== 'object' || value === null)
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
@@ -70,6 +70,6 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
             />
           );
         })}
-    </>
+    </div>
   );
 };

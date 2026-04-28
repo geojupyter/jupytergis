@@ -113,7 +113,7 @@ export interface ISelection {
 }
 
 export interface IIdentifiedFeature {
-  _id?: string | number;
+  _id?: string;
   _fromDrawTool?: boolean;
   geometry?: unknown;
   _geometry?: unknown;

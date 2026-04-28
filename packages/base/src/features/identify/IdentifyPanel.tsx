@@ -16,7 +16,7 @@ interface IIdentifyComponentProps {
   persistAndRefreshSource?: (id: string, source: IJGISSource) => Promise<void>;
   patchGeoJSONFeatureProperties?: (
     sourceId: string,
-    target: { featureId: string | number },
+    target: { featureId: string },
     propertyUpdates: IDict<any>,
   ) => Promise<boolean>;
 }
@@ -111,20 +111,22 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }));
   };
 
-  const toggleFeatureFloater = (rowIndex: number) => {
+  const toggleFeatureFloater = (featureId: string | undefined) => {
+    if (!featureId) {
+      return;
+    }
+
     setFeatures(previous => {
-      const nextFeatures = [...previous];
-      const target = nextFeatures[rowIndex];
-      if (!target) {
-        return previous;
-      }
+      const nextFeatures = previous.map(item =>
+        item.feature._id === featureId
+          ? { ...item, floaterOpen: !item.floaterOpen }
+          : item,
+      );
 
-      nextFeatures[rowIndex] = {
-        ...target,
-        floaterOpen: !target.floaterOpen,
-      };
-
-      model.syncIdentifiedFeatures(nextFeatures, model.getClientId().toString());
+      model.syncIdentifiedFeatures(
+        nextFeatures,
+        model.getClientId().toString(),
+      );
       return nextFeatures;
     });
   };
@@ -170,7 +172,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
           editorState={editorState}
           editorActions={editorActions}
           onToggleVisibility={toggleFeatureVisibility}
-          onToggleFloater={toggleFeatureFloater}
+          onToggleFloater={() => toggleFeatureFloater(item.feature._id)}
           onHighlightFeature={highlightFeatureOnMap}
         />
       ))}

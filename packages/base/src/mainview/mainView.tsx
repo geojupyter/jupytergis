@@ -2973,32 +2973,35 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return undefined;
   }
 
-  private _getVisibleDrawIdentifiedFeatures(): Array<[number, any]> {
+  private _getVisibleDrawIdentifiedFeatures(): Array<[string, any]> {
     const identifiedFeatures: IIdentifiedFeatures =
       this._model.localState?.identifiedFeatures?.value ?? [];
 
-    return identifiedFeatures
-      .map((entry, rowIndex) => [rowIndex, entry] as const)
-      .filter(
-        ([_, entry]) =>
-          entry.feature?._fromDrawTool === true && entry.floaterOpen === true,
-      )
-      .map(([rowIndex, entry]) => [rowIndex, entry.feature]);
+    const drawEntries = identifiedFeatures.filter(
+      entry =>
+        entry.feature._fromDrawTool === true && entry.floaterOpen === true,
+    );
+    const visibleFeatures = drawEntries.map(
+      entry => [entry.feature._id as string, entry.feature] as [string, any],
+    );
+
+    return visibleFeatures;
   }
-  // ! ^ double map?
   private _updateFeatureFloaters() {
-    this._getVisibleDrawIdentifiedFeatures().forEach(([rowIndex, feature]) => {
-      const el = document.getElementById(`feature-floater-${rowIndex}`);
-      if (!el) {
-        return;
-      }
-      const screenPosition = this._computeFeatureFloaterPosition(feature);
-      if (!screenPosition) {
-        return;
-      }
-      el.style.left = `${Math.round(screenPosition.x)}px`;
-      el.style.top = `${Math.round(screenPosition.y)}px`;
-    });
+    this._getVisibleDrawIdentifiedFeatures().forEach(
+      ([floaterKey, feature]) => {
+        const el = document.getElementById(`feature-floater-${floaterKey}`);
+        if (!el) {
+          return;
+        }
+        const screenPosition = this._computeFeatureFloaterPosition(feature);
+        if (!screenPosition) {
+          return;
+        }
+        el.style.left = `${Math.round(screenPosition.x)}px`;
+        el.style.top = `${Math.round(screenPosition.y)}px`;
+      },
+    );
   }
 
   // TODO this and flyToPosition need a rework
@@ -3308,10 +3311,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         });
 
         if (features.length > 0) {
-          this._model.syncIdentifiedFeatures(
-            features,
-            this._mainViewModel.id,
-          );
+          this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
           // ! ^ shouldbe client id?
         } else if (!foundAny) {
           this._model.syncIdentifiedFeatures([], this._mainViewModel.id);
@@ -3681,26 +3681,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             )
           );
         })}
-        {this._getVisibleDrawIdentifiedFeatures().map(([rowIndex, feature]) => {
-          const screenPosition = this._computeFeatureFloaterPosition(feature);
-          if (!screenPosition) {
-            return null;
-          }
+        {this._getVisibleDrawIdentifiedFeatures().map(
+          ([floaterKey, feature]) => {
+            const screenPosition = this._computeFeatureFloaterPosition(feature);
+            if (!screenPosition) {
+              return null;
+            }
 
-          return (
-            <div
-              key={`feature-floater-${rowIndex}`}
-              id={`feature-floater-${rowIndex}`}
-              style={{
-                left: screenPosition.x,
-                top: screenPosition.y,
-              }}
-              className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
-            >
-              <FeatureFloater feature={feature} />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={`feature-floater-${floaterKey}`}
+                id={`feature-floater-${floaterKey}`}
+                style={{
+                  left: screenPosition.x,
+                  top: screenPosition.y,
+                }}
+                className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
+              >
+                <FeatureFloater feature={feature} />
+              </div>
+            );
+          },
+        )}
 
         {this.state.editingVectorLayer && (
           <div className="jgis-geometry-type-selector-overlay">

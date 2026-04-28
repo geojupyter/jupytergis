@@ -15,10 +15,9 @@ export function useIdentifyPropertyEditor(args: {
   model: IJupyterGISModel;
   patchGeoJSONFeatureProperties?: (
     sourceId: string,
-    target: { featureId: string | number },
+    target: { featureId: string },
     propertyUpdates: IDict<any>,
   ) => Promise<boolean>;
-  // ! weird type
   setFeatures: React.Dispatch<React.SetStateAction<IIdentifiedFeatureEntry[]>>;
 }): {
   editorState: IPropertyEditorState;
@@ -69,7 +68,8 @@ export function useIdentifyPropertyEditor(args: {
     featureIndex: number,
   ) => {
     const featureId = feature._id;
-    if (featureId === undefined) {
+
+    if (!featureId) {
       return;
     }
 
@@ -136,8 +136,12 @@ export function useIdentifyPropertyEditor(args: {
     propertyKey: string,
   ) => {
     const featureId = feature._id;
+
+    if (!featureId) {
+      return;
+    }
+
     if (
-      featureId === undefined ||
       !patchGeoJSONFeatureProperties ||
       !propertyKey.trim() ||
       isSavingProperty

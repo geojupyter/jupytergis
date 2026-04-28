@@ -87,7 +87,7 @@ interface IRightPanelProps {
   removeLayer?: (id: string) => void;
   patchGeoJSONFeatureProperties?: (
     sourceId: string,
-    target: { featureId: string | number },
+    target: { featureId: string },
     propertyUpdates: IDict<any>,
   ) => Promise<boolean>;
 }

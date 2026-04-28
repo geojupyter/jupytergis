@@ -17,19 +17,19 @@ export interface IPatchGeoJSONFeatureContext {
 
 export type PatchGeoJSONFeatureProperties = (
   sourceId: string,
-  target: { featureId: string | number },
+  target: { featureId: string },
   propertyUpdates: IDict<any>,
 ) => Promise<boolean>;
 
 // ! TODO refine this?
 interface IGeoJSONFeatureLike {
   type: 'Feature';
-  id?: string | number;
+  id?: string;
   geometry?: {
     type: string;
     coordinates?: unknown;
   } | null;
-  properties?: (IDict<any> & { _id?: string | number }) | null;
+  properties?: (IDict<any> & { _id?: string }) | null;
 }
 
 /**
@@ -38,7 +38,7 @@ interface IGeoJSONFeatureLike {
 async function patchGeoJSONFeatureProperties(
   context: IPatchGeoJSONFeatureContext,
   sourceId: string,
-  target: { featureId: string | number },
+  target: { featureId: string },
   propertyUpdates: IDict<any>,
 ): Promise<boolean> {
   if (!context.model.sharedModel.editable) {
@@ -95,7 +95,7 @@ export function createGeoJSONFeaturePatcher(
 ): PatchGeoJSONFeatureProperties {
   return (
     sourceId: string,
-    target: { featureId: string | number },
+    target: { featureId: string },
     propertyUpdates: IDict<any>,
   ) =>
     patchGeoJSONFeatureProperties(context, sourceId, target, propertyUpdates);
