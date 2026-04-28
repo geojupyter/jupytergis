@@ -86,7 +86,9 @@ export async function runServerProcessing(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || `Server processing failed: ${response.status}`);
+    throw new Error(
+      error.error || `Server processing failed: ${response.status}`,
+    );
   }
 
   return await response.json();

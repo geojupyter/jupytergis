@@ -279,7 +279,7 @@ export async function rasterizeLayer(
         model,
         sourceData: {
           inputLayer: selectedLayerId,
-          outputFileName: `${selected!.name.replace(/\s+/g, '_')}_rasterized.tif`,
+          outputFileName: `${selected.name.replace(/\s+/g, '_')}_rasterized.tif`,
         },
         formContext: 'create',
         processingType,
