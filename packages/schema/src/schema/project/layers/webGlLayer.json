@@ -86,6 +86,10 @@
           "type": "string",
           "default": "viridis"
         },
+        "reverseRamp": {
+          "type": "boolean",
+          "default": false
+        },
         "nClasses": {
           "type": "string",
           "default": "9"

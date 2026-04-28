@@ -87,8 +87,24 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }, []);
 
   useEffect(() => {
-    buildColorInfo();
-  }, [bandRows]);
+    if (bandRows.length === 0) {
+      return;
+    }
+
+    if (params.symbologyState?.stopsOverride) {
+      return;
+    }
+
+    const state = params.symbologyState;
+
+    buildColorInfoFromClassification(
+      (state?.mode ?? 'equal interval') as ClassificationMode,
+      Number(state?.nClasses ?? 9),
+      (state?.colorRamp ?? 'viridis') as ColorRampName,
+      state?.reverseRamp ?? false,
+      () => undefined,
+    );
+  }, [bandRows, selectedBand]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
