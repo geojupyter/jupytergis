@@ -13,6 +13,7 @@ import {
   IPropertyEditorActions,
   IPropertyEditorState,
 } from '../types/editorTypes';
+import { IIdentifiedFeature } from '@jupytergis/schema';
 
 interface IPropertyFieldsProps {
   editorState: IPropertyEditorState;
@@ -48,11 +49,62 @@ export const PropertyFields: React.FC<IPropertyFieldsProps> = ({
 };
 
 interface IPropertyActionMenuProps {
-  feature: any;
+  feature: IIdentifiedFeature;
   rowIndex: number;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
 }
+
+interface IPropertyActionsMenuItem {
+  label: string;
+  icon: React.ReactNode;
+  onSelect: () => void;
+  disabled?: boolean;
+  variant?: 'default' | 'destructive';
+}
+
+interface IPropertyActionsMenuProps {
+  title?: string;
+  side?: 'top' | 'right' | 'bottom' | 'left';
+  onContentClick?: (event: React.MouseEvent) => void;
+  items: IPropertyActionsMenuItem[];
+}
+
+export const PropertyActionsMenu: React.FC<IPropertyActionsMenuProps> = ({
+  title = 'Property actions',
+  side = 'left',
+  onContentClick,
+  items,
+}) => {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          className="jgis-identify-col-actions"
+          title={title}
+          variant="icon"
+          size="icon-md"
+        >
+          <Ellipsis />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side={side} onClick={onContentClick}>
+        {items.map(item => (
+          <DropdownMenuItem
+            key={item.label}
+            disabled={item.disabled}
+            variant={item.variant ?? 'default'}
+            onSelect={item.onSelect}
+          >
+            {item.icon}
+            {item.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 export const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
   feature,
@@ -61,46 +113,32 @@ export const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
   editorActions,
 }) => {
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          className="jgis-identify-col-actions"
-          title="Property actions"
-          variant="icon"
-          size="icon-md"
-        >
-          <Ellipsis />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="left">
-        <DropdownMenuItem
-          disabled={
-            !editorState.newPropertyKey.trim() || editorState.isSavingProperty
-          }
-          onSelect={() => {
+    <PropertyActionsMenu
+      items={[
+        {
+          label: 'Save',
+          icon: <Save data-icon="inline-start" className="jgis-inline-icon" />,
+          disabled:
+            !editorState.newPropertyKey.trim() || editorState.isSavingProperty,
+          onSelect: () => {
             editorActions.onSaveProperty(feature, rowIndex);
-          }}
-        >
-          <Save data-icon="inline-start" className="jgis-inline-icon" />
-          Save
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          variant="destructive"
-          onSelect={() => {
+          },
+        },
+        {
+          label: 'Cancel',
+          icon: <Ban data-icon="inline-start" className="jgis-inline-icon" />,
+          variant: 'destructive',
+          onSelect: () => {
             editorActions.onCancelProperty();
-          }}
-        >
-          <Ban data-icon="inline-start" className="jgis-inline-icon" />
-          Cancel
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          },
+        },
+      ]}
+    />
   );
 };
 
 interface IPropertyRowEditorProps {
-  feature: any;
+  feature: IIdentifiedFeature;
   rowIndex: number;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
@@ -126,7 +164,7 @@ export const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
 };
 
 interface IAddPropertyEditorProps {
-  feature: any;
+  feature: IIdentifiedFeature;
   rowIndex: number;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;

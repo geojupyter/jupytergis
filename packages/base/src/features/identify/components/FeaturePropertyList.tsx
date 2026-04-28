@@ -6,9 +6,10 @@ import {
 } from '../types/editorTypes';
 import { FeatureRow } from './FeatureRow';
 import { PropertyRowEditor } from './PropertyEditors';
+import { IIdentifiedFeature } from '@jupytergis/schema';
 
 interface IFeaturePropertyListProps {
-  feature: any;
+  feature: IIdentifiedFeature;
   rowIndex: number;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
@@ -52,7 +53,7 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
               rowIndex={rowIndex}
               propertyKey={key}
               value={value}
-              showEditButton={isFeatureEditable && !key.startsWith('_')}
+              showActions={isFeatureEditable && !key.startsWith('_')}
               onEditProperty={(propertyKey, propertyValue) =>
                 editorActions.onEditProperty(
                   rowIndex,
@@ -60,7 +61,11 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
                   propertyValue,
                 )
               }
-              onDeleteProperty={(targetFeature, targetRowIndex, targetPropertyKey) =>
+              onDeleteProperty={(
+                targetFeature,
+                targetRowIndex,
+                targetPropertyKey,
+              ) =>
                 editorActions.onDeleteProperty(
                   targetFeature,
                   targetRowIndex,

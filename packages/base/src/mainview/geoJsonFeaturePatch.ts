@@ -21,7 +21,6 @@ export type PatchGeoJSONFeatureProperties = (
   propertyUpdates: IDict<any>,
 ) => Promise<boolean>;
 
-// ! TODO refine this?
 interface IGeoJSONFeatureLike {
   type: 'Feature';
   id?: string;
@@ -71,18 +70,21 @@ async function patchGeoJSONFeatureProperties(
   const updatedSource = deepCopy(source);
   const updatedParameters = updatedSource.parameters as IDict<any>;
   const updatedData = updatedParameters.data as {
-    type: string;
+    type: 'FeatureCollection';
     features: IGeoJSONFeatureLike[];
   };
   const updatedFeature = updatedData.features[index];
   const nextProperties: IDict<any> = { ...(updatedFeature.properties ?? {}) };
+
   Object.entries(propertyUpdates).forEach(([key, value]) => {
     if (value === undefined) {
       delete nextProperties[key];
       return;
     }
+
     nextProperties[key] = value;
   });
+
   updatedFeature.properties = nextProperties;
 
   await context.persistAndRefreshSource(sourceId, updatedSource);

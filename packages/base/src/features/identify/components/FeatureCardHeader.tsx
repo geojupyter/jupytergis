@@ -1,13 +1,14 @@
+import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Button } from '@/src/shared/components/Button';
 import { ChevronRightIcon, Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
 
 interface IFeatureCardHeaderProps {
-  feature: any;
+  feature: IIdentifiedFeature;
   featureTitle: string;
   isFloaterOpen: boolean;
   onToggleFloater: () => void;
-  onHighlightFeature: (feature: any) => void;
+  onHighlightFeature: (feature: IIdentifiedFeature) => void;
 }
 
 export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({

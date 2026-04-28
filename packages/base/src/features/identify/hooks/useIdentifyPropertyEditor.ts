@@ -9,21 +9,18 @@ import React, { useState } from 'react';
 import {
   IPropertyEditorActions,
   IPropertyEditorState,
+  PatchGeoJSONFeatureProperties,
 } from '../types/editorTypes';
 
-export function useIdentifyPropertyEditor(args: {
+export function useIdentifyPropertyEditor(props: {
   model: IJupyterGISModel;
-  patchGeoJSONFeatureProperties?: (
-    sourceId: string,
-    target: { featureId: string },
-    propertyUpdates: IDict<any>,
-  ) => Promise<boolean>;
+  patchGeoJSONFeatureProperties?: PatchGeoJSONFeatureProperties;
   setFeatures: React.Dispatch<React.SetStateAction<IIdentifiedFeatureEntry[]>>;
 }): {
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
 } {
-  const { model, patchGeoJSONFeatureProperties, setFeatures } = args;
+  const { model, patchGeoJSONFeatureProperties, setFeatures } = props;
 
   const [editingFeatureIndex, setEditingFeatureIndex] = useState<number | null>(
     null,
@@ -73,20 +70,23 @@ export function useIdentifyPropertyEditor(args: {
       return;
     }
 
+    const sourceId = getSelectedSourceId();
     const key = newPropertyKey.trim();
     const previousKey =
       editorMode === 'edit' ? editingPropertyKey?.trim() : undefined;
-    if (!patchGeoJSONFeatureProperties || !key || isSavingProperty) {
-      return;
-    }
 
-    const sourceId = getSelectedSourceId();
-    if (!sourceId) {
+    if (
+      !sourceId ||
+      !patchGeoJSONFeatureProperties ||
+      !key ||
+      isSavingProperty
+    ) {
       return;
     }
 
     setIsSavingProperty(true);
     const propertyUpdates: IDict<any> = { [key]: newPropertyValue };
+
     if (previousKey && previousKey !== key) {
       propertyUpdates[previousKey] = undefined;
     }
@@ -106,9 +106,11 @@ export function useIdentifyPropertyEditor(args: {
           const updatedTargetFeature: IDict<any> = {
             ...targetFeatureEntry.feature,
           };
+
           if (previousKey && previousKey !== key) {
             delete updatedTargetFeature[previousKey];
           }
+
           updatedTargetFeature[key] = newPropertyValue;
           updatedFeatures[featureIndex] = {
             ...targetFeatureEntry,
@@ -123,6 +125,7 @@ export function useIdentifyPropertyEditor(args: {
 
         return updatedFeatures;
       });
+
       resetAddPropertyEditor();
       return;
     }
@@ -170,7 +173,9 @@ export function useIdentifyPropertyEditor(args: {
           const updatedTargetFeature: IDict<any> = {
             ...targetFeatureEntry.feature,
           };
+
           delete updatedTargetFeature[propertyKey];
+
           updatedFeatures[featureIndex] = {
             ...targetFeatureEntry,
             feature: updatedTargetFeature,
@@ -184,6 +189,7 @@ export function useIdentifyPropertyEditor(args: {
 
         return updatedFeatures;
       });
+
       resetAddPropertyEditor();
       return;
     }

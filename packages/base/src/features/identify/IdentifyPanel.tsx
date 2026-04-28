@@ -2,7 +2,6 @@ import {
   IDict,
   IIdentifiedFeature,
   IIdentifiedFeatureEntry,
-  IJGISSource,
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
@@ -10,15 +9,11 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { FeatureCard } from './components/FeatureCard';
 import { useIdentifyPropertyEditor } from './hooks/useIdentifyPropertyEditor';
+import { PatchGeoJSONFeatureProperties } from './types/editorTypes';
 
 interface IIdentifyComponentProps {
   model: IJupyterGISModel;
-  persistAndRefreshSource?: (id: string, source: IJGISSource) => Promise<void>;
-  patchGeoJSONFeatureProperties?: (
-    sourceId: string,
-    target: { featureId: string },
-    propertyUpdates: IDict<any>,
-  ) => Promise<boolean>;
+  patchGeoJSONFeatureProperties?: PatchGeoJSONFeatureProperties;
 }
 
 export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
@@ -37,8 +32,6 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     patchGeoJSONFeatureProperties,
     setFeatures,
   });
-
-  // Reset state values when current widget changes
 
   useEffect(() => {
     featuresRef.current = features;
@@ -138,7 +131,12 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     for (const key of Object.keys(feature)) {
       const lowerCase = key.toLowerCase();
 
-      if ((lowerCase.includes('name') || lowerCase === 'id') && feature[key]) {
+      if (
+        (lowerCase.includes('label') ||
+          lowerCase.includes('name') ||
+          lowerCase === 'id') &&
+        feature[key]
+      ) {
         return String(feature[key]);
       }
     }

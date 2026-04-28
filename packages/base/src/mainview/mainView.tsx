@@ -16,6 +16,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IIdentifiedFeature,
   IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
   IJupyterGISClientState,
@@ -260,7 +261,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
     this._model = this._mainViewModel.jGISModel;
-    this.patchGeoJSONFeatureProperties = createGeoJSONFeaturePatcher({
+    this._patchGeoJSONFeatureProperties = createGeoJSONFeaturePatcher({
       model: this._model,
       persistAndRefreshSource: this.persistAndRefreshSource,
     });
@@ -2666,11 +2667,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this.updateLayers(layerTree);
       }
     });
-
-    // this.setState(old => ({
-    //   ...old,
-    //   identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
-    // }));
   }
 
   private _onLayerTreeChange(
@@ -2949,6 +2945,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     feature: any,
   ): { x: number; y: number } | undefined {
     const geometry = feature?.geometry ?? feature?._geometry;
+
     if (!geometry) {
       return undefined;
     }
@@ -2973,7 +2970,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return undefined;
   }
 
-  private _getVisibleDrawIdentifiedFeatures(): Array<[string, any]> {
+  private _getVisibleDrawIdentifiedFeatures(): Array<
+    [string, IIdentifiedFeature]
+  > {
     const identifiedFeatures: IIdentifiedFeatures =
       this._model.localState?.identifiedFeatures?.value ?? [];
 
@@ -2981,12 +2980,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       entry =>
         entry.feature._fromDrawTool === true && entry.floaterOpen === true,
     );
+
     const visibleFeatures = drawEntries.map(
-      entry => [entry.feature._id as string, entry.feature] as [string, any],
+      entry =>
+        [entry.feature._id, entry.feature] as [string, IIdentifiedFeature],
     );
 
     return visibleFeatures;
   }
+
   private _updateFeatureFloaters() {
     this._getVisibleDrawIdentifiedFeatures().forEach(
       ([floaterKey, feature]) => {
@@ -2994,10 +2996,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (!el) {
           return;
         }
+
         const screenPosition = this._computeFeatureFloaterPosition(feature);
         if (!screenPosition) {
           return;
         }
+
         el.style.left = `${Math.round(screenPosition.x)}px`;
         el.style.top = `${Math.round(screenPosition.y)}px`;
       },
@@ -3269,10 +3273,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: IIdentifiedFeatureEntry[] = [];
-        let foundAny = false;
+        let foundAnyFeatures = false;
 
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
-          foundAny = true;
+          foundAnyFeatures = true;
 
           let geom: Geometry | undefined;
           let props = {};
@@ -3311,10 +3315,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         });
 
         if (features.length > 0) {
-          this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
-          // ! ^ shouldbe client id?
-        } else if (!foundAny) {
-          this._model.syncIdentifiedFeatures([], this._mainViewModel.id);
+          this._model.syncIdentifiedFeatures(
+            features,
+            this._model.getClientId().toString(),
+          );
+        } else if (!foundAnyFeatures) {
+          this._model.syncIdentifiedFeatures(
+            [],
+            this._model.getClientId().toString(),
+          );
         }
 
         if (geometries.length > 0) {
@@ -3614,6 +3623,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', this._model.getClientId().toString());
     feature.set('_fromDrawTool', true);
+    feature.set('Label', 'New Label');
   };
 
   _editVectorLayer = () => {
@@ -3652,6 +3662,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _removeModifyInteraction = () => {
     this._modify.setActive(false);
     this._Map.removeInteraction(this._modify);
+  };
+
+  /**
+   * Shared source update wrapper for child components that need to mutate a
+   * source and refresh corresponding map layers.
+   */
+  persistAndRefreshSource = async (
+    id: string,
+    source: IJGISSource,
+  ): Promise<void> => {
+    this._model.sharedModel.updateSource(id, source);
+    await this.updateSource(id, source);
   };
 
   render(): JSX.Element {
@@ -3799,7 +3821,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                             removeLayer={this.removeLayer.bind(this)}
                             settings={this.state.jgisSettings}
                             patchGeoJSONFeatureProperties={
-                              this.patchGeoJSONFeatureProperties
+                              this._patchGeoJSONFeatureProperties
                             }
                           />
                         )}
@@ -3877,6 +3899,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
+  private _patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -3908,20 +3931,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
-
-  /**
-   * Shared source update wrapper for child components that need to mutate a
-   * source and refresh corresponding map layers.
-   */
-  persistAndRefreshSource = async (
-    id: string,
-    source: IJGISSource,
-  ): Promise<void> => {
-    this._model.sharedModel.updateSource(id, source);
-    await this.updateSource(id, source);
-  };
-
-  patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
 }
 
 // ! TODO make mainview a modern react component instead of a class

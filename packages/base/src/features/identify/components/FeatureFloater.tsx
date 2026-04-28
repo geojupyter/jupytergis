@@ -1,22 +1,16 @@
+import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
 interface IFeatureFloaterProps {
-  feature: any;
+  feature: IIdentifiedFeature;
 }
 
 const FeatureFloater: React.FC<IFeatureFloaterProps> = ({ feature }) => {
-  const title =
-    feature?.name ??
-    feature?.Name ??
-    feature?.title ??
-    feature?.Title ??
-    feature?.id ??
-    feature?._id ??
-    'Feature';
+  const title = feature.label ?? 'Feature';
 
-  const entries = Object.entries(feature ?? {})
+  const entries = Object.entries(feature)
     .filter(([key, value]) => {
-      if (key === 'geometry' || key === '_geometry') {
+      if (key === 'geometry' || key === '_geometry' || key.startsWith('_')) {
         return false;
       }
       return typeof value !== 'object' || value === null;
