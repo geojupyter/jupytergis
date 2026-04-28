@@ -161,15 +161,20 @@ export class ToolbarWidget extends ReactiveToolbar {
       ctx.keys().forEach(key => {
         const item = ctx(key).default;
         const id = `jupytergis:processingLibrary:${key}`;
-        options.commands!.addCommand(id, {
+        if (!options.commands!.hasCommand(id)) options.commands!.addCommand(id, {
           label: item.label,
           execute: () => {
             showDialog({
             title: item.label,
-            body: ReactWidget.create(<item.form onExecute={(output: string) => {
-              console.debug('notebookTracker:', options.notebookTracker);
-              console.debug('currentWidget:', options.notebookTracker?.currentWidget);
-              console.debug('content:', options.notebookTracker?.currentWidget?.content);
+            body: ReactWidget.create(<item.form
+              layers={Object.entries(options.model.getLayers()).map(([id, layer]) => ({
+                id,
+                name: layer.name,
+                source: options.model.getSource(layer.parameters?.source)?.parameters?.path,
+                type: layer.type
+              }))}
+              jgisPath={options.model.filePath.split('/').pop()}
+              onExecute={(output: string) => {
               const notebook = options.notebookTracker?.currentWidget?.content;
                 if (!notebook?.model) {
                   console.debug("No Notebook model found");
