@@ -1,18 +1,18 @@
+import { IIdentifiedFeature } from '@jupytergis/schema';
+import React from 'react';
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
-import React from 'react';
-
+import { FeatureCardHeader } from './FeatureCardHeader';
+import { FeaturePropertyList } from './FeaturePropertyList';
+import { AddPropertyEditor } from './PropertyEditors';
 import {
   IPropertyEditorActions,
   IPropertyEditorState,
 } from '../types/editorTypes';
-import { FeatureCardHeader } from './FeatureCardHeader';
-import { FeaturePropertyList } from './FeaturePropertyList';
-import { AddPropertyEditor } from './PropertyEditors';
-import { IIdentifiedFeature } from '@jupytergis/schema';
 
 interface IFeatureCardProps {
   feature: IIdentifiedFeature;

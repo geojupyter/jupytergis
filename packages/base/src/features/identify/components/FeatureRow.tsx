@@ -1,6 +1,7 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
+
 import { PropertyActionsMenu } from './PropertyEditors';
 
 interface IFeatureRowProps {

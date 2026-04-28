@@ -142,11 +142,11 @@ import {
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
+import TemporalSlider from './TemporalSlider';
 import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
-import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import {
   DEFAULT_FLAT_STYLE,
@@ -3623,7 +3623,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _handleDrawEnd = (event: DrawEvent): void => {
-    const feature = event.feature as Feature<Geometry>;
+    const feature = event.feature ;
     feature.set('_id', UUID.uuid4());
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', this._model.getClientId().toString());

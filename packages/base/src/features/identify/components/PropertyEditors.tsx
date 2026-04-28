@@ -1,3 +1,7 @@
+import { IIdentifiedFeature } from '@jupytergis/schema';
+import { Ban, CirclePlus, Ellipsis, Save } from 'lucide-react';
+import React from 'react';
+
 import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,
@@ -6,14 +10,10 @@ import {
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
 import { Input } from '@/src/shared/components/Input';
-import { Ban, CirclePlus, Ellipsis, Save } from 'lucide-react';
-import React from 'react';
-
 import {
   IPropertyEditorActions,
   IPropertyEditorState,
 } from '../types/editorTypes';
-import { IIdentifiedFeature } from '@jupytergis/schema';
 
 interface IPropertyFieldsProps {
   editorState: IPropertyEditorState;

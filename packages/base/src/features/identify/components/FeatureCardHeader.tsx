@@ -1,7 +1,8 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
-import { Button } from '@/src/shared/components/Button';
 import { ChevronRightIcon, Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
+
+import { Button } from '@/src/shared/components/Button';
 import { getFeatureIdentifier } from '../utils/getFeatureIdentifier';
 
 interface IFeatureCardHeaderProps {
