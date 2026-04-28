@@ -304,6 +304,32 @@ export async function rasterizeLayer(
   const burnValue = String(processParam.burnValue ?? 1);
   const attributeField: string = (processParam.attributeField || '').trim();
 
+  // Compute the min/max of the burned values so the GeoTIFF source can
+  // normalize correctly. gdal_rasterize doesn't write band statistics, so
+  // without this OL falls back to the data-type range (e.g. 0..255).
+  let bandMin: number;
+  let bandMax: number;
+  if (attributeField) {
+    const features = (JSON.parse(geojsonString)?.features ?? []) as Array<{
+      properties?: Record<string, unknown>;
+    }>;
+    const values: number[] = [];
+    for (const f of features) {
+      const v = f.properties?.[attributeField];
+      const n = typeof v === 'number' ? v : Number(v);
+      if (Number.isFinite(n)) {
+        values.push(n);
+      }
+    }
+    bandMin = values.length ? Math.min(...values) : 0;
+    bandMax = values.length ? Math.max(...values) : 1;
+  } else {
+    // Burn mode: rasterized pixels are nodata (0) or burnValue. Use 0..burnValue
+    // so normalization maps the burn cleanly to 1 instead of dividing by zero.
+    bandMin = 0;
+    bandMax = Number(burnValue) || 1;
+  }
+
   const options: string[] = [
     '-of',
     'GTiff',
@@ -370,12 +396,34 @@ export async function rasterizeLayer(
     );
   }
 
-  // Save .tif to disk next to the .jGIS project file
+  // Save .tif to disk next to the .jGIS project file. If a file already
+  // exists at the chosen path, append `_1`, `_2`, ... so repeated runs don't
+  // overwrite previous outputs.
   const jgisFilePath = widget.model.filePath;
   const jgisDir = jgisFilePath
     ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
     : '';
-  const savePath = jgisDir ? `${jgisDir}/${outputFileName}` : outputFileName;
+  const dotIdx = outputFileName.lastIndexOf('.');
+  const baseName =
+    dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
+  const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
+  const candidatePath = (name: string) => (jgisDir ? `${jgisDir}/${name}` : name);
+  const pathExists = async (path: string) => {
+    try {
+      await app.serviceManager.contents.get(path, { content: false });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  let suffix = 0;
+  while (await pathExists(candidatePath(suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`))) {
+    suffix += 1;
+  }
+  if (suffix > 0) {
+    outputFileName = `${baseName}_${suffix}${ext}`;
+  }
+  const savePath = candidatePath(outputFileName);
 
   const base64Content = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -401,7 +449,7 @@ export async function rasterizeLayer(
     type: 'GeoTiffSource',
     name: `${selected.name} Rasterized Source`,
     parameters: {
-      urls: [{ url: outputFileName }],
+      urls: [{ url: outputFileName, min: bandMin, max: bandMax }],
       normalize: true,
       wrapX: false,
       interpolate: false,

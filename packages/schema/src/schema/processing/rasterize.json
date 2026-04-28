@@ -12,7 +12,8 @@
     "pixelSize": {
       "type": "number",
       "default": 0.1,
-      "description": "Output raster pixel size (in projection units)."
+      "exclusiveMinimum": 0,
+      "description": "Output raster pixel size (in projection units). Must be greater than 0."
     },
     "attributeField": {
       "type": "string",
