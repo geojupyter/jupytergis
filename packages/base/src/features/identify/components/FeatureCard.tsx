@@ -75,13 +75,13 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
               editorState={cardEditorState}
               editorActions={editorActions}
             />
+            <AddPropertyEditor
+              feature={feature}
+              rowIndex={rowIndex}
+              editorState={cardEditorState}
+              editorActions={editorActions}
+            />
           </div>
-          <AddPropertyEditor
-            feature={feature}
-            rowIndex={rowIndex}
-            editorState={cardEditorState}
-            editorActions={editorActions}
-          />
         </CollapsibleContent>
       </Collapsible>
     </div>
