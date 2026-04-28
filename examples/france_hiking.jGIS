@@ -42,13 +42,14 @@
       2328055.912740292,
       6862268.218955172
     ],
-    "latitude": 47.195641286772855,
-    "longitude": 8.738538317730255,
+    "latitude": 0.0,
+    "longitude": 0.0,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 5.722083946960902
+    "storyMapPresentationMode": false,
+    "zoom": 0.0
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "52252f5d-3cb7-45a8-a724-5793bf9950ec": {
       "name": "NASAGIBS.ModisTerraTrueColorCR",
@@ -103,5 +104,6 @@
       "type": "RasterSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }
