@@ -2,6 +2,7 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Button } from '@/src/shared/components/Button';
 import { ChevronRightIcon, Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
+import { getFeatureIdentifier } from '../utils/getFeatureIdentifier';
 
 interface IFeatureCardHeaderProps {
   feature: IIdentifiedFeature;
@@ -18,6 +19,7 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
   onToggleFloater,
   onHighlightFeature,
 }) => {
+  const featureIdentifier = getFeatureIdentifier(feature);
   const isRasterFeature =
     !feature.geometry &&
     !feature._geometry &&
@@ -38,19 +40,21 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
       </div>
 
       <div className="jgis-identify-card-header-actions">
-        <Button
-          size="icon-md"
-          variant="icon"
-          className="jgis-inline-icon"
-          onClick={e => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleFloater();
-          }}
-          title={isFloaterOpen ? 'Hide map floater' : 'Show map floater'}
-        >
-          {isFloaterOpen ? <EyeOff /> : <Eye />}
-        </Button>
+        {featureIdentifier && (
+          <Button
+            size="icon-md"
+            variant="icon"
+            className="jgis-inline-icon"
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFloater();
+            }}
+            title={isFloaterOpen ? 'Hide map floater' : 'Show map floater'}
+          >
+            {isFloaterOpen ? <EyeOff /> : <Eye />}
+          </Button>
+        )}
 
         <Button
           size="icon-md"

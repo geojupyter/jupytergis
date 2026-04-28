@@ -10,6 +10,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FeatureCard } from './components/FeatureCard';
 import { useIdentifyPropertyEditor } from './hooks/useIdentifyPropertyEditor';
 import { PatchGeoJSONFeatureProperties } from './types/editorTypes';
+import { getFeatureIdentifier } from './utils/getFeatureIdentifier';
 
 interface IIdentifyComponentProps {
   model: IJupyterGISModel;
@@ -104,14 +105,15 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }));
   };
 
-  const toggleFeatureFloater = (featureId: string | undefined) => {
+  const toggleFeatureFloater = (feature: IIdentifiedFeature) => {
+    const featureId = getFeatureIdentifier(feature);
     if (!featureId) {
       return;
     }
 
     setFeatures(previous => {
       const nextFeatures = previous.map(item =>
-        item.feature._id === featureId
+        getFeatureIdentifier(item.feature) === featureId
           ? { ...item, floaterOpen: !item.floaterOpen }
           : item,
       );
@@ -170,7 +172,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
           editorState={editorState}
           editorActions={editorActions}
           onToggleVisibility={toggleFeatureVisibility}
-          onToggleFloater={() => toggleFeatureFloater(item.feature._id)}
+          onToggleFloater={() => toggleFeatureFloater(item.feature)}
           onHighlightFeature={highlightFeatureOnMap}
         />
       ))}

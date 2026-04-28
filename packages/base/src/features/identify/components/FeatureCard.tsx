@@ -12,9 +12,10 @@ import {
 import { FeatureCardHeader } from './FeatureCardHeader';
 import { FeaturePropertyList } from './FeaturePropertyList';
 import { AddPropertyEditor } from './PropertyEditors';
+import { IIdentifiedFeature } from '@jupytergis/schema';
 
 interface IFeatureCardProps {
-  feature: any;
+  feature: IIdentifiedFeature;
   rowIndex: number;
   featureTitle: string;
   isVisible: boolean;
@@ -75,12 +76,14 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
               editorState={cardEditorState}
               editorActions={editorActions}
             />
-            <AddPropertyEditor
-              feature={feature}
-              rowIndex={rowIndex}
-              editorState={cardEditorState}
-              editorActions={editorActions}
-            />
+            {feature._fromDrawTool === true && (
+              <AddPropertyEditor
+                feature={feature}
+                rowIndex={rowIndex}
+                editorState={cardEditorState}
+                editorActions={editorActions}
+              />
+            )}
           </div>
         </CollapsibleContent>
       </Collapsible>

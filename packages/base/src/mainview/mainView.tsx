@@ -127,6 +127,7 @@ import * as React from 'react';
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
+import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { markerIcon } from '@/src/shared/icons';
@@ -2977,14 +2978,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.localState?.identifiedFeatures?.value ?? [];
 
     const drawEntries = identifiedFeatures.filter(
-      entry =>
-        entry.feature._fromDrawTool === true && entry.floaterOpen === true,
+      entry => entry.floaterOpen === true,
     );
 
-    const visibleFeatures = drawEntries.map(
-      entry =>
-        [entry.feature._id, entry.feature] as [string, IIdentifiedFeature],
-    );
+    const visibleFeatures = drawEntries
+      .map(entry => {
+        const featureId = getFeatureIdentifier(entry.feature);
+        if (!featureId) {
+          return undefined;
+        }
+        return [featureId, entry.feature] as [string, IIdentifiedFeature];
+      })
+      .filter((entry): entry is [string, IIdentifiedFeature] => !!entry);
 
     return visibleFeatures;
   }
