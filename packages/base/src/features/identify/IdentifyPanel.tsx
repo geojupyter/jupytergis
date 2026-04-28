@@ -1,10 +1,6 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  IDict,
-  IJupyterGISClientState,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
@@ -31,24 +27,26 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   }, [features]);
 
   useEffect(() => {
-    const handleClientStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
+    const handleIdentifyFeaturesChanged = () => {
+      const clients = model.sharedModel.awareness.getStates();
       const remoteUserId = model?.localState?.remoteUser;
 
       // If following a collaborator
       if (remoteUserId) {
         const remoteState = clients.get(remoteUserId);
         if (remoteState) {
-          if (remoteState.user?.username !== remoteUser?.username) {
-            setRemoteUser(remoteState.user);
-          }
+          setRemoteUser(previousUser =>
+            previousUser?.username === remoteState.user?.username
+              ? previousUser
+              : remoteState.user,
+          );
 
           setFeatures(remoteState.identifiedFeatures?.value ?? {});
         }
         return;
       }
+
+      setRemoteUser(previousUser => (previousUser ? null : previousUser));
 
       // If not following a collaborator
       const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
@@ -66,10 +64,18 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       }
     };
 
-    model?.clientStateChanged.connect(handleClientStateChanged);
+    const signals = [
+      model?.identifiedFeaturesChanged,
+      model?.remoteUserChanged,
+    ];
+
+    signals.forEach(signal => signal.connect(handleIdentifyFeaturesChanged));
+    handleIdentifyFeaturesChanged();
 
     return () => {
-      model?.clientStateChanged.disconnect(handleClientStateChanged);
+      signals.forEach(signal =>
+        signal.disconnect(handleIdentifyFeaturesChanged),
+      );
     };
   }, [model]);
 

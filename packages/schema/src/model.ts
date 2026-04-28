@@ -26,6 +26,10 @@ import {
 } from './_interface/project/layers/storySegmentLayer';
 import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
+  AWARENESS_FIELD_KEYS,
+  AWARENESS_STATE_FIELDS,
+  AwarenessFieldKey,
+  IAwarenessFieldChange,
   IAnnotationModel,
   IDict,
   IJGISLayerDocChange,
@@ -259,8 +263,46 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.awareness.getLocalState() as IJupyterGISClientState | null;
   }
 
-  get clientStateChanged(): ISignal<this, Map<number, IJupyterGISClientState>> {
-    return this._clientStateChanged;
+  get selectedChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['selected']>
+  > {
+    return this._selectedChanged;
+  }
+
+  get pointerChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['pointer']>
+  > {
+    return this._pointerChanged;
+  }
+
+  get viewportStateChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['viewportState']>
+  > {
+    return this._viewportStateChanged;
+  }
+
+  get identifiedFeaturesChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  > {
+    return this._identifiedFeaturesChanged;
+  }
+
+  get remoteUserChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
+  > {
+    return this._remoteUserChanged;
+  }
+
+  get temporalControllerActiveChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['isTemporalControllerActive']>
+  > {
+    return this._temporalControllerActiveChanged;
   }
 
   get sharedOptionsChanged(): ISignal<IJupyterGISDoc, MapChange> {
@@ -575,30 +617,42 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('viewportState', {
-      value: viewport,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.viewportState,
+      {
+        value: viewport,
+        emitter,
+      },
+    );
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('pointer', {
-      value: pointer,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.pointer,
+      {
+        value: pointer,
+        emitter,
+      },
+    );
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('selected', {
-      value,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.selected,
+      {
+        value,
+        emitter,
+      },
+    );
   }
 
   syncLastAddedLayer(layerId: string): void {
-    this.sharedModel.awareness.setLocalStateField('lastAddedLayer', {
-      layerId,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.lastAddedLayer,
+      {
+        layerId,
+      },
+    );
   }
   get selected(): { [key: string]: ISelection } | undefined {
     return this.localState?.selected?.value;
@@ -609,15 +663,21 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
-      value: features,
-      emitter,
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.identifiedFeatures,
+      {
+        value: features,
+        emitter,
+      },
+    );
   }
 
   setUserToFollow(userId?: number): void {
     if (this._sharedModel) {
-      this._sharedModel.awareness.setLocalStateField('remoteUser', userId);
+      this._sharedModel.awareness.setLocalStateField(
+        AWARENESS_STATE_FIELDS.remoteUser,
+        userId,
+      );
     }
   }
 
@@ -1046,7 +1106,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isTemporalControllerActive = !this._isTemporalControllerActive;
 
     this.sharedModel.awareness.setLocalStateField(
-      'isTemporalControllerActive',
+      AWARENESS_STATE_FIELDS.isTemporalControllerActive,
       this._isTemporalControllerActive,
     );
   }
@@ -1091,13 +1151,98 @@ export class JupyterGISModel implements IJupyterGISModel {
       number,
       IJupyterGISClientState
     >;
-
-    this._clientStateChanged.emit(clients);
-
-    if (changed.added.length || changed.removed.length) {
-      this._userChanged.emit(this.users);
-    }
+    this._emitAwarenessFieldDeltas(changed, clients);
+    this._previousClientStates = new Map(clients);
   };
+
+  private _emitAwarenessFieldDeltas(
+    changed: {
+      added?: number[];
+      updated?: number[];
+      removed?: number[];
+    },
+    clients: Map<number, IJupyterGISClientState>,
+  ): void {
+    const changedClientIds = new Set<number>([
+      ...(changed.added ?? []),
+      ...(changed.updated ?? []),
+      ...(changed.removed ?? []),
+    ]);
+
+    if (!changedClientIds.size) {
+      return;
+    }
+
+    const fields: readonly AwarenessFieldKey[] = AWARENESS_FIELD_KEYS;
+    const localClientId = this.getClientId();
+
+    changedClientIds.forEach(clientId => {
+      const previousState = this._previousClientStates.get(clientId);
+      const currentState = clients.get(clientId);
+
+      fields.forEach(field => {
+        const previousValue = previousState?.[field];
+        const currentValue = currentState?.[field];
+        if (previousValue === currentValue) {
+          return;
+        }
+
+        const payload: IAwarenessFieldChange = {
+          clientId,
+          field,
+          previousValue,
+          currentValue,
+          fullState: currentState,
+          isLocalClient: clientId === localClientId,
+        };
+
+        switch (field) {
+          case AWARENESS_STATE_FIELDS.selected:
+            this._selectedChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['selected']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.pointer:
+            this._pointerChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['pointer']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.viewportState:
+            this._viewportStateChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['viewportState']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.identifiedFeatures:
+            this._identifiedFeaturesChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['identifiedFeatures']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.remoteUser:
+            this._remoteUserChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['remoteUser']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.isTemporalControllerActive:
+            this._temporalControllerActiveChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['isTemporalControllerActive']
+              >,
+            );
+            break;
+        }
+      });
+    });
+  }
 
   addFeatureAsMs = (id: string, selectedFeature: string) => {
     this.addFeatureAsMsSignal.emit(JSON.stringify({ id, selectedFeature }));
@@ -1180,10 +1325,31 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _contentChanged = new Signal<this, void>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
   private _themeChanged = new Signal<this, IChangedArgs<any>>(this);
-  private _clientStateChanged = new Signal<
+  private _selectedChanged = new Signal<
     this,
-    Map<number, IJupyterGISClientState>
+    IAwarenessFieldChange<IJupyterGISClientState['selected']>
   >(this);
+  private _pointerChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['pointer']>
+  >(this);
+  private _viewportStateChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['viewportState']>
+  >(this);
+  private _identifiedFeaturesChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  >(this);
+  private _remoteUserChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
+  >(this);
+  private _temporalControllerActiveChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['isTemporalControllerActive']>
+  >(this);
+  private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 

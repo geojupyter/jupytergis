@@ -57,4 +57,4 @@ jobs:
 
       - name: Run unit tests
         shell: bash -l {0}
-        run: jlpm lerna run test --scope @jupytergis/base
+        run: jlpm run test
