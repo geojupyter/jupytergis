@@ -54,6 +54,16 @@ export function useIdentifyPropertyEditor(args: {
     setNewPropertyValue('');
   };
 
+  const getSelectedSourceId = (): string | undefined => {
+    const selectedLayers = model.localState?.selected?.value;
+    if (!selectedLayers) {
+      return undefined;
+    }
+    const selectedLayerId = Object.keys(selectedLayers)[0];
+    const selectedLayer = model.getLayer(selectedLayerId);
+    return selectedLayer?.parameters?.source;
+  };
+
   const handleAddProperty = async (
     feature: IIdentifiedFeature,
     featureIndex: number,
@@ -70,14 +80,7 @@ export function useIdentifyPropertyEditor(args: {
       return;
     }
 
-    const selectedLayers = model.localState?.selected?.value;
-    if (!selectedLayers) {
-      return;
-    }
-
-    const selectedLayerId = Object.keys(selectedLayers)[0];
-    const selectedLayer = model.getLayer(selectedLayerId);
-    const sourceId = selectedLayer?.parameters?.source;
+    const sourceId = getSelectedSourceId();
     if (!sourceId) {
       return;
     }
@@ -127,6 +130,63 @@ export function useIdentifyPropertyEditor(args: {
     setIsSavingProperty(false);
   };
 
+  const handleDeleteProperty = async (
+    feature: IIdentifiedFeature,
+    featureIndex: number,
+    propertyKey: string,
+  ) => {
+    const featureId = feature._id;
+    if (
+      featureId === undefined ||
+      !patchGeoJSONFeatureProperties ||
+      !propertyKey.trim() ||
+      isSavingProperty
+    ) {
+      return;
+    }
+
+    const sourceId = getSelectedSourceId();
+    if (!sourceId) {
+      return;
+    }
+
+    setIsSavingProperty(true);
+    const success = await patchGeoJSONFeatureProperties(
+      sourceId,
+      { featureId },
+      { [propertyKey]: undefined },
+    );
+
+    if (success) {
+      setFeatures(previous => {
+        const updatedFeatures = [...previous];
+        const targetFeatureEntry = updatedFeatures[featureIndex];
+
+        if (targetFeatureEntry?.feature) {
+          const updatedTargetFeature: IDict<any> = {
+            ...targetFeatureEntry.feature,
+          };
+          delete updatedTargetFeature[propertyKey];
+          updatedFeatures[featureIndex] = {
+            ...targetFeatureEntry,
+            feature: updatedTargetFeature,
+          };
+        }
+
+        model.syncIdentifiedFeatures(
+          updatedFeatures,
+          model.getClientId().toString(),
+        );
+
+        return updatedFeatures;
+      });
+      resetAddPropertyEditor();
+      return;
+    }
+
+    setIsSavingProperty(false);
+  };
+
   const editorState: IPropertyEditorState = {
     editingFeatureIndex,
     editorMode,
@@ -144,6 +204,7 @@ export function useIdentifyPropertyEditor(args: {
       setNewPropertyKey(propertyKey);
       setNewPropertyValue(String(value ?? ''));
     },
+    onDeleteProperty: handleDeleteProperty,
     onStartAddProperty: startAddProperty,
     onSaveProperty: handleAddProperty,
     onCancelProperty: resetAddPropertyEditor,

@@ -9,6 +9,11 @@ export interface IPropertyEditorState {
 
 export interface IPropertyEditorActions {
   onEditProperty: (rowIndex: number, propertyKey: string, value: any) => void;
+  onDeleteProperty: (
+    feature: any,
+    rowIndex: number,
+    propertyKey: string,
+  ) => Promise<void>;
   onStartAddProperty: (rowIndex: number) => void;
   onSaveProperty: (feature: any, rowIndex: number) => void;
   onCancelProperty: () => void;

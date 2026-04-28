@@ -48,6 +48,8 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
           return (
             <FeatureRow
               key={key}
+              feature={feature}
+              rowIndex={rowIndex}
               propertyKey={key}
               value={value}
               showEditButton={isFeatureEditable && !key.startsWith('_')}
@@ -56,6 +58,13 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
                   rowIndex,
                   propertyKey,
                   propertyValue,
+                )
+              }
+              onDeleteProperty={(targetFeature, targetRowIndex, targetPropertyKey) =>
+                editorActions.onDeleteProperty(
+                  targetFeature,
+                  targetRowIndex,
+                  targetPropertyKey,
                 )
               }
             />

@@ -42,11 +42,11 @@
   padding: 0.25rem 0.375rem;
 }
 
-.jgis-identify-content > .jgis-identify-row:nth-child(odd) {
+.jgis-identify-content > .jgis-identify-row:not(.jgis-identify-row-add):nth-child(odd) {
   background-color: var(--jp-layout-color1);
 }
 
-.jgis-identify-content > .jgis-identify-row:nth-child(even) {
+.jgis-identify-content > .jgis-identify-row:not(.jgis-identify-row-add):nth-child(even) {
   background-color: var(--jp-layout-color0);
 }
 
