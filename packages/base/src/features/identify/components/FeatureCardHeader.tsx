@@ -5,15 +5,15 @@ import React from 'react';
 interface IFeatureCardHeaderProps {
   feature: any;
   featureTitle: string;
-  isOpen: boolean;
-  onToggleFloater: (feature: any) => void;
+  isFloaterOpen: boolean;
+  onToggleFloater: () => void;
   onHighlightFeature: (feature: any) => void;
 }
 
 export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
   feature,
   featureTitle,
-  isOpen,
+  isFloaterOpen,
   onToggleFloater,
   onHighlightFeature,
 }) => {
@@ -44,11 +44,11 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
           onClick={e => {
             e.preventDefault();
             e.stopPropagation();
-            onToggleFloater(feature);
+            onToggleFloater();
           }}
-          title={feature?.floaterOpen ? 'Hide map floater' : 'Show map floater'}
+          title={isFloaterOpen ? 'Hide map floater' : 'Show map floater'}
         >
-          {feature?.floaterOpen ? <EyeOff /> : <Eye />}
+          {isFloaterOpen ? <EyeOff /> : <Eye />}
         </Button>
 
         <Button

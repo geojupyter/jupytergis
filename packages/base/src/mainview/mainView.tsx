@@ -16,6 +16,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
   IJupyterGISClientState,
   IJupyterGISDoc,
@@ -721,9 +722,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     selectInteraction.on('select', event => {
-      const identifiedFeatures: IDict<any> = [];
+      const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
       selectInteraction.getFeatures().forEach(feature => {
-        identifiedFeatures.push(feature.getProperties());
+        identifiedFeatures.push({
+          feature: feature.getProperties(),
+          floaterOpen: false,
+        });
       });
 
       this._model.syncIdentifiedFeatures(
@@ -2969,16 +2973,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return undefined;
   }
 
-  private _getVisibleDrawIdentifiedFeatures(): Array<[string, any]> {
+  private _getVisibleDrawIdentifiedFeatures(): Array<[number, any]> {
     const identifiedFeatures: IIdentifiedFeatures =
-      this._model.localState?.identifiedFeatures?.value ?? {};
+      this._model.localState?.identifiedFeatures?.value ?? [];
 
-    return Object.entries(identifiedFeatures).filter(
-      ([_, feature]) =>
-        feature?._fromDrawTool === true && feature?.floaterOpen === true,
-    );
+    return identifiedFeatures
+      .map((entry, rowIndex) => [rowIndex, entry] as const)
+      .filter(
+        ([_, entry]) =>
+          entry.feature?._fromDrawTool === true && entry.floaterOpen === true,
+      )
+      .map(([rowIndex, entry]) => [rowIndex, entry.feature]);
   }
-
+  // ! ^ double map?
   private _updateFeatureFloaters() {
     this._getVisibleDrawIdentifiedFeatures().forEach(([rowIndex, feature]) => {
       const el = document.getElementById(`feature-floater-${rowIndex}`);
@@ -3258,7 +3265,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     switch (jgisLayer?.type) {
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
-        const features: any[] = [];
+        const features: IIdentifiedFeatureEntry[] = [];
         let foundAny = false;
 
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
@@ -3291,14 +3298,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             geometries.push(geom);
           }
           if (props && Object.keys(props).length > 0) {
-            features.push(props);
+            features.push({
+              feature: props,
+              floaterOpen: false,
+            });
           }
 
           return true;
         });
 
         if (features.length > 0) {
-          this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+          this._model.syncIdentifiedFeatures(
+            features,
+            this._mainViewModel.id,
+          );
+          // ! ^ shouldbe client id?
         } else if (!foundAny) {
           this._model.syncIdentifiedFeatures([], this._mainViewModel.id);
         }
@@ -3336,7 +3350,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         bandValues['Alpha'] = data[data.length - 1];
 
         this._model.syncIdentifiedFeatures(
-          [bandValues],
+          [{ feature: bandValues, floaterOpen: false }],
           this._mainViewModel.id,
         );
 

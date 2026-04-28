@@ -18,6 +18,7 @@ interface IFeatureCardProps {
   rowIndex: number;
   featureTitle: string;
   isVisible: boolean;
+  isFloaterOpen: boolean;
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
   onToggleVisibility: (rowIndex: number, isOpen: boolean) => void;
@@ -30,6 +31,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
   rowIndex,
   featureTitle,
   isVisible,
+  isFloaterOpen,
   editorState,
   editorActions,
   onToggleVisibility,
@@ -58,7 +60,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
           <div className="jgis-symbology-override-collapsible-trigger">
             <FeatureCardHeader
               feature={feature}
-              isOpen={isVisible}
+              isFloaterOpen={isFloaterOpen}
               featureTitle={featureTitle}
               onToggleFloater={() => onToggleFloater(rowIndex)}
               onHighlightFeature={onHighlightFeature}

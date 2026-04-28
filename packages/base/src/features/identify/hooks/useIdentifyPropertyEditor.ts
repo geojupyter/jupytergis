@@ -1,7 +1,7 @@
 import {
   IDict,
   IIdentifiedFeature,
-  IIdentifiedFeatures,
+  IIdentifiedFeatureEntry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import React, { useState } from 'react';
@@ -18,9 +18,8 @@ export function useIdentifyPropertyEditor(args: {
     target: { featureId: string | number },
     propertyUpdates: IDict<any>,
   ) => Promise<boolean>;
-  setFeatures: React.Dispatch<
-    React.SetStateAction<IIdentifiedFeatures | undefined>
-  >;
+  // ! weird type
+  setFeatures: React.Dispatch<React.SetStateAction<IIdentifiedFeatureEntry[]>>;
 }): {
   editorState: IPropertyEditorState;
   editorActions: IPropertyEditorActions;
@@ -97,20 +96,21 @@ export function useIdentifyPropertyEditor(args: {
 
     if (success) {
       setFeatures(previous => {
-        if (!previous) {
-          return previous;
-        }
+        const updatedFeatures = [...previous];
+        const targetFeatureEntry = updatedFeatures[featureIndex];
 
-        const updatedFeatures = { ...previous };
-        const targetFeature = updatedFeatures[featureIndex];
-
-        if (targetFeature) {
-          const updatedTargetFeature: IDict<any> = { ...targetFeature };
+        if (targetFeatureEntry?.feature) {
+          const updatedTargetFeature: IDict<any> = {
+            ...targetFeatureEntry.feature,
+          };
           if (previousKey && previousKey !== key) {
             delete updatedTargetFeature[previousKey];
           }
           updatedTargetFeature[key] = newPropertyValue;
-          updatedFeatures[featureIndex] = updatedTargetFeature;
+          updatedFeatures[featureIndex] = {
+            ...targetFeatureEntry,
+            feature: updatedTargetFeature,
+          };
         }
 
         model.syncIdentifiedFeatures(

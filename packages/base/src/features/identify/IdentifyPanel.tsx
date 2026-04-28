@@ -1,7 +1,7 @@
 import {
   IDict,
   IIdentifiedFeature,
-  IIdentifiedFeatures,
+  IIdentifiedFeatureEntry,
   IJGISSource,
   IJupyterGISModel,
 } from '@jupytergis/schema';
@@ -25,7 +25,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
   patchGeoJSONFeatureProperties,
 }) => {
-  const [features, setFeatures] = useState<IIdentifiedFeatures>();
+  const [features, setFeatures] = useState<IIdentifiedFeatureEntry[]>([]);
   const [visibleRows, setVisibleRows] = useState<IDict<any>>({
     0: true,
   });
@@ -59,7 +59,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
               : remoteState.user,
           );
 
-          setFeatures(remoteState.identifiedFeatures?.value ?? {});
+          setFeatures(remoteState.identifiedFeatures?.value ?? []);
         }
         return;
       }
@@ -70,7 +70,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
 
       if (!identifiedFeatures) {
-        setFeatures({});
+        setFeatures([]);
         return;
       }
 
@@ -113,11 +113,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
 
   const toggleFeatureFloater = (rowIndex: number) => {
     setFeatures(previous => {
-      if (!previous) {
-        return previous;
-      }
-
-      const nextFeatures = { ...previous };
+      const nextFeatures = [...previous];
       const target = nextFeatures[rowIndex];
       if (!target) {
         return previous;
@@ -157,27 +153,27 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
           : 'unset',
       }}
     >
-      {!Object.keys(features ?? {}).length && (
+      {!features.length && (
         <div style={{ textAlign: 'center' }}>
           Please select a layer from the layer list, then "i" from the toolbar
           to start identifying features.
         </div>
       )}
-      {features &&
-        Object.values(features).map((feature, rowIndex) => (
-          <FeatureCard
-            key={rowIndex}
-            feature={feature}
-            rowIndex={rowIndex}
-            isVisible={!!visibleRows[rowIndex]}
-            featureTitle={getFeatureNameOrId(feature, rowIndex)}
-            editorState={editorState}
-            editorActions={editorActions}
-            onToggleVisibility={toggleFeatureVisibility}
-            onToggleFloater={toggleFeatureFloater}
-            onHighlightFeature={highlightFeatureOnMap}
-          />
-        ))}
+      {features.map((item, rowIndex) => (
+        <FeatureCard
+          key={rowIndex}
+          feature={item.feature}
+          rowIndex={rowIndex}
+          isVisible={!!visibleRows[rowIndex]}
+          featureTitle={getFeatureNameOrId(item.feature, rowIndex)}
+          isFloaterOpen={!!item.floaterOpen}
+          editorState={editorState}
+          editorActions={editorActions}
+          onToggleVisibility={toggleFeatureVisibility}
+          onToggleFloater={toggleFeatureFloater}
+          onHighlightFeature={highlightFeatureOnMap}
+        />
+      ))}
     </div>
   );
 };

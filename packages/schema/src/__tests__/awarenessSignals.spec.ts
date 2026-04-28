@@ -83,14 +83,17 @@ describe('awareness field signals', () => {
       events.push(args);
     });
 
-    model.syncIdentifiedFeatures({ 0: { name: 'Feature 1' } }, 'test');
+    model.syncIdentifiedFeatures(
+      [{ feature: { name: 'Feature 1' }, floaterOpen: false }],
+      'test',
+    );
 
     expect(events).toHaveLength(1);
     expect(events[0].field).toBe('identifiedFeatures');
     expect(events[0].isLocalClient).toBe(true);
-    expect(events[0].currentValue?.value).toEqual({
-      0: { name: 'Feature 1' },
-    });
+    expect(events[0].currentValue?.value).toEqual([
+      { feature: { name: 'Feature 1' }, floaterOpen: false },
+    ]);
   });
 
   it('emits remoteUserChanged when follow target changes', () => {
