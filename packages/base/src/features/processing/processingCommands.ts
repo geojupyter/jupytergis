@@ -102,7 +102,7 @@ export function addProcessingCommands(
                 'SQLITE',
                 '-sql',
                 sqlQuery,
-                'output.geojson',
+                '{outputName}',
               ],
             },
             app,

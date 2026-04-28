@@ -469,7 +469,8 @@ export async function executeSQLProcessing(
     }
 
     const dataset = result.datasets[0] as any;
-    const outputFilePath = await Gdal[gdalFunction](dataset, options);
+    const wasmOptions = options.map(o => o.replace('{outputName}', 'output.geojson'));
+    const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);
     const processedBytes = await Gdal.getFileBytes(outputFilePath);
     processedGeoJSONString = new TextDecoder().decode(processedBytes);
     Gdal.close(dataset);

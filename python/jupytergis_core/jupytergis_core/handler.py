@@ -386,7 +386,7 @@ class ProcessingHandler(APIHandler):
         Expected JSON body:
         {
             "operation": "ogr2ogr" | "gdal_rasterize" | ...,
-            "options": ["-f", "GeoJSON", ...],
+            "options": ["-f", "GeoJSON", "-dialect", "SQLITE", "-sql", "...", "{outputName}"],
             "geojson": "<geojson string>",
             "outputName": "output.geojson"
         }
