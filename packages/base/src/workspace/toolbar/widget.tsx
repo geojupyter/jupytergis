@@ -166,7 +166,24 @@ export class ToolbarWidget extends ReactiveToolbar {
           execute: () => {
             showDialog({
             title: item.label,
-            body: ReactWidget.create(<item.form />)
+            body: ReactWidget.create(<item.form onExecute={(output: string) => {
+              console.debug('notebookTracker:', options.notebookTracker);
+              console.debug('currentWidget:', options.notebookTracker?.currentWidget);
+              console.debug('content:', options.notebookTracker?.currentWidget?.content);
+              const notebook = options.notebookTracker?.currentWidget?.content;
+                if (!notebook?.model) {
+                  console.debug("No Notebook model found");
+                  return;
+                }
+              notebook.model.sharedModel.insertCell(
+                notebook.activeCellIndex + 1,
+                {
+                  cell_type: 'code',
+                  source: output,
+                  metadata: {}
+                }
+              );
+            }} />)
     });
   }
 });
@@ -338,5 +355,6 @@ export namespace ToolbarWidget {
     commands?: CommandRegistry;
     model: JupyterGISModel;
     externalCommands: IJGISExternalCommand[];
+    notebookTracker?: { currentWidget: { content: any } | null };
   }
 }

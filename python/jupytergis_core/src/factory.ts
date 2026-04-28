@@ -12,6 +12,7 @@ import {
 } from '@jupytergis/schema';
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { INotebookTracker } from '@jupyterlab/notebook';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
@@ -34,6 +35,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   state: IStateDB;
   annotationModel: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
+  notebookTracker?: INotebookTracker;
 }
 
 export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
@@ -90,6 +92,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       commands: this._commands,
       model,
       externalCommands: this._externalCommandRegistry.getCommands(),
+      notebookTracker: this.options.notebookTracker,
     });
 
     return new JupyterGISDocumentWidget({

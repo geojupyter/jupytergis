@@ -23,7 +23,7 @@ import {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
-import { NotebookPanel } from '@jupyterlab/notebook';
+import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { Contents, IDefaultDrive } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -98,6 +98,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       formSchemaRegistry,
       state,
       annotationModel,
+      notebookTracker,
     } = options;
     const content = new JupyterGISPanel({
       model,
@@ -112,6 +113,7 @@ export class YJupyterGISLuminoWidget extends Panel {
         commands,
         model,
         externalCommands: externalCommands?.getCommands() || [],
+        notebookTracker,
       });
     }
     this._jgisWidget = new JupyterGISOutputWidget({
@@ -134,6 +136,7 @@ interface IOptions {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   state?: IStateDB;
   annotationModel?: IAnnotationModel;
+  notebookTracker?: INotebookTracker;
 }
 
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
@@ -148,6 +151,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IStateDB,
     IAnnotationToken,
     ISettingRegistry,
+    INotebookTracker,
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -159,6 +163,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
     settingRegistry?: ISettingRegistry,
+    notebookTracker?: INotebookTracker,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -251,11 +256,11 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           commands: app.commands,
           model: yModel.jupyterGISModel,
           externalCommands: externalCommandRegistry,
-
           tracker: jgisTracker,
           annotationModel,
           state,
           formSchemaRegistry,
+          notebookTracker,
         });
         this._jgisWidget = widget.jgisWidget;
 
