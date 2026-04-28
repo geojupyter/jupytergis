@@ -16,13 +16,13 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
   onEditProperty,
 }) => {
   return (
-    <div className="identify-v2-row">
-      <strong className="identify-v2-col-key">{propertyKey}</strong>
-      <span className="identify-v2-col-value">{String(value)}</span>
+    <div className="jgis-identify-row">
+      <strong className="jgis-identify-col-key">{propertyKey}</strong>
+      <span className="jgis-identify-col-value">{String(value)}</span>
       {showEditButton && (
         <Button
           type="button"
-          className="identify-v2-col-actions"
+          className="jgis-identify-col-actions"
           title="Edit property"
           variant="icon"
           size="icon-md"

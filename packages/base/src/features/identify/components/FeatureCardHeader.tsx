@@ -24,8 +24,8 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
     typeof feature?.y !== 'number';
 
   return (
-    <div className="identify-v2-card-header">
-      <div className="identify-v2-card-header-actions">
+    <div className="jgis-identify-card-header">
+      <div className="jgis-identify-card-header-actions">
         <Button
           size="icon-sm"
           variant="icon"
@@ -36,7 +36,7 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
         <span>{featureTitle}</span>
       </div>
 
-      <div className="identify-v2-card-header-actions">
+      <div className="jgis-identify-card-header-actions">
         <Button
           size="icon-md"
           variant="icon"

@@ -51,7 +51,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
         };
 
   return (
-    <div className="identify-v2-card">
+    <div className="jgis-identify-card">
       <Collapsible
         open={isVisible}
         onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
@@ -68,7 +68,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="identify-v2-content">
+          <div className="jgis-identify-content">
             <FeaturePropertyList
               feature={feature}
               rowIndex={rowIndex}

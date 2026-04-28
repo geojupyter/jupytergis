@@ -146,7 +146,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
 
   return (
     <div
-      className="identify-v2-wrapper"
+      className="jgis-identify-wrapper"
       style={{
         border: model?.localState?.remoteUser
           ? `solid 3px ${remoteUser?.color}`

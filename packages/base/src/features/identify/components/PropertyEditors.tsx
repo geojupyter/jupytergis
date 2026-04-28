@@ -26,7 +26,7 @@ export const PropertyFields: React.FC<IPropertyFieldsProps> = ({
   return (
     <>
       <Input
-        className="identify-v2-col-key"
+        className="jgis-identify-col-key"
         type="text"
         placeholder="key"
         value={editorState.newPropertyKey}
@@ -35,7 +35,7 @@ export const PropertyFields: React.FC<IPropertyFieldsProps> = ({
         }
       />
       <Input
-        className="identify-v2-col-value"
+        className="jgis-identify-col-value"
         type="text"
         placeholder="value"
         value={editorState.newPropertyValue}
@@ -65,7 +65,7 @@ export const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          className="identify-v2-col-actions"
+          className="jgis-identify-col-actions"
           title="Property actions"
           variant="icon"
           size="icon-md"
@@ -113,7 +113,7 @@ export const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
   editorActions,
 }) => {
   return (
-    <div className="identify-v2-row identify-v2-row--editor">
+    <div className="jgis-identify-row jgis-identify-row-editor">
       <PropertyFields editorState={editorState} editorActions={editorActions} />
       <PropertyActionMenu
         feature={feature}
@@ -150,9 +150,9 @@ export const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
   }
 
   return (
-    <div className="identify-v2-row identify-v2-row--add">
+    <div className="jgis-identify-row jgis-identify-row-add">
       <Button
-        className="identify-v2-add-button"
+        className="jgis-identify-add-button"
         onClick={() => editorActions.onStartAddProperty(rowIndex)}
         variant="outline"
         size="sm"
