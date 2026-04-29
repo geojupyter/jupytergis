@@ -165,33 +165,36 @@ export class ToolbarWidget extends ReactiveToolbar {
           label: item.label,
           execute: () => {
             showDialog({
-            title: item.label,
-            body: ReactWidget.create(<item.form
-              layers={Object.entries(options.model.getLayers()).map(([id, layer]) => ({
-                id,
-                name: layer.name,
-                source: options.model.getSource(layer.parameters?.source)?.parameters?.path,
-                type: layer.type
-              }))}
-              jgisPath={options.model.filePath.split('/').pop()}
-              onExecute={(output: string) => {
-              const notebook = options.notebookTracker?.currentWidget?.content;
-                if (!notebook?.model) {
-                  console.debug("No Notebook model found");
-                  return;
-                }
-              notebook.model.sharedModel.insertCell(
-                notebook.activeCellIndex + 1,
-                {
-                  cell_type: 'code',
-                  source: output,
-                  metadata: {}
-                }
-              );
-            }} />)
-    });
-  }
-});
+              title: item.label,
+              body: ReactWidget.create(
+                <item.form
+                  layers={Object.entries(options.model.getLayers()).map(([id, layer]) => ({
+                    id,
+                    name: layer.name,
+                    source: options.model.getSource(layer.parameters?.source)?.parameters?.path,
+                    type: layer.type
+                  }))}
+                  jgisPath={options.model.filePath.split('/').pop()}
+                  onExecute={(output: string) => {
+                    const notebook = options.notebookTracker?.currentWidget?.content;
+                    if (!notebook?.model) {
+                      console.debug("No Notebook model found");
+                      return;
+                    }
+                    notebook.model.sharedModel.insertCell(
+                      notebook.activeCellIndex + 1,
+                      {
+                        cell_type: 'code',
+                        source: output,
+                        metadata: {}
+                      }
+                    );
+                  }}
+                />
+              )
+            });
+          }
+        });
         processingSubMenu.addItem({ command: id });
       });
 

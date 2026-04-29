@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const Form = ({ onExecute }: { onExecute: (message: string) => void }) => {
-    const [message, setMessage] = useState('');
+    const [message, setMessage] = useState('Hello world');
     return (
         <div>
             <label htmlFor="message">Message</label>
