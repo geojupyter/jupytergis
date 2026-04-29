@@ -20,9 +20,10 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
 
     if (layer.type === 'VectorLayer' || layer.type === 'VectorTileLayer') {
       if (color && typeof color === 'object' && !Array.isArray(color)) {
-        if (!params.symbologyState) {
-          newParams.symbologyState = _vectorSymbologyFromColor(color);
-        }
+        newParams.symbologyState = {
+          ..._vectorSymbologyFromColor(color),
+          ...(params.symbologyState ?? {}),
+        };
       }
     } else if (layer.type === 'HeatmapLayer') {
       if (Array.isArray(color)) {
@@ -82,12 +83,17 @@ function _vectorSymbologyFromColor(
   return state;
 }
 
-/** Returns the first candidate that is a plain solid color array [r,g,b,a]. */
 function _firstSolidColor(...candidates: unknown[]): number[] | undefined {
   for (const c of candidates) {
     if (Array.isArray(c) && c.length >= 3 && typeof c[0] === 'number') {
       const [r = 0, g = 0, b = 0, a = 1] = c as number[];
       return [r, g, b, a];
+    }
+    if (typeof c === 'string') {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(c);
+      if (m) {
+        return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), 1];
+      }
     }
   }
   return undefined;
