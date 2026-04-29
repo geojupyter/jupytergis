@@ -49,7 +49,13 @@ export function SpectaPanel({
     panelRef: isMobile ? undefined : containerRef,
     isSpecta,
   });
+
   useStorySegmentSync({ model, storyData, setIndex });
+
+  const desktopViewMode =
+    storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
+      ? 'single'
+      : 'list';
 
   // Notify when segment transition animation ends
   useEffect(() => {
@@ -99,6 +105,7 @@ export function SpectaPanel({
       hasPrev={hasPrev}
       hasNext={hasNext}
       showGradient={showGradient}
+      viewMode={desktopViewMode}
     />
   );
 }

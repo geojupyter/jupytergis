@@ -98,6 +98,7 @@ export function useStoryMap({
   );
 
   const showGradient = storyData?.showGradient ?? true;
+  const isGuidedStory = storyData?.storyType === 'guided';
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 
@@ -306,11 +307,14 @@ export function useStoryMap({
       return;
     }
     clearOverrideLayers();
-    setSelectedLayerByIndex(currentIndex);
+    if (isGuidedStory) {
+      setSelectedLayerByIndex(currentIndex);
+    }
     overrideSymbology(currentIndex);
   }, [
     storyData,
     currentIndex,
+    isGuidedStory,
     setSelectedLayerByIndex,
     clearOverrideLayers,
     overrideSymbology,
@@ -318,10 +322,10 @@ export function useStoryMap({
 
   // Set selected layer on initial render and when story data changes
   useEffect(() => {
-    if (storyData?.storySegments && currentIndex >= 0) {
+    if (isGuidedStory && storyData?.storySegments && currentIndex >= 0) {
       setSelectedLayerByIndex(currentIndex);
     }
-  }, [storyData, currentIndex, setSelectedLayerByIndex]);
+  }, [storyData, currentIndex, isGuidedStory, setSelectedLayerByIndex]);
 
   // Apply story presentation colors (specta) to panel root
   useEffect(() => {

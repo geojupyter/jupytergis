@@ -8,8 +8,12 @@ import React, { RefObject, useImperativeHandle } from 'react';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
 } from '@/src/features/story/StoryViewerPanel';
+import { SpectaSegmentListPanel } from '@/src/features/story/components/SpectaSegmentListPanel';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
+import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
+
+export type StoryDesktopViewMode = 'single' | 'list';
 
 interface ISpectaDesktopViewProps {
   model: IJupyterGISModel;
@@ -26,6 +30,7 @@ interface ISpectaDesktopViewProps {
   hasPrev: boolean;
   hasNext: boolean;
   showGradient: boolean;
+  viewMode: StoryDesktopViewMode;
 }
 
 export function SpectaDesktopView({
@@ -43,6 +48,7 @@ export function SpectaDesktopView({
   hasPrev,
   hasNext,
   showGradient,
+  viewMode,
 }: ISpectaDesktopViewProps): JSX.Element {
   const {
     scrollContainerRef,
@@ -51,6 +57,13 @@ export function SpectaDesktopView({
     getAtTop,
     getAtBottom,
   } = useStoryScrollState({ currentIndex });
+
+  const segmentViewItems = useStorySegmentViewItems({
+    model,
+    storyData,
+    currentIndex,
+  });
+
   useImperativeHandle(
     storyViewerPanelRef,
     () => ({
@@ -85,18 +98,30 @@ export function SpectaDesktopView({
               data-story-scroll-sentinel="top"
               style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
             />
-            <StoryViewerPanel
-              isSpecta={isSpecta}
-              segmentContainerRef={segmentContainerRef}
-              storyData={storyData}
-              currentIndex={currentIndex}
-              activeSlide={activeSlide}
-              layerName={layerName}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-            />
+            {viewMode === 'single' ? (
+              <StoryViewerPanel
+                isSpecta={isSpecta}
+                segmentContainerRef={segmentContainerRef}
+                storyData={storyData}
+                currentIndex={currentIndex}
+                activeSlide={activeSlide}
+                layerName={layerName}
+                handlePrev={handlePrev}
+                handleNext={handleNext}
+                hasPrev={hasPrev}
+                hasNext={hasNext}
+              />
+            ) : (
+              <SpectaSegmentListPanel
+                isSpecta={isSpecta}
+                storyData={storyData}
+                items={segmentViewItems}
+                handlePrev={handlePrev}
+                handleNext={handleNext}
+                hasPrev={hasPrev}
+                hasNext={hasNext}
+              />
+            )}
             <div
               ref={bottomSentinelRef}
               aria-hidden

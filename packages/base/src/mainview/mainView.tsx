@@ -3862,8 +3862,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                         settings={this.state.jgisSettings}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
-                        addLayer={this.addLayer.bind(this)}
-                        removeLayer={this.removeLayer.bind(this)}
+                        addLayer={this._addLayerForPanels}
+                        removeLayer={this._removeLayerForPanels}
                       />
                     ) : (
                       <>
@@ -3881,8 +3881,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                             commands={this._mainViewModel.commands}
                             formSchemaRegistry={this._formSchemaRegistry}
                             annotationModel={this._annotationModel}
-                            addLayer={this.addLayer.bind(this)}
-                            removeLayer={this.removeLayer.bind(this)}
+                            addLayer={this._addLayerForPanels}
+                            removeLayer={this._removeLayerForPanels}
                             settings={this.state.jgisSettings}
                             patchGeoJSONFeatureProperties={
                               this._patchGeoJSONFeatureProperties
@@ -3903,8 +3903,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                       }
                       containerRef={this.spectaContainerRef}
                       storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this.addLayer.bind(this)}
-                      removeLayer={this.removeLayer.bind(this)}
+                      addLayer={this._addLayerForPanels}
+                      removeLayer={this._removeLayerForPanels}
                     />
                   )
                 )}
@@ -3965,6 +3965,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
+  private _addLayerForPanels = (
+    id: string,
+    layer: IJGISLayer,
+    index: number,
+  ) => this.addLayer(id, layer, index);
+  private _removeLayerForPanels = (id: string) => this.removeLayer(id);
   private _patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
 
   private _log(

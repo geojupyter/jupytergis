@@ -1,76 +1,58 @@
-import {
-  IJGISStoryMap,
-  IJupyterGISModel,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
+import { IJGISStoryMap } from '@jupytergis/schema';
 import React from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
+import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
 
 interface ISpectaSegmentListPanelProps {
-  model: IJupyterGISModel;
   isSpecta: boolean;
   storyData: IJGISStoryMap | null;
-  currentIndex: number;
+  items: IStorySegmentViewItem[];
   handlePrev: () => void;
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  setIndex: (index: number) => void;
 }
 
 export function SpectaSegmentListPanel({
-  model,
   isSpecta,
   storyData,
-  currentIndex,
+  items,
   handlePrev,
   handleNext,
   hasPrev,
   hasNext,
-  setIndex,
 }: ISpectaSegmentListPanelProps): JSX.Element {
-  const segments = storyData?.storySegments ?? [];
-
-  if (!segments.length) {
+  if (!storyData || !items.length) {
     return <div style={{ padding: '1rem' }}>No segments.</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      {segments.map((segmentId, index) => {
-        const layer = model.getLayer(segmentId);
-        const activeSlide = layer?.parameters as
-          | IStorySegmentLayer['parameters']
-          | undefined;
-        const layerName = layer?.name || `Segment ${index + 1}`;
-
+      {items.map(item => {
         return (
           <div
-            key={segmentId}
+            key={item.id}
             style={{
               padding: '0.75rem',
               borderRadius: '8px',
               border: '1px solid var(--jp-border-color2)',
-              background:
-                index === currentIndex
-                  ? 'var(--jp-layout-color2)'
-                  : 'var(--jp-layout-color1)',
+              background: item.isActive
+                ? 'var(--jp-layout-color2)'
+                : 'var(--jp-layout-color1)',
             }}
           >
             <StoryViewerPanel
-              model={model}
               isSpecta={isSpecta}
               isMobile={true}
               storyData={storyData}
-              currentIndex={index}
-              activeSlide={activeSlide}
-              layerName={layerName}
+              currentIndex={item.index}
+              activeSlide={item.activeSlide}
+              layerName={item.layerName}
               handlePrev={handlePrev}
               handleNext={handleNext}
               hasPrev={hasPrev}
               hasNext={hasNext}
-              setIndex={setIndex}
             />
           </div>
         );
