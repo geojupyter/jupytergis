@@ -1,6 +1,5 @@
 import {
   IJGISStoryMap,
-  IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
@@ -25,7 +24,6 @@ const SNAP_FIRST_DEFAULT = 0.7;
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 interface ISpectaMobileViewProps {
-  model: IJupyterGISModel;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -35,7 +33,6 @@ interface ISpectaMobileViewProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  setIndex: (index: number) => void;
 }
 
 /**
@@ -65,7 +62,6 @@ function getFirstSnapFromSegmentHeader(
 }
 
 export function SpectaMobileView({
-  model,
   segmentContainerRef,
   storyData,
   currentIndex,
@@ -75,7 +71,6 @@ export function SpectaMobileView({
   handleNext,
   hasPrev,
   hasNext,
-  setIndex,
 }: ISpectaMobileViewProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [snapPoints, setSnapPoints] = useState<number[]>([
@@ -176,7 +171,6 @@ export function SpectaMobileView({
         <DrawerContent style={presentationStyle}>
           <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
-              model={model}
               isSpecta={true}
               isMobile={true}
               segmentContainerRef={segmentContainerRef}
@@ -188,7 +182,6 @@ export function SpectaMobileView({
               handleNext={handleNext}
               hasPrev={hasPrev}
               hasNext={hasNext}
-              setIndex={setIndex}
             />
           </div>
         </DrawerContent>

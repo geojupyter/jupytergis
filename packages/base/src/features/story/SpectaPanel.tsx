@@ -70,7 +70,6 @@ export function SpectaPanel({
   if (isMobile) {
     return (
       <SpectaMobileView
-        model={model}
         segmentContainerRef={segmentContainerRef}
         storyData={storyData}
         currentIndex={currentIndex}
@@ -80,7 +79,6 @@ export function SpectaPanel({
         handleNext={handleNext}
         hasPrev={hasPrev}
         hasNext={hasNext}
-        setIndex={setIndex}
       />
     );
   }
@@ -101,7 +99,6 @@ export function SpectaPanel({
       hasPrev={hasPrev}
       hasNext={hasNext}
       showGradient={showGradient}
-      setIndex={setIndex}
     />
   );
 }

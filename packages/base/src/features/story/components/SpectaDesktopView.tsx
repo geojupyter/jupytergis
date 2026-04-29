@@ -8,7 +8,6 @@ import React, { RefObject, useImperativeHandle } from 'react';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
 } from '@/src/features/story/StoryViewerPanel';
-import { SpectaSegmentListPanel } from '@/src/features/story/components/SpectaSegmentListPanel';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
@@ -27,7 +26,6 @@ interface ISpectaDesktopViewProps {
   hasPrev: boolean;
   hasNext: boolean;
   showGradient: boolean;
-  setIndex: (index: number) => void;
 }
 
 export function SpectaDesktopView({
@@ -45,7 +43,6 @@ export function SpectaDesktopView({
   hasPrev,
   hasNext,
   showGradient,
-  setIndex,
 }: ISpectaDesktopViewProps): JSX.Element {
   const {
     scrollContainerRef,
@@ -54,7 +51,6 @@ export function SpectaDesktopView({
     getAtTop,
     getAtBottom,
   } = useStoryScrollState({ currentIndex });
-
   useImperativeHandle(
     storyViewerPanelRef,
     () => ({
@@ -89,19 +85,7 @@ export function SpectaDesktopView({
               data-story-scroll-sentinel="top"
               style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
             />
-            {/* <SpectaSegmentListPanel
-              model={model}
-              isSpecta={isSpecta}
-              storyData={storyData}
-              currentIndex={currentIndex}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-              setIndex={setIndex}
-            /> */}
             <StoryViewerPanel
-              model={model}
               isSpecta={isSpecta}
               segmentContainerRef={segmentContainerRef}
               storyData={storyData}
@@ -112,7 +96,6 @@ export function SpectaDesktopView({
               handleNext={handleNext}
               hasPrev={hasPrev}
               hasNext={hasNext}
-              setIndex={setIndex}
             />
             <div
               ref={bottomSentinelRef}

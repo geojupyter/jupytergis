@@ -1,6 +1,5 @@
 import {
   IJGISStoryMap,
-  IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
@@ -14,7 +13,6 @@ import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
 /** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
-  model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
   /** Ref for the segment container (SpectaPanel uses it for animationend). */
@@ -27,7 +25,6 @@ interface IStoryViewerPanelProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  setIndex: (index: number) => void;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -77,7 +74,6 @@ function getStoryNavPlacement(
  * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
  */
 function StoryViewerPanel({
-  model,
   isSpecta,
   isMobile = false,
   segmentContainerRef,
@@ -89,7 +85,6 @@ function StoryViewerPanel({
   handleNext,
   hasPrev,
   hasNext,
-  setIndex,
 }: IStoryViewerPanelProps) {
   const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
 

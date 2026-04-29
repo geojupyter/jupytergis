@@ -62,7 +62,6 @@ export function RightPanelStoryViewer({
 
   return (
     <StoryViewerPanel
-      model={model}
       isSpecta={false}
       storyData={storyData}
       currentIndex={currentIndex}
@@ -72,7 +71,6 @@ export function RightPanelStoryViewer({
       handleNext={handleNext}
       hasPrev={hasPrev}
       hasNext={hasNext}
-      setIndex={setIndex}
     />
   );
 }
