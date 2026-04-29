@@ -17,6 +17,7 @@ export type GeometryType = 'fill' | 'circle' | 'line';
 
 const DEFAULT_RADIUS = 5;
 const TRANSPARENT: RgbaColor = [0, 0, 0, 0];
+const DEFAULT_FILL_COLOR: RgbaColor = [255, 255, 255, 0.4];
 
 /**
  * Defaults applied when `buildVectorFlatStyle` returns `undefined`.
@@ -439,7 +440,7 @@ function generateColors(
 // Per-render-type builders
 
 function buildSingleSymbol(state: SymbologyState): FlatStyle {
-  const fill = (state.fillColor ?? DEFAULT_COLOR) as number[];
+  const fill = (state.fillColor ?? DEFAULT_FILL_COLOR) as number[];
   const stroke = (state.strokeColor ?? DEFAULT_COLOR) as number[];
   const strokeWidth = nonNegative(state.strokeWidth, DEFAULT_STROKE_WIDTH);
   const radius = state.radius ?? DEFAULT_RADIUS;
@@ -509,15 +510,16 @@ function buildGraduated(
         style['circle-stroke-color'] = manualStroke;
       }
     } else {
-      style['fill-color'] = (state.fillColor ?? DEFAULT_COLOR) as number[];
+      style['fill-color'] = (state.fillColor ?? DEFAULT_FILL_COLOR) as number[];
       style['circle-fill-color'] = (state.fillColor ??
-        DEFAULT_COLOR) as number[];
+        DEFAULT_FILL_COLOR) as number[];
       style['stroke-color'] = manualStroke;
       style['circle-stroke-color'] = manualStroke;
     }
   } else {
-    style['fill-color'] = (state.fillColor ?? DEFAULT_COLOR) as number[];
-    style['circle-fill-color'] = (state.fillColor ?? DEFAULT_COLOR) as number[];
+    style['fill-color'] = (state.fillColor ?? DEFAULT_FILL_COLOR) as number[];
+    style['circle-fill-color'] = (state.fillColor ??
+      DEFAULT_FILL_COLOR) as number[];
     style['stroke-color'] = manualStroke;
     style['circle-stroke-color'] = manualStroke;
   }
@@ -554,7 +556,7 @@ function buildCategorized(
   const fallback = (state.fallbackColor ?? TRANSPARENT) as number[];
   const strokeWidth = nonNegative(state.strokeWidth, DEFAULT_STROKE_WIDTH);
   const radius = state.radius ?? DEFAULT_RADIUS;
-  const manualFill = (state.fillColor ?? DEFAULT_COLOR) as number[];
+  const manualFill = (state.fillColor ?? DEFAULT_FILL_COLOR) as number[];
   const manualStroke = (state.strokeColor ?? DEFAULT_COLOR) as number[];
 
   const style: FlatStyle = {
