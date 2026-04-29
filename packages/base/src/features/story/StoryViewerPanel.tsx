@@ -3,13 +3,14 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { RefObject, useEffect, useState } from 'react';
+import React, { RefObject } from 'react';
 
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
+import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
 /** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
@@ -90,85 +91,7 @@ function StoryViewerPanel({
   hasNext,
   setIndex,
 }: IStoryViewerPanelProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  // Prefetch image when slide changes
-  useEffect(() => {
-    const imageUrl = activeSlide?.content?.image;
-
-    if (!imageUrl) {
-      setImageLoaded(false);
-      return;
-    }
-
-    // Reset state
-    setImageLoaded(false);
-
-    // Preload the image
-    const img = new Image();
-
-    img.onload = () => {
-      setImageLoaded(true);
-    };
-
-    img.onerror = () => {
-      setImageLoaded(false);
-    };
-
-    img.src = imageUrl;
-
-    // Cleanup: abort loading if component unmounts or slide changes
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [activeSlide?.content?.image]);
-
-  // ! TODO come back for this
-  // Listen for layer selection changes in unguided mode
-  useEffect(() => {
-    // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
-    const handleSelectedStorySegmentChanged = () => {
-      // This is just to update the displayed content
-      // So bail early if we don't need to do that
-      if (!storyData || storyData.storyType !== 'unguided') {
-        return;
-      }
-
-      const selected = model.localState?.selected?.value;
-      if (!selected) {
-        return;
-      }
-
-      const selectedLayers = Object.keys(selected);
-
-      // Ensure only one layer is selected
-      if (selectedLayers.length !== 1) {
-        return;
-      }
-
-      const selectedLayerId = selectedLayers[0];
-      const selectedLayer = model.getLayer(selectedLayerId);
-      if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
-        return;
-      }
-
-      const index = storyData.storySegments?.indexOf(selectedLayerId);
-      if (index === undefined || index === -1) {
-        return;
-      }
-
-      setIndex(index);
-    };
-
-    // ! TODO really only want to connect this un unguided mode
-    model.selectedChanged.connect(handleSelectedStorySegmentChanged);
-    handleSelectedStorySegmentChanged();
-
-    return () => {
-      model.selectedChanged.disconnect(handleSelectedStorySegmentChanged);
-    };
-  }, [model, storyData, setIndex]);
+  const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (

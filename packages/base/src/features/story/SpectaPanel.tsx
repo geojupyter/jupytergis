@@ -4,6 +4,7 @@ import React, { RefObject, useEffect, useRef } from 'react';
 import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
+import { useStorySegmentSync } from './hooks/useStorySegmentSync';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
 
 interface ISpectaPanelProps {
@@ -48,6 +49,7 @@ export function SpectaPanel({
     panelRef: isMobile ? undefined : containerRef,
     isSpecta,
   });
+  useStorySegmentSync({ model, storyData, setIndex });
 
   // Notify when segment transition animation ends
   useEffect(() => {

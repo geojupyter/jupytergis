@@ -10,9 +10,8 @@ import React, {
   useRef,
 } from 'react';
 
-import StoryViewerPanel, {
-  type IStoryViewerPanelHandle,
-} from '@/src/features/story/StoryViewerPanel';
+import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
+import { SpectaSegmentListPanel } from '@/src/features/story/components/SpectaSegmentListPanel';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 interface ISpectaDesktopViewProps {
@@ -114,7 +113,18 @@ export function SpectaDesktopView({
               data-story-scroll-sentinel="top"
               style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
             />
-            <StoryViewerPanel
+            <SpectaSegmentListPanel
+              model={model}
+              isSpecta={isSpecta}
+              storyData={storyData}
+              currentIndex={currentIndex}
+              handlePrev={handlePrev}
+              handleNext={handleNext}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              setIndex={setIndex}
+            />
+            {/* <StoryViewerPanel
               model={model}
               isSpecta={isSpecta}
               segmentContainerRef={segmentContainerRef}
@@ -127,7 +137,7 @@ export function SpectaDesktopView({
               hasPrev={hasPrev}
               hasNext={hasNext}
               setIndex={setIndex}
-            />
+            /> */}
             <div
               ref={bottomSentinelRef}
               aria-hidden
