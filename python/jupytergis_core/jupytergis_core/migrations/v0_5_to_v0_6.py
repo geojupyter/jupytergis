@@ -23,9 +23,10 @@ def migrate(doc: dict[str, Any]) -> dict[str, Any]:
         layer_type = layer.get("type", "")
 
         if layer_type in ("VectorLayer", "VectorTileLayer"):
-            existing = params.get("symbologyState")
-            if not existing:
-                params["symbologyState"] = _vector_symbology_from_color(color)
+            if isinstance(color, dict):
+                derived = _vector_symbology_from_color(color)
+                existing = params.get("symbologyState") or {}
+                params["symbologyState"] = {**derived, **existing}
         elif layer_type == "HeatmapLayer":
             state = dict(params.get("symbologyState") or {"renderType": "Heatmap"})
             if isinstance(color, list) and "gradient" not in state:
@@ -83,4 +84,13 @@ def _to_rgba(value: Any) -> list[float] | None:
     ):
         rgba = list(value) + [1.0] * (4 - len(value))
         return [float(c) for c in rgba[:4]]
+    if isinstance(value, str):
+        s = value.lstrip("#")
+        if len(s) == 6 and all(c in "0123456789abcdefABCDEF" for c in s):
+            return [
+                float(int(s[0:2], 16)),
+                float(int(s[2:4], 16)),
+                float(int(s[4:6], 16)),
+                1.0,
+            ]
     return None
