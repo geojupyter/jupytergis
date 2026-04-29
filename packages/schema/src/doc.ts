@@ -25,6 +25,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocChange,
 } from './interfaces';
+import { migrateDocument } from './migrations';
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
@@ -112,7 +113,9 @@ export class JupyterGISDoc
     if (typeof value === 'string') {
       value = JSON.parse(value);
     }
-    value = value as JSONObject;
+    // Mirror the Python `YJGIS.set()` migration step so JupyterLite (which has
+    // no Python ydoc) loads legacy documents with the same shape as Lab.
+    value = migrateDocument(value as Record<string, any>) as JSONObject;
     this.transact(() => {
       const layers = value['layers'] ?? {};
       Object.entries(layers).forEach(([key, val]) =>
