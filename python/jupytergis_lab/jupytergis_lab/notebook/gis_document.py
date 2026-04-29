@@ -34,6 +34,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
+from py2vega import Variable, py2vega
 from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
@@ -116,6 +117,33 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
         state["geometryType"] = "line"
 
     return state
+
+
+def _python_expr_to_vega_expr(python_expr: str | None) -> str | None:
+    if python_expr is None:
+        return None
+    if not isinstance(python_expr, str) or not python_expr.strip():
+        raise ValueError("python_expr must be a non-empty string")
+    try:
+        return py2vega(
+            python_expr,
+            whitelist=[Variable("datum")],
+        )
+    except Exception as e:
+        raise ValueError(f"Invalid Python expression: {e}") from e
+
+
+def _resolve_vega_expr(
+    vega_expr: str | None = None,
+    python_expr: str | None = None,
+) -> str | None:
+    if vega_expr is not None and python_expr is not None:
+        raise ValueError("Provide either vega_expr or python_expr, not both")
+
+    if python_expr is not None:
+        return _python_expr_to_vega_expr(python_expr)
+
+    return vega_expr
 
 
 class GISDocument(CommWidget):
@@ -277,6 +305,8 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         color_expr=None,
+        vega_expr: str | None = None,
+        python_expr: str | None = None,
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
@@ -307,6 +337,8 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
+
         layer = {
             "type": LayerType.VectorTileLayer,
             "name": name,
@@ -314,6 +346,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
+                "vega": vega_expr,
                 "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
@@ -337,6 +370,8 @@ class GISDocument(CommWidget):
         operator: str | None = None,
         value: str | float | None = None,
         color_expr=None,
+        vega_expr: str | None = None,
+        python_expr: str | None = None,
     ):
         """Add a GeoJSON Layer to the document.
 
@@ -345,6 +380,7 @@ class GISDocument(CommWidget):
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
+        :param vega_expr: A Vega expression string will be converted to OpenLayers expression in the frontend.
         """
         if isinstance(path, Path):
             path = str(path)
@@ -375,6 +411,8 @@ class GISDocument(CommWidget):
         if color_expr is None:
             color_expr = {}
 
+        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
+
         source = {
             "type": SourceType.GeoJSONSource,
             "name": f"{name} Source",
@@ -389,6 +427,7 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
+                "vega": vega_expr,
                 "opacity": opacity,
                 "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
@@ -638,6 +677,8 @@ class GISDocument(CommWidget):
         operator: str | None = None,
         value: str | float | None = None,
         color_expr=None,
+        vega_expr: str | None = None,
+        python_expr: str | None = None,
     ):
         """Add a GeoParquet Layer to the document
 
@@ -649,6 +690,7 @@ class GISDocument(CommWidget):
         :param operator: The operator used to compare the feature and value
         :param value: The value to be filtered on
         :param color_expr: The style expression used to style the layer
+        :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
         """
         source = {
             "type": SourceType.GeoParquetSource,
@@ -658,6 +700,8 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
+
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
@@ -665,6 +709,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
+                "vega": vega_expr,
                 "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
             },
             "filters": {
@@ -689,6 +734,8 @@ class GISDocument(CommWidget):
         operator: str | None = None,
         value: str | float | None = None,
         color_expr=None,
+        vega_expr: str | None = None,
+        python_expr: str | None = None,
     ):
         """Add a GeoPackage Vector Layer to the document
 
@@ -702,6 +749,7 @@ class GISDocument(CommWidget):
         :param operator: The operator used to compare the feature and value
         :param value: The value to be filtered on
         :param color_expr: The style expression used to style the layer
+        :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
         """
         if isinstance(table_names, str):
             table_names = [part.strip() for part in table_names.split(",")]
@@ -715,6 +763,8 @@ class GISDocument(CommWidget):
             projection = self._options["projection"]
         else:
             projection = "EPSG:3857"
+
+        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
 
         for table_name in table_names:
             source = {
@@ -739,6 +789,7 @@ class GISDocument(CommWidget):
                     "source": source_id,
                     "type": type,
                     "opacity": opacity,
+                    "vega": vega_expr,
                     "symbologyState": _vector_symbology_state_from_color_expr(
                         color_expr,
                     ),
@@ -799,7 +850,6 @@ class GISDocument(CommWidget):
                 "visible": True,
                 "parameters": {
                     "source": source_id,
-                    "type": type,
                     "opacity": opacity,
                     "attribution": attribution,
                 },
