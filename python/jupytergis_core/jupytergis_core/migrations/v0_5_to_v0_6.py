@@ -13,6 +13,10 @@ def migrate(doc: dict[str, Any]) -> dict[str, Any]:
 
     for layer_id, layer in layers.items():
         layer = dict(layer)
+
+        if layer.get("type") == "WebGlLayer":
+            layer["type"] = "GeoTiffLayer"
+
         params = dict(layer.get("parameters", {}))
 
         if "color" not in params:

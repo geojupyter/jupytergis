@@ -10,22 +10,32 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
   const layers: Record<string, any> = { ...doc.layers };
 
   for (const [id, layer] of Object.entries(layers)) {
-    const params = layer?.parameters;
+    const newLayer = { ...layer };
+
+    if (newLayer.type === 'WebGlLayer') {
+      newLayer.type = 'GeoTiffLayer';
+    }
+
+    const params = newLayer?.parameters;
     if (!params || !('color' in params)) {
+      layers[id] = newLayer;
       continue;
     }
 
     const color = params.color;
     const newParams = { ...params };
 
-    if (layer.type === 'VectorLayer' || layer.type === 'VectorTileLayer') {
+    if (
+      newLayer.type === 'VectorLayer' ||
+      newLayer.type === 'VectorTileLayer'
+    ) {
       if (color && typeof color === 'object' && !Array.isArray(color)) {
         newParams.symbologyState = {
           ..._vectorSymbologyFromColor(color),
           ...(params.symbologyState ?? {}),
         };
       }
-    } else if (layer.type === 'HeatmapLayer') {
+    } else if (newLayer.type === 'HeatmapLayer') {
       if (Array.isArray(color)) {
         const state = params.symbologyState ?? { renderType: 'Heatmap' };
         if (!state.gradient) {
@@ -35,7 +45,7 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
     }
 
     delete newParams.color;
-    layers[id] = { ...layer, parameters: newParams };
+    layers[id] = { ...newLayer, parameters: newParams };
   }
 
   return { ...doc, layers };
