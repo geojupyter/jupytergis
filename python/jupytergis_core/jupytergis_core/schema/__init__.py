@@ -5,7 +5,7 @@ from .interfaces.project.layers.vectorLayer import IVectorLayer  # noqa
 from .interfaces.project.layers.vectorTileLayer import IVectorTileLayer  # noqa
 from .interfaces.project.layers.hillshadeLayer import IHillshadeLayer  # noqa
 from .interfaces.project.layers.imageLayer import IImageLayer  # noqa
-from .interfaces.project.layers.webGlLayer import IWebGlLayer  # noqa
+from .interfaces.project.layers.geoTiffLayer import IGeoTiffLayer  # noqa
 from .interfaces.project.layers.heatmapLayer import IHeatmapLayer  # noqa
 from .interfaces.project.layers.storySegmentLayer import IStorySegmentLayer  # noqa
 

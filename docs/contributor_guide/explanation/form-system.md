@@ -64,7 +64,7 @@ Each layer or source type has a function component (e.g. `vectorlayerform.tsx`, 
 
 The same component is used for create and edit.
 
-**Layer forms:** `layerform.tsx`, `vectorlayerform.tsx`, `hillshadeLayerForm.tsx`, `webGlLayerForm.tsx`, `heatmapLayerForm.tsx`, `storySegmentLayerForm.tsx`.
+**Layer forms:** `layerform.tsx`, `vectorlayerform.tsx`, `hillshadeLayerForm.tsx`, `geoTiffLayerForm.tsx`, `heatmapLayerForm.tsx`, `storySegmentLayerForm.tsx`.
 
 **Source forms:** `sourceform.tsx`, `geojsonsource.tsx`, `pathbasedsource.tsx`, `tilesourceform.tsx`, `geotiffsource.tsx`.
 

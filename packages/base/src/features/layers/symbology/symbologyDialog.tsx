@@ -85,7 +85,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    // TODO WebGlLayers can also be used for other layers, need a better way to determine source + layer combo
+    // TODO GeoTiffLayers can also be used for other layers, need a better way to determine source + layer combo
     switch (layer.type) {
       case 'VectorLayer':
       case 'VectorTileLayer':
@@ -100,7 +100,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
           />
         );
         break;
-      case 'WebGlLayer':
+      case 'GeoTiffLayer':
         LayerSymbology = (
           <TiffRendering
             model={model}

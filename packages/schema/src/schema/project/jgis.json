@@ -44,7 +44,7 @@
         "VectorLayer",
         "VectorTileLayer",
         "HillshadeLayer",
-        "WebGlLayer",
+        "GeoTiffLayer",
         "ImageLayer",
         "HeatmapLayer",
         "StacLayer",

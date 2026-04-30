@@ -255,7 +255,7 @@ export function addCommands(
       const canIdentify = [
         'VectorLayer',
         'ShapefileLayer',
-        'WebGlLayer',
+        'GeoTiffLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
 
@@ -278,7 +278,7 @@ export function addCommands(
       return [
         'VectorLayer',
         'ShapefileLayer',
-        'WebGlLayer',
+        'GeoTiffLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
@@ -541,7 +541,7 @@ export function addCommands(
       createSource: true,
       layerData: { name: 'Custom WMS Layer' },
       sourceType: 'WmsTileSource',
-      layerType: 'WebGlLayer',
+      layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewWmsDialog),
   });
@@ -690,7 +690,7 @@ export function addCommands(
       },
       layerData: { name: 'Custom GeoTiff Layer' },
       sourceType: 'GeoTiffSource',
-      layerType: 'WebGlLayer',
+      layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoTiffDialog),
   });

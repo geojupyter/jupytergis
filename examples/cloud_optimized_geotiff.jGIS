@@ -111,7 +111,7 @@
           "renderType": "Singleband Pseudocolor"
         }
       },
-      "type": "WebGlLayer",
+      "type": "GeoTiffLayer",
       "visible": true
     }
   },

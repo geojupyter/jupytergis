@@ -29,7 +29,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IGeoParquetSource,
-  IWebGlLayer,
+  IGeoTiffLayer,
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
@@ -87,7 +87,7 @@ import {
   Vector as VectorLayer,
   VectorImage as VectorImageLayer,
   VectorTile as VectorTileLayer,
-  WebGLTile as WebGlTileLayer,
+  WebGLTile as GeoTiffLayer,
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
@@ -153,8 +153,7 @@ type OlLayerTypes =
   | VectorLayer
   | VectorImageLayer
   | VectorTileLayer
-  | WebGlTileLayer
-  | WebGlTileLayer
+  | GeoTiffLayer
   | HeatmapLayer
   | StacLayer
   | ImageLayer<any>;
@@ -1472,7 +1471,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'HillshadeLayer': {
         layerParameters = layer.parameters as IHillshadeLayer;
 
-        newMapLayer = new WebGlTileLayer({
+        newMapLayer = new GeoTiffLayer({
           opacity: 0.3,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
@@ -1494,8 +1493,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
-      case 'WebGlLayer': {
-        layerParameters = layer.parameters as IWebGlLayer;
+      case 'GeoTiffLayer': {
+        layerParameters = layer.parameters as IGeoTiffLayer;
 
         // This is to handle python sending a None for the color
         const layerOptions: any = {
@@ -1510,7 +1509,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           };
         }
 
-        newMapLayer = new WebGlTileLayer(layerOptions);
+        newMapLayer = new GeoTiffLayer(layerOptions);
         break;
       }
       case 'HeatmapLayer': {
@@ -1830,11 +1829,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'ImageLayer': {
         break;
       }
-      case 'WebGlLayer': {
+      case 'GeoTiffLayer': {
         mapLayer.setOpacity(layer.parameters?.opacity);
 
         if (layer?.parameters?.color) {
-          (mapLayer as WebGlTileLayer).setStyle({
+          (mapLayer as GeoTiffLayer).setStyle({
             color: layer.parameters.color,
           });
         }
@@ -3234,8 +3233,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
 
-      case 'WebGlLayer': {
-        const layer = this.getLayer(layerId) as WebGlTileLayer;
+      case 'GeoTiffLayer': {
+        const layer = this.getLayer(layerId) as GeoTiffLayer;
         const data = layer.getData(e.pixel);
 
         // TODO: Handle dataviews?

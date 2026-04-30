@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "WebGlLayer",
-  "title": "IWebGlLayer",
+  "description": "GeoTiffLayer",
+  "title": "IGeoTiffLayer",
   "required": ["source"],
   "additionalProperties": false,
   "properties": {

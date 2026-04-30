@@ -1,4 +1,4 @@
-import { IWebGlLayer } from '@jupytergis/schema';
+import { IGeoTiffLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
@@ -7,7 +7,7 @@ import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
-  WebGlSymbologyParams,
+  GeoTiffSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
@@ -35,7 +35,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   }
   const layer = model.getLayer(layerId);
 
-  const params = useEffectiveSymbologyParams<WebGlSymbologyParams>({
+  const params = useEffectiveSymbologyParams<GeoTiffSymbologyParams>({
     model,
     layerId: layerId,
     layer,
@@ -64,7 +64,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   }, []);
 
   const populateOptions = async () => {
-    const layerParams = params as IWebGlLayer;
+    const layerParams = params as IGeoTiffLayer;
     const red = layerParams.symbologyState?.redBand ?? 1;
     const green = layerParams.symbologyState?.greenBand ?? 2;
     const blue = layerParams.symbologyState?.blueBand ?? 3;
@@ -114,7 +114,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
         color: colorExpr,
       },
       mutateLayerBeforeSave: targetLayer => {
-        targetLayer.type = 'WebGlLayer';
+        targetLayer.type = 'GeoTiffLayer';
       },
     });
   };
