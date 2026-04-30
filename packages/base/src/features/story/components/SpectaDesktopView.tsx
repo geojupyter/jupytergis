@@ -5,10 +5,9 @@ import {
 } from '@jupytergis/schema';
 import React, { RefObject, useImperativeHandle } from 'react';
 
-import StoryViewerPanel, {
-  IStoryViewerPanelHandle,
-} from '@/src/features/story/StoryViewerPanel';
-import { SpectaSegmentListPanel } from '@/src/features/story/components/SpectaSegmentListPanel';
+import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
+import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
+import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
@@ -65,6 +64,37 @@ export function SpectaDesktopView({
     storyData,
     currentIndex,
   });
+  const renderModeContent: Record<StoryDesktopViewMode, () => JSX.Element> = {
+    single: () => (
+      <SpectaSingleModeContent
+        isSpecta={isSpecta}
+        segmentContainerRef={segmentContainerRef}
+        storyData={storyData}
+        currentIndex={currentIndex}
+        activeSlide={activeSlide}
+        layerName={layerName}
+        handlePrev={handlePrev}
+        handleNext={handleNext}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+        topSentinelRef={topSentinelRef}
+        bottomSentinelRef={bottomSentinelRef}
+      />
+    ),
+    list: () => (
+      <SpectaListModeContent
+        isSpecta={isSpecta}
+        storyData={storyData}
+        items={segmentViewItems}
+        currentIndex={currentIndex}
+        setIndex={setIndex}
+        handlePrev={handlePrev}
+        handleNext={handleNext}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+      />
+    ),
+  };
 
   useImperativeHandle(
     storyViewerPanelRef,
@@ -96,46 +126,7 @@ export function SpectaDesktopView({
             id="jgis-story-segment-panel"
             style={showGradient ? undefined : { width: 'unset' }}
           >
-            {viewMode === 'single' ? (
-              <>
-                <div
-                  ref={topSentinelRef}
-                  aria-hidden
-                  data-story-scroll-sentinel="top"
-                  style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-                />
-                <StoryViewerPanel
-                  isSpecta={isSpecta}
-                  segmentContainerRef={segmentContainerRef}
-                  storyData={storyData}
-                  currentIndex={currentIndex}
-                  activeSlide={activeSlide}
-                  layerName={layerName}
-                  handlePrev={handlePrev}
-                  handleNext={handleNext}
-                  hasPrev={hasPrev}
-                  hasNext={hasNext}
-                />
-                <div
-                  ref={bottomSentinelRef}
-                  aria-hidden
-                  data-story-scroll-sentinel="bottom"
-                  style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-                />
-              </>
-            ) : (
-              <SpectaSegmentListPanel
-                isSpecta={isSpecta}
-                storyData={storyData}
-                items={segmentViewItems}
-                currentIndex={currentIndex}
-                setIndex={setIndex}
-                handlePrev={handlePrev}
-                handleNext={handleNext}
-                hasPrev={hasPrev}
-                hasNext={hasNext}
-              />
-            )}
+            {renderModeContent[viewMode]()}
           </div>
         </div>
       </div>
