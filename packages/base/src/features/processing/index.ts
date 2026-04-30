@@ -260,10 +260,12 @@ export async function rasterizeLayer(
 
   let processParam: any;
   let outputFileName = 'rasterized.tif';
+  let embedOutputLayer = false;
 
   if (processingInputs) {
     processParam = processingInputs;
     outputFileName = processingInputs.outputFileName || outputFileName;
+    embedOutputLayer = !!processingInputs.embedOutputLayer;
   } else {
     const schema = {
       ...(formSchemaRegistry.getSchemas().get(processingType) as IDict),
@@ -297,6 +299,7 @@ export async function rasterizeLayer(
 
     processParam = processingFormToParam(formValues, processingType);
     outputFileName = formValues.outputFileName || outputFileName;
+    embedOutputLayer = !!formValues.embedOutputLayer;
   }
 
   const pixelSize = String(processParam.pixelSize ?? 0.01);
@@ -396,35 +399,6 @@ export async function rasterizeLayer(
     );
   }
 
-  // Save .tif to disk next to the .jGIS project file. If a file already
-  // exists at the chosen path, append `_1`, `_2`, ... so repeated runs don't
-  // overwrite previous outputs.
-  const jgisFilePath = widget.model.filePath;
-  const jgisDir = jgisFilePath
-    ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
-    : '';
-  const dotIdx = outputFileName.lastIndexOf('.');
-  const baseName =
-    dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
-  const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
-  const candidatePath = (name: string) => (jgisDir ? `${jgisDir}/${name}` : name);
-  const pathExists = async (path: string) => {
-    try {
-      await app.serviceManager.contents.get(path, { content: false });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  let suffix = 0;
-  while (await pathExists(candidatePath(suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`))) {
-    suffix += 1;
-  }
-  if (suffix > 0) {
-    outputFileName = `${baseName}_${suffix}${ext}`;
-  }
-  const savePath = candidatePath(outputFileName);
-
   const base64Content = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -438,18 +412,61 @@ export async function rasterizeLayer(
     );
   });
 
-  await app.serviceManager.contents.save(savePath, {
-    type: 'file',
-    format: 'base64',
-    content: base64Content,
-  });
+  let sourceUrl: string;
+  if (embedOutputLayer) {
+    // Embed the GeoTIFF as a data URL inside the .jGIS document.
+    sourceUrl = `data:image/tiff;base64,${base64Content}`;
+  } else {
+    // Save .tif to disk next to the .jGIS project file. If a file already
+    // exists at the chosen path, append `_1`, `_2`, ... so repeated runs don't
+    // overwrite previous outputs.
+    const jgisFilePath = widget.model.filePath;
+    const jgisDir = jgisFilePath
+      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+      : '';
+    const dotIdx = outputFileName.lastIndexOf('.');
+    const baseName =
+      dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
+    const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
+    const candidatePath = (name: string) =>
+      jgisDir ? `${jgisDir}/${name}` : name;
+    const pathExists = async (path: string) => {
+      try {
+        await app.serviceManager.contents.get(path, { content: false });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    let suffix = 0;
+    while (
+      await pathExists(
+        candidatePath(
+          suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`,
+        ),
+      )
+    ) {
+      suffix += 1;
+    }
+    if (suffix > 0) {
+      outputFileName = `${baseName}_${suffix}${ext}`;
+    }
+    const savePath = candidatePath(outputFileName);
+
+    await app.serviceManager.contents.save(savePath, {
+      type: 'file',
+      format: 'base64',
+      content: base64Content,
+    });
+    sourceUrl = outputFileName;
+  }
 
   const newSourceId = UUID.uuid4();
   const sourceModel: IJGISSource = {
     type: 'GeoTiffSource',
     name: `${selected.name} Rasterized Source`,
     parameters: {
-      urls: [{ url: outputFileName, min: bandMin, max: bandMax }],
+      urls: [{ url: sourceUrl, min: bandMin, max: bandMax }],
       normalize: true,
       wrapX: false,
       interpolate: false,

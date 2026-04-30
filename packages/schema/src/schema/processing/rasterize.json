@@ -34,6 +34,12 @@
       "type": "string",
       "default": "rasterized.tif",
       "description": "Output GeoTIFF filename, saved next to the project file."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output GeoTIFF in file",
+      "default": false,
+      "description": "When enabled, the GeoTIFF is base64-embedded inside the .jGIS document instead of being written to disk."
     }
   }
 }
