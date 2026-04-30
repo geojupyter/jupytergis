@@ -9,8 +9,8 @@ on:
 permissions: {}
 
 jobs:
-  test_build_without_lockfile:
-    name: Test-build without lockfile
+  build:
+    name: Build
     runs-on: ubuntu-latest
 
     steps:

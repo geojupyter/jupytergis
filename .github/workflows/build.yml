@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build jupytergis
+    name: Build artifacts
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -113,6 +113,7 @@ jobs:
         run: node packages/schema/scripts/validate-examples.js
 
   test_isolated:
+    name: Test artifact in isolated env
     needs: build
     runs-on: ubuntu-latest
 
@@ -136,7 +137,7 @@ jobs:
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
 
   integration-tests:
-    name: Integration tests
+    name: Integration test
     needs: build
     runs-on: ubuntu-latest
 
@@ -251,7 +252,7 @@ jobs:
           retention-days: 30
 
   integration-tests-lite:
-    name: Integration tests Lite
+    name: JupyterLite integration test
     needs: build-lite
     runs-on: ubuntu-latest
 

@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   unit-test-js:
-    name: Run JavaScript unit tests
+    name: jest
     runs-on: ubuntu-latest
 
     steps:

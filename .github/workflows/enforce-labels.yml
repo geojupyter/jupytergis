@@ -5,6 +5,7 @@ on:
     types: [labeled, unlabeled, opened, edited, synchronize]
 jobs:
   enforce-label:
+    name: Check for required labels
     runs-on: ubuntu-latest
     steps:
       - name: enforce-triage-label
