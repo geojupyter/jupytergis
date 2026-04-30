@@ -112,6 +112,26 @@ export interface ISelection {
   parent?: string;
 }
 
+export interface IIdentifiedFeature {
+  _id?: string;
+  _fromDrawTool?: boolean;
+  geometry?: unknown;
+  _geometry?: unknown;
+  [key: string]: unknown;
+}
+
+export interface IIdentifiedFeatureEntry {
+  feature: IIdentifiedFeature;
+  floaterOpen?: boolean;
+}
+
+export type IIdentifiedFeatures = IIdentifiedFeatureEntry[];
+
+export interface IIdentifiedFeaturesAwarenessState {
+  value?: IIdentifiedFeatures;
+  emitter?: string | null;
+}
+
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   lastAddedLayer?: { layerId?: string };
@@ -122,7 +142,7 @@ export interface IJupyterGISClientState {
   };
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
-  identifiedFeatures: { value?: any; emitter?: string | null };
+  identifiedFeatures: IIdentifiedFeaturesAwarenessState;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -365,7 +385,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     { type: SelectionType; itemId: string } | null
   >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
-  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void;
+  syncIdentifiedFeatures(features: IIdentifiedFeatures, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;

@@ -31,7 +31,7 @@ import {
   AwarenessFieldKey,
   IAwarenessFieldChange,
   IAnnotationModel,
-  IDict,
+  IIdentifiedFeatures,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -662,7 +662,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.syncSelected(value || {}, this.getClientId().toString());
   }
 
-  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
+  syncIdentifiedFeatures(
+    features: IIdentifiedFeatures,
+    emitter?: string,
+  ): void {
     this.sharedModel.awareness.setLocalStateField(
       AWARENESS_STATE_FIELDS.identifiedFeatures,
       {

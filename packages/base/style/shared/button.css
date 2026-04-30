@@ -155,3 +155,15 @@
   height: 1rem;
   width: 1rem;
 }
+
+.jgis-button[data-size='icon-md'] {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.jgis-button[data-variant='icon'] > svg,
+.jgis-button[data-variant='icon'] > [data-icon] {
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+}

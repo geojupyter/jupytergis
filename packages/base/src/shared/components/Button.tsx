@@ -6,7 +6,7 @@ import { cn } from './utils';
 interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
   variant?: 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'icon';
-  size?: 'sm' | 'lg' | 'icon' | 'icon-sm';
+  size?: 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-md';
 }
 
 const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
