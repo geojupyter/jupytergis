@@ -4,8 +4,8 @@ import React, { RefObject, useEffect, useRef } from 'react';
 import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
-import { useStorySegmentSync } from './hooks/useStorySegmentSync';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
+import { useStorySegmentSync } from './hooks/useStorySegmentSync';
 
 interface ISpectaPanelProps {
   model: IJupyterGISModel;
@@ -106,6 +106,7 @@ export function SpectaPanel({
       hasNext={hasNext}
       showGradient={showGradient}
       viewMode={desktopViewMode}
+      setIndex={setIndex}
     />
   );
 }

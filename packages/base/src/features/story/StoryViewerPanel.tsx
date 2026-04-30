@@ -1,7 +1,4 @@
-import {
-  IJGISStoryMap,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
+import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
 import StoryContentSection from './components/StoryContentSection';

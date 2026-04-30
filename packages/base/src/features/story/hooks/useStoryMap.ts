@@ -36,13 +36,21 @@ export interface IUseStoryMapParams {
 export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
 ): CSSProperties {
+  const isListMode = story?.storyType === 'list';
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
   const style: CSSProperties = {};
+  if (isListMode) {
+    (style as Record<string, string>)['--jgis-specta-bg-color'] = 'transparent';
+    style.backgroundColor = 'transparent';
+    return style;
+  }
+
   if (bgColor) {
     (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
     style.backgroundColor = bgColor;
   }
+
   if (textColor) {
     (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
     style.color = textColor;

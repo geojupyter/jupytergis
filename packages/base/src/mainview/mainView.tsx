@@ -3965,11 +3965,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
-  private _addLayerForPanels = (
-    id: string,
-    layer: IJGISLayer,
-    index: number,
-  ) => this.addLayer(id, layer, index);
+  private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
+    this.addLayer(id, layer, index);
   private _removeLayerForPanels = (id: string) => this.removeLayer(id);
   private _patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
 

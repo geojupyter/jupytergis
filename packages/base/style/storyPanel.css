@@ -128,9 +128,6 @@
   margin: 0 auto;
 }
 
-.jgis-story-viewer-content {
-}
-
 .jgis-story-viewer-content p,
 .jgis-story-viewer-content span,
 .jgis-story-viewer-content li {
@@ -200,6 +197,27 @@
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
   overflow-y: auto;
   max-height: 100%;
+}
+
+.jgis-story-viewer-panel-specta-mod.jgis-story-viewer-panel-specta-mod-list {
+  align-items: flex-start;
+}
+
+.jgis-story-segment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 100vh;
+}
+
+.jgis-story-segment-card {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--jp-border-color2);
+  background: var(--jp-layout-color1);
+}
+
+.jgis-story-segment-card.jgis-story-segment-card-active {
+  background: var(--jp-layout-color2);
 }
 
 .jGIS-property-panel

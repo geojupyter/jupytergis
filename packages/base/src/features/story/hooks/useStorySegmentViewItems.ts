@@ -1,4 +1,8 @@
-import { IJGISStoryMap, IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import { useMemo } from 'react';
 
 export interface IStorySegmentViewItem {
@@ -30,7 +34,9 @@ export function useStorySegmentViewItems({
         index,
         isActive: index === currentIndex,
         layerName: layer?.name ?? `Segment ${index + 1}`,
-        activeSlide: layer?.parameters as IStorySegmentLayer['parameters'] | undefined,
+        activeSlide: layer?.parameters as
+          | IStorySegmentLayer['parameters']
+          | undefined,
       };
     });
   }, [model, storyData, currentIndex]);

@@ -1,7 +1,4 @@
-import {
-  IJGISStoryMap,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
+import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';

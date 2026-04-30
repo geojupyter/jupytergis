@@ -31,6 +31,7 @@ interface ISpectaDesktopViewProps {
   hasNext: boolean;
   showGradient: boolean;
   viewMode: StoryDesktopViewMode;
+  setIndex: (index: number) => void;
 }
 
 export function SpectaDesktopView({
@@ -49,6 +50,7 @@ export function SpectaDesktopView({
   hasNext,
   showGradient,
   viewMode,
+  setIndex,
 }: ISpectaDesktopViewProps): JSX.Element {
   const {
     scrollContainerRef,
@@ -88,46 +90,52 @@ export function SpectaDesktopView({
         <div ref={containerRef} className="jgis-specta-story-panel-container">
           <div
             ref={scrollContainerRef}
-            className="jgis-story-viewer-panel-specta-mod"
+            className={`jgis-story-viewer-panel-specta-mod ${
+              viewMode === 'list' ? 'jgis-story-viewer-panel-specta-mod-list' : ''
+            }`}
             id="jgis-story-segment-panel"
             style={showGradient ? undefined : { width: 'unset' }}
           >
-            <div
-              ref={topSentinelRef}
-              aria-hidden
-              data-story-scroll-sentinel="top"
-              style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-            />
             {viewMode === 'single' ? (
-              <StoryViewerPanel
-                isSpecta={isSpecta}
-                segmentContainerRef={segmentContainerRef}
-                storyData={storyData}
-                currentIndex={currentIndex}
-                activeSlide={activeSlide}
-                layerName={layerName}
-                handlePrev={handlePrev}
-                handleNext={handleNext}
-                hasPrev={hasPrev}
-                hasNext={hasNext}
-              />
+              <>
+                <div
+                  ref={topSentinelRef}
+                  aria-hidden
+                  data-story-scroll-sentinel="top"
+                  style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
+                />
+                <StoryViewerPanel
+                  isSpecta={isSpecta}
+                  segmentContainerRef={segmentContainerRef}
+                  storyData={storyData}
+                  currentIndex={currentIndex}
+                  activeSlide={activeSlide}
+                  layerName={layerName}
+                  handlePrev={handlePrev}
+                  handleNext={handleNext}
+                  hasPrev={hasPrev}
+                  hasNext={hasNext}
+                />
+                <div
+                  ref={bottomSentinelRef}
+                  aria-hidden
+                  data-story-scroll-sentinel="bottom"
+                  style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
+                />
+              </>
             ) : (
               <SpectaSegmentListPanel
                 isSpecta={isSpecta}
                 storyData={storyData}
                 items={segmentViewItems}
+                currentIndex={currentIndex}
+                setIndex={setIndex}
                 handlePrev={handlePrev}
                 handleNext={handleNext}
                 hasPrev={hasPrev}
                 hasNext={hasNext}
               />
             )}
-            <div
-              ref={bottomSentinelRef}
-              aria-hidden
-              data-story-scroll-sentinel="bottom"
-              style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-            />
           </div>
         </div>
       </div>

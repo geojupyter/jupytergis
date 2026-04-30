@@ -18,11 +18,11 @@ import { ObjectPropertiesReact } from '../../features/objectproperties';
 import StoryEditorPanel from '../../features/story/StoryEditorPanel';
 import StoryViewerPanel from '../../features/story/StoryViewerPanel';
 import { PreviewModeSwitch } from '../../features/story/components/PreviewModeSwitch';
-import { useStorySegmentSync } from '../../features/story/hooks/useStorySegmentSync';
 import {
   useStoryMap,
   type IOverrideLayerEntry,
 } from '../../features/story/hooks/useStoryMap';
+import { useStorySegmentSync } from '../../features/story/hooks/useStorySegmentSync';
 import {
   TabsRoot,
   TabsContent,
@@ -159,77 +159,85 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
     rightPanelOpen !== false;
 
   return (
-    <div
-      className="jgis-right-panel-container"
-      style={{ display: rightPanelVisible ? 'block' : 'none' }}
+    <Draggable
+      handle=".jgis-tabs-list"
+      cancel=".jgis-tabs-trigger"
+      bounds=".jGIS-Mainview-Container"
     >
-      <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
-        <TabsList>
-          {tabInfo.map(tab => (
-            <TabsTrigger
-              className="jGIS-layer-browser-category"
-              key={`${tab.name}-${tab.title}`}
-              value={tab.name}
-              onClick={() => {
-                if (curTab !== tab.name) {
-                  setCurTab(tab.name);
-                } else {
-                  setCurTab('');
-                }
-              }}
+      <div
+        className="jgis-right-panel-container"
+        style={{ display: rightPanelVisible ? 'block' : 'none' }}
+      >
+        <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
+          <TabsList>
+            {tabInfo.map(tab => (
+              <TabsTrigger
+                className="jGIS-layer-browser-category"
+                key={`${tab.name}-${tab.title}`}
+                value={tab.name}
+                onClick={() => {
+                  if (curTab !== tab.name) {
+                    setCurTab(tab.name);
+                  } else {
+                    setCurTab('');
+                  }
+                }}
+              >
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {!props.settings.objectPropertiesDisabled && (
+            <TabsContent
+              value="objectProperties"
+              className="jgis-panel-tab-content"
             >
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {!props.settings.objectPropertiesDisabled && (
-          <TabsContent
-            value="objectProperties"
-            className="jgis-panel-tab-content"
-          >
-            <ObjectPropertiesReact
-              setSelectedObject={setSelectedObjectProperties}
-              selectedObject={selectedObjectProperties}
-              formSchemaRegistry={props.formSchemaRegistry}
-              model={props.model}
-            />
-          </TabsContent>
-        )}
-
-        {!props.settings.storyMapsDisabled && (
-          <TabsContent
-            value="storyPanel"
-            className="jgis-panel-tab-content"
-            style={{ paddingTop: 0 }}
-          >
-            {/* Only show switch when NOT in presentation mode */}
-            {!storyMapPresentationMode && (
-              <PreviewModeSwitch
-                checked={!editorMode}
-                onCheckedChange={toggleEditor}
-              />
-            )}
-            {showEditor ? (
-              <StoryEditorPanel model={props.model} commands={props.commands} />
-            ) : curTab === 'storyPanel' ? (
-              <RightPanelStoryViewer
+              <ObjectPropertiesReact
+                setSelectedObject={setSelectedObjectProperties}
+                selectedObject={selectedObjectProperties}
+                formSchemaRegistry={props.formSchemaRegistry}
                 model={props.model}
-                addLayer={props.addLayer}
-                removeLayer={props.removeLayer}
               />
-            ) : null}
-          </TabsContent>
-        )}
+            </TabsContent>
+          )}
 
-        {!props.settings.annotationsDisabled && (
-          <TabsContent value="annotations" className="jgis-panel-tab-content">
-            <AnnotationsPanel
-              annotationModel={props.annotationModel}
-              jgisModel={props.model}
-            ></AnnotationsPanel>
-          </TabsContent>
-        )}
+          {!props.settings.storyMapsDisabled && (
+            <TabsContent
+              value="storyPanel"
+              className="jgis-panel-tab-content"
+              style={{ paddingTop: 0 }}
+            >
+              {/* Only show switch when NOT in presentation mode */}
+              {!storyMapPresentationMode && (
+                <PreviewModeSwitch
+                  checked={!editorMode}
+                  onCheckedChange={toggleEditor}
+                />
+              )}
+              {showEditor ? (
+                <StoryEditorPanel
+                  model={props.model}
+                  commands={props.commands}
+                />
+              ) : curTab === 'storyPanel' ? (
+                <RightPanelStoryViewer
+                  model={props.model}
+                  addLayer={props.addLayer}
+                  removeLayer={props.removeLayer}
+                />
+              ) : null}
+            </TabsContent>
+          )}
+
+          {!props.settings.annotationsDisabled && (
+            <TabsContent value="annotations" className="jgis-panel-tab-content">
+              <AnnotationsPanel
+                annotationModel={props.annotationModel}
+                jgisModel={props.model}
+              ></AnnotationsPanel>
+            </TabsContent>
+          )}
 
           {!props.settings.identifyDisabled && (
             <TabsContent
