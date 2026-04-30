@@ -34,6 +34,19 @@
           "type": "string",
           "description": "Markdown string representing the content of the story stop",
           "default": ""
+        },
+        "contentMode": {
+          "type": "string",
+          "title": "Content Mode",
+          "description": "Display map or HTML content while this segment is active",
+          "enum": ["map", "html"],
+          "default": "map"
+        },
+        "htmlContent": {
+          "type": "string",
+          "title": "HTML Content",
+          "description": "HTML content rendered in map area when Content Mode is HTML",
+          "default": ""
         }
       },
       "default": {}

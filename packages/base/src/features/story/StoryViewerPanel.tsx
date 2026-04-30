@@ -152,7 +152,9 @@ function StoryViewerPanel({
         </div>
         <div id="jgis-story-segment-content">
           <StoryContentSection
+            contentMode={activeSlide?.content?.contentMode}
             markdown={activeSlide?.content?.markdown ?? ''}
+            htmlContent={activeSlide?.content?.htmlContent ?? ''}
           />
         </div>
       </div>
