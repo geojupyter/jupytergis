@@ -10,32 +10,24 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
   const layers: Record<string, any> = { ...doc.layers };
 
   for (const [id, layer] of Object.entries(layers)) {
-    const newLayer = { ...layer };
+    const newType = layer.type === 'WebGlLayer' ? 'GeoTiffLayer' : layer.type;
 
-    if (newLayer.type === 'WebGlLayer') {
-      newLayer.type = 'GeoTiffLayer';
-    }
-
-    const params = newLayer?.parameters;
+    const params = layer?.parameters;
     if (!params || !('color' in params)) {
-      layers[id] = newLayer;
       continue;
     }
 
     const color = params.color;
     const newParams = { ...params };
 
-    if (
-      newLayer.type === 'VectorLayer' ||
-      newLayer.type === 'VectorTileLayer'
-    ) {
+    if (layer.type === 'VectorLayer' || layer.type === 'VectorTileLayer') {
       if (color && typeof color === 'object' && !Array.isArray(color)) {
         newParams.symbologyState = {
           ..._vectorSymbologyFromColor(color),
           ...(params.symbologyState ?? {}),
         };
       }
-    } else if (newLayer.type === 'HeatmapLayer') {
+    } else if (layer.type === 'HeatmapLayer') {
       if (Array.isArray(color)) {
         const state = params.symbologyState ?? { renderType: 'Heatmap' };
         if (!state.gradient) {
@@ -45,7 +37,7 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
     }
 
     delete newParams.color;
-    layers[id] = { ...newLayer, parameters: newParams };
+    layers[id] = { ...layer, type: newType, parameters: newParams };
   }
 
   return { ...doc, layers };
