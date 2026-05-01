@@ -73,20 +73,38 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampControlsOptions | undefined
   >();
+  const [stopsAltered, setStopsAltered] = useState(false);
 
   const stopRowsRef = useLatest(stopRows);
   const bandRowsRef = useLatest(bandRows);
   const selectedFunctionRef = useLatest(selectedFunction);
   const colorRampOptionsRef = useLatest(colorRampOptions);
   const selectedBandRef = useLatest(selectedBand);
+  const stopsAlteredRef = useLatest(stopsAltered);
 
   useEffect(() => {
     populateOptions();
   }, []);
 
   useEffect(() => {
-    buildColorInfo();
-  }, [bandRows]);
+    if (bandRows.length === 0) {
+      return;
+    }
+
+    if (params.symbologyState?.stopsOverride) {
+      return;
+    }
+
+    const state = params.symbologyState;
+
+    buildColorInfoFromClassification(
+      (state?.mode ?? 'equal interval') as ClassificationMode,
+      Number(state?.nClasses ?? 9),
+      (state?.colorRamp ?? 'viridis') as ColorRampName,
+      state?.reverseRamp ?? false,
+      () => undefined,
+    );
+  }, [bandRows, selectedBand]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
@@ -100,6 +118,13 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
+
+    if (params.symbologyState?.stopsOverride) {
+      setStopRows(params.symbologyState.stopsOverride as IStopRow[]);
+      setStopsAltered(true);
+    } else {
+      buildColorInfo();
+    }
   };
 
   const buildColorInfo = () => {
@@ -165,6 +190,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     }
 
     setStopRows(valueColorPairs);
+    setStopsAltered(false);
   };
 
   const handleOk = () => {
@@ -248,6 +274,9 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
+      ...(stopsAlteredRef.current
+        ? { stopsOverride: stopRowsRef.current }
+        : {}),
     } as IWebGlLayer['symbologyState'];
 
     if (!isStorySegmentOverride) {
@@ -284,6 +313,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   useOkSignal(okSignalPromise, handleOk);
 
   const addStopRow = () => {
+    setStopsAltered(true);
     setStopRows([
       {
         id: UUID.uuid4(),
@@ -295,12 +325,17 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const deleteStopRow = (index: number) => {
+    setStopsAltered(true);
     const newFilters = [...stopRows];
     newFilters.splice(index, 1);
 
     setStopRows(newFilters);
   };
 
+  const updateStopRows = (rows: IStopRow[]) => {
+    setStopsAltered(true);
+    setStopRows(rows);
+  };
   const buildColorInfoFromClassification = async (
     selectedMode: ClassificationMode,
     numberOfShades: number,
@@ -368,6 +403,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     );
 
     setStopRows(valueColorPairs);
+    setStopsAltered(false);
   };
 
   const scaleValue = (bandValue: number, isQuantile: boolean) => {
@@ -463,7 +499,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
             dataValue={stop.stop}
             symbologyValue={stop.output}
             stopRows={stopRows}
-            setStopRows={setStopRows}
+            setStopRows={updateStopRows}
             deleteRow={() => deleteStopRow(index)}
           />
         ))}
