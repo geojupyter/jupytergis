@@ -24,6 +24,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
+          cache-environment: true
           environment-name: gis
           create-args: >-
             python=${{ matrix.python-version }}
@@ -173,9 +174,20 @@ jobs:
       - name: Install
         shell: bash -l {0}
         working-directory: ui-tests
-        run: |
-          jlpm install
-          jlpm playwright install chromium
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: jlpm install
+
+      - name: Set up browser cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ${{ github.workspace }}/pw-browsers
+          key: ${{ runner.os }}-${{ hashFiles('ui-tests/yarn.lock') }}
+
+      - name: Install browser
+        shell: bash -l {0}
+        working-directory: ui-tests
+        run: npx playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
