@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "description": "Rasterize",
+  "title": "IRasterize",
+  "required": ["inputLayer", "pixelSize", "outputFileName"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input vector layer to rasterize."
+    },
+    "pixelSize": {
+      "type": "number",
+      "default": 0.1,
+      "exclusiveMinimum": 0,
+      "description": "Output raster pixel size (in projection units). Must be greater than 0."
+    },
+    "attributeField": {
+      "type": "string",
+      "default": "",
+      "description": "Optional feature attribute used to burn values. Leave empty to use a fixed burn value."
+    },
+    "burnValue": {
+      "type": "number",
+      "default": 1,
+      "description": "Fixed value burned into raster cells when no attribute field is provided."
+    },
+    "noDataValue": {
+      "type": "number",
+      "default": 0,
+      "description": "Value assigned to cells not covered by any feature."
+    },
+    "outputFileName": {
+      "type": "string",
+      "default": "rasterized.tif",
+      "description": "Output GeoTIFF filename, saved next to the project file."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output GeoTIFF in file",
+      "default": false,
+      "description": "When enabled, the GeoTIFF is base64-embedded inside the .jGIS document instead of being written to disk."
+    }
+  }
+}

@@ -27,6 +27,12 @@ import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import { getSingleSelectedLayer } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import {
+  checkServerAvailability,
+  getServerProcessingToggle,
+  resetServerAvailabilityCache,
+  setServerProcessingEnabled,
+} from '../features/processing/serverProcessing';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
@@ -555,6 +561,37 @@ export function addCommands(
     formSchemaRegistry,
     Object.fromEntries(formSchemaRegistry.getSchemas()),
   );
+
+  // Server-side processing toggle
+  commands.addCommand(CommandIDs.toggleServerProcessing, {
+    label: () =>
+      getServerProcessingToggle()
+        ? trans.__('Processing: Server GDAL')
+        : trans.__('Processing: Browser WASM'),
+    caption:
+      'Toggle between server-side GDAL and in-browser WASM for processing operations.',
+    isToggled: () => getServerProcessingToggle(),
+    execute: async () => {
+      const current = !getServerProcessingToggle();
+
+      if (current) {
+        resetServerAvailabilityCache();
+        const available = await checkServerAvailability();
+        if (!available) {
+          alert(
+            'Server-side GDAL is not available.\n\n' +
+              'Install GDAL in your environment (e.g. conda install -c conda-forge gdal) ' +
+              'and restart JupyterLab.',
+          );
+          return;
+        }
+      }
+
+      setServerProcessingEnabled(current);
+      commands.notifyCommandChanged(CommandIDs.toggleServerProcessing);
+    },
+    ...icons.get(CommandIDs.toggleServerProcessing),
+  });
 
   commands.addCommand(CommandIDs.openNewHillshadeDialog, {
     label: trans.__('Hillshade'),

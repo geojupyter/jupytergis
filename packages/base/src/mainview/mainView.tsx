@@ -157,6 +157,7 @@ import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
+
 type OlLayerTypes =
   | TileLayer
   | VectorLayer
@@ -1096,6 +1097,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               const isRemote =
                 sourceInfo.url?.startsWith('http://') ||
                 sourceInfo.url?.startsWith('https://');
+              const isDataUrl = sourceInfo.url?.startsWith('data:');
 
               if (isRemote) {
                 return {
@@ -1103,6 +1105,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   min: sourceInfo.min,
                   max: sourceInfo.max,
                   url: sourceInfo.url,
+                };
+              } else if (isDataUrl) {
+                // Inline base64 GeoTIFF embedded in the .jGIS doc.
+                const blob = await (await fetch(sourceInfo.url!)).blob();
+                return {
+                  ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
+                  url: URL.createObjectURL(blob),
                 };
               } else {
                 const geotiff = await loadFile({
