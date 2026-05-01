@@ -24,7 +24,7 @@ export * from './_interface/project/layers/vectorLayer';
 export * from './_interface/project/layers/imageLayer';
 export * from './_interface/project/layers/stacLayer';
 export * from './_interface/project/layers/vectorTileLayer';
-export * from './_interface/project/layers/webGlLayer';
+export * from './_interface/project/layers/geoTiffLayer';
 
 // Processing
 export * from './processing/_generated/exportProcessingSchema';

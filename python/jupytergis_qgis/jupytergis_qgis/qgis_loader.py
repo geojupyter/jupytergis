@@ -84,7 +84,7 @@ def qgis_layer_to_jgis(
     if isinstance(layer, QgsRasterLayer):
         # QGIS treats tif layers as raster layer
         if layer.source().endswith(".tif"):
-            layer_type = "WebGlLayer"
+            layer_type = "GeoTiffLayer"
             source_type = "GeoTiffSource"
 
             # Need to build layer color
@@ -851,7 +851,7 @@ def jgis_layer_to_qgis(
         if stroke_width is not None:
             map_layer.setCustomProperty(PROP_STROKE_WIDTH, stroke_width)
 
-    if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
+    if layer_type == "GeoTiffLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
         # TODO: Support sources with multiple URLs
         url = "/vsicurl/" + source_parameters["urls"][0]["url"]

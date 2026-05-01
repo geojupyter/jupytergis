@@ -2,7 +2,7 @@ import {
   IJGISLayer,
   IJupyterGISModel,
   IVectorLayer,
-  IWebGlLayer,
+  IGeoTiffLayer,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import colormap from 'colormap';
@@ -13,17 +13,17 @@ import { IStopRow } from './symbologyDialog';
 /**
  * Payload when saving symbology. As of #698, only `symbologyState` is persisted
  * for vector layers — the OpenLayers FlatStyle is derived at render time from
- * `symbologyState` via `styleBuilder.buildVectorFlatStyle`. WebGl layers still
+ * `symbologyState` via `styleBuilder.buildVectorFlatStyle`. GeoTiff layers still
  * accept an optional `color` because their `color` field is used for band-math
  * expressions, not symbology duplication.
  */
 export interface ISymbologyPayload {
   symbologyState:
     | IVectorLayer['symbologyState']
-    | IWebGlLayer['symbologyState'];
+    | IGeoTiffLayer['symbologyState'];
   /**
-   * Only used by WebGl band-math (`IWebGlLayer['color']`); never set for
-   * vector layers. Typed as `unknown` because the WebGl schema's color type
+   * Only used by GeoTiff band-math (`IGeoTiffLayer['color']`); never set for
+   * vector layers. Typed as `unknown` because the GeoTiff schema's color type
    * is a nested numeric-array expression that doesn't round-trip cleanly
    * through the JSON-schema generator.
    */
@@ -44,15 +44,15 @@ export type VectorSymbologyParams = Pick<
   'symbologyState' | 'color'
 >;
 
-export type WebGlSymbologyParams = Pick<
-  IWebGlLayer,
+export type GeoTiffSymbologyParams = Pick<
+  IGeoTiffLayer,
   'symbologyState' | 'color'
 >;
 
 /** Params-shaped object used for reading symbology (layer.parameters or segment override). */
 export type IEffectiveSymbologyParams =
   | VectorSymbologyParams
-  | WebGlSymbologyParams;
+  | GeoTiffSymbologyParams;
 
 /**
  * Resolve the effective symbology params for this dialog: either the layer's

@@ -15,6 +15,7 @@ from jupytergis_core.schema import (
     IGeoPackageRasterSource,
     IGeoPackageVectorSource,
     IGeoParquetSource,
+    IGeoTiffLayer,
     IGeoTiffSource,
     IHeatmapLayer,
     IHillshadeLayer,
@@ -29,7 +30,6 @@ from jupytergis_core.schema import (
     IVectorTileLayer,
     IVectorTileSource,
     IVideoSource,
-    IWebGlLayer,
     IWmsTileSource,
     LayerType,
     SourceType,
@@ -508,7 +508,7 @@ class GISDocument(CommWidget):
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
         layer = {
-            "type": LayerType.WebGlLayer,
+            "type": LayerType.GeoTiffLayer,
             "name": name,
             "visible": True,
             "parameters": {
@@ -1222,7 +1222,7 @@ class JGISLayer(BaseModel):
         | IVectorTileLayer
         | IHillshadeLayer
         | IImageLayer
-        | IWebGlLayer
+        | IGeoTiffLayer
         | IHeatmapLayer
         | IStorySegmentLayer
     )
@@ -1334,7 +1334,7 @@ OBJECT_FACTORY.register_factory(LayerType.RasterLayer, IRasterLayer)
 OBJECT_FACTORY.register_factory(LayerType.VectorLayer, IVectorLayer)
 OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
-OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
+OBJECT_FACTORY.register_factory(LayerType.GeoTiffLayer, IGeoTiffLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)

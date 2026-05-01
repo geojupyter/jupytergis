@@ -1,4 +1,4 @@
-import { IWebGlLayer } from '@jupytergis/schema';
+import { IGeoTiffLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject, UUID } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
@@ -18,7 +18,7 @@ import {
 import {
   saveSymbology,
   Utils,
-  WebGlSymbologyParams,
+  GeoTiffSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
@@ -42,7 +42,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }
   const layer = model.getLayer(layerId);
 
-  const params = useEffectiveSymbologyParams<WebGlSymbologyParams>({
+  const params = useEffectiveSymbologyParams<GeoTiffSymbologyParams>({
     model,
     layerId: layerId,
     layer,
@@ -248,7 +248,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
-    } as IWebGlLayer['symbologyState'];
+    } as IGeoTiffLayer['symbologyState'];
 
     if (!isStorySegmentOverride) {
       // Update source
@@ -276,7 +276,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         color: colorExpr,
       },
       mutateLayerBeforeSave: targetLayer => {
-        targetLayer.type = 'WebGlLayer';
+        targetLayer.type = 'GeoTiffLayer';
       },
     });
   };

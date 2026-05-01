@@ -19,7 +19,7 @@ const LAYER_SCHEMAS = {
   VectorLayer: 'layers/vectorLayer.json',
   VectorTileLayer: 'layers/vectorTileLayer.json',
   HillshadeLayer: 'layers/hillshadeLayer.json',
-  WebGlLayer: 'layers/webGlLayer.json',
+  GeoTiffLayer: 'layers/geoTiffLayer.json',
   ImageLayer: 'layers/imageLayer.json',
   HeatmapLayer: 'layers/heatmapLayer.json',
   StacLayer: 'layers/stacLayer.json',

@@ -50,7 +50,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IVideoSource,
-  IWebGlLayer,
+  IGeoTiffLayer,
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
@@ -507,7 +507,7 @@ export type ILayerGalleryEntry = {
     | IStorySegmentLayer
     | IVectorLayer
     | IVectorTileLayer
-    | IWebGlLayer;
+    | IGeoTiffLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource

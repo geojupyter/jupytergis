@@ -10,6 +10,8 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
   const layers: Record<string, any> = { ...doc.layers };
 
   for (const [id, layer] of Object.entries(layers)) {
+    const newType = layer.type === 'WebGlLayer' ? 'GeoTiffLayer' : layer.type;
+
     const params = layer?.parameters;
     if (!params || !('color' in params)) {
       continue;
@@ -35,7 +37,7 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
     }
 
     delete newParams.color;
-    layers[id] = { ...layer, parameters: newParams };
+    layers[id] = { ...layer, type: newType, parameters: newParams };
   }
 
   return { ...doc, layers };
