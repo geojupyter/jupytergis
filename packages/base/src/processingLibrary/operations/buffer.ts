@@ -10,18 +10,18 @@ geoProcessingOperationRegistry.add(
             selectedLayer: "VectorLayer",
             distance: "number",
         },
-        template: (jgisPath: string, selectedLayer: Layer, distance: number) => `
+        template: ({ jgisPath, selectedLayer, distance }) => `
 import geopandas as gpd
 from jupytergis import GISDocument
 doc = GISDocument("${jgisPath}")
 
-gdf = gpd.read_file("${selectedLayer.source}")
+gdf = gpd.read_file("${selectedLayer}")
 gdf = gdf.to_crs(epsg=3857)
 gdf["geometry"] = gdf.geometry.buffer(${distance})
 gdf = gdf.to_crs(epsg=4326)
 
-gdf.to_file("${selectedLayer.source}_buffered.geojson", driver="GeoJSON")
-doc.add_geojson_layer("${selectedLayer.source}_buffered.geojson")
+gdf.to_file("${selectedLayer}_buffered.geojson", driver="GeoJSON")
+doc.add_geojson_layer("${selectedLayer}_buffered.geojson")
 print("buffered ${distance} meters")`,
     }
 );
