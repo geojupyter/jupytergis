@@ -7,5 +7,5 @@ export interface OperationSpecification {
     name: string;
     description: string;
     arguments: OperationSpecificationArguments;
-    template: any;
+    template: (args: { jgisPath: string; [key: string]: any }) => string;
 }

@@ -1,7 +1,7 @@
 import { OperationSpecification } from "./types";
 
 class GeoProcessingOperationRegistry {
-    operations: Map<str, OperationSpecification>
+    operations=  new Map<string, OperationSpecification>();
 
     add(name: string, spec: OperationSpecification) {
         // if it's not in operations already:

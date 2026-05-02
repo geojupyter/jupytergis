@@ -18,6 +18,8 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
+import { geoProcessingOperationRegistry } from '../../processingLibrary/registry';
+import { FormGenerator } from '../../processingLibrary/form';
 import { terminalToolbarIcon } from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
@@ -157,24 +159,25 @@ export class ToolbarWidget extends ReactiveToolbar {
         'temporal-controller-button';
 
       const processingSubMenu = new MenuSvg({ commands: options.commands });
-      const ctx = require.context('../../processingLibrary', false, /\.js$/);
-      ctx.keys().forEach(key => {
-        const item = ctx(key).default;
-        const id = `jupytergis:processingLibrary:${key}`;
+      const ctx = require.context('../../processingLibrary/operations', false, /\.js$/);
+      ctx.keys().forEach(key => ctx(key));
+
+      geoProcessingOperationRegistry.operations.forEach((item, id) => {
         if (!options.commands!.hasCommand(id)) options.commands!.addCommand(id, {
-          label: item.label,
+          label: item.name,
           execute: () => {
             showDialog({
-              title: item.label,
+              title: item.name,
               body: ReactWidget.create(
-                <item.form
+                <FormGenerator
+                  operation={item}
                   layers={Object.entries(options.model.getLayers()).map(([id, layer]) => ({
                     id,
                     name: layer.name,
                     source: options.model.getSource(layer.parameters?.source)?.parameters?.path,
                     type: layer.type
                   }))}
-                  jgisPath={options.model.filePath.split('/').pop()}
+                  jgisPath={options.model.filePath.split('/').pop() ?? ''}
                   onExecute={(output: string) => {
                     const notebook = options.notebookTracker?.currentWidget?.content;
                     if (!notebook?.model) {
