@@ -25,6 +25,8 @@ export const FormGenerator = ({operation, jgisPath, layers, onExecute}: FormGene
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
+                    case "boolean":
+                        return <><input id={arg_name} type="checkbox" /><label htmlFor={arg_name}>{arg_name}</label></>;
                     default:
                         throw new Error(`Unknown argument type: ${arg_type}`);
                 }})()}
@@ -33,7 +35,8 @@ export const FormGenerator = ({operation, jgisPath, layers, onExecute}: FormGene
 
         <button onClick={() => {
             const dynamicArgs = Object.entries(operation.arguments).reduce((acc: any, [arg_name]: [string, string]) => {
-                acc[arg_name] = (document.getElementById(arg_name) as HTMLInputElement)?.value;
+                const el = document.getElementById(arg_name) as HTMLInputElement;
+                acc[arg_name] = el?.type === 'checkbox' ? el.checked : el?.value;
                 return acc;
             }, {});
             const rendered = operation.template({ jgisPath, ...dynamicArgs });
