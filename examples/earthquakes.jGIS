@@ -53,23 +53,26 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -17975674.19802071,
-      -6270833.901100142,
-      22099342.48755777,
-      13887071.487525603
+      -14927416.004683891,
+      4359182.877186616,
+      -9848425.305228477,
+      5624363.114371103
     ],
-    "latitude": 32.34071851049782,
-    "longitude": 18.521771255650705,
+    "latitude": 40.86040370472796,
+    "longitude": -111.28258462807052,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.186114239541643
+    "storyMapPresentationMode": false,
+    "zoom": 5.099030456546049
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "72670e50-5cb4-436c-a226-f1f3a65fc4a1": {
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
+        "httpHeaders": "",
         "path": "data/eq.geojson",
+        "useProxy": false,
         "valid": false
       },
       "type": "GeoJSONSource"
@@ -80,15 +83,18 @@
         "attribution": "(C) OpenStreetMap contributors",
         "bounds": [],
         "htmlAttribution": "",
+        "httpHeaders": "",
         "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {}
+        "urlParameters": {},
+        "useProxy": false
       },
       "type": "RasterSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }

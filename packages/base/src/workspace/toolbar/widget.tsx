@@ -4,7 +4,7 @@ import {
   IJGISExternalCommand,
   JupyterGISModel,
 } from '@jupytergis/schema';
-import { CommandToolbarButton } from '@jupyterlab/apputils';
+import { CommandToolbarButton, showDialog} from '@jupyterlab/apputils';
 import {
   MenuSvg,
   ReactWidget,
@@ -18,6 +18,8 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
+import { geoProcessingOperationRegistry } from '../../processingLibrary/registry';
+import { FormGenerator } from '../../processingLibrary/form';
 import { terminalToolbarIcon } from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
@@ -155,6 +157,62 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('temporalController', temporalControllerButton);
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
+
+      const processingSubMenu = new MenuSvg({ commands: options.commands });
+      const ctx = require.context('../../processingLibrary/operations', false, /\.js$/);
+      ctx.keys().forEach(key => ctx(key));
+
+      geoProcessingOperationRegistry.operations.forEach((item, id) => {
+        if (!options.commands!.hasCommand(id)) options.commands!.addCommand(id, {
+          label: item.name,
+          execute: () => {
+            showDialog({
+              title: item.name,
+              body: ReactWidget.create(
+                <FormGenerator
+                  operation={item}
+                  layers={Object.entries(options.model.getLayers()).map(([id, layer]) => ({
+                    id,
+                    name: layer.name,
+                    source: options.model.getSource(layer.parameters?.source)?.parameters?.path,
+                    type: layer.type
+                  }))}
+                  jgisPath={options.model.filePath.split('/').pop() ?? ''}
+                  onExecute={(output: string) => {
+                    const notebook = options.notebookTracker?.currentWidget?.content;
+                    if (!notebook?.model) {
+                      console.debug("No Notebook model found");
+                      return;
+                    }
+                    notebook.model.sharedModel.insertCell(
+                      notebook.activeCellIndex + 1,
+                      {
+                        cell_type: 'code',
+                        source: output,
+                        metadata: {}
+                      }
+                    );
+                  }}
+                />
+              )
+            });
+          }
+        });
+        processingSubMenu.addItem({ command: id });
+      });
+
+      const processingGeneratorButton = new ToolbarButton({
+        label: '⚗️',
+        noFocusOnClick: false,
+        onClick: () => {
+          const bbox = processingGeneratorButton.node.getBoundingClientRect();
+          processingSubMenu.open(bbox.x, bbox.bottom);
+        },
+      });
+
+      this.addItem('processingGenerator', processingGeneratorButton);
+      processingGeneratorButton.node.dataset.testid =
+        'processing-generator-button';
 
       const addMarkerButton = new CommandToolbarButton({
         id: CommandIDs.addMarker,
@@ -308,5 +366,6 @@ export namespace ToolbarWidget {
     commands?: CommandRegistry;
     model: JupyterGISModel;
     externalCommands: IJGISExternalCommand[];
+    notebookTracker?: { currentWidget: { content: any } | null };
   }
 }

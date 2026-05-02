@@ -27,19 +27,6 @@
     "57ef55ef-facb-48a2-ae1d-c9c824be3e8a": {
       "name": "Regions France",
       "parameters": {
-        "color": {
-          "circle-fill-color": "#3399CC",
-          "circle-radius": 5.0,
-          "circle-stroke-color": "#0300ad",
-          "circle-stroke-line-cap": "round",
-          "circle-stroke-line-join": "round",
-          "circle-stroke-width": 1.25,
-          "fill-color": "#3399CC",
-          "stroke-color": "#0300ad",
-          "stroke-line-cap": "round",
-          "stroke-line-join": "round",
-          "stroke-width": 1.25
-        },
         "opacity": 0.6,
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
         "symbologyState": {
@@ -74,7 +61,7 @@
     "projection": "EPSG:3857",
     "zoom": 3.097076987914768
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
       "name": "Open Topo Map",
@@ -115,5 +102,6 @@
       "type": "GeoJSONSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }

@@ -29,6 +29,7 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import { INotebookTracker } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -61,6 +62,7 @@ const activate = async (
   palette: ICommandPalette | null,
   collaborativeContentProvider: ICollaborativeContentProvider | null,
   loggerRegistry: ILoggerRegistry | null,
+  notebookTracker: INotebookTracker | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -90,6 +92,7 @@ const activate = async (
     state: state,
     annotationModel: annotationModel,
     loggerRegistry: loggerRegistry ?? undefined,
+    notebookTracker: notebookTracker ?? undefined,
   });
 
   // Registering the widget factory
@@ -306,6 +309,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     ICollaborativeContentProvider,
     ILoggerRegistry,
+    INotebookTracker,
   ],
   autoStart: true,
   activate,

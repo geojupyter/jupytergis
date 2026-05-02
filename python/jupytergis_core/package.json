@@ -64,6 +64,7 @@
     "@jupyterlab/launcher": "^4.3.0",
     "@jupyterlab/logconsole": "^4.3.0",
     "@jupyterlab/mainmenu": "^4.3.0",
+    "@jupyterlab/notebook": "^4.3.0",
     "@jupyterlab/services": "^7.3.0",
     "@jupyterlab/translation": "^4.3.0",
     "@jupyterlab/ui-components": "^4.3.0",
