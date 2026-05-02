@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   unit-test-python:
-    name: Run Python unit tests
+    name: pytest
     runs-on: ubuntu-latest
     strategy:
       matrix:

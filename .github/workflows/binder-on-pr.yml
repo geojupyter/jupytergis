@@ -1,10 +1,11 @@
-name: Binder Badge
+name: Binder link comment
 on:
   pull_request_target:
     types: [opened]
 
 jobs:
   binder:
+    name: Add/update Comment
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

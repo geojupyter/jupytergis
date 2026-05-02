@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   lint-js:
-    name: Lint JavaScript
+    name: eslint & prettier
     runs-on: ubuntu-latest
 
     steps:

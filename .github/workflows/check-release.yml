@@ -1,4 +1,4 @@
-name: Check Release
+name: Check release
 on:
   push:
     branches:
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   check_release:
+    name: Release dry-run
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
