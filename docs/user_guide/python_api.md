@@ -50,5 +50,7 @@ Once the document is opened/created, you can start creating GIS layers.
 ## `Symbology`
 
 ```{eval-rst}
-.. autofunction:: jupytergis_lab.notebook.symbology
+.. automodule:: jupytergis_lab.notebook.symbology
+    :members:
+    :show-inheritance:
 ```
