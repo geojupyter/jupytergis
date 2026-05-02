@@ -52,9 +52,9 @@ Once the document is opened/created, you can start creating GIS layers.
 ```{eval-rst}
 .. autoclass:: jupytergis_lab.notebook.symbology.GraduatedSymbology
     :members:
-    :show-inheritance:
+    :exclude-members: model_config, model_fields, model_computed_fields
 
 .. autoclass:: jupytergis_lab.notebook.symbology.GraduatedStopOverride
     :members:
-    :show-inheritance:
+    :exclude-members: model_config, model_fields, model_computed_fields
 ```
