@@ -4,7 +4,7 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal
 from uuid import uuid4
 
 import requests
@@ -41,6 +41,9 @@ from ypywidgets.comm import CommWidget
 
 from jupytergis_lab.notebook.utils import get_gpkg_layers
 
+if TYPE_CHECKING:
+    from .symbology import GraduatedSymbology, Symbology
+
 logger = logging.getLogger(__file__)
 
 
@@ -58,11 +61,7 @@ def _color_to_rgba(value: Any) -> list[float] | None:
     if isinstance(value, str):
         rgba = try_hex_to_rgba(value)
         return list(rgba) if rgba else None
-    if (
-        isinstance(value, (list, tuple))
-        and value
-        and isinstance(value[0], (int, float))
-    ):
+    if isinstance(value, list | tuple) and value and isinstance(value[0], int | float):
         rgba = list(value) + [1.0] * (4 - len(value))
         return [float(c) for c in rgba[:4]]
     return None
@@ -101,11 +100,11 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
     stroke_width = color_expr.get("stroke-width") or color_expr.get(
         "circle-stroke-width",
     )
-    if isinstance(stroke_width, (int, float)):
+    if isinstance(stroke_width, int | float):
         state["strokeWidth"] = stroke_width
 
     radius = color_expr.get("circle-radius")
-    if isinstance(radius, (int, float)):
+    if isinstance(radius, int | float):
         state["radius"] = radius
 
     if "circle-fill-color" in color_expr or "circle-radius" in color_expr:
@@ -1207,6 +1206,77 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
+    def apply_symbology(self, layer_id: str, symbology: Symbology):
+        layer = self._layers.get(layer_id)
+
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if symbology.type == "graduated":
+            self._apply_graduated_symbology(layer, symbology)
+        else:
+            raise ValueError(f"Unsupported symbology type: {symbology.type}")
+
+        self._layers[layer_id] = layer
+
+    def _apply_graduated_symbology(self, layer: dict, symbology: GraduatedSymbology):
+        """Persist a Graduated ``symbologyState`` on ``layer``.
+
+        Stops and the OpenLayers color expression are computed at runtime by
+        the frontend (``styleBuilder``) from this minimal state. The kernel
+        only writes config — it does not generate stops or color expressions.
+        """
+        if layer["type"] not in ("VectorLayer", "VectorTileLayer"):
+            raise ValueError("Graduated symbology only supports vector layers")
+
+        # If the caller didn't pass an explicit range but did pass a sample,
+        # derive vmin/vmax from it. Otherwise leave both unset and let the
+        # frontend compute the range from the live source data.
+        vmin = symbology.vmin
+        vmax = symbology.vmax
+        if (vmin is None or vmax is None) and symbology.data:
+            sample = [float(v) for v in symbology.data]
+            if vmin is None:
+                vmin = min(sample)
+            if vmax is None:
+                vmax = max(sample)
+
+        state: dict[str, Any] = {
+            "renderType": "Graduated",
+            "value": symbology.value,
+            "method": symbology.method,
+            "colorRamp": symbology.color_ramp,
+            "nClasses": float(symbology.n_classes),
+            "mode": symbology.mode,
+            "reverseRamp": symbology.reverse,
+            "strokeFollowsFill": symbology.stroke_follows_fill,
+        }
+
+        if vmin is not None:
+            state["vmin"] = float(vmin)
+        if vmax is not None:
+            state["vmax"] = float(vmax)
+        if symbology.fallback_color is not None:
+            state["fallbackColor"] = list(symbology.fallback_color)
+        if symbology.stroke_color is not None:
+            state["strokeColor"] = list(symbology.stroke_color)
+        if symbology.stroke_width is not None:
+            state["strokeWidth"] = float(symbology.stroke_width)
+        if symbology.radius is not None:
+            state["radius"] = float(symbology.radius)
+        if symbology.stops_override:
+            state["stopsOverride"] = [
+                {"value": float(s.value), "color": list(s.color)}
+                for s in symbology.stops_override
+            ]
+
+        params = layer.setdefault("parameters", {})
+        params["symbologyState"] = state
+
+        # Drop legacy color expression cache — symbologyState is the source of
+        # truth now, and the frontend ignores ``params.color``.
+        params.pop("color", None)
+
 
 class JGISLayer(BaseModel):
     class Config:
@@ -1226,7 +1296,7 @@ class JGISLayer(BaseModel):
         | IHeatmapLayer
         | IStorySegmentLayer
     )
-    _parent = Optional[GISDocument]
+    _parent = GISDocument | None
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
         super().__init__(**data)
@@ -1254,7 +1324,7 @@ class JGISSource(BaseModel):
         | IGeoPackageRasterSource
         | IWmsTileSource
     )
-    _parent = Optional[GISDocument]
+    _parent = GISDocument | None
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
         super().__init__(**data)
