@@ -15,13 +15,13 @@ jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
 jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 jest.mock('@/src/tools', () => ({ objectEntries: Object.entries }));
 
-import { buildVectorFlatStyle, SymbologyState } from '../styleBuilder';
 import {
   graduatedToGrammar,
   categorizedToGrammar,
   singleSymbolToGrammar,
 } from '../grammar/grammarConversions';
 import { grammarToOLStyle } from '../grammar/grammarToOLStyle';
+import { buildVectorFlatStyle, SymbologyState } from '../styleBuilder';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -257,9 +257,7 @@ describe('Grammar parity — Categorized', () => {
     const oldEntries = extractCaseEntries(old['fill-color']);
     const newEntries = extractCaseEntries(next['fill-color']);
 
-    expect(newEntries.map(e => e.color)).toEqual(
-      oldEntries.map(e => e.color),
-    );
+    expect(newEntries.map(e => e.color)).toEqual(oldEntries.map(e => e.color));
   });
 
   it('circle-fill-color matches fill-color', () => {
