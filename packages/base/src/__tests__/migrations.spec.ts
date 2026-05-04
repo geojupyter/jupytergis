@@ -58,7 +58,8 @@ describe('document migrations', () => {
             const expected = JSON.parse(
               fs.readFileSync(path.join(FIXTURES_ROOT, toV, name), 'utf8'),
             );
-            expect(migrateDocument(doc)).toEqual(expected);
+            const toVersion = toV.replace(/^v/, ''); // "v0.6.0" → "0.6.0"
+            expect(migrateDocument(doc, toVersion)).toEqual(expected);
           });
         }
       }

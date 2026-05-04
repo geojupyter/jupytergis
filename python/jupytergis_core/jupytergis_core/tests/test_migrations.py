@@ -8,7 +8,9 @@ Python and JS.
 """
 
 import json
+import uuid
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -20,6 +22,7 @@ FIXTURES_ROOT = (
 
 VERSION_PAIRS = [
     ("v0.5.0", "v0.6.0"),
+    ("v0.6.0", "v0.7.0"),
 ]
 
 
@@ -34,6 +37,13 @@ def _fixture_pairs(from_v: str, to_v: str) -> list[tuple[Path, Path]]:
     return [(from_dir / n, to_dir / n) for n in sorted(names)]
 
 
+class _FixedUUID:
+    """Fake UUID whose str() always returns 'test-uuid'."""
+
+    def __str__(self) -> str:
+        return "test-uuid"
+
+
 @pytest.mark.parametrize(
     "from_path,to_path",
     [
@@ -45,5 +55,8 @@ def _fixture_pairs(from_v: str, to_v: str) -> list[tuple[Path, Path]]:
 def test_migration_fixture(from_path: Path, to_path: Path) -> None:
     doc = json.loads(from_path.read_text())
     expected = json.loads(to_path.read_text())
-    result = migrate(doc)
+    to_version = to_path.parent.name.lstrip("v")  # "v0.6.0" → "0.6.0"
+    # Stub UUID so grammar migration fixtures contain deterministic rule ids.
+    with patch.object(uuid, "uuid4", return_value=_FixedUUID()):
+        result = migrate(doc, to_version=to_version)
     assert result == expected
