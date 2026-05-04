@@ -99,7 +99,8 @@ export type OLStyleChannel =
 export interface IColorRampScale {
   scheme: 'colorRamp';
   name: string;
-  domain: [number, number];
+  /** Explicit [min, max] range. When omitted, the compiler uses data min/max from featureValues. */
+  domain?: [number, number];
   nShades: number;
   mode: ClassificationMode;
   reverse: boolean;
@@ -109,11 +110,15 @@ export interface IColorRampScale {
 
 /**
  * categorical: Nominal → RGBA
- * Maps discrete field values to explicit colors.
+ * Maps discrete field values to colors sampled from a named palette.
+ * The compiler enumerates unique values from featureValues at render time —
+ * same algorithm as the Categorized render type.
  */
 export interface ICategoricalScale {
   scheme: 'categorical';
-  mapping: Record<string, RGBA>;
+  colorRamp: string;
+  nShades?: number;
+  reverse?: boolean;
   fallback: RGBA;
 }
 

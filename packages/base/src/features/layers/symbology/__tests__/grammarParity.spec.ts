@@ -148,8 +148,8 @@ describe('Grammar parity — Graduated (equal interval)', () => {
   const featureValues = [0, 20, 40, 60, 80, 100];
 
   it('fill-color is a case expression', () => {
-    const grammar = graduatedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = graduatedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
     expect(next['fill-color']?.[0]).toBe('case');
     expect(next['fill-color']?.[1]).toEqual(['has', 'magnitude']);
     expect(next['fill-color']?.[2]?.[0]).toBe('interpolate');
@@ -157,8 +157,8 @@ describe('Grammar parity — Graduated (equal interval)', () => {
 
   it('interpolate stop values match old builder', () => {
     const old = buildVectorFlatStyle(state, featureValues) as any;
-    const grammar = graduatedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = graduatedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
 
     const oldStops = extractInterpolateStopValues(old['fill-color']);
     const newStops = extractInterpolateStopValues(next['fill-color']);
@@ -167,8 +167,8 @@ describe('Grammar parity — Graduated (equal interval)', () => {
 
   it('interpolate stop colors match old builder', () => {
     const old = buildVectorFlatStyle(state, featureValues) as any;
-    const grammar = graduatedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = graduatedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
 
     const oldColors = extractInterpolateStopColors(old['fill-color']);
     const newColors = extractInterpolateStopColors(next['fill-color']);
@@ -176,15 +176,15 @@ describe('Grammar parity — Graduated (equal interval)', () => {
   });
 
   it('circle-fill-color matches fill-color', () => {
-    const grammar = graduatedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = graduatedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
     expect(next['circle-fill-color']).toEqual(next['fill-color']);
   });
 
   it('stroke-width matches', () => {
     const old = buildVectorFlatStyle(state, featureValues) as any;
-    const grammar = graduatedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = graduatedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
     expect(next['stroke-width']).toEqual(old['stroke-width']);
   });
 });
@@ -206,8 +206,8 @@ describe('Grammar parity — Graduated (quantile)', () => {
 
   it('interpolate stop values match old builder', () => {
     const old = buildVectorFlatStyle(state, featureValues) as any;
-    const grammar = graduatedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = graduatedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
 
     const oldStops = extractInterpolateStopValues(old['fill-color']);
     const newStops = extractInterpolateStopValues(next['fill-color']);
@@ -233,15 +233,15 @@ describe('Grammar parity — Categorized', () => {
   const featureValues = ['A', 'B', 'C'];
 
   it('fill-color is a case expression', () => {
-    const grammar = categorizedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = categorizedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
     expect(next['fill-color']?.[0]).toBe('case');
   });
 
   it('case entry values match old builder', () => {
     const old = buildVectorFlatStyle(state, featureValues) as any;
-    const grammar = categorizedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = categorizedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
 
     const oldEntries = extractCaseEntries(old['fill-color']);
     const newEntries = extractCaseEntries(next['fill-color']);
@@ -251,8 +251,8 @@ describe('Grammar parity — Categorized', () => {
 
   it('case entry colors match old builder', () => {
     const old = buildVectorFlatStyle(state, featureValues) as any;
-    const grammar = categorizedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = categorizedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
 
     const oldEntries = extractCaseEntries(old['fill-color']);
     const newEntries = extractCaseEntries(next['fill-color']);
@@ -261,8 +261,8 @@ describe('Grammar parity — Categorized', () => {
   });
 
   it('circle-fill-color matches fill-color', () => {
-    const grammar = categorizedToGrammar(state, featureValues);
-    const next = grammarToOLStyle(grammar) as any;
+    const grammar = categorizedToGrammar(state);
+    const next = grammarToOLStyle(grammar, featureValues) as any;
     expect(next['circle-fill-color']).toEqual(next['fill-color']);
   });
 });

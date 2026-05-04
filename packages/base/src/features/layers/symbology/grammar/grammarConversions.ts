@@ -12,13 +12,14 @@
 
 import { UUID } from '@lumino/coreutils';
 
+import { DEFAULT_STROKE_WIDTH, SymbologyState } from '../styleBuilder';
 import {
-  computeCategorizedColorStops,
-  computeGraduatedColorStops,
-  DEFAULT_STROKE_WIDTH,
-  SymbologyState,
-} from '../styleBuilder';
-import { IGrammarSymbologyState, IEncodingRule, IMapping, RGBA } from './types';
+  ClassificationMode,
+  IGrammarSymbologyState,
+  IEncodingRule,
+  IMapping,
+  RGBA,
+} from './types';
 
 const DEFAULT_FILL: RGBA = [255, 255, 255, 0.4];
 const DEFAULT_STROKE: RGBA = [51, 153, 204, 1];
@@ -69,41 +70,28 @@ export function singleSymbolToGrammar(
 
 /**
  * Convert a Graduated state to Grammar.
- * @param featureValues  Numeric feature values for the classified field.
- *                       Must be the same values passed to buildVectorFlatStyle
- *                       to guarantee parity.
+ * No featureValues needed — the colorRamp scale stores the recipe params and
+ * grammarToOLStyle computes classification breaks at render time.
  */
 export function graduatedToGrammar(
   state: SymbologyState,
-  featureValues: unknown[],
 ): IGrammarSymbologyState {
   const field = state.value;
   const fallback = (state.fallbackColor ?? TRANSPARENT) as RGBA;
   const stroke = (state.strokeColor ?? DEFAULT_STROKE) as RGBA;
   const strokeWidth = state.strokeWidth ?? DEFAULT_STROKE_WIDTH;
   const radius = state.radius ?? DEFAULT_RADIUS;
-  const numericValues = featureValues.filter(Number.isFinite) as number[];
-
-  const computedStops = computeGraduatedColorStops(state, numericValues);
-  const colorStops = computedStops.map(s => ({
-    stop: s.value as number,
-    color: s.color as RGBA,
-  }));
-
-  const domainMin =
-    state.vmin ?? (numericValues.length > 0 ? Math.min(...numericValues) : 0);
-  const domainMax =
-    state.vmax ?? (numericValues.length > 0 ? Math.max(...numericValues) : 1);
 
   const colorRampScale = {
     scheme: 'colorRamp' as const,
     name: state.colorRamp ?? 'viridis',
-    domain: [domainMin, domainMax] as [number, number],
+    ...(state.vmin !== undefined && state.vmax !== undefined
+      ? { domain: [state.vmin, state.vmax] as [number, number] }
+      : {}),
     nShades: state.nClasses ?? 9,
-    mode: (state.mode ?? 'equal interval') as any,
+    mode: (state.mode ?? 'equal interval') as ClassificationMode,
     reverse: state.reverseRamp ?? false,
     fallback,
-    colorStops,
   };
 
   const colorChannelMapping: IMapping = {
@@ -148,11 +136,11 @@ export function graduatedToGrammar(
 
 /**
  * Convert a Categorized state to Grammar.
- * @param featureValues  All values for the classified field (any primitives).
+ * No featureValues needed — the categorical scale stores the recipe params and
+ * grammarToOLStyle enumerates unique values at render time.
  */
 export function categorizedToGrammar(
   state: SymbologyState,
-  featureValues: unknown[],
 ): IGrammarSymbologyState {
   const field = state.value;
   const fallback = (state.fallbackColor ?? TRANSPARENT) as RGBA;
@@ -160,15 +148,11 @@ export function categorizedToGrammar(
   const strokeWidth = state.strokeWidth ?? DEFAULT_STROKE_WIDTH;
   const radius = state.radius ?? DEFAULT_RADIUS;
 
-  const computedStops = computeCategorizedColorStops(state, featureValues);
-  const mapping: Record<string, RGBA> = {};
-  for (const stop of computedStops) {
-    mapping[String(stop.value)] = stop.color as RGBA;
-  }
-
   const categoricalScale = {
     scheme: 'categorical' as const,
-    mapping,
+    colorRamp: state.colorRamp ?? 'viridis',
+    nShades: state.nClasses,
+    reverse: state.reverseRamp ?? false,
     fallback,
   };
 

@@ -12,9 +12,13 @@
  *      fill-color ['array', r, g, b, a] expression.
  */
 
-import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 
+import {
+  computeCategorizedColorStops,
+  computeGraduatedColorStops,
+  SymbologyState,
+} from '../styleBuilder';
 import {
   ICategoricalScale,
   IColorRampScale,
@@ -47,9 +51,15 @@ interface IChannelEntry {
 /**
  * Compile a Grammar symbology state to an OL FlatStyle object.
  * Sub-channels (fill-red/green/blue/alpha) are assembled into fill-color.
+ *
+ * @param featureValues  Feature attribute values for the rule field(s).
+ *   Required for categorical and colorRamp scales so the compiler can
+ *   enumerate unique values / compute classification breaks at render time,
+ *   mirroring how buildVectorFlatStyle works.
  */
 export function grammarToOLStyle(
   state: IGrammarSymbologyState,
+  featureValues: unknown[] = [],
 ): Record<string, ExpressionValue> {
   // Accumulate per-channel entries from all rules.
   const accumulator = new Map<OLStyleChannel, IChannelEntry[]>();
@@ -59,7 +69,7 @@ export function grammarToOLStyle(
       rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
 
     for (const mapping of rule.mappings) {
-      const expr = compileMapping(rule.field, mapping);
+      const expr = compileMapping(rule.field, mapping, featureValues);
       for (const channel of mapping.channels) {
         const entries = accumulator.get(channel) ?? [];
         entries.push({ guard, expr });
@@ -211,10 +221,11 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
 function compileMapping(
   field: string | undefined,
   mapping: IMapping,
+  featureValues: unknown[],
 ): ExpressionValue {
   switch (mapping.outputType) {
     case 'rgba':
-      return compileRGBAScale(field, mapping.scale);
+      return compileRGBAScale(field, mapping.scale, featureValues);
     case 'uint8':
     case 'unorm':
     case 'posfloat':
@@ -230,12 +241,17 @@ function compileRGBAScale(
     | IKDEScale
     | IConstantScale
     | IIdentityScale,
+  featureValues: unknown[],
 ): ExpressionValue {
   switch (scale.scheme) {
     case 'colorRamp':
-      return field ? compileColorRamp(field, scale) : scale.fallback;
+      return field
+        ? compileColorRamp(field, scale, featureValues)
+        : scale.fallback;
     case 'categorical':
-      return field ? compileCategorical(field, scale) : scale.fallback;
+      return field
+        ? compileCategorical(field, scale, featureValues)
+        : scale.fallback;
     case 'kde':
       // KDE compilation is handled at the layer level (HeatmapLayer), not here.
       // Return a transparent placeholder so the FlatStyle doesn't break.
@@ -266,18 +282,19 @@ function compileNumericScale(
 // ---------------------------------------------------------------------------
 
 /**
- * colorRamp: numeric field → RGBA color via a named palette.
+ * colorRamp: numeric field → RGBA color via a named palette + classification.
  *
  * Output:
  *   ['case', ['has', field],
  *     ['interpolate', ['linear'], ['get', field], stop0, color0, ...],
- *     fallbackCss]
+ *     fallback]
  */
 function compileColorRamp(
   field: string,
   scale: IColorRampScale,
+  featureValues: unknown[],
 ): ExpressionValue {
-  const stops = resolveColorStops(scale);
+  const stops = resolveColorStops(scale, featureValues);
 
   const interpolateExpr: ExpressionValue[] = [
     'interpolate',
@@ -293,54 +310,62 @@ function compileColorRamp(
 
 /**
  * Resolve color stops for a colorRamp scale.
- * Uses explicit colorStops if present; otherwise samples the named palette.
+ * Explicit colorStops (user overrides) take precedence; otherwise classification
+ * breaks are computed from featureValues using computeGraduatedColorStops.
  */
 function resolveColorStops(
   scale: IColorRampScale,
+  featureValues: unknown[],
 ): Array<{ stop: number; color: RGBA }> {
   if (scale.colorStops && scale.colorStops.length >= 2) {
     return scale.colorStops;
   }
 
-  let colors: number[][] = colormap({
-    colormap: scale.name,
-    nshades: Math.max(scale.nShades, 9),
-    format: 'rgba',
-  });
+  const numericValues = featureValues.filter(Number.isFinite) as number[];
+  const syntheticState = {
+    nClasses: scale.nShades,
+    mode: scale.mode,
+    colorRamp: scale.name,
+    reverseRamp: scale.reverse,
+    vmin: scale.domain?.[0],
+    vmax: scale.domain?.[1],
+  } as unknown as SymbologyState;
 
-  if (scale.reverse) {
-    colors = [...colors].reverse();
-  }
-
-  const n = scale.nShades;
-  return Array.from({ length: n }, (_, i) => {
-    const t = n === 1 ? 0 : i / (n - 1);
-    const stopValue = scale.domain[0] + t * (scale.domain[1] - scale.domain[0]);
-    const colorIndex = Math.round(t * (colors.length - 1));
-    const c = colors[colorIndex];
-    return {
-      stop: stopValue,
-      color: [c[0], c[1], c[2], c[3] ?? 1] as RGBA,
-    };
-  });
+  const computed = computeGraduatedColorStops(syntheticState, numericValues);
+  return computed.map(s => ({
+    stop: s.value as number,
+    color: s.color as RGBA,
+  }));
 }
 
 /**
- * categorical: nominal field → RGBA color via an explicit value→color mapping.
+ * categorical: nominal field → RGBA color via a named palette.
+ * Unique field values are enumerated from featureValues at render time,
+ * mirroring buildCategorized.
  *
  * Output:
  *   ['case',
- *     ['==', ['get', field], val0], cssColor0,
+ *     ['==', ['get', field], val0], color0,
  *     ...,
- *     fallbackCss]
+ *     fallback]
  */
 function compileCategorical(
   field: string,
   scale: ICategoricalScale,
+  featureValues: unknown[],
 ): ExpressionValue {
+  const syntheticState = {
+    colorRamp: scale.colorRamp,
+    reverseRamp: scale.reverse ?? false,
+  } as unknown as SymbologyState;
+
+  const stops = computeCategorizedColorStops(syntheticState, featureValues);
   const caseExpr: ExpressionValue[] = ['case'];
-  for (const [value, color] of Object.entries(scale.mapping)) {
-    caseExpr.push(['==', ['get', field], value], color);
+  for (const stop of stops) {
+    caseExpr.push(
+      ['==', ['get', field], stop.value as ExpressionValue],
+      stop.color as ExpressionValue,
+    );
   }
   caseExpr.push(scale.fallback);
   return caseExpr;

@@ -1718,7 +1718,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const flatStyle =
       layerParams.symbologyState?.renderType === 'Grammar'
-        ? grammarToOLStyle(layerParams.symbologyState as IGrammarSymbologyState)
+        ? grammarToOLStyle(
+            layerParams.symbologyState as IGrammarSymbologyState,
+            featureValues,
+          )
         : (buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
           DEFAULT_FLAT_STYLE);
 
