@@ -1,0 +1,38 @@
+{
+  "layerTree": ["layer-id"],
+  "layers": {
+    "layer-id": {
+      "name": "Fill Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id",
+        "symbologyState": {
+          "renderType": "Single Symbol",
+          "fillColor": [255, 0, 0, 1],
+          "strokeColor": [0, 0, 0, 1],
+          "strokeWidth": 2,
+          "radius": 5
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "pitch": 0,
+    "projection": "EPSG:3857",
+    "zoom": 4
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "source-id": {
+      "name": "Source",
+      "parameters": { "path": "data.geojson" },
+      "type": "GeoJSONSource"
+    }
+  }
+}

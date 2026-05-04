@@ -1,0 +1,61 @@
+{
+  "layerTree": ["layer-id"],
+  "layers": {
+    "layer-id": {
+      "name": "Fill Layer",
+      "parameters": {
+        "opacity": 1,
+        "source": "source-id",
+        "symbologyState": {
+          "renderType": "Grammar",
+          "rules": [
+            {
+              "id": "test-uuid",
+              "mappings": [
+                {
+                  "outputType": "rgba",
+                  "scale": { "scheme": "constant", "value": [255, 0, 0, 1] },
+                  "channels": ["fill-color", "circle-fill-color"]
+                },
+                {
+                  "outputType": "rgba",
+                  "scale": { "scheme": "constant", "value": [0, 0, 0, 1] },
+                  "channels": ["stroke-color", "circle-stroke-color"]
+                },
+                {
+                  "outputType": "posfloat",
+                  "scale": { "scheme": "constant", "value": 2 },
+                  "channels": ["stroke-width", "circle-stroke-width"]
+                },
+                {
+                  "outputType": "posfloat",
+                  "scale": { "scheme": "constant", "value": 5 },
+                  "channels": ["circle-radius"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "pitch": 0,
+    "projection": "EPSG:3857",
+    "zoom": 4
+  },
+  "schemaVersion": "0.7.0",
+  "sources": {
+    "source-id": {
+      "name": "Source",
+      "parameters": { "path": "data.geojson" },
+      "type": "GeoJSONSource"
+    }
+  }
+}

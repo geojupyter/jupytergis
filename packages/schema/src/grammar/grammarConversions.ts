@@ -1,26 +1,24 @@
 /**
  * Conversions from existing symbology render types → IGrammarSymbologyState.
  *
- * Each function is a pure schema transform (no model/UI dependencies) so it
- * can be used both when the user switches render types in the dialog and as a
- * schema migration step.
- *
- * Parity guarantee: for each converted state, grammarToOLStyle() should
- * produce an OL expression equivalent to buildVectorFlatStyle() on the same
- * input, which is verified by grammarParity.spec.ts.
+ * Pure schema transforms with no OL or UI dependencies, usable both as a
+ * schema migration step and when the user switches render types in the dialog.
  */
 
 import { UUID } from '@lumino/coreutils';
 
-import { DEFAULT_STROKE_WIDTH, SymbologyState } from '../styleBuilder';
+import { IVectorLayer } from '../types';
 import {
   ClassificationMode,
-  IGrammarSymbologyState,
   IEncodingRule,
+  IGrammarSymbologyState,
   IMapping,
   RGBA,
 } from './types';
 
+export type SymbologyState = NonNullable<IVectorLayer['symbologyState']>;
+
+const DEFAULT_STROKE_WIDTH = 1.25;
 const DEFAULT_FILL: RGBA = [255, 255, 255, 0.4];
 const DEFAULT_STROKE: RGBA = [51, 153, 204, 1];
 const DEFAULT_RADIUS = 5;
@@ -70,8 +68,8 @@ export function singleSymbolToGrammar(
 
 /**
  * Convert a Graduated state to Grammar.
- * No featureValues needed — the colorRamp scale stores the recipe params and
- * grammarToOLStyle computes classification breaks at render time.
+ * The colorRamp scale stores recipe params; grammarToOLStyle computes
+ * classification breaks from featureValues at render time.
  */
 export function graduatedToGrammar(
   state: SymbologyState,
@@ -136,8 +134,8 @@ export function graduatedToGrammar(
 
 /**
  * Convert a Categorized state to Grammar.
- * No featureValues needed — the categorical scale stores the recipe params and
- * grammarToOLStyle enumerates unique values at render time.
+ * The categorical scale stores recipe params; grammarToOLStyle enumerates
+ * unique values from featureValues at render time.
  */
 export function categorizedToGrammar(
   state: SymbologyState,

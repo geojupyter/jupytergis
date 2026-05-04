@@ -41,6 +41,7 @@ import {
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
   IViewState,
+  IGrammarSymbologyState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -149,7 +150,6 @@ import {
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
 import { grammarToOLStyle } from '../features/layers/symbology/grammar/grammarToOLStyle';
-import { IGrammarSymbologyState } from '../features/layers/symbology/grammar/types';
 import {
   DEFAULT_FLAT_STYLE,
   buildTransparentFallbackFilter,

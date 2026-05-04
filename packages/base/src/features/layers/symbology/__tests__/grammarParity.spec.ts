@@ -15,11 +15,12 @@ jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
 jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 jest.mock('@/src/tools', () => ({ objectEntries: Object.entries }));
 
+// Import directly from schema source to bypass the @jupytergis/schema package mock.
 import {
   graduatedToGrammar,
   categorizedToGrammar,
   singleSymbolToGrammar,
-} from '../grammar/grammarConversions';
+} from '../../../../../../schema/src/grammar/grammarConversions';
 import { grammarToOLStyle } from '../grammar/grammarToOLStyle';
 import { buildVectorFlatStyle, SymbologyState } from '../styleBuilder';
 
