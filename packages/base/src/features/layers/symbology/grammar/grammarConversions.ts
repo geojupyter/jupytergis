@@ -15,16 +15,10 @@ import { UUID } from '@lumino/coreutils';
 import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
-  DEFAULT_FLAT_STYLE,
   DEFAULT_STROKE_WIDTH,
   SymbologyState,
 } from '../styleBuilder';
-import {
-  IGrammarSymbologyState,
-  IEncodingRule,
-  IMapping,
-  RGBA,
-} from './types';
+import { IGrammarSymbologyState, IEncodingRule, IMapping, RGBA } from './types';
 
 const DEFAULT_FILL: RGBA = [255, 255, 255, 0.4];
 const DEFAULT_STROKE: RGBA = [51, 153, 204, 1];
@@ -41,8 +35,8 @@ export function singleSymbolToGrammar(
 ): IGrammarSymbologyState {
   const fill = (state.fillColor ?? DEFAULT_FILL) as RGBA;
   const stroke = (state.strokeColor ?? DEFAULT_STROKE) as RGBA;
-  const strokeWidth = (state.strokeWidth ?? DEFAULT_STROKE_WIDTH) as number;
-  const radius = (state.radius ?? DEFAULT_RADIUS) as number;
+  const strokeWidth = state.strokeWidth ?? DEFAULT_STROKE_WIDTH;
+  const radius = state.radius ?? DEFAULT_RADIUS;
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),
@@ -86,8 +80,8 @@ export function graduatedToGrammar(
   const field = state.value;
   const fallback = (state.fallbackColor ?? TRANSPARENT) as RGBA;
   const stroke = (state.strokeColor ?? DEFAULT_STROKE) as RGBA;
-  const strokeWidth = (state.strokeWidth ?? DEFAULT_STROKE_WIDTH) as number;
-  const radius = (state.radius ?? DEFAULT_RADIUS) as number;
+  const strokeWidth = state.strokeWidth ?? DEFAULT_STROKE_WIDTH;
+  const radius = state.radius ?? DEFAULT_RADIUS;
   const numericValues = featureValues.filter(Number.isFinite) as number[];
 
   const computedStops = computeGraduatedColorStops(state, numericValues);
@@ -97,15 +91,13 @@ export function graduatedToGrammar(
   }));
 
   const domainMin =
-    state.vmin ??
-    (numericValues.length > 0 ? Math.min(...numericValues) : 0);
+    state.vmin ?? (numericValues.length > 0 ? Math.min(...numericValues) : 0);
   const domainMax =
-    state.vmax ??
-    (numericValues.length > 0 ? Math.max(...numericValues) : 1);
+    state.vmax ?? (numericValues.length > 0 ? Math.max(...numericValues) : 1);
 
   const colorRampScale = {
     scheme: 'colorRamp' as const,
-    name: (state.colorRamp ?? 'viridis') as string,
+    name: state.colorRamp ?? 'viridis',
     domain: [domainMin, domainMax] as [number, number],
     nShades: state.nClasses ?? 9,
     mode: (state.mode ?? 'equal interval') as any,
@@ -121,8 +113,16 @@ export function graduatedToGrammar(
   };
 
   const strokeMapping: IMapping = state.strokeFollowsFill
-    ? { outputType: 'rgba', scale: colorRampScale, channels: ['stroke-color', 'circle-stroke-color'] }
-    : { outputType: 'rgba', scale: { scheme: 'constant', value: stroke }, channels: ['stroke-color', 'circle-stroke-color'] };
+    ? {
+        outputType: 'rgba',
+        scale: colorRampScale,
+        channels: ['stroke-color', 'circle-stroke-color'],
+      }
+    : {
+        outputType: 'rgba',
+        scale: { scheme: 'constant', value: stroke },
+        channels: ['stroke-color', 'circle-stroke-color'],
+      };
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),
@@ -157,8 +157,8 @@ export function categorizedToGrammar(
   const field = state.value;
   const fallback = (state.fallbackColor ?? TRANSPARENT) as RGBA;
   const stroke = (state.strokeColor ?? DEFAULT_STROKE) as RGBA;
-  const strokeWidth = (state.strokeWidth ?? DEFAULT_STROKE_WIDTH) as number;
-  const radius = (state.radius ?? DEFAULT_RADIUS) as number;
+  const strokeWidth = state.strokeWidth ?? DEFAULT_STROKE_WIDTH;
+  const radius = state.radius ?? DEFAULT_RADIUS;
 
   const computedStops = computeCategorizedColorStops(state, featureValues);
   const mapping: Record<string, RGBA> = {};
@@ -179,8 +179,16 @@ export function categorizedToGrammar(
   };
 
   const strokeMapping: IMapping = state.strokeFollowsFill
-    ? { outputType: 'rgba', scale: categoricalScale, channels: ['stroke-color', 'circle-stroke-color'] }
-    : { outputType: 'rgba', scale: { scheme: 'constant', value: stroke }, channels: ['stroke-color', 'circle-stroke-color'] };
+    ? {
+        outputType: 'rgba',
+        scale: categoricalScale,
+        channels: ['stroke-color', 'circle-stroke-color'],
+      }
+    : {
+        outputType: 'rgba',
+        scale: { scheme: 'constant', value: stroke },
+        channels: ['stroke-color', 'circle-stroke-color'],
+      };
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),

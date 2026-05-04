@@ -55,7 +55,7 @@ export type OutputType = 'rgba' | 'uint8' | 'unorm' | 'posfloat';
 // Channels — named output slots, grouped by accepted output type
 // ---------------------------------------------------------------------------
 
-/** Full RGBA color channels. Vector layers use fill-*/stroke-*/circle-*; pixel-* for raster/KDE. */
+/** Full RGBA color channels. Vector layers use fill/stroke/circle channels; pixel channels for raster/KDE. */
 export type RGBAChannel =
   | 'fill-color'
   | 'stroke-color'

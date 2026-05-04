@@ -29,7 +29,13 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
+          "enum": [
+            "Single Symbol",
+            "Graduated",
+            "Categorized",
+            "Canonical",
+            "Grammar"
+          ],
           "default": "Single Symbol"
         },
         "value": {
@@ -138,6 +144,11 @@
               }
             }
           }
+        },
+        "rules": {
+          "type": "array",
+          "description": "Grammar encoding rules (when renderType is 'Grammar'). Each rule maps an optional input field to one or more (scale, channels) pairs.",
+          "items": { "type": "object" }
         }
       },
       "additionalProperties": false,

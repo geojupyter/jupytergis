@@ -18,6 +18,9 @@ import { ExpressionValue } from 'ol/expr/expression';
 import {
   ICategoricalScale,
   IColorRampScale,
+  IConstantScale,
+  IIdentityScale,
+  IKDEScale,
   IMapping,
   IScalarScale,
   IGrammarSymbologyState,
@@ -32,7 +35,7 @@ import {
 // Types used internally during compilation
 // ---------------------------------------------------------------------------
 
-interface ChannelEntry {
+interface IChannelEntry {
   guard?: ExpressionValue; // undefined = unconditional
   expr: ExpressionValue;
 }
@@ -49,13 +52,11 @@ export function grammarToOLStyle(
   state: IGrammarSymbologyState,
 ): Record<string, ExpressionValue> {
   // Accumulate per-channel entries from all rules.
-  const accumulator = new Map<OLStyleChannel, ChannelEntry[]>();
+  const accumulator = new Map<OLStyleChannel, IChannelEntry[]>();
 
   for (const rule of state.rules) {
     const guard =
-      rule.when && rule.when.length > 0
-        ? compileGuard(rule.when)
-        : undefined;
+      rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
 
     for (const mapping of rule.mappings) {
       const expr = compileMapping(rule.field, mapping);
@@ -87,7 +88,7 @@ export function grammarToOLStyle(
  * as the else branch (transparent/zero if none).
  */
 function buildChannelExpr(
-  entries: ChannelEntry[],
+  entries: IChannelEntry[],
   channel: OLStyleChannel,
 ): ExpressionValue {
   const conditional = entries.filter(e => e.guard !== undefined);
@@ -104,7 +105,7 @@ function buildChannelExpr(
 
   const caseExpr: ExpressionValue[] = ['case'];
   for (const { guard, expr } of conditional) {
-    caseExpr.push(guard!, expr);
+    caseExpr.push(guard as ExpressionValue, expr);
   }
   caseExpr.push(elseExpr);
   return caseExpr;
@@ -113,7 +114,11 @@ function buildChannelExpr(
 /** Typed zero for channels with no unconditional rule. */
 function channelZero(channel: OLStyleChannel): ExpressionValue {
   const rgbaChannels = new Set<OLStyleChannel>([
-    'fill-color', 'stroke-color', 'circle-fill-color', 'circle-stroke-color', 'pixel-color',
+    'fill-color',
+    'stroke-color',
+    'circle-fill-color',
+    'circle-stroke-color',
+    'pixel-color',
   ]);
   return rgbaChannels.has(channel) ? 'rgba(0,0,0,0)' : 0;
 }
@@ -139,7 +144,10 @@ function assembleStyle(
 
   // Collect named channels directly.
   const skip = new Set<OLStyleChannel>([
-    ...FILL_SUB, ...FILL_ALPHA_SUB, ...PIXEL_SUB, ...PIXEL_ALPHA_SUB,
+    ...FILL_SUB,
+    ...FILL_ALPHA_SUB,
+    ...PIXEL_SUB,
+    ...PIXEL_ALPHA_SUB,
   ]);
 
   for (const [channel, expr] of channelExprs) {
@@ -149,7 +157,10 @@ function assembleStyle(
   }
 
   // Assemble fill-color from sub-channels if any fill-* sub-channel is present.
-  if (FILL_SUB.some(c => channelExprs.has(c)) || FILL_ALPHA_SUB.some(c => channelExprs.has(c))) {
+  if (
+    FILL_SUB.some(c => channelExprs.has(c)) ||
+    FILL_ALPHA_SUB.some(c => channelExprs.has(c))
+  ) {
     const r = channelExprs.get('fill-red') ?? 0;
     const g = channelExprs.get('fill-green') ?? 0;
     const b = channelExprs.get('fill-blue') ?? 0;
@@ -159,7 +170,10 @@ function assembleStyle(
   }
 
   // Assemble pixel-color similarly.
-  if (PIXEL_SUB.some(c => channelExprs.has(c)) || PIXEL_ALPHA_SUB.some(c => channelExprs.has(c))) {
+  if (
+    PIXEL_SUB.some(c => channelExprs.has(c)) ||
+    PIXEL_ALPHA_SUB.some(c => channelExprs.has(c))
+  ) {
     const r = channelExprs.get('pixel-red') ?? 0;
     const g = channelExprs.get('pixel-green') ?? 0;
     const b = channelExprs.get('pixel-blue') ?? 0;
@@ -210,13 +224,18 @@ function compileMapping(
 
 function compileRGBAScale(
   field: string | undefined,
-  scale: IMapping & { outputType: 'rgba' } extends { scale: infer S } ? S : never,
+  scale:
+    | IColorRampScale
+    | ICategoricalScale
+    | IKDEScale
+    | IConstantScale
+    | IIdentityScale,
 ): ExpressionValue {
   switch (scale.scheme) {
     case 'colorRamp':
-      return compileColorRamp(field!, scale);
+      return field ? compileColorRamp(field, scale) : scale.fallback;
     case 'categorical':
-      return compileCategorical(field!, scale);
+      return field ? compileCategorical(field, scale) : scale.fallback;
     case 'kde':
       // KDE compilation is handled at the layer level (HeatmapLayer), not here.
       // Return a transparent placeholder so the FlatStyle doesn't break.
@@ -224,21 +243,21 @@ function compileRGBAScale(
     case 'constant':
       return scale.value as RGBA;
     case 'identity':
-      return ['get', field!];
+      return field ? (['get', field] as ExpressionValue) : 'rgba(0,0,0,0)';
   }
 }
 
 function compileNumericScale(
   field: string | undefined,
-  scale: IMapping & { outputType: 'posfloat' } extends { scale: infer S } ? S : never,
+  scale: IScalarScale | IConstantScale | IIdentityScale,
 ): ExpressionValue {
   switch (scale.scheme) {
     case 'scalar':
-      return compileScalar(field!, scale);
+      return field ? compileScalar(field, scale) : scale.fallback;
     case 'constant':
       return scale.value as number;
     case 'identity':
-      return ['get', field!];
+      return field ? (['get', field] as ExpressionValue) : 0;
   }
 }
 
@@ -335,10 +354,7 @@ function compileCategorical(
  *     ['interpolate', ['linear'], ['get', field], stop0, out0, ...],
  *     fallback]
  */
-function compileScalar(
-  field: string,
-  scale: IScalarScale,
-): ExpressionValue {
+function compileScalar(field: string, scale: IScalarScale): ExpressionValue {
   const interpolateExpr: ExpressionValue[] = [
     'interpolate',
     ['linear'],
@@ -351,11 +367,12 @@ function compileScalar(
     }
   } else {
     interpolateExpr.push(
-      scale.domain[0], scale.range[0],
-      scale.domain[1], scale.range[1],
+      scale.domain[0],
+      scale.range[0],
+      scale.domain[1],
+      scale.range[1],
     );
   }
 
   return ['case', ['has', field], interpolateExpr, scale.fallback];
 }
-

@@ -29,7 +29,13 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
+          "enum": [
+            "Single Symbol",
+            "Graduated",
+            "Categorized",
+            "Canonical",
+            "Grammar"
+          ],
           "default": "Single Symbol"
         },
         "value": {
@@ -79,6 +85,11 @@
           "type": "boolean",
           "description": "Whether the stroke color follows the fill color expression",
           "default": false
+        },
+        "rules": {
+          "type": "array",
+          "description": "Grammar encoding rules (when renderType is 'Grammar').",
+          "items": { "type": "object" }
         }
       },
       "additionalProperties": false,

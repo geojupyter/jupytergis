@@ -12,6 +12,8 @@ import {
   RgbaColor,
 } from './colorRampUtils';
 
+export { DEFAULT_STROKE_WIDTH };
+
 export type SymbologyState = NonNullable<IVectorLayer['symbologyState']>;
 export type GeometryType = 'fill' | 'circle' | 'line';
 
