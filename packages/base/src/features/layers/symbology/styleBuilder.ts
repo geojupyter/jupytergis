@@ -171,7 +171,7 @@ function overrideToComputedStops(
 /**
  * Compute color stops for Graduated symbology from the config + feature values.
  */
-function computeGraduatedColorStops(
+export function computeGraduatedColorStops(
   state: SymbologyState,
   numericValues: number[],
 ): IComputedStop[] {
@@ -256,7 +256,7 @@ function computeGraduatedColorStops(
 /**
  * Compute color stops for Categorized symbology from the config + feature values.
  */
-function computeCategorizedColorStops(
+export function computeCategorizedColorStops(
   state: SymbologyState,
   featureValues: unknown[],
 ): IComputedStop[] {
