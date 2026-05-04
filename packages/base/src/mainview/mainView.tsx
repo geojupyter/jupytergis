@@ -148,6 +148,8 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import { grammarToOLStyle } from '../features/layers/symbology/grammar/grammarToOLStyle';
+import { IGrammarSymbologyState } from '../features/layers/symbology/grammar/types';
 import {
   DEFAULT_FLAT_STYLE,
   buildTransparentFallbackFilter,
@@ -1714,11 +1716,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ? source.getFeatures().map(f => (f as Feature).get(field))
         : [];
 
-    const layerStyle: Rule = {
-      style:
-        buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
-        DEFAULT_FLAT_STYLE,
-    };
+    const flatStyle =
+      layerParams.symbologyState?.renderType === 'Grammar'
+        ? grammarToOLStyle(layerParams.symbologyState as IGrammarSymbologyState)
+        : (buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
+          DEFAULT_FLAT_STYLE);
+
+    const layerStyle: Rule = { style: flatStyle };
 
     // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {

@@ -207,11 +207,7 @@ describe('grammarToOLStyle — when predicates', () => {
         ],
       }),
     ) as any;
-    expect(style['stroke-color'][1]).toEqual([
-      '==',
-      ['get', 'type'],
-      'road',
-    ]);
+    expect(style['stroke-color'][1]).toEqual(['==', ['get', 'type'], 'road']);
   });
 
   it('ANDs multiple predicates with all', () => {
