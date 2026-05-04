@@ -1,4 +1,8 @@
-import { LayerType } from '@jupytergis/schema';
+import {
+  IGrammarSymbologyState,
+  LayerType,
+  inferRenderType,
+} from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import FilterComponent from '@/src/features/filter/Filter';
@@ -108,7 +112,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    let renderType: VectorRenderType | undefined;
+    let rawRenderType: string | undefined;
 
     if (isStorySegmentOverride) {
       const segment = segmentId ? model.getLayer(segmentId) : undefined;
@@ -123,16 +127,32 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
         return;
       }
 
-      renderType = override.symbologyState?.renderType;
+      rawRenderType = override.symbologyState?.renderType;
     } else {
-      renderType = layer.parameters?.symbologyState?.renderType;
+      rawRenderType = layer.parameters?.symbologyState?.renderType;
     }
 
-    if (!renderType) {
-      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
+    if (rawRenderType === 'Grammar') {
+      const grammarState = (
+        isStorySegmentOverride
+          ? (model
+              .getLayer(segmentId ?? '')
+              ?.parameters?.layerOverride?.find(
+                (o: { targetLayer?: string }) => o.targetLayer === layerId,
+              )?.symbologyState ?? layer.parameters?.symbologyState)
+          : layer.parameters?.symbologyState
+      ) as IGrammarSymbologyState | undefined;
+      rawRenderType = grammarState
+        ? inferRenderType(grammarState)
+        : 'Single Symbol';
     }
 
-    setSelectedRenderType(renderType);
+    if (!rawRenderType) {
+      rawRenderType =
+        layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
+    }
+
+    setSelectedRenderType(rawRenderType as VectorRenderType);
   }, []);
 
   const { featureProperties, isLoading: featuresLoading } = useGetProperties({

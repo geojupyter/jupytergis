@@ -1,4 +1,8 @@
-import { IVectorLayer } from '@jupytergis/schema';
+import {
+  IGrammarSymbologyState,
+  grammarToSingleSymbolState,
+  singleSymbolToGrammar,
+} from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import {
@@ -53,8 +57,12 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     if (!params) {
       return;
     }
-    const state = params.symbologyState;
-    if (state?.renderType === 'Single Symbol') {
+    const raw = params.symbologyState;
+    const state =
+      raw?.renderType === 'Grammar'
+        ? grammarToSingleSymbolState(raw as IGrammarSymbologyState)
+        : raw;
+    if (state) {
       setStyle({
         fillColor: '#3399CC',
         strokeColor: '#3399CC',
@@ -82,16 +90,13 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       parseFloat(styleRef.current?.strokeWidth ?? '0'),
     );
 
-    type SymbologyState = NonNullable<IVectorLayer['symbologyState']>;
-    const symbologyState: SymbologyState = {
+    const symbologyState = singleSymbolToGrammar({
       renderType: 'Single Symbol',
       fillColor: fillRgbaRef.current,
       strokeColor: strokeRgbaRef.current,
       strokeWidth,
       radius: styleRef.current?.radius,
-      joinStyle: styleRef.current?.joinStyle as SymbologyState['joinStyle'],
-      capStyle: styleRef.current?.capStyle as SymbologyState['capStyle'],
-    };
+    });
 
     saveSymbology({
       model,

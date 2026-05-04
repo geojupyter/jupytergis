@@ -113,6 +113,7 @@ export interface IColorRampScale {
  * Maps discrete field values to colors sampled from a named palette.
  * The compiler enumerates unique values from featureValues at render time —
  * same algorithm as the Categorized render type.
+ * Explicit colorStops (user overrides) take precedence over computed stops.
  */
 export interface ICategoricalScale {
   scheme: 'categorical';
@@ -120,6 +121,7 @@ export interface ICategoricalScale {
   nShades?: number;
   reverse?: boolean;
   fallback: RGBA;
+  colorStops?: Array<{ stop: string | number; color: RGBA }>;
 }
 
 /**

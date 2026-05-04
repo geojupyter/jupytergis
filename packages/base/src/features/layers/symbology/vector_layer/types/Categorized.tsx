@@ -1,6 +1,11 @@
-import { IVectorLayer } from '@jupytergis/schema';
+import {
+  IGrammarSymbologyState,
+  IVectorLayer,
+  categorizedToGrammar,
+  grammarToCategorizedState,
+} from '@jupytergis/schema';
 import { ReadonlyJSONObject, UUID } from '@lumino/coreutils';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   colorToRgba,
@@ -90,11 +95,20 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
+  // Normalize Grammar state to old-format Categorized state for the panel.
+  const effectiveState = useMemo(() => {
+    const raw = params.symbologyState;
+    if (raw?.renderType === 'Grammar') {
+      return grammarToCategorizedState(raw as IGrammarSymbologyState);
+    }
+    return raw;
+  }, [params.symbologyState]);
+
   // Auto-classify on first load once selectedAttribute is ready.
   const hasAutoClassified = useRef(false);
 
   useEffect(() => {
-    const state = params.symbologyState;
+    const state = effectiveState;
     if (state) {
       setManualStyle({
         fillColor: colorToRgba(state.fillColor ?? DEFAULT_COLOR),
@@ -105,13 +119,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     setFallbackColor(
-      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+      colorToRgba(effectiveState?.fallbackColor ?? [0, 0, 0, 0]),
     );
-    setStrokeFollowsFill(params.symbologyState?.strokeFollowsFill ?? false);
+    setStrokeFollowsFill(effectiveState?.strokeFollowsFill ?? false);
   }, [layerId]);
 
   useEffect(() => {
-    const savedValue = params.symbologyState?.value;
+    const savedValue = effectiveState?.value;
     const attribute =
       savedValue && savedValue in selectableAttributesAndValues
         ? savedValue
@@ -131,7 +145,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     ) {
       return;
     }
-    const state = params.symbologyState;
+    const state = effectiveState;
     if (state?.renderType === 'Categorized') {
       hasAutoClassified.current = true;
 
@@ -226,7 +240,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           }))
         : undefined;
 
-    const symbologyState: IVectorLayer['symbologyState'] = {
+    const symbologyState = categorizedToGrammar({
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp as
@@ -243,7 +257,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       strokeWidth,
       radius: manualStyleRef.current.radius,
       ...(stopsOverride && stopsOverride.length > 0 && { stopsOverride }),
-    };
+    });
 
     saveSymbology({
       model,

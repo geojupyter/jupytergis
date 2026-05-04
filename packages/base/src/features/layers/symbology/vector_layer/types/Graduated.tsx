@@ -1,6 +1,11 @@
-import { IVectorLayer } from '@jupytergis/schema';
+import {
+  IGrammarSymbologyState,
+  IVectorLayer,
+  graduatedToGrammar,
+  grammarToGraduatedState,
+} from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/features/layers/symbology/classificationModes';
 import {
@@ -105,11 +110,20 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     return;
   }
 
+  // Normalize Grammar state to old-format Graduated state for the panel.
+  const effectiveState = useMemo(() => {
+    const raw = params.symbologyState;
+    if (raw?.renderType === 'Grammar') {
+      return grammarToGraduatedState(raw as IGrammarSymbologyState);
+    }
+    return raw;
+  }, [params.symbologyState]);
+
   // Auto-classify on first load once selectedAttribute + vmin/vmax are ready.
   const hasAutoClassified = useRef(false);
 
   useEffect(() => {
-    const state = params.symbologyState;
+    const state = effectiveState;
     if (state) {
       setColorManualStyle({
         strokeColor: colorToRgba(state.strokeColor ?? DEFAULT_COLOR),
@@ -121,13 +135,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     setFallbackColor(
-      colorToRgba(params.symbologyState?.fallbackColor ?? [0, 0, 0, 0]),
+      colorToRgba(effectiveState?.fallbackColor ?? [0, 0, 0, 0]),
     );
-    setStrokeFollowsFill(params.symbologyState?.strokeFollowsFill ?? false);
+    setStrokeFollowsFill(effectiveState?.strokeFollowsFill ?? false);
   }, [layerId]);
 
   useEffect(() => {
-    const savedValue = params.symbologyState?.value;
+    const savedValue = effectiveState?.value;
     const attribute =
       savedValue && savedValue in selectableAttributesAndValues
         ? savedValue
@@ -143,9 +157,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     ) {
       return;
     }
-    if (params.symbologyState?.vmin !== undefined) {
-      setVmin(String(params.symbologyState.vmin));
-      setVmax(String(params.symbologyState.vmax ?? ''));
+    if (effectiveState?.vmin !== undefined) {
+      setVmin(String(effectiveState.vmin));
+      setVmax(String(effectiveState.vmax ?? ''));
       return;
     }
     const values = Array.from(
@@ -169,7 +183,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     if (!selectableAttributesAndValues[selectedAttribute]) {
       return;
     }
-    const state = params.symbologyState;
+    const state = effectiveState;
     if (state?.renderType === 'Graduated') {
       hasAutoClassified.current = true;
 
@@ -206,15 +220,14 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const parsedVmin = parseFloat(vminRef.current);
     const parsedVmax = parseFloat(vmaxRef.current);
 
-    type SymbologyState = NonNullable<IVectorLayer['symbologyState']>;
     const method =
       symbologyTabRef.current === 'radius'
         ? ('radius' as const)
         : ('color' as const);
     // Only persist the minimal config — stops are computed at runtime.
-    // If user manually edited colors, save them as stopsOverride.
-    // Graduated stop values are always numeric — coerce in case the text input
-    // produced a string (e.g. user typed "4" into the value field).
+    // If user manually edited colors, save them as stopsOverride (→ colorStops
+    // in the Grammar scale). Graduated stop values are always numeric — coerce
+    // in case the text input produced a string.
     const stopsOverride = hasColorOverrides.current
       ? colorStopRowsRef.current.map(row => ({
           value: typeof row.stop === 'string' ? parseFloat(row.stop) : row.stop,
@@ -222,13 +235,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         }))
       : undefined;
 
-    const symbologyState: SymbologyState = {
+    const symbologyState = graduatedToGrammar({
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
       method,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode as SymbologyState['mode'],
+      mode: colorRampOptionsRef.current?.selectedMode as
+        | 'equal interval'
+        | 'quantile'
+        | 'jenks'
+        | 'pretty'
+        | 'logarithmic'
+        | undefined,
       reverseRamp: colorRampOptionsRef.current?.reverseRamp,
       fallbackColor: fallbackColorRef.current,
       strokeFollowsFill: strokeFollowsFillRef.current,
@@ -238,7 +257,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       ...(Number.isFinite(parsedVmin) && { vmin: parsedVmin }),
       ...(Number.isFinite(parsedVmax) && { vmax: parsedVmax }),
       ...(stopsOverride && stopsOverride.length > 0 && { stopsOverride }),
-    };
+    });
 
     saveSymbology({
       model,

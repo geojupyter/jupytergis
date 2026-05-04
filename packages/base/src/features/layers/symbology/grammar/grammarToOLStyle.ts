@@ -354,12 +354,18 @@ function compileCategorical(
   scale: ICategoricalScale,
   featureValues: unknown[],
 ): ExpressionValue {
-  const syntheticState = {
-    colorRamp: scale.colorRamp,
-    reverseRamp: scale.reverse ?? false,
-  } as unknown as SymbologyState;
+  let stops: Array<{ value: unknown; color: unknown }>;
 
-  const stops = computeCategorizedColorStops(syntheticState, featureValues);
+  if (scale.colorStops && scale.colorStops.length > 0) {
+    stops = scale.colorStops.map(s => ({ value: s.stop, color: s.color }));
+  } else {
+    const syntheticState = {
+      colorRamp: scale.colorRamp,
+      reverseRamp: scale.reverse ?? false,
+    } as unknown as SymbologyState;
+    stops = computeCategorizedColorStops(syntheticState, featureValues);
+  }
+
   const caseExpr: ExpressionValue[] = ['case'];
   for (const stop of stops) {
     caseExpr.push(
