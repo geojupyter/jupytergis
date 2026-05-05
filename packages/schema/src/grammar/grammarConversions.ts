@@ -210,7 +210,7 @@ export function categorizedToGrammar(
  */
 export function inferRenderType(
   grammar: IGrammarSymbologyState,
-): 'Single Symbol' | 'Graduated' | 'Categorized' {
+): 'Single Symbol' | 'Graduated' | 'Categorized' | 'Canonical' {
   const firstRule = grammar.rules[0];
   if (!firstRule) {
     return 'Single Symbol';
@@ -221,6 +221,9 @@ export function inferRenderType(
     }
     if (mapping.scale.scheme === 'categorical') {
       return 'Categorized';
+    }
+    if (mapping.scale.scheme === 'identity') {
+      return 'Canonical';
     }
   }
   return 'Single Symbol';

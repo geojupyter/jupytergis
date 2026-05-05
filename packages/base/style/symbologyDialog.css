@@ -273,10 +273,13 @@ select option {
   overflow: hidden;
 }
 
-.jp-gis-grammar-rule-header {
-  display: flex;
+/* 6-column grid: field | scheme | preview | arrow | channel | × */
+.jp-gis-grammar-rule-grid {
+  display: grid;
+  grid-template-columns: 80px 80px 1fr auto 100px auto;
   align-items: center;
-  gap: 6px;
+  column-gap: 4px;
+  row-gap: 3px;
   padding: 4px 6px;
 }
 
@@ -288,62 +291,62 @@ select option {
   gap: 8px;
 }
 
+/* Preview button spans all channel rows — stretches vertically */
 .jp-gis-grammar-preview-btn {
   background: none;
   border: 1px solid var(--jp-border-color2);
   border-radius: 4px;
-  padding: 2px 4px;
+  padding: 4px 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  min-width: 32px;
-  justify-content: center;
+  align-self: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  min-height: 36px;
+  overflow: hidden;
 }
 
 .jp-gis-scale-preview {
   display: flex;
   align-items: center;
-  font-size: var(--jp-ui-font-size0);
-  min-height: 14px;
-  min-width: 20px;
+  gap: 6px;
+  font-size: var(--jp-ui-font-size1);
+  min-height: 16px;
+  overflow: hidden;
+  width: 100%;
 }
 
-.jp-gis-grammar-channels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  align-items: center;
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.jp-gis-grammar-channel-chip {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 1px 6px;
-  background: var(--jp-layout-color2);
-  border: 1px solid var(--jp-border-color2);
-  border-radius: 10px;
-  font-size: var(--jp-ui-font-size0);
+.jp-gis-scale-meta {
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color2);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.jp-gis-grammar-channel-chip button {
-  background: none;
-  border: none;
-  padding: 0 0 0 2px;
-  cursor: pointer;
-  line-height: 1;
-  color: var(--jp-ui-font-color2);
-  font-size: 11px;
+.jp-gis-scale-swatch {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid var(--jp-border-color1);
+  display: inline-block;
 }
 
-.jp-gis-grammar-add-channel {
-  flex: 0 0 auto;
-  width: 2.2em;
-  padding: 0;
+.jp-gis-scale-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.jp-gis-grammar-arrow {
+  color: var(--jp-ui-font-color2);
   text-align: center;
+  padding: 0 2px;
 }
 
 .jp-gis-grammar-delete-btn {
@@ -354,7 +357,90 @@ select option {
   padding: 0 4px;
   font-size: 16px;
   line-height: 1;
+}
+
+/* When clause */
+
+.jp-gis-grammar-when-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px 6px 4px;
+  border-top: 1px solid var(--jp-border-color3);
+  background: var(--jp-layout-color1);
+}
+
+.jp-gis-grammar-when-label {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  font-style: italic;
   flex-shrink: 0;
+}
+
+.jp-gis-grammar-when-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 10px;
+  font-size: var(--jp-ui-font-size0);
+  white-space: nowrap;
+}
+
+.jp-gis-grammar-when-chip button {
+  background: none;
+  border: none;
+  padding: 0 0 0 2px;
+  cursor: pointer;
+  line-height: 1;
+  color: var(--jp-ui-font-color2);
+  font-size: 11px;
+}
+
+.jp-gis-grammar-when-add-btn {
+  background: none;
+  border: 1px dashed var(--jp-border-color2);
+  border-radius: 10px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-gis-grammar-when-add-btn:hover {
+  border-color: var(--jp-brand-color1);
+  color: var(--jp-brand-color1);
+}
+
+.jp-gis-grammar-when-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.jp-gis-grammar-when-form .jp-select-wrapper {
+  margin-bottom: 0;
+}
+
+.jp-gis-grammar-when-ok,
+.jp-gis-grammar-when-cancel {
+  background: none;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color1);
+  line-height: 1.4;
+}
+
+.jp-gis-grammar-when-ok:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .jp-gis-transparent-label {

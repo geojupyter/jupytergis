@@ -1,8 +1,4 @@
-import {
-  IGrammarSymbologyState,
-  LayerType,
-  inferRenderType,
-} from '@jupytergis/schema';
+import { LayerType } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import FilterComponent from '@/src/features/filter/Filter';
@@ -139,22 +135,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
       rawRenderType = layer.parameters?.symbologyState?.renderType;
     }
 
-    if (rawRenderType === 'Grammar') {
-      const grammarState = (
-        isStorySegmentOverride
-          ? (model
-              .getLayer(segmentId ?? '')
-              ?.parameters?.layerOverride?.find(
-                (o: { targetLayer?: string }) => o.targetLayer === layerId,
-              )?.symbologyState ?? layer.parameters?.symbologyState)
-          : layer.parameters?.symbologyState
-      ) as IGrammarSymbologyState | undefined;
-      // Default to inferred panel type; user can switch to 'Grammar' explicitly.
-      rawRenderType = grammarState
-        ? inferRenderType(grammarState)
-        : 'Single Symbol';
-    }
-    // 'Grammar' is a valid selection from the dropdown but never the inferred default.
+    // 'Grammar' is a saved renderType — keep it; the Grammar panel handles display.
 
     if (!rawRenderType) {
       rawRenderType =

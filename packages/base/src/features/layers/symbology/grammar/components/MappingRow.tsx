@@ -1,12 +1,13 @@
 /**
- * A single grammar mapping row: field → scale → channels.
- * The row header is always visible; clicking it expands the inline scale editor.
- * Fan-out: channels is a multi-value set shown as removable chips.
+ * A single grammar mapping row: field → scale → channels (fan-out tree).
+ * The scale preview spans all channel rows. Additional channels branch below.
+ * "when" predicates are shown as chips below the grid.
  */
 
 import {
   IColorRampScale,
   IConstantScale,
+  IPredicate,
   IScale,
   OLStyleChannel,
   RGBA,
@@ -14,9 +15,9 @@ import {
 import React, { useCallback, useRef, useState } from 'react';
 
 import {
+  ColorRampName,
   drawColorRamp,
   getColorMap,
-  ColorRampName,
 } from '@/src/features/layers/symbology/colorRampUtils';
 import {
   CategoricalEditor,
@@ -42,10 +43,6 @@ const POSFLOAT_CHANNELS: OLStyleChannel[] = [
 ];
 const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 
-function isPosfloat(ch: OLStyleChannel): boolean {
-  return POSFLOAT_CHANNELS.includes(ch);
-}
-
 function compatibleChannels(scale: IScale): OLStyleChannel[] {
   switch (scale.scheme) {
     case 'colorRamp':
@@ -67,7 +64,9 @@ function defaultScaleForScheme(
   scheme: IScale['scheme'],
   currentChannels: OLStyleChannel[],
 ): IScale {
-  const numericChannels = currentChannels.every(isPosfloat);
+  const numericChannels = currentChannels.every(ch =>
+    POSFLOAT_CHANNELS.includes(ch),
+  );
   switch (scheme) {
     case 'constant':
       return numericChannels
@@ -115,7 +114,50 @@ function defaultScaleForScheme(
 }
 
 // ---------------------------------------------------------------------------
-// Compact scale preview
+// Display scheme — splits 'constant' into 'constantColor' | 'constantNum'
+// ---------------------------------------------------------------------------
+
+type DisplayScheme =
+  | Exclude<IScale['scheme'], 'constant'>
+  | 'constantColor'
+  | 'constantNum';
+
+const DISPLAY_SCHEME_OPTIONS: { value: DisplayScheme; label: string }[] = [
+  { value: 'constantColor', label: 'const (color)' },
+  { value: 'constantNum', label: 'const (num)' },
+  { value: 'colorRamp', label: 'colorRamp' },
+  { value: 'categorical', label: 'categorical' },
+  { value: 'scalar', label: 'scalar' },
+  { value: 'identity', label: 'identity' },
+];
+
+function displaySchemeOf(scale: IScale): DisplayScheme {
+  if (scale.scheme !== 'constant') {
+    return scale.scheme;
+  }
+  return typeof scale.params.value === 'number'
+    ? 'constantNum'
+    : 'constantColor';
+}
+
+function scaleForDisplayScheme(
+  ds: DisplayScheme,
+  currentChannels: OLStyleChannel[],
+): IScale {
+  if (ds === 'constantColor') {
+    return {
+      scheme: 'constant',
+      params: { value: [128, 128, 128, 1] as RGBA },
+    } as IConstantScale;
+  }
+  if (ds === 'constantNum') {
+    return { scheme: 'constant', params: { value: 1 } } as IConstantScale;
+  }
+  return defaultScaleForScheme(ds, currentChannels);
+}
+
+// ---------------------------------------------------------------------------
+// Scale preview
 // ---------------------------------------------------------------------------
 
 const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
@@ -140,9 +182,14 @@ const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
   return (
     <canvas
       ref={ref}
-      width={60}
+      width={160}
       height={14}
-      style={{ borderRadius: 2, display: 'block' }}
+      style={{
+        borderRadius: 2,
+        flex: '0 0 80px',
+        height: 14,
+        display: 'block',
+      }}
     />
   );
 };
@@ -152,34 +199,236 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
     case 'constant': {
       const { value } = scale.params;
       if (typeof value === 'number') {
-        return <span className="jp-gis-scale-preview">= {value}</span>;
+        return (
+          <span className="jp-gis-scale-preview">
+            <span className="jp-gis-scale-meta">= {value}</span>
+          </span>
+        );
       }
       const [r, g, b, a] = value as RGBA;
       return (
-        <span
-          className="jp-gis-scale-preview"
-          style={{ background: `rgba(${r},${g},${b},${a})`, minWidth: 20 }}
-        />
-      );
-    }
-    case 'colorRamp':
-      return (
-        <span className="jp-gis-scale-preview jp-gis-scale-preview-ramp">
-          <ColorRampPreview
-            name={scale.params.name}
-            reverse={scale.params.reverse}
+        <span className="jp-gis-scale-preview">
+          <span
+            className="jp-gis-scale-swatch"
+            style={{ background: `rgba(${r},${g},${b},${a})` }}
           />
+          <span className="jp-gis-scale-meta">
+            {r}, {g}, {b}, {a}
+          </span>
         </span>
       );
-    case 'categorical':
-      return <span className="jp-gis-scale-preview">cat</span>;
-    case 'scalar':
-      return <span className="jp-gis-scale-preview">↕</span>;
+    }
+    case 'colorRamp': {
+      const { name, reverse, domain } = scale.params;
+      return (
+        <span className="jp-gis-scale-preview">
+          <ColorRampPreview name={name} reverse={reverse} />
+          <span className="jp-gis-scale-meta">
+            {name}
+            {domain ? ` [${domain[0]}–${domain[1]}]` : ''}
+          </span>
+        </span>
+      );
+    }
+    case 'categorical': {
+      const { colorRamp, colorStops } = scale.params;
+      if (colorStops?.length) {
+        return (
+          <span className="jp-gis-scale-preview">
+            {colorStops.slice(0, 8).map((s, i) => {
+              const [r, g, b, aa] = s.color;
+              return (
+                <span
+                  key={i}
+                  className="jp-gis-scale-dot"
+                  style={{ background: `rgba(${r},${g},${b},${aa})` }}
+                />
+              );
+            })}
+            <span className="jp-gis-scale-meta">{colorRamp}</span>
+          </span>
+        );
+      }
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">
+            {colorRamp ?? 'categorical'}
+          </span>
+        </span>
+      );
+    }
+    case 'scalar': {
+      const { domain, range } = scale.params;
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">
+            [{domain[0]}, {domain[1]}] → [{range[0]}, {range[1]}]
+          </span>
+        </span>
+      );
+    }
     case 'identity':
-      return <span className="jp-gis-scale-preview">∘</span>;
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">∘ identity</span>
+        </span>
+      );
     case 'kde':
-      return <span className="jp-gis-scale-preview">kde</span>;
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">kde</span>
+        </span>
+      );
+    default:
+      return null;
   }
+};
+
+// ---------------------------------------------------------------------------
+// When-clause helpers
+// ---------------------------------------------------------------------------
+
+function formatPredicate(pred: IPredicate): string {
+  switch (pred.type) {
+    case 'geometryType':
+      return `geom = ${pred.value}`;
+    case 'hasField':
+      return `has: ${pred.field}`;
+    case 'fieldEquals':
+      return `${pred.field} = ${pred.value}`;
+  }
+}
+
+type PredicateType = IPredicate['type'];
+
+interface INewPredicate {
+  type: PredicateType;
+  geomValue: 'Point' | 'LineString' | 'Polygon';
+  field: string;
+  fieldValue: string;
+}
+
+const EMPTY_NEW: INewPredicate = {
+  type: 'geometryType',
+  geomValue: 'Point',
+  field: '',
+  fieldValue: '',
+};
+
+function buildPredicate(p: INewPredicate): IPredicate | null {
+  switch (p.type) {
+    case 'geometryType':
+      return { type: 'geometryType', value: p.geomValue };
+    case 'hasField':
+      return p.field ? { type: 'hasField', field: p.field } : null;
+    case 'fieldEquals':
+      return p.field
+        ? {
+            type: 'fieldEquals',
+            field: p.field,
+            value: isNaN(Number(p.fieldValue))
+              ? p.fieldValue
+              : Number(p.fieldValue),
+          }
+        : null;
+  }
+}
+
+interface IWhenAddFormProps {
+  availableFields: string[];
+  onAdd: (pred: IPredicate) => void;
+  onCancel: () => void;
+}
+
+const WhenAddForm: React.FC<IWhenAddFormProps> = ({
+  availableFields,
+  onAdd,
+  onCancel,
+}) => {
+  const [draft, setDraft] = useState<INewPredicate>({ ...EMPTY_NEW });
+
+  const patch = (p: Partial<INewPredicate>) =>
+    setDraft(prev => ({ ...prev, ...p }));
+
+  const built = buildPredicate(draft);
+
+  return (
+    <span className="jp-gis-grammar-when-form">
+      <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
+        <select
+          className="jp-mod-styled"
+          value={draft.type}
+          onChange={e => patch({ type: e.target.value as PredicateType })}
+        >
+          <option value="geometryType">geometry type</option>
+          <option value="hasField">has field</option>
+          <option value="fieldEquals">field equals</option>
+        </select>
+      </div>
+
+      {draft.type === 'geometryType' && (
+        <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
+          <select
+            className="jp-mod-styled"
+            value={draft.geomValue}
+            onChange={e =>
+              patch({
+                geomValue: e.target.value as INewPredicate['geomValue'],
+              })
+            }
+          >
+            <option value="Point">Point</option>
+            <option value="LineString">LineString</option>
+            <option value="Polygon">Polygon</option>
+          </select>
+        </div>
+      )}
+
+      {(draft.type === 'hasField' || draft.type === 'fieldEquals') && (
+        <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
+          <select
+            className="jp-mod-styled"
+            value={draft.field}
+            onChange={e => patch({ field: e.target.value })}
+          >
+            <option value="">(field)</option>
+            {availableFields.map(f => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {draft.type === 'fieldEquals' && (
+        <input
+          className="jp-mod-styled"
+          style={{ flex: '0 0 80px', minWidth: 0 }}
+          type="text"
+          placeholder="value"
+          value={draft.fieldValue}
+          onChange={e => patch({ fieldValue: e.target.value })}
+        />
+      )}
+
+      <button
+        className="jp-gis-grammar-when-ok"
+        disabled={!built}
+        onClick={() => built && onAdd(built)}
+        title="Add predicate"
+      >
+        ✓
+      </button>
+      <button
+        className="jp-gis-grammar-when-cancel"
+        onClick={onCancel}
+        title="Cancel"
+      >
+        ✗
+      </button>
+    </span>
+  );
 };
 
 // ---------------------------------------------------------------------------
@@ -191,6 +440,7 @@ export interface IGrammarRow {
   field?: string;
   scale: IScale;
   channels: OLStyleChannel[];
+  when?: IPredicate[];
 }
 
 interface IMappingRowProps {
@@ -213,6 +463,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   onDelete,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [addingWhen, setAddingWhen] = useState(false);
 
   const handleFieldChange = useCallback(
     (field: string) => onChange({ ...row, field: field || undefined }),
@@ -220,8 +471,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const handleSchemeChange = useCallback(
-    (scheme: IScale['scheme']) => {
-      const newScale = defaultScaleForScheme(scheme, row.channels);
+    (ds: DisplayScheme) => {
+      const newScale = scaleForDisplayScheme(ds, row.channels);
       const compat = compatibleChannels(newScale);
       const filtered = row.channels.filter(ch => compat.includes(ch));
       onChange({
@@ -238,42 +489,64 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
+  const handleChannelChange = useCallback(
+    (index: number, ch: OLStyleChannel) => {
+      const next = [...row.channels];
+      next[index] = ch;
+      onChange({ ...row, channels: next });
+    },
+    [row, onChange],
+  );
+
   const removeChannel = useCallback(
     (ch: OLStyleChannel) => {
       const next = row.channels.filter(c => c !== ch);
       if (next.length > 0) {
         onChange({ ...row, channels: next });
+      } else {
+        onDelete();
       }
     },
-    [row, onChange],
+    [row, onChange, onDelete],
   );
 
   const addChannel = useCallback(
     (ch: OLStyleChannel) => {
-      if (!row.channels.includes(ch)) {
-        onChange({ ...row, channels: [...row.channels, ch] });
-      }
+      onChange({ ...row, channels: [...row.channels, ch] });
+    },
+    [row, onChange],
+  );
+
+  const addPredicate = useCallback(
+    (pred: IPredicate) => {
+      onChange({ ...row, when: [...(row.when ?? []), pred] });
+      setAddingWhen(false);
+    },
+    [row, onChange],
+  );
+
+  const removePredicate = useCallback(
+    (index: number) => {
+      const next = (row.when ?? []).filter((_, i) => i !== index);
+      onChange({ ...row, when: next.length > 0 ? next : undefined });
     },
     [row, onChange],
   );
 
   const compat = compatibleChannels(row.scale);
   const availableToAdd = compat.filter(ch => !row.channels.includes(ch));
-
-  const SCHEME_OPTIONS: IScale['scheme'][] = [
-    'constant',
-    'colorRamp',
-    'categorical',
-    'scalar',
-    'identity',
-  ];
+  const previewRowSpan =
+    row.channels.length + (availableToAdd.length > 0 ? 1 : 0);
 
   return (
     <div className="jp-gis-grammar-rule">
-      {/* Header row */}
-      <div className="jp-gis-grammar-rule-header">
-        {/* Field selector */}
-        <div className="jp-select-wrapper" style={{ flex: '0 0 110px' }}>
+      {/* CSS grid: col1=field col2=scheme col3=preview col4=arrow col5=channel col6=× */}
+      <div className="jp-gis-grammar-rule-grid">
+        {/* Field — row 1 */}
+        <div
+          className="jp-select-wrapper"
+          style={{ gridRow: 1, gridColumn: 1 }}
+        >
           <select
             className="jp-mod-styled"
             value={row.field ?? ''}
@@ -288,74 +561,133 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           </select>
         </div>
 
-        {/* Scheme selector */}
-        <div className="jp-select-wrapper" style={{ flex: '0 0 100px' }}>
+        {/* Scheme — row 1 */}
+        <div
+          className="jp-select-wrapper"
+          style={{ gridRow: 1, gridColumn: 2 }}
+        >
           <select
             className="jp-mod-styled"
-            value={row.scale.scheme}
-            onChange={e =>
-              handleSchemeChange(e.target.value as IScale['scheme'])
-            }
+            value={displaySchemeOf(row.scale)}
+            onChange={e => handleSchemeChange(e.target.value as DisplayScheme)}
           >
-            {SCHEME_OPTIONS.map(s => (
-              <option key={s} value={s}>
-                {s}
+            {DISPLAY_SCHEME_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Scale preview — click to expand editor */}
+        {/* Scale preview — spans all channel rows + optional add-channel row */}
         <button
           className="jp-gis-grammar-preview-btn"
+          style={{ gridRow: `1 / span ${previewRowSpan}`, gridColumn: 3 }}
           onClick={() => setExpanded(v => !v)}
           title={expanded ? 'Collapse editor' : 'Edit scale'}
         >
           <ScalePreview scale={row.scale} />
         </button>
 
-        <span style={{ flexShrink: 0, color: 'var(--jp-ui-font-color2)' }}>
-          →
-        </span>
-
-        {/* Channel chips */}
-        <div className="jp-gis-grammar-channels">
-          {row.channels.map(ch => (
-            <span key={ch} className="jp-gis-grammar-channel-chip">
-              {ch}
-              <button onClick={() => removeChannel(ch)} title="Remove channel">
-                ×
-              </button>
-            </span>
-          ))}
-          {availableToAdd.length > 0 && (
-            <select
-              className="jp-mod-styled jp-gis-grammar-add-channel"
-              value=""
-              onChange={e => {
-                if (e.target.value) {
-                  addChannel(e.target.value as OLStyleChannel);
-                }
-              }}
+        {/* Per-channel rows */}
+        {row.channels.map((ch, i) => (
+          <React.Fragment key={`${ch}-${i}`}>
+            <span
+              className="jp-gis-grammar-arrow"
+              style={{ gridRow: i + 1, gridColumn: 4 }}
             >
-              <option value="">+</option>
-              {availableToAdd.map(ch => (
-                <option key={ch} value={ch}>
-                  {ch}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+              →
+            </span>
+            <div
+              className="jp-select-wrapper"
+              style={{ gridRow: i + 1, gridColumn: 5 }}
+            >
+              <select
+                className="jp-mod-styled"
+                value={ch}
+                onChange={e =>
+                  handleChannelChange(i, e.target.value as OLStyleChannel)
+                }
+              >
+                {compat.map(c => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              className="jp-gis-grammar-delete-btn"
+              style={{ gridRow: i + 1, gridColumn: 6 }}
+              onClick={() => removeChannel(ch)}
+              title={
+                row.channels.length === 1 ? 'Remove mapping' : 'Remove channel'
+              }
+            >
+              ×
+            </button>
+          </React.Fragment>
+        ))}
 
-        {/* Delete button */}
-        <button
-          className="jp-gis-grammar-delete-btn"
-          onClick={onDelete}
-          title="Remove mapping"
-        >
-          ×
-        </button>
+        {/* Add channel row */}
+        {availableToAdd.length > 0 && (
+          <React.Fragment>
+            <span
+              className="jp-gis-grammar-arrow"
+              style={{ gridRow: row.channels.length + 1, gridColumn: 4 }}
+            >
+              +
+            </span>
+            <div
+              className="jp-select-wrapper"
+              style={{ gridRow: row.channels.length + 1, gridColumn: 5 }}
+            >
+              <select
+                className="jp-mod-styled"
+                value=""
+                onChange={e => {
+                  if (e.target.value) {
+                    addChannel(e.target.value as OLStyleChannel);
+                  }
+                }}
+              >
+                <option value="">(add channel)</option>
+                {availableToAdd.map(ch => (
+                  <option key={ch} value={ch}>
+                    {ch}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </React.Fragment>
+        )}
+      </div>
+
+      {/* When clause */}
+      <div className="jp-gis-grammar-when-row">
+        <span className="jp-gis-grammar-when-label">when</span>
+        {row.when?.map((pred, i) => (
+          <span key={i} className="jp-gis-grammar-when-chip">
+            {formatPredicate(pred)}
+            <button onClick={() => removePredicate(i)} title="Remove condition">
+              ×
+            </button>
+          </span>
+        ))}
+        {addingWhen ? (
+          <WhenAddForm
+            availableFields={availableFields}
+            onAdd={addPredicate}
+            onCancel={() => setAddingWhen(false)}
+          />
+        ) : (
+          <button
+            className="jp-gis-grammar-when-add-btn"
+            onClick={() => setAddingWhen(true)}
+          >
+            + add
+          </button>
+        )}
       </div>
 
       {/* Inline scale editor */}

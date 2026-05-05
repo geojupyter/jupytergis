@@ -237,10 +237,27 @@ function compileMapping(
       return scale.params.value as ExpressionValue;
     case 'scalar':
       return field ? compileScalar(field, scale) : scale.params.fallback;
-    case 'identity':
-      return field
-        ? (['get', field] as ExpressionValue)
-        : channelZero(mapping.channels[0]);
+    case 'identity': {
+      if (!field) {
+        return channelZero(mapping.channels[0]);
+      }
+      // Wrap with coalesce so OL's expression type system infers the correct
+      // output type (color vs number). Bare ['get', field] has type 'any'
+      // which OL rejects for typed channels like fill-color.
+      const isColorChannel = (mapping.channels as string[]).some(ch =>
+        [
+          'fill-color',
+          'stroke-color',
+          'circle-fill-color',
+          'circle-stroke-color',
+          'pixel-color',
+        ].includes(ch),
+      );
+      const typedFallback: ExpressionValue = isColorChannel
+        ? ([0, 0, 0, 0] as ExpressionValue)
+        : 0;
+      return ['coalesce', ['get', field], typedFallback] as ExpressionValue;
+    }
   }
 }
 

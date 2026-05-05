@@ -24,6 +24,12 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const swatchRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [popupPos, setPopupPos] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
 
   const [r, g, b, a] = color;
 
@@ -88,9 +94,12 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
       return;
     }
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(target) &&
+        popupRef.current &&
+        !popupRef.current.contains(target)
       ) {
         setOpen(false);
       }
@@ -105,14 +114,31 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
       className="jp-gis-rgba-picker"
       style={{ position: 'relative' }}
     >
-      <div style={swatchStyle} onClick={() => setOpen(v => !v)} />
+      <div
+        ref={swatchRef}
+        style={swatchStyle}
+        onClick={() => {
+          if (!open && swatchRef.current) {
+            const rect = swatchRef.current.getBoundingClientRect();
+            // Prefer opening below; flip above if too close to bottom.
+            const popupH = 280;
+            const top =
+              rect.bottom + popupH > window.innerHeight
+                ? rect.top - popupH - 4
+                : rect.bottom + 4;
+            setPopupPos({ top, left: rect.left });
+          }
+          setOpen(v => !v);
+        }}
+      />
       {open && (
         <div
+          ref={popupRef}
           style={{
-            position: 'absolute',
-            zIndex: 1000,
-            top: '110%',
-            left: 0,
+            position: 'fixed',
+            zIndex: 10000,
+            top: popupPos.top,
+            left: popupPos.left,
             background: 'var(--jp-layout-color1, #fff)',
             border: '1px solid var(--jp-border-color1, #ccc)',
             borderRadius: 6,

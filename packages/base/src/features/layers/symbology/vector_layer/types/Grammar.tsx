@@ -30,6 +30,49 @@ import {
 const DEFAULT_CHANNELS: OLStyleChannel[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
+/** Convert a Canonical symbologyState to Grammar rows (best-effort). */
+function canonicalToGrammarRows(state: any): IGrammarRow[] {
+  const rows: IGrammarRow[] = [];
+  if (state.strokeFollowsFill !== false) {
+    // identity scale covers fill + stroke
+    rows.push({
+      id: UUID.uuid4(),
+      field: state.value,
+      scale: { scheme: 'identity' },
+      channels: [
+        'fill-color',
+        'circle-fill-color',
+        'stroke-color',
+        'circle-stroke-color',
+      ] as OLStyleChannel[],
+    });
+  } else {
+    rows.push({
+      id: UUID.uuid4(),
+      field: state.value,
+      scale: { scheme: 'identity' },
+      channels: ['fill-color', 'circle-fill-color'] as OLStyleChannel[],
+    });
+    rows.push({
+      id: UUID.uuid4(),
+      scale: {
+        scheme: 'constant',
+        params: { value: state.strokeColor ?? DEFAULT_RGBA },
+      },
+      channels: ['stroke-color', 'circle-stroke-color'] as OLStyleChannel[],
+    });
+  }
+  rows.push({
+    id: UUID.uuid4(),
+    scale: {
+      scheme: 'constant',
+      params: { value: state.strokeWidth ?? 1 },
+    },
+    channels: ['stroke-width', 'circle-stroke-width'] as OLStyleChannel[],
+  });
+  return rows;
+}
+
 const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
   model,
   okSignalPromise,
@@ -53,10 +96,19 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
     if (!params?.symbologyState) {
       return;
     }
-    const state = params.symbologyState as IGrammarSymbologyState;
-    if (state.renderType !== 'Grammar' || !state.rules) {
+    const rawState = params.symbologyState;
+    if (
+      rawState?.renderType !== 'Grammar' ||
+      !(rawState as any).rules?.length
+    ) {
+      if (rawState?.renderType === 'Canonical') {
+        setRows(canonicalToGrammarRows(rawState));
+      } else {
+        setRows([]);
+      }
       return;
     }
+    const state = rawState as IGrammarSymbologyState;
     setRows(
       state.rules.flatMap(rule =>
         rule.mappings.map(mapping => ({
@@ -64,6 +116,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
           field: rule.field,
           scale: mapping.scale,
           channels: [...(mapping.channels as OLStyleChannel[])],
+          ...(rule.when ? { when: rule.when } : {}),
         })),
       ),
     );
@@ -78,6 +131,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       .map(row => ({
         id: row.id,
         ...(row.field ? { field: row.field } : {}),
+        ...(row.when?.length ? { when: row.when } : {}),
         mappings: [
           {
             scale: row.scale,
@@ -97,6 +151,11 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       isStorySegmentOverride,
       segmentId,
       payload: { symbologyState },
+      mutateLayerBeforeSave: targetLayer => {
+        if (targetLayer.parameters?.color !== undefined) {
+          delete targetLayer.parameters.color;
+        }
+      },
     });
   };
 
