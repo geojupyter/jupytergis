@@ -18,6 +18,7 @@ import { SymbologyTab, VectorRenderType } from '@/src/types';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
+import Grammar from './types/Grammar';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
 
@@ -66,6 +67,12 @@ const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   Heatmap: {
     component: Heatmap,
     supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    isTabbed: false,
+  },
+  Grammar: {
+    component: Grammar,
+    attributeChecker: getFeatureAttributes,
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer'],
     isTabbed: false,
   },
 } as const;
@@ -142,10 +149,12 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
               )?.symbologyState ?? layer.parameters?.symbologyState)
           : layer.parameters?.symbologyState
       ) as IGrammarSymbologyState | undefined;
+      // Default to inferred panel type; user can switch to 'Grammar' explicitly.
       rawRenderType = grammarState
         ? inferRenderType(grammarState)
         : 'Single Symbol';
     }
+    // 'Grammar' is a valid selection from the dropdown but never the inferred default.
 
     if (!rawRenderType) {
       rawRenderType =

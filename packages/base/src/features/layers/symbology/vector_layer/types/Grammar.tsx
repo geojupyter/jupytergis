@@ -1,0 +1,144 @@
+/**
+ * Grammar symbology panel.
+ *
+ * Shows the raw encoding rules as a list of (field → scale → channels) rows.
+ * Each row is one IMapping; fan-out channels are shown as removable chips.
+ * Switching to another render type uses the existing adapter in those panels.
+ */
+
+import {
+  IEncodingRule,
+  IGrammarSymbologyState,
+  OLStyleChannel,
+  RGBA,
+} from '@jupytergis/schema';
+import { Button } from '@jupyterlab/ui-components';
+import { UUID } from '@lumino/coreutils';
+import React, { useEffect, useState } from 'react';
+
+import MappingRow, {
+  IGrammarRow,
+} from '@/src/features/layers/symbology/grammar/components/MappingRow';
+import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
+import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
+import { ISymbologyDialogWithAttributesProps } from '@/src/features/layers/symbology/symbologyDialog';
+import {
+  saveSymbology,
+  VectorSymbologyParams,
+} from '@/src/features/layers/symbology/symbologyUtils';
+
+const DEFAULT_CHANNELS: OLStyleChannel[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
+
+const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
+  model,
+  okSignalPromise,
+  layerId,
+  selectableAttributesAndValues,
+  isStorySegmentOverride,
+  segmentId,
+}) => {
+  const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+  const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
+    model,
+    layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
+
+  const [rows, setRows] = useState<IGrammarRow[]>([]);
+
+  useEffect(() => {
+    if (!params?.symbologyState) {
+      return;
+    }
+    const state = params.symbologyState as IGrammarSymbologyState;
+    if (state.renderType !== 'Grammar' || !state.rules) {
+      return;
+    }
+    setRows(
+      state.rules.flatMap(rule =>
+        rule.mappings.map(mapping => ({
+          id: UUID.uuid4(),
+          field: rule.field,
+          scale: mapping.scale,
+          channels: [...(mapping.channels as OLStyleChannel[])],
+        })),
+      ),
+    );
+  }, [params]);
+
+  const handleOk = () => {
+    if (!layerId || !layer?.parameters) {
+      return;
+    }
+    const rules: IEncodingRule[] = rows
+      .filter(row => row.channels.length > 0)
+      .map(row => ({
+        id: row.id,
+        ...(row.field ? { field: row.field } : {}),
+        mappings: [
+          {
+            scale: row.scale,
+            channels: row.channels as [OLStyleChannel, ...OLStyleChannel[]],
+          },
+        ],
+      }));
+
+    const symbologyState: IGrammarSymbologyState = {
+      renderType: 'Grammar',
+      rules,
+    };
+
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: { symbologyState },
+    });
+  };
+
+  useOkSignal(okSignalPromise, handleOk);
+
+  const addRow = () => {
+    setRows(prev => [
+      ...prev,
+      {
+        id: UUID.uuid4(),
+        scale: { scheme: 'constant', params: { value: DEFAULT_RGBA } },
+        channels: [...DEFAULT_CHANNELS],
+      },
+    ]);
+  };
+
+  const availableFields = Object.keys(selectableAttributesAndValues);
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      {rows.map((row, i) => (
+        <MappingRow
+          key={row.id}
+          row={row}
+          availableFields={availableFields}
+          featureValues={selectableAttributesAndValues}
+          onChange={updated =>
+            setRows(prev => prev.map((r, j) => (j === i ? updated : r)))
+          }
+          onDelete={() => setRows(prev => prev.filter((_, j) => j !== i))}
+        />
+      ))}
+      <div className="jp-gis-symbology-button-container">
+        <Button
+          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          onClick={addRow}
+        >
+          Add Mapping
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default Grammar;
