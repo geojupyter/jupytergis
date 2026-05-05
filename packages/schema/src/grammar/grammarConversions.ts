@@ -41,23 +41,19 @@ export function singleSymbolToGrammar(
     id: UUID.uuid4(),
     mappings: [
       {
-        outputType: 'rgba',
-        scale: { scheme: 'constant', value: fill },
+        scale: { scheme: 'constant', params: { value: fill } },
         channels: ['fill-color', 'circle-fill-color'],
       },
       {
-        outputType: 'rgba',
-        scale: { scheme: 'constant', value: stroke },
+        scale: { scheme: 'constant', params: { value: stroke } },
         channels: ['stroke-color', 'circle-stroke-color'],
       },
       {
-        outputType: 'posfloat',
-        scale: { scheme: 'constant', value: strokeWidth },
+        scale: { scheme: 'constant', params: { value: strokeWidth } },
         channels: ['stroke-width', 'circle-stroke-width'],
       },
       {
-        outputType: 'posfloat',
-        scale: { scheme: 'constant', value: radius },
+        scale: { scheme: 'constant', params: { value: radius } },
         channels: ['circle-radius'],
       },
     ],
@@ -90,52 +86,49 @@ export function graduatedToGrammar(
 
   const colorRampScale = {
     scheme: 'colorRamp' as const,
-    name: state.colorRamp ?? 'viridis',
-    ...(state.vmin !== undefined && state.vmax !== undefined
-      ? { domain: [state.vmin, state.vmax] as [number, number] }
-      : {}),
-    nShades: state.nClasses ?? 9,
-    mode: (state.mode ?? 'equal interval') as ClassificationMode,
-    reverse: state.reverseRamp ?? false,
-    fallback,
-    ...(colorStops && colorStops.length >= 2 ? { colorStops } : {}),
+    params: {
+      name: state.colorRamp ?? 'viridis',
+      ...(state.vmin !== undefined && state.vmax !== undefined
+        ? { domain: [state.vmin, state.vmax] as [number, number] }
+        : {}),
+      nShades: state.nClasses ?? 9,
+      mode: (state.mode ?? 'equal interval') as ClassificationMode,
+      reverse: state.reverseRamp ?? false,
+      fallback,
+      ...(colorStops && colorStops.length >= 2 ? { colorStops } : {}),
+    },
   };
 
-  const colorChannelMapping: IMapping = {
-    outputType: 'rgba',
-    scale: colorRampScale,
-    channels: ['fill-color', 'circle-fill-color'],
-  };
+  const fillChannels: IMapping['channels'] = state.strokeFollowsFill
+    ? ['fill-color', 'stroke-color', 'circle-fill-color', 'circle-stroke-color']
+    : ['fill-color', 'circle-fill-color'];
 
-  const strokeMapping: IMapping = state.strokeFollowsFill
-    ? {
-        outputType: 'rgba',
-        scale: colorRampScale,
-        channels: ['stroke-color', 'circle-stroke-color'],
-      }
-    : {
-        outputType: 'rgba',
-        scale: { scheme: 'constant', value: stroke },
-        channels: ['stroke-color', 'circle-stroke-color'],
-      };
+  const mappings: IMapping[] = [
+    { scale: colorRampScale, channels: fillChannels },
+  ];
+
+  if (!state.strokeFollowsFill) {
+    mappings.push({
+      scale: { scheme: 'constant', params: { value: stroke } },
+      channels: ['stroke-color', 'circle-stroke-color'],
+    });
+  }
+
+  mappings.push(
+    {
+      scale: { scheme: 'constant', params: { value: strokeWidth } },
+      channels: ['stroke-width', 'circle-stroke-width'],
+    },
+    {
+      scale: { scheme: 'constant', params: { value: radius } },
+      channels: ['circle-radius'],
+    },
+  );
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),
     ...(field ? { field } : {}),
-    mappings: [
-      colorChannelMapping,
-      strokeMapping,
-      {
-        outputType: 'posfloat',
-        scale: { scheme: 'constant', value: strokeWidth },
-        channels: ['stroke-width', 'circle-stroke-width'],
-      },
-      {
-        outputType: 'posfloat',
-        scale: { scheme: 'constant', value: radius },
-        channels: ['circle-radius'],
-      },
-    ],
+    mappings: mappings as [IMapping, ...IMapping[]],
   };
 
   return { renderType: 'Grammar', rules: [rule] };
@@ -161,50 +154,47 @@ export function categorizedToGrammar(
 
   const categoricalScale = {
     scheme: 'categorical' as const,
-    colorRamp: state.colorRamp ?? 'viridis',
-    nShades: state.nClasses,
-    reverse: state.reverseRamp ?? false,
-    fallback,
-    ...(catColorStops && catColorStops.length > 0
-      ? { colorStops: catColorStops }
-      : {}),
+    params: {
+      colorRamp: state.colorRamp ?? 'viridis',
+      nShades: state.nClasses,
+      reverse: state.reverseRamp ?? false,
+      fallback,
+      ...(catColorStops && catColorStops.length > 0
+        ? { colorStops: catColorStops }
+        : {}),
+    },
   };
 
-  const colorChannelMapping: IMapping = {
-    outputType: 'rgba',
-    scale: categoricalScale,
-    channels: ['fill-color', 'circle-fill-color'],
-  };
+  const fillChannels: IMapping['channels'] = state.strokeFollowsFill
+    ? ['fill-color', 'stroke-color', 'circle-fill-color', 'circle-stroke-color']
+    : ['fill-color', 'circle-fill-color'];
 
-  const strokeMapping: IMapping = state.strokeFollowsFill
-    ? {
-        outputType: 'rgba',
-        scale: categoricalScale,
-        channels: ['stroke-color', 'circle-stroke-color'],
-      }
-    : {
-        outputType: 'rgba',
-        scale: { scheme: 'constant', value: stroke },
-        channels: ['stroke-color', 'circle-stroke-color'],
-      };
+  const mappings: IMapping[] = [
+    { scale: categoricalScale, channels: fillChannels },
+  ];
+
+  if (!state.strokeFollowsFill) {
+    mappings.push({
+      scale: { scheme: 'constant', params: { value: stroke } },
+      channels: ['stroke-color', 'circle-stroke-color'],
+    });
+  }
+
+  mappings.push(
+    {
+      scale: { scheme: 'constant', params: { value: strokeWidth } },
+      channels: ['stroke-width', 'circle-stroke-width'],
+    },
+    {
+      scale: { scheme: 'constant', params: { value: radius } },
+      channels: ['circle-radius'],
+    },
+  );
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),
     ...(field ? { field } : {}),
-    mappings: [
-      colorChannelMapping,
-      strokeMapping,
-      {
-        outputType: 'posfloat',
-        scale: { scheme: 'constant', value: strokeWidth },
-        channels: ['stroke-width', 'circle-stroke-width'],
-      },
-      {
-        outputType: 'posfloat',
-        scale: { scheme: 'constant', value: radius },
-        channels: ['circle-radius'],
-      },
-    ],
+    mappings: mappings as [IMapping, ...IMapping[]],
   };
 
   return { renderType: 'Grammar', rules: [rule] };
@@ -240,18 +230,17 @@ export function inferRenderType(
 export function grammarToSingleSymbolState(
   grammar: IGrammarSymbologyState,
 ): SymbologyState {
-  const rule = grammar.rules[0];
   let fillColor: RGBA = DEFAULT_FILL;
   let strokeColor: RGBA = DEFAULT_STROKE;
   let strokeWidth = DEFAULT_STROKE_WIDTH;
   let radius = DEFAULT_RADIUS;
 
-  if (rule) {
+  for (const rule of grammar.rules) {
     for (const mapping of rule.mappings) {
       if (mapping.scale.scheme !== 'constant') {
         continue;
       }
-      const { value } = mapping.scale;
+      const { value } = mapping.scale.params;
       const ch = mapping.channels as string[];
       if (ch.includes('fill-color') || ch.includes('circle-fill-color')) {
         fillColor = value as RGBA;
@@ -284,7 +273,6 @@ export function grammarToSingleSymbolState(
 export function grammarToGraduatedState(
   grammar: IGrammarSymbologyState,
 ): SymbologyState {
-  const rule = grammar.rules[0];
   let colorRamp = 'viridis';
   let nClasses = 9;
   let mode: ClassificationMode = 'equal interval';
@@ -299,8 +287,10 @@ export function grammarToGraduatedState(
   let value: string | undefined;
   let stopsOverride: SymbologyState['stopsOverride'];
 
-  if (rule) {
-    value = rule.field;
+  for (const rule of grammar.rules) {
+    if (!value && rule.field) {
+      value = rule.field;
+    }
     for (const mapping of rule.mappings) {
       const { scale } = mapping;
       const ch = mapping.channels as string[];
@@ -314,27 +304,32 @@ export function grammarToGraduatedState(
 
       if (scale.scheme === 'colorRamp') {
         if (isFill) {
-          colorRamp = scale.name;
-          nClasses = scale.nShades;
-          mode = scale.mode;
-          reverseRamp = scale.reverse;
-          fallbackColor = scale.fallback;
-          if (scale.domain) {
-            [vmin, vmax] = scale.domain;
+          colorRamp = scale.params.name;
+          nClasses = scale.params.nShades;
+          mode = scale.params.mode;
+          reverseRamp = scale.params.reverse;
+          fallbackColor = scale.params.fallback;
+          if (scale.params.domain) {
+            [vmin, vmax] = scale.params.domain;
           }
-          if (scale.colorStops && scale.colorStops.length > 0) {
-            stopsOverride = scale.colorStops as SymbologyState['stopsOverride'];
+          if (scale.params.colorStops && scale.params.colorStops.length > 0) {
+            stopsOverride = scale.params
+              .colorStops as SymbologyState['stopsOverride'];
+          }
+          // stroke channels in the same mapping → strokeFollowsFill
+          if (isStroke) {
+            strokeFollowsFill = true;
           }
         } else if (isStroke) {
           strokeFollowsFill = true;
         }
       } else if (scale.scheme === 'constant') {
         if (isStroke) {
-          strokeColor = scale.value as RGBA;
+          strokeColor = scale.params.value as RGBA;
         } else if (isStrokeWidth) {
-          strokeWidth = scale.value as number;
+          strokeWidth = scale.params.value as number;
         } else if (isRadius) {
-          radius = scale.value as number;
+          radius = scale.params.value as number;
         }
       }
     }
@@ -362,7 +357,6 @@ export function grammarToGraduatedState(
 export function grammarToCategorizedState(
   grammar: IGrammarSymbologyState,
 ): SymbologyState {
-  const rule = grammar.rules[0];
   let colorRamp = 'viridis';
   let nClasses: number | undefined;
   let reverseRamp = false;
@@ -374,8 +368,10 @@ export function grammarToCategorizedState(
   let value: string | undefined;
   let stopsOverride: SymbologyState['stopsOverride'];
 
-  if (rule) {
-    value = rule.field;
+  for (const rule of grammar.rules) {
+    if (!value && rule.field) {
+      value = rule.field;
+    }
     for (const mapping of rule.mappings) {
       const { scale } = mapping;
       const ch = mapping.channels as string[];
@@ -389,23 +385,28 @@ export function grammarToCategorizedState(
 
       if (scale.scheme === 'categorical') {
         if (isFill) {
-          colorRamp = scale.colorRamp;
-          nClasses = scale.nShades;
-          reverseRamp = scale.reverse ?? false;
-          fallbackColor = scale.fallback;
-          if (scale.colorStops && scale.colorStops.length > 0) {
-            stopsOverride = scale.colorStops as SymbologyState['stopsOverride'];
+          colorRamp = scale.params.colorRamp;
+          nClasses = scale.params.nShades;
+          reverseRamp = scale.params.reverse ?? false;
+          fallbackColor = scale.params.fallback;
+          if (scale.params.colorStops && scale.params.colorStops.length > 0) {
+            stopsOverride = scale.params
+              .colorStops as SymbologyState['stopsOverride'];
+          }
+          // stroke channels in the same mapping → strokeFollowsFill
+          if (isStroke) {
+            strokeFollowsFill = true;
           }
         } else if (isStroke) {
           strokeFollowsFill = true;
         }
       } else if (scale.scheme === 'constant') {
         if (isStroke) {
-          strokeColor = scale.value as RGBA;
+          strokeColor = scale.params.value as RGBA;
         } else if (isStrokeWidth) {
-          strokeWidth = scale.value as number;
+          strokeWidth = scale.params.value as number;
         } else if (isRadius) {
-          radius = scale.value as number;
+          radius = scale.params.value as number;
         }
       }
     }

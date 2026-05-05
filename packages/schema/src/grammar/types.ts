@@ -98,14 +98,16 @@ export type OLStyleChannel =
  */
 export interface IColorRampScale {
   scheme: 'colorRamp';
-  name: string;
-  /** Explicit [min, max] range. When omitted, the compiler uses data min/max from featureValues. */
-  domain?: [number, number];
-  nShades: number;
-  mode: ClassificationMode;
-  reverse: boolean;
-  fallback: RGBA;
-  colorStops?: Array<{ stop: number; color: RGBA }>;
+  params: {
+    name: string;
+    /** Explicit [min, max] range. When omitted, the compiler uses data min/max from featureValues. */
+    domain?: [number, number];
+    nShades: number;
+    mode: ClassificationMode;
+    reverse: boolean;
+    fallback: RGBA;
+    colorStops?: Array<{ stop: number; color: RGBA }>;
+  };
 }
 
 /**
@@ -117,26 +119,30 @@ export interface IColorRampScale {
  */
 export interface ICategoricalScale {
   scheme: 'categorical';
-  colorRamp: string;
-  nShades?: number;
-  reverse?: boolean;
-  fallback: RGBA;
-  colorStops?: Array<{ stop: string | number; color: RGBA }>;
+  params: {
+    colorRamp: string;
+    nShades?: number;
+    reverse?: boolean;
+    fallback: RGBA;
+    colorStops?: Array<{ stop: string | number; color: RGBA }>;
+  };
 }
 
 /**
  * scalar: Quantitative → uint8 | unorm | posfloat
  * Maps a numeric field to a numeric output (radius, width, sub-channel value).
- * The target outputType on IMapping determines how the output is interpreted.
+ * The output type is inferred from the target channel name at compile time.
  */
 export interface IScalarScale {
   scheme: 'scalar';
-  domain: [number, number];
-  range: [number, number];
-  mode: ClassificationMode;
-  nStops: number;
-  fallback: number;
-  scalarStops?: Array<{ stop: number; output: number }>;
+  params: {
+    domain: [number, number];
+    range: [number, number];
+    mode: ClassificationMode;
+    nStops: number;
+    fallback: number;
+    scalarStops?: Array<{ stop: number; output: number }>;
+  };
 }
 
 /**
@@ -147,10 +153,12 @@ export interface IScalarScale {
  */
 export interface IKDEScale {
   scheme: 'kde';
-  radius: number;
-  blur: number;
-  colorRamp: string;
-  fallback: RGBA;
+  params: {
+    radius: number;
+    blur: number;
+    colorRamp: string;
+    fallback: RGBA;
+  };
 }
 
 /**
@@ -159,7 +167,9 @@ export interface IKDEScale {
  */
 export interface IConstantScale {
   scheme: 'constant';
-  value: RGBA | number;
+  params: {
+    value: RGBA | number;
+  };
 }
 
 /**
@@ -179,41 +189,21 @@ export type IScale =
   | IIdentityScale;
 
 // ---------------------------------------------------------------------------
-// Mapping — a (scale, channels) pair with consistent output type
+// Mapping — a (scale, channels) pair
 // ---------------------------------------------------------------------------
 
 /**
- * A mapping pairs a scale with one or more target channels of matching output type.
- * The outputType discriminant lets the compiler route correctly without inspecting
- * the scale's value type at runtime.
- *
- * Type invariant (enforced by discriminated union):
- *   outputType 'rgba'     → scale produces RGBA   → channels accept RGBA
- *   outputType 'uint8'    → scale produces 0–255  → channels accept UInt8
- *   outputType 'unorm'    → scale produces 0–1    → channels accept UNorm
- *   outputType 'posfloat' → scale produces 0–∞   → channels accept PosFloat
+ * A mapping pairs a scale with one or more target channels.
+ * The output type is derived from the channel names at compile time:
+ *   fill-color / stroke-color / circle-* / pixel-color → rgba
+ *   fill-red/green/blue / pixel-red/green/blue          → uint8
+ *   fill-alpha / pixel-alpha                            → unorm
+ *   stroke-width / circle-radius / circle-stroke-width  → posfloat
  */
-export type IMapping =
-  | {
-      outputType: 'rgba';
-      scale: IColorRampScale | ICategoricalScale | IKDEScale | IConstantScale;
-      channels: [RGBAChannel, ...RGBAChannel[]];
-    }
-  | {
-      outputType: 'uint8';
-      scale: IScalarScale | IConstantScale | IIdentityScale;
-      channels: [UInt8Channel, ...UInt8Channel[]];
-    }
-  | {
-      outputType: 'unorm';
-      scale: IScalarScale | IConstantScale | IIdentityScale;
-      channels: [UNormChannel, ...UNormChannel[]];
-    }
-  | {
-      outputType: 'posfloat';
-      scale: IScalarScale | IConstantScale | IIdentityScale;
-      channels: [PosFloatChannel, ...PosFloatChannel[]];
-    };
+export interface IMapping {
+  scale: IScale;
+  channels: [OLStyleChannel, ...OLStyleChannel[]];
+}
 
 // ---------------------------------------------------------------------------
 // Encoding rule

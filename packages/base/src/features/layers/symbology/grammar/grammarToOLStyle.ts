@@ -22,9 +22,6 @@ import {
 import {
   ICategoricalScale,
   IColorRampScale,
-  IConstantScale,
-  IIdentityScale,
-  IKDEScale,
   IMapping,
   IScalarScale,
   IGrammarSymbologyState,
@@ -215,7 +212,7 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
 }
 
 // ---------------------------------------------------------------------------
-// Mapping compilation — dispatches by outputType then scale scheme
+// Mapping compilation — dispatches by scale scheme
 // ---------------------------------------------------------------------------
 
 function compileMapping(
@@ -223,57 +220,27 @@ function compileMapping(
   mapping: IMapping,
   featureValues: unknown[],
 ): ExpressionValue {
-  switch (mapping.outputType) {
-    case 'rgba':
-      return compileRGBAScale(field, mapping.scale, featureValues);
-    case 'uint8':
-    case 'unorm':
-    case 'posfloat':
-      return compileNumericScale(field, mapping.scale);
-  }
-}
-
-function compileRGBAScale(
-  field: string | undefined,
-  scale:
-    | IColorRampScale
-    | ICategoricalScale
-    | IKDEScale
-    | IConstantScale
-    | IIdentityScale,
-  featureValues: unknown[],
-): ExpressionValue {
+  const { scale } = mapping;
   switch (scale.scheme) {
     case 'colorRamp':
       return field
         ? compileColorRamp(field, scale, featureValues)
-        : scale.fallback;
+        : scale.params.fallback;
     case 'categorical':
       return field
         ? compileCategorical(field, scale, featureValues)
-        : scale.fallback;
+        : scale.params.fallback;
     case 'kde':
       // KDE compilation is handled at the layer level (HeatmapLayer), not here.
-      // Return a transparent placeholder so the FlatStyle doesn't break.
       return 'rgba(0,0,0,0)';
     case 'constant':
-      return scale.value as RGBA;
-    case 'identity':
-      return field ? (['get', field] as ExpressionValue) : 'rgba(0,0,0,0)';
-  }
-}
-
-function compileNumericScale(
-  field: string | undefined,
-  scale: IScalarScale | IConstantScale | IIdentityScale,
-): ExpressionValue {
-  switch (scale.scheme) {
+      return scale.params.value as ExpressionValue;
     case 'scalar':
-      return field ? compileScalar(field, scale) : scale.fallback;
-    case 'constant':
-      return scale.value as number;
+      return field ? compileScalar(field, scale) : scale.params.fallback;
     case 'identity':
-      return field ? (['get', field] as ExpressionValue) : 0;
+      return field
+        ? (['get', field] as ExpressionValue)
+        : channelZero(mapping.channels[0]);
   }
 }
 
@@ -305,7 +272,7 @@ function compileColorRamp(
     interpolateExpr.push(stop, color as ExpressionValue);
   }
 
-  return ['case', ['has', field], interpolateExpr, scale.fallback];
+  return ['case', ['has', field], interpolateExpr, scale.params.fallback];
 }
 
 /**
@@ -317,18 +284,18 @@ function resolveColorStops(
   scale: IColorRampScale,
   featureValues: unknown[],
 ): Array<{ stop: number; color: RGBA }> {
-  if (scale.colorStops && scale.colorStops.length >= 2) {
-    return scale.colorStops;
+  if (scale.params.colorStops && scale.params.colorStops.length >= 2) {
+    return scale.params.colorStops;
   }
 
   const numericValues = featureValues.filter(Number.isFinite) as number[];
   const syntheticState = {
-    nClasses: scale.nShades,
-    mode: scale.mode,
-    colorRamp: scale.name,
-    reverseRamp: scale.reverse,
-    vmin: scale.domain?.[0],
-    vmax: scale.domain?.[1],
+    nClasses: scale.params.nShades,
+    mode: scale.params.mode,
+    colorRamp: scale.params.name,
+    reverseRamp: scale.params.reverse,
+    vmin: scale.params.domain?.[0],
+    vmax: scale.params.domain?.[1],
   } as unknown as SymbologyState;
 
   const computed = computeGraduatedColorStops(syntheticState, numericValues);
@@ -356,12 +323,15 @@ function compileCategorical(
 ): ExpressionValue {
   let stops: Array<{ value: unknown; color: unknown }>;
 
-  if (scale.colorStops && scale.colorStops.length > 0) {
-    stops = scale.colorStops.map(s => ({ value: s.stop, color: s.color }));
+  if (scale.params.colorStops && scale.params.colorStops.length > 0) {
+    stops = scale.params.colorStops.map(s => ({
+      value: s.stop,
+      color: s.color,
+    }));
   } else {
     const syntheticState = {
-      colorRamp: scale.colorRamp,
-      reverseRamp: scale.reverse ?? false,
+      colorRamp: scale.params.colorRamp,
+      reverseRamp: scale.params.reverse ?? false,
     } as unknown as SymbologyState;
     stops = computeCategorizedColorStops(syntheticState, featureValues);
   }
@@ -373,7 +343,7 @@ function compileCategorical(
       stop.color as ExpressionValue,
     );
   }
-  caseExpr.push(scale.fallback);
+  caseExpr.push(scale.params.fallback);
   return caseExpr;
 }
 
@@ -392,18 +362,18 @@ function compileScalar(field: string, scale: IScalarScale): ExpressionValue {
     ['get', field],
   ];
 
-  if (scale.scalarStops && scale.scalarStops.length >= 2) {
-    for (const { stop, output } of scale.scalarStops) {
+  if (scale.params.scalarStops && scale.params.scalarStops.length >= 2) {
+    for (const { stop, output } of scale.params.scalarStops) {
       interpolateExpr.push(stop, output);
     }
   } else {
     interpolateExpr.push(
-      scale.domain[0],
-      scale.range[0],
-      scale.domain[1],
-      scale.range[1],
+      scale.params.domain[0],
+      scale.params.range[0],
+      scale.params.domain[1],
+      scale.params.range[1],
     );
   }
 
-  return ['case', ['has', field], interpolateExpr, scale.fallback];
+  return ['case', ['has', field], interpolateExpr, scale.params.fallback];
 }

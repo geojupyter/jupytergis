@@ -13,23 +13,19 @@
               "id": "test-uuid",
               "mappings": [
                 {
-                  "outputType": "rgba",
-                  "scale": { "scheme": "constant", "value": [255, 0, 0, 1] },
+                  "scale": { "scheme": "constant", "params": { "value": [255, 0, 0, 1] } },
                   "channels": ["fill-color", "circle-fill-color"]
                 },
                 {
-                  "outputType": "rgba",
-                  "scale": { "scheme": "constant", "value": [0, 0, 0, 1] },
+                  "scale": { "scheme": "constant", "params": { "value": [0, 0, 0, 1] } },
                   "channels": ["stroke-color", "circle-stroke-color"]
                 },
                 {
-                  "outputType": "posfloat",
-                  "scale": { "scheme": "constant", "value": 2 },
+                  "scale": { "scheme": "constant", "params": { "value": 2 } },
                   "channels": ["stroke-width", "circle-stroke-width"]
                 },
                 {
-                  "outputType": "posfloat",
-                  "scale": { "scheme": "constant", "value": 5 },
+                  "scale": { "scheme": "constant", "params": { "value": 5 } },
                   "channels": ["circle-radius"]
                 }
               ]

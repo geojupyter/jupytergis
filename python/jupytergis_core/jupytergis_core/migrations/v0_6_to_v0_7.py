@@ -59,36 +59,28 @@ def _single_symbol(state: dict[str, Any]) -> dict[str, Any]:
     stroke_width = state.get("strokeWidth") or _DEFAULT_STROKE_WIDTH
     radius = state.get("radius") or _DEFAULT_RADIUS
 
-    return {
-        "renderType": "Grammar",
-        "rules": [
+    rule = {
+        "id": str(uuid.uuid4()),
+        "mappings": [
             {
-                "id": str(uuid.uuid4()),
-                "mappings": [
-                    {
-                        "outputType": "rgba",
-                        "scale": {"scheme": "constant", "value": fill},
-                        "channels": ["fill-color", "circle-fill-color"],
-                    },
-                    {
-                        "outputType": "rgba",
-                        "scale": {"scheme": "constant", "value": stroke},
-                        "channels": ["stroke-color", "circle-stroke-color"],
-                    },
-                    {
-                        "outputType": "posfloat",
-                        "scale": {"scheme": "constant", "value": stroke_width},
-                        "channels": ["stroke-width", "circle-stroke-width"],
-                    },
-                    {
-                        "outputType": "posfloat",
-                        "scale": {"scheme": "constant", "value": radius},
-                        "channels": ["circle-radius"],
-                    },
-                ],
-            }
+                "scale": {"scheme": "constant", "params": {"value": fill}},
+                "channels": ["fill-color", "circle-fill-color"],
+            },
+            {
+                "scale": {"scheme": "constant", "params": {"value": stroke}},
+                "channels": ["stroke-color", "circle-stroke-color"],
+            },
+            {
+                "scale": {"scheme": "constant", "params": {"value": stroke_width}},
+                "channels": ["stroke-width", "circle-stroke-width"],
+            },
+            {
+                "scale": {"scheme": "constant", "params": {"value": radius}},
+                "channels": ["circle-radius"],
+            },
         ],
     }
+    return {"renderType": "Grammar", "rules": [rule]}
 
 
 def _graduated(state: dict[str, Any]) -> dict[str, Any]:
@@ -98,8 +90,7 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
     stroke_width = state.get("strokeWidth") or _DEFAULT_STROKE_WIDTH
     radius = state.get("radius") or _DEFAULT_RADIUS
 
-    color_ramp_scale: dict[str, Any] = {
-        "scheme": "colorRamp",
+    color_ramp_params: dict[str, Any] = {
         "name": state.get("colorRamp") or "viridis",
         "nShades": state.get("nClasses") or 9,
         "mode": state.get("mode") or "equal interval",
@@ -109,42 +100,30 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
     vmin = state.get("vmin")
     vmax = state.get("vmax")
     if vmin is not None and vmax is not None:
-        color_ramp_scale["domain"] = [vmin, vmax]
+        color_ramp_params["domain"] = [vmin, vmax]
 
-    if state.get("strokeFollowsFill"):
-        stroke_mapping = {
-            "outputType": "rgba",
-            "scale": color_ramp_scale,
-            "channels": ["stroke-color", "circle-stroke-color"],
-        }
-    else:
-        stroke_mapping = {
-            "outputType": "rgba",
-            "scale": {"scheme": "constant", "value": stroke},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        }
+    color_ramp_scale = {"scheme": "colorRamp", "params": color_ramp_params}
 
-    rule: dict[str, Any] = {
-        "id": str(uuid.uuid4()),
-        "mappings": [
-            {
-                "outputType": "rgba",
-                "scale": color_ramp_scale,
-                "channels": ["fill-color", "circle-fill-color"],
-            },
-            stroke_mapping,
-            {
-                "outputType": "posfloat",
-                "scale": {"scheme": "constant", "value": stroke_width},
-                "channels": ["stroke-width", "circle-stroke-width"],
-            },
-            {
-                "outputType": "posfloat",
-                "scale": {"scheme": "constant", "value": radius},
-                "channels": ["circle-radius"],
-            },
-        ],
-    }
+    fill_channels = (
+        ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]
+        if state.get("strokeFollowsFill")
+        else ["fill-color", "circle-fill-color"]
+    )
+
+    mappings: list[dict[str, Any]] = [
+        {"scale": color_ramp_scale, "channels": fill_channels},
+    ]
+    if not state.get("strokeFollowsFill"):
+        mappings.append({
+            "scale": {"scheme": "constant", "params": {"value": stroke}},
+            "channels": ["stroke-color", "circle-stroke-color"],
+        })
+    mappings += [
+        {"scale": {"scheme": "constant", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
+        {"scale": {"scheme": "constant", "params": {"value": radius}}, "channels": ["circle-radius"]},
+    ]
+
+    rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
     if field:
         rule["field"] = field
 
@@ -158,50 +137,37 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
     stroke_width = state.get("strokeWidth") or _DEFAULT_STROKE_WIDTH
     radius = state.get("radius") or _DEFAULT_RADIUS
 
-    categorical_scale: dict[str, Any] = {
-        "scheme": "categorical",
+    categorical_params: dict[str, Any] = {
         "colorRamp": state.get("colorRamp") or "viridis",
         "reverse": state.get("reverseRamp") or False,
         "fallback": fallback,
     }
     n_classes = state.get("nClasses")
     if n_classes is not None:
-        categorical_scale["nShades"] = n_classes
+        categorical_params["nShades"] = n_classes
 
-    if state.get("strokeFollowsFill"):
-        stroke_mapping = {
-            "outputType": "rgba",
-            "scale": categorical_scale,
-            "channels": ["stroke-color", "circle-stroke-color"],
-        }
-    else:
-        stroke_mapping = {
-            "outputType": "rgba",
-            "scale": {"scheme": "constant", "value": stroke},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        }
+    categorical_scale = {"scheme": "categorical", "params": categorical_params}
 
-    rule: dict[str, Any] = {
-        "id": str(uuid.uuid4()),
-        "mappings": [
-            {
-                "outputType": "rgba",
-                "scale": categorical_scale,
-                "channels": ["fill-color", "circle-fill-color"],
-            },
-            stroke_mapping,
-            {
-                "outputType": "posfloat",
-                "scale": {"scheme": "constant", "value": stroke_width},
-                "channels": ["stroke-width", "circle-stroke-width"],
-            },
-            {
-                "outputType": "posfloat",
-                "scale": {"scheme": "constant", "value": radius},
-                "channels": ["circle-radius"],
-            },
-        ],
-    }
+    fill_channels = (
+        ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]
+        if state.get("strokeFollowsFill")
+        else ["fill-color", "circle-fill-color"]
+    )
+
+    mappings: list[dict[str, Any]] = [
+        {"scale": categorical_scale, "channels": fill_channels},
+    ]
+    if not state.get("strokeFollowsFill"):
+        mappings.append({
+            "scale": {"scheme": "constant", "params": {"value": stroke}},
+            "channels": ["stroke-color", "circle-stroke-color"],
+        })
+    mappings += [
+        {"scale": {"scheme": "constant", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
+        {"scale": {"scheme": "constant", "params": {"value": radius}}, "channels": ["circle-radius"]},
+    ]
+
+    rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
     if field:
         rule["field"] = field
 
