@@ -38,7 +38,7 @@ function canonicalToGrammarRows(state: any): IGrammarRow[] {
     // identity scale covers fill + stroke
     rows.push({
       id: UUID.uuid4(),
-      field: state.value,
+      fields: state.value ? [state.value] : undefined,
       scale: { scheme: 'identity' },
       channels: [
         'fill-color',
@@ -50,7 +50,7 @@ function canonicalToGrammarRows(state: any): IGrammarRow[] {
   } else {
     rows.push({
       id: UUID.uuid4(),
-      field: state.value,
+      fields: state.value ? [state.value] : undefined,
       scale: { scheme: 'identity' },
       channels: ['fill-color', 'circle-fill-color'] as OLStyleChannel[],
     });
@@ -117,7 +117,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
         layer.rules.flatMap(rule =>
           rule.mappings.map(mapping => ({
             id: UUID.uuid4(),
-            field: rule.fields?.[0],
+            fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
             channels: [...(mapping.channels as OLStyleChannel[])],
             ...(rule.when ? { when: rule.when } : {}),
@@ -135,7 +135,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       .filter(row => row.channels.length > 0)
       .map(row => ({
         id: row.id,
-        ...(row.field ? { fields: [row.field] } : {}),
+        ...(row.fields?.length ? { fields: row.fields } : {}),
         ...(row.when?.length ? { when: row.when } : {}),
         mappings: [
           {

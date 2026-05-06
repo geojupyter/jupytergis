@@ -406,15 +406,143 @@ const WhenAddForm: React.FC<IWhenAddFormProps> = ({
 };
 
 // ---------------------------------------------------------------------------
+// Field selector
+// ---------------------------------------------------------------------------
+
+interface IFieldSelectorProps {
+  fieldCount: 0 | 1 | 'any';
+  fields: string[];
+  availableFields: string[];
+  onFieldChange: (index: number, value: string) => void;
+  onAddField: (value: string) => void;
+}
+
+/**
+ * Renders the field input area in column 1 of the grid.
+ *   0   → "(const)" label, no selection
+ *   1   → single dropdown
+ *  'any'→ chips for each selected field + add dropdown
+ */
+const FieldSelector: React.FC<IFieldSelectorProps> = ({
+  fieldCount,
+  fields,
+  availableFields,
+  onFieldChange,
+  onAddField,
+}) => {
+  if (fieldCount === 0) {
+    return (
+      <span
+        style={{
+          gridRow: 1,
+          gridColumn: 1,
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: 'var(--jp-ui-font-size1)',
+          color: 'var(--jp-ui-font-color2)',
+          paddingLeft: 4,
+        }}
+      >
+        (const)
+      </span>
+    );
+  }
+
+  if (fieldCount === 1) {
+    return (
+      <div
+        className="jp-select-wrapper"
+        style={{ gridRow: 1, gridColumn: 1 }}
+      >
+        <select
+          className="jp-mod-styled"
+          value={fields[0] ?? ''}
+          onChange={e => onFieldChange(0, e.target.value)}
+        >
+          <option value="">(none)</option>
+          {availableFields.map(f => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  // 'any' — multi-field chips + add
+  return (
+    <div
+      style={{
+        gridRow: 1,
+        gridColumn: 1,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2,
+        alignItems: 'center',
+      }}
+    >
+      {fields.map((f, i) => (
+        <span key={i} className="jp-gis-grammar-when-chip">
+          {f}
+          <button
+            className="jp-gis-grammar-when-cancel"
+            onClick={() => onFieldChange(i, '')}
+            title="Remove field"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <div className="jp-select-wrapper" style={{ minWidth: 60, flex: '0 0 auto' }}>
+        <select
+          className="jp-mod-styled"
+          value=""
+          onChange={e => onAddField(e.target.value)}
+        >
+          <option value="">+field</option>
+          {availableFields
+            .filter(f => !fields.includes(f))
+            .map(f => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+        </select>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Row data
 // ---------------------------------------------------------------------------
 
 export interface IGrammarRow {
   id: string;
-  field?: string;
+  /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
+  fields?: string[];
   scale: IScale;
   channels: OLStyleChannel[];
   when?: IPredicate[];
+}
+
+/**
+ * How many input fields a scale accepts.
+ *   0    — constants (no field selector shown)
+ *   1    — all single-field scales
+ *  'any' — multi-field (expression scale, sub-channel assembly)
+ */
+export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
+  switch (scheme) {
+    case 'constant_rgba':
+    case 'constant_num':
+      return 0;
+    case 'expression':
+      return 'any';
+    default:
+      return 1;
+  }
 }
 
 interface IMappingRowProps {
@@ -440,7 +568,25 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   const [addingWhen, setAddingWhen] = useState(false);
 
   const handleFieldChange = useCallback(
-    (field: string) => onChange({ ...row, field: field || undefined }),
+    (index: number, value: string) => {
+      const next = [...(row.fields ?? [])];
+      if (value) {
+        next[index] = value;
+      } else {
+        next.splice(index, 1);
+      }
+      onChange({ ...row, fields: next.length > 0 ? next : undefined });
+    },
+    [row, onChange],
+  );
+
+  const addField = useCallback(
+    (value: string) => {
+      if (!value) {
+        return;
+      }
+      onChange({ ...row, fields: [...(row.fields ?? []), value] });
+    },
     [row, onChange],
   );
 
@@ -449,10 +595,19 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       const newScale = defaultScaleForScheme(scheme, row.channels);
       const compat = compatibleChannels(newScale);
       const filtered = row.channels.filter(ch => compat.includes(ch));
+      const newFieldCount = fieldCountForScale(scheme);
+      // Trim fields list to match new count constraint
+      const trimmedFields =
+        newFieldCount === 0
+          ? undefined
+          : newFieldCount === 1
+            ? row.fields?.slice(0, 1)
+            : row.fields;
       onChange({
         ...row,
         scale: newScale,
         channels: filtered.length > 0 ? filtered : [compat[0]],
+        fields: trimmedFields,
       });
     },
     [row, onChange],
@@ -516,24 +671,14 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     <div className="jp-gis-grammar-rule">
       {/* CSS grid: col1=field col2=scheme col3=preview col4=arrow col5=channel col6=× */}
       <div className="jp-gis-grammar-rule-grid">
-        {/* Field — row 1 */}
-        <div
-          className="jp-select-wrapper"
-          style={{ gridRow: 1, gridColumn: 1 }}
-        >
-          <select
-            className="jp-mod-styled"
-            value={row.field ?? ''}
-            onChange={e => handleFieldChange(e.target.value)}
-          >
-            <option value="">(none)</option>
-            {availableFields.map(f => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Field selector — row 1. Layout depends on fieldCountForScale. */}
+        <FieldSelector
+          fieldCount={fieldCountForScale(row.scale.scheme)}
+          fields={row.fields ?? []}
+          availableFields={availableFields}
+          onFieldChange={handleFieldChange}
+          onAddField={addField}
+        />
 
         {/* Scheme — row 1 */}
         <div
@@ -676,7 +821,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           {row.scale.scheme === 'colorRamp' && (
             <ColorRampEditor
               scale={row.scale}
-              field={row.field}
+              field={row.fields?.[0]}
               featureValues={featureValues}
               onChange={handleScaleChange}
             />
@@ -684,7 +829,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           {row.scale.scheme === 'categorical' && (
             <CategoricalEditor
               scale={row.scale}
-              field={row.field}
+              field={row.fields?.[0]}
               featureValues={featureValues}
               onChange={handleScaleChange}
             />
@@ -692,7 +837,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           {row.scale.scheme === 'scalar' && (
             <ScalarEditor
               scale={row.scale}
-              field={row.field}
+              field={row.fields?.[0]}
               featureValues={featureValues}
               onChange={handleScaleChange}
             />
