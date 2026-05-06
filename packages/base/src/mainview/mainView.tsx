@@ -1681,7 +1681,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         //   this.state.initialLayersReady && newLayerExtent,
         // );
         const shouldZoom = Boolean(this.state.initialLayersReady);
-        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
+        this._trackLayerViewState(id, newMapLayer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -2161,16 +2161,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   private _trackLayerViewState(
     layerId: string,
-    olLayer: Layer,
+    olLayer: Layer | LayerGroup,
     shouldZoom = false,
   ): void {
-    const source = olLayer.getSource();
+    const effectiveLayer =
+      olLayer instanceof LayerGroup
+        ? (olLayer.getLayers().getArray()[0] as Layer | undefined)
+        : olLayer;
+    if (!effectiveLayer) {
+      return;
+    }
+    const source = effectiveLayer.getSource();
     const sourceId = source?.get?.('id');
 
     let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
 
     if (!extent) {
-      extent = this._computeExtent(olLayer, source);
+      extent = this._computeExtent(effectiveLayer, source);
     }
 
     if (extent) {

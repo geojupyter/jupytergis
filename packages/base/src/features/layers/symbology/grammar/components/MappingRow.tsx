@@ -44,7 +44,25 @@ const POSFLOAT_CHANNELS: OLStyleChannel[] = [
 ];
 const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 
-function compatibleChannels(scale: IScale): OLStyleChannel[] {
+// Channels relevant for raster/KDE layers.
+const PIXEL_RGBA_CHANNELS: OLStyleChannel[] = ['pixel-color'];
+const PIXEL_FLOAT_CHANNELS: OLStyleChannel[] = ['pixel-alpha'];
+const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
+
+function compatibleChannels(scale: IScale, isRaster = false): OLStyleChannel[] {
+  if (isRaster) {
+    switch (scale.scheme) {
+      case 'colorRamp':
+      case 'categorical':
+      case 'constant_rgba':
+        return PIXEL_RGBA_CHANNELS;
+      case 'scalar':
+      case 'constant_num':
+        return PIXEL_FLOAT_CHANNELS;
+      default:
+        return ALL_PIXEL_CHANNELS;
+    }
+  }
   switch (scale.scheme) {
     case 'colorRamp':
     case 'categorical':
@@ -549,6 +567,7 @@ interface IMappingRowProps {
   row: IGrammarRow;
   availableFields: string[];
   featureValues: Record<string, Set<any>>;
+  isRaster?: boolean;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -561,6 +580,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   row,
   availableFields,
   featureValues,
+  isRaster = false,
   onChange,
   onDelete,
 }) => {
@@ -593,7 +613,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
       const newScale = defaultScaleForScheme(scheme, row.channels);
-      const compat = compatibleChannels(newScale);
+      const compat = compatibleChannels(newScale, isRaster);
       const filtered = row.channels.filter(ch => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
       // Trim fields list to match new count constraint
@@ -662,7 +682,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const compat = compatibleChannels(row.scale);
+  const compat = compatibleChannels(row.scale, isRaster);
   const availableToAdd = compat.filter(ch => !row.channels.includes(ch));
   const previewRowSpan =
     row.channels.length + (availableToAdd.length > 0 ? 1 : 0);

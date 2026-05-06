@@ -281,7 +281,12 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
+  const hasKDE = layer.transforms.some(t => t.type === 'kde');
+
   const addRow = useCallback(() => {
+    const defaultChannels: OLStyleChannel[] = hasKDE
+      ? ['pixel-color']
+      : DEFAULT_CHANNELS;
     onChange({
       ...layer,
       rows: [
@@ -289,17 +294,16 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {
           id: UUID.uuid4(),
           scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
-          channels: [...DEFAULT_CHANNELS],
+          channels: [...defaultChannels],
         },
       ],
     });
-  }, [layer, onChange]);
+  }, [layer, onChange, hasKDE]);
 
   // A KDE transform produces a density raster — individual feature attributes
   // are no longer meaningful as encoding inputs. Replace the field list with
   // the single pseudo-field '$density'. The original fields remain available
   // in the weightField selector of the TransformRow itself.
-  const hasKDE = layer.transforms.some(t => t.type === 'kde');
   const encodingFields = hasKDE ? ['$density'] : availableFields;
 
   return (
@@ -345,6 +349,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           row={row}
           availableFields={encodingFields}
           featureValues={featureValues}
+          isRaster={hasKDE}
           onChange={updated => updateRow(i, updated)}
           onDelete={() => removeRow(i)}
         />
