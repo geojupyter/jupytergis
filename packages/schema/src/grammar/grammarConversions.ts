@@ -25,6 +25,15 @@ const DEFAULT_RADIUS = 5;
 const TRANSPARENT: RGBA = [0, 0, 0, 0];
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Wrap a list of rules in a single default IGrammarLayer. */
+function wrapLayer(rules: IEncodingRule[]): IGrammarSymbologyState['layers'] {
+  return [{ id: UUID.uuid4(), rules }];
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -59,7 +68,7 @@ export function singleSymbolToGrammar(
     ],
   };
 
-  return { renderType: 'Grammar', rules: [rule] };
+  return { renderType: 'Grammar', layers: wrapLayer([rule]) };
 }
 
 /**
@@ -127,11 +136,11 @@ export function graduatedToGrammar(
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),
-    ...(field ? { field } : {}),
+    ...(field ? { fields: [field] } : {}),
     mappings: mappings as [IMapping, ...IMapping[]],
   };
 
-  return { renderType: 'Grammar', rules: [rule] };
+  return { renderType: 'Grammar', layers: wrapLayer([rule]) };
 }
 
 /**
@@ -193,11 +202,11 @@ export function categorizedToGrammar(
 
   const rule: IEncodingRule = {
     id: UUID.uuid4(),
-    ...(field ? { field } : {}),
+    ...(field ? { fields: [field] } : {}),
     mappings: mappings as [IMapping, ...IMapping[]],
   };
 
-  return { renderType: 'Grammar', rules: [rule] };
+  return { renderType: 'Grammar', layers: wrapLayer([rule]) };
 }
 
 // ---------------------------------------------------------------------------
@@ -206,12 +215,12 @@ export function categorizedToGrammar(
 
 /**
  * Infer which legacy render type best describes a Grammar state.
- * Looks at the scale scheme of the first rule's mappings.
+ * Looks at the scale scheme of the first rule's mappings in the first layer.
  */
 export function inferRenderType(
   grammar: IGrammarSymbologyState,
 ): 'Single Symbol' | 'Graduated' | 'Categorized' | 'Canonical' {
-  const firstRule = grammar.rules[0];
+  const firstRule = grammar.layers[0]?.rules[0];
   if (!firstRule) {
     return 'Single Symbol';
   }
@@ -238,28 +247,30 @@ export function grammarToSingleSymbolState(
   let strokeWidth = DEFAULT_STROKE_WIDTH;
   let radius = DEFAULT_RADIUS;
 
-  for (const rule of grammar.rules) {
-    for (const mapping of rule.mappings) {
-      const { scheme } = mapping.scale;
-      if (scheme !== 'constant_rgba' && scheme !== 'constant_num') {
-        continue;
-      }
-      const { value } = mapping.scale.params;
-      const ch = mapping.channels as string[];
-      if (ch.includes('fill-color') || ch.includes('circle-fill-color')) {
-        fillColor = value as RGBA;
-      } else if (
-        ch.includes('stroke-color') ||
-        ch.includes('circle-stroke-color')
-      ) {
-        strokeColor = value as RGBA;
-      } else if (
-        ch.includes('stroke-width') ||
-        ch.includes('circle-stroke-width')
-      ) {
-        strokeWidth = value as number;
-      } else if (ch.includes('circle-radius')) {
-        radius = value as number;
+  for (const layer of grammar.layers) {
+    for (const rule of layer.rules) {
+      for (const mapping of rule.mappings) {
+        const { scheme } = mapping.scale;
+        if (scheme !== 'constant_rgba' && scheme !== 'constant_num') {
+          continue;
+        }
+        const { value } = mapping.scale.params;
+        const ch = mapping.channels as string[];
+        if (ch.includes('fill-color') || ch.includes('circle-fill-color')) {
+          fillColor = value as RGBA;
+        } else if (
+          ch.includes('stroke-color') ||
+          ch.includes('circle-stroke-color')
+        ) {
+          strokeColor = value as RGBA;
+        } else if (
+          ch.includes('stroke-width') ||
+          ch.includes('circle-stroke-width')
+        ) {
+          strokeWidth = value as number;
+        } else if (ch.includes('circle-radius')) {
+          radius = value as number;
+        }
       }
     }
   }
@@ -291,52 +302,53 @@ export function grammarToGraduatedState(
   let value: string | undefined;
   let stopsOverride: SymbologyState['stopsOverride'];
 
-  for (const rule of grammar.rules) {
-    if (!value && rule.field) {
-      value = rule.field;
-    }
-    for (const mapping of rule.mappings) {
-      const { scale } = mapping;
-      const ch = mapping.channels as string[];
-      const isFill =
-        ch.includes('fill-color') || ch.includes('circle-fill-color');
-      const isStroke =
-        ch.includes('stroke-color') || ch.includes('circle-stroke-color');
-      const isStrokeWidth =
-        ch.includes('stroke-width') || ch.includes('circle-stroke-width');
-      const isRadius = ch.includes('circle-radius');
+  for (const layer of grammar.layers) {
+    for (const rule of layer.rules) {
+      if (!value && rule.fields?.[0]) {
+        value = rule.fields[0];
+      }
+      for (const mapping of rule.mappings) {
+        const { scale } = mapping;
+        const ch = mapping.channels as string[];
+        const isFill =
+          ch.includes('fill-color') || ch.includes('circle-fill-color');
+        const isStroke =
+          ch.includes('stroke-color') || ch.includes('circle-stroke-color');
+        const isStrokeWidth =
+          ch.includes('stroke-width') || ch.includes('circle-stroke-width');
+        const isRadius = ch.includes('circle-radius');
 
-      if (scale.scheme === 'colorRamp') {
-        if (isFill) {
-          colorRamp = scale.params.name;
-          nClasses = scale.params.nShades;
-          mode = scale.params.mode;
-          reverseRamp = scale.params.reverse;
-          fallbackColor = scale.params.fallback;
-          if (scale.params.domain) {
-            [vmin, vmax] = scale.params.domain;
-          }
-          if (scale.params.colorStops && scale.params.colorStops.length > 0) {
-            stopsOverride = scale.params
-              .colorStops as SymbologyState['stopsOverride'];
-          }
-          // stroke channels in the same mapping → strokeFollowsFill
-          if (isStroke) {
+        if (scale.scheme === 'colorRamp') {
+          if (isFill) {
+            colorRamp = scale.params.name;
+            nClasses = scale.params.nShades;
+            mode = scale.params.mode;
+            reverseRamp = scale.params.reverse;
+            fallbackColor = scale.params.fallback;
+            if (scale.params.domain) {
+              [vmin, vmax] = scale.params.domain;
+            }
+            if (scale.params.colorStops && scale.params.colorStops.length > 0) {
+              stopsOverride = scale.params
+                .colorStops as SymbologyState['stopsOverride'];
+            }
+            if (isStroke) {
+              strokeFollowsFill = true;
+            }
+          } else if (isStroke) {
             strokeFollowsFill = true;
           }
-        } else if (isStroke) {
-          strokeFollowsFill = true;
-        }
-      } else if (
-        scale.scheme === 'constant_rgba' ||
-        scale.scheme === 'constant_num'
-      ) {
-        if (isStroke) {
-          strokeColor = scale.params.value as RGBA;
-        } else if (isStrokeWidth) {
-          strokeWidth = scale.params.value as number;
-        } else if (isRadius) {
-          radius = scale.params.value as number;
+        } else if (
+          scale.scheme === 'constant_rgba' ||
+          scale.scheme === 'constant_num'
+        ) {
+          if (isStroke) {
+            strokeColor = scale.params.value as RGBA;
+          } else if (isStrokeWidth) {
+            strokeWidth = scale.params.value as number;
+          } else if (isRadius) {
+            radius = scale.params.value as number;
+          }
         }
       }
     }
@@ -375,48 +387,49 @@ export function grammarToCategorizedState(
   let value: string | undefined;
   let stopsOverride: SymbologyState['stopsOverride'];
 
-  for (const rule of grammar.rules) {
-    if (!value && rule.field) {
-      value = rule.field;
-    }
-    for (const mapping of rule.mappings) {
-      const { scale } = mapping;
-      const ch = mapping.channels as string[];
-      const isFill =
-        ch.includes('fill-color') || ch.includes('circle-fill-color');
-      const isStroke =
-        ch.includes('stroke-color') || ch.includes('circle-stroke-color');
-      const isStrokeWidth =
-        ch.includes('stroke-width') || ch.includes('circle-stroke-width');
-      const isRadius = ch.includes('circle-radius');
+  for (const layer of grammar.layers) {
+    for (const rule of layer.rules) {
+      if (!value && rule.fields?.[0]) {
+        value = rule.fields[0];
+      }
+      for (const mapping of rule.mappings) {
+        const { scale } = mapping;
+        const ch = mapping.channels as string[];
+        const isFill =
+          ch.includes('fill-color') || ch.includes('circle-fill-color');
+        const isStroke =
+          ch.includes('stroke-color') || ch.includes('circle-stroke-color');
+        const isStrokeWidth =
+          ch.includes('stroke-width') || ch.includes('circle-stroke-width');
+        const isRadius = ch.includes('circle-radius');
 
-      if (scale.scheme === 'categorical') {
-        if (isFill) {
-          colorRamp = scale.params.colorRamp;
-          nClasses = scale.params.nShades;
-          reverseRamp = scale.params.reverse ?? false;
-          fallbackColor = scale.params.fallback;
-          if (scale.params.colorStops && scale.params.colorStops.length > 0) {
-            stopsOverride = scale.params
-              .colorStops as SymbologyState['stopsOverride'];
-          }
-          // stroke channels in the same mapping → strokeFollowsFill
-          if (isStroke) {
+        if (scale.scheme === 'categorical') {
+          if (isFill) {
+            colorRamp = scale.params.colorRamp;
+            nClasses = scale.params.nShades;
+            reverseRamp = scale.params.reverse ?? false;
+            fallbackColor = scale.params.fallback;
+            if (scale.params.colorStops && scale.params.colorStops.length > 0) {
+              stopsOverride = scale.params
+                .colorStops as SymbologyState['stopsOverride'];
+            }
+            if (isStroke) {
+              strokeFollowsFill = true;
+            }
+          } else if (isStroke) {
             strokeFollowsFill = true;
           }
-        } else if (isStroke) {
-          strokeFollowsFill = true;
-        }
-      } else if (
-        scale.scheme === 'constant_rgba' ||
-        scale.scheme === 'constant_num'
-      ) {
-        if (isStroke) {
-          strokeColor = scale.params.value as RGBA;
-        } else if (isStrokeWidth) {
-          strokeWidth = scale.params.value as number;
-        } else if (isRadius) {
-          radius = scale.params.value as number;
+        } else if (
+          scale.scheme === 'constant_rgba' ||
+          scale.scheme === 'constant_num'
+        ) {
+          if (isStroke) {
+            strokeColor = scale.params.value as RGBA;
+          } else if (isStrokeWidth) {
+            strokeWidth = scale.params.value as number;
+          } else if (isRadius) {
+            radius = scale.params.value as number;
+          }
         }
       }
     }
