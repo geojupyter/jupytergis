@@ -660,7 +660,6 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             row.scale.scheme === 'constant_num') && (
             <ConstantEditor
               scale={row.scale}
-              channels={row.channels}
               onChange={handleScaleChange}
             />
           )}

@@ -11,7 +11,6 @@ import {
   IConstantRGBAScale,
   IScale,
   IScalarScale,
-  OLStyleChannel,
   RGBA,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
@@ -30,11 +29,6 @@ import {
 } from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 
-const POSFLOAT_CHANNELS = new Set<OLStyleChannel>([
-  'stroke-width',
-  'circle-stroke-width',
-  'circle-radius',
-]);
 
 function stopsToRows(
   stops: Array<{ stop: number | string; color: RGBA }>,
@@ -68,7 +62,6 @@ const MODE_OPTIONS: ClassificationMode[] = [
 
 interface IConstantEditorProps {
   scale: IConstantRGBAScale | IConstantNumScale;
-  channels: OLStyleChannel[];
   onChange: (scale: IScale) => void;
 }
 
