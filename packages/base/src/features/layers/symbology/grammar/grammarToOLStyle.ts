@@ -105,13 +105,28 @@ export function grammarToOLStyle(
         rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
 
       for (const mapping of rule.mappings) {
-        // Compile per-channel so sub-channels (pixel-red/green/blue) can each
-        // extract the correct component from a colorRamp or other color scale.
         for (const channel of mapping.channels) {
-          const expr = compileMapping(field, mapping, featureValues, channel);
-          const entries = accumulator.get(channel) ?? [];
-          entries.push({ guard, expr });
-          accumulator.set(channel, entries);
+          if (channel === 'pixel-rgb') {
+            // Virtual channel: fan out to pixel-red/green/blue so assembleStyle
+            // can compose them into ['color', r, g, b, a] with a separate alpha.
+            for (const sub of [
+              'pixel-red',
+              'pixel-green',
+              'pixel-blue',
+            ] as OLStyleChannel[]) {
+              const expr = compileMapping(field, mapping, featureValues, sub);
+              const entries = accumulator.get(sub) ?? [];
+              entries.push({ guard, expr });
+              accumulator.set(sub, entries);
+            }
+          } else {
+            // Compile per-channel so sub-channels (pixel-red/green/blue) can each
+            // extract the correct component from a colorRamp or other color scale.
+            const expr = compileMapping(field, mapping, featureValues, channel);
+            const entries = accumulator.get(channel) ?? [];
+            entries.push({ guard, expr });
+            accumulator.set(channel, entries);
+          }
         }
       }
     }
@@ -183,8 +198,9 @@ const PIXEL_ALPHA_SUB: UNormChannel[] = ['pixel-alpha'];
 
 /**
  * Assemble the final style object.
- * Sub-channels (fill-red/green/blue/alpha, pixel-*) are combined into a single
- * ['array', r, g, b, a] expression on the parent channel (fill-color / pixel-color).
+ * Sub-channels (fill-red/green/blue/alpha, pixel-red/green/blue/alpha) are
+ * combined into a ['color', r, g, b, a] expression on the parent channel.
+ * Virtual channels (pixel-rgb) are already fanned out before this runs.
  */
 function assembleStyle(
   channelExprs: Map<OLStyleChannel, ExpressionValue>,

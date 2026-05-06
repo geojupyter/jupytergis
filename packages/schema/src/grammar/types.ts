@@ -64,7 +64,7 @@ export type RGBAChannel =
   | 'circle-stroke-color'
   | 'pixel-color';
 
-/** Integer 0–255 sub-channels — compiler assembles these into a ['array', r, g, b, a] expression. */
+/** Integer 0–255 sub-channels — compiler assembles these into a ['color', r, g, b, a] expression. */
 export type UInt8Channel =
   | 'fill-red'
   | 'fill-green'
@@ -76,6 +76,12 @@ export type UInt8Channel =
 /** Float 0–1 alpha sub-channels. */
 export type UNormChannel = 'fill-alpha' | 'pixel-alpha';
 
+/**
+ * Virtual channels expanded at compile time.
+ * pixel-rgb: colorRamp/constant → R+G+B components; pair with pixel-alpha for independent alpha.
+ */
+export type VirtualChannel = 'pixel-rgb';
+
 /** Unbounded positive float channels (lengths, widths, radii). */
 export type PosFloatChannel =
   | 'stroke-width'
@@ -86,7 +92,8 @@ export type OLStyleChannel =
   | RGBAChannel
   | UInt8Channel
   | UNormChannel
-  | PosFloatChannel;
+  | PosFloatChannel
+  | VirtualChannel;
 
 // ---------------------------------------------------------------------------
 // Transforms — render-side preprocessing applied before encoding rules.

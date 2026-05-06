@@ -45,18 +45,23 @@ const POSFLOAT_CHANNELS: OLStyleChannel[] = [
 const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 
 // Channels relevant for raster/KDE layers.
-// pixel-color: full RGBA (use with colorRamp/constant).
-// pixel-red/green/blue/alpha: sub-channels for composing multiband or
-//   constant-RGB-with-band-alpha expressions; assembled by grammarToOLStyle
-//   into ['array', r, g, b, a].
+// pixel-color: full RGBA including alpha (label: "pixel-rgba").
+// pixel-rgb:   virtual channel — RGB only; pair with pixel-alpha for separate alpha.
+// pixel-alpha: alpha sub-channel (0-1 scalar).
 const PIXEL_RGBA_CHANNELS: OLStyleChannel[] = [
   'pixel-color',
+  'pixel-rgb',
   'pixel-red',
   'pixel-green',
   'pixel-blue',
 ];
 const PIXEL_FLOAT_CHANNELS: OLStyleChannel[] = ['pixel-alpha'];
 const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
+
+/** Display labels for channels that need a friendlier name. */
+const CHANNEL_LABELS: Partial<Record<OLStyleChannel, string>> = {
+  'pixel-color': 'pixel-rgba',
+};
 
 function compatibleChannels(scale: IScale, isRaster = false): OLStyleChannel[] {
   if (isRaster) {
@@ -761,7 +766,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               >
                 {compat.map(c => (
                   <option key={c} value={c}>
-                    {c}
+                    {CHANNEL_LABELS[c] ?? c}
                   </option>
                 ))}
               </select>
@@ -804,7 +809,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 <option value="">(add channel)</option>
                 {availableToAdd.map(ch => (
                   <option key={ch} value={ch}>
-                    {ch}
+                    {CHANNEL_LABELS[ch] ?? ch}
                   </option>
                 ))}
               </select>
