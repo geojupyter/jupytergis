@@ -1,21 +1,22 @@
 /**
  * Grammar symbology panel.
  *
- * Shows the raw encoding rules as a list of (field → scale → channels) rows.
- * Each row is one IMapping; fan-out channels are shown as removable chips.
- * Switching to another render type uses the existing adapter in those panels.
+ * Shows encoding rules grouped by layer. Each layer has optional render-side
+ * transforms (KDE, cluster) followed by (field → scale → channels) mapping rows.
+ * Multiple layers allow independent rendering pipelines on the same source.
  */
 
 import {
   IEncodingRule,
   IGrammarLayer,
   IGrammarSymbologyState,
+  ITransform,
   OLStyleChannel,
   RGBA,
 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
@@ -31,11 +32,23 @@ import {
 const DEFAULT_CHANNELS: OLStyleChannel[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
-/** Convert a Canonical symbologyState to Grammar rows (best-effort). */
+// ---------------------------------------------------------------------------
+// Layer UI state
+// ---------------------------------------------------------------------------
+
+interface ILayerUIState {
+  id: string;
+  transforms: ITransform[];
+  rows: IGrammarRow[];
+}
+
+// ---------------------------------------------------------------------------
+// Canonical → Grammar conversion
+// ---------------------------------------------------------------------------
+
 function canonicalToGrammarRows(state: any): IGrammarRow[] {
   const rows: IGrammarRow[] = [];
   if (state.strokeFollowsFill !== false) {
-    // identity scale covers fill + stroke
     rows.push({
       id: UUID.uuid4(),
       fields: state.value ? [state.value] : undefined,
@@ -74,6 +87,285 @@ function canonicalToGrammarRows(state: any): IGrammarRow[] {
   return rows;
 }
 
+// ---------------------------------------------------------------------------
+// Transform row
+// ---------------------------------------------------------------------------
+
+const TRANSFORM_TYPES: { value: ITransform['type']; label: string }[] = [
+  { value: 'kde', label: 'KDE (heatmap)' },
+  { value: 'cluster', label: 'cluster' },
+];
+
+function defaultTransform(type: ITransform['type']): ITransform {
+  switch (type) {
+    case 'kde':
+      return { type: 'kde', radius: 10, blur: 15 };
+    case 'cluster':
+      return { type: 'cluster', radius: 40 };
+  }
+}
+
+interface ITransformRowProps {
+  transform: ITransform;
+  availableFields: string[];
+  onChange: (t: ITransform) => void;
+  onDelete: () => void;
+}
+
+const TransformRow: React.FC<ITransformRowProps> = ({
+  transform,
+  availableFields,
+  onChange,
+  onDelete,
+}) => {
+  const handleTypeChange = (type: ITransform['type']) => {
+    onChange(defaultTransform(type));
+  };
+
+  return (
+    <div className="jp-gis-grammar-transform-row">
+      {/* Type selector */}
+      <div className="jp-select-wrapper" style={{ flex: '0 0 120px' }}>
+        <select
+          className="jp-mod-styled"
+          value={transform.type}
+          onChange={e => handleTypeChange(e.target.value as ITransform['type'])}
+        >
+          {TRANSFORM_TYPES.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* KDE params */}
+      {transform.type === 'kde' && (
+        <>
+          <label>radius</label>
+          <input
+            className="jp-mod-styled"
+            type="number"
+            min={1}
+            style={{ width: 52 }}
+            value={transform.radius}
+            onChange={e =>
+              onChange({ ...transform, radius: Number(e.target.value) })
+            }
+          />
+          <label>blur</label>
+          <input
+            className="jp-mod-styled"
+            type="number"
+            min={0}
+            style={{ width: 52 }}
+            value={transform.blur}
+            onChange={e =>
+              onChange({ ...transform, blur: Number(e.target.value) })
+            }
+          />
+          <label>weight</label>
+          <div className="jp-select-wrapper" style={{ flex: '0 0 90px' }}>
+            <select
+              className="jp-mod-styled"
+              value={transform.weightField ?? ''}
+              onChange={e =>
+                onChange({
+                  ...transform,
+                  weightField: e.target.value || undefined,
+                })
+              }
+            >
+              <option value="">(none)</option>
+              {availableFields.map(f => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
+
+      {/* Cluster params */}
+      {transform.type === 'cluster' && (
+        <>
+          <label>radius</label>
+          <input
+            className="jp-mod-styled"
+            type="number"
+            min={1}
+            style={{ width: 52 }}
+            value={transform.radius}
+            onChange={e =>
+              onChange({ ...transform, radius: Number(e.target.value) })
+            }
+          />
+        </>
+      )}
+
+      <button
+        className="jp-gis-grammar-delete-btn"
+        onClick={onDelete}
+        title="Remove transform"
+        style={{ marginLeft: 'auto' }}
+      >
+        ×
+      </button>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Layer section
+// ---------------------------------------------------------------------------
+
+interface ILayerSectionProps {
+  layer: ILayerUIState;
+  layerIndex: number;
+  totalLayers: number;
+  availableFields: string[];
+  featureValues: Record<string, Set<any>>;
+  onChange: (layer: ILayerUIState) => void;
+  onDelete: () => void;
+}
+
+const LayerSection: React.FC<ILayerSectionProps> = ({
+  layer,
+  layerIndex,
+  totalLayers,
+  availableFields,
+  featureValues,
+  onChange,
+  onDelete,
+}) => {
+  const updateTransform = useCallback(
+    (index: number, t: ITransform) => {
+      const next = [...layer.transforms];
+      next[index] = t;
+      onChange({ ...layer, transforms: next });
+    },
+    [layer, onChange],
+  );
+
+  const removeTransform = useCallback(
+    (index: number) => {
+      onChange({
+        ...layer,
+        transforms: layer.transforms.filter((_, i) => i !== index),
+      });
+    },
+    [layer, onChange],
+  );
+
+  const addTransform = useCallback(() => {
+    onChange({
+      ...layer,
+      transforms: [...layer.transforms, defaultTransform('kde')],
+    });
+  }, [layer, onChange]);
+
+  const updateRow = useCallback(
+    (index: number, row: IGrammarRow) => {
+      const next = [...layer.rows];
+      next[index] = row;
+      onChange({ ...layer, rows: next });
+    },
+    [layer, onChange],
+  );
+
+  const removeRow = useCallback(
+    (index: number) => {
+      onChange({ ...layer, rows: layer.rows.filter((_, i) => i !== index) });
+    },
+    [layer, onChange],
+  );
+
+  const addRow = useCallback(() => {
+    onChange({
+      ...layer,
+      rows: [
+        ...layer.rows,
+        {
+          id: UUID.uuid4(),
+          scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
+          channels: [...DEFAULT_CHANNELS],
+        },
+      ],
+    });
+  }, [layer, onChange]);
+
+  // A KDE transform produces a density raster — individual feature attributes
+  // are no longer meaningful as encoding inputs. Replace the field list with
+  // the single pseudo-field '$density'. The original fields remain available
+  // in the weightField selector of the TransformRow itself.
+  const hasKDE = layer.transforms.some(t => t.type === 'kde');
+  const encodingFields = hasKDE ? ['$density'] : availableFields;
+
+  return (
+    <div className="jp-gis-grammar-layer-section">
+      {/* Layer header */}
+      <div className="jp-gis-grammar-layer-header">
+        <span className="jp-gis-grammar-layer-label">
+          Layer {layerIndex + 1}
+        </span>
+        <button
+          className="jp-gis-grammar-when-add-btn"
+          onClick={addTransform}
+          title="Add transform"
+        >
+          + transform
+        </button>
+        {totalLayers > 1 && (
+          <button
+            className="jp-gis-grammar-delete-btn"
+            onClick={onDelete}
+            title="Remove layer"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {/* Transforms */}
+      {layer.transforms.map((t, i) => (
+        <TransformRow
+          key={i}
+          transform={t}
+          availableFields={availableFields}
+          onChange={updated => updateTransform(i, updated)}
+          onDelete={() => removeTransform(i)}
+        />
+      ))}
+
+      {/* Mapping rows */}
+      {layer.rows.map((row, i) => (
+        <MappingRow
+          key={row.id}
+          row={row}
+          availableFields={encodingFields}
+          featureValues={featureValues}
+          onChange={updated => updateRow(i, updated)}
+          onDelete={() => removeRow(i)}
+        />
+      ))}
+
+      <div className="jp-gis-symbology-button-container">
+        <Button
+          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          onClick={addRow}
+        >
+          Add Mapping
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Grammar panel
+// ---------------------------------------------------------------------------
+
 const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
   model,
   okSignalPromise,
@@ -91,7 +383,9 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
     segmentId,
   });
 
-  const [rows, setRows] = useState<IGrammarRow[]>([]);
+  const [layers, setLayers] = useState<ILayerUIState[]>([
+    { id: UUID.uuid4(), transforms: [], rows: [] },
+  ]);
 
   useEffect(() => {
     if (!params?.symbologyState) {
@@ -103,18 +397,24 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       !(rawState as any).layers?.length
     ) {
       if (rawState?.renderType === 'Canonical') {
-        setRows(canonicalToGrammarRows(rawState));
+        setLayers([
+          {
+            id: UUID.uuid4(),
+            transforms: [],
+            rows: canonicalToGrammarRows(rawState),
+          },
+        ]);
       } else {
-        setRows([]);
+        setLayers([{ id: UUID.uuid4(), transforms: [], rows: [] }]);
       }
       return;
     }
     const state = rawState as IGrammarSymbologyState;
-    // Flatten all layers/rules into the flat row model used by the UI.
-    // Layer and transform structure is preserved on save via layersRef.
-    setRows(
-      state.layers.flatMap(layer =>
-        layer.rules.flatMap(rule =>
+    setLayers(
+      state.layers.map(grammarLayer => ({
+        id: grammarLayer.id,
+        transforms: grammarLayer.preprocess ?? [],
+        rows: grammarLayer.rules.flatMap(rule =>
           rule.mappings.map(mapping => ({
             id: UUID.uuid4(),
             fields: rule.fields?.length ? rule.fields : undefined,
@@ -123,7 +423,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
             ...(rule.when ? { when: rule.when } : {}),
           })),
         ),
-      ),
+      })),
     );
   }, [params]);
 
@@ -131,24 +431,34 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
     if (!layerId || !layer?.parameters) {
       return;
     }
-    const rules: IEncodingRule[] = rows
-      .filter(row => row.channels.length > 0)
-      .map(row => ({
-        id: row.id,
-        ...(row.fields?.length ? { fields: row.fields } : {}),
-        ...(row.when?.length ? { when: row.when } : {}),
-        mappings: [
-          {
-            scale: row.scale,
-            channels: row.channels as [OLStyleChannel, ...OLStyleChannel[]],
-          },
-        ],
-      }));
 
-    const grammarLayer: IGrammarLayer = { id: UUID.uuid4(), rules };
+    const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
+      const rules: IEncodingRule[] = uiLayer.rows
+        .filter(row => row.channels.length > 0)
+        .map(row => ({
+          id: row.id,
+          ...(row.fields?.length ? { fields: row.fields } : {}),
+          ...(row.when?.length ? { when: row.when } : {}),
+          mappings: [
+            {
+              scale: row.scale,
+              channels: row.channels as [OLStyleChannel, ...OLStyleChannel[]],
+            },
+          ],
+        }));
+
+      return {
+        id: uiLayer.id,
+        ...(uiLayer.transforms.length
+          ? { preprocess: uiLayer.transforms }
+          : {}),
+        rules,
+      };
+    });
+
     const symbologyState: IGrammarSymbologyState = {
       renderType: 'Grammar',
-      layers: [grammarLayer],
+      layers: grammarLayers,
     };
 
     saveSymbology({
@@ -167,14 +477,10 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
 
   useOkSignal(okSignalPromise, handleOk);
 
-  const addRow = () => {
-    setRows(prev => [
+  const addLayer = () => {
+    setLayers(prev => [
       ...prev,
-      {
-        id: UUID.uuid4(),
-        scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
-        channels: [...DEFAULT_CHANNELS],
-      },
+      { id: UUID.uuid4(), transforms: [], rows: [] },
     ]);
   };
 
@@ -182,24 +488,26 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      {rows.map((row, i) => (
-        <MappingRow
-          key={row.id}
-          row={row}
+      {layers.map((uiLayer, i) => (
+        <LayerSection
+          key={uiLayer.id}
+          layer={uiLayer}
+          layerIndex={i}
+          totalLayers={layers.length}
           availableFields={availableFields}
           featureValues={selectableAttributesAndValues}
           onChange={updated =>
-            setRows(prev => prev.map((r, j) => (j === i ? updated : r)))
+            setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
-          onDelete={() => setRows(prev => prev.filter((_, j) => j !== i))}
+          onDelete={() => setLayers(prev => prev.filter((_, j) => j !== i))}
         />
       ))}
       <div className="jp-gis-symbology-button-container">
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={addRow}
+          onClick={addLayer}
         >
-          Add Mapping
+          Add Layer
         </Button>
       </div>
     </div>

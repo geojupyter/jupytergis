@@ -264,6 +264,48 @@ select option {
 }
 
 /* ---------------------------------------------------------------------------
+ * Grammar layer sections
+ * --------------------------------------------------------------------------*/
+
+.jp-gis-grammar-layer-section {
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.jp-gis-grammar-layer-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: var(--jp-layout-color2);
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.jp-gis-grammar-layer-label {
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+  flex: 1 0 auto;
+}
+
+.jp-gis-grammar-transform-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: var(--jp-layout-color3);
+  border-bottom: 1px solid var(--jp-border-color2);
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-gis-grammar-transform-row label {
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
  * Grammar rule rows
  * --------------------------------------------------------------------------*/
 
