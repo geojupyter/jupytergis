@@ -8,25 +8,30 @@
         "source": "source-id",
         "symbologyState": {
           "renderType": "Grammar",
-          "rules": [
+          "layers": [
             {
               "id": "test-uuid",
-              "mappings": [
+              "rules": [
                 {
-                  "scale": { "scheme": "constant_rgba", "params": { "value": [255, 0, 0, 1] } },
-                  "channels": ["fill-color", "circle-fill-color"]
-                },
-                {
-                  "scale": { "scheme": "constant_rgba", "params": { "value": [0, 0, 0, 1] } },
-                  "channels": ["stroke-color", "circle-stroke-color"]
-                },
-                {
-                  "scale": { "scheme": "constant_num", "params": { "value": 2 } },
-                  "channels": ["stroke-width", "circle-stroke-width"]
-                },
-                {
-                  "scale": { "scheme": "constant_num", "params": { "value": 5 } },
-                  "channels": ["circle-radius"]
+                  "id": "test-uuid",
+                  "mappings": [
+                    {
+                      "scale": { "scheme": "constant_rgba", "params": { "value": [255, 0, 0, 1] } },
+                      "channels": ["fill-color", "circle-fill-color"]
+                    },
+                    {
+                      "scale": { "scheme": "constant_rgba", "params": { "value": [0, 0, 0, 1] } },
+                      "channels": ["stroke-color", "circle-stroke-color"]
+                    },
+                    {
+                      "scale": { "scheme": "constant_num", "params": { "value": 2 } },
+                      "channels": ["stroke-width", "circle-stroke-width"]
+                    },
+                    {
+                      "scale": { "scheme": "constant_num", "params": { "value": 5 } },
+                      "channels": ["circle-radius"]
+                    }
+                  ]
                 }
               ]
             }

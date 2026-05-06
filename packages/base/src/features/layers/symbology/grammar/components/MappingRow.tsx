@@ -49,7 +49,6 @@ function compatibleChannels(scale: IScale): OLStyleChannel[] {
     case 'colorRamp':
     case 'categorical':
     case 'constant_rgba':
-    case 'kde':
       return RGBA_CHANNELS;
     case 'scalar':
     case 'constant_num':
@@ -119,13 +118,18 @@ function defaultScaleForScheme(
 // Scheme selector options
 // ---------------------------------------------------------------------------
 
-const SCHEME_OPTIONS: { value: IScale['scheme']; label: string }[] = [
+const SCHEME_OPTIONS: {
+  value: IScale['scheme'];
+  label: string;
+  disabled?: boolean;
+}[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
   { value: 'colorRamp', label: 'colorRamp' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
+  { value: 'expression', label: 'expression (coming soon)', disabled: true },
 ];
 
 // ---------------------------------------------------------------------------
@@ -243,10 +247,10 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
           <span className="jp-gis-scale-meta">∘ identity</span>
         </span>
       );
-    case 'kde':
+    case 'expression':
       return (
         <span className="jp-gis-scale-preview">
-          <span className="jp-gis-scale-meta">kde</span>
+          <span className="jp-gis-scale-meta">expression</span>
         </span>
       );
     default:
@@ -543,8 +547,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               handleSchemeChange(e.target.value as IScale['scheme'])
             }
           >
-            {SCHEME_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
+            {SCHEME_OPTIONS.map(({ value, label, disabled }) => (
+              <option key={value} value={value} disabled={disabled}>
                 {label}
               </option>
             ))}
@@ -693,7 +697,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               onChange={handleScaleChange}
             />
           )}
-          {(row.scale.scheme === 'identity' || row.scale.scheme === 'kde') && (
+          {(row.scale.scheme === 'identity' ||
+            row.scale.scheme === 'expression') && (
             <p
               style={{
                 margin: 0,

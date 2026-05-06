@@ -25,9 +25,12 @@ import { IGrammarSymbologyState } from '../grammar/types';
 // ---------------------------------------------------------------------------
 
 function makeState(
-  ...rules: IGrammarSymbologyState['rules']
+  ...rules: IGrammarSymbologyState['layers'][number]['rules']
 ): IGrammarSymbologyState {
-  return { renderType: 'Grammar', rules };
+  return {
+    renderType: 'Grammar',
+    layers: [{ id: 'test-layer', rules }],
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -304,7 +307,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        field: 'elevation',
+        fields: ['elevation'],
         mappings: [
           {
             scale: {
@@ -338,7 +341,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        field: 'elevation',
+        fields: ['elevation'],
         mappings: [
           {
             scale: {
@@ -394,7 +397,7 @@ describe('grammarToOLStyle — categorical scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        field: 'type',
+        fields: ['type'],
         mappings: [
           {
             scale: {
@@ -461,7 +464,7 @@ describe('grammarToOLStyle — scalar scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        field: 'population',
+        fields: ['population'],
         mappings: [
           {
             scale: {
@@ -495,7 +498,7 @@ describe('grammarToOLStyle — identity scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        field: 'color',
+        fields: ['color'],
         mappings: [{ scale: { scheme: 'identity' }, channels: ['fill-color'] }],
       }),
     ) as any;
@@ -509,7 +512,7 @@ describe('grammarToOLStyle — identity scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        field: 'width',
+        fields: ['width'],
         mappings: [
           { scale: { scheme: 'identity' }, channels: ['stroke-width'] },
         ],

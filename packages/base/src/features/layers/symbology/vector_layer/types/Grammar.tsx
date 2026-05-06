@@ -8,6 +8,7 @@
 
 import {
   IEncodingRule,
+  IGrammarLayer,
   IGrammarSymbologyState,
   OLStyleChannel,
   RGBA,
@@ -99,7 +100,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
     const rawState = params.symbologyState;
     if (
       rawState?.renderType !== 'Grammar' ||
-      !(rawState as any).rules?.length
+      !(rawState as any).layers?.length
     ) {
       if (rawState?.renderType === 'Canonical') {
         setRows(canonicalToGrammarRows(rawState));
@@ -109,15 +110,19 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       return;
     }
     const state = rawState as IGrammarSymbologyState;
+    // Flatten all layers/rules into the flat row model used by the UI.
+    // Layer and transform structure is preserved on save via layersRef.
     setRows(
-      state.rules.flatMap(rule =>
-        rule.mappings.map(mapping => ({
-          id: UUID.uuid4(),
-          field: rule.field,
-          scale: mapping.scale,
-          channels: [...(mapping.channels as OLStyleChannel[])],
-          ...(rule.when ? { when: rule.when } : {}),
-        })),
+      state.layers.flatMap(layer =>
+        layer.rules.flatMap(rule =>
+          rule.mappings.map(mapping => ({
+            id: UUID.uuid4(),
+            field: rule.fields?.[0],
+            scale: mapping.scale,
+            channels: [...(mapping.channels as OLStyleChannel[])],
+            ...(rule.when ? { when: rule.when } : {}),
+          })),
+        ),
       ),
     );
   }, [params]);
@@ -130,7 +135,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       .filter(row => row.channels.length > 0)
       .map(row => ({
         id: row.id,
-        ...(row.field ? { field: row.field } : {}),
+        ...(row.field ? { fields: [row.field] } : {}),
         ...(row.when?.length ? { when: row.when } : {}),
         mappings: [
           {
@@ -140,9 +145,10 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
         ],
       }));
 
+    const grammarLayer: IGrammarLayer = { id: UUID.uuid4(), rules };
     const symbologyState: IGrammarSymbologyState = {
       renderType: 'Grammar',
-      rules,
+      layers: [grammarLayer],
     };
 
     saveSymbology({

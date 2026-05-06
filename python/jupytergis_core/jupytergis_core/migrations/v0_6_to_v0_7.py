@@ -80,7 +80,7 @@ def _single_symbol(state: dict[str, Any]) -> dict[str, Any]:
             },
         ],
     }
-    return {"renderType": "Grammar", "rules": [rule]}
+    return {"renderType": "Grammar", "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}]}
 
 
 def _graduated(state: dict[str, Any]) -> dict[str, Any]:
@@ -125,9 +125,9 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
 
     rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
     if field:
-        rule["field"] = field
+        rule["fields"] = [field]
 
-    return {"renderType": "Grammar", "rules": [rule]}
+    return {"renderType": "Grammar", "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}]}
 
 
 def _categorized(state: dict[str, Any]) -> dict[str, Any]:
@@ -169,6 +169,6 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
 
     rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
     if field:
-        rule["field"] = field
+        rule["fields"] = [field]
 
-    return {"renderType": "Grammar", "rules": [rule]}
+    return {"renderType": "Grammar", "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}]}

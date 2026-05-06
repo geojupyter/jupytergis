@@ -32,6 +32,11 @@ import {
   UNormChannel,
 } from './types';
 
+// '$density' is the pseudo-field produced by a kde transform (KDE density raster).
+// Encoding rules referencing it are compiled only when a kde transform is present;
+// the actual OL HeatmapLayer instantiation happens outside this compiler.
+export const DENSITY_FIELD = '$density';
+
 // ---------------------------------------------------------------------------
 // Types used internally during compilation
 // ---------------------------------------------------------------------------
@@ -58,19 +63,32 @@ export function grammarToOLStyle(
   state: IGrammarSymbologyState,
   featureValues: unknown[] = [],
 ): Record<string, ExpressionValue> {
-  // Accumulate per-channel entries from all rules.
+  // Accumulate per-channel entries from all layers and their rules.
+  // Layers with a kde/cluster preprocess are handled at the renderer level;
+  // this compiler only produces the flat-style for the vector portion.
   const accumulator = new Map<OLStyleChannel, IChannelEntry[]>();
 
-  for (const rule of state.rules) {
-    const guard =
-      rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
+  for (const layer of state.layers) {
+    if (layer.preprocess?.some(t => t.type === 'kde')) {
+      // KDE layers are compiled separately by the renderer (HeatmapLayer).
+      // Skip flat-style compilation for this layer.
+      continue;
+    }
 
-    for (const mapping of rule.mappings) {
-      const expr = compileMapping(rule.field, mapping, featureValues);
-      for (const channel of mapping.channels) {
-        const entries = accumulator.get(channel) ?? [];
-        entries.push({ guard, expr });
-        accumulator.set(channel, entries);
+    for (const rule of layer.rules) {
+      // For now use the first field; multi-field assembly is handled via
+      // sub-channel mappings (pixel-red/green/blue) or expression scales.
+      const field = rule.fields?.[0];
+      const guard =
+        rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
+
+      for (const mapping of rule.mappings) {
+        const expr = compileMapping(field, mapping, featureValues);
+        for (const channel of mapping.channels) {
+          const entries = accumulator.get(channel) ?? [];
+          entries.push({ guard, expr });
+          accumulator.set(channel, entries);
+        }
       }
     }
   }
@@ -230,9 +248,12 @@ function compileMapping(
       return field
         ? compileCategorical(field, scale, featureValues)
         : scale.params.fallback;
-    case 'kde':
-      // KDE compilation is handled at the layer level (HeatmapLayer), not here.
-      return 'rgba(0,0,0,0)';
+    case 'expression':
+      // Expression scale is not yet implemented; fall back to channel zero.
+      console.warn(
+        '[grammarToOLStyle] expression scale is not yet implemented',
+      );
+      return channelZero(mapping.channels[0]);
     case 'constant_rgba':
     case 'constant_num':
       return scale.params.value as ExpressionValue;
