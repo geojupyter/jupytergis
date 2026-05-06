@@ -1,13 +1,14 @@
 /**
  * Grammar Symbology types.
  *
- * A rule maps one optional input field to one or more (scale, channels) pairs,
- * optionally guarded by predicates. This models the typed functional composition:
+ * Pipeline: fields → transform (optional) → scale → channels
  *
- *   Field(input) → Scale(input → output) → [Channel(output)]
+ * Multiple input fields are supported: a single field drives most scales;
+ * multiple fields are assembled (e.g. band_r, band_g, band_b → pixel-color).
  *
- * Multiple (scale, channels) pairs share one field to avoid repetition (fan-out).
- * Branch-in (multiple fields → one output) is not supported by design.
+ * Layers allow independent rendering pipelines on the same source (e.g. KDE
+ * heatmap + raw points). Each layer has an optional preprocess transform that
+ * signals the renderer to use a different layer type (HeatmapLayer, etc.).
  *
  * Inspired by the Grammar of Graphics (Wilkinson) and Vega-Lite's encoding model.
  */
@@ -88,6 +89,36 @@ export type OLStyleChannel =
   | PosFloatChannel;
 
 // ---------------------------------------------------------------------------
+// Transforms — render-side preprocessing applied before encoding rules.
+// The compiler inspects these to instantiate a different renderer layer type.
+// Vocabulary is renderer-agnostic; unsupported transforms are skipped with a warning.
+// ---------------------------------------------------------------------------
+
+/**
+ * kde: Kernel Density Estimation.
+ * Signals the renderer to produce a scalar density raster (HeatmapLayer in OL).
+ * The density output is addressed as the pseudo-field '$density' in encoding rules.
+ * weightField optionally scales per-point contribution before rasterization.
+ */
+export interface IKDETransform {
+  type: 'kde';
+  radius: number;
+  blur: number;
+  weightField?: string;
+}
+
+/**
+ * cluster: Aggregate nearby points into cluster centroids.
+ * Signals the renderer to use a cluster source (OL Cluster, Maplibre cluster).
+ */
+export interface IClusterTransform {
+  type: 'cluster';
+  radius: number;
+}
+
+export type ITransform = IKDETransform | IClusterTransform;
+
+// ---------------------------------------------------------------------------
 // Scale constructors — each is a constructor applied to a params record.
 // The scale's scheme determines both the input field type and output type.
 // ---------------------------------------------------------------------------
@@ -146,22 +177,6 @@ export interface IScalarScale {
 }
 
 /**
- * kde: Quantitative → RGBA  (Kernel Density Estimation)
- * Maps a per-feature weight field through a density surface to a pixel color.
- * Compiler routes this to an OL HeatmapLayer; field is the optional weight attribute.
- * Must target pixel-color channel.
- */
-export interface IKDEScale {
-  scheme: 'kde';
-  params: {
-    radius: number;
-    blur: number;
-    colorRamp: string;
-    fallback: RGBA;
-  };
-}
-
-/**
  * constant_rgba: any → RGBA
  * Outputs a fixed color regardless of feature data. No field needed.
  */
@@ -187,14 +202,28 @@ export interface IIdentityScale {
   scheme: 'identity';
 }
 
+/**
+ * expression: expr → any   [NOT YET IMPLEMENTED — reserved for future PR]
+ * Evaluates a Vega-Lite-style expression against one or more input fields.
+ * Example: "datum.field1 + datum.field2", "log(datum.population)"
+ * Compiled to OL/Maplibre expression syntax by the renderer compiler.
+ */
+export interface IExpressionScale {
+  scheme: 'expression';
+  params: {
+    expr: string;
+    fallback: number | RGBA;
+  };
+}
+
 export type IScale =
   | IColorRampScale
   | ICategoricalScale
   | IScalarScale
-  | IKDEScale
   | IConstantRGBAScale
   | IConstantNumScale
-  | IIdentityScale;
+  | IIdentityScale
+  | IExpressionScale;
 
 // ---------------------------------------------------------------------------
 // Mapping — a (scale, channels) pair
@@ -224,16 +253,19 @@ export interface IEncodingRule {
   id: string;
 
   /**
-   * Input: feature attribute name.
-   * Optional for constant rules (no field needed).
-   * For raster layers, refers to a band name (compiled to ['band', N]).
+   * Input field name(s).
+   * - Empty / absent: constant rules (no field needed).
+   * - Single entry: standard field → scale mapping.
+   * - Multiple entries: multi-field input (e.g. band_r, band_g, band_b assembled
+   *   into pixel-color via sub-channel mappings, or summed via an expression scale).
+   * For raster layers, field names refer to band names (compiled to ['band', N]).
+   * The pseudo-field '$density' refers to the KDE density output of a kde transform.
    */
-  field?: string;
+  fields?: string[];
 
   /**
-   * One or more (scale, channels) pairs sharing this field.
+   * One or more (scale, channels) pairs sharing these fields.
    * Fan-out: one field drives multiple channels via the same or different scales.
-   * Branch-in (multiple fields → one channel) is not supported.
    */
   mappings: [IMapping, ...IMapping[]];
 
@@ -245,14 +277,38 @@ export interface IEncodingRule {
 }
 
 // ---------------------------------------------------------------------------
+// Grammar layer — one independent rendering pipeline on a source
+// ---------------------------------------------------------------------------
+
+export interface IGrammarLayer {
+  /**
+   * Stable UUID.
+   */
+  id: string;
+
+  /**
+   * Render-side transforms applied before encoding rules.
+   * The compiler inspects these to instantiate the appropriate renderer layer type.
+   * Unsupported transforms are skipped with a console warning.
+   */
+  preprocess?: ITransform[];
+
+  /**
+   * Encoding rules compiled into a flat-style object (or equivalent) for this layer.
+   */
+  rules: IEncodingRule[];
+}
+
+// ---------------------------------------------------------------------------
 // Grammar symbology state
 // ---------------------------------------------------------------------------
 
 export interface IGrammarSymbologyState {
   renderType: 'Grammar';
   /**
-   * Ordered list of encoding rules. Rules are compiled in order;
-   * conditional rules form branches in a case expression per channel.
+   * Ordered list of independent rendering layers sharing the same source.
+   * Each layer produces one renderer layer (VectorLayer, HeatmapLayer, etc.).
+   * Layers are rendered in order (first = bottom).
    */
-  rules: IEncodingRule[];
+  layers: IGrammarLayer[];
 }
