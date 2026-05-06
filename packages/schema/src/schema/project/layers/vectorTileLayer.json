@@ -29,18 +29,8 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": [
-            "Single Symbol",
-            "Graduated",
-            "Categorized",
-            "Canonical",
-            "Grammar"
-          ],
-          "default": "Single Symbol"
-        },
-        "value": {
-          "type": "string",
-          "default": ""
+          "enum": ["Grammar"],
+          "default": "Grammar"
         },
         "method": {
           "type": "string",

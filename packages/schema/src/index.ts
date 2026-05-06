@@ -4,10 +4,6 @@ export {
   singleSymbolToGrammar,
   graduatedToGrammar,
   categorizedToGrammar,
-  inferRenderType,
-  grammarToSingleSymbolState,
-  grammarToGraduatedState,
-  grammarToCategorizedState,
 } from './grammar/grammarConversions';
 export type { SymbologyState } from './grammar/grammarConversions';
 export { migrateDocument } from './migrations';

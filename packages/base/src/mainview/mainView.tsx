@@ -151,11 +151,7 @@ import {
 import { MainViewModel } from './mainviewmodel';
 import { grammarToOLLayer } from '../features/layers/symbology/grammar/grammarToOLLayer';
 import { grammarToOLStyle } from '../features/layers/symbology/grammar/grammarToOLStyle';
-import {
-  DEFAULT_FLAT_STYLE,
-  buildTransparentFallbackFilter,
-  buildVectorFlatStyle,
-} from '../features/layers/symbology/styleBuilder';
+import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
@@ -1721,34 +1717,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
     const layerParams = layer.parameters as IVectorLayer | undefined;
-    if (!layerParams) {
-      return;
+    if (!layerParams?.symbologyState) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
-    // Extract feature values for the symbology attribute field if the source
-    // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
-    // array – the comment on buildVectorFlatStyle says this is acceptable.
-    const field = layerParams.symbologyState?.value;
-    const source = this._sources[layerParams.source];
-    const featureValues: unknown[] =
-      field && source instanceof VectorSource
-        ? source.getFeatures().map(f => (f as Feature).get(field))
-        : [];
-
-    const flatStyle =
-      layerParams.symbologyState?.renderType === 'Grammar'
-        ? grammarToOLStyle(
-            layerParams.symbologyState as IGrammarSymbologyState,
-            featureValues,
-          )
-        : (buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
-          DEFAULT_FLAT_STYLE);
+    const flatStyle = grammarToOLStyle(
+      layerParams.symbologyState as IGrammarSymbologyState,
+      [],
+    );
 
     const layerStyle: Rule = { style: flatStyle };
 
-    // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
       const buildCondition = (filter: IJGISFilterItem): any[] => {
         const base = [filter.operator, ['get', filter.feature]];
@@ -1757,8 +1739,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           : [...base, filter.value];
       };
 
-      // 'Any' and 'All' operators require more than one argument
-      // So if there's only one filter, skip that part to avoid error
       layerStyle.filter =
         layer.filters.appliedFilters.length === 1
           ? buildCondition(layer.filters.appliedFilters[0])
@@ -1766,20 +1746,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               layer.filters.logicalOp,
               ...layer.filters.appliedFilters.map(buildCondition),
             ];
-    }
-
-    // When `fallbackColor` alpha is 0, exclude features that would render with
-    // the fallback color. This was previously done by introspecting the
-    // generated OL expressions; now the filter is derived directly from
-    // symbologyState (see styleBuilder.buildTransparentFallbackFilter).
-    const transparentFilter = buildTransparentFallbackFilter(
-      layerParams.symbologyState,
-      featureValues,
-    );
-    if (transparentFilter) {
-      layerStyle.filter = layerStyle.filter
-        ? ['all', layerStyle.filter, transparentFilter]
-        : transparentFilter;
     }
 
     return [layerStyle];
@@ -3282,7 +3248,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const layerParams: IVectorLayer = {
       opacity: 1.0,
       source: sourceId,
-      symbologyState: { renderType: 'Single Symbol' },
+      symbologyState: { renderType: 'Grammar', layers: [] } as any,
     };
 
     const sourceModel: IJGISSource = {

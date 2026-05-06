@@ -1,9 +1,9 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IGrammarSymbologyState, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import { findExprNode } from '@/src/features/layers/symbology/colorRampUtils';
+import { grammarToOLStyle } from '@/src/features/layers/symbology/grammar/grammarToOLStyle';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
-import { buildVectorFlatStyle } from '@/src/features/layers/symbology/styleBuilder';
 
 export const LegendItem: React.FC<{
   layerId: string;
@@ -73,221 +73,9 @@ export const LegendItem: React.FC<{
     }
 
     const renderType = symbology.symbologyState?.renderType;
-    const property = symbology.symbologyState?.value;
     const state = symbology.symbologyState;
 
-    // Compute the flat style from symbologyState. For sources where feature
-    // values are unavailable (e.g. VectorTile), use vmin/vmax as a synthetic
-    // range so graduated/categorized stops can still be derived.
-    const syntheticValues =
-      state?.vmin !== undefined && state?.vmax !== undefined
-        ? [state.vmin, state.vmax]
-        : [];
-    const computedStyle = buildVectorFlatStyle(state, syntheticValues);
-
-    const toColorString = (v: unknown): string | undefined => {
-      if (typeof v === 'string') {
-        return v;
-      }
-      if (
-        Array.isArray(v) &&
-        v.length === 4 &&
-        v.every(x => typeof x === 'number')
-      ) {
-        return `rgba(${v[0]},${v[1]},${v[2]},${v[3]})`;
-      }
-      return undefined;
-    };
-
-    // Raw OL expressions — used by graduated/categorized parsers.
-    const rawFill =
-      computedStyle?.['fill-color'] ?? computedStyle?.['circle-fill-color'];
-    const rawStroke =
-      computedStyle?.['stroke-color'] ?? computedStyle?.['circle-stroke-color'];
-
-    // Plain CSS color strings — used by single symbol rendering.
-    const fill = toColorString(rawFill);
-    const stroke = toColorString(rawStroke);
-
-    // Single Symbol
-    if (renderType === 'Single Symbol') {
-      setContent(
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: 6 }}>
-          {fill && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span
-                style={{
-                  width: 16,
-                  height: 16,
-                  border: '1px solid #000',
-                  background: fill,
-                }}
-              />
-              <span style={{ fontSize: '0.8em' }}>Fill</span>
-            </div>
-          )}
-          {stroke && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span
-                style={{
-                  width: 24,
-                  height: 2,
-                  background: stroke,
-                  border: '1px solid #000',
-                }}
-              />
-              <span style={{ fontSize: '0.8em' }}>Stroke</span>
-            </div>
-          )}
-          {!fill && !stroke && (
-            <span style={{ fontSize: '0.8em' }}>No symbol colors</span>
-          )}
-        </div>,
-      );
-      return;
-    }
-
-    // Graduated
-    if (renderType === 'Graduated') {
-      const stops = parseColorStops(rawFill ?? rawStroke);
-      if (!stops.length) {
-        setContent(<p style={{ fontSize: '0.8em' }}>No graduated symbology</p>);
-        return;
-      }
-
-      const segments = stops
-        .map((s, i) => {
-          const pct = (i / (stops.length - 1)) * 100;
-          return `${s.color} ${pct}%`;
-        })
-        .join(', ');
-      const gradient = `linear-gradient(to right, ${segments})`;
-
-      setContent(
-        <div style={{ padding: 6, width: '90%' }}>
-          {property && (
-            <div style={{ fontSize: '1em', marginBottom: 20 }}>
-              <strong>{property}</strong>
-            </div>
-          )}
-          <div
-            style={{
-              position: 'relative',
-              height: 12,
-              background: gradient,
-              border: '1px solid #ccc',
-              borderRadius: 3,
-              marginBottom: 20,
-              marginTop: 10,
-            }}
-          >
-            {stops.map((s, i) => {
-              const left = (i / (stops.length - 1)) * 100;
-              const up = i % 2 === 0;
-              return (
-                <div
-                  key={i}
-                  style={{
-                    position: 'absolute',
-                    left: `${left}%`,
-                    transform: 'translateX(-50%)',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 1,
-                      height: 8,
-                      background: '#333',
-                      margin: '0 auto',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: up ? -18 : 12,
-                      fontSize: '0.7em',
-                      whiteSpace: 'nowrap',
-                      marginTop: up ? 0 : 4,
-                    }}
-                  >
-                    {s.value.toFixed(2)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>,
-      );
-      return;
-    }
-
-    // Canonical
-    if (renderType === 'Canonical') {
-      setContent(
-        <div style={{ padding: 6 }}>
-          {property && (
-            <div style={{ fontSize: '1em' }}>
-              <strong>{property}</strong>
-            </div>
-          )}
-          <div style={{ fontSize: '0.8em', opacity: 0.7 }}>
-            hex color attribute
-          </div>
-        </div>,
-      );
-      return;
-    }
-
-    // Categorized
-    if (renderType === 'Categorized') {
-      const cats = parseCaseCategories(rawFill ?? rawStroke);
-      if (!cats.length) {
-        setContent(
-          <p style={{ fontSize: '0.8em' }}>No categorized symbology</p>,
-        );
-        return;
-      }
-
-      setContent(
-        <div style={{ padding: 6 }}>
-          {property && (
-            <div style={{ fontSize: '1em', marginBottom: 6 }}>
-              <strong>{property}</strong>
-            </div>
-          )}
-          <div
-            style={{
-              display: 'grid',
-              gap: 6,
-              maxHeight: 200,
-              overflowY: 'auto',
-              paddingRight: 4,
-            }}
-          >
-            {cats.map((c, i) => (
-              <div
-                key={i}
-                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-              >
-                <span
-                  style={{
-                    width: 16,
-                    height: 16,
-                    background: c.color || '#ccc',
-                    border: '1px solid #000',
-                    borderRadius: 2,
-                  }}
-                />
-                <span style={{ fontSize: '0.75em' }}>{String(c.category)}</span>
-              </div>
-            ))}
-          </div>
-        </div>,
-      );
-      return;
-    }
-
-    // Heatmap
+    // Heatmap legend
     if (renderType === 'Heatmap') {
       const colors = Array.isArray(symbology.symbologyState?.gradient)
         ? symbology.symbologyState.gradient
@@ -325,24 +113,185 @@ export const LegendItem: React.FC<{
             <span style={{ fontWeight: 'bold' }}>Low</span>
             <span style={{ fontWeight: 'bold' }}>High</span>
           </div>
-          <div
-            style={{
-              fontSize: '0.75em',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            {reversed && (
-              <span style={{ fontWeight: 'bold' }}>Reversed ramp</span>
-            )}
-          </div>
+          {reversed && (
+            <span style={{ fontSize: '0.75em', fontWeight: 'bold' }}>
+              Reversed ramp
+            </span>
+          )}
         </div>,
       );
       return;
     }
 
-    setContent(<p>Unsupported symbology: {String(renderType)}</p>);
+    // Grammar legend — compile to OL flat style and parse the expressions.
+    if (renderType === 'Grammar' && state) {
+      const computedStyle = grammarToOLStyle(
+        state as IGrammarSymbologyState,
+        [],
+      );
+
+      const toColorString = (v: unknown): string | undefined => {
+        if (typeof v === 'string') {
+          return v;
+        }
+        if (
+          Array.isArray(v) &&
+          v.length === 4 &&
+          v.every(x => typeof x === 'number')
+        ) {
+          return `rgba(${v[0]},${v[1]},${v[2]},${v[3]})`;
+        }
+        return undefined;
+      };
+
+      const rawFill =
+        computedStyle?.['fill-color'] ?? computedStyle?.['circle-fill-color'];
+      const rawStroke =
+        computedStyle?.['stroke-color'] ??
+        computedStyle?.['circle-stroke-color'];
+
+      // Graduated-style: interpolate expression → gradient bar
+      const gradStops = parseColorStops(rawFill ?? rawStroke);
+      if (gradStops.length >= 2) {
+        const segments = gradStops
+          .map((s, i) => {
+            const pct = (i / (gradStops.length - 1)) * 100;
+            return `${s.color} ${pct}%`;
+          })
+          .join(', ');
+        setContent(
+          <div style={{ padding: 6, width: '90%' }}>
+            <div
+              style={{
+                position: 'relative',
+                height: 12,
+                background: `linear-gradient(to right, ${segments})`,
+                border: '1px solid #ccc',
+                borderRadius: 3,
+                marginBottom: 20,
+                marginTop: 10,
+              }}
+            >
+              {gradStops.map((s, i) => {
+                const left = (i / (gradStops.length - 1)) * 100;
+                const up = i % 2 === 0;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      position: 'absolute',
+                      left: `${left}%`,
+                      transform: 'translateX(-50%)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 1,
+                        height: 8,
+                        background: '#333',
+                        margin: '0 auto',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: up ? -18 : 12,
+                        fontSize: '0.7em',
+                        whiteSpace: 'nowrap',
+                        marginTop: up ? 0 : 4,
+                      }}
+                    >
+                      {s.value.toFixed(2)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>,
+        );
+        return;
+      }
+
+      // Categorized-style: case expression → swatch list
+      const cats = parseCaseCategories(rawFill ?? rawStroke);
+      if (cats.length > 0) {
+        setContent(
+          <div style={{ padding: 6 }}>
+            <div
+              style={{
+                display: 'grid',
+                gap: 6,
+                maxHeight: 200,
+                overflowY: 'auto',
+                paddingRight: 4,
+              }}
+            >
+              {cats.map((c, i) => (
+                <div
+                  key={i}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span
+                    style={{
+                      width: 16,
+                      height: 16,
+                      background: c.color || '#ccc',
+                      border: '1px solid #000',
+                      borderRadius: 2,
+                    }}
+                  />
+                  <span style={{ fontSize: '0.75em' }}>
+                    {String(c.category)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>,
+        );
+        return;
+      }
+
+      // Constant / simple symbol
+      const fill = toColorString(rawFill);
+      const stroke = toColorString(rawStroke);
+      if (fill || stroke) {
+        setContent(
+          <div
+            style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: 6 }}
+          >
+            {fill && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span
+                  style={{
+                    width: 16,
+                    height: 16,
+                    border: '1px solid #000',
+                    background: fill,
+                  }}
+                />
+                <span style={{ fontSize: '0.8em' }}>Fill</span>
+              </div>
+            )}
+            {stroke && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span
+                  style={{
+                    width: 24,
+                    height: 2,
+                    background: stroke,
+                    border: '1px solid #000',
+                  }}
+                />
+                <span style={{ fontSize: '0.8em' }}>Stroke</span>
+              </div>
+            )}
+          </div>,
+        );
+        return;
+      }
+    }
+
+    setContent(<p style={{ fontSize: '0.8em' }}>No symbology</p>);
   }, [symbology, isLoading, error]);
 
   return <div>{content}</div>;

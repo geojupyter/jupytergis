@@ -22,8 +22,9 @@ import MappingRow, {
   IGrammarRow,
 } from '@/src/features/layers/symbology/grammar/components/MappingRow';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
+import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
-import { ISymbologyDialogWithAttributesProps } from '@/src/features/layers/symbology/symbologyDialog';
+import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
   VectorSymbologyParams,
@@ -45,47 +46,6 @@ interface ILayerUIState {
 // ---------------------------------------------------------------------------
 // Canonical → Grammar conversion
 // ---------------------------------------------------------------------------
-
-function canonicalToGrammarRows(state: any): IGrammarRow[] {
-  const rows: IGrammarRow[] = [];
-  if (state.strokeFollowsFill !== false) {
-    rows.push({
-      id: UUID.uuid4(),
-      fields: state.value ? [state.value] : undefined,
-      scale: { scheme: 'identity' },
-      channels: [
-        'fill-color',
-        'circle-fill-color',
-        'stroke-color',
-        'circle-stroke-color',
-      ] as OLStyleChannel[],
-    });
-  } else {
-    rows.push({
-      id: UUID.uuid4(),
-      fields: state.value ? [state.value] : undefined,
-      scale: { scheme: 'identity' },
-      channels: ['fill-color', 'circle-fill-color'] as OLStyleChannel[],
-    });
-    rows.push({
-      id: UUID.uuid4(),
-      scale: {
-        scheme: 'constant_rgba',
-        params: { value: state.strokeColor ?? DEFAULT_RGBA },
-      },
-      channels: ['stroke-color', 'circle-stroke-color'] as OLStyleChannel[],
-    });
-  }
-  rows.push({
-    id: UUID.uuid4(),
-    scale: {
-      scheme: 'constant_num',
-      params: { value: state.strokeWidth ?? 1 },
-    },
-    channels: ['stroke-width', 'circle-stroke-width'] as OLStyleChannel[],
-  });
-  return rows;
-}
 
 // ---------------------------------------------------------------------------
 // Transform row
@@ -371,15 +331,19 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 // Grammar panel
 // ---------------------------------------------------------------------------
 
-const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
+const Grammar: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   layerId,
-  selectableAttributesAndValues,
   isStorySegmentOverride,
   segmentId,
 }) => {
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+
+  const { featureProperties: selectableAttributesAndValues } = useGetProperties(
+    { layerId, model },
+  );
+
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
     layerId,
@@ -401,17 +365,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       rawState?.renderType !== 'Grammar' ||
       !(rawState as any).layers?.length
     ) {
-      if (rawState?.renderType === 'Canonical') {
-        setLayers([
-          {
-            id: UUID.uuid4(),
-            transforms: [],
-            rows: canonicalToGrammarRows(rawState),
-          },
-        ]);
-      } else {
-        setLayers([{ id: UUID.uuid4(), transforms: [], rows: [] }]);
-      }
+      setLayers([{ id: UUID.uuid4(), transforms: [], rows: [] }]);
       return;
     }
     const state = rawState as IGrammarSymbologyState;
