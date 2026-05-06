@@ -327,7 +327,10 @@ export function grammarToGraduatedState(
         } else if (isStroke) {
           strokeFollowsFill = true;
         }
-      } else if (scale.scheme === 'constant_rgba' || scale.scheme === 'constant_num') {
+      } else if (
+        scale.scheme === 'constant_rgba' ||
+        scale.scheme === 'constant_num'
+      ) {
         if (isStroke) {
           strokeColor = scale.params.value as RGBA;
         } else if (isStrokeWidth) {
@@ -404,7 +407,10 @@ export function grammarToCategorizedState(
         } else if (isStroke) {
           strokeFollowsFill = true;
         }
-      } else if (scale.scheme === 'constant_rgba' || scale.scheme === 'constant_num') {
+      } else if (
+        scale.scheme === 'constant_rgba' ||
+        scale.scheme === 'constant_num'
+      ) {
         if (isStroke) {
           strokeColor = scale.params.value as RGBA;
         } else if (isStrokeWidth) {

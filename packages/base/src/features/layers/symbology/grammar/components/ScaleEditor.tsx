@@ -29,7 +29,6 @@ import {
 } from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 
-
 function stopsToRows(
   stops: Array<{ stop: number | string; color: RGBA }>,
 ): IStopRow[] {

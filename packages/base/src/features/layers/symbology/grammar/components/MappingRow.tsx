@@ -65,9 +65,15 @@ function defaultScaleForScheme(
 ): IScale {
   switch (scheme) {
     case 'constant_rgba':
-      return { scheme: 'constant_rgba', params: { value: [128, 128, 128, 1] as RGBA } } as IConstantRGBAScale;
+      return {
+        scheme: 'constant_rgba',
+        params: { value: [128, 128, 128, 1] as RGBA },
+      } as IConstantRGBAScale;
     case 'constant_num':
-      return { scheme: 'constant_num', params: { value: 1 } } as IConstantNumScale;
+      return {
+        scheme: 'constant_num',
+        params: { value: 1 },
+      } as IConstantNumScale;
     case 'colorRamp':
       return {
         scheme: 'colorRamp',
@@ -102,7 +108,10 @@ function defaultScaleForScheme(
     case 'identity':
       return { scheme: 'identity' };
     default:
-      return { scheme: 'constant_num', params: { value: 1 } } as IConstantNumScale;
+      return {
+        scheme: 'constant_num',
+        params: { value: 1 },
+      } as IConstantNumScale;
   }
 }
 
@@ -658,10 +667,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         <div className="jp-gis-grammar-rule-editor">
           {(row.scale.scheme === 'constant_rgba' ||
             row.scale.scheme === 'constant_num') && (
-            <ConstantEditor
-              scale={row.scale}
-              onChange={handleScaleChange}
-            />
+            <ConstantEditor scale={row.scale} onChange={handleScaleChange} />
           )}
           {row.scale.scheme === 'colorRamp' && (
             <ColorRampEditor

@@ -41,7 +41,10 @@ describe('grammarToOLStyle — constant scale', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
+            scale: {
+              scheme: 'constant_rgba',
+              params: { value: [255, 0, 0, 1] },
+            },
             channels: ['fill-color'],
           },
         ],
@@ -77,7 +80,10 @@ describe('grammarToOLStyle — fan-out', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant_rgba', params: { value: [0, 128, 255, 1] } },
+            scale: {
+              scheme: 'constant_rgba',
+              params: { value: [0, 128, 255, 1] },
+            },
             channels: ['fill-color', 'stroke-color', 'circle-fill-color'],
           },
         ],
@@ -94,7 +100,10 @@ describe('grammarToOLStyle — fan-out', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
+            scale: {
+              scheme: 'constant_rgba',
+              params: { value: [255, 0, 0, 1] },
+            },
             channels: ['fill-color'],
           },
           {
@@ -172,7 +181,10 @@ describe('grammarToOLStyle — when predicates', () => {
         when: [{ type: 'geometryType', value: 'Point' }],
         mappings: [
           {
-            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
+            scale: {
+              scheme: 'constant_rgba',
+              params: { value: [255, 0, 0, 1] },
+            },
             channels: ['fill-color'],
           },
         ],
@@ -209,7 +221,10 @@ describe('grammarToOLStyle — when predicates', () => {
         ],
         mappings: [
           {
-            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
+            scale: {
+              scheme: 'constant_rgba',
+              params: { value: [255, 0, 0, 1] },
+            },
             channels: ['fill-color'],
           },
         ],
@@ -226,7 +241,10 @@ describe('grammarToOLStyle — when predicates', () => {
           when: [{ type: 'geometryType', value: 'Point' }],
           mappings: [
             {
-              scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
+              scale: {
+                scheme: 'constant_rgba',
+                params: { value: [255, 0, 0, 1] },
+              },
               channels: ['fill-color'],
             },
           ],
@@ -235,7 +253,10 @@ describe('grammarToOLStyle — when predicates', () => {
           id: '2',
           mappings: [
             {
-              scale: { scheme: 'constant_rgba', params: { value: [0, 255, 0, 1] } },
+              scale: {
+                scheme: 'constant_rgba',
+                params: { value: [0, 255, 0, 1] },
+              },
               channels: ['fill-color'],
             },
           ],
@@ -382,8 +403,14 @@ describe('grammarToOLStyle — categorical scale', () => {
                 colorRamp: 'viridis',
                 fallback: [0, 0, 0, 0],
                 colorStops: [
-                  { stop: 'road', color: [255, 0, 0, 1] as [number, number, number, number] },
-                  { stop: 'river', color: [0, 0, 255, 1] as [number, number, number, number] },
+                  {
+                    stop: 'road',
+                    color: [255, 0, 0, 1] as [number, number, number, number],
+                  },
+                  {
+                    stop: 'river',
+                    color: [0, 0, 255, 1] as [number, number, number, number],
+                  },
                 ],
               },
             },
@@ -414,7 +441,13 @@ describe('grammarToOLStyle — scalar scale', () => {
           {
             scale: {
               scheme: 'scalar',
-              params: { domain: [0, 100], range: [1, 20], mode: 'equal interval', nStops: 3, fallback: 5 },
+              params: {
+                domain: [0, 100],
+                range: [1, 20],
+                mode: 'equal interval',
+                nStops: 3,
+                fallback: 5,
+              },
             },
             channels: ['stroke-width'],
           },
@@ -433,7 +466,13 @@ describe('grammarToOLStyle — scalar scale', () => {
           {
             scale: {
               scheme: 'scalar',
-              params: { domain: [0, 100], range: [1, 10], mode: 'equal interval', nStops: 2, fallback: 1 },
+              params: {
+                domain: [0, 100],
+                range: [1, 10],
+                mode: 'equal interval',
+                nStops: 2,
+                fallback: 1,
+              },
             },
             channels: ['circle-radius'],
           },
@@ -471,7 +510,9 @@ describe('grammarToOLStyle — identity scale', () => {
       makeState({
         id: '1',
         field: 'width',
-        mappings: [{ scale: { scheme: 'identity' }, channels: ['stroke-width'] }],
+        mappings: [
+          { scale: { scheme: 'identity' }, channels: ['stroke-width'] },
+        ],
       }),
     ) as any;
     expect(style['stroke-width'][0]).toBe('coalesce');
