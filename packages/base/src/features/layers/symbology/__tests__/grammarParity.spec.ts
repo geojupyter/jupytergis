@@ -15,7 +15,9 @@ jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
 jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 jest.mock('@/src/tools', () => ({ objectEntries: Object.entries }));
 
-// Import directly from schema source to bypass the @jupytergis/schema package mock.
+// @jupytergis/schema is mocked as {} above (line 13) to avoid loading ESM
+// transitive deps. Importing grammarConversions through the package would
+// resolve to that empty mock, so we import directly from the source path.
 import {
   graduatedToGrammar,
   categorizedToGrammar,
