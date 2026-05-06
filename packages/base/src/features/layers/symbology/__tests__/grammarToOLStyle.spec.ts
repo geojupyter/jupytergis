@@ -41,7 +41,7 @@ describe('grammarToOLStyle — constant scale', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: [255, 0, 0, 1] } },
+            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
             channels: ['fill-color'],
           },
         ],
@@ -56,7 +56,7 @@ describe('grammarToOLStyle — constant scale', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: 3 } },
+            scale: { scheme: 'constant_num', params: { value: 3 } },
             channels: ['stroke-width'],
           },
         ],
@@ -77,7 +77,7 @@ describe('grammarToOLStyle — fan-out', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: [0, 128, 255, 1] } },
+            scale: { scheme: 'constant_rgba', params: { value: [0, 128, 255, 1] } },
             channels: ['fill-color', 'stroke-color', 'circle-fill-color'],
           },
         ],
@@ -94,11 +94,11 @@ describe('grammarToOLStyle — fan-out', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: [255, 0, 0, 1] } },
+            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
             channels: ['fill-color'],
           },
           {
-            scale: { scheme: 'constant', params: { value: 2 } },
+            scale: { scheme: 'constant_num', params: { value: 2 } },
             channels: ['stroke-width', 'circle-stroke-width'],
           },
         ],
@@ -121,15 +121,15 @@ describe('grammarToOLStyle — sub-channel assembly', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: 255 } },
+            scale: { scheme: 'constant_num', params: { value: 255 } },
             channels: ['fill-red'],
           },
           {
-            scale: { scheme: 'constant', params: { value: 0 } },
+            scale: { scheme: 'constant_num', params: { value: 0 } },
             channels: ['fill-green', 'fill-blue'],
           },
           {
-            scale: { scheme: 'constant', params: { value: 1 } },
+            scale: { scheme: 'constant_num', params: { value: 1 } },
             channels: ['fill-alpha'],
           },
         ],
@@ -149,7 +149,7 @@ describe('grammarToOLStyle — sub-channel assembly', () => {
         id: '1',
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: 128 } },
+            scale: { scheme: 'constant_num', params: { value: 128 } },
             channels: ['fill-red'],
           },
         ],
@@ -172,7 +172,7 @@ describe('grammarToOLStyle — when predicates', () => {
         when: [{ type: 'geometryType', value: 'Point' }],
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: [255, 0, 0, 1] } },
+            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
             channels: ['fill-color'],
           },
         ],
@@ -190,7 +190,7 @@ describe('grammarToOLStyle — when predicates', () => {
         when: [{ type: 'fieldEquals', field: 'type', value: 'road' }],
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: [0, 0, 0, 1] } },
+            scale: { scheme: 'constant_rgba', params: { value: [0, 0, 0, 1] } },
             channels: ['stroke-color'],
           },
         ],
@@ -209,7 +209,7 @@ describe('grammarToOLStyle — when predicates', () => {
         ],
         mappings: [
           {
-            scale: { scheme: 'constant', params: { value: [255, 0, 0, 1] } },
+            scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
             channels: ['fill-color'],
           },
         ],
@@ -226,7 +226,7 @@ describe('grammarToOLStyle — when predicates', () => {
           when: [{ type: 'geometryType', value: 'Point' }],
           mappings: [
             {
-              scale: { scheme: 'constant', params: { value: [255, 0, 0, 1] } },
+              scale: { scheme: 'constant_rgba', params: { value: [255, 0, 0, 1] } },
               channels: ['fill-color'],
             },
           ],
@@ -235,7 +235,7 @@ describe('grammarToOLStyle — when predicates', () => {
           id: '2',
           mappings: [
             {
-              scale: { scheme: 'constant', params: { value: [0, 255, 0, 1] } },
+              scale: { scheme: 'constant_rgba', params: { value: [0, 255, 0, 1] } },
               channels: ['fill-color'],
             },
           ],

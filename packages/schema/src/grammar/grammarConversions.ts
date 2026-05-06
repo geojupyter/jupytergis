@@ -41,19 +41,19 @@ export function singleSymbolToGrammar(
     id: UUID.uuid4(),
     mappings: [
       {
-        scale: { scheme: 'constant', params: { value: fill } },
+        scale: { scheme: 'constant_rgba', params: { value: fill } },
         channels: ['fill-color', 'circle-fill-color'],
       },
       {
-        scale: { scheme: 'constant', params: { value: stroke } },
+        scale: { scheme: 'constant_rgba', params: { value: stroke } },
         channels: ['stroke-color', 'circle-stroke-color'],
       },
       {
-        scale: { scheme: 'constant', params: { value: strokeWidth } },
+        scale: { scheme: 'constant_num', params: { value: strokeWidth } },
         channels: ['stroke-width', 'circle-stroke-width'],
       },
       {
-        scale: { scheme: 'constant', params: { value: radius } },
+        scale: { scheme: 'constant_num', params: { value: radius } },
         channels: ['circle-radius'],
       },
     ],
@@ -109,18 +109,18 @@ export function graduatedToGrammar(
 
   if (!state.strokeFollowsFill) {
     mappings.push({
-      scale: { scheme: 'constant', params: { value: stroke } },
+      scale: { scheme: 'constant_rgba', params: { value: stroke } },
       channels: ['stroke-color', 'circle-stroke-color'],
     });
   }
 
   mappings.push(
     {
-      scale: { scheme: 'constant', params: { value: strokeWidth } },
+      scale: { scheme: 'constant_num', params: { value: strokeWidth } },
       channels: ['stroke-width', 'circle-stroke-width'],
     },
     {
-      scale: { scheme: 'constant', params: { value: radius } },
+      scale: { scheme: 'constant_num', params: { value: radius } },
       channels: ['circle-radius'],
     },
   );
@@ -175,18 +175,18 @@ export function categorizedToGrammar(
 
   if (!state.strokeFollowsFill) {
     mappings.push({
-      scale: { scheme: 'constant', params: { value: stroke } },
+      scale: { scheme: 'constant_rgba', params: { value: stroke } },
       channels: ['stroke-color', 'circle-stroke-color'],
     });
   }
 
   mappings.push(
     {
-      scale: { scheme: 'constant', params: { value: strokeWidth } },
+      scale: { scheme: 'constant_num', params: { value: strokeWidth } },
       channels: ['stroke-width', 'circle-stroke-width'],
     },
     {
-      scale: { scheme: 'constant', params: { value: radius } },
+      scale: { scheme: 'constant_num', params: { value: radius } },
       channels: ['circle-radius'],
     },
   );
@@ -240,7 +240,8 @@ export function grammarToSingleSymbolState(
 
   for (const rule of grammar.rules) {
     for (const mapping of rule.mappings) {
-      if (mapping.scale.scheme !== 'constant') {
+      const { scheme } = mapping.scale;
+      if (scheme !== 'constant_rgba' && scheme !== 'constant_num') {
         continue;
       }
       const { value } = mapping.scale.params;
@@ -326,7 +327,7 @@ export function grammarToGraduatedState(
         } else if (isStroke) {
           strokeFollowsFill = true;
         }
-      } else if (scale.scheme === 'constant') {
+      } else if (scale.scheme === 'constant_rgba' || scale.scheme === 'constant_num') {
         if (isStroke) {
           strokeColor = scale.params.value as RGBA;
         } else if (isStrokeWidth) {
@@ -403,7 +404,7 @@ export function grammarToCategorizedState(
         } else if (isStroke) {
           strokeFollowsFill = true;
         }
-      } else if (scale.scheme === 'constant') {
+      } else if (scale.scheme === 'constant_rgba' || scale.scheme === 'constant_num') {
         if (isStroke) {
           strokeColor = scale.params.value as RGBA;
         } else if (isStrokeWidth) {

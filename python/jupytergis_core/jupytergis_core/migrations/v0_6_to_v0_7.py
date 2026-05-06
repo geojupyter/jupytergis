@@ -63,19 +63,19 @@ def _single_symbol(state: dict[str, Any]) -> dict[str, Any]:
         "id": str(uuid.uuid4()),
         "mappings": [
             {
-                "scale": {"scheme": "constant", "params": {"value": fill}},
+                "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
                 "channels": ["fill-color", "circle-fill-color"],
             },
             {
-                "scale": {"scheme": "constant", "params": {"value": stroke}},
+                "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
                 "channels": ["stroke-color", "circle-stroke-color"],
             },
             {
-                "scale": {"scheme": "constant", "params": {"value": stroke_width}},
+                "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
                 "channels": ["stroke-width", "circle-stroke-width"],
             },
             {
-                "scale": {"scheme": "constant", "params": {"value": radius}},
+                "scale": {"scheme": "constant_num", "params": {"value": radius}},
                 "channels": ["circle-radius"],
             },
         ],
@@ -115,12 +115,12 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
     ]
     if not state.get("strokeFollowsFill"):
         mappings.append({
-            "scale": {"scheme": "constant", "params": {"value": stroke}},
+            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
             "channels": ["stroke-color", "circle-stroke-color"],
         })
     mappings += [
-        {"scale": {"scheme": "constant", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
-        {"scale": {"scheme": "constant", "params": {"value": radius}}, "channels": ["circle-radius"]},
+        {"scale": {"scheme": "constant_num", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
+        {"scale": {"scheme": "constant_num", "params": {"value": radius}}, "channels": ["circle-radius"]},
     ]
 
     rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
@@ -159,12 +159,12 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
     ]
     if not state.get("strokeFollowsFill"):
         mappings.append({
-            "scale": {"scheme": "constant", "params": {"value": stroke}},
+            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
             "channels": ["stroke-color", "circle-stroke-color"],
         })
     mappings += [
-        {"scale": {"scheme": "constant", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
-        {"scale": {"scheme": "constant", "params": {"value": radius}}, "channels": ["circle-radius"]},
+        {"scale": {"scheme": "constant_num", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
+        {"scale": {"scheme": "constant_num", "params": {"value": radius}}, "channels": ["circle-radius"]},
     ]
 
     rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}

@@ -162,14 +162,21 @@ export interface IKDEScale {
 }
 
 /**
- * constant: any → any
- * Outputs a fixed value regardless of feature data. No field needed.
+ * constant_rgba: any → RGBA
+ * Outputs a fixed color regardless of feature data. No field needed.
  */
-export interface IConstantScale {
-  scheme: 'constant';
-  params: {
-    value: RGBA | number;
-  };
+export interface IConstantRGBAScale {
+  scheme: 'constant_rgba';
+  params: { value: RGBA };
+}
+
+/**
+ * constant_num: any → posfloat
+ * Outputs a fixed number regardless of feature data. No field needed.
+ */
+export interface IConstantNumScale {
+  scheme: 'constant_num';
+  params: { value: number };
 }
 
 /**
@@ -185,7 +192,8 @@ export type IScale =
   | ICategoricalScale
   | IScalarScale
   | IKDEScale
-  | IConstantScale
+  | IConstantRGBAScale
+  | IConstantNumScale
   | IIdentityScale;
 
 // ---------------------------------------------------------------------------

@@ -7,7 +7,8 @@ import {
   ClassificationMode,
   ICategoricalScale,
   IColorRampScale,
-  IConstantScale,
+  IConstantNumScale,
+  IConstantRGBAScale,
   IScale,
   IScalarScale,
   OLStyleChannel,
@@ -66,20 +67,16 @@ const MODE_OPTIONS: ClassificationMode[] = [
 // ---------------------------------------------------------------------------
 
 interface IConstantEditorProps {
-  scale: IConstantScale;
+  scale: IConstantRGBAScale | IConstantNumScale;
   channels: OLStyleChannel[];
   onChange: (scale: IScale) => void;
 }
 
 export const ConstantEditor: React.FC<IConstantEditorProps> = ({
   scale,
-  channels,
   onChange,
 }) => {
-  const isNumeric = channels.some(ch => POSFLOAT_CHANNELS.has(ch));
-  const { value } = scale.params;
-
-  if (isNumeric) {
+  if (scale.scheme === 'constant_num') {
     return (
       <div className="jp-gis-symbology-row">
         <label>Value</label>
@@ -88,10 +85,10 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
           type="number"
           min={0}
           step={0.1}
-          value={value as number}
+          value={scale.params.value}
           onChange={e =>
             onChange({
-              scheme: 'constant',
+              scheme: 'constant_num',
               params: { value: Number(e.target.value) },
             })
           }
@@ -104,9 +101,9 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
     <div className="jp-gis-symbology-row">
       <label>Color</label>
       <RgbaColorPicker
-        color={value as RgbaColor}
+        color={scale.params.value as RgbaColor}
         onChange={color =>
-          onChange({ scheme: 'constant', params: { value: color } })
+          onChange({ scheme: 'constant_rgba', params: { value: color } })
         }
       />
     </div>

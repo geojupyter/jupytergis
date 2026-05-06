@@ -56,7 +56,7 @@ function canonicalToGrammarRows(state: any): IGrammarRow[] {
     rows.push({
       id: UUID.uuid4(),
       scale: {
-        scheme: 'constant',
+        scheme: 'constant_rgba',
         params: { value: state.strokeColor ?? DEFAULT_RGBA },
       },
       channels: ['stroke-color', 'circle-stroke-color'] as OLStyleChannel[],
@@ -65,7 +65,7 @@ function canonicalToGrammarRows(state: any): IGrammarRow[] {
   rows.push({
     id: UUID.uuid4(),
     scale: {
-      scheme: 'constant',
+      scheme: 'constant_num',
       params: { value: state.strokeWidth ?? 1 },
     },
     channels: ['stroke-width', 'circle-stroke-width'] as OLStyleChannel[],
@@ -166,7 +166,7 @@ const Grammar: React.FC<ISymbologyDialogWithAttributesProps> = ({
       ...prev,
       {
         id: UUID.uuid4(),
-        scale: { scheme: 'constant', params: { value: DEFAULT_RGBA } },
+        scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
         channels: [...DEFAULT_CHANNELS],
       },
     ]);

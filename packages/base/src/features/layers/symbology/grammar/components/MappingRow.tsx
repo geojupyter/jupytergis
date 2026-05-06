@@ -6,7 +6,8 @@
 
 import {
   IColorRampScale,
-  IConstantScale,
+  IConstantNumScale,
+  IConstantRGBAScale,
   IPredicate,
   IScale,
   OLStyleChannel,
@@ -47,14 +48,12 @@ function compatibleChannels(scale: IScale): OLStyleChannel[] {
   switch (scale.scheme) {
     case 'colorRamp':
     case 'categorical':
+    case 'constant_rgba':
     case 'kde':
       return RGBA_CHANNELS;
     case 'scalar':
+    case 'constant_num':
       return POSFLOAT_CHANNELS;
-    case 'constant': {
-      const { value } = scale.params;
-      return typeof value === 'number' ? POSFLOAT_CHANNELS : RGBA_CHANNELS;
-    }
     default:
       return ALL_CHANNELS;
   }
@@ -62,19 +61,13 @@ function compatibleChannels(scale: IScale): OLStyleChannel[] {
 
 function defaultScaleForScheme(
   scheme: IScale['scheme'],
-  currentChannels: OLStyleChannel[],
+  _currentChannels: OLStyleChannel[],
 ): IScale {
-  const numericChannels = currentChannels.every(ch =>
-    POSFLOAT_CHANNELS.includes(ch),
-  );
   switch (scheme) {
-    case 'constant':
-      return numericChannels
-        ? ({ scheme: 'constant', params: { value: 1 } } as IConstantScale)
-        : ({
-            scheme: 'constant',
-            params: { value: [128, 128, 128, 1] as RGBA },
-          } as IConstantScale);
+    case 'constant_rgba':
+      return { scheme: 'constant_rgba', params: { value: [128, 128, 128, 1] as RGBA } } as IConstantRGBAScale;
+    case 'constant_num':
+      return { scheme: 'constant_num', params: { value: 1 } } as IConstantNumScale;
     case 'colorRamp':
       return {
         scheme: 'colorRamp',
@@ -109,52 +102,22 @@ function defaultScaleForScheme(
     case 'identity':
       return { scheme: 'identity' };
     default:
-      return { scheme: 'constant', params: { value: 1 } } as IConstantScale;
+      return { scheme: 'constant_num', params: { value: 1 } } as IConstantNumScale;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Display scheme — splits 'constant' into 'constantColor' | 'constantNum'
+// Scheme selector options
 // ---------------------------------------------------------------------------
 
-type DisplayScheme =
-  | Exclude<IScale['scheme'], 'constant'>
-  | 'constantColor'
-  | 'constantNum';
-
-const DISPLAY_SCHEME_OPTIONS: { value: DisplayScheme; label: string }[] = [
-  { value: 'constantColor', label: 'const (color)' },
-  { value: 'constantNum', label: 'const (num)' },
+const SCHEME_OPTIONS: { value: IScale['scheme']; label: string }[] = [
+  { value: 'constant_rgba', label: 'const (color)' },
+  { value: 'constant_num', label: 'const (num)' },
   { value: 'colorRamp', label: 'colorRamp' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
 ];
-
-function displaySchemeOf(scale: IScale): DisplayScheme {
-  if (scale.scheme !== 'constant') {
-    return scale.scheme;
-  }
-  return typeof scale.params.value === 'number'
-    ? 'constantNum'
-    : 'constantColor';
-}
-
-function scaleForDisplayScheme(
-  ds: DisplayScheme,
-  currentChannels: OLStyleChannel[],
-): IScale {
-  if (ds === 'constantColor') {
-    return {
-      scheme: 'constant',
-      params: { value: [128, 128, 128, 1] as RGBA },
-    } as IConstantScale;
-  }
-  if (ds === 'constantNum') {
-    return { scheme: 'constant', params: { value: 1 } } as IConstantScale;
-  }
-  return defaultScaleForScheme(ds, currentChannels);
-}
 
 // ---------------------------------------------------------------------------
 // Scale preview
@@ -196,16 +159,8 @@ const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
 
 const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
   switch (scale.scheme) {
-    case 'constant': {
-      const { value } = scale.params;
-      if (typeof value === 'number') {
-        return (
-          <span className="jp-gis-scale-preview">
-            <span className="jp-gis-scale-meta">= {value}</span>
-          </span>
-        );
-      }
-      const [r, g, b, a] = value as RGBA;
+    case 'constant_rgba': {
+      const [r, g, b, a] = scale.params.value;
       return (
         <span className="jp-gis-scale-preview">
           <span
@@ -218,6 +173,12 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
         </span>
       );
     }
+    case 'constant_num':
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">= {scale.params.value}</span>
+        </span>
+      );
     case 'colorRamp': {
       const { name, reverse, domain } = scale.params;
       return (
@@ -471,8 +432,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const handleSchemeChange = useCallback(
-    (ds: DisplayScheme) => {
-      const newScale = scaleForDisplayScheme(ds, row.channels);
+    (scheme: IScale['scheme']) => {
+      const newScale = defaultScaleForScheme(scheme, row.channels);
       const compat = compatibleChannels(newScale);
       const filtered = row.channels.filter(ch => compat.includes(ch));
       onChange({
@@ -568,10 +529,12 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         >
           <select
             className="jp-mod-styled"
-            value={displaySchemeOf(row.scale)}
-            onChange={e => handleSchemeChange(e.target.value as DisplayScheme)}
+            value={row.scale.scheme}
+            onChange={e =>
+              handleSchemeChange(e.target.value as IScale['scheme'])
+            }
           >
-            {DISPLAY_SCHEME_OPTIONS.map(({ value, label }) => (
+            {SCHEME_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>
                 {label}
               </option>
@@ -693,7 +656,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       {/* Inline scale editor */}
       {expanded && (
         <div className="jp-gis-grammar-rule-editor">
-          {row.scale.scheme === 'constant' && (
+          {(row.scale.scheme === 'constant_rgba' ||
+            row.scale.scheme === 'constant_num') && (
             <ConstantEditor
               scale={row.scale}
               channels={row.channels}

@@ -233,7 +233,8 @@ function compileMapping(
     case 'kde':
       // KDE compilation is handled at the layer level (HeatmapLayer), not here.
       return 'rgba(0,0,0,0)';
-    case 'constant':
+    case 'constant_rgba':
+    case 'constant_num':
       return scale.params.value as ExpressionValue;
     case 'scalar':
       return field ? compileScalar(field, scale) : scale.params.fallback;
