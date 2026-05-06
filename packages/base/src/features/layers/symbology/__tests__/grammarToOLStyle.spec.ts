@@ -147,7 +147,7 @@ describe('grammarToOLStyle — sub-channel assembly', () => {
         ],
       }),
     );
-    expect(style['fill-color']).toEqual(['array', 255, 0, 0, 1]);
+    expect(style['fill-color']).toEqual(['color', 255, 0, 0, 1]);
     // Sub-channels should not appear as top-level keys
     expect(style['fill-red']).toBeUndefined();
     expect(style['fill-green']).toBeUndefined();
@@ -168,7 +168,7 @@ describe('grammarToOLStyle — sub-channel assembly', () => {
       }),
     );
     // green, blue default to 0; alpha defaults to 1
-    expect(style['fill-color']).toEqual(['array', 128, 0, 0, 1]);
+    expect(style['fill-color']).toEqual(['color', 128, 0, 0, 1]);
   });
 });
 

@@ -21,6 +21,7 @@ import {
   Heatmap as HeatmapLayer,
   Layer,
   VectorImage as VectorImageLayer,
+  WebGLTile as WebGLTileLayer,
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import { Vector as VectorSource } from 'ol/source';
@@ -38,16 +39,32 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
 
 /**
  * Compile a Grammar symbology state into a single OL layer.
+ *
+ * isRaster=true: each grammar layer → WebGLTile (pixel-color channel → color
+ *   style), $band-N fields → ['band', N] expressions.
+ * isRaster=false (default): non-KDE → VectorImageLayer, KDE → HeatmapLayer.
+ *
  * When the state contains multiple grammar layers a LayerGroup is returned;
  * otherwise the appropriate single layer type is returned directly.
  */
 export function grammarToOLLayer(
   state: IGrammarSymbologyState,
-  source: VectorSource,
+  source: VectorSource | any,
   opacity: number,
   visible: boolean,
   featureValues: unknown[] = [],
+  isRaster = false,
 ): Layer | LayerGroup {
+  if (isRaster) {
+    const subLayers = state.layers.map(grammarLayer =>
+      compileRasterLayer(grammarLayer, source, opacity, visible, featureValues),
+    );
+    if (subLayers.length === 1) {
+      return subLayers[0];
+    }
+    return new LayerGroup({ opacity, visible, layers: subLayers });
+  }
+
   const subLayers = state.layers.map(grammarLayer =>
     compileGrammarLayer(grammarLayer, source, opacity, visible, featureValues),
   );
@@ -91,6 +108,59 @@ function compileGrammarLayer(
     visible,
     featureValues,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Raster → WebGLTileLayer
+// ---------------------------------------------------------------------------
+
+/**
+ * Compile a single Grammar layer to an OL WebGLTile layer.
+ * The pixel-color channel of the compiled style becomes the WebGL tile
+ * `color` expression.  $band-N fields compile to ['band', N] in the style
+ * compiler; normalized GeoTIFF bands cover [0, 1] so featureValues [0, 1]
+ * produces sensible colorRamp stops by default.
+ */
+function compileRasterLayer(
+  grammarLayer: IGrammarLayer,
+  source: any,
+  opacity: number,
+  visible: boolean,
+  featureValues: unknown[],
+): WebGLTileLayer {
+  const singleLayerState: IGrammarSymbologyState = {
+    renderType: 'Grammar',
+    layers: [grammarLayer],
+  };
+  // Use [0, 1] as fallback values so colorRamp stops span the normalized
+  // band range when no explicit featureValues are provided.
+  const values = featureValues.length > 0 ? featureValues : [0, 1];
+  const flatStyle = grammarToOLStyle(singleLayerState, values);
+  const colorExpr = flatStyle['pixel-color'];
+
+  console.debug(
+    '[grammarToOLLayer] raster flatStyle:',
+    JSON.stringify(flatStyle, null, 2),
+  );
+  console.debug(
+    '[grammarToOLLayer] raster colorExpr:',
+    JSON.stringify(colorExpr, null, 2),
+  );
+
+  try {
+    return new WebGLTileLayer({
+      opacity,
+      visible,
+      source,
+      ...(colorExpr !== undefined
+        ? { style: { color: colorExpr as any } }
+        : {}),
+    });
+  } catch (e) {
+    console.error('[grammarToOLLayer] WebGLTileLayer creation failed:', e);
+    // Fall back to unstyled layer so the source is still visible.
+    return new WebGLTileLayer({ opacity, visible, source });
+  }
 }
 
 // ---------------------------------------------------------------------------

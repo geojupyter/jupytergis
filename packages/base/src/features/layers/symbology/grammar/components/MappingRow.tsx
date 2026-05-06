@@ -45,7 +45,16 @@ const POSFLOAT_CHANNELS: OLStyleChannel[] = [
 const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 
 // Channels relevant for raster/KDE layers.
-const PIXEL_RGBA_CHANNELS: OLStyleChannel[] = ['pixel-color'];
+// pixel-color: full RGBA (use with colorRamp/constant).
+// pixel-red/green/blue/alpha: sub-channels for composing multiband or
+//   constant-RGB-with-band-alpha expressions; assembled by grammarToOLStyle
+//   into ['array', r, g, b, a].
+const PIXEL_RGBA_CHANNELS: OLStyleChannel[] = [
+  'pixel-color',
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+];
 const PIXEL_FLOAT_CHANNELS: OLStyleChannel[] = ['pixel-alpha'];
 const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
 

@@ -80,7 +80,10 @@ def _single_symbol(state: dict[str, Any]) -> dict[str, Any]:
             },
         ],
     }
-    return {"renderType": "Grammar", "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}]}
+    return {
+        "renderType": "Grammar",
+        "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}],
+    }
 
 
 def _graduated(state: dict[str, Any]) -> dict[str, Any]:
@@ -114,20 +117,31 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
         {"scale": color_ramp_scale, "channels": fill_channels},
     ]
     if not state.get("strokeFollowsFill"):
-        mappings.append({
-            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        })
+        mappings.append(
+            {
+                "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
+                "channels": ["stroke-color", "circle-stroke-color"],
+            }
+        )
     mappings += [
-        {"scale": {"scheme": "constant_num", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
-        {"scale": {"scheme": "constant_num", "params": {"value": radius}}, "channels": ["circle-radius"]},
+        {
+            "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
+            "channels": ["stroke-width", "circle-stroke-width"],
+        },
+        {
+            "scale": {"scheme": "constant_num", "params": {"value": radius}},
+            "channels": ["circle-radius"],
+        },
     ]
 
     rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
     if field:
         rule["fields"] = [field]
 
-    return {"renderType": "Grammar", "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}]}
+    return {
+        "renderType": "Grammar",
+        "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}],
+    }
 
 
 def _categorized(state: dict[str, Any]) -> dict[str, Any]:
@@ -158,17 +172,28 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
         {"scale": categorical_scale, "channels": fill_channels},
     ]
     if not state.get("strokeFollowsFill"):
-        mappings.append({
-            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        })
+        mappings.append(
+            {
+                "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
+                "channels": ["stroke-color", "circle-stroke-color"],
+            }
+        )
     mappings += [
-        {"scale": {"scheme": "constant_num", "params": {"value": stroke_width}}, "channels": ["stroke-width", "circle-stroke-width"]},
-        {"scale": {"scheme": "constant_num", "params": {"value": radius}}, "channels": ["circle-radius"]},
+        {
+            "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
+            "channels": ["stroke-width", "circle-stroke-width"],
+        },
+        {
+            "scale": {"scheme": "constant_num", "params": {"value": radius}},
+            "channels": ["circle-radius"],
+        },
     ]
 
     rule: dict[str, Any] = {"id": str(uuid.uuid4()), "mappings": mappings}
     if field:
         rule["fields"] = [field]
 
-    return {"renderType": "Grammar", "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}]}
+    return {
+        "renderType": "Grammar",
+        "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}],
+    }

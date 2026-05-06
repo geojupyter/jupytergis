@@ -6,8 +6,8 @@ import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
 import { SymbologyTab, SymbologyValue } from '@/src/types';
-import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
+import Grammar from './vector_layer/types/Grammar';
 
 export interface ISymbologyDialogProps {
   model: IJupyterGISModel;
@@ -102,7 +102,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
         break;
       case 'GeoTiffLayer':
         LayerSymbology = (
-          <TiffRendering
+          <Grammar
             model={model}
             okSignalPromise={okSignalPromise}
             layerId={selectedLayer}

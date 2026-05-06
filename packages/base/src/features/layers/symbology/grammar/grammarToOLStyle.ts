@@ -38,6 +38,28 @@ import {
 export const DENSITY_FIELD = '$density';
 
 // ---------------------------------------------------------------------------
+// Field expression helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a field name to an OL expression.
+ * $band-N (raster pseudo-fields) → ['band', N]
+ * everything else → ['get', field]
+ */
+function fieldExpr(field: string): ExpressionValue {
+  const m = field.match(/^\$band-(\d+)$/);
+  if (m) {
+    return ['band', parseInt(m[1], 10)] as ExpressionValue;
+  }
+  return ['get', field];
+}
+
+/** Band pseudo-fields always exist; vector feature properties may not. */
+function fieldAlwaysPresent(field: string): boolean {
+  return /^\$band-\d+$/.test(field) || field === DENSITY_FIELD;
+}
+
+// ---------------------------------------------------------------------------
 // Types used internally during compilation
 // ---------------------------------------------------------------------------
 
@@ -83,8 +105,10 @@ export function grammarToOLStyle(
         rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
 
       for (const mapping of rule.mappings) {
-        const expr = compileMapping(field, mapping, featureValues);
+        // Compile per-channel so sub-channels (pixel-red/green/blue) can each
+        // extract the correct component from a colorRamp or other color scale.
         for (const channel of mapping.channels) {
+          const expr = compileMapping(field, mapping, featureValues, channel);
           const entries = accumulator.get(channel) ?? [];
           entries.push({ guard, expr });
           accumulator.set(channel, entries);
@@ -182,6 +206,7 @@ function assembleStyle(
   }
 
   // Assemble fill-color from sub-channels if any fill-* sub-channel is present.
+  // ['color', r, g, b, a] is the OL operator that produces ColorType (r/g/b 0-255, a 0-1).
   if (
     FILL_SUB.some(c => channelExprs.has(c)) ||
     FILL_ALPHA_SUB.some(c => channelExprs.has(c))
@@ -190,20 +215,24 @@ function assembleStyle(
     const g = channelExprs.get('fill-green') ?? 0;
     const b = channelExprs.get('fill-blue') ?? 0;
     const a = channelExprs.get('fill-alpha') ?? 1;
-    // Merge with any direct fill-color — sub-channels take precedence.
-    style['fill-color'] = ['array', r, g, b, a];
+    style['fill-color'] = ['color', r, g, b, a] as ExpressionValue;
   }
 
-  // Assemble pixel-color similarly.
-  if (
-    PIXEL_SUB.some(c => channelExprs.has(c)) ||
-    PIXEL_ALPHA_SUB.some(c => channelExprs.has(c))
-  ) {
+  // Assemble pixel-color from sub-channels when pixel-R/G/B are present.
+  // pixel-alpha alone does NOT overwrite a direct pixel-color mapping.
+  if (PIXEL_SUB.some(c => channelExprs.has(c))) {
     const r = channelExprs.get('pixel-red') ?? 0;
     const g = channelExprs.get('pixel-green') ?? 0;
     const b = channelExprs.get('pixel-blue') ?? 0;
     const a = channelExprs.get('pixel-alpha') ?? 1;
-    style['pixel-color'] = ['array', r, g, b, a];
+    style['pixel-color'] = ['color', r, g, b, a] as ExpressionValue;
+  } else if (
+    PIXEL_ALPHA_SUB.some(c => channelExprs.has(c)) &&
+    !channelExprs.has('pixel-color')
+  ) {
+    // Alpha-only with no direct pixel-color: compose with black.
+    const a = channelExprs.get('pixel-alpha') ?? 1;
+    style['pixel-color'] = ['color', 0, 0, 0, a] as ExpressionValue;
   }
 
   return style;
@@ -233,16 +262,40 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
 // Mapping compilation — dispatches by scale scheme
 // ---------------------------------------------------------------------------
 
+/**
+ * Return the RGBA array index for a sub-channel, or undefined for full-color
+ * channels.  Used to decompose a colorRamp into a single numeric component.
+ */
+function colorComponentIndex(channel: OLStyleChannel): number | undefined {
+  switch (channel) {
+    case 'fill-red':
+    case 'pixel-red':
+      return 0;
+    case 'fill-green':
+    case 'pixel-green':
+      return 1;
+    case 'fill-blue':
+    case 'pixel-blue':
+      return 2;
+    case 'fill-alpha':
+    case 'pixel-alpha':
+      return 3;
+    default:
+      return undefined;
+  }
+}
+
 function compileMapping(
   field: string | undefined,
   mapping: IMapping,
   featureValues: unknown[],
+  channel: OLStyleChannel,
 ): ExpressionValue {
   const { scale } = mapping;
   switch (scale.scheme) {
     case 'colorRamp':
       return field
-        ? compileColorRamp(field, scale, featureValues)
+        ? compileColorRamp(field, scale, featureValues, channel)
         : scale.params.fallback;
     case 'categorical':
       return field
@@ -278,7 +331,10 @@ function compileMapping(
       const typedFallback: ExpressionValue = isColorChannel
         ? ([0, 0, 0, 0] as ExpressionValue)
         : 0;
-      return ['coalesce', ['get', field], typedFallback] as ExpressionValue;
+      if (fieldAlwaysPresent(field)) {
+        return fieldExpr(field);
+      }
+      return ['coalesce', fieldExpr(field), typedFallback] as ExpressionValue;
     }
   }
 }
@@ -299,18 +355,39 @@ function compileColorRamp(
   field: string,
   scale: IColorRampScale,
   featureValues: unknown[],
+  channel?: OLStyleChannel,
 ): ExpressionValue {
   const stops = resolveColorStops(scale, featureValues);
+  const componentIdx =
+    channel !== undefined ? colorComponentIndex(channel) : undefined;
 
   const interpolateExpr: ExpressionValue[] = [
     'interpolate',
     ['linear'],
-    ['get', field],
+    fieldExpr(field),
   ];
+
+  if (componentIdx !== undefined) {
+    // Sub-channel scalar interpolation for one color component (R=0,G=1,B=2,A=3).
+    // colormap stops carry [r, g, b, a] with r/g/b in 0-255 and a in 0-1.
+    // Values are passed as-is since assembleStyle uses ['color', r, g, b, a]
+    // which takes r/g/b in 0-255.
+    for (const { stop, color } of stops) {
+      interpolateExpr.push(stop, (color as number[])[componentIdx]);
+    }
+    if (fieldAlwaysPresent(field)) {
+      return interpolateExpr;
+    }
+    return ['case', ['has', field], interpolateExpr, 0];
+  }
+
+  // Full color channel: emit the usual RGBA interpolation.
   for (const { stop, color } of stops) {
     interpolateExpr.push(stop, color as ExpressionValue);
   }
-
+  if (fieldAlwaysPresent(field)) {
+    return interpolateExpr;
+  }
   return ['case', ['has', field], interpolateExpr, scale.params.fallback];
 }
 
@@ -378,7 +455,7 @@ function compileCategorical(
   const caseExpr: ExpressionValue[] = ['case'];
   for (const stop of stops) {
     caseExpr.push(
-      ['==', ['get', field], stop.value as ExpressionValue],
+      ['==', fieldExpr(field), stop.value as ExpressionValue],
       stop.color as ExpressionValue,
     );
   }
@@ -398,7 +475,7 @@ function compileScalar(field: string, scale: IScalarScale): ExpressionValue {
   const interpolateExpr: ExpressionValue[] = [
     'interpolate',
     ['linear'],
-    ['get', field],
+    fieldExpr(field),
   ];
 
   if (scale.params.scalarStops && scale.params.scalarStops.length >= 2) {
@@ -414,5 +491,8 @@ function compileScalar(field: string, scale: IScalarScale): ExpressionValue {
     );
   }
 
+  if (fieldAlwaysPresent(field)) {
+    return interpolateExpr;
+  }
   return ['case', ['has', field], interpolateExpr, scale.params.fallback];
 }

@@ -22,6 +22,7 @@ import MappingRow, {
   IGrammarRow,
 } from '@/src/features/layers/symbology/grammar/components/MappingRow';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
+import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
 import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
@@ -186,6 +187,7 @@ interface ILayerSectionProps {
   totalLayers: number;
   availableFields: string[];
   featureValues: Record<string, Set<any>>;
+  isRasterLayer?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
 }
@@ -196,6 +198,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   totalLayers,
   availableFields,
   featureValues,
+  isRasterLayer = false,
   onChange,
   onDelete,
 }) => {
@@ -242,9 +245,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   );
 
   const hasKDE = layer.transforms.some(t => t.type === 'kde');
+  const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultChannels: OLStyleChannel[] = hasKDE
+    const defaultChannels: OLStyleChannel[] = isRaster
       ? ['pixel-color']
       : DEFAULT_CHANNELS;
     onChange({
@@ -258,12 +262,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         },
       ],
     });
-  }, [layer, onChange, hasKDE]);
+  }, [layer, onChange, isRaster]);
 
-  // A KDE transform produces a density raster — individual feature attributes
-  // are no longer meaningful as encoding inputs. Replace the field list with
-  // the single pseudo-field '$density'. The original fields remain available
-  // in the weightField selector of the TransformRow itself.
+  // KDE layers expose '$density'; raster layers expose $band-N fields.
+  // Both cases suppress the raw feature attribute list.
   const encodingFields = hasKDE ? ['$density'] : availableFields;
 
   return (
@@ -309,7 +311,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           row={row}
           availableFields={encodingFields}
           featureValues={featureValues}
-          isRaster={hasKDE}
+          isRaster={isRaster}
           onChange={updated => updateRow(i, updated)}
           onDelete={() => removeRow(i)}
         />
@@ -339,10 +341,14 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   segmentId,
 }) => {
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+  const isRasterLayer = layer?.type === 'GeoTiffLayer';
 
   const { featureProperties: selectableAttributesAndValues } = useGetProperties(
     { layerId, model },
   );
+
+  // For raster layers, expose $band-N pseudo-fields derived from band metadata.
+  const { bandRows } = useGetBandInfo(model, layer);
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -443,7 +449,9 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     ]);
   };
 
-  const availableFields = Object.keys(selectableAttributesAndValues);
+  const availableFields = isRasterLayer
+    ? bandRows.map(b => `$band-${b.band}`)
+    : Object.keys(selectableAttributesAndValues);
 
   return (
     <div className="jp-gis-layer-symbology-container">
@@ -455,6 +463,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           totalLayers={layers.length}
           availableFields={availableFields}
           featureValues={selectableAttributesAndValues}
+          isRasterLayer={isRasterLayer}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }

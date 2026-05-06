@@ -13,7 +13,10 @@ export interface IBandRow {
   };
 }
 
-const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
+const useGetBandInfo = (
+  model: IJupyterGISModel,
+  layer: IJGISLayer | null | undefined,
+) => {
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

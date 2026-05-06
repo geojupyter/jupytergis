@@ -1541,21 +1541,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoTiffLayer': {
         layerParameters = layer.parameters as IGeoTiffLayer;
+        const geoTiffSource = this._sources[layerParameters.source];
 
-        // This is to handle python sending a None for the color
-        const layerOptions: any = {
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-        };
-
-        if (layerParameters.color) {
-          layerOptions['style'] = {
-            color: layerParameters.color,
+        if (layerParameters.symbologyState?.renderType === 'Grammar') {
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            geoTiffSource,
+            layerParameters.opacity ?? 1,
+            layer.visible ?? true,
+            [],
+            true,
+          ) as OlLayerTypes;
+        } else {
+          // This is to handle python sending a None for the color
+          const layerOptions: any = {
+            opacity: layerParameters.opacity,
+            visible: layer.visible,
+            source: geoTiffSource,
           };
-        }
 
-        newMapLayer = new GeoTiffLayer(layerOptions);
+          if (layerParameters.color) {
+            layerOptions['style'] = {
+              color: layerParameters.color,
+            };
+          }
+
+          newMapLayer = new GeoTiffLayer(layerOptions);
+        }
         break;
       }
       case 'HeatmapLayer': {
@@ -1857,12 +1869,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'GeoTiffLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity);
-
-        if (layer?.parameters?.color) {
-          (mapLayer as GeoTiffLayer).setStyle({
-            color: layer.parameters.color,
-          });
+        if (layer?.parameters?.symbologyState?.renderType === 'Grammar') {
+          this.replaceLayer(id, layer);
+        } else {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+          if (layer?.parameters?.color) {
+            (mapLayer as GeoTiffLayer).setStyle({
+              color: layer.parameters.color,
+            });
+          }
         }
         break;
       }
