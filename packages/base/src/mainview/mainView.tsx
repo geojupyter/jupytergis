@@ -149,6 +149,7 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import { grammarToOLLayer } from '../features/layers/symbology/grammar/grammarToOLLayer';
 import { grammarToOLStyle } from '../features/layers/symbology/grammar/grammarToOLStyle';
 import {
   DEFAULT_FLAT_STYLE,
@@ -167,7 +168,8 @@ type OlLayerTypes =
   | GeoTiffLayer
   | HeatmapLayer
   | StacLayer
-  | ImageLayer<any>;
+  | ImageLayer<any>
+  | LayerGroup;
 
 const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
 
@@ -1435,7 +1437,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer,
-  ): Promise<Layer | StacLayer | undefined> {
+  ): Promise<Layer | LayerGroup | StacLayer | undefined> {
     this.setState(old => ({ ...old, loadingLayer: true }));
     this._loadingLayers.add(id);
 
@@ -1476,12 +1478,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newMapLayer = new VectorImageLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer),
-        });
+        if (layerParameters.symbologyState?.renderType === 'Grammar') {
+          const olSource = this._sources[
+            layerParameters.source
+          ] as VectorSource;
+          const featureValues =
+            olSource instanceof VectorSource
+              ? olSource
+                  .getFeatures()
+                  .flatMap(f => Object.values((f as Feature).getProperties()))
+              : [];
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            olSource,
+            layerParameters.opacity,
+            layer.visible,
+            featureValues,
+          ) as OlLayerTypes;
+        } else {
+          newMapLayer = new VectorImageLayer({
+            opacity: layerParameters.opacity,
+            visible: layer.visible,
+            source: this._sources[layerParameters.source],
+            style: this.vectorLayerStyleRuleBuilder(layer),
+          });
+        }
 
         break;
       }
@@ -1836,6 +1857,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'VectorLayer': {
         const layerParams = layer.parameters as IVectorLayer;
+
+        if (layerParams.symbologyState?.renderType === 'Grammar') {
+          // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
+          this.replaceLayer(id, layer);
+          break;
+        }
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 

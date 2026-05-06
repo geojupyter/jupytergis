@@ -450,10 +450,7 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
 
   if (fieldCount === 1) {
     return (
-      <div
-        className="jp-select-wrapper"
-        style={{ gridRow: 1, gridColumn: 1 }}
-      >
+      <div className="jp-select-wrapper" style={{ gridRow: 1, gridColumn: 1 }}>
         <select
           className="jp-mod-styled"
           value={fields[0] ?? ''}
@@ -494,7 +491,10 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
           </button>
         </span>
       ))}
-      <div className="jp-select-wrapper" style={{ minWidth: 60, flex: '0 0 auto' }}>
+      <div
+        className="jp-select-wrapper"
+        style={{ minWidth: 60, flex: '0 0 auto' }}
+      >
         <select
           className="jp-mod-styled"
           value=""
