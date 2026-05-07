@@ -572,10 +572,13 @@ export async function clipVectorByMaskLayer(
   if (processingInputs) {
     clipLayerId = processingInputs.clipLayer;
     embedOutputLayer = processingInputs.embedOutputLayer ?? true;
-    outputLayerName = processingInputs.outputLayerName ?? `${selected.name} Clipped`;
+    outputLayerName =
+      processingInputs.outputLayerName ?? `${selected.name} Clipped`;
   } else {
     const schema = {
-      ...(formSchemaRegistry.getSchemas().get('ClipVectorByMaskLayer') as IDict),
+      ...(formSchemaRegistry
+        .getSchemas()
+        .get('ClipVectorByMaskLayer') as IDict),
     };
     const selectedLayerId = Object.keys(
       model.sharedModel.awareness.getLocalState()?.selected?.value || {},
@@ -611,7 +614,7 @@ export async function clipVectorByMaskLayer(
 
   const clipLayer = layers[clipLayerId];
   if (!clipLayer) {
-    await showErrorMessage('Clip failed', `Clip layer not found.`);
+    await showErrorMessage('Clip failed', 'Clip layer not found.');
     return;
   }
 

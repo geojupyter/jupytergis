@@ -162,9 +162,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     clipSubmenu.id = 'jp-gis-contextmenu-clip';
 
     for (const processingElement of ProcessingMerge) {
-      if (
-        processingElement.type === 'clip'
-      ) {
+      if (processingElement.type === 'clip') {
         clipSubmenu.addItem({
           command: `jupytergis:${processingElement.name}`,
         });
