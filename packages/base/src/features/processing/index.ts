@@ -511,7 +511,7 @@ async function getRasterBytes(
       return null;
     }
     const binary = atob(url.slice(commaIdx + 1));
-    const bytes = new Uint8Array(binary.length) ;
+    const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
@@ -528,7 +528,7 @@ async function getRasterBytes(
       return null;
     }
     const buffer = await response.arrayBuffer();
-    return new Uint8Array(buffer) ;
+    return new Uint8Array(buffer);
   }
 
   // Local file path — resolve relative to the .jGIS document
@@ -543,7 +543,7 @@ async function getRasterBytes(
     return null;
   }
   const binary = atob(file.content);
-  const bytes = new Uint8Array(binary.length) ;
+  const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
@@ -691,7 +691,7 @@ export async function clipRasterByExtent(
       throw new Error('Expected base64 response for raster output');
     }
     const binary = atob(response.result);
-    outputTiffBytes = new Uint8Array(binary.length) ;
+    outputTiffBytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       outputTiffBytes[i] = binary.charCodeAt(i);
     }
@@ -726,9 +726,7 @@ export async function clipRasterByExtent(
       options,
       outputName,
     );
-    outputTiffBytes = new Uint8Array(
-      await Gdal.getFileBytes(outputPath),
-    ) ;
+    outputTiffBytes = new Uint8Array(await Gdal.getFileBytes(outputPath));
     Gdal.close(dataset);
     console.debug(
       `[JupyterGIS] BROWSER WASM GDAL raster clip finished in ${(performance.now() - t0).toFixed(0)}ms`,
