@@ -139,6 +139,11 @@
           "type": "array",
           "description": "Grammar encoding rules (when renderType is 'Grammar'). Each rule maps an optional input field to one or more (scale, channels) pairs.",
           "items": { "type": "object" }
+        },
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers (when renderType is 'Grammar'). Each layer is an independent rendering pipeline with optional preprocess transforms and encoding rules.",
+          "items": { "type": "object" }
         }
       },
       "additionalProperties": false,

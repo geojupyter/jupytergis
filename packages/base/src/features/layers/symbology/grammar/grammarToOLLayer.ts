@@ -138,29 +138,12 @@ function compileRasterLayer(
   const flatStyle = grammarToOLStyle(singleLayerState, values);
   const colorExpr = flatStyle['pixel-color'];
 
-  console.debug(
-    '[grammarToOLLayer] raster flatStyle:',
-    JSON.stringify(flatStyle, null, 2),
-  );
-  console.debug(
-    '[grammarToOLLayer] raster colorExpr:',
-    JSON.stringify(colorExpr, null, 2),
-  );
-
-  try {
-    return new WebGLTileLayer({
-      opacity,
-      visible,
-      source,
-      ...(colorExpr !== undefined
-        ? { style: { color: colorExpr as any } }
-        : {}),
-    });
-  } catch (e) {
-    console.error('[grammarToOLLayer] WebGLTileLayer creation failed:', e);
-    // Fall back to unstyled layer so the source is still visible.
-    return new WebGLTileLayer({ opacity, visible, source });
-  }
+  return new WebGLTileLayer({
+    opacity,
+    visible,
+    source,
+    ...(colorExpr !== undefined ? { style: { color: colorExpr as any } } : {}),
+  });
 }
 
 // ---------------------------------------------------------------------------

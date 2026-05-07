@@ -121,7 +121,7 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
                 "channels": ["stroke-color", "circle-stroke-color"],
-            }
+            },
         )
     mappings += [
         {
@@ -176,7 +176,7 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
                 "channels": ["stroke-color", "circle-stroke-color"],
-            }
+            },
         )
     mappings += [
         {
