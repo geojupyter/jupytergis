@@ -90,7 +90,9 @@ export function grammarToOLStyle(
   // this compiler only produces the flat-style for the vector portion.
   const accumulator = new Map<OLStyleChannel, IChannelEntry[]>();
 
-  for (const layer of state.layers) {
+  // Guard: state.layers may be absent on legacy Grammar states that predate
+  // the layers nesting (e.g. stored as { renderType: 'Grammar', rules: [...] }).
+  for (const layer of state.layers ?? []) {
     if (layer.preprocess?.some(t => t.type === 'kde')) {
       // KDE layers are compiled separately by the renderer (HeatmapLayer).
       // Skip flat-style compilation for this layer.

@@ -55,17 +55,26 @@ export function grammarToOLLayer(
   featureValues: unknown[] = [],
   isRaster = false,
 ): Layer | LayerGroup {
+  const grammarLayers = state.layers ?? [];
+
   if (isRaster) {
-    const subLayers = state.layers.map(grammarLayer =>
+    const subLayers = grammarLayers.map(grammarLayer =>
       compileRasterLayer(grammarLayer, source, opacity, visible, featureValues),
     );
     if (subLayers.length === 1) {
       return subLayers[0];
     }
+    // Empty or multi-layer: wrap in a group (empty group renders nothing).
     return new LayerGroup({ opacity, visible, layers: subLayers });
   }
 
-  const subLayers = state.layers.map(grammarLayer =>
+  if (grammarLayers.length === 0) {
+    // No grammar layers defined yet — return an empty vector layer so the map
+    // has a valid layer object to call setVisible/setOpacity on.
+    return new VectorImageLayer({ opacity, visible, source });
+  }
+
+  const subLayers = grammarLayers.map(grammarLayer =>
     compileGrammarLayer(grammarLayer, source, opacity, visible, featureValues),
   );
 
