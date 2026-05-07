@@ -6,7 +6,7 @@ import {
   IPredicate,
   RGBA,
 } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import {
   ColorRampName,
@@ -29,6 +29,24 @@ type GradientEntry = {
   colors: string[];
   /** Explicit stop breakpoints (value + colour) when available */
   stops?: { value: number; color: string }[];
+  /**
+   * How tick positions are computed along the colour bar.
+   * 'index'  — equal visual spacing (default; correct for log/non-linear scales)
+   * 'value'  — linear interpolation of data values; auto-subsamples to avoid overlap
+   */
+  tickMode?: 'index' | 'value';
+  /** Significant digits for tick labels (default 2) */
+  sigDigits?: number;
+  /**
+   * Fixed text labels rendered flush-left and flush-right below the bar
+   * (e.g. ['Low', 'High'] for density).  Replaces numeric tick marks.
+   */
+  endLabels?: [string, string];
+  /**
+   * When true a checkerboard pattern is shown behind the bar to indicate
+   * that alpha (transparency) varies across the gradient.
+   */
+  withAlpha?: boolean;
 };
 
 type CategoricalEntry = {
@@ -99,6 +117,50 @@ function rampColors(name: string, n = 7): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// Value formatting
+// ---------------------------------------------------------------------------
+
+/**
+ * Format a numeric tick value using at most `sigDigits` significant digits.
+ * Uses exponential notation for very large or very small values.
+ */
+function formatTickValue(v: number, sigDigits: number): string {
+  if (v === 0) {
+    return '0';
+  }
+  const abs = Math.abs(v);
+  if (abs >= 0.01 && abs < 1e6) {
+    return parseFloat(v.toPrecision(sigDigits)).toString();
+  }
+  return v.toExponential(sigDigits - 1);
+}
+
+/** Linearly interpolate a scalar mapping's output at a given stop value. */
+function interpolateScalar(
+  scalarStops: { stop: number; output: number }[],
+  value: number,
+): number {
+  if (scalarStops.length === 0) {
+    return 1;
+  }
+  if (value <= scalarStops[0].stop) {
+    return scalarStops[0].output;
+  }
+  if (value >= scalarStops[scalarStops.length - 1].stop) {
+    return scalarStops[scalarStops.length - 1].output;
+  }
+  for (let i = 0; i < scalarStops.length - 1; i++) {
+    const lo = scalarStops[i];
+    const hi = scalarStops[i + 1];
+    if (value >= lo.stop && value <= hi.stop) {
+      const t = (value - lo.stop) / (hi.stop - lo.stop);
+      return lo.output + t * (hi.output - lo.output);
+    }
+  }
+  return 1;
+}
+
+// ---------------------------------------------------------------------------
 // Channel label helpers
 // ---------------------------------------------------------------------------
 
@@ -150,9 +212,27 @@ function deriveChannelLabel(channels: string[]): string {
   if (set.has('circle-radius')) {
     return 'Radius';
   }
-  if (set.has('pixel-color') || channels.some(c => c.startsWith('pixel-'))) {
-    return 'Color';
+
+  // Pixel channels (raster / KDE).
+  if (set.has('pixel-color')) {
+    return 'pixel-rgba';
   }
+  if (set.has('pixel-rgb')) {
+    return 'pixel-rgb';
+  }
+  if (set.has('pixel-red')) {
+    return 'pixel-red';
+  }
+  if (set.has('pixel-green')) {
+    return 'pixel-green';
+  }
+  if (set.has('pixel-blue')) {
+    return 'pixel-blue';
+  }
+  if (set.has('pixel-alpha')) {
+    return 'pixel-alpha';
+  }
+
   return channels[0] ?? '';
 }
 
@@ -185,6 +265,12 @@ const COLOR_CHANNELS = new Set([
   'circle-fill-color',
   'stroke-color',
   'circle-stroke-color',
+  'pixel-color', // full RGBA (shown as "pixel-rgba" in the UI)
+  'pixel-rgb', // virtual: fans out to pixel-red/green/blue
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+  'pixel-alpha',
 ]);
 
 const SIZE_CHANNELS = new Set(['circle-radius']);
@@ -196,7 +282,7 @@ function kdeToLegendEntries(
 ): LegendEntry[] {
   const entries: LegendEntry[] = [];
 
-  // Label: "Density" or "Density (weight: <field>)" when a weight field is set.
+  // "Density" or "Density (weight: <field>)" as the input descriptor.
   const densityLabel = kdeTransform.weightField
     ? `Density (weight: ${kdeTransform.weightField})`
     : 'Density';
@@ -214,18 +300,21 @@ function kdeToLegendEntries(
       entries.push({
         type: 'gradient',
         field: densityLabel,
+        channel: 'Heatmap color',
         colors: p.reverse ? [...colors].reverse() : colors,
+        endLabels: ['Low', 'High'],
       });
     }
   }
 
-  // Fallback: emit a plain gradient with the default heatmap palette when no
-  // pixel-color colorRamp rule is present.
+  // Fallback when no colorRamp rule is found.
   if (entries.length === 0) {
     entries.push({
       type: 'gradient',
       field: densityLabel,
+      channel: 'Heatmap color',
       colors: ['#00f', '#0ff', '#0f0', '#ff0', '#f00'],
+      endLabels: ['Low', 'High'],
     });
   }
 
@@ -249,6 +338,17 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
       const field = rule.fields?.[0];
       const whenLbl = formatWhen(rule.when);
 
+      // Companion pixel-alpha scalar mapping in this rule (e.g. for COG layers).
+      // Used to bake per-stop transparency into the gradient colours.
+      const alphaMapping = rule.mappings.find(
+        m =>
+          (m.channels as string[]).includes('pixel-alpha') &&
+          m.scale.scheme === 'scalar' &&
+          (m.scale as any).params?.scalarStops?.length >= 2,
+      );
+      const alphaScalarStops: { stop: number; output: number }[] =
+        (alphaMapping?.scale as any)?.params?.scalarStops ?? [];
+
       for (const mapping of rule.mappings) {
         const { scale, channels } = mapping;
 
@@ -259,26 +359,43 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
           STROKE_WIDTH_CHANNELS.has(ch as string),
         );
 
+        // Skip the alpha mapping itself — it's shown implicitly via withAlpha.
+        if ((channels as string[]).includes('pixel-alpha')) {
+          continue;
+        }
+
         const channelLbl = deriveChannelLabel(channels as string[]);
+        const isPixelChannel = (channels as string[]).some(
+          ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
+        );
+        const withAlpha = isPixelChannel && alphaScalarStops.length >= 2;
 
         if (isColor) {
           switch (scale.scheme) {
             case 'colorRamp': {
               const p = scale.params;
               if (p.colorStops && p.colorStops.length >= 2) {
+                const colorStrs = p.colorStops.map(s => {
+                  const [r, g, b] = s.color;
+                  const a = withAlpha
+                    ? interpolateScalar(alphaScalarStops, s.stop)
+                    : s.color[3];
+                  return `rgba(${r},${g},${b},${a})`;
+                });
                 entries.push({
                   type: 'gradient',
                   field,
                   channel: channelLbl,
                   when: whenLbl,
-                  colors: p.colorStops.map(s => rgbaToString(s.color)),
-                  stops: p.colorStops.map(s => ({
+                  colors: colorStrs,
+                  stops: p.colorStops.map((s, i) => ({
                     value: s.stop,
-                    color: rgbaToString(s.color),
+                    color: colorStrs[i],
                   })),
+                  withAlpha,
                 });
               } else {
-                // No data yet — generate preview from ramp name.
+                // No colorStops yet — show a preview gradient from the ramp name.
                 const colors = rampColors(p.name);
                 const preview: GradientEntry = {
                   type: 'gradient',
@@ -286,12 +403,17 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                   channel: channelLbl,
                   when: whenLbl,
                   colors,
+                  withAlpha,
                 };
                 if (p.domain) {
+                  // Domain is known: show min/max ticks.
                   preview.stops = [
                     { value: p.domain[0], color: colors[0] },
                     { value: p.domain[1], color: colors[colors.length - 1] },
                   ];
+                } else {
+                  // No domain yet: label the ends so users know the scale exists.
+                  preview.endLabels = ['min', 'max'];
                 }
                 entries.push(preview);
               }
@@ -395,64 +517,131 @@ const EntryHeader: React.FC<{
   );
 };
 
+const CHECKERBOARD: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  borderRadius: 3,
+  backgroundImage: 'repeating-conic-gradient(#bbb 0% 25%, #fff 0% 50%)',
+  backgroundSize: '8px 8px',
+};
+
 const GradientLegend: React.FC<GradientEntry> = ({
   field,
   channel,
   when,
   colors,
   stops,
+  tickMode = 'index',
+  sigDigits = 2,
+  endLabels,
+  withAlpha,
 }) => {
+  const barRef = useRef<HTMLDivElement>(null);
+  const [barWidth, setBarWidth] = useState(0);
+
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) {
+      return;
+    }
+    const ro = new ResizeObserver(entries => {
+      setBarWidth(entries[0].contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const gradient = `linear-gradient(to right, ${colors.join(', ')})`;
+
+  // Determine which stops are visible as ticks.
+  let visibleStops = stops ?? [];
+  if (stops && stops.length >= 2 && tickMode === 'value' && barWidth > 0) {
+    // Estimate the width of the widest label and subsample to avoid overlap.
+    const charPx = 6;
+    const minGapPx = 4;
+    const maxLabelPx =
+      Math.max(...stops.map(s => formatTickValue(s.value, sigDigits).length)) *
+        charPx +
+      minGapPx;
+    const maxTicks = Math.max(2, Math.floor(barWidth / maxLabelPx));
+    if (stops.length > maxTicks) {
+      visibleStops = Array.from(
+        { length: maxTicks },
+        (_, i) => stops[Math.round((i * (stops.length - 1)) / (maxTicks - 1))],
+      );
+    }
+  }
+
+  const min = visibleStops.length >= 2 ? visibleStops[0].value : 0;
+  const max =
+    visibleStops.length >= 2 ? visibleStops[visibleStops.length - 1].value : 1;
+  const valueRange = max - min || 1;
+
   return (
     <div style={{ padding: '6px 6px 10px' }}>
       <EntryHeader field={field} channel={channel} when={when} />
-      <div style={{ position: 'relative', marginBottom: stops ? 20 : 4 }}>
-        <div
-          style={{
-            height: 12,
-            background: gradient,
-            border: '1px solid #ccc',
-            borderRadius: 3,
-          }}
-        />
-        {stops && stops.length >= 2 && (
-          <div style={{ position: 'relative', height: 20 }}>
-            {stops.map((s, i) => {
+      <div ref={barRef} style={{ marginBottom: 4 }}>
+        <div style={{ position: 'relative', height: 12 }}>
+          {withAlpha && <div style={CHECKERBOARD} />}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: gradient,
+              border: '1px solid #ccc',
+              borderRadius: 3,
+            }}
+          />
+        </div>
+        {visibleStops.length >= 2 && (
+          <div style={{ position: 'relative', height: 18, marginTop: 2 }}>
+            {visibleStops.map((s, i) => {
               const pct =
-                ((s.value - stops[0].value) /
-                  (stops[stops.length - 1].value - stops[0].value)) *
-                100;
-              const above = i % 2 === 0;
+                tickMode === 'value'
+                  ? ((s.value - min) / valueRange) * 100
+                  : (i / (visibleStops.length - 1)) * 100;
+              const isFirst = i === 0;
+              const isLast = i === visibleStops.length - 1;
               return (
                 <div
                   key={i}
                   style={{
                     position: 'absolute',
                     left: `${pct}%`,
-                    transform: 'translateX(-50%)',
+                    transform: isFirst
+                      ? 'none'
+                      : isLast
+                        ? 'translateX(-100%)'
+                        : 'translateX(-50%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: isFirst
+                      ? 'flex-start'
+                      : isLast
+                        ? 'flex-end'
+                        : 'center',
                   }}
                 >
-                  <div
-                    style={{
-                      width: 1,
-                      height: 6,
-                      background: '#666',
-                      margin: '0 auto',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: above ? -16 : 8,
-                      fontSize: '0.7em',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {s.value % 1 === 0 ? s.value : s.value.toFixed(2)}
+                  <div style={{ width: 1, height: 4, background: '#888' }} />
+                  <div style={{ fontSize: '0.7em', whiteSpace: 'nowrap' }}>
+                    {formatTickValue(s.value, sigDigits)}
                   </div>
                 </div>
               );
             })}
+          </div>
+        )}
+        {endLabels && !visibleStops.length && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '0.7em',
+              marginTop: 2,
+            }}
+          >
+            <span>{endLabels[0]}</span>
+            <span>{endLabels[1]}</span>
           </div>
         )}
       </div>

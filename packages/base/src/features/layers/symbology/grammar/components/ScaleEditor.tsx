@@ -14,7 +14,7 @@ import {
   RGBA,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
 import ColorRampSelector from '@/src/features/layers/symbology/components/color_ramp/ColorRampSelector';
@@ -129,6 +129,24 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
       onChange({ scheme: 'colorRamp', params: { ...params, ...patch } }),
     [params, onChange],
   );
+
+  // Auto-populate domain from data when the field is known and domain is unset.
+  useEffect(() => {
+    if (!field || params.domain) {
+      return;
+    }
+    const values = Array.from(featureValues[field] ?? []).filter(
+      (v): v is number => Number.isFinite(v),
+    );
+    if (values.length === 0) {
+      return;
+    }
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (min !== max) {
+      update({ domain: [min, max] });
+    }
+  }, [field, featureValues]); // intentionally omits `update` to avoid loop
 
   const classify = () => {
     if (!field) {
