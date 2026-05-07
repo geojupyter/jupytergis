@@ -107,7 +107,8 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
         if fill is not None:
             rules.append(
                 _make_constant_rgba_rule(
-                    ["fill-color", "circle-fill-color"], fill,
+                    ["fill-color", "circle-fill-color"],
+                    fill,
                 ),
             )
 
@@ -117,7 +118,8 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
         if stroke is not None:
             rules.append(
                 _make_constant_rgba_rule(
-                    ["stroke-color", "circle-stroke-color"], stroke,
+                    ["stroke-color", "circle-stroke-color"],
+                    stroke,
                 ),
             )
 
@@ -127,7 +129,8 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
         if isinstance(stroke_width, (int, float)):
             rules.append(
                 _make_constant_num_rule(
-                    ["stroke-width", "circle-stroke-width"], stroke_width,
+                    ["stroke-width", "circle-stroke-width"],
+                    stroke_width,
                 ),
             )
 

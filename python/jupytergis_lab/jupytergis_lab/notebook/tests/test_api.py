@@ -97,7 +97,10 @@ def _grammar_scales(state: dict, layer_idx: int = 0) -> list[dict]:
         pytest.param(
             {"fill-color": "#00FF00", "stroke-color": "#FF0000"},
             2,
-            [["fill-color", "circle-fill-color"], ["stroke-color", "circle-stroke-color"]],
+            [
+                ["fill-color", "circle-fill-color"],
+                ["stroke-color", "circle-stroke-color"],
+            ],
             [
                 {"scheme": "constant_rgba", "params": {"value": [0, 255, 0, 1.0]}},
                 {"scheme": "constant_rgba", "params": {"value": [255, 0, 0, 1.0]}},
@@ -107,7 +110,10 @@ def _grammar_scales(state: dict, layer_idx: int = 0) -> list[dict]:
         pytest.param(
             {"stroke-color": "#123456", "stroke-width": 3},
             2,
-            [["stroke-color", "circle-stroke-color"], ["stroke-width", "circle-stroke-width"]],
+            [
+                ["stroke-color", "circle-stroke-color"],
+                ["stroke-width", "circle-stroke-width"],
+            ],
             [
                 {"scheme": "constant_rgba", "params": {"value": [18, 52, 86, 1.0]}},
                 {"scheme": "constant_num", "params": {"value": 3}},
@@ -134,7 +140,10 @@ def _grammar_scales(state: dict, layer_idx: int = 0) -> list[dict]:
     ],
 )
 def test_vector_symbology_state_from_color_expr(
-    color_expr, n_rules, expected_channels, expected_scale_params,
+    color_expr,
+    n_rules,
+    expected_channels,
+    expected_scale_params,
 ):
     state = _vector_symbology_state_from_color_expr(color_expr)
     assert state["renderType"] == "Grammar"

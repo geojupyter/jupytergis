@@ -56,7 +56,11 @@ def _to_grammar(state: dict[str, Any]) -> dict[str, Any] | None:
 def _single_symbol(state: dict[str, Any]) -> dict[str, Any]:
     fill = state.get("fillColor") or _DEFAULT_FILL
     stroke = state.get("strokeColor") or _DEFAULT_STROKE
-    stroke_width = state.get("strokeWidth") if state.get("strokeWidth") is not None else _DEFAULT_STROKE_WIDTH
+    stroke_width = (
+        state.get("strokeWidth")
+        if state.get("strokeWidth") is not None
+        else _DEFAULT_STROKE_WIDTH
+    )
     radius = state.get("radius") if state.get("radius") is not None else _DEFAULT_RADIUS
 
     rule = {
@@ -90,7 +94,11 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
     field = state.get("value")
     fallback = state.get("fallbackColor") or _TRANSPARENT
     stroke = state.get("strokeColor") or _DEFAULT_STROKE
-    stroke_width = state.get("strokeWidth") if state.get("strokeWidth") is not None else _DEFAULT_STROKE_WIDTH
+    stroke_width = (
+        state.get("strokeWidth")
+        if state.get("strokeWidth") is not None
+        else _DEFAULT_STROKE_WIDTH
+    )
     radius = state.get("radius") if state.get("radius") is not None else _DEFAULT_RADIUS
 
     color_ramp_params: dict[str, Any] = {
@@ -148,7 +156,11 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
     field = state.get("value")
     fallback = state.get("fallbackColor") or _TRANSPARENT
     stroke = state.get("strokeColor") or _DEFAULT_STROKE
-    stroke_width = state.get("strokeWidth") if state.get("strokeWidth") is not None else _DEFAULT_STROKE_WIDTH
+    stroke_width = (
+        state.get("strokeWidth")
+        if state.get("strokeWidth") is not None
+        else _DEFAULT_STROKE_WIDTH
+    )
     radius = state.get("radius") if state.get("radius") is not None else _DEFAULT_RADIUS
 
     categorical_params: dict[str, Any] = {
