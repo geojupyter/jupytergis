@@ -380,8 +380,11 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         id: grammarLayer.id,
         transforms: grammarLayer.preprocess ?? [],
         rows: grammarLayer.rules.flatMap(rule =>
-          rule.mappings.map(mapping => ({
-            id: UUID.uuid4(),
+          rule.mappings.map((mapping, mi) => ({
+            // Preserve the rule's stable id so React keys and story-segment
+            // override merging stay consistent across dialog opens.
+            // When a rule has multiple mappings, suffix with the mapping index.
+            id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
             channels: [...(mapping.channels as OLStyleChannel[])],
