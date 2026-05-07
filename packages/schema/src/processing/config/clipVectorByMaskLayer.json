@@ -1,6 +1,6 @@
 {
-  "name": "clip",
-  "label": "Clip Vector by Mask Layer",
+  "name": "clipVectorByMaskLayer",
+  "label": "Mask Layer",
   "operationParams": ["clipLayer"],
   "operations": {
     "gdalFunction": "ogr2ogr"

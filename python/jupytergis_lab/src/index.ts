@@ -158,7 +158,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     // Clip sub-submenu — groups all clipping operations
     const clipSubmenu = new Menu({ commands: app.commands });
-    clipSubmenu.title.label = translator.load('jupyterlab').__('Clip');
+    clipSubmenu.title.label = translator.load('jupyterlab').__('Clip By');
     clipSubmenu.id = 'jp-gis-contextmenu-clip';
 
     for (const processingElement of ProcessingMerge) {
