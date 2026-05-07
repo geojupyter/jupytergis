@@ -278,7 +278,8 @@ export interface IEncodingRule {
 
   /**
    * Guard conditions (AND-ed). If all pass for a feature the rule fires;
-   * otherwise each channel falls back to its scale's fallback value.
+   * otherwise the channel falls through to the next unconditional rule for
+   * that channel, or to channelZero if no such rule exists.
    */
   when?: IPredicate[];
 }
