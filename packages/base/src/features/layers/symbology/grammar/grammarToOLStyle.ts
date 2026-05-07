@@ -374,6 +374,15 @@ function compileColorRamp(
   channel?: OLStyleChannel,
 ): ExpressionValue {
   const stops = resolveColorStops(scale, featureValues);
+
+  // Guard: interpolate requires at least 2 stop pairs. Return fallback when
+  // the source is not yet loaded and no explicit domain/colorStops are set.
+  if (stops.length < 2) {
+    const componentIdx =
+      channel !== undefined ? colorComponentIndex(channel) : undefined;
+    return componentIdx !== undefined ? 0 : scale.params.fallback;
+  }
+
   const componentIdx =
     channel !== undefined ? colorComponentIndex(channel) : undefined;
 
@@ -466,6 +475,12 @@ function compileCategorical(
       reverseRamp: scale.params.reverse ?? false,
     } as unknown as SymbologyState;
     stops = computeCategorizedColorStops(syntheticState, featureValues);
+  }
+
+  // Guard: a OL case expression requires at least one condition+value pair
+  // before the else branch. Return fallback directly when stops is empty.
+  if (stops.length === 0) {
+    return scale.params.fallback;
   }
 
   const caseExpr: ExpressionValue[] = ['case'];
