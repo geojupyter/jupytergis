@@ -1,4 +1,5 @@
 export * from './features/annotations';
+export * from './features/processing/serverProcessing';
 export * from './commands/index';
 export * from './constants';
 export * from './features/layers/layerCreationFormDialog';

@@ -65,6 +65,7 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   identifyDisabled: false,
   storyMapsDisabled: false,
   zoomButtonsEnabled: false,
+  useServerGdalProcessing: null,
 };
 
 export class JupyterGISModel implements IJupyterGISModel {

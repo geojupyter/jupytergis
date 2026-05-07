@@ -63,6 +63,12 @@
       "title": "Enable Zoom Buttons",
       "description": "Enable + / − zoom buttons on the map.",
       "default": false
+    },
+    "useServerGdalProcessing": {
+      "type": ["boolean", "null"],
+      "title": "Use Server-Side GDAL for Processing",
+      "description": "Run vector/raster processing operations against the server-side GDAL CLI instead of the in-browser WASM build. Requires GDAL to be installed in the Jupyter Server environment. Set to null (default) to auto-detect: server GDAL is used when available. Set to false to always use the in-browser WASM build. Has no effect in JupyterLite.",
+      "default": null
     }
   }
 }

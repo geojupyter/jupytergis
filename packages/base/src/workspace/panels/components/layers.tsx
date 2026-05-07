@@ -452,7 +452,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
   );
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
 
@@ -604,22 +604,31 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         onContextMenu={setSelection}
         style={{ display: 'flex' }}
       >
-        {/* Expand/collapse legend button (only if symbology is supported) */}
-        {hasSupportedSymbology && (
-          <Button
-            minimal
-            onClick={e => {
-              e.stopPropagation();
-              setExpanded(v => !v);
-            }}
-            title={expanded ? 'Hide legend' : 'Show legend'}
-          >
-            <LabIcon.resolveReact
-              icon={expanded ? caretDownIcon : caretRightIcon}
-              tag="span"
-            />
-          </Button>
-        )}
+        {/* Expand/collapse legend button — always rendered to preserve alignment */}
+        <Button
+          minimal
+          onClick={
+            hasSupportedSymbology
+              ? e => {
+                  e.stopPropagation();
+                  setExpanded(v => !v);
+                }
+              : undefined
+          }
+          title={
+            hasSupportedSymbology
+              ? expanded
+                ? 'Hide legend'
+                : 'Show legend'
+              : undefined
+          }
+          style={{ visibility: hasSupportedSymbology ? 'visible' : 'hidden' }}
+        >
+          <LabIcon.resolveReact
+            icon={expanded ? caretDownIcon : caretRightIcon}
+            tag="span"
+          />
+        </Button>
 
         {/* Visibility toggle for normal layers, Slide number for story segments */}
         {isStorySegmentLayer ? (
@@ -692,7 +701,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
       {/* Show legend only if supported symbology */}
       {expanded && gisModel && hasSupportedSymbology && (
-        <div style={{ marginTop: 6, width: '100%' }}>
+        <div style={{ marginTop: 6, width: '100%' }} onClick={setSelection}>
           <LegendItem layerId={layerId} model={gisModel} />
         </div>
       )}

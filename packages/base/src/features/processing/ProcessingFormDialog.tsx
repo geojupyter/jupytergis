@@ -7,6 +7,7 @@ import * as React from 'react';
 import type { IBaseFormProps } from '@/src/types';
 import { DissolveForm } from './forms/dissolveProcessForm';
 import { DefaultProcessingForm } from './forms/processingForm';
+import { RasterizeForm } from './forms/rasterizeForm';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
@@ -50,6 +51,9 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
   switch (props.processingType) {
     case 'Dissolve':
       FormComponent = DissolveForm;
+      break;
+    case 'Rasterize':
+      FormComponent = RasterizeForm;
       break;
     default:
       FormComponent = DefaultProcessingForm;
