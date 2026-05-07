@@ -102,10 +102,14 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       }
 
       if (options.schema.properties?.clipLayer) {
-        options.schema.properties.clipLayer.enum = vectorLayerOptions.map(
+        const selectedInputLayer = options.sourceData?.inputLayer;
+        const clipLayerOptions = selectedInputLayer
+          ? vectorLayerOptions.filter(o => o.value !== selectedInputLayer)
+          : vectorLayerOptions;
+        options.schema.properties.clipLayer.enum = clipLayerOptions.map(
           option => option.value,
         );
-        options.schema.properties.clipLayer.enumNames = vectorLayerOptions.map(
+        options.schema.properties.clipLayer.enumNames = clipLayerOptions.map(
           option => option.label,
         );
       }
@@ -114,8 +118,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       if (!options.schema.properties?.outputLayerName) {
         options.schema.properties.outputLayerName = {
           type: 'string',
-          title: 'outputLayerName',
-          // default: ''
+          title: 'Output Layer Name',
         };
       }
     }

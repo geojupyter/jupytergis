@@ -9,6 +9,7 @@ import {
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
@@ -566,12 +567,12 @@ export async function clipVectorByMaskLayer(
 
   let clipLayerId: string;
   let embedOutputLayer = true;
-  let outputLayerName = selected.name;
+  let outputLayerName = `${selected.name} Clipped`;
 
   if (processingInputs) {
     clipLayerId = processingInputs.clipLayer;
     embedOutputLayer = processingInputs.embedOutputLayer ?? true;
-    outputLayerName = processingInputs.outputLayerName ?? 'Clip Layer';
+    outputLayerName = processingInputs.outputLayerName ?? `${selected.name} Clipped`;
   } else {
     const schema = {
       ...(formSchemaRegistry.getSchemas().get('ClipVectorByMaskLayer') as IDict),
@@ -587,7 +588,7 @@ export async function clipVectorByMaskLayer(
         model,
         sourceData: {
           inputLayer: selectedLayerId,
-          outputLayerName: selected.name,
+          outputLayerName: `${selected.name} Clipped`,
         },
         formContext: 'create',
         processingType: 'ClipVectorByMaskLayer',
@@ -610,18 +611,25 @@ export async function clipVectorByMaskLayer(
 
   const clipLayer = layers[clipLayerId];
   if (!clipLayer) {
-    console.error(`Clip layer ${clipLayerId} not found`);
+    await showErrorMessage('Clip failed', `Clip layer not found.`);
     return;
   }
 
   const clipGeoJSON = await getLayerGeoJSON(clipLayer, sources, model);
   if (!clipGeoJSON) {
+    await showErrorMessage(
+      'Clip failed',
+      'Could not read the clip layer geometry.',
+    );
     return;
   }
 
   const clipWkt = await computeUnionWkt(clipGeoJSON);
   if (!clipWkt) {
-    console.error('Failed to compute clip geometry WKT');
+    await showErrorMessage(
+      'Clip failed',
+      'Could not compute clip boundary geometry. The clip layer may be empty.',
+    );
     return;
   }
 
@@ -658,6 +666,7 @@ export async function clipVectorByMaskLayer(
     embedOutputLayer,
     tracker,
     app,
+    outputLayerName,
   );
 }
 
@@ -671,6 +680,7 @@ export async function executeSQLProcessing(
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,
+  exactLayerName?: string,
 ) {
   let processedGeoJSONString: string;
 
@@ -721,7 +731,9 @@ export async function executeSQLProcessing(
     );
   }
 
-  const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
+  const layerName =
+    exactLayerName ??
+    `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
 
   if (!embedOutputLayer) {
     // Save the output as a file

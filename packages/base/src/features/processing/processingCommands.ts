@@ -55,7 +55,9 @@ export function addProcessingCommands(
 ) {
   for (const processingElement of ProcessingMerge) {
     const schemaKey = Object.keys(processingSchemas).find(
-      k => k.toLowerCase() === processingElement.name.toLowerCase(),
+      k =>
+        k.toLowerCase() === processingElement.description.toLowerCase() ||
+        k.toLowerCase() === processingElement.name.toLowerCase(),
     );
     if (!schemaKey) {
       continue;
