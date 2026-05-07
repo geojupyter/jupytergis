@@ -1874,7 +1874,7 @@ export function addCommands(
     },
   });
 
-  const notifySelectionCommands = () => {
+  const notifyCommandsChanged = () => {
     for (const command of Object.values(CommandIDs)) {
       try {
         commands.notifyCommandChanged(command);
@@ -1884,24 +1884,20 @@ export function addCommands(
     }
   };
 
-  let currentAwarenessCleanup: (() => void) | null = null;
+  let cleanup: (() => void) | null = null;
 
-  tracker.currentChanged.connect((_, widget) => {
-    currentAwarenessCleanup?.();
-    currentAwarenessCleanup = null;
+  tracker.currentChanged.connect(_ => {
+    cleanup?.();
+    cleanup = null;
 
-    if (!widget) {
-      notifySelectionCommands();
-      return;
-    }
+    const model = tracker.currentWidget?.model;
+    model?.selectedChanged.connect(notifyCommandsChanged);
 
-    const awareness = widget.model.sharedModel.awareness;
-    const onAwarenessChange = () => notifySelectionCommands();
-    awareness.on('change', onAwarenessChange);
-    currentAwarenessCleanup = () => awareness.off('change', onAwarenessChange);
+    cleanup = () => {
+      model?.selectedChanged.disconnect(notifyCommandsChanged);
+    };
 
-    // Notify that the widget may already have a selected layer
-    notifySelectionCommands();
+    notifyCommandsChanged();
   });
 
   loadKeybindings(commands, keybindings);
