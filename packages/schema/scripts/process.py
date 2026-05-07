@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 processingSchemaDir = "src/schema/processing"
 processingConfigDir = "src/processing/config"
@@ -29,7 +30,8 @@ def exportSchema():
     with open(curFileName, "w+") as f:
         addBanner(f)
         for param in params:
-            processName = param["name"]
+            # Use the schema filename stem so the import matches the file
+            processName = param.get("schemaFilename", param["name"])
             f.write(f"export * from '../../_interface/processing/{processName}';\n")
 
 
@@ -65,6 +67,7 @@ if __name__ == "__main__":
         schemaFilename = f"{processingSchemaDir}/{filename}"
 
         processingParams = {}
+        processingParams["schemaFilename"] = Path(filename).stem
         with open(schemaFilename) as f:
             e = json.loads(f.read())
 
