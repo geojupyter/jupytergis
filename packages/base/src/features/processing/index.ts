@@ -551,10 +551,15 @@ export async function clipVectorByMaskLayer(
   const layers = model.sharedModel.layers ?? {};
 
   let selected: IJGISLayer | null = null;
+  let inputLayerId: string | undefined;
   if (processingInputs?.inputLayer) {
-    selected = layers[processingInputs.inputLayer];
+    inputLayerId = processingInputs.inputLayer as string;
+    selected = layers[inputLayerId] ?? null;
   } else {
     selected = getSingleSelectedLayer(tracker);
+    inputLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
   }
   if (!selected) {
     return;
@@ -580,17 +585,13 @@ export async function clipVectorByMaskLayer(
         .getSchemas()
         .get('ClipVectorByMaskLayer') as IDict),
     };
-    const selectedLayerId = Object.keys(
-      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
-    )[0];
-
     const formValues = await new Promise<IDict>(resolve => {
       const dialog = new ProcessingFormDialog({
         title: 'Clip',
         schema,
         model,
         sourceData: {
-          inputLayer: selectedLayerId,
+          inputLayer: inputLayerId,
           outputLayerName: `${selected.name} Clipped`,
         },
         formContext: 'create',
@@ -610,6 +611,14 @@ export async function clipVectorByMaskLayer(
     clipLayerId = formValues.clipLayer;
     embedOutputLayer = formValues.embedOutputLayer;
     outputLayerName = formValues.outputLayerName;
+  }
+
+  if (clipLayerId === inputLayerId) {
+    await showErrorMessage(
+      'Clip failed',
+      'The clip layer and input layer must be different.',
+    );
+    return;
   }
 
   const clipLayer = layers[clipLayerId];

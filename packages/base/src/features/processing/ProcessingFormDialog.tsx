@@ -133,15 +133,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       Signal<Dialog<IDict>, boolean>
     >();
 
-    // Custom syncData function to update layer name in the model
     const syncData = (props: IDict) => {
-      if (
-        props.outputLayerName &&
-        props.inputLayer &&
-        layers[props.inputLayer]
-      ) {
-        layers[props.inputLayer].name = props.outputLayerName;
-      }
       options.syncData(props);
     };
 
