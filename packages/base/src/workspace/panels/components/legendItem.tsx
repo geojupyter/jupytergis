@@ -563,6 +563,28 @@ const CHECKERBOARD: React.CSSProperties = {
   backgroundSize: '8px 8px',
 };
 
+/** Small square swatch with checkerboard backing to reveal alpha. */
+const ColorSwatch: React.FC<{ color: string; size?: number }> = ({
+  color,
+  size = 14,
+}) => (
+  <span
+    style={{
+      position: 'relative',
+      display: 'inline-block',
+      flexShrink: 0,
+      width: size,
+      height: size,
+      borderRadius: 2,
+      border: '1px solid #000',
+      overflow: 'hidden',
+    }}
+  >
+    <span style={CHECKERBOARD} />
+    <span style={{ position: 'absolute', inset: 0, background: color }} />
+  </span>
+);
+
 const GradientLegend: React.FC<GradientEntry> = ({
   field,
   channel,
@@ -706,16 +728,7 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
     >
       {stops.map((s, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span
-            style={{
-              flexShrink: 0,
-              width: 14,
-              height: 14,
-              background: s.color || '#ccc',
-              border: '1px solid #000',
-              borderRadius: 2,
-            }}
-          />
+          <ColorSwatch color={s.color || '#ccc'} />
           <span
             style={{
               fontSize: '0.75em',
@@ -734,16 +747,7 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
 const SwatchLegend: React.FC<SwatchEntry> = ({ field, label, color, when }) => (
   <div style={{ padding: '4px 6px' }}>
     <EntryHeader field={field} channel={label} when={when} />
-    <span
-      style={{
-        display: 'inline-block',
-        width: 14,
-        height: 14,
-        border: '1px solid #000',
-        background: color,
-        flexShrink: 0,
-      }}
-    />
+    <ColorSwatch color={color} />
   </div>
 );
 
