@@ -91,7 +91,7 @@ export function grammarToOLStyle(
   const accumulator = new Map<OLStyleChannel, IChannelEntry[]>();
 
   // Guard: state.layers may be absent on legacy Grammar states that predate
-  // the layers nesting (e.g. stored as { renderType: 'Grammar', rules: [...] }).
+  // the layers nesting (e.g. stored as { rules: [...] } without a layers wrapper).
   for (const layer of state.layers ?? []) {
     if (layer.preprocess?.some(t => t.type === 'kde')) {
       // KDE layers are compiled separately by the renderer (HeatmapLayer).
@@ -100,14 +100,16 @@ export function grammarToOLStyle(
     }
 
     // Layer-level when: AND-ed with each rule's own when.
-    const layerGuardPredicates = layer.when && layer.when.length > 0 ? layer.when : [];
+    const layerGuardPredicates =
+      layer.when && layer.when.length > 0 ? layer.when : [];
 
     for (const rule of layer.rules) {
       // For now use the first field; multi-field assembly is handled via
       // sub-channel mappings (pixel-red/green/blue) or expression scales.
       const field = rule.fields?.[0];
       const allPredicates = [...layerGuardPredicates, ...(rule.when ?? [])];
-      const guard = allPredicates.length > 0 ? compileGuard(allPredicates) : undefined;
+      const guard =
+        allPredicates.length > 0 ? compileGuard(allPredicates) : undefined;
 
       for (const mapping of rule.mappings) {
         for (const channel of mapping.channels) {

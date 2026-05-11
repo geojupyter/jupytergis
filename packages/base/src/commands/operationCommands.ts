@@ -317,10 +317,7 @@ export function addLayerCreationCommands(options: {
         source: id,
         color: p.color ?? {},
         opacity: p.opacity ?? 1,
-        symbologyState: p.symbologyState ?? {
-          renderType: 'Grammar',
-          layers: [],
-        },
+        symbologyState: p.symbologyState ?? { layers: [] },
       }),
     },
   ];

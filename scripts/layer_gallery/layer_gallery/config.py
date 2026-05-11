@@ -519,7 +519,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "macrostrat-layer", "rules": [{"id": "macrostrat-rule", "fields": ["color"], "mappings": [{"scale": {"scheme": "identity"}, "channels": ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.25}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },
@@ -539,7 +538,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "ne-layer", "rules": [{"id": "ne-rule", "mappings": [{"scale": {"scheme": "constant_rgba", "params": {"value": [0, 0, 0, 0]}}, "channels": ["fill-color", "circle-fill-color"]}, {"scale": {"scheme": "constant_rgba", "params": {"value": [255, 255, 255, 1]}}, "channels": ["stroke-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.0}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },
@@ -557,7 +555,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "ne-layer", "rules": [{"id": "ne-rule", "mappings": [{"scale": {"scheme": "constant_rgba", "params": {"value": [0, 0, 0, 0]}}, "channels": ["fill-color", "circle-fill-color"]}, {"scale": {"scheme": "constant_rgba", "params": {"value": [255, 255, 255, 1]}}, "channels": ["stroke-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.0}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },
@@ -575,7 +572,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "ne-layer", "rules": [{"id": "ne-rule", "mappings": [{"scale": {"scheme": "constant_rgba", "params": {"value": [0, 0, 0, 0]}}, "channels": ["fill-color", "circle-fill-color"]}, {"scale": {"scheme": "constant_rgba", "params": {"value": [255, 255, 255, 1]}}, "channels": ["stroke-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.0}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },
@@ -593,7 +589,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "ne-layer", "rules": [{"id": "ne-rule", "mappings": [{"scale": {"scheme": "constant_rgba", "params": {"value": [0, 0, 0, 0]}}, "channels": ["fill-color", "circle-fill-color"]}, {"scale": {"scheme": "constant_rgba", "params": {"value": [255, 255, 255, 1]}}, "channels": ["stroke-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.0}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },
@@ -611,7 +606,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "ne-layer", "rules": [{"id": "ne-rule", "mappings": [{"scale": {"scheme": "constant_rgba", "params": {"value": [0, 0, 0, 0]}}, "channels": ["fill-color", "circle-fill-color"]}, {"scale": {"scheme": "constant_rgba", "params": {"value": [255, 255, 255, 1]}}, "channels": ["stroke-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.0}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },
@@ -629,7 +623,6 @@ gallery: GallerySpecification = {
             layer_parameters={
                 "opacity": 1,
                 "symbologyState": {
-                    "renderType": "Grammar",
                     "layers": [{"id": "ne-layer", "rules": [{"id": "ne-rule", "mappings": [{"scale": {"scheme": "constant_rgba", "params": {"value": [0, 0, 0, 0]}}, "channels": ["fill-color", "circle-fill-color"]}, {"scale": {"scheme": "constant_rgba", "params": {"value": [255, 255, 255, 1]}}, "channels": ["stroke-color", "circle-stroke-color"]}, {"scale": {"scheme": "constant_num", "params": {"value": 1.0}}, "channels": ["stroke-width", "circle-stroke-width"]}, {"scale": {"scheme": "constant_num", "params": {"value": 5}}, "channels": ["circle-radius"]}]}]}],
                 },
             },

@@ -1474,7 +1474,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        if (layerParameters.symbologyState?.renderType === 'Grammar') {
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
           const olSource = this._sources[
             layerParameters.source
           ] as VectorSource;
@@ -1543,7 +1543,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         layerParameters = layer.parameters as IGeoTiffLayer;
         const geoTiffSource = this._sources[layerParameters.source];
 
-        if (layerParameters.symbologyState?.renderType === 'Grammar') {
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
             geoTiffSource,
@@ -1836,7 +1836,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         const layerParams = layer.parameters as IVectorLayer;
 
-        if (layerParams.symbologyState?.renderType === 'Grammar') {
+        if (Array.isArray(layerParams.symbologyState?.layers)) {
           // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
           this.replaceLayer(id, layer);
           break;
@@ -1869,7 +1869,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'GeoTiffLayer': {
-        if (layer?.parameters?.symbologyState?.renderType === 'Grammar') {
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
           this.replaceLayer(id, layer);
         } else {
           mapLayer.setOpacity(layer.parameters?.opacity);
@@ -3263,7 +3263,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const layerParams: IVectorLayer = {
       opacity: 1.0,
       source: sourceId,
-      symbologyState: { renderType: 'Grammar', layers: [] } as any,
+      symbologyState: { layers: [] },
     };
 
     const sourceModel: IJGISSource = {

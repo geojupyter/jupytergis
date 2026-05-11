@@ -93,7 +93,7 @@ export function singleSymbolToGrammar(
     ],
   };
 
-  return { renderType: 'Grammar', layers: wrapLayer([rule]) };
+  return { layers: wrapLayer([rule]) };
 }
 
 /**
@@ -165,7 +165,7 @@ export function graduatedToGrammar(
     mappings: mappings as [IMapping, ...IMapping[]],
   };
 
-  return { renderType: 'Grammar', layers: wrapLayer([rule]) };
+  return { layers: wrapLayer([rule]) };
 }
 
 /**
@@ -231,5 +231,5 @@ export function categorizedToGrammar(
     mappings: mappings as [IMapping, ...IMapping[]],
   };
 
-  return { renderType: 'Grammar', layers: wrapLayer([rule]) };
+  return { layers: wrapLayer([rule]) };
 }

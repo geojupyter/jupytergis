@@ -126,7 +126,6 @@ def _single_symbol(
         ],
     }
     return {
-        "renderType": "Grammar",
         "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}],
     }
 
@@ -188,7 +187,6 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
         rule["fields"] = [field]
 
     return {
-        "renderType": "Grammar",
         "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}],
     }
 
@@ -247,7 +245,6 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
         rule["fields"] = [field]
 
     return {
-        "renderType": "Grammar",
         "layers": [{"id": str(uuid.uuid4()), "rules": [rule]}],
     }
 

@@ -58,7 +58,6 @@ class TestGeoParquetLayer(TestDocument):
             color_expr=color,
         )
         state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
-        assert state["renderType"] == "Grammar"
         assert "layers" in state
         scales = _grammar_scales(state)
         assert any(
@@ -146,7 +145,6 @@ def test_vector_symbology_state_from_color_expr(
     expected_scale_params,
 ):
     state = _vector_symbology_state_from_color_expr(color_expr)
-    assert state["renderType"] == "Grammar"
     assert "layers" in state
     assert len(state["layers"]) == 1
     rules = state["layers"][0]["rules"]

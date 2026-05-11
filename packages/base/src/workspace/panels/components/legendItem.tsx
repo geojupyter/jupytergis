@@ -884,7 +884,7 @@ export const LegendItem: React.FC<{
       return;
     }
 
-    if (state.renderType === 'Grammar') {
+    if (Array.isArray(state.layers)) {
       setEntries(grammarToLegendEntries(state as IGrammarSymbologyState));
     }
   }, [symbology, isLoading, error]);

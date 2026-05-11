@@ -139,7 +139,6 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
             rules.append(_make_constant_num_rule(["circle-radius"], radius))
 
     return {
-        "renderType": "Grammar",
         "layers": [{"id": str(uuid4()), "rules": rules}],
     }
 

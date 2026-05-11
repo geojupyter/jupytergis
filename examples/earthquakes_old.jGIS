@@ -1,0 +1,262 @@
+{
+  "layerTree": [
+    "8de7c2c0-6024-4716-b542-031a89fb87f9",
+    "ccf98385-bbe3-425b-9dde-fa64d31c196a"
+  ],
+  "layers": {
+    "8de7c2c0-6024-4716-b542-031a89fb87f9": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "b2ea427a-a51b-43ad-ae72-02cd900736d5"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "ccf98385-bbe3-425b-9dde-fa64d31c196a": {
+      "name": "Earthquakes",
+      "parameters": {
+        "color": {
+          "circle-fill-color": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "mag"
+            ],
+            1.2589254117941673,
+            [
+              68.0,
+              1.0,
+              84.0,
+              1.0
+            ],
+            1.5848931924611136,
+            [
+              71.0,
+              44.0,
+              122.0,
+              1.0
+            ],
+            1.9952623149688797,
+            [
+              59.0,
+              81.0,
+              139.0,
+              1.0
+            ],
+            2.51188643150958,
+            [
+              44.0,
+              113.0,
+              142.0,
+              1.0
+            ],
+            3.1622776601683795,
+            [
+              33.0,
+              144.0,
+              141.0,
+              1.0
+            ],
+            3.981071705534973,
+            [
+              39.0,
+              173.0,
+              129.0,
+              1.0
+            ],
+            5.011872336272724,
+            [
+              92.0,
+              200.0,
+              99.0,
+              1.0
+            ],
+            6.309573444801933,
+            [
+              170.0,
+              220.0,
+              50.0,
+              1.0
+            ],
+            7.943282347242816,
+            [
+              253.0,
+              231.0,
+              37.0,
+              1.0
+            ]
+          ],
+          "circle-radius": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "mag"
+            ],
+            1.2589254117941673,
+            1.2589254117941673,
+            1.5848931924611136,
+            1.5848931924611136,
+            1.9952623149688797,
+            1.9952623149688797,
+            2.51188643150958,
+            2.51188643150958,
+            3.1622776601683795,
+            3.1622776601683795,
+            3.981071705534973,
+            3.981071705534973,
+            5.011872336272724,
+            5.011872336272724,
+            6.309573444801933,
+            6.309573444801933,
+            7.943282347242816,
+            7.943282347242816,
+            10.0,
+            10.0
+          ],
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-width": 1.25,
+          "fill-color": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "mag"
+            ],
+            1.2589254117941673,
+            [
+              68.0,
+              1.0,
+              84.0,
+              1.0
+            ],
+            1.5848931924611136,
+            [
+              71.0,
+              44.0,
+              122.0,
+              1.0
+            ],
+            1.9952623149688797,
+            [
+              59.0,
+              81.0,
+              139.0,
+              1.0
+            ],
+            2.51188643150958,
+            [
+              44.0,
+              113.0,
+              142.0,
+              1.0
+            ],
+            3.1622776601683795,
+            [
+              33.0,
+              144.0,
+              141.0,
+              1.0
+            ],
+            3.981071705534973,
+            [
+              39.0,
+              173.0,
+              129.0,
+              1.0
+            ],
+            5.011872336272724,
+            [
+              92.0,
+              200.0,
+              99.0,
+              1.0
+            ],
+            6.309573444801933,
+            [
+              170.0,
+              220.0,
+              50.0,
+              1.0
+            ],
+            7.943282347242816,
+            [
+              253.0,
+              231.0,
+              37.0,
+              1.0
+            ]
+          ],
+          "stroke-color": "#3399CC",
+          "stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "72670e50-5cb4-436c-a226-f1f3a65fc4a1",
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "logarithmic",
+          "nClasses": 9.0,
+          "renderType": "Graduated",
+          "reverse": false,
+          "value": "mag"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -20035827.418478265,
+      -5273210.463489827,
+      20039189.267100222,
+      12117834.51327065
+    ],
+    "latitude": 29.365995336547073,
+    "longitude": 0.015100000000000637,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 2.8978454560055114
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "72670e50-5cb4-436c-a226-f1f3a65fc4a1": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "httpHeaders": "",
+        "path": "data/eq.geojson",
+        "useProxy": false,
+        "valid": false
+      },
+      "type": "GeoJSONSource"
+    },
+    "b2ea427a-a51b-43ad-ae72-02cd900736d5": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

@@ -28,7 +28,6 @@ function makeState(
   ...rules: IGrammarSymbologyState['layers'][number]['rules']
 ): IGrammarSymbologyState {
   return {
-    renderType: 'Grammar',
     layers: [{ id: 'test-layer', rules }],
   };
 }

@@ -321,7 +321,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {layer.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
-            <button onClick={() => removeLayerPredicate(i)} title="Remove condition">
+            <button
+              onClick={() => removeLayerPredicate(i)}
+              title="Remove condition"
+            >
               ×
             </button>
           </span>
@@ -417,8 +420,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     }
     const rawState = params.symbologyState;
     if (
-      rawState?.renderType !== 'Grammar' ||
-      !(rawState as any).layers?.length
+      !Array.isArray((rawState as any).layers) ||
+      !(rawState as any).layers.length
     ) {
       setLayers([{ id: UUID.uuid4(), transforms: [], rows: [] }]);
       return;
@@ -476,7 +479,6 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     });
 
     const symbologyState: IGrammarSymbologyState = {
-      renderType: 'Grammar',
       layers: grammarLayers,
     };
 

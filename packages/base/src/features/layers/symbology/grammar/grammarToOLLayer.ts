@@ -138,7 +138,6 @@ function compileRasterLayer(
   featureValues: unknown[],
 ): WebGLTileLayer {
   const singleLayerState: IGrammarSymbologyState = {
-    renderType: 'Grammar',
     layers: [grammarLayer],
   };
   // Use [0, 1] as fallback values so colorRamp stops span the normalized
@@ -232,7 +231,6 @@ function compileVectorLayer(
   featureValues: unknown[],
 ): VectorImageLayer {
   const singleLayerState: IGrammarSymbologyState = {
-    renderType: 'Grammar',
     layers: [grammarLayer],
   };
   const flatStyle = grammarToOLStyle(singleLayerState, featureValues);

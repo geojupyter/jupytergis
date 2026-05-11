@@ -7,7 +7,6 @@
         "opacity": 1,
         "source": "source-id",
         "symbologyState": {
-          "renderType": "Grammar",
           "layers": [
             {
               "id": "test-uuid",

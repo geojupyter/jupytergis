@@ -321,7 +321,6 @@ export interface IGrammarLayer {
 // ---------------------------------------------------------------------------
 
 export interface IGrammarSymbologyState {
-  renderType: 'Grammar';
   /**
    * Ordered list of independent rendering layers sharing the same source.
    * Each layer produces one renderer layer (VectorLayer, HeatmapLayer, etc.).
