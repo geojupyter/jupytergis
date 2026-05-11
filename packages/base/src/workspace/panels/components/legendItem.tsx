@@ -285,10 +285,10 @@ function kdeToLegendEntries(
 ): LegendEntry[] {
   const entries: LegendEntry[] = [];
 
-  // "Density" or "Density (weight: <field>)" as the input descriptor.
+  // "Normalized density" or "Normalized density (weight: <field>)" as the input descriptor.
   const densityLabel = kdeTransform.weightField
-    ? `Density (weight: ${kdeTransform.weightField})`
-    : 'Density';
+    ? `Normalized density (weight: ${kdeTransform.weightField})`
+    : 'Normalized density';
 
   for (const rule of grammarLayer.rules) {
     for (const mapping of rule.mappings) {
