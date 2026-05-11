@@ -336,9 +336,11 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
       continue;
     }
 
+    const layerWhen = grammarLayer.when ?? [];
     for (const rule of grammarLayer.rules) {
       const field = rule.fields?.[0];
-      const whenLbl = formatWhen(rule.when);
+      const allWhen = [...layerWhen, ...(rule.when ?? [])];
+      const whenLbl = formatWhen(allWhen.length > 0 ? allWhen : undefined);
 
       // Companion pixel-alpha scalar mapping in this rule (e.g. for COG layers).
       // Used to bake per-stop transparency into the gradient colours.

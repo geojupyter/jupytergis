@@ -308,6 +308,12 @@ export interface IGrammarLayer {
    * Encoding rules compiled into a flat-style object (or equivalent) for this layer.
    */
   rules: IEncodingRule[];
+
+  /**
+   * Guard conditions (AND-ed) applied to every rule in this layer.
+   * If any predicate fails for a feature, the entire layer is skipped for that feature.
+   */
+  when?: IPredicate[];
 }
 
 // ---------------------------------------------------------------------------

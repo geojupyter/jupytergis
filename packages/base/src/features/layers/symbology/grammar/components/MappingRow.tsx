@@ -295,7 +295,7 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
 // When-clause helpers
 // ---------------------------------------------------------------------------
 
-function formatPredicate(pred: IPredicate): string {
+export function formatPredicate(pred: IPredicate): string {
   switch (pred.type) {
     case 'geometryType':
       return `geom = ${pred.value}`;
@@ -359,7 +359,7 @@ interface IWhenAddFormProps {
   onCancel: () => void;
 }
 
-const WhenAddForm: React.FC<IWhenAddFormProps> = ({
+export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
   availableFields,
   onAdd,
   onCancel,

@@ -99,12 +99,15 @@ export function grammarToOLStyle(
       continue;
     }
 
+    // Layer-level when: AND-ed with each rule's own when.
+    const layerGuardPredicates = layer.when && layer.when.length > 0 ? layer.when : [];
+
     for (const rule of layer.rules) {
       // For now use the first field; multi-field assembly is handled via
       // sub-channel mappings (pixel-red/green/blue) or expression scales.
       const field = rule.fields?.[0];
-      const guard =
-        rule.when && rule.when.length > 0 ? compileGuard(rule.when) : undefined;
+      const allPredicates = [...layerGuardPredicates, ...(rule.when ?? [])];
+      const guard = allPredicates.length > 0 ? compileGuard(allPredicates) : undefined;
 
       for (const mapping of rule.mappings) {
         for (const channel of mapping.channels) {

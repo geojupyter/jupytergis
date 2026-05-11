@@ -10,6 +10,7 @@ import {
   IEncodingRule,
   IGrammarLayer,
   IGrammarSymbologyState,
+  IPredicate,
   ITransform,
   OLStyleChannel,
   RGBA,
@@ -20,6 +21,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
+  WhenAddForm,
+  formatPredicate,
 } from '@/src/features/layers/symbology/grammar/components/MappingRow';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
 import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
@@ -42,6 +45,7 @@ interface ILayerUIState {
   id: string;
   transforms: ITransform[];
   rows: IGrammarRow[];
+  when?: IPredicate[];
 }
 
 // ---------------------------------------------------------------------------
@@ -202,6 +206,24 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   onChange,
   onDelete,
 }) => {
+  const [addingLayerWhen, setAddingLayerWhen] = useState(false);
+
+  const addLayerPredicate = useCallback(
+    (pred: IPredicate) => {
+      onChange({ ...layer, when: [...(layer.when ?? []), pred] });
+      setAddingLayerWhen(false);
+    },
+    [layer, onChange],
+  );
+
+  const removeLayerPredicate = useCallback(
+    (index: number) => {
+      const next = (layer.when ?? []).filter((_, i) => i !== index);
+      onChange({ ...layer, when: next.length > 0 ? next : undefined });
+    },
+    [layer, onChange],
+  );
+
   const updateTransform = useCallback(
     (index: number, t: ITransform) => {
       const next = [...layer.transforms];
@@ -293,6 +315,33 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         )}
       </div>
 
+      {/* Layer-level when clause */}
+      <div className="jp-gis-grammar-when-row">
+        <span className="jp-gis-grammar-when-label">when</span>
+        {layer.when?.map((pred, i) => (
+          <span key={i} className="jp-gis-grammar-when-chip">
+            {formatPredicate(pred)}
+            <button onClick={() => removeLayerPredicate(i)} title="Remove condition">
+              ×
+            </button>
+          </span>
+        ))}
+        {addingLayerWhen ? (
+          <WhenAddForm
+            availableFields={availableFields}
+            onAdd={addLayerPredicate}
+            onCancel={() => setAddingLayerWhen(false)}
+          />
+        ) : (
+          <button
+            className="jp-gis-grammar-when-add-btn"
+            onClick={() => setAddingLayerWhen(true)}
+          >
+            + add
+          </button>
+        )}
+      </div>
+
       {/* Transforms */}
       {layer.transforms.map((t, i) => (
         <TransformRow
@@ -379,6 +428,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       state.layers.map(grammarLayer => ({
         id: grammarLayer.id,
         transforms: grammarLayer.preprocess ?? [],
+        ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
         rows: grammarLayer.rules.flatMap(rule =>
           rule.mappings.map((mapping, mi) => ({
             // Preserve the rule's stable id so React keys and story-segment
@@ -420,6 +470,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         ...(uiLayer.transforms.length
           ? { preprocess: uiLayer.transforms }
           : {}),
+        ...(uiLayer.when?.length ? { when: uiLayer.when } : {}),
         rules,
       };
     });
