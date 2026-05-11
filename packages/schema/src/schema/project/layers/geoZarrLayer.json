@@ -1,0 +1,122 @@
+{
+  "type": "object",
+  "description": "GeoZarrLayer",
+  "title": "IGeoZarrLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the GeoZarr source"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the layer",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    },
+    "gamma": {
+      "type": "number",
+      "description": "Gamma correction applied to all bands. Values above 1 brighten the image, below 1 darken it.",
+      "default": 1.5,
+      "multipleOf": 0.1,
+      "minimum": 0.1,
+      "maximum": 5.0
+    },
+    "color": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "number" },
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    { "type": "number" },
+                    { "type": "string" },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [{ "type": "number" }, { "type": "string" }]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "description": "The color of the object. When set, overrides gamma and the symbologyState color rendering."
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options.",
+      "required": ["renderType"],
+      "properties": {
+        "renderType": {
+          "type": "string",
+          "default": "Multiband Pseudocolor"
+        },
+        "band": {
+          "type": "number",
+          "default": 1
+        },
+        "redBand": {
+          "type": "number",
+          "default": 1
+        },
+        "greenBand": {
+          "type": "number",
+          "default": 2
+        },
+        "blueBand": {
+          "type": "number",
+          "default": 3
+        },
+        "alphaBand": {
+          "type": "number",
+          "default": 4
+        },
+        "interpolation": {
+          "type": "string",
+          "enum": ["discrete", "linear", "exact"],
+          "default": "linear"
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "viridis"
+        },
+        "nclasses": {
+          "type": "string",
+          "default": "9"
+        },
+        "mode": {
+          "type": "string",
+          "default": "equal interval",
+          "enum": ["continuous", "equal interval", "quantile"]
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "renderType": "Multiband Pseudocolor",
+        "band": 1,
+        "redBand": 1,
+        "greenBand": 2,
+        "blueBand": 3,
+        "alphaBand": 4,
+        "interpolation": "linear",
+        "colorRamp": "viridis",
+        "nClasses": "9",
+        "mode": "equal interval"
+      }
+    }
+  }
+}

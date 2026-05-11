@@ -4,6 +4,7 @@ import {
   IAnnotationModel,
   IDict,
   IGeoTiffSource,
+  IGeoZarrSource,
   IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
@@ -33,6 +34,7 @@ import {
   IVectorTileSource,
   IGeoParquetSource,
   IGeoTiffLayer,
+  IGeoZarrLayer,
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
@@ -112,6 +114,7 @@ import {
   XYZ as XYZSource,
   Tile as TileSource,
 } from 'ol/source';
+import GeoZarr from 'ol/source/GeoZarr';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
 import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
@@ -1141,6 +1144,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
+        case 'GeoZarrSource': {
+          const sourceParameters = source.parameters as IGeoZarrSource;
+
+          newSource = new GeoZarr({
+            url: sourceParameters.url,
+            bands: sourceParameters.bands ?? [],
+            wrapX: sourceParameters.wrapX,
+          });
+
+          break;
+        }
+
         case 'GeoPackageVectorSource': {
           const sourceParameters = source.parameters;
 
@@ -1533,6 +1548,30 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (layerParameters.color) {
           layerOptions['style'] = {
             color: layerParameters.color,
+          };
+        }
+
+        newMapLayer = new GeoTiffLayer(layerOptions);
+        break;
+      }
+      case 'GeoZarrLayer': {
+        layerParameters = layer.parameters as IGeoZarrLayer;
+
+        const layerOptions: any = {
+          opacity: layerParameters.opacity ?? 1,
+          visible: layer.visible,
+          source: this._sources[layerParameters.source],
+        };
+
+        // Explicit color expression takes highest priority (set via Python API or
+        // advanced symbology). Falls back to gamma, then bare defaults.
+        if (layerParameters.color) {
+          layerOptions['style'] = {
+            color: layerParameters.color,
+          };
+        } else if (layerParameters.gamma !== undefined) {
+          layerOptions['style'] = {
+            gamma: layerParameters.gamma,
           };
         }
 
