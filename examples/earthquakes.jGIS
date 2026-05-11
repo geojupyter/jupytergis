@@ -14,6 +14,10 @@
       "visible": true
     },
     "ccf98385-bbe3-425b-9dde-fa64d31c196a": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
       "name": "Earthquakes",
       "parameters": {
         "opacity": 1.0,
@@ -24,35 +28,6 @@
               "id": "b9bc7b91-d5a0-4b80-93f9-92db6c850ccf",
               "rules": [
                 {
-                  "fields": [
-                    "mag"
-                  ],
-                  "id": "7af65122-9708-4cbe-8863-fd1be259c923",
-                  "mappings": [
-                    {
-                      "channels": [
-                        "fill-color",
-                        "circle-fill-color"
-                      ],
-                      "scale": {
-                        "params": {
-                          "fallback": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                          ],
-                          "mode": "equal interval",
-                          "nShades": 9.0,
-                          "name": "viridis",
-                          "reverse": false
-                        },
-                        "scheme": "colorRamp"
-                      }
-                    }
-                  ]
-                },
-                {
                   "id": "e4d14881-dd9d-46cd-8ff3-715951cbd4c5",
                   "mappings": [
                     {
@@ -62,7 +37,7 @@
                       ],
                       "scale": {
                         "params": {
-                          "value": 1.0
+                          "value": 2.0
                         },
                         "scheme": "constant_num"
                       }
@@ -82,28 +57,50 @@
                       "scale": {
                         "params": {
                           "domain": [
-                            0.0,
-                            10.0
+                            3.0,
+                            9.0
                           ],
-                          "fallback": 1.0,
+                          "fallback": 0.0,
                           "mode": "equal interval",
                           "nStops": 5.0,
                           "range": [
                             1.0,
-                            20.0
+                            10.0
                           ],
                           "scalarStops": [
                             {
                               "output": 1.0,
-                              "stop": 0.0
+                              "stop": 3.0
                             },
                             {
-                              "output": 20.0,
-                              "stop": 10.0
+                              "output": 10.0,
+                              "stop": 9.0
                             }
                           ]
                         },
                         "scheme": "scalar"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "905092db-86dc-4792-91a7-8051aa515092",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            255.0,
+                            0.0,
+                            0.0,
+                            0.45
+                          ]
+                        },
+                        "scheme": "constant_rgba"
                       }
                     }
                   ]
@@ -114,8 +111,8 @@
               "id": "7e9e7fe5-ffd9-49c2-9bed-38eb4cdff051",
               "preprocess": [
                 {
-                  "blur": 15.0,
-                  "radius": 10.0,
+                  "blur": 4.0,
+                  "radius": 3.0,
                   "type": "kde",
                   "weightField": "mag"
                 }
@@ -129,7 +126,7 @@
                   "mappings": [
                     {
                       "channels": [
-                        "fill-color"
+                        "pixel-rgb"
                       ],
                       "scale": {
                         "params": {
@@ -148,11 +145,34 @@
                       }
                     }
                   ]
+                },
+                {
+                  "id": "5ad03fb3-ec3e-4227-a22d-f2b19dd6513c",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "pixel-alpha"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 0.9
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "when": [
+                {
+                  "field": "mag",
+                  "op": ">",
+                  "type": "fieldCompare",
+                  "value": 5.0
                 }
               ]
             }
-          ],
-          "renderType": "Grammar"
+          ]
         }
       },
       "type": "VectorLayer",
@@ -163,18 +183,18 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -14458226.431741549,
-      3497197.39931594,
-      -10261892.671417812,
-      5727133.213980727
+      -16659136.445223518,
+      1519959.7173831644,
+      -5774027.4626841275,
+      7304317.147718105
     ],
-    "latitude": 38.23139056945283,
-    "longitude": -111.03230407811503,
+    "latitude": 36.80627587618541,
+    "longitude": -100.76027004815924,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 5.94898874452556
+    "zoom": 4.57383422658683
   },
-  "schemaVersion": "0.6.0",
+  "schemaVersion": "0.7.0",
   "sources": {
     "72670e50-5cb4-436c-a226-f1f3a65fc4a1": {
       "name": "Custom GeoJSON Layer Source",
