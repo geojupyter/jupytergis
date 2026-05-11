@@ -24,6 +24,7 @@ import MappingRow, {
   WhenAddForm,
   formatPredicate,
 } from '@/src/features/layers/symbology/grammar/components/MappingRow';
+import { NumericInput } from '@/src/features/layers/symbology/grammar/components/NumericInput';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
 import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
 import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
@@ -108,26 +109,18 @@ const TransformRow: React.FC<ITransformRowProps> = ({
       {transform.type === 'kde' && (
         <>
           <label>radius</label>
-          <input
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
-            min={1}
             style={{ width: 52 }}
             value={transform.radius}
-            onChange={e =>
-              onChange({ ...transform, radius: Number(e.target.value) })
-            }
+            onChange={v => onChange({ ...transform, radius: v })}
           />
           <label>blur</label>
-          <input
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
-            min={0}
             style={{ width: 52 }}
             value={transform.blur}
-            onChange={e =>
-              onChange({ ...transform, blur: Number(e.target.value) })
-            }
+            onChange={v => onChange({ ...transform, blur: v })}
           />
           <label>weight</label>
           <div className="jp-select-wrapper" style={{ flex: '0 0 90px' }}>
@@ -156,15 +149,11 @@ const TransformRow: React.FC<ITransformRowProps> = ({
       {transform.type === 'cluster' && (
         <>
           <label>radius</label>
-          <input
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
-            min={1}
             style={{ width: 52 }}
             value={transform.radius}
-            onChange={e =>
-              onChange({ ...transform, radius: Number(e.target.value) })
-            }
+            onChange={v => onChange({ ...transform, radius: v })}
           />
         </>
       )}

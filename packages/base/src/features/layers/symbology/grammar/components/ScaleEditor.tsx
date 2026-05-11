@@ -22,6 +22,7 @@ import RgbaColorPicker, {
   RgbaColor,
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
+import { NumericInput } from '@/src/features/layers/symbology/grammar/components/NumericInput';
 import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
@@ -72,17 +73,11 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
     return (
       <div className="jp-gis-symbology-row">
         <label>Value</label>
-        <input
+        <NumericInput
           className="jp-mod-styled"
-          type="number"
-          min={0}
-          step={0.1}
           value={scale.params.value}
-          onChange={e =>
-            onChange({
-              scheme: 'constant_num',
-              params: { value: Number(e.target.value) },
-            })
+          onChange={v =>
+            onChange({ scheme: 'constant_num', params: { value: v } })
           }
         />
       </div>
@@ -224,37 +219,28 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
       </div>
       <div className="jp-gis-symbology-row">
         <label>Classes</label>
-        <input
+        <NumericInput
           className="jp-mod-styled"
-          type="number"
-          min={2}
-          max={256}
           value={params.nShades}
-          onChange={e => update({ nShades: Number(e.target.value) })}
+          onChange={v => update({ nShades: v })}
         />
       </div>
       <div className="jp-gis-symbology-row">
         <label>Domain</label>
-        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}>
-          <input
+        <div
+          style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}
+        >
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
             placeholder="min"
-            value={params.domain?.[0] ?? ''}
-            onChange={e => {
-              const v = Number(e.target.value);
-              update({ domain: [v, params.domain?.[1] ?? v] });
-            }}
+            value={params.domain?.[0] ?? 0}
+            onChange={v => update({ domain: [v, params.domain?.[1] ?? v] })}
           />
-          <input
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
             placeholder="max"
-            value={params.domain?.[1] ?? ''}
-            onChange={e => {
-              const v = Number(e.target.value);
-              update({ domain: [params.domain?.[0] ?? v, v] });
-            }}
+            value={params.domain?.[1] ?? 0}
+            onChange={v => update({ domain: [params.domain?.[0] ?? v, v] })}
           />
         </div>
       </div>
@@ -452,58 +438,48 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
         <label>Input range</label>
-        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}>
-          <input
+        <div
+          style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}
+        >
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
             placeholder="min"
             value={params.domain[0]}
-            onChange={e =>
-              update({ domain: [Number(e.target.value), params.domain[1]] })
-            }
+            onChange={v => update({ domain: [v, params.domain[1]] })}
           />
-          <input
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
             placeholder="max"
             value={params.domain[1]}
-            onChange={e =>
-              update({ domain: [params.domain[0], Number(e.target.value)] })
-            }
+            onChange={v => update({ domain: [params.domain[0], v] })}
           />
         </div>
       </div>
       <div className="jp-gis-symbology-row">
         <label>Output range</label>
-        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}>
-          <input
+        <div
+          style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}
+        >
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
             placeholder="min"
             value={params.range[0]}
-            onChange={e =>
-              update({ range: [Number(e.target.value), params.range[1]] })
-            }
+            onChange={v => update({ range: [v, params.range[1]] })}
           />
-          <input
+          <NumericInput
             className="jp-mod-styled"
-            type="number"
             placeholder="max"
             value={params.range[1]}
-            onChange={e =>
-              update({ range: [params.range[0], Number(e.target.value)] })
-            }
+            onChange={v => update({ range: [params.range[0], v] })}
           />
         </div>
       </div>
       <div className="jp-gis-symbology-row">
         <label>Fallback</label>
-        <input
+        <NumericInput
           className="jp-mod-styled"
-          type="number"
-          step={0.1}
           value={params.fallback}
-          onChange={e => update({ fallback: Number(e.target.value) })}
+          onChange={v => update({ fallback: v })}
         />
       </div>
       <button
