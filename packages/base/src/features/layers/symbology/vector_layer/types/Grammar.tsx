@@ -6,6 +6,8 @@
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
+import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IEncodingRule,
   IGrammarLayer,
@@ -164,7 +166,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
         title="Remove transform"
         style={{ marginLeft: 'auto' }}
       >
-        ×
+        <FontAwesomeIcon icon={faTrash} />
       </button>
     </div>
   );
@@ -291,7 +293,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           onClick={addTransform}
           title="Add transform"
         >
-          + transform
+          <FontAwesomeIcon icon={faPlus} /> transform
         </button>
         {totalLayers > 1 && (
           <button
@@ -299,7 +301,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             onClick={onDelete}
             title="Remove layer"
           >
-            ×
+            <FontAwesomeIcon icon={faTrash} />
           </button>
         )}
       </div>
@@ -314,7 +316,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               onClick={() => removeLayerPredicate(i)}
               title="Remove condition"
             >
-              ×
+              <FontAwesomeIcon icon={faXmark} />
             </button>
           </span>
         ))}
@@ -329,7 +331,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             className="jp-gis-grammar-when-add-btn"
             onClick={() => setAddingLayerWhen(true)}
           >
-            + add
+            <FontAwesomeIcon icon={faPlus} />
           </button>
         )}
       </div>

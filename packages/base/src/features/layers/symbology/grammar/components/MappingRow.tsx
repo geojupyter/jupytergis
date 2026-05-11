@@ -5,6 +5,13 @@
  */
 
 import {
+  faCheck,
+  faPlus,
+  faTrash,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
   IColorRampScale,
   ICompareOp,
   IConstantNumScale,
@@ -456,14 +463,14 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         onClick={() => built && onAdd(built)}
         title="Add predicate"
       >
-        ✓
+        <FontAwesomeIcon icon={faCheck} />
       </button>
       <button
         className="jp-gis-grammar-when-cancel"
         onClick={onCancel}
         title="Cancel"
       >
-        ✗
+        <FontAwesomeIcon icon={faXmark} />
       </button>
     </span>
   );
@@ -551,7 +558,7 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
             onClick={() => onFieldChange(i, '')}
             title="Remove field"
           >
-            ×
+            <FontAwesomeIcon icon={faXmark} />
           </button>
         </span>
       ))}
@@ -811,7 +818,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 row.channels.length === 1 ? 'Remove mapping' : 'Remove channel'
               }
             >
-              ×
+              <FontAwesomeIcon icon={faTrash} />
             </button>
           </React.Fragment>
         ))}
@@ -857,7 +864,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
             <button onClick={() => removePredicate(i)} title="Remove condition">
-              ×
+              <FontAwesomeIcon icon={faXmark} />
             </button>
           </span>
         ))}
@@ -872,7 +879,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             className="jp-gis-grammar-when-add-btn"
             onClick={() => setAddingWhen(true)}
           >
-            + add
+            <FontAwesomeIcon icon={faPlus} />
           </button>
         )}
       </div>
