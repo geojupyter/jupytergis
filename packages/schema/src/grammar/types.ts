@@ -35,10 +35,13 @@ export type ClassificationMode =
 // Predicates — composable guards on rules
 // ---------------------------------------------------------------------------
 
+export type ICompareOp = '>' | '<' | '>=' | '<=' | '!=';
+
 export type IPredicate =
   | { type: 'geometryType'; value: 'Point' | 'LineString' | 'Polygon' }
   | { type: 'hasField'; field: string }
-  | { type: 'fieldEquals'; field: string; value: string | number };
+  | { type: 'fieldEquals'; field: string; value: string | number }
+  | { type: 'fieldCompare'; field: string; op: ICompareOp; value: number };
 
 // ---------------------------------------------------------------------------
 // Output types — what a scale produces

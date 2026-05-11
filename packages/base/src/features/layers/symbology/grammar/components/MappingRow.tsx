@@ -6,6 +6,7 @@
 
 import {
   IColorRampScale,
+  ICompareOp,
   IConstantNumScale,
   IConstantRGBAScale,
   IPredicate,
@@ -302,16 +303,21 @@ function formatPredicate(pred: IPredicate): string {
       return `has: ${pred.field}`;
     case 'fieldEquals':
       return `${pred.field} = ${pred.value}`;
+    case 'fieldCompare':
+      return `${pred.field} ${pred.op} ${pred.value}`;
   }
 }
 
 type PredicateType = IPredicate['type'];
+
+const COMPARE_OPS: ICompareOp[] = ['>', '<', '>=', '<=', '!='];
 
 interface INewPredicate {
   type: PredicateType;
   geomValue: 'Point' | 'LineString' | 'Polygon';
   field: string;
   fieldValue: string;
+  compareOp: ICompareOp;
 }
 
 const EMPTY_NEW: INewPredicate = {
@@ -319,6 +325,7 @@ const EMPTY_NEW: INewPredicate = {
   geomValue: 'Point',
   field: '',
   fieldValue: '',
+  compareOp: '>',
 };
 
 function buildPredicate(p: INewPredicate): IPredicate | null {
@@ -337,6 +344,12 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
               : Number(p.fieldValue),
           }
         : null;
+    case 'fieldCompare': {
+      const num = Number(p.fieldValue);
+      return p.field && !isNaN(num)
+        ? { type: 'fieldCompare', field: p.field, op: p.compareOp, value: num }
+        : null;
+    }
   }
 }
 
@@ -369,6 +382,7 @@ const WhenAddForm: React.FC<IWhenAddFormProps> = ({
           <option value="geometryType">geometry type</option>
           <option value="hasField">has field</option>
           <option value="fieldEquals">field equals</option>
+          <option value="fieldCompare">field compare</option>
         </select>
       </div>
 
@@ -390,7 +404,9 @@ const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         </div>
       )}
 
-      {(draft.type === 'hasField' || draft.type === 'fieldEquals') && (
+      {(draft.type === 'hasField' ||
+        draft.type === 'fieldEquals' ||
+        draft.type === 'fieldCompare') && (
         <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
           <select
             className="jp-mod-styled"
@@ -407,11 +423,27 @@ const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         </div>
       )}
 
-      {draft.type === 'fieldEquals' && (
+      {draft.type === 'fieldCompare' && (
+        <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
+          <select
+            className="jp-mod-styled"
+            value={draft.compareOp}
+            onChange={e => patch({ compareOp: e.target.value as ICompareOp })}
+          >
+            {COMPARE_OPS.map(op => (
+              <option key={op} value={op}>
+                {op}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {(draft.type === 'fieldEquals' || draft.type === 'fieldCompare') && (
         <input
           className="jp-mod-styled"
           style={{ flex: '0 0 80px', minWidth: 0 }}
-          type="text"
+          type={draft.type === 'fieldCompare' ? 'number' : 'text'}
           placeholder="value"
           value={draft.fieldValue}
           onChange={e => patch({ fieldValue: e.target.value })}

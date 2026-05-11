@@ -2,6 +2,7 @@
 export type {
   RGBA,
   ClassificationMode,
+  ICompareOp,
   IPredicate,
   OutputType,
   RGBAChannel,

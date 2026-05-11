@@ -273,6 +273,8 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
       return ['has', predicate.field];
     case 'fieldEquals':
       return ['==', ['get', predicate.field], predicate.value];
+    case 'fieldCompare':
+      return [predicate.op, ['get', predicate.field], predicate.value];
   }
 }
 

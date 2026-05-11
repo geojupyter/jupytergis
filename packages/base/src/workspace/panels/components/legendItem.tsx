@@ -245,6 +245,8 @@ function formatPredicate(p: IPredicate): string {
       return `has ${p.field}`;
     case 'fieldEquals':
       return `${p.field} = ${p.value}`;
+    case 'fieldCompare':
+      return `${p.field} ${p.op} ${p.value}`;
   }
 }
 
