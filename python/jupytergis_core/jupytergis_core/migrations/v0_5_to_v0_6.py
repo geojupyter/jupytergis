@@ -71,7 +71,9 @@ def _color_to_grammar(color: dict[str, Any]) -> dict[str, Any]:
     return _single_symbol(
         fill=fill or _DEFAULT_FILL,
         stroke=stroke or _DEFAULT_STROKE,
-        stroke_width=float(stroke_width) if isinstance(stroke_width, (int, float)) else _DEFAULT_STROKE_WIDTH,
+        stroke_width=float(stroke_width)
+        if isinstance(stroke_width, (int, float))
+        else _DEFAULT_STROKE_WIDTH,
         radius=float(radius) if isinstance(radius, (int, float)) else _DEFAULT_RADIUS,
     )
 
@@ -82,8 +84,12 @@ def _to_grammar(state: dict[str, Any]) -> dict[str, Any] | None:
         return _single_symbol(
             fill=state.get("fillColor") or _DEFAULT_FILL,
             stroke=state.get("strokeColor") or _DEFAULT_STROKE,
-            stroke_width=state.get("strokeWidth") if state.get("strokeWidth") is not None else _DEFAULT_STROKE_WIDTH,
-            radius=state.get("radius") if state.get("radius") is not None else _DEFAULT_RADIUS,
+            stroke_width=state.get("strokeWidth")
+            if state.get("strokeWidth") is not None
+            else _DEFAULT_STROKE_WIDTH,
+            radius=state.get("radius")
+            if state.get("radius") is not None
+            else _DEFAULT_RADIUS,
         )
     if render_type == "Graduated":
         return _graduated(state)
