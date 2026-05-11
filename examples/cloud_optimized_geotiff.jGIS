@@ -210,7 +210,7 @@
     "projection": "EPSG:3857",
     "zoom": 3.693486957499325
   },
-  "schemaVersion": "0.7.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "8b1d4258-5d46-48da-b466-496d376b593d": {
       "name": "Custom GeoTiff Source",

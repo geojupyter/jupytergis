@@ -194,7 +194,7 @@
     "projection": "EPSG:3857",
     "zoom": 4.57383422658683
   },
-  "schemaVersion": "0.7.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "72670e50-5cb4-436c-a226-f1f3a65fc4a1": {
       "name": "Custom GeoJSON Layer Source",
