@@ -91,6 +91,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
+    if (!params.symbologyState) {
+      return;
+    }
+
     const { mode, nClasses, colorRamp, reverseRamp } =
       getClassificationParams();
     buildColorInfoFromClassification(
