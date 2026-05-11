@@ -59,6 +59,7 @@ type CategoricalEntry = {
 
 type SwatchEntry = {
   type: 'swatch';
+  field?: string;
   label: string;
   color: string;
   when?: string;
@@ -379,7 +380,23 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
             case 'colorRamp': {
               const p = scale.params;
               if (p.colorStops && p.colorStops.length >= 2) {
-                const colorStrs = p.colorStops.map(s => {
+                // When alpha is driven by a companion scalar, clip the displayed
+                // gradient and ticks to the scalar's effective domain — beyond
+                // it alpha is either 0 (invisible) or constant (fully opaque),
+                // so the meaningful field range is [alphaMin, alphaMax].
+                let displayStops = p.colorStops;
+                if (withAlpha && alphaScalarStops.length >= 2) {
+                  const alphaMin = alphaScalarStops[0].stop;
+                  const alphaMax =
+                    alphaScalarStops[alphaScalarStops.length - 1].stop;
+                  const clipped = p.colorStops.filter(
+                    s => s.stop >= alphaMin && s.stop <= alphaMax,
+                  );
+                  if (clipped.length >= 2) {
+                    displayStops = clipped;
+                  }
+                }
+                const colorStrs = displayStops.map(s => {
                   const [r, g, b] = s.color;
                   const a = withAlpha
                     ? interpolateScalar(alphaScalarStops, s.stop)
@@ -392,7 +409,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                   channel: channelLbl,
                   when: whenLbl,
                   colors: colorStrs,
-                  stops: p.colorStops.map((s, i) => ({
+                  stops: displayStops.map((s, i) => ({
                     value: s.stop,
                     color: colorStrs[i],
                   })),
@@ -450,7 +467,21 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
               });
               break;
             }
-            // identity / expression / constant_num on color channel: skip.
+            case 'identity': {
+              // Field value is used as-is for the channel color.
+              // No fixed range to display — show a rainbow swatch indicating
+              // the channel is data-driven.
+              entries.push({
+                type: 'swatch',
+                field,
+                label: channelLbl,
+                color:
+                  'linear-gradient(to right,#f66,#fa0,#ff0,#6c6,#08f,#94f)',
+                when: whenLbl,
+              });
+              break;
+            }
+            // expression / constant_num on color channel: skip.
             default:
               break;
           }
@@ -697,9 +728,9 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
   </div>
 );
 
-const SwatchLegend: React.FC<SwatchEntry> = ({ label, color, when }) => (
+const SwatchLegend: React.FC<SwatchEntry> = ({ field, label, color, when }) => (
   <div style={{ padding: '4px 6px' }}>
-    <EntryHeader channel={label} when={when} />
+    <EntryHeader field={field} channel={label} when={when} />
     <span
       style={{
         display: 'inline-block',
