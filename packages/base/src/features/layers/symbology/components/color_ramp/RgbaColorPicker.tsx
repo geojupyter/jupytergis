@@ -50,14 +50,23 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
     });
   }, [r, g, b, a]);
 
-  const swatchStyle = {
-    background: `rgba(${r},${g},${b},${a})`,
+  const swatchWrapStyle: React.CSSProperties = {
+    position: 'relative',
     width: 28,
     height: 28,
     borderRadius: 4,
     border: '1px solid var(--jp-border-color1, #ccc)',
     cursor: 'pointer',
     flexShrink: 0,
+    overflow: 'hidden',
+    // Checkerboard to reveal transparency.
+    backgroundImage: 'repeating-conic-gradient(#bbb 0% 25%, #fff 0% 50%)',
+    backgroundSize: '8px 8px',
+  };
+  const swatchColorStyle: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    background: `rgba(${r},${g},${b},${a})`,
   };
 
   const handlePickerChange = useCallback(
@@ -116,7 +125,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
     >
       <div
         ref={swatchRef}
-        style={swatchStyle}
+        style={swatchWrapStyle}
         onClick={() => {
           if (!open && swatchRef.current) {
             const rect = swatchRef.current.getBoundingClientRect();
@@ -130,7 +139,9 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
           }
           setOpen(v => !v);
         }}
-      />
+      >
+        <div style={swatchColorStyle} />
+      </div>
       {open && (
         <div
           ref={popupRef}
