@@ -258,6 +258,13 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
           />
         </div>
       </div>
+      <div className="jp-gis-symbology-row">
+        <label>Fallback</label>
+        <RgbaColorPicker
+          color={params.fallback as RgbaColor}
+          onChange={color => update({ fallback: color as RGBA })}
+        />
+      </div>
       <button
         className="jp-Dialog-button jp-mod-accept jp-mod-styled"
         disabled={!field}
@@ -351,6 +358,13 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
               reverse: typeof v === 'function' ? v(params.reverse ?? false) : v,
             })
           }
+        />
+      </div>
+      <div className="jp-gis-symbology-row">
+        <label>Fallback</label>
+        <RgbaColorPicker
+          color={params.fallback as RgbaColor}
+          onChange={color => update({ fallback: color as RGBA })}
         />
       </div>
       <button
@@ -481,6 +495,16 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
             }
           />
         </div>
+      </div>
+      <div className="jp-gis-symbology-row">
+        <label>Fallback</label>
+        <input
+          className="jp-mod-styled"
+          type="number"
+          step={0.1}
+          value={params.fallback}
+          onChange={e => update({ fallback: Number(e.target.value) })}
+        />
       </div>
       <button
         className="jp-Dialog-button jp-mod-accept jp-mod-styled"
