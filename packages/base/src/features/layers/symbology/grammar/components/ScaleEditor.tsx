@@ -235,7 +235,7 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
       </div>
       <div className="jp-gis-symbology-row">
         <label>Domain</label>
-        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%' }}>
+        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}>
           <input
             className="jp-mod-styled"
             type="number"
@@ -452,7 +452,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
         <label>Input range</label>
-        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%' }}>
+        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}>
           <input
             className="jp-mod-styled"
             type="number"
@@ -475,7 +475,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
       </div>
       <div className="jp-gis-symbology-row">
         <label>Output range</label>
-        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%' }}>
+        <div style={{ display: 'flex', gap: 4, flex: '1 0 50%', maxWidth: '50%' }}>
           <input
             className="jp-mod-styled"
             type="number"
