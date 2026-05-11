@@ -738,11 +738,19 @@ export async function clipRasterByExtent(
   };
 
   const clipPromise = doClip();
-  Notification.promise(clipPromise.then(() => null), {
-    pending: { message: 'Clipping raster…', options: { autoClose: false } },
-    success: { message: () => 'Raster clipped successfully.', options: { autoClose: 3000 } },
-    error: { message: (err: any) => `Raster clip failed: ${err?.message ?? err}` },
-  });
+  Notification.promise(
+    clipPromise.then(() => null),
+    {
+      pending: { message: 'Clipping raster…', options: { autoClose: false } },
+      success: {
+        message: () => 'Raster clipped successfully.',
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) => `Raster clip failed: ${err?.message ?? err}`,
+      },
+    },
+  );
 
   let outputTiffBytes: Uint8Array<ArrayBuffer>;
   try {
@@ -893,11 +901,23 @@ export async function executeSQLProcessing(
   };
 
   const processingPromise = doProcessing();
-  Notification.promise(processingPromise.then(() => null), {
-    pending: { message: `Running ${processingType}…`, options: { autoClose: false } },
-    success: { message: () => `${processingType} completed.`, options: { autoClose: 3000 } },
-    error: { message: (err: any) => `${processingType} failed: ${err?.message ?? err}` },
-  });
+  Notification.promise(
+    processingPromise.then(() => null),
+    {
+      pending: {
+        message: `Running ${processingType}…`,
+        options: { autoClose: false },
+      },
+      success: {
+        message: () => `${processingType} completed.`,
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) =>
+          `${processingType} failed: ${err?.message ?? err}`,
+      },
+    },
+  );
 
   let processedGeoJSONString: string;
   try {
