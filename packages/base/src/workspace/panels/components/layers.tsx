@@ -1,3 +1,5 @@
+import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IJGISLayerGroup,
   IJGISLayerTree,
@@ -318,6 +320,24 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
     onClick({ type: 'group', item: name, event });
   };
 
+  const handleGroupMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onClick({
+      type: 'group',
+      item: name,
+      event: e as unknown as ReactMouseEvent<HTMLElement>,
+    });
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left,
+        clientY: rect.bottom,
+      }),
+    );
+  };
+
   const handleExpand = async () => {
     state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
@@ -389,6 +409,14 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
             {name}
           </span>
         )}
+        <Button
+          className="jp-gis-layer-more-btn"
+          minimal
+          onClick={handleGroupMoreClick}
+          title="More options"
+        >
+          <FontAwesomeIcon icon={faEllipsisVertical} />
+        </Button>
       </div>
       {open && (
         <div>
@@ -531,6 +559,24 @@ const LayerComponent: React.FC<ILayerProps> = props => {
       item: layerId,
       event,
     });
+  };
+
+  const handleLayerMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onClick({
+      type: 'layer',
+      item: layerId,
+      event: e as unknown as ReactMouseEvent<HTMLElement>,
+    });
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left,
+        clientY: rect.bottom,
+      }),
+    );
   };
 
   const handleRenameSave = () => {
@@ -696,6 +742,14 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             className={LAYER_ICON_CLASS}
             tag="span"
           />
+        </Button>
+        <Button
+          className="jp-gis-layer-more-btn"
+          minimal
+          onClick={handleLayerMoreClick}
+          title="More options"
+        >
+          <FontAwesomeIcon icon={faEllipsisVertical} />
         </Button>
       </div>
 
