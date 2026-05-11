@@ -275,11 +275,14 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
     case 'geometryType':
       return ['==', ['geometry-type'], predicate.value];
     case 'hasField':
-      return ['has', predicate.field];
+      // Band pseudo-fields always exist; for vector features use ['has'].
+      return fieldAlwaysPresent(predicate.field)
+        ? true
+        : ['has', predicate.field];
     case 'fieldEquals':
-      return ['==', ['get', predicate.field], predicate.value];
+      return ['==', fieldExpr(predicate.field), predicate.value];
     case 'fieldCompare':
-      return [predicate.op, ['get', predicate.field], predicate.value];
+      return [predicate.op, fieldExpr(predicate.field), predicate.value];
   }
 }
 
