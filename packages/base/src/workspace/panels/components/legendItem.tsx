@@ -299,25 +299,49 @@ function kdeToLegendEntries(
         continue;
       }
       const p = mapping.scale.params;
-      const colors = rampColors(p.name);
-      entries.push({
-        type: 'gradient',
-        field: densityLabel,
-        channel: 'Heatmap color',
-        colors: p.reverse ? [...colors].reverse() : colors,
-        endLabels: ['Low', 'High'],
-      });
+      if (p.colorStops && p.colorStops.length >= 2) {
+        const colorStrs = p.colorStops.map(s => rgbaToString(s.color));
+        entries.push({
+          type: 'gradient',
+          field: densityLabel,
+          channel: 'Heatmap color',
+          colors: colorStrs,
+          stops: p.colorStops.map((s, i) => ({
+            value: s.stop,
+            color: colorStrs[i],
+          })),
+          tickMode: 'value',
+        });
+      } else {
+        // No stops yet — OL normalizes density to [0, 1].
+        const colors = rampColors(p.name);
+        const ramp = p.reverse ? [...colors].reverse() : colors;
+        entries.push({
+          type: 'gradient',
+          field: densityLabel,
+          channel: 'Heatmap color',
+          colors: ramp,
+          stops: [
+            { value: 0, color: ramp[0] },
+            { value: 1, color: ramp[ramp.length - 1] },
+          ],
+        });
+      }
     }
   }
 
   // Fallback when no colorRamp rule is found.
   if (entries.length === 0) {
+    const colors = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
     entries.push({
       type: 'gradient',
       field: densityLabel,
       channel: 'Heatmap color',
-      colors: ['#00f', '#0ff', '#0f0', '#ff0', '#f00'],
-      endLabels: ['Low', 'High'],
+      colors,
+      stops: [
+        { value: 0, color: colors[0] },
+        { value: 1, color: colors[colors.length - 1] },
+      ],
     });
   }
 
