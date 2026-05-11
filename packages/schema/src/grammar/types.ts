@@ -17,7 +17,7 @@
 // RGBA type
 // ---------------------------------------------------------------------------
 
-/** [R 0–255, G 0–255, B 0–255, A 0–1] — matches OL expression array convention. */
+/** [R 0–255, G 0–255, B 0–255, A 0–1] */
 export type RGBA = [number, number, number, number];
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ export type PosFloatChannel =
   | 'circle-radius'
   | 'circle-stroke-width';
 
-export type OLStyleChannel =
+export type StyleChannel =
   | RGBAChannel
   | UInt8Channel
   | UNormChannel
@@ -249,7 +249,7 @@ export type IScale =
  */
 export interface IMapping {
   scale: IScale;
-  channels: [OLStyleChannel, ...OLStyleChannel[]];
+  channels: [StyleChannel, ...StyleChannel[]];
 }
 
 // ---------------------------------------------------------------------------

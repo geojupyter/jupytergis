@@ -12,7 +12,7 @@ import {
   IGrammarSymbologyState,
   IPredicate,
   ITransform,
-  OLStyleChannel,
+  StyleChannel,
   RGBA,
 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
@@ -34,7 +34,7 @@ import {
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 
-const DEFAULT_CHANNELS: OLStyleChannel[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_CHANNELS: StyleChannel[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
 // ---------------------------------------------------------------------------
@@ -270,7 +270,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultChannels: OLStyleChannel[] = isRaster
+    const defaultChannels: StyleChannel[] = isRaster
       ? ['pixel-color']
       : DEFAULT_CHANNELS;
     onChange({
@@ -440,7 +440,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
-            channels: [...(mapping.channels as OLStyleChannel[])],
+            channels: [...(mapping.channels as StyleChannel[])],
             ...(rule.when ? { when: rule.when } : {}),
           })),
         ),
@@ -463,7 +463,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           mappings: [
             {
               scale: row.scale,
-              channels: row.channels as [OLStyleChannel, ...OLStyleChannel[]],
+              channels: row.channels as [StyleChannel, ...StyleChannel[]],
             },
           ],
         }));

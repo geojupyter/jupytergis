@@ -9,7 +9,7 @@ export type {
   UInt8Channel,
   UNormChannel,
   PosFloatChannel,
-  OLStyleChannel,
+  StyleChannel,
   IColorRampScale,
   ICategoricalScale,
   IScalarScale,

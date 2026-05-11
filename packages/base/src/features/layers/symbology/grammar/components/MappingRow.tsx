@@ -11,7 +11,7 @@ import {
   IConstantRGBAScale,
   IPredicate,
   IScale,
-  OLStyleChannel,
+  StyleChannel,
   RGBA,
 } from '@jupytergis/schema';
 import React, { useCallback, useRef, useState } from 'react';
@@ -32,13 +32,13 @@ import {
 // Channel taxonomy
 // ---------------------------------------------------------------------------
 
-const RGBA_CHANNELS: OLStyleChannel[] = [
+const RGBA_CHANNELS: StyleChannel[] = [
   'fill-color',
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
 ];
-const POSFLOAT_CHANNELS: OLStyleChannel[] = [
+const POSFLOAT_CHANNELS: StyleChannel[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
@@ -49,22 +49,22 @@ const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
 // pixel-rgb:   virtual channel — RGB only; pair with pixel-alpha for separate alpha.
 // pixel-alpha: alpha sub-channel (0-1 scalar).
-const PIXEL_RGBA_CHANNELS: OLStyleChannel[] = [
+const PIXEL_RGBA_CHANNELS: StyleChannel[] = [
   'pixel-color',
   'pixel-rgb',
   'pixel-red',
   'pixel-green',
   'pixel-blue',
 ];
-const PIXEL_FLOAT_CHANNELS: OLStyleChannel[] = ['pixel-alpha'];
+const PIXEL_FLOAT_CHANNELS: StyleChannel[] = ['pixel-alpha'];
 const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
 
 /** Display labels for channels that need a friendlier name. */
-const CHANNEL_LABELS: Partial<Record<OLStyleChannel, string>> = {
+const CHANNEL_LABELS: Partial<Record<StyleChannel, string>> = {
   'pixel-color': 'pixel-rgba',
 };
 
-function compatibleChannels(scale: IScale, isRaster = false): OLStyleChannel[] {
+function compatibleChannels(scale: IScale, isRaster = false): StyleChannel[] {
   if (isRaster) {
     switch (scale.scheme) {
       case 'colorRamp':
@@ -93,7 +93,7 @@ function compatibleChannels(scale: IScale, isRaster = false): OLStyleChannel[] {
 
 function defaultScaleForScheme(
   scheme: IScale['scheme'],
-  _currentChannels: OLStyleChannel[],
+  _currentChannels: StyleChannel[],
 ): IScale {
   switch (scheme) {
     case 'constant_rgba':
@@ -587,7 +587,7 @@ export interface IGrammarRow {
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
-  channels: OLStyleChannel[];
+  channels: StyleChannel[];
   when?: IPredicate[];
 }
 
@@ -685,7 +685,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const handleChannelChange = useCallback(
-    (index: number, ch: OLStyleChannel) => {
+    (index: number, ch: StyleChannel) => {
       const next = [...row.channels];
       next[index] = ch;
       onChange({ ...row, channels: next });
@@ -694,7 +694,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const removeChannel = useCallback(
-    (ch: OLStyleChannel) => {
+    (ch: StyleChannel) => {
       const next = row.channels.filter(c => c !== ch);
       if (next.length > 0) {
         onChange({ ...row, channels: next });
@@ -706,7 +706,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const addChannel = useCallback(
-    (ch: OLStyleChannel) => {
+    (ch: StyleChannel) => {
       onChange({ ...row, channels: [...row.channels, ch] });
     },
     [row, onChange],
@@ -793,7 +793,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 className="jp-mod-styled"
                 value={ch}
                 onChange={e =>
-                  handleChannelChange(i, e.target.value as OLStyleChannel)
+                  handleChannelChange(i, e.target.value as StyleChannel)
                 }
               >
                 {compat.map(c => (
@@ -834,7 +834,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 value=""
                 onChange={e => {
                   if (e.target.value) {
-                    addChannel(e.target.value as OLStyleChannel);
+                    addChannel(e.target.value as StyleChannel);
                   }
                 }}
               >
