@@ -390,7 +390,8 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                 if (withAlpha && layerAlphaScalarStops.length >= 2) {
                   const alphaMin = layerAlphaScalarStops[0].stop;
                   const alphaMax =
-                    layerAlphaScalarStops[layerAlphaScalarStops.length - 1].stop;
+                    layerAlphaScalarStops[layerAlphaScalarStops.length - 1]
+                      .stop;
                   const clipped = p.colorStops.filter(
                     s => s.stop >= alphaMin && s.stop <= alphaMax,
                   );
