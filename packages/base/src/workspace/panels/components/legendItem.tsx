@@ -337,22 +337,24 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
       continue;
     }
 
-    const layerWhen = grammarLayer.when ?? [];
-    for (const rule of grammarLayer.rules) {
-      const field = rule.fields?.[0];
-      const allWhen = [...layerWhen, ...(rule.when ?? [])];
-      const whenLbl = formatWhen(allWhen.length > 0 ? allWhen : undefined);
-
-      // Companion pixel-alpha scalar mapping in this rule (e.g. for COG layers).
-      // Used to bake per-stop transparency into the gradient colours.
-      const alphaMapping = rule.mappings.find(
+    // Look for a pixel-alpha scalar mapping anywhere in this grammar layer.
+    // It is often in a separate rule from the color mapping (e.g. COG layers).
+    const layerAlphaMapping = grammarLayer.rules
+      .flatMap(r => r.mappings)
+      .find(
         m =>
           (m.channels as string[]).includes('pixel-alpha') &&
           m.scale.scheme === 'scalar' &&
           (m.scale as any).params?.scalarStops?.length >= 2,
       );
-      const alphaScalarStops: { stop: number; output: number }[] =
-        (alphaMapping?.scale as any)?.params?.scalarStops ?? [];
+    const layerAlphaScalarStops: { stop: number; output: number }[] =
+      (layerAlphaMapping?.scale as any)?.params?.scalarStops ?? [];
+
+    const layerWhen = grammarLayer.when ?? [];
+    for (const rule of grammarLayer.rules) {
+      const field = rule.fields?.[0];
+      const allWhen = [...layerWhen, ...(rule.when ?? [])];
+      const whenLbl = formatWhen(allWhen.length > 0 ? allWhen : undefined);
 
       for (const mapping of rule.mappings) {
         const { scale, channels } = mapping;
@@ -373,7 +375,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
         const isPixelChannel = (channels as string[]).some(
           ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
         );
-        const withAlpha = isPixelChannel && alphaScalarStops.length >= 2;
+        const withAlpha = isPixelChannel && layerAlphaScalarStops.length >= 2;
 
         if (isColor) {
           switch (scale.scheme) {
@@ -385,10 +387,10 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                 // it alpha is either 0 (invisible) or constant (fully opaque),
                 // so the meaningful field range is [alphaMin, alphaMax].
                 let displayStops = p.colorStops;
-                if (withAlpha && alphaScalarStops.length >= 2) {
-                  const alphaMin = alphaScalarStops[0].stop;
+                if (withAlpha && layerAlphaScalarStops.length >= 2) {
+                  const alphaMin = layerAlphaScalarStops[0].stop;
                   const alphaMax =
-                    alphaScalarStops[alphaScalarStops.length - 1].stop;
+                    layerAlphaScalarStops[layerAlphaScalarStops.length - 1].stop;
                   const clipped = p.colorStops.filter(
                     s => s.stop >= alphaMin && s.stop <= alphaMax,
                   );
@@ -399,7 +401,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                 const colorStrs = displayStops.map(s => {
                   const [r, g, b] = s.color;
                   const a = withAlpha
-                    ? interpolateScalar(alphaScalarStops, s.stop)
+                    ? interpolateScalar(layerAlphaScalarStops, s.stop)
                     : s.color[3];
                   return `rgba(${r},${g},${b},${a})`;
                 });
