@@ -9,11 +9,10 @@ from typing import Any
 
 from packaging.version import Version
 
-from . import v0_5_to_v0_6, v0_6_to_v0_7
+from . import v0_5_to_v0_6
 
 STEPS = [
     ("0.5.0", "0.6.0", v0_5_to_v0_6.migrate),
-    ("0.6.0", "0.7.0", v0_6_to_v0_7.migrate),
 ]
 
 
