@@ -1828,6 +1828,10 @@ export function addCommands(
         return false;
       }
 
+      if (model.getSelectedStory().story?.storyType === 'list') {
+        return false;
+      }
+
       return model.getCurrentSegmentIndex() > 0;
     },
     execute: () => {
@@ -1857,6 +1861,10 @@ export function addCommands(
 
       const isSpecta = model.isSpectaMode();
       if (!isSpecta) {
+        return false;
+      }
+
+      if (model.getSelectedStory().story?.storyType === 'list') {
         return false;
       }
 

@@ -2,6 +2,7 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useRef } from 'react';
 
 import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
+import type { IListStoryScrollDrivePayload } from './types/listStoryScrollDrive';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
@@ -16,6 +17,9 @@ interface ISpectaPanelProps {
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
+  onListScrollDriveChange?: (
+    payload: IListStoryScrollDrivePayload | null,
+  ) => void;
 }
 
 export function SpectaPanel({
@@ -27,6 +31,7 @@ export function SpectaPanel({
   storyViewerPanelRef,
   addLayer,
   removeLayer,
+  onListScrollDriveChange,
 }: ISpectaPanelProps) {
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
   const segmentContainerRef = useRef<HTMLDivElement>(null);
@@ -107,6 +112,7 @@ export function SpectaPanel({
       showGradient={showGradient}
       viewMode={desktopViewMode}
       setIndex={setIndex}
+      onListScrollDriveChange={onListScrollDriveChange}
     />
   );
 }

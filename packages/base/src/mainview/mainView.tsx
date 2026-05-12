@@ -163,6 +163,7 @@ import {
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
+import type { IListStoryScrollDrivePayload } from '../features/story/types/listStoryScrollDrive';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
@@ -229,6 +230,7 @@ interface IStates {
   isListStoryMode: boolean;
   listMarkdownTransitionPhase: 'idle' | 'enter' | 'exit';
   listMarkdownTransitionDirection: 'forward' | 'backward';
+  listScrollDrive: IListStoryScrollDrivePayload | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -371,6 +373,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       isListStoryMode: false,
       listMarkdownTransitionPhase: 'idle',
       listMarkdownTransitionDirection: 'forward',
+      listScrollDrive: null,
     };
 
     this._sources = [];
@@ -417,6 +420,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     ) {
       this._setupSpectaMode();
       this._isSpectaPresentationInitialized = true;
+    }
+
+    if (
+      prevState.isSpectaPresentation &&
+      !this.state.isSpectaPresentation &&
+      this.state.listScrollDrive
+    ) {
+      this.setState({ listScrollDrive: null });
     }
 
     const wasMarkdownSegmentActive = this._isMarkdownOverlayVisible(prevState);
@@ -2904,6 +2915,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
+      const storyType = this._model.getSelectedStory().story?.storyType;
+      if (storyType === 'list') {
+        scrollContainer.scrollBy({ top: deltaY });
+        return;
+      }
+
       const isScrollingUp = deltaY < 0;
       const isScrollingDown = deltaY > 0;
       const isAtTop = currentPanelHandle.getAtTop();
@@ -3700,10 +3717,47 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _isMarkdownOverlayVisible = (state: IStates): boolean =>
     Boolean(
-      state.activeStoryMarkdownContent ||
-      (state.listMarkdownTransitionPhase === 'exit' &&
-        state.renderedStoryMarkdownContent),
+      state.listScrollDrive ||
+        state.activeStoryMarkdownContent ||
+        (state.listMarkdownTransitionPhase === 'exit' &&
+          state.renderedStoryMarkdownContent),
     );
+
+  private _handleListScrollDriveChange = (
+    payload: IListStoryScrollDrivePayload | null,
+  ): void => {
+    const prev = this.state.listScrollDrive;
+    if (prev === null && payload === null) {
+      return;
+    }
+    if (
+      prev &&
+      payload &&
+      prev.progress === payload.progress &&
+      prev.fromIndex === payload.fromIndex &&
+      prev.toIndex === payload.toIndex &&
+      prev.fromMode === payload.fromMode &&
+      prev.toMode === payload.toMode
+    ) {
+      return;
+    }
+    this.setState({ listScrollDrive: payload });
+  };
+
+  private _getStoryMarkdownForIndex(index: number): string {
+    const story = this._model.getSelectedStory().story;
+    const segmentId = story?.storySegments?.[index];
+    if (!segmentId) {
+      return '';
+    }
+    const layer = this._model.getLayer(segmentId);
+    if (layer?.type !== 'StorySegmentLayer') {
+      return '';
+    }
+    const parameters = layer.parameters as IStorySegmentLayer['parameters'];
+    const markdown = parameters?.content?.markdown;
+    return typeof markdown === 'string' ? markdown : '';
+  }
 
   private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
     if (e.touches.length > 0) {
@@ -3951,12 +4005,95 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       (this.state.listMarkdownTransitionPhase === 'exit'
         ? this.state.renderedStoryMarkdownContent
         : null);
+    const drive = this.state.listScrollDrive;
+    const listScrollDriveActive = drive !== null;
     const shouldAnimateListModeTransition =
       this.state.isListStoryMode &&
-      this.state.listMarkdownTransitionPhase !== 'idle';
+      this.state.listMarkdownTransitionPhase !== 'idle' &&
+      !listScrollDriveActive;
     const listTransitionClass = shouldAnimateListModeTransition
       ? `jgis-list-markdown-transition-${this.state.listMarkdownTransitionPhase}-${this.state.listMarkdownTransitionDirection}`
       : '';
+
+    const mapContentStyle: React.CSSProperties = {};
+    if (drive) {
+      const p = drive.progress;
+      if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
+        mapContentStyle.transform = `translateY(${-p * 100}vh)`;
+      } else if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
+        mapContentStyle.transform = `translateY(${(1 - p) * 100}vh)`;
+      } else if (
+        drive.fromMode === 'markdown' &&
+        drive.toMode === 'markdown'
+      ) {
+        mapContentStyle.transform = 'translateY(-100vh)';
+      }
+    }
+
+    let listScrollDriveOverlay: JSX.Element | null = null;
+    if (drive) {
+      const p = drive.progress;
+      if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
+        listScrollDriveOverlay = (
+          <div
+            className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
+            key="list-scroll-md-md"
+          >
+            <div
+              className="jgis-story-markdown-scroll-pane"
+              style={{ transform: `translateY(${-p * 100}vh)` }}
+            >
+              <div className="jgis-story-markdown-scroll-pane-inner">
+                <Markdown>
+                  {this._getStoryMarkdownForIndex(drive.fromIndex)}
+                </Markdown>
+              </div>
+            </div>
+            <div
+              className="jgis-story-markdown-scroll-pane"
+              style={{ transform: `translateY(${(1 - p) * 100}vh)` }}
+            >
+              <div className="jgis-story-markdown-scroll-pane-inner">
+                <Markdown>
+                  {this._getStoryMarkdownForIndex(drive.toIndex)}
+                </Markdown>
+              </div>
+            </div>
+          </div>
+        );
+      } else if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
+        listScrollDriveOverlay = (
+          <div
+            className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
+            key="list-scroll-map-md"
+            style={{ transform: `translateY(${(1 - p) * 100}vh)` }}
+          >
+            <div className="jgis-story-markdown-overlay-content">
+              <Markdown>
+                {this._getStoryMarkdownForIndex(drive.toIndex)}
+              </Markdown>
+            </div>
+          </div>
+        );
+      } else if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
+        listScrollDriveOverlay = (
+          <div
+            className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
+            key="list-scroll-md-map"
+            style={{ transform: `translateY(${-p * 100}vh)` }}
+          >
+            <div className="jgis-story-markdown-overlay-content">
+              <Markdown>
+                {this._getStoryMarkdownForIndex(drive.fromIndex)}
+              </Markdown>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    const showStaticMarkdownOverlay =
+      !listScrollDriveActive && overlayMarkdownContent;
 
     return (
       <>
@@ -4067,13 +4204,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 position: 'relative',
               }}
             >
-              {overlayMarkdownContent && (
+              {listScrollDriveOverlay}
+              {showStaticMarkdownOverlay && (
                 <div className="jgis-story-markdown-overlay">
                   <div className="jgis-story-markdown-overlay-content">
                     <Markdown>{overlayMarkdownContent}</Markdown>
                   </div>
                 </div>
               )}
+             
                 <div className="jgis-panels-wrapper">
                   {!this.state.isSpectaPresentation ? (
                     <>
@@ -4132,6 +4271,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                         storyViewerPanelRef={this.storyViewerPanelRef}
                         addLayer={this._addLayerForPanels}
                         removeLayer={this._removeLayerForPanels}
+                        onListScrollDriveChange={
+                          this._handleListScrollDriveChange
+                        }
                       />
                     )
                   )}

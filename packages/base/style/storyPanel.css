@@ -201,6 +201,8 @@
 
 .jgis-story-viewer-panel-specta-mod.jgis-story-viewer-panel-specta-mod-list {
   align-items: flex-start;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .jgis-story-markdown-overlay {
@@ -215,6 +217,23 @@
 .jgis-story-markdown-overlay-content {
   max-width: 60rem;
   margin: 0 auto;
+}
+
+.jgis-story-markdown-overlay-scroll-drive {
+  overflow: hidden;
+}
+
+.jgis-story-markdown-scroll-pane {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.jgis-story-markdown-scroll-pane-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem;
 }
 
 .jgis-mainview-map-content {

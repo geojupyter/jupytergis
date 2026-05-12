@@ -8,8 +8,10 @@ import React, { RefObject, useImperativeHandle } from 'react';
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
+import { useListStoryScrollDrive } from '@/src/features/story/hooks/useListStoryScrollDrive';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
+import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 export type StoryDesktopViewMode = 'single' | 'list';
@@ -31,6 +33,7 @@ interface ISpectaDesktopViewProps {
   showGradient: boolean;
   viewMode: StoryDesktopViewMode;
   setIndex: (index: number) => void;
+  onListScrollDriveChange?: (payload: IListStoryScrollDrivePayload | null) => void;
 }
 
 export function SpectaDesktopView({
@@ -50,6 +53,7 @@ export function SpectaDesktopView({
   showGradient,
   viewMode,
   setIndex,
+  onListScrollDriveChange,
 }: ISpectaDesktopViewProps): JSX.Element {
   const {
     scrollContainerRef,
@@ -63,6 +67,19 @@ export function SpectaDesktopView({
     model,
     storyData,
     currentIndex,
+  });
+
+  const listScrollDriveEnabled =
+    Boolean(onListScrollDriveChange) &&
+    viewMode === 'list' &&
+    storyData?.storyType === 'list';
+
+  useListStoryScrollDrive({
+    enabled: listScrollDriveEnabled,
+    scrollContainerRef,
+    storyData,
+    items: segmentViewItems,
+    onDriveChange: onListScrollDriveChange ?? (() => {}),
   });
 
   const renderModeContent: Record<StoryDesktopViewMode, () => JSX.Element> = {
@@ -93,6 +110,7 @@ export function SpectaDesktopView({
         handleNext={handleNext}
         hasPrev={hasPrev}
         hasNext={hasNext}
+        listIntersectionRootRef={scrollContainerRef}
       />
     ),
   };

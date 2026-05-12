@@ -1,5 +1,5 @@
 import { IJGISStoryMap } from '@jupytergis/schema';
-import React from 'react';
+import React, { RefObject } from 'react';
 
 import { SpectaSegmentListPanel } from '@/src/features/story/components/SpectaSegmentListPanel';
 import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
@@ -14,6 +14,7 @@ interface ISpectaListModeContentProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
+  listIntersectionRootRef: RefObject<HTMLDivElement | null>;
 }
 
 export function SpectaListModeContent({
@@ -26,6 +27,7 @@ export function SpectaListModeContent({
   handleNext,
   hasPrev,
   hasNext,
+  listIntersectionRootRef,
 }: ISpectaListModeContentProps): JSX.Element {
   return (
     <SpectaSegmentListPanel
@@ -38,6 +40,7 @@ export function SpectaListModeContent({
       handleNext={handleNext}
       hasPrev={hasPrev}
       hasNext={hasNext}
+      listIntersectionRootRef={listIntersectionRootRef}
     />
   );
 }
