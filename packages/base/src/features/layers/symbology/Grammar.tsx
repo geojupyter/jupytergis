@@ -314,19 +314,18 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(layer.when?.length ?? 0) > 1 && (
-          <select
+          <button
+            type="button"
             className="jp-gis-grammar-when-op"
-            value={layer.whenOp ?? 'all'}
-            onChange={e =>
+            onClick={() =>
               onChange({
                 ...layer,
-                whenOp: e.target.value as 'all' | 'any',
+                whenOp: (layer.whenOp ?? 'all') === 'all' ? 'any' : 'all',
               })
             }
           >
-            <option value="all">all</option>
-            <option value="any">any</option>
-          </select>
+            {layer.whenOp ?? 'all'}
+          </button>
         )}
         {layer.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">

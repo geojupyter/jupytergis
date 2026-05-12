@@ -912,19 +912,18 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(row.when?.length ?? 0) > 1 && (
-          <select
+          <button
+            type="button"
             className="jp-gis-grammar-when-op"
-            value={row.whenOp ?? 'all'}
-            onChange={e =>
+            onClick={() =>
               onChange({
                 ...row,
-                whenOp: e.target.value as 'all' | 'any',
+                whenOp: (row.whenOp ?? 'all') === 'all' ? 'any' : 'all',
               })
             }
           >
-            <option value="all">all</option>
-            <option value="any">any</option>
-          </select>
+            {row.whenOp ?? 'all'}
+          </button>
         )}
         {row.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
