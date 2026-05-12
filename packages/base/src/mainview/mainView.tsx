@@ -126,6 +126,7 @@ import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
+import Markdown from 'react-markdown';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
@@ -223,7 +224,11 @@ interface IStates {
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
   identifyFeatureFloatersVersion: number;
-  activeStoryHtmlContent: string | null;
+  activeStoryMarkdownContent: string | null;
+  renderedStoryMarkdownContent: string | null;
+  isListStoryMode: boolean;
+  listMarkdownTransitionPhase: 'idle' | 'enter' | 'exit';
+  listMarkdownTransitionDirection: 'forward' | 'backward';
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -311,11 +316,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.currentSegmentIndexChanged.connect(
-      this._syncActiveStoryHtmlContent,
+      this._syncActiveStoryMarkdownContent,
       this,
     );
     this._model.sharedModel.storyMapsChanged.connect(
-      this._syncActiveStoryHtmlContent,
+      this._syncActiveStoryMarkdownContent,
       this,
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
@@ -361,7 +366,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       isSpectaPresentation: this._model.isSpectaMode(),
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
-      activeStoryHtmlContent: null,
+      activeStoryMarkdownContent: null,
+      renderedStoryMarkdownContent: null,
+      isListStoryMode: false,
+      listMarkdownTransitionPhase: 'idle',
+      listMarkdownTransitionDirection: 'forward',
     };
 
     this._sources = [];
@@ -393,7 +402,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handlePointerChanged();
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
-    this._syncActiveStoryHtmlContent();
+    this._syncActiveStoryMarkdownContent();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -410,10 +419,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._isSpectaPresentationInitialized = true;
     }
 
-    const wasHtmlSegmentActive = Boolean(prevState.activeStoryHtmlContent);
-    const isHtmlSegmentActive = Boolean(this.state.activeStoryHtmlContent);
-    if (wasHtmlSegmentActive !== isHtmlSegmentActive) {
-      this._setMapInteractionsEnabled(!isHtmlSegmentActive);
+    const wasMarkdownSegmentActive = this._isMarkdownOverlayVisible(prevState);
+    const isMarkdownSegmentActive = this._isMarkdownOverlayVisible(this.state);
+    if (wasMarkdownSegmentActive !== isMarkdownSegmentActive) {
+      this._setMapInteractionsEnabled(!isMarkdownSegmentActive);
     }
   }
 
@@ -456,13 +465,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.currentSegmentIndexChanged.disconnect(
-      this._syncActiveStoryHtmlContent,
+      this._syncActiveStoryMarkdownContent,
       this,
     );
     this._model.sharedModel.storyMapsChanged.disconnect(
-      this._syncActiveStoryHtmlContent,
+      this._syncActiveStoryMarkdownContent,
       this,
     );
+    if (this._listMarkdownTransitionTimeout !== null) {
+      window.clearTimeout(this._listMarkdownTransitionTimeout);
+      this._listMarkdownTransitionTimeout = null;
+    }
 
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
@@ -2310,7 +2323,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _handleSelectedChanged = (): void => {
-    this._syncActiveStoryHtmlContent();
+    this._syncActiveStoryMarkdownContent();
 
     const localState = this._model.localState;
     if (!localState) {
@@ -3552,25 +3565,50 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  private _getActiveStoryHtmlContent = (): string | null => {
+  private _getActiveStorySegmentDisplayState = (): {
+    isListStoryMode: boolean;
+    segmentIndex: number;
+    isMarkdownSegment: boolean;
+    markdownContent: string | null;
+  } => {
     if (!this.state.isSpectaPresentation) {
-      return null;
+      return {
+        isListStoryMode: false,
+        segmentIndex: this._model.getCurrentSegmentIndex() ?? 0,
+        isMarkdownSegment: false,
+        markdownContent: null,
+      };
     }
 
     const story = this._model.getSelectedStory().story;
     if (!story?.storySegments?.length) {
-      return null;
+      return {
+        isListStoryMode: false,
+        segmentIndex: this._model.getCurrentSegmentIndex() ?? 0,
+        isMarkdownSegment: false,
+        markdownContent: null,
+      };
     }
 
-    const currentSegmentId =
-      story.storySegments[this._model.getCurrentSegmentIndex() ?? 0];
+    const segmentIndex = this._model.getCurrentSegmentIndex() ?? 0;
+    const currentSegmentId = story.storySegments[segmentIndex];
     if (!currentSegmentId) {
-      return null;
+      return {
+        isListStoryMode: story.storyType === 'list',
+        segmentIndex,
+        isMarkdownSegment: false,
+        markdownContent: null,
+      };
     }
 
     const segmentLayer = this._model.getLayer(currentSegmentId);
     if (segmentLayer?.type !== 'StorySegmentLayer') {
-      return null;
+      return {
+        isListStoryMode: story.storyType === 'list',
+        segmentIndex,
+        isMarkdownSegment: false,
+        markdownContent: null,
+      };
     }
 
     const segmentParameters = segmentLayer.parameters as
@@ -3578,24 +3616,94 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       | undefined;
     const segmentContent = segmentParameters?.content;
     const contentMode = segmentContent?.contentMode;
-    const htmlContent = segmentContent?.htmlContent;
+    const markdown = segmentContent?.markdown;
 
-    if (contentMode !== 'html' || typeof htmlContent !== 'string') {
-      return null;
+    const markdownContent =
+      contentMode === 'markdown' &&
+      typeof markdown === 'string' &&
+      markdown.trim()
+        ? markdown
+        : null;
+
+    return {
+      isListStoryMode: story.storyType === 'list',
+      segmentIndex,
+      isMarkdownSegment: Boolean(markdownContent),
+      markdownContent,
+    };
+  };
+
+  private _syncActiveStoryMarkdownContent = (): void => {
+    const next = this._getActiveStorySegmentDisplayState();
+    const previousIndex = this._previousStorySegmentIndex;
+    const previousIsMarkdown = this._previousStorySegmentIsMarkdown;
+    const hasPreviousSegmentState =
+      previousIndex !== null && previousIsMarkdown !== null;
+    const isListModeTransition =
+      hasPreviousSegmentState &&
+      next.isListStoryMode &&
+      previousIsMarkdown !== next.isMarkdownSegment;
+    const transitionDirection: 'forward' | 'backward' =
+      hasPreviousSegmentState && next.segmentIndex < previousIndex
+        ? 'backward'
+        : 'forward';
+
+    if (this._listMarkdownTransitionTimeout !== null) {
+      window.clearTimeout(this._listMarkdownTransitionTimeout);
+      this._listMarkdownTransitionTimeout = null;
     }
 
-    return htmlContent.trim() ? htmlContent : null;
+    if (isListModeTransition) {
+      if (next.isMarkdownSegment) {
+        this.setState(prevState => ({
+          ...prevState,
+          isListStoryMode: next.isListStoryMode,
+          activeStoryMarkdownContent: next.markdownContent,
+          renderedStoryMarkdownContent: next.markdownContent,
+          listMarkdownTransitionPhase: 'enter',
+          listMarkdownTransitionDirection: transitionDirection,
+        }));
+      } else {
+        this.setState(prevState => ({
+          ...prevState,
+          isListStoryMode: next.isListStoryMode,
+          activeStoryMarkdownContent: null,
+          renderedStoryMarkdownContent:
+            prevState.activeStoryMarkdownContent ??
+            prevState.renderedStoryMarkdownContent,
+          listMarkdownTransitionPhase: 'exit',
+          listMarkdownTransitionDirection: transitionDirection,
+        }));
+      }
+
+      this._listMarkdownTransitionTimeout = window.setTimeout(() => {
+        this.setState(prevState => ({
+          ...prevState,
+          renderedStoryMarkdownContent: prevState.activeStoryMarkdownContent,
+          listMarkdownTransitionPhase: 'idle',
+        }));
+        this._listMarkdownTransitionTimeout = null;
+      }, 360);
+    } else {
+      this.setState(prevState => ({
+        ...prevState,
+        isListStoryMode: next.isListStoryMode,
+        activeStoryMarkdownContent: next.markdownContent,
+        renderedStoryMarkdownContent: next.markdownContent,
+        listMarkdownTransitionPhase: 'idle',
+      }));
+    }
+
+    this._previousStorySegmentIndex = next.segmentIndex;
+    this._previousStorySegmentIsMarkdown = next.isMarkdownSegment;
   };
 
-  private _syncActiveStoryHtmlContent = (): void => {
-    const activeStoryHtmlContent = this._getActiveStoryHtmlContent();
-    this.setState(prevState => {
-      if (prevState.activeStoryHtmlContent === activeStoryHtmlContent) {
-        return prevState;
-      }
-      return { ...prevState, activeStoryHtmlContent };
-    });
-  };
+  private _isMarkdownOverlayVisible = (state: IStates): boolean =>
+    Boolean(
+      state.activeStoryMarkdownContent ||
+      (state.listMarkdownTransitionPhase === 'exit' &&
+        state.renderedStoryMarkdownContent),
+    );
 
   private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
     if (e.touches.length > 0) {
@@ -3838,6 +3946,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   render(): JSX.Element {
+    const overlayMarkdownContent =
+      this.state.activeStoryMarkdownContent ??
+      (this.state.listMarkdownTransitionPhase === 'exit'
+        ? this.state.renderedStoryMarkdownContent
+        : null);
+    const shouldAnimateListModeTransition =
+      this.state.isListStoryMode &&
+      this.state.listMarkdownTransitionPhase !== 'idle';
+    const listTransitionClass = shouldAnimateListModeTransition
+      ? `jgis-list-markdown-transition-${this.state.listMarkdownTransitionPhase}-${this.state.listMarkdownTransitionDirection}`
+      : '';
+
     return (
       <>
         {Object.entries(this.state.annotations).map(([key, annotation]) => {
@@ -3940,87 +4060,86 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
             <div
               ref={this.divRef}
+              className={`jgis-mainview-stage ${listTransitionClass}`}
               style={{
                 width: '100%',
                 height: '100%',
                 position: 'relative',
               }}
             >
-              {this.state.activeStoryHtmlContent && (
-                <div className="jgis-story-html-overlay">
-                  <iframe
-                    className="jgis-story-html-iframe"
-                    sandbox=""
-                    srcDoc={this.state.activeStoryHtmlContent}
-                    title="Story HTML Segment"
-                  />
+              {overlayMarkdownContent && (
+                <div className="jgis-story-markdown-overlay">
+                  <div className="jgis-story-markdown-overlay-content">
+                    <Markdown>{overlayMarkdownContent}</Markdown>
+                  </div>
                 </div>
               )}
-              <div className="jgis-panels-wrapper">
-                {!this.state.isSpectaPresentation ? (
-                  <>
-                    {this.props.isMobile &&
-                    this._state &&
-                    this._formSchemaRegistry &&
-                    this._annotationModel ? (
-                      <MergedPanel
+                <div className="jgis-panels-wrapper">
+                  {!this.state.isSpectaPresentation ? (
+                    <>
+                      {this.props.isMobile &&
+                      this._state &&
+                      this._formSchemaRegistry &&
+                      this._annotationModel ? (
+                        <MergedPanel
+                          model={this._model}
+                          commands={this._mainViewModel.commands}
+                          state={this._state}
+                          settings={this.state.jgisSettings}
+                          formSchemaRegistry={this._formSchemaRegistry}
+                          annotationModel={this._annotationModel}
+                          addLayer={this._addLayerForPanels}
+                          removeLayer={this._removeLayerForPanels}
+                        />
+                      ) : (
+                        <>
+                          {this._state && (
+                            <LeftPanel
+                              model={this._model}
+                              commands={this._mainViewModel.commands}
+                              state={this._state}
+                              settings={this.state.jgisSettings}
+                            />
+                          )}
+                          {this._formSchemaRegistry &&
+                            this._annotationModel && (
+                              <RightPanel
+                                model={this._model}
+                                commands={this._mainViewModel.commands}
+                                formSchemaRegistry={this._formSchemaRegistry}
+                                annotationModel={this._annotationModel}
+                                addLayer={this._addLayerForPanels}
+                                removeLayer={this._removeLayerForPanels}
+                                settings={this.state.jgisSettings}
+                                patchGeoJSONFeatureProperties={
+                                  this._patchGeoJSONFeatureProperties
+                                }
+                              />
+                            )}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    this.state.initialLayersReady && (
+                      <SpectaPanel
                         model={this._model}
-                        commands={this._mainViewModel.commands}
-                        state={this._state}
-                        settings={this.state.jgisSettings}
-                        formSchemaRegistry={this._formSchemaRegistry}
-                        annotationModel={this._annotationModel}
+                        isSpecta={this.state.isSpectaPresentation}
+                        isMobile={this.props.isMobile}
+                        onSegmentTransitionEnd={() =>
+                          this._clearStoryScrollGuard()
+                        }
+                        containerRef={this.spectaContainerRef}
+                        storyViewerPanelRef={this.storyViewerPanelRef}
                         addLayer={this._addLayerForPanels}
                         removeLayer={this._removeLayerForPanels}
                       />
-                    ) : (
-                      <>
-                        {this._state && (
-                          <LeftPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            state={this._state}
-                            settings={this.state.jgisSettings}
-                          />
-                        )}
-                        {this._formSchemaRegistry && this._annotationModel && (
-                          <RightPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            formSchemaRegistry={this._formSchemaRegistry}
-                            annotationModel={this._annotationModel}
-                            addLayer={this._addLayerForPanels}
-                            removeLayer={this._removeLayerForPanels}
-                            settings={this.state.jgisSettings}
-                            patchGeoJSONFeatureProperties={
-                              this._patchGeoJSONFeatureProperties
-                            }
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  this.state.initialLayersReady && (
-                    <SpectaPanel
-                      model={this._model}
-                      isSpecta={this.state.isSpectaPresentation}
-                      isMobile={this.props.isMobile}
-                      onSegmentTransitionEnd={() =>
-                        this._clearStoryScrollGuard()
-                      }
-                      containerRef={this.spectaContainerRef}
-                      storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this._addLayerForPanels}
-                      removeLayer={this._removeLayerForPanels}
-                    />
-                  )
-                )}
-              </div>
-              <div
-                ref={this.controlsToolbarRef}
-                className="jgis-controls-toolbar"
-              ></div>
+                    )
+                  )}
+                </div>
+                <div
+                  ref={this.controlsToolbarRef}
+                  className="jgis-controls-toolbar"
+                ></div>
             </div>
           </div>
           {!this.state.isSpectaPresentation && (
@@ -4110,6 +4229,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
+  private _listMarkdownTransitionTimeout: number | null = null;
+  private _previousStorySegmentIndex: number | null = null;
+  private _previousStorySegmentIsMarkdown: boolean | null = null;
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
 }

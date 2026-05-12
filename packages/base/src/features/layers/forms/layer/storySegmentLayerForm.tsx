@@ -135,12 +135,6 @@ export function StorySegmentLayerPropertiesForm(
           rows: 10,
         },
       },
-      htmlContent: {
-        'ui:widget': 'textarea',
-        'ui:options': {
-          rows: 10,
-        },
-      },
     };
 
     builtUiSchema.layerOverride = {

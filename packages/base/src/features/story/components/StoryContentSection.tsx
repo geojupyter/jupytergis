@@ -2,31 +2,18 @@ import React from 'react';
 import Markdown from 'react-markdown';
 
 interface IStoryContentProps {
-  contentMode?: 'map' | 'html';
+  contentMode?: 'map' | 'markdown';
   markdown: string;
-  htmlContent?: string;
 }
 
 function StoryContentSection({
   contentMode = 'map',
   markdown,
-  htmlContent = '',
 }: IStoryContentProps) {
-  if (contentMode === 'html') {
-    if (!htmlContent.trim()) {
-      return null;
-    }
-
-    return (
-      <div className="jgis-story-viewer-content">
-        <iframe
-          className="jgis-story-viewer-html-preview"
-          sandbox=""
-          srcDoc={htmlContent}
-          title="Story segment HTML content"
-        />
-      </div>
-    );
+  const shouldRenderMarkdown =
+    contentMode === 'map' || contentMode === 'markdown';
+  if (!shouldRenderMarkdown) {
+    return null;
   }
 
   if (!markdown) {

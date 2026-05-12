@@ -38,15 +38,9 @@
         "contentMode": {
           "type": "string",
           "title": "Content Mode",
-          "description": "Display map or HTML content while this segment is active",
-          "enum": ["map", "html"],
+          "description": "Display map or markdown content while this segment is active",
+          "enum": ["map", "markdown"],
           "default": "map"
-        },
-        "htmlContent": {
-          "type": "string",
-          "title": "HTML Content",
-          "description": "HTML content rendered in map area when Content Mode is HTML",
-          "default": ""
         }
       },
       "default": {}
