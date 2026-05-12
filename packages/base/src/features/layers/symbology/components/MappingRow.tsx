@@ -503,6 +503,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
       )}
 
       <button
+        type="button"
         className="jp-gis-grammar-when-ok"
         disabled={!built}
         onClick={() => built && onAdd(built)}
@@ -511,6 +512,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         <FontAwesomeIcon icon={faCheck} />
       </button>
       <button
+        type="button"
         className="jp-gis-grammar-when-cancel"
         onClick={onCancel}
         title="Cancel"
@@ -599,6 +601,7 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
         <span key={i} className="jp-gis-grammar-when-chip">
           {f}
           <button
+            type="button"
             className="jp-gis-grammar-when-cancel"
             onClick={() => onFieldChange(i, '')}
             title="Remove field"
@@ -821,6 +824,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
         {/* Scale preview — spans all channel rows + optional add-channel row */}
         <button
+          type="button"
           className="jp-gis-grammar-preview-btn"
           style={{ gridRow: `1 / span ${previewRowSpan}`, gridColumn: 3 }}
           onClick={() => setExpanded(v => !v)}
@@ -857,6 +861,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               </select>
             </div>
             <button
+              type="button"
               className="jp-gis-grammar-delete-btn"
               style={{ gridRow: i + 1, gridColumn: 6 }}
               onClick={() => removeChannel(ch)}
@@ -924,7 +929,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         {row.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
-            <button onClick={() => removePredicate(i)} title="Remove condition">
+            <button
+              type="button"
+              onClick={() => removePredicate(i)}
+              title="Remove condition"
+            >
               <FontAwesomeIcon icon={faXmark} />
             </button>
           </span>
@@ -937,6 +946,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           />
         ) : (
           <button
+            type="button"
             className="jp-gis-grammar-when-add-btn"
             onClick={() => setAddingWhen(true)}
           >

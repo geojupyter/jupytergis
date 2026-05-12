@@ -25,8 +25,8 @@ import MappingRow, {
   IGrammarRow,
   WhenAddForm,
   formatPredicate,
-} from '@/src/features/layers/symbology/grammar/components/MappingRow';
-import { NumericInput } from '@/src/features/layers/symbology/grammar/components/NumericInput';
+} from '@/src/features/layers/symbology/components/MappingRow';
+import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
 import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
 import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
@@ -162,6 +162,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
       )}
 
       <button
+        type="button"
         className="jp-gis-grammar-delete-btn"
         onClick={onDelete}
         title="Remove transform"
@@ -290,6 +291,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           Layer {layerIndex + 1}
         </span>
         <button
+          type="button"
           className="jp-gis-grammar-when-add-btn"
           onClick={addTransform}
           title="Add transform"
@@ -298,6 +300,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         </button>
         {totalLayers > 1 && (
           <button
+            type="button"
             className="jp-gis-grammar-delete-btn"
             onClick={onDelete}
             title="Remove layer"
@@ -329,6 +332,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
             <button
+              type="button"
               onClick={() => removeLayerPredicate(i)}
               title="Remove condition"
             >
@@ -344,6 +348,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           />
         ) : (
           <button
+            type="button"
             className="jp-gis-grammar-when-add-btn"
             onClick={() => setAddingLayerWhen(true)}
           >

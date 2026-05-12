@@ -14,11 +14,11 @@ jest.mock('ol/expr/expression', () => ({}));
 jest.mock('ol/style/flat', () => ({}));
 jest.mock('@jupytergis/schema', () => ({}));
 jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
-jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 jest.mock('@/src/tools', () => ({ objectEntries: Object.entries }));
 
-import { grammarToOLStyle } from '../grammar/grammarToOLStyle';
-import { IGrammarSymbologyState } from '../grammar/types';
+import { IGrammarSymbologyState } from '@jupytergis/schema';
+
+import { grammarToOLStyle } from '../grammarToOLStyle';
 
 // ---------------------------------------------------------------------------
 // Helpers

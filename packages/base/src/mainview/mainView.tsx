@@ -149,8 +149,8 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { grammarToOLLayer } from '../features/layers/symbology/grammar/grammarToOLLayer';
-import { grammarToOLStyle } from '../features/layers/symbology/grammar/grammarToOLStyle';
+import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
+import { grammarToOLStyle } from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';

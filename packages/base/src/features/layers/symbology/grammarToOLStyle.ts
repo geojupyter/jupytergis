@@ -12,13 +12,6 @@
  *      fill-color ['array', r, g, b, a] expression.
  */
 
-import { ExpressionValue } from 'ol/expr/expression';
-
-import {
-  computeCategorizedColorStops,
-  computeGraduatedColorStops,
-  SymbologyState,
-} from '../styleBuilder';
 import {
   ICategoricalScale,
   IColorRampScale,
@@ -30,7 +23,14 @@ import {
   RGBA,
   UInt8Channel,
   UNormChannel,
-} from './types';
+} from '@jupytergis/schema';
+import { ExpressionValue } from 'ol/expr/expression';
+
+import {
+  computeCategorizedColorStops,
+  computeGraduatedColorStops,
+  SymbologyState,
+} from './styleBuilder';
 
 // '$density' is the pseudo-field produced by a kde transform (KDE density raster).
 // Encoding rules referencing it are compiled only when a kde transform is present;

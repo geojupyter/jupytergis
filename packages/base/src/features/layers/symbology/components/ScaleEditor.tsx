@@ -17,12 +17,12 @@ import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
+import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import ColorRampSelector from '@/src/features/layers/symbology/components/color_ramp/ColorRampSelector';
 import RgbaColorPicker, {
   RgbaColor,
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
-import { NumericInput } from '@/src/features/layers/symbology/grammar/components/NumericInput';
 import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
