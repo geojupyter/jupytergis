@@ -6,6 +6,7 @@
  *  - parameters.symbologyState with old render types → Grammar
  *  - HeatmapLayer color array → symbologyState.gradient
  *  - WebGlLayer type → GeoTiffLayer
+ *  - layer.filters → grammar layer-level when + whenOp (filters removed)
  */
 
 import {
@@ -66,7 +67,59 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
       }
     }
 
-    layers[id] = { ...layer, type: newType, parameters: newParams };
+    // Convert legacy layer.filters → grammar layer-level when + whenOp.
+    const filters = layer.filters;
+    if (filters?.appliedFilters?.length) {
+      const logicalOp: 'all' | 'any' =
+        filters.logicalOp === 'any' ? 'any' : 'all';
+      const predicates: Record<string, any>[] = [];
+
+      for (const item of filters.appliedFilters as Record<string, any>[]) {
+        if (item.operator === 'between') {
+          if (item.betweenMin !== undefined && item.betweenMax !== undefined) {
+            predicates.push({
+              type: 'between',
+              field: item.feature,
+              min: item.betweenMin,
+              max: item.betweenMax,
+            });
+          }
+        } else if (item.operator === '==') {
+          predicates.push({
+            type: 'fieldEquals',
+            field: item.feature,
+            value: item.value,
+          });
+        } else {
+          predicates.push({
+            type: 'fieldCompare',
+            field: item.feature,
+            op: item.operator,
+            value: item.value,
+          });
+        }
+      }
+
+      if (predicates.length) {
+        const symbologyState = newParams.symbologyState;
+        if (
+          Array.isArray(symbologyState?.layers) &&
+          symbologyState.layers.length > 0
+        ) {
+          newParams.symbologyState = {
+            ...symbologyState,
+            layers: symbologyState.layers.map((gl: Record<string, any>) => ({
+              ...gl,
+              when: [...(gl.when ?? []), ...predicates],
+              whenOp: gl.whenOp ?? logicalOp,
+            })),
+          };
+        }
+      }
+    }
+
+    const { filters: _, ...layerWithoutFilters } = { ...layer, type: newType };
+    layers[id] = { ...layerWithoutFilters, parameters: newParams };
   }
 
   return { ...doc, layers };

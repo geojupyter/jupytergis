@@ -49,6 +49,7 @@ interface ILayerUIState {
   transforms: ITransform[];
   rows: IGrammarRow[];
   when?: IPredicate[];
+  whenOp?: 'all' | 'any';
 }
 
 // ---------------------------------------------------------------------------
@@ -309,6 +310,21 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       {/* Layer-level when clause */}
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
+        {(layer.when?.length ?? 0) > 1 && (
+          <select
+            className="jp-gis-grammar-when-op"
+            value={layer.whenOp ?? 'all'}
+            onChange={e =>
+              onChange({
+                ...layer,
+                whenOp: e.target.value as 'all' | 'any',
+              })
+            }
+          >
+            <option value="all">all</option>
+            <option value="any">any</option>
+          </select>
+        )}
         {layer.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
@@ -423,6 +439,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         id: grammarLayer.id,
         transforms: grammarLayer.preprocess ?? [],
         ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
+        ...(grammarLayer.whenOp ? { whenOp: grammarLayer.whenOp } : {}),
         rows: grammarLayer.rules.flatMap(rule =>
           rule.mappings.map((mapping, mi) => ({
             // Preserve the rule's stable id so React keys and story-segment
@@ -433,6 +450,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             scale: mapping.scale,
             channels: [...(mapping.channels as StyleChannel[])],
             ...(rule.when ? { when: rule.when } : {}),
+            ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
           })),
         ),
       })),
@@ -451,6 +469,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           id: row.id,
           ...(row.fields?.length ? { fields: row.fields } : {}),
           ...(row.when?.length ? { when: row.when } : {}),
+          ...(row.whenOp ? { whenOp: row.whenOp } : {}),
           mappings: [
             {
               scale: row.scale,
@@ -465,6 +484,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           ? { preprocess: uiLayer.transforms }
           : {}),
         ...(uiLayer.when?.length ? { when: uiLayer.when } : {}),
+        ...(uiLayer.whenOp ? { whenOp: uiLayer.whenOp } : {}),
         rules,
       };
     });

@@ -99,17 +99,24 @@ export function grammarToOLStyle(
       continue;
     }
 
-    // Layer-level when: AND-ed with each rule's own when.
-    const layerGuardPredicates =
-      layer.when && layer.when.length > 0 ? layer.when : [];
+    // Layer-level guard: compiled separately then AND-ed with the rule guard.
+    const layerGuard =
+      layer.when && layer.when.length > 0
+        ? compileGuard(layer.when, layer.whenOp ?? 'all')
+        : undefined;
 
     for (const rule of layer.rules) {
       // For now use the first field; multi-field assembly is handled via
       // sub-channel mappings (pixel-red/green/blue) or expression scales.
       const field = rule.fields?.[0];
-      const allPredicates = [...layerGuardPredicates, ...(rule.when ?? [])];
+      const ruleGuard =
+        rule.when && rule.when.length > 0
+          ? compileGuard(rule.when, rule.whenOp ?? 'all')
+          : undefined;
       const guard =
-        allPredicates.length > 0 ? compileGuard(allPredicates) : undefined;
+        layerGuard && ruleGuard
+          ? ['all', layerGuard, ruleGuard]
+          : (layerGuard ?? ruleGuard);
 
       for (const mapping of rule.mappings) {
         for (const channel of mapping.channels) {
@@ -265,9 +272,12 @@ function assembleStyle(
 // Guard compilation
 // ---------------------------------------------------------------------------
 
-function compileGuard(predicates: IPredicate[]): ExpressionValue {
+function compileGuard(
+  predicates: IPredicate[],
+  op: 'all' | 'any' = 'all',
+): ExpressionValue {
   const conditions = predicates.map(compilePredicate);
-  return conditions.length === 1 ? conditions[0] : ['all', ...conditions];
+  return conditions.length === 1 ? conditions[0] : [op, ...conditions];
 }
 
 function compilePredicate(predicate: IPredicate): ExpressionValue {
@@ -283,6 +293,12 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
       return ['==', fieldExpr(predicate.field), predicate.value];
     case 'fieldCompare':
       return [predicate.op, fieldExpr(predicate.field), predicate.value];
+    case 'between':
+      return [
+        'all',
+        ['>=', fieldExpr(predicate.field), predicate.min],
+        ['<=', fieldExpr(predicate.field), predicate.max],
+      ];
   }
 }
 

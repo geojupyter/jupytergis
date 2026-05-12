@@ -420,6 +420,17 @@ select option {
   flex-shrink: 0;
 }
 
+.jp-gis-grammar-when-op {
+  height: 20px;
+  padding: 0 4px;
+  font-size: var(--jp-ui-font-size0);
+  border-radius: 10px;
+  border: 1px solid var(--jp-border-color2);
+  background: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+}
+
 .jp-gis-grammar-when-chip {
   display: inline-flex;
   align-items: center;

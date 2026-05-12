@@ -248,6 +248,8 @@ function formatPredicate(p: IPredicate): string {
       return `${p.field} = ${p.value}`;
     case 'fieldCompare':
       return `${p.field} ${p.op} ${p.value}`;
+    case 'between':
+      return `${p.field} between ${p.min} and ${p.max}`;
   }
 }
 
@@ -369,7 +371,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
         m =>
           (m.channels as string[]).includes('pixel-alpha') &&
           m.scale.scheme === 'scalar' &&
-          (m.scale as any).params?.scalarStops?.length >= 2,
+          (m.scale.params?.scalarStops?.length ?? 0) >= 2,
       );
     const layerAlphaScalarStops: { stop: number; output: number }[] =
       (layerAlphaMapping?.scale as any)?.params?.scalarStops ?? [];

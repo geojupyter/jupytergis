@@ -85,6 +85,18 @@
             "op": { "type": "string", "enum": [">", "<", ">=", "<=", "!="] },
             "value": { "type": "number" }
           }
+        },
+        {
+          "type": "object",
+          "description": "Filter by numeric field range (inclusive).",
+          "required": ["type", "field", "min", "max"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["between"] },
+            "field": { "type": "string" },
+            "min": { "type": "number" },
+            "max": { "type": "number" }
+          }
         }
       ]
     },
@@ -335,8 +347,13 @@
         },
         "when": {
           "type": "array",
-          "description": "AND-ed guard predicates. Rule fires only when all pass.",
+          "description": "Guard predicates for this rule.",
           "items": { "$ref": "#/definitions/_IPredicate" }
+        },
+        "whenOp": {
+          "type": "string",
+          "enum": ["all", "any"],
+          "description": "Logical combinator for when predicates. Defaults to 'all'."
         }
       }
     },
@@ -359,8 +376,13 @@
         },
         "when": {
           "type": "array",
-          "description": "AND-ed layer-level guard predicates. Entire layer skipped when any fails.",
+          "description": "Guard predicates applied to every rule in this layer.",
           "items": { "$ref": "#/definitions/_IPredicate" }
+        },
+        "whenOp": {
+          "type": "string",
+          "enum": ["all", "any"],
+          "description": "Logical combinator for when predicates. Defaults to 'all'."
         }
       }
     }

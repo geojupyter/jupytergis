@@ -1,6 +1,5 @@
 import React from 'react';
 
-import FilterComponent from '@/src/features/filter/Filter';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import Grammar from './types/Grammar';
 import Heatmap from './types/Heatmap';
@@ -31,16 +30,13 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
   }
 
   return (
-    <>
-      <Grammar
-        model={model}
-        okSignalPromise={okSignalPromise}
-        layerId={layerId}
-        isStorySegmentOverride={isStorySegmentOverride}
-        segmentId={segmentId}
-      />
-      <FilterComponent model={model} okSignalPromise={okSignalPromise} />
-    </>
+    <Grammar
+      model={model}
+      okSignalPromise={okSignalPromise}
+      layerId={layerId}
+      isStorySegmentOverride={isStorySegmentOverride}
+      segmentId={segmentId}
+    />
   );
 };
 

@@ -41,7 +41,8 @@ export type IPredicate =
   | { type: 'geometryType'; value: 'Point' | 'LineString' | 'Polygon' }
   | { type: 'hasField'; field: string }
   | { type: 'fieldEquals'; field: string; value: string | number }
-  | { type: 'fieldCompare'; field: string; op: ICompareOp; value: number };
+  | { type: 'fieldCompare'; field: string; op: ICompareOp; value: number }
+  | { type: 'between'; field: string; min: number; max: number };
 
 // ---------------------------------------------------------------------------
 // Output types — what a scale produces
@@ -280,11 +281,13 @@ export interface IEncodingRule {
   mappings: [IMapping, ...IMapping[]];
 
   /**
-   * Guard conditions (AND-ed). If all pass for a feature the rule fires;
-   * otherwise the channel falls through to the next unconditional rule for
-   * that channel, or to channelZero if no such rule exists.
+   * Guard conditions applied to this rule. How they are combined is
+   * controlled by `whenOp` (default: 'all' = AND).
    */
   when?: IPredicate[];
+
+  /** Logical combinator for `when` predicates. Defaults to 'all' (AND). */
+  whenOp?: 'all' | 'any';
 }
 
 // ---------------------------------------------------------------------------
@@ -310,10 +313,13 @@ export interface IGrammarLayer {
   rules: IEncodingRule[];
 
   /**
-   * Guard conditions (AND-ed) applied to every rule in this layer.
-   * If any predicate fails for a feature, the entire layer is skipped for that feature.
+   * Guard conditions applied to every rule in this layer.
+   * How they are combined is controlled by `whenOp` (default: 'all' = AND).
    */
   when?: IPredicate[];
+
+  /** Logical combinator for `when` predicates. Defaults to 'all' (AND). */
+  whenOp?: 'all' | 'any';
 }
 
 // ---------------------------------------------------------------------------

@@ -312,6 +312,8 @@ export function formatPredicate(pred: IPredicate): string {
       return `${pred.field} = ${pred.value}`;
     case 'fieldCompare':
       return `${pred.field} ${pred.op} ${pred.value}`;
+    case 'between':
+      return `${pred.field} between ${pred.min} and ${pred.max}`;
   }
 }
 
@@ -325,6 +327,8 @@ interface INewPredicate {
   field: string;
   fieldValue: string;
   compareOp: ICompareOp;
+  betweenMin: string;
+  betweenMax: string;
 }
 
 const EMPTY_NEW: INewPredicate = {
@@ -333,6 +337,8 @@ const EMPTY_NEW: INewPredicate = {
   field: '',
   fieldValue: '',
   compareOp: '>',
+  betweenMin: '',
+  betweenMax: '',
 };
 
 function buildPredicate(p: INewPredicate): IPredicate | null {
@@ -355,6 +361,17 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
       const num = Number(p.fieldValue);
       return p.field && !isNaN(num)
         ? { type: 'fieldCompare', field: p.field, op: p.compareOp, value: num }
+        : null;
+    }
+    case 'between': {
+      const min = Number(p.betweenMin);
+      const max = Number(p.betweenMax);
+      return p.field &&
+        !isNaN(min) &&
+        !isNaN(max) &&
+        p.betweenMin !== '' &&
+        p.betweenMax !== ''
+        ? { type: 'between', field: p.field, min, max }
         : null;
     }
   }
@@ -390,6 +407,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
           <option value="hasField">has field</option>
           <option value="fieldEquals">field equals</option>
           <option value="fieldCompare">field compare</option>
+          <option value="between">between</option>
         </select>
       </div>
 
@@ -413,7 +431,8 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
 
       {(draft.type === 'hasField' ||
         draft.type === 'fieldEquals' ||
-        draft.type === 'fieldCompare') && (
+        draft.type === 'fieldCompare' ||
+        draft.type === 'between') && (
         <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
           <select
             className="jp-mod-styled"
@@ -455,6 +474,32 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
           value={draft.fieldValue}
           onChange={e => patch({ fieldValue: e.target.value })}
         />
+      )}
+
+      {draft.type === 'between' && (
+        <>
+          <input
+            className="jp-mod-styled"
+            style={{ flex: '0 0 60px', minWidth: 0 }}
+            type="number"
+            placeholder="min"
+            value={draft.betweenMin}
+            onChange={e => patch({ betweenMin: e.target.value })}
+          />
+          <span
+            style={{ flex: '0 0 auto', fontSize: 'var(--jp-ui-font-size0)' }}
+          >
+            –
+          </span>
+          <input
+            className="jp-mod-styled"
+            style={{ flex: '0 0 60px', minWidth: 0 }}
+            type="number"
+            placeholder="max"
+            value={draft.betweenMax}
+            onChange={e => patch({ betweenMax: e.target.value })}
+          />
+        </>
       )}
 
       <button
@@ -596,6 +641,7 @@ export interface IGrammarRow {
   scale: IScale;
   channels: StyleChannel[];
   when?: IPredicate[];
+  whenOp?: 'all' | 'any';
 }
 
 /**
@@ -860,6 +906,21 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       {/* When clause */}
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
+        {(row.when?.length ?? 0) > 1 && (
+          <select
+            className="jp-gis-grammar-when-op"
+            value={row.whenOp ?? 'all'}
+            onChange={e =>
+              onChange({
+                ...row,
+                whenOp: e.target.value as 'all' | 'any',
+              })
+            }
+          >
+            <option value="all">all</option>
+            <option value="any">any</option>
+          </select>
+        )}
         {row.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
