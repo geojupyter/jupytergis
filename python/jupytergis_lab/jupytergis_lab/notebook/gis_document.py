@@ -4,7 +4,7 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from uuid import uuid4
 
 import requests
@@ -46,6 +46,10 @@ from jupytergis_lab.notebook.symbology import (  # noqa: TC001
     Symbology,
 )
 from jupytergis_lab.notebook.utils import get_gpkg_layers
+
+if TYPE_CHECKING:
+    from jupyter_xarray_tiler.titiler import TiTilerServer
+
 
 logger = logging.getLogger(__file__)
 
@@ -157,6 +161,8 @@ class GISDocument(CommWidget):
     ``pycrdt.Awareness`` via the inherited ``awareness`` property.
     """
 
+    tile_server: None | TiTilerServer
+
     def __init__(
         self,
         path: str | Path | None = None,
@@ -208,6 +214,8 @@ class GISDocument(CommWidget):
             self._options["pitch"] = pitch
         if projection is not None:
             self._options["projection"] = projection
+
+        self.tile_server = None
 
     @property
     def layers(self) -> dict:
@@ -878,13 +886,14 @@ class GISDocument(CommWidget):
         **params,
     ):
         try:
-            from jupyter_xarray_tiler.titiler import add_data_array
+            from jupyter_xarray_tiler.titiler import _get_server, add_data_array
         except ImportError as e:
             raise RuntimeError(
                 "This method requires 'jupyter-xarray-tiler'."
                 " To resolve, `pip install jupytergis[tiler]`."
             ) from e
 
+        self.tile_server = _get_server()
         url = await add_data_array(
             data_array,
             colormap_name=colormap_name,
