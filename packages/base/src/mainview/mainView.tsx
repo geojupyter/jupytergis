@@ -3535,7 +3535,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._Map.getInteractions().forEach(interaction => {
       const interactionId = getUid(interaction);
       if (!enabled) {
-        this._mapInteractionActiveState.set(interactionId, interaction.getActive());
+        this._mapInteractionActiveState.set(
+          interactionId,
+          interaction.getActive(),
+        );
         interaction.setActive(false);
         return;
       }
@@ -3570,8 +3573,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return null;
     }
 
-    const segmentParameters =
-      segmentLayer.parameters as IStorySegmentLayer['parameters'] | undefined;
+    const segmentParameters = segmentLayer.parameters as
+      | IStorySegmentLayer['parameters']
+      | undefined;
     const segmentContent = segmentParameters?.content;
     const contentMode = segmentContent?.contentMode;
     const htmlContent = segmentContent?.htmlContent;
@@ -4098,7 +4102,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _featurePropertyCache: Map<string | number, any> = new Map();
-  private readonly _mapInteractionActiveState = new Map<string | number, boolean>();
+  private readonly _mapInteractionActiveState = new Map<
+    string | number,
+    boolean
+  >();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;

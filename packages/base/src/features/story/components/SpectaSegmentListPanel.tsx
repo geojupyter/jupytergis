@@ -42,6 +42,7 @@ export function SpectaSegmentListPanel({
           if (!segmentId) {
             return;
           }
+
           if (entry.isIntersecting) {
             visibleIdsRef.current.add(segmentId);
           } else {
@@ -52,6 +53,7 @@ export function SpectaSegmentListPanel({
         const firstVisible = items.find(item =>
           visibleIdsRef.current.has(item.id),
         );
+
         if (firstVisible && firstVisible.index !== currentIndex) {
           setIndex(firstVisible.index);
         }

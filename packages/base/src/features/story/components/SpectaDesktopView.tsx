@@ -5,9 +5,9 @@ import {
 } from '@jupytergis/schema';
 import React, { RefObject, useImperativeHandle } from 'react';
 
+import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
-import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
@@ -64,6 +64,7 @@ export function SpectaDesktopView({
     storyData,
     currentIndex,
   });
+
   const renderModeContent: Record<StoryDesktopViewMode, () => JSX.Element> = {
     single: () => (
       <SpectaSingleModeContent
@@ -121,7 +122,9 @@ export function SpectaDesktopView({
           <div
             ref={scrollContainerRef}
             className={`jgis-story-viewer-panel-specta-mod ${
-              viewMode === 'list' ? 'jgis-story-viewer-panel-specta-mod-list' : ''
+              viewMode === 'list'
+                ? 'jgis-story-viewer-panel-specta-mod-list'
+                : ''
             }`}
             id="jgis-story-segment-panel"
             style={showGradient ? undefined : { width: 'unset' }}
