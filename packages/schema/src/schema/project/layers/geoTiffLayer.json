@@ -56,7 +56,7 @@
           "type": "array",
           "description": "Grammar rendering layers.",
           "items": {
-            "$ref": "./vectorLayer.json#/definitions/_IGrammarLayer"
+            "$ref": "project/layers/vectorLayer.json#/definitions/_IGrammarLayer"
           }
         },
         "renderType": {

@@ -74,14 +74,14 @@
           "type": "array",
           "description": "Legacy top-level encoding rules (backward compatibility). New files should use layers.",
           "items": {
-            "$ref": "./vectorLayer.json#/definitions/_IEncodingRule"
+            "$ref": "project/layers/vectorLayer.json#/definitions/_IEncodingRule"
           }
         },
         "layers": {
           "type": "array",
           "description": "Grammar rendering layers. Each layer is an independent rendering pipeline with optional preprocess transforms and encoding rules.",
           "items": {
-            "$ref": "./vectorLayer.json#/definitions/_IGrammarLayer"
+            "$ref": "project/layers/vectorLayer.json#/definitions/_IGrammarLayer"
           }
         }
       },
