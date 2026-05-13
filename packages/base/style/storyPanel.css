@@ -354,6 +354,10 @@
   background: var(--jp-layout-color2);
 }
 
+.jgis-story-segment-card.jgis-story-segment-card-hidden {
+  visibility: hidden;
+}
+
 .jGIS-property-panel
   .jp-FormGroup-content
   fieldset

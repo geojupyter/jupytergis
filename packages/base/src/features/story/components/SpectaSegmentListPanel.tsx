@@ -137,6 +137,8 @@ export function SpectaSegmentListPanel({
   return (
     <div className="jgis-story-segment-list">
       {items.map(item => {
+        const isMarkdownSegment =
+          item.activeSlide?.content?.contentMode === 'markdown';
         return (
           <div
             key={item.id}
@@ -146,7 +148,7 @@ export function SpectaSegmentListPanel({
             }}
             className={`jgis-story-segment-card ${
               item.isActive ? 'jgis-story-segment-card-active' : ''
-            }`}
+            }${isMarkdownSegment ? ' jgis-story-segment-card-hidden' : ''}`}
           >
             <StoryViewerPanel
               isSpecta={isSpecta}

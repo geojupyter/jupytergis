@@ -3718,9 +3718,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _isMarkdownOverlayVisible = (state: IStates): boolean =>
     Boolean(
       state.listScrollDrive ||
-        state.activeStoryMarkdownContent ||
-        (state.listMarkdownTransitionPhase === 'exit' &&
-          state.renderedStoryMarkdownContent),
+      state.activeStoryMarkdownContent ||
+      (state.listMarkdownTransitionPhase === 'exit' &&
+        state.renderedStoryMarkdownContent),
     );
 
   private _handleListScrollDriveChange = (
@@ -4005,6 +4005,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       (this.state.listMarkdownTransitionPhase === 'exit'
         ? this.state.renderedStoryMarkdownContent
         : null);
+
     const drive = this.state.listScrollDrive;
     const listScrollDriveActive = drive !== null;
     const shouldAnimateListModeTransition =
@@ -4022,10 +4023,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         mapContentStyle.transform = `translateY(${-p * 100}vh)`;
       } else if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
         mapContentStyle.transform = `translateY(${(1 - p) * 100}vh)`;
-      } else if (
-        drive.fromMode === 'markdown' &&
-        drive.toMode === 'markdown'
-      ) {
+      } else if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
         mapContentStyle.transform = 'translateY(-100vh)';
       }
     }
@@ -4212,76 +4210,75 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   </div>
                 </div>
               )}
-             
-                <div className="jgis-panels-wrapper">
-                  {!this.state.isSpectaPresentation ? (
-                    <>
-                      {this.props.isMobile &&
-                      this._state &&
-                      this._formSchemaRegistry &&
-                      this._annotationModel ? (
-                        <MergedPanel
-                          model={this._model}
-                          commands={this._mainViewModel.commands}
-                          state={this._state}
-                          settings={this.state.jgisSettings}
-                          formSchemaRegistry={this._formSchemaRegistry}
-                          annotationModel={this._annotationModel}
-                          addLayer={this._addLayerForPanels}
-                          removeLayer={this._removeLayerForPanels}
-                        />
-                      ) : (
-                        <>
-                          {this._state && (
-                            <LeftPanel
-                              model={this._model}
-                              commands={this._mainViewModel.commands}
-                              state={this._state}
-                              settings={this.state.jgisSettings}
-                            />
-                          )}
-                          {this._formSchemaRegistry &&
-                            this._annotationModel && (
-                              <RightPanel
-                                model={this._model}
-                                commands={this._mainViewModel.commands}
-                                formSchemaRegistry={this._formSchemaRegistry}
-                                annotationModel={this._annotationModel}
-                                addLayer={this._addLayerForPanels}
-                                removeLayer={this._removeLayerForPanels}
-                                settings={this.state.jgisSettings}
-                                patchGeoJSONFeatureProperties={
-                                  this._patchGeoJSONFeatureProperties
-                                }
-                              />
-                            )}
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    this.state.initialLayersReady && (
-                      <SpectaPanel
+
+              <div className="jgis-panels-wrapper">
+                {!this.state.isSpectaPresentation ? (
+                  <>
+                    {this.props.isMobile &&
+                    this._state &&
+                    this._formSchemaRegistry &&
+                    this._annotationModel ? (
+                      <MergedPanel
                         model={this._model}
-                        isSpecta={this.state.isSpectaPresentation}
-                        isMobile={this.props.isMobile}
-                        onSegmentTransitionEnd={() =>
-                          this._clearStoryScrollGuard()
-                        }
-                        containerRef={this.spectaContainerRef}
-                        storyViewerPanelRef={this.storyViewerPanelRef}
+                        commands={this._mainViewModel.commands}
+                        state={this._state}
+                        settings={this.state.jgisSettings}
+                        formSchemaRegistry={this._formSchemaRegistry}
+                        annotationModel={this._annotationModel}
                         addLayer={this._addLayerForPanels}
                         removeLayer={this._removeLayerForPanels}
-                        onListScrollDriveChange={
-                          this._handleListScrollDriveChange
-                        }
                       />
-                    )
-                  )}
-                </div>
-                <div
-                  ref={this.controlsToolbarRef}
-                  className="jgis-controls-toolbar"
-                ></div>
+                    ) : (
+                      <>
+                        {this._state && (
+                          <LeftPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            state={this._state}
+                            settings={this.state.jgisSettings}
+                          />
+                        )}
+                        {this._formSchemaRegistry && this._annotationModel && (
+                          <RightPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            formSchemaRegistry={this._formSchemaRegistry}
+                            annotationModel={this._annotationModel}
+                            addLayer={this._addLayerForPanels}
+                            removeLayer={this._removeLayerForPanels}
+                            settings={this.state.jgisSettings}
+                            patchGeoJSONFeatureProperties={
+                              this._patchGeoJSONFeatureProperties
+                            }
+                          />
+                        )}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  this.state.initialLayersReady && (
+                    <SpectaPanel
+                      model={this._model}
+                      isSpecta={this.state.isSpectaPresentation}
+                      isMobile={this.props.isMobile}
+                      onSegmentTransitionEnd={() =>
+                        this._clearStoryScrollGuard()
+                      }
+                      containerRef={this.spectaContainerRef}
+                      storyViewerPanelRef={this.storyViewerPanelRef}
+                      addLayer={this._addLayerForPanels}
+                      removeLayer={this._removeLayerForPanels}
+                      onListScrollDriveChange={
+                        this._handleListScrollDriveChange
+                      }
+                    />
+                  )
+                )}
+              </div>
+              <div
+                ref={this.controlsToolbarRef}
+                className="jgis-controls-toolbar"
+              ></div>
             </div>
           </div>
           {!this.state.isSpectaPresentation && (
