@@ -12,7 +12,7 @@
     "data": {
       "type": "object",
       "description": "The GeoJSON data",
-      "$ref": "./geojson.json"
+      "$ref": "../../geojson.json"
     },
     "useProxy": {
       "type": "boolean",

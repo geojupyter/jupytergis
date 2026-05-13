@@ -201,8 +201,7 @@
       "parameters": {
         "httpHeaders": "",
         "path": "data/eq.geojson",
-        "useProxy": false,
-        "valid": false
+        "useProxy": false
       },
       "type": "GeoJSONSource"
     },
