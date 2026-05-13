@@ -169,13 +169,15 @@ export function ClipRasterByExtentForm(
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
-    setUseMapExtent(checked);
     if (checked) {
       const extent = getAndStoreMapExtent();
       if (extent) {
+        setUseMapExtent(true);
         setFormData(prev => ({ ...prev, ...extent }));
       }
+      // If viewport isn't ready, leave the checkbox unchecked and fields required
     } else {
+      setUseMapExtent(false);
       extentRef.current = {};
     }
   };

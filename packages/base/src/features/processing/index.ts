@@ -539,6 +539,7 @@ async function getRasterBytes(
   const absolutePath = jgisDir ? `${jgisDir}/${url}` : url;
   const file = await app.serviceManager.contents.get(absolutePath, {
     content: true,
+    format: 'base64',
   });
   if (!file?.content) {
     return null;
@@ -586,7 +587,7 @@ export async function clipRasterByExtent(
     await showErrorMessage('Clip failed', 'Selected layer has no source.');
     return;
   }
-  const source = sources[selected.parameters.source];
+  let source = sources[selected.parameters.source];
   if (!source || source.type !== 'GeoTiffSource') {
     await showErrorMessage(
       'Clip failed',
@@ -638,6 +639,26 @@ export async function clipRasterByExtent(
 
     if (!formValues) {
       return;
+    }
+
+    // Re-resolve selected/source in case the user changed inputLayer in the form
+    const resolvedLayerId = formValues.inputLayer ?? selectedLayerId;
+    if (resolvedLayerId && resolvedLayerId !== selectedLayerId) {
+      const resolvedLayer = layers[resolvedLayerId];
+      if (!resolvedLayer?.parameters?.source) {
+        await showErrorMessage('Clip failed', 'Selected layer has no source.');
+        return;
+      }
+      const resolvedSource = sources[resolvedLayer.parameters.source];
+      if (!resolvedSource || resolvedSource.type !== 'GeoTiffSource') {
+        await showErrorMessage(
+          'Clip failed',
+          'Selected layer is not a GeoTiff raster layer.',
+        );
+        return;
+      }
+      selected = resolvedLayer;
+      source = resolvedSource;
     }
 
     xMin = formValues.xMin;
