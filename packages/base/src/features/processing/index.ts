@@ -9,8 +9,7 @@ import {
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { Notification as JlNotification } from '@jupyterlab/apputils';
-import { showErrorMessage } from '@jupyterlab/apputils';
+import { Notification, showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
@@ -405,7 +404,7 @@ export async function rasterizeLayer(
   };
 
   const rasterizePromise = doRasterize();
-  JlNotification.promise(
+  Notification.promise(
     rasterizePromise.then(() => null),
     {
       pending: { message: 'Rasterizing…', options: { autoClose: false } },
@@ -771,7 +770,7 @@ export async function executeSQLProcessing(
   };
 
   const processingPromise = doProcessing();
-  JlNotification.promise(
+  Notification.promise(
     processingPromise.then(() => null),
     {
       pending: {
