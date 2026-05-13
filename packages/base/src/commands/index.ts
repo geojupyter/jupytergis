@@ -1874,6 +1874,32 @@ export function addCommands(
     },
   });
 
+  const notifyCommandsChanged = () => {
+    for (const command of Object.values(CommandIDs)) {
+      try {
+        commands.notifyCommandChanged(command);
+      } catch (_) {
+        // Do Continue if command is not registered
+      }
+    }
+  };
+
+  let cleanup: (() => void) | null = null;
+
+  tracker.currentChanged.connect(_ => {
+    cleanup?.();
+    cleanup = null;
+
+    const model = tracker.currentWidget?.model;
+    model?.selectedChanged.connect(notifyCommandsChanged);
+
+    cleanup = () => {
+      model?.selectedChanged.disconnect(notifyCommandsChanged);
+    };
+
+    notifyCommandsChanged();
+  });
+
   loadKeybindings(commands, keybindings);
 }
 

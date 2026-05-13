@@ -13,6 +13,7 @@ import {
   processLayer,
   rasterizeLayer,
   clipRasterByExtent,
+  clipVectorByMaskLayer,
 } from './index';
 import { JupyterGISTracker } from '../../types';
 
@@ -55,7 +56,9 @@ export function addProcessingCommands(
 ) {
   for (const processingElement of ProcessingMerge) {
     const schemaKey = Object.keys(processingSchemas).find(
-      k => k.toLowerCase() === processingElement.name.toLowerCase(),
+      k =>
+        k.toLowerCase() === processingElement.description.toLowerCase() ||
+        k.toLowerCase() === processingElement.name.toLowerCase(),
     );
     if (!schemaKey) {
       continue;
@@ -182,6 +185,42 @@ export function addProcessingCommands(
           processingInputs?: Record<string, any>;
         }) => {
           await clipRasterByExtent(
+            tracker,
+            formSchemaRegistry,
+            app,
+            args?.filePath,
+            args?.processingInputs,
+          );
+        },
+      });
+    } else if (processingElement.type === ProcessingLogicType.clip) {
+      commands.addCommand(`jupytergis:${processingElement.name}`, {
+        label: trans.__(processingElement.label),
+        describedBy: {
+          args: {
+            type: 'object',
+            properties: {
+              filePath: {
+                type: 'string',
+                description: 'Path to the .jGIS file',
+              },
+              layerId: {
+                type: 'string',
+                description: 'Layer ID to process',
+              },
+              params: processingSchemas[schemaKey],
+            },
+          },
+        },
+
+        isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+
+        execute: async (args?: {
+          filePath?: string;
+          layerId?: string;
+          processingInputs?: Record<string, any>;
+        }) => {
+          await clipVectorByMaskLayer(
             tracker,
             formSchemaRegistry,
             app,
