@@ -17,6 +17,8 @@ from jupytergis_core.schema import (
     IGeoParquetSource,
     IGeoTiffLayer,
     IGeoTiffSource,
+    IGeoZarrLayer,
+    IGeoZarrSource,
     IHeatmapLayer,
     IHillshadeLayer,
     IImageLayer,
@@ -515,6 +517,57 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "opacity": opacity,
                 "color": color_expr,
+            },
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_zarr_layer(
+        self,
+        url: str,
+        bands: list[str] | None = None,
+        name: str = "Zarr Layer",
+        opacity: float = 1.0,
+        gamma: float = 1.5,
+        wrap_x: bool = False,
+        color_expr=None,
+    ):
+        """Add a Zarr layer
+
+        :param url: URL to the root of the Zarr store.
+        :param bands: Named band identifiers to load (e.g. ['b04','b03','b02']).
+                      When None or empty, all bands are loaded in stored order.
+        :param name: Display name for the layer.
+        :param opacity: Layer opacity between 0 and 1.
+        :param gamma: Gamma correction applied to all bands (default 1.5).
+        :param wrap_x: Wrap the world horizontally.
+        :param color_expr: Optional OpenLayers WebGL color expression.
+                           When set, overrides gamma.
+        """
+        bands = bands or ["b04", "b03", "b02"]
+
+        source = {
+            "type": SourceType.GeoZarrSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "bands": bands,
+                "wrapX": wrap_x,
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.GeoZarrLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "opacity": opacity,
+                "gamma": gamma,
+                "color": color_expr,
+                "symbologyState": {"renderType": "Multiband Color"},
             },
         }
 
@@ -1294,6 +1347,7 @@ class JGISLayer(BaseModel):
         | IHillshadeLayer
         | IImageLayer
         | IGeoTiffLayer
+        | IGeoZarrLayer
         | IHeatmapLayer
         | IStorySegmentLayer
     )
@@ -1319,6 +1373,7 @@ class JGISSource(BaseModel):
         | IImageSource
         | IVideoSource
         | IGeoTiffSource
+        | IGeoZarrSource
         | IRasterDemSource
         | IGeoParquetSource
         | IGeoPackageVectorSource
@@ -1406,6 +1461,7 @@ OBJECT_FACTORY.register_factory(LayerType.VectorLayer, IVectorLayer)
 OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.GeoTiffLayer, IGeoTiffLayer)
+OBJECT_FACTORY.register_factory(LayerType.GeoZarrLayer, IGeoZarrLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
@@ -1417,6 +1473,7 @@ OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoZarrSource, IGeoZarrSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoParquetSource, IGeoParquetSource)
 OBJECT_FACTORY.register_factory(
