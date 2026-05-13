@@ -19,59 +19,44 @@ test.describe('#filters', () => {
     await page.activity.closeAll();
   });
 
-  test('filters should apply and be removed', async ({ page }) => {
+  test('when-clause can be added and removed in grammar panel', async ({
+    page,
+  }) => {
     const main = page.locator('.jGIS-Mainview');
     await expect(main).toBeVisible();
 
-    /// Open Layer
+    // Open the symbology dialog
     await page
       .getByText('Custom GeoJSON Layer', { exact: true })
       .click({ button: 'right' });
-
     await page.getByText('Edit Symbology').click();
 
-    await page.getByRole('button', { name: 'Filters' }).click();
+    const dialog = page.locator('.jp-Dialog-content');
+    await expect(dialog).toBeAttached();
 
-    // Add first filter
-    await page.getByTestId('add-filter-button').click();
-    await page.locator('#jp-gis-feature-select-0').selectOption('mag');
-    await page.locator('#jp-gis-operator-select-0').selectOption('>');
-    await page.locator('#jp-gis-value-select-0').selectOption('2.73');
+    // Verify grammar panel is shown
+    await expect(dialog.getByText('Layer 1')).toBeVisible();
 
-    // Add second filter
-    await page.getByTestId('add-filter-button').click();
-    await page.locator('#jp-gis-feature-select-1').selectOption('felt');
-    await page.locator('#jp-gis-operator-select-1').selectOption('>');
-    await page.locator('#jp-gis-value-select-1').selectOption('10');
+    // Click the "+" button in the layer-level "when" row to open the add form
+    const whenRow = dialog.locator('.jp-gis-grammar-when-row').first();
+    await whenRow.locator('.jp-gis-grammar-when-add-btn').click();
 
-    expect(await page.screenshot()).toMatchSnapshot({
-      name: 'two-filter.png',
-      maxDiffPixelRatio: 0.01,
-    });
+    // The WhenAddForm should appear with a type selector defaulting to "geometry type"
+    const typeSelect = whenRow.locator('select').first();
+    await expect(typeSelect).toBeVisible();
+    await expect(typeSelect).toHaveValue('geometryType');
 
-    await page.getByRole('button', { name: 'Ok' }).click();
+    // Confirm the predicate (geometry type = Point by default)
+    await whenRow.locator('button[title="Add predicate"]').click();
 
-    await page
-      .getByText('Custom GeoJSON Layer', { exact: true })
-      .click({ button: 'right' });
+    // A "when" chip should appear showing the condition
+    const chip = whenRow.locator('.jp-gis-grammar-when-chip').first();
+    await expect(chip).toBeVisible();
 
-    await page.getByText('Edit Symbology').click();
-    await page.getByRole('button', { name: 'Filters' }).click();
+    // Remove the chip
+    await chip.locator('button').click();
+    await expect(chip).not.toBeAttached();
 
-    // Remove filter
-    await page.locator('#jp-gis-remove-filter-1').click();
-
-    expect(await page.screenshot()).toMatchSnapshot({
-      name: 'one-filter.png',
-      maxDiffPixelRatio: 0.01,
-    });
-
-    // Clear filters
-    await page.getByRole('button', { name: 'Clear' }).click();
-
-    expect(await page.screenshot()).toMatchSnapshot({
-      name: 'no-filter.png',
-      maxDiffPixelRatio: 0.01,
-    });
+    await dialog.getByText('Cancel').click();
   });
 });
