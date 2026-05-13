@@ -11,7 +11,7 @@ from jupytergis_lab.notebook.symbology import (
 
 TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
 TEST_GPKG_VECTOR = "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg"
-TEST_GPKG_RASTER = "https://cdn.jsdelivr.net/gh/ngageoint/geopackage-js@master/docs/examples/GeoPackageToGo/StLouis.gpkg"
+TEST_GPKG_RASTER = "https://raw.githubusercontent.com/ngageoint/geopackage-js/master/test/fixtures/denver_tile.gpkg"
 TEST_GEOPARQUET = "https://raw.githubusercontent.com/opengeospatial/geoparquet/main/examples/example.parquet"
 
 
