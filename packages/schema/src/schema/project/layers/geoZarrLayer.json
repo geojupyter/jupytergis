@@ -63,7 +63,7 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "default": "Multiband Pseudocolor"
+          "default": "Multiband Color"
         },
         "band": {
           "type": "number",
@@ -106,7 +106,7 @@
       },
       "additionalProperties": false,
       "default": {
-        "renderType": "Multiband Pseudocolor",
+        "renderType": "Multiband Color",
         "band": 1,
         "redBand": 1,
         "greenBand": 2,

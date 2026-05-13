@@ -23,7 +23,11 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
   useEffect(() => {
     const layer = model.getLayer(layerId);
     const renderType = layer?.parameters?.symbologyState?.renderType;
-    setSelectedRenderType(renderType ?? 'Singleband Pseudocolor');
+    const defaultRenderType =
+      layer?.type === 'GeoZarrLayer'
+        ? 'Multiband Color'
+        : 'Singleband Pseudocolor';
+    setSelectedRenderType(renderType ?? defaultRenderType);
   }, []);
 
   useEffect(() => {

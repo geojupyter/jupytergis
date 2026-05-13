@@ -14,10 +14,9 @@
       "type": "array",
       "description": "Named band identifiers to load from the Zarr store (e.g. [\"b04\", \"b03\", \"b02\"]). When omitted, all bands are loaded in their stored order.",
       "items": {
-        "type": "string",
-        "default": ""
+        "type": "string"
       },
-      "default": []
+      "default": ["b04", "b03", "b02"]
     },
     "wrapX": {
       "type": "boolean",

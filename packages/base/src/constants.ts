@@ -57,6 +57,7 @@ const iconObject = {
   [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
   [CommandIDs.openNewShapefileDialog]: { iconClass: 'fa fa-file' },
   [CommandIDs.openNewGeoTiffDialog]: { iconClass: 'fa fa-image' },
+  [CommandIDs.openNewGeoZarrDialog]: { iconClass: 'fa fa-image' },
   [CommandIDs.openNewGeoParquetDialog]: { iconClass: 'fa fa-file' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },

@@ -870,6 +870,10 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoZarrSource': {
+        return null;
+      }
+
       case 'GeoPackageVectorSource': {
         const projection = model.sharedModel.options.projection;
         if (!projection) {

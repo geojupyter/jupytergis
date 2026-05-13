@@ -24,6 +24,26 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
 
     try {
       const source = model.getSource(layer?.parameters?.source);
+
+      if (layer?.type === 'GeoZarrLayer') {
+        const bands: string[] = source?.parameters?.bands?.length
+          ? source.parameters.bands
+          : ['BO4', 'BO3', 'BO2'];
+
+        const bandsArr: IBandRow[] = bands.map((name: string, i: number) => ({
+          band: i + 1,
+          colorInterpretation: name,
+          stats: {
+            minimum: 0,
+            maximum: 1,
+          },
+        }));
+
+        setBandRows(bandsArr);
+        setLoading(false);
+        return;
+      }
+
       const sourceInfo = source?.parameters?.urls[0];
 
       if (!sourceInfo?.url) {

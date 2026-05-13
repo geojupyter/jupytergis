@@ -18,7 +18,7 @@ import {
 import {
   saveSymbology,
   Utils,
-  GeoTiffSymbologyParams,
+  RasterSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
@@ -42,7 +42,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }
   const layer = model.getLayer(layerId);
 
-  const params = useEffectiveSymbologyParams<GeoTiffSymbologyParams>({
+  const params = useEffectiveSymbologyParams<RasterSymbologyParams>({
     model,
     layerId: layerId,
     layer,
@@ -258,12 +258,14 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         return;
       }
 
-      const sourceInfo = source.parameters.urls[0];
-      sourceInfo.min = bandRow.stats.minimum;
-      sourceInfo.max = bandRow.stats.maximum;
+      if (layer?.type !== 'GeoZarrLayer' && source.parameters.urls?.[0]) {
+        const sourceInfo = source.parameters.urls[0];
+        sourceInfo.min = bandRow.stats.minimum;
+        sourceInfo.max = bandRow.stats.maximum;
 
-      source.parameters.urls[0] = sourceInfo;
-      model.sharedModel.updateSource(sourceId, source);
+        source.parameters.urls[0] = sourceInfo;
+        model.sharedModel.updateSource(sourceId, source);
+      }
     }
 
     saveSymbology({
@@ -276,7 +278,9 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         color: colorExpr,
       },
       mutateLayerBeforeSave: targetLayer => {
-        targetLayer.type = 'GeoTiffLayer';
+        if (targetLayer.type !== 'GeoZarrLayer') {
+          targetLayer.type = 'GeoTiffLayer';
+        }
       },
     });
   };

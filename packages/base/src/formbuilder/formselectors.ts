@@ -35,6 +35,7 @@ export function getLayerTypeForm(
       LayerForm = HillshadeLayerPropertiesForm;
       break;
     case 'GeoTiffLayer':
+    case 'GeoZarrLayer':
       LayerForm = GeoTiffLayerPropertiesForm;
       break;
     case 'HeatmapLayer':
@@ -67,6 +68,9 @@ export function getSourceTypeForm(
       break;
     case 'GeoTiffSource':
       SourceForm = GeoTiffSourcePropertiesForm;
+      break;
+    case 'GeoZarrSource':
+      SourceForm = SourcePropertiesForm;
       break;
     case 'WmsTileSource':
       SourceForm = WmsTileSourceForm;

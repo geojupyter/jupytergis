@@ -1149,7 +1149,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
           newSource = new GeoZarr({
             url: sourceParameters.url,
-            bands: sourceParameters.bands ?? [],
+            bands: sourceParameters.bands?.length
+              ? sourceParameters.bands
+              : ['b04', 'b03', 'b02'],
             wrapX: sourceParameters.wrapX,
           });
 
@@ -1557,25 +1559,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'GeoZarrLayer': {
         layerParameters = layer.parameters as IGeoZarrLayer;
 
-        const layerOptions: any = {
+        newMapLayer = new GeoTiffLayer({
           opacity: layerParameters.opacity ?? 1,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-        };
+          style: {
+            gamma: layerParameters.gamma ?? 1.5,
+            color: layerParameters.color ?? [
+              'color',
+              ['interpolate', ['linear'], ['band', 1], 0, 0, 0.5, 255],
+              ['interpolate', ['linear'], ['band', 2], 0, 0, 0.5, 255],
+              ['interpolate', ['linear'], ['band', 3], 0, 0, 0.5, 255],
+            ],
+          },
+        });
 
-        // Explicit color expression takes highest priority (set via Python API or
-        // advanced symbology). Falls back to gamma, then bare defaults.
-        if (layerParameters.color) {
-          layerOptions['style'] = {
-            color: layerParameters.color,
-          };
-        } else if (layerParameters.gamma !== undefined) {
-          layerOptions['style'] = {
-            gamma: layerParameters.gamma,
-          };
-        }
-
-        newMapLayer = new GeoTiffLayer(layerOptions);
         break;
       }
       case 'HeatmapLayer': {
@@ -1901,6 +1899,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (layer?.parameters?.color) {
           (mapLayer as GeoTiffLayer).setStyle({
             color: layer.parameters.color,
+          });
+        }
+        break;
+      }
+      case 'GeoZarrLayer': {
+        const layerParams = layer.parameters as IGeoZarrLayer;
+        mapLayer.setOpacity(layerParams.opacity ?? 1);
+
+        // Safe to set style here — source metadata is fully loaded by this point
+        if (layerParams.color) {
+          (mapLayer as GeoTiffLayer).setStyle({
+            color: layerParams.color,
+          });
+        } else if (layerParams.gamma !== undefined) {
+          (mapLayer as GeoTiffLayer).setStyle({
+            gamma: layerParams.gamma,
           });
         }
         break;
@@ -3392,7 +3406,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
 
-      case 'GeoTiffLayer': {
+      case 'GeoTiffLayer':
+      case 'GeoZarrLayer': {
         const layer = this.getLayer(layerId) as GeoTiffLayer;
         const data = layer.getData(e.pixel);
 

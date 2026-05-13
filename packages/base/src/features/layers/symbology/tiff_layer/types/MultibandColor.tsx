@@ -1,4 +1,3 @@
-import { IGeoTiffLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
@@ -7,7 +6,7 @@ import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
-  GeoTiffSymbologyParams,
+  RasterSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import BandRow from '@/src/features/layers/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
@@ -35,7 +34,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   }
   const layer = model.getLayer(layerId);
 
-  const params = useEffectiveSymbologyParams<GeoTiffSymbologyParams>({
+  const params = useEffectiveSymbologyParams<RasterSymbologyParams>({
     model,
     layerId: layerId,
     layer,
@@ -64,11 +63,13 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   }, []);
 
   const populateOptions = async () => {
-    const layerParams = params as IGeoTiffLayer;
+    const layerParams = params;
     const red = layerParams.symbologyState?.redBand ?? 1;
     const green = layerParams.symbologyState?.greenBand ?? 2;
     const blue = layerParams.symbologyState?.blueBand ?? 3;
-    const alpha = layerParams.symbologyState?.alphaBand ?? 4;
+    const alpha =
+      layerParams.symbologyState?.alphaBand ??
+      (layer?.type === 'GeoZarrLayer' ? 0 : 4);
 
     setSelectedBands({ red, green, blue, alpha });
   };
@@ -114,7 +115,9 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
         color: colorExpr,
       },
       mutateLayerBeforeSave: targetLayer => {
-        targetLayer.type = 'GeoTiffLayer';
+        if (targetLayer.type !== 'GeoZarrLayer') {
+          targetLayer.type = 'GeoTiffLayer';
+        }
       },
     });
   };

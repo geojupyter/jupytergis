@@ -101,6 +101,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
         );
         break;
       case 'GeoTiffLayer':
+      case 'GeoZarrLayer':
         LayerSymbology = (
           <TiffRendering
             model={model}
