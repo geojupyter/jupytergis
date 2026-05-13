@@ -1,18 +1,13 @@
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
-import { transformExtent } from 'ol/proj';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
 import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
 import type { IBaseFormProps } from '@/src/types';
+import { MapExtentToggle } from './MapExtentToggle';
+import { useMapExtent } from './useMapExtent';
 
 export interface IClipRasterByExtentFormProps extends IBaseFormProps {
   ok?: Signal<Dialog<any>, number>;
@@ -38,8 +33,7 @@ export function ClipRasterByExtentForm(
   });
 
   const submitButtonRef = useRef<HTMLButtonElement>(null);
-  const [useMapExtent, setUseMapExtent] = useState(false);
-  const extentRef = useRef<IDict>({});
+  const { isActive: mapExtentActive, extentRef, toggle } = useMapExtent(model);
 
   useEffect(() => {
     if (!ok) {
@@ -84,13 +78,13 @@ export function ClipRasterByExtentForm(
               xMax: schema.properties.xMax,
               yMax: schema.properties.yMax,
             },
-            required: useMapExtent
+            required: mapExtentActive
               ? ([] as string[])
               : ['xMin', 'yMin', 'xMax', 'yMax'],
             additionalProperties: false,
           }
         : null,
-    [schema, useMapExtent],
+    [schema, mapExtentActive],
   );
 
   // Schema for the bottom section: output options
@@ -122,10 +116,10 @@ export function ClipRasterByExtentForm(
       setFormData(prev => ({
         ...prev,
         ...data,
-        ...(useMapExtent ? extentRef.current : {}),
+        ...(mapExtentActive ? extentRef.current : {}),
       }));
     },
-    [setFormData, useMapExtent],
+    [setFormData, mapExtentActive, extentRef],
   );
 
   const handleBottomChange = useCallback(
@@ -140,47 +134,15 @@ export function ClipRasterByExtentForm(
     [syncData, formData],
   );
 
-  const getAndStoreMapExtent = (): IDict | null => {
-    const viewport =
-      model.sharedModel.awareness.getLocalState()?.viewportState?.value;
-    if (!viewport?.extent) {
-      return null;
-    }
-    const mapProjection =
-      (model.sharedModel.options as any)?.projection ?? 'EPSG:3857';
-    let [xMin, yMin, xMax, yMax] = viewport.extent;
-    if (mapProjection !== 'EPSG:4326') {
-      [xMin, yMin, xMax, yMax] = transformExtent(
-        viewport.extent,
-        mapProjection,
-        'EPSG:4326',
-      );
-    }
-    const round = (v: number) => Math.round(v * 1e6) / 1e6;
-    const extent = {
-      xMin: round(xMin),
-      yMin: round(yMin),
-      xMax: round(xMax),
-      yMax: round(yMax),
-    };
-    extentRef.current = extent;
-    return extent;
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    if (checked) {
-      const extent = getAndStoreMapExtent();
+  const handleCheckboxChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const extent = toggle(e.target.checked);
       if (extent) {
-        setUseMapExtent(true);
         setFormData(prev => ({ ...prev, ...extent }));
       }
-      // If viewport isn't ready, leave the checkbox unchecked and fields required
-    } else {
-      setUseMapExtent(false);
-      extentRef.current = {};
-    }
-  };
+    },
+    [toggle, setFormData],
+  );
 
   if (!hasSchema || !schemaTop || !schemaExtent || !schemaBottom) {
     return null;
@@ -199,30 +161,10 @@ export function ClipRasterByExtentForm(
         liveValidate={false}
       />
 
-      {/* Map extent toggle */}
-      <label
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          margin: '4px 0 8px',
-          cursor: 'pointer',
-          fontSize: 'var(--jp-ui-font-size1)',
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={useMapExtent}
-          onChange={handleCheckboxChange}
-        />
-        Use current map extent
-      </label>
-
-      {/* Extent fields — CSS-disabled when checkbox is on */}
-      <div
-        style={
-          useMapExtent ? { pointerEvents: 'none', opacity: 0.4 } : undefined
-        }
+      {/* Map extent toggle + extent fields */}
+      <MapExtentToggle
+        isActive={mapExtentActive}
+        onChange={handleCheckboxChange}
       >
         <SchemaForm
           schema={schemaExtent}
@@ -237,7 +179,7 @@ export function ClipRasterByExtentForm(
           formContext={formContextValue}
           filePath={filePath}
         />
-      </div>
+      </MapExtentToggle>
 
       {/* Output options — has the hidden submit button wired to the OK signal */}
       <SchemaForm
