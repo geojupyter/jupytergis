@@ -423,9 +423,21 @@ class ProcessingHandler(APIHandler):
             )
             return
 
+        if geojson and url:
+            self.set_status(400)
+            self.finish(
+                json.dumps({"error": "Provide either 'geojson' or 'url', not both"}),
+            )
+            return
+
         if not geojson and not url:
             self.set_status(400)
             self.finish(json.dumps({"error": "Missing 'geojson' or 'url' field"}))
+            return
+
+        if url is not None and not isinstance(url, str):
+            self.set_status(400)
+            self.finish(json.dumps({"error": "'url' must be a string"}))
             return
 
         if not gdal_available():
