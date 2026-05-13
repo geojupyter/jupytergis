@@ -119,7 +119,7 @@ def run_gdal_url(
         if operation in {"gdal_rasterize", "gdalwarp", "gdal_translate"}:
             cmd.append(output_path)
 
-        logger.info("Running GDAL (vsicurl): %s", " ".join(cmd))
+        logger.info("Running GDAL (vsicurl): %s -> %s", operation, safe_output_name)
 
         result = subprocess.run(
             cmd,
