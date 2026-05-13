@@ -86,6 +86,10 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       label: layers[layerId].name,
     }));
 
+    const vectorLayerOptions = Object.keys(layers)
+      .filter(layerId => layers[layerId].type === 'VectorLayer')
+      .map(layerId => ({ value: layerId, label: layers[layerId].name }));
+
     // Modify schema to include layer options and layer name field
     if (options.schema) {
       if (options.schema.properties?.inputLayer) {
@@ -97,12 +101,24 @@ export class ProcessingFormDialog extends Dialog<IDict> {
         );
       }
 
+      if (options.schema.properties?.clipLayer) {
+        const selectedInputLayer = options.sourceData?.inputLayer;
+        const clipLayerOptions = selectedInputLayer
+          ? vectorLayerOptions.filter(o => o.value !== selectedInputLayer)
+          : vectorLayerOptions;
+        options.schema.properties.clipLayer.enum = clipLayerOptions.map(
+          option => option.value,
+        );
+        options.schema.properties.clipLayer.enumNames = clipLayerOptions.map(
+          option => option.label,
+        );
+      }
+
       // Ensure outputLayerName field exists in schema
       if (!options.schema.properties?.outputLayerName) {
         options.schema.properties.outputLayerName = {
           type: 'string',
-          title: 'outputLayerName',
-          // default: ''
+          title: 'Output Layer Name',
         };
       }
     }
@@ -117,20 +133,12 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       Signal<Dialog<IDict>, boolean>
     >();
 
-    // Custom syncData function to update layer name in the model
     const syncData = (props: IDict) => {
-      if (
-        props.outputLayerName &&
-        props.inputLayer &&
-        layers[props.inputLayer]
-      ) {
-        layers[props.inputLayer].name = props.outputLayerName;
-      }
       options.syncData(props);
     };
 
     const body = (
-      <div style={{ overflow: 'hidden' }}>
+      <div style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <ProcessingFormWrapper
           {...options}
           filePath={filePath}

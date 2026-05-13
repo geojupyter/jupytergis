@@ -10,6 +10,7 @@ import {
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Notification as JlNotification } from '@jupyterlab/apputils';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
@@ -513,6 +514,200 @@ export async function rasterizeLayer(
   model.addLayer(UUID.uuid4(), layerModel);
 }
 
+/**
+ * Compute the WKT of the union of all features in a GeoJSON string using WASM GDAL.
+ */
+async function computeUnionWkt(geojsonString: string): Promise<string | null> {
+  const Gdal = await getGdal();
+  const file = new File(
+    [new Blob([geojsonString], { type: 'application/geo+json' })],
+    'clip_data.geojson',
+    { type: 'application/geo+json' },
+  );
+  const result = await Gdal.open(file);
+  if (result.datasets.length === 0) {
+    return null;
+  }
+  const dataset = result.datasets[0] as any;
+  const layerName = dataset.info.layers[0].name;
+  const options = [
+    '-f',
+    'CSV',
+    '-dialect',
+    'SQLITE',
+    '-sql',
+    `SELECT ST_AsText(ST_Union(geometry)) AS wkt FROM "${layerName}"`,
+    'clip_union.csv',
+  ];
+  const outputPath = await (Gdal as any).ogr2ogr(dataset, options);
+  const bytes = await Gdal.getFileBytes(outputPath);
+  Gdal.close(dataset);
+  const csv = new TextDecoder().decode(bytes);
+  const lines = csv.split('\n').filter((l: string) => l.trim());
+  if (lines.length < 2) {
+    return null;
+  }
+  // ogr2ogr CSV wraps fields containing commas in double-quotes; strip them
+  let wkt = lines[1].trim();
+  if (wkt.startsWith('"') && wkt.endsWith('"')) {
+    wkt = wkt.slice(1, -1).replace(/""/g, '"');
+  }
+  return wkt || null;
+}
+
+/**
+ * Clip a vector layer by another vector layer using ST_Intersection.
+ */
+export async function clipVectorByMaskLayer(
+  tracker: JupyterGISTracker,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  app: JupyterFrontEnd,
+  filePath?: string,
+  processingInputs?: Record<string, any>,
+) {
+  const widget = filePath
+    ? tracker.find(w => w.model.filePath === filePath)
+    : tracker.currentWidget;
+  if (!widget) {
+    return;
+  }
+
+  const model = widget.model;
+  const sources = model.sharedModel.sources ?? {};
+  const layers = model.sharedModel.layers ?? {};
+
+  let selected: IJGISLayer | null = null;
+  let inputLayerId: string | undefined;
+  if (processingInputs?.inputLayer) {
+    inputLayerId = processingInputs.inputLayer as string;
+    selected = layers[inputLayerId] ?? null;
+  } else {
+    selected = getSingleSelectedLayer(tracker);
+    inputLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
+  }
+  if (!selected) {
+    return;
+  }
+
+  const inputGeoJSON = await getLayerGeoJSON(selected, sources, model);
+  if (!inputGeoJSON) {
+    return;
+  }
+
+  let clipLayerId: string;
+  let embedOutputLayer = true;
+  let outputLayerName = `${selected.name} Clipped`;
+
+  if (processingInputs) {
+    clipLayerId = processingInputs.clipLayer;
+    embedOutputLayer = processingInputs.embedOutputLayer ?? true;
+    outputLayerName =
+      processingInputs.outputLayerName ?? `${selected.name} Clipped`;
+  } else {
+    const schema = {
+      ...(formSchemaRegistry
+        .getSchemas()
+        .get('ClipVectorByMaskLayer') as IDict),
+    };
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: 'Clip',
+        schema,
+        model,
+        sourceData: {
+          inputLayer: inputLayerId,
+          outputLayerName: `${selected.name} Clipped`,
+        },
+        formContext: 'create',
+        processingType: 'ClipVectorByMaskLayer',
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
+    });
+
+    if (!formValues) {
+      return;
+    }
+
+    clipLayerId = formValues.clipLayer;
+    embedOutputLayer = formValues.embedOutputLayer;
+    outputLayerName = formValues.outputLayerName;
+  }
+
+  if (clipLayerId === inputLayerId) {
+    await showErrorMessage(
+      'Clip failed',
+      'The clip layer and input layer must be different.',
+    );
+    return;
+  }
+
+  const clipLayer = layers[clipLayerId];
+  if (!clipLayer) {
+    await showErrorMessage('Clip failed', 'Clip layer not found.');
+    return;
+  }
+
+  const clipGeoJSON = await getLayerGeoJSON(clipLayer, sources, model);
+  if (!clipGeoJSON) {
+    await showErrorMessage(
+      'Clip failed',
+      'Could not read the clip layer geometry.',
+    );
+    return;
+  }
+
+  const clipWkt = await computeUnionWkt(clipGeoJSON);
+  if (!clipWkt) {
+    await showErrorMessage(
+      'Clip failed',
+      'Could not compute clip boundary geometry. The clip layer may be empty.',
+    );
+    return;
+  }
+
+  const Gdal = await getGdal();
+  const inputFile = new File(
+    [new Blob([inputGeoJSON], { type: 'application/geo+json' })],
+    'data.geojson',
+    { type: 'application/geo+json' },
+  );
+  const openResult = await Gdal.open(inputFile);
+  const dataset = openResult.datasets[0] as any;
+  const inputLayerName = dataset.info.layers[0].name;
+  Gdal.close(dataset);
+
+  const escapedWkt = clipWkt.replace(/'/g, "''");
+  const sql = `SELECT ST_Intersection(geometry, ST_GeomFromText('${escapedWkt}')) AS geometry, * FROM "${inputLayerName}" WHERE ST_Intersects(geometry, ST_GeomFromText('${escapedWkt}'))`;
+  const options = [
+    '-f',
+    'GeoJSON',
+    '-dialect',
+    'SQLITE',
+    '-sql',
+    sql,
+    '{outputName}',
+  ];
+
+  await executeSQLProcessing(
+    model,
+    inputGeoJSON,
+    'ogr2ogr',
+    options,
+    outputLayerName,
+    'ClipVectorByMaskLayer',
+    embedOutputLayer,
+    tracker,
+    app,
+    outputLayerName,
+  );
+}
+
 export async function executeSQLProcessing(
   model: IJupyterGISModel,
   geojsonString: string,
@@ -523,6 +718,7 @@ export async function executeSQLProcessing(
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,
+  exactLayerName?: string,
 ) {
   const doProcessing = async (): Promise<string> => {
     if (isServerProcessingEnabled()) {
@@ -600,7 +796,9 @@ export async function executeSQLProcessing(
     return;
   }
 
-  const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
+  const layerName =
+    exactLayerName ??
+    `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
 
   if (!embedOutputLayer) {
     // Save the output as a file
