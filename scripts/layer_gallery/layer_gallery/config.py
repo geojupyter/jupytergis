@@ -554,9 +554,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
@@ -621,9 +621,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
@@ -686,9 +686,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
@@ -751,9 +751,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
@@ -816,9 +816,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
@@ -881,9 +881,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
@@ -946,9 +946,9 @@ gallery: GallerySpecification = {
                                             "channels": ["circle-radius"],
                                         },
                                     ],
-                                }
+                                },
                             ],
-                        }
+                        },
                     ],
                 },
             },
