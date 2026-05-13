@@ -17,6 +17,7 @@ interface ISpectaPanelProps {
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
+  /** List story: feed scroll geometry to MainView (`listScrollDrive` state). */
   onListScrollDriveChange?: (
     payload: IListStoryScrollDrivePayload | null,
   ) => void;
@@ -57,6 +58,7 @@ export function SpectaPanel({
 
   useStorySegmentSync({ model, storyData, setIndex });
 
+  // guided | unguided → single column; list story → stacked segment cards
   const desktopViewMode =
     storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
       ? 'single'

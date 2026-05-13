@@ -4,6 +4,11 @@ import React, { RefObject } from 'react';
 import { SpectaSegmentListPanel } from '@/src/features/story/components/SpectaSegmentListPanel';
 import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
 
+/**
+ * List-mode Specta body: stacked segment cards inside the story scroller.
+ * Scroll position is read by useListStoryScrollDrive (parent) for
+ * `listScrollDrive`; this layer only forwards the scroll root ref.
+ */
 interface ISpectaListModeContentProps {
   isSpecta: boolean;
   storyData: IJGISStoryMap | null;

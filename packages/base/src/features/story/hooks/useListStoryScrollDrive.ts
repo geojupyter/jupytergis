@@ -7,6 +7,16 @@ import type {
 	StorySegmentDisplayMode,
 } from '@/src/features/story/types/listStoryScrollDrive';
 
+/**
+ * List story: maps vertical scroll position of the story column to a
+ * `listScrollDrive` payload (progress between two segment indices).
+ *
+ * - Listens to scroll + resize on `scrollContainerRef` (Specta list scroller).
+ * - Finds `[data-segment-id]` cards, measures their vertical centers in
+ *   scroll content space, picks the pair bracketing the viewport center.
+ * - Skips map→map pairs (no markdown transition to drive).
+ * - Emits null when disabled, missing DOM, or geometry is invalid.
+ */
 function getSegmentDisplayMode(
 	activeSlide: IStorySegmentLayer['parameters'] | undefined,
 ): StorySegmentDisplayMode {
@@ -23,6 +33,7 @@ function pairNeedsScrollDrive(
 	return !(fromMode === 'map' && toMode === 'map');
 }
 
+/** Vertical center of a segment card in the scroller's content coordinates. */
 function cardCenterInScrollerContent(
 	scroller: HTMLElement,
 	card: HTMLElement,
@@ -41,6 +52,7 @@ export interface IUseListStoryScrollDriveParams {
 	onDriveChange: (payload: IListStoryScrollDrivePayload | null) => void;
 }
 
+/** Subscribes to list scroller geometry; calls `onDriveChange` (→ MainView). */
 export function useListStoryScrollDrive({
 	enabled,
 	scrollContainerRef,
@@ -104,6 +116,7 @@ export function useListStoryScrollDrive({
 		const fromMode = getSegmentDisplayMode(fromItem.activeSlide);
 		const toMode = getSegmentDisplayMode(toItem.activeSlide);
 
+		// Map-only boundary: no markdown overlay to interpolate.
 		if (!pairNeedsScrollDrive(fromMode, toMode)) {
 			onDriveChangeRef.current(null);
 			return;

@@ -225,11 +225,14 @@ interface IStates {
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
   identifyFeatureFloatersVersion: number;
+  // --- List story (Specta): resting markdown + CSS enter/exit on segment type flip
   activeStoryMarkdownContent: string | null;
+  /** During list exit animation: previous markdown while active is already null */
   renderedStoryMarkdownContent: string | null;
   isListStoryMode: boolean;
   listMarkdownTransitionPhase: 'idle' | 'enter' | 'exit';
   listMarkdownTransitionDirection: 'forward' | 'backward';
+  // Scroll-interpolated map↔markdown overlay (from useListStoryScrollDrive); null = off
   listScrollDrive: IListStoryScrollDrivePayload | null;
 }
 
@@ -318,6 +321,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.currentSegmentIndexChanged.connect(
+      // List + single: keep markdown overlay state aligned with model segment
       this._syncActiveStoryMarkdownContent,
       this,
     );
@@ -427,6 +431,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !this.state.isSpectaPresentation &&
       this.state.listScrollDrive
     ) {
+      // Leaving Specta: drop scroll-driven overlay so we do not leak list state
       this.setState({ listScrollDrive: null });
     }
 
@@ -2916,6 +2921,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       accumulatedDeltaY = 0;
 
       const storyType = this._model.getSelectedStory().story?.storyType;
+      // List story: wheel only scrolls the panel; segment index + drive follow
+      // list scroll (see SpectaSegmentListPanel + useListStoryScrollDrive).
       if (storyType === 'list') {
         scrollContainer.scrollBy({ top: deltaY });
         return;
@@ -3582,6 +3589,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
+  /** Model-derived “what should the markdown overlay show for this segment?” */
   private _getActiveStorySegmentDisplayState = (): {
     isListStoryMode: boolean;
     segmentIndex: number;
@@ -3650,6 +3658,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
   };
 
+  /**
+   * When the current segment changes: update resting markdown strings and, in
+   * list mode when crossing markdown↔map, run CSS enter/exit on the stage.
+   * Skips fighting scroll-drive: render uses `!listScrollDrive` for CSS phase.
+   */
   private _syncActiveStoryMarkdownContent = (): void => {
     const next = this._getActiveStorySegmentDisplayState();
     const previousIndex = this._previousStorySegmentIndex;
@@ -3715,6 +3728,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._previousStorySegmentIsMarkdown = next.isMarkdownSegment;
   };
 
+  /** True when scroll-drive or resting/exit markdown UI should cover the map. */
   private _isMarkdownOverlayVisible = (state: IStates): boolean =>
     Boolean(
       state.listScrollDrive ||
@@ -3723,6 +3737,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         state.renderedStoryMarkdownContent),
     );
 
+  /** Callback from SpectaDesktopView / useListStoryScrollDrive → listScrollDrive. */
   private _handleListScrollDriveChange = (
     payload: IListStoryScrollDrivePayload | null,
   ): void => {
@@ -3730,6 +3745,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (prev === null && payload === null) {
       return;
     }
+    // Avoid re-render when scroll handler emits an identical payload.
     if (
       prev &&
       payload &&
@@ -3744,6 +3760,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState({ listScrollDrive: payload });
   };
 
+  /** Markdown body for segment index `i` (list scroll-drive overlays). */
   private _getStoryMarkdownForIndex(index: number): string {
     const story = this._model.getSelectedStory().story;
     const segmentId = story?.storySegments?.[index];
@@ -4000,6 +4017,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   render(): JSX.Element {
+    // --- List story (Specta): two overlay mechanisms (do not run both at once)
+    // 1) listScrollDrive: scroll-position interpolation between segment i and i+1
+    //    (driven by useListStoryScrollDrive in SpectaDesktopView).
+    // 2) Resting markdown + CSS phases: model segment markdown when drive is off;
+    //    enter/exit when list mode crosses markdown↔map (_syncActiveStory...).
     const overlayMarkdownContent =
       this.state.activeStoryMarkdownContent ??
       (this.state.listMarkdownTransitionPhase === 'exit'
@@ -4008,6 +4030,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const drive = this.state.listScrollDrive;
     const listScrollDriveActive = drive !== null;
+    // CSS keyframes on `.jgis-mainview-stage` for discrete list markdown flips
+    // only when scroll-drive overlay is off (avoid double animation).
     const shouldAnimateListModeTransition =
       this.state.isListStoryMode &&
       this.state.listMarkdownTransitionPhase !== 'idle' &&
@@ -4016,6 +4040,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ? `jgis-list-markdown-transition-${this.state.listMarkdownTransitionPhase}-${this.state.listMarkdownTransitionDirection}`
       : '';
 
+    // Intended map translate during scroll-drive (wire to map host if split).
     const mapContentStyle: React.CSSProperties = {};
     if (drive) {
       const p = drive.progress;
@@ -4090,6 +4115,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     }
 
+    // Full-screen markdown when not scroll-interpolating (resting or CSS path).
     const showStaticMarkdownOverlay =
       !listScrollDriveActive && overlayMarkdownContent;
 
@@ -4193,6 +4219,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
 
+            {/* Map + list overlays; listTransitionClass = CSS markdown enter/exit */}
             <div
               ref={this.divRef}
               className={`jgis-mainview-stage ${listTransitionClass}`}
@@ -4202,6 +4229,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 position: 'relative',
               }}
             >
+              {/* Scroll-driven cross-fade (markdown↔markdown, map↔markdown, …) */}
               {listScrollDriveOverlay}
               {showStaticMarkdownOverlay && (
                 <div className="jgis-story-markdown-overlay">

@@ -5,6 +5,7 @@ import {
 } from '@jupytergis/schema';
 import { useMemo } from 'react';
 
+/** One row in the list story column (drives cards + list scroll drive). */
 export interface IStorySegmentViewItem {
   id: string;
   index: number;
@@ -19,6 +20,7 @@ interface IUseStorySegmentViewItemsParams {
   currentIndex: number;
 }
 
+/** Builds ordered segment metadata for Specta list UI and scroll drive. */
 export function useStorySegmentViewItems({
   model,
   storyData,

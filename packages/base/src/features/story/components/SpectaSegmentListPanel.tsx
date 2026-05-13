@@ -7,9 +7,21 @@ import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmen
 const ROOT_EDGE_TOLERANCE_PX = 2;
 
 /**
- * True when `card` lies entirely inside the scroll container's visible
- * viewport, or when the card is taller than the container and the visible
- * strip of the card covers the full container height (nothing else peeking).
+ * List story: vertical stack of segment "cards" in the Specta panel.
+ *
+ * - Each card is a wrapper div (see `data-segment-id`) used by
+ *   useListStoryScrollDrive to measure scroll-driven transitions.
+ * - IntersectionObserver + scroll/resize sync the story `currentIndex` when
+ *   a card is fully visible (see syncActiveFromLayout).
+ * - Markdown segments are hidden in the list (overlay handles them); cards
+ *   stay mounted so geometry hooks still find nodes unless display:none breaks
+ *   layout—adjust if scroll drive misbehaves.
+ */
+
+/**
+ * True when `card` (one segment row: `.jgis-story-segment-card`) lies fully
+ * inside the list scroller viewport, or when the card is taller than the
+ * viewport and the visible strip fills the viewport height.
  */
 function isCardFullyVisibleInScroller(
   card: HTMLElement,
@@ -41,6 +53,7 @@ interface ISpectaSegmentListPanelProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
+  /** The Specta story column scroller (`#jgis-story-segment-panel` root). */
   listIntersectionRootRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -70,6 +83,7 @@ export function SpectaSegmentListPanel({
       return;
     }
 
+    /** Picks the topmost fully-visible card index as the active segment. */
     const syncActiveFromLayout = (): void => {
       const fullyVisibleIndices: number[] = [];
 
@@ -87,6 +101,7 @@ export function SpectaSegmentListPanel({
         return;
       }
 
+      // Tie-break: prefer smallest index when multiple cards fit (e.g. gap).
       const nextIndex = Math.min(...fullyVisibleIndices);
       if (nextIndex !== currentIndexRef.current) {
         setIndex(nextIndex);

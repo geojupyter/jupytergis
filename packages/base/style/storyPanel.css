@@ -219,6 +219,7 @@
   margin: 0 auto;
 }
 
+/* --- List story: scroll-drive overlay panes (transforms set inline in MainView) */
 .jgis-story-markdown-overlay-scroll-drive {
   overflow: hidden;
 }
@@ -228,6 +229,7 @@
   inset: 0;
   overflow: hidden;
   will-change: transform;
+  border-bottom: 1px solid red;
 }
 
 .jgis-story-markdown-scroll-pane-inner {
@@ -241,6 +243,7 @@
   height: 100%;
 }
 
+/* --- List story: CSS enter/exit when model flips markdown↔map (not scroll-drive) */
 .jgis-mainview-stage.jgis-list-markdown-transition-enter-forward
   .jgis-story-markdown-overlay,
 .jgis-mainview-stage.jgis-list-markdown-transition-enter-backward
@@ -343,6 +346,7 @@
   gap: 100vh;
 }
 
+/* List column: one card per segment (map cards visible; markdown hidden). */
 .jgis-story-segment-card {
   padding: 0.75rem;
   border-radius: 8px;
