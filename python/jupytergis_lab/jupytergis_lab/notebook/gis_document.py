@@ -544,14 +544,12 @@ class GISDocument(CommWidget):
         :param color_expr: Optional OpenLayers WebGL color expression.
                            When set, overrides gamma.
         """
-        bands = bands or ["b04", "b03", "b02"]
-
         source = {
             "type": SourceType.GeoZarrSource,
             "name": f"{name} Source",
             "parameters": {
                 "url": url,
-                "bands": bands,
+                "bands": bands or [],
                 "wrapX": wrap_x,
             },
         }
