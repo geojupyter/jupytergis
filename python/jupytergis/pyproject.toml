@@ -32,7 +32,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tiler = [
-  "jupyter-xarray-tiler>=0.3.0",
+  "jupytergis_lab[tiler]",
 ]
 
 [project.urls]
