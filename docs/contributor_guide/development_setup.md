@@ -31,7 +31,7 @@ It is recommended for setting up the JupyterGIS development environment. If you 
 ```bash
 # Create a virtual environment
 
-micromamba create --name jupytergis_dev -c conda-forge pip "nodejs=24" qgis
+micromamba create --name jupytergis_dev -c conda-forge pip "python=3.13.*" "nodejs=24" qgis
 
 # Activate it
 micromamba activate jupytergis_dev

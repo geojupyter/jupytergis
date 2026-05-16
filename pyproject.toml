@@ -7,7 +7,7 @@ name = "jupytergis-root"
 readme = "README.md"
 license = { file = "LICENSE" }
 dynamic = ["version"]
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 
 [dependency-groups]
 test = [
