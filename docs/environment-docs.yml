@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python
+  - python =3.13.*
 
   # Build docs & JupyterLite
   - jupyterlite-core
