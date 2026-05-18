@@ -35,3 +35,31 @@ export function sourceToRows(source: any): Record<string, unknown>[] {
   });
   return rows;
 }
+
+/**
+ * Walk an OL layer (which may be a LayerGroup) to find the first VectorSource.
+ * Returns null if none found.
+ */
+export function getVectorSource(layer: any): any | null {
+  if (!layer) {
+    return null;
+  }
+  // Direct vector layer.
+  if (typeof layer.getSource === 'function') {
+    const src = layer.getSource();
+    if (src && typeof src.forEachFeature === 'function') {
+      return src;
+    }
+  }
+  // Recurse into LayerGroup.
+  if (typeof layer.getLayers === 'function') {
+    const sub = layer.getLayers().getArray();
+    for (const child of sub) {
+      const src = getVectorSource(child);
+      if (src) {
+        return src;
+      }
+    }
+  }
+  return null;
+}

@@ -158,49 +158,49 @@ export const PlotPanel: React.FC<IPlotPanelProps> = ({ model, getData }) => {
     };
   }, [model, refresh]);
 
-  if (cards.length === 0) {
-    return (
-      <div
-        style={{
-          padding: 16,
-          color: 'var(--jp-ui-font-color2)',
-          fontSize: 'var(--jp-ui-font-size1)',
-        }}
-      >
-        No plot layers defined. Add plot-x, plot-y, or plot-color channels in
-        the symbology dialog.
-      </div>
-    );
-  }
-
   return (
     <div
       style={{
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: 8,
-        padding: 8,
-        overflow: 'auto',
+        flexDirection: 'column',
         height: '100%',
       }}
     >
-      <button
-        onClick={refresh}
-        style={{
-          padding: '4px 12px',
-          fontSize: 'var(--jp-ui-font-size1)',
-          cursor: 'pointer',
-          marginBottom: 4,
-        }}
-      >
-        Refresh plots
-      </button>
-      {cards.map(card => (
-        <VegaLiteCard
-          key={`${card.layerId}-${card.grammarLayerId}`}
-          card={card}
-        />
-      ))}
+      <div style={{ padding: '8px 8px 0' }}>
+        <button onClick={refresh} className="jp-mod-styled">
+          Refresh plots
+        </button>
+      </div>
+      {cards.length === 0 ? (
+        <div
+          style={{
+            padding: 16,
+            color: 'var(--jp-ui-font-color2)',
+            fontSize: 'var(--jp-ui-font-size1)',
+          }}
+        >
+          No plot layers defined. Add plot-x, plot-y, or plot-color channels in
+          the symbology dialog.
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            padding: 8,
+            overflow: 'auto',
+            flex: 1,
+          }}
+        >
+          {cards.map(card => (
+            <VegaLiteCard
+              key={`${card.layerId}-${card.grammarLayerId}`}
+              card={card}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

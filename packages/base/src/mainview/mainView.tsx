@@ -155,7 +155,10 @@ import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
-import { sourceToRows } from '../workspace/panels/plotDataUtils';
+import {
+  getVectorSource,
+  sourceToRows,
+} from '../workspace/panels/plotDataUtils';
 
 type OlLayerTypes =
   | TileLayer
@@ -375,6 +378,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
+    // Register data provider before async work so it's available immediately.
+    // The provider returns [] until OL layers are created by generateMap().
+    console.debug('[PlotData] registering data provider');
+    this.props.setDataProvider?.((layerId: string) => {
+      const olLayer = this.getLayer(layerId);
+      if (!olLayer) {
+        return [];
+      }
+      const src = getVectorSource(olLayer);
+      if (!src) {
+        return [];
+      }
+      return sourceToRows(src);
+    });
+
     await this.generateMap(center, zoom, projection);
     this._handleRemoteUserChanged();
     this._handlePointerChanged();
@@ -384,14 +402,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
-
-    this.props.setDataProvider?.((layerId: string) => {
-      const olLayer = this.getLayer(layerId);
-      if (!olLayer || typeof (olLayer as any).getSource !== 'function') {
-        return [];
-      }
-      return sourceToRows((olLayer as any).getSource());
-    });
   }
 
   componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
