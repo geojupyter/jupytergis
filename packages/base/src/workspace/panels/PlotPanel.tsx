@@ -184,6 +184,17 @@ export const PlotPanel: React.FC<IPlotPanelProps> = ({ model, getData }) => {
         height: '100%',
       }}
     >
+      <button
+        onClick={refresh}
+        style={{
+          padding: '4px 12px',
+          fontSize: 'var(--jp-ui-font-size1)',
+          cursor: 'pointer',
+          marginBottom: 4,
+        }}
+      >
+        Refresh plots
+      </button>
       {cards.map(card => (
         <VegaLiteCard
           key={`${card.layerId}-${card.grammarLayerId}`}

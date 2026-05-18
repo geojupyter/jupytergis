@@ -394,9 +394,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return [];
       }
       const data: Record<string, unknown>[] = [];
-      (src as any).forEachFeature((f: any) =>
-        data.push(f.getProperties() ?? {}),
-      );
+      src.forEachFeature((f: any) => data.push(f.getProperties() ?? {}));
       return data;
     });
   }
