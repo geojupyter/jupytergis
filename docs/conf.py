@@ -72,7 +72,10 @@ pygments_style = "sphinx"
 todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
-intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+}
 
 nitpick_ignore = [
     ("py:mod", "ypywidgets"),
