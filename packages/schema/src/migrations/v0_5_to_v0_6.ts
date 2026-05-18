@@ -1,93 +1,174 @@
 /**
  * Migration from schema version 0.5.0 to 0.6.0.
  *
- * Converts the legacy `parameters.color` representation (OpenLayers FlatStyle
- * keys such as `fill-color`, `stroke-color`, `circle-radius`) to the
- * structured `parameters.symbologyState` field introduced in 0.6.0.
+ * Converts legacy representations to Grammar symbologyState in one pass:
+ *  - parameters.color (flat OL FlatStyle keys) → Grammar directly
+ *  - parameters.symbologyState with old render types → Grammar
+ *  - HeatmapLayer color array → symbologyState.gradient
+ *  - WebGlLayer type → GeoTiffLayer
+ *  - layer.filters → grammar layer-level when + whenOp (filters removed)
  */
+
+import {
+  categorizedToGrammar,
+  graduatedToGrammar,
+  singleSymbolToGrammar,
+  SymbologyState,
+} from '../grammar/grammarConversions';
 
 export function migrate(doc: Record<string, any>): Record<string, any> {
   const layers: Record<string, any> = { ...doc.layers };
 
   for (const [id, layer] of Object.entries(layers)) {
+    const newType = layer.type === 'WebGlLayer' ? 'GeoTiffLayer' : layer.type;
     const params = layer?.parameters;
-    if (!params || !('color' in params)) {
+
+    if (!params) {
+      if (newType !== layer.type) {
+        layers[id] = { ...layer, type: newType };
+      }
       continue;
     }
 
-    const color = params.color;
     const newParams = { ...params };
 
     if (layer.type === 'VectorLayer' || layer.type === 'VectorTileLayer') {
+      const color = newParams.color;
       if (color && typeof color === 'object' && !Array.isArray(color)) {
-        if (!params.symbologyState) {
-          newParams.symbologyState = _vectorSymbologyFromColor(color);
+        // Flat OL color dict → Grammar (skip intermediate symbologyState format)
+        newParams.symbologyState = singleSymbolToGrammar(
+          _colorToState(color as Record<string, unknown>),
+        );
+        delete newParams.color;
+      } else {
+        // Handle files that already carry old-style symbologyState (defensive)
+        const state: SymbologyState | undefined = newParams.symbologyState;
+        if (state?.renderType && state.renderType !== 'Grammar') {
+          switch (state.renderType) {
+            case 'Single Symbol':
+              newParams.symbologyState = singleSymbolToGrammar(state);
+              break;
+            case 'Graduated':
+              newParams.symbologyState = graduatedToGrammar(state);
+              break;
+            case 'Categorized':
+              newParams.symbologyState = categorizedToGrammar(state);
+              break;
+          }
         }
       }
     } else if (layer.type === 'HeatmapLayer') {
-      if (Array.isArray(color)) {
-        const state = params.symbologyState ?? { renderType: 'Heatmap' };
+      if (Array.isArray(newParams.color)) {
+        const state = newParams.symbologyState ?? { renderType: 'Heatmap' };
         if (!state.gradient) {
-          newParams.symbologyState = { ...state, gradient: color };
+          newParams.symbologyState = { ...state, gradient: newParams.color };
+        }
+        delete newParams.color;
+      }
+    }
+
+    // Convert legacy layer.filters → grammar layer-level when + whenOp.
+    const filters = layer.filters;
+    if (filters?.appliedFilters?.length) {
+      const logicalOp: 'all' | 'any' =
+        filters.logicalOp === 'any' ? 'any' : 'all';
+      const predicates: Record<string, any>[] = [];
+
+      for (const item of filters.appliedFilters as Record<string, any>[]) {
+        if (item.operator === 'between') {
+          if (item.betweenMin !== undefined && item.betweenMax !== undefined) {
+            predicates.push({
+              type: 'between',
+              field: item.feature,
+              min: item.betweenMin,
+              max: item.betweenMax,
+            });
+          }
+        } else if (item.operator === '==') {
+          predicates.push({
+            type: 'fieldEquals',
+            field: item.feature,
+            value: item.value,
+          });
+        } else {
+          predicates.push({
+            type: 'fieldCompare',
+            field: item.feature,
+            op: item.operator,
+            value: item.value,
+          });
+        }
+      }
+
+      if (predicates.length) {
+        const symbologyState = newParams.symbologyState;
+        if (
+          Array.isArray(symbologyState?.layers) &&
+          symbologyState.layers.length > 0
+        ) {
+          newParams.symbologyState = {
+            ...symbologyState,
+            layers: symbologyState.layers.map((gl: Record<string, any>) => ({
+              ...gl,
+              when: [...(gl.when ?? []), ...predicates],
+              whenOp: gl.whenOp ?? logicalOp,
+            })),
+          };
         }
       }
     }
 
-    delete newParams.color;
-    layers[id] = { ...layer, parameters: newParams };
+    const { filters: _, ...layerWithoutFilters } = { ...layer, type: newType };
+    layers[id] = { ...layerWithoutFilters, parameters: newParams };
   }
 
   return { ...doc, layers };
 }
 
-function _vectorSymbologyFromColor(
-  colorExpr: Record<string, unknown>,
-): Record<string, unknown> {
-  const state: Record<string, unknown> = { renderType: 'Single Symbol' };
+/** Build a SymbologyState from a flat OL color dict. */
+function _colorToState(color: Record<string, unknown>): SymbologyState {
+  const state: SymbologyState = { renderType: 'Single Symbol' };
 
   const fill = _firstSolidColor(
-    colorExpr['fill-color'],
-    colorExpr['circle-fill-color'],
+    color['fill-color'],
+    color['circle-fill-color'],
   );
   if (fill) {
     state.fillColor = fill;
   }
 
   const stroke = _firstSolidColor(
-    colorExpr['stroke-color'],
-    colorExpr['circle-stroke-color'],
+    color['stroke-color'],
+    color['circle-stroke-color'],
   );
   if (stroke) {
     state.strokeColor = stroke;
   }
 
-  const sw = colorExpr['stroke-width'] ?? colorExpr['circle-stroke-width'];
+  const sw = color['stroke-width'] ?? color['circle-stroke-width'];
   if (typeof sw === 'number') {
     state.strokeWidth = sw;
   }
 
-  const r = colorExpr['circle-radius'];
+  const r = color['circle-radius'];
   if (typeof r === 'number') {
     state.radius = r;
-  }
-
-  if ('circle-fill-color' in colorExpr || 'circle-radius' in colorExpr) {
-    state.geometryType = 'circle';
-  } else if ('fill-color' in colorExpr) {
-    state.geometryType = 'fill';
-  } else if ('stroke-color' in colorExpr || 'stroke-width' in colorExpr) {
-    state.geometryType = 'line';
   }
 
   return state;
 }
 
-/** Returns the first candidate that is a plain solid color array [r,g,b,a]. */
 function _firstSolidColor(...candidates: unknown[]): number[] | undefined {
   for (const c of candidates) {
     if (Array.isArray(c) && c.length >= 3 && typeof c[0] === 'number') {
       const [r = 0, g = 0, b = 0, a = 1] = c as number[];
       return [r, g, b, a];
+    }
+    if (typeof c === 'string') {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(c);
+      if (m) {
+        return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), 1];
+      }
     }
   }
   return undefined;

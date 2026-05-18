@@ -35,10 +35,10 @@ export function DefaultProcessingForm(
 
   const {
     formData,
+    setFormData,
     schema,
     formContextValue,
     hasSchema,
-    handleChangeBase,
     handleSubmitBase,
   } = useSchemaFormState({ sourceData, schemaProp, model, syncData });
   const submitButtonRef = useRef<HTMLButtonElement>(null);
@@ -81,7 +81,7 @@ export function DefaultProcessingForm(
     <SchemaForm
       schema={schema}
       formData={formData}
-      onChange={handleChangeBase}
+      onChange={setFormData}
       onSubmit={handleSubmitBase}
       formContext={formContextValue}
       filePath={filePath}

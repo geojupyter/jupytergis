@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build jupytergis
+    name: Build artifacts
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-name: gis
           create-args: >-
@@ -30,7 +30,7 @@ jobs:
             pip
 
       - name: Setup pip cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/.cache/pip
           key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
@@ -51,7 +51,7 @@ jobs:
           echo "dir=${CACHE_DIR}" >> $GITHUB_OUTPUT
 
       - name: Setup yarn cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -75,7 +75,7 @@ jobs:
           jlpm build:packages
 
       - name: Upload extension packages
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}
           path: |
@@ -97,7 +97,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-name: gis
           create-args: >-
@@ -113,6 +113,7 @@ jobs:
         run: node packages/schema/scripts/validate-examples.js
 
   test_isolated:
+    name: Test artifact in isolated env
     needs: build
     runs-on: ubuntu-latest
 
@@ -136,7 +137,7 @@ jobs:
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
 
   integration-tests:
-    name: Integration tests
+    name: Integration test
     needs: build
     runs-on: ubuntu-latest
 
@@ -150,7 +151,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           micromamba-version: '1.5.5-0'
           environment-name: gis
@@ -185,7 +186,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: jupytergis-playwright-tests
           path: |
@@ -204,7 +205,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           micromamba-version: '1.5.5-0'
           environment-name: build-env
@@ -244,14 +245,14 @@ jobs:
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: lite-artifacts
           path: ./lite/dist
           retention-days: 30
 
   integration-tests-lite:
-    name: Integration tests Lite
+    name: JupyterLite integration test
     needs: build-lite
     runs-on: ubuntu-latest
 
@@ -265,7 +266,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           micromamba-version: '1.5.5-0'
           environment-name: gis
@@ -287,7 +288,7 @@ jobs:
         run: jlpm install
 
       - name: Set up browser cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: |
             ${{ github.workspace }}/pw-browsers
@@ -306,7 +307,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: jupytergis-lite-playwright-tests
           path: |

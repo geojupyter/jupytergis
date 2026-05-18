@@ -44,11 +44,12 @@
         "VectorLayer",
         "VectorTileLayer",
         "HillshadeLayer",
-        "WebGlLayer",
+        "GeoTiffLayer",
         "ImageLayer",
         "HeatmapLayer",
         "StacLayer",
-        "StorySegmentLayer"
+        "StorySegmentLayer",
+        "OpenEOTileLayer"
       ]
     },
     "sourceType": {
@@ -66,7 +67,8 @@
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
-        "MarkerSource"
+        "MarkerSource",
+        "OpenEOTileSource"
       ]
     },
     "jGISLayer": {

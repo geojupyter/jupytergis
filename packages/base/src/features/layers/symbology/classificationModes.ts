@@ -2,7 +2,7 @@
 
 import { Pool, fromUrl, TypedArray } from 'geotiff';
 
-import { InterpolationType } from './tiff_layer/types/SingleBandPseudoColor';
+export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (values: number[], nStops: number) => {

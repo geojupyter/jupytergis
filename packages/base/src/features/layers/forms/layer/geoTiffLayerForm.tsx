@@ -11,7 +11,7 @@ import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormSt
 import { deepCopy } from '@/src/tools';
 import type { ILayerProps } from './layerform';
 
-export function WebGlLayerPropertiesForm(
+export function GeoTiffLayerPropertiesForm(
   props: ILayerProps,
 ): React.ReactElement | null {
   const {

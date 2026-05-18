@@ -255,7 +255,7 @@ export function addCommands(
       const canIdentify = [
         'VectorLayer',
         'ShapefileLayer',
-        'WebGlLayer',
+        'GeoTiffLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
 
@@ -278,7 +278,7 @@ export function addCommands(
       return [
         'VectorLayer',
         'ShapefileLayer',
-        'WebGlLayer',
+        'GeoTiffLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
@@ -541,7 +541,7 @@ export function addCommands(
       createSource: true,
       layerData: { name: 'Custom WMS Layer' },
       sourceType: 'WmsTileSource',
-      layerType: 'WebGlLayer',
+      layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewWmsDialog),
   });
@@ -690,7 +690,7 @@ export function addCommands(
       },
       layerData: { name: 'Custom GeoTiff Layer' },
       sourceType: 'GeoTiffSource',
-      layerType: 'WebGlLayer',
+      layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoTiffDialog),
   });
@@ -1872,6 +1872,32 @@ export function addCommands(
       const current = model.getCurrentSegmentIndex() ?? 0;
       model.setCurrentSegmentIndex(current + 1);
     },
+  });
+
+  const notifyCommandsChanged = () => {
+    for (const command of Object.values(CommandIDs)) {
+      try {
+        commands.notifyCommandChanged(command);
+      } catch (_) {
+        // Do Continue if command is not registered
+      }
+    }
+  };
+
+  let cleanup: (() => void) | null = null;
+
+  tracker.currentChanged.connect(_ => {
+    cleanup?.();
+    cleanup = null;
+
+    const model = tracker.currentWidget?.model;
+    model?.selectedChanged.connect(notifyCommandsChanged);
+
+    cleanup = () => {
+      model?.selectedChanged.disconnect(notifyCommandsChanged);
+    };
+
+    notifyCommandsChanged();
   });
 
   loadKeybindings(commands, keybindings);

@@ -2,6 +2,8 @@ import { Check, ChevronRight, Circle } from 'lucide-react';
 import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui';
 import * as React from 'react';
 
+import { cn } from './utils';
+
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -67,11 +69,13 @@ const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     inset?: boolean;
+    variant?: 'default' | 'destructive';
   }
->(({ inset, ...props }, ref) => (
+>(({ inset, variant = 'default', className, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
-    className={'jgis-dropdown-menu-item'}
+    data-variant={variant}
+    className={cn('jgis-dropdown-menu-item', className)}
     style={{
       paddingLeft: inset ? '2rem' : '0.5rem',
     }}

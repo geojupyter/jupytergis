@@ -11,6 +11,8 @@ type ProcessingElement = {
 };
 export const ProcessingLogicType = {
   vector: 'vector',
+  raster: 'raster',
+  clip: 'clip',
 };
 
 export const ProcessingMerge = _ProcessingMerge as ProcessingElement[];

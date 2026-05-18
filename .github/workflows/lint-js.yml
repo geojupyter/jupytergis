@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   lint-js:
-    name: Lint JavaScript
+    name: eslint & prettier
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           cache-environment: true
           environment-name: gis
@@ -29,7 +29,7 @@ jobs:
             qgis
 
       - name: Setup pip cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/.cache/pip
           key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
@@ -50,7 +50,7 @@ jobs:
           echo "dir=${CACHE_DIR}" >> $GITHUB_OUTPUT
 
       - name: Setup yarn cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}

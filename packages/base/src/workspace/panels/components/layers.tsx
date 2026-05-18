@@ -1,7 +1,8 @@
+import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IJGISLayerGroup,
   IJGISLayerTree,
-  IJupyterGISClientState,
   IJupyterGISModel,
   ISelection,
   SelectionType,
@@ -273,14 +274,15 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
-    const onClientSharedStateChanged = () => {
+    const handleSelectedChanged = () => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(group.name, gisModel));
     };
-    gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
+    gisModel?.selectedChanged.connect(handleSelectedChanged);
+    handleSelectedChanged();
 
     return () => {
-      gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
+      gisModel?.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, [gisModel, group.name]);
 
@@ -316,6 +318,24 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
 
   const handleRightClick = (event: ReactMouseEvent<HTMLElement>) => {
     onClick({ type: 'group', item: name, event });
+  };
+
+  const handleGroupMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onClick({
+      type: 'group',
+      item: name,
+      event: e as unknown as ReactMouseEvent<HTMLElement>,
+    });
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left,
+        clientY: rect.bottom,
+      }),
+    );
   };
 
   const handleExpand = async () => {
@@ -389,6 +409,14 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
             {name}
           </span>
         )}
+        <Button
+          className="jp-gis-layer-more-btn"
+          minimal
+          onClick={handleGroupMoreClick}
+          title="More options"
+        >
+          <FontAwesomeIcon icon={faEllipsisVertical} />
+        </Button>
       </div>
       {open && (
         <div>
@@ -452,7 +480,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
   );
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
 
@@ -475,17 +503,15 @@ const LayerComponent: React.FC<ILayerProps> = props => {
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
-    const onClientSharedStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
+    const handleSelectedChanged = () => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(layerId, gisModel));
     };
-    gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
+    gisModel?.selectedChanged.connect(handleSelectedChanged);
+    handleSelectedChanged();
 
     return () => {
-      gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
+      gisModel?.selectedChanged.disconnect(handleSelectedChanged);
     };
   }, [gisModel, layerId]);
 
@@ -533,6 +559,24 @@ const LayerComponent: React.FC<ILayerProps> = props => {
       item: layerId,
       event,
     });
+  };
+
+  const handleLayerMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onClick({
+      type: 'layer',
+      item: layerId,
+      event: e as unknown as ReactMouseEvent<HTMLElement>,
+    });
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left,
+        clientY: rect.bottom,
+      }),
+    );
   };
 
   const handleRenameSave = () => {
@@ -606,22 +650,31 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         onContextMenu={setSelection}
         style={{ display: 'flex' }}
       >
-        {/* Expand/collapse legend button (only if symbology is supported) */}
-        {hasSupportedSymbology && (
-          <Button
-            minimal
-            onClick={e => {
-              e.stopPropagation();
-              setExpanded(v => !v);
-            }}
-            title={expanded ? 'Hide legend' : 'Show legend'}
-          >
-            <LabIcon.resolveReact
-              icon={expanded ? caretDownIcon : caretRightIcon}
-              tag="span"
-            />
-          </Button>
-        )}
+        {/* Expand/collapse legend button — always rendered to preserve alignment */}
+        <Button
+          minimal
+          onClick={
+            hasSupportedSymbology
+              ? e => {
+                  e.stopPropagation();
+                  setExpanded(v => !v);
+                }
+              : undefined
+          }
+          title={
+            hasSupportedSymbology
+              ? expanded
+                ? 'Hide legend'
+                : 'Show legend'
+              : undefined
+          }
+          style={{ visibility: hasSupportedSymbology ? 'visible' : 'hidden' }}
+        >
+          <LabIcon.resolveReact
+            icon={expanded ? caretDownIcon : caretRightIcon}
+            tag="span"
+          />
+        </Button>
 
         {/* Visibility toggle for normal layers, Slide number for story segments */}
         {isStorySegmentLayer ? (
@@ -690,11 +743,19 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             tag="span"
           />
         </Button>
+        <Button
+          className="jp-gis-layer-more-btn"
+          minimal
+          onClick={handleLayerMoreClick}
+          title="More options"
+        >
+          <FontAwesomeIcon icon={faEllipsisVertical} />
+        </Button>
       </div>
 
       {/* Show legend only if supported symbology */}
       {expanded && gisModel && hasSupportedSymbology && (
-        <div style={{ marginTop: 6, width: '100%' }}>
+        <div style={{ marginTop: 6, width: '100%' }} onClick={setSelection}>
           <LegendItem layerId={layerId} model={gisModel} />
         </div>
       )}

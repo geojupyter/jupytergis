@@ -35,9 +35,7 @@
           "colorRamp": "viridis",
           "method": "color",
           "mode": "equal interval",
-          "nClasses": "9",
-          "renderType": "Single Symbol",
-          "value": ""
+          "nClasses": "9"
         }
       },
       "type": "VectorTileLayer",

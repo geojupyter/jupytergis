@@ -5,7 +5,8 @@ on:
     types: [labeled, unlabeled, opened, edited, synchronize]
 jobs:
   enforce-label:
+    name: Check for required labels
     runs-on: ubuntu-latest
     steps:
       - name: enforce-triage-label
-        uses: jupyterlab/maintainer-tools/.github/actions/enforce-label@7bebe19dab1c58587eb734aca9184d8e59fdf911 # v1
+        uses: jupyterlab/maintainer-tools/.github/actions/enforce-label@f5d710df1483f19b666dd96aeabbe949a53642c2 # v1

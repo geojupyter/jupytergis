@@ -16,6 +16,7 @@ except ImportError:
 
 from .notebook import GISDocument
 from .notebook.explore import explore
+from .notebook.symbology import GraduatedSymbology  # noqa
 
 
 def _jupyter_labextension_paths():

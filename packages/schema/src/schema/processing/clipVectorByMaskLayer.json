@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "description": "ClipVectorByMaskLayer",
+  "title": "IClipVectorByMaskLayer",
+  "required": ["inputLayer", "clipLayer"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer to clip."
+    },
+    "clipLayer": {
+      "type": "string",
+      "description": "The layer to use as the clip boundary."
+    },
+    "outputLayerName": {
+      "type": "string",
+      "title": "Output Layer Name",
+      "description": "Name for the resulting clipped layer."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output clipped layer in file",
+      "default": true
+    }
+  }
+}

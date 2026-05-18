@@ -84,7 +84,7 @@ def qgis_layer_to_jgis(
     if isinstance(layer, QgsRasterLayer):
         # QGIS treats tif layers as raster layer
         if layer.source().endswith(".tif"):
-            layer_type = "WebGlLayer"
+            layer_type = "GeoTiffLayer"
             source_type = "GeoTiffSource"
 
             # Need to build layer color
@@ -709,6 +709,12 @@ def jgis_layer_to_qgis(
         )
         return None
 
+    if layer_type == "OpenEOTileLayer":
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: OpenEO Tile layers not supported for export yet.",
+        )
+        return None
+
     if layer_type == "RasterLayer" and source_type == "RasterSource":
         source_parameters = source.get("parameters", {})
         uri = build_uri(source_parameters, "RasterSource")
@@ -851,7 +857,7 @@ def jgis_layer_to_qgis(
         if stroke_width is not None:
             map_layer.setCustomProperty(PROP_STROKE_WIDTH, stroke_width)
 
-    if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
+    if layer_type == "GeoTiffLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
         # TODO: Support sources with multiple URLs
         url = "/vsicurl/" + source_parameters["urls"][0]["url"]

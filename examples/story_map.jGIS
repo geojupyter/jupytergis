@@ -14,9 +14,7 @@
       "parameters": {
         "opacity": 1.0,
         "source": "a7e1fc1e-1ab9-461f-89cb-2010c790062f",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -83,9 +81,7 @@
       "parameters": {
         "opacity": 1.0,
         "source": "19ef5002-5670-4c17-b53f-44a48b739158",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -95,9 +91,7 @@
       "parameters": {
         "opacity": 1.0,
         "source": "660bb0bb-e0ce-4692-a7c7-119829d6e0d1",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true

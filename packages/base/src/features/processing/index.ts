@@ -9,10 +9,15 @@ import {
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { Notification, showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
 import { processingFormToParam } from './processingFormToParam';
+import {
+  isServerProcessingEnabled,
+  runServerProcessing,
+} from './serverProcessing';
 import { getGdal } from '../../gdal';
 import { getGeoJSONDataFromLayerSource } from '../../tools';
 import { JupyterGISTracker } from '../../types';
@@ -216,6 +221,492 @@ export async function processLayer(
   );
 }
 
+/**
+ * Rasterize a vector layer to a GeoTIFF on disk and add it as a WebGlLayer.
+ */
+export async function rasterizeLayer(
+  tracker: JupyterGISTracker,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  processingType: ProcessingType,
+  gdalFunction: GdalFunctions,
+  app: JupyterFrontEnd,
+  filePath?: string,
+  processingInputs?: Record<string, any>,
+) {
+  const widget = filePath
+    ? tracker.find(w => w.model.filePath === filePath)
+    : tracker.currentWidget;
+  if (!widget) {
+    return;
+  }
+
+  const model = widget.model;
+  const sources = model.sharedModel.sources ?? {};
+  const layers = model.sharedModel.layers ?? {};
+
+  let selected: IJGISLayer | null = null;
+  if (processingInputs?.inputLayer) {
+    selected = layers[processingInputs.inputLayer];
+  } else {
+    selected = getSingleSelectedLayer(tracker);
+  }
+  if (!selected) {
+    return;
+  }
+
+  const geojsonString = await getLayerGeoJSON(selected, sources, model);
+  if (!geojsonString) {
+    return;
+  }
+
+  let processParam: any;
+  let outputFileName = 'rasterized.tif';
+  let embedOutputLayer = false;
+
+  if (processingInputs) {
+    processParam = processingInputs;
+    outputFileName = processingInputs.outputFileName || outputFileName;
+    embedOutputLayer = !!processingInputs.embedOutputLayer;
+  } else {
+    const schema = {
+      ...(formSchemaRegistry.getSchemas().get(processingType) as IDict),
+    };
+    const selectedLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
+
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
+        schema,
+        model,
+        sourceData: {
+          inputLayer: selectedLayerId,
+          outputFileName: `${selected.name.replace(/\s+/g, '_')}_rasterized.tif`,
+        },
+        formContext: 'create',
+        processingType,
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
+    });
+
+    if (!formValues) {
+      return;
+    }
+
+    processParam = processingFormToParam(formValues, processingType);
+    outputFileName = formValues.outputFileName || outputFileName;
+    embedOutputLayer = !!formValues.embedOutputLayer;
+  }
+
+  const pixelSize = String(processParam.pixelSize ?? 0.01);
+  const noDataValue = String(processParam.noDataValue ?? 0);
+  const burnValue = String(processParam.burnValue ?? 1);
+  const attributeField: string = (processParam.attributeField || '').trim();
+
+  // Compute the min/max of the burned values so the GeoTIFF source can
+  // normalize correctly. gdal_rasterize doesn't write band statistics, so
+  // without this OL falls back to the data-type range (e.g. 0..255).
+  let bandMin: number;
+  let bandMax: number;
+  if (attributeField) {
+    const features = (JSON.parse(geojsonString)?.features ?? []) as Array<{
+      properties?: Record<string, unknown>;
+    }>;
+    const values: number[] = [];
+    for (const f of features) {
+      const v = f.properties?.[attributeField];
+      const n = typeof v === 'number' ? v : Number(v);
+      if (Number.isFinite(n)) {
+        values.push(n);
+      }
+    }
+    bandMin = values.length ? Math.min(...values) : 0;
+    bandMax = values.length ? Math.max(...values) : 1;
+  } else {
+    // Burn mode: pixels are nodata or burnValue. min/max must be ordered and
+    // non-equal so normalization doesn't divide by zero.
+    const burn = Number(burnValue) || 1;
+    bandMin = Math.min(0, burn);
+    bandMax = Math.max(0, burn) || 1;
+  }
+
+  const options: string[] = [
+    '-of',
+    'GTiff',
+    '-at',
+    '-tr',
+    pixelSize,
+    pixelSize,
+  ];
+  if (attributeField) {
+    options.push('-a', attributeField);
+  } else {
+    options.push('-burn', burnValue);
+  }
+  options.push('-a_nodata', noDataValue);
+
+  const outputName = 'output.tif';
+
+  const doRasterize = async (): Promise<Uint8Array> => {
+    if (isServerProcessingEnabled()) {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const response = await runServerProcessing({
+        operation: gdalFunction,
+        options,
+        geojson: geojsonString,
+        outputName,
+      });
+      if (response.format !== 'base64') {
+        throw new Error('Expected base64 response for raster output');
+      }
+      const binary = atob(response.result);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      console.debug(
+        `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    } else {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const geoFile = new File(
+        [new Blob([geojsonString], { type: 'application/geo+json' })],
+        'data.geojson',
+        { type: 'application/geo+json' },
+      );
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+      const dataset = result.datasets[0] as any;
+      const outputFilePath = await (Gdal as any)[gdalFunction](
+        dataset,
+        options,
+        outputName,
+      );
+      const bytes = await Gdal.getFileBytes(outputFilePath);
+      Gdal.close(dataset);
+      console.debug(
+        `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    }
+  };
+
+  const rasterizePromise = doRasterize();
+  Notification.promise(
+    rasterizePromise.then(() => null),
+    {
+      pending: { message: 'Rasterizing…', options: { autoClose: false } },
+      success: {
+        message: () => `${processingType} completed.`,
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) =>
+          `${processingType} failed: ${err?.message ?? err}`,
+      },
+    },
+  );
+
+  let tiffBytes: Uint8Array;
+  try {
+    tiffBytes = await rasterizePromise;
+  } catch {
+    return;
+  }
+
+  const base64Content = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const comma = dataUrl.indexOf(',');
+      resolve(comma >= 0 ? dataUrl.slice(comma + 1) : '');
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(
+      new Blob([tiffBytes as BlobPart], { type: 'image/tiff' }),
+    );
+  });
+
+  let sourceUrl: string;
+  if (embedOutputLayer) {
+    // Embed the GeoTIFF as a data URL inside the .jGIS document.
+    sourceUrl = `data:image/tiff;base64,${base64Content}`;
+  } else {
+    // Save .tif to disk next to the .jGIS project file. If a file already
+    // exists at the chosen path, append `_1`, `_2`, ... so repeated runs don't
+    // overwrite previous outputs.
+    const jgisFilePath = widget.model.filePath;
+    const jgisDir = jgisFilePath
+      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+      : '';
+    const dotIdx = outputFileName.lastIndexOf('.');
+    const baseName =
+      dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
+    const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
+    const candidatePath = (name: string) =>
+      jgisDir ? `${jgisDir}/${name}` : name;
+    const pathExists = async (path: string) => {
+      try {
+        await app.serviceManager.contents.get(path, { content: false });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    let suffix = 0;
+    while (
+      await pathExists(
+        candidatePath(
+          suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`,
+        ),
+      )
+    ) {
+      suffix += 1;
+    }
+    if (suffix > 0) {
+      outputFileName = `${baseName}_${suffix}${ext}`;
+    }
+    const savePath = candidatePath(outputFileName);
+
+    await app.serviceManager.contents.save(savePath, {
+      type: 'file',
+      format: 'base64',
+      content: base64Content,
+    });
+    sourceUrl = outputFileName;
+  }
+
+  const newSourceId = UUID.uuid4();
+  const sourceModel: IJGISSource = {
+    type: 'GeoTiffSource',
+    name: `${selected.name} Rasterized Source`,
+    parameters: {
+      urls: [
+        { url: sourceUrl, min: bandMin, max: bandMax, nodata: noDataValue },
+      ],
+      normalize: true,
+      wrapX: false,
+      interpolate: false,
+    },
+  };
+
+  const layerModel: IJGISLayer = {
+    type: 'GeoTiffLayer',
+    parameters: { source: newSourceId },
+    visible: true,
+    name: `${selected.name} Rasterized`,
+  };
+
+  model.sharedModel.addSource(newSourceId, sourceModel);
+  model.addLayer(UUID.uuid4(), layerModel);
+}
+
+/**
+ * Compute the WKT of the union of all features in a GeoJSON string using WASM GDAL.
+ */
+async function computeUnionWkt(geojsonString: string): Promise<string | null> {
+  const Gdal = await getGdal();
+  const file = new File(
+    [new Blob([geojsonString], { type: 'application/geo+json' })],
+    'clip_data.geojson',
+    { type: 'application/geo+json' },
+  );
+  const result = await Gdal.open(file);
+  if (result.datasets.length === 0) {
+    return null;
+  }
+  const dataset = result.datasets[0] as any;
+  const layerName = dataset.info.layers[0].name;
+  const options = [
+    '-f',
+    'CSV',
+    '-dialect',
+    'SQLITE',
+    '-sql',
+    `SELECT ST_AsText(ST_Union(geometry)) AS wkt FROM "${layerName}"`,
+    'clip_union.csv',
+  ];
+  const outputPath = await (Gdal as any).ogr2ogr(dataset, options);
+  const bytes = await Gdal.getFileBytes(outputPath);
+  Gdal.close(dataset);
+  const csv = new TextDecoder().decode(bytes);
+  const lines = csv.split('\n').filter((l: string) => l.trim());
+  if (lines.length < 2) {
+    return null;
+  }
+  // ogr2ogr CSV wraps fields containing commas in double-quotes; strip them
+  let wkt = lines[1].trim();
+  if (wkt.startsWith('"') && wkt.endsWith('"')) {
+    wkt = wkt.slice(1, -1).replace(/""/g, '"');
+  }
+  return wkt || null;
+}
+
+/**
+ * Clip a vector layer by another vector layer using ST_Intersection.
+ */
+export async function clipVectorByMaskLayer(
+  tracker: JupyterGISTracker,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  app: JupyterFrontEnd,
+  filePath?: string,
+  processingInputs?: Record<string, any>,
+) {
+  const widget = filePath
+    ? tracker.find(w => w.model.filePath === filePath)
+    : tracker.currentWidget;
+  if (!widget) {
+    return;
+  }
+
+  const model = widget.model;
+  const sources = model.sharedModel.sources ?? {};
+  const layers = model.sharedModel.layers ?? {};
+
+  let selected: IJGISLayer | null = null;
+  let inputLayerId: string | undefined;
+  if (processingInputs?.inputLayer) {
+    inputLayerId = processingInputs.inputLayer as string;
+    selected = layers[inputLayerId] ?? null;
+  } else {
+    selected = getSingleSelectedLayer(tracker);
+    inputLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
+  }
+  if (!selected) {
+    return;
+  }
+
+  const inputGeoJSON = await getLayerGeoJSON(selected, sources, model);
+  if (!inputGeoJSON) {
+    return;
+  }
+
+  let clipLayerId: string;
+  let embedOutputLayer = true;
+  let outputLayerName = `${selected.name} Clipped`;
+
+  if (processingInputs) {
+    clipLayerId = processingInputs.clipLayer;
+    embedOutputLayer = processingInputs.embedOutputLayer ?? true;
+    outputLayerName =
+      processingInputs.outputLayerName ?? `${selected.name} Clipped`;
+  } else {
+    const schema = {
+      ...(formSchemaRegistry
+        .getSchemas()
+        .get('ClipVectorByMaskLayer') as IDict),
+    };
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: 'Clip',
+        schema,
+        model,
+        sourceData: {
+          inputLayer: inputLayerId,
+          outputLayerName: `${selected.name} Clipped`,
+        },
+        formContext: 'create',
+        processingType: 'ClipVectorByMaskLayer',
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
+    });
+
+    if (!formValues) {
+      return;
+    }
+
+    clipLayerId = formValues.clipLayer;
+    embedOutputLayer = formValues.embedOutputLayer;
+    outputLayerName = formValues.outputLayerName;
+  }
+
+  if (clipLayerId === inputLayerId) {
+    await showErrorMessage(
+      'Clip failed',
+      'The clip layer and input layer must be different.',
+    );
+    return;
+  }
+
+  const clipLayer = layers[clipLayerId];
+  if (!clipLayer) {
+    await showErrorMessage('Clip failed', 'Clip layer not found.');
+    return;
+  }
+
+  const clipGeoJSON = await getLayerGeoJSON(clipLayer, sources, model);
+  if (!clipGeoJSON) {
+    await showErrorMessage(
+      'Clip failed',
+      'Could not read the clip layer geometry.',
+    );
+    return;
+  }
+
+  const clipWkt = await computeUnionWkt(clipGeoJSON);
+  if (!clipWkt) {
+    await showErrorMessage(
+      'Clip failed',
+      'Could not compute clip boundary geometry. The clip layer may be empty.',
+    );
+    return;
+  }
+
+  const Gdal = await getGdal();
+  const inputFile = new File(
+    [new Blob([inputGeoJSON], { type: 'application/geo+json' })],
+    'data.geojson',
+    { type: 'application/geo+json' },
+  );
+  const openResult = await Gdal.open(inputFile);
+  const dataset = openResult.datasets[0] as any;
+  const inputLayerName = dataset.info.layers[0].name;
+  Gdal.close(dataset);
+
+  const escapedWkt = clipWkt.replace(/'/g, "''");
+  const sql = `SELECT ST_Intersection(geometry, ST_GeomFromText('${escapedWkt}')) AS geometry, * FROM "${inputLayerName}" WHERE ST_Intersects(geometry, ST_GeomFromText('${escapedWkt}'))`;
+  const options = [
+    '-f',
+    'GeoJSON',
+    '-dialect',
+    'SQLITE',
+    '-sql',
+    sql,
+    '{outputName}',
+  ];
+
+  await executeSQLProcessing(
+    model,
+    inputGeoJSON,
+    'ogr2ogr',
+    options,
+    outputLayerName,
+    'ClipVectorByMaskLayer',
+    embedOutputLayer,
+    tracker,
+    app,
+    outputLayerName,
+  );
+}
+
 export async function executeSQLProcessing(
   model: IJupyterGISModel,
   geojsonString: string,
@@ -226,27 +717,87 @@ export async function executeSQLProcessing(
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,
+  exactLayerName?: string,
 ) {
-  const geoFile = new File(
-    [new Blob([geojsonString], { type: 'application/geo+json' })],
-    'data.geojson',
-    { type: 'application/geo+json' },
+  const doProcessing = async (): Promise<string> => {
+    if (isServerProcessingEnabled()) {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const outputName = 'output.geojson';
+      const response = await runServerProcessing({
+        operation: gdalFunction,
+        options,
+        geojson: geojsonString,
+        outputName,
+      });
+      console.debug(
+        `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return response.result;
+    } else {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const geoFile = new File(
+        [new Blob([geojsonString], { type: 'application/geo+json' })],
+        'data.geojson',
+        { type: 'application/geo+json' },
+      );
+
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+
+      if (result.datasets.length === 0) {
+        throw new Error('Could not open layer in GDAL.');
+      }
+
+      const dataset = result.datasets[0] as any;
+      const wasmOptions = options.map(o =>
+        o.replace('{outputName}', 'output.geojson'),
+      );
+      const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);
+      const processedBytes = await Gdal.getFileBytes(outputFilePath);
+      const output = new TextDecoder().decode(processedBytes);
+      Gdal.close(dataset);
+      console.debug(
+        `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return output;
+    }
+  };
+
+  const processingPromise = doProcessing();
+  Notification.promise(
+    processingPromise.then(() => null),
+    {
+      pending: {
+        message: `Running ${processingType}…`,
+        options: { autoClose: false },
+      },
+      success: {
+        message: () => `${processingType} completed.`,
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) =>
+          `${processingType} failed: ${err?.message ?? err}`,
+      },
+    },
   );
 
-  const Gdal = await getGdal();
-  const result = await Gdal.open(geoFile);
-
-  if (result.datasets.length === 0) {
+  let processedGeoJSONString: string;
+  try {
+    processedGeoJSONString = await processingPromise;
+  } catch {
     return;
   }
 
-  const dataset = result.datasets[0] as any;
-  const outputFilePath = await Gdal[gdalFunction](dataset, options);
-  const processedBytes = await Gdal.getFileBytes(outputFilePath);
-  const processedGeoJSONString = new TextDecoder().decode(processedBytes);
-  Gdal.close(dataset);
-
-  const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
+  const layerName =
+    exactLayerName ??
+    `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
 
   if (!embedOutputLayer) {
     // Save the output as a file

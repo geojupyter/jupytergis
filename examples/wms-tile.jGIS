@@ -9,7 +9,7 @@
         "opacity": 1.0,
         "source": "30749238-2094-4741-957e-03fab2951da8"
       },
-      "type": "WebGlLayer",
+      "type": "GeoTiffLayer",
       "visible": true
     }
   },

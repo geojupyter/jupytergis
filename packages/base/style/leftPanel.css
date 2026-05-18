@@ -146,6 +146,31 @@ li .lm-Menu-itemLabel {
   text-transform: capitalize;
 }
 
+/* "More options" (⋮) button — hidden by default, shown on hover or on touch devices */
+.jp-gis-layer-more-btn {
+  opacity: 0;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.jp-gis-layerItem .jp-gis-layer-more-btn,
+.jp-gis-layerGroupHeader .jp-gis-layer-more-btn {
+  margin-right: 6px;
+}
+
+.jp-gis-layerItem:hover .jp-gis-layer-more-btn,
+.jp-gis-layerGroupHeader:hover .jp-gis-layer-more-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (pointer: coarse) {
+  .jp-gis-layer-more-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 #jp-drag-indicator {
   top: calc(-1 * var(--jp-border-width) + 1px);
   left: calc(-1 * var(--jp-border-width));

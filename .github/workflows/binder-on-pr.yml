@@ -1,14 +1,15 @@
-name: Binder Badge
+name: Binder link comment
 on:
   pull_request_target:
     types: [opened]
 
 jobs:
   binder:
+    name: Add/update Comment
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/binder-link@7bebe19dab1c58587eb734aca9184d8e59fdf911 # v1
+      - uses: jupyterlab/maintainer-tools/.github/actions/binder-link@f5d710df1483f19b666dd96aeabbe949a53642c2 # v1
         with:
           github_token: ${{ secrets.github_token }}

@@ -1,8 +1,4 @@
-import {
-  IJGISFormSchemaRegistry,
-  IJupyterGISClientState,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import * as React from 'react';
 
@@ -34,9 +30,7 @@ export class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       setSelectedObject: props.setSelectedObject,
     };
 
-    this.props.model.clientStateChanged.connect(
-      this._onClientSharedStateChanged,
-    );
+    this.props.model.selectedChanged.connect(this._onSelectedChanged);
 
     this.props.model?.sharedLayersChanged.connect(this._sharedJGISModelChanged);
     this.props.model?.sharedSourcesChanged.connect(
@@ -48,24 +42,15 @@ export class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     this.forceUpdate();
   };
 
-  private _onClientSharedStateChanged = (
-    sender: IJupyterGISModel,
-    clients: Map<number, IJupyterGISClientState>,
-  ): void => {
-    let newState: IJupyterGISClientState | undefined;
-    const clientId = this.state.clientId;
-
-    const localState = clientId ? clients.get(clientId) : null;
+  private _onSelectedChanged = (): void => {
+    const localState = this.props.model.localState;
     if (
       localState &&
       localState.selected?.emitter &&
       localState.selected.emitter !== this.state.id &&
       localState.selected?.value
     ) {
-      newState = localState;
-    }
-    if (newState) {
-      const selection = newState.selected.value;
+      const selection = localState.selected.value;
       const selectedObjectIds = Object.keys(selection || {});
       // Only show object properties if ONE object is selected
       if (selection === undefined || selectedObjectIds.length !== 1) {

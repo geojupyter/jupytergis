@@ -1,60 +1,70 @@
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IDict,
-  IJupyterGISClientState,
+  IIdentifiedFeature,
+  IIdentifiedFeatureEntry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
-import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
+
+import { FeatureCard } from './components/FeatureCard';
+import { useIdentifyPropertyEditor } from './hooks/useIdentifyPropertyEditor';
+import { PatchGeoJSONFeatureProperties } from './types/editorTypes';
+import { getFeatureIdentifier } from './utils/getFeatureIdentifier';
 
 interface IIdentifyComponentProps {
   model: IJupyterGISModel;
+  patchGeoJSONFeatureProperties?: PatchGeoJSONFeatureProperties;
 }
 
 export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
+  patchGeoJSONFeatureProperties,
 }) => {
-  const [features, setFeatures] = useState<IDict<any>>();
-  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
+  const [features, setFeatures] = useState<IIdentifiedFeatureEntry[]>([]);
+  const [visibleRows, setVisibleRows] = useState<IDict<any>>({
     0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
 
   const featuresRef = useRef(features);
-
-  // Reset state values when current widget changes
+  const { editorState, editorActions } = useIdentifyPropertyEditor({
+    model,
+    patchGeoJSONFeatureProperties,
+    setFeatures,
+  });
 
   useEffect(() => {
     featuresRef.current = features;
   }, [features]);
 
   useEffect(() => {
-    const handleClientStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
+    const handleIdentifyFeaturesChanged = () => {
+      const clients = model.sharedModel.awareness.getStates();
       const remoteUserId = model?.localState?.remoteUser;
 
       // If following a collaborator
       if (remoteUserId) {
         const remoteState = clients.get(remoteUserId);
         if (remoteState) {
-          if (remoteState.user?.username !== remoteUser?.username) {
-            setRemoteUser(remoteState.user);
-          }
+          setRemoteUser(previousUser =>
+            previousUser?.username === remoteState.user?.username
+              ? previousUser
+              : remoteState.user,
+          );
 
-          setFeatures(remoteState.identifiedFeatures?.value ?? {});
+          setFeatures(remoteState.identifiedFeatures?.value ?? []);
         }
         return;
       }
+
+      setRemoteUser(previousUser => (previousUser ? null : previousUser));
 
       // If not following a collaborator
       const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
 
       if (!identifiedFeatures) {
-        setFeatures({});
+        setFeatures([]);
         return;
       }
 
@@ -66,33 +76,70 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       }
     };
 
-    model?.clientStateChanged.connect(handleClientStateChanged);
+    const signals = [
+      model?.identifiedFeaturesChanged,
+      model?.remoteUserChanged,
+    ];
+
+    signals.forEach(signal => signal.connect(handleIdentifyFeaturesChanged));
+    handleIdentifyFeaturesChanged();
 
     return () => {
-      model?.clientStateChanged.disconnect(handleClientStateChanged);
+      signals.forEach(signal =>
+        signal.disconnect(handleIdentifyFeaturesChanged),
+      );
     };
   }, [model]);
 
-  const highlightFeatureOnMap = (feature: any) => {
+  const highlightFeatureOnMap = (feature: IIdentifiedFeature) => {
     model?.highlightFeatureSignal?.emit(feature);
 
     const geometry = feature.geometry || feature._geometry;
     model?.flyToGeometrySignal?.emit(geometry);
   };
 
-  const toggleFeatureVisibility = (index: number) => {
-    setVisibleFeatures(prev => ({
+  const toggleFeatureVisibility = (rowIndex: number, isOpen: boolean) => {
+    setVisibleRows(prev => ({
       ...prev,
-      [index]: !prev[index],
+      [rowIndex]: isOpen,
     }));
   };
 
-  const getFeatureNameOrId = (feature: any, featureIndex: number) => {
+  const toggleFeatureFloater = (feature: IIdentifiedFeature) => {
+    const featureId = getFeatureIdentifier(feature);
+    if (!featureId) {
+      return;
+    }
+
+    setFeatures(previous => {
+      const nextFeatures = previous.map(item =>
+        getFeatureIdentifier(item.feature) === featureId
+          ? { ...item, floaterOpen: !item.floaterOpen }
+          : item,
+      );
+
+      model.syncIdentifiedFeatures(
+        nextFeatures,
+        model.getClientId().toString(),
+      );
+      return nextFeatures;
+    });
+  };
+
+  const getFeatureNameOrId = (
+    feature: IIdentifiedFeature,
+    featureIndex: number,
+  ): string => {
     for (const key of Object.keys(feature)) {
       const lowerCase = key.toLowerCase();
 
-      if ((lowerCase.includes('name') || lowerCase === 'id') && feature[key]) {
-        return feature[key];
+      if (
+        (lowerCase.includes('label') ||
+          lowerCase.includes('name') ||
+          lowerCase === 'id') &&
+        feature[key]
+      ) {
+        return String(feature[key]);
       }
     }
 
@@ -108,78 +155,27 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
           : 'unset',
       }}
     >
-      {!Object.keys(features ?? {}).length && (
+      {!features.length && (
         <div style={{ textAlign: 'center' }}>
           Please select a layer from the layer list, then "i" from the toolbar
           to start identifying features.
         </div>
       )}
-      {features &&
-        Object.values(features).map((feature, featureIndex) => (
-          <div key={featureIndex} className="jgis-identify-grid-item">
-            <div className="jgis-identify-grid-item-header">
-              <span onClick={() => toggleFeatureVisibility(featureIndex)}>
-                <LabIcon.resolveReact
-                  icon={caretDownIcon}
-                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
-                  tag={'span'}
-                />
-                <span>{getFeatureNameOrId(feature, featureIndex)}</span>
-              </span>
-
-              {(() => {
-                const isRasterFeature =
-                  !feature.geometry &&
-                  !feature._geometry &&
-                  typeof feature?.x !== 'number' &&
-                  typeof feature?.y !== 'number';
-
-                return (
-                  <button
-                    className="jgis-highlight-button"
-                    onClick={e => {
-                      e.stopPropagation();
-                      highlightFeatureOnMap(feature);
-                    }}
-                    title={
-                      isRasterFeature
-                        ? 'Highlight not available for raster features'
-                        : 'Highlight feature on map'
-                    }
-                    disabled={isRasterFeature}
-                  >
-                    <FontAwesomeIcon icon={faMagnifyingGlass} />
-                  </button>
-                );
-              })()}
-            </div>
-            {visibleFeatures[featureIndex] && (
-              <>
-                {Object.entries(feature)
-                  .filter(
-                    ([key, value]) =>
-                      typeof value !== 'object' || value === null,
-                  )
-                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-                  .map(([key, value]) => (
-                    <div key={key} className="jgis-identify-grid-body">
-                      <strong>{key}:</strong>
-                      {typeof value === 'string' &&
-                      /<\/?[a-z][\s\S]*>/i.test(value) ? (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: `${value}`,
-                          }}
-                        />
-                      ) : (
-                        <span>{String(value)}</span>
-                      )}
-                    </div>
-                  ))}
-              </>
-            )}
-          </div>
-        ))}
+      {features.map((item, rowIndex) => (
+        <FeatureCard
+          key={rowIndex}
+          feature={item.feature}
+          rowIndex={rowIndex}
+          isVisible={!!visibleRows[rowIndex]}
+          featureTitle={getFeatureNameOrId(item.feature, rowIndex)}
+          isFloaterOpen={!!item.floaterOpen}
+          editorState={editorState}
+          editorActions={editorActions}
+          onToggleVisibility={toggleFeatureVisibility}
+          onToggleFloater={() => toggleFeatureFloater(item.feature)}
+          onHighlightFeature={highlightFeatureOnMap}
+        />
+      ))}
     </div>
   );
 };

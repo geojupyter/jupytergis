@@ -7,7 +7,7 @@ import {
   StorySegmentLayerPropertiesForm,
   LayerPropertiesForm,
   VectorLayerPropertiesForm,
-  WebGlLayerPropertiesForm,
+  GeoTiffLayerPropertiesForm,
 } from '@/src/features/layers/forms/layer';
 import type { ILayerProps } from '@/src/features/layers/forms/layer/layerform';
 import {
@@ -34,8 +34,8 @@ export function getLayerTypeForm(
     case 'HillshadeLayer':
       LayerForm = HillshadeLayerPropertiesForm;
       break;
-    case 'WebGlLayer':
-      LayerForm = WebGlLayerPropertiesForm;
+    case 'GeoTiffLayer':
+      LayerForm = GeoTiffLayerPropertiesForm;
       break;
     case 'HeatmapLayer':
       LayerForm = HeatmapLayerPropertiesForm;

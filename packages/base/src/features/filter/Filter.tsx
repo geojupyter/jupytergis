@@ -40,7 +40,7 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({
   }, []);
 
   useEffect(() => {
-    const handleClientStateChanged = () => {
+    const handleSelectedChanged = () => {
       if (!model?.localState?.selected?.value) {
         return;
       }
@@ -63,14 +63,14 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({
       }
     };
 
-    model?.clientStateChanged.connect(handleClientStateChanged);
+    model?.selectedChanged.connect(handleSelectedChanged);
 
     // Want to rebuild filter object when zoom changes to get values for that zoom level
     // This is because the filtering inputs may depend on the currently visible features
     model?.sharedOptionsChanged.connect(handleSharedOptionsChanged);
 
     return () => {
-      model?.clientStateChanged.disconnect(handleClientStateChanged);
+      model?.selectedChanged.disconnect(handleSelectedChanged);
       model?.sharedOptionsChanged.disconnect(handleSharedOptionsChanged);
     };
   }, [model]);

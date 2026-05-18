@@ -62,7 +62,7 @@
   width: 100%;
   overflow-y: auto;
   /* max-height: 480px; */
-  padding-top: 1rem;
+  padding-top: 0.5rem;
 }
 
 .jgis-tabs-content:focus-visible {

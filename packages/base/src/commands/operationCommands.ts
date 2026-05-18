@@ -266,7 +266,7 @@ export function addLayerCreationCommands(options: {
       caption:
         'Add a new GeoTIFF layer (by file path or URL) and add it to the given JupyterGIS file',
       sourceType: 'GeoTiffSource',
-      layerType: 'WebGlLayer',
+      layerType: 'GeoTiffLayer',
       sourceSchema: {
         type: 'object',
         required: ['urls'],
@@ -317,7 +317,7 @@ export function addLayerCreationCommands(options: {
         source: id,
         color: p.color ?? {},
         opacity: p.opacity ?? 1,
-        symbologyState: p.symbologyState ?? { renderType: 'Single Symbol' },
+        symbologyState: p.symbologyState ?? { layers: [] },
       }),
     },
   ];

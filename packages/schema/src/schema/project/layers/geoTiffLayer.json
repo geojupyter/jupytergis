@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "WebGlLayer",
-  "title": "IWebGlLayer",
+  "description": "GeoTiffLayer",
+  "title": "IGeoTiffLayer",
   "required": ["source"],
   "additionalProperties": false,
   "properties": {
@@ -51,8 +51,14 @@
     "symbologyState": {
       "type": "object",
       "description": "The state of the symbology panel options",
-      "required": ["renderType"],
       "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers.",
+          "items": {
+            "$ref": "project/layers/vectorLayer.json#/definitions/_IGrammarLayer"
+          }
+        },
         "renderType": {
           "type": "string",
           "default": "Singleband Pseudocolor"

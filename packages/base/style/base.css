@@ -15,6 +15,7 @@
 @import url('./tabPanel.css');
 @import url('./stacBrowser.css');
 @import url('./storyPanel.css');
+@import url('./identify.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
@@ -210,6 +211,11 @@ button.jp-mod-styled.jp-mod-reject {
   padding-top: 5px;
 }
 
+.jgis-inline-icon {
+  width: 1em;
+  height: 1em;
+}
+
 .jgis-controls-toolbar {
   width: 100%;
   display: flex;
@@ -295,6 +301,14 @@ body[data-notebook='specta'] #main.jp-ThemedContainer {
   transition: rotate 150ms ease;
 }
 
-[data-state='open'] > .jgis-rotate-90 {
+[data-state='open'] .jgis-rotate-90 {
   rotate: 90deg;
+}
+
+[data-icon='inline-start'] {
+  padding-right: 0.375rem;
+}
+
+[data-icon='inline-end'] {
+  padding-left: 0.375rem;
 }
