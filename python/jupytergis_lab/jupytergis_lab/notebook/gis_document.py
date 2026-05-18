@@ -901,7 +901,7 @@ class GISDocument(CommWidget):
         :param opacity: The layer's opacity
         :param scale: Tile size scale. Default 1 corresponds to 256*256px tiles
         :param algorithm: A TiTiler algorithm class.
-            See the [titiler algorithm docs](https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm)
+            See the [TiTiler algorithm docs](https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm)
             for details.
         """
         try:
