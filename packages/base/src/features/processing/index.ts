@@ -9,7 +9,7 @@ import {
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage } from '@jupyterlab/apputils';
+import { Notification, showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
@@ -352,53 +352,78 @@ export async function rasterizeLayer(
 
   const outputName = 'output.tif';
 
-  let tiffBytes: Uint8Array;
+  const doRasterize = async (): Promise<Uint8Array> => {
+    if (isServerProcessingEnabled()) {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const response = await runServerProcessing({
+        operation: gdalFunction,
+        options,
+        geojson: geojsonString,
+        outputName,
+      });
+      if (response.format !== 'base64') {
+        throw new Error('Expected base64 response for raster output');
+      }
+      const binary = atob(response.result);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      console.debug(
+        `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    } else {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const geoFile = new File(
+        [new Blob([geojsonString], { type: 'application/geo+json' })],
+        'data.geojson',
+        { type: 'application/geo+json' },
+      );
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+      const dataset = result.datasets[0] as any;
+      const outputFilePath = await (Gdal as any)[gdalFunction](
+        dataset,
+        options,
+        outputName,
+      );
+      const bytes = await Gdal.getFileBytes(outputFilePath);
+      Gdal.close(dataset);
+      console.debug(
+        `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    }
+  };
 
-  if (isServerProcessingEnabled()) {
-    console.debug(
-      `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
-    );
-    const t0 = performance.now();
-    const response = await runServerProcessing({
-      operation: gdalFunction,
-      options,
-      geojson: geojsonString,
-      outputName,
-    });
-    if (response.format !== 'base64') {
-      throw new Error('Expected base64 response for raster output');
-    }
-    const binary = atob(response.result);
-    tiffBytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      tiffBytes[i] = binary.charCodeAt(i);
-    }
-    console.debug(
-      `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
-    );
-  } else {
-    console.debug(
-      `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
-    );
-    const t0 = performance.now();
-    const geoFile = new File(
-      [new Blob([geojsonString], { type: 'application/geo+json' })],
-      'data.geojson',
-      { type: 'application/geo+json' },
-    );
-    const Gdal = await getGdal();
-    const result = await Gdal.open(geoFile);
-    const dataset = result.datasets[0] as any;
-    const outputFilePath = await (Gdal as any)[gdalFunction](
-      dataset,
-      options,
-      outputName,
-    );
-    tiffBytes = await Gdal.getFileBytes(outputFilePath);
-    Gdal.close(dataset);
-    console.debug(
-      `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
-    );
+  const rasterizePromise = doRasterize();
+  Notification.promise(
+    rasterizePromise.then(() => null),
+    {
+      pending: { message: 'Rasterizing…', options: { autoClose: false } },
+      success: {
+        message: () => `${processingType} completed.`,
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) =>
+          `${processingType} failed: ${err?.message ?? err}`,
+      },
+    },
+  );
+
+  let tiffBytes: Uint8Array;
+  try {
+    tiffBytes = await rasterizePromise;
+  } catch {
+    return;
   }
 
   const base64Content = await new Promise<string>((resolve, reject) => {
@@ -694,53 +719,80 @@ export async function executeSQLProcessing(
   app: JupyterFrontEnd,
   exactLayerName?: string,
 ) {
-  let processedGeoJSONString: string;
+  const doProcessing = async (): Promise<string> => {
+    if (isServerProcessingEnabled()) {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const outputName = 'output.geojson';
+      const response = await runServerProcessing({
+        operation: gdalFunction,
+        options,
+        geojson: geojsonString,
+        outputName,
+      });
+      console.debug(
+        `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return response.result;
+    } else {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const geoFile = new File(
+        [new Blob([geojsonString], { type: 'application/geo+json' })],
+        'data.geojson',
+        { type: 'application/geo+json' },
+      );
 
-  if (isServerProcessingEnabled()) {
-    console.debug(
-      `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
-    );
-    const t0 = performance.now();
-    const outputName = 'output.geojson';
-    const response = await runServerProcessing({
-      operation: gdalFunction,
-      options,
-      geojson: geojsonString,
-      outputName,
-    });
-    processedGeoJSONString = response.result;
-    console.debug(
-      `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
-    );
-  } else {
-    console.debug(
-      `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
-    );
-    const t0 = performance.now();
-    const geoFile = new File(
-      [new Blob([geojsonString], { type: 'application/geo+json' })],
-      'data.geojson',
-      { type: 'application/geo+json' },
-    );
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
 
-    const Gdal = await getGdal();
-    const result = await Gdal.open(geoFile);
+      if (result.datasets.length === 0) {
+        throw new Error('Could not open layer in GDAL.');
+      }
 
-    if (result.datasets.length === 0) {
-      return;
+      const dataset = result.datasets[0] as any;
+      const wasmOptions = options.map(o =>
+        o.replace('{outputName}', 'output.geojson'),
+      );
+      const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);
+      const processedBytes = await Gdal.getFileBytes(outputFilePath);
+      const output = new TextDecoder().decode(processedBytes);
+      Gdal.close(dataset);
+      console.debug(
+        `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return output;
     }
+  };
 
-    const dataset = result.datasets[0] as any;
-    const wasmOptions = options.map(o =>
-      o.replace('{outputName}', 'output.geojson'),
-    );
-    const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);
-    const processedBytes = await Gdal.getFileBytes(outputFilePath);
-    processedGeoJSONString = new TextDecoder().decode(processedBytes);
-    Gdal.close(dataset);
-    console.debug(
-      `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
-    );
+  const processingPromise = doProcessing();
+  Notification.promise(
+    processingPromise.then(() => null),
+    {
+      pending: {
+        message: `Running ${processingType}…`,
+        options: { autoClose: false },
+      },
+      success: {
+        message: () => `${processingType} completed.`,
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) =>
+          `${processingType} failed: ${err?.message ?? err}`,
+      },
+    },
+  );
+
+  let processedGeoJSONString: string;
+  try {
+    processedGeoJSONString = await processingPromise;
+  } catch {
+    return;
   }
 
   const layerName =
