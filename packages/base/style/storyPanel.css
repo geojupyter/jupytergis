@@ -215,11 +215,10 @@
 }
 
 .jgis-story-markdown-overlay-content {
-  max-width: 60rem;
+  /* max-width: 60rem; */
   margin: 0 auto;
 }
 
-/* --- List story: scroll-drive overlay panes (transforms set inline in MainView) */
 .jgis-story-markdown-overlay-scroll-drive {
   overflow: hidden;
 }
@@ -244,7 +243,7 @@
 }
 
 /* --- List story: CSS enter/exit when model flips markdown↔map (not scroll-drive) */
-.jgis-mainview-stage.jgis-list-markdown-transition-enter-forward
+/* .jgis-mainview-stage.jgis-list-markdown-transition-enter-forward
   .jgis-story-markdown-overlay,
 .jgis-mainview-stage.jgis-list-markdown-transition-enter-backward
   .jgis-story-markdown-overlay,
@@ -261,9 +260,9 @@
 .jgis-mainview-stage.jgis-list-markdown-transition-exit-backward
   .jgis-mainview-map-content {
   transition: transform 1000ms cubic-bezier(0.22, 1, 0.36, 1);
-}
+} */
 
-.jgis-mainview-stage.jgis-list-markdown-transition-enter-forward
+/* .jgis-mainview-stage.jgis-list-markdown-transition-enter-forward
   .jgis-story-markdown-overlay {
   animation: jgis-markdown-overlay-enter-forward 1000ms
     cubic-bezier(0.22, 1, 0.36, 1);
@@ -272,9 +271,9 @@
 .jgis-mainview-stage.jgis-list-markdown-transition-enter-forward
   .jgis-mainview-map-content {
   transform: translateY(-100vh);
-}
+} */
 
-.jgis-mainview-stage.jgis-list-markdown-transition-enter-backward
+/* .jgis-mainview-stage.jgis-list-markdown-transition-enter-backward
   .jgis-story-markdown-overlay {
   animation: jgis-markdown-overlay-enter-backward 1000ms
     cubic-bezier(0.22, 1, 0.36, 1);
@@ -302,9 +301,9 @@
   .jgis-story-markdown-overlay {
   animation: jgis-markdown-overlay-exit-backward 1000ms
     cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
+} */
 
-@keyframes jgis-markdown-overlay-enter-forward {
+/* @keyframes jgis-markdown-overlay-enter-forward {
   from {
     transform: translateY(100vh);
   }
@@ -338,12 +337,12 @@
   to {
     transform: translateY(100vh);
   }
-}
+} */
 
 .jgis-story-segment-list {
   display: flex;
   flex-direction: column;
-  gap: 100vh;
+  gap: 110vh;
 }
 
 /* List column: one card per segment (map cards visible; markdown hidden). */
@@ -351,6 +350,7 @@
   padding: 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--jp-border-color2);
+  /* ! TODO background should use story color? */
   background: var(--jp-layout-color1);
 }
 

@@ -31,10 +31,12 @@ interface ISpectaDesktopViewProps {
   hasPrev: boolean;
   hasNext: boolean;
   showGradient: boolean;
-  viewMode: StoryDesktopViewMode;
+  // viewMode: StoryDesktopViewMode;
   setIndex: (index: number) => void;
   /** Wired from MainView: receives scroll-derived `listScrollDrive` payloads. */
-  onListScrollDriveChange?: (payload: IListStoryScrollDrivePayload | null) => void;
+  onListScrollDriveChange?: (
+    payload: IListStoryScrollDrivePayload | null,
+  ) => void;
 }
 
 /**
@@ -57,11 +59,18 @@ export function SpectaDesktopView({
   hasPrev,
   hasNext,
   showGradient,
-  viewMode,
+  // viewMode,
   setIndex,
   onListScrollDriveChange,
 }: ISpectaDesktopViewProps): JSX.Element {
+  // guided → single column; list story → stacked segment cards
+  const viewMode =
+    storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
+      ? 'single'
+      : 'list';
+
   // scrollContainerRef: list + single both scroll here; list drive measures it.
+  // ! TODO, list mode only needs scroll container ref, move out of hook?
   const {
     scrollContainerRef,
     topSentinelRef,
@@ -160,7 +169,7 @@ export function SpectaDesktopView({
           </div>
         </div>
       </div>
-      <SpectaPresentationProgressBar model={model} />
+      {viewMode !== 'list' && <SpectaPresentationProgressBar model={model} />}
     </>
   );
 }

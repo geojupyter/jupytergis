@@ -57,6 +57,7 @@ interface ISpectaSegmentListPanelProps {
   listIntersectionRootRef: RefObject<HTMLDivElement | null>;
 }
 
+// ! TODO this should be the SpectaListModeContent
 export function SpectaSegmentListPanel({
   isSpecta,
   storyData,
@@ -126,22 +127,23 @@ export function SpectaSegmentListPanel({
       }
     });
 
-    const handleScroll = (): void => {
-      syncActiveFromLayout();
-    };
+    // ! TODO maybe dont need
+    // const handleScroll = (): void => {
+    //   syncActiveFromLayout();
+    // };
 
-    root.addEventListener('scroll', handleScroll, { passive: true });
-    const ro = new ResizeObserver(() => {
-      syncActiveFromLayout();
-    });
-    ro.observe(root);
+    // root.addEventListener('scroll', handleScroll, { passive: true });
+    // const ro = new ResizeObserver(() => {
+    //   syncActiveFromLayout();
+    // });
+    // ro.observe(root);
 
     syncActiveFromLayout();
 
     return () => {
       observer.disconnect();
-      root.removeEventListener('scroll', handleScroll);
-      ro.disconnect();
+      // root.removeEventListener('scroll', handleScroll);
+      // ro.disconnect();
     };
   }, [items, setIndex, listIntersectionRootRef]);
 

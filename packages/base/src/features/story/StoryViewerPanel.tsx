@@ -69,6 +69,7 @@ function getStoryNavPlacement(
 /**
  * Story viewer (presentational). Receives story state and callbacks from parent.
  * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
+ * (This is the actual card in the panel)
  */
 function StoryViewerPanel({
   isSpecta,
@@ -152,7 +153,7 @@ function StoryViewerPanel({
         </div>
         <div id="jgis-story-segment-content">
           <StoryContentSection
-            contentMode={activeSlide?.content?.contentMode}
+            // contentMode={activeSlide?.content?.contentMode}
             markdown={activeSlide?.content?.markdown ?? ''}
           />
         </div>

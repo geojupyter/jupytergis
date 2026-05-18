@@ -40,7 +40,7 @@ function SpectaPresentationProgressBar({
   }, [clampedIndex]);
 
   const { story } = model.getSelectedStory();
-  const isListStory = story?.storyType === 'list';
+  // const isListStory = story?.storyType === 'list';
   const segmentIds = story?.storySegments ?? [];
   const currentSegmentId = segmentIds[clampedIndex];
   const currentSegment = currentSegmentId
@@ -55,13 +55,13 @@ function SpectaPresentationProgressBar({
     <div
       className="jgis-specta-progress"
       data-direction={direction ?? undefined}
-      data-list-story={isListStory ? '' : undefined}
-      role={isListStory ? 'status' : undefined}
-      aria-label={
-        isListStory
-          ? `Story progress: segment ${clampedIndex + 1} of ${safeCount}`
-          : undefined
-      }
+      // data-list-story={isListStory ? '' : undefined}
+      // role={isListStory ? 'status' : undefined}
+      // aria-label={
+      //   isListStory
+      //     ? `Story progress: segment ${clampedIndex + 1} of ${safeCount}`
+      //     : undefined
+      // }
       style={
         {
           '--jgis-specta-transition-duration': `${transitionTime}s`,
@@ -77,20 +77,20 @@ function SpectaPresentationProgressBar({
               data-filled={segmentIndex <= clampedIndex ? '' : undefined}
               style={{ '--segment-index': segmentIndex } as React.CSSProperties}
             >
-              {isListStory ? (
+              {/* {isListStory ? (
                 <span
                   className="jgis-specta-progress-input jgis-specta-progress-input-static"
                   aria-hidden
                 />
-              ) : (
-                <button
-                  type="button"
-                  className="jgis-specta-progress-input"
-                  onClick={() => model.setCurrentSegmentIndex(segmentIndex)}
-                  aria-label={`Segment ${segmentIndex + 1} of ${safeCount}`}
-                  aria-pressed={segmentIndex === clampedIndex}
-                />
-              )}
+              ) : ( */}
+              <button
+                type="button"
+                className="jgis-specta-progress-input"
+                onClick={() => model.setCurrentSegmentIndex(segmentIndex)}
+                aria-label={`Segment ${segmentIndex + 1} of ${safeCount}`}
+                aria-pressed={segmentIndex === clampedIndex}
+              />
+              {/* )} */}
             </div>
           ),
         )}

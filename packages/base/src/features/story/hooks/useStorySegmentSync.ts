@@ -7,6 +7,8 @@ interface IUseStorySegmentSyncParams {
   setIndex: (index: number) => void;
 }
 
+// This hook just syncs the active segment with the currently selected segment
+// Only for unguided mode
 export function useStorySegmentSync({
   model,
   storyData,

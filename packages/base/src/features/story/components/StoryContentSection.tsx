@@ -7,14 +7,14 @@ interface IStoryContentProps {
 }
 
 function StoryContentSection({
-  contentMode = 'map',
+  // contentMode = 'map',
   markdown,
 }: IStoryContentProps) {
-  const shouldRenderMarkdown =
-    contentMode === 'map' || contentMode === 'markdown';
-  if (!shouldRenderMarkdown) {
-    return null;
-  }
+  // const shouldRenderMarkdown =
+  //   contentMode === 'map' || contentMode === 'markdown';
+  // if (!shouldRenderMarkdown) {
+  //   return null;
+  // }
 
   if (!markdown) {
     return null;

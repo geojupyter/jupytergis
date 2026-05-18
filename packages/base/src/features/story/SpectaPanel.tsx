@@ -6,7 +6,6 @@ import type { IListStoryScrollDrivePayload } from './types/listStoryScrollDrive'
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
-import { useStorySegmentSync } from './hooks/useStorySegmentSync';
 
 interface ISpectaPanelProps {
   model: IJupyterGISModel;
@@ -56,13 +55,11 @@ export function SpectaPanel({
     isSpecta,
   });
 
-  useStorySegmentSync({ model, storyData, setIndex });
-
-  // guided | unguided → single column; list story → stacked segment cards
-  const desktopViewMode =
-    storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
-      ? 'single'
-      : 'list';
+  // // guided → single column; list story → stacked segment cards
+  // const desktopViewMode =
+  //   storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
+  //     ? 'single'
+  //     : 'list';
 
   // Notify when segment transition animation ends
   useEffect(() => {
@@ -112,7 +109,7 @@ export function SpectaPanel({
       hasPrev={hasPrev}
       hasNext={hasNext}
       showGradient={showGradient}
-      viewMode={desktopViewMode}
+      // viewMode={desktopViewMode}
       setIndex={setIndex}
       onListScrollDriveChange={onListScrollDriveChange}
     />
