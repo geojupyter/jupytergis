@@ -22,6 +22,29 @@ interface IPlotCard {
   layerName: string;
   grammarLayerId: string;
   spec: IVegaLiteSpec;
+  data: Record<string, unknown>[];
+}
+
+/**
+ * Extract feature property objects from a layer's GeoJSON source.
+ * Supports inline GeoJSON data only; file-based sources return empty.
+ */
+function extractFeatureData(
+  model: IJupyterGISModel,
+  layerId: string,
+): Record<string, unknown>[] {
+  const layer = model.getLayer(layerId);
+  if (!layer || !layer.parameters?.source) {
+    return [];
+  }
+  const source = model.getSource(layer.parameters.source);
+  const data = (source as any)?.parameters?.data;
+  if (data?.type === 'FeatureCollection' && Array.isArray(data.features)) {
+    return data.features
+      .map((f: any) => f.properties ?? {})
+      .filter((p: any) => p !== null);
+  }
+  return [];
 }
 
 /**
@@ -40,6 +63,8 @@ function collectPlotSpecs(model: IJupyterGISModel): IPlotCard[] {
       continue;
     }
 
+    const featureData = extractFeatureData(model, layerId);
+
     for (const grammarLayer of state.layers) {
       const spec = grammarToPlotSpec({ layers: [grammarLayer] });
       if (!spec) {
@@ -50,6 +75,7 @@ function collectPlotSpecs(model: IJupyterGISModel): IPlotCard[] {
         layerName: (layer as any).name ?? layerId,
         grammarLayerId: grammarLayer.id,
         spec,
+        data: featureData,
       });
     }
   }
@@ -69,8 +95,7 @@ const VegaLiteCard: React.FC<{ card: IPlotCard }> = ({ card }) => {
       return;
     }
 
-    // Provide an empty dataset so Vega-Lite renders axes/structure.
-    const specWithData = { ...card.spec, data: { values: [] } };
+    const specWithData = { ...card.spec, data: { values: card.data } };
     vegaEmbed(container, specWithData, { actions: false }).catch(
       (err: Error) => {
         console.warn('Vega-Lite render failed:', err);
@@ -79,7 +104,7 @@ const VegaLiteCard: React.FC<{ card: IPlotCard }> = ({ card }) => {
         }
       },
     );
-  }, [card.spec]);
+  }, [card.spec, card.data]);
 
   return (
     <div
