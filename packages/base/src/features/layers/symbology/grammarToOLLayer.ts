@@ -29,6 +29,7 @@ import { Rule } from 'ol/style/flat';
 
 import { getColorMap } from './colorRampUtils';
 import { grammarToOLStyle } from './grammarToOLStyle';
+import { DEFAULT_FLAT_STYLE } from './styleBuilder';
 
 // Default OL heatmap gradient (cool → warm).
 const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
@@ -234,7 +235,11 @@ function compileVectorLayer(
     layers: [grammarLayer],
   };
   const flatStyle = grammarToOLStyle(singleLayerState, featureValues);
-  const rule: Rule = { style: flatStyle };
+  // If no rules produced output (e.g. empty rules list or all expressions dropped),
+  // fall back to the default style so the layer is visible rather than invisible.
+  const style =
+    Object.keys(flatStyle).length === 0 ? DEFAULT_FLAT_STYLE : flatStyle;
+  const rule: Rule = { style };
 
   return new VectorImageLayer({ opacity, visible, source, style: [rule] });
 }

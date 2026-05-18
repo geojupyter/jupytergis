@@ -138,8 +138,6 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
         if isinstance(radius, (int, float)):
             rules.append(_make_constant_num_rule(["circle-radius"], radius))
 
-    if not rules:
-        return {}
     return {
         "layers": [{"id": str(uuid4()), "rules": rules}],
     }
