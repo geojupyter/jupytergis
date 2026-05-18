@@ -14,6 +14,7 @@ import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
 import { useUIState } from './hooks/useUIState';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
+import { OpenEODiscoveryPanel } from '../../openeo/discoveryPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -98,6 +99,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
           layerTree={segmentTree}
         />
       ),
+    },
+    {
+      name: 'openeo',
+      title: 'OpenEO',
+      enabled: true,
+      contentClassName: 'jgis-panel-tab-content-openeo',
+      content: <OpenEODiscoveryPanel />,
     },
   ];
 

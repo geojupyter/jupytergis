@@ -25,9 +25,13 @@ import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
-import { getSingleSelectedLayer } from '../features/processing/index';
+import {
+  getSingleSelectedLayer,
+  selectedLayerIsOfType,
+} from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import keybindings from '../keybindings.json';
+import { showAddOpenEOLayerDialog } from '../openeo';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
@@ -582,6 +586,121 @@ export function addCommands(
       layerType: 'HillshadeLayer',
     }),
     ...icons.get(CommandIDs.openNewHillshadeDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewOpenEODialog, {
+    label: trans.__('OpenEO Layer'),
+    caption:
+      'Open a dialog to add an OpenEO process-graph tile layer to the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const result = await showAddOpenEOLayerDialog();
+      if (!result) {
+        return;
+      }
+      const model = current.model;
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+      model.sharedModel.addSource(sourceId, {
+        name: `${result.layerName} Source`,
+        type: 'OpenEOTileSource',
+        parameters: {
+          serverUrl: result.serverUrl,
+          authBearer: result.authBearer,
+          processGraph: result.processGraph,
+        },
+      });
+      model.addLayer(layerId, {
+        name: result.layerName,
+        type: 'OpenEOTileLayer',
+        visible: true,
+        parameters: { opacity: 0.9, source: sourceId },
+      });
+    },
+    ...icons.get(CommandIDs.openNewOpenEODialog),
+  });
+
+  commands.addCommand(CommandIDs.editOpenEOLayer, {
+    label: trans.__('Edit OpenEO Layer…'),
+    caption: 'Edit the process graph of the selected OpenEO layer.',
+    isVisible: () => selectedLayerIsOfType(['OpenEOTileLayer'], tracker),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const model = current.model;
+      const localState = model.sharedModel.awareness.getLocalState();
+      const selected = (localState?.['selected']?.value ?? {}) as Record<
+        string,
+        any
+      >;
+      const layerId = Object.keys(selected)[0];
+      if (!layerId) {
+        return;
+      }
+      const layer = model.getLayer(layerId);
+      if (!layer || layer.type !== 'OpenEOTileLayer') {
+        return;
+      }
+      const sourceId = (layer.parameters as any)?.source as string | undefined;
+      if (!sourceId) {
+        return;
+      }
+      const source = model.getSource(sourceId);
+      const sourceParams = (source?.parameters ?? {}) as {
+        serverUrl?: string;
+        authBearer?: string;
+        processGraph?: Record<string, any>;
+      };
+      const result = await showAddOpenEOLayerDialog({
+        title: 'Edit OpenEO Layer',
+        okLabel: 'Save',
+        serverUrl: sourceParams.serverUrl,
+        authBearer: sourceParams.authBearer,
+        initialGraph: sourceParams.processGraph,
+        layerName: layer.name,
+      });
+      if (!result) {
+        return;
+      }
+      if (source) {
+        model.sharedModel.updateSource(sourceId, {
+          ...source,
+          parameters: {
+            ...source.parameters,
+            serverUrl: result.serverUrl,
+            authBearer: result.authBearer,
+            processGraph: result.processGraph,
+          },
+        });
+      }
+      if (result.layerName !== layer.name) {
+        model.sharedModel.updateLayer(layerId, {
+          ...layer,
+          name: result.layerName,
+        });
+      }
+    },
   });
 
   commands.addCommand(CommandIDs.openNewImageDialog, {

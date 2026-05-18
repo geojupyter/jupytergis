@@ -335,6 +335,11 @@ const activate = async (
       category: 'JupyterGIS',
     });
 
+    palette.addItem({
+      command: CommandIDs.openNewOpenEODialog,
+      category: 'JupyterGIS',
+    });
+
     // Panel toggles
     palette.addItem({
       command: CommandIDs.togglePanel,
@@ -369,6 +374,13 @@ const activate = async (
     selector: '.jp-DirListing',
     rank: 55,
     args: { label: 'New JupyterGIS Project' },
+  });
+
+  // Right-click an OpenEO layer in the Layers panel → edit its process graph
+  app.contextMenu.addItem({
+    command: CommandIDs.editOpenEOLayer,
+    selector: '.jp-gis-layerItem',
+    rank: 2,
   });
 };
 
