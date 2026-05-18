@@ -15,15 +15,22 @@ export interface IOptions {
   loggerRegistry?: ILoggerRegistry;
 }
 
+export type LayerDataProvider = (layerId: string) => Record<string, unknown>[];
+
 export class JupyterGISMainViewPanel extends ReactWidget {
-  /**
-   * Construct a `JupyterGISPanel`.
-   */
   constructor(options: IOptions) {
     super();
     this._state = options.state;
     this.addClass('jp-jupytergis-panel');
     this._options = options;
+  }
+
+  setDataProvider(provider: LayerDataProvider): void {
+    this._dataProvider = provider;
+  }
+
+  getLayerFeatureData(layerId: string): Record<string, unknown>[] {
+    return this._dataProvider?.(layerId) ?? [];
   }
 
   render(): JSX.Element {
@@ -34,10 +41,12 @@ export class JupyterGISMainViewPanel extends ReactWidget {
         formSchemaRegistry={this._options.formSchemaRegistry}
         annotationModel={this._options.annotationModel}
         loggerRegistry={this._options.loggerRegistry}
+        setDataProvider={fn => this.setDataProvider(fn)}
       />
     );
   }
 
   private _state?: IStateDB;
   private _options: IOptions;
+  private _dataProvider?: LayerDataProvider;
 }

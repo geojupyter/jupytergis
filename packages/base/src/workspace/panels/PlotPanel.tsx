@@ -15,6 +15,7 @@ import {
 
 interface IPlotPanelProps {
   model: IJupyterGISModel;
+  getData: (layerId: string) => Record<string, unknown>[];
 }
 
 interface IPlotCard {
@@ -50,7 +51,10 @@ function extractFeatureData(
 /**
  * Collect all plot specs from grammar layers across all model layers.
  */
-function collectPlotSpecs(model: IJupyterGISModel): IPlotCard[] {
+function collectPlotSpecs(
+  model: IJupyterGISModel,
+  getData: (layerId: string) => Record<string, unknown>[],
+): IPlotCard[] {
   const cards: IPlotCard[] = [];
   const layers = model.sharedModel.layers;
   if (!layers) {
@@ -63,7 +67,10 @@ function collectPlotSpecs(model: IJupyterGISModel): IPlotCard[] {
       continue;
     }
 
-    const featureData = extractFeatureData(model, layerId);
+    const featureData =
+      getData(layerId).length > 0
+        ? getData(layerId)
+        : extractFeatureData(model, layerId);
 
     for (const grammarLayer of state.layers) {
       const spec = grammarToPlotSpec({ layers: [grammarLayer] });
@@ -135,12 +142,12 @@ const VegaLiteCard: React.FC<{ card: IPlotCard }> = ({ card }) => {
 /**
  * Plot panel — renders a scrollable list of Vega-Lite chart cards.
  */
-export const PlotPanel: React.FC<IPlotPanelProps> = ({ model }) => {
+export const PlotPanel: React.FC<IPlotPanelProps> = ({ model, getData }) => {
   const [cards, setCards] = useState<IPlotCard[]>(() => []);
 
   const refresh = useCallback(() => {
-    setCards(collectPlotSpecs(model));
-  }, [model]);
+    setCards(collectPlotSpecs(model, getData));
+  }, [model, getData]);
 
   useEffect(() => {
     refresh();

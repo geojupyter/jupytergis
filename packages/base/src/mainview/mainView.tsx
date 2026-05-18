@@ -193,6 +193,10 @@ interface IMainViewProps {
   loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
+  /** Callback used by PlotPanel to collect feature data from OL sources. */
+  setDataProvider?: (
+    fn: (layerId: string) => Record<string, unknown>[],
+  ) => void;
 }
 
 interface IStates {
@@ -379,6 +383,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
+
+    this.props.setDataProvider?.((layerId: string) => {
+      const olLayer = this.getLayer(layerId);
+      if (!olLayer) {
+        return [];
+      }
+      const src = olLayer.getSource() as any;
+      if (!src || typeof src.forEachFeature !== 'function') {
+        return [];
+      }
+      const data: Record<string, unknown>[] = [];
+      (src as any).forEachFeature((f: any) =>
+        data.push(f.getProperties() ?? {}),
+      );
+      return data;
+    });
   }
 
   componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {

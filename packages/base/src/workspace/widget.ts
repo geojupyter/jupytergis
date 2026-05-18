@@ -162,14 +162,20 @@ export class JupyterGISPanel extends SplitPanel {
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
 
     const PlotPanelWidget = new (class extends ReactWidget {
-      constructor(private _jGISModel: IJupyterGISModel) {
+      constructor(
+        private _jGISModel: IJupyterGISModel,
+        private _mainViewPanel: JupyterGISMainViewPanel,
+      ) {
         super();
         this.addClass('jp-jupytergis-plot-panel');
       }
       render(): JSX.Element {
-        return React.createElement(PlotPanel, { model: this._jGISModel });
+        return React.createElement(PlotPanel, {
+          model: this._jGISModel,
+          getData: (id: string) => this._mainViewPanel.getLayerFeatureData(id),
+        });
       }
-    })(this._model);
+    })(this._model, this._jupyterGISMainViewPanel);
     PlotPanelWidget.hide();
     this._plotPanel = PlotPanelWidget;
     this.addWidget(PlotPanelWidget);
