@@ -153,7 +153,6 @@ export async function connect(
       addNamespaceToProcess: true,
     });
 
-
     const providers = await connection.listAuthProviders();
 
     let providerType = 'basic';
