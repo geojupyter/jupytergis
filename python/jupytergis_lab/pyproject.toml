@@ -39,7 +39,7 @@ requires-python = ">=3.12,<3.14"
 
 [project.optional-dependencies]
 tiler = [
-  "jupyter-xarray-tiler>=0.5.0",
+  "jupyter-xarray-tiler>=0.6.0",
 ]
 
 [tool.hatch.version]
