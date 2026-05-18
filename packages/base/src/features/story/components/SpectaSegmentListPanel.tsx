@@ -2,6 +2,7 @@ import { IJGISStoryMap } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useRef } from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
+import { useListStorySegmentScrollPadding } from '@/src/features/story/hooks/useListStorySegmentScrollPadding';
 import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
 
 const ROOT_EDGE_TOLERANCE_PX = 2;
@@ -59,8 +60,15 @@ export function SpectaSegmentListPanel({
   listIntersectionRootRef,
 }: ISpectaSegmentListPanelProps): JSX.Element {
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const listRef = useRef<HTMLDivElement>(null);
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
+
+  useListStorySegmentScrollPadding(
+    listIntersectionRootRef,
+    listRef,
+    items.length,
+  );
 
   useEffect(() => {
     if (!items.length) {
@@ -127,7 +135,7 @@ export function SpectaSegmentListPanel({
   }
 
   return (
-    <div className="jgis-story-segment-list">
+    <div ref={listRef} className="jgis-story-segment-list">
       {items.map(item => {
         const isMarkdownSegment =
           item.activeSlide?.content?.contentMode === 'markdown';

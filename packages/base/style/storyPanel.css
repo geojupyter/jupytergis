@@ -241,6 +241,9 @@
   display: flex;
   flex-direction: column;
   gap: 110vh;
+  padding-top: var(--jgis-list-scroll-pad-top, 0px);
+  padding-bottom: var(--jgis-list-scroll-pad-bottom, 0px);
+  box-sizing: border-box;
 }
 
 /* List column: one card per segment (map cards visible; markdown hidden). */
