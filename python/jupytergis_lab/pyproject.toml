@@ -35,7 +35,7 @@ dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}
 name = "jupytergis_lab"
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12"
 
 [project.optional-dependencies]
 tiler = [
