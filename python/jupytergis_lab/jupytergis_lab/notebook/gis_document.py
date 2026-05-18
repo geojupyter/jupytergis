@@ -882,15 +882,28 @@ class GISDocument(CommWidget):
         self,
         data_array: DataArray,
         *,
+        name: str = "Tiler layer",
         colormap_name: str = "viridis",
         rescale: tuple[float, float] | None = None,
         scale: int = 1,
-        name: str = "Tiler layer",
         opacity: float = 1,
         algorithm: BaseAlgorithm | None = None,
         **params,
     ):
-        """Add an Xarray data array as a layer on the map."""
+        """Add an Xarray DataArray as a layer on the map.
+
+        :param data_array: An Xarray DataArray to display on the map
+        :param name: The layer's name
+        :param colormap_name: A `rio-tiler`-supported colormap name.
+            See the [rio-tiler docs](https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/colormap/#rio_tiler.colormap.ColorMaps.list)
+            for details.
+        :param rescale: The range of data values (min, max) to be colormapped
+        :param scale: Tile size scale. Default 1 corresponds to 256*256px tiles
+        :param opacity: The layer's opacity
+        :param algorithm: A TiTiler algorithm class.
+            See the [titiler algorithm docs](https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm)
+            for details.
+        """
         try:
             from jupyter_xarray_tiler.titiler import _get_server, add_data_array
         except ImportError as e:
