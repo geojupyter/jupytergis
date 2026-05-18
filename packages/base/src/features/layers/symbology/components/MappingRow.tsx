@@ -50,7 +50,9 @@ const POSFLOAT_CHANNELS: StyleChannel[] = [
   'circle-stroke-width',
   'circle-radius',
 ];
-const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
+const PLOT_CHANNELS: StyleChannel[] = ['plot-x', 'plot-y', 'plot-color'];
+
+const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS, ...PLOT_CHANNELS];
 
 // Channels relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
@@ -72,30 +74,37 @@ const CHANNEL_LABELS: Partial<Record<StyleChannel, string>> = {
 };
 
 function compatibleChannels(scale: IScale, isRaster = false): StyleChannel[] {
+  let base: StyleChannel[];
   if (isRaster) {
     switch (scale.scheme) {
       case 'colorRamp':
       case 'categorical':
       case 'constant_rgba':
-        return PIXEL_RGBA_CHANNELS;
+        base = PIXEL_RGBA_CHANNELS;
+        break;
       case 'scalar':
       case 'constant_num':
-        return PIXEL_FLOAT_CHANNELS;
+        base = PIXEL_FLOAT_CHANNELS;
+        break;
       default:
-        return ALL_PIXEL_CHANNELS;
+        base = ALL_PIXEL_CHANNELS;
+    }
+  } else {
+    switch (scale.scheme) {
+      case 'colorRamp':
+      case 'categorical':
+      case 'constant_rgba':
+        base = RGBA_CHANNELS;
+        break;
+      case 'scalar':
+      case 'constant_num':
+        base = POSFLOAT_CHANNELS;
+        break;
+      default:
+        base = ALL_CHANNELS;
     }
   }
-  switch (scale.scheme) {
-    case 'colorRamp':
-    case 'categorical':
-    case 'constant_rgba':
-      return RGBA_CHANNELS;
-    case 'scalar':
-    case 'constant_num':
-      return POSFLOAT_CHANNELS;
-    default:
-      return ALL_CHANNELS;
-  }
+  return [...base, ...PLOT_CHANNELS];
 }
 
 function defaultScaleForScheme(
