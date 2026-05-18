@@ -916,8 +916,8 @@ class GISDocument(CommWidget):
         url = await add_data_array(
             data_array,
             colormap_name=colormap_name,
-            rescale=colormap_range,
-            scale=tile_dim_scale,
+            colormap_range=colormap_range,
+            tile_dim_scale=tile_dim_scale,
             algorithm=algorithm,
             **params,
         )
