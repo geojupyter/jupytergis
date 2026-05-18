@@ -1,20 +1,11 @@
 {
   "layerTree": [
-    "6dd80360-2675-40cf-aaee-c7101ef1779a",
-    "f75fd646-bc7d-478b-b65b-de34155b8efa"
+    "bbef0cad-875a-449d-b82c-92640920277e",
+    "369c4bfa-5d12-41d9-adb4-7352f56bf2b8"
   ],
   "layers": {
-    "6dd80360-2675-40cf-aaee-c7101ef1779a": {
-      "name": "OpenStreetMap.Mapnik Layer",
-      "parameters": {
-        "opacity": 1.0,
-        "source": "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9"
-      },
-      "type": "RasterLayer",
-      "visible": true
-    },
-    "f75fd646-bc7d-478b-b65b-de34155b8efa": {
-      "name": "COG Layer",
+    "369c4bfa-5d12-41d9-adb4-7352f56bf2b8": {
+      "name": "Custom GeoTiff Layer",
       "parameters": {
         "color": [
           "interpolate",
@@ -97,21 +88,27 @@
           ]
         ],
         "opacity": 1.0,
-        "source": "8b1d4258-5d46-48da-b466-496d376b593d",
+        "source": "e5e744d7-9feb-4fd6-a681-4560cd389baf",
         "symbologyState": {
-          "alphaBand": 4.0,
           "band": 1.0,
-          "blueBand": 3.0,
           "colorRamp": "hot",
-          "greenBand": 2.0,
           "interpolation": "linear",
           "mode": "equal interval",
           "nClasses": "9",
-          "redBand": 1.0,
-          "renderType": "Singleband Pseudocolor"
+          "renderType": "Singleband Pseudocolor",
+          "reverseRamp": false
         }
       },
       "type": "GeoTiffLayer",
+      "visible": true
+    },
+    "bbef0cad-875a-449d-b82c-92640920277e": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "db9e5538-a928-408b-b505-ea6cc3c3f428"
+      },
+      "type": "RasterLayer",
       "visible": true
     }
   },
@@ -119,22 +116,38 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -16659959.198391316,
-      7573815.159664737,
-      -14669879.5865705,
-      8878035.82430442
+      -17006769.053606033,
+      6878337.524904393,
+      -13204800.308399085,
+      9025220.37356603
     ],
-    "latitude": 59.210048033386016,
-    "longitude": -140.72036514765887,
+    "latitude": 57.92595451586621,
+    "longitude": -135.69757257563128,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 6.167855425018033
+    "storyMapPresentationMode": false,
+    "zoom": 5.633898735754307
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
-    "8b1d4258-5d46-48da-b466-496d376b593d": {
+    "db9e5538-a928-408b-b505-ea6cc3c3f428": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "httpHeaders": "",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {},
+        "useProxy": false
+      },
+      "type": "RasterSource"
+    },
+    "e5e744d7-9feb-4fd6-a681-4560cd389baf": {
       "name": "Custom GeoTiff Source",
       "parameters": {
+        "httpHeaders": "",
         "interpolate": false,
         "normalize": true,
         "urls": [
@@ -144,23 +157,12 @@
             "url": "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
           }
         ],
+        "useProxy": false,
         "wrapX": true
       },
       "type": "GeoTiffSource"
-    },
-    "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9": {
-      "name": "OpenStreetMap.Mapnik",
-      "parameters": {
-        "attribution": "(C) OpenStreetMap contributors",
-        "interpolate": false,
-        "maxZoom": 19.0,
-        "minZoom": 0.0,
-        "provider": "OpenStreetMap",
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {}
-      },
-      "type": "RasterSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }
