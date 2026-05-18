@@ -884,9 +884,9 @@ class GISDocument(CommWidget):
         *,
         name: str = "Tiler layer",
         colormap_name: str = "viridis",
-        rescale: tuple[float, float] | None = None,
+        colormap_range: tuple[float, float] | None = None,
         opacity: float = 1,
-        scale: int = 1,
+        tile_dim_scale: int = 1,
         algorithm: BaseAlgorithm | None = None,
         **params,
     ):
@@ -897,9 +897,9 @@ class GISDocument(CommWidget):
         :param colormap_name: A `rio-tiler`-supported colormap name.
             See the [rio-tiler docs](https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/colormap/#rio_tiler.colormap.ColorMaps.list)
             for details.
-        :param rescale: The range of data values (min, max) to be colormapped
+        :param colormap_range: The range of data values (min, max) to be colormapped
         :param opacity: The layer's opacity
-        :param scale: Tile size scale. Default 1 corresponds to 256*256px tiles
+        :param tile_dim_scale: Tile dimension scale. Default `1` corresponds to 256*256px tiles
         :param algorithm: A TiTiler algorithm class.
             See the [TiTiler algorithm docs](https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm)
             for details.
@@ -916,8 +916,8 @@ class GISDocument(CommWidget):
         url = await add_data_array(
             data_array,
             colormap_name=colormap_name,
-            rescale=rescale,
-            scale=scale,
+            rescale=colormap_range,
+            scale=tile_dim_scale,
             algorithm=algorithm,
             **params,
         )
