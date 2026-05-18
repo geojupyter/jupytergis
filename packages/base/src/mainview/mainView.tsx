@@ -155,6 +155,7 @@ import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
+import { sourceToRows } from '../workspace/panels/plotDataUtils';
 
 type OlLayerTypes =
   | TileLayer
@@ -386,16 +387,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this.props.setDataProvider?.((layerId: string) => {
       const olLayer = this.getLayer(layerId);
-      if (!olLayer) {
+      if (!olLayer || typeof (olLayer as any).getSource !== 'function') {
         return [];
       }
-      const src = olLayer.getSource() as any;
-      if (!src || typeof src.forEachFeature !== 'function') {
-        return [];
-      }
-      const data: Record<string, unknown>[] = [];
-      src.forEachFeature((f: any) => data.push(f.getProperties() ?? {}));
-      return data;
+      return sourceToRows((olLayer as any).getSource());
     });
   }
 
