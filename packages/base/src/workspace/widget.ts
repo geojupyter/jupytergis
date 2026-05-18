@@ -5,7 +5,7 @@ import {
   IJupyterGISModel,
   IJupyterGISOutputWidget,
 } from '@jupytergis/schema';
-import { MainAreaWidget } from '@jupyterlab/apputils';
+import { MainAreaWidget, ReactWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -16,10 +16,12 @@ import { JSONValue } from '@lumino/coreutils';
 import { MessageLoop } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
+import * as React from 'react';
 
 import { ConsoleView } from '../features/console';
 import { JupyterGISMainViewPanel } from '../mainview';
 import { MainViewModel } from '../mainview/mainviewmodel';
+import { PlotPanel } from './panels/PlotPanel';
 
 const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
 
@@ -110,6 +112,7 @@ export class JupyterGISPanel extends SplitPanel {
   }: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
 
+    this._model = model;
     this._state = state;
     this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
@@ -157,6 +160,19 @@ export class JupyterGISPanel extends SplitPanel {
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
+
+    const PlotPanelWidget = new (class extends ReactWidget {
+      constructor(private _jGISModel: IJupyterGISModel) {
+        super();
+        this.addClass('jp-jupytergis-plot-panel');
+      }
+      render(): JSX.Element {
+        return React.createElement(PlotPanel, { model: this._jGISModel });
+      }
+    })(this._model);
+    PlotPanelWidget.hide();
+    this._plotPanel = PlotPanelWidget;
+    this.addWidget(PlotPanelWidget);
   }
 
   get jupyterGISMainViewPanel(): JupyterGISMainViewPanel {
@@ -185,6 +201,9 @@ export class JupyterGISPanel extends SplitPanel {
     }
     if (this._consoleView) {
       this._consoleView.dispose();
+    }
+    if (this._plotPanel) {
+      this._plotPanel.dispose();
     }
     Signal.clearData(this);
     this._mainViewModel.dispose();
@@ -252,7 +271,7 @@ export class JupyterGISPanel extends SplitPanel {
         (this._consoleTracker.widgetAdded as any).emit(consolePanel);
         await consolePanel.sessionContext.ready;
         this.addWidget(this._consoleView);
-        this.setRelativeSizes([2, 1]);
+        this.setRelativeSizes([2, 0, 1]);
         this._consoleOpened = true;
         await consolePanel.console.inject(
           `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")`,
@@ -266,10 +285,10 @@ export class JupyterGISPanel extends SplitPanel {
     } else {
       if (this._consoleOpened) {
         this._consoleOpened = false;
-        this.setRelativeSizes([1, 0]);
+        this.setRelativeSizes([2, 0, 0]);
       } else {
         this._consoleOpened = true;
-        this.setRelativeSizes([2, 1]);
+        this.setRelativeSizes([2, 0, 1]);
       }
     }
     setTimeout(() => {
@@ -277,6 +296,24 @@ export class JupyterGISPanel extends SplitPanel {
     }, 250);
   }
 
+  togglePlotPanel() {
+    if (!this._plotPanel) {
+      return;
+    }
+    this._plotOpened = !this._plotOpened;
+    if (this._plotOpened) {
+      this._plotPanel.show();
+      this.setRelativeSizes([2, 1, 0]);
+    } else {
+      this._plotPanel.hide();
+      this.setRelativeSizes([2, 0, 0]);
+    }
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 250);
+  }
+
+  private _model: IJupyterGISModel;
   private _state: IStateDB | undefined;
   private _mainViewModel: MainViewModel;
   private _view: ObservableMap<JSONValue>;
@@ -285,6 +322,8 @@ export class JupyterGISPanel extends SplitPanel {
   private _consoleOpened = false;
   private _consoleOption: Partial<ConsoleView.IOptions>;
   private _consoleTracker: IConsoleTracker | undefined;
+  private _plotPanel?: ReactWidget;
+  private _plotOpened = false;
 }
 
 export namespace JupyterGISPanel {
