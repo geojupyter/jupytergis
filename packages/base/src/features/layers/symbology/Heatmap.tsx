@@ -14,8 +14,8 @@ import {
   IColorMap,
   useColorMapList,
   COLOR_RAMP_DEFAULTS,
-} from '../../colorRampUtils';
-import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
+} from './colorRampUtils';
+import { useEffectiveSymbologyParams } from './hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,

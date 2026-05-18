@@ -58,62 +58,99 @@ class TestGeoParquetLayer(TestDocument):
             color_expr=color,
         )
         state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
-        assert state["renderType"] == "Single Symbol"
-        assert state["fillColor"] == [0, 255, 0, 1.0]
-        assert state["strokeColor"] == [255, 0, 0, 1.0]
+        assert "layers" in state
+        scales = _grammar_scales(state)
+        assert any(
+            s["scheme"] == "constant_rgba" and s["params"]["value"] == [0, 255, 0, 1.0]
+            for s in scales
+        )
+        assert any(
+            s["scheme"] == "constant_rgba" and s["params"]["value"] == [255, 0, 0, 1.0]
+            for s in scales
+        )
 
 
-# Frozen fixtures for `_vector_symbology_state_from_color_expr`. The same
-# `color_expr` → `symbologyState` mapping is reimplemented on the frontend in
-# `packages/base/src/features/layers/symbology/symbologyMigration.ts`. If the
-# Python helper or the JS migration drifts from these expectations, these tests
-# fail and the parallel change must be made on the other side. See issue #1320
-# (centralized schema migration infrastructure) for the long-term plan to
-# remove this duplication.
-SYMBOLOGY_FIXTURES = [
-    pytest.param(None, {"renderType": "Single Symbol"}, id="none"),
-    pytest.param({}, {"renderType": "Single Symbol"}, id="empty-dict"),
-    pytest.param(
-        {"fill-color": "#00FF00", "stroke-color": "#FF0000"},
-        {
-            "renderType": "Single Symbol",
-            "fillColor": [0, 255, 0, 1.0],
-            "strokeColor": [255, 0, 0, 1.0],
-            "geometryType": "fill",
-        },
-        id="fill-and-stroke-hex",
-    ),
-    pytest.param(
-        {"stroke-color": "#123456", "stroke-width": 3},
-        {
-            "renderType": "Single Symbol",
-            "strokeColor": [18, 52, 86, 1.0],
-            "strokeWidth": 3,
-            "geometryType": "line",
-        },
-        id="line-with-width",
-    ),
-    pytest.param(
-        {"circle-fill-color": "#abcdef", "circle-radius": 4.5},
-        {
-            "renderType": "Single Symbol",
-            "fillColor": [171, 205, 239, 1.0],
-            "radius": 4.5,
-            "geometryType": "circle",
-        },
-        id="circle",
-    ),
-    pytest.param(
-        {"fill-color": ["interpolate", ["linear"], 0.0, [0, 0, 0, 1]]},
-        {"renderType": "Single Symbol", "geometryType": "fill"},
-        id="ol-expression-dropped",
-    ),
-]
+def _grammar_channels(state: dict, layer_idx: int = 0) -> list[list[str]]:
+    """Return the list of channel lists across all rules of the first grammar layer."""
+    try:
+        rules = state["layers"][layer_idx]["rules"]
+        return [m["channels"] for r in rules for m in r["mappings"]]
+    except (KeyError, IndexError):
+        return []
 
 
-@pytest.mark.parametrize("color_expr,expected", SYMBOLOGY_FIXTURES)
-def test_vector_symbology_state_from_color_expr(color_expr, expected):
-    assert _vector_symbology_state_from_color_expr(color_expr) == expected
+def _grammar_scales(state: dict, layer_idx: int = 0) -> list[dict]:
+    """Return the list of scale dicts across all rules of the first grammar layer."""
+    try:
+        rules = state["layers"][layer_idx]["rules"]
+        return [m["scale"] for r in rules for m in r["mappings"]]
+    except (KeyError, IndexError):
+        return []
+
+
+@pytest.mark.parametrize(
+    "color_expr,n_rules,expected_channels,expected_scale_params",
+    [
+        pytest.param(None, 0, [], [], id="none"),
+        pytest.param({}, 0, [], [], id="empty-dict"),
+        pytest.param(
+            {"fill-color": "#00FF00", "stroke-color": "#FF0000"},
+            2,
+            [
+                ["fill-color", "circle-fill-color"],
+                ["stroke-color", "circle-stroke-color"],
+            ],
+            [
+                {"scheme": "constant_rgba", "params": {"value": [0, 255, 0, 1.0]}},
+                {"scheme": "constant_rgba", "params": {"value": [255, 0, 0, 1.0]}},
+            ],
+            id="fill-and-stroke-hex",
+        ),
+        pytest.param(
+            {"stroke-color": "#123456", "stroke-width": 3},
+            2,
+            [
+                ["stroke-color", "circle-stroke-color"],
+                ["stroke-width", "circle-stroke-width"],
+            ],
+            [
+                {"scheme": "constant_rgba", "params": {"value": [18, 52, 86, 1.0]}},
+                {"scheme": "constant_num", "params": {"value": 3}},
+            ],
+            id="line-with-width",
+        ),
+        pytest.param(
+            {"circle-fill-color": "#abcdef", "circle-radius": 4.5},
+            2,
+            [["fill-color", "circle-fill-color"], ["circle-radius"]],
+            [
+                {"scheme": "constant_rgba", "params": {"value": [171, 205, 239, 1.0]}},
+                {"scheme": "constant_num", "params": {"value": 4.5}},
+            ],
+            id="circle",
+        ),
+        pytest.param(
+            {"fill-color": ["interpolate", ["linear"], 0.0, [0, 0, 0, 1]]},
+            0,
+            [],
+            [],
+            id="ol-expression-dropped",
+        ),
+    ],
+)
+def test_vector_symbology_state_from_color_expr(
+    color_expr,
+    n_rules,
+    expected_channels,
+    expected_scale_params,
+):
+    state = _vector_symbology_state_from_color_expr(color_expr)
+    assert "layers" in state
+    assert len(state["layers"]) == 1
+    rules = state["layers"][0]["rules"]
+    assert len(rules) == n_rules
+    assert _grammar_channels(state) == expected_channels
+    assert _grammar_scales(state) == expected_scale_params
 
 
 SAMPLE_GEOJSON = {

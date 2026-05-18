@@ -17,9 +17,7 @@
         },
         "opacity": 1.0,
         "source": "b4287bea-e217-443c-b527-58f7559c824c",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -46,8 +44,7 @@
     "b4287bea-e217-443c-b527-58f7559c824c": {
       "name": "World",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
-        "valid": false
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       },
       "type": "GeoJSONSource"
     }

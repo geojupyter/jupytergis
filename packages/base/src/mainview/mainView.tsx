@@ -43,6 +43,7 @@ import {
   IViewState,
   IOpenEOTileSource,
   IOpenEOTileLayer,
+  IGrammarSymbologyState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -151,11 +152,9 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import {
-  DEFAULT_FLAT_STYLE,
-  buildTransparentFallbackFilter,
-  buildVectorFlatStyle,
-} from '../features/layers/symbology/styleBuilder';
+import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
+import { grammarToOLStyle } from '../features/layers/symbology/grammarToOLStyle';
+import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
@@ -168,7 +167,8 @@ type OlLayerTypes =
   | GeoTiffLayer
   | HeatmapLayer
   | StacLayer
-  | ImageLayer<any>;
+  | ImageLayer<any>
+  | LayerGroup;
 
 const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
 
@@ -1450,7 +1450,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer,
-  ): Promise<Layer | StacLayer | undefined> {
+  ): Promise<Layer | LayerGroup | StacLayer | undefined> {
     this.setState(old => ({ ...old, loadingLayer: true }));
     this._loadingLayers.add(id);
 
@@ -1491,12 +1491,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newMapLayer = new VectorImageLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer),
-        });
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          const olSource = this._sources[
+            layerParameters.source
+          ] as VectorSource;
+          const featureValues =
+            olSource instanceof VectorSource
+              ? olSource
+                  .getFeatures()
+                  .flatMap(f => Object.values((f as Feature).getProperties()))
+              : [];
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            olSource,
+            layerParameters.opacity,
+            layer.visible,
+            featureValues,
+          ) as OlLayerTypes;
+        } else {
+          newMapLayer = new VectorImageLayer({
+            opacity: layerParameters.opacity,
+            visible: layer.visible,
+            source: this._sources[layerParameters.source],
+            style: this.vectorLayerStyleRuleBuilder(layer),
+          });
+        }
 
         break;
       }
@@ -1549,21 +1568,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoTiffLayer': {
         layerParameters = layer.parameters as IGeoTiffLayer;
+        const geoTiffSource = this._sources[layerParameters.source];
 
-        // This is to handle python sending a None for the color
-        const layerOptions: any = {
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-        };
-
-        if (layerParameters.color) {
-          layerOptions['style'] = {
-            color: layerParameters.color,
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            geoTiffSource,
+            layerParameters.opacity ?? 1,
+            layer.visible ?? true,
+            [],
+            true,
+          ) as OlLayerTypes;
+        } else {
+          // This is to handle python sending a None for the color
+          const layerOptions: any = {
+            opacity: layerParameters.opacity,
+            visible: layer.visible,
+            source: geoTiffSource,
           };
-        }
 
-        newMapLayer = new GeoTiffLayer(layerOptions);
+          if (layerParameters.color) {
+            layerOptions['style'] = {
+              color: layerParameters.color,
+            };
+          }
+
+          newMapLayer = new GeoTiffLayer(layerOptions);
+        }
         break;
       }
       case 'HeatmapLayer': {
@@ -1685,7 +1716,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         //   this.state.initialLayersReady && newLayerExtent,
         // );
         const shouldZoom = Boolean(this.state.initialLayersReady);
-        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
+        this._trackLayerViewState(id, newMapLayer, shouldZoom);
 
         // doing +1 instead of calling method again
         if (
@@ -1725,29 +1756,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
     const layerParams = layer.parameters as IVectorLayer | undefined;
-    if (!layerParams) {
-      return;
+    const ss = layerParams?.symbologyState;
+    if (!ss || Object.keys(ss).length === 0) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
-    // Extract feature values for the symbology attribute field if the source
-    // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
-    // array – the comment on buildVectorFlatStyle says this is acceptable.
-    const field = layerParams.symbologyState?.value;
-    const source = this._sources[layerParams.source];
-    const featureValues: unknown[] =
-      field && source instanceof VectorSource
-        ? source.getFeatures().map(f => (f as Feature).get(field))
-        : [];
+    const flatStyle = grammarToOLStyle(
+      layerParams.symbologyState as IGrammarSymbologyState,
+      [],
+    );
 
-    const layerStyle: Rule = {
-      style:
-        buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
-        DEFAULT_FLAT_STYLE,
-    };
+    const layerStyle: Rule = { style: flatStyle };
 
-    // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
       const buildCondition = (filter: IJGISFilterItem): any[] => {
         const base = [filter.operator, ['get', filter.feature]];
@@ -1756,8 +1779,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           : [...base, filter.value];
       };
 
-      // 'Any' and 'All' operators require more than one argument
-      // So if there's only one filter, skip that part to avoid error
       layerStyle.filter =
         layer.filters.appliedFilters.length === 1
           ? buildCondition(layer.filters.appliedFilters[0])
@@ -1765,20 +1786,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               layer.filters.logicalOp,
               ...layer.filters.appliedFilters.map(buildCondition),
             ];
-    }
-
-    // When `fallbackColor` alpha is 0, exclude features that would render with
-    // the fallback color. This was previously done by introspecting the
-    // generated OL expressions; now the filter is derived directly from
-    // symbologyState (see styleBuilder.buildTransparentFallbackFilter).
-    const transparentFilter = buildTransparentFallbackFilter(
-      layerParams.symbologyState,
-      featureValues,
-    );
-    if (transparentFilter) {
-      layerStyle.filter = layerStyle.filter
-        ? ['all', layerStyle.filter, transparentFilter]
-        : transparentFilter;
     }
 
     return [layerStyle];
@@ -1857,6 +1864,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         const layerParams = layer.parameters as IVectorLayer;
 
+        if (Array.isArray(layerParams.symbologyState?.layers)) {
+          // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
+          this.replaceLayer(id, layer);
+          break;
+        }
+
         mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorImageLayer).setStyle(
@@ -1884,12 +1897,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'GeoTiffLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity);
-
-        if (layer?.parameters?.color) {
-          (mapLayer as GeoTiffLayer).setStyle({
-            color: layer.parameters.color,
-          });
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
+          this.replaceLayer(id, layer);
+        } else {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+          if (layer?.parameters?.color) {
+            (mapLayer as GeoTiffLayer).setStyle({
+              color: layer.parameters.color,
+            });
+          }
         }
         break;
       }
@@ -2162,16 +2178,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   private _trackLayerViewState(
     layerId: string,
-    olLayer: Layer,
+    olLayer: Layer | LayerGroup,
     shouldZoom = false,
   ): void {
-    const source = olLayer.getSource();
+    const effectiveLayer =
+      olLayer instanceof LayerGroup
+        ? (olLayer.getLayers().getArray()[0] as Layer | undefined)
+        : olLayer;
+    if (!effectiveLayer) {
+      return;
+    }
+    const source = effectiveLayer.getSource();
     const sourceId = source?.get?.('id');
 
     let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
 
     if (!extent) {
-      extent = this._computeExtent(olLayer, source);
+      extent = this._computeExtent(effectiveLayer, source);
     }
 
     if (extent) {
@@ -3276,7 +3299,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const layerParams: IVectorLayer = {
       opacity: 1.0,
       source: sourceId,
-      symbologyState: { renderType: 'Single Symbol' },
+      symbologyState: { layers: [] },
     };
 
     const sourceModel: IJGISSource = {

@@ -42,9 +42,7 @@
         },
         "opacity": 0.6,
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -109,8 +107,7 @@
     "7d082e75-69d5-447a-82d8-b05cca5945ba": {
       "name": "france_regions",
       "parameters": {
-        "path": "data/france_regions.geojson",
-        "valid": true
+        "path": "data/france_regions.geojson"
       },
       "type": "GeoJSONSource"
     }
