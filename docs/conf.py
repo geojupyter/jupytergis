@@ -80,6 +80,10 @@ intersphinx_mapping = {
 
 nitpick_ignore = [
     ("py:mod", "ypywidgets"),
+    (
+        "py:class",
+        "titiler.core.algorithm.base.BaseAlgorithm",
+    ),  # TiTiler's docs don't include this
 ]
 
 jupyterlite_ignore_contents = [
