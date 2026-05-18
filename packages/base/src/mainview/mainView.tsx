@@ -41,8 +41,8 @@ import {
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
   IViewState,
-  IOpenEOSource,
-  IOpenEOLayer,
+  IOpenEOTileSource,
+  IOpenEOTileLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -144,7 +144,7 @@ import {
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
-import { OpenEOTileLayer, OpenEOTileSource } from './OpenEOLayer';
+import { OpenEOTileLayer, OpenEOTileSource } from './OpenEOTileLayer';
 import TemporalSlider from './TemporalSlider';
 import {
   createGeoJSONFeaturePatcher,
@@ -984,8 +984,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
-        case 'OpenEOSource': {
-          const sourceParameters = source.parameters as IOpenEOSource;
+        case 'OpenEOTileSource': {
+          const sourceParameters = source.parameters as IOpenEOTileSource;
 
           newSource = new OpenEOTileSource({
             connectionInfo: {
@@ -1537,8 +1537,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
-      case 'OpenEOLayer': {
-        layerParameters = layer.parameters as IOpenEOLayer;
+      case 'OpenEOTileLayer': {
+        layerParameters = layer.parameters as IOpenEOTileLayer;
 
         newMapLayer = new OpenEOTileLayer({
           opacity: layerParameters.opacity,
@@ -1893,8 +1893,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
         break;
       }
-      case 'OpenEOLayer': {
-        const layerParams = layer.parameters as IOpenEOLayer;
+      case 'OpenEOTileLayer': {
+        const layerParams = layer.parameters as IOpenEOTileLayer;
         const openeoLayer = mapLayer as OpenEOTileLayer;
 
         openeoLayer.setOpacity(layerParams.opacity ?? 1);

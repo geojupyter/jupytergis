@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "OpenEOLayer",
-  "title": "IOpenEOLayer",
+  "description": "OpenEOTileLayer",
+  "title": "IOpenEOTileLayer",
   "required": ["source"],
   "additionalProperties": false,
   "properties": {

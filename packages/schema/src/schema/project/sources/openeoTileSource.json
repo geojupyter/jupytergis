@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "OpenEOSource",
-  "title": "IOpenEOSource",
+  "description": "OpenEOTileSource",
+  "title": "IOpenEOTileSource",
   "required": ["processGraph"],
   "additionalProperties": false,
   "properties": {
