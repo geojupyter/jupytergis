@@ -43,6 +43,8 @@ import {
   IRasterDemSource,
   IRasterLayer,
   IRasterSource,
+  IOpenEOTileLayer,
+  IOpenEOTileSource,
   IShapefileSource,
   IStacLayer,
   IStorySegmentLayer,
@@ -507,7 +509,8 @@ export type ILayerGalleryEntry = {
     | IStorySegmentLayer
     | IVectorLayer
     | IVectorTileLayer
-    | IGeoTiffLayer;
+    | IGeoTiffLayer
+    | IOpenEOTileLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
@@ -519,7 +522,8 @@ export type ILayerGalleryEntry = {
     | IRasterSource
     | IShapefileSource
     | IVectorTileSource
-    | IVideoSource;
+    | IVideoSource
+    | IOpenEOTileSource;
   provider: string;
   description: string;
 };

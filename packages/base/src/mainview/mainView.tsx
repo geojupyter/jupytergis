@@ -42,6 +42,8 @@ import {
   DEFAULT_PROJECTION,
   IViewState,
   IGrammarSymbologyState,
+  IOpenEOTileSource,
+  IOpenEOTileLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -143,6 +145,7 @@ import {
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
+import { OpenEOTileLayer, OpenEOTileSource } from './OpenEOTileLayer';
 import TemporalSlider from './TemporalSlider';
 import {
   createGeoJSONFeaturePatcher,
@@ -981,6 +984,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
+        case 'OpenEOTileSource': {
+          const sourceParameters = source.parameters as IOpenEOTileSource;
+
+          newSource = new OpenEOTileSource({
+            connectionInfo: {
+              url: sourceParameters.serverUrl,
+              authBearer: sourceParameters.authBearer,
+            },
+            processGraph: sourceParameters.processGraph,
+          });
+
+          break;
+        }
+
         case 'GeoJSONSource': {
           const data =
             source.parameters?.data ||
@@ -1539,6 +1556,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+      case 'OpenEOTileLayer': {
+        layerParameters = layer.parameters as IOpenEOTileLayer;
+
+        newMapLayer = new OpenEOTileLayer({
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          source: this._sources[layerParameters.source],
+        });
+        break;
+      }
       case 'GeoTiffLayer': {
         layerParameters = layer.parameters as IGeoTiffLayer;
         const geoTiffSource = this._sources[layerParameters.source];
@@ -1880,6 +1907,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             });
           }
         }
+        break;
+      }
+      case 'OpenEOTileLayer': {
+        const layerParams = layer.parameters as IOpenEOTileLayer;
+        const openeoLayer = mapLayer as OpenEOTileLayer;
+
+        openeoLayer.setOpacity(layerParams.opacity ?? 1);
+
         break;
       }
       case 'HeatmapLayer': {
