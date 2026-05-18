@@ -126,6 +126,17 @@
             "type": { "type": "string", "enum": ["cluster"] },
             "radius": { "type": "number", "minimum": 1 }
           }
+        },
+        {
+          "type": "object",
+          "description": "Bin transform. Bins a numeric field into equal-width intervals. Produces pseudo-fields '$binned' (bin center) and '$count' (count per bin).",
+          "required": ["type", "field", "bins"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["bin"] },
+            "field": { "type": "string" },
+            "bins": { "type": "number", "minimum": 1 }
+          }
         }
       ]
     },

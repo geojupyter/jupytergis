@@ -5,7 +5,7 @@
 
 import { IGrammarSymbologyState } from '@jupytergis/schema';
 
-import { grammarToPlotSpec } from '../grammarToPlot';
+import { compilePlot, grammarToPlotSpec } from '../grammarToPlot';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -399,5 +399,182 @@ describe('grammarToPlotSpec — multiple layers', () => {
     const spec = grammarToPlotSpec(state);
     expect(spec).not.toBeNull();
     expect(Object.keys(spec!.encoding)).toEqual(['x']);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// grammarToPlotSpec — bin transform (native Vega-Lite)
+// ---------------------------------------------------------------------------
+
+describe('grammarToPlotSpec — bin transform', () => {
+  it('emits bin:true and aggregate:count for $binned/$count', () => {
+    const state: any = {
+      layers: [
+        {
+          id: 'L1',
+          preprocess: [{ type: 'bin', field: 'mag', bins: 20 }],
+          rules: [
+            {
+              id: 'r1',
+              fields: ['$binned'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['plot-x'] },
+              ],
+            },
+            {
+              id: 'r2',
+              fields: ['$count'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['plot-y'] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const spec = grammarToPlotSpec(state);
+    expect(spec!.mark).toBe('bar');
+    expect(spec!.encoding.x).toEqual({
+      field: 'mag',
+      type: 'quantitative',
+      bin: true,
+    });
+    expect(spec!.encoding.y).toEqual({
+      aggregate: 'count',
+      type: 'quantitative',
+    });
+  });
+
+  it('emits aggregate:count with colorramp for $count color', () => {
+    const state: any = {
+      layers: [
+        {
+          id: 'L1',
+          preprocess: [{ type: 'bin', field: 'mag', bins: 20 }],
+          rules: [
+            {
+              id: 'r1',
+              fields: ['$binned'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['plot-x'] },
+              ],
+            },
+            {
+              id: 'r2',
+              fields: ['$count'],
+              mappings: [
+                {
+                  scale: {
+                    scheme: 'colorRamp',
+                    params: {
+                      name: 'viridis',
+                      nShades: 9,
+                      mode: 'equal interval',
+                      reverse: false,
+                      fallback: [0, 0, 0, 0],
+                    },
+                  },
+                  channels: ['plot-color'],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const spec = grammarToPlotSpec(state);
+    expect(spec!.encoding.color).toEqual({
+      aggregate: 'count',
+      type: 'quantitative',
+      scale: { scheme: 'viridis' },
+      legend: true,
+    });
+  });
+
+  it('respects explicit mark override', () => {
+    const state: any = {
+      layers: [
+        {
+          id: 'L1',
+          preprocess: [{ type: 'bin', field: 'mag', bins: 10 }],
+          rules: [
+            {
+              id: 'r1',
+              fields: ['$binned'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['plot-x'] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const spec = grammarToPlotSpec(state, 'line');
+    expect(spec!.mark).toBe('line');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// compilePlot
+// ---------------------------------------------------------------------------
+
+describe('compilePlot', () => {
+  it('returns null when no plot channels', () => {
+    const state: IGrammarSymbologyState = {
+      layers: [{ id: 'L1', rules: [] }],
+    };
+    expect(compilePlot(state, [])).toBeNull();
+  });
+
+  it('returns spec and unchanged data without transforms', () => {
+    const state: any = {
+      layers: [
+        {
+          id: 'L1',
+          rules: [
+            {
+              id: 'r1',
+              fields: ['mag'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['plot-x'] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const data = [{ mag: 1 }, { mag: 2 }];
+    const result = compilePlot(state, data);
+    expect(result).not.toBeNull();
+    expect(result!.spec.encoding).toHaveProperty('x');
+    expect(result!.data).toEqual(data);
+  });
+
+  it('passes data through unchanged (bin handled natively by Vega-Lite)', () => {
+    const state: any = {
+      layers: [
+        {
+          id: 'L1',
+          preprocess: [{ type: 'bin', field: 'mag', bins: 2 }],
+          rules: [
+            {
+              id: 'r1',
+              fields: ['$binned'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['plot-x'] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const data = [{ mag: 1 }, { mag: 2 }, { mag: 3 }, { mag: 4 }];
+    const result = compilePlot(state, data);
+    expect(result).not.toBeNull();
+    expect(result!.data).toEqual(data); // pass-through, VL handles binning
   });
 });

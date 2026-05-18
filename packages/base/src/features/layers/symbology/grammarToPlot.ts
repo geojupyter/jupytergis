@@ -18,10 +18,21 @@ import { IGrammarSymbologyState, IScale } from '@jupytergis/schema';
 // ---------------------------------------------------------------------------
 
 export interface IVegaLiteFieldEncoding {
-  field: string;
+  field?: string;
   type: string;
   scale?: Record<string, unknown>;
   legend?: boolean;
+  bin?: boolean;
+  aggregate?: string;
+}
+
+export interface IVegaLiteValueEncoding {
+  value: string | number;
+}
+
+export interface IVegaLiteSpec {
+  mark: string;
+  encoding: Record<string, IVegaLiteFieldEncoding | IVegaLiteValueEncoding>;
 }
 
 export interface IVegaLiteValueEncoding {
@@ -100,6 +111,44 @@ function scaleToEncoding(
   }
 }
 
+/**
+ * Resolve a pseudo-field ($binned, $count) back to a Vega-Lite encoding
+ * parameter that uses the original bin transform field.
+ */
+function resolveBinEncoding(
+  binField: string,
+  pseudoField: string,
+  encoding: IVegaLiteFieldEncoding | IVegaLiteValueEncoding | null,
+): IVegaLiteFieldEncoding | IVegaLiteValueEncoding | null {
+  if (!encoding || !('field' in encoding)) {
+    return encoding;
+  }
+  if (pseudoField === '$binned') {
+    const result = { ...encoding, field: binField, bin: true };
+    return result;
+  }
+  if (pseudoField === '$count') {
+    const { field: _, ...rest } = encoding;
+    return { ...rest, aggregate: 'count', type: 'quantitative' };
+  }
+  return encoding;
+}
+
+/**
+ * Find the first bin transform in the layer's preprocess, if any.
+ * Returns the original data field name.
+ */
+function findBinTransform(
+  layer: NonNullable<IGrammarSymbologyState['layers']>[number],
+): string | null {
+  for (const xf of layer.preprocess ?? []) {
+    if ((xf as any).type === 'bin') {
+      return (xf as any).field;
+    }
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -113,20 +162,26 @@ function scaleToEncoding(
  */
 export function grammarToPlotSpec(
   state: IGrammarSymbologyState | undefined,
-  mark = 'point',
+  mark?: string,
 ): IVegaLiteSpec | null {
   if (!state?.layers?.length) {
     return null;
   }
 
-  // Collect all plot-channel encodings across all layers and rules.
-  // Last rule wins when the same Vega-Lite channel is targeted multiple times.
-  const targetEncoding: Record<string, VegaLiteEncoding> = {};
+  const targetEncoding: Record<
+    string,
+    IVegaLiteFieldEncoding | IVegaLiteValueEncoding
+  > = {};
+  let effectiveMark = mark ?? 'point';
 
   for (const layer of state.layers) {
+    const binField = findBinTransform(layer);
+    if (binField) {
+      effectiveMark = mark ?? 'bar';
+    }
+
     for (const rule of layer.rules) {
       for (const mapping of rule.mappings) {
-        // Only process the first field for single-field rules.
         const field = rule.fields?.[0];
         if (
           !field &&
@@ -136,14 +191,18 @@ export function grammarToPlotSpec(
           continue;
         }
 
-        const encoded = scaleToEncoding(mapping.scale, field ?? '');
+        let encoded = scaleToEncoding(mapping.scale, field ?? '');
+
+        // Resolve $binned / $count pseudo-fields from bin transform.
+        if (binField && field && encoded) {
+          encoded = resolveBinEncoding(binField, field, encoded);
+        }
 
         for (const ch of mapping.channels) {
           if (!isPlotChannel(ch)) {
             continue;
           }
           const vlChannel = PLOT_CHANNEL_MAP[ch];
-          // Only set color encoding for color-producing scales.
           if (vlChannel === 'color' && encoded) {
             targetEncoding.color = encoded;
           } else if (vlChannel !== 'color' && encoded) {
@@ -159,7 +218,32 @@ export function grammarToPlotSpec(
   }
 
   return {
-    mark,
+    mark: effectiveMark,
     encoding: targetEncoding,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Convenience entry point
+// ---------------------------------------------------------------------------
+
+/**
+ * Convenience entry point that compiles the spec and delegates data
+ * transformation (e.g. binning) to Vega-Lite natively via encoding.
+ */
+export interface IPlotCompileResult {
+  spec: IVegaLiteSpec;
+  data: Record<string, unknown>[];
+}
+
+export function compilePlot(
+  state: IGrammarSymbologyState | undefined,
+  data: Record<string, unknown>[],
+  mark?: string,
+): IPlotCompileResult | null {
+  const spec = grammarToPlotSpec(state, mark);
+  if (!spec) {
+    return null;
+  }
+  return { spec, data };
 }

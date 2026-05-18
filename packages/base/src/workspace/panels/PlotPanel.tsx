@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import vegaEmbed from 'vega-embed';
 
 import {
-  grammarToPlotSpec,
+  compilePlot,
   IVegaLiteSpec,
 } from '../../features/layers/symbology/grammarToPlot';
 
@@ -73,16 +73,16 @@ function collectPlotSpecs(
         : extractFeatureData(model, layerId);
 
     for (const grammarLayer of state.layers) {
-      const spec = grammarToPlotSpec({ layers: [grammarLayer] });
-      if (!spec) {
+      const result = compilePlot({ layers: [grammarLayer] }, featureData);
+      if (!result) {
         continue;
       }
       cards.push({
         layerId,
         layerName: (layer as any).name ?? layerId,
         grammarLayerId: grammarLayer.id,
-        spec,
-        data: featureData,
+        spec: result.spec,
+        data: result.data,
       });
     }
   }

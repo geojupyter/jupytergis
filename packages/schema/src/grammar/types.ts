@@ -134,7 +134,20 @@ export interface IClusterTransform {
   radius: number;
 }
 
-export type ITransform = IKDETransform | IClusterTransform;
+/**
+ * bin: Bin a numeric field into equal-width intervals.
+ * Pre-aggregates the data: each bin becomes one row with pseudo-fields
+ * '$binned' (bin center value) and '$count' (number of features in the bin).
+ * Encoding rules target these pseudo-fields via standard scales.
+ * Uses the existing $count pseudo-field (shared with cluster transform).
+ */
+export interface IBinTransform {
+  type: 'bin';
+  field: string;
+  bins: number;
+}
+
+export type ITransform = IKDETransform | IClusterTransform | IBinTransform;
 
 // ---------------------------------------------------------------------------
 // Scale constructors — each is a constructor applied to a params record.
