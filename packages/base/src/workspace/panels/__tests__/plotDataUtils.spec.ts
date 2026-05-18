@@ -10,23 +10,23 @@ import { featureToRow, sourceToRows } from '../plotDataUtils';
 // Lightweight OL mocks — match the real API surface used by plotDataUtils
 // ---------------------------------------------------------------------------
 
-interface MockFeature {
+interface IMockFeature {
   getProperties: () => Record<string, unknown>;
 }
 
-interface MockSource {
-  forEachFeature: (cb: (f: MockFeature) => void) => void;
+interface IMockSource {
+  forEachFeature: (cb: (f: IMockFeature) => void) => void;
 }
 
-function makeFeature(props: Record<string, unknown>): MockFeature {
+function makeFeature(props: Record<string, unknown>): IMockFeature {
   return {
     getProperties: () => props,
   };
 }
 
-function makeVectorSource(features: MockFeature[]): MockSource {
+function makeVectorSource(features: IMockFeature[]): IMockSource {
   return {
-    forEachFeature: (cb: (f: MockFeature) => void) => {
+    forEachFeature: (cb: (f: IMockFeature) => void) => {
       features.forEach(cb);
     },
   };
