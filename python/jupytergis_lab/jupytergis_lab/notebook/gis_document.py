@@ -889,6 +889,7 @@ class GISDocument(CommWidget):
         algorithm: BaseAlgorithm | None = None,
         **params,
     ):
+        """Add an Xarray data array as a layer on the map."""
         try:
             from jupyter_xarray_tiler.titiler import _get_server, add_data_array
         except ImportError as e:
