@@ -49,7 +49,7 @@
         "HeatmapLayer",
         "StacLayer",
         "StorySegmentLayer",
-        "OpenEOLayer"
+        "OpenEOTileLayer"
       ]
     },
     "sourceType": {
@@ -68,7 +68,7 @@
         "GeoPackageRasterSource",
         "GeoParquetSource",
         "MarkerSource",
-        "OpenEOSource"
+        "OpenEOTileSource"
       ]
     },
     "jGISLayer": {
