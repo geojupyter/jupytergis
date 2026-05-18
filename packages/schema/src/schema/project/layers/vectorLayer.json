@@ -35,7 +35,10 @@
         "pixel-rgb",
         "stroke-width",
         "circle-radius",
-        "circle-stroke-width"
+        "circle-stroke-width",
+        "plot-x",
+        "plot-y",
+        "plot-color"
       ]
     },
     "_IPredicate": {

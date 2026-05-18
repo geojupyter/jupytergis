@@ -92,12 +92,19 @@ export type PosFloatChannel =
   | 'circle-radius'
   | 'circle-stroke-width';
 
-export type StyleChannel =
+export type MapChannel =
   | RGBAChannel
   | UInt8Channel
   | UNormChannel
   | PosFloatChannel
   | VirtualChannel;
+
+/**
+ * Plot output channels. Ignored by the map compiler; consumed by the plot compiler.
+ */
+export type PlotChannel = 'plot-x' | 'plot-y' | 'plot-color';
+
+export type StyleChannel = MapChannel | PlotChannel;
 
 // ---------------------------------------------------------------------------
 // Transforms — render-side preprocessing applied before encoding rules.
