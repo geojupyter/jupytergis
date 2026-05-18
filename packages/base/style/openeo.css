@@ -1,0 +1,809 @@
+.jp-openeo-configure-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 360px;
+}
+
+.jp-openeo-configure-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-configure-form input,
+.jp-openeo-configure-form select {
+  padding: 4px;
+}
+
+.jp-openeo-configure-hint {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  margin: 4px 0 0;
+}
+
+.jp-openeo-add-layer {
+  display: flex;
+  gap: 16px;
+  min-width: 720px;
+  min-height: 480px;
+}
+
+.jp-openeo-add-layer-left,
+.jp-openeo-add-layer-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.jp-openeo-add-layer-left label,
+.jp-openeo-add-layer-left fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-add-layer-left input,
+.jp-openeo-add-layer-left select {
+  padding: 4px;
+}
+
+.jp-openeo-template-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.jp-openeo-template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 8px;
+  border: 1px solid var(--jp-border-color2);
+  background: var(--jp-layout-color1);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.jp-openeo-template-card.jp-mod-selected {
+  border-color: var(--jp-brand-color1);
+  background: var(--jp-brand-color3);
+}
+
+.jp-openeo-template-card small {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-bbox,
+.jp-openeo-temporal {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  border: 1px solid var(--jp-border-color2);
+  padding: 6px;
+}
+
+.jp-openeo-bbox legend,
+.jp-openeo-temporal legend {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-graph-preview {
+  flex: 1;
+  background: var(--jp-layout-color2);
+  padding: 8px;
+  overflow: auto;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  white-space: pre;
+  margin: 0;
+  min-height: 0;
+}
+
+/* Discovery panel */
+.jp-openeo-discovery {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  height: 100%;
+  overflow: auto;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-discovery-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jp-openeo-discovery-header label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jp-openeo-discovery-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.jp-openeo-error {
+  color: var(--jp-error-color1);
+  font-size: var(--jp-ui-font-size0);
+  white-space: pre-wrap;
+  margin: 4px 0 0;
+}
+
+.jp-openeo-filter {
+  padding: 4px;
+}
+
+.jp-openeo-section {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--jp-border-color2);
+}
+
+.jp-openeo-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 6px 2px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-count {
+  margin-left: auto;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jp-openeo-list-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-openeo-list-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-list-row:hover {
+  background: var(--jp-layout-color2);
+}
+
+.jp-openeo-id {
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+}
+
+.jp-openeo-secondary {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-detail {
+  padding: 6px 12px;
+  background: var(--jp-layout-color2);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-detail pre {
+  background: var(--jp-layout-color1);
+  padding: 6px;
+  overflow: auto;
+  max-height: 200px;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+}
+
+.jp-openeo-empty {
+  color: var(--jp-ui-font-color2);
+  font-style: italic;
+  padding: 6px;
+}
+
+/* Process graph view */
+.jp-openeo-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.jp-openeo-preview-toggle {
+  display: inline-flex;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.jp-openeo-preview-toggle button {
+  background: var(--jp-layout-color1);
+  border: none;
+  padding: 2px 10px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-preview-toggle button.jp-mod-selected {
+  background: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+}
+
+.jp-openeo-pg-canvas {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--jp-border-color2);
+  background: var(--jp-layout-color1);
+}
+
+.jp-openeo-pg-empty {
+  padding: 12px;
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-pg-node {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color1);
+  width: 220px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.jp-openeo-pg-node-result {
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 2px var(--jp-brand-color3);
+}
+
+.jp-openeo-pg-node-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.jp-openeo-pg-node-id {
+  color: var(--jp-ui-font-color2);
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+}
+
+.jp-openeo-pg-node-args {
+  list-style: none;
+  padding: 4px 0 0;
+  margin: 0;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+}
+
+.jp-openeo-pg-node-args li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-pg-node-more {
+  font-style: italic;
+}
+
+.jp-openeo-pg-node-nested {
+  margin-top: 4px;
+  padding: 2px 4px;
+  background: var(--jp-layout-color2);
+  border-radius: 3px;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-edited-badge {
+  color: var(--jp-warn-color1);
+  font-style: italic;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-reset-btn {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  margin-left: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-reset-btn:hover {
+  background: var(--jp-layout-color3);
+}
+
+.jp-openeo-edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+}
+
+.jp-openeo-edit-hint {
+  margin: 4px 0 0;
+  padding: 4px 8px;
+  background: var(--jp-warn-color3);
+  border-left: 3px solid var(--jp-warn-color1);
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-json-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--jp-border-color2);
+}
+
+.jp-openeo-json-editor-host {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-openeo-json-editor-host .cm-editor {
+  height: 100%;
+}
+
+.jp-openeo-json-editor-error {
+  padding: 4px 8px;
+  background: var(--jp-error-color3);
+  color: var(--jp-error-color1);
+  font-size: var(--jp-ui-font-size0);
+  font-family: var(--jp-code-font-family);
+  white-space: pre-wrap;
+}
+
+.jp-openeo-validation {
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-validation-pending {
+  color: var(--jp-ui-font-color2);
+  font-style: italic;
+}
+
+.jp-openeo-validation-ok {
+  color: var(--jp-success-color1, #2a9d2a);
+}
+
+.jp-openeo-validation-bad {
+  color: var(--jp-error-color1);
+}
+
+.jp-openeo-validation-errors {
+  list-style: disc inside;
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  max-height: 120px;
+  overflow: auto;
+  background: var(--jp-error-color3);
+  border-left: 3px solid var(--jp-error-color1);
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-validation-errors code {
+  background: var(--jp-layout-color2);
+  padding: 0 4px;
+  margin-right: 4px;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+}
+
+.jp-openeo-test-btn {
+  background: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  border: none;
+  border-radius: 4px;
+  margin-left: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-test-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.jp-openeo-test-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.jp-openeo-test-ok,
+.jp-openeo-test-bad {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-test-ok {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--jp-success-color3, #d6f5d6);
+  border-left: 3px solid var(--jp-success-color1, #2a9d2a);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-test-ok img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--jp-border-color2);
+}
+
+.jp-openeo-test-bad {
+  background: var(--jp-error-color3);
+  border-left: 3px solid var(--jp-error-color1);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-test-bad pre {
+  margin: 4px 0 0;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.jp-openeo-pg-delete-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--jp-border-color1);
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.jp-openeo-pg-delete-btn:hover:not(:disabled) {
+  background: var(--jp-error-color3);
+  border-color: var(--jp-error-color1);
+}
+
+.jp-openeo-pg-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- Redesigned Add/Edit OpenEO dialog (v2) --- */
+
+.jp-openeo-dialog {
+  display: flex;
+  gap: 12px;
+  width: min(1100px, 90vw);
+  height: min(640px, 80vh);
+  max-width: 100%;
+  font-size: var(--jp-ui-font-size1);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.jp-openeo-dialog-left {
+  flex: 0 0 auto;
+  width: 320px;
+  min-width: 220px;
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: auto;
+  padding: 0 8px 0 0;
+  /* Native horizontal resize handle in the bottom-right corner. */
+  resize: horizontal;
+  border-right: 1px solid var(--jp-border-color2);
+}
+
+.jp-openeo-dialog-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.jp-openeo-section h4 {
+  margin: 0 0 6px;
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  padding-bottom: 4px;
+}
+
+.jp-openeo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.jp-openeo-field span {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-field input,
+.jp-openeo-field select {
+  padding: 4px 6px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-section-help {
+  margin: 4px 0 0;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+}
+
+.jp-openeo-template-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.jp-openeo-pill {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 999px;
+  padding: 3px 10px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-pill.jp-mod-selected {
+  border-color: var(--jp-brand-color1);
+  background: var(--jp-brand-color3);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-bbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.jp-openeo-bbox-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jp-openeo-bbox-grid span {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-bbox-grid input {
+  padding: 3px 6px;
+}
+
+/* Right pane toolbar */
+.jp-openeo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.jp-openeo-segmented {
+  display: inline-flex;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.jp-openeo-segmented button {
+  background: var(--jp-layout-color1);
+  border: none;
+  padding: 3px 12px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-segmented button.jp-mod-selected {
+  background: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+}
+
+.jp-openeo-toolbar-toggle,
+.jp-openeo-toolbar-btn {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-openeo-toolbar-toggle.jp-mod-selected {
+  background: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  border-color: var(--jp-brand-color1);
+}
+
+.jp-openeo-toolbar-btn:hover,
+.jp-openeo-toolbar-toggle:hover {
+  background: var(--jp-layout-color2);
+}
+
+.jp-openeo-toolbar-spacer {
+  flex: 1;
+}
+
+.jp-openeo-status {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jp-openeo-dot {
+  color: var(--jp-warn-color1);
+}
+
+.jp-openeo-status-ok {
+  color: var(--jp-success-color1, #2a9d2a);
+}
+
+.jp-openeo-status-bad {
+  color: var(--jp-error-color1);
+}
+
+.jp-openeo-status-pending {
+  color: var(--jp-ui-font-color2);
+  font-style: italic;
+}
+
+.jp-openeo-edit-hint-inline {
+  margin: 4px 0 0;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  font-style: italic;
+}
+
+.jp-openeo-canvas-wrapper {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  background: var(--jp-layout-color1);
+}
+
+.jp-openeo-canvas-wrapper > * {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.jp-openeo-canvas-wrapper .jp-openeo-pg-canvas {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: none;
+}
+
+.jp-openeo-canvas-wrapper openeo-model-builder {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Native CSS resize replaces the custom splitter. */
+
+/* Process-graph entry rendered as a regular form field so it sits
+   naturally inside the auto-generated property form. */
+.jp-openeo-pg-field {
+  padding: 6px 12px;
+}
+
+.jp-openeo-pg-field .jp-FormGroup-fieldLabel {
+  padding-left: 0;
+}
+
+.jp-openeo-pg-field-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 12px;
+  margin-top: 4px;
+}
+
+.jp-openeo-pg-field-help {
+  margin: 0;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-pg-field-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  font-size: var(--jp-ui-font-size1);
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 3px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+}
+
+.jp-openeo-pg-field-btn:hover {
+  background: var(--jp-layout-color2);
+  border-color: var(--jp-brand-color1);
+  color: var(--jp-brand-color1);
+}
+
+.jp-openeo-pg-field-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.jp-openeo-pg-field-icon svg [fill] {
+  fill: currentColor;
+}
