@@ -709,6 +709,12 @@ def jgis_layer_to_qgis(
         )
         return None
 
+    if layer_type == "OpenEOTileLayer":
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: OpenEO Tile layers not supported for export yet.",
+        )
+        return None
+
     if layer_type == "RasterLayer" and source_type == "RasterSource":
         source_parameters = source.get("parameters", {})
         uri = build_uri(source_parameters, "RasterSource")

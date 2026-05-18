@@ -22,6 +22,8 @@ from jupytergis_core.schema import (
     IImageLayer,
     IImageSource,
     IMarkerSource,
+    IOpenEOTileLayer,
+    IOpenEOTileSource,
     IRasterDemSource,
     IRasterLayer,
     IRasterSource,
@@ -31,8 +33,6 @@ from jupytergis_core.schema import (
     IVectorTileSource,
     IVideoSource,
     IWmsTileSource,
-    IOpenEOTileSource,
-    IOpenEOTileLayer,
     LayerType,
     SourceType,
 )
@@ -432,7 +432,7 @@ class GISDocument(CommWidget):
     def add_openeo_tile_layer(
         self,
         graph,
-        name = 'OpenEO Tiles',
+        name="OpenEO Tiles",
         opacity: float = 1,
     ):
         source = {
@@ -441,7 +441,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "processGraph": graph.flat_graph(),
                 "serverUrl": graph.connection.root_url,
-                "authBearer": graph.connection.auth.bearer
+                "authBearer": graph.connection.auth.bearer,
             },
         }
 
