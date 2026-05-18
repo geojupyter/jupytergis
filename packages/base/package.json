@@ -106,7 +106,10 @@
     "styled-components": "^5.3.6",
     "three": "^0.135.0",
     "three-mesh-bvh": "^0.5.17",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "vega": "^6.2.0",
+    "vega-embed": "^7.1.0",
+    "vega-lite": "^6.4.3"
   },
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",

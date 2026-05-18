@@ -8,6 +8,7 @@
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import bookOpenSvgStr from '../../style/icons/book_open.svg';
+import chartBarSvgStr from '../../style/icons/chart_bar.svg';
 import clockSvgStr from '../../style/icons/clock-solid.svg';
 import geoJsonSvgStr from '../../style/icons/geojson.svg';
 import geolocationSvgStr from '../../style/icons/geolocation.svg';
@@ -74,8 +75,13 @@ export const logoMiniIconQGZ = new LabIcon({
 });
 
 export const bookOpenIcon = new LabIcon({
-  name: 'jupytergis::bookOpen',
+  name: 'jupytergis::bookopen',
   svgstr: bookOpenSvgStr,
+});
+
+export const chartBarIcon = new LabIcon({
+  name: 'jupytergis::chartBar',
+  svgstr: chartBarSvgStr,
 });
 
 export const vectorSquareIcon = new LabIcon({

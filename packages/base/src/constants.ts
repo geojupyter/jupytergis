@@ -4,6 +4,7 @@ import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
 import * as BaseCommandIDs from './commands/BaseCommandIDs';
 import {
   bookOpenIcon,
+  chartBarIcon,
   clockIcon,
   geoJSONIcon,
   geoPackageIcon,
@@ -63,6 +64,7 @@ const iconObject = {
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
+  [CommandIDs.togglePlotPanel]: { icon: chartBarIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.toggleStoryPresentationMode]: {
     iconClass: 'fa fa-book jgis-icon-adjust',

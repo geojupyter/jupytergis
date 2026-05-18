@@ -1037,6 +1037,35 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.togglePlotPanel, {
+    label: trans.__('Toggle plot panel'),
+    caption: 'Toggle the plot panel in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    isToggled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        return tracker.currentWidget?.content.plotOpened === true;
+      } else {
+        return false;
+      }
+    },
+    execute: async () => {
+      Private.togglePlotPanel(tracker);
+      commands.notifyCommandChanged(CommandIDs.togglePlotPanel);
+    },
+    ...icons.get(CommandIDs.togglePlotPanel),
+  });
+
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
     caption: 'Execute the console in the current JupyterGIS document.',
@@ -2051,6 +2080,16 @@ namespace Private {
     }
 
     await current.content.toggleConsole(current.model.filePath);
+  }
+
+  export function togglePlotPanel(tracker: JupyterGISTracker): void {
+    const current = tracker.currentWidget;
+
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
+      return;
+    }
+
+    current.content.togglePlotPanel();
   }
 
   export function generateCopyName(

@@ -209,6 +209,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
+      const togglePlotPanelButton = new CommandToolbarButton({
+        id: CommandIDs.togglePlotPanel,
+        commands: options.commands,
+        label: '',
+      });
+      this.addItem('Toggle plot panel', togglePlotPanelButton);
+      togglePlotPanelButton.node.dataset.testid = 'toggle-plot-panel-button';
+
       const spacer = ReactiveToolbar.createSpacerItem();
       spacer.node.tabIndex = -1;
       this.addItem('spacer', spacer);

@@ -41,6 +41,7 @@ export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
 
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';
+export const togglePlotPanel = 'jupytergis:togglePlotPanel';
 export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';
 export const removeConsole = 'jupytergis:removeConsole';
 export const executeConsole = 'jupytergis:executeConsole';
