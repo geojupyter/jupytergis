@@ -16,7 +16,7 @@ interface ISpectaPanelProps {
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
-  /** List story: feed scroll geometry to MainView (`listScrollDrive` state). */
+  /** For Specta List stories. feed scroll info to MainView (`listScrollDrive` state). */
   onListScrollDriveChange?: (
     payload: IListStoryScrollDrivePayload | null,
   ) => void;
@@ -54,12 +54,6 @@ export function SpectaPanel({
     panelRef: isMobile ? undefined : containerRef,
     isSpecta,
   });
-
-  // // guided → single column; list story → stacked segment cards
-  // const desktopViewMode =
-  //   storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
-  //     ? 'single'
-  //     : 'list';
 
   // Notify when segment transition animation ends
   useEffect(() => {
@@ -109,7 +103,6 @@ export function SpectaPanel({
       hasPrev={hasPrev}
       hasNext={hasNext}
       showGradient={showGradient}
-      // viewMode={desktopViewMode}
       setIndex={setIndex}
       onListScrollDriveChange={onListScrollDriveChange}
     />

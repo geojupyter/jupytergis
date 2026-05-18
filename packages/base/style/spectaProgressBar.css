@@ -66,14 +66,6 @@
   transition-delay: 0s;
 }
 
-/* List story: dots are decorative only (navigation is scroll-based). */
-/* .jgis-specta-progress .jgis-specta-progress-input-static {
-  display: block;
-  pointer-events: none;
-  cursor: default;
-} */
-
-/* Button = dot */
 .jgis-specta-progress .jgis-specta-progress-input {
   position: absolute;
   top: 50%;

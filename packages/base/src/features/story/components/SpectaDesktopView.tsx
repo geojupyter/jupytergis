@@ -31,19 +31,12 @@ interface ISpectaDesktopViewProps {
   hasPrev: boolean;
   hasNext: boolean;
   showGradient: boolean;
-  // viewMode: StoryDesktopViewMode;
   setIndex: (index: number) => void;
-  /** Wired from MainView: receives scroll-derived `listScrollDrive` payloads. */
   onListScrollDriveChange?: (
     payload: IListStoryScrollDrivePayload | null,
   ) => void;
 }
 
-/**
- * Desktop Specta: `single` = one slide + scroll sentinels; `list` = stacked
- * cards in `scrollContainerRef` (`#jgis-story-segment-panel`) + optional list
- * scroll drive callback to MainView.
- */
 export function SpectaDesktopView({
   model,
   isSpecta,
@@ -59,17 +52,14 @@ export function SpectaDesktopView({
   hasPrev,
   hasNext,
   showGradient,
-  // viewMode,
   setIndex,
   onListScrollDriveChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  // guided → single column; list story → stacked segment cards
   const viewMode =
     storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
       ? 'single'
       : 'list';
 
-  // scrollContainerRef: list + single both scroll here; list drive measures it.
   // ! TODO, list mode only needs scroll container ref, move out of hook?
   const {
     scrollContainerRef,
@@ -131,7 +121,6 @@ export function SpectaDesktopView({
     ),
   };
 
-  // MainView wheel uses getScrollContainer / getAtTop / getAtBottom.
   useImperativeHandle(
     storyViewerPanelRef,
     () => ({
@@ -154,7 +143,6 @@ export function SpectaDesktopView({
         style={showGradient ? undefined : { width: '25%', borderRadius: 0 }}
       >
         <div ref={containerRef} className="jgis-specta-story-panel-container">
-          {/* List scroll root: useListStoryScrollDrive + SpectaSegmentListPanel */}
           <div
             ref={scrollContainerRef}
             className={`jgis-story-viewer-panel-specta-mod ${

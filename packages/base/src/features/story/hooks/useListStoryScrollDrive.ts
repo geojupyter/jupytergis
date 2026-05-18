@@ -11,7 +11,7 @@ import type {
  * List story: maps vertical scroll position of the story column to a
  * `listScrollDrive` payload (progress between two segment indices).
  *
- * - Listens to scroll + resize on `scrollContainerRef` (Specta list scroller).
+ * - Listens to scroll on `scrollContainerRef` (Specta list scroller).
  * - Finds `[data-segment-id]` cards, measures their vertical centers in
  *   scroll content space, picks the pair bracketing the viewport center.
  * - Skips map→map pairs (no markdown transition to drive).
@@ -53,7 +53,7 @@ function cardCenterInScrollerContent(
   return topInContent + cRect.height / 2;
 }
 
-/** Subscribes to list scroller geometry; calls `onDriveChange` (→ MainView). */
+/** Subscribes to list scroller geometry; calls `onDriveChange` from MainView. */
 export function useListStoryScrollDrive({
   enabled,
   scrollContainerRef,
@@ -169,16 +169,11 @@ export function useListStoryScrollDrive({
     };
 
     scroller.addEventListener('scroll', handleScroll, { passive: true });
-    // const ro = new ResizeObserver(() => {
-    //   scheduleCompute();
-    // });
-    // ro.observe(scroller);
 
     scheduleCompute();
 
     return () => {
       scroller.removeEventListener('scroll', handleScroll);
-      //   ro.disconnect();
       if (rafIdRef.current !== null) {
         window.cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;

@@ -7,19 +7,7 @@ import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmen
 const ROOT_EDGE_TOLERANCE_PX = 2;
 
 /**
- * List story: vertical stack of segment "cards" in the Specta panel.
- *
- * - Each card is a wrapper div (see `data-segment-id`) used by
- *   useListStoryScrollDrive to measure scroll-driven transitions.
- * - IntersectionObserver + scroll/resize sync the story `currentIndex` when
- *   a card is fully visible (see syncActiveFromLayout).
- * - Markdown segments are hidden in the list (overlay handles them); cards
- *   stay mounted so geometry hooks still find nodes unless display:none breaks
- *   layout—adjust if scroll drive misbehaves.
- */
-
-/**
- * True when `card` (one segment row: `.jgis-story-segment-card`) lies fully
+ * True when card (a .jgis-story-segment-card) lies fully
  * inside the list scroller viewport, or when the card is taller than the
  * viewport and the visible strip fills the viewport height.
  */
@@ -102,7 +90,7 @@ export function SpectaSegmentListPanel({
         return;
       }
 
-      // Tie-break: prefer smallest index when multiple cards fit (e.g. gap).
+      // Choose smallest index in case multiple cards fit
       const nextIndex = Math.min(...fullyVisibleIndices);
       if (nextIndex !== currentIndexRef.current) {
         setIndex(nextIndex);
@@ -127,23 +115,10 @@ export function SpectaSegmentListPanel({
       }
     });
 
-    // ! TODO maybe dont need
-    // const handleScroll = (): void => {
-    //   syncActiveFromLayout();
-    // };
-
-    // root.addEventListener('scroll', handleScroll, { passive: true });
-    // const ro = new ResizeObserver(() => {
-    //   syncActiveFromLayout();
-    // });
-    // ro.observe(root);
-
     syncActiveFromLayout();
 
     return () => {
       observer.disconnect();
-      // root.removeEventListener('scroll', handleScroll);
-      // ro.disconnect();
     };
   }, [items, setIndex, listIntersectionRootRef]);
 

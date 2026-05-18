@@ -2,20 +2,10 @@ import React from 'react';
 import Markdown from 'react-markdown';
 
 interface IStoryContentProps {
-  contentMode?: 'map' | 'markdown';
   markdown: string;
 }
 
-function StoryContentSection({
-  // contentMode = 'map',
-  markdown,
-}: IStoryContentProps) {
-  // const shouldRenderMarkdown =
-  //   contentMode === 'map' || contentMode === 'markdown';
-  // if (!shouldRenderMarkdown) {
-  //   return null;
-  // }
-
+function StoryContentSection({ markdown }: IStoryContentProps) {
   if (!markdown) {
     return null;
   }

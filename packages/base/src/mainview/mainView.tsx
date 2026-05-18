@@ -405,14 +405,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._isSpectaPresentationInitialized = true;
     }
-
-    if (
-      prevState.isSpectaPresentation &&
-      !this.state.isSpectaPresentation &&
-      this.state.listScrollDrive
-    ) {
-      this.setState({ listScrollDrive: null });
-    }
   }
 
   componentWillUnmount(): void {
@@ -2879,7 +2871,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       accumulatedDeltaY = 0;
 
       const storyType = this._model.getSelectedStory().story?.storyType;
-      // List story: wheel only scrolls the panel; segment index + drive follow
+      // List story: wheel only scrolls the panel, segment index + drive follow
       // dont want handle next/prev logic in list mode
       if (storyType === 'list') {
         scrollContainer.scrollBy({ top: deltaY });
@@ -3522,32 +3514,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // TODO SOMETHING
   };
 
-  // private _setMapInteractionsEnabled = (enabled: boolean): void => {
-  //   if (!this._Map) {
-  //     return;
-  //   }
-
-  //   this._Map.getInteractions().forEach(interaction => {
-  //     const interactionId = getUid(interaction);
-  //     if (!enabled) {
-  //       this._mapInteractionActiveState.set(
-  //         interactionId,
-  //         interaction.getActive(),
-  //       );
-  //       interaction.setActive(false);
-  //       return;
-  //     }
-
-  //     const wasActive = this._mapInteractionActiveState.get(interactionId);
-  //     interaction.setActive(wasActive ?? true);
-  //   });
-
-  //   if (enabled) {
-  //     this._mapInteractionActiveState.clear();
-  //   }
-  // };
-
-  /** Callback from SpectaDesktopView / useListStoryScrollDrive → listScrollDrive. */
   private _handleListScrollDriveChange = (
     payload: IListStoryScrollDrivePayload | null,
   ): void => {
@@ -3811,70 +3777,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   render(): JSX.Element {
-    const drive = this.state.listScrollDrive;
-
-    // let listScrollDriveOverlay: JSX.Element | null = null;
-    // if (drive) {
-    //   const p = drive.progress;
-    //   if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
-    //     listScrollDriveOverlay = (
-    //       <div
-    //         className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
-    //         key="list-scroll-md-md"
-    //       >
-    //         <div
-    //           className="jgis-story-markdown-scroll-pane"
-    //           style={{ transform: `translateY(${-p * 100}vh)` }}
-    //         >
-    //           <div className="jgis-story-markdown-scroll-pane-inner">
-    //             <Markdown>
-    //               {this._getStoryMarkdownForIndex(drive.fromIndex)}
-    //             </Markdown>
-    //           </div>
-    //         </div>
-    //         <div
-    //           className="jgis-story-markdown-scroll-pane"
-    //           style={{ transform: `translateY(${(1 - p) * 100}vh)` }}
-    //         >
-    //           <div className="jgis-story-markdown-scroll-pane-inner">
-    //             <Markdown>
-    //               {this._getStoryMarkdownForIndex(drive.toIndex)}
-    //             </Markdown>
-    //           </div>
-    //         </div>
-    //       </div>
-    //     );
-    //   } else if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
-    //     listScrollDriveOverlay = (
-    //       <div
-    //         className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
-    //         key="list-scroll-map-md"
-    //         style={{ transform: `translateY(${(1 - p) * 100}vh)` }}
-    //       >
-    //         <div className="jgis-story-markdown-overlay-content">
-    //           <Markdown>
-    //             {this._getStoryMarkdownForIndex(drive.toIndex)}
-    //           </Markdown>
-    //         </div>
-    //       </div>
-    //     );
-    //   } else if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
-    //     listScrollDriveOverlay = (
-    //       <div
-    //         className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
-    //         key="list-scroll-md-map"
-    //         style={{ transform: `translateY(${-p * 100}vh)` }}
-    //       >
-    //         <div className="jgis-story-markdown-overlay-content">
-    //           <Markdown>
-    //             {this._getStoryMarkdownForIndex(drive.fromIndex)}
-    //           </Markdown>
-    //         </div>
-    //       </div>
-    //     );
-    //   }
-    // }
-
     return (
       <>
         {Object.entries(this.state.annotations).map(([key, annotation]) => {
@@ -3984,8 +3886,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 position: 'relative',
               }}
             >
-              {/* {listScrollDriveOverlay} */}
-              <ListStoryScrollDriveOverlay model={this._model} drive={drive} />
+              <ListStoryScrollDriveOverlay
+                model={this._model}
+                drive={this.state.listScrollDrive}
+              />
               <div className="jgis-panels-wrapper">
                 {!this.state.isSpectaPresentation ? (
                   <>
@@ -4000,8 +3904,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                         settings={this.state.jgisSettings}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
-                        addLayer={this._addLayerForPanels}
-                        removeLayer={this._removeLayerForPanels}
+                        addLayer={this.addLayer.bind(this)}
+                        removeLayer={this.removeLayer.bind(this)}
                       />
                     ) : (
                       <>
@@ -4019,8 +3923,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                             commands={this._mainViewModel.commands}
                             formSchemaRegistry={this._formSchemaRegistry}
                             annotationModel={this._annotationModel}
-                            addLayer={this._addLayerForPanels}
-                            removeLayer={this._removeLayerForPanels}
+                            addLayer={this.addLayer.bind(this)}
+                            removeLayer={this.removeLayer.bind(this)}
                             settings={this.state.jgisSettings}
                             patchGeoJSONFeatureProperties={
                               this._patchGeoJSONFeatureProperties
@@ -4135,10 +4039,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _featurePropertyCache: Map<string | number, any> = new Map();
-  private readonly _mapInteractionActiveState = new Map<
-    string | number,
-    boolean
-  >();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;

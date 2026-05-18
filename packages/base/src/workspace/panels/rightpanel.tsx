@@ -22,7 +22,7 @@ import {
   useStoryMap,
   type IOverrideLayerEntry,
 } from '../../features/story/hooks/useStoryMap';
-import { useStorySegmentSync } from '../../features/story/hooks/useStorySegmentSync';
+import { useStorySegmentSync } from '@/src/features/story/hooks/useStorySegmentSync';
 import {
   TabsRoot,
   TabsContent,
