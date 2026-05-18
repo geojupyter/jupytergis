@@ -878,9 +878,10 @@ class GISDocument(CommWidget):
 
         return layer_ids
 
-    async def add_tiler_layer(
+    async def add_data_array_layer(
         self,
         data_array: DataArray,
+        *,
         colormap_name: str = "viridis",
         rescale: tuple[float, float] | None = None,
         scale: int = 1,
