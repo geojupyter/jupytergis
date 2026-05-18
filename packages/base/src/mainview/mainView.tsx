@@ -1732,7 +1732,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
     const layerParams = layer.parameters as IVectorLayer | undefined;
-    if (!layerParams?.symbologyState) {
+    const ss = layerParams?.symbologyState;
+    if (!ss || Object.keys(ss).length === 0) {
       return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
