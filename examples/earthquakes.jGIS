@@ -14,35 +14,165 @@
       "visible": true
     },
     "ccf98385-bbe3-425b-9dde-fa64d31c196a": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
       "name": "Earthquakes",
       "parameters": {
         "opacity": 1.0,
         "source": "72670e50-5cb4-436c-a226-f1f3a65fc4a1",
         "symbologyState": {
-          "colorRamp": "viridis",
-          "fallbackColor": [
-            0.0,
-            0.0,
-            0.0,
-            0.0
-          ],
-          "method": "color",
-          "mode": "equal interval",
-          "nClasses": 9.0,
-          "radius": 5.0,
-          "renderType": "Graduated",
-          "reverseRamp": false,
-          "strokeColor": [
-            51.0,
-            153.0,
-            204.0,
-            1.0
-          ],
-          "strokeFollowsFill": false,
-          "strokeWidth": 1.25,
-          "value": "mag",
-          "vmax": 8.1,
-          "vmin": 0.95
+          "layers": [
+            {
+              "id": "b9bc7b91-d5a0-4b80-93f9-92db6c850ccf",
+              "rules": [
+                {
+                  "id": "e4d14881-dd9d-46cd-8ff3-715951cbd4c5",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-width",
+                        "circle-stroke-width"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 2.0
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    "mag"
+                  ],
+                  "id": "36737177-80f9-469f-af38-453fe39008a5",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "circle-radius"
+                      ],
+                      "scale": {
+                        "params": {
+                          "domain": [
+                            3.0,
+                            9.0
+                          ],
+                          "fallback": 0.0,
+                          "mode": "equal interval",
+                          "nStops": 5.0,
+                          "range": [
+                            1.0,
+                            10.0
+                          ],
+                          "scalarStops": [
+                            {
+                              "output": 1.0,
+                              "stop": 3.0
+                            },
+                            {
+                              "output": 10.0,
+                              "stop": 9.0
+                            }
+                          ]
+                        },
+                        "scheme": "scalar"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "905092db-86dc-4792-91a7-8051aa515092",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            255.0,
+                            0.0,
+                            0.0,
+                            0.45
+                          ]
+                        },
+                        "scheme": "constant_rgba"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "7e9e7fe5-ffd9-49c2-9bed-38eb4cdff051",
+              "preprocess": [
+                {
+                  "blur": 4.0,
+                  "radius": 3.0,
+                  "type": "kde",
+                  "weightField": "mag"
+                }
+              ],
+              "rules": [
+                {
+                  "fields": [
+                    "$density"
+                  ],
+                  "id": "d01b7a04-0191-4667-ad4f-0802d8ce7a08",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "pixel-rgb"
+                      ],
+                      "scale": {
+                        "params": {
+                          "fallback": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "mode": "equal interval",
+                          "nShades": 9.0,
+                          "name": "viridis",
+                          "reverse": false
+                        },
+                        "scheme": "colorRamp"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "5ad03fb3-ec3e-4227-a22d-f2b19dd6513c",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "pixel-alpha"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 0.9
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "when": [
+                {
+                  "field": "mag",
+                  "op": ">",
+                  "type": "fieldCompare",
+                  "value": 5.0
+                }
+              ]
+            }
+          ]
         }
       },
       "type": "VectorLayer",
@@ -53,24 +183,25 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -17975674.19802071,
-      -6270833.901100142,
-      22099342.48755777,
-      13887071.487525603
+      -16659136.445223518,
+      1519959.7173831644,
+      -5774027.4626841275,
+      7304317.147718105
     ],
-    "latitude": 32.34071851049782,
-    "longitude": 18.521771255650705,
+    "latitude": 36.80627587618541,
+    "longitude": -100.76027004815924,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.186114239541643
+    "zoom": 4.57383422658683
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "72670e50-5cb4-436c-a226-f1f3a65fc4a1": {
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
+        "httpHeaders": "",
         "path": "data/eq.geojson",
-        "valid": false
+        "useProxy": false
       },
       "type": "GeoJSONSource"
     },
@@ -80,15 +211,18 @@
         "attribution": "(C) OpenStreetMap contributors",
         "bounds": [],
         "htmlAttribution": "",
+        "httpHeaders": "",
         "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {}
+        "urlParameters": {},
+        "useProxy": false
       },
       "type": "RasterSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }

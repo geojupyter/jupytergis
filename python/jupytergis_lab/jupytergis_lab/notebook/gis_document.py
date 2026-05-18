@@ -68,54 +68,79 @@ def _color_to_rgba(value: Any) -> list[float] | None:
     return None
 
 
-# NOTE: Kept intentionally minimal and aligned with the frontend migration in
-# ``symbologyMigration.ts`` — the only mandatory field is ``renderType``. Other
-# defaults (``method``, ``colorRamp``, ``nClasses``, ``mode``) live in the
-# schema (``packages/schema/src/schema/project/layers/vectorLayer.json``) and
-# are applied by the schema consumer on the frontend. Duplicating them here
-# would create a drift risk if the schema defaults ever change.
+def _make_constant_rgba_rule(channels: list[str], color: list[float]) -> dict:
+    return {
+        "id": str(uuid4()),
+        "mappings": [
+            {
+                "scale": {"scheme": "constant_rgba", "params": {"value": color}},
+                "channels": channels,
+            },
+        ],
+    }
+
+
+def _make_constant_num_rule(channels: list[str], value: float) -> dict:
+    return {
+        "id": str(uuid4()),
+        "mappings": [
+            {
+                "scale": {"scheme": "constant_num", "params": {"value": value}},
+                "channels": channels,
+            },
+        ],
+    }
+
+
 def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
     """Translate a legacy ``color_expr`` dict (OpenLayers FlatStyle keys such as
-    ``fill-color``, ``stroke-color``, ``circle-radius``) into a ``symbologyState``
-    dict that satisfies the schema. Expression values that aren't solid colors
-    are ignored — those require richer Single Symbol configuration that the
-    Python API doesn't yet surface.
+    ``fill-color``, ``stroke-color``, ``circle-radius``) into a Grammar
+    ``symbologyState`` dict. Expression values that aren't solid colors are
+    ignored.
     """
-    state: dict[str, Any] = {"renderType": "Single Symbol"}
+    rules: list[dict] = []
 
-    if not isinstance(color_expr, dict):
-        return state
+    if isinstance(color_expr, dict):
+        fill = _color_to_rgba(
+            color_expr.get("fill-color") or color_expr.get("circle-fill-color"),
+        )
+        if fill is not None:
+            rules.append(
+                _make_constant_rgba_rule(
+                    ["fill-color", "circle-fill-color"],
+                    fill,
+                ),
+            )
 
-    fill = _color_to_rgba(
-        color_expr.get("fill-color") or color_expr.get("circle-fill-color"),
-    )
-    if fill is not None:
-        state["fillColor"] = fill
+        stroke = _color_to_rgba(
+            color_expr.get("stroke-color") or color_expr.get("circle-stroke-color"),
+        )
+        if stroke is not None:
+            rules.append(
+                _make_constant_rgba_rule(
+                    ["stroke-color", "circle-stroke-color"],
+                    stroke,
+                ),
+            )
 
-    stroke = _color_to_rgba(
-        color_expr.get("stroke-color") or color_expr.get("circle-stroke-color"),
-    )
-    if stroke is not None:
-        state["strokeColor"] = stroke
+        stroke_width = color_expr.get("stroke-width") or color_expr.get(
+            "circle-stroke-width",
+        )
+        if isinstance(stroke_width, (int, float)):
+            rules.append(
+                _make_constant_num_rule(
+                    ["stroke-width", "circle-stroke-width"],
+                    stroke_width,
+                ),
+            )
 
-    stroke_width = color_expr.get("stroke-width") or color_expr.get(
-        "circle-stroke-width",
-    )
-    if isinstance(stroke_width, int | float):
-        state["strokeWidth"] = stroke_width
+        radius = color_expr.get("circle-radius")
+        if isinstance(radius, (int, float)):
+            rules.append(_make_constant_num_rule(["circle-radius"], radius))
 
-    radius = color_expr.get("circle-radius")
-    if isinstance(radius, int | float):
-        state["radius"] = radius
-
-    if "circle-fill-color" in color_expr or "circle-radius" in color_expr:
-        state["geometryType"] = "circle"
-    elif "fill-color" in color_expr:
-        state["geometryType"] = "fill"
-    elif "stroke-color" in color_expr or "stroke-width" in color_expr:
-        state["geometryType"] = "line"
-
-    return state
+    return {
+        "layers": [{"id": str(uuid4()), "rules": rules}],
+    }
 
 
 class GISDocument(CommWidget):

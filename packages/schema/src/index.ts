@@ -1,4 +1,11 @@
 export * from './interfaces';
+export * from './grammar/types';
+export {
+  singleSymbolToGrammar,
+  graduatedToGrammar,
+  categorizedToGrammar,
+} from './grammar/grammarConversions';
+export type { SymbologyState } from './grammar/grammarConversions';
 export { migrateDocument } from './migrations';
 export * from './model';
 export * from './token';

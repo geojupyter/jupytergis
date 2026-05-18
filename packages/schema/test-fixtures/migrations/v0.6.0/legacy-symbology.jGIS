@@ -39,20 +39,74 @@
         "opacity": 1,
         "source": "source-id",
         "symbologyState": {
-          "fillColor": [
-            0.0,
-            255.0,
-            0.0,
-            1.0
-          ],
-          "geometryType": "circle",
-          "radius": 4.5,
-          "renderType": "Single Symbol",
-          "strokeColor": [
-            0.0,
-            0.0,
-            0.0,
-            1.0
+          "layers": [
+            {
+              "id": "test-uuid",
+              "rules": [
+                {
+                  "id": "test-uuid",
+                  "mappings": [
+                    {
+                      "scale": {
+                        "scheme": "constant_rgba",
+                        "params": {
+                          "value": [
+                            0.0,
+                            255.0,
+                            0.0,
+                            1.0
+                          ]
+                        }
+                      },
+                      "channels": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_rgba",
+                        "params": {
+                          "value": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        }
+                      },
+                      "channels": [
+                        "stroke-color",
+                        "circle-stroke-color"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_num",
+                        "params": {
+                          "value": 1.25
+                        }
+                      },
+                      "channels": [
+                        "stroke-width",
+                        "circle-stroke-width"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_num",
+                        "params": {
+                          "value": 4.5
+                        }
+                      },
+                      "channels": [
+                        "circle-radius"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
           ]
         }
       },
@@ -65,21 +119,75 @@
         "opacity": 1,
         "source": "source-id",
         "symbologyState": {
-          "fillColor": [
-            255.0,
-            0.0,
-            0.0,
-            1.0
-          ],
-          "geometryType": "fill",
-          "renderType": "Single Symbol",
-          "strokeColor": [
-            0.0,
-            0.0,
-            0.0,
-            1.0
-          ],
-          "strokeWidth": 2.0
+          "layers": [
+            {
+              "id": "test-uuid",
+              "rules": [
+                {
+                  "id": "test-uuid",
+                  "mappings": [
+                    {
+                      "scale": {
+                        "scheme": "constant_rgba",
+                        "params": {
+                          "value": [
+                            255.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        }
+                      },
+                      "channels": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_rgba",
+                        "params": {
+                          "value": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        }
+                      },
+                      "channels": [
+                        "stroke-color",
+                        "circle-stroke-color"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_num",
+                        "params": {
+                          "value": 2.0
+                        }
+                      },
+                      "channels": [
+                        "stroke-width",
+                        "circle-stroke-width"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_num",
+                        "params": {
+                          "value": 5
+                        }
+                      },
+                      "channels": [
+                        "circle-radius"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       },
       "type": "VectorLayer",
@@ -91,15 +199,75 @@
         "opacity": 1,
         "source": "source-id",
         "symbologyState": {
-          "geometryType": "line",
-          "renderType": "Single Symbol",
-          "strokeColor": [
-            0.0,
-            0.0,
-            255.0,
-            1.0
-          ],
-          "strokeWidth": 1.5
+          "layers": [
+            {
+              "id": "test-uuid",
+              "rules": [
+                {
+                  "id": "test-uuid",
+                  "mappings": [
+                    {
+                      "scale": {
+                        "scheme": "constant_rgba",
+                        "params": {
+                          "value": [
+                            255,
+                            255,
+                            255,
+                            0.4
+                          ]
+                        }
+                      },
+                      "channels": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_rgba",
+                        "params": {
+                          "value": [
+                            0.0,
+                            0.0,
+                            255.0,
+                            1.0
+                          ]
+                        }
+                      },
+                      "channels": [
+                        "stroke-color",
+                        "circle-stroke-color"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_num",
+                        "params": {
+                          "value": 1.5
+                        }
+                      },
+                      "channels": [
+                        "stroke-width",
+                        "circle-stroke-width"
+                      ]
+                    },
+                    {
+                      "scale": {
+                        "scheme": "constant_num",
+                        "params": {
+                          "value": 5
+                        }
+                      },
+                      "channels": [
+                        "circle-radius"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       },
       "type": "VectorLayer",
