@@ -24,7 +24,7 @@ jobs:
         uses: jupyterlab/maintainer-tools/.github/actions/base-setup@f5d710df1483f19b666dd96aeabbe949a53642c2 # v1
 
       - name: Check Release
-        uses: jupyter-server/jupyter_releaser/.github/actions/check-release@3e74486d1011d24cd5e9977202fd349dece0db9c # v2
+        uses: jupyter-server/jupyter_releaser/.github/actions/check-release@f1cb16e30ea64b0c39609ba8000f571e1f81f20f # v1.11.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version_spec: next
