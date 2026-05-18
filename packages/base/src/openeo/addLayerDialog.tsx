@@ -26,7 +26,6 @@ export interface IOpenEODialogResult {
 
 interface IBodyState {
   layerName: string;
-  serverUrl: string;
   templateId: string;
   params: IOpenEOTemplateParams;
   // When non-null, the user has hand-edited the graph and we use this
@@ -37,8 +36,8 @@ interface IBodyState {
 interface IFormProps {
   initial: IBodyState;
   /**
-   * Shared, mutable connection info. `serverUrl` edits update `url`; the
-   * `connect` helper populates `authBearer` once the user authenticates.
+   * An already-established connection to the OpenEO server. The caller
+   * connects (and signs in) before opening the dialog.
    */
   connectionInfo: IOpenEOConnectionInfo;
   onChange: (next: IBodyState) => void;
@@ -221,10 +220,6 @@ const Form: React.FC<IFormProps> = ({
     state: 'idle',
   });
   React.useEffect(() => {
-    if (!state.serverUrl) {
-      setValidation({ state: 'idle' });
-      return;
-    }
     let cancelled = false;
     const handle = window.setTimeout(async () => {
       if (cancelled) {
@@ -256,7 +251,7 @@ const Form: React.FC<IFormProps> = ({
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [effectiveGraphJson, state.serverUrl, connectionInfo]);
+  }, [effectiveGraphJson, connectionInfo]);
 
   React.useEffect(() => {
     onValidationChange(validation.state === 'valid');
@@ -267,10 +262,6 @@ const Form: React.FC<IFormProps> = ({
   // panel already populated the cache.
   const [catalog, setCatalog] = React.useState<IBackendCatalog | null>(null);
   React.useEffect(() => {
-    if (!state.serverUrl) {
-      setCatalog(null);
-      return;
-    }
     let cancelled = false;
     setCatalog(null);
     fetchBackendCatalog(connectionInfo)
@@ -284,7 +275,7 @@ const Form: React.FC<IFormProps> = ({
           return;
         }
         Notification.warning(
-          `OpenEO: couldn't load process/collection catalog from ${state.serverUrl}. The graph editor will still work, but ports won't be type-labeled.`,
+          `OpenEO: couldn't load the process/collection catalog from ${connectionInfo.url}. The graph editor will still work, but ports won't be type-labeled.`,
           { autoClose: 4000 },
         );
         // eslint-disable-next-line no-console
@@ -293,7 +284,7 @@ const Form: React.FC<IFormProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [state.serverUrl, connectionInfo]);
+  }, [connectionInfo]);
 
   return (
     <div className="jp-openeo-dialog">
@@ -309,19 +300,12 @@ const Form: React.FC<IFormProps> = ({
             />
           </label>
           <label className="jp-openeo-field">
-            <span>Server URL</span>
+            <span>Server</span>
             <input
               type="text"
-              placeholder="https://openeo.example.org"
-              value={state.serverUrl}
-              onChange={e => {
-                const v = e.target.value;
-                // Keep the shared connection info in sync; a new server
-                // means any previously acquired token no longer applies.
-                connectionInfo.url = v;
-                connectionInfo.authBearer = undefined;
-                update({ serverUrl: v });
-              }}
+              value={connectionInfo.url ?? ''}
+              readOnly
+              title="Connected OpenEO server"
             />
           </label>
         </section>
@@ -607,12 +591,12 @@ class AddLayerBody extends ReactWidget {
     const template = OPENEO_TEMPLATES.find(
       t => t.id === this._state.templateId,
     );
-    if (!template || !this._state.serverUrl) {
+    if (!template || !this._connectionInfo.url) {
       return null;
     }
     return {
       layerName: this._state.layerName || template.name,
-      serverUrl: this._state.serverUrl,
+      serverUrl: this._connectionInfo.url,
       authBearer: this._connectionInfo.authBearer,
       processGraph:
         this._state.editedGraph ?? template.buildGraph(this._state.params),
@@ -623,10 +607,12 @@ class AddLayerBody extends ReactWidget {
 }
 
 export interface IOpenEODialogOptions {
-  /** Pre-fill server URL (e.g. when editing an existing layer). */
-  serverUrl?: string;
-  /** Pre-fill the session bearer token. */
-  authBearer?: string;
+  /**
+   * An already-established connection to the OpenEO server. The caller is
+   * expected to `connect()` first (showing the sign-in dialog) so the
+   * layer dialog can load collections and validate graphs immediately.
+   */
+  connectionInfo: IOpenEOConnectionInfo;
   /** Pre-fill graph as a user edit (skips template fields' effect). */
   initialGraph?: Record<string, any>;
   /** Pre-fill layer name. */
@@ -638,25 +624,17 @@ export interface IOpenEODialogOptions {
 }
 
 export async function showAddOpenEOLayerDialog(
-  options: IOpenEODialogOptions = {},
+  options: IOpenEODialogOptions,
 ): Promise<IOpenEODialogResult | null> {
   const firstTemplate = OPENEO_TEMPLATES[0];
   const initial: IBodyState = {
     layerName: options.layerName ?? firstTemplate.name,
-    serverUrl: options.serverUrl ?? '',
     templateId: firstTemplate.id,
     params: { ...firstTemplate.defaults },
     editedGraph: options.initialGraph ?? null,
   };
 
-  // Shared, mutable connection info threaded through the form. The
-  // `connect` helper populates `authBearer` after the user signs in.
-  const connectionInfo: IOpenEOConnectionInfo = {
-    url: options.serverUrl,
-    authBearer: options.authBearer,
-  };
-
-  const body = new AddLayerBody(initial, connectionInfo, _valid => {
+  const body = new AddLayerBody(initial, options.connectionInfo, _valid => {
     // Validation feedback is inline; we don't gate accept yet.
   });
 

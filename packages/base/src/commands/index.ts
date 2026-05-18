@@ -31,6 +31,10 @@ import {
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import keybindings from '../keybindings.json';
+import {
+  connect as openEOConnect,
+  IOpenEOConnectionInfo,
+} from '../mainview/OpenEOTileLayer';
 import { showAddOpenEOLayerDialog } from '../openeo';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
@@ -608,7 +612,16 @@ export function addCommands(
       if (!current) {
         return;
       }
-      const result = await showAddOpenEOLayerDialog();
+      // Connect (and sign in) before opening the dialog so collections,
+      // validation and the graph editor can talk to the server.
+      const connectionInfo: IOpenEOConnectionInfo = {};
+      try {
+        await openEOConnect(connectionInfo);
+      } catch {
+        // `connect` already surfaced the error / the user cancelled.
+        return;
+      }
+      const result = await showAddOpenEOLayerDialog({ connectionInfo });
       if (!result) {
         return;
       }
@@ -672,11 +685,21 @@ export function addCommands(
         authBearer?: string;
         processGraph?: Record<string, any>;
       };
+      // Reconnect to the layer's server before editing. `connect` reuses
+      // the cached connection when the server is already authenticated.
+      const connectionInfo: IOpenEOConnectionInfo = {
+        url: sourceParams.serverUrl,
+        authBearer: sourceParams.authBearer,
+      };
+      try {
+        await openEOConnect(connectionInfo);
+      } catch {
+        return;
+      }
       const result = await showAddOpenEOLayerDialog({
         title: 'Edit OpenEO Layer',
         okLabel: 'Save',
-        serverUrl: sourceParams.serverUrl,
-        authBearer: sourceParams.authBearer,
+        connectionInfo,
         initialGraph: sourceParams.processGraph,
         layerName: layer.name,
       });

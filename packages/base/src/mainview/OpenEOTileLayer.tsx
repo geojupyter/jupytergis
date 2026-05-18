@@ -199,6 +199,10 @@ export async function connect(
 
     CONNECTIONS[url] = connection;
 
+    // Reflect the resolved server url back so callers (e.g. the layer
+    // creation dialog) can persist it alongside the bearer token.
+    connectionInfo.url = url;
+
     return connection;
   } catch (error) {
     showErrorMessage(errorTitle, `${error}`);
