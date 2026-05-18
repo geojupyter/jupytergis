@@ -33,7 +33,7 @@ jobs:
 
       - name: Prep Release
         id: prep-release
-        uses: jupyter-server/jupyter_releaser/.github/actions/prep-release@3e74486d1011d24cd5e9977202fd349dece0db9c # v2
+        uses: jupyter-server/jupyter_releaser/.github/actions/prep-release@f1cb16e30ea64b0c39609ba8000f571e1f81f20f # v1.11.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version_spec: ${{ github.event.inputs.version_spec }}

@@ -354,53 +354,78 @@ export async function rasterizeLayer(
 
   const outputName = 'output.tif';
 
-  let tiffBytes: Uint8Array;
+  const doRasterize = async (): Promise<Uint8Array> => {
+    if (isServerProcessingEnabled()) {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const response = await runServerProcessing({
+        operation: gdalFunction,
+        options,
+        geojson: geojsonString,
+        outputName,
+      });
+      if (response.format !== 'base64') {
+        throw new Error('Expected base64 response for raster output');
+      }
+      const binary = atob(response.result);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      console.debug(
+        `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    } else {
+      console.debug(
+        `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
+      );
+      const t0 = performance.now();
+      const geoFile = new File(
+        [new Blob([geojsonString], { type: 'application/geo+json' })],
+        'data.geojson',
+        { type: 'application/geo+json' },
+      );
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+      const dataset = result.datasets[0] as any;
+      const outputFilePath = await (Gdal as any)[gdalFunction](
+        dataset,
+        options,
+        outputName,
+      );
+      const bytes = await Gdal.getFileBytes(outputFilePath);
+      Gdal.close(dataset);
+      console.debug(
+        `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    }
+  };
 
-  if (isServerProcessingEnabled()) {
-    console.debug(
-      `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
-    );
-    const t0 = performance.now();
-    const response = await runServerProcessing({
-      operation: gdalFunction,
-      options,
-      geojson: geojsonString,
-      outputName,
-    });
-    if (response.format !== 'base64') {
-      throw new Error('Expected base64 response for raster output');
-    }
-    const binary = atob(response.result);
-    tiffBytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      tiffBytes[i] = binary.charCodeAt(i);
-    }
-    console.debug(
-      `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
-    );
-  } else {
-    console.debug(
-      `[JupyterGIS] Processing "${processingType}" via BROWSER WASM GDAL (${gdalFunction})`,
-    );
-    const t0 = performance.now();
-    const geoFile = new File(
-      [new Blob([geojsonString], { type: 'application/geo+json' })],
-      'data.geojson',
-      { type: 'application/geo+json' },
-    );
-    const Gdal = await getGdal();
-    const result = await Gdal.open(geoFile);
-    const dataset = result.datasets[0] as any;
-    const outputFilePath = await (Gdal as any)[gdalFunction](
-      dataset,
-      options,
-      outputName,
-    );
-    tiffBytes = await Gdal.getFileBytes(outputFilePath);
-    Gdal.close(dataset);
-    console.debug(
-      `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
-    );
+  const rasterizePromise = doRasterize();
+  Notification.promise(
+    rasterizePromise.then(() => null),
+    {
+      pending: { message: 'Rasterizing…', options: { autoClose: false } },
+      success: {
+        message: () => `${processingType} completed.`,
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) =>
+          `${processingType} failed: ${err?.message ?? err}`,
+      },
+    },
+  );
+
+  let tiffBytes: Uint8Array;
+  try {
+    tiffBytes = await rasterizePromise;
+  } catch {
+    return;
   }
 
   const base64Content = await new Promise<string>((resolve, reject) => {
@@ -1107,12 +1132,12 @@ export async function executeSQLProcessing(
       );
       const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);
       const processedBytes = await Gdal.getFileBytes(outputFilePath);
-      const result2 = new TextDecoder().decode(processedBytes);
+      const output = new TextDecoder().decode(processedBytes);
       Gdal.close(dataset);
       console.debug(
         `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
       );
-      return result2;
+      return output;
     }
   };
 
