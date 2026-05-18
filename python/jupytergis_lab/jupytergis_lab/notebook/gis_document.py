@@ -898,7 +898,7 @@ class GISDocument(CommWidget):
             See the [rio-tiler docs](https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/colormap/#rio_tiler.colormap.ColorMaps.list)
             for details.
         :param colormap_range: The range of data values `(min, max)` to be colormapped
-        :param opacity: The layer's opacity
+        :param opacity: The opacity, between 0 and 1
         :param tile_dim_scale: Tile dimension scale. Default `1` corresponds to 256*256px tiles
         :param algorithm: A TiTiler algorithm class.
             See the [TiTiler algorithm docs](https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm)
