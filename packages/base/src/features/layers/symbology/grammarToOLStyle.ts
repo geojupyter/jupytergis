@@ -37,6 +37,96 @@ import {
 // the actual OL HeatmapLayer instantiation happens outside this compiler.
 export const DENSITY_FIELD = '$density';
 
+/** Pseudo-field produced by a bin transform — ignored by OL (no per-feature aggregate). */
+const COUNT_FIELD = '$count';
+
+/** Pseudo-field produced by a bin transform — maps feature values to bin centers. */
+const BINNED_FIELD = '$binned';
+
+// ---------------------------------------------------------------------------
+// Bin expression compiler
+// ---------------------------------------------------------------------------
+
+/**
+ * Compile an OL case expression that maps an original numeric field to bin
+ * centers using equal-interval breaks computed from feature values.
+ *
+ *   case(
+ *     between(get('mag'), 0, 2), 1,
+ *     between(get('mag'), 2, 4), 3,
+ *     ...,
+ *     last_center    // else
+ *   )
+ */
+function compileBinFieldExpr(
+  originalField: string,
+  bins: number,
+  featureValues: unknown[],
+): ExpressionValue {
+  const numeric = featureValues.map(v => Number(v)).filter(v => !isNaN(v));
+
+  if (numeric.length === 0 || bins < 1) {
+    return ['get', originalField];
+  }
+
+  const min = Math.min(...numeric);
+  const max = Math.max(...numeric);
+
+  if (min === max) {
+    return min as ExpressionValue;
+  }
+
+  const binWidth = (max - min) / bins;
+  const parts: ExpressionValue[] = [];
+
+  for (let i = 0; i < bins; i++) {
+    const lo = min + i * binWidth;
+    const hi = min + (i + 1) * binWidth;
+    const center = Math.round((lo + binWidth / 2) * 1e9) / 1e9;
+
+    parts.push(
+      [
+        'between',
+        ['get', originalField],
+        lo,
+        i === bins - 1 ? max + 1 : hi,
+      ] as ExpressionValue,
+      center as ExpressionValue,
+    );
+  }
+
+  return ['case', ...parts] as ExpressionValue;
+}
+
+/**
+ * Compute equal-interval bin center values from raw feature values.
+ * Used as the domain for scale compilation when $binned targets a color scale.
+ */
+function computeBinCenters(featureValues: unknown[], bins: number): number[] {
+  const numeric = featureValues.map(v => Number(v)).filter(v => !isNaN(v));
+
+  if (numeric.length === 0 || bins < 1) {
+    return [];
+  }
+
+  const min = Math.min(...numeric);
+  const max = Math.max(...numeric);
+
+  if (min === max) {
+    return [min];
+  }
+
+  const binWidth = (max - min) / bins;
+  const centers: number[] = [];
+
+  for (let i = 0; i < bins; i++) {
+    const lo = min + i * binWidth;
+    centers.push(Math.round((lo + binWidth / 2) * 1e9) / 1e9);
+  }
+
+  return centers;
+}
+
 // ---------------------------------------------------------------------------
 // Field expression helpers
 // ---------------------------------------------------------------------------
@@ -99,6 +189,13 @@ export function grammarToOLStyle(
       continue;
     }
 
+    // Detect bin transform for $binned pseudo-field resolution.
+    const binTransform = layer.preprocess?.find(
+      t => (t as any).type === 'bin',
+    ) as any;
+    const binField = binTransform?.field;
+    const binCount: number | undefined = binTransform?.bins;
+
     // Layer-level guard: compiled separately then AND-ed with the rule guard.
     const layerGuard =
       layer.when && layer.when.length > 0
@@ -108,7 +205,24 @@ export function grammarToOLStyle(
     for (const rule of layer.rules) {
       // For now use the first field; multi-field assembly is handled via
       // sub-channel mappings (pixel-red/green/blue) or expression scales.
-      const field = rule.fields?.[0];
+      const rawField = rule.fields?.[0];
+
+      // $count is an aggregate — no per-feature OL equivalent. Skip.
+      if (rawField === COUNT_FIELD) {
+        continue;
+      }
+
+      // $binned: resolve to a case expression on the original field.
+      let field = rawField;
+      let fieldValues = featureValues;
+      let binExpression: ExpressionValue | undefined;
+      if (rawField === BINNED_FIELD && binField && binCount) {
+        field = binField;
+        // Compute bin centers as the domain for scale compilation.
+        fieldValues = computeBinCenters(featureValues, binCount);
+        // Expression that maps raw feature values to bin centers.
+        binExpression = compileBinFieldExpr(binField, binCount, featureValues);
+      }
       const ruleGuard =
         rule.when && rule.when.length > 0
           ? compileGuard(rule.when, rule.whenOp ?? 'all')
@@ -128,7 +242,13 @@ export function grammarToOLStyle(
               'pixel-green',
               'pixel-blue',
             ] as StyleChannel[]) {
-              const expr = compileMapping(field, mapping, featureValues, sub);
+              const expr = compileMapping(
+                field,
+                mapping,
+                fieldValues,
+                sub,
+                binExpression,
+              );
               const entries = accumulator.get(sub) ?? [];
               entries.push({ guard, expr });
               accumulator.set(sub, entries);
@@ -136,7 +256,13 @@ export function grammarToOLStyle(
           } else {
             // Compile per-channel so sub-channels (pixel-red/green/blue) can each
             // extract the correct component from a colorRamp or other color scale.
-            const expr = compileMapping(field, mapping, featureValues, channel);
+            const expr = compileMapping(
+              field,
+              mapping,
+              fieldValues,
+              channel,
+              binExpression,
+            );
             const entries = accumulator.get(channel) ?? [];
             entries.push({ guard, expr });
             accumulator.set(channel, entries);
@@ -334,16 +460,23 @@ function compileMapping(
   mapping: IMapping,
   featureValues: unknown[],
   channel: StyleChannel,
+  fieldExpression?: ExpressionValue,
 ): ExpressionValue {
   const { scale } = mapping;
   switch (scale.scheme) {
     case 'colorRamp':
       return field
-        ? compileColorRamp(field, scale, featureValues, channel)
+        ? compileColorRamp(
+            field,
+            scale,
+            featureValues,
+            channel,
+            fieldExpression,
+          )
         : scale.params.fallback;
     case 'categorical':
       return field
-        ? compileCategorical(field, scale, featureValues)
+        ? compileCategorical(field, scale, featureValues, fieldExpression)
         : scale.params.fallback;
     case 'expression':
       // Expression scale is not yet implemented; fall back to channel zero.
@@ -355,7 +488,9 @@ function compileMapping(
     case 'constant_num':
       return scale.params.value as ExpressionValue;
     case 'scalar':
-      return field ? compileScalar(field, scale) : scale.params.fallback;
+      return field
+        ? compileScalar(field, scale, fieldExpression)
+        : scale.params.fallback;
     case 'identity': {
       if (!field) {
         return channelZero(mapping.channels[0]);
@@ -375,10 +510,11 @@ function compileMapping(
       const typedFallback: ExpressionValue = isColorChannel
         ? ([0, 0, 0, 0] as ExpressionValue)
         : 0;
-      if (fieldAlwaysPresent(field)) {
-        return fieldExpr(field);
+      const expr = fieldExpression ?? fieldExpr(field ?? '');
+      if (fieldAlwaysPresent(field ?? '')) {
+        return expr;
       }
-      return ['coalesce', fieldExpr(field), typedFallback] as ExpressionValue;
+      return ['coalesce', expr, typedFallback] as ExpressionValue;
     }
   }
 }
@@ -400,6 +536,7 @@ function compileColorRamp(
   scale: IColorRampScale,
   featureValues: unknown[],
   channel?: StyleChannel,
+  fieldExpression?: ExpressionValue,
 ): ExpressionValue {
   const stops = resolveColorStops(scale, featureValues);
 
@@ -417,7 +554,7 @@ function compileColorRamp(
   const interpolateExpr: ExpressionValue[] = [
     'interpolate',
     ['linear'],
-    fieldExpr(field),
+    fieldExpression ?? fieldExpr(field),
   ];
 
   if (componentIdx !== undefined) {
@@ -489,6 +626,7 @@ function compileCategorical(
   field: string,
   scale: ICategoricalScale,
   featureValues: unknown[],
+  fieldExpression?: ExpressionValue,
 ): ExpressionValue {
   let stops: Array<{ value: unknown; color: unknown }>;
 
@@ -514,7 +652,11 @@ function compileCategorical(
   const caseExpr: ExpressionValue[] = ['case'];
   for (const stop of stops) {
     caseExpr.push(
-      ['==', fieldExpr(field), stop.value as ExpressionValue],
+      [
+        '==',
+        fieldExpression ?? fieldExpr(field),
+        stop.value as ExpressionValue,
+      ],
       stop.color as ExpressionValue,
     );
   }
@@ -530,12 +672,13 @@ function compileCategorical(
  *     ['interpolate', ['linear'], ['get', field], stop0, out0, ...],
  *     fallback]
  */
-function compileScalar(field: string, scale: IScalarScale): ExpressionValue {
-  const interpolateExpr: ExpressionValue[] = [
-    'interpolate',
-    ['linear'],
-    fieldExpr(field),
-  ];
+function compileScalar(
+  field: string,
+  scale: IScalarScale,
+  fieldExpression?: ExpressionValue,
+): ExpressionValue {
+  const expr = fieldExpression ?? fieldExpr(field);
+  const interpolateExpr: ExpressionValue[] = ['interpolate', ['linear'], expr];
 
   if (scale.params.scalarStops && scale.params.scalarStops.length >= 2) {
     for (const { stop, output } of scale.params.scalarStops) {
