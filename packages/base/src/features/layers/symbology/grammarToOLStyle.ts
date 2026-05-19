@@ -25,6 +25,7 @@ import {
   UNormChannel,
 } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
+import { vega2ol } from 'vega2ol';
 
 import {
   computeCategorizedColorStops,
@@ -346,11 +347,9 @@ function compileMapping(
         ? compileCategorical(field, scale, featureValues)
         : scale.params.fallback;
     case 'expression':
-      // Expression scale is not yet implemented; fall back to channel zero.
-      console.warn(
-        '[grammarToOLStyle] expression scale is not yet implemented',
-      );
-      return channelZero(mapping.channels[0]);
+      return scale.params.expr
+        ? vega2ol(scale.params.expr)
+        : scale.params.fallback;
     case 'constant_rgba':
     case 'constant_num':
       return scale.params.value as ExpressionValue;

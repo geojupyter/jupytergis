@@ -9,6 +9,7 @@ import {
   IColorRampScale,
   IConstantNumScale,
   IConstantRGBAScale,
+  IExpressionScale,
   IScale,
   IScalarScale,
   RGBA,
@@ -367,6 +368,63 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
           setStopRows={handleStopRowsChange}
         />
       )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Expression editor
+// ---------------------------------------------------------------------------
+
+interface IExpressionEditorProps {
+  scale: IExpressionScale;
+  onChange: (scale: IScale) => void;
+}
+
+export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
+  scale,
+  onChange,
+}) => {
+  const { params } = scale;
+
+  const update = useCallback(
+    (patch: Partial<IExpressionScale['params']>) =>
+      onChange({ scheme: 'expression', params: { ...params, ...patch } }),
+    [params, onChange],
+  );
+
+  return (
+    <div className="jp-gis-color-ramp-container">
+      <div className="jp-gis-symbology-row">
+        <label>Expression</label>
+        <textarea
+          className="jp-mod-styled"
+          value={params.expr}
+          placeholder="datum.code > 80 ? 'red' : 'blue'"
+          onChange={e => update({ expr: e.target.value })}
+          style={{
+            flex: '1 1 auto',
+            minHeight: 64,
+            resize: 'vertical',
+          }}
+        />
+      </div>
+
+      <div className="jp-gis-symbology-row">
+        <label>Fallback</label>
+        {Array.isArray(params.fallback) ? (
+          <RgbaColorPicker
+            color={params.fallback as RgbaColor}
+            onChange={color => update({ fallback: color as RGBA })}
+          />
+        ) : (
+          <NumericInput
+            className="jp-mod-styled"
+            value={params.fallback}
+            onChange={v => update({ fallback: v })}
+          />
+        )}
+      </div>
     </div>
   );
 };
