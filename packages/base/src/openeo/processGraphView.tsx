@@ -1,6 +1,13 @@
 import { Notification } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+// KNOWN LIMITATION: the openEO ModelBuilder is loaded from a CDN at runtime.
+// `@openeo/vue-components` ships a Vue CLI `wc-async` build (an entry file plus
+// ~150 sibling chunks loaded relative to its own script URL), so it cannot be
+// cleanly `import`ed through JupyterLab's webpack build. As a result the graph
+// editor needs network access and does not work offline / in JupyterLite.
+// Potential Follow-up: vendor the prebuilt `assets/` folder into the extension's
+// static files and load it from a local URL instead.
 const VUE_COMPONENTS_VERSION = '2.23.3';
 const BUNDLE_URL = `https://cdn.jsdelivr.net/npm/@openeo/vue-components@${VUE_COMPONENTS_VERSION}/assets/openeo.js`;
 
