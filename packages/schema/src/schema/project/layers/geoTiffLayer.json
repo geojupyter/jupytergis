@@ -56,7 +56,7 @@
           "type": "array",
           "description": "Grammar rendering layers.",
           "items": {
-            "$ref": "project/symbology.json#/definitions/_IGrammarLayer"
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
           }
         },
         "renderType": {
