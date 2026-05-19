@@ -45,8 +45,38 @@ const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 /**
  * The last OpenEO server the user successfully signed in to, reused when
  * creating further layers so they don't have to re-enter credentials.
+ * In-memory only — never persisted; cleared on reload.
  */
 let _lastOpenEOConnection: IOpenEOConnectionInfo | null = null;
+
+/**
+ * Recover an OpenEO connection from a layer already in the document.
+ *
+ * The bearer token lives on the OpenEO source in the .jGIS file, so after a
+ * reload (which clears the in-memory session) we can still re-authenticate
+ * silently instead of prompting. This only reads what the document already
+ * stores; it introduces no new credential storage.
+ */
+function findExistingOpenEOConnection(
+  model: IJupyterGISModel,
+): IOpenEOConnectionInfo | null {
+  const layers = model.sharedModel.layers ?? {};
+  for (const layer of Object.values(layers)) {
+    if (layer?.type !== 'OpenEOTileLayer') {
+      continue;
+    }
+    const sourceId = (layer.parameters as any)?.source as string | undefined;
+    const source = sourceId ? model.getSource(sourceId) : undefined;
+    const params = (source?.parameters ?? {}) as {
+      serverUrl?: string;
+      authBearer?: string;
+    };
+    if (params.serverUrl) {
+      return { url: params.serverUrl, authBearer: params.authBearer };
+    }
+  }
+  return null;
+}
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -623,9 +653,14 @@ export function addCommands(
       // last successful session so the user only signs in once: passing a
       // known url + bearer lets `connect` reuse the cached connection (or
       // re-authenticate silently with the token) instead of prompting.
-      const connectionInfo: IOpenEOConnectionInfo = {
-        ...(_lastOpenEOConnection ?? {}),
-      };
+      //
+      // After a hard reload the in-memory session is gone, so fall back to
+      // a token already persisted on an existing OpenEO layer in this
+      // document. This only reads credentials the document already holds —
+      // it is not written anywhere new.
+      const seed =
+        _lastOpenEOConnection ?? findExistingOpenEOConnection(current.model);
+      const connectionInfo: IOpenEOConnectionInfo = { ...(seed ?? {}) };
       try {
         await openEOConnect(connectionInfo);
       } catch {
