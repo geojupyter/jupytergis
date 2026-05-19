@@ -1765,9 +1765,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // actual data instead of an empty array.
     const srcId = layerParams?.source;
     const olSrc = srcId ? this._sources[srcId] : null;
-    const allRows: Record<string, unknown>[] = olSrc
-      ? sourceToRows(getVectorSource(olSrc))
-      : [];
+    // sourceToRows works directly on any object with forEachFeature
+    // (VectorSource, Cluster source, etc.)
+    const allRows: Record<string, unknown>[] = sourceToRows(olSrc);
 
     // Determine which field to extract values for (bin field > first rule field).
     const grammarState = ss as IGrammarSymbologyState;
