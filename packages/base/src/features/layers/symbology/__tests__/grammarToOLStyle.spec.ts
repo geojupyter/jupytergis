@@ -657,3 +657,149 @@ describe('grammarToOLStyle — OL runtime parsing', () => {
     ).not.toThrow();
   });
 });
+
+// ---------------------------------------------------------------------------
+// OL runtime evaluation — validates semantics, not just parsing
+// ---------------------------------------------------------------------------
+
+describe('grammarToOLStyle — OL runtime evaluation', () => {
+  let buildExpression: (
+    encoded: unknown,
+    type: number,
+    context: unknown,
+  ) => (ctx: Record<string, unknown>) => unknown;
+  let newEvalCtx: () => {
+    properties: Record<string, unknown>;
+    variables: Record<string, unknown>;
+    resolution: number;
+    featureId: unknown;
+    geometryType: string;
+  };
+  let newParseCtx: () => unknown;
+  let NumberType: number;
+  let ColorType: number;
+
+  beforeAll(() => {
+    jest.unmock('ol/expr/expression');
+    const expr = jest.requireActual('ol/expr/expression');
+    const cpu = jest.requireActual('ol/expr/cpu');
+    buildExpression = cpu.buildExpression;
+    newEvalCtx = cpu.newEvaluationContext;
+    newParseCtx = expr.newParsingContext;
+    NumberType = expr.NumberType;
+    ColorType = expr.ColorType;
+  });
+
+  /** Helper: evaluate an expression against a feature's properties. */
+  function evaluate(
+    encoded: any,
+    type: number,
+    props: Record<string, unknown>,
+  ) {
+    const evaluator = buildExpression(encoded, type, newParseCtx());
+    const ctx = newEvalCtx();
+    ctx.properties = props;
+    return evaluator(ctx);
+  }
+
+  it('compileBinFieldExpr maps values to correct bin centres', () => {
+    // Simulates bins=3, field='mag', values=[1,2,3,4,5,6]
+    const binExpr = [
+      'case',
+      ['between', ['get', 'mag'], 1, 2.67],
+      1.835,
+      ['between', ['get', 'mag'], 2.67, 4.34],
+      3.505,
+      ['between', ['get', 'mag'], 4.34, 7],
+      5.175,
+      5.175,
+    ];
+    expect(evaluate(binExpr, NumberType, { mag: 2 })).toBe(1.835);
+    expect(evaluate(binExpr, NumberType, { mag: 4 })).toBe(3.505);
+    expect(evaluate(binExpr, NumberType, { mag: 6 })).toBe(5.175);
+    // Below range returns fallback
+    expect(evaluate(binExpr, NumberType, { mag: 0 })).toBe(5.175);
+  });
+
+  it('bin + colorRamp interpolate returns correct colours', () => {
+    const binExpr = [
+      'case',
+      ['between', ['get', 'mag'], 1, 3],
+      2,
+      ['between', ['get', 'mag'], 3, 5],
+      4,
+      ['between', ['get', 'mag'], 5, 8],
+      6.5,
+      6.5,
+    ];
+    const interpExpr: any = [
+      'interpolate',
+      ['linear'],
+      binExpr,
+      2,
+      [0, 0, 255, 1],
+      4,
+      [0, 255, 0, 1],
+      6.5,
+      [255, 0, 0, 1],
+    ];
+
+    // mag=2 maps to bin centre 2 → blue
+    const low = evaluate(interpExpr, ColorType, { mag: 2 });
+    expect(low).toEqual([0, 0, 255, 1]);
+
+    // mag=4 maps to bin centre 4 → green
+    const mid = evaluate(interpExpr, ColorType, { mag: 4 });
+    expect(mid).toEqual([0, 255, 0, 1]);
+
+    // mag=7 maps to bin centre 6.5 → red
+    const high = evaluate(interpExpr, ColorType, { mag: 7 });
+    expect(high).toEqual([255, 0, 0, 1]);
+  });
+
+  it('bin + scalar interpolate returns correct numeric sizes', () => {
+    const binExpr = [
+      'case',
+      ['between', ['get', 'mag'], 1, 3],
+      2,
+      ['between', ['get', 'mag'], 3, 6],
+      4.5,
+      4.5,
+    ];
+    const interpExpr: any = ['interpolate', ['linear'], binExpr, 2, 1, 4.5, 10];
+
+    // mag=2 → bin centre 2 → low output
+    expect(evaluate(interpExpr, NumberType, { mag: 2 })).toBe(1);
+    // mag=4.5 → bin centre 4.5 → high output
+    expect(evaluate(interpExpr, NumberType, { mag: 4.5 })).toBe(10);
+  });
+
+  it('wrapped case(has(field), interpolate, fallback) evaluates correctly', () => {
+    const binExpr = [
+      'case',
+      ['between', ['get', 'mag'], 1, 4],
+      2.5,
+      ['between', ['get', 'mag'], 4, 8],
+      6,
+      6,
+    ];
+    const interp: any = [
+      'interpolate',
+      ['linear'],
+      binExpr,
+      2.5,
+      [0, 0, 255, 1],
+      6,
+      [255, 0, 0, 1],
+    ];
+    const wrapped: any = ['case', ['has', 'mag'], interp, [0, 0, 0, 0]];
+
+    // Feature has mag → use interpolate
+    const color = evaluate(wrapped, ColorType, { mag: 2.5 });
+    expect(color).toEqual([0, 0, 255, 1]);
+
+    // Feature lacks mag → fallback
+    const fb = evaluate(wrapped, ColorType, { noMag: 1 });
+    expect(fb).toEqual([0, 0, 0, 0]);
+  });
+});
