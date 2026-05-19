@@ -1715,7 +1715,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         // const shouldZoom = Boolean(
         //   this.state.initialLayersReady && newLayerExtent,
         // );
-        const shouldZoom = Boolean(this.state.initialLayersReady);
+        // OpenEO tile layers have a full-globe extent; auto-zooming to it
+        // zooms all the way out and the backend fails to render such a huge
+        // area. Keep the current view instead.
+        const shouldZoom =
+          Boolean(this.state.initialLayersReady) &&
+          layer.type !== 'OpenEOTileLayer';
         this._trackLayerViewState(id, newMapLayer, shouldZoom);
 
         // doing +1 instead of calling method again
