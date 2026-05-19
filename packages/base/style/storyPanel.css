@@ -213,7 +213,6 @@
   position: absolute;
   inset: 0;
   z-index: 5;
-  background-color: var(--jp-layout-color0);
   overflow: hidden;
   padding: 0;
 }
@@ -229,10 +228,28 @@
   inset: 0;
   overflow: hidden;
   will-change: transform;
+  background-color: var(--jp-layout-color0);
   border-bottom: 1px solid red;
 }
 
+.jgis-story-markdown-scroll-pane[data-pane='from']:not(
+    .jgis-story-markdown-scroll-pane--inactive
+  ) {
+  transform: translateY(
+    calc(var(--jgis-scroll-drive-progress, 0) * -100vh)
+  );
+}
+
+.jgis-story-markdown-scroll-pane[data-pane='to']:not(
+    .jgis-story-markdown-scroll-pane--inactive
+  ) {
+  transform: translateY(
+    calc((1 - var(--jgis-scroll-drive-progress, 0)) * 100vh)
+  );
+}
+
 .jgis-story-markdown-scroll-pane--inactive {
+  transform: translateY(100vh);
   pointer-events: none;
   visibility: hidden;
 }

@@ -9,12 +9,9 @@ export interface IListStoryScrollDriveOverlayProps {
   drive: IListStoryScrollDrivePayload | null;
 }
 
-const OFFSCREEN_TRANSLATE_Y = '100vh';
-
 interface IScrollDrivePaneConfig {
   markdown: string;
   inactive: boolean;
-  translateY: string;
 }
 
 function getStoryMarkdownForIndex(
@@ -40,50 +37,24 @@ function getScrollDrivePaneConfigs(
   fromMarkdown: string,
   toMarkdown: string,
 ): { from: IScrollDrivePaneConfig; to: IScrollDrivePaneConfig } | null {
-  const p = drive.progress;
-
   if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
     return {
-      from: {
-        markdown: fromMarkdown,
-        inactive: false,
-        translateY: `${-p * 100}vh`,
-      },
-      to: {
-        markdown: toMarkdown,
-        inactive: false,
-        translateY: `${(1 - p) * 100}vh`,
-      },
+      from: { markdown: fromMarkdown, inactive: false },
+      to: { markdown: toMarkdown, inactive: false },
     };
   }
 
   if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
     return {
-      from: {
-        markdown: '',
-        inactive: true,
-        translateY: OFFSCREEN_TRANSLATE_Y,
-      },
-      to: {
-        markdown: toMarkdown,
-        inactive: false,
-        translateY: `${(1 - p) * 100}vh`,
-      },
+      from: { markdown: '', inactive: true },
+      to: { markdown: toMarkdown, inactive: false },
     };
   }
 
   if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
     return {
-      from: {
-        markdown: fromMarkdown,
-        inactive: false,
-        translateY: `${-p * 100}vh`,
-      },
-      to: {
-        markdown: '',
-        inactive: true,
-        translateY: OFFSCREEN_TRANSLATE_Y,
-      },
+      from: { markdown: fromMarkdown, inactive: false },
+      to: { markdown: '', inactive: true },
     };
   }
 
@@ -104,12 +75,7 @@ function ScrollDrivePane({
     : 'jgis-story-markdown-scroll-pane';
 
   return (
-    <div
-      data-pane={pane}
-      className={className}
-      style={{ transform: `translateY(${config.translateY})` }}
-      aria-hidden={config.inactive}
-    >
+    <div data-pane={pane} className={className} aria-hidden={config.inactive}>
       <div className="jgis-story-markdown-overlay-content">
         {config.markdown ? <Markdown>{config.markdown}</Markdown> : null}
       </div>
@@ -140,7 +106,12 @@ export function ListStoryScrollDriveOverlay({
   return (
     <div
       key="list-scroll-drive"
-      className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
+      className="jgis-story-markdown-overlay"
+      style={
+        {
+          '--jgis-scroll-drive-progress': drive.progress,
+        } as React.CSSProperties
+      }
     >
       <ScrollDrivePane pane="from" config={paneConfigs.from} />
       <ScrollDrivePane pane="to" config={paneConfigs.to} />
