@@ -24,7 +24,6 @@
         "pixel-color"
       ]
     },
-
     "UInt8Channel": {
       "type": "string",
       "enum": [
@@ -36,17 +35,14 @@
         "pixel-blue"
       ]
     },
-
     "UNormChannel": {
       "type": "string",
       "enum": ["fill-alpha", "pixel-alpha"]
     },
-
     "VirtualChannel": {
       "type": "string",
       "enum": ["pixel-rgb"]
     },
-
     "PosFloatChannel": {
       "type": "string",
       "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
@@ -59,6 +55,10 @@
         { "$ref": "#/definitions/VirtualChannel" },
         { "$ref": "#/definitions/PosFloatChannel" }
       ]
+    },
+    "ICompareOp": {
+      "type": "string",
+      "enum": [">", "<", ">=", "<=", "!="]
     },
     "IPredicate": {
       "oneOf": [
@@ -104,7 +104,7 @@
           "properties": {
             "type": { "type": "string", "enum": ["fieldCompare"] },
             "field": { "type": "string" },
-            "op": { "type": "string", "enum": [">", "<", ">=", "<=", "!="] },
+            "op": { "$ref": "#/definitions/ICompareOp" },
             "value": { "type": "number" }
           }
         },

@@ -36,8 +36,6 @@ export * from './_interface/project/symbology';
 
 import type { IGrammarLayer } from './_interface/project/symbology';
 
-export type ICompareOp = '>' | '<' | '>=' | '<=' | '!=';
-
 export interface IGrammarSymbologyState {
   /**
    * Ordered list of independent rendering layers sharing the same source.
