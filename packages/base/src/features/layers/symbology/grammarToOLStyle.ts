@@ -289,6 +289,15 @@ export function grammarToOLStyle(
     channelExprs.set(channel, buildChannelExpr(entries, channel));
   }
 
+  // If no map channels were compiled (all were plot channels), return an
+  // invisible style so OL doesn't apply its default blue-point rendering.
+  if (channelExprs.size === 0) {
+    return {
+      'fill-color': 'rgba(0,0,0,0)',
+      'stroke-color': 'rgba(0,0,0,0)',
+    } as Record<string, ExpressionValue>;
+  }
+
   // Assemble into the final style object, handling sub-channel composition.
   return assembleStyle(channelExprs);
 }

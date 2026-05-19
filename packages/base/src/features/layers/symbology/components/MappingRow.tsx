@@ -52,7 +52,7 @@ const POSFLOAT_CHANNELS: StyleChannel[] = [
 ];
 const PLOT_CHANNELS: StyleChannel[] = ['plot-x', 'plot-y', 'plot-color'];
 
-const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS, ...PLOT_CHANNELS];
+const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 
 // Channels relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
