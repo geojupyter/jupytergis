@@ -118,7 +118,11 @@ function StoryViewerPanel({
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
 
   return (
-    <div className="jgis-story-viewer-panel">
+    <div
+      className={
+        storyData.storyType !== 'list' ? 'jgis-story-viewer-panel' : ''
+      }
+    >
       <div
         ref={segmentContainerRef}
         key={currentIndex}
