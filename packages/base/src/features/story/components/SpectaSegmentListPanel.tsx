@@ -147,7 +147,7 @@ export function SpectaSegmentListPanel({
               cardRefs.current[item.id] = element;
             }}
             className={`jgis-story-segment-card ${
-              item.isActive ? 'jgis-story-segment-card-active' : ''
+              item.index === currentIndex ? 'jgis-story-segment-card-active' : ''
             }${isMarkdownSegment ? ' jgis-story-segment-card-hidden' : ''}`}
           >
             <StoryViewerPanel

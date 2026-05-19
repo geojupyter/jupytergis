@@ -72,7 +72,6 @@ export function SpectaDesktopView({
   const segmentViewItems = useStorySegmentViewItems({
     model,
     storyData,
-    currentIndex,
   });
 
   const listScrollDriveEnabled =

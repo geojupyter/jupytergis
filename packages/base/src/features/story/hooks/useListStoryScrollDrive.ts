@@ -64,12 +64,38 @@ export function useListStoryScrollDrive({
   const onDriveChangeRef = useRef(onDriveChange);
   onDriveChangeRef.current = onDriveChange;
 
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
+  const storyDataRef = useRef(storyData);
+  storyDataRef.current = storyData;
+
+  const lastDriveRef = useRef<IListStoryScrollDrivePayload | null>(null);
+
   const rafIdRef = useRef<number | null>(null);
+
+  const emitDrive = useCallback(
+    (payload: IListStoryScrollDrivePayload | null, forceClear = false) => {
+      if (payload === null) {
+        if (!forceClear && lastDriveRef.current !== null) {
+          return;
+        }
+        lastDriveRef.current = null;
+      } else {
+        lastDriveRef.current = payload;
+      }
+      onDriveChangeRef.current(payload);
+    },
+    [],
+  );
 
   const computeAndEmit = useCallback(() => {
     const scroller = scrollContainerRef.current;
-    if (!enabled || !scroller || items.length < 2 || !storyData) {
-      onDriveChangeRef.current(null);
+    const currentItems = itemsRef.current;
+    const currentStoryData = storyDataRef.current;
+
+    if (!enabled || !scroller || currentItems.length < 2 || !currentStoryData) {
+      emitDrive(null, true);
       return;
     }
 
@@ -81,7 +107,7 @@ export function useListStoryScrollDrive({
       }
     });
 
-    const centers: Array<number | null> = items.map(item => {
+    const centers: Array<number | null> = currentItems.map(item => {
       const el = byId.get(item.id);
       if (!el) {
         return null;
@@ -90,7 +116,13 @@ export function useListStoryScrollDrive({
     });
 
     if (centers.some(c => c === null)) {
-      onDriveChangeRef.current(null);
+      // Layout not ready (e.g. after active segment class change); keep last overlay.
+      if (rafIdRef.current === null) {
+        rafIdRef.current = window.requestAnimationFrame(() => {
+          rafIdRef.current = null;
+          computeAndEmit();
+        });
+      }
       return;
     }
 
@@ -108,18 +140,18 @@ export function useListStoryScrollDrive({
     }
 
     if (pairIndex === null) {
-      onDriveChangeRef.current(null);
+      emitDrive(null, true);
       return;
     }
 
-    const fromItem = items[pairIndex];
-    const toItem = items[pairIndex + 1];
+    const fromItem = currentItems[pairIndex];
+    const toItem = currentItems[pairIndex + 1];
     const fromMode = getSegmentDisplayMode(fromItem.activeSlide);
     const toMode = getSegmentDisplayMode(toItem.activeSlide);
 
     // Map-only boundary: no markdown overlay to interpolate.
     if (!pairNeedsScrollDrive(fromMode, toMode)) {
-      onDriveChangeRef.current(null);
+      emitDrive(null, true);
       return;
     }
 
@@ -127,20 +159,20 @@ export function useListStoryScrollDrive({
     const c1 = numericCenters[pairIndex + 1];
     const span = c1 - c0;
     if (span <= 0) {
-      onDriveChangeRef.current(null);
+      emitDrive(null, true);
       return;
     }
 
     const progress = Math.min(1, Math.max(0, (scrollCenter - c0) / span));
 
-    onDriveChangeRef.current({
+    emitDrive({
       progress,
       fromIndex: fromItem.index,
       toIndex: toItem.index,
       fromMode,
       toMode,
     });
-  }, [enabled, items, scrollContainerRef, storyData]);
+  }, [enabled, scrollContainerRef, emitDrive]);
 
   const scheduleCompute = useCallback(() => {
     if (rafIdRef.current !== null) {
@@ -153,14 +185,18 @@ export function useListStoryScrollDrive({
   }, [computeAndEmit]);
 
   useEffect(() => {
+    scheduleCompute();
+  }, [items, storyData, scheduleCompute]);
+
+  useEffect(() => {
     if (!enabled) {
-      onDriveChangeRef.current(null);
+      emitDrive(null, true);
       return;
     }
 
     const scroller = scrollContainerRef.current;
     if (!scroller) {
-      onDriveChangeRef.current(null);
+      emitDrive(null, true);
       return;
     }
 
@@ -178,7 +214,6 @@ export function useListStoryScrollDrive({
         window.cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
-      onDriveChangeRef.current(null);
     };
-  }, [enabled, scrollContainerRef, scheduleCompute]);
+  }, [enabled, scrollContainerRef, scheduleCompute, emitDrive]);
 }
