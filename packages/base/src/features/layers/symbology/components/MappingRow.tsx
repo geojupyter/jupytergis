@@ -69,8 +69,15 @@ const PIXEL_RGBA_CHANNELS: StyleChannel[] = [
   'pixel-green',
   'pixel-blue',
 ];
-const PIXEL_FLOAT_CHANNELS: StyleChannel[] = ['pixel-alpha'];
-const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
+const PIXEL_FLOAT_CHANNELS: StyleChannel[] = [
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+  'pixel-alpha',
+];
+const ALL_PIXEL_CHANNELS = Array.from(
+  new Set(...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS),
+) as StyleChannel[];
 
 /** Display labels for channels that need a friendlier name. */
 const CHANNEL_LABELS: Partial<Record<StyleChannel, string>> = {
@@ -145,8 +152,6 @@ function defaultScaleForScheme(
         params: {
           domain: [0, 100],
           range: [1, 20],
-          mode: 'equal interval',
-          nStops: 5,
           fallback: 1,
         },
       };
