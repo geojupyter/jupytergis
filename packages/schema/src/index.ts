@@ -1,5 +1,4 @@
 export * from './interfaces';
-export * from './grammar/types';
 export {
   singleSymbolToGrammar,
   graduatedToGrammar,
@@ -9,6 +8,7 @@ export type { SymbologyState } from './grammar/grammarConversions';
 export { migrateDocument } from './migrations';
 export * from './model';
 export * from './token';
+export type * from './types';
 export * from './doc';
 export { SCHEMA_VERSION } from './_interface/version';
 export {

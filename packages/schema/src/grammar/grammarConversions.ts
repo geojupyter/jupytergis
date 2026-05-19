@@ -13,7 +13,7 @@ import {
   IGrammarSymbologyState,
   IMapping,
   RGBA,
-} from './types';
+} from '../types';
 
 /**
  * Legacy symbology state shape — as it existed before Grammar became the sole

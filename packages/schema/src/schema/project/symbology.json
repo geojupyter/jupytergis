@@ -1,0 +1,418 @@
+{
+  "type": "object",
+  "description": "SymbologyState",
+  "title": "ISymbologyState",
+  "definitions": {
+    "RGBA": {
+      "type": "array",
+      "description": "[R 0-255, G 0-255, B 0-255, A 0-1]",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "ClassificationMode": {
+      "type": "string",
+      "enum": ["equal interval", "quantile", "jenks", "pretty", "logarithmic"]
+    },
+    "RGBAChannel": {
+      "type": "string",
+      "enum": [
+        "fill-color",
+        "stroke-color",
+        "circle-fill-color",
+        "circle-stroke-color",
+        "pixel-color"
+      ]
+    },
+    "UInt8Channel": {
+      "type": "string",
+      "enum": [
+        "fill-red",
+        "fill-green",
+        "fill-blue",
+        "pixel-red",
+        "pixel-green",
+        "pixel-blue"
+      ]
+    },
+    "UNormChannel": {
+      "type": "string",
+      "enum": ["fill-alpha", "pixel-alpha"]
+    },
+    "VirtualChannel": {
+      "type": "string",
+      "enum": ["pixel-rgb"]
+    },
+    "PosFloatChannel": {
+      "type": "string",
+      "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
+    },
+    "StyleChannel": {
+      "anyOf": [
+        { "$ref": "#/definitions/RGBAChannel" },
+        { "$ref": "#/definitions/UInt8Channel" },
+        { "$ref": "#/definitions/UNormChannel" },
+        { "$ref": "#/definitions/VirtualChannel" },
+        { "$ref": "#/definitions/PosFloatChannel" }
+      ]
+    },
+    "ICompareOp": {
+      "type": "string",
+      "enum": [">", "<", ">=", "<=", "!="]
+    },
+    "IPredicate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Filter by geometry type.",
+          "required": ["type", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["geometryType"] },
+            "value": {
+              "type": "string",
+              "enum": ["Point", "LineString", "Polygon"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Filter by presence of a field.",
+          "required": ["type", "field"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["hasField"] },
+            "field": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Filter by exact field value (string or number).",
+          "required": ["type", "field", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["fieldEquals"] },
+            "field": { "type": "string" },
+            "value": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Filter by numeric field comparison.",
+          "required": ["type", "field", "op", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["fieldCompare"] },
+            "field": { "type": "string" },
+            "op": { "$ref": "#/definitions/ICompareOp" },
+            "value": { "type": "number" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Filter by numeric field range (inclusive).",
+          "required": ["type", "field", "min", "max"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["between"] },
+            "field": { "type": "string" },
+            "min": { "type": "number" },
+            "max": { "type": "number" }
+          }
+        }
+      ]
+    },
+    "IKDETransform": {
+      "type": "object",
+      "description": "KDE heatmap transform. Density output addressed as '$density'.",
+      "required": ["type", "radius", "blur"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["kde"] },
+        "radius": { "type": "number", "minimum": 1 },
+        "blur": { "type": "number", "minimum": 0 },
+        "weightField": { "type": "string" }
+      }
+    },
+    "IClusterTransform": {
+      "type": "object",
+      "description": "Cluster transform. Aggregates nearby points into centroids.",
+      "required": ["type", "radius"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["cluster"] },
+        "radius": { "type": "number", "minimum": 1 }
+      }
+    },
+    "ITransform": {
+      "oneOf": [
+        { "$ref": "#/definitions/IKDETransform" },
+        { "$ref": "#/definitions/IClusterTransform" }
+      ]
+    },
+    "IColorRampScale": {
+      "type": "object",
+      "description": "Maps a numeric field through a named color palette to RGBA.",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["colorRamp"] },
+        "params": {
+          "type": "object",
+          "required": ["name", "nShades", "mode", "reverse", "fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "domain": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "nShades": { "type": "number" },
+            "mode": { "$ref": "#/definitions/ClassificationMode" },
+            "reverse": { "type": "boolean" },
+            "fallback": { "$ref": "#/definitions/RGBA" },
+            "colorStops": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["stop", "color"],
+                "additionalProperties": false,
+                "properties": {
+                  "stop": { "type": "number" },
+                  "color": { "$ref": "#/definitions/RGBA" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ICategoricalScale": {
+      "type": "object",
+      "description": "Maps discrete field values to colors sampled from a named palette.",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["categorical"] },
+        "params": {
+          "type": "object",
+          "required": ["colorRamp", "fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "colorRamp": { "type": "string" },
+            "nShades": { "type": "number" },
+            "reverse": { "type": "boolean" },
+            "fallback": { "$ref": "#/definitions/RGBA" },
+            "colorStops": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["stop", "color"],
+                "additionalProperties": false,
+                "properties": {
+                  "stop": {
+                    "oneOf": [{ "type": "string" }, { "type": "number" }]
+                  },
+                  "color": { "$ref": "#/definitions/RGBA" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IScalarScale": {
+      "type": "object",
+      "description": "Maps a numeric field to a numeric output (radius, width, sub-channel value).",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["scalar"] },
+        "params": {
+          "type": "object",
+          "required": ["domain", "range", "mode", "nStops", "fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "domain": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "range": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "mode": { "$ref": "#/definitions/ClassificationMode" },
+            "nStops": { "type": "number" },
+            "fallback": { "type": "number" },
+            "scalarStops": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["stop", "output"],
+                "additionalProperties": false,
+                "properties": {
+                  "stop": { "type": "number" },
+                  "output": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IConstantRGBAScale": {
+      "type": "object",
+      "description": "Fixed RGBA color regardless of feature data.",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["constant_rgba"] },
+        "params": {
+          "type": "object",
+          "required": ["value"],
+          "additionalProperties": false,
+          "properties": {
+            "value": { "$ref": "#/definitions/RGBA" }
+          }
+        }
+      }
+    },
+    "IConstantNumScale": {
+      "type": "object",
+      "description": "Fixed numeric value regardless of feature data.",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["constant_num"] },
+        "params": {
+          "type": "object",
+          "required": ["value"],
+          "additionalProperties": false,
+          "properties": {
+            "value": { "type": "number" }
+          }
+        }
+      }
+    },
+    "IIdentityScale": {
+      "type": "object",
+      "description": "Passes the field value through unchanged.",
+      "required": ["scheme"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["identity"] }
+      }
+    },
+    "IExpressionScale": {
+      "type": "object",
+      "description": "Evaluates an expression against one or more input fields (reserved).",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["expression"] },
+        "params": {
+          "type": "object",
+          "required": ["expr", "fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "expr": { "type": "string" },
+            "fallback": {
+              "oneOf": [{ "type": "number" }, { "$ref": "#/definitions/RGBA" }]
+            }
+          }
+        }
+      }
+    },
+    "IScale": {
+      "oneOf": [
+        { "$ref": "#/definitions/IColorRampScale" },
+        { "$ref": "#/definitions/ICategoricalScale" },
+        { "$ref": "#/definitions/IScalarScale" },
+        { "$ref": "#/definitions/IConstantRGBAScale" },
+        { "$ref": "#/definitions/IConstantNumScale" },
+        { "$ref": "#/definitions/IIdentityScale" },
+        { "$ref": "#/definitions/IExpressionScale" }
+      ]
+    },
+    "IMapping": {
+      "type": "object",
+      "description": "A (scale, channels) pair: one scale drives one or more output channels.",
+      "required": ["scale", "channels"],
+      "additionalProperties": false,
+      "properties": {
+        "scale": { "$ref": "#/definitions/IScale" },
+        "channels": {
+          "type": "array",
+          "description": "Target output channel names.",
+          "items": { "$ref": "#/definitions/StyleChannel" },
+          "minItems": 1
+        }
+      }
+    },
+    "IEncodingRule": {
+      "type": "object",
+      "description": "Maps optional input fields to one or more (scale, channels) pairs.",
+      "required": ["id", "mappings"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "description": "Stable UUID." },
+        "fields": {
+          "type": "array",
+          "description": "Input field name(s). Absent for constant rules.",
+          "items": { "type": "string" }
+        },
+        "mappings": {
+          "type": "array",
+          "description": "(scale, channels) pairs sharing these input fields.",
+          "items": { "$ref": "#/definitions/IMapping" },
+          "minItems": 1
+        },
+        "when": {
+          "type": "array",
+          "description": "Guard predicates for this rule.",
+          "items": { "$ref": "#/definitions/IPredicate" }
+        },
+        "whenOp": {
+          "type": "string",
+          "enum": ["all", "any"],
+          "description": "Logical combinator for when predicates. Defaults to 'all'."
+        }
+      }
+    },
+    "IGrammarLayer": {
+      "type": "object",
+      "description": "One independent rendering pipeline on a source.",
+      "required": ["id", "rules"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "description": "Stable UUID." },
+        "preprocess": {
+          "type": "array",
+          "description": "Render-side transforms (KDE, cluster) applied before encoding rules.",
+          "items": { "$ref": "#/definitions/ITransform" }
+        },
+        "rules": {
+          "type": "array",
+          "description": "Encoding rules compiled into a flat-style expression for this layer.",
+          "items": { "$ref": "#/definitions/IEncodingRule" }
+        },
+        "when": {
+          "type": "array",
+          "description": "Guard predicates applied to every rule in this layer.",
+          "items": { "$ref": "#/definitions/IPredicate" }
+        },
+        "whenOp": {
+          "type": "string",
+          "enum": ["all", "any"],
+          "description": "Logical combinator for when predicates. Defaults to 'all'."
+        }
+      }
+    }
+  }
+}
