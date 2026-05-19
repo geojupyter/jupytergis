@@ -1760,9 +1760,51 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
+    // Extract feature values from the OL vector source so that the bin
+    // transform (and other data-driven scales) can compute breaks from
+    // actual data instead of an empty array.
+    const srcId = layerParams?.source;
+    const olSrc = srcId ? this._sources[srcId] : null;
+    const allRows: Record<string, unknown>[] = olSrc
+      ? sourceToRows(getVectorSource(olSrc))
+      : [];
+
+    // Determine which field to extract values for (bin field > first rule field).
+    const grammarState = ss as IGrammarSymbologyState;
+    let extractField: string | undefined;
+    for (const gl of grammarState.layers ?? []) {
+      // Prefer the bin field from preprocess
+      for (const t of gl.preprocess ?? []) {
+        if (t.type === 'bin' && (t as any).field) {
+          extractField = (t as any).field;
+          break;
+        }
+      }
+      if (extractField) {
+        break;
+      }
+      // Fallback: first non-pseudo field from rules
+      for (const rule of gl.rules ?? []) {
+        const f = rule.fields?.[0];
+        if (f && !f.startsWith('$')) {
+          extractField = f;
+          break;
+        }
+      }
+      if (extractField) {
+        break;
+      }
+    }
+
+    const featureValues = extractField
+      ? allRows.map(r => r[extractField]).filter(v => v !== null)
+      : allRows
+          .flatMap(r => Object.values(r))
+          .filter(v => typeof v === 'number');
+
     const flatStyle = grammarToOLStyle(
       layerParams.symbologyState as IGrammarSymbologyState,
-      [],
+      featureValues ?? [],
     );
 
     const layerStyle: Rule = { style: flatStyle };
