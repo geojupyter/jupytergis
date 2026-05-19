@@ -1501,12 +1501,42 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           const olSource = this._sources[
             layerParameters.source
           ] as VectorSource;
-          const featureValues =
-            olSource instanceof VectorSource
-              ? olSource
-                  .getFeatures()
-                  .flatMap(f => Object.values((f as Feature).getProperties()))
-              : [];
+
+          // Extract feature property rows via sourceToRows so bin transforms
+          // and data-driven scales can compute breaks from actual field values.
+          const allRows: Record<string, unknown>[] = sourceToRows(olSource);
+
+          // Determine which field to extract values for.
+          const grammarState =
+            layerParameters.symbologyState as IGrammarSymbologyState;
+          let extractField: string | undefined;
+          for (const gl of grammarState.layers ?? []) {
+            for (const t of gl.preprocess ?? []) {
+              if (t.type === 'bin' && (t as any).field) {
+                extractField = (t as any).field;
+                break;
+              }
+            }
+            if (extractField) {
+              break;
+            }
+            for (const rule of gl.rules ?? []) {
+              const f = rule.fields?.[0];
+              if (f && !f.startsWith('$')) {
+                extractField = f;
+                break;
+              }
+            }
+            if (extractField) {
+              break;
+            }
+          }
+
+          const featureValues = extractField
+            ? allRows.map(r => r[extractField]).filter(v => v !== null)
+            : allRows
+                .flatMap(r => Object.values(r))
+                .filter(v => typeof v === 'number');
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
             olSource,
@@ -1801,6 +1831,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       : allRows
           .flatMap(r => Object.values(r))
           .filter(v => typeof v === 'number');
+
+    console.debug(
+      '[GrammarDebug] layer:',
+      layer.name,
+      'extractField:',
+      extractField,
+    );
+    console.debug('[GrammarDebug] sourceToRows count:', allRows.length);
+    console.debug('[GrammarDebug] featureValues count:', featureValues.length);
+    if (featureValues.length > 0) {
+      console.debug(
+        '[GrammarDebug] featureValues sample:',
+        featureValues.slice(0, 5),
+      );
+    }
 
     const flatStyle = grammarToOLStyle(
       layerParams.symbologyState as IGrammarSymbologyState,
