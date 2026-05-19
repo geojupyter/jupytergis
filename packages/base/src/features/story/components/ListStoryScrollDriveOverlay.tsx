@@ -9,6 +9,14 @@ export interface IListStoryScrollDriveOverlayProps {
   drive: IListStoryScrollDrivePayload | null;
 }
 
+const OFFSCREEN_TRANSLATE_Y = '100vh';
+
+interface IScrollDrivePaneConfig {
+  markdown: string;
+  inactive: boolean;
+  translateY: string;
+}
+
 function getStoryMarkdownForIndex(
   model: IJupyterGISModel,
   index: number,
@@ -27,6 +35,88 @@ function getStoryMarkdownForIndex(
   return typeof markdown === 'string' ? markdown : '';
 }
 
+function getScrollDrivePaneConfigs(
+  drive: IListStoryScrollDrivePayload,
+  fromMarkdown: string,
+  toMarkdown: string,
+): { from: IScrollDrivePaneConfig; to: IScrollDrivePaneConfig } | null {
+  const p = drive.progress;
+
+  if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
+    return {
+      from: {
+        markdown: fromMarkdown,
+        inactive: false,
+        translateY: `${-p * 100}vh`,
+      },
+      to: {
+        markdown: toMarkdown,
+        inactive: false,
+        translateY: `${(1 - p) * 100}vh`,
+      },
+    };
+  }
+
+  if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
+    return {
+      from: {
+        markdown: '',
+        inactive: true,
+        translateY: OFFSCREEN_TRANSLATE_Y,
+      },
+      to: {
+        markdown: toMarkdown,
+        inactive: false,
+        translateY: `${(1 - p) * 100}vh`,
+      },
+    };
+  }
+
+  if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
+    return {
+      from: {
+        markdown: fromMarkdown,
+        inactive: false,
+        translateY: `${-p * 100}vh`,
+      },
+      to: {
+        markdown: '',
+        inactive: true,
+        translateY: OFFSCREEN_TRANSLATE_Y,
+      },
+    };
+  }
+
+  return null;
+}
+
+interface IScrollDrivePaneProps {
+  pane: 'from' | 'to';
+  config: IScrollDrivePaneConfig;
+}
+
+function ScrollDrivePane({
+  pane,
+  config,
+}: IScrollDrivePaneProps): React.ReactElement {
+  const className = config.inactive
+    ? 'jgis-story-markdown-scroll-pane jgis-story-markdown-scroll-pane--inactive'
+    : 'jgis-story-markdown-scroll-pane';
+
+  return (
+    <div
+      data-pane={pane}
+      className={className}
+      style={{ transform: `translateY(${config.translateY})` }}
+      aria-hidden={config.inactive}
+    >
+      <div className="jgis-story-markdown-overlay-content">
+        {config.markdown ? <Markdown>{config.markdown}</Markdown> : null}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Full-screen markdown overlay on the map stage while list story scroll-drive
  * interpolates between two segments (see useListStoryScrollDrive).
@@ -39,63 +129,21 @@ export function ListStoryScrollDriveOverlay({
     return null;
   }
 
-  const p = drive.progress;
   const fromMarkdown = getStoryMarkdownForIndex(model, drive.fromIndex);
   const toMarkdown = getStoryMarkdownForIndex(model, drive.toIndex);
+  const paneConfigs = getScrollDrivePaneConfigs(drive, fromMarkdown, toMarkdown);
 
-  if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
-    return (
-      <div
-        className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
-        key="list-scroll-md-md"
-      >
-        <div
-          className="jgis-story-markdown-scroll-pane"
-          style={{ transform: `translateY(${-p * 100}vh)` }}
-        >
-          <div className="jgis-story-markdown-scroll-pane-inner">
-            <Markdown>{fromMarkdown}</Markdown>
-          </div>
-        </div>
-        <div
-          className="jgis-story-markdown-scroll-pane"
-          style={{ transform: `translateY(${(1 - p) * 100}vh)` }}
-        >
-          <div className="jgis-story-markdown-scroll-pane-inner">
-            <Markdown>{toMarkdown}</Markdown>
-          </div>
-        </div>
-      </div>
-    );
+  if (!paneConfigs) {
+    return null;
   }
 
-  if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
-    return (
-      <div
-        className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
-        key="list-scroll-map-md"
-        style={{ transform: `translateY(${(1 - p) * 100}vh)` }}
-      >
-        <div className="jgis-story-markdown-scroll-pane-inner">
-          <Markdown>{toMarkdown}</Markdown>
-        </div>
-      </div>
-    );
-  }
-
-  if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
-    return (
-      <div
-        className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
-        key="list-scroll-md-map"
-        style={{ transform: `translateY(${-p * 100}vh)` }}
-      >
-        <div className="jgis-story-markdown-scroll-pane-inner">
-          <Markdown>{fromMarkdown}</Markdown>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div
+      key="list-scroll-drive"
+      className="jgis-story-markdown-overlay jgis-story-markdown-overlay-scroll-drive"
+    >
+      <ScrollDrivePane pane="from" config={paneConfigs.from} />
+      <ScrollDrivePane pane="to" config={paneConfigs.to} />
+    </div>
+  );
 }
