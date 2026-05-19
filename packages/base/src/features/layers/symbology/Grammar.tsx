@@ -63,6 +63,7 @@ interface ILayerUIState {
 const TRANSFORM_TYPES: { value: ITransform['type']; label: string }[] = [
   { value: 'kde', label: 'KDE (heatmap)' },
   { value: 'cluster', label: 'cluster' },
+  { value: 'bin', label: 'bin' },
 ];
 
 function defaultTransform(type: ITransform['type']): ITransform {
@@ -71,6 +72,8 @@ function defaultTransform(type: ITransform['type']): ITransform {
       return { type: 'kde', radius: 10, blur: 15 };
     case 'cluster':
       return { type: 'cluster', radius: 40 };
+    case 'bin':
+      return { type: 'bin', field: '', bins: 10 };
   }
 }
 
@@ -157,6 +160,34 @@ const TransformRow: React.FC<ITransformRowProps> = ({
             style={{ width: 52 }}
             value={transform.radius}
             onChange={v => onChange({ ...transform, radius: v })}
+          />
+        </>
+      )}
+
+      {/* Bin params */}
+      {transform.type === 'bin' && (
+        <>
+          <label>field</label>
+          <div className="jp-select-wrapper" style={{ flex: '0 0 120px' }}>
+            <select
+              className="jp-mod-styled"
+              value={transform.field}
+              onChange={e => onChange({ ...transform, field: e.target.value })}
+            >
+              <option value="">(select field)</option>
+              {availableFields.map(f => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+          <label>bins</label>
+          <NumericInput
+            className="jp-mod-styled"
+            style={{ width: 52 }}
+            value={transform.bins}
+            onChange={v => onChange({ ...transform, bins: v })}
           />
         </>
       )}
@@ -260,6 +291,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   );
 
   const hasKDE = layer.transforms.some(t => t.type === 'kde');
+  const hasBin = layer.transforms.some(t => t.type === 'bin');
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
@@ -281,7 +313,12 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 
   // KDE layers expose '$density'; raster layers expose $band-N fields.
   // Both cases suppress the raw feature attribute list.
-  const encodingFields = hasKDE ? ['$density'] : availableFields;
+  // Bin transforms expose '$binned' and '$count' pseudo-fields.
+  const encodingFields = hasKDE
+    ? ['$density']
+    : hasBin
+      ? [...availableFields, '$binned', '$count']
+      : availableFields;
 
   return (
     <div className="jp-gis-grammar-layer-section">

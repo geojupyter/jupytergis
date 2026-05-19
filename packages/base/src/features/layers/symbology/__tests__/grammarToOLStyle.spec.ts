@@ -532,3 +532,128 @@ describe('grammarToOLStyle — identity scale', () => {
     expect(style['fill-color']).toBe('rgba(0,0,0,0)');
   });
 });
+
+// ---------------------------------------------------------------------------
+// OL runtime validation — ensures compiled expressions parse in real OL
+// ---------------------------------------------------------------------------
+
+describe('grammarToOLStyle — OL runtime parsing', () => {
+  let parse: (
+    encoded: unknown,
+    expectedType: number,
+    context: unknown,
+  ) => unknown;
+  let newParsingContext: () => unknown;
+  let NumberType: number;
+  let ColorType: number;
+
+  beforeAll(() => {
+    const actual = jest.requireActual('ol/expr/expression');
+    parse = actual.parse;
+    newParsingContext = actual.newParsingContext;
+    NumberType = actual.NumberType;
+    ColorType = actual.ColorType;
+  });
+
+  it('compileBinFieldExpr case expression parses natively', () => {
+    // Emulates: bins=2, field='mag', values=[1,2,3,4]
+    const expr = [
+      'case',
+      ['between', ['get', 'mag'], 1, 2.5],
+      1.75,
+      ['between', ['get', 'mag'], 2.5, 5],
+      3.75,
+      3.75, // fallback
+    ];
+    expect(() => parse(expr, NumberType, newParsingContext())).not.toThrow();
+  });
+
+  it('compileBinFieldExpr with 20 bins parses natively', () => {
+    // Replicate the expression compileBinFieldExpr would produce for 20 bins
+    const field = 'mag';
+    const bins = 20;
+    const vals = Array.from({ length: 100 }, (_, i) => i + 1);
+    const numeric = vals.map(Number).filter(v => !isNaN(v));
+    const min = Math.min(...numeric);
+    const max = Math.max(...numeric);
+    const binWidth = (max - min) / bins;
+
+    const parts: any[] = [];
+    let lastCenter = 0;
+    for (let i = 0; i < bins; i++) {
+      const lo = min + i * binWidth;
+      const hi = min + (i + 1) * binWidth;
+      const center = Math.round((lo + binWidth / 2) * 1e9) / 1e9;
+      lastCenter = center;
+      parts.push(
+        ['between', ['get', field], lo, i === bins - 1 ? max + 1 : hi],
+        center,
+      );
+    }
+    const expr = ['case', ...parts, lastCenter];
+    expect(() => parse(expr, NumberType, newParsingContext())).not.toThrow();
+  });
+
+  it('interpolate wrapping compileBinFieldExpr output parses naturally', () => {
+    const field = 'mag';
+    const bins = 20;
+    const vals = Array.from({ length: 100 }, (_, i) => i + 1);
+    const numeric = vals.map(Number).filter(v => !isNaN(v));
+    const min = Math.min(...numeric);
+    const max = Math.max(...numeric);
+    const binWidth = (max - min) / bins;
+
+    const parts: any[] = [];
+    let lastCenter = 0;
+    for (let i = 0; i < bins; i++) {
+      const lo = min + i * binWidth;
+      const hi = min + (i + 1) * binWidth;
+      const center = Math.round((lo + binWidth / 2) * 1e9) / 1e9;
+      lastCenter = center;
+      parts.push(
+        ['between', ['get', field], lo, i === bins - 1 ? max + 1 : hi],
+        center,
+      );
+    }
+    const binExpr = ['case', ...parts, lastCenter];
+
+    // Simulate what compileColorRamp produces
+    const interpExpr: any[] = ['interpolate', ['linear'], binExpr];
+    for (let i = 0; i < 9; i++) {
+      interpExpr.push(i * 10, [i * 25, i * 25, i * 25, 1]);
+    }
+    const wrapped = ['case', ['has', field], interpExpr, [0, 0, 0, 0]];
+
+    // Parse with ColorType — the wrapped expression returns a color
+    expect(() => parse(wrapped, ColorType, newParsingContext())).not.toThrow();
+  });
+
+  it('grammarToOLStyle bin output on numeric channel parses', () => {
+    // Validates the full pipeline: $binned → identity → stroke-width
+    const state: IGrammarSymbologyState = {
+      layers: [
+        {
+          id: 'L1',
+          preprocess: [{ type: 'bin', field: 'mag', bins: 5 }] as any,
+          rules: [
+            {
+              id: 'r1',
+              fields: ['$binned'],
+              mappings: [
+                { scale: { scheme: 'identity' }, channels: ['stroke-width'] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const style = grammarToOLStyle(state, [1, 2, 3, 4, 5]) as any;
+    // stroke-width expression should be a coalesce wrapping the bin case
+    expect(style['stroke-width']).toBeDefined();
+    expect(style['stroke-width'][0]).toBe('coalesce');
+    expect(style['stroke-width'][1][0]).toBe('case');
+    expect(() =>
+      parse(style['stroke-width'], NumberType, newParsingContext()),
+    ).not.toThrow();
+  });
+});

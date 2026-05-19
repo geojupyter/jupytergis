@@ -10,6 +10,7 @@ module.exports = {
   transform: {
     '^.+\\.(tsx?|js)$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
   },
-  // Transform ESM-only packages that have no CommonJS build
-  transformIgnorePatterns: ['/node_modules/(?!(d3-.*|@jupyter/ydoc)/)'],
+  // Transform ESM-only packages that have no CommonJS build.
+  // `ol` is needed for OL runtime-parsing validation tests.
+  transformIgnorePatterns: ['/node_modules/(?!(d3-.*|@jupyter/ydoc|ol)/)'],
 };

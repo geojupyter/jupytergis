@@ -25,21 +25,43 @@
         "symbologyState": {
           "layers": [
             {
-              "id": "b9bc7b91-d5a0-4b80-93f9-92db6c850ccf",
+              "id": "9451a15a-189a-42cc-b4e0-12112601e13a",
+              "preprocess": [
+                {
+                  "bins": 10.0,
+                  "field": "mag",
+                  "type": "bin"
+                }
+              ],
               "rules": [
                 {
-                  "id": "e4d14881-dd9d-46cd-8ff3-715951cbd4c5",
+                  "fields": [
+                    "$binned"
+                  ],
+                  "id": "9171e60a-270e-4066-abb1-372e2dec66c2",
                   "mappings": [
                     {
                       "channels": [
-                        "stroke-width",
-                        "circle-stroke-width"
+                        "plot-x"
                       ],
                       "scale": {
-                        "params": {
-                          "value": 2.0
-                        },
-                        "scheme": "constant_num"
+                        "scheme": "identity"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    "$count"
+                  ],
+                  "id": "3130e57f-c5b6-4919-ac02-c709ec98b54d",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "plot-y"
+                      ],
+                      "scale": {
+                        "scheme": "identity"
                       }
                     }
                   ]
@@ -48,88 +70,112 @@
                   "fields": [
                     "mag"
                   ],
-                  "id": "36737177-80f9-469f-af38-453fe39008a5",
-                  "mappings": [
-                    {
-                      "channels": [
-                        "circle-radius"
-                      ],
-                      "scale": {
-                        "params": {
-                          "domain": [
-                            3.0,
-                            9.0
-                          ],
-                          "fallback": 0.0,
-                          "mode": "equal interval",
-                          "nStops": 5.0,
-                          "range": [
-                            1.0,
-                            10.0
-                          ],
-                          "scalarStops": [
-                            {
-                              "output": 1.0,
-                              "stop": 3.0
-                            },
-                            {
-                              "output": 10.0,
-                              "stop": 9.0
-                            }
-                          ]
-                        },
-                        "scheme": "scalar"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "id": "905092db-86dc-4792-91a7-8051aa515092",
+                  "id": "3cabd0a4-05b0-4ba0-aed2-cf2dfdac3e34",
                   "mappings": [
                     {
                       "channels": [
                         "fill-color",
-                        "circle-fill-color"
+                        "circle-fill-color",
+                        "plot-color"
                       ],
                       "scale": {
                         "params": {
-                          "value": [
-                            255.0,
-                            0.0,
-                            0.0,
-                            0.45
-                          ]
-                        },
-                        "scheme": "constant_rgba"
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "id": "7e9e7fe5-ffd9-49c2-9bed-38eb4cdff051",
-              "preprocess": [
-                {
-                  "blur": 4.0,
-                  "radius": 3.0,
-                  "type": "kde",
-                  "weightField": "mag"
-                }
-              ],
-              "rules": [
-                {
-                  "fields": [
-                    "$density"
-                  ],
-                  "id": "d01b7a04-0191-4667-ad4f-0802d8ce7a08",
-                  "mappings": [
-                    {
-                      "channels": [
-                        "pixel-rgb"
-                      ],
-                      "scale": {
-                        "params": {
+                          "colorStops": [
+                            {
+                              "color": [
+                                68.0,
+                                1.0,
+                                84.0,
+                                1.0
+                              ],
+                              "stop": 3.0
+                            },
+                            {
+                              "color": [
+                                71.0,
+                                44.0,
+                                122.0,
+                                1.0
+                              ],
+                              "stop": 3.7777777777777777
+                            },
+                            {
+                              "color": [
+                                59.0,
+                                81.0,
+                                139.0,
+                                1.0
+                              ],
+                              "stop": 4.555555555555555
+                            },
+                            {
+                              "color": [
+                                44.0,
+                                113.0,
+                                142.0,
+                                1.0
+                              ],
+                              "stop": 5.333333333333334
+                            },
+                            {
+                              "color": [
+                                39.0,
+                                129.0,
+                                142.0,
+                                1.0
+                              ],
+                              "stop": 6.111111111111111
+                            },
+                            {
+                              "color": [
+                                33.0,
+                                144.0,
+                                141.0,
+                                1.0
+                              ],
+                              "stop": 6.888888888888889
+                            },
+                            {
+                              "color": [
+                                39.0,
+                                173.0,
+                                129.0,
+                                1.0
+                              ],
+                              "stop": 7.666666666666667
+                            },
+                            {
+                              "color": [
+                                92.0,
+                                200.0,
+                                99.0,
+                                1.0
+                              ],
+                              "stop": 8.444444444444445
+                            },
+                            {
+                              "color": [
+                                170.0,
+                                220.0,
+                                50.0,
+                                1.0
+                              ],
+                              "stop": 9.222222222222221
+                            },
+                            {
+                              "color": [
+                                253.0,
+                                231.0,
+                                37.0,
+                                1.0
+                              ],
+                              "stop": 10.0
+                            }
+                          ],
+                          "domain": [
+                            3.0,
+                            10.0
+                          ],
                           "fallback": [
                             0.0,
                             0.0,
@@ -147,28 +193,44 @@
                   ]
                 },
                 {
-                  "id": "5ad03fb3-ec3e-4227-a22d-f2b19dd6513c",
+                  "fields": [
+                    "$binned"
+                  ],
+                  "id": "1b372fcc-d76c-4f11-9ff7-77584b200a45",
                   "mappings": [
                     {
                       "channels": [
-                        "pixel-alpha"
+                        "stroke-width",
+                        "circle-radius"
                       ],
                       "scale": {
                         "params": {
-                          "value": 0.9
+                          "domain": [
+                            3.0,
+                            10.0
+                          ],
+                          "fallback": 1.0,
+                          "mode": "equal interval",
+                          "nStops": 5.0,
+                          "range": [
+                            1.0,
+                            5.0
+                          ],
+                          "scalarStops": [
+                            {
+                              "output": 1.0,
+                              "stop": 3.0
+                            },
+                            {
+                              "output": 5.0,
+                              "stop": 10.0
+                            }
+                          ]
                         },
-                        "scheme": "constant_num"
+                        "scheme": "scalar"
                       }
                     }
                   ]
-                }
-              ],
-              "when": [
-                {
-                  "field": "mag",
-                  "op": ">",
-                  "type": "fieldCompare",
-                  "value": 5.0
                 }
               ]
             }
@@ -183,16 +245,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -16659136.445223518,
-      1519959.7173831644,
-      -5774027.4626841275,
-      7304317.147718105
+      -28918812.04932698,
+      -2177869.736585376,
+      11156204.636251507,
+      6727689.52687651
     ],
-    "latitude": 36.80627587618541,
-    "longitude": -100.76027004815924,
+    "latitude": 20.015860327146342,
+    "longitude": -79.78210862490205,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 4.57383422658683
+    "zoom": 2.8978454560055114
   },
   "schemaVersion": "0.6.0",
   "sources": {

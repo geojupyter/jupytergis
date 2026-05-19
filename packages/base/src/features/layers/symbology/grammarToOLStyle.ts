@@ -43,17 +43,23 @@ const COUNT_FIELD = '$count';
 /** Pseudo-field produced by a bin transform — maps feature values to bin centers. */
 const BINNED_FIELD = '$binned';
 
+/** Plot channels — ignored by the OL map compiler. */
+const PLOT_CHANNELS = new Set<StyleChannel>(['plot-x', 'plot-y', 'plot-color']);
+
 // ---------------------------------------------------------------------------
 // Bin expression compiler
 // ---------------------------------------------------------------------------
 
 /**
  * Compile an OL case expression that maps an original numeric field to bin
- * centers using equal-interval breaks computed from feature values.
+ * centers using equal-interval breaks computed from feature values.  OL's
+ * `case` requires an odd number of arguments (the trailing element is the
+ * catch-all fallback), so we append the last centre as the final fallback
+ * value.
  *
  *   case(
- *     between(get('mag'), 0, 2), 1,
- *     between(get('mag'), 2, 4), 3,
+ *     between(get('mag'), lo1, hi1), center1,
+ *     between(get('mag'), lo2, hi2), center2,
  *     ...,
  *     last_center    // else
  *   )
@@ -78,11 +84,13 @@ function compileBinFieldExpr(
 
   const binWidth = (max - min) / bins;
   const parts: ExpressionValue[] = [];
+  let lastCenter = 0;
 
   for (let i = 0; i < bins; i++) {
     const lo = min + i * binWidth;
     const hi = min + (i + 1) * binWidth;
     const center = Math.round((lo + binWidth / 2) * 1e9) / 1e9;
+    lastCenter = center;
 
     parts.push(
       [
@@ -95,7 +103,7 @@ function compileBinFieldExpr(
     );
   }
 
-  return ['case', ...parts] as ExpressionValue;
+  return ['case', ...parts, lastCenter] as ExpressionValue;
 }
 
 /**
@@ -234,6 +242,9 @@ export function grammarToOLStyle(
 
       for (const mapping of rule.mappings) {
         for (const channel of mapping.channels) {
+          if (PLOT_CHANNELS.has(channel)) {
+            continue;
+          }
           if (channel === 'pixel-rgb') {
             // Virtual channel: fan out to pixel-red/green/blue so assembleStyle
             // can compose them into ['color', r, g, b, a] with a separate alpha.
