@@ -388,10 +388,10 @@ const Form: React.FC<IFormProps> = ({
             </label>
           </div>
           <label className="jp-openeo-field">
-            <span>Start (ISO)</span>
+            <span>Start date</span>
             <input
-              type="text"
-              value={state.params.temporalExtent[0]}
+              type="date"
+              value={(state.params.temporalExtent[0] ?? '').slice(0, 10)}
               onChange={e => {
                 const v = e.target.value;
                 guardReseed(() =>
@@ -407,10 +407,10 @@ const Form: React.FC<IFormProps> = ({
             />
           </label>
           <label className="jp-openeo-field">
-            <span>End (ISO)</span>
+            <span>End date</span>
             <input
-              type="text"
-              value={state.params.temporalExtent[1]}
+              type="date"
+              value={(state.params.temporalExtent[1] ?? '').slice(0, 10)}
               onChange={e => {
                 const v = e.target.value;
                 guardReseed(() =>

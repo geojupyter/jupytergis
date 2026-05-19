@@ -13,10 +13,7 @@ export interface IOpenEOTemplate {
 }
 
 const DEFAULT_BBOX = { west: -74.0, south: 40.7, east: -73.9, north: 40.8 };
-const DEFAULT_TEMPORAL: [string, string] = [
-  '2022-04-15T00:00:00Z',
-  '2022-12-31T00:00:00Z',
-];
+const DEFAULT_TEMPORAL: [string, string] = ['2022-04-15', '2022-12-31'];
 
 function loadCollection(
   params: IOpenEOTemplateParams,
