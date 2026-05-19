@@ -129,10 +129,20 @@ export function useStoryMap({
   }, [model, overrideLayerEntriesRef, removeLayer]);
 
   const zoomToCurrentLayer = useCallback(() => {
-    if (currentStorySegmentId) {
-      model.centerOnPosition(currentStorySegmentId);
+    if (!currentStorySegmentId) {
+      return;
     }
-  }, [model, currentStorySegmentId]);
+
+    const segmentParams = currentStorySegment?.parameters as
+      | IStorySegmentLayer
+      | undefined;
+
+    if (segmentParams?.content?.contentMode === 'markdown') {
+      return;
+    }
+
+    model.centerOnPosition(currentStorySegmentId);
+  }, [model, currentStorySegmentId, currentStorySegment]);
 
   const setIndex = useCallback(
     (index: number) => {
