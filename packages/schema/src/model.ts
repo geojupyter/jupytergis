@@ -784,6 +784,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       extent,
       zoom,
       transition: { type: 'linear', time: 1 },
+      content: {
+        contentMode: 'map',
+        title: '',
+        image: '',
+      },
     };
     const layerModel: IJGISLayer = {
       type: 'StorySegmentLayer',
