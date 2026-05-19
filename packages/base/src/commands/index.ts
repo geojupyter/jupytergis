@@ -42,6 +42,12 @@ import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
+/**
+ * The last OpenEO server the user successfully signed in to, reused when
+ * creating further layers so they don't have to re-enter credentials.
+ */
+let _lastOpenEOConnection: IOpenEOConnectionInfo | null = null;
+
 interface ICreateEntry {
   tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -613,14 +619,25 @@ export function addCommands(
         return;
       }
       // Connect (and sign in) before opening the dialog so collections,
-      // validation and the graph editor can talk to the server.
-      const connectionInfo: IOpenEOConnectionInfo = {};
+      // validation and the graph editor can talk to the server. Reuse the
+      // last successful session so the user only signs in once: passing a
+      // known url + bearer lets `connect` reuse the cached connection (or
+      // re-authenticate silently with the token) instead of prompting.
+      const connectionInfo: IOpenEOConnectionInfo = {
+        ...(_lastOpenEOConnection ?? {}),
+      };
       try {
         await openEOConnect(connectionInfo);
       } catch {
-        // `connect` already surfaced the error / the user cancelled.
+        // `connect` already surfaced the error / the user cancelled. Drop
+        // the remembered session so the next attempt prompts afresh.
+        _lastOpenEOConnection = null;
         return;
       }
+      _lastOpenEOConnection = {
+        url: connectionInfo.url,
+        authBearer: connectionInfo.authBearer,
+      };
       const result = await showAddOpenEOLayerDialog({ connectionInfo });
       if (!result) {
         return;
@@ -693,6 +710,10 @@ export function addCommands(
       };
       try {
         await openEOConnect(connectionInfo);
+        _lastOpenEOConnection = {
+          url: connectionInfo.url,
+          authBearer: connectionInfo.authBearer,
+        };
       } catch {
         return;
       }
