@@ -14,26 +14,50 @@
       "type": "string",
       "enum": ["equal interval", "quantile", "jenks", "pretty", "logarithmic"]
     },
-    "StyleChannel": {
+    "RGBAChannel": {
       "type": "string",
       "enum": [
         "fill-color",
         "stroke-color",
         "circle-fill-color",
         "circle-stroke-color",
-        "pixel-color",
+        "pixel-color"
+      ]
+    },
+
+    "UInt8Channel": {
+      "type": "string",
+      "enum": [
         "fill-red",
         "fill-green",
         "fill-blue",
         "pixel-red",
         "pixel-green",
-        "pixel-blue",
-        "fill-alpha",
-        "pixel-alpha",
-        "pixel-rgb",
-        "stroke-width",
-        "circle-radius",
-        "circle-stroke-width"
+        "pixel-blue"
+      ]
+    },
+
+    "UNormChannel": {
+      "type": "string",
+      "enum": ["fill-alpha", "pixel-alpha"]
+    },
+
+    "VirtualChannel": {
+      "type": "string",
+      "enum": ["pixel-rgb"]
+    },
+
+    "PosFloatChannel": {
+      "type": "string",
+      "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
+    },
+    "StyleChannel": {
+      "anyOf": [
+        { "$ref": "#/definitions/RGBAChannel" },
+        { "$ref": "#/definitions/UInt8Channel" },
+        { "$ref": "#/definitions/UNormChannel" },
+        { "$ref": "#/definitions/VirtualChannel" },
+        { "$ref": "#/definitions/PosFloatChannel" }
       ]
     },
     "IPredicate": {

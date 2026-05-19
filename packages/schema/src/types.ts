@@ -35,41 +35,8 @@ export * from './processing/_generated/exportProcessingSchema';
 export * from './_interface/project/symbology';
 
 import type { IGrammarLayer } from './_interface/project/symbology';
-// TODO Move into symbology folder
 
 export type ICompareOp = '>' | '<' | '>=' | '<=' | '!=';
-
-/** Full RGBA color channels. Vector layers use fill/stroke/circle channels; pixel channels for raster/KDE. */
-export type RGBAChannel =
-  | 'fill-color'
-  | 'stroke-color'
-  | 'circle-fill-color'
-  | 'circle-stroke-color'
-  | 'pixel-color';
-
-/** Integer 0–255 sub-channels — compiler assembles these into a ['color', r, g, b, a] expression. */
-export type UInt8Channel =
-  | 'fill-red'
-  | 'fill-green'
-  | 'fill-blue'
-  | 'pixel-red'
-  | 'pixel-green'
-  | 'pixel-blue';
-
-/** Float 0–1 alpha sub-channels. */
-export type UNormChannel = 'fill-alpha' | 'pixel-alpha';
-
-/**
- * Virtual channels expanded at compile time.
- * pixel-rgb: colorRamp/constant → R+G+B components; pair with pixel-alpha for independent alpha.
- */
-export type VirtualChannel = 'pixel-rgb';
-
-/** Unbounded positive float channels (lengths, widths, radii). */
-export type PosFloatChannel =
-  | 'stroke-width'
-  | 'circle-radius'
-  | 'circle-stroke-width';
 
 export interface IGrammarSymbologyState {
   /**
