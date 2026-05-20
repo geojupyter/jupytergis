@@ -153,7 +153,10 @@ import {
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
-import { grammarToOLStyle } from '../features/layers/symbology/grammarToOLStyle';
+import {
+  extractEncodingFieldValues,
+  grammarToOLStyle,
+} from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -1495,12 +1498,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           const olSource = this._sources[
             layerParameters.source
           ] as VectorSource;
-          const featureValues =
+          const grammarState =
+            layerParameters.symbologyState as IGrammarSymbologyState;
+          const rows =
             olSource instanceof VectorSource
-              ? olSource
-                  .getFeatures()
-                  .flatMap(f => Object.values((f as Feature).getProperties()))
+              ? olSource.getFeatures().map(f => (f as Feature).getProperties())
               : [];
+          const featureValues = extractEncodingFieldValues(grammarState, rows);
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
             olSource,
