@@ -2,7 +2,7 @@
   "type": "object",
   "description": "StorySegmentLayer",
   "title": "IStorySegmentLayer",
-  "required": ["zoom", "extent", "transition"],
+  "required": ["content"],
   "properties": {
     "zoom": {
       "type": "number",

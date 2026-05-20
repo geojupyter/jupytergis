@@ -149,6 +149,8 @@ export function useListStoryScrollDrive({
       ) {
         pairIndex = numericCenters.length - 2;
       } else {
+        // Between card centers (list gap): keep last drive payload so the
+        // overlay does not unmount until the next pair is resolved.
         return;
       }
     }

@@ -126,7 +126,6 @@ import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
-import Markdown from 'react-markdown';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
@@ -395,7 +394,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  // ! TODO updates on cursor move
   componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
     // Run setup when isSpectaPresentation changes from false/undefined to true
     if (
