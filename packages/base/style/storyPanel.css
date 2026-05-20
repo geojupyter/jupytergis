@@ -213,8 +213,6 @@
   position: absolute;
   inset: 0;
   z-index: 5;
-  overflow: hidden;
-  padding: 0;
 }
 
 .jgis-story-markdown-overlay-content {
@@ -226,16 +224,13 @@
 .jgis-story-markdown-scroll-pane {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  will-change: transform;
+  height: 110vh;
   background-color: var(--jp-layout-color0);
-  border-bottom: 1px solid red;
 }
 
 .jgis-story-markdown-scroll-pane[data-pane='from']:not(
     .jgis-story-markdown-scroll-pane--inactive
   ) {
-  /* % is relative to this pane's height; matches overlay size (unlike 100vh). */
   transform: translateY(calc(var(--jgis-scroll-drive-progress, 0) * -100%));
 }
 
@@ -262,17 +257,12 @@
   box-sizing: border-box;
 }
 
-/* List column: one card per segment (map cards visible; markdown hidden). */
 .jgis-story-segment-card {
   padding: 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--jp-border-color2);
   /* ! TODO background should use story color? */
   background: var(--jp-layout-color1);
-}
-
-.jgis-story-segment-card.jgis-story-segment-card-active {
-  background: var(--jp-layout-color2);
 }
 
 .jgis-story-segment-card.jgis-story-segment-card-hidden {
