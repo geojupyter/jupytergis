@@ -703,10 +703,6 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// extractEncodingFieldValues (#1415)
-// ---------------------------------------------------------------------------
-
 describe('extractEncodingFieldValues', () => {
   const rows = [
     { type: 'road', lanes: 2, length: 100 },
