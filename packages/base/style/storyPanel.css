@@ -235,21 +235,20 @@
 .jgis-story-markdown-scroll-pane[data-pane='from']:not(
     .jgis-story-markdown-scroll-pane--inactive
   ) {
-  transform: translateY(
-    calc(var(--jgis-scroll-drive-progress, 0) * -100vh)
-  );
+  /* % is relative to this pane's height; matches overlay size (unlike 100vh). */
+  transform: translateY(calc(var(--jgis-scroll-drive-progress, 0) * -100%));
 }
 
 .jgis-story-markdown-scroll-pane[data-pane='to']:not(
     .jgis-story-markdown-scroll-pane--inactive
   ) {
   transform: translateY(
-    calc((1 - var(--jgis-scroll-drive-progress, 0)) * 100vh)
+    calc((1 - var(--jgis-scroll-drive-progress, 0)) * 100%)
   );
 }
 
 .jgis-story-markdown-scroll-pane--inactive {
-  transform: translateY(100vh);
+  transform: translateY(100%);
   pointer-events: none;
   visibility: hidden;
 }
