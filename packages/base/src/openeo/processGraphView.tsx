@@ -104,6 +104,11 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
   // which is the only reliable way to get ModelBuilder to re-measure
   // its container after the dialog finishes opening on a cold reload.
   const [mountKey, setMountKey] = React.useState(0);
+  // Tracks the graph the element currently reflects (and the mount it was
+  // fed on), so we don't re-feed it a value it just emitted — reassigning
+  // el.value rebuilds the canvas and resets the user's zoom/pan.
+  const lastGraphJsonRef = React.useRef<string | null>(null);
+  const lastMountKeyRef = React.useRef<number>(-1);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -129,7 +134,16 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
     if (!ready || !el) {
       return;
     }
-    el.value = { id: 'jp-openeo-preview', process_graph: graph };
+    const graphJson = JSON.stringify(graph);
+    const remounted = lastMountKeyRef.current !== mountKey;
+    // Only (re-)feed the element on a remount or an external graph change.
+    // Skipping it when `graph` merely echoes the ModelBuilder's own emit
+    // keeps the user's zoom/pan intact while editing.
+    if (remounted || graphJson !== lastGraphJsonRef.current) {
+      el.value = { id: 'jp-openeo-preview', process_graph: graph };
+    }
+    lastGraphJsonRef.current = graphJson;
+    lastMountKeyRef.current = mountKey;
     el.editable = editable;
     // Feeding the backend's process + collection registry gives the
     // ModelBuilder port type labels and lets it validate connections.
@@ -178,6 +192,9 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
           ? next.process_graph
           : next;
       if (pg && typeof pg === 'object') {
+        // Record what the element now reflects so the value-sync effect
+        // doesn't re-feed it this same graph (which would reset zoom/pan).
+        lastGraphJsonRef.current = JSON.stringify(pg);
         onEditRef.current?.(pg as Record<string, any>);
       }
     };
@@ -255,7 +272,9 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
         window.clearTimeout(timer);
       }
     };
-  }, [ready, graph]);
+    // Runs on (re)mount only — not on every edit — so editing the graph
+    // doesn't retrigger the remount/redraw probe.
+  }, [ready, mountKey]);
 
   if (error) {
     return (
