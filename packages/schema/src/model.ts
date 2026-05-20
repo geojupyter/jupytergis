@@ -54,6 +54,8 @@ import { IViewState, Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
+const SPECTA_STORY_TYPES: IJGISStoryMap['storyType'][] = ['guided', 'list'];
+
 const DEFAULT_SETTINGS: IJupyterGISSettings = {
   proxyUrl: 'https://corsproxy.io',
   leftPanelDisabled: false,
@@ -720,8 +722,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   isSpectaMode(): boolean {
     const hasStories = Object.keys(this.sharedModel.stories).length > 0;
     const isSpecta = !!document.querySelector('meta[name="specta-config"]');
+    const storyType = this.getSelectedStory().story?.storyType;
     const isModeForSpecta =
-      this.getSelectedStory().story?.storyType !== 'unguided';
+      storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
 
     return isSpecta && hasStories && isModeForSpecta;
   }
