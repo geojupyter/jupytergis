@@ -1,15 +1,21 @@
 import { Notification } from '@jupyterlab/apputils';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import * as React from 'react';
 
-// KNOWN LIMITATION: the openEO ModelBuilder is loaded from a CDN at runtime.
-// `@openeo/vue-components` ships a Vue CLI `wc-async` build (an entry file plus
+// `@openeo/vue-components` is a Vue CLI `wc-async` build (an entry file plus
 // ~150 sibling chunks loaded relative to its own script URL), so it cannot be
-// cleanly `import`ed through JupyterLab's webpack build. As a result the graph
-// editor needs network access and does not work offline / in JupyterLite.
-// Potential Follow-up: vendor the prebuilt `assets/` folder into the extension's
-// static files and load it from a local URL instead.
+// `import`ed cleanly through JupyterLab's webpack. We ship the prebuilt
+// `assets/` folder as static files of the jupytergis-core labextension (see
+// `cp:openeo-vue-components` in python/jupytergis_core/package.json) and load
+// the entry via a `<script>` tag, which lets the wc-async runtime pull its
+// sibling chunks as same-directory siblings.
 const VUE_COMPONENTS_VERSION = '2.23.3';
-const BUNDLE_URL = `https://cdn.jsdelivr.net/npm/@openeo/vue-components@${VUE_COMPONENTS_VERSION}/assets/openeo.js`;
+function bundleUrl(): string {
+  return URLExt.join(
+    PageConfig.getOption('fullLabextensionsUrl'),
+    '@jupytergis/jupytergis-core/static/openeo-vue-components/openeo.js',
+  );
+}
 
 let _bundlePromise: Promise<void> | null = null;
 
@@ -29,7 +35,7 @@ function ensureOpenEOVueBundle(): Promise<void> {
     );
     const script = existing ?? document.createElement('script');
     if (!existing) {
-      script.src = BUNDLE_URL;
+      script.src = bundleUrl();
       script.async = true;
       script.dataset.openeoVueComponents = VUE_COMPONENTS_VERSION;
       document.head.appendChild(script);
@@ -55,7 +61,7 @@ function ensureOpenEOVueBundle(): Promise<void> {
       poll();
     });
     script.addEventListener('error', () =>
-      reject(new Error(`Failed to load ${BUNDLE_URL}`)),
+      reject(new Error(`Failed to load ${bundleUrl()}`)),
     );
   });
   return _bundlePromise;

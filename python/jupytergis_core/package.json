@@ -28,8 +28,8 @@
   "scripts": {
     "build": "jlpm build:lib && jlpm build:labextension:dev",
     "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
-    "build:labextension": "jupyter labextension build . && jlpm cp:sqlwasm",
-    "build:labextension:dev": "jupyter labextension build --development True . && jlpm cp:sqlwasm",
+    "build:labextension": "jupyter labextension build . && jlpm cp:sqlwasm && jlpm cp:openeo-vue-components",
+    "build:labextension:dev": "jupyter labextension build --development True . && jlpm cp:sqlwasm && jlpm cp:openeo-vue-components",
     "build:lib": "tsc --sourceMap",
     "build:lib:prod": "tsc",
     "build:dev": "jlpm run build",
@@ -44,6 +44,7 @@
     "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
     "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
     "cp:sqlwasm": "cp ../../node_modules/sql.js/dist/sql-wasm-browser.wasm jupytergis_core/labextension/static/sql-wasm-browser.wasm",
+    "cp:openeo-vue-components": "rm -rf jupytergis_core/labextension/static/openeo-vue-components && cp -r ../../node_modules/@openeo/vue-components/assets jupytergis_core/labextension/static/openeo-vue-components",
     "prettier": "jlpm prettier:base --write",
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
     "prettier:check": "jlpm prettier:base --check",
