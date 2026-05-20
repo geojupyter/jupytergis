@@ -1,7 +1,7 @@
 import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
-import Markdown from 'react-markdown';
 
+import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
@@ -78,7 +78,9 @@ function ScrollDrivePane({
   return (
     <div data-pane={pane} className={className} aria-hidden={config.inactive}>
       <div className="jgis-story-markdown-overlay-content">
-        {config.markdown ? <Markdown>{config.markdown}</Markdown> : null}
+        {config.markdown ? (
+          <StoryScrollDriveMarkdown source={config.markdown} />
+        ) : null}
       </div>
     </div>
   );

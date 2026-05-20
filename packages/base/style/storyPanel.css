@@ -130,15 +130,11 @@
 
 .jgis-story-viewer-content p,
 .jgis-story-viewer-content span,
-.jgis-story-viewer-content li,
-.jgis-story-markdown-overlay-content p,
-.jgis-story-markdown-overlay-content span,
-.jgis-story-markdown-overlay-content li {
+.jgis-story-viewer-content li {
   font-size: var(--jp-ui-font-size2);
 }
 
-.jgis-story-viewer-content > ul,
-.jgis-story-markdown-overlay-content > ul {
+.jgis-story-viewer-content > ul {
   padding-left: 1rem;
 }
 
