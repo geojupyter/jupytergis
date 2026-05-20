@@ -532,3 +532,132 @@ describe('grammarToOLStyle — identity scale', () => {
     expect(style['fill-color']).toBe('rgba(0,0,0,0)');
   });
 });
+
+// ---------------------------------------------------------------------------
+// OL runtime tests — use the real OL expression parser/evaluator
+// ---------------------------------------------------------------------------
+// These tests cover geojupyter/jupytergis#1417: real OL library used so the
+// compiled expressions are validated at the parser/evaluator level, not just
+// as plain JS objects.  jest.base.js must include 'ol' in transformIgnorePatterns
+// for these to work.
+
+describe('grammarToOLStyle — OL runtime parsing', () => {
+  let parse: (encoded: unknown, type: number, ctx: unknown) => unknown;
+  let newParsingContext: () => unknown;
+  let ColorType: number;
+
+  beforeAll(() => {
+    const actual = jest.requireActual('ol/expr/expression');
+    parse = actual.parse;
+    newParsingContext = actual.newParsingContext;
+    ColorType = actual.ColorType;
+  });
+
+  it('categorical case expression compiled from featureValues parses natively', () => {
+    const style = grammarToOLStyle(
+      makeState({
+        id: '1',
+        fields: ['type'],
+        mappings: [
+          {
+            scale: {
+              scheme: 'categorical',
+              params: {
+                colorRamp: 'schemeCategory10',
+                fallback: [0, 0, 0, 0] as [number, number, number, number],
+              },
+            },
+            channels: ['fill-color'],
+          },
+        ],
+      }),
+      ['road', 'river', 'lake'],
+    ) as any;
+    expect(() =>
+      parse(style['fill-color'], ColorType, newParsingContext()),
+    ).not.toThrow();
+  });
+
+  it('colorRamp interpolate expression compiled from featureValues parses natively', () => {
+    const style = grammarToOLStyle(
+      makeState({
+        id: '1',
+        fields: ['elevation'],
+        mappings: [
+          {
+            scale: {
+              scheme: 'colorRamp',
+              params: {
+                name: 'viridis',
+                nShades: 5,
+                mode: 'equal interval',
+                reverse: false,
+                fallback: [0, 0, 0, 0] as [number, number, number, number],
+              },
+            },
+            channels: ['fill-color'],
+          },
+        ],
+      }),
+      [0, 25, 50, 75, 100],
+    ) as any;
+    expect(() =>
+      parse(style['fill-color'], ColorType, newParsingContext()),
+    ).not.toThrow();
+  });
+});
+
+describe('grammarToOLStyle — OL runtime evaluation', () => {
+  let buildExpression: (
+    encoded: unknown,
+    type: number,
+    ctx: unknown,
+  ) => (evalCtx: Record<string, unknown>) => unknown;
+  let newEvalCtx: () => {
+    properties: Record<string, unknown>;
+    variables: Record<string, unknown>;
+    resolution: number;
+    featureId: unknown;
+    geometryType: string;
+  };
+  let newParseCtx: () => unknown;
+  let ColorType: number;
+
+  beforeAll(() => {
+    jest.unmock('ol/expr/expression');
+    const expr = jest.requireActual('ol/expr/expression');
+    const cpu = jest.requireActual('ol/expr/cpu');
+    buildExpression = cpu.buildExpression;
+    newEvalCtx = cpu.newEvaluationContext;
+    newParseCtx = expr.newParsingContext;
+    ColorType = expr.ColorType;
+  });
+
+  function evaluate(
+    encoded: any,
+    type: number,
+    props: Record<string, unknown>,
+  ) {
+    const evaluator = buildExpression(encoded, type, newParseCtx());
+    const ctx = newEvalCtx();
+    ctx.properties = props;
+    return evaluator(ctx);
+  }
+
+  it('categorical case expression routes each value to the correct color', () => {
+    // Hand-built case expression as compileCategorical would produce it.
+    const expr = [
+      'case',
+      ['==', ['get', 'type'], 'road'],
+      [255, 0, 0, 1],
+      ['==', ['get', 'type'], 'river'],
+      [0, 0, 255, 1],
+      [0, 0, 0, 0], // fallback
+    ];
+    expect(evaluate(expr, ColorType, { type: 'road' })).toEqual([255, 0, 0, 1]);
+    expect(evaluate(expr, ColorType, { type: 'river' })).toEqual([
+      0, 0, 255, 1,
+    ]);
+    expect(evaluate(expr, ColorType, { type: 'other' })).toEqual([0, 0, 0, 0]);
+  });
+});
