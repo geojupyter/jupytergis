@@ -155,3 +155,5 @@ packages/schema/src/processing/_generated/*
 examples/local_examples/*
 
 packages/base/_generated/
+
+/titiler-openeo/
