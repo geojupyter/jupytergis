@@ -8,7 +8,7 @@ import React, { RefObject, useImperativeHandle } from 'react';
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
-import { useListStoryScrollDrive } from '@/src/features/story/hooks/useListStoryScrollDrive';
+import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
@@ -79,11 +79,13 @@ export function SpectaDesktopView({
     viewMode === 'list' &&
     storyData?.storyType === 'list';
 
-  useListStoryScrollDrive({
+  useListStoryScroll({
     enabled: listScrollDriveEnabled,
     scrollContainerRef,
     storyData,
     items: segmentViewItems,
+    currentIndex,
+    setIndex,
     onDriveChange: onListScrollDriveChange ?? (() => {}),
   });
 
@@ -109,8 +111,6 @@ export function SpectaDesktopView({
         isSpecta={isSpecta}
         storyData={storyData}
         items={segmentViewItems}
-        currentIndex={currentIndex}
-        setIndex={setIndex}
         handlePrev={handlePrev}
         handleNext={handleNext}
         hasPrev={hasPrev}

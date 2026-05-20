@@ -86,7 +86,7 @@ function ScrollDrivePane({
 
 /**
  * Full-screen markdown overlay on the map stage while list story scroll-drive
- * interpolates between two segments (see useListStoryScrollDrive).
+ * interpolates between two segments (see useListStoryScroll).
  */
 export function ListStoryScrollDriveOverlay({
   model,

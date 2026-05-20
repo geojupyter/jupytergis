@@ -6,15 +6,13 @@ import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmen
 
 /**
  * List-mode Specta body: stacked segment cards inside the story scroller.
- * Scroll position is read by useListStoryScrollDrive (parent) for
- * `listScrollDrive`; this layer only forwards the scroll root ref.
+ * Scroll position is read by useListStoryScroll (parent) for active index
+ * and overlay drive; this layer only forwards the scroll root ref.
  */
 interface ISpectaListModeContentProps {
   isSpecta: boolean;
   storyData: IJGISStoryMap | null;
   items: IStorySegmentViewItem[];
-  currentIndex: number;
-  setIndex: (index: number) => void;
   handlePrev: () => void;
   handleNext: () => void;
   hasPrev: boolean;
@@ -26,8 +24,6 @@ export function SpectaListModeContent({
   isSpecta,
   storyData,
   items,
-  currentIndex,
-  setIndex,
   handlePrev,
   handleNext,
   hasPrev,
@@ -39,8 +35,6 @@ export function SpectaListModeContent({
       isSpecta={isSpecta}
       storyData={storyData}
       items={items}
-      currentIndex={currentIndex}
-      setIndex={setIndex}
       handlePrev={handlePrev}
       handleNext={handleNext}
       hasPrev={hasPrev}

@@ -225,7 +225,7 @@ interface IStates {
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
   identifyFeatureFloatersVersion: number;
-  /** List story scroll-drive overlay (useListStoryScrollDrive); null when off. */
+  /** List story scroll-drive overlay (useListStoryScroll); null when off. */
   listScrollDrive: IListStoryScrollDrivePayload | null;
 }
 
