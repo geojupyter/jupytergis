@@ -665,49 +665,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   createSelectInteraction = () => {
-    const pointStyle = new Style({
-      image: new Circle({
-        radius: 5,
-        fill: new Fill({
-          color: '#C52707',
-        }),
-        stroke: new Stroke({
-          color: '#171717',
-          width: 2,
-        }),
-      }),
-    });
-
-    const lineStyle = new Style({
-      stroke: new Stroke({
-        color: '#171717',
-        width: 2,
-      }),
-    });
-
-    const polygonStyle = new Style({
-      fill: new Fill({ color: '#C5270780' }),
-      stroke: new Stroke({
-        color: '#171717',
-        width: 2,
-      }),
-    });
-
-    const styleFunction = (feature: FeatureLike) => {
-      const geometryType = feature.getGeometry()?.getType();
-      switch (geometryType) {
-        case 'Point':
-        case 'MultiPoint':
-          return pointStyle;
-        case 'LineString':
-        case 'MultiLineString':
-          return lineStyle;
-        case 'Polygon':
-        case 'MultiPolygon':
-          return polygonStyle;
-      }
-    };
-
     const selectInteraction = new Select({
       hitTolerance: 5,
       multi: true,
@@ -725,7 +682,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
       },
-      style: styleFunction,
+      // Return an empty style so the select interaction does not visually
+      // override the layer's own style.  Visual feedback is provided by
+      // _highlightLayer (zIndex 999) via highlightFeatureSignal.
+      style: () => [],
     });
 
     selectInteraction.on('select', event => {
@@ -3358,6 +3318,41 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
+      case 'VectorLayer': {
+        const olLayer = this.getLayer(layerId);
+        const geometries: Geometry[] = [];
+        const features: IIdentifiedFeatureEntry[] = [];
+
+        this._Map.forEachFeatureAtPixel(
+          e.pixel,
+          (feature: FeatureLike) => {
+            const geom =
+              feature instanceof Feature ? feature.getGeometry() : undefined;
+            const props = feature.getProperties?.() ?? {};
+            if (geom) {
+              geometries.push(geom);
+            }
+            if (Object.keys(props).length > 0) {
+              features.push({ feature: props, floaterOpen: false });
+            }
+            return true;
+          },
+          { layerFilter: layer => layer === olLayer },
+        );
+
+        this._model.syncIdentifiedFeatures(
+          features,
+          this._model.getClientId().toString(),
+        );
+
+        if (geometries.length > 0) {
+          for (const geom of geometries) {
+            this._model.highlightFeatureSignal.emit(geom);
+          }
+        }
+        break;
+      }
+
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: IIdentifiedFeatureEntry[] = [];
