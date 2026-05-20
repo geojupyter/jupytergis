@@ -139,9 +139,18 @@ export function useListStoryScrollDrive({
       }
     }
 
+    // Top/bottom padding can place the viewport center outside the first/last
+    // pair; clamp so the overlay stays mounted at scroll extremes.
     if (pairIndex === null) {
-      emitDrive(null, true);
-      return;
+      if (scrollCenter <= numericCenters[0]) {
+        pairIndex = 0;
+      } else if (
+        scrollCenter >= numericCenters[numericCenters.length - 1]
+      ) {
+        pairIndex = numericCenters.length - 2;
+      } else {
+        return;
+      }
     }
 
     const fromItem = currentItems[pairIndex];
