@@ -6,7 +6,6 @@ import type {
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import {
-  CSSProperties,
   RefObject,
   useCallback,
   useEffect,
@@ -28,39 +27,6 @@ export interface IUseStoryMapParams {
   removeLayer?: (id: string) => void;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   isSpecta: boolean;
-  /** Panel root element for applying specta presentation CSS variables. */
-  panelRef?: RefObject<HTMLDivElement | null>;
-}
-
-/** Inline style for specta presentation (bg and text color from story). */
-export function getSpectaPresentationStyle(
-  story: IJGISStoryMap | null,
-): CSSProperties {
-  const isListMode = story?.storyType === 'list';
-  const bgColor = story?.presentationBgColor;
-  const textColor = story?.presentationTextColor;
-  const style: CSSProperties = {};
-
-  if (textColor) {
-    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
-    style.color = textColor;
-  }
-
-  if (isListMode) {
-    (style as Record<string, string>)['--jgis-specta-panel-color'] =
-      'transparent';
-    if (bgColor) {
-      (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
-    }
-    return style;
-  }
-
-  if (bgColor) {
-    (style as Record<string, string>)['--jgis-specta-panel-color'] = bgColor;
-    style.backgroundColor = bgColor;
-  }
-
-  return style;
 }
 
 export function useStoryMap({
@@ -68,7 +34,6 @@ export function useStoryMap({
   overrideLayerEntriesRef,
   removeLayer,
   addLayer,
-  panelRef,
   isSpecta,
 }: IUseStoryMapParams) {
   const [currentIndex, setCurrentIndex] = useState(
@@ -349,20 +314,6 @@ export function useStoryMap({
       setSelectedLayerByIndex(currentIndex);
     }
   }, [storyData, currentIndex, isGuidedStory, setSelectedLayerByIndex]);
-
-  // Apply story presentation colors (specta) to panel root
-  useEffect(() => {
-    if (!isSpecta || !panelRef?.current) {
-      return;
-    }
-    const container = panelRef.current;
-    const style = getSpectaPresentationStyle(storyData);
-    Object.entries(style).forEach(([key, value]) => {
-      if (value !== null) {
-        container.style.setProperty(key, String(value));
-      }
-    });
-  }, [storyData, isSpecta, panelRef]);
 
   return {
     storyData,

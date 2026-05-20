@@ -51,7 +51,6 @@ export function SpectaPanel({
     overrideLayerEntriesRef,
     removeLayer,
     addLayer,
-    panelRef: isMobile ? undefined : containerRef,
     isSpecta,
   });
 

@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import Markdown from 'react-markdown';
 
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
-import { getSpectaPresentationStyle } from '@/src/features/story/hooks/useStoryMap';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
 export interface IListStoryScrollDriveOverlayProps {
   model: IJupyterGISModel;
@@ -94,7 +94,7 @@ export function ListStoryScrollDriveOverlay({
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
   const story = model?.getSelectedStory().story ?? null;
   const spectaPresentationStyle = useMemo(
-    () => getSpectaPresentationStyle(story),
+    () => getSpectaPresentationCssVars(story),
     [
       story?.storyType,
       story?.presentationBgColor,

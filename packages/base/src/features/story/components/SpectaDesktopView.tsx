@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { RefObject, useImperativeHandle } from 'react';
+import React, { RefObject, useImperativeHandle, useMemo } from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
@@ -12,6 +12,7 @@ import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScrol
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 export type StoryDesktopViewMode = 'single' | 'list';
@@ -73,6 +74,15 @@ export function SpectaDesktopView({
     model,
     storyData,
   });
+
+  const presentationStyle = useMemo(
+    () => getSpectaPresentationCssVars(storyData),
+    [
+      storyData?.storyType,
+      storyData?.presentationBgColor,
+      storyData?.presentationTextColor,
+    ],
+  );
 
   const listScrollDriveEnabled =
     Boolean(onListScrollDriveChange) &&
@@ -141,7 +151,11 @@ export function SpectaDesktopView({
         className="jgis-specta-right-panel-container-mod jgis-right-panel-container"
         style={showGradient ? undefined : { width: '25%', borderRadius: 0 }}
       >
-        <div ref={containerRef} className="jgis-specta-story-panel-container">
+        <div
+          ref={containerRef}
+          className="jgis-specta-story-panel-container"
+          style={presentationStyle}
+        >
           <div
             ref={scrollContainerRef}
             className={`jgis-story-viewer-panel-specta-mod ${
