@@ -3,6 +3,9 @@
  * Renders a different UI for each scale scheme.
  */
 
+import { javascript } from '@codemirror/lang-javascript';
+import { EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import {
   ClassificationMode,
   ICategoricalScale,
@@ -14,8 +17,9 @@ import {
   IScalarScale,
   RGBA,
 } from '@jupytergis/schema';
+import { jupyterTheme } from '@jupyterlab/codemirror';
 import { UUID } from '@lumino/coreutils';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
@@ -393,19 +397,74 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     [params, onChange],
   );
 
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
+
+  useEffect(() => {
+    if (!editorRef.current) {
+      return;
+    }
+
+    if (viewRef.current) {
+      return;
+    }
+
+    const state = EditorState.create({
+      doc: params.expr || '',
+      extensions: [
+        javascript(),
+        jupyterTheme,
+        EditorView.lineWrapping,
+        EditorView.updateListener.of(updateView => {
+          if (updateView.docChanged) {
+            const value = updateView.state.doc.toString();
+            update({ expr: value });
+          }
+        }),
+      ],
+    });
+
+    viewRef.current = new EditorView({
+      state,
+      parent: editorRef.current,
+    });
+
+    return () => {
+      viewRef.current?.destroy();
+      viewRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) {
+      return;
+    }
+
+    const current = view.state.doc.toString();
+    if (current !== params.expr) {
+      view.dispatch({
+        changes: {
+          from: 0,
+          to: current.length,
+          insert: params.expr,
+        },
+      });
+    }
+  }, [params.expr]);
+
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
         <label>Expression</label>
-        <textarea
-          className="jp-mod-styled"
-          value={params.expr}
-          placeholder="datum.code > 80 ? 'red' : 'blue'"
-          onChange={e => update({ expr: e.target.value })}
+        <div
+          ref={editorRef}
           style={{
             flex: '1 1 auto',
-            minHeight: 64,
-            resize: 'vertical',
+            height: 80,
+            border: '1px solid var(--jp-border-color2)',
+            borderRadius: 4,
+            overflow: 'auto',
           }}
         />
       </div>
