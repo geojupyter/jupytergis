@@ -156,11 +156,25 @@ const plugin: JupyterFrontEndPlugin<void> = {
       .__('Processing');
     processingSubmenu.id = 'jp-gis-contextmenu-processing';
 
+    // Clip sub-submenu — groups all clipping operations
+    const clipSubmenu = new Menu({ commands: app.commands });
+    clipSubmenu.title.label = translator.load('jupyterlab').__('Clip By');
+    clipSubmenu.id = 'jp-gis-contextmenu-clip';
+
     for (const processingElement of ProcessingMerge) {
-      processingSubmenu.addItem({
-        command: `jupytergis:${processingElement.name}`,
-      });
+      if (processingElement.type === 'clip') {
+        clipSubmenu.addItem({
+          command: `jupytergis:${processingElement.name}`,
+        });
+      } else {
+        processingSubmenu.addItem({
+          command: `jupytergis:${processingElement.name}`,
+        });
+      }
     }
+
+    processingSubmenu.addItem({ type: 'separator' });
+    processingSubmenu.addItem({ type: 'submenu', submenu: clipSubmenu });
 
     app.contextMenu.addItem({
       type: 'submenu',

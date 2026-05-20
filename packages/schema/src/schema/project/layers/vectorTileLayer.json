@@ -25,17 +25,7 @@
     "symbologyState": {
       "type": "object",
       "description": "The state of the symbology panel options",
-      "required": ["renderType"],
       "properties": {
-        "renderType": {
-          "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical"],
-          "default": "Single Symbol"
-        },
-        "value": {
-          "type": "string",
-          "default": ""
-        },
         "method": {
           "type": "string",
           "enum": ["color", "radius"],
@@ -79,6 +69,20 @@
           "type": "boolean",
           "description": "Whether the stroke color follows the fill color expression",
           "default": false
+        },
+        "rules": {
+          "type": "array",
+          "description": "Legacy top-level encoding rules (backward compatibility). New files should use layers.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IEncodingRule"
+          }
+        },
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers. Each layer is an independent rendering pipeline with optional preprocess transforms and encoding rules.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
+          }
         }
       },
       "additionalProperties": false,

@@ -9,6 +9,7 @@ from .interfaces.project.layers.geoTiffLayer import IGeoTiffLayer  # noqa
 from .interfaces.project.layers.geoZarrLayer import IGeoZarrLayer  # noqa
 from .interfaces.project.layers.heatmapLayer import IHeatmapLayer  # noqa
 from .interfaces.project.layers.storySegmentLayer import IStorySegmentLayer  # noqa
+from .interfaces.project.layers.openeoTileLayer import IOpenEOTileLayer  # noqa
 
 from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # noqa
 from .interfaces.project.sources.markerSource import IMarkerSource  # noqa
@@ -23,6 +24,7 @@ from .interfaces.project.sources.geoPackageVectorSource import IGeoPackageVector
 from .interfaces.project.sources.geoPackageRasterSource import IGeoPackageRasterSource  # noqa
 from .interfaces.project.sources.geoParquetSource import IGeoParquetSource  # noqa
 from .interfaces.project.sources.wmsTileSource import IWmsTileSource  # noqa
+from .interfaces.project.sources.openeoTileSource import IOpenEOTileSource  # noqa
 
 from .interfaces.processing.buffer import IBuffer  # noqa
 

@@ -28,12 +28,7 @@ export type SizeValue = number;
 
 export type SymbologyValue = SizeValue | ColorValue | InternalRgbArray;
 
-export type VectorRenderType =
-  | 'Single Symbol'
-  | 'Canonical'
-  | 'Graduated'
-  | 'Categorized'
-  | 'Heatmap';
+export type VectorRenderType = 'Heatmap' | 'Grammar';
 
 /**
  * Add jupytergisMaps object to the global variables.

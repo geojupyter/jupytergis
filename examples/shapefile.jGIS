@@ -32,9 +32,7 @@
         },
         "opacity": 1.0,
         "source": "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -57,9 +55,7 @@
         },
         "opacity": 1.0,
         "source": "eb4b68da-eab6-44a1-8e75-ca9c871d2755",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
