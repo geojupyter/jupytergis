@@ -3,6 +3,7 @@ import React from 'react';
 import Markdown from 'react-markdown';
 
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
+import { getSpectaPresentationStyle } from '@/src/features/story/hooks/useStoryMap';
 
 export interface IListStoryScrollDriveOverlayProps {
   model: IJupyterGISModel;
@@ -97,11 +98,19 @@ export function ListStoryScrollDriveOverlay({
 
   const fromMarkdown = getStoryMarkdownForIndex(model, drive.fromIndex);
   const toMarkdown = getStoryMarkdownForIndex(model, drive.toIndex);
-  const paneConfigs = getScrollDrivePaneConfigs(drive, fromMarkdown, toMarkdown);
+  const paneConfigs = getScrollDrivePaneConfigs(
+    drive,
+    fromMarkdown,
+    toMarkdown,
+  );
 
   if (!paneConfigs) {
     return null;
   }
+
+  const spectaPresentationStyle = getSpectaPresentationStyle(
+    model.getSelectedStory().story ?? null,
+  );
 
   return (
     <div
@@ -109,6 +118,7 @@ export function ListStoryScrollDriveOverlay({
       className="jgis-story-markdown-overlay"
       style={
         {
+          ...spectaPresentationStyle,
           '--jgis-scroll-drive-progress': drive.progress,
         } as React.CSSProperties
       }
