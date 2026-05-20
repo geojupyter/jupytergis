@@ -2,12 +2,12 @@ import { IDict, IGeoJSONSource, IHeatmapLayer } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, loadFile } from '@/src/tools';
 import type { ILayerProps } from './layerform';
 
