@@ -1,5 +1,5 @@
 import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Markdown from 'react-markdown';
 
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
@@ -92,6 +92,16 @@ export function ListStoryScrollDriveOverlay({
   model,
   drive,
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
+  const story = model?.getSelectedStory().story ?? null;
+  const spectaPresentationStyle = useMemo(
+    () => getSpectaPresentationStyle(story),
+    [
+      story?.storyType,
+      story?.presentationBgColor,
+      story?.presentationTextColor,
+    ],
+  );
+
   if (!drive || !model) {
     return null;
   }
@@ -107,10 +117,6 @@ export function ListStoryScrollDriveOverlay({
   if (!paneConfigs) {
     return null;
   }
-
-  const spectaPresentationStyle = getSpectaPresentationStyle(
-    model.getSelectedStory().story ?? null,
-  );
 
   return (
     <div
