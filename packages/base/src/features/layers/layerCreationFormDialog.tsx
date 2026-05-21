@@ -4,7 +4,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { CreationForm, ICreationFormProps } from '@/src/formbuilder';
+import { CreationForm, ICreationFormProps } from '@/src/shared/formbuilder';
 
 export interface ICreationFormWrapperProps extends ICreationFormProps {
   /**

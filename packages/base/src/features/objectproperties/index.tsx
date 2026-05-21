@@ -2,7 +2,7 @@ import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import * as React from 'react';
 
-import { EditForm } from '@/src/formbuilder/editform';
+import { EditForm } from '@/src/shared/formbuilder/editform';
 
 interface IStates {
   model: IJupyterGISModel | undefined;
