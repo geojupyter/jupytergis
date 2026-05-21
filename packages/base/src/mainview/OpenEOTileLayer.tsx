@@ -5,6 +5,7 @@ import {
   showDialog,
 } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 import { Connection, OpenEO, Process, Service } from '@openeo/js-client';
 import TileLayer from 'ol/layer/Tile';
 import { ProjectionLike } from 'ol/proj';
@@ -13,6 +14,17 @@ import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
+
+/**
+ * Singleton event hub for OpenEO connection lifecycle. Mainly used so the
+ * map can rebuild any `OpenEOTileSource` that failed to construct because
+ * the session wasn't available yet (typical after a page reload) the
+ * moment the user signs back in to the same server.
+ */
+class OpenEOEvents {
+  readonly connected = new Signal<this, { serverUrl: string }>(this);
+}
+export const openEOEvents = new OpenEOEvents();
 
 /**
  * Return the live `Connection` for `serverUrl` if the user is currently
@@ -227,6 +239,11 @@ export async function connect(
     // Reflect the resolved server url back so callers (e.g. the layer
     // creation dialog) can persist it alongside the bearer token.
     connectionInfo.url = url;
+
+    // Let listeners (mainView) rebuild any OpenEO layers that were
+    // waiting on this server — typical after a page reload, where the
+    // in-memory connection cache starts empty.
+    openEOEvents.connected.emit({ serverUrl: url });
 
     return connection;
   } catch (error) {
