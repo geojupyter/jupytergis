@@ -3,8 +3,8 @@ import { Dialog } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import type { IBaseFormProps } from '@/src/types';
 import { MapExtentToggle } from './MapExtentToggle';
 import { useMapExtent } from './useMapExtent';
