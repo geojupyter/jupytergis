@@ -16,7 +16,7 @@
       "type": "string"
     },
     "authBearer": {
-      "description": "The OpenEO connection identifier.",
+      "description": "DEPRECATED. The bearer token is no longer persisted; the frontend keeps the live OpenEO connection in memory and requires the user to sign in each session. This field is kept only for backwards compatibility with .jGIS files saved by older versions, and is ignored.",
       "type": "string"
     }
   }

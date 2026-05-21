@@ -50,12 +50,10 @@ const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 let _lastOpenEOConnection: IOpenEOConnectionInfo | null = null;
 
 /**
- * Recover an OpenEO connection from a layer already in the document.
- *
- * The bearer token lives on the OpenEO source in the .jGIS file, so after a
- * reload (which clears the in-memory session) we can still re-authenticate
- * silently instead of prompting. This only reads what the document already
- * stores; it introduces no new credential storage.
+ * Recover the server URL of an OpenEO layer already in the document so a
+ * fresh sign-in dialog can pre-fill it after a reload. Bearer tokens are
+ * intentionally never persisted to the .jGIS file, so the user has to
+ * re-authenticate; we just save them retyping the URL.
  */
 function findExistingOpenEOConnection(
   model: IJupyterGISModel,
@@ -67,12 +65,9 @@ function findExistingOpenEOConnection(
     }
     const sourceId = (layer.parameters as any)?.source as string | undefined;
     const source = sourceId ? model.getSource(sourceId) : undefined;
-    const params = (source?.parameters ?? {}) as {
-      serverUrl?: string;
-      authBearer?: string;
-    };
+    const params = (source?.parameters ?? {}) as { serverUrl?: string };
     if (params.serverUrl) {
-      return { url: params.serverUrl, authBearer: params.authBearer };
+      return { url: params.serverUrl };
     }
   }
   return null;
@@ -669,10 +664,7 @@ export function addCommands(
         _lastOpenEOConnection = null;
         return;
       }
-      _lastOpenEOConnection = {
-        url: connectionInfo.url,
-        authBearer: connectionInfo.authBearer,
-      };
+      _lastOpenEOConnection = { url: connectionInfo.url };
       const result = await showAddOpenEOLayerDialog({ connectionInfo });
       if (!result) {
         return;
@@ -680,12 +672,14 @@ export function addCommands(
       const model = current.model;
       const sourceId = UUID.uuid4();
       const layerId = UUID.uuid4();
+      // The bearer token deliberately does NOT go into the .jGIS file —
+      // the live connection lives in-memory only (CONNECTIONS in
+      // OpenEOTileLayer.tsx), so the user must re-sign-in after a reload.
       model.sharedModel.addSource(sourceId, {
         name: `${result.layerName} Source`,
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
-          authBearer: result.authBearer,
           processGraph: result.processGraph,
         },
       });
@@ -734,21 +728,17 @@ export function addCommands(
       const source = model.getSource(sourceId);
       const sourceParams = (source?.parameters ?? {}) as {
         serverUrl?: string;
-        authBearer?: string;
         processGraph?: Record<string, any>;
       };
       // Reconnect to the layer's server before editing. `connect` reuses
-      // the cached connection when the server is already authenticated.
+      // the cached connection when the server is already authenticated;
+      // otherwise it prompts the user — the token is never stored.
       const connectionInfo: IOpenEOConnectionInfo = {
         url: sourceParams.serverUrl,
-        authBearer: sourceParams.authBearer,
       };
       try {
         await openEOConnect(connectionInfo);
-        _lastOpenEOConnection = {
-          url: connectionInfo.url,
-          authBearer: connectionInfo.authBearer,
-        };
+        _lastOpenEOConnection = { url: connectionInfo.url };
       } catch {
         return;
       }
@@ -768,7 +758,6 @@ export function addCommands(
           parameters: {
             ...source.parameters,
             serverUrl: result.serverUrl,
-            authBearer: result.authBearer,
             processGraph: result.processGraph,
           },
         });

@@ -20,7 +20,6 @@ import { IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
 export interface IOpenEODialogResult {
   layerName: string;
   serverUrl: string;
-  authBearer?: string;
   processGraph: Record<string, any>;
 }
 
@@ -597,7 +596,6 @@ class AddLayerBody extends ReactWidget {
     return {
       layerName: this._state.layerName || template.name,
       serverUrl: this._connectionInfo.url,
-      authBearer: this._connectionInfo.authBearer,
       processGraph:
         this._state.editedGraph ?? template.buildGraph(this._state.params),
     };

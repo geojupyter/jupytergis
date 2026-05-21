@@ -14,6 +14,31 @@ import React from 'react';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
 
+/**
+ * Return the live `Connection` for `serverUrl` if the user is currently
+ * signed in to it. Throws otherwise — callers (the tile source, the
+ * dialog) are expected to surface the error and prompt the user to
+ * (re-)connect via the sign-in flow.
+ *
+ * The live connection is kept entirely in-memory: bearer tokens are
+ * never persisted to the .jGIS file, so reloading the page requires the
+ * user to sign in again before existing OpenEO layers can render.
+ */
+export function getOpenEOConnection(serverUrl: string): Connection {
+  // Match `connect()`'s normalization so cache lookups are consistent.
+  let url = serverUrl;
+  if (url && !url.match(/^https?:\/\//i)) {
+    url = `https://${url}`;
+  }
+  const connection = CONNECTIONS[url];
+  if (!connection) {
+    throw new Error(
+      `Not connected to OpenEO server "${serverUrl}". Sign in via the OpenEO layer dialog or the "Reconnect to OpenEO server" command.`,
+    );
+  }
+  return connection;
+}
+
 export interface ISigninValues {
   serverUrl: string;
   username: string;
@@ -241,9 +266,11 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
   processGraph: Process;
 
   /**
-   * The connection info.
+   * The OpenEO server URL. The live connection is resolved from the
+   * module-level `CONNECTIONS` cache via `getOpenEOConnection`; no
+   * credentials are accepted or stored here.
    */
-  connectionInfo: IOpenEOConnectionInfo;
+  serverUrl: string;
 }
 
 export class OpenEOTileSource extends XYZSource {
@@ -275,18 +302,18 @@ export class OpenEOTileSource extends XYZSource {
       },
     });
 
-    this._connect(options.connectionInfo, options.processGraph);
+    this.serverUrl = options.serverUrl;
+    this._connect(options.serverUrl, options.processGraph);
   }
 
-  private async _connect(
-    connectionInfo: IOpenEOConnectionInfo,
-    graph: Process,
-  ) {
-    this._connection = await connect(connectionInfo);
-
-    if (!this._connection) {
-      throw new Error('Failed to get OpenEO connection');
-    }
+  /**
+   * Resolve the live OpenEO connection for `serverUrl` from the in-memory
+   * cache and create an XYZ service for the process graph. Throws if the
+   * user isn't currently signed in to the server — the caller surfaces
+   * the error and offers a "Reconnect" affordance.
+   */
+  private async _connect(serverUrl: string, graph: Process) {
+    this._connection = getOpenEOConnection(serverUrl);
 
     this._connected.resolve();
 
@@ -325,5 +352,5 @@ export class OpenEOTileSource extends XYZSource {
 
   processGraph: Process;
 
-  connectionInfo: IOpenEOConnectionInfo;
+  serverUrl: string;
 }

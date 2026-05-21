@@ -435,13 +435,15 @@ class GISDocument(CommWidget):
         name="OpenEO Tiles",
         opacity: float = 1,
     ):
+        # The bearer token is intentionally NOT persisted to the .jGIS file.
+        # The frontend keeps an in-memory connection cache keyed by serverUrl;
+        # users sign in once per session via the OpenEO layer dialog.
         source = {
             "type": SourceType.OpenEOTileSource,
             "name": f"{name} Source",
             "parameters": {
                 "processGraph": graph.flat_graph(),
                 "serverUrl": graph.connection.root_url,
-                "authBearer": graph.connection.auth.bearer,
             },
         }
 
