@@ -27,6 +27,43 @@ class OpenEOEvents {
 export const openEOEvents = new OpenEOEvents();
 
 /**
+ * Show a small "Log in" dialog for `serverUrl` and, if the user accepts,
+ * trigger Martin's sign-in flow via `connect()`. On successful sign-in
+ * the resulting `openEOEvents.connected` signal causes mainView to rebuild
+ * any tile sources that were waiting on this server.
+ *
+ * Deduplicated per serverUrl so that N broken layers from the same server
+ * don't pop N dialogs on document load.
+ */
+const _pendingLoginPrompts = new Set<string>();
+export async function promptOpenEOLogin(serverUrl: string): Promise<void> {
+  if (_pendingLoginPrompts.has(serverUrl)) {
+    return;
+  }
+  _pendingLoginPrompts.add(serverUrl);
+  try {
+    const result = await showDialog({
+      title: 'OpenEO session required',
+      body: `Not signed in to ${serverUrl}. Log in to render this document's OpenEO layers.`,
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Log in' })],
+    });
+    if (!result.button.accept) {
+      return;
+    }
+    try {
+      await connect({ url: serverUrl });
+    } catch {
+      // `connect` already surfaced the error / the user cancelled the
+      // sign-in form. The layers stay unrendered; the user can try again
+      // by editing a layer or re-opening this dialog through another
+      // failed render.
+    }
+  } finally {
+    _pendingLoginPrompts.delete(serverUrl);
+  }
+}
+
+/**
  * Return the live `Connection` for `serverUrl` if the user is currently
  * signed in to it. Throws otherwise — callers (the tile source, the
  * dialog) are expected to surface the error and prompt the user to
@@ -325,15 +362,20 @@ export class OpenEOTileSource extends XYZSource {
 
   /**
    * Resolve the live OpenEO connection for `serverUrl` from the in-memory
-   * cache and create an XYZ service for the process graph. Throws if the
-   * user isn't currently signed in to the server — the caller surfaces
-   * the error and offers a "Reconnect" affordance.
+   * cache and create an XYZ service for the process graph. If the user is
+   * not signed in (typical right after a page reload), surface a "Log in"
+   * dialog instead of throwing and leave the layer unrendered until the
+   * user signs back in. Once they do, `openEOEvents.connected` fires and
+   * mainView reconstructs this source.
    */
   private async _connect(serverUrl: string, graph: Process) {
-    this._connection = getOpenEOConnection(serverUrl);
-
+    try {
+      this._connection = getOpenEOConnection(serverUrl);
+    } catch {
+      void promptOpenEOLogin(serverUrl);
+      return;
+    }
     this._connected.resolve();
-
     this._updateUrl(graph);
   }
 
