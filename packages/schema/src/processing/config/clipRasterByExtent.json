@@ -1,0 +1,9 @@
+{
+  "name": "clipRasterByExtent",
+  "label": "Clip Raster by Extent",
+  "operationParams": ["xMin", "yMin", "xMax", "yMax"],
+  "operations": {
+    "gdalFunction": "gdal_translate"
+  },
+  "type": "rasterClip"
+}

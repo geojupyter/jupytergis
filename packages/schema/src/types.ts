@@ -31,6 +31,20 @@ export * from './_interface/project/layers/openeoTileLayer';
 // Processing
 export * from './processing/_generated/exportProcessingSchema';
 
+// Symbology grammar
+export * from './_interface/project/symbology';
+
+import type { IGrammarLayer } from './_interface/project/symbology';
+
+export interface IGrammarSymbologyState {
+  /**
+   * Ordered list of independent rendering layers sharing the same source.
+   * Each layer produces one renderer layer (VectorLayer, HeatmapLayer, etc.).
+   * Layers are rendered in order (first = bottom).
+   */
+  layers: IGrammarLayer[];
+}
+
 // exportLayer
 export * from './_interface/export/exportGeoJson';
 export * from './_interface/export/exportGeoTiff';
