@@ -14,10 +14,6 @@
     "serverUrl": {
       "description": "The OpenEO tile server url.",
       "type": "string"
-    },
-    "authBearer": {
-      "description": "DEPRECATED. The bearer token is no longer persisted; the frontend keeps the live OpenEO connection in memory and requires the user to sign in each session. This field is kept only for backwards compatibility with .jGIS files saved by older versions, and is ignored.",
-      "type": "string"
     }
   }
 }
