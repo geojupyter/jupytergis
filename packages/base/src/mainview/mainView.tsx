@@ -690,17 +690,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     selectInteraction.on('select', event => {
       const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
+      const geometries: Geometry[] = [];
+
       selectInteraction.getFeatures().forEach(feature => {
         identifiedFeatures.push({
           feature: feature.getProperties(),
           floaterOpen: false,
         });
+        const geom = feature.getGeometry();
+        if (geom) {
+          geometries.push(geom);
+        }
       });
 
       this._model.syncIdentifiedFeatures(
         identifiedFeatures,
         this._mainViewModel.id,
       );
+
+      // Sync _highlightLayer with the current selection (clears on deselect).
+      this._setHighlightGeometries(geometries);
     });
 
     this._Map.addInteraction(selectInteraction);
@@ -2017,62 +2026,80 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
     });
 
-    if (!this._highlightLayer) {
-      this._highlightLayer = new VectorLayer({
-        source: new VectorSource(),
-        style: feature => {
-          const geomType = feature.getGeometry()?.getType();
-          switch (geomType) {
-            case 'Point':
-            case 'MultiPoint':
-              return new Style({
-                image: new Circle({
-                  radius: 6,
-                  fill: new Fill({
-                    color: 'rgba(255, 255, 0, 0.8)',
-                  }),
-                  stroke: new Stroke({
-                    color: '#ff0',
-                    width: 2,
-                  }),
-                }),
-              });
-            case 'LineString':
-            case 'MultiLineString':
-              return new Style({
-                stroke: new Stroke({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                  width: 3,
-                }),
-              });
-            case 'Polygon':
-            case 'MultiPolygon':
-              return new Style({
-                stroke: new Stroke({
-                  color: '#f00',
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                }),
-              });
-            default:
-              return new Style({
-                stroke: new Stroke({
-                  color: '#000',
-                  width: 2,
-                }),
-              });
-          }
-        },
-        zIndex: 999,
-      });
-      this._Map.addLayer(this._highlightLayer);
-    }
-
+    this._ensureHighlightLayer();
     const source = this._highlightLayer.getSource();
     source?.clear();
     source?.addFeature(olFeature);
+  }
+
+  private _ensureHighlightLayer(): void {
+    if (this._highlightLayer) {
+      return;
+    }
+    this._highlightLayer = new VectorLayer({
+      source: new VectorSource(),
+      style: feature => {
+        const geomType = feature.getGeometry()?.getType();
+        switch (geomType) {
+          case 'Point':
+          case 'MultiPoint':
+            return new Style({
+              image: new Circle({
+                radius: 6,
+                fill: new Fill({
+                  color: 'rgba(255, 255, 0, 0.8)',
+                }),
+                stroke: new Stroke({
+                  color: '#ff0',
+                  width: 2,
+                }),
+              }),
+            });
+          case 'LineString':
+          case 'MultiLineString':
+            return new Style({
+              stroke: new Stroke({
+                color: 'rgba(255, 255, 0, 0.8)',
+                width: 3,
+              }),
+            });
+          case 'Polygon':
+          case 'MultiPolygon':
+            return new Style({
+              stroke: new Stroke({
+                color: '#f00',
+                width: 2,
+              }),
+              fill: new Fill({
+                color: 'rgba(255, 255, 0, 0.8)',
+              }),
+            });
+          default:
+            return new Style({
+              stroke: new Stroke({
+                color: '#000',
+                width: 2,
+              }),
+            });
+        }
+      },
+      zIndex: 999,
+    });
+    this._Map.addLayer(this._highlightLayer);
+  }
+
+  /**
+   * Replace the highlight layer contents with the given geometries.
+   * Clears the source first so that stale highlights are always removed,
+   * including when the selection becomes empty (geometries = []).
+   */
+  private _setHighlightGeometries(geometries: Geometry[]): void {
+    this._ensureHighlightLayer();
+    const source = this._highlightLayer.getSource();
+    source?.clear();
+    for (const geom of geometries) {
+      source?.addFeature(new Feature({ geometry: geom }));
+    }
   }
 
   /**
@@ -3318,40 +3345,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
-      case 'VectorLayer': {
-        const olLayer = this.getLayer(layerId);
-        const geometries: Geometry[] = [];
-        const features: IIdentifiedFeatureEntry[] = [];
-
-        this._Map.forEachFeatureAtPixel(
-          e.pixel,
-          (feature: FeatureLike) => {
-            const geom =
-              feature instanceof Feature ? feature.getGeometry() : undefined;
-            const props = feature.getProperties?.() ?? {};
-            if (geom) {
-              geometries.push(geom);
-            }
-            if (Object.keys(props).length > 0) {
-              features.push({ feature: props, floaterOpen: false });
-            }
-            return true;
-          },
-          { layerFilter: layer => layer === olLayer },
-        );
-
-        this._model.syncIdentifiedFeatures(
-          features,
-          this._model.getClientId().toString(),
-        );
-
-        if (geometries.length > 0) {
-          for (const geom of geometries) {
-            this._model.highlightFeatureSignal.emit(geom);
-          }
-        }
+      case 'VectorLayer':
+        // Feature selection, property sync, and highlight for VectorLayer are
+        // handled entirely by the selectInteraction (createSelectInteraction).
         break;
-      }
 
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
