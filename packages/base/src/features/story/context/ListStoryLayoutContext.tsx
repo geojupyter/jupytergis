@@ -134,13 +134,14 @@ export function ListStoryLayoutProvider({
     [enabled, items, viewportHeight],
   );
 
-  const { measuringSegment, onMeasured } = useLazyListStoryMarkdownMeasure({
-    enabled: enabled && viewportHeight > 0,
-    model,
-    activeIndex,
-    heightsById,
-    onHeight: handleMeasuredHeight,
-  });
+  const { measuringSegment, reportHeight, completeMeasure } =
+    useLazyListStoryMarkdownMeasure({
+      enabled: enabled && viewportHeight > 0,
+      model,
+      activeIndex,
+      heightsById,
+      onHeight: handleMeasuredHeight,
+    });
 
   const layout = useMemo(() => {
     if (!enabled || !items.length || viewportHeight <= 0) {
@@ -171,7 +172,8 @@ export function ListStoryLayoutProvider({
             key={measuringSegment.id}
             segmentId={measuringSegment.id}
             markdown={measuringSegment.markdown}
-            onHeight={onMeasured}
+            onHeight={reportHeight}
+            onMeasureComplete={completeMeasure}
           />
         </div>
       ) : null}

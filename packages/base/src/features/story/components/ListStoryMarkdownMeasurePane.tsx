@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useLayoutEffect, useRef } from 'react';
 
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 
@@ -6,6 +6,7 @@ export interface IListStoryMarkdownMeasurePaneProps {
   segmentId: string;
   markdown: string;
   onHeight: (segmentId: string, height: number) => void;
+  onMeasureComplete: () => void;
 }
 
 /**
@@ -15,40 +16,64 @@ export function ListStoryMarkdownMeasurePane({
   segmentId,
   markdown,
   onHeight,
+  onMeasureComplete,
 }: IListStoryMarkdownMeasurePaneProps): JSX.Element {
-  const paneRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const renderedRef = useRef(false);
+
+  const reportHeight = useCallback((): void => {
+    const content = contentRef.current;
+    if (!content) {
+      return;
+    }
+    onHeight(segmentId, content.getBoundingClientRect().height);
+  }, [segmentId, onHeight]);
+
+  const handleRendered = useCallback((): void => {
+    renderedRef.current = true;
+    reportHeight();
+    onMeasureComplete();
+  }, [reportHeight, onMeasureComplete]);
 
   useLayoutEffect(() => {
-    const pane = paneRef.current;
-    if (!pane) {
+    renderedRef.current = false;
+    if (!markdown) {
+      renderedRef.current = true;
+      reportHeight();
+      onMeasureComplete();
+    }
+  }, [segmentId, markdown, reportHeight, onMeasureComplete]);
+
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content) {
       return;
     }
 
-    const report = (): void => {
-      onHeight(segmentId, pane.getBoundingClientRect().height);
-    };
-
-    report();
     const ro = new ResizeObserver(() => {
-      report();
+      if (renderedRef.current) {
+        reportHeight();
+      }
     });
-    ro.observe(pane);
+    ro.observe(content);
 
     return () => {
       ro.disconnect();
     };
-  }, [segmentId, markdown, onHeight]);
+  }, [segmentId, markdown, reportHeight]);
 
   return (
     <div
-      ref={paneRef}
       data-segment-id={segmentId}
       className="jgis-story-markdown-scroll-pane jgis-story-markdown-scroll-pane--measure"
     >
-      <div className="jgis-story-markdown-overlay-content">
+      <div ref={contentRef} className="jgis-story-markdown-overlay-content">
         {markdown ? (
           <div className="specta-article-host-widget specta-cell-content">
-            <StoryScrollDriveMarkdown source={markdown} />
+            <StoryScrollDriveMarkdown
+              source={markdown}
+              onRendered={handleRendered}
+            />
           </div>
         ) : null}
       </div>

@@ -8,6 +8,8 @@ const MARKDOWN_MIME = 'text/markdown';
 
 export interface IStoryScrollDriveMarkdownProps {
   source: string;
+  /** Fires after rendermime (or plain fallback) has painted. */
+  onRendered?: () => void;
 }
 
 function disposeRenderer(renderer: Widget): void {
@@ -30,6 +32,7 @@ function disposeRenderer(renderer: Widget): void {
  */
 export function StoryScrollDriveMarkdown({
   source,
+  onRendered,
 }: IStoryScrollDriveMarkdownProps): JSX.Element | null {
   const rendermime = useStoryRenderMime();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -74,6 +77,11 @@ export function StoryScrollDriveMarkdown({
       }
 
       renderer.addClass('jp-MarkdownOutput');
+      requestAnimationFrame(() => {
+        if (!cancelled && !renderer.isDisposed) {
+          onRendered?.();
+        }
+      });
     };
 
     void run();
@@ -82,7 +90,14 @@ export function StoryScrollDriveMarkdown({
       cancelled = true;
       disposeRenderer(renderer);
     };
-  }, [rendermime, source]);
+  }, [rendermime, source, onRendered]);
+
+  useLayoutEffect(() => {
+    if (rendermime || !source) {
+      return;
+    }
+    onRendered?.();
+  }, [rendermime, source, onRendered]);
 
   if (!source) {
     return null;

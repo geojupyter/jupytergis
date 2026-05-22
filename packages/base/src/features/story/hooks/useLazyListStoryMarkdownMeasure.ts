@@ -16,7 +16,8 @@ export interface IUseLazyListStoryMarkdownMeasureParams {
 
 export interface ILazyListStoryMarkdownMeasureState {
   measuringSegment: IListStoryMarkdownSegment | null;
-  onMeasured: (segmentId: string, height: number) => void;
+  reportHeight: (segmentId: string, height: number) => void;
+  completeMeasure: () => void;
 }
 
 /**
@@ -54,20 +55,16 @@ export function useLazyListStoryMarkdownMeasure({
     queueRef.current = pending.filter(id => id !== currentId);
   }, [markdownSegments, activeIndex, measuringSegment?.id]);
 
-  const startNext = useCallback((): void => {
-    if (measuringSegment) {
-      return;
-    }
-    refillQueue();
-    const nextId = queueRef.current.shift();
-    if (!nextId) {
-      return;
-    }
-    const segment = markdownSegments.find(item => item.id === nextId);
-    if (segment) {
-      setMeasuringSegment(segment);
-    }
-  }, [markdownSegments, measuringSegment, refillQueue]);
+  const reportHeight = useCallback(
+    (segmentId: string, height: number) => {
+      onHeight(segmentId, height);
+    },
+    [onHeight],
+  );
+
+  const completeMeasure = useCallback(() => {
+    setMeasuringSegment(null);
+  }, []);
 
   useEffect(() => {
     if (!enabled) {
@@ -76,23 +73,25 @@ export function useLazyListStoryMarkdownMeasure({
       return;
     }
     refillQueue();
-    startNext();
-  }, [enabled, activeIndex, markdownSegments, heightsById, refillQueue, startNext]);
-
-  const onMeasured = useCallback(
-    (segmentId: string, height: number) => {
-      onHeight(segmentId, height);
-      setMeasuringSegment(null);
-    },
-    [onHeight],
-  );
-
-  useEffect(() => {
-    if (!enabled || measuringSegment) {
+    if (measuringSegment) {
       return;
     }
-    startNext();
-  }, [enabled, measuringSegment, startNext]);
+    const nextId = queueRef.current.shift();
+    if (!nextId) {
+      return;
+    }
+    const segment = markdownSegments.find(item => item.id === nextId);
+    if (segment) {
+      setMeasuringSegment(segment);
+    }
+  }, [
+    enabled,
+    activeIndex,
+    markdownSegments,
+    heightsById,
+    measuringSegment,
+    refillQueue,
+  ]);
 
-  return { measuringSegment, onMeasured };
+  return { measuringSegment, reportHeight, completeMeasure };
 }

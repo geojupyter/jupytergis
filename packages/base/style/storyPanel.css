@@ -211,6 +211,11 @@
   z-index: 5;
 }
 
+.jgis-story-markdown-overlay--idle {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .jgis-story-markdown-overlay-content {
   max-width: 60rem;
   margin: 0 auto;
