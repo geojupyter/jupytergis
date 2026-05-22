@@ -50,6 +50,280 @@ type ValidationStatus =
   | { state: 'invalid'; errors: IValidationError[] }
   | { state: 'error'; message: string };
 
+const DRAG_MIME = 'application/x-openeo-node';
+
+type DragPayload =
+  | { kind: 'collection'; id: string }
+  | { kind: 'process'; id: string }
+  | { kind: 'format'; id: string };
+
+function mintNodeKey(procId: string, existing: Set<string>): string {
+  const base = procId.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'node';
+  let n = 1;
+  while (existing.has(`${base}${n}`)) {
+    n += 1;
+  }
+  return `${base}${n}`;
+}
+
+function defaultArgsFromProcess(parameters: any[] | undefined): Record<string, any> {
+  const args: Record<string, any> = {};
+  if (!Array.isArray(parameters)) {
+    return args;
+  }
+  for (const p of parameters) {
+    if (!p || typeof p.name !== 'string') {
+      continue;
+    }
+    if (p.default !== undefined) {
+      args[p.name] = p.default;
+    } else if (!p.optional) {
+      args[p.name] = null;
+    }
+  }
+  return args;
+}
+
+function buildCollectionNode(
+  id: string,
+  params: IOpenEOTemplateParams,
+): Record<string, any> {
+  return {
+    process_id: 'load_collection',
+    arguments: {
+      id,
+      bands: [],
+      properties: {},
+      spatial_extent: params.bbox,
+      temporal_extent: params.temporalExtent,
+    },
+  };
+}
+
+function buildProcessNode(
+  procId: string,
+  process: any,
+): Record<string, any> {
+  return {
+    process_id: procId,
+    arguments: defaultArgsFromProcess(process?.parameters),
+  };
+}
+
+function buildSaveResultNode(formatId: string): Record<string, any> {
+  return {
+    process_id: 'save_result',
+    arguments: {
+      data: null,
+      format: formatId,
+      options: {},
+    },
+  };
+}
+
+interface ICatalogPaletteProps {
+  collections: any[] | undefined;
+  processes: any[] | undefined;
+  outputFormats: any[] | undefined;
+  loading: boolean;
+  onBack: () => void;
+}
+
+const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
+  collections,
+  processes,
+  outputFormats,
+  loading,
+  onBack,
+}) => {
+  const [filter, setFilter] = React.useState('');
+  const [openCollections, setOpenCollections] = React.useState(true);
+  const [openProcesses, setOpenProcesses] = React.useState(false);
+  const [openFormats, setOpenFormats] = React.useState(false);
+
+  const q = filter.trim().toLowerCase();
+  const filteredCollections = React.useMemo(() => {
+    const list = collections ?? [];
+    if (!q) {
+      return list;
+    }
+    return list.filter(
+      c =>
+        (c.id ?? '').toLowerCase().includes(q) ||
+        (c.title ?? '').toLowerCase().includes(q),
+    );
+  }, [collections, q]);
+
+  const filteredProcesses = React.useMemo(() => {
+    const list = processes ?? [];
+    if (!q) {
+      return list;
+    }
+    return list.filter(
+      p =>
+        (p.id ?? '').toLowerCase().includes(q) ||
+        (p.summary ?? '').toLowerCase().includes(q),
+    );
+  }, [processes, q]);
+
+  const filteredFormats = React.useMemo(() => {
+    const list = outputFormats ?? [];
+    if (!q) {
+      return list;
+    }
+    return list.filter(
+      f =>
+        (f.id ?? '').toLowerCase().includes(q) ||
+        (f.title ?? '').toLowerCase().includes(q),
+    );
+  }, [outputFormats, q]);
+
+  const onDragStart = (e: React.DragEvent, payload: DragPayload) => {
+    e.dataTransfer.setData(DRAG_MIME, JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  return (
+    <div className="jp-openeo-palette">
+      <div className="jp-openeo-palette-header">
+        <button
+          type="button"
+          className="jp-openeo-palette-back"
+          onClick={onBack}
+          aria-label="Back to form"
+          title="Back to form"
+        >
+          ← Back
+        </button>
+        <strong>Catalog</strong>
+      </div>
+      <input
+        type="text"
+        className="jp-openeo-filter"
+        placeholder="Search collections and processes…"
+        value={filter}
+        onChange={e => setFilter(e.target.value)}
+      />
+      {loading && <p className="jp-openeo-empty">Loading catalog…</p>}
+      {!loading && (
+        <div className="jp-openeo-palette-sections">
+          <PaletteSection
+            title="Collections"
+            count={filteredCollections.length}
+            open={openCollections}
+            onToggle={() => setOpenCollections(o => !o)}
+          >
+            {filteredCollections.map((c: any) => (
+              <PaletteRow
+                key={c.id}
+                id={c.id}
+                subtitle={c.title}
+                onDragStart={e =>
+                  onDragStart(e, { kind: 'collection', id: c.id })
+                }
+              />
+            ))}
+          </PaletteSection>
+          <PaletteSection
+            title="Processes"
+            count={filteredProcesses.length}
+            open={openProcesses}
+            onToggle={() => setOpenProcesses(o => !o)}
+          >
+            {filteredProcesses.map((p: any) => (
+              <PaletteRow
+                key={p.id}
+                id={p.id}
+                subtitle={p.summary}
+                onDragStart={e =>
+                  onDragStart(e, { kind: 'process', id: p.id })
+                }
+              />
+            ))}
+          </PaletteSection>
+          <PaletteSection
+            title="Output Formats"
+            count={filteredFormats.length}
+            open={openFormats}
+            onToggle={() => setOpenFormats(o => !o)}
+          >
+            {filteredFormats.map((f: any) => (
+              <PaletteRow
+                key={f.id}
+                id={f.id}
+                subtitle={f.title}
+                onDragStart={e =>
+                  onDragStart(e, { kind: 'format', id: f.id })
+                }
+              />
+            ))}
+          </PaletteSection>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PaletteSection: React.FC<{
+  title: string;
+  count: number;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}> = ({ title, count, open, onToggle, children }) => {
+  return (
+    <div className={'jp-openeo-section' + (open ? ' jp-mod-open' : '')}>
+      <button
+        type="button"
+        className="jp-openeo-section-header"
+        onClick={onToggle}
+      >
+        <span
+          className={open ? 'jp-openeo-caret-down' : 'jp-openeo-caret-right'}
+        >
+          {open ? '▼' : '▶'}
+        </span>
+        <strong>{title}</strong>
+        <span className="jp-openeo-count">{count}</span>
+      </button>
+      {open && (
+        <div className="jp-openeo-section-body jp-openeo-palette-body">
+          {count === 0 ? (
+            <p className="jp-openeo-empty">No matches.</p>
+          ) : (
+            children
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PaletteRow: React.FC<{
+  id: string;
+  subtitle?: string;
+  onDragStart: (e: React.DragEvent) => void;
+}> = ({ id, subtitle, onDragStart }) => {
+  return (
+    <div
+      className="jp-openeo-palette-row"
+      draggable
+      onDragStart={onDragStart}
+      title={`Drag ${id} onto the graph`}
+    >
+      <span className="jp-openeo-grip" aria-hidden="true">
+        ⠿
+      </span>
+      <span className="jp-openeo-palette-row-text">
+        <span className="jp-openeo-id">{id}</span>
+        {subtitle && (
+          <span className="jp-openeo-secondary">{subtitle}</span>
+        )}
+      </span>
+    </div>
+  );
+};
+
 const Form: React.FC<IFormProps> = ({
   initial,
   connectionInfo,
@@ -260,19 +534,23 @@ const Form: React.FC<IFormProps> = ({
   // label ports with types. Cached, so this is free if the Discovery
   // panel already populated the cache.
   const [catalog, setCatalog] = React.useState<IBackendCatalog | null>(null);
+  const [catalogLoading, setCatalogLoading] = React.useState(false);
   React.useEffect(() => {
     let cancelled = false;
     setCatalog(null);
+    setCatalogLoading(true);
     fetchBackendCatalog(connectionInfo)
       .then(c => {
         if (!cancelled) {
           setCatalog(c);
+          setCatalogLoading(false);
         }
       })
       .catch(err => {
         if (cancelled) {
           return;
         }
+        setCatalogLoading(false);
         Notification.warning(
           `OpenEO: couldn't load the process/collection catalog from ${connectionInfo.url}. The graph editor will still work, but ports won't be type-labeled.`,
           { autoClose: 4000 },
@@ -285,9 +563,108 @@ const Form: React.FC<IFormProps> = ({
     };
   }, [connectionInfo]);
 
+  // Drop handling: insert a node into the effective graph at the user's
+  // request. The dropped node gets a freshly minted key; the user wires
+  // it to the rest of the graph manually.
+  const [isDragOver, setIsDragOver] = React.useState(false);
+  const dragDepthRef = React.useRef(0);
+
+  const insertNode = (payload: DragPayload) => {
+    const base = state.editedGraph ?? template.buildGraph(state.params);
+    const existing = new Set(Object.keys(base));
+    let node: Record<string, any>;
+    let procId: string;
+    if (payload.kind === 'collection') {
+      procId = 'load_collection';
+      node = buildCollectionNode(payload.id, state.params);
+    } else if (payload.kind === 'format') {
+      procId = 'save_result';
+      node = buildSaveResultNode(payload.id);
+    } else {
+      procId = payload.id;
+      const proc = (catalog?.processes ?? []).find(
+        (p: any) => p?.id === payload.id,
+      );
+      node = buildProcessNode(payload.id, proc);
+    }
+    const key = mintNodeKey(procId, existing);
+    const nextGraph = { ...base, [key]: node };
+    setState(prev => {
+      const next = { ...prev, editedGraph: nextGraph };
+      onChange(next);
+      return next;
+    });
+    Notification.success(`Added ${procId} node "${key}".`, {
+      autoClose: 1800,
+    });
+  };
+
+  const onCanvasDragEnter = (e: React.DragEvent) => {
+    if (!editMode) {
+      return;
+    }
+    if (!e.dataTransfer.types.includes(DRAG_MIME)) {
+      return;
+    }
+    e.preventDefault();
+    dragDepthRef.current += 1;
+    setIsDragOver(true);
+  };
+  const onCanvasDragOver = (e: React.DragEvent) => {
+    if (!editMode) {
+      return;
+    }
+    if (!e.dataTransfer.types.includes(DRAG_MIME)) {
+      return;
+    }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+  const onCanvasDragLeave = () => {
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) {
+      setIsDragOver(false);
+    }
+  };
+  const onCanvasDrop = (e: React.DragEvent) => {
+    if (!editMode) {
+      return;
+    }
+    const data = e.dataTransfer.getData(DRAG_MIME);
+    if (!data) {
+      return;
+    }
+    e.preventDefault();
+    dragDepthRef.current = 0;
+    setIsDragOver(false);
+    try {
+      const payload = JSON.parse(data) as DragPayload;
+      if (
+        payload &&
+        (payload.kind === 'collection' ||
+          payload.kind === 'process' ||
+          payload.kind === 'format')
+      ) {
+        insertNode(payload);
+      }
+    } catch {
+      // Bad payload — ignore.
+    }
+  };
+
   return (
     <div className="jp-openeo-dialog">
       <div className="jp-openeo-dialog-left">
+        {editMode ? (
+          <CatalogPalette
+            collections={catalog?.collections}
+            processes={catalog?.processes}
+            outputFormats={catalog?.outputFormats}
+            loading={catalogLoading}
+            onBack={() => setEditMode(false)}
+          />
+        ) : (
+        <>
         <section className="jp-openeo-section">
           <h4>Layer</h4>
           <label className="jp-openeo-field">
@@ -425,6 +802,8 @@ const Form: React.FC<IFormProps> = ({
             />
           </label>
         </section>
+        </>
+        )}
       </div>
 
       <div className="jp-openeo-dialog-right">
@@ -518,7 +897,21 @@ const Form: React.FC<IFormProps> = ({
             (or fn+Delete) to remove it. Use Reset to restore the template.
           </p>
         )}
-        <div className="jp-openeo-canvas-wrapper">
+        <div
+          className={
+            'jp-openeo-canvas-wrapper' +
+            (isDragOver ? ' jp-mod-drop-target' : '')
+          }
+          onDragEnter={onCanvasDragEnter}
+          onDragOver={onCanvasDragOver}
+          onDragLeave={onCanvasDragLeave}
+          onDrop={onCanvasDrop}
+        >
+          {isDragOver && (
+            <div className="jp-openeo-drop-overlay">
+              Drop to add node to graph
+            </div>
+          )}
           {viewMode === 'json' ? (
             editMode ? (
               <JsonEditor

@@ -3,9 +3,18 @@ import {
   IOpenEOConnectionInfo,
 } from '../mainview/OpenEOTileLayer';
 
+export interface IFileFormat {
+  id: string;
+  title?: string;
+  gis_data_types?: string[];
+  parameters?: Record<string, any>;
+  [key: string]: any;
+}
+
 export interface IBackendCatalog {
   collections: any[];
   processes: any[];
+  outputFormats: IFileFormat[];
 }
 
 const _catalogCache = new Map<string, Promise<IBackendCatalog>>();
@@ -32,13 +41,37 @@ export async function fetchBackendCatalog(
   }
   const promise = (async (): Promise<IBackendCatalog> => {
     const connection = await connect(connectionInfo);
-    const [cols, procs] = await Promise.all([
+    const [cols, procs, formats] = await Promise.all([
       connection.listCollections(),
       connection.listProcesses(),
+      // Older clients / backends may not expose listFileTypes — degrade
+      // gracefully rather than failing the whole catalog fetch.
+      (async () => {
+        try {
+          if (typeof (connection as any).listFileTypes === 'function') {
+            return await (connection as any).listFileTypes();
+          }
+        } catch {
+          /* ignore */
+        }
+        return null;
+      })(),
     ]);
+    // openeo-js-client wraps the /file_formats response in a FileTypes
+    // class — the raw map lives at getOutputTypes() / .data.output, not
+    // at .output directly.
+    const outputRaw: Record<string, any> =
+      (typeof (formats as any)?.getOutputTypes === 'function'
+        ? (formats as any).getOutputTypes()
+        : (formats as any)?.data?.output) ?? {};
+    const outputFormats: IFileFormat[] = Object.keys(outputRaw).map(id => ({
+      id,
+      ...(outputRaw[id] ?? {}),
+    }));
     return {
       collections: (cols as any)?.collections ?? [],
       processes: (procs as any)?.processes ?? [],
+      outputFormats,
     };
   })();
   _catalogCache.set(key, promise);

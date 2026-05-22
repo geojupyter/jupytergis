@@ -145,17 +145,36 @@ export const OpenEODiscoveryPanel: React.FC<IDiscoveryPanelProps> = ({
       // Sign-in (if needed) is handled by the shared `connect` helper.
       const connectionInfo: IOpenEOConnectionInfo = { url: serverUrl };
       const connection = await connect(connectionInfo);
-      const [cols, procs] = await Promise.all([
+      const [cols, procs, formats] = await Promise.all([
         connection.listCollections(),
         connection.listProcesses(),
+        (async () => {
+          try {
+            if (typeof (connection as any).listFileTypes === 'function') {
+              return await (connection as any).listFileTypes();
+            }
+          } catch {
+            /* ignore */
+          }
+          return null;
+        })(),
       ]);
       const collectionList = ((cols as any).collections ?? []) as ICollection[];
       const processList = ((procs as any).processes ?? []) as IProcess[];
+      const outputRaw: Record<string, any> =
+        (typeof (formats as any)?.getOutputTypes === 'function'
+          ? (formats as any).getOutputTypes()
+          : (formats as any)?.data?.output) ?? {};
+      const outputFormats = Object.keys(outputRaw).map(id => ({
+        id,
+        ...(outputRaw[id] ?? {}),
+      }));
       setCollections(collectionList);
       setProcesses(processList);
       seedBackendCatalog(serverUrl, {
         collections: collectionList,
         processes: processList,
+        outputFormats,
       });
       setStatus('connected');
     } catch (err: any) {
