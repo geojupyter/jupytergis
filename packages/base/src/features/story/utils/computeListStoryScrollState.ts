@@ -25,14 +25,6 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-/** Scroll distance while the next segment top travels to the viewport top. */
-function handoffScrollSpan(
-  segment: IListStorySegmentRange,
-  viewportHeight: number,
-): number {
-  return Math.max(segment.height - viewportHeight, 1);
-}
-
 /** Progress 0..1 across layout gap until the next segment start meets viewport top. */
 function progressHandoff(
   scrollTop: number,
@@ -65,7 +57,6 @@ function findSegmentAt(
 
 function computePairDrive(
   scrollTop: number,
-  viewportHeight: number,
   fromSegment: IListStorySegmentRange,
   toSegment: IListStorySegmentRange,
 ): IPairDriveResult | null {
@@ -73,15 +64,16 @@ function computePairDrive(
   const toMode = toSegment.contentMode;
 
   if (fromMode === 'map' && toMode === 'markdown') {
-    const span = handoffScrollSpan(toSegment, viewportHeight);
-    const rampStart = toSegment.start - span;
-    if (scrollTop < rampStart) {
+    if (scrollTop < fromSegment.start) {
       return null;
     }
-    if (scrollTop >= toSegment.end) {
+    if (scrollTop >= toSegment.start) {
       return null;
     }
-    const progress = clamp01((scrollTop - rampStart) / span);
+    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
+    if (progress === null) {
+      return null;
+    }
     return {
       inZone: true,
       progress,
@@ -172,12 +164,7 @@ export function computeListStoryScrollState({
       continue;
     }
 
-    const pairDrive = computePairDrive(
-      scrollTop,
-      viewportHeight,
-      fromSegment,
-      toSegment,
-    );
+    const pairDrive = computePairDrive(scrollTop, fromSegment, toSegment);
     if (!pairDrive) {
       continue;
     }

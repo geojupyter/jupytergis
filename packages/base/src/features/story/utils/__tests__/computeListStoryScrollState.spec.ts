@@ -49,15 +49,19 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('keeps map-only scroll free of overlay drive before markdown ramp', () => {
-    expect(compute(50, mapThenMarkdown)).toEqual({
+  it('starts map-to-markdown at progress 0 and ramps across the map segment', () => {
+    expect(compute(0, mapThenMarkdown)).toEqual({
       activeIndex: 0,
-      drive: null,
+      drive: {
+        progress: 0,
+        fromIndex: 0,
+        toIndex: 1,
+        fromMode: 'map',
+        toMode: 'markdown',
+      },
     });
-  });
 
-  it('ramps overlay progress for map to markdown (viewport top)', () => {
-    expect(compute(120, mapThenMarkdown)).toEqual({
+    expect(compute(40, mapThenMarkdown)).toEqual({
       activeIndex: 0,
       drive: {
         progress: 0.2,
@@ -68,7 +72,7 @@ describe('computeListStoryScrollState', () => {
       },
     });
 
-    expect(compute(150, mapThenMarkdown)).toEqual({
+    expect(compute(100, mapThenMarkdown)).toEqual({
       activeIndex: 1,
       drive: {
         progress: 0.5,
