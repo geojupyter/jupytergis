@@ -2162,8 +2162,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (origStroke || origFill) {
       return new Style({
         stroke: new Stroke({
-          color: '#ff0',
-          width: (origStroke?.getWidth() ?? 1) + 2,
+          color: 'rgba(255, 255, 0, 0.4)',
+          width: (origStroke?.getWidth() ?? 1) + 4,
         }),
         ...(origFill
           ? { fill: new Fill({ color: 'rgba(255, 255, 0, 0.15)' }) }
@@ -2173,7 +2173,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     // Fallback
     return new Style({
-      stroke: new Stroke({ color: '#ff0', width: 2 }),
+      stroke: new Stroke({ color: 'rgba(255, 255, 0, 0.4)', width: 4 }),
     });
   }
 
