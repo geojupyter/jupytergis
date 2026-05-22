@@ -60,4 +60,23 @@ describe('buildListStoryLayout', () => {
       measured: true,
     });
   });
+
+  it('uses no top padding when the first segment is markdown', () => {
+    const layout = buildListStoryLayout({
+      items: [
+        item('md', 0, 'markdown', 'short'),
+        item('map', 1, 'map'),
+      ],
+      viewportHeight: 400,
+      heightsById: { md: 120 },
+    });
+
+    expect(layout!.padTop).toBe(0);
+    expect(layout!.segments[0]).toMatchObject({
+      start: 0,
+      end: 120,
+      height: 120,
+      contentMode: 'markdown',
+    });
+  });
 });

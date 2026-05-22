@@ -96,7 +96,10 @@ export function buildListStoryLayout({
 
   const firstHeight = heights[0].height;
   const lastHeight = heights[heights.length - 1].height;
-  const padTop = edgePad(viewportHeight, firstHeight);
+  const firstMode = getSegmentDisplayMode(items[0].activeSlide);
+  // Markdown-first: top-align at scrollTop 0 (no centering spacer).
+  const padTop =
+    firstMode === 'markdown' ? 0 : edgePad(viewportHeight, firstHeight);
   const padBottom = edgePad(viewportHeight, lastHeight);
 
   let offset = padTop;
