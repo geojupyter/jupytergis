@@ -29,7 +29,10 @@ export interface IListStoryLayout {
 
 export interface IBuildListStoryLayoutInput {
   items: IStorySegmentViewItem[];
+  /** Story column scroller height (markdown estimates, scroll padding). */
   viewportHeight: number;
+  /** Map stage height (`.jGIS-Mainview-Container`); defaults to viewportHeight. */
+  mapViewportHeight?: number;
   heightsById?: Readonly<Record<string, number>>;
 }
 
@@ -50,6 +53,7 @@ export function estimateMapSegmentHeight(viewportHeight: number): number {
 function segmentHeightForItem(
   item: IStorySegmentViewItem,
   viewportHeight: number,
+  mapViewportHeight: number,
   heightsById: Readonly<Record<string, number>>,
 ): { height: number; measured: boolean } {
   const measured = heightsById[item.id];
@@ -69,21 +73,26 @@ function segmentHeightForItem(
     };
   }
 
-  return { height: estimateMapSegmentHeight(viewportHeight), measured: false };
+  return {
+    height: estimateMapSegmentHeight(mapViewportHeight),
+    measured: mapViewportHeight > 0,
+  };
 }
 
 /** Builds cumulative segment ranges for the virtual list story scroll track. */
 export function buildListStoryLayout({
   items,
   viewportHeight,
+  mapViewportHeight,
   heightsById = {},
 }: IBuildListStoryLayoutInput): IListStoryLayout | null {
   if (!items.length || viewportHeight <= 0) {
     return null;
   }
 
+  const mapHeight = mapViewportHeight ?? viewportHeight;
   const heights: { height: number; measured: boolean }[] = items.map(item =>
-    segmentHeightForItem(item, viewportHeight, heightsById),
+    segmentHeightForItem(item, viewportHeight, mapHeight, heightsById),
   );
 
   let offset = 0;

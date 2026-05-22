@@ -2,12 +2,8 @@ import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { useMemo, useRef } from 'react';
 
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
-import {
-  getLayoutSegmentHeight,
-  useListStoryLayoutContext,
-} from '@/src/features/story/context/ListStoryLayoutContext';
+import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
-import { markdownScrollPaneHeightStyle } from '@/src/features/story/utils/markdownScrollPaneHeight';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
 export interface IListStoryScrollDriveOverlayProps {
@@ -73,7 +69,6 @@ interface IScrollDrivePaneProps {
   pane: 'from' | 'to';
   segmentIndex: number;
   config: IScrollDrivePaneConfig;
-  heightPx: number | undefined;
   forceInactive: boolean;
 }
 
@@ -81,7 +76,6 @@ function ScrollDrivePane({
   pane,
   segmentIndex,
   config,
-  heightPx,
   forceInactive,
 }: IScrollDrivePaneProps): React.ReactElement {
   const inactive = forceInactive || config.inactive;
@@ -93,7 +87,6 @@ function ScrollDrivePane({
     <div
       data-pane={pane}
       className={className}
-      style={markdownScrollPaneHeightStyle(heightPx)}
       aria-hidden={inactive}
     >
       <div className="jgis-story-markdown-overlay-content">
@@ -118,7 +111,6 @@ export function ListStoryScrollDriveOverlay({
   model,
   drive,
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
-  const { layout } = useListStoryLayoutContext();
   const lastDriveRef = useRef<IListStoryScrollDrivePayload | null>(null);
 
   if (drive) {
@@ -175,14 +167,12 @@ export function ListStoryScrollDriveOverlay({
         pane="from"
         segmentIndex={fromIndex}
         config={paneConfigs.from}
-        heightPx={getLayoutSegmentHeight(layout, fromIndex)}
         forceInactive={!isActive}
       />
       <ScrollDrivePane
         pane="to"
         segmentIndex={toIndex}
         config={paneConfigs.to}
-        heightPx={getLayoutSegmentHeight(layout, toIndex)}
         forceInactive={!isActive}
       />
     </div>

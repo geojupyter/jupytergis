@@ -44,6 +44,7 @@ export function ListStoryLayoutProvider({
   const [storyRevision, setStoryRevision] = useState(0);
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
+  const [mapViewportHeight, setMapViewportHeight] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const heightsRef = useRef(heightsById);
@@ -94,6 +95,30 @@ export function ListStoryLayoutProvider({
     };
   }, [enabled, storyRevision]);
 
+  useLayoutEffect(() => {
+    if (!enabled) {
+      setMapViewportHeight(0);
+      return;
+    }
+
+    const container = document.querySelector('.jGIS-Mainview-Container');
+    if (!(container instanceof HTMLElement)) {
+      setMapViewportHeight(0);
+      return;
+    }
+
+    const update = (): void => {
+      setMapViewportHeight(container.clientHeight);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    return () => {
+      ro.disconnect();
+    };
+  }, [enabled, storyRevision]);
+
   const handleMeasuredHeight = useCallback(
     (segmentId: string, height: number) => {
       const rounded = Math.ceil(height);
@@ -108,6 +133,7 @@ export function ListStoryLayoutProvider({
             ? buildListStoryLayout({
                 items,
                 viewportHeight,
+                mapViewportHeight: mapViewportHeight || undefined,
                 heightsById: prev,
               })
             : null;
@@ -129,7 +155,7 @@ export function ListStoryLayoutProvider({
         return next;
       });
     },
-    [enabled, items, viewportHeight],
+    [enabled, items, mapViewportHeight, viewportHeight],
   );
 
   const { measuringSegment, reportHeight, completeMeasure } =
@@ -148,9 +174,10 @@ export function ListStoryLayoutProvider({
     return buildListStoryLayout({
       items,
       viewportHeight,
+      mapViewportHeight: mapViewportHeight || undefined,
       heightsById,
     });
-  }, [enabled, items, viewportHeight, heightsById]);
+  }, [enabled, items, mapViewportHeight, viewportHeight, heightsById]);
 
   const value = useMemo(
     (): IListStoryLayoutContextValue => ({

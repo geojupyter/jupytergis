@@ -49,7 +49,25 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('starts map-to-markdown at progress 0 and ramps across the map segment', () => {
+  it('ramps map-to-markdown over map segment height, not story scroller height', () => {
+    const mapStageThenMd = [
+      seg(0, 0, 1039, 'map'),
+      seg(1, 1039, 2078, 'markdown'),
+    ];
+
+    expect(compute(600, mapStageThenMd, 439)).toEqual({
+      activeIndex: 1,
+      drive: {
+        progress: 600 / 1039,
+        fromIndex: 0,
+        toIndex: 1,
+        fromMode: 'map',
+        toMode: 'markdown',
+      },
+    });
+  });
+
+  it('ramps map-to-markdown across the map segment layout span', () => {
     expect(compute(0, mapThenMarkdown)).toEqual({
       activeIndex: 0,
       drive: {
