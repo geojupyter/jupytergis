@@ -676,8 +676,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return false;
         }
         const selectedLayerId = Object.keys(selectedLayers)[0];
-
-        return layer === this.getLayer(selectedLayerId);
+        const expected = this.getLayer(selectedLayerId);
+        return layer === expected;
       },
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
@@ -721,7 +721,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               : resolved
                 ? [resolved]
                 : [];
-            hlFeature.setStyle(styles.map(s => this._buildHighlightStyle(s)));
+            const gType = geom.getType();
+            hlFeature.setStyle(
+              styles.map(s => this._buildHighlightStyle(s, gType)),
+            );
           }
           highlightFeatures.push(hlFeature);
         }
@@ -2057,58 +2060,66 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _ensureHighlightLayer(): void {
-    if (this._highlightLayer) {
+    // Check that the layer both exists AND is still in the map.
+    // _updateLayersImpl removes layers whose id isn't in the JGIS model,
+    // which includes this layer (it has no JGIS id).
+    if (
+      this._highlightLayer &&
+      this._Map.getLayers().getArray().includes(this._highlightLayer)
+    ) {
       return;
     }
-    this._highlightLayer = new VectorLayer({
-      source: new VectorSource(),
-      style: feature => {
-        const geomType = feature.getGeometry()?.getType();
-        switch (geomType) {
-          case 'Point':
-          case 'MultiPoint':
-            return new Style({
-              image: new Circle({
-                radius: 8,
-                fill: new Fill({
-                  color: 'transparent',
+    if (!this._highlightLayer) {
+      this._highlightLayer = new VectorLayer({
+        source: new VectorSource(),
+        style: feature => {
+          const geomType = feature.getGeometry()?.getType();
+          switch (geomType) {
+            case 'Point':
+            case 'MultiPoint':
+              return new Style({
+                image: new Circle({
+                  radius: 8,
+                  fill: new Fill({
+                    color: 'transparent',
+                  }),
+                  stroke: new Stroke({
+                    color: '#ff0',
+                    width: 3,
+                  }),
                 }),
+              });
+            case 'LineString':
+            case 'MultiLineString':
+              return new Style({
                 stroke: new Stroke({
-                  color: '#ff0',
+                  color: 'rgba(255, 255, 0, 0.8)',
                   width: 3,
                 }),
-              }),
-            });
-          case 'LineString':
-          case 'MultiLineString':
-            return new Style({
-              stroke: new Stroke({
-                color: 'rgba(255, 255, 0, 0.8)',
-                width: 3,
-              }),
-            });
-          case 'Polygon':
-          case 'MultiPolygon':
-            return new Style({
-              stroke: new Stroke({
-                color: '#ff0',
-                width: 2,
-              }),
-              fill: new Fill({
-                color: 'rgba(255, 255, 0, 0.15)',
-              }),
-            });
-          default:
-            return new Style({
-              stroke: new Stroke({
-                color: '#ff0',
-                width: 2,
-              }),
-            });
-        }
-      },
-      zIndex: 999,
-    });
+              });
+            case 'Polygon':
+            case 'MultiPolygon':
+              return new Style({
+                stroke: new Stroke({
+                  color: '#ff0',
+                  width: 2,
+                }),
+                fill: new Fill({
+                  color: 'rgba(255, 255, 0, 0.15)',
+                }),
+              });
+            default:
+              return new Style({
+                stroke: new Stroke({
+                  color: '#ff0',
+                  width: 2,
+                }),
+              });
+          }
+        },
+        zIndex: 999,
+      });
+    }
     this._Map.addLayer(this._highlightLayer);
   }
 
@@ -2144,16 +2155,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Preserves data-driven properties (circle radius, line width) and swaps in
    * a constant yellow highlight color.
    */
-  private _buildHighlightStyle(original: Style): Style {
-    const image = original.getImage();
-    if (image instanceof CircleStyle) {
-      return new Style({
-        image: new Circle({
-          radius: image.getRadius() + 4,
-          fill: new Fill({ color: 'transparent' }),
-          stroke: new Stroke({ color: '#ff0', width: 3 }),
-        }),
-      });
+  private _buildHighlightStyle(original: Style, geomType?: string): Style {
+    // Only use the circle branch for point geometries.  The OL default style
+    // includes a circle image alongside fill/stroke; without this guard the
+    // circle branch would fire for polygons and produce an invisible style.
+    const isPoint = geomType === 'Point' || geomType === 'MultiPoint';
+    if (isPoint) {
+      const image = original.getImage();
+      if (image instanceof CircleStyle) {
+        return new Style({
+          image: new Circle({
+            radius: image.getRadius() + 4,
+            fill: new Fill({ color: 'transparent' }),
+            stroke: new Stroke({ color: '#ff0', width: 3 }),
+          }),
+        });
+      }
     }
 
     const origStroke = original.getStroke();
