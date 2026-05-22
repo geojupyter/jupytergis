@@ -1,39 +1,49 @@
 import {
   computeListStoryScrollState,
-  type IListStorySegmentCardLayout,
   type IListStoryScrollState,
 } from '@/src/features/story/utils/computeListStoryScrollState';
+import type { IListStorySegmentRange } from '@/src/features/story/utils/listStoryLayout';
 
-function card(
+function seg(
   index: number,
-  center: number,
+  start: number,
+  end: number,
   contentMode: 'map' | 'markdown' = 'map',
-): IListStorySegmentCardLayout {
-  return { index, center, contentMode };
+  id = `seg-${index}`,
+): IListStorySegmentRange {
+  return {
+    id,
+    index,
+    start,
+    end,
+    height: end - start,
+    measured: true,
+    contentMode,
+  };
 }
 
 describe('computeListStoryScrollState', () => {
-  const threeCards = [
-    card(0, 100, 'map'),
-    card(1, 300, 'markdown'),
-    card(2, 500, 'markdown'),
+  const threeSegments = [
+    seg(0, 0, 200, 'map'),
+    seg(1, 200, 400, 'markdown'),
+    seg(2, 400, 600, 'markdown'),
   ];
 
-  it('returns first segment when only one card', () => {
+  it('returns first segment when only one segment', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: 50,
-        cards: [card(0, 100)],
+        segments: [seg(0, 0, 200)],
         prev: null,
       }),
     ).toEqual({ activeIndex: 0, drive: null });
   });
 
-  it('picks active index from pair progress threshold', () => {
+  it('derives progress across adjacent segment spans', () => {
     expect(
       computeListStoryScrollState({
-        scrollCenter: 180,
-        cards: threeCards,
+        scrollCenter: 160,
+        segments: threeSegments,
         prev: null,
       }),
     ).toEqual({
@@ -49,8 +59,8 @@ describe('computeListStoryScrollState', () => {
 
     expect(
       computeListStoryScrollState({
-        scrollCenter: 220,
-        cards: threeCards,
+        scrollCenter: 240,
+        segments: threeSegments,
         prev: null,
       }),
     ).toEqual({
@@ -66,12 +76,16 @@ describe('computeListStoryScrollState', () => {
   });
 
   it('clears drive for map-to-map pairs but still updates active index', () => {
-    const mapCards = [card(0, 100), card(1, 300), card(2, 500)];
+    const mapSegments = [
+      seg(0, 0, 200, 'map'),
+      seg(1, 200, 400, 'map'),
+      seg(2, 400, 600, 'map'),
+    ];
 
     expect(
       computeListStoryScrollState({
-        scrollCenter: 220,
-        cards: mapCards,
+        scrollCenter: 320,
+        segments: mapSegments,
         prev: null,
       }),
     ).toEqual({ activeIndex: 1, drive: null });
@@ -80,8 +94,8 @@ describe('computeListStoryScrollState', () => {
   it('clamps to first pair at scroll top', () => {
     expect(
       computeListStoryScrollState({
-        scrollCenter: 0,
-        cards: threeCards,
+        scrollCenter: -50,
+        segments: threeSegments,
         prev: null,
       }),
     ).toEqual({
@@ -100,7 +114,7 @@ describe('computeListStoryScrollState', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: 900,
-        cards: threeCards,
+        segments: threeSegments,
         prev: null,
       }),
     ).toEqual({
@@ -115,7 +129,7 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('returns prev when adjacent card centers collapse to zero span', () => {
+  it('returns prev when adjacent segment spans collapse to zero', () => {
     const prev: IListStoryScrollState = {
       activeIndex: 1,
       drive: {
@@ -130,7 +144,7 @@ describe('computeListStoryScrollState', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: 200,
-        cards: [card(0, 200), card(1, 200), card(2, 500)],
+        segments: [seg(0, 0, 200), seg(1, 200, 200), seg(2, 200, 200)],
         prev,
       }),
     ).toBe(prev);

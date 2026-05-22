@@ -1,15 +1,7 @@
-import type {
-  IListStoryScrollDrivePayload,
-  StorySegmentDisplayMode,
-} from '@/src/features/story/types/listStoryScrollDrive';
+import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 
+import type { IListStorySegmentRange } from './listStoryLayout';
 import { pairNeedsScrollDrive } from './segmentDisplayMode';
-
-export interface IListStorySegmentCardLayout {
-  index: number;
-  center: number;
-  contentMode: StorySegmentDisplayMode;
-}
 
 export interface IListStoryScrollState {
   activeIndex: number;
@@ -18,74 +10,77 @@ export interface IListStoryScrollState {
 
 export interface IComputeListStoryScrollInput {
   scrollCenter: number;
-  cards: IListStorySegmentCardLayout[];
+  segments: IListStorySegmentRange[];
   prev: IListStoryScrollState | null;
 }
 
-/** Pure list-scroll geometry: active segment index + overlay drive from one layout pass. */
+function findPairIndex(
+  scrollCenter: number,
+  segments: IListStorySegmentRange[],
+): number {
+  if (segments.length < 2) {
+    return 0;
+  }
+
+  if (scrollCenter < segments[0].start) {
+    return 0;
+  }
+
+  const last = segments[segments.length - 1];
+  if (scrollCenter >= last.end) {
+    return segments.length - 2;
+  }
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    if (scrollCenter < segments[i + 1].end) {
+      return i;
+    }
+  }
+
+  return segments.length - 2;
+}
+
+/** Pure list-scroll geometry from virtual track segment ranges. */
 export function computeListStoryScrollState({
   scrollCenter,
-  cards,
+  segments,
   prev,
 }: IComputeListStoryScrollInput): IListStoryScrollState | null {
-  if (!cards.length) {
+  if (!segments.length) {
     return null;
   }
 
-  if (cards.length === 1) {
+  if (segments.length === 1) {
     return {
-      activeIndex: cards[0].index,
+      activeIndex: segments[0].index,
       drive: null,
     };
   }
 
-  const centers = cards.map(card => card.center);
-
-  let pairIndex: number | null = null;
-  for (let i = 0; i < centers.length - 1; i++) {
-    const a = centers[i];
-    const b = centers[i + 1];
-    if (a <= scrollCenter && scrollCenter <= b) {
-      pairIndex = i;
-      break;
-    }
-  }
-
-  let inGap = false;
-  if (pairIndex === null) {
-    if (scrollCenter <= centers[0]) {
-      pairIndex = 0;
-    } else if (scrollCenter >= centers[centers.length - 1]) {
-      pairIndex = centers.length - 2;
-    } else {
-      inGap = true;
-    }
-  }
-
-  if (inGap) {
-    return prev;
-  }
-
-  const fromCard = cards[pairIndex!];
-  const toCard = cards[pairIndex! + 1];
-  const c0 = fromCard.center;
-  const c1 = toCard.center;
-  const span = c1 - c0;
+  const pairIndex = findPairIndex(scrollCenter, segments);
+  const fromSegment = segments[pairIndex];
+  const toSegment = segments[pairIndex + 1];
+  const spanStart = fromSegment.start;
+  const spanEnd = toSegment.end;
+  const span = spanEnd - spanStart;
 
   if (span <= 0) {
     return prev;
   }
 
-  const progress = Math.min(1, Math.max(0, (scrollCenter - c0) / span));
-  const activeIndex = progress >= 0.5 ? toCard.index : fromCard.index;
+  const progress = Math.min(1, Math.max(0, (scrollCenter - spanStart) / span));
+  const activeIndex = progress >= 0.5 ? toSegment.index : fromSegment.index;
 
-  const drive = pairNeedsScrollDrive(fromCard.contentMode, toCard.contentMode)
+  const drive = pairNeedsScrollDrive(
+    fromSegment.contentMode,
+    toSegment.contentMode,
+  )
     ? {
         progress,
-        fromIndex: fromCard.index,
-        toIndex: toCard.index,
-        fromMode: fromCard.contentMode,
-        toMode: toCard.contentMode,
+        fromIndex: fromSegment.index,
+        toIndex: toSegment.index,
+        fromMode: fromSegment.contentMode,
+        toMode: toSegment.contentMode,
       }
     : null;
 

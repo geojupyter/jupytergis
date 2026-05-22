@@ -8,6 +8,7 @@ import React, { RefObject, useImperativeHandle, useMemo } from 'react';
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
+import { useListStoryLayout } from '@/src/features/story/hooks/useListStoryLayout';
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
@@ -89,10 +90,16 @@ export function SpectaDesktopView({
     viewMode === 'list' &&
     storyData?.storyType === 'list';
 
+  const listStoryLayout = useListStoryLayout({
+    items: segmentViewItems,
+    scrollContainerRef,
+  });
+
   useListStoryScroll({
     enabled: listScrollDriveEnabled,
     scrollContainerRef,
     storyData,
+    layout: listStoryLayout,
     items: segmentViewItems,
     currentIndex,
     setIndex,
@@ -118,13 +125,7 @@ export function SpectaDesktopView({
     ),
     list: () => (
       <SpectaListModeContent
-        isSpecta={isSpecta}
-        storyData={storyData}
-        items={segmentViewItems}
-        handlePrev={handlePrev}
-        handleNext={handleNext}
-        hasPrev={hasPrev}
-        hasNext={hasNext}
+        layout={listStoryLayout}
         listIntersectionRootRef={scrollContainerRef}
       />
     ),

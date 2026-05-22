@@ -1,24 +1,22 @@
 import { RefObject, useLayoutEffect } from 'react';
 
+import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
+
 const PAD_TOP_VAR = '--jgis-list-scroll-pad-top';
 const PAD_BOTTOM_VAR = '--jgis-list-scroll-pad-bottom';
 const MAX_ATTACH_FRAMES = 120;
 
-function edgePad(scrollerHeight: number, cardHeight: number): number {
-  return Math.max(0, (scrollerHeight - cardHeight) / 2);
-}
-
 /**
- * Centers the first/last list cards in the story scroller when at scroll
- * extremes by setting padding on `.jgis-story-segment-list`.
+ * Applies layout edge padding on the virtual track root so the first/last
+ * segment ranges can align with the scroller viewport center at extremes.
  */
 export function useListStorySegmentScrollPadding(
   scrollerRef: RefObject<HTMLDivElement | null>,
-  listRef: RefObject<HTMLDivElement | null>,
-  itemCount: number,
+  trackRootRef: RefObject<HTMLDivElement | null>,
+  layout: IListStoryLayout | null,
 ): void {
   useLayoutEffect(() => {
-    if (itemCount < 1) {
+    if (!layout || layout.segments.length < 1) {
       return;
     }
 
@@ -26,75 +24,33 @@ export function useListStorySegmentScrollPadding(
     let ro: ResizeObserver | null = null;
     let attachFrame = 0;
 
-    const clearPadding = (list: HTMLDivElement): void => {
-      list.style.removeProperty(PAD_TOP_VAR);
-      list.style.removeProperty(PAD_BOTTOM_VAR);
+    const clearPadding = (root: HTMLDivElement): void => {
+      root.style.removeProperty(PAD_TOP_VAR);
+      root.style.removeProperty(PAD_BOTTOM_VAR);
     };
 
-    const teardown = (list: HTMLDivElement | null): void => {
+    const teardown = (root: HTMLDivElement | null): void => {
       ro?.disconnect();
       ro = null;
-      if (list) {
-        clearPadding(list);
+      if (root) {
+        clearPadding(root);
       }
     };
 
     const attach = (): boolean => {
       const scroller = scrollerRef.current;
-      const list = listRef.current;
-      if (!scroller || !list) {
+      const root = trackRootRef.current;
+      if (!scroller || !root) {
         return false;
       }
 
-      const observed = new Set<Element>();
-
       const update = (): void => {
-        const cards = list.querySelectorAll<HTMLElement>(
-          '.jgis-story-segment-card',
-        );
-        if (cards.length === 0) {
-          return;
-        }
-
-        const first = cards[0];
-        const last = cards[cards.length - 1];
-        const scrollerHeight = scroller.clientHeight;
-
-        list.style.setProperty(
-          PAD_TOP_VAR,
-          `${edgePad(scrollerHeight, first.offsetHeight)}px`,
-        );
-        list.style.setProperty(
-          PAD_BOTTOM_VAR,
-          `${edgePad(scrollerHeight, last.offsetHeight)}px`,
-        );
+        root.style.setProperty(PAD_TOP_VAR, `${layout.padTop}px`);
+        root.style.setProperty(PAD_BOTTOM_VAR, `${layout.padBottom}px`);
       };
 
-      const observeCardEdges = (): void => {
-        const cards = list.querySelectorAll<HTMLElement>(
-          '.jgis-story-segment-card',
-        );
-        if (cards.length === 0 || !ro) {
-          return;
-        }
-        const first = cards[0];
-        const last = cards[cards.length - 1];
-        for (const el of first === last ? [first] : [first, last]) {
-          if (!observed.has(el)) {
-            observed.add(el);
-            ro.observe(el);
-          }
-        }
-      };
-
-      ro = new ResizeObserver(() => {
-        observeCardEdges();
-        update();
-      });
-
+      ro = new ResizeObserver(update);
       ro.observe(scroller);
-      ro.observe(list);
-      observeCardEdges();
       update();
       return true;
     };
@@ -116,7 +72,7 @@ export function useListStorySegmentScrollPadding(
 
     return () => {
       cancelled = true;
-      teardown(listRef.current);
+      teardown(trackRootRef.current);
     };
-  }, [scrollerRef, listRef, itemCount]);
+  }, [scrollerRef, trackRootRef, layout]);
 }

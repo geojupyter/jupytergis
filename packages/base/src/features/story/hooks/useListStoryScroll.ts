@@ -7,16 +7,17 @@ import {
   computeListStoryScrollState,
   type IListStoryScrollState,
 } from '@/src/features/story/utils/computeListStoryScrollState';
-import { measureListStorySegmentCards } from '@/src/features/story/utils/measureListStorySegmentCards';
+import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
 
 /**
- * List story: one scroll listener derives active segment index and overlay
- * drive from the same card geometry (see computeListStoryScrollState).
+ * List story: scroll listener maps scrollTop through the virtual track layout
+ * to active segment index and overlay drive (see computeListStoryScrollState).
  */
 export interface IUseListStoryScrollParams {
   enabled: boolean;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
   storyData: IJGISStoryMap | null;
+  layout: IListStoryLayout | null;
   items: IStorySegmentViewItem[];
   currentIndex: number;
   setIndex: (index: number) => void;
@@ -27,6 +28,7 @@ export function useListStoryScroll({
   enabled,
   scrollContainerRef,
   storyData,
+  layout,
   items,
   currentIndex,
   setIndex,
@@ -43,6 +45,9 @@ export function useListStoryScroll({
 
   const storyDataRef = useRef(storyData);
   storyDataRef.current = storyData;
+
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
 
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
@@ -89,29 +94,18 @@ export function useListStoryScroll({
 
   const computeAndEmit = useCallback(() => {
     const scroller = scrollContainerRef.current;
-    const currentItems = itemsRef.current;
+    const currentLayout = layoutRef.current;
     const currentStoryData = storyDataRef.current;
 
-    if (!enabled || !scroller || !currentStoryData) {
+    if (!enabled || !scroller || !currentStoryData || !currentLayout) {
       clearDrive();
-      return;
-    }
-
-    const cards = measureListStorySegmentCards(scroller, currentItems);
-    if (!cards) {
-      if (rafIdRef.current === null) {
-        rafIdRef.current = window.requestAnimationFrame(() => {
-          rafIdRef.current = null;
-          computeAndEmit();
-        });
-      }
       return;
     }
 
     const scrollCenter = scroller.scrollTop + scroller.clientHeight / 2;
     const next = computeListStoryScrollState({
       scrollCenter,
-      cards,
+      segments: currentLayout.segments,
       prev: latchedRef.current,
     });
 
@@ -141,7 +135,7 @@ export function useListStoryScroll({
 
   useEffect(() => {
     scheduleCompute();
-  }, [items, storyData, scheduleCompute]);
+  }, [items, storyData, layout, scheduleCompute]);
 
   useEffect(() => {
     if (!enabled) {
