@@ -48,7 +48,7 @@ from jupytergis_lab.notebook.symbology import (  # noqa: TC001
 from jupytergis_lab.notebook.utils import get_gpkg_layers
 
 if TYPE_CHECKING:
-    from jupyter_xarray_tiler.titiler import (
+    from jupyter_tiler.titiler import (
         BaseAlgorithm,
         DataArray,
         TiTilerServer,
@@ -905,10 +905,10 @@ class GISDocument(CommWidget):
             for details.
         """
         try:
-            from jupyter_xarray_tiler.titiler import _get_server, add_data_array
+            from jupyter_tiler.titiler import _get_server, add_data_array
         except ImportError as e:
             raise RuntimeError(
-                "This method requires 'jupyter-xarray-tiler'."
+                "This method requires 'jupyter-tiler'."
                 " To resolve, `pip install jupytergis[tiler]`.",
             ) from e
 
