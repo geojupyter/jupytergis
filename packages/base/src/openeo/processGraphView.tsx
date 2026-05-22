@@ -168,22 +168,40 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
     // delete command. On Mac compact keyboards the labeled "delete" key
     // is actually Backspace, so users can't remove edges. Translate
     // Backspace to a synthetic Delete keydown so it works.
-    const onBackspace = (e: KeyboardEvent) => {
-      if (e.key !== 'Backspace' && e.code !== 'Backspace') {
+    // ModelBuilder also exposes undo()/redo() methods but does NOT wire
+    // Cmd/Ctrl+Z to them — do that here.
+    const onKeyShortcut = (e: KeyboardEvent) => {
+      if (e.key === 'Backspace' || e.code === 'Backspace') {
+        const target = e.target as EventTarget;
+        const synthetic = new KeyboardEvent('keydown', {
+          key: 'Delete',
+          code: 'Delete',
+          bubbles: true,
+          cancelable: true,
+        });
+        e.preventDefault();
+        e.stopPropagation();
+        target.dispatchEvent(synthetic);
         return;
       }
-      const target = e.target as EventTarget;
-      const synthetic = new KeyboardEvent('keydown', {
-        key: 'Delete',
-        code: 'Delete',
-        bubbles: true,
-        cancelable: true,
-      });
-      e.preventDefault();
-      e.stopPropagation();
-      target.dispatchEvent(synthetic);
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+        const root = (el as any).shadowRoot?.querySelector(
+          '.vue-component.model-builder',
+        ) as any;
+        const vueInst = root?.__vue__;
+        if (!vueInst) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) {
+          vueInst.redo?.();
+        } else {
+          vueInst.undo?.();
+        }
+      }
     };
-    el.addEventListener('keydown', onBackspace, true);
+    el.addEventListener('keydown', onKeyShortcut, true);
 
     const onInput = (event: Event) => {
       const detail = (event as CustomEvent).detail;
@@ -239,7 +257,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
 
     return () => {
       el.removeEventListener('input', onInput);
-      el.removeEventListener('keydown', onBackspace, true);
+      el.removeEventListener('keydown', onKeyShortcut, true);
       el.removeEventListener('selectionChanged', onSelectionChanged);
       el.removeEventListener('error', onModelError);
     };

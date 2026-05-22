@@ -14,7 +14,12 @@ import {
   IOpenEOTemplateParams,
   OPENEO_TEMPLATES,
 } from './templates';
-import { IValidationError, validateProcessGraph } from './validation';
+import {
+  IValidationError,
+  mergeValidationErrors,
+  validateProcessGraph,
+  validateProcessGraphLocally,
+} from './validation';
 import { IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
 
 export interface IOpenEODialogResult {
@@ -486,55 +491,115 @@ const Form: React.FC<IFormProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  // Debounced backend validation against POST /validation. Keyed by the
-  // graph's JSON content (not object identity) so it only re-runs when
-  // the user actually changes the graph.
+  // Backend catalog (processes + collections + output formats).
+  const [catalog, setCatalog] = React.useState<IBackendCatalog | null>(null);
+  const [catalogLoading, setCatalogLoading] = React.useState(false);
+
+  // Two validation passes, both race-guarded by a version counter:
+  //   - Local (synchronous-ish, via @openeo/js-processgraphs): catches
+  //     argument-schema violations the backend's POST /validation can
+  //     miss (e.g. `apply.process` being a from_node instead of a
+  //     callback). Same library openeo-web-editor uses. Updates state
+  //     immediately, no debounce.
+  //   - Backend: authoritative for things only the server knows
+  //     (collection availability, namespaced/extension processes).
+  //     Debounced; merges its errors with the local pass on arrival.
   const [validation, setValidation] = React.useState<ValidationStatus>({
-    state: 'idle',
+    state: 'pending',
   });
-  React.useEffect(() => {
-    let cancelled = false;
-    const handle = window.setTimeout(async () => {
-      if (cancelled) {
-        return;
-      }
-      setValidation({ state: 'pending' });
-      try {
-        const parsed = JSON.parse(effectiveGraphJson);
-        const errors = await validateProcessGraph(connectionInfo, parsed);
-        if (cancelled) {
-          return;
-        }
-        if (errors.length === 0) {
-          setValidation({ state: 'valid' });
-        } else {
-          setValidation({ state: 'invalid', errors });
-        }
-      } catch (err: any) {
-        if (cancelled) {
-          return;
-        }
-        setValidation({
-          state: 'error',
-          message: err?.message ?? String(err),
-        });
-      }
-    }, 800);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(handle);
-    };
-  }, [effectiveGraphJson, connectionInfo]);
+  const [isChecking, setIsChecking] = React.useState(true);
+  const versionRef = React.useRef(0);
+  const lastResultVersionRef = React.useRef(-1);
+  const localErrorsRef = React.useRef<IValidationError[]>([]);
 
   React.useEffect(() => {
-    onValidationChange(validation.state === 'valid');
-  }, [validation, onValidationChange]);
+    versionRef.current += 1;
+    const myVersion = versionRef.current;
+    setIsChecking(true);
+
+    let parsed: Record<string, any>;
+    try {
+      parsed = JSON.parse(effectiveGraphJson);
+    } catch (err: any) {
+      if (versionRef.current === myVersion) {
+        setValidation({
+          state: 'invalid',
+          errors: [
+            {
+              code: 'InvalidJSON',
+              message: err?.message ?? 'Process graph is not valid JSON.',
+            },
+          ],
+        });
+        lastResultVersionRef.current = myVersion;
+        setIsChecking(false);
+      }
+      return;
+    }
+
+    // Local pass — runs immediately so the user sees structural errors
+    // (missing required args, wrong argument types, etc) without waiting
+    // for the network. Stored in a ref so the backend pass can merge.
+    localErrorsRef.current = [];
+    validateProcessGraphLocally(parsed, catalog?.processes).then(local => {
+      if (versionRef.current !== myVersion) {
+        return;
+      }
+      localErrorsRef.current = local;
+      // Optimistic apply: show local results right away. The backend
+      // pass will overwrite with the merged set when it lands.
+      setValidation(
+        local.length === 0
+          ? { state: 'valid' }
+          : { state: 'invalid', errors: local },
+      );
+      lastResultVersionRef.current = myVersion;
+    });
+
+    // Backend pass — debounced.
+    const handle = window.setTimeout(async () => {
+      let backendErrors: IValidationError[] = [];
+      let networkErrorMessage: string | null = null;
+      try {
+        backendErrors = await validateProcessGraph(connectionInfo, parsed);
+      } catch (err: any) {
+        networkErrorMessage = err?.message ?? String(err);
+      }
+      if (versionRef.current !== myVersion) {
+        return;
+      }
+      const merged = mergeValidationErrors(
+        localErrorsRef.current,
+        backendErrors,
+      );
+      let result: ValidationStatus;
+      if (merged.length > 0) {
+        result = { state: 'invalid', errors: merged };
+      } else if (networkErrorMessage) {
+        result = { state: 'error', message: networkErrorMessage };
+      } else {
+        result = { state: 'valid' };
+      }
+      setValidation(result);
+      lastResultVersionRef.current = myVersion;
+      setIsChecking(false);
+    }, 350);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [effectiveGraphJson, connectionInfo, catalog?.processes]);
+
+  React.useEffect(() => {
+    const fresh = lastResultVersionRef.current === versionRef.current;
+    onValidationChange(
+      validation.state === 'valid' && !isChecking && fresh,
+    );
+  }, [validation, isChecking, onValidationChange]);
 
   // Fetch backend catalog (processes + collections) so ModelBuilder can
   // label ports with types. Cached, so this is free if the Discovery
   // panel already populated the cache.
-  const [catalog, setCatalog] = React.useState<IBackendCatalog | null>(null);
-  const [catalogLoading, setCatalogLoading] = React.useState(false);
   React.useEffect(() => {
     let cancelled = false;
     setCatalog(null);
@@ -562,6 +627,18 @@ const Form: React.FC<IFormProps> = ({
       cancelled = true;
     };
   }, [connectionInfo]);
+
+  // Invoke a method on the embedded openeo-model-builder Vue instance
+  // (e.g. undo/redo). Resolves the instance from the live DOM rather
+  // than holding a ref so we don't fight ModelBuilder's own remount.
+  const callModelBuilder = (method: 'undo' | 'redo') => () => {
+    const el = document.getElementById('jp-openeo-model-builder');
+    const root = (el as any)?.shadowRoot?.querySelector(
+      '.vue-component.model-builder',
+    );
+    const vueInst = root?.__vue__;
+    vueInst?.[method]?.();
+  };
 
   // Drop handling: insert a node into the effective graph at the user's
   // request. The dropped node gets a freshly minted key; the user wires
@@ -834,6 +911,26 @@ const Form: React.FC<IFormProps> = ({
           >
             ✎ Edit
           </button>
+          {editMode && viewMode === 'graph' && (
+            <>
+              <button
+                type="button"
+                className="jp-openeo-toolbar-btn"
+                onClick={callModelBuilder('undo')}
+                title="Undo last graph edit (Ctrl/⌘+Z)"
+              >
+                ↶ Undo
+              </button>
+              <button
+                type="button"
+                className="jp-openeo-toolbar-btn"
+                onClick={callModelBuilder('redo')}
+                title="Redo (Ctrl/⌘+Shift+Z)"
+              >
+                ↷ Redo
+              </button>
+            </>
+          )}
           {state.editedGraph && (
             <button
               type="button"
@@ -883,6 +980,11 @@ const Form: React.FC<IFormProps> = ({
             }
           >
             {state.editedGraph && <span className="jp-openeo-dot">●</span>}
+            {isChecking && (
+              <span className="jp-openeo-spinner" aria-label="Re-checking">
+                ⟳
+              </span>
+            )}
             {validation.state === 'pending' && 'checking schema…'}
             {validation.state === 'valid' && 'schema OK'}
             {validation.state === 'invalid' &&
@@ -1025,11 +1127,28 @@ export async function showAddOpenEOLayerDialog(
     editedGraph: options.initialGraph ?? null,
   };
 
-  const body = new AddLayerBody(initial, options.connectionInfo, _valid => {
-    // Validation feedback is inline; we don't gate accept yet.
+  // Toggle the Lumino-rendered OK button based on validity. Held outside
+  // React because the button lives on the Dialog node, not in our subtree.
+  // Starts disabled — the first validation pass flips it on if clean.
+  let lastValid = false;
+  const applyOk = () => {
+    const ok = document.querySelector<HTMLButtonElement>(
+      '.jp-Dialog .jp-mod-accept',
+    );
+    if (!ok) {
+      return;
+    }
+    ok.disabled = !lastValid;
+    ok.title = lastValid
+      ? ''
+      : 'Process graph has validation errors. Fix them before adding the layer.';
+  };
+  const body = new AddLayerBody(initial, options.connectionInfo, valid => {
+    lastValid = valid;
+    applyOk();
   });
 
-  const result = await showDialog<IOpenEODialogResult | null>({
+  const resultPromise = showDialog<IOpenEODialogResult | null>({
     title: options.title ?? 'Add OpenEO Layer',
     body,
     buttons: [
@@ -1037,6 +1156,9 @@ export async function showAddOpenEOLayerDialog(
       Dialog.okButton({ label: options.okLabel ?? 'Add Layer' }),
     ],
   });
+  // Apply the initial disabled state once the dialog mounts.
+  window.setTimeout(applyOk, 0);
+  const result = await resultPromise;
 
   if (!result.button.accept) {
     return null;

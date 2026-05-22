@@ -414,15 +414,40 @@
 }
 
 .jp-openeo-validation-errors {
-  list-style: disc inside;
+  list-style: none;
   margin: 6px 0 0;
   padding: 6px 8px;
-  max-height: 120px;
+  max-height: 140px;
   overflow: auto;
   background: var(--jp-error-color3);
   border-left: 3px solid var(--jp-error-color1);
   font-size: var(--jp-ui-font-size0);
   color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-validation-errors li {
+  padding: 2px 0;
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  border-bottom: 1px dashed var(--jp-border-color3);
+}
+
+.jp-openeo-validation-errors li:last-child {
+  border-bottom: none;
+}
+
+.jp-openeo-spinner {
+  display: inline-block;
+  animation: jp-openeo-spin 800ms linear infinite;
+  color: var(--jp-ui-font-color2);
+  margin-right: 4px;
+}
+
+@keyframes jp-openeo-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .jp-openeo-validation-errors code {
