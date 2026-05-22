@@ -90,15 +90,9 @@ export function StoryScrollDriveMarkdown({
 
   if (!rendermime) {
     return (
-      <div className="specta-article-host-widget specta-cell-content">
-        <pre className="jgis-story-scroll-drive-markdown-plain">{source}</pre>
-      </div>
+      <pre className="jgis-story-scroll-drive-markdown-plain">{source}</pre>
     );
   }
 
-  return (
-    <div className="specta-article-host-widget specta-cell-content">
-      <div ref={hostRef} />
-    </div>
-  );
+  return <div ref={hostRef} className="jgis-story-scroll-drive-markdown-host" />;
 }

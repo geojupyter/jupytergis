@@ -219,9 +219,34 @@
 
 .jgis-story-markdown-scroll-pane {
   position: absolute;
-  inset: 0;
-  height: 110vh;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  overflow: hidden;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+}
+
+.jgis-story-markdown-scroll-pane:not(.jgis-story-markdown-scroll-pane--measure)
+  .jgis-story-markdown-overlay-content {
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.jgis-story-markdown-measure-host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.jgis-story-markdown-scroll-pane--measure {
+  position: relative;
+  height: auto;
 }
 
 .jgis-story-markdown-scroll-pane[data-pane='from']:not(

@@ -2,7 +2,12 @@ import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
 
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
+import {
+  getLayoutSegmentHeight,
+  useListStoryLayoutContext,
+} from '@/src/features/story/context/ListStoryLayoutContext';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
+import { markdownScrollPaneHeightStyle } from '@/src/features/story/utils/markdownScrollPaneHeight';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
 export interface IListStoryScrollDriveOverlayProps {
@@ -65,21 +70,30 @@ function getScrollDrivePaneConfigs(
 interface IScrollDrivePaneProps {
   pane: 'from' | 'to';
   config: IScrollDrivePaneConfig;
+  heightPx: number | undefined;
 }
 
 function ScrollDrivePane({
   pane,
   config,
+  heightPx,
 }: IScrollDrivePaneProps): React.ReactElement {
   const className = config.inactive
     ? 'jgis-story-markdown-scroll-pane jgis-story-markdown-scroll-pane--inactive'
     : 'jgis-story-markdown-scroll-pane';
 
   return (
-    <div data-pane={pane} className={className} aria-hidden={config.inactive}>
+    <div
+      data-pane={pane}
+      className={className}
+      style={markdownScrollPaneHeightStyle(heightPx)}
+      aria-hidden={config.inactive}
+    >
       <div className="jgis-story-markdown-overlay-content">
         {config.markdown ? (
-          <StoryScrollDriveMarkdown source={config.markdown} />
+          <div className="specta-article-host-widget specta-cell-content">
+            <StoryScrollDriveMarkdown source={config.markdown} />
+          </div>
         ) : null}
       </div>
     </div>
@@ -94,6 +108,7 @@ export function ListStoryScrollDriveOverlay({
   model,
   drive,
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
+  const { layout } = useListStoryLayoutContext();
   const story = model?.getSelectedStory().story ?? null;
   const spectaPresentationStyle = useMemo(
     () => getSpectaPresentationCssVars(story),
@@ -131,8 +146,16 @@ export function ListStoryScrollDriveOverlay({
         } as React.CSSProperties
       }
     >
-      <ScrollDrivePane pane="from" config={paneConfigs.from} />
-      <ScrollDrivePane pane="to" config={paneConfigs.to} />
+      <ScrollDrivePane
+        pane="from"
+        config={paneConfigs.from}
+        heightPx={getLayoutSegmentHeight(layout, drive.fromIndex)}
+      />
+      <ScrollDrivePane
+        pane="to"
+        config={paneConfigs.to}
+        heightPx={getLayoutSegmentHeight(layout, drive.toIndex)}
+      />
     </div>
   );
 }

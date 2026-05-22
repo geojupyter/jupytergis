@@ -3,12 +3,18 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { RefObject, useImperativeHandle, useMemo } from 'react';
+import React, {
+  RefObject,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+} from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
-import { useListStoryLayout } from '@/src/features/story/hooks/useListStoryLayout';
+import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
@@ -90,10 +96,25 @@ export function SpectaDesktopView({
     viewMode === 'list' &&
     storyData?.storyType === 'list';
 
-  const listStoryLayout = useListStoryLayout({
-    items: segmentViewItems,
-    scrollContainerRef,
-  });
+  const { layout: listStoryLayout, bindScrollContainer, setActiveIndex } =
+    useListStoryLayoutContext();
+
+  useLayoutEffect(() => {
+    if (viewMode !== 'list') {
+      bindScrollContainer(null);
+      return;
+    }
+    bindScrollContainer(scrollContainerRef.current);
+    return () => {
+      bindScrollContainer(null);
+    };
+  }, [viewMode, bindScrollContainer, scrollContainerRef]);
+
+  useEffect(() => {
+    if (viewMode === 'list') {
+      setActiveIndex(currentIndex);
+    }
+  }, [viewMode, currentIndex, setActiveIndex]);
 
   useListStoryScroll({
     enabled: listScrollDriveEnabled,

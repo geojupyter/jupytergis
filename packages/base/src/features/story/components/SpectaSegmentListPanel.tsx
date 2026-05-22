@@ -1,7 +1,7 @@
 import { IJGISStoryMap } from '@jupytergis/schema';
-import React, { RefObject, useRef } from 'react';
+import React, { RefObject, useEffect, useRef } from 'react';
 
-import { useListStoryLayout } from '@/src/features/story/hooks/useListStoryLayout';
+import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useListStorySegmentScrollPadding } from '@/src/features/story/hooks/useListStorySegmentScrollPadding';
 import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
 
@@ -23,10 +23,14 @@ export function SpectaSegmentListPanel({
   listIntersectionRootRef,
 }: ISpectaSegmentListPanelProps): JSX.Element {
   const trackRootRef = useRef<HTMLDivElement>(null);
-  const layout = useListStoryLayout({
-    items,
-    scrollContainerRef: listIntersectionRootRef,
-  });
+  const { layout, bindScrollContainer } = useListStoryLayoutContext();
+
+  useEffect(() => {
+    bindScrollContainer(listIntersectionRootRef.current);
+    return () => {
+      bindScrollContainer(null);
+    };
+  }, [bindScrollContainer, listIntersectionRootRef]);
 
   useListStorySegmentScrollPadding(
     listIntersectionRootRef,

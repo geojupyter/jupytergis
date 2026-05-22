@@ -165,6 +165,7 @@ import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel
 import type { IListStoryScrollDrivePayload } from '../features/story/types/listStoryScrollDrive';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 import { ListStoryScrollDriveOverlay } from '../features/story/components/ListStoryScrollDriveOverlay';
+import { ListStoryLayoutProvider } from '../features/story/context/ListStoryLayoutContext';
 
 type OlLayerTypes =
   | TileLayer
@@ -3884,11 +3885,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 position: 'relative',
               }}
             >
-              <ListStoryScrollDriveOverlay
+              <ListStoryLayoutProvider
                 model={this._model}
-                drive={this.state.listScrollDrive}
-              />
-              <div className="jgis-panels-wrapper">
+                enabled={
+                  this.state.isSpectaPresentation &&
+                  this._model.getSelectedStory().story?.storyType === 'list'
+                }
+              >
+                <ListStoryScrollDriveOverlay
+                  model={this._model}
+                  drive={this.state.listScrollDrive}
+                />
+                <div className="jgis-panels-wrapper">
                 {!this.state.isSpectaPresentation ? (
                   <>
                     {this.props.isMobile &&
@@ -3951,11 +3959,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                     />
                   )
                 )}
-              </div>
-              <div
-                ref={this.controlsToolbarRef}
-                className="jgis-controls-toolbar"
-              ></div>
+                </div>
+                <div
+                  ref={this.controlsToolbarRef}
+                  className="jgis-controls-toolbar"
+                ></div>
+              </ListStoryLayoutProvider>
             </div>
           </div>
           {!this.state.isSpectaPresentation && (

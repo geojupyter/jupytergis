@@ -23,6 +23,7 @@ function seg(
 }
 
 describe('computeListStoryScrollState', () => {
+  const mapThenMarkdown = [seg(0, 0, 200, 'map'), seg(1, 200, 400, 'markdown')];
   const threeSegments = [
     seg(0, 0, 200, 'map'),
     seg(1, 200, 400, 'markdown'),
@@ -39,17 +40,27 @@ describe('computeListStoryScrollState', () => {
     ).toEqual({ activeIndex: 0, drive: null });
   });
 
-  it('derives progress across adjacent segment spans', () => {
+  it('keeps map-only scroll free of overlay drive before markdown segment', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: 160,
-        segments: threeSegments,
+        segments: mapThenMarkdown,
+        prev: null,
+      }),
+    ).toEqual({ activeIndex: 0, drive: null });
+  });
+
+  it('ramps overlay progress across the markdown segment for map to markdown', () => {
+    expect(
+      computeListStoryScrollState({
+        scrollCenter: 220,
+        segments: mapThenMarkdown,
         prev: null,
       }),
     ).toEqual({
       activeIndex: 0,
       drive: {
-        progress: 0.4,
+        progress: 0.1,
         fromIndex: 0,
         toIndex: 1,
         fromMode: 'map',
@@ -59,14 +70,14 @@ describe('computeListStoryScrollState', () => {
 
     expect(
       computeListStoryScrollState({
-        scrollCenter: 240,
-        segments: threeSegments,
+        scrollCenter: 300,
+        segments: mapThenMarkdown,
         prev: null,
       }),
     ).toEqual({
       activeIndex: 1,
       drive: {
-        progress: 0.6,
+        progress: 0.5,
         fromIndex: 0,
         toIndex: 1,
         fromMode: 'map',
@@ -91,26 +102,17 @@ describe('computeListStoryScrollState', () => {
     ).toEqual({ activeIndex: 1, drive: null });
   });
 
-  it('clamps to first pair at scroll top', () => {
+  it('has no drive before the first segment', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: -50,
-        segments: threeSegments,
+        segments: mapThenMarkdown,
         prev: null,
       }),
-    ).toEqual({
-      activeIndex: 0,
-      drive: {
-        progress: 0,
-        fromIndex: 0,
-        toIndex: 1,
-        fromMode: 'map',
-        toMode: 'markdown',
-      },
-    });
+    ).toEqual({ activeIndex: 0, drive: null });
   });
 
-  it('clamps to last pair at scroll bottom', () => {
+  it('clamps markdown-to-markdown progress at scroll bottom', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: 900,
@@ -129,24 +131,13 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('returns prev when adjacent segment spans collapse to zero', () => {
-    const prev: IListStoryScrollState = {
-      activeIndex: 1,
-      drive: {
-        progress: 0.5,
-        fromIndex: 0,
-        toIndex: 1,
-        fromMode: 'map',
-        toMode: 'markdown',
-      },
-    };
-
+  it('falls through when a transition segment has zero height', () => {
     expect(
       computeListStoryScrollState({
         scrollCenter: 200,
         segments: [seg(0, 0, 200), seg(1, 200, 200), seg(2, 200, 200)],
-        prev,
+        prev: null,
       }),
-    ).toBe(prev);
+    ).toEqual({ activeIndex: 2, drive: null });
   });
 });

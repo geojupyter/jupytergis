@@ -14,30 +14,145 @@ export interface IComputeListStoryScrollInput {
   prev: IListStoryScrollState | null;
 }
 
-function findPairIndex(
+interface IPairDriveResult {
+  inZone: boolean;
+  progress: number;
+  activeIndex: number;
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function segmentProgress(
+  scrollCenter: number,
+  start: number,
+  height: number,
+): number | null {
+  if (height <= 0) {
+    return null;
+  }
+  return clamp01((scrollCenter - start) / height);
+}
+
+function findSegmentAt(
   scrollCenter: number,
   segments: IListStorySegmentRange[],
-): number {
-  if (segments.length < 2) {
-    return 0;
-  }
-
+): IListStorySegmentRange {
   if (scrollCenter < segments[0].start) {
-    return 0;
+    return segments[0];
   }
 
-  const last = segments[segments.length - 1];
-  if (scrollCenter >= last.end) {
-    return segments.length - 2;
-  }
-
-  for (let i = 0; i < segments.length - 1; i++) {
-    if (scrollCenter < segments[i + 1].end) {
-      return i;
+  for (const segment of segments) {
+    if (scrollCenter >= segment.start && scrollCenter < segment.end) {
+      return segment;
     }
   }
 
-  return segments.length - 2;
+  return segments[segments.length - 1];
+}
+
+/**
+ * Scroll-drive progress is measured only across the segment that owns the
+ * transition (markdown target for map→markdown, markdown source for markdown→map).
+ */
+function computePairDrive(
+  scrollCenter: number,
+  fromSegment: IListStorySegmentRange,
+  toSegment: IListStorySegmentRange,
+): IPairDriveResult | null {
+  const fromMode = fromSegment.contentMode;
+  const toMode = toSegment.contentMode;
+
+  if (fromMode === 'map' && toMode === 'markdown') {
+    if (scrollCenter < toSegment.start) {
+      return null;
+    }
+    const progress = segmentProgress(
+      scrollCenter,
+      toSegment.start,
+      toSegment.height,
+    );
+    if (progress === null) {
+      return null;
+    }
+    if (scrollCenter >= toSegment.end) {
+      return null;
+    }
+    return {
+      inZone: true,
+      progress,
+      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
+    };
+  }
+
+  if (fromMode === 'markdown' && toMode === 'map') {
+    if (scrollCenter >= toSegment.start) {
+      return null;
+    }
+    if (scrollCenter < fromSegment.start) {
+      return null;
+    }
+    const progress = segmentProgress(
+      scrollCenter,
+      fromSegment.start,
+      fromSegment.height,
+    );
+    if (progress === null) {
+      return null;
+    }
+    if (scrollCenter >= fromSegment.end) {
+      return {
+        inZone: true,
+        progress: 1,
+        activeIndex: toSegment.index,
+      };
+    }
+    return {
+      inZone: true,
+      progress,
+      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
+    };
+  }
+
+  if (fromMode === 'markdown' && toMode === 'markdown') {
+    const span = toSegment.end - fromSegment.start;
+    if (span <= 0) {
+      return null;
+    }
+    if (scrollCenter < fromSegment.start) {
+      return null;
+    }
+    const progress = clamp01((scrollCenter - fromSegment.start) / span);
+    if (scrollCenter >= toSegment.end) {
+      return {
+        inZone: true,
+        progress: 1,
+        activeIndex: toSegment.index,
+      };
+    }
+    return {
+      inZone: true,
+      progress,
+      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
+    };
+  }
+
+  return null;
+}
+
+function buildDrivePayload(
+  fromSegment: IListStorySegmentRange,
+  toSegment: IListStorySegmentRange,
+  progress: number,
+): IListStoryScrollDrivePayload {
+  return {
+    progress,
+    fromIndex: fromSegment.index,
+    toIndex: toSegment.index,
+    fromMode: fromSegment.contentMode,
+    toMode: toSegment.contentMode,
+  };
 }
 
 /** Pure list-scroll geometry from virtual track segment ranges. */
@@ -57,32 +172,28 @@ export function computeListStoryScrollState({
     };
   }
 
-  const pairIndex = findPairIndex(scrollCenter, segments);
-  const fromSegment = segments[pairIndex];
-  const toSegment = segments[pairIndex + 1];
-  const spanStart = fromSegment.start;
-  const spanEnd = toSegment.end;
-  const span = spanEnd - spanStart;
+  for (let i = 0; i < segments.length - 1; i++) {
+    const fromSegment = segments[i];
+    const toSegment = segments[i + 1];
 
-  if (span <= 0) {
-    return prev;
+    if (!pairNeedsScrollDrive(fromSegment.contentMode, toSegment.contentMode)) {
+      continue;
+    }
+
+    const pairDrive = computePairDrive(scrollCenter, fromSegment, toSegment);
+    if (!pairDrive) {
+      continue;
+    }
+
+    return {
+      activeIndex: pairDrive.activeIndex,
+      drive: buildDrivePayload(fromSegment, toSegment, pairDrive.progress),
+    };
   }
 
-  const progress = Math.min(1, Math.max(0, (scrollCenter - spanStart) / span));
-  const activeIndex = progress >= 0.5 ? toSegment.index : fromSegment.index;
-
-  const drive = pairNeedsScrollDrive(
-    fromSegment.contentMode,
-    toSegment.contentMode,
-  )
-    ? {
-        progress,
-        fromIndex: fromSegment.index,
-        toIndex: toSegment.index,
-        fromMode: fromSegment.contentMode,
-        toMode: toSegment.contentMode,
-      }
-    : null;
-
-  return { activeIndex, drive };
+  const at = findSegmentAt(scrollCenter, segments);
+  return {
+    activeIndex: at.index,
+    drive: null,
+  };
 }
