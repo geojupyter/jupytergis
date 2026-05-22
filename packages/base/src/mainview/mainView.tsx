@@ -676,27 +676,35 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return false;
         }
         const selectedLayerId = Object.keys(selectedLayers)[0];
-        if (layer !== this.getLayer(selectedLayerId)) {
-          return false;
-        }
-        // Select moves matched features to its internal overlay with style:[],
-        // removing them from the original layer's rendering. VectorLayer features
-        // are handled in _identifyFeature via forEachFeatureAtPixel instead so
-        // their original style is preserved.
-        const jgisLayer = this._model.getLayer(selectedLayerId);
-        return jgisLayer?.type !== 'VectorLayer';
+
+        return layer === this.getLayer(selectedLayerId);
       },
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
       },
-      // Return an empty style — visual feedback for VectorTileLayer comes from
-      // _highlightLayer.  VectorLayer is excluded from this interaction entirely.
-      style: () => [],
+      // Use the layer's own style so selected features keep their original
+      // appearance.  Visual highlight feedback comes from _highlightLayer.
+      style: null,
     });
 
     selectInteraction.on('select', event => {
       const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
-      const geometries: Geometry[] = [];
+      const highlightFeatures: Feature[] = [];
+
+      // Look up the selected layer's style function for adaptive highlights.
+      const localState = this._model?.sharedModel.awareness.getLocalState();
+      const selectedLayers = localState?.selected?.value;
+      const selectedLayerId = selectedLayers
+        ? Object.keys(selectedLayers)[0]
+        : undefined;
+      const mapLayer = selectedLayerId
+        ? this.getLayer(selectedLayerId)
+        : undefined;
+      const styleFn =
+        mapLayer && 'getStyleFunction' in mapLayer
+          ? (mapLayer as VectorLayer).getStyleFunction()
+          : undefined;
+      const resolution = this._Map.getView().getResolution() ?? 1;
 
       selectInteraction.getFeatures().forEach(feature => {
         identifiedFeatures.push({
@@ -705,7 +713,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         });
         const geom = feature.getGeometry();
         if (geom) {
-          geometries.push(geom);
+          const hlFeature = new Feature({ geometry: geom });
+          if (styleFn) {
+            const resolved = styleFn(feature, resolution);
+            const styles = Array.isArray(resolved)
+              ? resolved
+              : resolved
+                ? [resolved]
+                : [];
+            hlFeature.setStyle(styles.map(s => this._buildHighlightStyle(s)));
+          }
+          highlightFeatures.push(hlFeature);
         }
       });
 
@@ -715,7 +733,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
 
       // Sync _highlightLayer with the current selection (clears on deselect).
-      this._setHighlightGeometries(geometries);
+      this._setHighlightFeatures(highlightFeatures);
     });
 
     this._Map.addInteraction(selectInteraction);
@@ -2131,8 +2149,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (image instanceof CircleStyle) {
       return new Style({
         image: new Circle({
-          radius: image.getRadius(),
-          fill: new Fill({ color: 'rgba(255, 255, 0, 0.3)' }),
+          radius: image.getRadius() + 4,
+          fill: new Fill({ color: 'transparent' }),
           stroke: new Stroke({ color: '#ff0', width: 3 }),
         }),
       });
@@ -3402,48 +3420,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
-      case 'VectorLayer': {
-        const highlightFeatures: Feature[] = [];
-        const identified: IIdentifiedFeatureEntry[] = [];
-        const mapLayer = this.getLayer(layerId) as VectorLayer | undefined;
-        const styleFn = mapLayer?.getStyleFunction();
-        const resolution = this._Map.getView().getResolution() ?? 1;
-
-        this._Map.forEachFeatureAtPixel(
-          e.pixel,
-          (feature: FeatureLike) => {
-            if (feature instanceof RenderFeature) {
-              return true;
-            }
-            const geom = feature.getGeometry();
-            if (geom) {
-              const hlFeature = new Feature({ geometry: geom });
-              if (styleFn) {
-                const resolved = styleFn(feature, resolution);
-                const styles = Array.isArray(resolved)
-                  ? resolved
-                  : resolved
-                    ? [resolved]
-                    : [];
-                hlFeature.setStyle(
-                  styles.map(s => this._buildHighlightStyle(s)),
-                );
-              }
-              highlightFeatures.push(hlFeature);
-            }
-            identified.push({
-              feature: feature.getProperties(),
-              floaterOpen: false,
-            });
-            return true;
-          },
-          { layerFilter: l => l === this.getLayer(layerId) },
-        );
-
-        this._model.syncIdentifiedFeatures(identified, this._mainViewModel.id);
-        this._setHighlightFeatures(highlightFeatures);
+      case 'VectorLayer':
+        // Handled by selectInteraction (createSelectInteraction).
         break;
-      }
 
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
