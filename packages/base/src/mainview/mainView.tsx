@@ -2097,7 +2097,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
     if (!this._highlightLayer) {
-      this._highlightLayer = new VectorLayer({
+      this._highlightLayer = new VectorImageLayer({
         source: new VectorSource(),
         style: feature => {
           const geomType = feature.getGeometry()?.getType();
@@ -4081,7 +4081,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
-  private _highlightLayer: VectorLayer<VectorSource>;
+  private _highlightLayer: VectorImageLayer<VectorSource>;
   private _draw: Draw;
   private _snap: Snap;
   private _modify: Modify;
