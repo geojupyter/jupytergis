@@ -676,15 +676,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return false;
         }
         const selectedLayerId = Object.keys(selectedLayers)[0];
-
-        return layer === this.getLayer(selectedLayerId);
+        if (layer !== this.getLayer(selectedLayerId)) {
+          return false;
+        }
+        // Select moves matched features to its internal overlay with style:[],
+        // removing them from the original layer's rendering. VectorLayer features
+        // are handled in _identifyFeature via forEachFeatureAtPixel instead so
+        // their original style is preserved.
+        const jgisLayer = this._model.getLayer(selectedLayerId);
+        return jgisLayer?.type !== 'VectorLayer';
       },
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
       },
-      // Return an empty style so the select interaction does not visually
-      // override the layer's own style.  Visual feedback is provided by
-      // _highlightLayer (zIndex 999) via highlightFeatureSignal.
+      // Return an empty style — visual feedback for VectorTileLayer comes from
+      // _highlightLayer.  VectorLayer is excluded from this interaction entirely.
       style: () => [],
     });
 
@@ -2045,13 +2051,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           case 'MultiPoint':
             return new Style({
               image: new Circle({
-                radius: 6,
+                radius: 8,
                 fill: new Fill({
-                  color: 'rgba(255, 255, 0, 0.8)',
+                  color: 'transparent',
                 }),
                 stroke: new Stroke({
                   color: '#ff0',
-                  width: 2,
+                  width: 3,
                 }),
               }),
             });
@@ -2067,17 +2073,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           case 'MultiPolygon':
             return new Style({
               stroke: new Stroke({
-                color: '#f00',
+                color: '#ff0',
                 width: 2,
               }),
               fill: new Fill({
-                color: 'rgba(255, 255, 0, 0.8)',
+                color: 'rgba(255, 255, 0, 0.15)',
               }),
             });
           default:
             return new Style({
               stroke: new Stroke({
-                color: '#000',
+                color: '#ff0',
                 width: 2,
               }),
             });
@@ -2100,6 +2106,57 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     for (const geom of geometries) {
       source?.addFeature(new Feature({ geometry: geom }));
     }
+  }
+
+  /**
+   * Replace the highlight layer contents with pre-styled features.
+   * Each feature carries its own highlight style via feature.setStyle().
+   */
+  private _setHighlightFeatures(features: Feature[]): void {
+    this._ensureHighlightLayer();
+    const source = this._highlightLayer.getSource();
+    source?.clear();
+    for (const f of features) {
+      source?.addFeature(f);
+    }
+  }
+
+  /**
+   * Build a highlight style from an original resolved style.
+   * Preserves data-driven properties (circle radius, line width) and swaps in
+   * a constant yellow highlight color.
+   */
+  private _buildHighlightStyle(original: Style): Style {
+    const image = original.getImage();
+    if (image instanceof CircleStyle) {
+      return new Style({
+        image: new Circle({
+          radius: image.getRadius(),
+          fill: new Fill({ color: 'rgba(255, 255, 0, 0.3)' }),
+          stroke: new Stroke({ color: '#ff0', width: 3 }),
+        }),
+      });
+    }
+
+    const origStroke = original.getStroke();
+    const origFill = original.getFill();
+
+    if (origStroke || origFill) {
+      return new Style({
+        stroke: new Stroke({
+          color: '#ff0',
+          width: (origStroke?.getWidth() ?? 1) + 2,
+        }),
+        ...(origFill
+          ? { fill: new Fill({ color: 'rgba(255, 255, 0, 0.15)' }) }
+          : {}),
+      });
+    }
+
+    // Fallback
+    return new Style({
+      stroke: new Stroke({ color: '#ff0', width: 2 }),
+    });
   }
 
   /**
@@ -3345,10 +3402,48 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
-      case 'VectorLayer':
-        // Feature selection, property sync, and highlight for VectorLayer are
-        // handled entirely by the selectInteraction (createSelectInteraction).
+      case 'VectorLayer': {
+        const highlightFeatures: Feature[] = [];
+        const identified: IIdentifiedFeatureEntry[] = [];
+        const mapLayer = this.getLayer(layerId) as VectorLayer | undefined;
+        const styleFn = mapLayer?.getStyleFunction();
+        const resolution = this._Map.getView().getResolution() ?? 1;
+
+        this._Map.forEachFeatureAtPixel(
+          e.pixel,
+          (feature: FeatureLike) => {
+            if (feature instanceof RenderFeature) {
+              return true;
+            }
+            const geom = feature.getGeometry();
+            if (geom) {
+              const hlFeature = new Feature({ geometry: geom });
+              if (styleFn) {
+                const resolved = styleFn(feature, resolution);
+                const styles = Array.isArray(resolved)
+                  ? resolved
+                  : resolved
+                    ? [resolved]
+                    : [];
+                hlFeature.setStyle(
+                  styles.map(s => this._buildHighlightStyle(s)),
+                );
+              }
+              highlightFeatures.push(hlFeature);
+            }
+            identified.push({
+              feature: feature.getProperties(),
+              floaterOpen: false,
+            });
+            return true;
+          },
+          { layerFilter: l => l === this.getLayer(layerId) },
+        );
+
+        this._model.syncIdentifiedFeatures(identified, this._mainViewModel.id);
+        this._setHighlightFeatures(highlightFeatures);
         break;
+      }
 
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
