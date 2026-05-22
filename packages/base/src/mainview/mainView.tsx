@@ -677,7 +677,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
         const selectedLayerId = Object.keys(selectedLayers)[0];
         const expected = this.getLayer(selectedLayerId);
-        return layer === expected;
+        if (layer === expected) {
+          return true;
+        }
+        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
+        // OL Select flattens groups, so we receive leaf layers, not the group.
+        if (expected instanceof LayerGroup) {
+          return expected.getLayers().getArray().includes(layer);
+        }
+        return false;
       },
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
@@ -700,10 +708,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const mapLayer = selectedLayerId
         ? this.getLayer(selectedLayerId)
         : undefined;
-      const styleFn =
-        mapLayer && 'getStyleFunction' in mapLayer
-          ? (mapLayer as VectorLayer).getStyleFunction()
-          : undefined;
+
+      // For LayerGroup (multi-layer grammar), collect style functions from
+      // all sub-layers so we can match the right one per feature.
+      const styleFnCandidates: ReturnType<VectorLayer['getStyleFunction']>[] =
+        [];
+      if (mapLayer instanceof LayerGroup) {
+        for (const sub of mapLayer.getLayers().getArray()) {
+          if ('getStyleFunction' in sub) {
+            styleFnCandidates.push((sub as VectorLayer).getStyleFunction());
+          }
+        }
+      } else if (mapLayer && 'getStyleFunction' in mapLayer) {
+        styleFnCandidates.push((mapLayer as VectorLayer).getStyleFunction());
+      }
       const resolution = this._Map.getView().getResolution() ?? 1;
 
       selectInteraction.getFeatures().forEach(feature => {
@@ -714,17 +732,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const geom = feature.getGeometry();
         if (geom) {
           const hlFeature = new Feature({ geometry: geom });
-          if (styleFn) {
-            const resolved = styleFn(feature, resolution);
+          // Try each style function candidate; use the first that resolves
+          // a non-empty style array (important for LayerGroup sub-layers
+          // where only one sub-layer's style applies to this feature).
+          for (const fn of styleFnCandidates) {
+            if (!fn) {
+              continue;
+            }
+            const resolved = fn(feature, resolution);
             const styles = Array.isArray(resolved)
               ? resolved
               : resolved
                 ? [resolved]
                 : [];
-            const gType = geom.getType();
-            hlFeature.setStyle(
-              styles.map(s => this._buildHighlightStyle(s, gType)),
-            );
+            if (styles.length > 0) {
+              const gType = geom.getType();
+              hlFeature.setStyle(
+                styles.map(s => this._buildHighlightStyle(s, gType)),
+              );
+              break;
+            }
           }
           highlightFeatures.push(hlFeature);
         }
