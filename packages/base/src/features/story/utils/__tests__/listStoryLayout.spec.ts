@@ -32,7 +32,7 @@ describe('buildListStoryLayout', () => {
     ).toBeNull();
   });
 
-  it('places segments back-to-back with edge padding', () => {
+  it('places segments back-to-back from scroll offset zero', () => {
     const layout = buildListStoryLayout({
       items: [
         item('a', 0, 'map'),
@@ -43,25 +43,22 @@ describe('buildListStoryLayout', () => {
     });
 
     expect(layout).not.toBeNull();
-    expect(layout!.padTop).toBe(50);
-    expect(layout!.padBottom).toBe(0);
     expect(layout!.trackHeight).toBe(800);
-    expect(layout!.totalScrollHeight).toBe(850);
     expect(layout!.segments[0]).toMatchObject({
-      start: 50,
-      end: 350,
+      start: 0,
+      end: 300,
       height: 300,
       measured: true,
     });
     expect(layout!.segments[1]).toMatchObject({
-      start: 350,
-      end: 850,
+      start: 300,
+      end: 800,
       height: 500,
       measured: true,
     });
   });
 
-  it('uses no top padding when the first segment is markdown', () => {
+  it('starts short markdown-first stories at offset zero', () => {
     const layout = buildListStoryLayout({
       items: [
         item('md', 0, 'markdown', 'short'),
@@ -71,7 +68,6 @@ describe('buildListStoryLayout', () => {
       heightsById: { md: 120 },
     });
 
-    expect(layout!.padTop).toBe(0);
     expect(layout!.segments[0]).toMatchObject({
       start: 0,
       end: 120,

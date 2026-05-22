@@ -145,10 +145,7 @@ export function SpectaDesktopView({
       />
     ),
     list: () => (
-      <SpectaListModeContent
-        layout={listStoryLayout}
-        listIntersectionRootRef={scrollContainerRef}
-      />
+      <SpectaListModeContent layout={listStoryLayout} />
     ),
   };
 

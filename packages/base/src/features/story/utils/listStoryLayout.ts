@@ -23,22 +23,14 @@ export interface IListStorySegmentRange {
 
 export interface IListStoryLayout {
   segments: IListStorySegmentRange[];
-  /** Sum of segment heights (excludes edge padding). */
+  /** Sum of segment heights (virtual track height). */
   trackHeight: number;
-  padTop: number;
-  padBottom: number;
-  /** `padTop + trackHeight + padBottom` — height of the virtual track root. */
-  totalScrollHeight: number;
 }
 
 export interface IBuildListStoryLayoutInput {
   items: IStorySegmentViewItem[];
   viewportHeight: number;
   heightsById?: Readonly<Record<string, number>>;
-}
-
-function edgePad(viewportHeight: number, segmentHeight: number): number {
-  return Math.max(0, (viewportHeight - segmentHeight) / 2);
 }
 
 export function estimateMarkdownHeight(
@@ -94,15 +86,7 @@ export function buildListStoryLayout({
     segmentHeightForItem(item, viewportHeight, heightsById),
   );
 
-  const firstHeight = heights[0].height;
-  const lastHeight = heights[heights.length - 1].height;
-  const firstMode = getSegmentDisplayMode(items[0].activeSlide);
-  // Markdown-first: top-align at scrollTop 0 (no centering spacer).
-  const padTop =
-    firstMode === 'markdown' ? 0 : edgePad(viewportHeight, firstHeight);
-  const padBottom = edgePad(viewportHeight, lastHeight);
-
-  let offset = padTop;
+  let offset = 0;
   const segments: IListStorySegmentRange[] = items.map((item, i) => {
     const start = offset;
     const height = heights[i].height;
@@ -119,14 +103,9 @@ export function buildListStoryLayout({
     };
   });
 
-  const trackHeight = offset - padTop;
-
   return {
     segments,
-    trackHeight,
-    padTop,
-    padBottom,
-    totalScrollHeight: padTop + trackHeight + padBottom,
+    trackHeight: offset,
   };
 }
 

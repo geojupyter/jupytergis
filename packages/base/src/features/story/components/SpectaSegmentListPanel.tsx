@@ -1,8 +1,7 @@
 import { IJGISStoryMap } from '@jupytergis/schema';
-import React, { RefObject, useEffect, useRef } from 'react';
+import React, { RefObject, useEffect } from 'react';
 
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
-import { useListStorySegmentScrollPadding } from '@/src/features/story/hooks/useListStorySegmentScrollPadding';
 import { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
 
 interface ISpectaSegmentListPanelProps {
@@ -19,10 +18,8 @@ interface ISpectaSegmentListPanelProps {
 
 export function SpectaSegmentListPanel({
   storyData,
-  items,
   listIntersectionRootRef,
 }: ISpectaSegmentListPanelProps): JSX.Element {
-  const trackRootRef = useRef<HTMLDivElement>(null);
   const { layout, bindScrollContainer } = useListStoryLayoutContext();
 
   useEffect(() => {
@@ -32,18 +29,12 @@ export function SpectaSegmentListPanel({
     };
   }, [bindScrollContainer, listIntersectionRootRef]);
 
-  useListStorySegmentScrollPadding(
-    listIntersectionRootRef,
-    trackRootRef,
-    layout,
-  );
-
   if (!storyData || !layout) {
     return <div style={{ padding: '1rem' }}>No segments.</div>;
   }
 
   return (
-    <div ref={trackRootRef} className="jgis-story-virtual-track-root">
+    <div className="jgis-story-virtual-track-root">
       <div
         className="jgis-story-virtual-track"
         style={{ height: layout.trackHeight }}
