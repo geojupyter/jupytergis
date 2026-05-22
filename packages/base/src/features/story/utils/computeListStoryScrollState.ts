@@ -9,7 +9,8 @@ export interface IListStoryScrollState {
 }
 
 export interface IComputeListStoryScrollInput {
-  scrollCenter: number;
+  scrollTop: number;
+  viewportHeight: number;
   segments: IListStorySegmentRange[];
   prev: IListStoryScrollState | null;
 }
@@ -24,15 +25,25 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function segmentProgress(
-  scrollCenter: number,
-  start: number,
-  height: number,
+/** Scroll distance while the next segment top travels to the viewport top. */
+function handoffScrollSpan(
+  segment: IListStorySegmentRange,
+  viewportHeight: number,
+): number {
+  return Math.max(segment.height - viewportHeight, 1);
+}
+
+/** Progress 0..1 across layout gap until the next segment start meets viewport top. */
+function progressHandoff(
+  scrollTop: number,
+  fromSegment: IListStorySegmentRange,
+  toSegment: IListStorySegmentRange,
 ): number | null {
-  if (height <= 0) {
+  const handoff = toSegment.start - fromSegment.start;
+  if (handoff <= 0) {
     return null;
   }
-  return clamp01((scrollCenter - start) / height);
+  return clamp01((scrollTop - fromSegment.start) / handoff);
 }
 
 function findSegmentAt(
@@ -52,12 +63,9 @@ function findSegmentAt(
   return segments[segments.length - 1];
 }
 
-/**
- * Scroll-drive progress is measured only across the segment that owns the
- * transition (markdown target for map→markdown, markdown source for markdown→map).
- */
 function computePairDrive(
-  scrollCenter: number,
+  scrollTop: number,
+  viewportHeight: number,
   fromSegment: IListStorySegmentRange,
   toSegment: IListStorySegmentRange,
 ): IPairDriveResult | null {
@@ -65,20 +73,15 @@ function computePairDrive(
   const toMode = toSegment.contentMode;
 
   if (fromMode === 'map' && toMode === 'markdown') {
-    if (scrollCenter < toSegment.start) {
+    const span = handoffScrollSpan(toSegment, viewportHeight);
+    const rampStart = toSegment.start - span;
+    if (scrollTop < rampStart) {
       return null;
     }
-    const progress = segmentProgress(
-      scrollCenter,
-      toSegment.start,
-      toSegment.height,
-    );
-    if (progress === null) {
+    if (scrollTop >= toSegment.end) {
       return null;
     }
-    if (scrollCenter >= toSegment.end) {
-      return null;
-    }
+    const progress = clamp01((scrollTop - rampStart) / span);
     return {
       inZone: true,
       progress,
@@ -87,26 +90,15 @@ function computePairDrive(
   }
 
   if (fromMode === 'markdown' && toMode === 'map') {
-    if (scrollCenter >= toSegment.start) {
+    if (scrollTop < fromSegment.start) {
       return null;
     }
-    if (scrollCenter < fromSegment.start) {
+    if (scrollTop >= toSegment.start) {
       return null;
     }
-    const progress = segmentProgress(
-      scrollCenter,
-      fromSegment.start,
-      fromSegment.height,
-    );
+    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
     if (progress === null) {
       return null;
-    }
-    if (scrollCenter >= fromSegment.end) {
-      return {
-        inZone: true,
-        progress: 1,
-        activeIndex: toSegment.index,
-      };
     }
     return {
       inZone: true,
@@ -116,20 +108,19 @@ function computePairDrive(
   }
 
   if (fromMode === 'markdown' && toMode === 'markdown') {
-    const span = toSegment.end - fromSegment.start;
-    if (span <= 0) {
+    if (scrollTop < fromSegment.start) {
       return null;
     }
-    if (scrollCenter < fromSegment.start) {
-      return null;
-    }
-    const progress = clamp01((scrollCenter - fromSegment.start) / span);
-    if (scrollCenter >= toSegment.end) {
+    if (scrollTop >= toSegment.end) {
       return {
         inZone: true,
         progress: 1,
         activeIndex: toSegment.index,
       };
+    }
+    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
+    if (progress === null) {
+      return null;
     }
     return {
       inZone: true,
@@ -157,7 +148,8 @@ function buildDrivePayload(
 
 /** Pure list-scroll geometry from virtual track segment ranges. */
 export function computeListStoryScrollState({
-  scrollCenter,
+  scrollTop,
+  viewportHeight,
   segments,
   prev,
 }: IComputeListStoryScrollInput): IListStoryScrollState | null {
@@ -180,7 +172,12 @@ export function computeListStoryScrollState({
       continue;
     }
 
-    const pairDrive = computePairDrive(scrollCenter, fromSegment, toSegment);
+    const pairDrive = computePairDrive(
+      scrollTop,
+      viewportHeight,
+      fromSegment,
+      toSegment,
+    );
     if (!pairDrive) {
       continue;
     }
@@ -191,6 +188,7 @@ export function computeListStoryScrollState({
     };
   }
 
+  const scrollCenter = scrollTop + viewportHeight / 2;
   const at = findSegmentAt(scrollCenter, segments);
   return {
     activeIndex: at.index,

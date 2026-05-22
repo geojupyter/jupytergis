@@ -156,7 +156,7 @@ export function ListStoryScrollDriveOverlay({
     );
   }, [model, renderDrive]);
 
-  const progress = isActive && drive ? drive.progress : 0;
+  const progress = renderDrive?.progress ?? 0;
   const fromIndex = renderDrive?.fromIndex ?? 0;
   const toIndex = renderDrive?.toIndex ?? 0;
 

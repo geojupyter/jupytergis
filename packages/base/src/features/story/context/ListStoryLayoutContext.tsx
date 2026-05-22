@@ -117,10 +117,8 @@ export function ListStoryLayoutProvider({
         if (scroller && oldLayout) {
           const oldSegment = oldLayout.segments.find(s => s.id === segmentId);
           if (oldSegment && !oldSegment.measured) {
-            const scrollCenter =
-              scroller.scrollTop + scroller.clientHeight / 2;
-            if (scrollCenter >= oldSegment.start) {
-              const delta = rounded - oldSegment.height;
+            const delta = rounded - oldSegment.height;
+            if (delta !== 0 && scroller.scrollTop > oldSegment.start) {
               requestAnimationFrame(() => {
                 scroller.scrollTop += delta;
               });

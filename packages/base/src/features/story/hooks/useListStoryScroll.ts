@@ -102,9 +102,9 @@ export function useListStoryScroll({
       return;
     }
 
-    const scrollCenter = scroller.scrollTop + scroller.clientHeight / 2;
     const next = computeListStoryScrollState({
-      scrollCenter,
+      scrollTop: scroller.scrollTop,
+      viewportHeight: scroller.clientHeight,
       segments: currentLayout.segments,
       prev: latchedRef.current,
     });
