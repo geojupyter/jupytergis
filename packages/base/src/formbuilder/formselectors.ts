@@ -70,7 +70,6 @@ export function getSourceTypeForm(
       SourceForm = GeoTiffSourcePropertiesForm;
       break;
     case 'GeoZarrSource':
-      SourceForm = SourcePropertiesForm;
       break;
     case 'WmsTileSource':
       SourceForm = WmsTileSourceForm;

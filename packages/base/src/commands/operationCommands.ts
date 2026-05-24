@@ -314,7 +314,7 @@ export function addLayerCreationCommands(options: {
           bands: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Band names to load (e.g. ["b04","b03","b02"])',
+            description: 'Band names to load (e.g. ["b02","b03","b04"])',
           },
           wrapX: { type: 'boolean', default: false },
         },

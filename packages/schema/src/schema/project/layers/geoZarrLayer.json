@@ -20,10 +20,10 @@
     "gamma": {
       "type": "number",
       "description": "Gamma correction applied to all bands. Values above 1 brighten the image, below 1 darken it.",
-      "default": 1.5,
+      "default": 1,
       "multipleOf": 0.1,
       "minimum": 0.1,
-      "maximum": 5.0
+      "maximum": 5
     },
     "color": {
       "oneOf": [

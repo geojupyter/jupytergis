@@ -76,7 +76,7 @@ function defaultTransform(type: ITransform['type']): ITransform {
 
 interface ITransformRowProps {
   transform: ITransform;
-  availableFields: string[];
+  availableFields: IFieldOption[];
   onChange: (t: ITransform) => void;
   onDelete: () => void;
 }
@@ -139,8 +139,8 @@ const TransformRow: React.FC<ITransformRowProps> = ({
             >
               <option value="">(none)</option>
               {availableFields.map(f => (
-                <option key={f} value={f}>
-                  {f}
+                <option key={f.value} value={f.value}>
+                  {f.label}
                 </option>
               ))}
             </select>
@@ -178,11 +178,15 @@ const TransformRow: React.FC<ITransformRowProps> = ({
 // Layer section
 // ---------------------------------------------------------------------------
 
+interface IFieldOption {
+  value: string;
+  label: string;
+}
 interface ILayerSectionProps {
   layer: ILayerUIState;
   layerIndex: number;
   totalLayers: number;
-  availableFields: string[];
+  availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
   onChange: (layer: ILayerUIState) => void;
@@ -281,7 +285,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 
   // KDE layers expose '$density'; raster layers expose $band-N fields.
   // Both cases suppress the raw feature attribute list.
-  const encodingFields = hasKDE ? ['$density'] : availableFields;
+  const encodingFields: IFieldOption[] = hasKDE
+    ? [{ value: '$density', label: '$density' }]
+    : availableFields;
 
   return (
     <div className="jp-gis-grammar-layer-section">
@@ -404,7 +410,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   segmentId,
 }) => {
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
-  const isRasterLayer = layer?.type === 'GeoTiffLayer';
+  const isRasterLayer =
+    layer?.type === 'GeoTiffLayer' || layer?.type === 'GeoZarrLayer';
 
   const { featureProperties: selectableAttributesAndValues } = useGetProperties(
     { layerId, model },
@@ -521,8 +528,16 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   };
 
   const availableFields = isRasterLayer
-    ? bandRows.map(b => `$band-${b.band}`)
-    : Object.keys(selectableAttributesAndValues);
+    ? bandRows.map(b => ({
+        value: `$band-${b.band}`,
+        label: `$band-${b.band}  ${b.name}${
+          b.colorInterpretation ? ` (${b.colorInterpretation})` : ''
+        }`,
+      }))
+    : Object.keys(selectableAttributesAndValues).map(f => ({
+        value: f,
+        label: f,
+      }));
 
   return (
     <div className="jp-gis-layer-symbology-container">

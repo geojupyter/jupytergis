@@ -95,7 +95,7 @@ import {
   Vector as VectorLayer,
   VectorImage as VectorImageLayer,
   VectorTile as VectorTileLayer,
-  WebGLTile as GeoTiffLayer,
+  WebGLTile as RasterLayer,
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
@@ -158,6 +158,11 @@ import { MainViewModel } from './mainviewmodel';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
 import { grammarToOLStyle } from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
+import {
+  buildZarrColorStyle,
+  getBandInfoFromZarr,
+  getDefaultRGBBands,
+} from '../features/layers/symbology/zarrBandDiscovery';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
@@ -167,7 +172,7 @@ type OlLayerTypes =
   | VectorLayer
   | VectorImageLayer
   | VectorTileLayer
-  | GeoTiffLayer
+  | RasterLayer
   | HeatmapLayer
   | StacLayer
   | ImageLayer<any>
@@ -1164,11 +1169,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         case 'GeoZarrSource': {
           const sourceParameters = source.parameters as IGeoZarrSource;
 
+          let bands: string[] = sourceParameters.bands || [];
+
+          try {
+            if (bands.length === 0) {
+              const bandInfo = await getBandInfoFromZarr(sourceParameters.url);
+
+              if (bandInfo.length > 0) {
+                bands = getDefaultRGBBands(bandInfo);
+
+                // Persist to model for future loads
+                const updatedSource: IJGISSource = {
+                  ...source,
+                  parameters: {
+                    ...sourceParameters,
+                    bands,
+                  },
+                };
+
+                this._model.sharedModel.updateSource(id, updatedSource);
+              } else {
+                console.warn('No bands detected from Zarr store');
+                bands = bandInfo.slice(0, 3).map(b => b.name);
+              }
+            }
+          } catch (err) {
+            console.warn('Failed to auto-detect Zarr bands:', err);
+            bands = sourceParameters.bands?.length
+              ? sourceParameters.bands
+              : ['b04', 'b03', 'b02'];
+          }
+
           newSource = new GeoZarr({
             url: sourceParameters.url,
-            bands: sourceParameters.bands?.length
-              ? sourceParameters.bands
-              : ['b04', 'b03', 'b02'],
+            bands,
             wrapX: sourceParameters.wrapX,
           });
 
@@ -1489,6 +1523,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (!this._sources[sourceId]) {
         await this.addSource(sourceId, source);
       }
+      // Updates GeoZarr layer again after getting bands, styles info from zarr store.
+      source = this._model.sharedModel.getLayerSource(sourceId);
     }
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
@@ -1551,7 +1587,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'HillshadeLayer': {
         layerParameters = layer.parameters as IHillshadeLayer;
 
-        newMapLayer = new GeoTiffLayer({
+        newMapLayer = new RasterLayer({
           opacity: 0.3,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
@@ -1610,27 +1646,37 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             };
           }
 
-          newMapLayer = new GeoTiffLayer(layerOptions);
+          newMapLayer = new RasterLayer(layerOptions);
         }
         break;
       }
       case 'GeoZarrLayer': {
         layerParameters = layer.parameters as IGeoZarrLayer;
+        const geoZarrSource = this._sources[layerParameters.source];
 
-        newMapLayer = new GeoTiffLayer({
-          opacity: layerParameters.opacity ?? 1,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          style: {
-            gamma: layerParameters.gamma ?? 1.5,
-            color: layerParameters.color ?? [
-              'color',
-              ['interpolate', ['linear'], ['band', 1], 0, 0, 0.5, 255],
-              ['interpolate', ['linear'], ['band', 2], 0, 0, 0.5, 255],
-              ['interpolate', ['linear'], ['band', 3], 0, 0, 0.5, 255],
-            ],
-          },
-        });
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            geoZarrSource,
+            layerParameters.opacity ?? 1,
+            layer.visible ?? true,
+            [],
+            true,
+          ) as OlLayerTypes;
+        } else {
+          const bands = source?.parameters?.bands || [];
+          const defaultColor = buildZarrColorStyle(bands);
+
+          newMapLayer = new RasterLayer({
+            opacity: layerParameters.opacity ?? 1,
+            visible: layer.visible,
+            source: geoZarrSource,
+            style: {
+              gamma: layerParameters.gamma ?? 1,
+              color: layerParameters.color ?? defaultColor,
+            },
+          });
+        }
 
         break;
       }
@@ -1939,7 +1985,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         } else {
           mapLayer.setOpacity(layer.parameters?.opacity);
           if (layer?.parameters?.color) {
-            (mapLayer as GeoTiffLayer).setStyle({
+            (mapLayer as RasterLayer).setStyle({
               color: layer.parameters.color,
             });
           }
@@ -1947,19 +1993,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'GeoZarrLayer': {
-        const layerParams = layer.parameters as IGeoZarrLayer;
-        mapLayer.setOpacity(layerParams.opacity ?? 1);
-
-        // Safe to set style here — source metadata is fully loaded by this point
-        if (layerParams.color) {
-          (mapLayer as GeoTiffLayer).setStyle({
-            color: layerParams.color,
-          });
-        } else if (layerParams.gamma !== undefined) {
-          (mapLayer as GeoTiffLayer).setStyle({
-            gamma: layerParams.gamma,
-          });
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
+          this.replaceLayer(id, layer);
+          break;
         }
+
+        if (layer?.parameters?.opacity !== undefined) {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+        }
+
+        const source = this._model.getSource(layer?.parameters?.source);
+        const bands = (source?.parameters as any)?.bands || [];
+
+        const style: any = {
+          color: layer.parameters?.color ?? buildZarrColorStyle(bands),
+          gamma: layer.parameters?.gamma ?? 1,
+        };
+
+        (mapLayer as RasterLayer).setStyle(style);
+
         break;
       }
       case 'OpenEOTileLayer': {
@@ -3466,7 +3518,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       case 'GeoTiffLayer':
       case 'GeoZarrLayer': {
-        const layer = this.getLayer(layerId) as GeoTiffLayer;
+        const layer = this.getLayer(layerId) as RasterLayer;
         const data = layer.getData(e.pixel);
 
         // TODO: Handle dataviews?

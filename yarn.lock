@@ -1691,6 +1691,7 @@ __metadata:
     ts-jest: ^29.4.9
     typescript: ^5
     webpack: ^5.76.3
+    zarrita: ^0.7.3
   languageName: unknown
   linkType: soft
 
@@ -19194,6 +19195,16 @@ __metadata:
     "@zarrita/storage": ^0.2.0
     numcodecs: ^0.3.2
   checksum: 87bb6ed183dadb4e5e73aaaa343300a06329a168ef3f9eac66a934393fca0f23411aa1df761263f7888dc60b1ad6aef9b5ff51b4cb058948079e147b651b5222
+  languageName: node
+  linkType: hard
+
+"zarrita@npm:^0.7.3":
+  version: 0.7.3
+  resolution: "zarrita@npm:0.7.3"
+  dependencies:
+    "@zarrita/storage": ^0.2.0
+    numcodecs: ^0.3.2
+  checksum: 30be63de5a560ab96aa8043ec27e245731c9a57a1c6de16204697fe95cf41b14af5b182758ba7acd82cdd91f0fdeb8fd9a6dc2280326501ea1478af15f9834b4
   languageName: node
   linkType: hard
 

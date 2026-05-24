@@ -76,6 +76,7 @@
     "rimraf": "^3.0.2",
     "ts-jest": "^29.4.9",
     "typescript": "^5",
-    "webpack": "^5.76.3"
+    "webpack": "^5.76.3",
+    "zarrita": "^0.7.3"
   }
 }

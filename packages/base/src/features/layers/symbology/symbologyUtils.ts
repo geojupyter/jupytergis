@@ -48,7 +48,7 @@ export type VectorSymbologyParams = Pick<
 
 export type RasterSymbologyParams = Pick<
   IGeoTiffLayer | IGeoZarrLayer,
-  'symbologyState' | 'color'
+  'symbologyState'
 >;
 
 /** Params-shaped object used for reading symbology (layer.parameters or segment override). */

@@ -3,9 +3,11 @@ import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
 
 import { loadFile } from '@/src/tools';
+import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
 export interface IBandRow {
   band: number;
+  name: string;
   colorInterpretation?: string;
   stats: {
     minimum: number;
@@ -29,21 +31,34 @@ const useGetBandInfo = (
       const source = model.getSource(layer?.parameters?.source);
 
       if (layer?.type === 'GeoZarrLayer') {
-        const bands: string[] = source?.parameters?.bands?.length
-          ? source.parameters.bands
-          : ['b04', 'b03', 'b02'];
+        try {
+          const zarrUrl =
+            source?.parameters?.url || source?.parameters?.urls?.[0]?.url;
 
-        const bandsArr: IBandRow[] = bands.map((name: string, i: number) => ({
-          band: i + 1,
-          colorInterpretation: name,
-          stats: {
-            minimum: 0,
-            maximum: 1,
-          },
-        }));
+          if (!zarrUrl) {
+            throw new Error('No Zarr URL found.');
+          }
 
-        setBandRows(bandsArr);
-        setLoading(false);
+          const bands = await getBandInfoFromZarr(zarrUrl);
+
+          const bandsArr: IBandRow[] = bands.map(b => ({
+            band: b.band,
+            name: b.name,
+            colorInterpretation: b.colorInterpretation,
+            stats: {
+              minimum: b.stats.minimum,
+              maximum: b.stats.maximum,
+            },
+          }));
+
+          setBandRows(bandsArr);
+        } catch (err: any) {
+          console.error('Zarr band fetch failed:', err);
+          setError(`Zarr error: ${err.message}`);
+        } finally {
+          setLoading(false);
+        }
+
         return;
       }
 
@@ -86,6 +101,7 @@ const useGetBandInfo = (
       for (let i = 0; i < numberOfBands; i++) {
         bandsArr.push({
           band: i + 1,
+          name: `Band ${i + 1}`,
           stats: {
             minimum: sourceInfo.min ?? 0,
             maximum: sourceInfo.max ?? 100,
