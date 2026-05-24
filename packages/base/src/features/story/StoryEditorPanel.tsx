@@ -6,8 +6,8 @@ import { CommandRegistry } from '@lumino/commands';
 import React, { useMemo } from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { StoryEditorPropertiesForm } from '@/src/formbuilder/objectform/StoryEditorForm';
 import { Button } from '@/src/shared/components/Button';
+import { StoryEditorPropertiesForm } from '@/src/shared/formbuilder/objectform/StoryEditorForm';
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 

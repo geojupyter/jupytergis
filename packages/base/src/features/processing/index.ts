@@ -1,5 +1,6 @@
 import {
   IDict,
+  IGeoTiffSource,
   IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
@@ -17,6 +18,7 @@ import { processingFormToParam } from './processingFormToParam';
 import {
   isServerProcessingEnabled,
   runServerProcessing,
+  runServerProcessingUrl,
 } from './serverProcessing';
 import { getGdal } from '../../gdal';
 import { getGeoJSONDataFromLayerSource } from '../../tools';
@@ -511,6 +513,376 @@ export async function rasterizeLayer(
 
   model.sharedModel.addSource(newSourceId, sourceModel);
   model.addLayer(UUID.uuid4(), layerModel);
+}
+
+/**
+ * Load raw bytes for a GeoTiffSource — handles both embedded data URLs and
+ * file paths resolved relative to the .jGIS document.
+ */
+async function getRasterBytes(
+  source: IJGISSource,
+  model: IJupyterGISModel,
+  app: JupyterFrontEnd,
+): Promise<Uint8Array<ArrayBuffer> | null> {
+  const params = source.parameters as IGeoTiffSource;
+  const url = params?.urls?.[0]?.url;
+  if (!url) {
+    return null;
+  }
+
+  // Embedded data URL
+  if (url.startsWith('data:')) {
+    const commaIdx = url.indexOf(',');
+    if (commaIdx < 0) {
+      return null;
+    }
+    const binary = atob(url.slice(commaIdx + 1));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  // Remote URL — fetch directly
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch raster from ${url}: ${response.statusText}`,
+      );
+      return null;
+    }
+    const buffer = await response.arrayBuffer();
+    return new Uint8Array(buffer);
+  }
+
+  // Local file path — resolve relative to the .jGIS document
+  const jgisDir = model.filePath
+    ? model.filePath.substring(0, model.filePath.lastIndexOf('/'))
+    : '';
+  const absolutePath = jgisDir ? `${jgisDir}/${url}` : url;
+  const file = await app.serviceManager.contents.get(absolutePath, {
+    content: true,
+    format: 'base64',
+  });
+  if (!file?.content) {
+    return null;
+  }
+  const binary = atob(file.content);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
+ * Clip a GeoTiff raster layer to a bounding-box extent using gdal_translate -projwin.
+ */
+export async function clipRasterByExtent(
+  tracker: JupyterGISTracker,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  app: JupyterFrontEnd,
+  filePath?: string,
+  processingInputs?: Record<string, any>,
+) {
+  const widget = filePath
+    ? tracker.find(w => w.model.filePath === filePath)
+    : tracker.currentWidget;
+  if (!widget) {
+    return;
+  }
+
+  const model = widget.model;
+  const sources = model.sharedModel.sources ?? {};
+  const layers = model.sharedModel.layers ?? {};
+
+  let selected: IJGISLayer | null = null;
+  if (processingInputs?.inputLayer) {
+    selected = layers[processingInputs.inputLayer];
+  } else {
+    selected = getSingleSelectedLayer(tracker);
+  }
+  if (!selected) {
+    return;
+  }
+
+  if (!selected.parameters?.source) {
+    await showErrorMessage('Clip failed', 'Selected layer has no source.');
+    return;
+  }
+  let source = sources[selected.parameters.source];
+  if (!source || source.type !== 'GeoTiffSource') {
+    await showErrorMessage(
+      'Clip failed',
+      'Selected layer is not a GeoTiff raster layer.',
+    );
+    return;
+  }
+
+  let xMin: number;
+  let yMin: number;
+  let xMax: number;
+  let yMax: number;
+  let outputFileName = `${selected.name.replace(/\s+/g, '_')}_clipped.tif`;
+  let embedOutputLayer = false;
+
+  if (processingInputs) {
+    xMin = processingInputs.xMin;
+    yMin = processingInputs.yMin;
+    xMax = processingInputs.xMax;
+    yMax = processingInputs.yMax;
+    outputFileName = processingInputs.outputFileName ?? outputFileName;
+    embedOutputLayer = !!processingInputs.embedOutputLayer;
+  } else {
+    const schema = {
+      ...(formSchemaRegistry.getSchemas().get('ClipRasterByExtent') as IDict),
+    };
+    const selectedLayerId = Object.keys(
+      model.sharedModel.awareness.getLocalState()?.selected?.value || {},
+    )[0];
+
+    const formValues = await new Promise<IDict>(resolve => {
+      const dialog = new ProcessingFormDialog({
+        title: 'Clip Raster by Extent',
+        schema,
+        model,
+        sourceData: {
+          inputLayer: selectedLayerId,
+          outputFileName,
+        },
+        formContext: 'create',
+        processingType: 'ClipRasterByExtent',
+        syncData: (props: IDict) => {
+          resolve(props);
+          dialog.dispose();
+        },
+      });
+      dialog.launch();
+    });
+
+    if (!formValues) {
+      return;
+    }
+
+    // Re-resolve selected/source in case the user changed inputLayer in the form
+    const resolvedLayerId = formValues.inputLayer ?? selectedLayerId;
+    if (resolvedLayerId && resolvedLayerId !== selectedLayerId) {
+      const resolvedLayer = layers[resolvedLayerId];
+      if (!resolvedLayer?.parameters?.source) {
+        await showErrorMessage('Clip failed', 'Selected layer has no source.');
+        return;
+      }
+      const resolvedSource = sources[resolvedLayer.parameters.source];
+      if (!resolvedSource || resolvedSource.type !== 'GeoTiffSource') {
+        await showErrorMessage(
+          'Clip failed',
+          'Selected layer is not a GeoTiff raster layer.',
+        );
+        return;
+      }
+      selected = resolvedLayer;
+      source = resolvedSource;
+    }
+
+    xMin = formValues.xMin;
+    yMin = formValues.yMin;
+    xMax = formValues.xMax;
+    yMax = formValues.yMax;
+    outputFileName = formValues.outputFileName ?? outputFileName;
+    embedOutputLayer = !!formValues.embedOutputLayer;
+  }
+
+  const sourceParams = source.parameters as IGeoTiffSource;
+  const firstUrl = sourceParams.urls[0] as any;
+  const bandMin: number = firstUrl.min ?? 0;
+  const bandMax: number = firstUrl.max ?? 1;
+  const nodata: string | undefined =
+    firstUrl.nodata !== undefined ? String(firstUrl.nodata) : undefined;
+
+  // gdal_translate -projwin: upper-left (xmin, ymax) → lower-right (xmax, ymin)
+  // -projwin_srs EPSG:4326 tells GDAL the coordinates are in WGS84 so it
+  // reprojects them to the raster's native CRS before computing the pixel window.
+  const options: string[] = [
+    '-of',
+    'GTiff',
+    '-projwin',
+    String(xMin),
+    String(yMax),
+    String(xMax),
+    String(yMin),
+    '-projwin_srs',
+    'EPSG:4326',
+  ];
+  if (nodata !== undefined) {
+    options.push('-a_nodata', nodata);
+  }
+
+  const outputName = 'output.tif';
+  const rasterUrl: string = firstUrl?.url ?? '';
+  const isRemoteUrl =
+    rasterUrl.startsWith('http://') || rasterUrl.startsWith('https://');
+
+  const doClip = async (): Promise<Uint8Array<ArrayBuffer>> => {
+    if (isRemoteUrl && isServerProcessingEnabled()) {
+      console.debug(
+        '[JupyterGIS] Clipping raster by extent via SERVER GDAL (vsicurl)',
+      );
+      const t0 = performance.now();
+      const response = await runServerProcessingUrl({
+        operation: 'gdal_translate',
+        options,
+        url: rasterUrl,
+        outputName,
+      });
+      if (response.format !== 'base64') {
+        throw new Error('Expected base64 response for raster output');
+      }
+      const binary = atob(response.result);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      console.debug(
+        `[JupyterGIS] SERVER GDAL raster clip finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    } else {
+      const tiffBytes = await getRasterBytes(source, model, app);
+      if (!tiffBytes) {
+        throw new Error('Could not load raster data from source.');
+      }
+
+      console.debug(
+        '[JupyterGIS] Clipping raster by extent via BROWSER WASM GDAL',
+      );
+      const t0 = performance.now();
+      const Gdal = await getGdal();
+      const tiffFile = new File(
+        [new Blob([tiffBytes], { type: 'image/tiff' })],
+        'input.tif',
+        { type: 'image/tiff' },
+      );
+      const result = await Gdal.open(tiffFile);
+      if (result.datasets.length === 0) {
+        throw new Error('Failed to open raster in GDAL.');
+      }
+      const dataset = result.datasets[0] as any;
+      const outputPath = await (Gdal as any).gdal_translate(
+        dataset,
+        options,
+        outputName,
+      );
+      const bytes = new Uint8Array(await Gdal.getFileBytes(outputPath));
+      Gdal.close(dataset);
+      console.debug(
+        `[JupyterGIS] BROWSER WASM GDAL raster clip finished in ${(performance.now() - t0).toFixed(0)}ms`,
+      );
+      return bytes;
+    }
+  };
+
+  const clipPromise = doClip();
+  Notification.promise(
+    clipPromise.then(() => null),
+    {
+      pending: { message: 'Clipping raster…', options: { autoClose: false } },
+      success: {
+        message: () => 'Raster clipped successfully.',
+        options: { autoClose: 3000 },
+      },
+      error: {
+        message: (err: any) => `Raster clip failed: ${err?.message ?? err}`,
+      },
+    },
+  );
+
+  let outputTiffBytes: Uint8Array<ArrayBuffer>;
+  try {
+    outputTiffBytes = await clipPromise;
+  } catch {
+    return;
+  }
+
+  const base64Content = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const comma = dataUrl.indexOf(',');
+      resolve(comma >= 0 ? dataUrl.slice(comma + 1) : '');
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(
+      new Blob([outputTiffBytes as any], { type: 'image/tiff' }),
+    );
+  });
+
+  let sourceUrl: string;
+  if (embedOutputLayer) {
+    sourceUrl = `data:image/tiff;base64,${base64Content}`;
+  } else {
+    const jgisFilePath = widget.model.filePath;
+    const jgisDir = jgisFilePath
+      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+      : '';
+    const dotIdx = outputFileName.lastIndexOf('.');
+    const baseName =
+      dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
+    const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
+    const candidatePath = (name: string) =>
+      jgisDir ? `${jgisDir}/${name}` : name;
+    const pathExists = async (path: string) => {
+      try {
+        await app.serviceManager.contents.get(path, { content: false });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    let suffix = 0;
+    while (
+      await pathExists(
+        candidatePath(
+          suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`,
+        ),
+      )
+    ) {
+      suffix += 1;
+    }
+    if (suffix > 0) {
+      outputFileName = `${baseName}_${suffix}${ext}`;
+    }
+    const savePath = candidatePath(outputFileName);
+    await app.serviceManager.contents.save(savePath, {
+      type: 'file',
+      format: 'base64',
+      content: base64Content,
+    });
+    sourceUrl = outputFileName;
+  }
+
+  const newSourceId = UUID.uuid4();
+  const newSource: IJGISSource = {
+    type: 'GeoTiffSource',
+    name: `${selected.name} Clipped Source`,
+    parameters: {
+      urls: [{ url: sourceUrl, min: bandMin, max: bandMax, nodata }],
+      normalize: sourceParams.normalize ?? true,
+      wrapX: sourceParams.wrapX ?? false,
+      interpolate: sourceParams.interpolate ?? false,
+    },
+  };
+
+  const newLayer: IJGISLayer = {
+    type: 'GeoTiffLayer',
+    parameters: { source: newSourceId },
+    visible: true,
+    name: `${selected.name} Clipped`,
+  };
+
+  model.sharedModel.addSource(newSourceId, newSource);
+  model.addLayer(UUID.uuid4(), newLayer);
 }
 
 /**

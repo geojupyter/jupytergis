@@ -1634,7 +1634,7 @@ __metadata:
     rimraf: ^3.0.2
     typescript: ^5
     yjs: ^13.5.0
-    yjs-widgets: ^0.4
+    yjs-widgets: ^0.5
   languageName: unknown
   linkType: soft
 
@@ -18657,7 +18657,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.76.1, webpack@npm:^5.76.3, webpack@npm:^5.77.0":
+"webpack@npm:>=5.76.3 <5.107.0":
   version: 5.106.2
   resolution: "webpack@npm:5.106.2"
   dependencies:
@@ -19058,7 +19058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"y-protocols@npm:^1.0.5":
+"y-protocols@npm:^1.0.5, y-protocols@npm:^1.0.6":
   version: 1.0.7
   resolution: "y-protocols@npm:1.0.7"
   dependencies:
@@ -19150,9 +19150,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yjs-widgets@npm:^0.4":
-  version: 0.4.0
-  resolution: "yjs-widgets@npm:0.4.0"
+"yjs-widgets@npm:^0.5":
+  version: 0.5.1
+  resolution: "yjs-widgets@npm:0.5.1"
   dependencies:
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0-a3
     "@jupyterlab/application": ^4.0.0
@@ -19168,7 +19168,8 @@ __metadata:
     uuid: ^9.0.0
     webpack: ^5.77.0
     webpack-cli: ^5.0.1
-  checksum: 147fc7ae1c3d13fd591d434af33d439bc20d23494ded601dd8da5986426c6c896d7ff2a6296e24bda8d5ee17921c5c390c3b095f14fd5195506c0f891747e2fd
+    y-protocols: ^1.0.6
+  checksum: afab53512106940214258c168fe3683b26385f13a02e73e05381fa4de77d5b6f525959f1a3c3d5697c50962e017d01cfa61238fc6bc39cd6c0f8cb28058684b7
   languageName: node
   linkType: hard
 

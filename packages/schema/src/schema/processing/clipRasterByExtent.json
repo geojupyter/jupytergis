@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "description": "ClipRasterByExtent",
+  "title": "IClipRasterByExtent",
+  "required": ["inputLayer", "xMin", "yMin", "xMax", "yMax"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The raster layer to clip."
+    },
+    "xMin": {
+      "type": "number",
+      "description": "Minimum X coordinate (left edge) of the clipping extent."
+    },
+    "yMin": {
+      "type": "number",
+      "description": "Minimum Y coordinate (bottom edge) of the clipping extent."
+    },
+    "xMax": {
+      "type": "number",
+      "description": "Maximum X coordinate (right edge) of the clipping extent."
+    },
+    "yMax": {
+      "type": "number",
+      "description": "Maximum Y coordinate (top edge) of the clipping extent."
+    },
+    "outputFileName": {
+      "type": "string",
+      "description": "Output file name for the clipped raster.",
+      "default": "clipped.tif"
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output clipped raster in file",
+      "default": false
+    }
+  }
+}

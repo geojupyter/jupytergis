@@ -7,12 +7,12 @@ import { Signal } from '@lumino/signaling';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
 

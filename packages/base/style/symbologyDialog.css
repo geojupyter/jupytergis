@@ -14,6 +14,18 @@ select option {
   max-height: 80%;
 }
 
+@media (max-width: 768px) {
+  .jp-gis-symbology-dialog .jp-Dialog-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90%;
+    margin: 0;
+    border-radius: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
 .jp-gis-symbology-row {
   display: flex;
   justify-content: space-between;
@@ -325,6 +337,12 @@ select option {
   padding: 4px 6px;
 }
 
+@media (max-width: 768px) {
+  .jp-gis-grammar-rule-grid {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
+
 .jp-gis-grammar-rule-editor {
   border-top: 1px solid var(--jp-border-color2);
   padding: 8px;
@@ -494,6 +512,30 @@ select option {
 .jp-gis-grammar-when-ok:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+/* Domain min/max pair inside a symbology row */
+.jp-gis-domain-inputs {
+  display: flex;
+  gap: 4px;
+  flex: 1 0 50%;
+  max-width: 50%;
+}
+
+@media (max-width: 768px) {
+  .jp-gis-symbology-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .jp-gis-symbology-row > .jp-select-wrapper,
+  .jp-gis-symbology-row > .jp-mod-styled,
+  .jp-gis-symbology-row > .jp-gis-rgba-picker,
+  .jp-gis-canvas-button-wrapper,
+  .jp-gis-domain-inputs {
+    flex: 1 0 100%;
+    max-width: 100%;
+  }
 }
 
 .jp-gis-transparent-label {

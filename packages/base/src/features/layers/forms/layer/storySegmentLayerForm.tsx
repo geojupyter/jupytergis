@@ -2,15 +2,15 @@ import { IDict } from '@jupytergis/schema';
 import { RegistryFieldsType, UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
-import { ArrayFieldTemplate } from '@/src/formbuilder/objectform/components/SegmentFormSymbology';
-import { SourcePropertiesField } from '@/src/formbuilder/objectform/components/SourcePropertiesField';
-import StorySegmentReset from '@/src/formbuilder/objectform/components/StorySegmentReset';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
+import { ArrayFieldTemplate } from '@/src/shared/formbuilder/objectform/components/SegmentFormSymbology';
+import { SourcePropertiesField } from '@/src/shared/formbuilder/objectform/components/SourcePropertiesField';
+import StorySegmentReset from '@/src/shared/formbuilder/objectform/components/StorySegmentReset';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { ILayerProps } from './layerform';
 

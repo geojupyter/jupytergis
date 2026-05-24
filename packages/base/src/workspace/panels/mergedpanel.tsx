@@ -53,7 +53,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
 
     const applyResize = (clientY: number) => {
       const clamped = Math.max(
-        60,
+        24,
         Math.min(startHeight + (startY - clientY), window.innerHeight * 0.9),
       );
       panelHeightRef.current = clamped;
@@ -254,7 +254,11 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
         ...(panelHeight !== null ? { height: `${panelHeight}px` } : {}),
       }}
     >
-      <div className="jgis-resize-handle" />
+      <div
+        className="jgis-resize-handle"
+        onMouseDown={onTabListMouseDown}
+        onTouchStart={onTabListTouchStart}
+      />
       <TabbedPanel
         tabs={tabs}
         curTab={effectiveCurTab}

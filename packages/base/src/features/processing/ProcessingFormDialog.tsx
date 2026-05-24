@@ -5,6 +5,7 @@ import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
 import type { IBaseFormProps } from '@/src/types';
+import { ClipRasterByExtentForm } from './forms/clipRasterByExtentForm';
 import { DissolveForm } from './forms/dissolveProcessForm';
 import { DefaultProcessingForm } from './forms/processingForm';
 import { RasterizeForm } from './forms/rasterizeForm';
@@ -54,6 +55,9 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
       break;
     case 'Rasterize':
       FormComponent = RasterizeForm;
+      break;
+    case 'ClipRasterByExtent':
+      FormComponent = ClipRasterByExtentForm;
       break;
     default:
       FormComponent = DefaultProcessingForm;
