@@ -36,10 +36,10 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
-from pycrdt import Array, Map
+from pycrdt import Doc, Array, Map, Text, YMessageType
 from pydantic import BaseModel
 from sidecar import Sidecar
-from ypywidgets.comm import CommWidget
+from ypywidgets.comm import Widget, CommProvider, create_widget_comm
 
 from jupytergis_lab.notebook.symbology import (  # noqa: TC001
     GraduatedSymbology,
@@ -143,6 +143,77 @@ def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
     return {
         "layers": [{"id": str(uuid4()), "rules": rules}],
     }
+
+
+class GISCommProvider(CommProvider):
+    def __init__(
+        self,
+        ydoc: Doc,
+        comm: comm.base_comm.BaseComm,
+    ) -> None:
+        super().__init__(ydoc, comm)
+
+        self._pending_tasks = []
+        self.synced = False
+
+    def perform_now_or_later(self, task):
+        if self.synced:
+            task()
+        else:
+            self._pending_tasks.append(task)
+
+    def _perfom_pending(self):
+        for task in self._pending_tasks:
+            task()
+
+        self._pending_tasks = []
+
+    def _receive(self, msg):
+        super()._receive(msg)
+
+        message = bytes(msg["buffers"][0])
+        if message[0] == YMessageType.SYNC and not self.synced:
+            self._perfom_pending()
+            self.synced = True
+
+
+class CommWidget(Widget):
+    def __init__(
+        self,
+        ydoc: Doc | None = None,
+        comm_data: dict | None = None,
+        comm_metadata: dict | None = None,
+        comm_id: str | None = None,
+    ):
+        super().__init__(ydoc)
+        model_name = self.__class__.__name__
+        _model_name = self.ydoc["_model_name"] = Text()
+        _model_name += model_name
+        if comm_metadata is None:
+            comm_metadata = dict(
+                ymodel_name=model_name,
+                create_ydoc=not ydoc,
+            )
+        self._comm = create_widget_comm(comm_data, comm_metadata, comm_id)
+        self._comm_provider = GISCommProvider(self.ydoc, self._comm)
+
+    @property
+    def awareness(self) -> Awareness:
+        return self._comm_provider.awareness
+
+    def _repr_mimebundle_(self, *args, **kwargs):  # pragma: nocover
+        plaintext = repr(self)
+        if len(plaintext) > 110:
+            plaintext = plaintext[:110] + "…"
+        data = {
+            "text/plain": plaintext,
+            "application/vnd.jupyter.ywidget-view+json": {
+                "version_major": 2,
+                "version_minor": 0,
+                "model_id": self._comm.comm_id,
+            },
+        }
+        return data
 
 
 class GISDocument(CommWidget):
@@ -386,8 +457,6 @@ class GISDocument(CommWidget):
 
         if path is not None:
             if path.startswith("http://") or path.startswith("https://"):
-                response = requests.get(path)
-                response.raise_for_status()
                 parameters["path"] = path
             else:
                 # We cannot put the path to the file in the model
@@ -1209,15 +1278,25 @@ class GISDocument(CommWidget):
 
     def _add_source(self, new_object, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
-        obj_dict = json.loads(new_object.json())
-        self._sources[_id] = obj_dict
+
+        def task():
+            obj_dict = json.loads(new_object.json())
+            self._sources[_id] = obj_dict
+
+        self._comm_provider.perform_now_or_later(task)
+
         return _id
 
     def _add_layer(self, new_object, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
-        obj_dict = json.loads(new_object.json())
-        self._layers[_id] = obj_dict
-        self._layerTree.append(_id)
+
+        def task():
+            obj_dict = json.loads(new_object.json())
+            self._layers[_id] = obj_dict
+            self._layerTree.append(_id)
+
+        self._comm_provider.perform_now_or_later(task)
+
         return _id
 
     @classmethod
