@@ -36,7 +36,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
-from pycrdt import Doc, Array, Map, Text, YMessageType
+from pycrdt import Doc, Array, Map, Text, YMessageType, YSyncMessageType
 from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import Widget, CommProvider, create_widget_comm
@@ -172,7 +172,7 @@ class GISCommProvider(CommProvider):
         super()._receive(msg)
 
         message = bytes(msg["buffers"][0])
-        if message[0] == YMessageType.SYNC and not self.synced:
+        if message[0] == YMessageType.SYNC and message[1] == YSyncMessageType.SYNC_STEP2 and not self.synced:
             self._perfom_pending()
             self.synced = True
 
