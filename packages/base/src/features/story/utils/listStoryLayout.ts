@@ -124,10 +124,3 @@ export function buildListStoryLayout({
     trackHeight: offset,
   };
 }
-
-export function getStoryMarkdownFromSlide(
-  activeSlide: IStorySegmentLayer['parameters'] | undefined,
-): string {
-  const markdown = activeSlide?.content?.markdown;
-  return typeof markdown === 'string' ? markdown : '';
-}

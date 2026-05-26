@@ -242,12 +242,6 @@
   top: 0;
 }
 
-.jgis-story-scroll-drive-pane.jgis-story-markdown-scroll-pane:not(
-    .jgis-story-scroll-drive-pane--idle
-  ) {
-  /* height: 100%; */
-}
-
 .jgis-story-map-scroll-pane {
   top: 0;
   height: 100%;
@@ -333,16 +327,6 @@
   width: 100%;
   flex-shrink: 0;
   pointer-events: none;
-}
-
-.jgis-story-segment-card {
-  padding: 0.75rem;
-  border-radius: 8px;
-  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
-}
-
-.jgis-story-segment-card.jgis-story-segment-card-hidden {
-  visibility: hidden;
 }
 
 .jGIS-property-panel

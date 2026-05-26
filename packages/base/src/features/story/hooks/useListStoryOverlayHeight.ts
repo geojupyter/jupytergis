@@ -75,8 +75,6 @@ export function useListStoryOverlayHeight({
     if (mode === 'map-at-rest') {
       return floor;
     }
-    console.log('from pane', estimatePaneContribution(fromPane, layout, floor));
-    console.log('to pane', estimatePaneContribution(toPane, layout, floor));
     const sum =
       estimatePaneContribution(fromPane, layout, floor) +
       estimatePaneContribution(toPane, layout, floor);
