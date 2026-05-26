@@ -18,6 +18,14 @@ html_theme_options = {
     ],
 }
 
+# Hide left sidebar on single-page sections; keep it for Users and Contributors
+html_sidebars = {
+    "index": [],
+    "about/*": [],
+    "getting_started/*": [],
+    "changelog": [],
+}
+
 html_static_path = ["assets"]
 html_css_files = [
     "css/custom.css",
@@ -43,6 +51,7 @@ myst_fence_as_directive = ["mermaid"]
 
 master_doc = "index"
 project = "JupyterGIS"
+html_title = "JupyterGIS docs"
 copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"

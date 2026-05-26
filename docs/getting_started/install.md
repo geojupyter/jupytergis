@@ -1,6 +1,6 @@
-# Installing JupyterGIS
+# Installation
 
-````{tab} Mamba (recommended)
+## Mamba (recommended)
 
 :::{note}
 It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since you'll be able to install `qgis` at the same time, allowing you to open `.qgz` files.
@@ -9,9 +9,8 @@ It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi`
 ```bash
 mamba install -c conda-forge jupytergis qgis
 ```
-````
 
-````{tab} pip
+## pip
 
 :::{warning}
 When installing with `pip`, QGIS compatibility functions won't work out of the box.
@@ -21,39 +20,35 @@ You're on your own!
 ```bash
 pip install jupytergis
 ```
-````
 
-Once JupyterGIS is installed, start JupyterLab:
+## Pixi
+
+[Pixi](https://github.com/prefix-dev/pixi)
 
 ```bash
-jupyter lab
+pixi exec --spec jupytergis --spec qgis jupyter lab
 ```
 
-## Quickstart
+## uv
 
-Here are a few neat options to quickstart in an ephemeral environment:
+[uv](https://github.com/astral-sh/uv)
 
-````{tab} Docker
+```bash
+uv run --with jupytergis jupyter lab
+```
+
+## Docker
 
 [Docker](https://www.docker.com/)
 
 ```bash
 docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 ```
-````
 
-````{tab} Pixi
-[Pixi](https://github.com/prefix-dev/pixi)
+## Launch
 
-```bash
-pixi exec --spec jupytergis --spec qgis jupyter lab
-```
-````
-
-````{tab} uv
-[uv](https://github.com/astral-sh/uv)
+Once JupyterGIS is installed, start JupyterLab:
 
 ```bash
-uv run --with jupytergis jupyter lab
+jupyter lab
 ```
-````

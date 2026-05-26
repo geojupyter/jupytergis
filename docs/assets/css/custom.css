@@ -25,9 +25,9 @@
   --pst-color-info-bg: var(--jgis-teal-50);
 }
 
-/* ── "Try it with JupyterLite" navbar button ────────────────── */
+/* ── "Try with JupyterLite" navbar button ───────────────────── */
 .bd-header .navbar-nav .nav-link[href*="lite/lab"] {
-  background-color: #c0392b;
+  background-color: var(--jgis-teal-800);
   color: #fff !important;
   border-radius: 6px;
   padding: 0.45rem 1.2rem;
@@ -35,19 +35,30 @@
   font-size: 0.95rem;
   margin-left: 0.75rem;
   transition: background 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 0 8px rgba(192, 57, 43, 0.4);
+  box-shadow: 0 0 8px rgba(26, 107, 107, 0.35);
 }
 
 .bd-header .navbar-nav .nav-link[href*="lite/lab"]:hover {
-  background-color: #e74c3c;
-  box-shadow: 0 0 16px rgba(231, 76, 60, 0.5);
+  background-color: var(--jgis-teal-700);
+  box-shadow: 0 0 16px rgba(26, 107, 107, 0.5);
   color: #fff !important;
+}
+
+/* Mobile burger menu — highlight the "Try" link */
+.navbar-collapse .nav-link[href*="lite/lab"] {
+  background-color: var(--jgis-teal-800);
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  font-weight: 600;
+  display: inline-block;
 }
 
 /* ── Main page "Try it" button ──────────────────────────────── */
 .jgis-try-button {
   display: inline-block;
-  background-color: #c0392b;
+  background-color: var(--jgis-teal-800);
   color: #fff !important;
   border-radius: 6px;
   padding: 0.6rem 1.5rem;
@@ -56,12 +67,12 @@
   text-decoration: none;
   margin: 1rem 0;
   transition: background 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 0 10px rgba(192, 57, 43, 0.4);
+  box-shadow: 0 0 10px rgba(26, 107, 107, 0.35);
 }
 
 .jgis-try-button:hover {
-  background-color: #e74c3c;
-  box-shadow: 0 0 18px rgba(231, 76, 60, 0.5);
+  background-color: var(--jgis-teal-700);
+  box-shadow: 0 0 18px rgba(26, 107, 107, 0.5);
   color: #fff !important;
   text-decoration: none;
 }

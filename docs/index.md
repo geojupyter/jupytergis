@@ -1,7 +1,8 @@
 # JupyterGIS
 
-JupyterGIS is a **collaborative** Geographical Information System (GIS) environment in JupyterLab.
-It is the flagship project of the open [GeoJupyter community](https://geojupyter.org), which aims to enable organizations, researchers, students, anyone interested to explore, use and work with geospatial data.
+JupyterGIS is an **in-browser, collaborative** Geographical Information System (GIS).
+It is built on top of [Project Jupyter](https://jupyter.org) but independently useable.
+As flagship project of the open [GeoJupyter community](https://geojupyter.org) it aims to enable organizations, researchers, students, anyone interested to easily explore, use and work with geospatial data.
 We'd love to hear from you at a [community meeting](https://geojupyter.org/calendar.html)!
 
 <a href="lite/lab/index.html" class="jgis-try-button">Try with JupyterLite</a>
@@ -23,40 +24,25 @@ Backend-free JupyterGIS via JupyterLite runs entirely in the browser and does no
 - **STAC & OpenEO** — cloud-native data catalog and processing support
 - **Identify tool** — click features to inspect their properties
 - **Layer gallery** — pre-built layer catalog for quick setup
+- **Embeddable** — use as a standalone map, an IDE, or from within a notebook
 - **AI skills** — integration with Jupyter & JupyterLite-AI. Map operations in natural language
 
 ```{image} ../jupytergis.png
 :alt: JupyterGIS application
 ```
 
-For more details, check out the [project overview](overview/index.md).
-
-## Overview
-
-```{toctree}
-:titlesonly:
-:maxdepth: 2
-
-overview/index
-```
-
-## User guide
+For more details, check out [About JupyterGIS](about/index.md).
 
 ```{toctree}
 :maxdepth: 2
+:caption: Documentation
 
+about/gallery
+about/index
+getting_started/index
 user_guide/index
-```
-
-## Contributor guide
-
-```{toctree}
-:maxdepth: 2
-
 contributor_guide/index
 ```
-
-<!-- hidden because listing every version here is too verbose -->
 
 ```{toctree}
 :hidden:
