@@ -22,8 +22,8 @@ interface IStoryViewerPanelProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  /** List-story stage overlay: scroll-drive slides, no segment fade/key remount. */
-  disableSegmentTransition?: boolean;
+  /** List-story stage overlay: no segment fade/key remount on the card. */
+  disableSegmentAnimation?: boolean;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -87,7 +87,7 @@ function StoryViewerPanel({
   handleNext,
   hasPrev,
   hasNext,
-  disableSegmentTransition = false,
+  disableSegmentAnimation = false,
 }: IStoryViewerPanelProps) {
   const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
 
@@ -130,14 +130,14 @@ function StoryViewerPanel({
     >
       <div
         ref={segmentContainerRef}
-        key={disableSegmentTransition ? undefined : currentIndex}
+        key={disableSegmentAnimation ? undefined : currentIndex}
         className={
-          disableSegmentTransition
-            ? 'jgis-story-segment-container jgis-story-segment-container--scroll-drive'
+          disableSegmentAnimation
+            ? 'jgis-story-segment-container jgis-story-segment-container--no-segment-animation'
             : 'jgis-story-segment-container'
         }
         style={
-          disableSegmentTransition
+          disableSegmentAnimation
             ? undefined
             : { animationDuration: `${transitionTime}s` }
         }

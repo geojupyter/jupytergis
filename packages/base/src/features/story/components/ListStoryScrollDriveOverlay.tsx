@@ -71,16 +71,6 @@ function buildPaneConfig(
   };
 }
 
-function getScrollDrivePaneConfigs(
-  model: IJupyterGISModel,
-  drive: IListStoryScrollDrivePayload,
-): { from: IScrollDrivePaneConfig; to: IScrollDrivePaneConfig } {
-  return {
-    from: buildPaneConfig(model, drive.fromIndex, drive.fromMode),
-    to: buildPaneConfig(model, drive.toIndex, drive.toMode),
-  };
-}
-
 function paneConfigToSpec(
   config: IScrollDrivePaneConfig,
   segmentIndex: number,
@@ -161,7 +151,6 @@ export function ListStoryScrollDriveOverlay({
   const isDriveActive = drive !== null;
   const activeItem = items.find(item => item.index === activeIndex);
   const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
-  const overlayVisible = Boolean(model && story && activeItem);
   const displayProgress = isDriveActive ? drive.progress : 1;
 
   const { fromIndex, toIndex, fromPaneConfig, toPaneConfig } = useMemo(() => {
@@ -175,12 +164,11 @@ export function ListStoryScrollDriveOverlay({
     }
 
     if (drive) {
-      const configs = getScrollDrivePaneConfigs(model, drive);
       return {
         fromIndex: drive.fromIndex,
         toIndex: drive.toIndex,
-        fromPaneConfig: configs.from,
-        toPaneConfig: configs.to,
+        fromPaneConfig: buildPaneConfig(model, drive.fromIndex, drive.fromMode),
+        toPaneConfig: buildPaneConfig(model, drive.toIndex, drive.toMode),
       };
     }
 
@@ -193,13 +181,28 @@ export function ListStoryScrollDriveOverlay({
     };
   }, [model, activeItem, activeIndex, activeMode, drive]);
 
-  const fromPaneSpec = useMemo(
-    () => paneConfigToSpec(fromPaneConfig, fromIndex),
-    [fromPaneConfig, fromIndex],
-  );
-  const toPaneSpec = useMemo(
-    () => paneConfigToSpec(toPaneConfig, toIndex),
-    [toPaneConfig, toIndex],
+  const overlayHeightMode = isDriveActive ? 'scroll-drive' : 'at-rest';
+
+  const overlayHeight = useMemo(
+    () =>
+      computeListStoryOverlayHeight({
+        stageHeight,
+        layout,
+        fromPane: paneConfigToSpec(fromPaneConfig, fromIndex),
+        toPane: paneConfigToSpec(toPaneConfig, toIndex),
+        mode: overlayHeightMode,
+        activeSegmentIndex: activeIndex,
+      }),
+    [
+      stageHeight,
+      layout,
+      fromPaneConfig,
+      fromIndex,
+      toPaneConfig,
+      toIndex,
+      overlayHeightMode,
+      activeIndex,
+    ],
   );
 
   useLayoutEffect(() => {
@@ -218,36 +221,9 @@ export function ListStoryScrollDriveOverlay({
     return () => {
       ro.disconnect();
     };
-  }, [model, story, overlayVisible]);
+  }, [model, story]);
 
-  const overlayHeightMode = !overlayVisible
-    ? 'hidden'
-    : isDriveActive
-      ? 'scroll-drive'
-      : 'at-rest';
-
-  const overlayHeight = useMemo(
-    () =>
-      computeListStoryOverlayHeight({
-        stageHeight,
-        layout,
-        fromPane: fromPaneSpec,
-        toPane: toPaneSpec,
-        mode: overlayHeightMode,
-        activeSegmentIndex: activeIndex,
-      }),
-    [
-      stageHeight,
-      layout,
-      fromPaneSpec,
-      toPaneSpec,
-      overlayHeightMode,
-      activeIndex,
-    ],
-  );
-
-  const overlaySized =
-    overlayVisible && stageHeight > 0 && overlayHeightMode !== 'hidden';
+  const overlaySized = stageHeight > 0;
 
   if (!model || !story || !activeItem) {
     return null;
@@ -257,15 +233,15 @@ export function ListStoryScrollDriveOverlay({
     <div
       ref={overlayRef}
       className={`jgis-story-markdown-overlay${
-        overlayVisible ? '' : ' jgis-story-markdown-overlay--hidden'
-      }${overlaySized ? ' jgis-story-markdown-overlay--sized' : ''}`}
-      aria-hidden={!overlayVisible}
+        overlaySized ? ' jgis-story-markdown-overlay--sized' : ''
+      }`}
       style={
         {
           ...spectaPresentationStyle,
           '--jgis-scroll-drive-progress': displayProgress,
           ...(overlaySized
             ? {
+                height: overlayHeight,
                 '--jgis-overlay-height': `${overlayHeight}px`,
               }
             : {}),

@@ -8,7 +8,7 @@ export interface IListStoryOverlayPaneSpec {
   segmentIndex: number;
 }
 
-export type ListStoryOverlayHeightMode = 'hidden' | 'at-rest' | 'scroll-drive';
+export type ListStoryOverlayHeightMode = 'at-rest' | 'scroll-drive';
 
 export interface IComputeListStoryOverlayHeightParams {
   stageHeight: number;
@@ -43,9 +43,6 @@ export function computeListStoryOverlayHeight({
   activeSegmentIndex,
 }: IComputeListStoryOverlayHeightParams): number {
   const floor = Math.max(stageHeight, 0);
-  if (mode === 'hidden') {
-    return floor;
-  }
   if (mode === 'at-rest') {
     if (toPane.kind === 'map') {
       return floor;

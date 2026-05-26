@@ -11,7 +11,7 @@
   /* animation-duration is set dynamically via inline style from segment.transition.time */
 }
 
-.jgis-story-segment-container--scroll-drive {
+.jgis-story-segment-container--no-segment-animation {
   animation: none;
 }
 
@@ -213,11 +213,6 @@
   position: absolute;
   inset: 0;
   z-index: 5;
-}
-
-.jgis-story-markdown-overlay--hidden {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .jgis-story-markdown-overlay--sized {

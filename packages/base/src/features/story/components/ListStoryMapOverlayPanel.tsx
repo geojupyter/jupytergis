@@ -25,7 +25,7 @@ export function ListStoryMapOverlayPanel({
     <div className="jgis-story-map-overlay-panel-inner">
       <StoryViewerPanel
         isSpecta
-        disableSegmentTransition
+        disableSegmentAnimation
         storyData={storyData}
         currentIndex={segmentIndex}
         activeSlide={item.activeSlide}

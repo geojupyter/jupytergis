@@ -3516,22 +3516,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _handleListScrollDriveChange = (
     payload: IListStoryScrollDrivePayload | null,
   ): void => {
-    const prev = this.state.listScrollDrive;
-    if (prev === null && payload === null) {
-      return;
-    }
-    // Avoid re-render when scroll handler emits an identical payload.
-    if (
-      prev &&
-      payload &&
-      prev.progress === payload.progress &&
-      prev.fromIndex === payload.fromIndex &&
-      prev.toIndex === payload.toIndex &&
-      prev.fromMode === payload.fromMode &&
-      prev.toMode === payload.toMode
-    ) {
-      return;
-    }
     this.setState({ listScrollDrive: payload });
   };
 
