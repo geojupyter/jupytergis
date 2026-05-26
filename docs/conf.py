@@ -3,7 +3,13 @@ import os
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 html_theme = "pydata_sphinx_theme"
-html_theme_options = {"github_url": "https://github.com/geojupyter/jupytergis"}
+html_theme_options = {
+    "github_url": "https://github.com/geojupyter/jupytergis",
+    "navbar_align": "left",
+    "header_links_before_dropdown": 6,
+    "pygments_light_style": "tango",
+    "pygments_dark_style": "monokai",
+}
 
 html_static_path = ["assets"]
 html_css_files = [
