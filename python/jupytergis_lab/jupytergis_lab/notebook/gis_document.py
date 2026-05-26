@@ -882,7 +882,7 @@ class GISDocument(CommWidget):
         self,
         data_array: DataArray,
         *,
-        name: str = "Tiler layer",
+        name: str = "Data Array layer",
         colormap_name: str = "viridis",
         colormap_range: tuple[float, float] | None = None,
         opacity: float = 1,
