@@ -39,20 +39,22 @@ describe('buildListStoryLayout', () => {
         item('b', 1, 'markdown', 'line\nline'),
       ],
       viewportHeight: 400,
+      mapViewportHeight: 350,
       heightsById: { a: 300, b: 500 },
     });
 
     expect(layout).not.toBeNull();
-    expect(layout!.trackHeight).toBe(800);
+    expect(layout!.trackHeight).toBe(850);
     expect(layout!.segments[0]).toMatchObject({
       start: 0,
-      end: 300,
-      height: 300,
+      end: 350,
+      height: 350,
       measured: true,
+      contentMode: 'map',
     });
     expect(layout!.segments[1]).toMatchObject({
-      start: 300,
-      end: 800,
+      start: 350,
+      end: 850,
       height: 500,
       measured: true,
     });

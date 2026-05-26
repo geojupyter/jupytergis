@@ -22,6 +22,8 @@ interface IStoryViewerPanelProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
+  /** List-story stage overlay: scroll-drive slides, no segment fade/key remount. */
+  disableSegmentTransition?: boolean;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -57,6 +59,9 @@ function getStoryNavPlacement(
   storyType: string,
   isMobile: boolean,
 ): StoryNavPlacement | null {
+  if (storyType === 'list') {
+    return null;
+  }
   if (isSpecta) {
     return isMobile ? null : 'subtitle-specta';
   }
@@ -82,6 +87,7 @@ function StoryViewerPanel({
   handleNext,
   hasPrev,
   hasNext,
+  disableSegmentTransition = false,
 }: IStoryViewerPanelProps) {
   const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
 
@@ -114,7 +120,6 @@ function StoryViewerPanel({
       <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
     ) : null;
 
-  // Get transition time from current segment, default to 0.3s
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
 
   return (
@@ -125,11 +130,17 @@ function StoryViewerPanel({
     >
       <div
         ref={segmentContainerRef}
-        key={currentIndex}
-        className="jgis-story-segment-container"
-        style={{
-          animationDuration: `${transitionTime}s`,
-        }}
+        key={disableSegmentTransition ? undefined : currentIndex}
+        className={
+          disableSegmentTransition
+            ? 'jgis-story-segment-container jgis-story-segment-container--scroll-drive'
+            : 'jgis-story-segment-container'
+        }
+        style={
+          disableSegmentTransition
+            ? undefined
+            : { animationDuration: `${transitionTime}s` }
+        }
       >
         <div id="jgis-story-segment-header">
           <h1 className="jgis-story-viewer-title">

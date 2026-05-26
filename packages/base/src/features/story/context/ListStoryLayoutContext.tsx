@@ -19,12 +19,15 @@ import {
 
 export interface IListStoryLayoutContextValue {
   layout: IListStoryLayout | null;
+  /** Active story segment from list scroll (synced from Specta column). */
+  activeIndex: number;
   bindScrollContainer: (element: HTMLDivElement | null) => void;
   setActiveIndex: (index: number) => void;
 }
 
 const ListStoryLayoutContext = createContext<IListStoryLayoutContextValue>({
   layout: null,
+  activeIndex: 0,
   bindScrollContainer: () => {},
   setActiveIndex: () => {},
 });
@@ -182,10 +185,11 @@ export function ListStoryLayoutProvider({
   const value = useMemo(
     (): IListStoryLayoutContextValue => ({
       layout,
+      activeIndex,
       bindScrollContainer,
       setActiveIndex,
     }),
-    [layout, bindScrollContainer],
+    [layout, activeIndex, bindScrollContainer],
   );
 
   return (

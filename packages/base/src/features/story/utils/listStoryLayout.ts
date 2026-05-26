@@ -56,12 +56,19 @@ function segmentHeightForItem(
   mapViewportHeight: number,
   heightsById: Readonly<Record<string, number>>,
 ): { height: number; measured: boolean } {
+  const mode = getSegmentDisplayMode(item.activeSlide);
+  if (mode === 'map') {
+    return {
+      height: estimateMapSegmentHeight(mapViewportHeight),
+      measured: mapViewportHeight > 0,
+    };
+  }
+
   const measured = heightsById[item.id];
   if (measured !== undefined && measured > 0) {
     return { height: measured, measured: true };
   }
 
-  const mode = getSegmentDisplayMode(item.activeSlide);
   if (mode === 'markdown') {
     const markdown = item.activeSlide?.content?.markdown ?? '';
     return {
@@ -75,7 +82,7 @@ function segmentHeightForItem(
 
   return {
     height: estimateMapSegmentHeight(mapViewportHeight),
-    measured: mapViewportHeight > 0,
+    measured: false,
   };
 }
 

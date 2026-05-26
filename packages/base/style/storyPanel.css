@@ -11,6 +11,10 @@
   /* animation-duration is set dynamically via inline style from segment.transition.time */
 }
 
+.jgis-story-segment-container--scroll-drive {
+  animation: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -222,17 +226,62 @@
   padding: 1rem;
 }
 
-.jgis-story-markdown-scroll-pane {
+.jgis-story-scroll-drive-pane {
   position: absolute;
-  top: 0;
   left: 0;
   right: 0;
-  /* height: 100%; */
   overflow: hidden;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
 }
 
-.jgis-story-markdown-scroll-pane:not(.jgis-story-markdown-scroll-pane--measure)
+.jgis-story-markdown-scroll-pane {
+  top: 0;
+}
+
+.jgis-story-scroll-drive-pane.jgis-story-markdown-scroll-pane:not(
+    .jgis-story-scroll-drive-pane--idle
+  ) {
+  height: 100%;
+}
+
+.jgis-story-map-scroll-pane {
+  top: 0;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  background-color: transparent;
+  align-items: flex-end;
+}
+
+.jgis-story-map-scroll-pane.jgis-story-scroll-drive-pane--idle {
+  top: auto;
+  bottom: 0;
+  height: auto;
+  max-height: 100%;
+}
+
+.jgis-story-map-overlay-panel-inner {
+  width: 25%;
+  max-height: 100%;
+  overflow: auto;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+}
+
+.jgis-story-scroll-drive-pane--idle {
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.jgis-story-scroll-drive-pane.jgis-story-markdown-scroll-pane:not(
+    .jgis-story-markdown-scroll-pane--measure
+  )
   .jgis-story-markdown-overlay-content {
   height: 100%;
   box-sizing: border-box;
@@ -254,21 +303,21 @@
   height: auto;
 }
 
-.jgis-story-markdown-scroll-pane[data-pane='from']:not(
-    .jgis-story-markdown-scroll-pane--inactive
+.jgis-story-scroll-drive-pane[data-pane='from']:not(
+    .jgis-story-scroll-drive-pane--inactive
   ) {
   transform: translateY(calc(var(--jgis-scroll-drive-progress, 0) * -100%));
 }
 
-.jgis-story-markdown-scroll-pane[data-pane='to']:not(
-    .jgis-story-markdown-scroll-pane--inactive
+.jgis-story-scroll-drive-pane[data-pane='to']:not(
+    .jgis-story-scroll-drive-pane--inactive
   ) {
   transform: translateY(
     calc((1 - var(--jgis-scroll-drive-progress, 0)) * 100%)
   );
 }
 
-.jgis-story-markdown-scroll-pane--inactive {
+.jgis-story-scroll-drive-pane--inactive {
   transform: translateY(100%);
   pointer-events: none;
   visibility: hidden;
