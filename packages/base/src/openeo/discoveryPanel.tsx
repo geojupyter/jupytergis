@@ -1,10 +1,7 @@
 import * as React from 'react';
 
 import { seedBackendCatalog } from './backendCatalog';
-import {
-  connect,
-  IOpenEOConnectionInfo,
-} from '../mainview/OpenEOTileLayer';
+import { connect, IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
 
 interface IDiscoveryPanelProps {
   /** Pre-fill the server URL field (optional). */
@@ -162,9 +159,9 @@ export const OpenEODiscoveryPanel: React.FC<IDiscoveryPanelProps> = ({
       const collectionList = ((cols as any).collections ?? []) as ICollection[];
       const processList = ((procs as any).processes ?? []) as IProcess[];
       const outputRaw: Record<string, any> =
-        (typeof (formats as any)?.getOutputTypes === 'function'
-          ? (formats as any).getOutputTypes()
-          : (formats as any)?.data?.output) ?? {};
+        (typeof (formats )?.getOutputTypes === 'function'
+          ? (formats ).getOutputTypes()
+          : (formats )?.data?.output) ?? {};
       const outputFormats = Object.keys(outputRaw).map(id => ({
         id,
         ...(outputRaw[id] ?? {}),

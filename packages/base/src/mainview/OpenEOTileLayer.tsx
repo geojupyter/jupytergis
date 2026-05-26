@@ -1,6 +1,7 @@
 import {
   showErrorMessage,
   Dialog,
+  Notification,
   ReactWidget,
   showDialog,
 } from '@jupyterlab/apputils';
@@ -354,7 +355,7 @@ export class OpenEOTileSource extends XYZSource {
     super({
       ...options,
       url: '{z},{x},{y}',
-      tileLoadFunction: async (tile: any, src: string) => {
+      tileLoadFunction: async (tile: any, _src: string) => {
         await this._connected.promise;
 
         let url = this._url;
@@ -369,11 +370,42 @@ export class OpenEOTileSource extends XYZSource {
         url = url.replace('%7By%7D', y);
         url = url.replace('%7Bx%7D', x);
 
-        const res = await fetch(url, {
-          method: 'GET',
-        });
-        const blob = await res.blob();
+        let res: Response;
+        try {
+          res = await fetch(url, { method: 'GET' });
+        } catch (err: any) {
+          this._reportTileError(
+            `Tile request failed: ${err?.message ?? String(err)}`,
+          );
+          tile.setState(3);
+          return;
+        }
 
+        if (!res.ok) {
+          // Try to surface the backend's actual message rather than a
+          // bare HTTP status — titiler-openeo, like most openEO
+          // backends, returns JSON `{ message: ... }` on errors.
+          let detail = '';
+          try {
+            const text = await res.text();
+            try {
+              const parsed = JSON.parse(text);
+              detail =
+                parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
+            } catch {
+              detail = text;
+            }
+          } catch {
+            /* response body unreadable */
+          }
+          this._reportTileError(
+            `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
+          );
+          tile.setState(3);
+          return;
+        }
+
+        const blob = await res.blob();
         tile.getImage().src = URL.createObjectURL(blob);
       },
     });
@@ -381,6 +413,24 @@ export class OpenEOTileSource extends XYZSource {
     this.serverUrl = options.serverUrl;
     this._connect(options.serverUrl, options.processGraph);
   }
+
+  /**
+   * Surface a tile-load failure as a JupyterLab toast, deduped so a
+   * panned area with N broken tiles doesn't fire N notifications. Each
+   * distinct error message reappears at most once per cooldown window.
+   */
+  private _reportTileError(message: string): void {
+    const now = Date.now();
+    const last = this._lastTileErrors.get(message) ?? 0;
+    if (now - last < 5000) {
+      return;
+    }
+    this._lastTileErrors.set(message, now);
+    Notification.error(`OpenEO layer: ${message}`, { autoClose: 6000 });
+    // eslint-disable-next-line no-console
+    console.warn('[openeo] tile load error:', message);
+  }
+  private _lastTileErrors = new Map<string, number>();
 
   /**
    * Resolve the live OpenEO connection for `serverUrl` from the in-memory

@@ -129,6 +129,9 @@ function indexGraph(
     ndvi1: {
       arguments: {
         data: { from_node: 'reducedimension1' },
+        // titiler-openeo's `ndvi` implementation expects band indices,
+        // not band names — kept as integers until the backend aligns
+        // with the openEO spec (which calls for strings).
         nir: nirIndex,
         red: redIndex,
       },

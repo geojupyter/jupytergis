@@ -1,12 +1,6 @@
-import {
-  ProcessGraph,
-  ProcessRegistry,
-} from '@openeo/js-processgraphs';
+import { ProcessGraph, ProcessRegistry } from '@openeo/js-processgraphs';
 
-import {
-  connect,
-  IOpenEOConnectionInfo,
-} from '../mainview/OpenEOTileLayer';
+import { connect, IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
 
 export interface IValidationError {
   code?: string;
@@ -44,7 +38,10 @@ function schemaIsCallback(schema: any): boolean {
     return true;
   }
   for (const key of ['anyOf', 'oneOf', 'allOf']) {
-    if (Array.isArray(schema[key]) && schema[key].some((s: any) => schemaIsCallback(s))) {
+    if (
+      Array.isArray(schema[key]) &&
+      schema[key].some((s: any) => schemaIsCallback(s))
+    ) {
       return true;
     }
   }
@@ -114,10 +111,13 @@ export async function validateProcessGraphLocally(
       registry,
     );
     await pg.validate(false);
-    const libErrs = pg.getErrors().getAll().map((e: any) => ({
-      code: typeof e?.code === 'string' ? e.code : undefined,
-      message: e?.message ?? String(e),
-    }));
+    const libErrs = pg
+      .getErrors()
+      .getAll()
+      .map((e: any) => ({
+        code: typeof e?.code === 'string' ? e.code : undefined,
+        message: e?.message ?? String(e),
+      }));
     // Supplementary spec-rule check the library misses on sparse catalogs.
     const processIndex = new Map<string, any>();
     for (const p of processes) {

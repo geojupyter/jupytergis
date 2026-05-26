@@ -185,9 +185,9 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
         return;
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
-        const root = (el as any).shadowRoot?.querySelector(
+        const root = (el ).shadowRoot?.querySelector(
           '.vue-component.model-builder',
-        ) as any;
+        ) ;
         const vueInst = root?.__vue__;
         if (!vueInst) {
           return;
@@ -243,7 +243,9 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
     const onModelError = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const arr = Array.isArray(detail) ? detail : [detail];
-      const message = String(arr[0] ?? 'OpenEO graph editor reported an error.');
+      const message = String(
+        arr[0] ?? 'OpenEO graph editor reported an error.',
+      );
       // Debounce to avoid flooding when an action emits multiple errors
       // in the same tick.
       const now = Date.now();
@@ -280,8 +282,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
       attempts += 1;
       const el = elementRef.current as any;
       const blocks = el?.shadowRoot?.querySelector('.blocks');
-      const rendered =
-        blocks && blocks.children && blocks.children.length > 0;
+      const rendered = blocks && blocks.children && blocks.children.length > 0;
       const sized = container.clientWidth > 0 && container.clientHeight > 0;
       if (sized && !rendered && attempts < maxAttempts) {
         setMountKey(k => k + 1);
@@ -320,9 +321,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
     // Vue 2 stores the component instance on the host element via
     // __vue__. Calling its deleteSelected() directly is more reliable
     // than dispatching a synthetic keydown.
-    const root = el.shadowRoot?.querySelector(
-      '.vue-component.model-builder',
-    ) ;
+    const root = el.shadowRoot?.querySelector('.vue-component.model-builder');
     const vueInst = root?.__vue__;
     if (vueInst && typeof vueInst.deleteSelected === 'function') {
       vueInst.deleteSelected();

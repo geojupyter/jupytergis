@@ -79,7 +79,9 @@ function mintNodeKey(procId: string, existing: Set<string>): string {
   return `${base}${n}`;
 }
 
-function defaultArgsFromProcess(parameters: any[] | undefined): Record<string, any> {
+function defaultArgsFromProcess(
+  parameters: any[] | undefined,
+): Record<string, any> {
   const args: Record<string, any> = {};
   if (!Array.isArray(parameters)) {
     return args;
@@ -113,10 +115,7 @@ function buildCollectionNode(
   };
 }
 
-function buildProcessNode(
-  procId: string,
-  process: any,
-): Record<string, any> {
+function buildProcessNode(procId: string, process: any): Record<string, any> {
   return {
     process_id: procId,
     arguments: defaultArgsFromProcess(process?.parameters),
@@ -248,9 +247,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
                 key={p.id}
                 id={p.id}
                 subtitle={p.summary}
-                onDragStart={e =>
-                  onDragStart(e, { kind: 'process', id: p.id })
-                }
+                onDragStart={e => onDragStart(e, { kind: 'process', id: p.id })}
               />
             ))}
           </PaletteSection>
@@ -265,9 +262,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
                 key={f.id}
                 id={f.id}
                 subtitle={f.title}
-                onDragStart={e =>
-                  onDragStart(e, { kind: 'format', id: f.id })
-                }
+                onDragStart={e => onDragStart(e, { kind: 'format', id: f.id })}
               />
             ))}
           </PaletteSection>
@@ -329,9 +324,7 @@ const PaletteRow: React.FC<{
       </span>
       <span className="jp-openeo-palette-row-text">
         <span className="jp-openeo-id">{id}</span>
-        {subtitle && (
-          <span className="jp-openeo-secondary">{subtitle}</span>
-        )}
+        {subtitle && <span className="jp-openeo-secondary">{subtitle}</span>}
       </span>
     </div>
   );
@@ -575,7 +568,7 @@ const Form: React.FC<IFormProps> = ({
       // Accept either a raw process_graph dict or a full Process object.
       const graph =
         parsed && typeof parsed === 'object' && 'process_graph' in parsed
-          ? (parsed ).process_graph
+          ? parsed.process_graph
           : parsed;
       if (!graph || typeof graph !== 'object' || Array.isArray(graph)) {
         Notification.error(
@@ -732,9 +725,7 @@ const Form: React.FC<IFormProps> = ({
 
   React.useEffect(() => {
     const fresh = lastResultVersionRef.current === versionRef.current;
-    onValidationChange(
-      validation.state === 'valid' && !isChecking && fresh,
-    );
+    onValidationChange(validation.state === 'valid' && !isChecking && fresh);
   }, [validation, isChecking, onValidationChange]);
 
   // Fetch backend catalog (processes + collections) so ModelBuilder can
@@ -886,278 +877,278 @@ const Form: React.FC<IFormProps> = ({
             onBack={() => setEditMode(false)}
           />
         ) : (
-        <>
-        <section className="jp-openeo-section">
-          <h4>Layer</h4>
-          <label className="jp-openeo-field">
-            <span>Name</span>
-            <input
-              type="text"
-              value={state.layerName}
-              onChange={e => update({ layerName: e.target.value })}
-            />
-          </label>
-          <div className="jp-openeo-server-section">
-            {serverMode === 'connected' && (
-              <div className="jp-openeo-server-connected">
-                <span className="jp-openeo-server-ok">✓</span>
-                <code>{connectionInfo?.url}</code>
-                <button
-                  type="button"
-                  className="jp-openeo-link-btn"
-                  onClick={onChangeServer}
-                >
-                  Change server
-                </button>
-              </div>
-            )}
-
-            {serverMode === 'select' && (
-              <>
-                <label className="jp-openeo-field">
-                  <span>Server URL</span>
-                  <div className="jp-openeo-server-picker">
-                    <input
-                      type="text"
-                      list="jp-openeo-known-servers"
-                      placeholder="https://openeo.example.org"
-                      value={serverInput}
-                      onChange={e => {
-                        setServerInput(e.target.value);
-                        if (serverError) {
-                          setServerError(null);
-                        }
-                      }}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          onPickServer();
-                        }
-                      }}
-                    />
-                    <datalist id="jp-openeo-known-servers">
-                      {servers.map(s => (
-                        <option key={s} value={s} />
-                      ))}
-                    </datalist>
+          <>
+            <section className="jp-openeo-section">
+              <h4>Layer</h4>
+              <label className="jp-openeo-field">
+                <span>Name</span>
+                <input
+                  type="text"
+                  value={state.layerName}
+                  onChange={e => update({ layerName: e.target.value })}
+                />
+              </label>
+              <div className="jp-openeo-server-section">
+                {serverMode === 'connected' && (
+                  <div className="jp-openeo-server-connected">
+                    <span className="jp-openeo-server-ok">✓</span>
+                    <code>{connectionInfo?.url}</code>
                     <button
                       type="button"
-                      className="jp-openeo-server-connect"
-                      onClick={onPickServer}
-                      disabled={!serverInput.trim()}
+                      className="jp-openeo-link-btn"
+                      onClick={onChangeServer}
                     >
-                      Connect
+                      Change server
                     </button>
                   </div>
-                </label>
-                {servers.length > 0 && (
-                  <div className="jp-openeo-server-suggest">
-                    {servers.map(s => (
+                )}
+
+                {serverMode === 'select' && (
+                  <>
+                    <label className="jp-openeo-field">
+                      <span>Server URL</span>
+                      <div className="jp-openeo-server-picker">
+                        <input
+                          type="text"
+                          list="jp-openeo-known-servers"
+                          placeholder="https://openeo.example.org"
+                          value={serverInput}
+                          onChange={e => {
+                            setServerInput(e.target.value);
+                            if (serverError) {
+                              setServerError(null);
+                            }
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              onPickServer();
+                            }
+                          }}
+                        />
+                        <datalist id="jp-openeo-known-servers">
+                          {servers.map(s => (
+                            <option key={s} value={s} />
+                          ))}
+                        </datalist>
+                        <button
+                          type="button"
+                          className="jp-openeo-server-connect"
+                          onClick={onPickServer}
+                          disabled={!serverInput.trim()}
+                        >
+                          Connect
+                        </button>
+                      </div>
+                    </label>
+                    {servers.length > 0 && (
+                      <div className="jp-openeo-server-suggest">
+                        {servers.map(s => (
+                          <button
+                            key={s}
+                            type="button"
+                            className="jp-openeo-server-chip"
+                            onClick={() => setServerInput(s)}
+                            title={`Use ${s}`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {serverError && (
+                      <div className="jp-openeo-server-alert jp-mod-error">
+                        {serverError}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {serverMode === 'signin' && (
+                  <>
+                    <div className="jp-openeo-signin-header">
+                      Sign in to <code>{serverInput.trim()}</code>
                       <button
-                        key={s}
                         type="button"
-                        className="jp-openeo-server-chip"
-                        onClick={() => setServerInput(s)}
-                        title={`Use ${s}`}
+                        className="jp-openeo-link-btn"
+                        onClick={onChangeServer}
+                        disabled={serverBusy}
                       >
-                        {s}
+                        Change server
                       </button>
-                    ))}
-                  </div>
+                    </div>
+                    {serverError && (
+                      <div className="jp-openeo-server-alert jp-mod-error">
+                        {serverError}
+                      </div>
+                    )}
+                    <label className="jp-openeo-field">
+                      <span>Username</span>
+                      <input
+                        ref={usernameRef}
+                        type="text"
+                        autoComplete="username"
+                        value={serverUsername}
+                        onChange={e => setServerUsername(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void onLogin();
+                          }
+                        }}
+                        disabled={serverBusy}
+                      />
+                    </label>
+                    <label className="jp-openeo-field">
+                      <span>Password</span>
+                      <input
+                        type="password"
+                        autoComplete="current-password"
+                        value={serverPassword}
+                        onChange={e => setServerPassword(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void onLogin();
+                          }
+                        }}
+                        disabled={serverBusy}
+                      />
+                    </label>
+                    <div className="jp-openeo-signin-actions">
+                      <button
+                        type="button"
+                        className="jp-openeo-server-connect"
+                        onClick={onLogin}
+                        disabled={
+                          serverBusy || !serverUsername || !serverPassword
+                        }
+                      >
+                        {serverBusy ? 'Signing in…' : 'Log in'}
+                      </button>
+                    </div>
+                  </>
                 )}
-                {serverError && (
-                  <div className="jp-openeo-server-alert jp-mod-error">
-                    {serverError}
-                  </div>
-                )}
-              </>
-            )}
+              </div>
+            </section>
 
-            {serverMode === 'signin' && (
-              <>
-                <div className="jp-openeo-signin-header">
-                  Sign in to <code>{serverInput.trim()}</code>
+            <section className="jp-openeo-section">
+              <h4>Template</h4>
+              <div className="jp-openeo-template-pills">
+                {OPENEO_TEMPLATES.map(t => (
                   <button
+                    key={t.id}
                     type="button"
-                    className="jp-openeo-link-btn"
-                    onClick={onChangeServer}
-                    disabled={serverBusy}
-                  >
-                    Change server
-                  </button>
-                </div>
-                {serverError && (
-                  <div className="jp-openeo-server-alert jp-mod-error">
-                    {serverError}
-                  </div>
-                )}
-                <label className="jp-openeo-field">
-                  <span>Username</span>
-                  <input
-                    ref={usernameRef}
-                    type="text"
-                    autoComplete="username"
-                    value={serverUsername}
-                    onChange={e => setServerUsername(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        void onLogin();
-                      }
-                    }}
-                    disabled={serverBusy}
-                  />
-                </label>
-                <label className="jp-openeo-field">
-                  <span>Password</span>
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    value={serverPassword}
-                    onChange={e => setServerPassword(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        void onLogin();
-                      }
-                    }}
-                    disabled={serverBusy}
-                  />
-                </label>
-                <div className="jp-openeo-signin-actions">
-                  <button
-                    type="button"
-                    className="jp-openeo-server-connect"
-                    onClick={onLogin}
-                    disabled={
-                      serverBusy || !serverUsername || !serverPassword
+                    className={
+                      'jp-openeo-pill' +
+                      (t.id === state.templateId ? ' jp-mod-selected' : '')
                     }
+                    onClick={() => onTemplate(t)}
+                    title={t.description}
                   >
-                    {serverBusy ? 'Signing in…' : 'Log in'}
+                    {t.name}
                   </button>
-                </div>
-              </>
-            )}
-          </div>
-        </section>
+                ))}
+              </div>
+              <p className="jp-openeo-section-help">{template.description}</p>
+            </section>
 
-        <section className="jp-openeo-section">
-          <h4>Template</h4>
-          <div className="jp-openeo-template-pills">
-            {OPENEO_TEMPLATES.map(t => (
-              <button
-                key={t.id}
-                type="button"
-                className={
-                  'jp-openeo-pill' +
-                  (t.id === state.templateId ? ' jp-mod-selected' : '')
-                }
-                onClick={() => onTemplate(t)}
-                title={t.description}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-          <p className="jp-openeo-section-help">{template.description}</p>
-        </section>
-
-        <section className="jp-openeo-section">
-          <h4>Region &amp; time</h4>
-          <label className="jp-openeo-field">
-            <span>Collection</span>
-            <input
-              type="text"
-              value={state.params.collectionId}
-              onChange={e => {
-                const v = e.target.value;
-                guardReseed(() =>
-                  update({
-                    params: { ...state.params, collectionId: v },
-                    editedGraph: null,
-                  }),
-                );
-              }}
-            />
-          </label>
-          <div className="jp-openeo-bbox-grid">
-            <label>
-              <span>West</span>
-              <input
-                type="number"
-                step="0.001"
-                value={state.params.bbox.west}
-                onChange={e => updateBbox('west', e.target.value)}
-              />
-            </label>
-            <label>
-              <span>East</span>
-              <input
-                type="number"
-                step="0.001"
-                value={state.params.bbox.east}
-                onChange={e => updateBbox('east', e.target.value)}
-              />
-            </label>
-            <label>
-              <span>South</span>
-              <input
-                type="number"
-                step="0.001"
-                value={state.params.bbox.south}
-                onChange={e => updateBbox('south', e.target.value)}
-              />
-            </label>
-            <label>
-              <span>North</span>
-              <input
-                type="number"
-                step="0.001"
-                value={state.params.bbox.north}
-                onChange={e => updateBbox('north', e.target.value)}
-              />
-            </label>
-          </div>
-          <label className="jp-openeo-field">
-            <span>Start date</span>
-            <input
-              type="date"
-              value={(state.params.temporalExtent[0] ?? '').slice(0, 10)}
-              onChange={e => {
-                const v = e.target.value;
-                guardReseed(() =>
-                  update({
-                    params: {
-                      ...state.params,
-                      temporalExtent: [v, state.params.temporalExtent[1]],
-                    },
-                    editedGraph: null,
-                  }),
-                );
-              }}
-            />
-          </label>
-          <label className="jp-openeo-field">
-            <span>End date</span>
-            <input
-              type="date"
-              value={(state.params.temporalExtent[1] ?? '').slice(0, 10)}
-              onChange={e => {
-                const v = e.target.value;
-                guardReseed(() =>
-                  update({
-                    params: {
-                      ...state.params,
-                      temporalExtent: [state.params.temporalExtent[0], v],
-                    },
-                    editedGraph: null,
-                  }),
-                );
-              }}
-            />
-          </label>
-        </section>
-        </>
+            <section className="jp-openeo-section">
+              <h4>Region &amp; time</h4>
+              <label className="jp-openeo-field">
+                <span>Collection</span>
+                <input
+                  type="text"
+                  value={state.params.collectionId}
+                  onChange={e => {
+                    const v = e.target.value;
+                    guardReseed(() =>
+                      update({
+                        params: { ...state.params, collectionId: v },
+                        editedGraph: null,
+                      }),
+                    );
+                  }}
+                />
+              </label>
+              <div className="jp-openeo-bbox-grid">
+                <label>
+                  <span>West</span>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={state.params.bbox.west}
+                    onChange={e => updateBbox('west', e.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>East</span>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={state.params.bbox.east}
+                    onChange={e => updateBbox('east', e.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>South</span>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={state.params.bbox.south}
+                    onChange={e => updateBbox('south', e.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>North</span>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={state.params.bbox.north}
+                    onChange={e => updateBbox('north', e.target.value)}
+                  />
+                </label>
+              </div>
+              <label className="jp-openeo-field">
+                <span>Start date</span>
+                <input
+                  type="date"
+                  value={(state.params.temporalExtent[0] ?? '').slice(0, 10)}
+                  onChange={e => {
+                    const v = e.target.value;
+                    guardReseed(() =>
+                      update({
+                        params: {
+                          ...state.params,
+                          temporalExtent: [v, state.params.temporalExtent[1]],
+                        },
+                        editedGraph: null,
+                      }),
+                    );
+                  }}
+                />
+              </label>
+              <label className="jp-openeo-field">
+                <span>End date</span>
+                <input
+                  type="date"
+                  value={(state.params.temporalExtent[1] ?? '').slice(0, 10)}
+                  onChange={e => {
+                    const v = e.target.value;
+                    guardReseed(() =>
+                      update({
+                        params: {
+                          ...state.params,
+                          temporalExtent: [state.params.temporalExtent[0], v],
+                        },
+                        editedGraph: null,
+                      }),
+                    );
+                  }}
+                />
+              </label>
+            </section>
+          </>
         )}
       </div>
 
@@ -1255,8 +1246,7 @@ const Form: React.FC<IFormProps> = ({
               'jp-openeo-status ' +
               (validation.state === 'valid'
                 ? 'jp-openeo-status-ok'
-                : validation.state === 'invalid' ||
-                    validation.state === 'error'
+                : validation.state === 'invalid' || validation.state === 'error'
                   ? 'jp-openeo-status-bad'
                   : 'jp-openeo-status-pending')
             }
@@ -1280,8 +1270,8 @@ const Form: React.FC<IFormProps> = ({
         </div>
         {editMode && (
           <p className="jp-openeo-edit-hint-inline">
-            Editing is advanced. Click an edge or block then press Backspace
-            (or fn+Delete) to remove it. Use Reset to restore the template.
+            Editing is advanced. Click an edge or block then press Backspace (or
+            fn+Delete) to remove it. Use Reset to restore the template.
           </p>
         )}
         <div

@@ -1,7 +1,4 @@
-import {
-  connect,
-  IOpenEOConnectionInfo,
-} from '../mainview/OpenEOTileLayer';
+import { connect, IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
 
 export interface IFileFormat {
   id: string;
@@ -61,9 +58,9 @@ export async function fetchBackendCatalog(
     // class — the raw map lives at getOutputTypes() / .data.output, not
     // at .output directly.
     const outputRaw: Record<string, any> =
-      (typeof (formats as any)?.getOutputTypes === 'function'
-        ? (formats as any).getOutputTypes()
-        : (formats as any)?.data?.output) ?? {};
+      (typeof (formats )?.getOutputTypes === 'function'
+        ? (formats ).getOutputTypes()
+        : (formats )?.data?.output) ?? {};
     const outputFormats: IFileFormat[] = Object.keys(outputRaw).map(id => ({
       id,
       ...(outputRaw[id] ?? {}),
