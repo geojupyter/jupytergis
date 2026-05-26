@@ -3,24 +3,20 @@ import { useMemo } from 'react';
 import { getLayoutSegmentHeight } from '@/src/features/story/context/ListStoryLayoutContext';
 import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
 
-export type ListStoryOverlayPaneKind = 'inactive' | 'markdown' | 'map';
+export type ListStoryOverlayPaneKind = 'markdown' | 'map';
 
 export interface IListStoryOverlayPaneSpec {
   kind: ListStoryOverlayPaneKind;
   segmentIndex: number;
 }
 
-export type ListStoryOverlayHeightMode =
-  | 'hidden'
-  | 'idle-markdown'
-  | 'map-at-rest'
-  | 'scroll-drive';
+export type ListStoryOverlayHeightMode = 'hidden' | 'at-rest' | 'scroll-drive';
 
 export interface IUseListStoryOverlayHeightParams {
   stageHeight: number;
   layout: IListStoryLayout | null;
-  fromPane: IListStoryOverlayPaneSpec | null;
-  toPane: IListStoryOverlayPaneSpec | null;
+  fromPane: IListStoryOverlayPaneSpec;
+  toPane: IListStoryOverlayPaneSpec;
   mode: ListStoryOverlayHeightMode;
   activeSegmentIndex: number;
 }
@@ -30,9 +26,6 @@ function estimatePaneHeight(
   layout: IListStoryLayout | null,
   stageHeight: number,
 ): number {
-  if (spec.kind === 'inactive') {
-    return 0;
-  }
   if (spec.kind === 'map') {
     return stageHeight;
   }
@@ -40,19 +33,16 @@ function estimatePaneHeight(
 }
 
 function estimatePaneContribution(
-  spec: IListStoryOverlayPaneSpec | null,
+  spec: IListStoryOverlayPaneSpec,
   layout: IListStoryLayout | null,
   stageHeight: number,
 ): number {
-  if (!spec || spec.kind === 'inactive') {
-    return 0;
-  }
   return estimatePaneHeight(spec, layout, stageHeight);
 }
 
 /**
  * Overlay height from virtual-track layout (no live DOM measure).
- * Scroll-drive: sum of from + to segment heights; idle markdown: one segment.
+ * Scroll-drive: sum of from + to; at rest: single visible segment (to pane).
  */
 export function useListStoryOverlayHeight({
   stageHeight,
@@ -67,13 +57,13 @@ export function useListStoryOverlayHeight({
     if (mode === 'hidden') {
       return floor;
     }
-    if (mode === 'idle-markdown') {
+    if (mode === 'at-rest') {
       const segment =
         getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;
+      if (toPane.kind === 'map') {
+        return floor;
+      }
       return Math.max(floor, segment);
-    }
-    if (mode === 'map-at-rest') {
-      return floor;
     }
     const sum =
       estimatePaneContribution(fromPane, layout, floor) +

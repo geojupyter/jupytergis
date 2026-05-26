@@ -1,8 +1,6 @@
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 
 import type { IListStorySegmentRange } from './listStoryLayout';
-import { pairNeedsScrollDrive } from './segmentDisplayMode';
-
 export interface IListStoryScrollState {
   activeIndex: number;
   drive: IListStoryScrollDrivePayload | null;
@@ -177,10 +175,6 @@ export function computeListStoryScrollState({
   for (let i = 0; i < segments.length - 1; i++) {
     const fromSegment = segments[i];
     const toSegment = segments[i + 1];
-
-    if (!pairNeedsScrollDrive(fromSegment.contentMode, toSegment.contentMode)) {
-      continue;
-    }
 
     const pairDrive = computePairDrive(scrollTop, fromSegment, toSegment);
     if (!pairDrive) {

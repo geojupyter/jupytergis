@@ -10,10 +10,3 @@ export function getSegmentDisplayMode(
   }
   return 'map';
 }
-
-export function pairNeedsScrollDrive(
-  _fromMode: StorySegmentDisplayMode,
-  _toMode: StorySegmentDisplayMode,
-): boolean {
-  return true;
-}

@@ -215,7 +215,7 @@
   z-index: 5;
 }
 
-.jgis-story-markdown-overlay--idle {
+.jgis-story-markdown-overlay--hidden {
   visibility: hidden;
   pointer-events: none;
 }
@@ -265,12 +265,6 @@
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
 }
 
-.jgis-story-scroll-drive-pane--idle {
-  transform: none;
-  visibility: visible;
-  pointer-events: auto;
-}
-
 .jgis-story-scroll-drive-pane.jgis-story-markdown-scroll-pane:not(
     .jgis-story-markdown-scroll-pane--measure
   )
@@ -295,28 +289,18 @@
   height: auto;
 }
 
-.jgis-story-scroll-drive-pane[data-pane='from']:not(
-    .jgis-story-scroll-drive-pane--inactive
-  ) {
+.jgis-story-scroll-drive-pane[data-pane='from'] {
   transform: translateY(
     calc(var(--jgis-scroll-drive-progress, 0) * -1 * var(--jgis-overlay-height, 100%))
   );
 }
 
-.jgis-story-scroll-drive-pane[data-pane='to']:not(
-    .jgis-story-scroll-drive-pane--inactive
-  ) {
+.jgis-story-scroll-drive-pane[data-pane='to'] {
   transform: translateY(
     calc(
       (1 - var(--jgis-scroll-drive-progress, 0)) * var(--jgis-overlay-height, 100%)
     )
   );
-}
-
-.jgis-story-scroll-drive-pane--inactive {
-  transform: translateY(var(--jgis-overlay-height, 100%));
-  pointer-events: none;
-  visibility: hidden;
 }
 
 .jgis-story-virtual-track-root {
