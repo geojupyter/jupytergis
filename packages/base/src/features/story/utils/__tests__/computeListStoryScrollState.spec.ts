@@ -128,14 +128,23 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('clears drive for map-to-map pairs but still updates active index', () => {
+  it('drives map-to-map across the segment handoff', () => {
     const mapSegments = [
       seg(0, 0, 200, 'map'),
       seg(1, 200, 400, 'map'),
       seg(2, 400, 600, 'map'),
     ];
 
-    expect(compute(270, mapSegments)).toEqual({ activeIndex: 1, drive: null });
+    expect(compute(270, mapSegments)).toEqual({
+      activeIndex: 1,
+      drive: {
+        progress: 0.35,
+        fromIndex: 1,
+        toIndex: 2,
+        fromMode: 'map',
+        toMode: 'map',
+      },
+    });
   });
 
   it('has no drive before the first segment', () => {

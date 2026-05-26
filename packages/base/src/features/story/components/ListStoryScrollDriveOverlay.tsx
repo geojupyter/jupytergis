@@ -5,10 +5,7 @@ import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListSt
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
-import type {
-  IListStoryScrollDrivePayload,
-  StorySegmentDisplayMode,
-} from '@/src/features/story/types/listStoryScrollDrive';
+import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/segmentDisplayMode';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
@@ -68,6 +65,13 @@ function getScrollDrivePaneConfigs(
   if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
     return {
       from: { kind: { type: 'markdown', markdown: fromMarkdown } },
+      to: { kind: { type: 'map', segmentIndex: drive.toIndex } },
+    };
+  }
+
+  if (drive.fromMode === 'map' && drive.toMode === 'map') {
+    return {
+      from: { kind: { type: 'map', segmentIndex: drive.fromIndex } },
       to: { kind: { type: 'map', segmentIndex: drive.toIndex } },
     };
   }
@@ -133,45 +137,28 @@ function ScrollDrivePane({
   );
 }
 
-interface IIdleSegmentPaneProps {
-  mode: StorySegmentDisplayMode;
+interface IIdleMarkdownPaneProps {
   segmentIndex: number;
   markdown: string;
-  storyData: IJGISStoryMap;
-  items: ReturnType<typeof useStorySegmentViewItems>;
 }
 
-function IdleSegmentPane({
-  mode,
+function IdleMarkdownPane({
   segmentIndex,
   markdown,
-  storyData,
-  items,
-}: IIdleSegmentPaneProps): React.ReactElement {
-  const className =
-    mode === 'map'
-      ? 'jgis-story-scroll-drive-pane jgis-story-map-scroll-pane jgis-story-scroll-drive-pane--idle'
-      : 'jgis-story-scroll-drive-pane jgis-story-markdown-scroll-pane jgis-story-scroll-drive-pane--idle';
-
+}: IIdleMarkdownPaneProps): React.ReactElement {
   return (
-    <div className={className} data-pane="idle">
-      {mode === 'markdown' && markdown ? (
-        <div className="jgis-story-markdown-overlay-content">
-          <div className="specta-article-host-widget specta-cell-content">
-            <StoryScrollDriveMarkdown
-              key={`idle-seg-${segmentIndex}`}
-              source={markdown}
-            />
-          </div>
+    <div
+      className="jgis-story-scroll-drive-pane jgis-story-markdown-scroll-pane jgis-story-scroll-drive-pane--idle"
+      data-pane="idle"
+    >
+      <div className="jgis-story-markdown-overlay-content">
+        <div className="specta-article-host-widget specta-cell-content">
+          <StoryScrollDriveMarkdown
+            key={`idle-seg-${segmentIndex}`}
+            source={markdown}
+          />
         </div>
-      ) : null}
-      {mode === 'map' ? (
-        <ListStoryMapOverlayPanel
-          storyData={storyData}
-          segmentIndex={segmentIndex}
-          items={items}
-        />
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -226,14 +213,25 @@ export function ListStoryScrollDriveOverlay({
 
   const activeItem = items.find(item => item.index === activeIndex);
   const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
-  const showIdlePane = !isDriveActive && activeItem !== undefined;
-  const overlayVisible = isDriveActive || showIdlePane;
+  const showIdleMarkdown =
+    !isDriveActive && activeMode === 'markdown' && activeItem !== undefined;
+  const mapAtRest =
+    !isDriveActive && activeMode === 'map' && activeItem !== undefined;
+  const overlayVisible = isDriveActive || showIdleMarkdown || mapAtRest;
 
-  const progress = renderDrive?.progress ?? 0;
-  const fromIndex = renderDrive?.fromIndex ?? 0;
-  const toIndex = renderDrive?.toIndex ?? 0;
-  const idleMarkdown =
-    activeMode === 'markdown' ? getStoryMarkdownForIndex(model, activeIndex) : '';
+  const driveProgress = renderDrive?.progress ?? 0;
+  const displayProgress = isDriveActive ? driveProgress : mapAtRest ? 1 : 0;
+  const fromIndex = renderDrive?.fromIndex ?? activeIndex;
+  const toIndex = renderDrive?.toIndex ?? activeIndex;
+
+  const toPaneConfig: IScrollDrivePaneConfig = mapAtRest
+    ? { kind: { type: 'map', segmentIndex: activeIndex } }
+    : paneConfigs.to;
+  const fromPaneConfig = paneConfigs.from;
+
+  const idleMarkdown = showIdleMarkdown
+    ? getStoryMarkdownForIndex(model, activeIndex)
+    : '';
 
   return (
     <div
@@ -244,23 +242,20 @@ export function ListStoryScrollDriveOverlay({
       style={
         {
           ...spectaPresentationStyle,
-          '--jgis-scroll-drive-progress': progress,
+          '--jgis-scroll-drive-progress': displayProgress,
         } as React.CSSProperties
       }
     >
-      {showIdlePane ? (
-        <IdleSegmentPane
-          mode={activeMode}
+      {showIdleMarkdown ? (
+        <IdleMarkdownPane
           segmentIndex={activeIndex}
           markdown={idleMarkdown}
-          storyData={story}
-          items={items}
         />
       ) : null}
       <ScrollDrivePane
         pane="from"
         segmentIndex={fromIndex}
-        config={paneConfigs.from}
+        config={fromPaneConfig}
         forceInactive={!isDriveActive}
         storyData={story}
         items={items}
@@ -268,8 +263,8 @@ export function ListStoryScrollDriveOverlay({
       <ScrollDrivePane
         pane="to"
         segmentIndex={toIndex}
-        config={paneConfigs.to}
-        forceInactive={!isDriveActive}
+        config={toPaneConfig}
+        forceInactive={!isDriveActive && !mapAtRest}
         storyData={story}
         items={items}
       />

@@ -121,6 +121,24 @@ function computePairDrive(
     };
   }
 
+  if (fromMode === 'map' && toMode === 'map') {
+    if (scrollTop < fromSegment.start) {
+      return null;
+    }
+    if (scrollTop >= toSegment.start) {
+      return null;
+    }
+    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
+    if (progress === null) {
+      return null;
+    }
+    return {
+      inZone: true,
+      progress,
+      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
+    };
+  }
+
   return null;
 }
 

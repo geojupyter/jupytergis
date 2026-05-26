@@ -12,8 +12,8 @@ export function getSegmentDisplayMode(
 }
 
 export function pairNeedsScrollDrive(
-  fromMode: StorySegmentDisplayMode,
-  toMode: StorySegmentDisplayMode,
+  _fromMode: StorySegmentDisplayMode,
+  _toMode: StorySegmentDisplayMode,
 ): boolean {
-  return !(fromMode === 'map' && toMode === 'map');
+  return true;
 }
