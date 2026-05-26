@@ -18,7 +18,7 @@ const testCellOutputs = async (
   page.theme.setTheme(theme);
 
   for (const notebook of notebooks) {
-    const results: Array<{cellIndex: number, screenshot: Buffer}> = [];
+    const results: Array<{ cellIndex: number; screenshot: Buffer }> = [];
 
     await page.notebook.openByPath(`${tmpPath}/${notebook}`);
     await page.notebook.activate(notebook);
@@ -37,7 +37,7 @@ const testCellOutputs = async (
       onAfterCellRun: async (cellIndex: number) => {
         const cellType = await page.notebook.getCellType(cellIndex);
         if (cellType !== 'code') {
-          return;  // skip Markdown cells
+          return; // skip Markdown cells
         }
 
         await page.waitForTimeout(5000);
@@ -52,7 +52,7 @@ const testCellOutputs = async (
       },
     });
 
-    for (const {cellIndex, screenshot} of results) {
+    for (const { cellIndex, screenshot } of results) {
       expect(screenshot).toMatchSnapshot(
         getCaptureImageName(contextPrefix, notebook, cellIndex),
       );
