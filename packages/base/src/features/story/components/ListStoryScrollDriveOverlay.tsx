@@ -1,18 +1,22 @@
-import { IJGISStoryMap, IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
-import {
-  type IListStoryOverlayPaneSpec,
-  useListStoryOverlayHeight,
-} from '@/src/features/story/hooks/useListStoryOverlayHeight';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import type {
   IListStoryScrollDrivePayload,
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/listStoryScrollDrive';
+import {
+  computeListStoryOverlayHeight,
+  type IListStoryOverlayPaneSpec,
+} from '@/src/features/story/utils/computeListStoryOverlayHeight';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/segmentDisplayMode';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
@@ -28,6 +32,10 @@ type ScrollDrivePaneKind =
 interface IScrollDrivePaneConfig {
   kind: ScrollDrivePaneKind;
 }
+
+const EMPTY_MARKDOWN_PANE: IScrollDrivePaneConfig = {
+  kind: { type: 'markdown', markdown: '' },
+};
 
 function getStoryMarkdownForIndex(
   model: IJupyterGISModel,
@@ -56,7 +64,10 @@ function buildPaneConfig(
     return { kind: { type: 'map', segmentIndex } };
   }
   return {
-    kind: { type: 'markdown', markdown: getStoryMarkdownForIndex(model, segmentIndex) },
+    kind: {
+      type: 'markdown',
+      markdown: getStoryMarkdownForIndex(model, segmentIndex),
+    },
   };
 }
 
@@ -64,33 +75,9 @@ function getScrollDrivePaneConfigs(
   model: IJupyterGISModel,
   drive: IListStoryScrollDrivePayload,
 ): { from: IScrollDrivePaneConfig; to: IScrollDrivePaneConfig } {
-  const fromMarkdown = getStoryMarkdownForIndex(model, drive.fromIndex);
-  const toMarkdown = getStoryMarkdownForIndex(model, drive.toIndex);
-
-  if (drive.fromMode === 'markdown' && drive.toMode === 'markdown') {
-    return {
-      from: { kind: { type: 'markdown', markdown: fromMarkdown } },
-      to: { kind: { type: 'markdown', markdown: toMarkdown } },
-    };
-  }
-
-  if (drive.fromMode === 'map' && drive.toMode === 'markdown') {
-    return {
-      from: { kind: { type: 'map', segmentIndex: drive.fromIndex } },
-      to: { kind: { type: 'markdown', markdown: toMarkdown } },
-    };
-  }
-
-  if (drive.fromMode === 'markdown' && drive.toMode === 'map') {
-    return {
-      from: { kind: { type: 'markdown', markdown: fromMarkdown } },
-      to: { kind: { type: 'map', segmentIndex: drive.toIndex } },
-    };
-  }
-
   return {
-    from: { kind: { type: 'map', segmentIndex: drive.fromIndex } },
-    to: { kind: { type: 'map', segmentIndex: drive.toIndex } },
+    from: buildPaneConfig(model, drive.fromIndex, drive.fromMode),
+    to: buildPaneConfig(model, drive.toIndex, drive.toMode),
   };
 }
 
@@ -182,8 +169,8 @@ export function ListStoryScrollDriveOverlay({
       return {
         fromIndex: activeIndex,
         toIndex: activeIndex,
-        fromPaneConfig: { kind: { type: 'markdown' as const, markdown: '' } },
-        toPaneConfig: { kind: { type: 'markdown' as const, markdown: '' } },
+        fromPaneConfig: EMPTY_MARKDOWN_PANE,
+        toPaneConfig: EMPTY_MARKDOWN_PANE,
       };
     }
 
@@ -201,7 +188,7 @@ export function ListStoryScrollDriveOverlay({
     return {
       fromIndex: activeIndex,
       toIndex: activeIndex,
-      fromPaneConfig: restConfig,
+      fromPaneConfig: EMPTY_MARKDOWN_PANE,
       toPaneConfig: restConfig,
     };
   }, [model, activeItem, activeIndex, activeMode, drive]);
@@ -239,14 +226,25 @@ export function ListStoryScrollDriveOverlay({
       ? 'scroll-drive'
       : 'at-rest';
 
-  const overlayHeight = useListStoryOverlayHeight({
-    stageHeight,
-    layout,
-    fromPane: fromPaneSpec,
-    toPane: toPaneSpec,
-    mode: overlayHeightMode,
-    activeSegmentIndex: activeIndex,
-  });
+  const overlayHeight = useMemo(
+    () =>
+      computeListStoryOverlayHeight({
+        stageHeight,
+        layout,
+        fromPane: fromPaneSpec,
+        toPane: toPaneSpec,
+        mode: overlayHeightMode,
+        activeSegmentIndex: activeIndex,
+      }),
+    [
+      stageHeight,
+      layout,
+      fromPaneSpec,
+      toPaneSpec,
+      overlayHeightMode,
+      activeIndex,
+    ],
+  );
 
   const overlaySized =
     overlayVisible && stageHeight > 0 && overlayHeightMode !== 'hidden';
@@ -268,7 +266,6 @@ export function ListStoryScrollDriveOverlay({
           '--jgis-scroll-drive-progress': displayProgress,
           ...(overlaySized
             ? {
-                height: overlayHeight,
                 '--jgis-overlay-height': `${overlayHeight}px`,
               }
             : {}),

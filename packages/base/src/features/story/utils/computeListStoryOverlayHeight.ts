@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { getLayoutSegmentHeight } from '@/src/features/story/context/ListStoryLayoutContext';
 import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
 
@@ -12,7 +10,7 @@ export interface IListStoryOverlayPaneSpec {
 
 export type ListStoryOverlayHeightMode = 'hidden' | 'at-rest' | 'scroll-drive';
 
-export interface IUseListStoryOverlayHeightParams {
+export interface IComputeListStoryOverlayHeightParams {
   stageHeight: number;
   layout: IListStoryLayout | null;
   fromPane: IListStoryOverlayPaneSpec;
@@ -32,45 +30,34 @@ function estimatePaneHeight(
   return getLayoutSegmentHeight(layout, spec.segmentIndex) ?? stageHeight;
 }
 
-function estimatePaneContribution(
-  spec: IListStoryOverlayPaneSpec,
-  layout: IListStoryLayout | null,
-  stageHeight: number,
-): number {
-  return estimatePaneHeight(spec, layout, stageHeight);
-}
-
 /**
  * Overlay height from virtual-track layout (no live DOM measure).
  * Scroll-drive: sum of from + to; at rest: single visible segment (to pane).
  */
-export function useListStoryOverlayHeight({
+export function computeListStoryOverlayHeight({
   stageHeight,
   layout,
   fromPane,
   toPane,
   mode,
   activeSegmentIndex,
-}: IUseListStoryOverlayHeightParams): number {
-  return useMemo(() => {
-    const floor = Math.max(stageHeight, 0);
-    if (mode === 'hidden') {
+}: IComputeListStoryOverlayHeightParams): number {
+  const floor = Math.max(stageHeight, 0);
+  if (mode === 'hidden') {
+    return floor;
+  }
+  if (mode === 'at-rest') {
+    if (toPane.kind === 'map') {
       return floor;
     }
-    if (mode === 'at-rest') {
-      const segment =
-        getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;
-      if (toPane.kind === 'map') {
-        return floor;
-      }
-      return Math.max(floor, segment);
-    }
-    const sum =
-      estimatePaneContribution(fromPane, layout, floor) +
-      estimatePaneContribution(toPane, layout, floor);
-    if (sum <= 0) {
-      return floor;
-    }
-    return Math.max(floor, sum);
-  }, [stageHeight, layout, fromPane, toPane, mode, activeSegmentIndex]);
+    const segment = getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;
+    return Math.max(floor, segment);
+  }
+  const sum =
+    estimatePaneHeight(fromPane, layout, floor) +
+    estimatePaneHeight(toPane, layout, floor);
+  if (sum <= 0) {
+    return floor;
+  }
+  return Math.max(floor, sum);
 }

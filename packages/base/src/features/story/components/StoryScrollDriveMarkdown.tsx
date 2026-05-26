@@ -109,5 +109,5 @@ export function StoryScrollDriveMarkdown({
     );
   }
 
-  return <div ref={hostRef} className="jgis-story-scroll-drive-markdown-host" />;
+  return <div ref={hostRef} />;
 }

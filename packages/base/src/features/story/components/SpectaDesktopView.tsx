@@ -68,14 +68,14 @@ export function SpectaDesktopView({
       ? 'single'
       : 'list';
 
-  // ! TODO, list mode only needs scroll container ref, move out of hook?
+  const sentinelsEnabled = viewMode === 'single';
   const {
     scrollContainerRef,
     topSentinelRef,
     bottomSentinelRef,
     getAtTop,
     getAtBottom,
-  } = useStoryScrollState({ currentIndex });
+  } = useStoryScrollState({ currentIndex, sentinelsEnabled });
 
   const segmentViewItems = useStorySegmentViewItems({
     model,
