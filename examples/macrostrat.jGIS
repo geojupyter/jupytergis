@@ -1,0 +1,75 @@
+{
+  "layerTree": [
+    "a1b2c3d4-0001-0000-0000-000000000001",
+    "a1b2c3d4-0002-0000-0000-000000000002"
+  ],
+  "layers": {
+    "a1b2c3d4-0001-0000-0000-000000000001": {
+      "name": "OpenStreetMap",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "s1b2c3d4-0001-0000-0000-000000000001"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "a1b2c3d4-0002-0000-0000-000000000002": {
+      "name": "Macrostrat Geology",
+      "parameters": {
+        "opacity": 0.7,
+        "source": "s1b2c3d4-0002-0000-0000-000000000002"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -12523442.714243278,
+      3503549.843504374,
+      -10018754.171394622,
+      5009377.085697312
+    ],
+    "latitude": 38.5,
+    "longitude": -112.5,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 6.0
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "s1b2c3d4-0001-0000-0000-000000000001": {
+      "name": "OpenStreetMap",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": true,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "s1b2c3d4-0002-0000-0000-000000000002": {
+      "name": "Macrostrat Geology Source",
+      "parameters": {
+        "attribution": "Macrostrat geological map",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": true,
+        "maxZoom": 16.0,
+        "minZoom": 0.0,
+        "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
