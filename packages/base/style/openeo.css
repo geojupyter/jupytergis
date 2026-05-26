@@ -700,6 +700,14 @@
   font-size: var(--jp-ui-font-size0);
 }
 
+.jp-openeo-toolbar-btn.jp-openeo-icon-btn {
+  padding: 3px 8px;
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1;
+  min-width: 26px;
+  text-align: center;
+}
+
 .jp-openeo-toolbar-toggle.jp-mod-selected {
   background: var(--jp-brand-color1);
   color: var(--jp-ui-inverse-font-color1);

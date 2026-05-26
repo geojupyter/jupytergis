@@ -904,50 +904,56 @@ const Form: React.FC<IFormProps> = ({
           <button
             type="button"
             className={
-              'jp-openeo-toolbar-toggle' + (editMode ? ' jp-mod-selected' : '')
+              'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
+              (editMode ? ' jp-mod-selected' : '')
             }
             onClick={() => setEditMode(v => !v)}
-            title="Toggle edit mode for the graph or JSON"
+            title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
+            aria-label="Toggle edit mode"
           >
-            ✎ Edit
+            ✎
           </button>
           {editMode && viewMode === 'graph' && (
             <>
               <button
                 type="button"
-                className="jp-openeo-toolbar-btn"
+                className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
                 onClick={callModelBuilder('undo')}
                 title="Undo last graph edit (Ctrl/⌘+Z)"
+                aria-label="Undo"
               >
-                ↶ Undo
+                ↶
               </button>
               <button
                 type="button"
-                className="jp-openeo-toolbar-btn"
+                className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
                 onClick={callModelBuilder('redo')}
                 title="Redo (Ctrl/⌘+Shift+Z)"
+                aria-label="Redo"
               >
-                ↷ Redo
+                ↷
               </button>
             </>
           )}
           {state.editedGraph && (
             <button
               type="button"
-              className="jp-openeo-toolbar-btn"
+              className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
               onClick={resetToTemplate}
-              title="Discard edits and rebuild from the selected template"
+              title="Reset: discard edits and rebuild from the selected template"
+              aria-label="Reset to template"
             >
-              ↺ Reset
+              ↺
             </button>
           )}
           <button
             type="button"
-            className="jp-openeo-toolbar-btn"
+            className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
             onClick={onImportClick}
-            title="Replace the graph with a JSON file from disk"
+            title="Import: replace the graph with a JSON file from disk"
+            aria-label="Import graph"
           >
-            ⤓ Import
+            ⤓
           </button>
           <input
             ref={fileInputRef}
@@ -958,11 +964,12 @@ const Form: React.FC<IFormProps> = ({
           />
           <button
             type="button"
-            className="jp-openeo-toolbar-btn"
+            className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
             onClick={onExport}
-            title="Download the current process graph as JSON"
+            title="Export: download the current process graph as JSON"
+            aria-label="Export graph"
           >
-            ⤒ Export
+            ⤒
           </button>
           <div className="jp-openeo-toolbar-spacer" />
           <span
