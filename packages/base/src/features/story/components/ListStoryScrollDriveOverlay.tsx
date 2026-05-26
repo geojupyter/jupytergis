@@ -322,7 +322,12 @@ export function ListStoryScrollDriveOverlay({
         {
           ...spectaPresentationStyle,
           '--jgis-scroll-drive-progress': displayProgress,
-          ...(overlaySized ? { height: overlayHeight } : {}),
+          ...(overlaySized
+            ? {
+                height: overlayHeight,
+                '--jgis-overlay-height': `${overlayHeight}px`,
+              }
+            : {}),
         } as React.CSSProperties
       }
     >

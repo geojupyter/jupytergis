@@ -304,19 +304,23 @@
 .jgis-story-scroll-drive-pane[data-pane='from']:not(
     .jgis-story-scroll-drive-pane--inactive
   ) {
-  transform: translateY(calc(var(--jgis-scroll-drive-progress, 0) * -100%));
+  transform: translateY(
+    calc(var(--jgis-scroll-drive-progress, 0) * -1 * var(--jgis-overlay-height, 100%))
+  );
 }
 
 .jgis-story-scroll-drive-pane[data-pane='to']:not(
     .jgis-story-scroll-drive-pane--inactive
   ) {
   transform: translateY(
-    calc((1 - var(--jgis-scroll-drive-progress, 0)) * 100%)
+    calc(
+      (1 - var(--jgis-scroll-drive-progress, 0)) * var(--jgis-overlay-height, 100%)
+    )
   );
 }
 
 .jgis-story-scroll-drive-pane--inactive {
-  transform: translateY(100%);
+  transform: translateY(var(--jgis-overlay-height, 100%));
   pointer-events: none;
   visibility: hidden;
 }
