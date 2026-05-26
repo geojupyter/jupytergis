@@ -597,6 +597,148 @@
   margin-bottom: 8px;
 }
 
+.jp-openeo-server-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-openeo-server-picker {
+  display: flex;
+  gap: 4px;
+}
+
+.jp-openeo-server-picker input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-server-connect {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  background: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  border: 1px solid var(--jp-brand-color1);
+  border-radius: 4px;
+  padding: 4px 14px;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-server-connect:hover:not(:disabled) {
+  background: var(--jp-brand-color0);
+}
+
+.jp-openeo-server-connect:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.jp-openeo-server-connected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--jp-layout-color2);
+  border-radius: 4px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-server-connected code {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-server-ok {
+  color: var(--jp-success-color1, #2a9d2a);
+  font-weight: bold;
+}
+
+.jp-openeo-link-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--jp-brand-color1);
+  font-size: var(--jp-ui-font-size0);
+  text-decoration: underline;
+}
+
+.jp-openeo-link-btn:hover:not(:disabled) {
+  color: var(--jp-brand-color0);
+}
+
+.jp-openeo-link-btn:disabled {
+  color: var(--jp-ui-font-color3);
+  text-decoration: none;
+  cursor: default;
+}
+
+.jp-openeo-server-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.jp-openeo-server-chip {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 999px;
+  padding: 2px 10px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+  font-family: var(--jp-code-font-family);
+}
+
+.jp-openeo-server-chip:hover {
+  background: var(--jp-layout-color2);
+  border-color: var(--jp-border-color1);
+}
+
+.jp-openeo-server-alert {
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+}
+
+.jp-openeo-server-alert.jp-mod-error {
+  background: var(--jp-error-color3);
+  border-left: 3px solid var(--jp-error-color1);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-signin-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-openeo-signin-header code {
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  color: var(--jp-ui-font-color1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-openeo-signin-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .jp-openeo-field span {
   font-size: var(--jp-ui-font-size0);
   color: var(--jp-ui-font-color2);

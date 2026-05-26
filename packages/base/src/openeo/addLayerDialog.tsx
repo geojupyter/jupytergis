@@ -20,7 +20,11 @@ import {
   validateProcessGraph,
   validateProcessGraphLocally,
 } from './validation';
-import { IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
+import {
+  connect as openEOConnect,
+  IOpenEOConnectionInfo,
+  listOpenEOConnections,
+} from '../mainview/OpenEOTileLayer';
 
 export interface IOpenEODialogResult {
   layerName: string;
@@ -40,11 +44,15 @@ interface IBodyState {
 interface IFormProps {
   initial: IBodyState;
   /**
-   * An already-established connection to the OpenEO server. The caller
-   * connects (and signs in) before opening the dialog.
+   * Initial OpenEO connection (may be unset if the user hasn't picked a
+   * server yet). The form lets the user switch servers via a combobox;
+   * the active connection is held in component state.
    */
-  connectionInfo: IOpenEOConnectionInfo;
+  initialConnection: IOpenEOConnectionInfo | null;
+  /** Servers the user already authenticated against — populates the combobox. */
+  knownServers: string[];
   onChange: (next: IBodyState) => void;
+  onActiveServerChange: (info: IOpenEOConnectionInfo | null) => void;
   onValidationChange: (valid: boolean) => void;
 }
 
@@ -331,11 +339,68 @@ const PaletteRow: React.FC<{
 
 const Form: React.FC<IFormProps> = ({
   initial,
-  connectionInfo,
+  initialConnection,
+  knownServers,
   onChange,
+  onActiveServerChange,
   onValidationChange,
 }) => {
   const [state, setState] = React.useState<IBodyState>(initial);
+  // Active connection only counts if the URL is actually live in the
+  // shared CONNECTIONS cache — a suggested URL from `_lastOpenEOConnection`
+  // or an existing layer doesn't imply we're signed in to it.
+  const [connectionInfo, setConnectionInfoState] =
+    React.useState<IOpenEOConnectionInfo | null>(() => {
+      if (!initialConnection?.url) {
+        return null;
+      }
+      return listOpenEOConnections().includes(initialConnection.url)
+        ? initialConnection
+        : null;
+    });
+  // Combined known set: prop list + any server the user connects to
+  // mid-dialog. State so the datalist refreshes when a brand new server
+  // is added.
+  const [servers, setServers] = React.useState<string[]>(() =>
+    Array.from(
+      new Set(
+        [
+          ...knownServers,
+          ...(initialConnection?.url ? [initialConnection.url] : []),
+        ].filter(Boolean),
+      ),
+    ),
+  );
+  // Pending text in the server input field — distinct from active
+  // `connectionInfo.url` so the user can type freely without breaking
+  // catalog/validation until they hit Connect.
+  const [serverInput, setServerInput] = React.useState<string>(
+    initialConnection?.url ?? '',
+  );
+  const [serverBusy, setServerBusy] = React.useState(false);
+  const [serverError, setServerError] = React.useState<string | null>(null);
+  const [serverUsername, setServerUsername] = React.useState('');
+  const [serverPassword, setServerPassword] = React.useState('');
+  // Server section has three explicit modes: pick/enter a URL, enter
+  // credentials, or already connected. Credentials inputs are only
+  // visible in 'signin' so they don't clutter the dialog when not
+  // needed.
+  type ServerMode = 'select' | 'signin' | 'connected';
+  const [serverMode, setServerMode] = React.useState<ServerMode>(() =>
+    connectionInfo?.url ? 'connected' : 'select',
+  );
+  const usernameRef = React.useRef<HTMLInputElement | null>(null);
+  React.useEffect(() => {
+    if (serverMode === 'signin') {
+      // Defer to next tick so the input is mounted before we focus.
+      window.setTimeout(() => usernameRef.current?.focus(), 0);
+    }
+  }, [serverMode]);
+
+  const setConnectionInfo = (next: IOpenEOConnectionInfo | null) => {
+    setConnectionInfoState(next);
+    onActiveServerChange(next);
+  };
 
   const update = (patch: Partial<IBodyState>) => {
     const next = { ...state, ...patch };
@@ -368,6 +433,73 @@ const Form: React.FC<IFormProps> = ({
         editedGraph: null,
       }),
     );
+  };
+
+  // Step 1: user picks/enters a URL and clicks Connect. If the URL is
+  // already in the live cache, adopt it; otherwise reveal the
+  // credentials inputs.
+  const onPickServer = () => {
+    const raw = serverInput.trim();
+    if (!raw) {
+      setServerError('Enter an OpenEO server URL.');
+      return;
+    }
+    setServerError(null);
+    if (listOpenEOConnections().includes(raw)) {
+      setConnectionInfo({ url: raw });
+      setServers(prev => (prev.includes(raw) ? prev : [...prev, raw]));
+      setServerMode('connected');
+      return;
+    }
+    // Reuse cached creds if user retries the same URL.
+    setServerMode('signin');
+  };
+
+  // Step 2: user submits credentials. Calls connect() with the inline
+  // signIn payload so it doesn't try to open a nested sign-in dialog
+  // (JupyterLab queues those behind the currently-open dialog).
+  const onLogin = async () => {
+    const raw = serverInput.trim();
+    if (!raw) {
+      setServerError('Enter an OpenEO server URL.');
+      return;
+    }
+    if (!serverUsername || !serverPassword) {
+      setServerError('Enter username and password.');
+      return;
+    }
+    setServerBusy(true);
+    setServerError(null);
+    const next: IOpenEOConnectionInfo = {
+      url: raw,
+      signIn: {
+        serverUrl: raw,
+        username: serverUsername,
+        password: serverPassword,
+      },
+    };
+    try {
+      await openEOConnect(next);
+    } catch (err: any) {
+      setServerError(err?.message ?? String(err));
+      setServerBusy(false);
+      return;
+    }
+    // connect() may normalize the url (e.g. add https://) — reflect
+    // that back so downstream references match.
+    const resolved = next.url ?? raw;
+    setServerInput(resolved);
+    setServers(prev => (prev.includes(resolved) ? prev : [...prev, resolved]));
+    setConnectionInfo(next);
+    setServerPassword('');
+    setServerBusy(false);
+    setServerMode('connected');
+  };
+
+  const onChangeServer = () => {
+    setServerError(null);
+    setServerBusy(false);
+    setServerMode('select');
   };
 
   const updateBbox = (key: keyof IBodyState['params']['bbox'], v: string) => {
@@ -556,8 +688,16 @@ const Form: React.FC<IFormProps> = ({
       lastResultVersionRef.current = myVersion;
     });
 
-    // Backend pass — debounced.
+    // Backend pass — debounced. Skipped if no server is connected yet.
     const handle = window.setTimeout(async () => {
+      if (!connectionInfo) {
+        if (versionRef.current === myVersion) {
+          setValidation({ state: 'valid' });
+          lastResultVersionRef.current = myVersion;
+          setIsChecking(false);
+        }
+        return;
+      }
       let backendErrors: IValidationError[] = [];
       let networkErrorMessage: string | null = null;
       try {
@@ -603,7 +743,12 @@ const Form: React.FC<IFormProps> = ({
   React.useEffect(() => {
     let cancelled = false;
     setCatalog(null);
+    if (!connectionInfo) {
+      setCatalogLoading(false);
+      return;
+    }
     setCatalogLoading(true);
+    const url = connectionInfo.url;
     fetchBackendCatalog(connectionInfo)
       .then(c => {
         if (!cancelled) {
@@ -617,7 +762,7 @@ const Form: React.FC<IFormProps> = ({
         }
         setCatalogLoading(false);
         Notification.warning(
-          `OpenEO: couldn't load the process/collection catalog from ${connectionInfo.url}. The graph editor will still work, but ports won't be type-labeled.`,
+          `OpenEO: couldn't load the process/collection catalog from ${url}. The graph editor will still work, but ports won't be type-labeled.`,
           { autoClose: 4000 },
         );
         // eslint-disable-next-line no-console
@@ -752,15 +897,148 @@ const Form: React.FC<IFormProps> = ({
               onChange={e => update({ layerName: e.target.value })}
             />
           </label>
-          <label className="jp-openeo-field">
-            <span>Server</span>
-            <input
-              type="text"
-              value={connectionInfo.url ?? ''}
-              readOnly
-              title="Connected OpenEO server"
-            />
-          </label>
+          <div className="jp-openeo-server-section">
+            {serverMode === 'connected' && (
+              <div className="jp-openeo-server-connected">
+                <span className="jp-openeo-server-ok">✓</span>
+                <code>{connectionInfo?.url}</code>
+                <button
+                  type="button"
+                  className="jp-openeo-link-btn"
+                  onClick={onChangeServer}
+                >
+                  Change server
+                </button>
+              </div>
+            )}
+
+            {serverMode === 'select' && (
+              <>
+                <label className="jp-openeo-field">
+                  <span>Server URL</span>
+                  <div className="jp-openeo-server-picker">
+                    <input
+                      type="text"
+                      list="jp-openeo-known-servers"
+                      placeholder="https://openeo.example.org"
+                      value={serverInput}
+                      onChange={e => {
+                        setServerInput(e.target.value);
+                        if (serverError) {
+                          setServerError(null);
+                        }
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          onPickServer();
+                        }
+                      }}
+                    />
+                    <datalist id="jp-openeo-known-servers">
+                      {servers.map(s => (
+                        <option key={s} value={s} />
+                      ))}
+                    </datalist>
+                    <button
+                      type="button"
+                      className="jp-openeo-server-connect"
+                      onClick={onPickServer}
+                      disabled={!serverInput.trim()}
+                    >
+                      Connect
+                    </button>
+                  </div>
+                </label>
+                {servers.length > 0 && (
+                  <div className="jp-openeo-server-suggest">
+                    {servers.map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        className="jp-openeo-server-chip"
+                        onClick={() => setServerInput(s)}
+                        title={`Use ${s}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {serverError && (
+                  <div className="jp-openeo-server-alert jp-mod-error">
+                    {serverError}
+                  </div>
+                )}
+              </>
+            )}
+
+            {serverMode === 'signin' && (
+              <>
+                <div className="jp-openeo-signin-header">
+                  Sign in to <code>{serverInput.trim()}</code>
+                  <button
+                    type="button"
+                    className="jp-openeo-link-btn"
+                    onClick={onChangeServer}
+                    disabled={serverBusy}
+                  >
+                    Change server
+                  </button>
+                </div>
+                {serverError && (
+                  <div className="jp-openeo-server-alert jp-mod-error">
+                    {serverError}
+                  </div>
+                )}
+                <label className="jp-openeo-field">
+                  <span>Username</span>
+                  <input
+                    ref={usernameRef}
+                    type="text"
+                    autoComplete="username"
+                    value={serverUsername}
+                    onChange={e => setServerUsername(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void onLogin();
+                      }
+                    }}
+                    disabled={serverBusy}
+                  />
+                </label>
+                <label className="jp-openeo-field">
+                  <span>Password</span>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={serverPassword}
+                    onChange={e => setServerPassword(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void onLogin();
+                      }
+                    }}
+                    disabled={serverBusy}
+                  />
+                </label>
+                <div className="jp-openeo-signin-actions">
+                  <button
+                    type="button"
+                    className="jp-openeo-server-connect"
+                    onClick={onLogin}
+                    disabled={
+                      serverBusy || !serverUsername || !serverPassword
+                    }
+                  >
+                    {serverBusy ? 'Signing in…' : 'Log in'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </section>
 
         <section className="jp-openeo-section">
@@ -1067,11 +1345,13 @@ const Form: React.FC<IFormProps> = ({
 class AddLayerBody extends ReactWidget {
   constructor(
     initial: IBodyState,
-    private _connectionInfo: IOpenEOConnectionInfo,
+    initialConnection: IOpenEOConnectionInfo | null,
+    private _knownServers: string[],
     private _onValidationChange: (valid: boolean) => void,
   ) {
     super();
     this._state = initial;
+    this._activeConnection = initialConnection;
     this.addClass('jp-openeo-add-layer-body');
   }
 
@@ -1079,9 +1359,13 @@ class AddLayerBody extends ReactWidget {
     return (
       <Form
         initial={this._state}
-        connectionInfo={this._connectionInfo}
+        initialConnection={this._activeConnection}
+        knownServers={this._knownServers}
         onChange={next => {
           this._state = next;
+        }}
+        onActiveServerChange={info => {
+          this._activeConnection = info;
         }}
         onValidationChange={this._onValidationChange}
       />
@@ -1092,27 +1376,33 @@ class AddLayerBody extends ReactWidget {
     const template = OPENEO_TEMPLATES.find(
       t => t.id === this._state.templateId,
     );
-    if (!template || !this._connectionInfo.url) {
+    if (!template || !this._activeConnection?.url) {
       return null;
     }
     return {
       layerName: this._state.layerName || template.name,
-      serverUrl: this._connectionInfo.url,
+      serverUrl: this._activeConnection.url,
       processGraph:
         this._state.editedGraph ?? template.buildGraph(this._state.params),
     };
   }
 
   private _state: IBodyState;
+  private _activeConnection: IOpenEOConnectionInfo | null;
 }
 
 export interface IOpenEODialogOptions {
   /**
-   * An already-established connection to the OpenEO server. The caller is
-   * expected to `connect()` first (showing the sign-in dialog) so the
-   * layer dialog can load collections and validate graphs immediately.
+   * Optional pre-established OpenEO connection. When omitted, the user
+   * picks/connects a server inside the dialog. When provided, the
+   * combobox is pre-selected to it.
    */
-  connectionInfo: IOpenEOConnectionInfo;
+  connectionInfo?: IOpenEOConnectionInfo | null;
+  /**
+   * Server URLs to pre-populate the combobox with (e.g. servers already
+   * authenticated this session, or used by existing layers in the doc).
+   */
+  knownServers?: string[];
   /** Pre-fill graph as a user edit (skips template fields' effect). */
   initialGraph?: Record<string, any>;
   /** Pre-fill layer name. */
@@ -1150,10 +1440,15 @@ export async function showAddOpenEOLayerDialog(
       ? ''
       : 'Process graph has validation errors. Fix them before adding the layer.';
   };
-  const body = new AddLayerBody(initial, options.connectionInfo, valid => {
-    lastValid = valid;
-    applyOk();
-  });
+  const body = new AddLayerBody(
+    initial,
+    options.connectionInfo ?? null,
+    options.knownServers ?? [],
+    valid => {
+      lastValid = valid;
+      applyOk();
+    },
+  );
 
   const resultPromise = showDialog<IOpenEODialogResult | null>({
     title: options.title ?? 'Add OpenEO Layer',

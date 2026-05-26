@@ -73,6 +73,16 @@ export async function promptOpenEOLogin(serverUrl: string): Promise<void> {
  * never persisted to the .jGIS file, so reloading the page requires the
  * user to sign in again before existing OpenEO layers can render.
  */
+/**
+ * Snapshot of the OpenEO servers we currently hold live connections for.
+ * Used to populate the server picker in the Add OpenEO Layer dialog so
+ * the user can switch between previously-authenticated servers without
+ * signing in again.
+ */
+export function listOpenEOConnections(): string[] {
+  return Object.keys(CONNECTIONS);
+}
+
 export function getOpenEOConnection(serverUrl: string): Connection {
   // Match `connect()`'s normalization so cache lookups are consistent.
   let url = serverUrl;
@@ -187,7 +197,11 @@ export async function connect(
 ): Promise<Connection> {
   let { url } = connectionInfo;
   const { authBearer } = connectionInfo;
-  let signIn: ISigninValues | null = null;
+  // Pre-supplied credentials short-circuit the sign-in dialog — useful
+  // when the caller is itself inside another JupyterLab Dialog, since
+  // nested showDialog calls queue and never actually display until the
+  // outer one closes.
+  let signIn: ISigninValues | null = connectionInfo.signIn ?? null;
 
   if (!url) {
     signIn = await showSigninDialog(url);
@@ -300,6 +314,14 @@ export interface IOpenEOConnectionInfo {
    * The session bearer.
    */
   authBearer?: string;
+
+  /**
+   * Optional pre-supplied credentials. When set, connect() uses these
+   * directly instead of opening the sign-in dialog — useful when the
+   * caller is itself a dialog (JupyterLab queues nested dialogs, so the
+   * sign-in popup would otherwise never appear).
+   */
+  signIn?: ISigninValues;
 }
 
 export interface IOpenEOTileLayerOptions {

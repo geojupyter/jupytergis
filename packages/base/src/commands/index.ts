@@ -34,6 +34,7 @@ import keybindings from '../keybindings.json';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
+  listOpenEOConnections,
 } from '../mainview/OpenEOTileLayer';
 import { showAddOpenEOLayerDialog } from '../openeo';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
@@ -58,7 +59,20 @@ let _lastOpenEOConnection: IOpenEOConnectionInfo | null = null;
 function findExistingOpenEOConnection(
   model: IJupyterGISModel,
 ): IOpenEOConnectionInfo | null {
+  const urls = listExistingOpenEOServers(model);
+  return urls.length > 0 ? { url: urls[0] } : null;
+}
+
+/**
+ * All distinct OpenEO server URLs referenced by layers already in the
+ * document. Used to populate the server picker in the Add OpenEO Layer
+ * dialog so the user can reuse a server they've previously authenticated
+ * against in this document without retyping.
+ */
+function listExistingOpenEOServers(model: IJupyterGISModel): string[] {
   const layers = model.sharedModel.layers ?? {};
+  const seen = new Set<string>();
+  const out: string[] = [];
   for (const layer of Object.values(layers)) {
     if (layer?.type !== 'OpenEOTileLayer') {
       continue;
@@ -66,11 +80,12 @@ function findExistingOpenEOConnection(
     const sourceId = (layer.parameters as any)?.source as string | undefined;
     const source = sourceId ? model.getSource(sourceId) : undefined;
     const params = (source?.parameters ?? {}) as { serverUrl?: string };
-    if (params.serverUrl) {
-      return { url: params.serverUrl };
+    if (params.serverUrl && !seen.has(params.serverUrl)) {
+      seen.add(params.serverUrl);
+      out.push(params.serverUrl);
     }
   }
-  return null;
+  return out;
 }
 
 interface ICreateEntry {
@@ -643,29 +658,28 @@ export function addCommands(
       if (!current) {
         return;
       }
-      // Connect (and sign in) before opening the dialog so collections,
-      // validation and the graph editor can talk to the server. Reuse the
-      // last successful session so the user only signs in once: passing a
-      // known url + bearer lets `connect` reuse the cached connection (or
-      // re-authenticate silently with the token) instead of prompting.
-      //
-      // After a hard reload the in-memory session is gone, so fall back to
-      // a token already persisted on an existing OpenEO layer in this
-      // document. This only reads credentials the document already holds —
-      // it is not written anywhere new.
-      const seed =
+      // Seed the dialog with whatever servers we already know about:
+      // the last session, live connections in memory, plus URLs from
+      // existing OpenEO layers in the document. The user picks/connects
+      // inside the dialog itself, so we don't pre-authenticate here.
+      const initial =
         _lastOpenEOConnection ?? findExistingOpenEOConnection(current.model);
-      const connectionInfo: IOpenEOConnectionInfo = { ...(seed ?? {}) };
-      try {
-        await openEOConnect(connectionInfo);
-      } catch {
-        // `connect` already surfaced the error / the user cancelled. Drop
-        // the remembered session so the next attempt prompts afresh.
-        _lastOpenEOConnection = null;
-        return;
+      const knownServers = Array.from(
+        new Set(
+          [
+            ...listOpenEOConnections(),
+            ...listExistingOpenEOServers(current.model),
+            ...(_lastOpenEOConnection?.url ? [_lastOpenEOConnection.url] : []),
+          ].filter(Boolean),
+        ),
+      );
+      const result = await showAddOpenEOLayerDialog({
+        connectionInfo: initial,
+        knownServers,
+      });
+      if (result?.serverUrl) {
+        _lastOpenEOConnection = { url: result.serverUrl };
       }
-      _lastOpenEOConnection = { url: connectionInfo.url };
-      const result = await showAddOpenEOLayerDialog({ connectionInfo });
       if (!result) {
         return;
       }
@@ -742,10 +756,19 @@ export function addCommands(
       } catch {
         return;
       }
+      const knownServers = Array.from(
+        new Set(
+          [
+            ...listOpenEOConnections(),
+            ...listExistingOpenEOServers(current.model),
+          ].filter(Boolean),
+        ),
+      );
       const result = await showAddOpenEOLayerDialog({
         title: 'Edit OpenEO Layer',
         okLabel: 'Save',
         connectionInfo,
+        knownServers,
         initialGraph: sourceParams.processGraph,
         layerName: layer.name,
       });
