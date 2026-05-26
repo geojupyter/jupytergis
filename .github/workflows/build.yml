@@ -159,7 +159,21 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
+            pip
             qgis
+
+      - name: Setup pip cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python test dependencies  # Needed for notebook tests!
+        shell: bash -l {0}
+        run: pip install --group test
 
       - name: Download extension package
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
