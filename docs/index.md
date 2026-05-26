@@ -1,47 +1,37 @@
 # JupyterGIS
 
-JupyterGIS is a **collaborative** Geographical Information System (GIS) environment in
-JupyterLab.
+JupyterGIS is a **collaborative** Geographical Information System (GIS) environment in JupyterLab.
+It is the flagship project of the open [GeoJupyter community](https://geojupyter.org), which aims to enable organizations, researchers, students, anyone interested to explore, use and work with geospatial data.
+We'd love to hear from you at a [community meeting](https://geojupyter.org/calendar.html)!
 
-```{raw} html
-<center>
+<a href="lite/lab/index.html" class="jgis-try-button">Try with JupyterLite</a>
+
+```{note}
+Backend-free JupyterGIS via JupyterLite runs entirely in the browser and does not support real-time collaboration.
 ```
 
-```{jupyterlite}
-:new_tab: True
-:new_tab_button_text: Try it with JupyterLite!
-```
+## Highlights
 
-_Please note that JupyterLite is local-only and thus does not support collaboration._
-
-```{raw} html
-</center>
-<br />
-```
-
-JupyterGIS is the flagship project of the user-centric and open
-[GeoJupyter community](https://geojupyter.org), which aims to enable more people to
-confidently engage with geospatial data.
-We'd love to hear from you at a
-[community meeting](https://geojupyter.org/calendar.html)!
-
-## ✨ Highlights ✨
-
-🤝 Work simultaneously with your colleagues on the same GIS project (like Google Docs)
-
-🔄 Basic support for importing/exporting [QGIS](https://www.qgis.org) project files
-
-🐍 Python API and integration with collaborative Jupyter Notebook workflows
-
-For more details, check out the [project overview](overview/index.md)!
+- **Real-time collaboration** — like Google Docs or Miro for GIS, with spatial annotations and comments
+- **QGIS interoperability** — import and export QGIS project files
+- **Python API** — scriptable workflows in collaborative notebooks
+- **Many data formats** — GeoJSON, GeoTIFF/COG, GeoParquet, GeoPackage, Shapefile, PMTiles, WMS/WMTS, and more
+- **Grammar-driven symbology** — ultra-flexible rule-based styling, similar to Vega-Lite
+- **Storymaps** — guided narratives through your maps
+- **Hillshade & heatmaps** — terrain and density visualization
+- **GDAL processing** — rasterize, warp, and translate directly in the browser or on the server
+- **STAC & OpenEO** — cloud-native data catalog and processing support
+- **Identify tool** — click features to inspect their properties
+- **Layer gallery** — pre-built layer catalog for quick setup
+- **AI skills** — integration with Jupyter & JupyterLite-AI. Map operations in natural language
 
 ```{image} ../jupytergis.png
 :alt: JupyterGIS application
 ```
 
-## Overview
+For more details, check out the [project overview](overview/index.md).
 
-High-level information about the project.
+## Overview
 
 ```{toctree}
 :titlesonly:
@@ -52,8 +42,6 @@ overview/index
 
 ## User guide
 
-Information about using JupyterGIS.
-
 ```{toctree}
 :maxdepth: 2
 
@@ -61,8 +49,6 @@ user_guide/index
 ```
 
 ## Contributor guide
-
-Information about contributing to the JupyterGIS project.
 
 ```{toctree}
 :maxdepth: 2

@@ -1,390 +1,77 @@
 /* ============================================================
    JupyterGIS Documentation — Custom Theme
-   Cartographic precision meets modern developer tooling.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
-
-/* ── Design tokens ──────────────────────────────────────────── */
 :root {
-  --jgis-teal-900: #0d3d3d;
+  /* Brand palette */
   --jgis-teal-800: #1a6b6b;
   --jgis-teal-700: #1f7d7d;
   --jgis-teal-600: #238f8f;
   --jgis-teal-400: #4ab8b8;
   --jgis-teal-200: #a8dcdc;
-  --jgis-teal-50:  #e8f5f5;
+  --jgis-teal-50:  #eef6f6;
 
-  --jgis-sand:     #c8a96e;
-  --jgis-sand-light: #f5efe4;
-  --jgis-slate:    #2c3e4a;
-  --jgis-slate-mid: #4a5e6a;
-  --jgis-ink:      #1a2630;
-
-  --jgis-grid-color: rgba(26, 107, 107, 0.08);
-  --jgis-grid-size: 32px;
-
-  /* Override pydata_sphinx_theme accent */
-  --pst-color-primary:          var(--jgis-teal-800);
+  /* pydata_sphinx_theme overrides */
+  --pst-color-primary: var(--jgis-teal-800);
+  --pst-color-primary-bg: var(--jgis-teal-50);
   --pst-color-primary-highlight: var(--jgis-teal-700);
-  --pst-color-link:             var(--jgis-teal-800);
-  --pst-color-link-hover:       var(--jgis-teal-700);
-  --pst-color-inline-code:      var(--jgis-teal-900);
-
-  --jgis-font-display: 'Syne', sans-serif;
-  --jgis-font-body:    'DM Sans', sans-serif;
-  --jgis-font-mono:    'DM Mono', monospace;
+  --pst-color-secondary: var(--jgis-teal-600);
+  --pst-color-accent: var(--jgis-teal-400);
+  --pst-color-link: var(--jgis-teal-800);
+  --pst-color-link-hover: var(--jgis-teal-700);
+  --pst-color-target: var(--jgis-teal-50);
+  --pst-color-inline-code: var(--jgis-teal-800);
+  --pst-color-info: var(--jgis-teal-600);
+  --pst-color-info-bg: var(--jgis-teal-50);
 }
 
-/* ── Base typography ────────────────────────────────────────── */
-body {
-  font-family: var(--jgis-font-body);
-  color: var(--jgis-ink);
+/* ── "Try it with JupyterLite" navbar button ────────────────── */
+.bd-header .navbar-nav .nav-link[href*="lite/lab"] {
+  background-color: #c0392b;
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 0.45rem 1.2rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-left: 0.75rem;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 0 8px rgba(192, 57, 43, 0.4);
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--jgis-font-display);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.bd-header .navbar-nav .nav-link[href*="lite/lab"]:hover {
+  background-color: #e74c3c;
+  box-shadow: 0 0 16px rgba(231, 76, 60, 0.5);
+  color: #fff !important;
 }
 
-h1 { font-weight: 800; }
-
-a {
-  color: var(--jgis-teal-800);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-a:hover {
-  color: var(--jgis-teal-600);
-}
-
-/* ── Navbar ─────────────────────────────────────────────────── */
-.navbar-brand img,
-.navbar-brand svg {
-  filter: brightness(1);
-}
-
-.bd-header {
-  border-bottom: 2px solid var(--jgis-teal-50);
-  background: #fff !important;
-}
-
-.navbar-nav .nav-link {
-  font-family: var(--jgis-font-display);
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--jgis-slate) !important;
-  transition: color 0.15s ease;
-}
-
-.navbar-nav .nav-link:hover {
-  color: var(--jgis-teal-800) !important;
-}
-
-/* ── Sidebar ────────────────────────────────────────────────── */
-.bd-sidebar-primary {
-  border-right: 1px solid var(--jgis-teal-50);
-}
-
-.bd-sidebar-primary .nav-link.active,
-.bd-sidebar-primary .nav-link:hover {
-  color: var(--jgis-teal-800) !important;
-  background: var(--jgis-teal-50);
-  border-radius: 4px;
-}
-
-.bd-sidebar-primary .nav-link {
-  font-size: 0.875rem;
-  color: var(--jgis-slate-mid);
-  font-family: var(--jgis-font-body);
-}
-
-/* ── Hero section ───────────────────────────────────────────── */
-.jgis-hero {
-  position: relative;
-  padding: 5rem 2rem 4rem;
-  margin: -1rem -1rem 3rem;
-  background-color: var(--jgis-teal-900);
-  overflow: hidden;
-  text-align: center;
-
-  /* Coordinate-grid background */
-  background-image:
-    linear-gradient(var(--jgis-grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--jgis-grid-color) 1px, transparent 1px),
-    linear-gradient(rgba(26,107,107,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(26,107,107,0.04) 1px, transparent 1px);
-  background-size:
-    var(--jgis-grid-size) var(--jgis-grid-size),
-    var(--jgis-grid-size) var(--jgis-grid-size),
-    calc(var(--jgis-grid-size) * 4) calc(var(--jgis-grid-size) * 4),
-    calc(var(--jgis-grid-size) * 4) calc(var(--jgis-grid-size) * 4);
-  background-color: #0d3d3d;
-}
-
-/* Radial vignette over the grid */
-.jgis-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 80% 60% at 50% 50%,
-    rgba(13, 61, 61, 0.0) 0%,
-    rgba(13, 61, 61, 0.7) 100%
-  );
-  pointer-events: none;
-}
-
-/* Subtle contour lines */
-.jgis-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 60px,
-    rgba(74, 184, 184, 0.03) 60px,
-    rgba(74, 184, 184, 0.03) 61px
-  );
-  pointer-events: none;
-}
-
-.jgis-hero > * {
-  position: relative;
-  z-index: 1;
-}
-
-.jgis-hero h1 {
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.03em;
-  margin-bottom: 1rem;
-  line-height: 1.05;
-}
-
-.jgis-hero h1 em {
-  font-style: normal;
-  color: var(--jgis-teal-400);
-}
-
-.jgis-hero p {
-  font-size: 1.15rem;
-  color: rgba(255,255,255,0.75);
-  max-width: 560px;
-  margin: 0 auto 2rem;
-  font-weight: 300;
-  line-height: 1.6;
-}
-
-/* ── CTA / Try it button ────────────────────────────────────── */
-.try_examples_button,
-.jgis-cta {
+/* ── Main page "Try it" button ──────────────────────────────── */
+.jgis-try-button {
   display: inline-block;
-  background: var(--jgis-sand);
-  color: var(--jgis-ink) !important;
-  border: none;
-  padding: 0.65rem 1.6rem;
+  background-color: #c0392b;
+  color: #fff !important;
   border-radius: 6px;
-  font-family: var(--jgis-font-display);
-  font-size: 0.9rem;
+  padding: 0.6rem 1.5rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2px 12px rgba(200,169,110, 0.35);
+  font-size: 1.05rem;
+  text-decoration: none;
+  margin: 1rem 0;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 0 10px rgba(192, 57, 43, 0.4);
+}
+
+.jgis-try-button:hover {
+  background-color: #e74c3c;
+  box-shadow: 0 0 18px rgba(231, 76, 60, 0.5);
+  color: #fff !important;
   text-decoration: none;
 }
 
-.try_examples_button:hover,
-.jgis-cta:hover {
-  background: #d4b87e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(200,169,110, 0.45);
-  color: var(--jgis-ink) !important;
-}
-
-/* ── Feature cards ──────────────────────────────────────────── */
-.jgis-features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.25rem;
-  margin: 2.5rem 0;
-}
-
-.jgis-feature-card {
-  background: #fff;
-  border: 1px solid #e8efef;
-  border-radius: 8px;
-  padding: 1.5rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.jgis-feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--jgis-teal-800), var(--jgis-teal-400));
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.jgis-feature-card:hover {
-  border-color: var(--jgis-teal-200);
-  box-shadow: 0 4px 20px rgba(26,107,107, 0.10);
-  transform: translateY(-2px);
-}
-
-.jgis-feature-card:hover::before {
-  opacity: 1;
-}
-
-.jgis-feature-card .jgis-feature-icon {
-  font-size: 1.75rem;
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-.jgis-feature-card h3 {
-  font-family: var(--jgis-font-display);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--jgis-slate);
-  margin-bottom: 0.4rem;
-  letter-spacing: -0.01em;
-}
-
-.jgis-feature-card p {
-  font-size: 0.875rem;
-  color: var(--jgis-slate-mid);
-  line-height: 1.55;
-  margin: 0;
-}
-
-/* ── Screenshot / showcase image ───────────────────────────── */
-.jgis-screenshot {
-  border-radius: 10px;
-  border: 1px solid #dde6e6;
-  box-shadow:
-    0 2px 8px rgba(26,107,107, 0.08),
-    0 12px 40px rgba(26,107,107, 0.12);
-  width: 100%;
-  margin: 2rem 0;
-  display: block;
-}
-
-/* The existing root-level jupytergis.png */
+/* ── Screenshot styling ─────────────────────────────────────── */
 .bd-content img[src*="jupytergis.png"] {
-  border-radius: 10px;
-  border: 1px solid #dde6e6;
-  box-shadow:
-    0 2px 8px rgba(26,107,107, 0.08),
-    0 12px 40px rgba(26,107,107, 0.12);
-  width: 100%;
-  margin: 2rem 0;
-}
-
-/* ── Code blocks ────────────────────────────────────────────── */
-code,
-kbd {
-  font-family: var(--jgis-font-mono);
-  font-size: 0.875em;
-  background: var(--jgis-teal-50);
-  color: var(--jgis-teal-900);
-  padding: 0.15em 0.4em;
-  border-radius: 3px;
-  border: 1px solid var(--jgis-teal-200);
-}
-
-.highlight {
   border-radius: 8px;
-  border: 1px solid #dde6e6;
-  overflow: hidden;
-}
-
-.highlight pre {
-  font-family: var(--jgis-font-mono);
-  font-size: 0.875rem;
-  line-height: 1.65;
-  padding: 1.25rem 1.5rem;
-  margin: 0;
-  background: #f7fafa;
-}
-
-/* Language label on code blocks */
-.highlight::before {
-  content: attr(data-lang);
+  border: 1px solid #dde8e8;
+  box-shadow: 0 4px 24px rgba(26, 107, 107, 0.12);
+  width: 100%;
+  margin: 1.5rem 0;
   display: block;
-  font-family: var(--jgis-font-display);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--jgis-teal-800);
-  background: var(--jgis-teal-50);
-  padding: 0.35rem 1rem;
-  border-bottom: 1px solid #dde6e6;
-}
-
-/* ── Admonitions ────────────────────────────────────────────── */
-.admonition {
-  border-radius: 6px;
-  border-left: 3px solid var(--jgis-teal-800);
-  background: var(--jgis-teal-50);
-}
-
-.admonition.note {
-  border-color: var(--jgis-teal-800);
-}
-
-.admonition.warning {
-  border-color: var(--jgis-sand);
-  background: var(--jgis-sand-light);
-}
-
-.admonition-title {
-  font-family: var(--jgis-font-display);
-  font-weight: 600;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--jgis-teal-900);
-}
-
-/* ── Content area ───────────────────────────────────────────── */
-.bd-content .section > h1:first-child {
-  font-size: 2.2rem;
-  border-bottom: 2px solid var(--jgis-teal-50);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-/* ── Footer ─────────────────────────────────────────────────── */
-.bd-footer {
-  border-top: 1px solid var(--jgis-teal-50);
-  font-size: 0.8rem;
-  color: var(--jgis-slate-mid);
-  font-family: var(--jgis-font-body);
-}
-
-/* ── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .jgis-hero {
-    padding: 3rem 1.25rem 2.5rem;
-  }
-
-  .jgis-features {
-    grid-template-columns: 1fr;
-  }
 }
