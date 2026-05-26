@@ -2,7 +2,7 @@
   "type": "object",
   "description": "OpenEOTileSource",
   "title": "IOpenEOTileSource",
-  "required": ["processGraph"],
+  "required": ["processGraph", "serverUrl"],
   "additionalProperties": false,
   "properties": {
     "processGraph": {

@@ -93,7 +93,7 @@ export function getOpenEOConnection(serverUrl: string): Connection {
   const connection = CONNECTIONS[url];
   if (!connection) {
     throw new Error(
-      `Not connected to OpenEO server "${serverUrl}". Sign in via the OpenEO layer dialog or the "Reconnect to OpenEO server" command.`,
+      `Not connected to OpenEO server "${serverUrl}". Sign in via the "Add OpenEO Layer" dialog or use "Edit OpenEO Layer…" to reconnect.`,
     );
   }
   return connection;
@@ -366,9 +366,13 @@ export class OpenEOTileSource extends XYZSource {
 
         const [z, x, y] = tile.tileCoord;
 
-        url = url.replace('%7Bz%7D', z);
-        url = url.replace('%7By%7D', y);
-        url = url.replace('%7Bx%7D', x);
+        // openEO backends vary in how they format XYZ service URLs:
+        // some return raw `{z}/{x}/{y}` placeholders, others return them
+        // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
+        // code works against either kind of backend.
+        url = url.replace('%7Bz%7D', z).replace('{z}', z);
+        url = url.replace('%7By%7D', y).replace('{y}', y);
+        url = url.replace('%7Bx%7D', x).replace('{x}', x);
 
         let res: Response;
         try {
