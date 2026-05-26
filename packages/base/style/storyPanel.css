@@ -220,6 +220,10 @@
   pointer-events: none;
 }
 
+.jgis-story-markdown-overlay--sized {
+  bottom: auto;
+}
+
 .jgis-story-markdown-overlay-content {
   max-width: 60rem;
   margin: 0 auto;
@@ -277,7 +281,7 @@
     .jgis-story-markdown-scroll-pane--measure
   )
   .jgis-story-markdown-overlay-content {
-  height: 100%;
+  /* height: 100%; */
   box-sizing: border-box;
   overflow: auto;
 }

@@ -3897,68 +3897,69 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   drive={this.state.listScrollDrive}
                 />
                 <div className="jgis-panels-wrapper">
-                {!this.state.isSpectaPresentation ? (
-                  <>
-                    {this.props.isMobile &&
-                    this._state &&
-                    this._formSchemaRegistry &&
-                    this._annotationModel ? (
-                      <MergedPanel
+                  {!this.state.isSpectaPresentation ? (
+                    <>
+                      {this.props.isMobile &&
+                      this._state &&
+                      this._formSchemaRegistry &&
+                      this._annotationModel ? (
+                        <MergedPanel
+                          model={this._model}
+                          commands={this._mainViewModel.commands}
+                          state={this._state}
+                          settings={this.state.jgisSettings}
+                          formSchemaRegistry={this._formSchemaRegistry}
+                          annotationModel={this._annotationModel}
+                          addLayer={this.addLayer.bind(this)}
+                          removeLayer={this.removeLayer.bind(this)}
+                        />
+                      ) : (
+                        <>
+                          {this._state && (
+                            <LeftPanel
+                              model={this._model}
+                              commands={this._mainViewModel.commands}
+                              state={this._state}
+                              settings={this.state.jgisSettings}
+                            />
+                          )}
+                          {this._formSchemaRegistry &&
+                            this._annotationModel && (
+                              <RightPanel
+                                model={this._model}
+                                commands={this._mainViewModel.commands}
+                                formSchemaRegistry={this._formSchemaRegistry}
+                                annotationModel={this._annotationModel}
+                                addLayer={this.addLayer.bind(this)}
+                                removeLayer={this.removeLayer.bind(this)}
+                                settings={this.state.jgisSettings}
+                                patchGeoJSONFeatureProperties={
+                                  this._patchGeoJSONFeatureProperties
+                                }
+                              />
+                            )}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    this.state.initialLayersReady && (
+                      <SpectaPanel
                         model={this._model}
-                        commands={this._mainViewModel.commands}
-                        state={this._state}
-                        settings={this.state.jgisSettings}
-                        formSchemaRegistry={this._formSchemaRegistry}
-                        annotationModel={this._annotationModel}
-                        addLayer={this.addLayer.bind(this)}
-                        removeLayer={this.removeLayer.bind(this)}
+                        isSpecta={this.state.isSpectaPresentation}
+                        isMobile={this.props.isMobile}
+                        onSegmentTransitionEnd={() =>
+                          this._clearStoryScrollGuard()
+                        }
+                        containerRef={this.spectaContainerRef}
+                        storyViewerPanelRef={this.storyViewerPanelRef}
+                        addLayer={this._addLayerForPanels}
+                        removeLayer={this._removeLayerForPanels}
+                        onListScrollDriveChange={
+                          this._handleListScrollDriveChange
+                        }
                       />
-                    ) : (
-                      <>
-                        {this._state && (
-                          <LeftPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            state={this._state}
-                            settings={this.state.jgisSettings}
-                          />
-                        )}
-                        {this._formSchemaRegistry && this._annotationModel && (
-                          <RightPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            formSchemaRegistry={this._formSchemaRegistry}
-                            annotationModel={this._annotationModel}
-                            addLayer={this.addLayer.bind(this)}
-                            removeLayer={this.removeLayer.bind(this)}
-                            settings={this.state.jgisSettings}
-                            patchGeoJSONFeatureProperties={
-                              this._patchGeoJSONFeatureProperties
-                            }
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  this.state.initialLayersReady && (
-                    <SpectaPanel
-                      model={this._model}
-                      isSpecta={this.state.isSpectaPresentation}
-                      isMobile={this.props.isMobile}
-                      onSegmentTransitionEnd={() =>
-                        this._clearStoryScrollGuard()
-                      }
-                      containerRef={this.spectaContainerRef}
-                      storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this._addLayerForPanels}
-                      removeLayer={this._removeLayerForPanels}
-                      onListScrollDriveChange={
-                        this._handleListScrollDriveChange
-                      }
-                    />
-                  )
-                )}
+                    )
+                  )}
                 </div>
                 <div
                   ref={this.controlsToolbarRef}

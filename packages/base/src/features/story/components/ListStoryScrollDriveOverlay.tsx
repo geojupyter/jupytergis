@@ -1,9 +1,13 @@
 import { IJGISStoryMap, IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
-import React, { useMemo, useRef } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
+import {
+  type IListStoryOverlayPaneSpec,
+  useListStoryOverlayHeight,
+} from '@/src/features/story/hooks/useListStoryOverlayHeight';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/segmentDisplayMode';
@@ -81,6 +85,19 @@ function getScrollDrivePaneConfigs(
 
 function isPaneInactive(config: IScrollDrivePaneConfig): boolean {
   return config.kind.type === 'inactive';
+}
+
+function paneConfigToSpec(
+  config: IScrollDrivePaneConfig,
+  segmentIndex: number,
+): IListStoryOverlayPaneSpec {
+  if (config.kind.type === 'inactive') {
+    return { kind: 'inactive', segmentIndex };
+  }
+  if (config.kind.type === 'map') {
+    return { kind: 'map', segmentIndex: config.kind.segmentIndex };
+  }
+  return { kind: 'markdown', segmentIndex };
 }
 
 interface IScrollDrivePaneProps {
@@ -171,8 +188,10 @@ export function ListStoryScrollDriveOverlay({
   model,
   drive,
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const [stageHeight, setStageHeight] = useState(0);
   const lastDriveRef = useRef<IListStoryScrollDrivePayload | null>(null);
-  const { activeIndex } = useListStoryLayoutContext();
+  const { activeIndex, layout } = useListStoryLayoutContext();
 
   if (drive) {
     lastDriveRef.current = drive;
@@ -207,16 +226,18 @@ export function ListStoryScrollDriveOverlay({
     );
   }, [model, renderDrive]);
 
-  if (!model || !story) {
-    return null;
-  }
-
   const activeItem = items.find(item => item.index === activeIndex);
   const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
   const showIdleMarkdown =
-    !isDriveActive && activeMode === 'markdown' && activeItem !== undefined;
+    Boolean(model && story) &&
+    !isDriveActive &&
+    activeMode === 'markdown' &&
+    activeItem !== undefined;
   const mapAtRest =
-    !isDriveActive && activeMode === 'map' && activeItem !== undefined;
+    Boolean(model && story) &&
+    !isDriveActive &&
+    activeMode === 'map' &&
+    activeItem !== undefined;
   const overlayVisible = isDriveActive || showIdleMarkdown || mapAtRest;
 
   const driveProgress = renderDrive?.progress ?? 0;
@@ -224,25 +245,84 @@ export function ListStoryScrollDriveOverlay({
   const fromIndex = renderDrive?.fromIndex ?? activeIndex;
   const toIndex = renderDrive?.toIndex ?? activeIndex;
 
-  const toPaneConfig: IScrollDrivePaneConfig = mapAtRest
-    ? { kind: { type: 'map', segmentIndex: activeIndex } }
-    : paneConfigs.to;
+  const toPaneConfig = useMemo((): IScrollDrivePaneConfig => {
+    if (mapAtRest) {
+      return { kind: { type: 'map', segmentIndex: activeIndex } };
+    }
+    return paneConfigs.to;
+  }, [mapAtRest, activeIndex, paneConfigs.to]);
   const fromPaneConfig = paneConfigs.from;
 
-  const idleMarkdown = showIdleMarkdown
-    ? getStoryMarkdownForIndex(model, activeIndex)
-    : '';
+  const fromPaneSpec = useMemo(
+    () => paneConfigToSpec(fromPaneConfig, fromIndex),
+    [fromPaneConfig, fromIndex],
+  );
+  const toPaneSpec = useMemo(
+    () => paneConfigToSpec(toPaneConfig, toIndex),
+    [toPaneConfig, toIndex],
+  );
+
+  const idleMarkdown =
+    showIdleMarkdown && model
+      ? getStoryMarkdownForIndex(model, activeIndex)
+      : '';
+
+  useLayoutEffect(() => {
+    const parent = overlayRef.current?.parentElement;
+    if (!parent) {
+      setStageHeight(0);
+      return;
+    }
+    const update = (): void => {
+      const next = parent.clientHeight;
+      setStageHeight(prev => (prev === next ? prev : next));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(parent);
+    return () => {
+      ro.disconnect();
+    };
+  }, [model, story, overlayVisible]);
+
+  const overlayHeightMode = !overlayVisible
+    ? 'hidden'
+    : showIdleMarkdown
+      ? 'idle-markdown'
+      : mapAtRest
+        ? 'map-at-rest'
+        : isDriveActive
+          ? 'scroll-drive'
+          : 'hidden';
+
+  const overlayHeight = useListStoryOverlayHeight({
+    stageHeight,
+    layout,
+    fromPane: fromPaneSpec,
+    toPane: toPaneSpec,
+    mode: overlayHeightMode,
+    activeSegmentIndex: activeIndex,
+  });
+
+  const overlaySized =
+    overlayVisible && stageHeight > 0 && overlayHeightMode !== 'hidden';
+
+  if (!model || !story) {
+    return null;
+  }
 
   return (
     <div
+      ref={overlayRef}
       className={`jgis-story-markdown-overlay${
         overlayVisible ? '' : ' jgis-story-markdown-overlay--idle'
-      }`}
+      }${overlaySized ? ' jgis-story-markdown-overlay--sized' : ''}`}
       aria-hidden={!overlayVisible}
       style={
         {
           ...spectaPresentationStyle,
           '--jgis-scroll-drive-progress': displayProgress,
+          ...(overlaySized ? { height: overlayHeight } : {}),
         } as React.CSSProperties
       }
     >
