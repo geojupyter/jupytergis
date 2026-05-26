@@ -9,6 +9,13 @@ html_theme_options = {
     "header_links_before_dropdown": 6,
     "pygments_light_style": "tango",
     "pygments_dark_style": "monokai",
+    "navbar_end": [
+        "theme-switcher",
+        "navbar-icon-links",
+    ],
+    "external_links": [
+        {"name": "Try with JupyterLite", "url": "lite/lab/index.html"},
+    ],
 }
 
 html_static_path = ["assets"]
