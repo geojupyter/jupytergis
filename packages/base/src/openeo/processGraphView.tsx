@@ -185,9 +185,9 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
         return;
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
-        const root = (el ).shadowRoot?.querySelector(
+        const root = el.shadowRoot?.querySelector(
           '.vue-component.model-builder',
-        ) ;
+        );
         const vueInst = root?.__vue__;
         if (!vueInst) {
           return;

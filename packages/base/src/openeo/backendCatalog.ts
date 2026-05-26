@@ -58,9 +58,9 @@ export async function fetchBackendCatalog(
     // class — the raw map lives at getOutputTypes() / .data.output, not
     // at .output directly.
     const outputRaw: Record<string, any> =
-      (typeof (formats )?.getOutputTypes === 'function'
-        ? (formats ).getOutputTypes()
-        : (formats )?.data?.output) ?? {};
+      (typeof formats?.getOutputTypes === 'function'
+        ? formats.getOutputTypes()
+        : formats?.data?.output) ?? {};
     const outputFormats: IFileFormat[] = Object.keys(outputRaw).map(id => ({
       id,
       ...(outputRaw[id] ?? {}),

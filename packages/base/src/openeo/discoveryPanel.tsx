@@ -159,9 +159,9 @@ export const OpenEODiscoveryPanel: React.FC<IDiscoveryPanelProps> = ({
       const collectionList = ((cols as any).collections ?? []) as ICollection[];
       const processList = ((procs as any).processes ?? []) as IProcess[];
       const outputRaw: Record<string, any> =
-        (typeof (formats )?.getOutputTypes === 'function'
-          ? (formats ).getOutputTypes()
-          : (formats )?.data?.output) ?? {};
+        (typeof formats?.getOutputTypes === 'function'
+          ? formats.getOutputTypes()
+          : formats?.data?.output) ?? {};
       const outputFormats = Object.keys(outputRaw).map(id => ({
         id,
         ...(outputRaw[id] ?? {}),
