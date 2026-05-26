@@ -185,7 +185,13 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+          for whl in jupytergis*.whl; do
+            if [[ "$whl" == jupytergis_lab*.whl ]]; then
+              python -m pip install "${whl}[tiler]"
+            else
+              python -m pip install "$whl"
+            fi
+          done
 
       - name: Install
         shell: bash -l {0}
