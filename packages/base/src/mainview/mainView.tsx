@@ -2870,8 +2870,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       accumulatedDeltaY = 0;
 
       const storyType = this._model.getSelectedStory().story?.storyType;
-      // List story: wheel only scrolls the panel, segment index + drive follow
-      // dont want handle next/prev logic in list mode
+      // Don't want to handle next/prev logic in list mode
       if (storyType === 'list') {
         scrollContainer.scrollBy({ top: deltaY });
         return;
@@ -3876,10 +3875,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   this._model.getSelectedStory().story?.storyType === 'list'
                 }
               >
-                <ListStoryScrollDriveOverlay
-                  model={this._model}
-                  drive={this.state.listScrollDrive}
-                />
+                {this.state.isSpectaPresentation &&
+                this._model.getSelectedStory().story?.storyType === 'list' ? (
+                  <ListStoryScrollDriveOverlay
+                    model={this._model}
+                    drive={this.state.listScrollDrive}
+                  />
+                ) : null}
                 <div className="jgis-panels-wrapper">
                   {!this.state.isSpectaPresentation ? (
                     <>

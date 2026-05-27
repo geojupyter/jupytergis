@@ -93,17 +93,6 @@ export function useStoryMap({
     entries.length = 0;
   }, [model, overrideLayerEntriesRef, removeLayer]);
 
-  const zoomToCurrentLayer = useCallback(() => {
-    if (!currentStorySegmentId) {
-      return;
-    }
-
-    if (currentSegmentContentMode === 'markdown') {
-      return;
-    }
-    model.centerOnPosition(currentStorySegmentId);
-  }, [model, currentStorySegmentId, currentSegmentContentMode]);
-
   const setIndex = useCallback(
     (index: number) => {
       model.setCurrentSegmentIndex(index);
@@ -274,10 +263,14 @@ export function useStoryMap({
   }, []);
 
   useEffect(() => {
-    if (currentStorySegmentId) {
-      zoomToCurrentLayer();
+    if (!currentStorySegmentId) {
+      return;
     }
-  }, [currentStorySegmentId, zoomToCurrentLayer]);
+    if (currentSegmentContentMode === 'markdown') {
+      return;
+    }
+    model.centerOnPosition(currentStorySegmentId);
+  }, [model, currentStorySegmentId, currentSegmentContentMode]);
 
   // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
   useEffect(() => {
@@ -321,6 +314,5 @@ export function useStoryMap({
     activeSlide,
     layerName,
     currentStorySegmentId,
-    zoomToCurrentLayer,
   };
 }
