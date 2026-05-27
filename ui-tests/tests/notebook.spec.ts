@@ -55,7 +55,7 @@ const testCellOutputs = async (
     for (const { cellIndex, screenshot } of results) {
       expect(screenshot).toMatchSnapshot({
         name: getCaptureImageName(contextPrefix, notebook, cellIndex),
-        maxDiffPixelRatio: 0.02,  // The URL of the tiler layers will be different every time
+        maxDiffPixelRatio: 0.02, // The URL of the tiler layers will be different every time
       });
     }
 
