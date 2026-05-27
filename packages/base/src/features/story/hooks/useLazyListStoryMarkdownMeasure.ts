@@ -1,14 +1,12 @@
-import type { IJupyterGISModel } from '@jupytergis/schema';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useListStoryMarkdownSegments } from '@/src/features/story/hooks/useListStoryMarkdownSegments';
 import type { IListStoryMarkdownSegment } from '@/src/features/story/utils/listStoryMarkdownSegments';
 
 const MEASURE_LOOKAHEAD = 2;
 
 export interface IUseLazyListStoryMarkdownMeasureParams {
   enabled: boolean;
-  model: IJupyterGISModel;
+  markdownSegments: IListStoryMarkdownSegment[];
   currentSegmentIndex: number;
   heightsById: Readonly<Record<string, number>>;
   onHeight: (segmentId: string, height: number) => void;
@@ -26,12 +24,11 @@ export interface ILazyListStoryMarkdownMeasureState {
  */
 export function useLazyListStoryMarkdownMeasure({
   enabled,
-  model,
+  markdownSegments,
   currentSegmentIndex,
   heightsById,
   onHeight,
 }: IUseLazyListStoryMarkdownMeasureParams): ILazyListStoryMarkdownMeasureState {
-  const markdownSegments = useListStoryMarkdownSegments(model);
   const [measuringSegment, setMeasuringSegment] =
     useState<IListStoryMarkdownSegment | null>(null);
   const queueRef = useRef<string[]>([]);

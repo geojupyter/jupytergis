@@ -13,6 +13,7 @@ import { ListStoryMarkdownMeasurePane } from '@/src/features/story/components/Li
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import { useLazyListStoryMarkdownMeasure } from '@/src/features/story/hooks/useLazyListStoryMarkdownMeasure';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
+import { getListStoryMarkdownSegmentsFromItems } from '@/src/features/story/utils/listStoryMarkdownSegments';
 import {
   buildListStoryLayout,
   type IListStoryLayout,
@@ -67,6 +68,11 @@ export function ListStoryLayoutProvider({
   }, [model, storyRevision]);
 
   const items = useStorySegmentViewItems({ model, storyData });
+
+  const markdownSegments = useMemo(
+    () => getListStoryMarkdownSegmentsFromItems(items),
+    [items],
+  );
 
   const bindScrollContainer = useCallback((element: HTMLDivElement | null) => {
     scrollerRef.current = element;
@@ -160,7 +166,7 @@ export function ListStoryLayoutProvider({
   const { measuringSegment, reportHeight, completeMeasure } =
     useLazyListStoryMarkdownMeasure({
       enabled: enabled && viewportHeight > 0,
-      model,
+      markdownSegments,
       currentSegmentIndex,
       heightsById,
       onHeight: handleMeasuredHeight,

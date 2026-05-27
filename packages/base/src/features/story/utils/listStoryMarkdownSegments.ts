@@ -1,10 +1,5 @@
-import type { IJupyterGISModel } from '@jupytergis/schema';
-
 import { getSegmentDisplayMode } from '@/src/features/story/utils/segmentDisplayMode';
-import {
-  buildStorySegmentViewItems,
-  type IStorySegmentViewItem,
-} from '@/src/features/story/utils/storySegmentViewItems';
+import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
 
 export interface IListStoryMarkdownSegment {
   id: string;
@@ -29,13 +24,4 @@ export function getListStoryMarkdownSegmentsFromItems(
       index: item.index,
       markdown: getStoryMarkdownFromSlide(item.activeSlide),
     }));
-}
-
-export function getListStoryMarkdownSegments(
-  model: IJupyterGISModel,
-): IListStoryMarkdownSegment[] {
-  const story = model.getSelectedStory().story ?? null;
-  return getListStoryMarkdownSegmentsFromItems(
-    buildStorySegmentViewItems(model, story),
-  );
 }
