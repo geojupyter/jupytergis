@@ -1,25 +1,248 @@
 {
   "layerTree": [
-    "a1b2c3d4-0001-0000-0000-000000000001",
-    "a1b2c3d4-0002-0000-0000-000000000002"
+    "7cb1b319-56c8-4680-9f1f-a4f04faf33b4",
+    "72827026-880a-4898-9da0-3724b0b5a5e2"
   ],
   "layers": {
-    "a1b2c3d4-0001-0000-0000-000000000001": {
-      "name": "OpenStreetMap",
+    "72827026-880a-4898-9da0-3724b0b5a5e2": {
+      "name": "NaturalEarth.Countries50m Layer",
       "parameters": {
         "opacity": 1.0,
-        "source": "s1b2c3d4-0001-0000-0000-000000000001"
+        "source": "466e0a02-8d82-4bfe-b781-ef19ef126257",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "ne-layer",
+              "rules": [
+                {
+                  "id": "ne-rule-1",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            255.0,
+                            171.0,
+                            171.0,
+                            1.0
+                          ]
+                        },
+                        "scheme": "constant_rgba"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "ne-rule-2",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-width"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 1.0
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       },
-      "type": "RasterLayer",
+      "type": "VectorLayer",
       "visible": true
     },
-    "a1b2c3d4-0002-0000-0000-000000000002": {
-      "name": "Macrostrat Geology",
+    "7cb1b319-56c8-4680-9f1f-a4f04faf33b4": {
+      "name": "MacroStrat.CartoVector Layer",
       "parameters": {
-        "opacity": 0.7,
-        "source": "s1b2c3d4-0002-0000-0000-000000000002"
+        "opacity": 1.0,
+        "source": "c3235f1a-0633-48c4-9246-18e31c3114fd",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "macrostrat-layer",
+              "rules": [
+                {
+                  "fields": [
+                    "best_age_top"
+                  ],
+                  "id": "macrostrat-rule-0",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "fill-color",
+                        "stroke-color",
+                        "circle-fill-color",
+                        "circle-stroke-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "colorStops": [
+                            {
+                              "color": [
+                                68.0,
+                                1.0,
+                                84.0,
+                                1.0
+                              ],
+                              "stop": 1.0
+                            },
+                            {
+                              "color": [
+                                59.0,
+                                81.0,
+                                139.0,
+                                1.0
+                              ],
+                              "stop": 5.143520796755042
+                            },
+                            {
+                              "color": [
+                                44.0,
+                                113.0,
+                                142.0,
+                                1.0
+                              ],
+                              "stop": 26.455806186651625
+                            },
+                            {
+                              "color": [
+                                39.0,
+                                173.0,
+                                129.0,
+                                1.0
+                              ],
+                              "stop": 136.0759893159632
+                            },
+                            {
+                              "color": [
+                                92.0,
+                                200.0,
+                                99.0,
+                                1.0
+                              ],
+                              "stop": 699.9096809856744
+                            },
+                            {
+                              "color": [
+                                253.0,
+                                231.0,
+                                37.0,
+                                1.0
+                              ],
+                              "stop": 3600.0
+                            }
+                          ],
+                          "domain": [
+                            1.0,
+                            3600.0
+                          ],
+                          "fallback": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "mode": "logarithmic",
+                          "nShades": 5.0,
+                          "name": "viridis",
+                          "reverse": true
+                        },
+                        "scheme": "colorRamp"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    "color"
+                  ],
+                  "id": "macrostrat-rule-1",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-width",
+                        "circle-stroke-width"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 1.25
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    "color"
+                  ],
+                  "id": "macrostrat-rule-2",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "circle-radius"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 5.0
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "when": [
+                {
+                  "type": "geometryType",
+                  "value": "Polygon"
+                }
+              ]
+            },
+            {
+              "id": "343d266c-e161-44f4-a0d9-57195dfdb6a9",
+              "rules": [
+                {
+                  "id": "6af3d6f9-d108-4eab-91d9-71f93225978f",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.72
+                          ]
+                        },
+                        "scheme": "constant_rgba"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "when": [
+                {
+                  "type": "geometryType",
+                  "value": "LineString"
+                }
+              ]
+            }
+          ]
+        }
       },
-      "type": "RasterLayer",
+      "type": "VectorTileLayer",
       "visible": true
     }
   },
@@ -27,47 +250,41 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -12523442.714243278,
-      3503549.843504374,
-      -10018754.171394622,
-      5009377.085697312
+      -4665497.859625621,
+      3715026.751663835,
+      8446408.618830001,
+      9221339.18356121
     ],
-    "latitude": 38.5,
-    "longitude": -112.5,
+    "latitude": 50.126331057005046,
+    "longitude": 16.98224961442619,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 6.0
+    "zoom": 4.185472839083335
   },
   "schemaVersion": "0.6.0",
   "sources": {
-    "s1b2c3d4-0001-0000-0000-000000000001": {
-      "name": "OpenStreetMap",
+    "466e0a02-8d82-4bfe-b781-ef19ef126257": {
+      "name": "NaturalEarth.Countries50m",
       "parameters": {
-        "attribution": "(C) OpenStreetMap contributors",
-        "bounds": [],
-        "htmlAttribution": "",
-        "interpolate": true,
-        "maxZoom": 19.0,
-        "minZoom": 0.0,
-        "provider": "OpenStreetMap",
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {}
+        "attribution": "Natural Earth",
+        "httpHeaders": "",
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
+        "useProxy": false
       },
-      "type": "RasterSource"
+      "type": "GeoJSONSource"
     },
-    "s1b2c3d4-0002-0000-0000-000000000002": {
-      "name": "Macrostrat Geology Source",
+    "c3235f1a-0633-48c4-9246-18e31c3114fd": {
+      "name": "MacroStrat.CartoVector",
       "parameters": {
-        "attribution": "Macrostrat geological map",
-        "bounds": [],
-        "htmlAttribution": "",
-        "interpolate": true,
-        "maxZoom": 16.0,
+        "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)",
+        "httpHeaders": "",
+        "maxZoom": 18.0,
         "minZoom": 0.0,
-        "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
-        "urlParameters": {}
+        "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
+        "urlParameters": {},
+        "useProxy": false
       },
-      "type": "RasterSource"
+      "type": "VectorTileSource"
     }
   },
   "stories": {},
