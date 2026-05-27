@@ -5,13 +5,7 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import {
-  RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 /** Entry for a layer affected by layer override
  * remove if we added a layer or restore if we modified an existing layer.
@@ -74,6 +68,7 @@ export function useStoryMap({
     () => storySegmentIds?.[currentIndex],
     [storySegmentIds, currentIndex],
   );
+  const currentSegmentContentMode = activeSlide?.content?.contentMode;
 
   const showGradient = storyData?.showGradient ?? true;
   const isGuidedStory = storyData?.storyType === 'guided';
@@ -103,16 +98,11 @@ export function useStoryMap({
       return;
     }
 
-    const segmentParams = currentStorySegment?.parameters as
-      | IStorySegmentLayer
-      | undefined;
-
-    if (segmentParams?.content?.contentMode === 'markdown') {
+    if (currentSegmentContentMode === 'markdown') {
       return;
     }
-
     model.centerOnPosition(currentStorySegmentId);
-  }, [model, currentStorySegmentId, currentStorySegment]);
+  }, [model, currentStorySegmentId, currentSegmentContentMode]);
 
   const setIndex = useCallback(
     (index: number) => {
