@@ -46,23 +46,19 @@ export function useStorySegmentSync({
         return;
       }
 
-      const selected = model.localState?.selected?.value as
-        | Record<string, unknown>
-        | null
-        | undefined;
+      const selected = model.localState?.selected?.value;
       const selectedLayerId = getSingleSelectedLayerId(selected);
       if (!selectedLayerId) {
         return;
       }
+
       const selectedLayer = model.getLayer(selectedLayerId);
       if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
         return;
       }
 
-      const index = getStorySegmentIndexFromLayerId(
-        storyData,
-        selectedLayerId,
-      );
+      const index = getStorySegmentIndexFromLayerId(storyData, selectedLayerId);
+
       if (index === null) {
         return;
       }

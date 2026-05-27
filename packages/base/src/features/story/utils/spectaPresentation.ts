@@ -1,7 +1,7 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import type { CSSProperties } from 'react';
 
-/** CSS variables (+ optional text color) for specta theming. Safe on gradient roots. */
+/** CSS variables (+ optional text color) for specta theming */
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
 ): CSSProperties {

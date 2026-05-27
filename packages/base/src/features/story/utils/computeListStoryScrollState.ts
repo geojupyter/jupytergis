@@ -1,5 +1,7 @@
-import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
-import type { IListStorySegmentRange } from '@/src/features/story/types/types';
+import type {
+  IListStoryScrollDrivePayload,
+  IListStorySegmentRange,
+} from '@/src/features/story/types/types';
 
 export interface IListStoryScrollState {
   activeIndex: number;
@@ -13,7 +15,6 @@ interface IComputeListStoryScrollInput {
 }
 
 interface IPairDriveResult {
-  inZone: boolean;
   progress: number;
   activeIndex: number;
 }
@@ -32,6 +33,7 @@ function progressHandoff(
   if (handoff <= 0) {
     return null;
   }
+
   return clamp01((scrollTop - fromSegment.start) / handoff);
 }
 
@@ -57,86 +59,36 @@ function computePairDrive(
   fromSegment: IListStorySegmentRange,
   toSegment: IListStorySegmentRange,
 ): IPairDriveResult | null {
-  const fromMode = fromSegment.contentMode;
-  const toMode = toSegment.contentMode;
-
-  if (fromMode === 'map' && toMode === 'markdown') {
-    if (scrollTop < fromSegment.start) {
-      return null;
-    }
-    if (scrollTop >= toSegment.start) {
-      return null;
-    }
-    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
-    if (progress === null) {
-      return null;
-    }
-    return {
-      inZone: true,
-      progress,
-      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
-    };
-  }
-
-  if (fromMode === 'markdown' && toMode === 'map') {
-    if (scrollTop < fromSegment.start) {
-      return null;
-    }
-    if (scrollTop >= toSegment.start) {
-      return null;
-    }
-    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
-    if (progress === null) {
-      return null;
-    }
-    return {
-      inZone: true,
-      progress,
-      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
-    };
-  }
-
-  if (fromMode === 'markdown' && toMode === 'markdown') {
+  if (
+    fromSegment.contentMode === 'markdown' &&
+    toSegment.contentMode === 'markdown'
+  ) {
     if (scrollTop < fromSegment.start) {
       return null;
     }
     if (scrollTop >= toSegment.end) {
       return {
-        inZone: true,
         progress: 1,
         activeIndex: toSegment.index,
       };
     }
-    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
-    if (progress === null) {
+  } else {
+    const inHandoffZone =
+      scrollTop >= fromSegment.start && scrollTop < toSegment.start;
+    if (!inHandoffZone) {
       return null;
     }
-    return {
-      inZone: true,
-      progress,
-      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
-    };
   }
 
-  if (fromMode === 'map' && toMode === 'map') {
-    if (scrollTop < fromSegment.start) {
-      return null;
-    }
-    if (scrollTop >= toSegment.start) {
-      return null;
-    }
-    const progress = progressHandoff(scrollTop, fromSegment, toSegment);
-    if (progress === null) {
-      return null;
-    }
-    return {
-      inZone: true,
-      progress,
-      activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
-    };
+  const progress = progressHandoff(scrollTop, fromSegment, toSegment);
+  if (progress === null) {
+    return null;
   }
 
-  return null;
+  return {
+    progress,
+    activeIndex: progress >= 0.5 ? toSegment.index : fromSegment.index,
+  };
 }
 
 function buildDrivePayload(
@@ -153,7 +105,6 @@ function buildDrivePayload(
   };
 }
 
-/** Pure list-scroll geometry from virtual track segment ranges. */
 export function computeListStoryScrollState({
   scrollTop,
   viewportHeight,
@@ -186,9 +137,10 @@ export function computeListStoryScrollState({
   }
 
   const scrollCenter = scrollTop + viewportHeight / 2;
-  const at = findSegmentAt(scrollCenter, segments);
+  const activeSegment = findSegmentAt(scrollCenter, segments);
+
   return {
-    activeIndex: at.index,
+    activeIndex: activeSegment.index,
     drive: null,
   };
 }

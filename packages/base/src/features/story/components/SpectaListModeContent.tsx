@@ -14,12 +14,10 @@ export function SpectaListModeContent({
   }
 
   return (
-    <div className="jgis-story-virtual-track-root">
-      <div
-        className="jgis-story-virtual-track"
-        style={{ height: layout.trackHeight }}
-        aria-hidden
-      />
-    </div>
+    <div
+      className="jgis-story-virtual-track"
+      style={{ height: layout.trackHeight }}
+      aria-hidden
+    />
   );
 }

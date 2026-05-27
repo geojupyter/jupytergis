@@ -30,10 +30,6 @@ function estimatePaneHeight(
   return getLayoutSegmentHeight(layout, pane.segmentIndex) ?? stageHeight;
 }
 
-/**
- * Overlay height from virtual-track layout (no live DOM measure).
- * Scroll-drive: sum of from + to; at rest: single visible segment (to pane).
- */
 export function computeListStoryOverlayHeight({
   stageHeight,
   layout,
@@ -50,11 +46,14 @@ export function computeListStoryOverlayHeight({
     const segment = getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;
     return Math.max(floor, segment);
   }
+
   const sum =
     estimatePaneHeight(fromPane, layout, floor) +
     estimatePaneHeight(toPane, layout, floor);
+
   if (sum <= 0) {
     return floor;
   }
+
   return Math.max(floor, sum);
 }

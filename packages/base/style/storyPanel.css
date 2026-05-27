@@ -230,11 +230,11 @@
   left: 0;
   right: 0;
   overflow: hidden;
-  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
 }
 
 .jgis-story-markdown-scroll-pane {
   top: 0;
+  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
 }
 
 .jgis-story-map-scroll-pane {
@@ -251,6 +251,7 @@
 
 .jgis-story-map-overlay-content {
   width: 25%;
+  max-width: 30rem;
   max-height: 100%;
   overflow: auto;
   padding: 0.75rem;
@@ -300,11 +301,8 @@
   );
 }
 
-.jgis-story-virtual-track-root {
-  box-sizing: border-box;
-}
-
 .jgis-story-virtual-track {
+  box-sizing: border-box;
   width: 100%;
   flex-shrink: 0;
   pointer-events: none;

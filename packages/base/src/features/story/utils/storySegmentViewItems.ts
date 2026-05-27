@@ -15,8 +15,7 @@ export function buildStorySegmentViewItems(
   storyData: IJGISStoryMap | null,
 ): IStorySegmentViewItem[] {
   const segments = storyData?.storySegments ?? [];
-
-  return segments.map((segmentId, index) => {
+  const items = segments.map((segmentId, index) => {
     const layer = model.getLayer(segmentId);
     return {
       id: segmentId,
@@ -27,6 +26,8 @@ export function buildStorySegmentViewItems(
         | undefined,
     };
   });
+
+  return items;
 }
 
 export function getStoryMarkdownFromSlide(

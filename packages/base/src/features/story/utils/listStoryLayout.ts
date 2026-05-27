@@ -3,9 +3,9 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 import type {
   IListStoryLayout,
   IListStorySegmentRange,
+  StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
-import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
 
 const MARKDOWN_LINE_HEIGHT_PX = 28;
 const MARKDOWN_CONTENT_PADDING_PX = 32;
@@ -25,10 +25,10 @@ export function estimateMarkdownHeight(
   viewportHeight: number,
 ): number {
   const lineCount = Math.max(1, markdown.split('\n').length);
-  const fromLines =
+  const estimatedFromLines =
     lineCount * MARKDOWN_LINE_HEIGHT_PX + MARKDOWN_CONTENT_PADDING_PX;
   const minHeight = viewportHeight * MIN_MARKDOWN_VIEWPORT_RATIO;
-  return Math.max(minHeight, fromLines);
+  return Math.max(minHeight, estimatedFromLines);
 }
 
 export function estimateMapSegmentHeight(viewportHeight: number): number {
@@ -61,19 +61,12 @@ function segmentHeightForItem(
     return { height: measured, measured: true };
   }
 
-  if (mode === 'markdown') {
-    const markdown = item.activeSlide?.content?.markdown ?? '';
-    return {
-      height: estimateMarkdownHeight(
-        typeof markdown === 'string' ? markdown : '',
-        viewportHeight,
-      ),
-      measured: false,
-    };
-  }
-
+  const markdown = item.activeSlide?.content?.markdown ?? '';
   return {
-    height: estimateMapSegmentHeight(mapViewportHeight),
+    height: estimateMarkdownHeight(
+      typeof markdown === 'string' ? markdown : '',
+      viewportHeight,
+    ),
     measured: false,
   };
 }
