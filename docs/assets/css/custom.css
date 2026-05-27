@@ -9,7 +9,7 @@
   --jgis-teal-600: #238f8f;
   --jgis-teal-400: #4ab8b8;
   --jgis-teal-200: #a8dcdc;
-  --jgis-teal-50:  #eef6f6;
+  --jgis-teal-50: #eef6f6;
 
   /* pydata_sphinx_theme overrides */
   --pst-color-primary: var(--jgis-teal-800);
@@ -26,7 +26,7 @@
 }
 
 /* ── "Try with JupyterLite" navbar button ───────────────────── */
-.bd-header .navbar-nav .nav-link[href*="lite/lab"] {
+.bd-header .navbar-nav .nav-link[href*='lite/lab'] {
   background-color: var(--jgis-teal-800);
   color: #fff !important;
   border-radius: 6px;
@@ -34,18 +34,20 @@
   font-weight: 600;
   font-size: 0.95rem;
   margin-left: 0.75rem;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 0 8px rgba(26, 107, 107, 0.35);
 }
 
-.bd-header .navbar-nav .nav-link[href*="lite/lab"]:hover {
+.bd-header .navbar-nav .nav-link[href*='lite/lab']:hover {
   background-color: var(--jgis-teal-700);
   box-shadow: 0 0 16px rgba(26, 107, 107, 0.5);
   color: #fff !important;
 }
 
 /* Mobile burger menu — highlight the "Try" link */
-.navbar-collapse .nav-link[href*="lite/lab"] {
+.navbar-collapse .nav-link[href*='lite/lab'] {
   background-color: var(--jgis-teal-800);
   color: #fff !important;
   border-radius: 6px;
@@ -66,7 +68,9 @@
   font-size: 1.05rem;
   text-decoration: none;
   margin: 1rem 0;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 0 10px rgba(26, 107, 107, 0.35);
 }
 
@@ -78,7 +82,7 @@
 }
 
 /* ── Screenshot styling ─────────────────────────────────────── */
-.bd-content img[src*="jupytergis.png"] {
+.bd-content img[src*='jupytergis.png'] {
   border-radius: 8px;
   border: 1px solid #dde8e8;
   box-shadow: 0 4px 24px rgba(26, 107, 107, 0.12);
