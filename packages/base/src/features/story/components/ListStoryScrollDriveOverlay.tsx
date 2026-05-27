@@ -8,6 +8,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
+import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import type {
   IListStoryScrollDrivePayload,
@@ -134,7 +135,8 @@ export function ListStoryScrollDriveOverlay({
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [stageHeight, setStageHeight] = useState(0);
-  const { activeIndex, layout } = useListStoryLayoutContext();
+  const { layout } = useListStoryLayoutContext();
+  const currentIndex = useCurrentSegmentIndex(model);
 
   const story = model?.getSelectedStory().story ?? null;
   const items = useStorySegmentViewItems({ model, storyData: story });
@@ -149,15 +151,15 @@ export function ListStoryScrollDriveOverlay({
   );
 
   const isDriveActive = drive !== null;
-  const activeItem = items.find(item => item.index === activeIndex);
+  const activeItem = items.find(item => item.index === currentIndex);
   const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
   const displayProgress = isDriveActive ? drive.progress : 1;
 
   const { fromIndex, toIndex, fromPaneConfig, toPaneConfig } = useMemo(() => {
     if (!model || !activeItem) {
       return {
-        fromIndex: activeIndex,
-        toIndex: activeIndex,
+        fromIndex: currentIndex,
+        toIndex: currentIndex,
         fromPaneConfig: EMPTY_MARKDOWN_PANE,
         toPaneConfig: EMPTY_MARKDOWN_PANE,
       };
@@ -172,14 +174,14 @@ export function ListStoryScrollDriveOverlay({
       };
     }
 
-    const restConfig = buildPaneConfig(model, activeIndex, activeMode);
+    const restConfig = buildPaneConfig(model, currentIndex, activeMode);
     return {
-      fromIndex: activeIndex,
-      toIndex: activeIndex,
+      fromIndex: currentIndex,
+      toIndex: currentIndex,
       fromPaneConfig: EMPTY_MARKDOWN_PANE,
       toPaneConfig: restConfig,
     };
-  }, [model, activeItem, activeIndex, activeMode, drive]);
+  }, [model, activeItem, currentIndex, activeMode, drive]);
 
   const overlayHeightMode = isDriveActive ? 'scroll-drive' : 'at-rest';
 
@@ -191,7 +193,7 @@ export function ListStoryScrollDriveOverlay({
         fromPane: paneConfigToSpec(fromPaneConfig, fromIndex),
         toPane: paneConfigToSpec(toPaneConfig, toIndex),
         mode: overlayHeightMode,
-        activeSegmentIndex: activeIndex,
+        activeSegmentIndex: currentIndex,
       }),
     [
       stageHeight,
@@ -201,7 +203,7 @@ export function ListStoryScrollDriveOverlay({
       toPaneConfig,
       toIndex,
       overlayHeightMode,
-      activeIndex,
+      currentIndex,
     ],
   );
 

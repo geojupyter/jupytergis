@@ -9,7 +9,7 @@ const MEASURE_LOOKAHEAD = 2;
 export interface IUseLazyListStoryMarkdownMeasureParams {
   enabled: boolean;
   model: IJupyterGISModel;
-  activeIndex: number;
+  currentSegmentIndex: number;
   heightsById: Readonly<Record<string, number>>;
   onHeight: (segmentId: string, height: number) => void;
 }
@@ -27,7 +27,7 @@ export interface ILazyListStoryMarkdownMeasureState {
 export function useLazyListStoryMarkdownMeasure({
   enabled,
   model,
-  activeIndex,
+  currentSegmentIndex,
   heightsById,
   onHeight,
 }: IUseLazyListStoryMarkdownMeasureParams): ILazyListStoryMarkdownMeasureState {
@@ -42,18 +42,19 @@ export function useLazyListStoryMarkdownMeasure({
     const pending = markdownSegments
       .filter(
         segment =>
-          Math.abs(segment.index - activeIndex) <= MEASURE_LOOKAHEAD &&
+          Math.abs(segment.index - currentSegmentIndex) <= MEASURE_LOOKAHEAD &&
           heightsRef.current[segment.id] === undefined,
       )
       .sort(
         (a, b) =>
-          Math.abs(a.index - activeIndex) - Math.abs(b.index - activeIndex),
+          Math.abs(a.index - currentSegmentIndex) -
+          Math.abs(b.index - currentSegmentIndex),
       )
       .map(segment => segment.id);
 
     const currentId = measuringSegment?.id;
     queueRef.current = pending.filter(id => id !== currentId);
-  }, [markdownSegments, activeIndex, measuringSegment?.id]);
+  }, [markdownSegments, currentSegmentIndex, measuringSegment?.id]);
 
   const reportHeight = useCallback(
     (segmentId: string, height: number) => {
@@ -86,7 +87,7 @@ export function useLazyListStoryMarkdownMeasure({
     }
   }, [
     enabled,
-    activeIndex,
+    currentSegmentIndex,
     markdownSegments,
     heightsById,
     measuringSegment,

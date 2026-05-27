@@ -3,13 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, {
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useLayoutEffect,
-  useMemo,
-} from 'react';
+import React, { RefObject, useImperativeHandle, useLayoutEffect, useMemo } from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
@@ -96,7 +90,7 @@ export function SpectaDesktopView({
     viewMode === 'list' &&
     storyData?.storyType === 'list';
 
-  const { layout: listStoryLayout, bindScrollContainer, setActiveIndex } =
+  const { layout: listStoryLayout, bindScrollContainer } =
     useListStoryLayoutContext();
 
   useLayoutEffect(() => {
@@ -109,12 +103,6 @@ export function SpectaDesktopView({
       bindScrollContainer(null);
     };
   }, [viewMode, bindScrollContainer, scrollContainerRef]);
-
-  useEffect(() => {
-    if (viewMode === 'list') {
-      setActiveIndex(currentIndex);
-    }
-  }, [viewMode, currentIndex, setActiveIndex]);
 
   useListStoryScroll({
     enabled: listScrollDriveEnabled,

@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 
 import { ListStoryMarkdownMeasurePane } from '@/src/features/story/components/ListStoryMarkdownMeasurePane';
+import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import { useLazyListStoryMarkdownMeasure } from '@/src/features/story/hooks/useLazyListStoryMarkdownMeasure';
 import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import {
@@ -19,17 +20,12 @@ import {
 
 export interface IListStoryLayoutContextValue {
   layout: IListStoryLayout | null;
-  /** Active story segment from list scroll (synced from Specta column). */
-  activeIndex: number;
   bindScrollContainer: (element: HTMLDivElement | null) => void;
-  setActiveIndex: (index: number) => void;
 }
 
 const ListStoryLayoutContext = createContext<IListStoryLayoutContextValue>({
   layout: null,
-  activeIndex: 0,
   bindScrollContainer: () => {},
-  setActiveIndex: () => {},
 });
 
 export interface IListStoryLayoutProviderProps {
@@ -48,7 +44,7 @@ export function ListStoryLayoutProvider({
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
   const [mapViewportHeight, setMapViewportHeight] = useState(0);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const currentSegmentIndex = useCurrentSegmentIndex(model);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const heightsRef = useRef(heightsById);
   heightsRef.current = heightsById;
@@ -165,7 +161,7 @@ export function ListStoryLayoutProvider({
     useLazyListStoryMarkdownMeasure({
       enabled: enabled && viewportHeight > 0,
       model,
-      activeIndex,
+      currentSegmentIndex,
       heightsById,
       onHeight: handleMeasuredHeight,
     });
@@ -185,11 +181,9 @@ export function ListStoryLayoutProvider({
   const value = useMemo(
     (): IListStoryLayoutContextValue => ({
       layout,
-      activeIndex,
       bindScrollContainer,
-      setActiveIndex,
     }),
-    [layout, activeIndex, bindScrollContainer],
+    [layout, bindScrollContainer],
   );
 
   return (
