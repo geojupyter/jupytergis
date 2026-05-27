@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
+import type { IListStoryLayout } from '@/src/features/story/types/types';
 
 interface ISpectaListModeContentProps {
   layout: IListStoryLayout | null;

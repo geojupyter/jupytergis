@@ -10,7 +10,7 @@ import { Widget } from '@lumino/widgets';
 
 const StoryRenderMimeContext = createContext<IRenderMimeRegistry | null>(null);
 
-export interface IStoryRenderMimeProviderProps {
+interface IStoryRenderMimeProviderProps {
   rendermime: IRenderMimeRegistry | null | undefined;
   children: React.ReactNode;
 }
@@ -32,7 +32,7 @@ function useStoryRenderMime(): IRenderMimeRegistry | null {
 
 const MARKDOWN_MIME = 'text/markdown';
 
-export interface IStoryScrollDriveMarkdownProps {
+interface IStoryScrollDriveMarkdownProps {
   source: string;
   /** Fires after rendermime (or plain fallback) has painted. */
   onRendered?: () => void;

@@ -3,7 +3,12 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { RefObject, useImperativeHandle, useLayoutEffect, useMemo } from 'react';
+import React, {
+  RefObject,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+} from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
@@ -12,11 +17,11 @@ import { useListStoryLayoutContext } from '@/src/features/story/context/ListStor
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
-import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
+import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
-export type StoryDesktopViewMode = 'single' | 'list';
+type StoryDesktopViewMode = 'single' | 'list';
 
 interface ISpectaDesktopViewProps {
   model: IJupyterGISModel;
@@ -132,9 +137,7 @@ export function SpectaDesktopView({
         bottomSentinelRef={bottomSentinelRef}
       />
     ),
-    list: () => (
-      <SpectaListModeContent layout={listStoryLayout} />
-    ),
+    list: () => <SpectaListModeContent layout={listStoryLayout} />,
   };
 
   useImperativeHandle(

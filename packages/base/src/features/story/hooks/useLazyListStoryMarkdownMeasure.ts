@@ -1,43 +1,43 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { IListStoryMarkdownSegment } from '@/src/features/story/utils/storySegmentViewItems';
+import type { IListStoryMarkdownSegment } from '@/src/features/story/types/types';
 
 const MEASURE_LOOKAHEAD = 2;
 
 interface IBuildPendingMeasureIdsParams {
-	markdownSegments: IListStoryMarkdownSegment[];
-	currentSegmentIndex: number;
-	heightsById: Readonly<Record<string, number>>;
-	measuringSegmentId: string | undefined;
+  markdownSegments: IListStoryMarkdownSegment[];
+  currentSegmentIndex: number;
+  heightsById: Readonly<Record<string, number>>;
+  measuringSegmentId: string | undefined;
 }
 
 function buildPendingMeasureIds({
-	markdownSegments,
-	currentSegmentIndex,
-	heightsById,
-	measuringSegmentId,
+  markdownSegments,
+  currentSegmentIndex,
+  heightsById,
+  measuringSegmentId,
 }: IBuildPendingMeasureIdsParams): string[] {
-	const pending = markdownSegments
-		.filter(
-			segment =>
-				Math.abs(segment.index - currentSegmentIndex) <= MEASURE_LOOKAHEAD &&
-				heightsById[segment.id] === undefined,
-		)
-		.sort(
-			(a, b) =>
-				Math.abs(a.index - currentSegmentIndex) -
-				Math.abs(b.index - currentSegmentIndex),
-		)
-		.map(segment => segment.id);
+  const pending = markdownSegments
+    .filter(
+      segment =>
+        Math.abs(segment.index - currentSegmentIndex) <= MEASURE_LOOKAHEAD &&
+        heightsById[segment.id] === undefined,
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(a.index - currentSegmentIndex) -
+        Math.abs(b.index - currentSegmentIndex),
+    )
+    .map(segment => segment.id);
 
-	if (!measuringSegmentId) {
-		return pending;
-	}
+  if (!measuringSegmentId) {
+    return pending;
+  }
 
-	return pending.filter(id => id !== measuringSegmentId);
+  return pending.filter(id => id !== measuringSegmentId);
 }
 
-export interface IUseLazyListStoryMarkdownMeasureParams {
+interface IUseLazyListStoryMarkdownMeasureParams {
   enabled: boolean;
   markdownSegments: IListStoryMarkdownSegment[];
   currentSegmentIndex: number;
@@ -45,7 +45,7 @@ export interface IUseLazyListStoryMarkdownMeasureParams {
   onHeight: (segmentId: string, height: number) => void;
 }
 
-export interface ILazyListStoryMarkdownMeasureState {
+interface ILazyListStoryMarkdownMeasureState {
   measuringSegment: IListStoryMarkdownSegment | null;
   reportHeight: (segmentId: string, height: number) => void;
   completeMeasure: () => void;
@@ -69,12 +69,12 @@ export function useLazyListStoryMarkdownMeasure({
   heightsRef.current = heightsById;
 
   const refillQueue = useCallback((): void => {
-		queueRef.current = buildPendingMeasureIds({
-			markdownSegments,
-			currentSegmentIndex,
-			heightsById: heightsRef.current,
-			measuringSegmentId: measuringSegment?.id,
-		});
+    queueRef.current = buildPendingMeasureIds({
+      markdownSegments,
+      currentSegmentIndex,
+      heightsById: heightsRef.current,
+      measuringSegmentId: measuringSegment?.id,
+    });
   }, [markdownSegments, currentSegmentIndex, measuringSegment?.id]);
 
   const reportHeight = useCallback(

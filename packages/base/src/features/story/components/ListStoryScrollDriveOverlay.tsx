@@ -8,12 +8,12 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
-  type IStorySegmentViewItem,
 } from '@/src/features/story/utils/storySegmentViewItems';
+import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import type {
   IListStoryScrollDrivePayload,
   StorySegmentDisplayMode,
-} from '@/src/features/story/types/listStoryScrollDrive';
+} from '@/src/features/story/types/types';
 import {
   computeListStoryOverlayHeight,
   type IListStoryOverlayPaneSpec,
@@ -21,7 +21,7 @@ import {
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { getSegmentDisplayMode } from '../utils/listStoryLayout';
 
-export interface IListStoryScrollDriveOverlayProps {
+interface IListStoryScrollDriveOverlayProps {
   model: IJupyterGISModel;
   drive: IListStoryScrollDrivePayload | null;
 }

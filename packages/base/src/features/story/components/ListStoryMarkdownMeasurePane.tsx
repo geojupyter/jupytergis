@@ -2,7 +2,7 @@ import React, { useCallback, useLayoutEffect, useRef } from 'react';
 
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 
-export interface IListStoryMarkdownMeasurePaneProps {
+interface IListStoryMarkdownMeasurePaneProps {
   segmentId: string;
   markdown: string;
   onHeight: (segmentId: string, height: number) => void;

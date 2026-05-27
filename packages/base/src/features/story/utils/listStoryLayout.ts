@@ -1,31 +1,17 @@
 import type { IStorySegmentLayer } from '@jupytergis/schema';
 
-import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
-import type { StorySegmentDisplayMode } from '@/src/features/story/types/listStoryScrollDrive';
+import type {
+  IListStoryLayout,
+  IListStorySegmentRange,
+  IStorySegmentViewItem,
+} from '@/src/features/story/types/types';
+import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
 
 const MARKDOWN_LINE_HEIGHT_PX = 28;
 const MARKDOWN_CONTENT_PADDING_PX = 32;
 const MIN_MARKDOWN_VIEWPORT_RATIO = 0.5;
 
-export interface IListStorySegmentRange {
-  id: string;
-  index: number;
-  contentMode: StorySegmentDisplayMode;
-  height: number;
-  measured: boolean;
-  /** Inclusive start in scroller content coordinates. */
-  start: number;
-  /** Exclusive end in scroller content coordinates. */
-  end: number;
-}
-
-export interface IListStoryLayout {
-  segments: IListStorySegmentRange[];
-  /** Sum of segment heights (virtual track height). */
-  trackHeight: number;
-}
-
-export interface IBuildListStoryLayoutInput {
+interface IBuildListStoryLayoutInput {
   items: IStorySegmentViewItem[];
   /** Story column scroller height (markdown estimates, scroll padding). */
   viewportHeight: number;

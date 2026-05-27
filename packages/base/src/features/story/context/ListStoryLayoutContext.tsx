@@ -12,16 +12,14 @@ import React, {
 import { ListStoryMarkdownMeasurePane } from '@/src/features/story/components/ListStoryMarkdownMeasurePane';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import { useLazyListStoryMarkdownMeasure } from '@/src/features/story/hooks/useLazyListStoryMarkdownMeasure';
-import {
-  buildListStoryLayout,
-  type IListStoryLayout,
-} from '@/src/features/story/utils/listStoryLayout';
+import type { IListStoryLayout } from '@/src/features/story/types/types';
+import { buildListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
 import {
   buildStorySegmentViewItems,
   getListStoryMarkdownSegmentsFromItems,
 } from '@/src/features/story/utils/storySegmentViewItems';
 
-export interface IListStoryLayoutContextValue {
+interface IListStoryLayoutContextValue {
   layout: IListStoryLayout | null;
   bindScrollContainer: (element: HTMLDivElement | null) => void;
 }
@@ -31,7 +29,7 @@ const ListStoryLayoutContext = createContext<IListStoryLayoutContextValue>({
   bindScrollContainer: () => {},
 });
 
-export interface IListStoryLayoutProviderProps {
+interface IListStoryLayoutProviderProps {
   model: IJupyterGISModel;
   /** When false, layout is null and no markdown measurement runs. */
   enabled: boolean;

@@ -1,12 +1,12 @@
-import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
+import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
+import type { IListStorySegmentRange } from '@/src/features/story/types/types';
 
-import type { IListStorySegmentRange } from './listStoryLayout';
 export interface IListStoryScrollState {
   activeIndex: number;
   drive: IListStoryScrollDrivePayload | null;
 }
 
-export interface IComputeListStoryScrollInput {
+interface IComputeListStoryScrollInput {
   scrollTop: number;
   viewportHeight: number;
   segments: IListStorySegmentRange[];

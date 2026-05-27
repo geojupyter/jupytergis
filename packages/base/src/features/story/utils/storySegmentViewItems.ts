@@ -4,20 +4,11 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 
+import type {
+  IListStoryMarkdownSegment,
+  IStorySegmentViewItem,
+} from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from './listStoryLayout';
-
-export interface IStorySegmentViewItem {
-  id: string;
-  index: number;
-  layerName: string;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
-}
-
-export interface IListStoryMarkdownSegment {
-  id: string;
-  index: number;
-  markdown: string;
-}
 
 export function buildStorySegmentViewItems(
   model: IJupyterGISModel,

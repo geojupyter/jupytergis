@@ -162,7 +162,7 @@ import {
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import type { IListStoryScrollDrivePayload } from '../features/story/types/listStoryScrollDrive';
+import type { IListStoryScrollDrivePayload } from '../features/story/types/types';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 import { ListStoryScrollDriveOverlay } from '../features/story/components/ListStoryScrollDriveOverlay';
 import { ListStoryLayoutProvider } from '../features/story/context/ListStoryLayoutContext';

@@ -1,16 +1,16 @@
 import { getLayoutSegmentHeight } from '@/src/features/story/utils/listStoryLayout';
-import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
+import type { IListStoryLayout } from '@/src/features/story/types/types';
 
-export type ListStoryOverlayPaneKind = 'markdown' | 'map';
+type ListStoryOverlayPaneKind = 'markdown' | 'map';
 
 export interface IListStoryOverlayPaneSpec {
   kind: ListStoryOverlayPaneKind;
   segmentIndex: number;
 }
 
-export type ListStoryOverlayHeightMode = 'at-rest' | 'scroll-drive';
+type ListStoryOverlayHeightMode = 'at-rest' | 'scroll-drive';
 
-export interface IComputeListStoryOverlayHeightParams {
+interface IComputeListStoryOverlayHeightParams {
   stageHeight: number;
   layout: IListStoryLayout | null;
   fromPane: IListStoryOverlayPaneSpec;

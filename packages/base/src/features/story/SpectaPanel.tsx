@@ -2,7 +2,7 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useRef } from 'react';
 
 import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
-import type { IListStoryScrollDrivePayload } from './types/listStoryScrollDrive';
+import type { IListStoryScrollDrivePayload } from './types/types';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';

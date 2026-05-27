@@ -2,9 +2,9 @@ import { IJGISStoryMap } from '@jupytergis/schema';
 import React from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
-import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
+import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 
-export interface IListStoryMapOverlayPanelProps {
+interface IListStoryMapOverlayPanelProps {
   storyData: IJGISStoryMap;
   segmentIndex: number;
   items: IStorySegmentViewItem[];

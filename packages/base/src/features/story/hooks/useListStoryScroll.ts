@@ -1,13 +1,15 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
-import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
-import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
+import type {
+  IListStoryLayout,
+  IStorySegmentViewItem,
+} from '@/src/features/story/types/types';
+import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
 import {
   computeListStoryScrollState,
   type IListStoryScrollState,
 } from '@/src/features/story/utils/computeListStoryScrollState';
-import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
 
 function isSameDrive(
   prevDrive: IListStoryScrollDrivePayload | null,
@@ -30,7 +32,7 @@ function isSameDrive(
  * List story: scroll listener maps scrollTop through the virtual track layout
  * to active segment index and overlay drive (see computeListStoryScrollState).
  */
-export interface IUseListStoryScrollParams {
+interface IUseListStoryScrollParams {
   enabled: boolean;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
   storyData: IJGISStoryMap | null;
