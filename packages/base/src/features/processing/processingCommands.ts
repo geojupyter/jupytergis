@@ -194,7 +194,9 @@ export function addProcessingCommands(
           );
         },
       });
-    } else if (processingElement.type === ProcessingLogicType.rasterClipVector) {
+    } else if (
+      processingElement.type === ProcessingLogicType.rasterClipVector
+    ) {
       commands.addCommand(`jupytergis:${processingElement.name}`, {
         label: trans.__(processingElement.label),
         describedBy: {
