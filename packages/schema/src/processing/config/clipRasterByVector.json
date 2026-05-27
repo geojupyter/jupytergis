@@ -1,0 +1,9 @@
+{
+  "name": "clipRasterByVector",
+  "label": "Clip Raster by Vector",
+  "operationParams": ["clipLayer", "cropToCutline"],
+  "operations": {
+    "gdalFunction": "gdalwarp"
+  },
+  "type": "rasterClipVector"
+}
