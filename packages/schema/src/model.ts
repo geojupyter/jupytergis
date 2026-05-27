@@ -372,7 +372,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   toString(): string {
-    return JSON.stringify(this.getContent(), null, 2);
+    // Trailing newline for POSIX compliance (e.g. end-of-file-fixer pre-commit hook)
+    return JSON.stringify(this.getContent(), null, 2) + '\n';
   }
 
   fromString(data: string): void {
