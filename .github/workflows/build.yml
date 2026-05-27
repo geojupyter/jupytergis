@@ -185,9 +185,9 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          args=()
 
           # Add `[tiler]` extra to the jupytergis_lab wheel
+          args=()
           for whl in jupytergis*.whl; do
               if [[ "$whl" == *_lab*.whl ]]; then
                   args+=("${whl}[tiler]")
