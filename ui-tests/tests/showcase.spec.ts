@@ -1,4 +1,5 @@
-import { expect, test } from '@jupyterlab/galata';
+import { expect, galata, test } from '@jupyterlab/galata';
+import path from 'path';
 
 /**
  * Showcase snapshots — wide-screen, visually rich renders used in documentation.
@@ -7,19 +8,22 @@ import { expect, test } from '@jupyterlab/galata';
 test.use({ autoGoto: false });
 
 test.describe('Showcase', () => {
+  test.beforeAll(async ({ request }) => {
+    const content = galata.newContentsHelper(request);
+    await content.uploadFile(
+      path.resolve(__dirname, '../../examples/macrostrat.jGIS'),
+      'showcase/macrostrat.jGIS',
+    );
+  });
+
   test.beforeEach(async ({ page }) => {
     page.setViewportSize({ width: 1920, height: 1080 });
   });
 
-  test('Macrostrat geology overlay', async ({ browser }) => {
-    const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
-    });
-    const page = await context.newPage();
-
-    await page.goto('lab/index.html?path=macrostrat.jGIS', {
-      waitUntil: 'domcontentloaded',
-    });
+  test('Macrostrat geology overlay', async ({ page }) => {
+    await page.goto();
+    await page.notebook.openByPath('showcase/macrostrat.jGIS');
+    await page.notebook.activate('showcase/macrostrat.jGIS');
 
     // Wait for the spinner to disappear (tiles loaded)
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
@@ -30,9 +34,8 @@ test.describe('Showcase', () => {
       await okBtn.click();
     }
 
-    const main = await page.waitForSelector('.jp-MainAreaWidget', {
-      state: 'visible',
-    });
+    const main = page.locator('.jp-MainAreaWidget:not(.lm-mod-hidden)');
+    await main.waitFor({ state: 'visible' });
 
     // Allow tiles to finish rendering
     await page.waitForTimeout(8000);
