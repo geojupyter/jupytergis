@@ -53,9 +53,10 @@ const testCellOutputs = async (
     });
 
     for (const { cellIndex, screenshot } of results) {
-      expect(screenshot).toMatchSnapshot(
-        getCaptureImageName(contextPrefix, notebook, cellIndex),
-      );
+      expect(screenshot).toMatchSnapshot({
+        name: getCaptureImageName(contextPrefix, notebook, cellIndex),
+        maxDiffPixelRatio: 0.02,  // The URL of the tiler layers will be different every time
+      });
     }
 
     await page.notebook.close(true);
