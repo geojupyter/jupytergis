@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { IListStoryMarkdownSegment } from '@/src/features/story/utils/listStoryMarkdownSegments';
+import type { IListStoryMarkdownSegment } from '@/src/features/story/utils/storySegmentViewItems';
 
 const MEASURE_LOOKAHEAD = 2;
 

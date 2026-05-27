@@ -1,4 +1,4 @@
-import { getLayoutSegmentHeight } from '@/src/features/story/context/ListStoryLayoutContext';
+import { getLayoutSegmentHeight } from '@/src/features/story/utils/listStoryLayout';
 import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
 
 export type ListStoryOverlayPaneKind = 'markdown' | 'map';

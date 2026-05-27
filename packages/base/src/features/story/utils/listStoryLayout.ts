@@ -3,8 +3,6 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
 import type { StorySegmentDisplayMode } from '@/src/features/story/types/listStoryScrollDrive';
 
-import { getSegmentDisplayMode } from './segmentDisplayMode';
-
 const MARKDOWN_LINE_HEIGHT_PX = 28;
 const MARKDOWN_CONTENT_PADDING_PX = 32;
 const MIN_MARKDOWN_VIEWPORT_RATIO = 0.5;
@@ -41,13 +39,21 @@ export function estimateMarkdownHeight(
   viewportHeight: number,
 ): number {
   const lineCount = Math.max(1, markdown.split('\n').length);
-  const fromLines = lineCount * MARKDOWN_LINE_HEIGHT_PX + MARKDOWN_CONTENT_PADDING_PX;
+  const fromLines =
+    lineCount * MARKDOWN_LINE_HEIGHT_PX + MARKDOWN_CONTENT_PADDING_PX;
   const minHeight = viewportHeight * MIN_MARKDOWN_VIEWPORT_RATIO;
   return Math.max(minHeight, fromLines);
 }
 
 export function estimateMapSegmentHeight(viewportHeight: number): number {
   return viewportHeight;
+}
+
+export function getLayoutSegmentHeight(
+  layout: IListStoryLayout | null,
+  index: number,
+): number | undefined {
+  return layout?.segments.find(segment => segment.index === index)?.height;
 }
 
 function segmentHeightForItem(
@@ -123,4 +129,13 @@ export function buildListStoryLayout({
     segments,
     trackHeight: offset,
   };
+}
+
+export function getSegmentDisplayMode(
+  activeSlide: IStorySegmentLayer['parameters'] | undefined,
+): StorySegmentDisplayMode {
+  if (activeSlide?.content?.contentMode === 'markdown') {
+    return 'markdown';
+  }
+  return 'map';
 }

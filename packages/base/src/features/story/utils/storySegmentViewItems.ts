@@ -4,11 +4,19 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 
+import { getSegmentDisplayMode } from './listStoryLayout';
+
 export interface IStorySegmentViewItem {
   id: string;
   index: number;
   layerName: string;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
+}
+
+export interface IListStoryMarkdownSegment {
+  id: string;
+  index: number;
+  markdown: string;
 }
 
 export function buildStorySegmentViewItems(
@@ -28,4 +36,23 @@ export function buildStorySegmentViewItems(
         | undefined,
     };
   });
+}
+
+export function getStoryMarkdownFromSlide(
+  activeSlide: IStorySegmentViewItem['activeSlide'],
+): string {
+  const markdown = activeSlide?.content?.markdown;
+  return typeof markdown === 'string' ? markdown : '';
+}
+
+export function getListStoryMarkdownSegmentsFromItems(
+  items: IStorySegmentViewItem[],
+): IListStoryMarkdownSegment[] {
+  return items
+    .filter(item => getSegmentDisplayMode(item.activeSlide) === 'markdown')
+    .map(item => ({
+      id: item.id,
+      index: item.index,
+      markdown: getStoryMarkdownFromSlide(item.activeSlide),
+    }));
 }

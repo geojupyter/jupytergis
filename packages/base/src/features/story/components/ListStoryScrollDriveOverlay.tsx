@@ -7,6 +7,7 @@ import { useListStoryLayoutContext } from '@/src/features/story/context/ListStor
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import {
   buildStorySegmentViewItems,
+  getStoryMarkdownFromSlide,
   type IStorySegmentViewItem,
 } from '@/src/features/story/utils/storySegmentViewItems';
 import type {
@@ -17,9 +18,8 @@ import {
   computeListStoryOverlayHeight,
   type IListStoryOverlayPaneSpec,
 } from '@/src/features/story/utils/computeListStoryOverlayHeight';
-import { getStoryMarkdownFromSlide } from '@/src/features/story/utils/listStoryMarkdownSegments';
-import { getSegmentDisplayMode } from '@/src/features/story/utils/segmentDisplayMode';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import { getSegmentDisplayMode } from '../utils/listStoryLayout';
 
 export interface IListStoryScrollDriveOverlayProps {
   model: IJupyterGISModel;

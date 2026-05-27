@@ -12,12 +12,14 @@ import React, {
 import { ListStoryMarkdownMeasurePane } from '@/src/features/story/components/ListStoryMarkdownMeasurePane';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import { useLazyListStoryMarkdownMeasure } from '@/src/features/story/hooks/useLazyListStoryMarkdownMeasure';
-import { getListStoryMarkdownSegmentsFromItems } from '@/src/features/story/utils/listStoryMarkdownSegments';
 import {
   buildListStoryLayout,
   type IListStoryLayout,
 } from '@/src/features/story/utils/listStoryLayout';
-import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
+import {
+  buildStorySegmentViewItems,
+  getListStoryMarkdownSegmentsFromItems,
+} from '@/src/features/story/utils/storySegmentViewItems';
 
 export interface IListStoryLayoutContextValue {
   layout: IListStoryLayout | null;
@@ -215,11 +217,4 @@ export function ListStoryLayoutProvider({
 
 export function useListStoryLayoutContext(): IListStoryLayoutContextValue {
   return useContext(ListStoryLayoutContext);
-}
-
-export function getLayoutSegmentHeight(
-  layout: IListStoryLayout | null,
-  index: number,
-): number | undefined {
-  return layout?.segments.find(segment => segment.index === index)?.height;
 }
