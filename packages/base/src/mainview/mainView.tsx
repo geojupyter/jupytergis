@@ -117,7 +117,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
+import { Fill, Icon, Stroke, Style } from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
@@ -152,6 +152,7 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
 import {
@@ -2082,73 +2083,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     this._ensureHighlightLayer();
-    const source = this._highlightLayer.getSource();
+    const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     source?.addFeature(olFeature);
   }
 
   private _ensureHighlightLayer(): void {
-    // Check that the layer both exists AND is still in the map.
-    // _updateLayersImpl removes layers whose id isn't in the JGIS model,
-    // which includes this layer (it has no JGIS id).
-    if (
-      this._highlightLayer &&
-      this._Map.getLayers().getArray().includes(this._highlightLayer)
-    ) {
-      return;
-    }
-    if (!this._highlightLayer) {
-      this._highlightLayer = new VectorImageLayer({
-        source: new VectorSource(),
-        style: feature => {
-          const geomType = feature.getGeometry()?.getType();
-          switch (geomType) {
-            case 'Point':
-            case 'MultiPoint':
-              return new Style({
-                image: new Circle({
-                  radius: 8,
-                  fill: new Fill({
-                    color: 'transparent',
-                  }),
-                  stroke: new Stroke({
-                    color: '#ff0',
-                    width: 3,
-                  }),
-                }),
-              });
-            case 'LineString':
-            case 'MultiLineString':
-              return new Style({
-                stroke: new Stroke({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                  width: 3,
-                }),
-              });
-            case 'Polygon':
-            case 'MultiPolygon':
-              return new Style({
-                stroke: new Stroke({
-                  color: '#ff0',
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: 'rgba(255, 255, 0, 0.15)',
-                }),
-              });
-            default:
-              return new Style({
-                stroke: new Stroke({
-                  color: '#ff0',
-                  width: 2,
-                }),
-              });
-          }
-        },
-        zIndex: 999,
-      });
-    }
-    this._Map.addLayer(this._highlightLayer);
+    ensureHighlightLayer(this._Map, this._highlightLayerRef);
   }
 
   /**
@@ -2158,7 +2099,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   private _setHighlightGeometries(geometries: Geometry[]): void {
     this._ensureHighlightLayer();
-    const source = this._highlightLayer.getSource();
+    const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     for (const geom of geometries) {
       source?.addFeature(new Feature({ geometry: geom }));
@@ -2171,7 +2112,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   private _setHighlightFeatures(features: Feature[]): void {
     this._ensureHighlightLayer();
-    const source = this._highlightLayer.getSource();
+    const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     for (const f of features) {
       source?.addFeature(f);
@@ -2876,8 +2817,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _clearHighlightWhenIdentifyDisabled(): void {
-    if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
-      this._highlightLayer.getSource()?.clear();
+    if (
+      this._model.currentMode !== 'identifying' &&
+      this._highlightLayerRef.current
+    ) {
+      this._highlightLayerRef.current?.getSource()?.clear();
     }
   }
 
@@ -4042,7 +3986,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
-  private _highlightLayer: VectorImageLayer<VectorSource>;
+  private _highlightLayerRef: {
+    current: VectorImageLayer<VectorSource> | null;
+  } = { current: null };
   private _draw: Draw;
   private _snap: Snap;
   private _modify: Modify;
