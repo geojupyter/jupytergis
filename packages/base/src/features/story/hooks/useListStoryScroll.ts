@@ -1,13 +1,30 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
-import type { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
+import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 import {
   computeListStoryScrollState,
   type IListStoryScrollState,
 } from '@/src/features/story/utils/computeListStoryScrollState';
 import type { IListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
+
+function isSameDrive(
+  prevDrive: IListStoryScrollDrivePayload | null,
+  nextDrive: IListStoryScrollDrivePayload | null,
+): boolean {
+  if (!prevDrive || !nextDrive) {
+    return false;
+  }
+
+  return (
+    nextDrive.progress === prevDrive.progress &&
+    nextDrive.fromIndex === prevDrive.fromIndex &&
+    nextDrive.toIndex === prevDrive.toIndex &&
+    nextDrive.fromMode === prevDrive.fromMode &&
+    nextDrive.toMode === prevDrive.toMode
+  );
+}
 
 /**
  * List story: scroll listener maps scrollTop through the virtual track layout
@@ -76,16 +93,7 @@ export function useListStoryScroll({
 
     const drive = next.drive;
     const prevDrive = prev.drive;
-    const driveEqual =
-      drive &&
-      prevDrive &&
-      drive.progress === prevDrive.progress &&
-      drive.fromIndex === prevDrive.fromIndex &&
-      drive.toIndex === prevDrive.toIndex &&
-      drive.fromMode === prevDrive.fromMode &&
-      drive.toMode === prevDrive.toMode;
-
-    if (driveEqual) {
+    if (isSameDrive(prevDrive, drive)) {
       return;
     }
 

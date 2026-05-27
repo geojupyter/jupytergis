@@ -1,6 +1,6 @@
 import type { IStorySegmentLayer } from '@jupytergis/schema';
 
-import type { IStorySegmentViewItem } from '@/src/features/story/hooks/useStorySegmentViewItems';
+import type { IStorySegmentViewItem } from '@/src/features/story/utils/storySegmentViewItems';
 import type { StorySegmentDisplayMode } from '@/src/features/story/types/listStoryScrollDrive';
 
 import { getSegmentDisplayMode } from './segmentDisplayMode';

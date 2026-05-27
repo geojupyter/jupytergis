@@ -7,6 +7,32 @@ interface IUseStorySegmentSyncParams {
   setIndex: (index: number) => void;
 }
 
+function getSingleSelectedLayerId(
+  selected: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!selected) {
+    return null;
+  }
+
+  const selectedLayerIds = Object.keys(selected);
+  if (selectedLayerIds.length !== 1) {
+    return null;
+  }
+
+  return selectedLayerIds[0];
+}
+
+function getStorySegmentIndexFromLayerId(
+  storyData: IJGISStoryMap,
+  selectedLayerId: string,
+): number | null {
+  const index = storyData.storySegments?.indexOf(selectedLayerId);
+  if (index === undefined || index === -1) {
+    return null;
+  }
+  return index;
+}
+
 // This hook just syncs the active segment with the currently selected segment
 // Only for unguided mode
 export function useStorySegmentSync({
@@ -20,24 +46,24 @@ export function useStorySegmentSync({
         return;
       }
 
-      const selected = model.localState?.selected?.value;
-      if (!selected) {
+      const selected = model.localState?.selected?.value as
+        | Record<string, unknown>
+        | null
+        | undefined;
+      const selectedLayerId = getSingleSelectedLayerId(selected);
+      if (!selectedLayerId) {
         return;
       }
-
-      const selectedLayers = Object.keys(selected);
-      if (selectedLayers.length !== 1) {
-        return;
-      }
-
-      const selectedLayerId = selectedLayers[0];
       const selectedLayer = model.getLayer(selectedLayerId);
       if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
         return;
       }
 
-      const index = storyData.storySegments?.indexOf(selectedLayerId);
-      if (index === undefined || index === -1) {
+      const index = getStorySegmentIndexFromLayerId(
+        storyData,
+        selectedLayerId,
+      );
+      if (index === null) {
         return;
       }
 

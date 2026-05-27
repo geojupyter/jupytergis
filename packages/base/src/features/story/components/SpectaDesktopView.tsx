@@ -11,7 +11,7 @@ import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaS
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
-import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
+import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/listStoryScrollDrive';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
@@ -71,10 +71,10 @@ export function SpectaDesktopView({
     getAtBottom,
   } = useStoryScrollState({ currentIndex, sentinelsEnabled });
 
-  const segmentViewItems = useStorySegmentViewItems({
-    model,
-    storyData,
-  });
+  const segmentViewItems = useMemo(
+    () => buildStorySegmentViewItems(model, storyData),
+    [model, storyData],
+  );
 
   const presentationStyle = useMemo(
     () => getSpectaPresentationCssVars(storyData),

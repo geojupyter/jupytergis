@@ -6,9 +6,9 @@ import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryS
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import {
-  useStorySegmentViewItems,
+  buildStorySegmentViewItems,
   type IStorySegmentViewItem,
-} from '@/src/features/story/hooks/useStorySegmentViewItems';
+} from '@/src/features/story/utils/storySegmentViewItems';
 import type {
   IListStoryScrollDrivePayload,
   StorySegmentDisplayMode,
@@ -71,7 +71,7 @@ interface IScrollDrivePaneProps {
   segmentIndex: number;
   config: IScrollDrivePaneConfig;
   storyData: IJGISStoryMap;
-  items: ReturnType<typeof useStorySegmentViewItems>;
+  items: IStorySegmentViewItem[];
 }
 
 function ScrollDrivePane({
@@ -123,7 +123,10 @@ export function ListStoryScrollDriveOverlay({
   const currentIndex = useCurrentSegmentIndex(model);
 
   const story = model?.getSelectedStory().story ?? null;
-  const items = useStorySegmentViewItems({ model, storyData: story });
+  const items = useMemo(
+    () => buildStorySegmentViewItems(model, story),
+    [model, story],
+  );
 
   const spectaPresentationStyle = useMemo(
     () => getSpectaPresentationCssVars(story),

@@ -12,12 +12,12 @@ import React, {
 import { ListStoryMarkdownMeasurePane } from '@/src/features/story/components/ListStoryMarkdownMeasurePane';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import { useLazyListStoryMarkdownMeasure } from '@/src/features/story/hooks/useLazyListStoryMarkdownMeasure';
-import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
 import { getListStoryMarkdownSegmentsFromItems } from '@/src/features/story/utils/listStoryMarkdownSegments';
 import {
   buildListStoryLayout,
   type IListStoryLayout,
 } from '@/src/features/story/utils/listStoryLayout';
+import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
 export interface IListStoryLayoutContextValue {
   layout: IListStoryLayout | null;
@@ -67,7 +67,10 @@ export function ListStoryLayoutProvider({
     return model.getSelectedStory().story ?? null;
   }, [model, storyRevision]);
 
-  const items = useStorySegmentViewItems({ model, storyData });
+  const items = useMemo(
+    () => buildStorySegmentViewItems(model, storyData),
+    [model, storyData],
+  );
 
   const markdownSegments = useMemo(
     () => getListStoryMarkdownSegmentsFromItems(items),

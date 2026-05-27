@@ -4,6 +4,39 @@ import type { IListStoryMarkdownSegment } from '@/src/features/story/utils/listS
 
 const MEASURE_LOOKAHEAD = 2;
 
+interface IBuildPendingMeasureIdsParams {
+	markdownSegments: IListStoryMarkdownSegment[];
+	currentSegmentIndex: number;
+	heightsById: Readonly<Record<string, number>>;
+	measuringSegmentId: string | undefined;
+}
+
+function buildPendingMeasureIds({
+	markdownSegments,
+	currentSegmentIndex,
+	heightsById,
+	measuringSegmentId,
+}: IBuildPendingMeasureIdsParams): string[] {
+	const pending = markdownSegments
+		.filter(
+			segment =>
+				Math.abs(segment.index - currentSegmentIndex) <= MEASURE_LOOKAHEAD &&
+				heightsById[segment.id] === undefined,
+		)
+		.sort(
+			(a, b) =>
+				Math.abs(a.index - currentSegmentIndex) -
+				Math.abs(b.index - currentSegmentIndex),
+		)
+		.map(segment => segment.id);
+
+	if (!measuringSegmentId) {
+		return pending;
+	}
+
+	return pending.filter(id => id !== measuringSegmentId);
+}
+
 export interface IUseLazyListStoryMarkdownMeasureParams {
   enabled: boolean;
   markdownSegments: IListStoryMarkdownSegment[];
@@ -36,21 +69,12 @@ export function useLazyListStoryMarkdownMeasure({
   heightsRef.current = heightsById;
 
   const refillQueue = useCallback((): void => {
-    const pending = markdownSegments
-      .filter(
-        segment =>
-          Math.abs(segment.index - currentSegmentIndex) <= MEASURE_LOOKAHEAD &&
-          heightsRef.current[segment.id] === undefined,
-      )
-      .sort(
-        (a, b) =>
-          Math.abs(a.index - currentSegmentIndex) -
-          Math.abs(b.index - currentSegmentIndex),
-      )
-      .map(segment => segment.id);
-
-    const currentId = measuringSegment?.id;
-    queueRef.current = pending.filter(id => id !== currentId);
+		queueRef.current = buildPendingMeasureIds({
+			markdownSegments,
+			currentSegmentIndex,
+			heightsById: heightsRef.current,
+			measuringSegmentId: measuringSegment?.id,
+		});
   }, [markdownSegments, currentSegmentIndex, measuringSegment?.id]);
 
   const reportHeight = useCallback(

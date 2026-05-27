@@ -1,8 +1,34 @@
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { MimeModel } from '@jupyterlab/rendermime';
-import React, { useLayoutEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useRef,
+} from 'react';
 import { Widget } from '@lumino/widgets';
 
-import { useStoryRenderMime } from '@/src/features/story/context/StoryRenderMimeContext';
+const StoryRenderMimeContext = createContext<IRenderMimeRegistry | null>(null);
+
+export interface IStoryRenderMimeProviderProps {
+  rendermime: IRenderMimeRegistry | null | undefined;
+  children: React.ReactNode;
+}
+
+export function StoryRenderMimeProvider({
+  rendermime,
+  children,
+}: IStoryRenderMimeProviderProps): JSX.Element {
+  return (
+    <StoryRenderMimeContext.Provider value={rendermime ?? null}>
+      {children}
+    </StoryRenderMimeContext.Provider>
+  );
+}
+
+function useStoryRenderMime(): IRenderMimeRegistry | null {
+  return useContext(StoryRenderMimeContext);
+}
 
 const MARKDOWN_MIME = 'text/markdown';
 
