@@ -59,8 +59,14 @@
     "symbologyState": {
       "type": "object",
       "description": "The state of the symbology panel options.",
-      "required": ["renderType"],
       "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
+          }
+        },
         "renderType": {
           "type": "string",
           "default": "Multiband Color"
