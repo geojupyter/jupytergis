@@ -1738,12 +1738,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
-        // const newLayerExtent = newMapLayer.getExtent();
-        // const shouldZoom = Boolean(
-        //   this.state.initialLayersReady && newLayerExtent,
-        // );
-        const shouldZoom = Boolean(this.state.initialLayersReady);
-        this._trackLayerViewState(id, newMapLayer, shouldZoom);
+        this._trackLayerViewState(id, newMapLayer);
 
         // doing +1 instead of calling method again
         if (
@@ -2271,25 +2266,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
-  private _getLayerCreatorId(layerId: string): number | undefined {
-    const states = this._model.sharedModel.awareness.getStates();
-
-    for (const [clientId, state] of states.entries()) {
-      if (state?.lastAddedLayer?.layerId === layerId) {
-        return clientId;
-      }
-    }
-
-    return undefined;
-  }
-
   /**
    * Track layer's extent and zoom in model's view state
    */
   private _trackLayerViewState(
     layerId: string,
     olLayer: Layer | LayerGroup,
-    shouldZoom = false,
   ): void {
     const effectiveLayer =
       olLayer instanceof LayerGroup
@@ -2316,27 +2298,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
-
-      if (shouldZoom) {
-        const jgisLayer = this._model.getLayer(layerId);
-        const sourceId = jgisLayer?.parameters?.source as string | undefined;
-        const jgisSource = sourceId
-          ? this._model.getSource(sourceId)
-          : undefined;
-        const isMarker = jgisSource?.type === 'MarkerSource';
-        if (isMarker) {
-          // Don't auto-zoom for marker layers: they are placed at the user's
-          // current view position, and fitting to a single point would zoom
-          // in to the maximum zoom level (#1422).
-          return;
-        }
-        const creatorId = this._getLayerCreatorId(layerId);
-        const currentClientId = this._model.getClientId();
-
-        if (creatorId === currentClientId) {
-          this._model.centerOnPosition(layerId);
-        }
-      }
     }
   }
 
