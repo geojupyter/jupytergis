@@ -185,13 +185,18 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
+          args=()
+
+          # Add `[tiler]` extra to the jupytergis_lab wheel
           for whl in jupytergis*.whl; do
-            if [[ "$whl" == jupytergis_lab*.whl ]]; then
-              python -m pip install "${whl}[tiler]"
-            else
-              python -m pip install "$whl"
-            fi
+              if [[ "$whl" == *_lab*.whl ]]; then
+                  args+=("${whl}[tiler]")
+              else
+                  args+=("$whl")
+              fi
           done
+
+          python -m pip install "${args[@]}"
 
       - name: Install
         shell: bash -l {0}
