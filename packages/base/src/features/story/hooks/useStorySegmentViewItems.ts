@@ -1,16 +1,12 @@
-import {
-  IJGISStoryMap,
-  IJupyterGISModel,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
+import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import { useMemo } from 'react';
 
-export interface IStorySegmentViewItem {
-  id: string;
-  index: number;
-  layerName: string;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
-}
+import {
+  buildStorySegmentViewItems,
+  type IStorySegmentViewItem,
+} from '@/src/features/story/utils/storySegmentViewItems';
+
+export type { IStorySegmentViewItem };
 
 interface IUseStorySegmentViewItemsParams {
   model: IJupyterGISModel;
@@ -21,19 +17,8 @@ export function useStorySegmentViewItems({
   model,
   storyData,
 }: IUseStorySegmentViewItemsParams): IStorySegmentViewItem[] {
-  return useMemo(() => {
-    const segments = storyData?.storySegments ?? [];
-
-    return segments.map((segmentId, index) => {
-      const layer = model.getLayer(segmentId);
-      return {
-        id: segmentId,
-        index,
-        layerName: layer?.name ?? `Segment ${index + 1}`,
-        activeSlide: layer?.parameters as
-          | IStorySegmentLayer['parameters']
-          | undefined,
-      };
-    });
-  }, [model, storyData]);
+  return useMemo(
+    () => buildStorySegmentViewItems(model, storyData),
+    [model, storyData],
+  );
 }

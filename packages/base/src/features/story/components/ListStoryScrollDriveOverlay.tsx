@@ -1,15 +1,14 @@
-import {
-  IJGISStoryMap,
-  IJupyterGISModel,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
+import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
-import { useStorySegmentViewItems } from '@/src/features/story/hooks/useStorySegmentViewItems';
+import {
+  useStorySegmentViewItems,
+  type IStorySegmentViewItem,
+} from '@/src/features/story/hooks/useStorySegmentViewItems';
 import type {
   IListStoryScrollDrivePayload,
   StorySegmentDisplayMode,
@@ -18,6 +17,7 @@ import {
   computeListStoryOverlayHeight,
   type IListStoryOverlayPaneSpec,
 } from '@/src/features/story/utils/computeListStoryOverlayHeight';
+import { getStoryMarkdownFromSlide } from '@/src/features/story/utils/listStoryMarkdownSegments';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/segmentDisplayMode';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 
@@ -38,36 +38,20 @@ const EMPTY_MARKDOWN_PANE: IScrollDrivePaneConfig = {
   kind: { type: 'markdown', markdown: '' },
 };
 
-function getStoryMarkdownForIndex(
-  model: IJupyterGISModel,
-  index: number,
-): string {
-  const story = model.getSelectedStory().story;
-  const segmentId = story?.storySegments?.[index];
-  if (!segmentId) {
-    return '';
-  }
-  const layer = model.getLayer(segmentId);
-  if (layer?.type !== 'StorySegmentLayer') {
-    return '';
-  }
-  const parameters = layer.parameters as IStorySegmentLayer['parameters'];
-  const markdown = parameters?.content?.markdown;
-  return typeof markdown === 'string' ? markdown : '';
-}
-
 function buildPaneConfig(
-  model: IJupyterGISModel,
-  segmentIndex: number,
+  item: IStorySegmentViewItem | undefined,
   mode: StorySegmentDisplayMode,
 ): IScrollDrivePaneConfig {
+  if (!item) {
+    return EMPTY_MARKDOWN_PANE;
+  }
   if (mode === 'map') {
-    return { kind: { type: 'map', segmentIndex } };
+    return { kind: { type: 'map', segmentIndex: item.index } };
   }
   return {
     kind: {
       type: 'markdown',
-      markdown: getStoryMarkdownForIndex(model, segmentIndex),
+      markdown: getStoryMarkdownFromSlide(item.activeSlide),
     },
   };
 }
@@ -169,19 +153,24 @@ export function ListStoryScrollDriveOverlay({
       return {
         fromIndex: drive.fromIndex,
         toIndex: drive.toIndex,
-        fromPaneConfig: buildPaneConfig(model, drive.fromIndex, drive.fromMode),
-        toPaneConfig: buildPaneConfig(model, drive.toIndex, drive.toMode),
+        fromPaneConfig: buildPaneConfig(
+          items.find(item => item.index === drive.fromIndex),
+          drive.fromMode,
+        ),
+        toPaneConfig: buildPaneConfig(
+          items.find(item => item.index === drive.toIndex),
+          drive.toMode,
+        ),
       };
     }
 
-    const restConfig = buildPaneConfig(model, currentIndex, activeMode);
     return {
       fromIndex: currentIndex,
       toIndex: currentIndex,
       fromPaneConfig: EMPTY_MARKDOWN_PANE,
-      toPaneConfig: restConfig,
+      toPaneConfig: buildPaneConfig(activeItem, activeMode),
     };
-  }, [model, activeItem, currentIndex, activeMode, drive]);
+  }, [items, activeItem, currentIndex, activeMode, drive]);
 
   const overlayHeightMode = isDriveActive ? 'scroll-drive' : 'at-rest';
 
