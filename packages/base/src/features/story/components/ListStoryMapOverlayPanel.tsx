@@ -22,7 +22,7 @@ export function ListStoryMapOverlayPanel({
   }
 
   return (
-    <div className="jgis-story-map-overlay-panel-inner">
+    <div className="jgis-story-map-overlay-content">
       <StoryViewerPanel
         isSpecta
         disableSegmentAnimation

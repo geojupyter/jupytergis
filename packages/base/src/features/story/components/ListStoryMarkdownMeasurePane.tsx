@@ -20,29 +20,39 @@ export function ListStoryMarkdownMeasurePane({
 }: IListStoryMarkdownMeasurePaneProps): JSX.Element {
   const contentRef = useRef<HTMLDivElement>(null);
   const renderedRef = useRef(false);
+  const completedRef = useRef(false);
+
+  const completeMeasure = useCallback((): void => {
+    if (completedRef.current) {
+      return;
+    }
+    completedRef.current = true;
+    onMeasureComplete();
+  }, [onMeasureComplete]);
 
   const reportHeight = useCallback((): void => {
     const content = contentRef.current;
     if (!content) {
       return;
     }
-    onHeight(segmentId, content.getBoundingClientRect().height);
+    onHeight(segmentId, Math.ceil(content.scrollHeight));
   }, [segmentId, onHeight]);
 
   const handleRendered = useCallback((): void => {
     renderedRef.current = true;
     reportHeight();
-    onMeasureComplete();
-  }, [reportHeight, onMeasureComplete]);
+    completeMeasure();
+  }, [reportHeight, completeMeasure]);
 
   useLayoutEffect(() => {
     renderedRef.current = false;
+    completedRef.current = false;
     if (!markdown) {
       renderedRef.current = true;
       reportHeight();
-      onMeasureComplete();
+      completeMeasure();
     }
-  }, [segmentId, markdown, reportHeight, onMeasureComplete]);
+  }, [segmentId, markdown, reportHeight, completeMeasure]);
 
   useLayoutEffect(() => {
     const content = contentRef.current;
@@ -67,14 +77,12 @@ export function ListStoryMarkdownMeasurePane({
       data-segment-id={segmentId}
       className="jgis-story-markdown-scroll-pane jgis-story-markdown-scroll-pane--measure"
     >
-      <div ref={contentRef} className="jgis-story-markdown-overlay-content">
+      <div ref={contentRef}>
         {markdown ? (
-          <div className="specta-article-host-widget specta-cell-content">
-            <StoryScrollDriveMarkdown
-              source={markdown}
-              onRendered={handleRendered}
-            />
-          </div>
+          <StoryScrollDriveMarkdown
+            source={markdown}
+            onRendered={handleRendered}
+          />
         ) : null}
       </div>
     </div>

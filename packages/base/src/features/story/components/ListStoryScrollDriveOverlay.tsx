@@ -16,7 +16,7 @@ import type {
 } from '@/src/features/story/types/types';
 import {
   computeListStoryOverlayHeight,
-  type IListStoryOverlayPaneSpec,
+  type IListStoryOverlayPaneHeightInput,
 } from '@/src/features/story/utils/computeListStoryOverlayHeight';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { getSegmentDisplayMode } from '../utils/listStoryLayout';
@@ -26,50 +26,45 @@ interface IListStoryScrollDriveOverlayProps {
   drive: IListStoryScrollDrivePayload | null;
 }
 
-type ScrollDrivePaneKind =
+type ScrollDrivePaneConfig =
   | { type: 'markdown'; markdown: string }
   | { type: 'map'; segmentIndex: number };
 
-interface IScrollDrivePaneConfig {
-  kind: ScrollDrivePaneKind;
-}
-
-const EMPTY_MARKDOWN_PANE: IScrollDrivePaneConfig = {
-  kind: { type: 'markdown', markdown: '' },
+const EMPTY_MARKDOWN_PANE: ScrollDrivePaneConfig = {
+  type: 'markdown',
+  markdown: '',
 };
 
 function buildPaneConfig(
   item: IStorySegmentViewItem | undefined,
   mode: StorySegmentDisplayMode,
-): IScrollDrivePaneConfig {
+): ScrollDrivePaneConfig {
   if (!item) {
     return EMPTY_MARKDOWN_PANE;
   }
   if (mode === 'map') {
-    return { kind: { type: 'map', segmentIndex: item.index } };
+    return { type: 'map', segmentIndex: item.index };
   }
   return {
-    kind: {
-      type: 'markdown',
-      markdown: getStoryMarkdownFromSlide(item.activeSlide),
-    },
+    type: 'markdown',
+    markdown: getStoryMarkdownFromSlide(item.activeSlide),
   };
 }
 
-function paneConfigToSpec(
-  config: IScrollDrivePaneConfig,
+function paneConfigToHeightInput(
+  config: ScrollDrivePaneConfig,
   segmentIndex: number,
-): IListStoryOverlayPaneSpec {
-  if (config.kind.type === 'map') {
-    return { kind: 'map', segmentIndex: config.kind.segmentIndex };
+): IListStoryOverlayPaneHeightInput {
+  if (config.type === 'map') {
+    return { type: 'map', segmentIndex: config.segmentIndex };
   }
-  return { kind: 'markdown', segmentIndex };
+  return { type: 'markdown', segmentIndex };
 }
 
 interface IScrollDrivePaneProps {
   pane: 'from' | 'to';
   segmentIndex: number;
-  config: IScrollDrivePaneConfig;
+  config: ScrollDrivePaneConfig;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
 }
@@ -81,28 +76,25 @@ function ScrollDrivePane({
   storyData,
   items,
 }: IScrollDrivePaneProps): React.ReactElement {
-  const isMap = config.kind.type === 'map';
-  const className = `jgis-story-scroll-drive-pane${
-    isMap ? ' jgis-story-map-scroll-pane' : ' jgis-story-markdown-scroll-pane'
-  }`;
+  const isMap = config.type === 'map';
 
   return (
-    <div data-pane={pane} className={className}>
-      {config.kind.type === 'markdown' && config.kind.markdown ? (
-        <div className="jgis-story-markdown-overlay-content">
-          <div className="specta-article-host-widget specta-cell-content">
-            <StoryScrollDriveMarkdown
-              key={`pane-${pane}-seg-${segmentIndex}`}
-              source={config.kind.markdown}
-            />
-          </div>
-        </div>
-      ) : null}
-      {config.kind.type === 'map' ? (
+    <div
+      data-pane={pane}
+      className={`jgis-story-scroll-drive-pane jgis-story-${
+        isMap ? 'map' : 'markdown'
+      }-scroll-pane`}
+    >
+      {isMap ? (
         <ListStoryMapOverlayPanel
           storyData={storyData}
-          segmentIndex={config.kind.segmentIndex}
+          segmentIndex={config.segmentIndex}
           items={items}
+        />
+      ) : config.markdown ? (
+        <StoryScrollDriveMarkdown
+          key={`pane-${pane}-seg-${segmentIndex}`}
+          source={config.markdown}
         />
       ) : null}
     </div>
@@ -111,7 +103,7 @@ function ScrollDrivePane({
 
 /**
  * List-story stage overlay: markdown + map StoryViewerPanels driven by scroll.
- * The story column only scrolls the virtual track; segment UI lives here.
+ * The story column only scrolls the virtual track, this is the UI.
  */
 export function ListStoryScrollDriveOverlay({
   model,
@@ -182,8 +174,8 @@ export function ListStoryScrollDriveOverlay({
       computeListStoryOverlayHeight({
         stageHeight,
         layout,
-        fromPane: paneConfigToSpec(fromPaneConfig, fromIndex),
-        toPane: paneConfigToSpec(toPaneConfig, toIndex),
+        fromPane: paneConfigToHeightInput(fromPaneConfig, fromIndex),
+        toPane: paneConfigToHeightInput(toPaneConfig, toIndex),
         mode: overlayHeightMode,
         activeSegmentIndex: currentIndex,
       }),
@@ -201,17 +193,22 @@ export function ListStoryScrollDriveOverlay({
 
   useLayoutEffect(() => {
     const parent = overlayRef.current?.parentElement;
+
     if (!parent) {
       setStageHeight(0);
       return;
     }
+
     const update = (): void => {
       const next = parent.clientHeight;
       setStageHeight(prev => (prev === next ? prev : next));
     };
+
     update();
+
     const ro = new ResizeObserver(update);
     ro.observe(parent);
+
     return () => {
       ro.disconnect();
     };

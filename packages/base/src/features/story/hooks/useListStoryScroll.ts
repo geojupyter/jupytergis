@@ -28,10 +28,6 @@ function isSameDrive(
   );
 }
 
-/**
- * List story: scroll listener maps scrollTop through the virtual track layout
- * to active segment index and overlay drive (see computeListStoryScrollState).
- */
 interface IUseListStoryScrollParams {
   enabled: boolean;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
@@ -58,9 +54,6 @@ export function useListStoryScroll({
 
   const setIndexRef = useRef(setIndex);
   setIndexRef.current = setIndex;
-
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
 
   const storyDataRef = useRef(storyData);
   storyDataRef.current = storyData;
@@ -95,6 +88,7 @@ export function useListStoryScroll({
 
     const drive = next.drive;
     const prevDrive = prev.drive;
+
     if (isSameDrive(prevDrive, drive)) {
       return;
     }
@@ -116,7 +110,6 @@ export function useListStoryScroll({
       scrollTop: scroller.scrollTop,
       viewportHeight: scroller.clientHeight,
       segments: currentLayout.segments,
-      prev: latchedRef.current,
     });
 
     if (!next) {
@@ -159,15 +152,12 @@ export function useListStoryScroll({
       return;
     }
 
-    const handleScroll = () => {
-      scheduleCompute();
-    };
-
-    scroller.addEventListener('scroll', handleScroll, { passive: true });
+    scroller.addEventListener('scroll', scheduleCompute, { passive: true });
     scheduleCompute();
 
     return () => {
-      scroller.removeEventListener('scroll', handleScroll);
+      scroller.removeEventListener('scroll', scheduleCompute);
+
       if (rafIdRef.current !== null) {
         window.cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;

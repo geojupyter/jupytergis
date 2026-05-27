@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 
-/** Subscribes to the model's current story segment index (single source of truth). */
+/** Subscribes to model's current story segment index for a single source of truth */
 export function useCurrentSegmentIndex(model: IJupyterGISModel): number {
   const [currentIndex, setCurrentIndex] = useState(
     () => model.getCurrentSegmentIndex() ?? 0,
@@ -13,6 +13,7 @@ export function useCurrentSegmentIndex(model: IJupyterGISModel): number {
     };
     model.currentSegmentIndexChanged.connect(handler);
     setCurrentIndex(model.getCurrentSegmentIndex() ?? 0);
+
     return () => {
       model.currentSegmentIndexChanged.disconnect(handler);
     };

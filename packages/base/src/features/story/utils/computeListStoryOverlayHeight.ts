@@ -1,10 +1,10 @@
 import { getLayoutSegmentHeight } from '@/src/features/story/utils/listStoryLayout';
 import type { IListStoryLayout } from '@/src/features/story/types/types';
 
-type ListStoryOverlayPaneKind = 'markdown' | 'map';
+type ListStoryOverlayPaneType = 'markdown' | 'map';
 
-export interface IListStoryOverlayPaneSpec {
-  kind: ListStoryOverlayPaneKind;
+export interface IListStoryOverlayPaneHeightInput {
+  type: ListStoryOverlayPaneType;
   segmentIndex: number;
 }
 
@@ -13,21 +13,21 @@ type ListStoryOverlayHeightMode = 'at-rest' | 'scroll-drive';
 interface IComputeListStoryOverlayHeightParams {
   stageHeight: number;
   layout: IListStoryLayout | null;
-  fromPane: IListStoryOverlayPaneSpec;
-  toPane: IListStoryOverlayPaneSpec;
+  fromPane: IListStoryOverlayPaneHeightInput;
+  toPane: IListStoryOverlayPaneHeightInput;
   mode: ListStoryOverlayHeightMode;
   activeSegmentIndex: number;
 }
 
 function estimatePaneHeight(
-  spec: IListStoryOverlayPaneSpec,
+  pane: IListStoryOverlayPaneHeightInput,
   layout: IListStoryLayout | null,
   stageHeight: number,
 ): number {
-  if (spec.kind === 'map') {
+  if (pane.type === 'map') {
     return stageHeight;
   }
-  return getLayoutSegmentHeight(layout, spec.segmentIndex) ?? stageHeight;
+  return getLayoutSegmentHeight(layout, pane.segmentIndex) ?? stageHeight;
 }
 
 /**
@@ -44,7 +44,7 @@ export function computeListStoryOverlayHeight({
 }: IComputeListStoryOverlayHeightParams): number {
   const floor = Math.max(stageHeight, 0);
   if (mode === 'at-rest') {
-    if (toPane.kind === 'map') {
+    if (toPane.type === 'map') {
       return floor;
     }
     const segment = getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;

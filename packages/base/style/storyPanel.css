@@ -249,7 +249,7 @@
   align-items: flex-end;
 }
 
-.jgis-story-map-overlay-panel-inner {
+.jgis-story-map-overlay-content {
   width: 25%;
   max-height: 100%;
   overflow: auto;
@@ -284,14 +284,18 @@
 
 .jgis-story-scroll-drive-pane[data-pane='from'] {
   transform: translateY(
-    calc(var(--jgis-scroll-drive-progress, 0) * -1 * var(--jgis-overlay-height, 100%))
+    calc(
+      var(--jgis-scroll-drive-progress, 0) * -1 *
+        var(--jgis-overlay-height, 100%)
+    )
   );
 }
 
 .jgis-story-scroll-drive-pane[data-pane='to'] {
   transform: translateY(
     calc(
-      (1 - var(--jgis-scroll-drive-progress, 0)) * var(--jgis-overlay-height, 100%)
+      (1 - var(--jgis-scroll-drive-progress, 0)) *
+        var(--jgis-overlay-height, 100%)
     )
   );
 }

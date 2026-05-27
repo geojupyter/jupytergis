@@ -65,17 +65,15 @@ export function useLazyListStoryMarkdownMeasure({
   const [measuringSegment, setMeasuringSegment] =
     useState<IListStoryMarkdownSegment | null>(null);
   const queueRef = useRef<string[]>([]);
-  const heightsRef = useRef(heightsById);
-  heightsRef.current = heightsById;
 
   const refillQueue = useCallback((): void => {
     queueRef.current = buildPendingMeasureIds({
       markdownSegments,
       currentSegmentIndex,
-      heightsById: heightsRef.current,
+      heightsById,
       measuringSegmentId: measuringSegment?.id,
     });
-  }, [markdownSegments, currentSegmentIndex, measuringSegment?.id]);
+  }, [markdownSegments, currentSegmentIndex, heightsById, measuringSegment?.id]);
 
   const reportHeight = useCallback(
     (segmentId: string, height: number) => {
@@ -95,13 +93,16 @@ export function useLazyListStoryMarkdownMeasure({
       return;
     }
     refillQueue();
+
     if (measuringSegment) {
       return;
     }
+
     const nextId = queueRef.current.shift();
     if (!nextId) {
       return;
     }
+
     const segment = markdownSegments.find(item => item.id === nextId);
     if (segment) {
       setMeasuringSegment(segment);

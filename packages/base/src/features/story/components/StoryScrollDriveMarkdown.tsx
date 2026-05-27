@@ -42,6 +42,7 @@ function disposeRenderer(renderer: Widget): void {
   if (renderer.isDisposed) {
     return;
   }
+
   if (renderer.isAttached) {
     try {
       Widget.detach(renderer);
@@ -84,6 +85,7 @@ export function StoryScrollDriveMarkdown({
       }
 
       Widget.attach(renderer, host);
+
       if (cancelled) {
         disposeRenderer(renderer);
         return;
@@ -122,6 +124,7 @@ export function StoryScrollDriveMarkdown({
     if (rendermime || !source) {
       return;
     }
+
     onRendered?.();
   }, [rendermime, source, onRendered]);
 
@@ -131,9 +134,19 @@ export function StoryScrollDriveMarkdown({
 
   if (!rendermime) {
     return (
-      <pre className="jgis-story-scroll-drive-markdown-plain">{source}</pre>
+      <div className="jgis-story-markdown-overlay-content">
+        <div className="specta-article-host-widget specta-cell-content">
+          <pre className="jgis-story-scroll-drive-markdown-plain">{source}</pre>
+        </div>
+      </div>
     );
   }
 
-  return <div ref={hostRef} />;
+  return (
+    <div className="jgis-story-markdown-overlay-content">
+      <div className="specta-article-host-widget specta-cell-content">
+        <div ref={hostRef} />
+      </div>
+    </div>
+  );
 }

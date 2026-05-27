@@ -22,7 +22,7 @@ interface IStoryViewerPanelProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  /** List-story stage overlay: no segment fade/key remount on the card. */
+  /** Disable fade animation for list stories. */
   disableSegmentAnimation?: boolean;
 }
 
@@ -56,19 +56,25 @@ export type StoryNavPlacement =
 function getStoryNavPlacement(
   isSpecta: boolean,
   hasImage: boolean,
-  storyType: string,
+  storyType: IJGISStoryMap['storyType'],
   isMobile: boolean,
 ): StoryNavPlacement | null {
   if (storyType === 'list') {
     return null;
   }
-  if (isSpecta) {
-    return isMobile ? null : 'subtitle-specta';
+
+  if (storyType === 'unguided') {
+    return isSpecta && !isMobile ? 'subtitle-specta' : null;
   }
-  if (storyType !== 'guided') {
-    return null;
+
+  if (storyType === 'guided') {
+    if (isSpecta) {
+      return isMobile ? null : 'subtitle-specta';
+    }
+    return hasImage ? 'over-image' : 'below-title';
   }
-  return hasImage ? 'over-image' : 'below-title';
+
+  return null;
 }
 
 /**
@@ -121,6 +127,16 @@ function StoryViewerPanel({
     ) : null;
 
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
+  const segmentAnimationEnabled = !disableSegmentAnimation;
+  const segmentContainerKey = segmentAnimationEnabled
+    ? currentIndex
+    : undefined;
+  const segmentContainerClassName = segmentAnimationEnabled
+    ? 'jgis-story-segment-container'
+    : 'jgis-story-segment-container jgis-story-segment-container--no-segment-animation';
+  const segmentContainerStyle = segmentAnimationEnabled
+    ? { animationDuration: `${transitionTime}s` }
+    : undefined;
 
   return (
     <div
@@ -130,17 +146,9 @@ function StoryViewerPanel({
     >
       <div
         ref={segmentContainerRef}
-        key={disableSegmentAnimation ? undefined : currentIndex}
-        className={
-          disableSegmentAnimation
-            ? 'jgis-story-segment-container jgis-story-segment-container--no-segment-animation'
-            : 'jgis-story-segment-container'
-        }
-        style={
-          disableSegmentAnimation
-            ? undefined
-            : { animationDuration: `${transitionTime}s` }
-        }
+        key={segmentContainerKey}
+        className={segmentContainerClassName}
+        style={segmentContainerStyle}
       >
         <div id="jgis-story-segment-header">
           <h1 className="jgis-story-viewer-title">
@@ -174,7 +182,5 @@ function StoryViewerPanel({
     </div>
   );
 }
-
-StoryViewerPanel.displayName = 'StoryViewerPanel';
 
 export default StoryViewerPanel;

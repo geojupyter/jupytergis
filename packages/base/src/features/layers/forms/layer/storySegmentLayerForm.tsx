@@ -29,14 +29,13 @@ function normalizeSegmentContent(content: IDict | undefined): IDict {
     contentMode: 'map',
     title: value.title ?? '',
     image: value.image ?? '',
+    markdown: value.markdown ?? '',
   };
 }
 
 function normalizeStorySegmentFormData(data: IDict): IDict {
   const normalizedData = deepCopy(data);
-  normalizedData.content = normalizeSegmentContent(
-    normalizedData.content as IDict | undefined,
-  );
+  normalizedData.content = normalizeSegmentContent(normalizedData.content);
   return normalizedData;
 }
 
@@ -174,6 +173,19 @@ export function StorySegmentLayerPropertiesForm(
       delete itemsProperties.symbologyState;
     }
 
+    const contentFieldUi = {
+      ...(builtUiSchema.content as IDict),
+      contentMode: {
+        'ui:widget': 'select',
+      },
+      markdown: {
+        'ui:widget': 'textarea',
+        'ui:options': {
+          rows: 10,
+        },
+      },
+    };
+
     if (contentMode === 'markdown') {
       removeNestedFormEntry(
         'content',
@@ -192,32 +204,24 @@ export function StorySegmentLayerPropertiesForm(
       removeFormEntry('transition', dataCopy, displaySchema, builtUiSchema);
       removeFormEntry('layerOverride', dataCopy, displaySchema, builtUiSchema);
       removeFormEntry('extent', dataCopy, displaySchema, builtUiSchema);
-    }
 
-    builtUiSchema.content = {
-      ...(builtUiSchema.content as IDict),
-      'ui:order':
-        contentMode === 'markdown'
-          ? ['contentMode', 'markdown']
-          : ['contentMode', 'title', 'image', 'markdown'],
-      contentMode: {
-        'ui:widget': 'select',
-      },
-      markdown: {
-        'ui:widget': 'textarea',
-        'ui:options': {
-          rows: 10,
-        },
-      },
-    };
-
-    if (model.selected && contentMode === 'map') {
-      builtUiSchema.extent = {
-        'ui:field': 'storySegmentReset',
+      builtUiSchema.content = {
+        ...contentFieldUi,
+        'ui:order': ['contentMode', 'markdown'],
       };
-    }
+    } else {
+      // contentMode === 'map'
+      builtUiSchema.content = {
+        ...contentFieldUi,
+        'ui:order': ['contentMode', 'title', 'image', 'markdown'],
+      };
 
-    if (contentMode === 'map') {
+      if (model.selected) {
+        builtUiSchema.extent = {
+          'ui:field': 'storySegmentReset',
+        };
+      }
+
       builtUiSchema.layerOverride = {
         ...(builtUiSchema.layerOverride as IDict),
         items: {

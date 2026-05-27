@@ -10,7 +10,6 @@ interface IComputeListStoryScrollInput {
   scrollTop: number;
   viewportHeight: number;
   segments: IListStorySegmentRange[];
-  prev: IListStoryScrollState | null;
 }
 
 interface IPairDriveResult {
@@ -159,7 +158,6 @@ export function computeListStoryScrollState({
   scrollTop,
   viewportHeight,
   segments,
-  prev,
 }: IComputeListStoryScrollInput): IListStoryScrollState | null {
   if (!segments.length) {
     return null;

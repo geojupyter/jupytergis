@@ -31,7 +31,6 @@ const ListStoryLayoutContext = createContext<IListStoryLayoutContextValue>({
 
 interface IListStoryLayoutProviderProps {
   model: IJupyterGISModel;
-  /** When false, layout is null and no markdown measurement runs. */
   enabled: boolean;
   children: React.ReactNode;
 }
@@ -45,18 +44,19 @@ export function ListStoryLayoutProvider({
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
   const [mapViewportHeight, setMapViewportHeight] = useState(0);
+
   const currentSegmentIndex = useCurrentSegmentIndex(model);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const heightsRef = useRef(heightsById);
-  heightsRef.current = heightsById;
 
   useLayoutEffect(() => {
     const bump = (): void => {
       setStoryRevision(value => value + 1);
       setHeightsById({});
     };
+
     model.sharedModel.storyMapsChanged.connect(bump);
     model.sharedModel.layersChanged.connect(bump);
+
     return () => {
       model.sharedModel.storyMapsChanged.disconnect(bump);
       model.sharedModel.layersChanged.disconnect(bump);
@@ -77,14 +77,49 @@ export function ListStoryLayoutProvider({
     [items],
   );
 
+  const mapViewportHeightOption =
+    mapViewportHeight > 0 ? mapViewportHeight : undefined;
+
+  const buildLayout = useCallback(
+    (nextHeightsById: Readonly<Record<string, number>>): IListStoryLayout | null =>
+      buildListStoryLayout({
+        items,
+        viewportHeight,
+        mapViewportHeight: mapViewportHeightOption,
+        heightsById: nextHeightsById,
+      }),
+    [items, viewportHeight, mapViewportHeightOption],
+  );
+
   const bindScrollContainer = useCallback((element: HTMLDivElement | null) => {
     scrollerRef.current = element;
     if (!element) {
       setViewportHeight(0);
       return;
     }
+
     setViewportHeight(element.clientHeight);
   }, []);
+
+  const observeElementHeight = useCallback(
+    (
+      element: HTMLElement,
+      update: () => void,
+      options?: { callImmediately?: boolean },
+    ): (() => void) => {
+      if (options?.callImmediately) {
+        update();
+      }
+
+      const ro = new ResizeObserver(update);
+      ro.observe(element);
+
+      return () => {
+        ro.disconnect();
+      };
+    },
+    [],
+  );
 
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
@@ -96,12 +131,8 @@ export function ListStoryLayoutProvider({
       setViewportHeight(scroller.clientHeight);
     };
 
-    const ro = new ResizeObserver(update);
-    ro.observe(scroller);
-    return () => {
-      ro.disconnect();
-    };
-  }, [enabled, storyRevision]);
+    return observeElementHeight(scroller, update);
+  }, [enabled, storyRevision, observeElementHeight]);
 
   useLayoutEffect(() => {
     if (!enabled) {
@@ -119,19 +150,15 @@ export function ListStoryLayoutProvider({
       setMapViewportHeight(container.clientHeight);
     };
 
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(container);
-    return () => {
-      ro.disconnect();
-    };
-  }, [enabled, storyRevision]);
+    return observeElementHeight(container, update, { callImmediately: true });
+  }, [enabled, storyRevision, observeElementHeight]);
 
   const handleMeasuredHeight = useCallback(
     (segmentId: string, height: number) => {
-      const rounded = Math.ceil(height);
+      const measuredHeightPx = Math.ceil(height);
+
       setHeightsById(prev => {
-        if (prev[segmentId] === rounded) {
+        if (prev[segmentId] === measuredHeightPx) {
           return prev;
         }
 
@@ -146,15 +173,18 @@ export function ListStoryLayoutProvider({
               })
             : null;
 
-        const next = { ...prev, [segmentId]: rounded };
+        const next = { ...prev, [segmentId]: measuredHeightPx };
 
         if (scroller && oldLayout) {
           const oldSegment = oldLayout.segments.find(s => s.id === segmentId);
           if (oldSegment && !oldSegment.measured) {
-            const delta = rounded - oldSegment.height;
-            if (delta !== 0 && scroller.scrollTop > oldSegment.start) {
+            const scrollCompensation = measuredHeightPx - oldSegment.height;
+            if (
+              scrollCompensation !== 0 &&
+              scroller.scrollTop > oldSegment.start
+            ) {
               requestAnimationFrame(() => {
-                scroller.scrollTop += delta;
+                scroller.scrollTop += scrollCompensation;
               });
             }
           }
@@ -179,13 +209,9 @@ export function ListStoryLayoutProvider({
     if (!enabled || !items.length || viewportHeight <= 0) {
       return null;
     }
-    return buildListStoryLayout({
-      items,
-      viewportHeight,
-      mapViewportHeight: mapViewportHeight || undefined,
-      heightsById,
-    });
-  }, [enabled, items, mapViewportHeight, viewportHeight, heightsById]);
+
+    return buildLayout(heightsById);
+  }, [enabled, items, viewportHeight, heightsById, buildLayout]);
 
   const value = useMemo(
     (): IListStoryLayoutContextValue => ({

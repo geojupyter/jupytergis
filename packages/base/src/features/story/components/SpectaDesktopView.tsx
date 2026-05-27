@@ -62,11 +62,7 @@ export function SpectaDesktopView({
   setIndex,
   onListScrollDriveChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  const viewMode =
-    storyData?.storyType === 'guided' || storyData?.storyType === 'unguided'
-      ? 'single'
-      : 'list';
-
+  const viewMode = storyData?.storyType === 'list' ? 'list' : 'single';
   const sentinelsEnabled = viewMode === 'single';
   const {
     scrollContainerRef,
@@ -81,7 +77,7 @@ export function SpectaDesktopView({
     [model, storyData],
   );
 
-  const presentationStyle = useMemo(
+  const spectaPresentationStyle = useMemo(
     () => getSpectaPresentationCssVars(storyData),
     [
       storyData?.storyType,
@@ -103,7 +99,9 @@ export function SpectaDesktopView({
       bindScrollContainer(null);
       return;
     }
+
     bindScrollContainer(scrollContainerRef.current);
+
     return () => {
       bindScrollContainer(null);
     };
@@ -164,7 +162,7 @@ export function SpectaDesktopView({
         <div
           ref={containerRef}
           className="jgis-specta-story-panel-container"
-          style={presentationStyle}
+          style={spectaPresentationStyle}
         >
           <div
             ref={scrollContainerRef}
