@@ -22,6 +22,7 @@ Backend-free JupyterGIS via JupyterLite runs entirely in the browser and does no
 - **Hillshade & heatmaps** — terrain and density visualization
 - **GDAL processing** — rasterize, warp, and translate directly in the browser or on the server
 - **STAC & OpenEO** — cloud-native data catalog and processing support
+- **Pangeo integration** — dynamic raster tile serving via [TiTiler](https://developmentseed.org/titiler/) backed by the Pangeo stack
 - **Identify tool** — click features to inspect their properties
 - **Layer gallery** — pre-built layer catalog for quick setup
 - **Embeddable** — use as a standalone map, an IDE, or from within a notebook
