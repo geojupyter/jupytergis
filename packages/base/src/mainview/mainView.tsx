@@ -666,7 +666,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   createSelectInteraction = () => {
     const selectInteraction = new Select({
-      hitTolerance: 5,
+      hitTolerance: 3,
       multi: true,
       layers: layer => {
         const localState = this._model?.sharedModel.awareness.getLocalState();
