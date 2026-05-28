@@ -87,11 +87,14 @@ export function buildListStoryLayout({
     segmentHeightForItem(item, viewportHeight, mapHeight, heightsById),
   );
 
+  const stageGap = mapHeight;
+
   let offset = 0;
   const segments: IListStorySegmentRange[] = items.map((item, i) => {
     const start = offset;
     const height = heights[i].height;
-    const end = start + height;
+    const gapAfter = i < items.length - 1 ? stageGap : 0;
+    const end = start + height + gapAfter;
     offset = end;
     return {
       id: item.id,

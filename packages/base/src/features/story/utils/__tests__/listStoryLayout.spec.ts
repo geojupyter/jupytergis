@@ -44,17 +44,17 @@ describe('buildListStoryLayout', () => {
     });
 
     expect(layout).not.toBeNull();
-    expect(layout!.trackHeight).toBe(850);
+    expect(layout!.trackHeight).toBe(1200);
     expect(layout!.segments[0]).toMatchObject({
       start: 0,
-      end: 350,
+      end: 700,
       height: 350,
       measured: true,
       contentMode: 'map',
     });
     expect(layout!.segments[1]).toMatchObject({
-      start: 350,
-      end: 850,
+      start: 700,
+      end: 1200,
       height: 500,
       measured: true,
     });
@@ -72,7 +72,7 @@ describe('buildListStoryLayout', () => {
 
     expect(layout!.segments[0]).toMatchObject({
       start: 0,
-      end: 120,
+      end: 520,
       height: 120,
       contentMode: 'markdown',
     });

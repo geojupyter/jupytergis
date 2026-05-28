@@ -23,20 +23,6 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-/** Progress 0..1 across layout gap until the next segment start meets viewport top. */
-function progressHandoff(
-  scrollTop: number,
-  fromSegment: IListStorySegmentRange,
-  toSegment: IListStorySegmentRange,
-): number | null {
-  const handoff = toSegment.start - fromSegment.start;
-  if (handoff <= 0) {
-    return null;
-  }
-
-  return clamp01((scrollTop - fromSegment.start) / handoff);
-}
-
 function findSegmentAt(
   scrollCenter: number,
   segments: IListStorySegmentRange[],
@@ -59,31 +45,21 @@ function computePairDrive(
   fromSegment: IListStorySegmentRange,
   toSegment: IListStorySegmentRange,
 ): IPairDriveResult | null {
-  if (
-    fromSegment.contentMode === 'markdown' &&
-    toSegment.contentMode === 'markdown'
-  ) {
-    if (scrollTop < fromSegment.start) {
-      return null;
-    }
-    if (scrollTop >= toSegment.end) {
-      return {
-        progress: 1,
-        activeIndex: toSegment.index,
-      };
-    }
-  } else {
-    const inHandoffZone =
-      scrollTop >= fromSegment.start && scrollTop < toSegment.start;
-    if (!inHandoffZone) {
-      return null;
-    }
-  }
-
-  const progress = progressHandoff(scrollTop, fromSegment, toSegment);
-  if (progress === null) {
+  if (scrollTop < fromSegment.start || scrollTop >= toSegment.end) {
     return null;
   }
+
+  const transitionEnd = toSegment.start;
+  const handoffSpan = transitionEnd - fromSegment.start;
+  if (handoffSpan <= 0) {
+    return null;
+  }
+
+  if (scrollTop >= transitionEnd) {
+    return null;
+  }
+
+  const progress = clamp01((scrollTop - fromSegment.start) / handoffSpan);
 
   return {
     progress,

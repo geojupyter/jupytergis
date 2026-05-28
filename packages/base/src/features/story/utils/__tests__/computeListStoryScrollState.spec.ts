@@ -1,5 +1,5 @@
 import { computeListStoryScrollState } from '../computeListStoryScrollState';
-import type { IListStorySegmentRange } from '../../types/storyDerived';
+import type { IListStorySegmentRange } from '@/src/features/story/types/types';
 
 const VIEWPORT = 100;
 
@@ -30,7 +30,6 @@ function compute(
     scrollTop,
     viewportHeight,
     segments,
-    prev: null,
   });
 }
 
@@ -154,16 +153,10 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('clamps markdown-to-markdown progress at scroll bottom', () => {
+  it('has no drive while scrolling through a segment body after handoff', () => {
     expect(compute(500, threeSegments)).toEqual({
       activeIndex: 2,
-      drive: {
-        progress: 1,
-        fromIndex: 1,
-        toIndex: 2,
-        fromMode: 'markdown',
-        toMode: 'markdown',
-      },
+      drive: null,
     });
   });
 
