@@ -136,6 +136,8 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     onPresentationModeEnabled: () => setCurTab('storyPanel'),
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
+  const isListStory =
+    props.model.getSelectedStory().story?.storyType === 'list';
 
   const { leftPanelDisabled, rightPanelDisabled } = props.settings;
 
@@ -200,7 +202,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       enabled: !rightPanelDisabled && !props.settings.storyMapsDisabled,
       content: (
         <>
-          {!storyMapPresentationMode && (
+          {!storyMapPresentationMode && !isListStory && (
             <PreviewModeSwitch
               checked={!editorMode}
               onCheckedChange={toggleEditor}

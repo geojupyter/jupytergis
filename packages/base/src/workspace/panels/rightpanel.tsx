@@ -95,6 +95,8 @@ interface IRightPanelProps {
 
 const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const { patchGeoJSONFeatureProperties } = props;
+  const isListStory =
+    props.model.getSelectedStory().story?.storyType === 'list';
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =
@@ -209,7 +211,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
               style={{ paddingTop: 0 }}
             >
               {/* Only show switch when NOT in presentation mode */}
-              {!storyMapPresentationMode && (
+              {!storyMapPresentationMode && !isListStory && (
                 <PreviewModeSwitch
                   checked={!editorMode}
                   onCheckedChange={toggleEditor}
