@@ -14,7 +14,7 @@ html_theme_options = {
         "navbar-icon-links",
     ],
     "external_links": [
-        {"name": "Try with JupyterLite", "url": "lite/lab/index.html"},
+        {"name": "Try", "url": "lite/lab/index.html"},
     ],
 }
 
@@ -51,7 +51,7 @@ myst_fence_as_directive = ["mermaid"]
 
 master_doc = "index"
 project = "JupyterGIS"
-html_title = "JupyterGIS docs"
+html_title = "JupyterGIS"
 copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"

@@ -50,16 +50,16 @@ Powered by [Notebook.link](https://notebook.link) and [JupyterLite](https://jupy
 
 ## Installation
 
-### pip
-
-```bash
-pip install jupytergis
-```
-
 ### Mamba (recommended)
 
 ```bash
 mamba install -c conda-forge jupytergis
+```
+
+### pip
+
+```bash
+pip install jupytergis
 ```
 
 ### Pixi
@@ -83,7 +83,7 @@ You can run JupyterGIS entirely in the browser using JupyterLite:
 1. Create a repository using the [xeus-lite-demo](https://github.com/jupyterlite/xeus-lite-demo) template.
 2. Edit `environment.yml` and add `jupytergis-lite`.
 3. Add your data and `.jGIS` files under the `content/` directory.
-4. Enable GitHub Pages under _Settings → Pages_.
+4. Under _Settings → Pages_ set the GitHub Pages deployment **source** to "GitHub Actions".
 
 > **Note:** Collaboration is not yet supported in JupyterLite static deployments.
 

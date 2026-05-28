@@ -38,11 +38,11 @@ For more details, check out [About JupyterGIS](about/index.md).
 :maxdepth: 2
 :caption: Documentation
 
-about/gallery
 about/index
 getting_started/index
 user_guide/index
 contributor_guide/index
+about/gallery
 ```
 
 ```{toctree}

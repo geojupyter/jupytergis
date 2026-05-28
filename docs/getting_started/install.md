@@ -3,11 +3,18 @@
 ## Mamba (recommended)
 
 :::{note}
-It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since you'll be able to install `qgis` at the same time, allowing you to open `.qgz` files.
+It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since
+you'll be able to install `qgis` at the same time, allowing you to open `.qgz` files.
 :::
 
 ```bash
 mamba install -c conda-forge jupytergis qgis
+```
+
+Once installed, launch JupyterLab:
+
+```bash
+jupyter lab
 ```
 
 ## pip
@@ -21,7 +28,17 @@ You're on your own!
 pip install jupytergis
 ```
 
-## Pixi
+Once installed, launch JupyterLab:
+
+```bash
+jupyter lab
+```
+
+## Run without installing
+
+These commands launch JupyterGIS directly without a permanent installation.
+
+### Pixi
 
 [Pixi](https://github.com/prefix-dev/pixi)
 
@@ -29,7 +46,7 @@ pip install jupytergis
 pixi exec --spec jupytergis --spec qgis jupyter lab
 ```
 
-## uv
+### uv
 
 [uv](https://github.com/astral-sh/uv)
 
@@ -37,7 +54,7 @@ pixi exec --spec jupytergis --spec qgis jupyter lab
 uv run --with jupytergis jupyter lab
 ```
 
-## Docker
+### Docker
 
 [Docker](https://www.docker.com/)
 
@@ -45,10 +62,4 @@ uv run --with jupytergis jupyter lab
 docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 ```
 
-## Launch
-
-Once JupyterGIS is installed, start JupyterLab:
-
-```bash
-jupyter lab
-```
+Docker build source: <https://github.com/geojupyter/jupytergis-docker>

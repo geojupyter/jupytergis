@@ -46,20 +46,16 @@ for server-side raster processing at scale.
 
 ## Architecture
 
-These design goals are reflected in a set of core architectural decisions.
-
-JupyterGIS is built around a few core design decisions that shape every part of the system.
-
 ### Browser-first
 
-JupyterGIS runs entirely in the browser by default, using [JupyterLite](https://jupyterlite.readthedocs.io/) and WebAssembly.
+JupyterGIS is browser-native by default, using WebAssembly to run tools like [GDAL](https://gdal.org) client-side, and it can be deployed as a zero-server JupyterLite site with full Python capabilities.
 This means anyone can open a map and start exploring without installing software or provisioning a server.
 Removing the server requirement drastically lowers the barrier to entry — a shared URL is all it takes to put a project in front of a collaborator, a student, or a reviewer.
 
 ### Compute kernels: browser or backend
 
-While the UI is browser-first, JupyterGIS integrates with compute kernels that can run either in the browser (via Xeus/WebAssembly) or on a traditional Jupyter server backend.
-This lets users start lightweight and scale up: quick exploration happens client-side, while heavy processing (GDAL, large raster analysis) can be offloaded to a server kernel.
+While the UI is browser-first, JupyterGIS integrates with compute kernels that can run either in the browser (via [Xeus](https://github.com/jupyter-xeus/xeus)/WebAssembly) or on a traditional Jupyter server backend.
+This lets users start lightweight and scale up: quick exploration happens client-side, while heavy processing can be offloaded via a server kernel accessing to powerful hardware.
 The same Python API and notebooks work in both modes, so workflows are portable between a local laptop, a JupyterHub deployment, and a zero-install JupyterLite link.
 
 ### Serializable document as source of truth
@@ -71,8 +67,7 @@ Because the document is a plain JSON file, it is easy to version-control, diff, 
 ### Decoupled renderer
 
 The map renderer is separated from the document schema and the user interface.
-Currently JupyterGIS delegates rendering to [OpenLayers](https://openlayers.org/), but the architecture does not hardcode this choice — other renderers (e.g. MapLibre, Cesium) are imaginable in the future.
-This separation means the `.jGIS` schema defines _what_ to display, while the renderer decides _how_, keeping the document format stable even as rendering technology evolves.
+Currently JupyterGIS delegates rendering to [OpenLayers](https://openlayers.org/), but the architecture tries to stay independent of this choice — other renderers (e.g. MapLibre, Cesium) are imaginable in the future.
 
 ### Flexible use within other UIs
 
@@ -86,12 +81,13 @@ This design allows modification, adaptation, and integration into other systems 
 
 ## Comparison with other GIS tools
 
-These architectural choices place JupyterGIS in a unique position in the GIS landscape — not a replacement for any single tool, but a new category at the intersection of collaborative editing, computational notebooks, and cloud-native geospatial.
+These architectural choices place JupyterGIS in a unique position in the GIS landscape — at the intersection of collaborative editing, computational notebooks, and cloud-native geospatial.
 
 ### QGIS
 
-[QGIS](https://qgis.org) is the leading open-source desktop GIS — mature, feature-rich, and backed by a huge community. As JupyterGIS, it is commited to open source and other open standards.
-JupyterGIS can import QGIS project files.
+[QGIS](https://qgis.org) is the leading open-source desktop GIS — mature, feature-rich, and backed by a huge community.
+As JupyterGIS, it is commited to open source and other open standards.
+JupyterGIS can import QGIS project files and is in that way interoperable with QGIS.
 
 **QGIS** is desktop-first: a powerful local IDE with efficient geoprocessing, rich cartography, print layouts, and a flexible plugin system.
 It excels at workflows that require deep local processing and offline work.
@@ -102,7 +98,7 @@ It is highly scriptable, AI-commandable, and collaborative-first via CRDTs (Yjs/
 
 ### ArcGIS
 
-[ArcGIS](https://www.esri.com/en-us/arcgis/about-arcgis/overview) (Esri) is the industry-standard commercial GIS platform — powerful, feature-complete, and mature across desktop, server, and cloud.
+[ArcGIS](https://www.esri.com/en-us/arcgis/about-arcgis/overview) (Esri) is the industry-standard commercial GIS platform — powerful, feature-complete, and mature.
 
 **ArcGIS** is proprietary with per-seat licensing and a deep ecosystem (Living Atlas, ArcGIS Online).
 It is the proprietary default choice for many organizations already invested in Esri infrastructure.
@@ -127,6 +123,7 @@ Like with ArcGIS, the key differences are openness, integrability, data sovereig
 **Felt** is a proprietary SaaS with a polished, Miro-like experience for visual collaboration. It does not support scripting, self-hosting, or integration with computational workflows.
 
 **JupyterGIS** shares the browser-first collaborative approach but adds integration with backend kernels, self-hosting, and deep integration with the scientific compute ecosystem for processing.
+As already stated it is open source and can be modified and integrated with other systems.
 
 ### Rendering libraries (MapLibre, OpenLayers, Leaflet, ...)
 
