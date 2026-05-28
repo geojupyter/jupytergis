@@ -19,41 +19,25 @@ interface IComputeListStoryOverlayHeightParams {
   activeSegmentIndex: number;
 }
 
-function estimatePaneHeight(
-  pane: IListStoryOverlayPaneHeightInput,
-  layout: IListStoryLayout | null,
-  stageHeight: number,
-): number {
-  if (pane.type === 'map') {
-    return stageHeight;
-  }
-  return getLayoutSegmentHeight(layout, pane.segmentIndex) ?? stageHeight;
-}
-
 export function computeListStoryOverlayHeight({
   stageHeight,
   layout,
-  fromPane,
   toPane,
   mode,
   activeSegmentIndex,
 }: IComputeListStoryOverlayHeightParams): number {
   const floor = Math.max(stageHeight, 0);
-  if (mode === 'at-rest') {
-    if (toPane.type === 'map') {
-      return floor;
-    }
-    const segment = getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;
-    return Math.max(floor, segment);
-  }
 
-  const sum =
-    estimatePaneHeight(fromPane, layout, floor) +
-    estimatePaneHeight(toPane, layout, floor);
-
-  if (sum <= 0) {
+  // Scroll-drive transforms move panes by one overlay-height over progress 0→1.
+  // That unit must be one stage viewport, not the sum of pane content heights.
+  if (mode === 'scroll-drive') {
     return floor;
   }
 
-  return Math.max(floor, sum);
+  if (toPane.type === 'map') {
+    return floor;
+  }
+
+  const segment = getLayoutSegmentHeight(layout, activeSegmentIndex) ?? floor;
+  return Math.max(floor, segment);
 }

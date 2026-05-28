@@ -110,7 +110,9 @@ export function ListStoryScrollDriveOverlay({
   drive,
 }: IListStoryScrollDriveOverlayProps): JSX.Element | null {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const stackRef = useRef<HTMLDivElement>(null);
   const [stageHeight, setStageHeight] = useState(0);
+  const [stackTravelPx, setStackTravelPx] = useState(0);
   const { layout } = useListStoryLayoutContext();
   const currentIndex = useCurrentSegmentIndex(model);
 
@@ -214,6 +216,38 @@ export function ListStoryScrollDriveOverlay({
     };
   }, [model, story]);
 
+  useLayoutEffect(() => {
+    if (!isDriveActive) {
+      setStackTravelPx(0);
+      return;
+    }
+
+    const stack = stackRef.current;
+    if (!stack) {
+      return;
+    }
+
+    const measure = (): void => {
+      const fromPane = stack.querySelector('[data-pane="from"]');
+      const gap = stack.querySelector('.jgis-story-scroll-drive-gap');
+      if (!(fromPane instanceof HTMLElement) || !(gap instanceof HTMLElement)) {
+        return;
+      }
+
+      const travel = fromPane.offsetHeight + gap.offsetHeight;
+      setStackTravelPx(prev => (prev === travel ? prev : travel));
+    };
+
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(stack);
+
+    return () => {
+      ro.disconnect();
+    };
+  }, [isDriveActive, fromIndex, toIndex, fromPaneConfig, toPaneConfig]);
+
   const overlaySized = stageHeight > 0;
 
   if (!model || !story || !activeItem) {
@@ -225,7 +259,7 @@ export function ListStoryScrollDriveOverlay({
       ref={overlayRef}
       className={`jgis-story-markdown-overlay${
         overlaySized ? ' jgis-story-markdown-overlay--sized' : ''
-      }`}
+      }${isDriveActive ? ' jgis-story-markdown-overlay--scroll-drive' : ''}`}
       style={
         {
           ...spectaPresentationStyle,
@@ -233,26 +267,41 @@ export function ListStoryScrollDriveOverlay({
           ...(overlaySized
             ? {
                 height: overlayHeight,
+                '--jgis-scroll-travel': `${stageHeight}px`,
+                '--jgis-stack-travel': `${stackTravelPx || stageHeight}px`,
                 '--jgis-overlay-height': `${overlayHeight}px`,
               }
             : {}),
         } as React.CSSProperties
       }
     >
-      <ScrollDrivePane
-        pane="from"
-        segmentIndex={fromIndex}
-        config={fromPaneConfig}
-        storyData={story}
-        items={items}
-      />
-      <ScrollDrivePane
-        pane="to"
-        segmentIndex={toIndex}
-        config={toPaneConfig}
-        storyData={story}
-        items={items}
-      />
+      {isDriveActive ? (
+        <div ref={stackRef} className="jgis-story-scroll-drive-stack">
+          <ScrollDrivePane
+            pane="from"
+            segmentIndex={fromIndex}
+            config={fromPaneConfig}
+            storyData={story}
+            items={items}
+          />
+          <div className="jgis-story-scroll-drive-gap" aria-hidden />
+          <ScrollDrivePane
+            pane="to"
+            segmentIndex={toIndex}
+            config={toPaneConfig}
+            storyData={story}
+            items={items}
+          />
+        </div>
+      ) : (
+        <ScrollDrivePane
+          pane="to"
+          segmentIndex={toIndex}
+          config={toPaneConfig}
+          storyData={story}
+          items={items}
+        />
+      )}
     </div>
   );
 }
