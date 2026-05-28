@@ -30,10 +30,6 @@ export function ListStoryMapOverlayPanel({
         currentIndex={segmentIndex}
         activeSlide={item.activeSlide}
         layerName={item.layerName}
-        handlePrev={() => {}}
-        handleNext={() => {}}
-        hasPrev={false}
-        hasNext={false}
       />
     </div>
   );

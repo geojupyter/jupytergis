@@ -24,10 +24,8 @@ interface IListStoryLayoutContextValue {
   bindScrollContainer: (element: HTMLDivElement | null) => void;
 }
 
-const ListStoryLayoutContext = createContext<IListStoryLayoutContextValue>({
-  layout: null,
-  bindScrollContainer: () => {},
-});
+const ListStoryLayoutContext =
+  createContext<IListStoryLayoutContextValue | null>(null);
 
 interface IListStoryLayoutProviderProps {
   model: IJupyterGISModel;
@@ -81,7 +79,9 @@ export function ListStoryLayoutProvider({
     mapViewportHeight > 0 ? mapViewportHeight : undefined;
 
   const buildLayout = useCallback(
-    (nextHeightsById: Readonly<Record<string, number>>): IListStoryLayout | null =>
+    (
+      nextHeightsById: Readonly<Record<string, number>>,
+    ): IListStoryLayout | null =>
       buildListStoryLayout({
         items,
         viewportHeight,
@@ -240,5 +240,11 @@ export function ListStoryLayoutProvider({
 }
 
 export function useListStoryLayoutContext(): IListStoryLayoutContextValue {
-  return useContext(ListStoryLayoutContext);
+  const value = useContext(ListStoryLayoutContext);
+  if (!value) {
+    throw new Error(
+      'useListStoryLayoutContext must be used within ListStoryLayoutProvider',
+    );
+  }
+  return value;
 }

@@ -16,9 +16,9 @@ import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaS
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
-import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 type StoryDesktopViewMode = 'single' | 'list';
@@ -115,7 +115,7 @@ export function SpectaDesktopView({
     items: segmentViewItems,
     currentIndex,
     setIndex,
-    onDriveChange: onListScrollDriveChange ?? (() => {}),
+    onDriveChange: onListScrollDriveChange,
   });
 
   const renderModeContent: Record<StoryDesktopViewMode, () => JSX.Element> = {

@@ -1,5 +1,5 @@
-import { computeListStoryScrollState } from '../computeListStoryScrollState';
 import type { IListStorySegmentRange } from '@/src/features/story/types/types';
+import { computeListStoryScrollState } from '../computeListStoryScrollState';
 
 const VIEWPORT = 100;
 

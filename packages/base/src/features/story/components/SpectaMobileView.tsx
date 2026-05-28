@@ -1,6 +1,7 @@
 import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
 
+import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
   Drawer,
@@ -8,7 +9,6 @@ import {
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
 import StoryViewerPanel from '../StoryViewerPanel';
-import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';

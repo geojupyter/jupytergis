@@ -73,7 +73,12 @@ export function useLazyListStoryMarkdownMeasure({
       heightsById,
       measuringSegmentId: measuringSegment?.id,
     });
-  }, [markdownSegments, currentSegmentIndex, heightsById, measuringSegment?.id]);
+  }, [
+    markdownSegments,
+    currentSegmentIndex,
+    heightsById,
+    measuringSegment?.id,
+  ]);
 
   const reportHeight = useCallback(
     (segmentId: string, height: number) => {

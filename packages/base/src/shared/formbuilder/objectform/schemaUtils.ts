@@ -43,7 +43,12 @@ export function removeNestedFormEntry(
   const parentSchema = schema.properties?.[parentKey] as IDict | undefined;
   const parentUiSchema = (uiSchema[parentKey] as UiSchema) ?? {};
 
-  removeFormEntry(entry, parentData, parentSchema as RJSFSchema, parentUiSchema);
+  removeFormEntry(
+    entry,
+    parentData,
+    parentSchema as RJSFSchema,
+    parentUiSchema,
+  );
   uiSchema[parentKey] = parentUiSchema;
 }
 

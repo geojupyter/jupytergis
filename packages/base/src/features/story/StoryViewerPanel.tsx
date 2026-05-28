@@ -18,10 +18,10 @@ interface IStoryViewerPanelProps {
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
   layerName: string;
-  handlePrev: () => void;
-  handleNext: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
+  handlePrev?: () => void;
+  handleNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
   /** Disable fade animation for list stories. */
   disableSegmentAnimation?: boolean;
 }
@@ -105,13 +105,6 @@ function StoryViewerPanel({
     );
   }
 
-  const storyNavBarProps = {
-    onPrev: handlePrev,
-    onNext: handleNext,
-    hasPrev,
-    hasNext,
-  };
-
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
   const storyType = storyData.storyType ?? 'guided';
   const navPlacement = getStoryNavPlacement(
@@ -122,8 +115,14 @@ function StoryViewerPanel({
   );
 
   const navSlot =
-    navPlacement !== null ? (
-      <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
+    navPlacement !== null && handlePrev && handleNext ? (
+      <StoryNavBar
+        placement={navPlacement}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        hasPrev={hasPrev ?? false}
+        hasNext={hasNext ?? false}
+      />
     ) : null;
 
   const transitionTime = activeSlide?.transition?.time ?? 0.3;

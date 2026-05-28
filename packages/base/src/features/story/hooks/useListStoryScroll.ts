@@ -36,7 +36,7 @@ interface IUseListStoryScrollParams {
   items: IStorySegmentViewItem[];
   currentIndex: number;
   setIndex: (index: number) => void;
-  onDriveChange: (payload: IListStoryScrollDrivePayload | null) => void;
+  onDriveChange?: (payload: IListStoryScrollDrivePayload | null) => void;
 }
 
 export function useListStoryScroll({
@@ -75,7 +75,7 @@ export function useListStoryScroll({
       activeIndex: currentIndexRef.current,
       drive: null,
     };
-    onDriveChangeRef.current(null);
+    onDriveChangeRef.current?.(null);
   }, []);
 
   const emitState = useCallback((next: IListStoryScrollState) => {
@@ -93,7 +93,7 @@ export function useListStoryScroll({
       return;
     }
 
-    onDriveChangeRef.current(drive);
+    onDriveChangeRef.current?.(drive);
   }, []);
 
   const computeAndEmit = useCallback(() => {

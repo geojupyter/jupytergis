@@ -10,6 +10,7 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
+import { useStorySegmentSync } from '@/src/features/story/hooks/useStorySegmentSync';
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
@@ -22,7 +23,6 @@ import {
   useStoryMap,
   type IOverrideLayerEntry,
 } from '../../features/story/hooks/useStoryMap';
-import { useStorySegmentSync } from '@/src/features/story/hooks/useStorySegmentSync';
 import {
   TabsRoot,
   TabsContent,

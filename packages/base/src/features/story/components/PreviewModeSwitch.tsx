@@ -21,11 +21,11 @@ export function PreviewModeSwitch({
         paddingBottom: '0',
       }}
     >
-      <label htmlFor='preview-mode-switch' style={{ fontSize: '0.875rem' }}>
+      <label htmlFor="preview-mode-switch" style={{ fontSize: '0.875rem' }}>
         Preview Mode
       </label>
       <Switch
-        id='preview-mode-switch'
+        id="preview-mode-switch"
         checked={checked}
         onCheckedChange={onCheckedChange}
       />
