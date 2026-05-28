@@ -1,6 +1,5 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
-  padding-right: 0;
   overflow: auto;
   position: relative;
 }
@@ -196,7 +195,7 @@
   width: 45%;
   align-items: center;
   font-size: var(--jp-ui-font-size3);
-  padding-right: 1.7rem;
+  padding-right: 0.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-font-color1));
   background-color: var(--jgis-specta-panel-color, var(--jp-layout-color0));
   overflow-y: auto;
