@@ -1,12 +1,11 @@
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { MimeModel } from '@jupyterlab/rendermime';
+import { MimeModel, type IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { Widget } from '@lumino/widgets';
 import React, {
   createContext,
   useContext,
   useLayoutEffect,
   useRef,
 } from 'react';
-import { Widget } from '@lumino/widgets';
 
 const StoryRenderMimeContext = createContext<IRenderMimeRegistry | null>(null);
 

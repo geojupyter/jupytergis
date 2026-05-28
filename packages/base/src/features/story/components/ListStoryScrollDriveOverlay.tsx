@@ -5,20 +5,20 @@ import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListSt
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
 import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
-import {
-  buildStorySegmentViewItems,
-  getStoryMarkdownFromSlide,
-} from '@/src/features/story/utils/storySegmentViewItems';
-import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import type {
   IListStoryScrollDrivePayload,
   StorySegmentDisplayMode,
+  IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import {
   computeListStoryOverlayHeight,
   type IListStoryOverlayPaneHeightInput,
 } from '@/src/features/story/utils/computeListStoryOverlayHeight';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import {
+  buildStorySegmentViewItems,
+  getStoryMarkdownFromSlide,
+} from '@/src/features/story/utils/storySegmentViewItems';
 import { getSegmentDisplayMode } from '../utils/listStoryLayout';
 
 interface IListStoryScrollDriveOverlayProps {

@@ -4,8 +4,8 @@ import { RefObject, useCallback, useEffect, useRef } from 'react';
 import type {
   IListStoryLayout,
   IStorySegmentViewItem,
+  IListStoryScrollDrivePayload,
 } from '@/src/features/story/types/types';
-import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
 import {
   computeListStoryScrollState,
   type IListStoryScrollState,
