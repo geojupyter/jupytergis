@@ -285,6 +285,7 @@
   box-sizing: border-box;
   background-color: transparent;
   align-items: flex-end;
+  padding-right: 1rem;
 }
 
 .jgis-story-map-overlay-content {
@@ -296,6 +297,10 @@
   box-sizing: border-box;
   border-radius: 8px;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 12px 28px rgba(0, 0, 0, 0.08);
 }
 
 .jgis-story-scroll-drive-pane.jgis-story-markdown-scroll-pane:not(
