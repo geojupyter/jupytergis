@@ -118,8 +118,12 @@ export class ProcessingFormDialog extends Dialog<IDict> {
         );
       }
 
-      // Ensure outputLayerName field exists in schema
-      if (!options.schema.properties?.outputLayerName) {
+      // Ensure outputLayerName field exists in schema. Skip if the schema
+      // already produces a file output (e.g. raster outputs use outputFileName).
+      if (
+        !options.schema.properties?.outputLayerName &&
+        !options.schema.properties?.outputFileName
+      ) {
         options.schema.properties.outputLayerName = {
           type: 'string',
           title: 'Output Layer Name',
