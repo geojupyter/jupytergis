@@ -7,6 +7,8 @@ import {
   IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
+
+import { STORY_TYPE } from '@/src/types';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
@@ -93,7 +95,7 @@ interface IRightPanelProps {
 const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const { patchGeoJSONFeatureProperties } = props;
   const isListStory =
-    props.model.getSelectedStory().story?.storyType === 'list';
+    props.model.getSelectedStory().story?.storyType === STORY_TYPE.list;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =

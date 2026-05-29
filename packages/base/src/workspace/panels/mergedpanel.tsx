@@ -6,6 +6,8 @@ import {
   IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
+
+import { STORY_TYPE } from '@/src/types';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
@@ -137,7 +139,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
   const isListStory =
-    props.model.getSelectedStory().story?.storyType === 'list';
+    props.model.getSelectedStory().story?.storyType === STORY_TYPE.list;
 
   const { leftPanelDisabled, rightPanelDisabled } = props.settings;
 

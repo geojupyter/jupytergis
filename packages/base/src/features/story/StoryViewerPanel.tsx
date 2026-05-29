@@ -1,6 +1,8 @@
 import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
+import { STORY_TYPE } from '@/src/types';
+
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
@@ -64,15 +66,15 @@ function getStoryNavPlacement(
   storyType: IJGISStoryMap['storyType'],
   isMobile: boolean,
 ): StoryNavPlacement | null {
-  if (storyType === 'list') {
+  if (storyType === STORY_TYPE.list) {
     return null;
   }
 
-  if (storyType === 'unguided') {
+  if (storyType === STORY_TYPE.unguided) {
     return isSpecta && !isMobile ? 'subtitle-specta' : null;
   }
 
-  if (storyType === 'guided') {
+  if (storyType === STORY_TYPE.guided) {
     if (isSpecta) {
       return isMobile ? null : 'subtitle-specta';
     }
@@ -108,7 +110,7 @@ function StoryViewerPanel({
   }
 
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-  const storyType = storyData.storyType ?? 'guided';
+  const storyType = storyData.storyType ?? STORY_TYPE.guided;
   const navPlacement = getStoryNavPlacement(
     isSpecta,
     hasImage,
@@ -142,7 +144,7 @@ function StoryViewerPanel({
   return (
     <div
       className={
-        storyData.storyType !== 'list' ? 'jgis-story-viewer-panel' : ''
+        storyData.storyType !== STORY_TYPE.list ? 'jgis-story-viewer-panel' : ''
       }
     >
       <div

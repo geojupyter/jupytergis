@@ -5,6 +5,8 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
+
+import { STORY_TYPE } from '@/src/types';
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 /** Entry for a layer affected by layer override
@@ -71,7 +73,7 @@ export function useStoryMap({
   const currentSegmentContentMode = activeSlide?.content?.contentMode;
 
   const showGradient = storyData?.showGradient ?? true;
-  const isGuidedStory = storyData?.storyType === 'guided';
+  const isGuidedStory = storyData?.storyType === STORY_TYPE.guided;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 

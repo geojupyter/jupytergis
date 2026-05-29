@@ -1,6 +1,8 @@
 import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect } from 'react';
 
+import { STORY_TYPE } from '@/src/types';
+
 interface IUseStorySegmentSyncParams {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap | null;
@@ -42,7 +44,7 @@ export function useStorySegmentSync({
 }: IUseStorySegmentSyncParams): void {
   useEffect(() => {
     const handleSelectedStorySegmentChanged = () => {
-      if (!storyData || storyData.storyType !== 'unguided') {
+      if (!storyData || storyData.storyType !== STORY_TYPE.unguided) {
         return;
       }
 

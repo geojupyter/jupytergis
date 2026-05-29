@@ -3,6 +3,7 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISWidget,
+  type StoryType,
 } from '@jupytergis/schema';
 import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
@@ -60,6 +61,12 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'GeoTiffLayer',
   'HeatmapLayer',
 ];
+
+export const STORY_TYPE = {
+  guided: 'guided',
+  unguided: 'unguided',
+  list: 'list',
+} as const satisfies Record<string, StoryType>;
 
 export interface IWmsLayerInfo {
   name: string;

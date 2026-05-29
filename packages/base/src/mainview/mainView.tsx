@@ -165,6 +165,7 @@ import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel
 import { ListStoryStageOverlay } from '../features/story/components/ListStoryStageOverlay';
 import { ListStoryScrollTrackProvider } from '../features/story/context/ListStoryScrollTrackContext';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
+import { STORY_TYPE } from '../types';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
@@ -2871,7 +2872,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const storyType = this._model.getSelectedStory().story?.storyType;
       // Don't want to handle next/prev logic in list mode
-      if (storyType === 'list') {
+      if (storyType === STORY_TYPE.list) {
         scrollContainer.scrollBy({ top: deltaY });
         return;
       }
@@ -3872,11 +3873,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 model={this._model}
                 enabled={
                   this.state.isSpectaPresentation &&
-                  this._model.getSelectedStory().story?.storyType === 'list'
+                  this._model.getSelectedStory().story?.storyType ===
+                    STORY_TYPE.list
                 }
               >
                 {this.state.isSpectaPresentation &&
-                this._model.getSelectedStory().story?.storyType === 'list' ? (
+                this._model.getSelectedStory().story?.storyType ===
+                  STORY_TYPE.list ? (
                   <ListStoryStageOverlay
                     model={this._model}
                     segmentTransition={this.state.segmentTransition}

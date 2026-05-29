@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
+import { STORY_TYPE } from '@/src/types';
 import { ListStoryVirtualScrollTrack } from '@/src/features/story/components/ListStoryVirtualScrollTrack';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
@@ -62,7 +63,8 @@ export function SpectaDesktopView({
   setIndex,
   onSegmentTransitionChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  const viewMode = storyData?.storyType === 'list' ? 'list' : 'single';
+  const viewMode =
+    storyData?.storyType === STORY_TYPE.list ? 'list' : 'single';
   const sentinelsEnabled = viewMode === 'single';
   const {
     scrollContainerRef,
@@ -89,7 +91,7 @@ export function SpectaDesktopView({
   const segmentTransitionSyncEnabled =
     Boolean(onSegmentTransitionChange) &&
     viewMode === 'list' &&
-    storyData?.storyType === 'list';
+    storyData?.storyType === STORY_TYPE.list;
 
   const { scrollTrackLayout, bindScrollTrackElement } =
     useListStoryScrollTrackContext();
