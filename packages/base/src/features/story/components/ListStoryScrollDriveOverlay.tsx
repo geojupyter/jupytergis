@@ -3,17 +3,12 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
 import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
-import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import type {
   IListStoryScrollDrivePayload,
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
-import {
-  computeListStoryOverlayHeight,
-  type IListStoryOverlayPaneHeightInput,
-} from '@/src/features/story/utils/computeListStoryOverlayHeight';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   buildStorySegmentViewItems,
@@ -49,16 +44,6 @@ function buildPaneConfig(
     type: 'markdown',
     markdown: getStoryMarkdownFromSlide(item.activeSlide),
   };
-}
-
-function paneConfigToHeightInput(
-  config: ScrollDrivePaneConfig,
-  segmentIndex: number,
-): IListStoryOverlayPaneHeightInput {
-  if (config.type === 'map') {
-    return { type: 'map', segmentIndex: config.segmentIndex };
-  }
-  return { type: 'markdown', segmentIndex };
 }
 
 interface IScrollDrivePaneProps {
@@ -113,7 +98,6 @@ export function ListStoryScrollDriveOverlay({
   const stackRef = useRef<HTMLDivElement>(null);
   const [stageHeight, setStageHeight] = useState(0);
   const [stackTravelPx, setStackTravelPx] = useState(0);
-  const { layout } = useListStoryLayoutContext();
   const currentIndex = useCurrentSegmentIndex(model);
 
   const story = model?.getSelectedStory().story ?? null;
@@ -169,29 +153,7 @@ export function ListStoryScrollDriveOverlay({
     };
   }, [items, activeItem, currentIndex, activeMode, drive]);
 
-  const overlayHeightMode = isDriveActive ? 'scroll-drive' : 'at-rest';
-
-  const overlayHeight = useMemo(
-    () =>
-      computeListStoryOverlayHeight({
-        stageHeight,
-        layout,
-        fromPane: paneConfigToHeightInput(fromPaneConfig, fromIndex),
-        toPane: paneConfigToHeightInput(toPaneConfig, toIndex),
-        mode: overlayHeightMode,
-        activeSegmentIndex: currentIndex,
-      }),
-    [
-      stageHeight,
-      layout,
-      fromPaneConfig,
-      fromIndex,
-      toPaneConfig,
-      toIndex,
-      overlayHeightMode,
-      currentIndex,
-    ],
-  );
+  const overlayHeight = Math.max(stageHeight, 0);
 
   useLayoutEffect(() => {
     const parent = overlayRef.current?.parentElement;
@@ -269,7 +231,6 @@ export function ListStoryScrollDriveOverlay({
                 height: overlayHeight,
                 '--jgis-scroll-travel': `${stageHeight}px`,
                 '--jgis-stack-travel': `${stackTravelPx || stageHeight}px`,
-                '--jgis-overlay-height': `${overlayHeight}px`,
               }
             : {}),
         } as React.CSSProperties
