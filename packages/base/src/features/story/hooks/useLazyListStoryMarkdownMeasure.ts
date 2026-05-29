@@ -1,41 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { IListStoryMarkdownSegment } from '@/src/features/story/types/types';
-
-const MEASURE_LOOKAHEAD = 2;
-
-interface IBuildPendingMeasureIdsParams {
-  markdownSegments: IListStoryMarkdownSegment[];
-  currentSegmentIndex: number;
-  heightsById: Readonly<Record<string, number>>;
-  measuringSegmentId: string | undefined;
-}
-
-function buildPendingMeasureIds({
-  markdownSegments,
-  currentSegmentIndex,
-  heightsById,
-  measuringSegmentId,
-}: IBuildPendingMeasureIdsParams): string[] {
-  const pending = markdownSegments
-    .filter(
-      segment =>
-        Math.abs(segment.index - currentSegmentIndex) <= MEASURE_LOOKAHEAD &&
-        heightsById[segment.id] === undefined,
-    )
-    .sort(
-      (a, b) =>
-        Math.abs(a.index - currentSegmentIndex) -
-        Math.abs(b.index - currentSegmentIndex),
-    )
-    .map(segment => segment.id);
-
-  if (!measuringSegmentId) {
-    return pending;
-  }
-
-  return pending.filter(id => id !== measuringSegmentId);
-}
+import { buildPendingMeasureIds } from '@/src/features/story/utils/listStoryMeasureQueue';
 
 interface IUseLazyListStoryMarkdownMeasureParams {
   enabled: boolean;
