@@ -32,6 +32,7 @@
       "name": "Cristo Redentor",
       "parameters": {
         "content": {
+          "contentMode": "map",
           "image": "https://images.pexels.com/photos/2771080/pexels-photo-2771080.jpeg",
           "markdown": "**Christ the Redeemer** (Portuguese: *Cristo Redentor*, standard Brazilian Portuguese: [\u02c8k\u027eistu \u0281ed\u1ebd\u02c8to\u0281]) is an Art Deco statue of Jesus in Rio de Janeiro, Brazil, created by French-Polish sculptor Paul Landowski and built by Brazilian engineer Heitor da Silva Costa, in collaboration with French engineer Albert Caquot.",
           "title": "The Redeemer"
@@ -56,6 +57,7 @@
       "name": "La Libert\u00e9 \u00e9clairant le monde",
       "parameters": {
         "content": {
+          "contentMode": "map",
           "image": "https://images.pexels.com/photos/356844/pexels-photo-356844.jpeg",
           "markdown": "**The Statue of Liberty** (Liberty Enlightening the World; French: *La Libert\u00e9 \u00e9clairant le monde*) is a colossal neoclassical sculpture of a robed and crowned female on Liberty Island in New York Harbor, within New York City.",
           "title": "The Statue of Liberty"
@@ -100,6 +102,7 @@
       "name": "Le Penseur",
       "parameters": {
         "content": {
+          "contentMode": "map",
           "image": "https://images.pexels.com/photos/6486115/pexels-photo-6486115.jpeg",
           "markdown": "**The Thinker** (French: *Le Penseur*), by Auguste Rodin, is a bronze sculpture depicting a nude male figure of heroic size, seated on a large rock, leaning forward, his right elbow placed upon his left thigh, with the back of his right hand supporting his chin in a posture evocative of deep thought and contemplation.",
           "title": "The Thinker"
@@ -125,10 +128,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      255902.57081839617,
-      6247863.970675482,
-      260467.57972160925,
-      6252917.651361377
+      255953.47412909212,
+      6248539.966641525,
+      260416.6764109133,
+      6252241.655395335
     ],
     "latitude": 48.855574302496535,
     "longitude": 2.319315992465925,
@@ -136,11 +139,12 @@
     "projection": "EPSG:3857",
     "zoom": 15.230368389488868
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "19ef5002-5670-4c17-b53f-44a48b739158": {
       "name": "Marker",
       "parameters": {
+        "color": "",
         "feature": {
           "coords": [
             257771.740387152,
@@ -192,6 +196,7 @@
     "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
       "presentationBgColor": "#171B2C",
       "presentationTextColor": "#AEBAD3",
+      "showGradient": true,
       "storySegments": [
         "5f790e80-230b-4c00-8426-b3a9385937a5",
         "8591b32f-11c0-4d70-a997-e94d258bb100",
@@ -200,5 +205,6 @@
       "storyType": "guided",
       "title": "Famous Statues"
     }
-  }
+  },
+  "viewState": {}
 }
