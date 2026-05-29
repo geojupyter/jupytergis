@@ -55,7 +55,7 @@ Removing the server requirement drastically lowers the barrier to entry — a sh
 ### Compute kernels: browser or backend
 
 While the UI is browser-first, JupyterGIS integrates with compute kernels that can run either in the browser (via [Xeus](https://github.com/jupyter-xeus/xeus)/WebAssembly) or on a traditional Jupyter server backend.
-This lets users start lightweight and scale up: quick exploration happens client-side, while heavy processing can be offloaded via a server kernel accessing to powerful hardware.
+This lets users start lightweight and scale up: quick exploration happens client-side, while heavy processing can be offloaded via a server kernel with access to powerful hardware.
 The same Python API and notebooks work in both modes, so workflows are portable between a local laptop, a JupyterHub deployment, and a zero-install JupyterLite link.
 
 ### Serializable document as source of truth
