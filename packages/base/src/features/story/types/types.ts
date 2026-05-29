@@ -2,8 +2,9 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
-export interface IListStoryScrollDrivePayload {
-  /** 0-1: viewport center between segment i and i+1 in list scroll space */
+/** Active handoff between two segments while scrolling the virtual track. */
+export interface IListStorySegmentTransition {
+  /** 0–1 across the handoff span (outgoing segment + gap + incoming segment). */
   progress: number;
   fromIndex: number;
   toIndex: number;
@@ -24,7 +25,7 @@ export interface IListStoryMarkdownSegment {
   markdown: string;
 }
 
-export interface IListStorySegmentRange {
+export interface IListStoryScrollTrackSegment {
   id: string;
   index: number;
   contentMode: StorySegmentDisplayMode;
@@ -36,8 +37,8 @@ export interface IListStorySegmentRange {
   end: number;
 }
 
-export interface IListStoryLayout {
-  segments: IListStorySegmentRange[];
-  /** Sum of segment heights (virtual track height). */
-  trackHeight: number;
+export interface IListStoryScrollTrackLayout {
+  segments: IListStoryScrollTrackSegment[];
+  /** Sum of segment heights and handoff gaps (virtual track height). */
+  scrollTrackHeight: number;
 }

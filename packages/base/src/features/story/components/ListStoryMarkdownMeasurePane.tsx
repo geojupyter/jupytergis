@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 
-import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
+import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListStoryOverlayMarkdown';
 
 interface IListStoryMarkdownMeasurePaneProps {
   segmentId: string;
@@ -79,7 +79,7 @@ export function ListStoryMarkdownMeasurePane({
     >
       <div ref={contentRef}>
         {markdown ? (
-          <StoryScrollDriveMarkdown
+          <ListStoryOverlayMarkdown
             source={markdown}
             onRendered={handleRendered}
           />

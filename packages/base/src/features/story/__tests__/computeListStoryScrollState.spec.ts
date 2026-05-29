@@ -1,4 +1,4 @@
-import { IListStorySegmentRange } from '../types/types';
+import { IListStoryScrollTrackSegment } from '../types/types';
 import { computeListStoryScrollState } from '../utils/computeListStoryScrollState';
 import {
   layoutSegments,
@@ -9,7 +9,7 @@ const VIEWPORT = 100;
 
 function compute(
   scrollTop: number,
-  segments: IListStorySegmentRange[],
+  segments: IListStoryScrollTrackSegment[],
   viewportHeight = VIEWPORT,
 ) {
   return computeListStoryScrollState({
@@ -20,7 +20,7 @@ function compute(
 }
 
 function handoffSpan(
-  segments: IListStorySegmentRange[],
+  segments: IListStoryScrollTrackSegment[],
   pairIndex: number,
 ): number {
   const from = segments[pairIndex];
@@ -49,7 +49,7 @@ describe('computeListStoryScrollState', () => {
 
     expect(compute(50, segments)).toEqual({
       activeIndex: 0,
-      drive: null,
+      segmentTransition: null,
     });
   });
 
@@ -66,7 +66,7 @@ describe('computeListStoryScrollState', () => {
 
     expect(compute(0, segments)).toEqual({
       activeIndex: 0,
-      drive: {
+      segmentTransition: {
         progress: 0,
         fromIndex: 0,
         toIndex: 1,
@@ -76,12 +76,12 @@ describe('computeListStoryScrollState', () => {
     });
 
     const midGapScroll = 500;
-    expect(compute(midGapScroll, segments)?.drive?.progress).toBeCloseTo(
+    expect(compute(midGapScroll, segments)?.segmentTransition?.progress).toBeCloseTo(
       midGapScroll / span,
       5,
     );
 
-    expect(compute(span - 1, segments)?.drive?.progress).toBeCloseTo(
+    expect(compute(span - 1, segments)?.segmentTransition?.progress).toBeCloseTo(
       (span - 1) / span,
       5,
     );
@@ -96,7 +96,7 @@ describe('computeListStoryScrollState', () => {
     });
 
     const seg1Start = segments[1].start;
-    expect(compute(seg1Start, segments)?.drive).toEqual({
+    expect(compute(seg1Start, segments)?.segmentTransition).toEqual({
       progress: 0,
       fromIndex: 1,
       toIndex: 2,
@@ -105,7 +105,7 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('has no drive in the last segment body after its handoff completes', () => {
+  it('has no segmentTransition in the last segment body after its handoff completes', () => {
     const segments = layoutSegments({
       items: threeSegmentItems,
       viewportHeight: 400,
@@ -116,7 +116,7 @@ describe('computeListStoryScrollState', () => {
     const bodyScroll = segments[2].start + 100;
     expect(compute(bodyScroll, segments)).toEqual({
       activeIndex: 2,
-      drive: null,
+      segmentTransition: null,
     });
   });
 
@@ -133,13 +133,13 @@ describe('computeListStoryScrollState', () => {
 
     const state = compute(scrollInSecondHandoff, segments);
     expect(state?.activeIndex).toBe(1);
-    expect(state?.drive).toMatchObject({
+    expect(state?.segmentTransition).toMatchObject({
       fromIndex: 1,
       toIndex: 2,
       fromMode: 'markdown',
       toMode: 'map',
     });
-    expect(state?.drive?.progress).toBeCloseTo(0.35, 2);
+    expect(state?.segmentTransition?.progress).toBeCloseTo(0.35, 2);
   });
 
   it('flips activeIndex at progress 0.5 during handoff', () => {
@@ -171,7 +171,7 @@ describe('computeListStoryScrollState', () => {
 
     expect(compute(600, segments, 439)).toEqual({
       activeIndex: 0,
-      drive: {
+      segmentTransition: {
         progress: 600 / span,
         fromIndex: 0,
         toIndex: 1,
@@ -181,7 +181,7 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('has no drive before the first segment', () => {
+  it('has no segmentTransition before the first segment', () => {
     const segments = layoutSegments({
       items: twoSegmentItems,
       viewportHeight: 400,
@@ -191,7 +191,7 @@ describe('computeListStoryScrollState', () => {
 
     expect(compute(-50, segments)).toEqual({
       activeIndex: 0,
-      drive: null,
+      segmentTransition: null,
     });
   });
 
@@ -202,7 +202,7 @@ describe('computeListStoryScrollState', () => {
         { id: '1', index: 1, start: 200, end: 200, height: 0, measured: true, contentMode: 'map' },
         { id: '2', index: 2, start: 200, end: 400, height: 200, measured: true, contentMode: 'map' },
       ]),
-    ).toEqual({ activeIndex: 2, drive: null });
+    ).toEqual({ activeIndex: 2, segmentTransition: null });
   });
 
   it('clamps progress to [0, 1]', () => {
@@ -213,8 +213,8 @@ describe('computeListStoryScrollState', () => {
       heightsById: { md: 500 },
     });
 
-    const drive = compute(0, segments)?.drive;
-    expect(drive?.progress).toBeGreaterThanOrEqual(0);
-    expect(drive?.progress).toBeLessThanOrEqual(1);
+    const segmentTransition = compute(0, segments)?.segmentTransition;
+    expect(segmentTransition?.progress).toBeGreaterThanOrEqual(0);
+    expect(segmentTransition?.progress).toBeLessThanOrEqual(1);
   });
 });

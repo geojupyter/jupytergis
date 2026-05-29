@@ -5,7 +5,7 @@ import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
-import { StoryRenderMimeProvider } from '@/src/features/story/components/StoryScrollDriveMarkdown';
+import { StoryRenderMimeProvider } from '@/src/features/story/components/ListStoryOverlayMarkdown';
 import { MainViewWithMediaQuery } from '@/src/mainview/mainView';
 import { MainViewModel } from '@/src/mainview/mainviewmodel';
 

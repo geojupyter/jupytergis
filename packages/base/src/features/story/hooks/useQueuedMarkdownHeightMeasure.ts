@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { IListStoryMarkdownSegment } from '@/src/features/story/types/types';
 import { buildPendingMeasureIds } from '@/src/features/story/utils/listStoryMeasureQueue';
 
-interface IUseLazyListStoryMarkdownMeasureParams {
+interface IUseQueuedMarkdownHeightMeasureParams {
   enabled: boolean;
   markdownSegments: IListStoryMarkdownSegment[];
   currentSegmentIndex: number;
@@ -11,8 +11,8 @@ interface IUseLazyListStoryMarkdownMeasureParams {
   onHeight: (segmentId: string, height: number) => void;
 }
 
-interface ILazyListStoryMarkdownMeasureState {
-  measuringSegment: IListStoryMarkdownSegment | null;
+interface IQueuedMarkdownHeightMeasureState {
+  segmentBeingMeasured: IListStoryMarkdownSegment | null;
   reportHeight: (segmentId: string, height: number) => void;
   completeMeasure: () => void;
 }
@@ -21,14 +21,14 @@ interface ILazyListStoryMarkdownMeasureState {
  * Queues markdown segments near the active index and measures them one at a time
  * in a shared off-screen pane (see ListStoryMarkdownMeasurePane).
  */
-export function useLazyListStoryMarkdownMeasure({
+export function useQueuedMarkdownHeightMeasure({
   enabled,
   markdownSegments,
   currentSegmentIndex,
   heightsById,
   onHeight,
-}: IUseLazyListStoryMarkdownMeasureParams): ILazyListStoryMarkdownMeasureState {
-  const [measuringSegment, setMeasuringSegment] =
+}: IUseQueuedMarkdownHeightMeasureParams): IQueuedMarkdownHeightMeasureState {
+  const [segmentBeingMeasured, setSegmentBeingMeasured] =
     useState<IListStoryMarkdownSegment | null>(null);
   const queueRef = useRef<string[]>([]);
 
@@ -37,13 +37,13 @@ export function useLazyListStoryMarkdownMeasure({
       markdownSegments,
       currentSegmentIndex,
       heightsById,
-      measuringSegmentId: measuringSegment?.id,
+      measuringSegmentId: segmentBeingMeasured?.id,
     });
   }, [
     markdownSegments,
     currentSegmentIndex,
     heightsById,
-    measuringSegment?.id,
+    segmentBeingMeasured?.id,
   ]);
 
   const reportHeight = useCallback(
@@ -54,18 +54,18 @@ export function useLazyListStoryMarkdownMeasure({
   );
 
   const completeMeasure = useCallback(() => {
-    setMeasuringSegment(null);
+    setSegmentBeingMeasured(null);
   }, []);
 
   useEffect(() => {
     if (!enabled) {
-      setMeasuringSegment(null);
+      setSegmentBeingMeasured(null);
       queueRef.current = [];
       return;
     }
     refillQueue();
 
-    if (measuringSegment) {
+    if (segmentBeingMeasured) {
       return;
     }
 
@@ -76,16 +76,16 @@ export function useLazyListStoryMarkdownMeasure({
 
     const segment = markdownSegments.find(item => item.id === nextId);
     if (segment) {
-      setMeasuringSegment(segment);
+      setSegmentBeingMeasured(segment);
     }
   }, [
     enabled,
     currentSegmentIndex,
     markdownSegments,
     heightsById,
-    measuringSegment,
+    segmentBeingMeasured,
     refillQueue,
   ]);
 
-  return { measuringSegment, reportHeight, completeMeasure };
+  return { segmentBeingMeasured, reportHeight, completeMeasure };
 }

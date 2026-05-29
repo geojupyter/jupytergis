@@ -1,8 +1,8 @@
 import {
-  buildListStoryLayout,
+  buildListStoryScrollTrack,
   estimateMarkdownHeight,
   getSegmentDisplayMode,
-} from '../utils/listStoryLayout';
+} from '../utils/listStoryScrollTrack';
 import { storyItem } from './fixtures/listStoryTestItems';
 
 describe('getSegmentDisplayMode', () => {
@@ -31,19 +31,21 @@ describe('estimateMarkdownHeight', () => {
   });
 });
 
-describe('buildListStoryLayout', () => {
+describe('buildListStoryScrollTrack', () => {
   it('returns null for empty items or zero viewport', () => {
-    expect(buildListStoryLayout({ items: [], viewportHeight: 600 })).toBeNull();
     expect(
-      buildListStoryLayout({
+      buildListStoryScrollTrack({ items: [], viewportHeight: 600 }),
+    ).toBeNull();
+    expect(
+      buildListStoryScrollTrack({
         items: [storyItem('a', 0, 'map')],
         viewportHeight: 0,
       }),
     ).toBeNull();
   });
 
-  it('chains segments with a stage gap after each except the last', () => {
-    const layout = buildListStoryLayout({
+  it('chains segments with a handoff gap after each except the last', () => {
+    const layout = buildListStoryScrollTrack({
       items: [
         storyItem('a', 0, 'map'),
         storyItem('b', 1, 'markdown', 'line\nline'),
@@ -55,7 +57,7 @@ describe('buildListStoryLayout', () => {
     });
 
     expect(layout).not.toBeNull();
-    const { segments } = layout;
+    const { segments } = layout!;
     const gap = 350;
 
     expect(segments[0]).toMatchObject({
@@ -81,36 +83,36 @@ describe('buildListStoryLayout', () => {
 
     expect(segments[1].start).toBe(segments[0].end);
     expect(segments[2].start).toBe(segments[1].end);
-    expect(layout.trackHeight).toBe(segments[2].end);
+    expect(layout!.scrollTrackHeight).toBe(segments[2].end);
   });
 
   it('uses map viewport height for map segments, not heightsById', () => {
-    const layout = buildListStoryLayout({
+    const layout = buildListStoryScrollTrack({
       items: [storyItem('map', 0, 'map')],
       viewportHeight: 400,
       mapViewportHeight: 350,
       heightsById: { map: 999 },
     });
 
-    expect(layout.segments[0].height).toBe(350);
+    expect(layout!.segments[0].height).toBe(350);
   });
 
   it('estimates unmeasured markdown with measured false', () => {
-    const layout = buildListStoryLayout({
+    const layout = buildListStoryScrollTrack({
       items: [storyItem('md', 0, 'markdown', 'short')],
       viewportHeight: 400,
     });
 
-    expect(layout.segments[0]).toMatchObject({
+    expect(layout!.segments[0]).toMatchObject({
       start: 0,
       measured: false,
       contentMode: 'markdown',
     });
-    expect(layout.segments[0].height).toBeGreaterThanOrEqual(200);
+    expect(layout!.segments[0].height).toBeGreaterThanOrEqual(200);
   });
 
   it('starts markdown-first stories at offset zero', () => {
-    const layout = buildListStoryLayout({
+    const layout = buildListStoryScrollTrack({
       items: [
         storyItem('md', 0, 'markdown', 'short'),
         storyItem('map', 1, 'map'),
@@ -120,7 +122,7 @@ describe('buildListStoryLayout', () => {
       heightsById: { md: 120 },
     });
 
-    expect(layout.segments[0]).toMatchObject({
+    expect(layout!.segments[0]).toMatchObject({
       start: 0,
       end: 120 + 350,
       height: 120,

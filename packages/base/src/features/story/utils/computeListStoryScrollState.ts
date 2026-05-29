@@ -1,20 +1,20 @@
 import type {
-  IListStoryScrollDrivePayload,
-  IListStorySegmentRange,
+  IListStorySegmentTransition,
+  IListStoryScrollTrackSegment,
 } from '@/src/features/story/types/types';
 
 export interface IListStoryScrollState {
   activeIndex: number;
-  drive: IListStoryScrollDrivePayload | null;
+  segmentTransition: IListStorySegmentTransition | null;
 }
 
 interface IComputeListStoryScrollInput {
   scrollTop: number;
   viewportHeight: number;
-  segments: IListStorySegmentRange[];
+  segments: IListStoryScrollTrackSegment[];
 }
 
-interface IPairDriveResult {
+interface IPairTransitionResult {
   progress: number;
   activeIndex: number;
 }
@@ -23,10 +23,10 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function findSegmentAt(
+function findSegmentAtScrollCenter(
   scrollCenter: number,
-  segments: IListStorySegmentRange[],
-): IListStorySegmentRange {
+  segments: IListStoryScrollTrackSegment[],
+): IListStoryScrollTrackSegment {
   if (scrollCenter < segments[0].start) {
     return segments[0];
   }
@@ -40,22 +40,22 @@ function findSegmentAt(
   return segments[segments.length - 1];
 }
 
-function computePairDrive(
+function computePairTransition(
   scrollTop: number,
-  fromSegment: IListStorySegmentRange,
-  toSegment: IListStorySegmentRange,
-): IPairDriveResult | null {
+  fromSegment: IListStoryScrollTrackSegment,
+  toSegment: IListStoryScrollTrackSegment,
+): IPairTransitionResult | null {
   if (scrollTop < fromSegment.start || scrollTop >= toSegment.end) {
     return null;
   }
 
-  const transitionEnd = toSegment.start;
-  const handoffSpan = transitionEnd - fromSegment.start;
+  const handoffEndScrollTop = toSegment.start;
+  const handoffSpan = handoffEndScrollTop - fromSegment.start;
   if (handoffSpan <= 0) {
     return null;
   }
 
-  if (scrollTop >= transitionEnd) {
+  if (scrollTop >= handoffEndScrollTop) {
     return null;
   }
 
@@ -67,11 +67,11 @@ function computePairDrive(
   };
 }
 
-function buildDrivePayload(
-  fromSegment: IListStorySegmentRange,
-  toSegment: IListStorySegmentRange,
+function buildSegmentTransitionPayload(
+  fromSegment: IListStoryScrollTrackSegment,
+  toSegment: IListStoryScrollTrackSegment,
   progress: number,
-): IListStoryScrollDrivePayload {
+): IListStorySegmentTransition {
   return {
     progress,
     fromIndex: fromSegment.index,
@@ -93,7 +93,7 @@ export function computeListStoryScrollState({
   if (segments.length === 1) {
     return {
       activeIndex: segments[0].index,
-      drive: null,
+      segmentTransition: null,
     };
   }
 
@@ -101,22 +101,30 @@ export function computeListStoryScrollState({
     const fromSegment = segments[i];
     const toSegment = segments[i + 1];
 
-    const pairDrive = computePairDrive(scrollTop, fromSegment, toSegment);
-    if (!pairDrive) {
+    const pairTransition = computePairTransition(
+      scrollTop,
+      fromSegment,
+      toSegment,
+    );
+    if (!pairTransition) {
       continue;
     }
 
     return {
-      activeIndex: pairDrive.activeIndex,
-      drive: buildDrivePayload(fromSegment, toSegment, pairDrive.progress),
+      activeIndex: pairTransition.activeIndex,
+      segmentTransition: buildSegmentTransitionPayload(
+        fromSegment,
+        toSegment,
+        pairTransition.progress,
+      ),
     };
   }
 
   const scrollCenter = scrollTop + viewportHeight / 2;
-  const activeSegment = findSegmentAt(scrollCenter, segments);
+  const activeSegment = findSegmentAtScrollCenter(scrollCenter, segments);
 
   return {
     activeIndex: activeSegment.index,
-    drive: null,
+    segmentTransition: null,
   };
 }

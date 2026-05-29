@@ -208,21 +208,21 @@
   overscroll-behavior: contain;
 }
 
-.jgis-story-markdown-overlay {
+.jgis-story-stage-overlay {
   position: absolute;
   inset: 0;
   z-index: 5;
 }
 
-.jgis-story-markdown-overlay--sized {
+.jgis-story-stage-overlay--sized {
   bottom: auto;
 }
 
-.jgis-story-markdown-overlay--scroll-drive {
+.jgis-story-stage-overlay--transitioning {
   overflow: hidden;
 }
 
-.jgis-story-scroll-drive-stack {
+.jgis-story-segment-transition-stack {
   position: absolute;
   left: 0;
   right: 0;
@@ -231,32 +231,35 @@
   flex-direction: column;
   transform: translateY(
     calc(
-      var(--jgis-scroll-drive-progress, 0) * -1 *
-        var(--jgis-stack-travel, var(--jgis-scroll-travel, 100%))
+      var(--jgis-segment-transition-progress, 0) * -1 *
+        var(
+          --jgis-transition-translate,
+          var(--jgis-handoff-gap-height, 100%)
+        )
     )
   );
 }
 
-.jgis-story-scroll-drive-gap {
+.jgis-story-segment-transition-gap {
   flex-shrink: 0;
-  height: var(--jgis-scroll-travel, 100%);
+  height: var(--jgis-handoff-gap-height, 100%);
   width: 100%;
   pointer-events: none;
 }
 
-.jgis-story-scroll-drive-stack .jgis-story-scroll-drive-pane {
+.jgis-story-segment-transition-stack .jgis-story-segment-overlay-pane {
   position: relative;
   flex-shrink: 0;
 }
 
-.jgis-story-markdown-overlay-content {
+.jgis-story-stage-overlay-content {
   max-width: 60rem;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
   margin: 0 auto;
   padding: 1rem;
 }
 
-.jgis-story-scroll-drive-pane {
+.jgis-story-segment-overlay-pane {
   position: absolute;
   left: 0;
   right: 0;
@@ -270,9 +273,9 @@
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
 }
 
-.jgis-story-scroll-drive-stack .jgis-story-map-scroll-pane {
-  height: var(--jgis-scroll-travel, 100%);
-  min-height: var(--jgis-scroll-travel, 100%);
+.jgis-story-segment-transition-stack .jgis-story-map-scroll-pane {
+  height: var(--jgis-handoff-gap-height, 100%);
+  min-height: var(--jgis-handoff-gap-height, 100%);
 }
 
 .jgis-story-map-scroll-pane {
@@ -303,10 +306,10 @@
     0 12px 28px rgba(0, 0, 0, 0.08);
 }
 
-.jgis-story-scroll-drive-pane.jgis-story-markdown-scroll-pane:not(
+.jgis-story-segment-overlay-pane.jgis-story-markdown-scroll-pane:not(
     .jgis-story-markdown-scroll-pane--measure
   )
-  .jgis-story-markdown-overlay-content {
+  .jgis-story-stage-overlay-content {
   box-sizing: border-box;
   overflow: auto;
 }

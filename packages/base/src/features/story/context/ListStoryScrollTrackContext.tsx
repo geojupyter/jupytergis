@@ -11,33 +11,33 @@ import React, {
 
 import { ListStoryMarkdownMeasurePane } from '@/src/features/story/components/ListStoryMarkdownMeasurePane';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
-import { useLazyListStoryMarkdownMeasure } from '@/src/features/story/hooks/useLazyListStoryMarkdownMeasure';
-import type { IListStoryLayout } from '@/src/features/story/types/types';
-import { buildListStoryLayout } from '@/src/features/story/utils/listStoryLayout';
+import { useQueuedMarkdownHeightMeasure } from '@/src/features/story/hooks/useQueuedMarkdownHeightMeasure';
+import type { IListStoryScrollTrackLayout } from '@/src/features/story/types/types';
+import { buildListStoryScrollTrack } from '@/src/features/story/utils/listStoryScrollTrack';
 import {
   buildStorySegmentViewItems,
   getListStoryMarkdownSegmentsFromItems,
 } from '@/src/features/story/utils/storySegmentViewItems';
 
-interface IListStoryLayoutContextValue {
-  layout: IListStoryLayout | null;
-  bindScrollContainer: (element: HTMLDivElement | null) => void;
+interface IListStoryScrollTrackContextValue {
+  scrollTrackLayout: IListStoryScrollTrackLayout | null;
+  bindScrollTrackElement: (element: HTMLDivElement | null) => void;
 }
 
-const ListStoryLayoutContext =
-  createContext<IListStoryLayoutContextValue | null>(null);
+const ListStoryScrollTrackContext =
+  createContext<IListStoryScrollTrackContextValue | null>(null);
 
-interface IListStoryLayoutProviderProps {
+interface IListStoryScrollTrackProviderProps {
   model: IJupyterGISModel;
   enabled: boolean;
   children: React.ReactNode;
 }
 
-export function ListStoryLayoutProvider({
+export function ListStoryScrollTrackProvider({
   model,
   enabled,
   children,
-}: IListStoryLayoutProviderProps): JSX.Element {
+}: IListStoryScrollTrackProviderProps): JSX.Element {
   const [storyRevision, setStoryRevision] = useState(0);
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -78,11 +78,11 @@ export function ListStoryLayoutProvider({
   const mapViewportHeightOption =
     mapViewportHeight > 0 ? mapViewportHeight : undefined;
 
-  const buildLayout = useCallback(
+  const buildScrollTrackLayout = useCallback(
     (
       nextHeightsById: Readonly<Record<string, number>>,
-    ): IListStoryLayout | null =>
-      buildListStoryLayout({
+    ): IListStoryScrollTrackLayout | null =>
+      buildListStoryScrollTrack({
         items,
         viewportHeight,
         mapViewportHeight: mapViewportHeightOption,
@@ -91,7 +91,7 @@ export function ListStoryLayoutProvider({
     [items, viewportHeight, mapViewportHeightOption],
   );
 
-  const bindScrollContainer = useCallback((element: HTMLDivElement | null) => {
+  const bindScrollTrackElement = useCallback((element: HTMLDivElement | null) => {
     scrollerRef.current = element;
     if (!element) {
       setViewportHeight(0);
@@ -165,7 +165,7 @@ export function ListStoryLayoutProvider({
         const scroller = scrollerRef.current;
         const oldLayout =
           enabled && viewportHeight > 0
-            ? buildListStoryLayout({
+            ? buildListStoryScrollTrack({
                 items,
                 viewportHeight,
                 mapViewportHeight: mapViewportHeight || undefined,
@@ -196,8 +196,8 @@ export function ListStoryLayoutProvider({
     [enabled, items, mapViewportHeight, viewportHeight],
   );
 
-  const { measuringSegment, reportHeight, completeMeasure } =
-    useLazyListStoryMarkdownMeasure({
+  const { segmentBeingMeasured, reportHeight, completeMeasure } =
+    useQueuedMarkdownHeightMeasure({
       enabled: enabled && viewportHeight > 0,
       markdownSegments,
       currentSegmentIndex,
@@ -205,45 +205,45 @@ export function ListStoryLayoutProvider({
       onHeight: handleMeasuredHeight,
     });
 
-  const layout = useMemo(() => {
+  const scrollTrackLayout = useMemo(() => {
     if (!enabled || !items.length || viewportHeight <= 0) {
       return null;
     }
 
-    return buildLayout(heightsById);
-  }, [enabled, items, viewportHeight, heightsById, buildLayout]);
+    return buildScrollTrackLayout(heightsById);
+  }, [enabled, items, viewportHeight, heightsById, buildScrollTrackLayout]);
 
   const value = useMemo(
-    (): IListStoryLayoutContextValue => ({
-      layout,
-      bindScrollContainer,
+    (): IListStoryScrollTrackContextValue => ({
+      scrollTrackLayout,
+      bindScrollTrackElement,
     }),
-    [layout, bindScrollContainer],
+    [scrollTrackLayout, bindScrollTrackElement],
   );
 
   return (
-    <ListStoryLayoutContext.Provider value={value}>
+    <ListStoryScrollTrackContext.Provider value={value}>
       {children}
-      {enabled && measuringSegment ? (
+      {enabled && segmentBeingMeasured ? (
         <div className="jgis-story-markdown-measure-host" aria-hidden>
           <ListStoryMarkdownMeasurePane
-            key={measuringSegment.id}
-            segmentId={measuringSegment.id}
-            markdown={measuringSegment.markdown}
+            key={segmentBeingMeasured.id}
+            segmentId={segmentBeingMeasured.id}
+            markdown={segmentBeingMeasured.markdown}
             onHeight={reportHeight}
             onMeasureComplete={completeMeasure}
           />
         </div>
       ) : null}
-    </ListStoryLayoutContext.Provider>
+    </ListStoryScrollTrackContext.Provider>
   );
 }
 
-export function useListStoryLayoutContext(): IListStoryLayoutContextValue {
-  const value = useContext(ListStoryLayoutContext);
+export function useListStoryScrollTrackContext(): IListStoryScrollTrackContextValue {
+  const value = useContext(ListStoryScrollTrackContext);
   if (!value) {
     throw new Error(
-      'useListStoryLayoutContext must be used within ListStoryLayoutProvider',
+      'useListStoryScrollTrackContext must be used within ListStoryScrollTrackProvider',
     );
   }
   return value;

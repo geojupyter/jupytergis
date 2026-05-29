@@ -11,12 +11,12 @@ import React, {
 } from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import { SpectaListModeContent } from '@/src/features/story/components/SpectaListModeContent';
+import { ListStoryVirtualScrollTrack } from '@/src/features/story/components/ListStoryVirtualScrollTrack';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
-import { useListStoryLayoutContext } from '@/src/features/story/context/ListStoryLayoutContext';
+import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
-import type { IListStoryScrollDrivePayload } from '@/src/features/story/types/types';
+import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
@@ -39,8 +39,8 @@ interface ISpectaDesktopViewProps {
   hasNext: boolean;
   showGradient: boolean;
   setIndex: (index: number) => void;
-  onListScrollDriveChange?: (
-    payload: IListStoryScrollDrivePayload | null,
+  onSegmentTransitionChange?: (
+    payload: IListStorySegmentTransition | null,
   ) => void;
 }
 
@@ -60,7 +60,7 @@ export function SpectaDesktopView({
   hasNext,
   showGradient,
   setIndex,
-  onListScrollDriveChange,
+  onSegmentTransitionChange,
 }: ISpectaDesktopViewProps): JSX.Element {
   const viewMode = storyData?.storyType === 'list' ? 'list' : 'single';
   const sentinelsEnabled = viewMode === 'single';
@@ -86,36 +86,36 @@ export function SpectaDesktopView({
     ],
   );
 
-  const listScrollDriveEnabled =
-    Boolean(onListScrollDriveChange) &&
+  const segmentTransitionSyncEnabled =
+    Boolean(onSegmentTransitionChange) &&
     viewMode === 'list' &&
     storyData?.storyType === 'list';
 
-  const { layout: listStoryLayout, bindScrollContainer } =
-    useListStoryLayoutContext();
+  const { scrollTrackLayout, bindScrollTrackElement } =
+    useListStoryScrollTrackContext();
 
   useLayoutEffect(() => {
     if (viewMode !== 'list') {
-      bindScrollContainer(null);
+      bindScrollTrackElement(null);
       return;
     }
 
-    bindScrollContainer(scrollContainerRef.current);
+    bindScrollTrackElement(scrollContainerRef.current);
 
     return () => {
-      bindScrollContainer(null);
+      bindScrollTrackElement(null);
     };
-  }, [viewMode, bindScrollContainer, scrollContainerRef]);
+  }, [viewMode, bindScrollTrackElement, scrollContainerRef]);
 
   useListStoryScroll({
-    enabled: listScrollDriveEnabled,
+    enabled: segmentTransitionSyncEnabled,
     scrollContainerRef,
     storyData,
-    layout: listStoryLayout,
+    scrollTrackLayout,
     items: segmentViewItems,
     currentIndex,
     setIndex,
-    onDriveChange: onListScrollDriveChange,
+    onSegmentTransitionChange,
   });
 
   const renderModeContent: Record<StoryDesktopViewMode, () => JSX.Element> = {
@@ -135,7 +135,9 @@ export function SpectaDesktopView({
         bottomSentinelRef={bottomSentinelRef}
       />
     ),
-    list: () => <SpectaListModeContent layout={listStoryLayout} />,
+    list: () => (
+      <ListStoryVirtualScrollTrack scrollTrackLayout={scrollTrackLayout} />
+    ),
   };
 
   useImperativeHandle(

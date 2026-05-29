@@ -31,7 +31,7 @@ function useStoryRenderMime(): IRenderMimeRegistry | null {
 
 const MARKDOWN_MIME = 'text/markdown';
 
-interface IStoryScrollDriveMarkdownProps {
+interface IListStoryOverlayMarkdownProps {
   source: string;
   /** Fires after rendermime (or plain fallback) has painted. */
   onRendered?: () => void;
@@ -52,14 +52,11 @@ function disposeRenderer(renderer: Widget): void {
   renderer.dispose();
 }
 
-/**
- * List scroll-drive overlay markdown via JupyterLab rendermime.
- * Falls back to plain text when the registry is unavailable.
- */
-export function StoryScrollDriveMarkdown({
+/** Markdown body for a list-story stage overlay segment. */
+export function ListStoryOverlayMarkdown({
   source,
   onRendered,
-}: IStoryScrollDriveMarkdownProps): JSX.Element | null {
+}: IListStoryOverlayMarkdownProps): JSX.Element | null {
   const rendermime = useStoryRenderMime();
   const hostRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +90,7 @@ export function StoryScrollDriveMarkdown({
       try {
         await renderer.renderModel(model);
       } catch (error) {
-        console.error('Failed to render story scroll-drive markdown', error);
+        console.error('Failed to render list story overlay markdown', error);
         disposeRenderer(renderer);
         return;
       }
@@ -133,16 +130,16 @@ export function StoryScrollDriveMarkdown({
 
   if (!rendermime) {
     return (
-      <div className="jgis-story-markdown-overlay-content">
+      <div className="jgis-story-stage-overlay-content">
         <div className="specta-article-host-widget specta-cell-content">
-          <pre className="jgis-story-scroll-drive-markdown-plain">{source}</pre>
+          <pre className="jgis-story-overlay-markdown-plain">{source}</pre>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="jgis-story-markdown-overlay-content">
+    <div className="jgis-story-stage-overlay-content">
       <div className="specta-article-host-widget specta-cell-content">
         <div ref={hostRef} />
       </div>

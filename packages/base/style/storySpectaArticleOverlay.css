@@ -1,6 +1,6 @@
-/* Specta article typography for list scroll-drive markdown overlay (subset of specta/style/article.css). */
+/* Specta article typography for list story stage overlay markdown (subset of specta/style/article.css). */
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget {
+.jgis-story-stage-overlay-content .specta-article-host-widget {
   --jp-content-font-family: 'Source Serif 4', Georgia, serif;
   --jp-code-font-family:
     'Source Code Pro', Menlo, Monaco, 'Courier New', Courier, monospace;
@@ -10,7 +10,7 @@
   line-height: 1.6;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget h1 {
+.jgis-story-stage-overlay-content .specta-article-host-widget h1 {
   font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   letter-spacing: -0.014em;
   line-height: 38px;
@@ -20,48 +20,48 @@
   font-weight: 700;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget h2 {
+.jgis-story-stage-overlay-content .specta-article-host-widget h2 {
   font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   margin-top: 1em !important;
   font-size: 1.6em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget h3 {
+.jgis-story-stage-overlay-content .specta-article-host-widget h3 {
   margin-top: 1em !important;
   font-size: 1.3em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget h4 {
+.jgis-story-stage-overlay-content .specta-article-host-widget h4 {
   margin-top: 1em;
   font-size: 1.2em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget h5 {
+.jgis-story-stage-overlay-content .specta-article-host-widget h5 {
   margin-top: 1em;
   font-size: 1.1em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget h6 {
+.jgis-story-stage-overlay-content .specta-article-host-widget h6 {
   margin-top: 1em;
   font-size: 1em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget p {
+.jgis-story-stage-overlay-content .specta-article-host-widget p {
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.2em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget a {
+.jgis-story-stage-overlay-content .specta-article-host-widget a {
   color: #007bff;
   text-decoration: none;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget a:hover {
+.jgis-story-stage-overlay-content .specta-article-host-widget a:hover {
   text-decoration: underline;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget pre {
+.jgis-story-stage-overlay-content .specta-article-host-widget pre {
   background-color: var(--jp-cell-editor-background) !important;
   padding: 32px !important;
   border-radius: 4px !important;
@@ -72,21 +72,21 @@
   line-height: 1.4 !important;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget pre code {
+.jgis-story-stage-overlay-content .specta-article-host-widget pre code {
   color: #222;
   background-color: transparent !important;
   padding: 0;
   font-size: 14px !important;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget code {
+.jgis-story-stage-overlay-content .specta-article-host-widget code {
   background-color: #e9ecef;
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 14px !important;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget img {
+.jgis-story-stage-overlay-content .specta-article-host-widget img {
   max-width: 100%;
   height: auto;
   display: block;
@@ -94,7 +94,7 @@
   border-radius: 4px;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget blockquote {
+.jgis-story-stage-overlay-content .specta-article-host-widget blockquote {
   border-left: 3px solid transparent;
   padding-left: 16px;
   margin: 1.2em 0;
@@ -102,24 +102,24 @@
   color: var(--jp-ui-font-color2);
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget ul,
-.jgis-story-markdown-overlay-content .specta-article-host-widget ol {
+.jgis-story-stage-overlay-content .specta-article-host-widget ul,
+.jgis-story-stage-overlay-content .specta-article-host-widget ol {
   margin-bottom: 1.2em;
   padding-left: 1.5em;
 }
 
-.jgis-story-markdown-overlay-content .specta-article-host-widget li {
+.jgis-story-stage-overlay-content .specta-article-host-widget li {
   margin-bottom: 0.4em;
 }
 
-.jgis-story-markdown-overlay-content
+.jgis-story-stage-overlay-content
   .specta-article-host-widget
   .jp-MarkdownOutput {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
-.jgis-story-scroll-drive-markdown-plain {
+.jgis-story-overlay-markdown-plain {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;

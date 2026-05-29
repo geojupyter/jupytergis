@@ -1,8 +1,8 @@
 import {
-  IListStorySegmentRange,
+  IListStoryScrollTrackSegment,
   IStorySegmentViewItem,
 } from '../../types/types';
-import { buildListStoryLayout } from '../../utils/listStoryLayout';
+import { buildListStoryScrollTrack } from '../../utils/listStoryScrollTrack';
 
 export function storyItem(
   id: string,
@@ -23,7 +23,7 @@ export function storyItem(
   };
 }
 
-export interface IListStoryLayoutFixtureOptions {
+export interface IListStoryScrollTrackFixtureOptions {
   items: IStorySegmentViewItem[];
   viewportHeight: number;
   mapViewportHeight?: number;
@@ -31,11 +31,11 @@ export interface IListStoryLayoutFixtureOptions {
 }
 
 export function layoutSegments(
-  options: IListStoryLayoutFixtureOptions,
-): IListStorySegmentRange[] {
-  const layout = buildListStoryLayout(options);
+  options: IListStoryScrollTrackFixtureOptions,
+): IListStoryScrollTrackSegment[] {
+  const layout = buildListStoryScrollTrack(options);
   if (!layout) {
-    throw new Error('layoutSegments: buildListStoryLayout returned null');
+    throw new Error('layoutSegments: buildListStoryScrollTrack returned null');
   }
   return layout.segments;
 }

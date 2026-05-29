@@ -2,29 +2,29 @@ import type { IJGISStoryMap } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 import type {
-  IListStoryLayout,
+  IListStoryScrollTrackLayout,
   IStorySegmentViewItem,
-  IListStoryScrollDrivePayload,
+  IListStorySegmentTransition,
 } from '@/src/features/story/types/types';
 import {
   computeListStoryScrollState,
   type IListStoryScrollState,
 } from '@/src/features/story/utils/computeListStoryScrollState';
 
-function isSameDrive(
-  prevDrive: IListStoryScrollDrivePayload | null,
-  nextDrive: IListStoryScrollDrivePayload | null,
+function isSameSegmentTransition(
+  prev: IListStorySegmentTransition | null,
+  next: IListStorySegmentTransition | null,
 ): boolean {
-  if (!prevDrive || !nextDrive) {
+  if (!prev || !next) {
     return false;
   }
 
   return (
-    nextDrive.progress === prevDrive.progress &&
-    nextDrive.fromIndex === prevDrive.fromIndex &&
-    nextDrive.toIndex === prevDrive.toIndex &&
-    nextDrive.fromMode === prevDrive.fromMode &&
-    nextDrive.toMode === prevDrive.toMode
+    next.progress === prev.progress &&
+    next.fromIndex === prev.fromIndex &&
+    next.toIndex === prev.toIndex &&
+    next.fromMode === prev.fromMode &&
+    next.toMode === prev.toMode
   );
 }
 
@@ -32,25 +32,27 @@ interface IUseListStoryScrollParams {
   enabled: boolean;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
   storyData: IJGISStoryMap | null;
-  layout: IListStoryLayout | null;
+  scrollTrackLayout: IListStoryScrollTrackLayout | null;
   items: IStorySegmentViewItem[];
   currentIndex: number;
   setIndex: (index: number) => void;
-  onDriveChange?: (payload: IListStoryScrollDrivePayload | null) => void;
+  onSegmentTransitionChange?: (
+    payload: IListStorySegmentTransition | null,
+  ) => void;
 }
 
 export function useListStoryScroll({
   enabled,
   scrollContainerRef,
   storyData,
-  layout,
+  scrollTrackLayout,
   items,
   currentIndex,
   setIndex,
-  onDriveChange,
+  onSegmentTransitionChange,
 }: IUseListStoryScrollParams): void {
-  const onDriveChangeRef = useRef(onDriveChange);
-  onDriveChangeRef.current = onDriveChange;
+  const onSegmentTransitionChangeRef = useRef(onSegmentTransitionChange);
+  onSegmentTransitionChangeRef.current = onSegmentTransitionChange;
 
   const setIndexRef = useRef(setIndex);
   setIndexRef.current = setIndex;
@@ -58,24 +60,24 @@ export function useListStoryScroll({
   const storyDataRef = useRef(storyData);
   storyDataRef.current = storyData;
 
-  const layoutRef = useRef(layout);
-  layoutRef.current = layout;
+  const scrollTrackLayoutRef = useRef(scrollTrackLayout);
+  scrollTrackLayoutRef.current = scrollTrackLayout;
 
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
 
   const latchedRef = useRef<IListStoryScrollState>({
     activeIndex: currentIndex,
-    drive: null,
+    segmentTransition: null,
   });
   const rafIdRef = useRef<number | null>(null);
 
-  const clearDrive = useCallback(() => {
+  const clearSegmentTransition = useCallback(() => {
     latchedRef.current = {
       activeIndex: currentIndexRef.current,
-      drive: null,
+      segmentTransition: null,
     };
-    onDriveChangeRef.current?.(null);
+    onSegmentTransitionChangeRef.current?.(null);
   }, []);
 
   const emitState = useCallback((next: IListStoryScrollState) => {
@@ -86,30 +88,30 @@ export function useListStoryScroll({
       setIndexRef.current(next.activeIndex);
     }
 
-    const drive = next.drive;
-    const prevDrive = prev.drive;
+    const segmentTransition = next.segmentTransition;
+    const prevTransition = prev.segmentTransition;
 
-    if (isSameDrive(prevDrive, drive)) {
+    if (isSameSegmentTransition(prevTransition, segmentTransition)) {
       return;
     }
 
-    onDriveChangeRef.current?.(drive);
+    onSegmentTransitionChangeRef.current?.(segmentTransition);
   }, []);
 
   const computeAndEmit = useCallback(() => {
     const scroller = scrollContainerRef.current;
-    const currentLayout = layoutRef.current;
+    const layout = scrollTrackLayoutRef.current;
     const currentStoryData = storyDataRef.current;
 
-    if (!enabled || !scroller || !currentStoryData || !currentLayout) {
-      clearDrive();
+    if (!enabled || !scroller || !currentStoryData || !layout) {
+      clearSegmentTransition();
       return;
     }
 
     const next = computeListStoryScrollState({
       scrollTop: scroller.scrollTop,
       viewportHeight: scroller.clientHeight,
-      segments: currentLayout.segments,
+      segments: layout.segments,
     });
 
     if (!next) {
@@ -117,7 +119,7 @@ export function useListStoryScroll({
     }
 
     emitState(next);
-  }, [enabled, scrollContainerRef, emitState, clearDrive]);
+  }, [enabled, scrollContainerRef, emitState, clearSegmentTransition]);
 
   const scheduleCompute = useCallback(() => {
     if (rafIdRef.current !== null) {
@@ -132,23 +134,23 @@ export function useListStoryScroll({
   useEffect(() => {
     latchedRef.current = {
       activeIndex: currentIndex,
-      drive: latchedRef.current.drive,
+      segmentTransition: latchedRef.current.segmentTransition,
     };
   }, [currentIndex]);
 
   useEffect(() => {
     scheduleCompute();
-  }, [items, storyData, layout, scheduleCompute]);
+  }, [items, storyData, scrollTrackLayout, scheduleCompute]);
 
   useEffect(() => {
     if (!enabled) {
-      clearDrive();
+      clearSegmentTransition();
       return;
     }
 
     const scroller = scrollContainerRef.current;
     if (!scroller) {
-      clearDrive();
+      clearSegmentTransition();
       return;
     }
 
@@ -163,5 +165,5 @@ export function useListStoryScroll({
         rafIdRef.current = null;
       }
     };
-  }, [enabled, scrollContainerRef, scheduleCompute, clearDrive]);
+  }, [enabled, scrollContainerRef, scheduleCompute, clearSegmentTransition]);
 }

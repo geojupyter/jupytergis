@@ -2,10 +2,10 @@ import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
-import { StoryScrollDriveMarkdown } from '@/src/features/story/components/StoryScrollDriveMarkdown';
+import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListStoryOverlayMarkdown';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import type {
-  IListStoryScrollDrivePayload,
+  IListStorySegmentTransition,
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
@@ -14,18 +14,18 @@ import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
 } from '@/src/features/story/utils/storySegmentViewItems';
-import { getSegmentDisplayMode } from '../utils/listStoryLayout';
+import { getSegmentDisplayMode } from '../utils/listStoryScrollTrack';
 
-interface IListStoryScrollDriveOverlayProps {
+interface IListStoryStageOverlayProps {
   model: IJupyterGISModel;
-  drive: IListStoryScrollDrivePayload | null;
+  segmentTransition: IListStorySegmentTransition | null;
 }
 
-type ScrollDrivePaneConfig =
+type SegmentOverlayPaneConfig =
   | { type: 'markdown'; markdown: string }
   | { type: 'map'; segmentIndex: number };
 
-const EMPTY_MARKDOWN_PANE: ScrollDrivePaneConfig = {
+const EMPTY_MARKDOWN_PANE: SegmentOverlayPaneConfig = {
   type: 'markdown',
   markdown: '',
 };
@@ -33,7 +33,7 @@ const EMPTY_MARKDOWN_PANE: ScrollDrivePaneConfig = {
 function buildPaneConfig(
   item: IStorySegmentViewItem | undefined,
   mode: StorySegmentDisplayMode,
-): ScrollDrivePaneConfig {
+): SegmentOverlayPaneConfig {
   if (!item) {
     return EMPTY_MARKDOWN_PANE;
   }
@@ -46,27 +46,27 @@ function buildPaneConfig(
   };
 }
 
-interface IScrollDrivePaneProps {
+interface ISegmentOverlayPaneProps {
   pane: 'from' | 'to';
   segmentIndex: number;
-  config: ScrollDrivePaneConfig;
+  config: SegmentOverlayPaneConfig;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
 }
 
-function ScrollDrivePane({
+function SegmentOverlayPane({
   pane,
   segmentIndex,
   config,
   storyData,
   items,
-}: IScrollDrivePaneProps): React.ReactElement {
+}: ISegmentOverlayPaneProps): React.ReactElement {
   const isMap = config.type === 'map';
 
   return (
     <div
       data-pane={pane}
-      className={`jgis-story-scroll-drive-pane jgis-story-${
+      className={`jgis-story-segment-overlay-pane jgis-story-${
         isMap ? 'map' : 'markdown'
       }-scroll-pane`}
     >
@@ -77,7 +77,7 @@ function ScrollDrivePane({
           items={items}
         />
       ) : config.markdown ? (
-        <StoryScrollDriveMarkdown
+        <ListStoryOverlayMarkdown
           key={`pane-${pane}-seg-${segmentIndex}`}
           source={config.markdown}
         />
@@ -87,17 +87,17 @@ function ScrollDrivePane({
 }
 
 /**
- * List-story stage overlay: markdown + map StoryViewerPanels driven by scroll.
- * The story column only scrolls the virtual track, this is the UI.
+ * List-story stage overlay: map + markdown segments on the map stage.
+ * The story column scrolls only the virtual track; this is the visible UI.
  */
-export function ListStoryScrollDriveOverlay({
+export function ListStoryStageOverlay({
   model,
-  drive,
-}: IListStoryScrollDriveOverlayProps): JSX.Element | null {
+  segmentTransition,
+}: IListStoryStageOverlayProps): JSX.Element | null {
   const overlayRef = useRef<HTMLDivElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
   const [stageHeight, setStageHeight] = useState(0);
-  const [stackTravelPx, setStackTravelPx] = useState(0);
+  const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
 
   const story = model?.getSelectedStory().story ?? null;
@@ -115,10 +115,10 @@ export function ListStoryScrollDriveOverlay({
     ],
   );
 
-  const isDriveActive = drive !== null;
+  const isTransitioning = segmentTransition !== null;
   const activeItem = items.find(item => item.index === currentIndex);
   const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
-  const displayProgress = isDriveActive ? drive.progress : 1;
+  const transitionProgress = isTransitioning ? segmentTransition.progress : 1;
 
   const { fromIndex, toIndex, fromPaneConfig, toPaneConfig } = useMemo(() => {
     if (!model || !activeItem) {
@@ -130,17 +130,17 @@ export function ListStoryScrollDriveOverlay({
       };
     }
 
-    if (drive) {
+    if (segmentTransition) {
       return {
-        fromIndex: drive.fromIndex,
-        toIndex: drive.toIndex,
+        fromIndex: segmentTransition.fromIndex,
+        toIndex: segmentTransition.toIndex,
         fromPaneConfig: buildPaneConfig(
-          items.find(item => item.index === drive.fromIndex),
-          drive.fromMode,
+          items.find(item => item.index === segmentTransition.fromIndex),
+          segmentTransition.fromMode,
         ),
         toPaneConfig: buildPaneConfig(
-          items.find(item => item.index === drive.toIndex),
-          drive.toMode,
+          items.find(item => item.index === segmentTransition.toIndex),
+          segmentTransition.toMode,
         ),
       };
     }
@@ -151,7 +151,7 @@ export function ListStoryScrollDriveOverlay({
       fromPaneConfig: EMPTY_MARKDOWN_PANE,
       toPaneConfig: buildPaneConfig(activeItem, activeMode),
     };
-  }, [items, activeItem, currentIndex, activeMode, drive]);
+  }, [items, activeItem, currentIndex, activeMode, segmentTransition]);
 
   const overlayHeight = Math.max(stageHeight, 0);
 
@@ -179,8 +179,8 @@ export function ListStoryScrollDriveOverlay({
   }, [model, story]);
 
   useLayoutEffect(() => {
-    if (!isDriveActive) {
-      setStackTravelPx(0);
+    if (!isTransitioning) {
+      setTransitionTranslatePx(0);
       return;
     }
 
@@ -191,13 +191,13 @@ export function ListStoryScrollDriveOverlay({
 
     const measure = (): void => {
       const fromPane = stack.querySelector('[data-pane="from"]');
-      const gap = stack.querySelector('.jgis-story-scroll-drive-gap');
+      const gap = stack.querySelector('.jgis-story-segment-transition-gap');
       if (!(fromPane instanceof HTMLElement) || !(gap instanceof HTMLElement)) {
         return;
       }
 
       const travel = fromPane.offsetHeight + gap.offsetHeight;
-      setStackTravelPx(prev => (prev === travel ? prev : travel));
+      setTransitionTranslatePx(prev => (prev === travel ? prev : travel));
     };
 
     measure();
@@ -208,7 +208,7 @@ export function ListStoryScrollDriveOverlay({
     return () => {
       ro.disconnect();
     };
-  }, [isDriveActive, fromIndex, toIndex, fromPaneConfig, toPaneConfig]);
+  }, [isTransitioning, fromIndex, toIndex, fromPaneConfig, toPaneConfig]);
 
   const overlaySized = stageHeight > 0;
 
@@ -219,34 +219,34 @@ export function ListStoryScrollDriveOverlay({
   return (
     <div
       ref={overlayRef}
-      className={`jgis-story-markdown-overlay${
-        overlaySized ? ' jgis-story-markdown-overlay--sized' : ''
-      }${isDriveActive ? ' jgis-story-markdown-overlay--scroll-drive' : ''}`}
+      className={`jgis-story-stage-overlay${
+        overlaySized ? ' jgis-story-stage-overlay--sized' : ''
+      }${isTransitioning ? ' jgis-story-stage-overlay--transitioning' : ''}`}
       style={
         {
           ...spectaPresentationStyle,
-          '--jgis-scroll-drive-progress': displayProgress,
+          '--jgis-segment-transition-progress': transitionProgress,
           ...(overlaySized
             ? {
                 height: overlayHeight,
-                '--jgis-scroll-travel': `${stageHeight}px`,
-                '--jgis-stack-travel': `${stackTravelPx || stageHeight}px`,
+                '--jgis-handoff-gap-height': `${stageHeight}px`,
+                '--jgis-transition-translate': `${transitionTranslatePx || stageHeight}px`,
               }
             : {}),
         } as React.CSSProperties
       }
     >
-      {isDriveActive ? (
-        <div ref={stackRef} className="jgis-story-scroll-drive-stack">
-          <ScrollDrivePane
+      {isTransitioning ? (
+        <div ref={stackRef} className="jgis-story-segment-transition-stack">
+          <SegmentOverlayPane
             pane="from"
             segmentIndex={fromIndex}
             config={fromPaneConfig}
             storyData={story}
             items={items}
           />
-          <div className="jgis-story-scroll-drive-gap" aria-hidden />
-          <ScrollDrivePane
+          <div className="jgis-story-segment-transition-gap" aria-hidden />
+          <SegmentOverlayPane
             pane="to"
             segmentIndex={toIndex}
             config={toPaneConfig}
@@ -255,7 +255,7 @@ export function ListStoryScrollDriveOverlay({
           />
         </div>
       ) : (
-        <ScrollDrivePane
+        <SegmentOverlayPane
           pane="to"
           segmentIndex={toIndex}
           config={toPaneConfig}

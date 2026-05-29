@@ -1,8 +1,8 @@
 import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 import type {
-  IListStoryLayout,
-  IListStorySegmentRange,
+  IListStoryScrollTrackLayout,
+  IListStoryScrollTrackSegment,
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
@@ -11,7 +11,7 @@ const MARKDOWN_LINE_HEIGHT_PX = 28;
 const MARKDOWN_CONTENT_PADDING_PX = 32;
 const MIN_MARKDOWN_VIEWPORT_RATIO = 0.5;
 
-interface IBuildListStoryLayoutInput {
+interface IBuildListStoryScrollTrackInput {
   items: IStorySegmentViewItem[];
   /** Story column scroller height (markdown estimates, scroll padding). */
   viewportHeight: number;
@@ -35,8 +35,8 @@ export function estimateMapSegmentHeight(viewportHeight: number): number {
   return viewportHeight;
 }
 
-export function getLayoutSegmentHeight(
-  layout: IListStoryLayout | null,
+export function getScrollTrackSegmentHeight(
+  layout: IListStoryScrollTrackLayout | null,
   index: number,
 ): number | undefined {
   return layout?.segments.find(segment => segment.index === index)?.height;
@@ -72,12 +72,12 @@ function segmentHeightForItem(
 }
 
 /** Builds cumulative segment ranges for the virtual list story scroll track. */
-export function buildListStoryLayout({
+export function buildListStoryScrollTrack({
   items,
   viewportHeight,
   mapViewportHeight,
   heightsById = {},
-}: IBuildListStoryLayoutInput): IListStoryLayout | null {
+}: IBuildListStoryScrollTrackInput): IListStoryScrollTrackLayout | null {
   if (!items.length || viewportHeight <= 0) {
     return null;
   }
@@ -87,13 +87,13 @@ export function buildListStoryLayout({
     segmentHeightForItem(item, viewportHeight, mapHeight, heightsById),
   );
 
-  const stageGap = mapHeight;
+  const handoffGap = mapHeight;
 
   let offset = 0;
-  const segments: IListStorySegmentRange[] = items.map((item, i) => {
+  const segments: IListStoryScrollTrackSegment[] = items.map((item, i) => {
     const start = offset;
     const height = heights[i].height;
-    const gapAfter = i < items.length - 1 ? stageGap : 0;
+    const gapAfter = i < items.length - 1 ? handoffGap : 0;
     const end = start + height + gapAfter;
     offset = end;
     return {
@@ -109,7 +109,7 @@ export function buildListStoryLayout({
 
   return {
     segments,
-    trackHeight: offset,
+    scrollTrackHeight: offset,
   };
 }
 

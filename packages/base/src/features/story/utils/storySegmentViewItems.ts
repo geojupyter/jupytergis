@@ -8,7 +8,7 @@ import type {
   IListStoryMarkdownSegment,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
-import { getSegmentDisplayMode } from './listStoryLayout';
+import { getSegmentDisplayMode } from './listStoryScrollTrack';
 
 export function buildStorySegmentViewItems(
   model: IJupyterGISModel,

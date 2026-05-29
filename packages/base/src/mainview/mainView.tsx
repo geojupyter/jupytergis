@@ -162,9 +162,9 @@ import {
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { ListStoryScrollDriveOverlay } from '../features/story/components/ListStoryScrollDriveOverlay';
-import { ListStoryLayoutProvider } from '../features/story/context/ListStoryLayoutContext';
-import type { IListStoryScrollDrivePayload } from '../features/story/types/types';
+import { ListStoryStageOverlay } from '../features/story/components/ListStoryStageOverlay';
+import { ListStoryScrollTrackProvider } from '../features/story/context/ListStoryScrollTrackContext';
+import type { IListStorySegmentTransition } from '../features/story/types/types';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
@@ -226,8 +226,8 @@ interface IStates {
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
   identifyFeatureFloatersVersion: number;
-  /** List story scroll-drive overlay (useListStoryScroll); null when off. */
-  listScrollDrive: IListStoryScrollDrivePayload | null;
+  /** List story segment handoff for the map stage overlay; null when off. */
+  segmentTransition: IListStorySegmentTransition | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -357,7 +357,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       isSpectaPresentation: this._model.isSpectaMode(),
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
-      listScrollDrive: null,
+      segmentTransition: null,
     };
 
     this._sources = [];
@@ -3512,10 +3512,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // TODO SOMETHING
   };
 
-  private _handleListScrollDriveChange = (
-    payload: IListStoryScrollDrivePayload | null,
+  private _handleSegmentTransitionChange = (
+    payload: IListStorySegmentTransition | null,
   ): void => {
-    this.setState({ listScrollDrive: payload });
+    this.setState({ segmentTransition: payload });
   };
 
   private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
@@ -3868,7 +3868,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 position: 'relative',
               }}
             >
-              <ListStoryLayoutProvider
+              <ListStoryScrollTrackProvider
                 model={this._model}
                 enabled={
                   this.state.isSpectaPresentation &&
@@ -3877,9 +3877,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               >
                 {this.state.isSpectaPresentation &&
                 this._model.getSelectedStory().story?.storyType === 'list' ? (
-                  <ListStoryScrollDriveOverlay
+                  <ListStoryStageOverlay
                     model={this._model}
-                    drive={this.state.listScrollDrive}
+                    segmentTransition={this.state.segmentTransition}
                   />
                 ) : null}
                 <div className="jgis-panels-wrapper">
@@ -3940,8 +3940,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                         storyViewerPanelRef={this.storyViewerPanelRef}
                         addLayer={this._addLayerForPanels}
                         removeLayer={this._removeLayerForPanels}
-                        onListScrollDriveChange={
-                          this._handleListScrollDriveChange
+                        onSegmentTransitionChange={
+                          this._handleSegmentTransitionChange
                         }
                       />
                     )
@@ -3951,7 +3951,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   ref={this.controlsToolbarRef}
                   className="jgis-controls-toolbar"
                 ></div>
-              </ListStoryLayoutProvider>
+              </ListStoryScrollTrackProvider>
             </div>
           </div>
           {!this.state.isSpectaPresentation && (

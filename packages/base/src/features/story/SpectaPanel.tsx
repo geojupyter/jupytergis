@@ -5,7 +5,7 @@ import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
-import type { IListStoryScrollDrivePayload } from './types/types';
+import type { IListStorySegmentTransition } from './types/types';
 
 interface ISpectaPanelProps {
   model: IJupyterGISModel;
@@ -16,9 +16,9 @@ interface ISpectaPanelProps {
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
-  /** For Specta List stories. feed scroll info to MainView (`listScrollDrive` state). */
-  onListScrollDriveChange?: (
-    payload: IListStoryScrollDrivePayload | null,
+  /** List stories: segment handoff state for the map stage overlay. */
+  onSegmentTransitionChange?: (
+    payload: IListStorySegmentTransition | null,
   ) => void;
 }
 
@@ -31,7 +31,7 @@ export function SpectaPanel({
   storyViewerPanelRef,
   addLayer,
   removeLayer,
-  onListScrollDriveChange,
+  onSegmentTransitionChange,
 }: ISpectaPanelProps) {
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
   const segmentContainerRef = useRef<HTMLDivElement>(null);
@@ -103,7 +103,7 @@ export function SpectaPanel({
       hasNext={hasNext}
       showGradient={showGradient}
       setIndex={setIndex}
-      onListScrollDriveChange={onListScrollDriveChange}
+      onSegmentTransitionChange={onSegmentTransitionChange}
     />
   );
 }
