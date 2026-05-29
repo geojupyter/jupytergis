@@ -232,10 +232,7 @@
   transform: translateY(
     calc(
       var(--jgis-segment-transition-progress, 0) * -1 *
-        var(
-          --jgis-transition-translate,
-          var(--jgis-handoff-gap-height, 100%)
-        )
+        var(--jgis-transition-translate, var(--jgis-handoff-gap-height, 100%))
     )
   );
 }

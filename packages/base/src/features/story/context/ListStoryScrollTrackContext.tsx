@@ -91,15 +91,18 @@ export function ListStoryScrollTrackProvider({
     [items, viewportHeight, mapViewportHeightOption],
   );
 
-  const bindScrollTrackElement = useCallback((element: HTMLDivElement | null) => {
-    scrollerRef.current = element;
-    if (!element) {
-      setViewportHeight(0);
-      return;
-    }
+  const bindScrollTrackElement = useCallback(
+    (element: HTMLDivElement | null) => {
+      scrollerRef.current = element;
+      if (!element) {
+        setViewportHeight(0);
+        return;
+      }
 
-    setViewportHeight(element.clientHeight);
-  }, []);
+      setViewportHeight(element.clientHeight);
+    },
+    [],
+  );
 
   const observeElementHeight = useCallback(
     (

@@ -1,9 +1,6 @@
 import { IListStoryScrollTrackSegment } from '../types/types';
 import { computeListStoryScrollState } from '../utils/computeListStoryScrollState';
-import {
-  layoutSegments,
-  storyItem,
-} from './fixtures/listStoryTestItems';
+import { layoutSegments, storyItem } from './fixtures/listStoryTestItems';
 
 const VIEWPORT = 100;
 
@@ -76,15 +73,13 @@ describe('computeListStoryScrollState', () => {
     });
 
     const midGapScroll = 500;
-    expect(compute(midGapScroll, segments)?.segmentTransition?.progress).toBeCloseTo(
-      midGapScroll / span,
-      5,
-    );
+    expect(
+      compute(midGapScroll, segments)?.segmentTransition?.progress,
+    ).toBeCloseTo(midGapScroll / span, 5);
 
-    expect(compute(span - 1, segments)?.segmentTransition?.progress).toBeCloseTo(
-      (span - 1) / span,
-      5,
-    );
+    expect(
+      compute(span - 1, segments)?.segmentTransition?.progress,
+    ).toBeCloseTo((span - 1) / span, 5);
   });
 
   it('starts the next pair handoff when the prior segment start is reached', () => {
@@ -129,7 +124,8 @@ describe('computeListStoryScrollState', () => {
     });
 
     const pair1Span = handoffSpan(segments, 1);
-    const scrollInSecondHandoff = segments[1].start + Math.floor(pair1Span * 0.35);
+    const scrollInSecondHandoff =
+      segments[1].start + Math.floor(pair1Span * 0.35);
 
     const state = compute(scrollInSecondHandoff, segments);
     expect(state?.activeIndex).toBe(1);
@@ -198,9 +194,33 @@ describe('computeListStoryScrollState', () => {
   it('falls through when a transition segment has zero height', () => {
     expect(
       compute(200, [
-        { id: '0', index: 0, start: 0, end: 200, height: 200, measured: true, contentMode: 'map' },
-        { id: '1', index: 1, start: 200, end: 200, height: 0, measured: true, contentMode: 'map' },
-        { id: '2', index: 2, start: 200, end: 400, height: 200, measured: true, contentMode: 'map' },
+        {
+          id: '0',
+          index: 0,
+          start: 0,
+          end: 200,
+          height: 200,
+          measured: true,
+          contentMode: 'map',
+        },
+        {
+          id: '1',
+          index: 1,
+          start: 200,
+          end: 200,
+          height: 0,
+          measured: true,
+          contentMode: 'map',
+        },
+        {
+          id: '2',
+          index: 2,
+          start: 200,
+          end: 400,
+          height: 200,
+          measured: true,
+          contentMode: 'map',
+        },
       ]),
     ).toEqual({ activeIndex: 2, segmentTransition: null });
   });

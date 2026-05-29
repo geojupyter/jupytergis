@@ -57,7 +57,7 @@ describe('buildListStoryScrollTrack', () => {
     });
 
     expect(layout).not.toBeNull();
-    const { segments } = layout!;
+    const { segments } = layout;
     const gap = 350;
 
     expect(segments[0]).toMatchObject({
@@ -83,7 +83,7 @@ describe('buildListStoryScrollTrack', () => {
 
     expect(segments[1].start).toBe(segments[0].end);
     expect(segments[2].start).toBe(segments[1].end);
-    expect(layout!.scrollTrackHeight).toBe(segments[2].end);
+    expect(layout.scrollTrackHeight).toBe(segments[2].end);
   });
 
   it('uses map viewport height for map segments, not heightsById', () => {
@@ -94,7 +94,7 @@ describe('buildListStoryScrollTrack', () => {
       heightsById: { map: 999 },
     });
 
-    expect(layout!.segments[0].height).toBe(350);
+    expect(layout.segments[0].height).toBe(350);
   });
 
   it('estimates unmeasured markdown with measured false', () => {
@@ -103,12 +103,12 @@ describe('buildListStoryScrollTrack', () => {
       viewportHeight: 400,
     });
 
-    expect(layout!.segments[0]).toMatchObject({
+    expect(layout.segments[0]).toMatchObject({
       start: 0,
       measured: false,
       contentMode: 'markdown',
     });
-    expect(layout!.segments[0].height).toBeGreaterThanOrEqual(200);
+    expect(layout.segments[0].height).toBeGreaterThanOrEqual(200);
   });
 
   it('starts markdown-first stories at offset zero', () => {
@@ -122,7 +122,7 @@ describe('buildListStoryScrollTrack', () => {
       heightsById: { md: 120 },
     });
 
-    expect(layout!.segments[0]).toMatchObject({
+    expect(layout.segments[0]).toMatchObject({
       start: 0,
       end: 120 + 350,
       height: 120,

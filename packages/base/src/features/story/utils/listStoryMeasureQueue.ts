@@ -20,8 +20,7 @@ export function buildPendingMeasureIds({
     .filter(
       segment =>
         Math.abs(segment.index - currentSegmentIndex) <=
-          LIST_STORY_MEASURE_LOOKAHEAD &&
-        heightsById[segment.id] === undefined,
+          LIST_STORY_MEASURE_LOOKAHEAD && heightsById[segment.id] === undefined,
     )
     .sort(
       (a, b) =>
