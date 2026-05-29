@@ -175,10 +175,7 @@ export function SpectaMobileView({
               currentIndex={currentIndex}
               activeSlide={activeSlide}
               layerName={layerName}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
+              segmentNav={{ handlePrev, handleNext, hasPrev, hasNext }}
             />
           </div>
         </DrawerContent>

@@ -8,6 +8,13 @@ import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
+export interface IStoryViewerPanelSegmentNav {
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
 /** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
   isSpecta: boolean;
@@ -18,10 +25,8 @@ interface IStoryViewerPanelProps {
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
   layerName: string;
-  handlePrev?: () => void;
-  handleNext?: () => void;
-  hasPrev?: boolean;
-  hasNext?: boolean;
+  /** Omit for list-story overlay; required when segment nav is shown. */
+  segmentNav?: IStoryViewerPanelSegmentNav;
   /** Disable fade animation for list stories. */
   disableSegmentAnimation?: boolean;
 }
@@ -89,10 +94,7 @@ function StoryViewerPanel({
   currentIndex,
   activeSlide,
   layerName,
-  handlePrev,
-  handleNext,
-  hasPrev,
-  hasNext,
+  segmentNav,
   disableSegmentAnimation = false,
 }: IStoryViewerPanelProps) {
   const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
@@ -115,13 +117,13 @@ function StoryViewerPanel({
   );
 
   const navSlot =
-    navPlacement !== null && handlePrev && handleNext ? (
+    navPlacement !== null && segmentNav ? (
       <StoryNavBar
         placement={navPlacement}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        hasPrev={hasPrev ?? false}
-        hasNext={hasNext ?? false}
+        onPrev={segmentNav.handlePrev}
+        onNext={segmentNav.handleNext}
+        hasPrev={segmentNav.hasPrev}
+        hasNext={segmentNav.hasNext}
       />
     ) : null;
 
