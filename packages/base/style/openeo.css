@@ -544,12 +544,16 @@
 }
 
 /* --- Redesigned Add/Edit OpenEO dialog (v2) --- */
+.jp-Dialog-content:has(.jp-openeo-add-layer-body) {
+  max-width: 95vw;
+  max-height: 92vh;
+}
 
 .jp-openeo-dialog {
   display: flex;
   gap: 12px;
-  width: min(1100px, 90vw);
-  height: min(640px, 80vh);
+  width: min(1500px, 95vw);
+  height: min(860px, 90vh);
   max-width: 100%;
   font-size: var(--jp-ui-font-size1);
   overflow: hidden;
