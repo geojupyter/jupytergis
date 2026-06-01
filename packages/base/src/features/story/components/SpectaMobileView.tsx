@@ -36,7 +36,7 @@ export function SpectaMobileView({
   ...singleModeProps
 }: ISpectaMobileViewProps): JSX.Element {
   const viewMode: StoryMobileViewMode =
-    singleModeProps.storyData?.storyType === STORY_TYPE.list
+    singleModeProps.storyData?.storyType === STORY_TYPE.verticalScroll
       ? 'list'
       : 'single';
 

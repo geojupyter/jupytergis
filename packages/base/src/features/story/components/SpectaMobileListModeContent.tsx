@@ -44,7 +44,7 @@ export function SpectaMobileListModeContent({
 
   const segmentTransitionSyncEnabled =
     Boolean(onSegmentTransitionChange) &&
-    storyData?.storyType === STORY_TYPE.list;
+    storyData?.storyType === STORY_TYPE.verticalScroll;
 
   useLayoutEffect(() => {
     bindScrollTrackElement(scrollContainerRef.current);

@@ -3827,7 +3827,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const { isMobile } = this.props;
     const selectedStory = this._model.getSelectedStory().story;
     const isListStory =
-      isSpectaPresentation && selectedStory?.storyType === STORY_TYPE.list;
+      isSpectaPresentation &&
+      selectedStory?.storyType === STORY_TYPE.verticalScroll;
     const showSidePanels = !isSpectaPresentation;
     const showMergedMobilePanel =
       isMobile &&
