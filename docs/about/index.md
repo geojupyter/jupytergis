@@ -86,7 +86,7 @@ These architectural choices place JupyterGIS in a unique position in the GIS lan
 ### QGIS
 
 [QGIS](https://qgis.org) is the leading open-source desktop GIS — mature, feature-rich, and backed by a huge community.
-As JupyterGIS, it is commited to open source and other open standards.
+As JupyterGIS, it is committed to open source and other open standards.
 JupyterGIS can import QGIS project files and is in that way interoperable with QGIS.
 
 **QGIS** is desktop-first: a powerful local IDE with efficient geoprocessing, rich cartography, print layouts, and a flexible plugin system.
@@ -111,7 +111,7 @@ Due to its open nature, JupyterGIS excels when you need tight integration with o
 
 [Google Earth Engine](https://earthengine.google.com/) (GEE) is a cloud platform for planetary-scale geospatial analysis, backed by Google's data catalog and compute infrastructure.
 
-**GEE** is proprietary and tightly coupled to Google's infrastructure. It offers an unmatched data catalog but is difficult to integrate with external systems, customize and cannot be self-hosted.
+**GEE** is proprietary and tightly coupled to Google's infrastructure. It offers an unmatched data catalog but is difficult to integrate with external systems, difficult to customize, and cannot be self-hosted.
 
 **JupyterGIS** offers an open-source alternative for compute heavy workloads through integration with [OpenEO](https://openeo.org/) for cloud processing and [TiTiler](https://developmentseed.org/titiler/) for dynamic raster tile serving backed by the Pangeo stack.
 Like with ArcGIS, the key differences are openness, integrability, data sovereignty, and browser-first collaboration while providing GEE-like cloud-native processing capabilities via open standards rather than a single vendor's infrastructure.
@@ -123,7 +123,7 @@ Like with ArcGIS, the key differences are openness, integrability, data sovereig
 **Felt** is a proprietary SaaS with a polished, Miro-like experience for visual collaboration. It does not support scripting, self-hosting, or integration with computational workflows.
 
 **JupyterGIS** shares the browser-first collaborative approach but adds integration with backend kernels, self-hosting, and deep integration with the scientific compute ecosystem for processing.
-As already stated it is open source and can be modified and integrated with other systems.
+As already stated, it is open source and can be modified and integrated with other systems.
 
 ### Rendering libraries (MapLibre, OpenLayers, Leaflet, ...)
 
