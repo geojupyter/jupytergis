@@ -7,6 +7,7 @@ import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScrol
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
+import { STORY_TYPE } from '@/src/types';
 
 export interface ISpectaMobileListModeContentProps {
   model: IJupyterGISModel;
@@ -42,7 +43,8 @@ export function SpectaMobileListModeContent({
   const presentationStyle = getSpectaPresentationStyle(storyData);
 
   const segmentTransitionSyncEnabled =
-    Boolean(onSegmentTransitionChange) && storyData?.storyType === 'list';
+    Boolean(onSegmentTransitionChange) &&
+    storyData?.storyType === STORY_TYPE.list;
 
   useLayoutEffect(() => {
     bindScrollTrackElement(scrollContainerRef.current);

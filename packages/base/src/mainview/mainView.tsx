@@ -143,14 +143,14 @@ import {
 } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import { ClientPointer } from './CollaboratorPointers';
-import { MainViewSidePanels } from './components/MainViewSidePanels';
-import { MainViewMapSurface } from './components/MainViewMapSurface';
-import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
-import { PositionedFloater } from './components/PositionedFloater';
-import { MainViewSpectaPanel } from './components/MainViewSpectaPanel';
-import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { OpenEOTileLayer, OpenEOTileSource } from './OpenEOTileLayer';
 import TemporalSlider from './TemporalSlider';
+import { MainViewMapSurface } from './components/MainViewMapSurface';
+import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
+import { MainViewSidePanels } from './components/MainViewSidePanels';
+import { MainViewSpectaPanel } from './components/MainViewSpectaPanel';
+import { MainViewStoryStage } from './components/MainViewStoryStage';
+import { PositionedFloater } from './components/PositionedFloater';
 import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureProperties,
@@ -166,6 +166,7 @@ import {
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
+import { STORY_TYPE } from '../types';
 
 type OlLayerTypes =
   | TileLayer
@@ -3826,7 +3827,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const { isMobile } = this.props;
     const selectedStory = this._model.getSelectedStory().story;
     const isListStory =
-      isSpectaPresentation && selectedStory?.storyType === 'list';
+      isSpectaPresentation && selectedStory?.storyType === STORY_TYPE.list;
     const showSidePanels = !isSpectaPresentation;
     const showMergedMobilePanel =
       isMobile &&

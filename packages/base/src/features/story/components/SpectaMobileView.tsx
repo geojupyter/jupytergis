@@ -8,6 +8,7 @@ import React, { RefObject } from 'react';
 import { SpectaMobileListModeContent } from '@/src/features/story/components/SpectaMobileListModeContent';
 import { SpectaMobileSingleModeContent } from '@/src/features/story/components/SpectaMobileSingleModeContent';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
+import { STORY_TYPE } from '@/src/types';
 
 type StoryMobileViewMode = 'single' | 'list';
 
@@ -35,7 +36,9 @@ export function SpectaMobileView({
   ...singleModeProps
 }: ISpectaMobileViewProps): JSX.Element {
   const viewMode: StoryMobileViewMode =
-    singleModeProps.storyData?.storyType === 'list' ? 'list' : 'single';
+    singleModeProps.storyData?.storyType === STORY_TYPE.list
+      ? 'list'
+      : 'single';
 
   const renderModeContent: Record<StoryMobileViewMode, () => JSX.Element> = {
     single: () => <SpectaMobileSingleModeContent {...singleModeProps} />,
