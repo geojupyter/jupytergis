@@ -1,5 +1,7 @@
 # Gallery
 
+*More examples coming soon.*
+
 ```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-macrostrat-geology-chromium-linux.png
 :alt: JupyterGIS showing the Macrostrat geology overlay
 :width: 100%

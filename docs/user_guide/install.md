@@ -1,6 +1,6 @@
 # Installation
 
-## Mamba (recommended)
+## Mamba / Conda (recommended)
 
 :::{note}
 It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since

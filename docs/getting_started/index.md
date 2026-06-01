@@ -1,12 +1,6 @@
 # Tour
 
-```{toctree}
-:hidden:
-
-install
-```
-
-First, [install JupyterGIS](install.md), then follow the walkthrough below.
+First, [install JupyterGIS](../user_guide/install.md), then follow the walkthrough below.
 
 ## The interface
 

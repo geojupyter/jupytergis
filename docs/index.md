@@ -17,7 +17,7 @@ Backend-free JupyterGIS via JupyterLite runs entirely in the browser and does no
 - **QGIS interoperability** — import and export QGIS project files
 - **Python API** — scriptable workflows in collaborative notebooks
 - **Many data formats** — GeoJSON, GeoTIFF/COG, GeoParquet, GeoPackage, Shapefile, PMTiles, WMS/WMTS, and more
-- **Grammar-driven symbology** — ultra-flexible rule-based styling, similar to Vega-Lite
+- **Grammar-driven symbology** — flexible rule-based styling, similar to Vega-Lite
 - **Storymaps** — guided narratives through your maps
 - **Hillshade & heatmaps** — terrain and density visualization
 - **GDAL processing** — rasterize, warp, and translate directly in the browser or on the server

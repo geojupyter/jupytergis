@@ -67,7 +67,7 @@ Because the document is a plain JSON file, it is easy to version-control, diff, 
 ### Decoupled renderer
 
 The map renderer is separated from the document schema and the user interface.
-Currently JupyterGIS delegates rendering to [OpenLayers](https://openlayers.org/), but the architecture tries to stay independent of this choice — other renderers (e.g. MapLibre, Cesium) are imaginable in the future.
+Currently JupyterGIS delegates rendering to [OpenLayers](https://openlayers.org/), but the architecture is designed to be independent of this choice — other renderers (e.g. MapLibre, Cesium) are imaginable in the future.
 
 ### Flexible use within other UIs
 
@@ -87,14 +87,14 @@ These architectural choices place JupyterGIS in a unique position in the GIS lan
 
 [QGIS](https://qgis.org) is the leading open-source desktop GIS — mature, feature-rich, and backed by a huge community.
 As JupyterGIS, it is committed to open source and other open standards.
-JupyterGIS can import QGIS project files and is in that way interoperable with QGIS.
+JupyterGIS can import and export QGIS project files (`.qgs`/`.qgz`), making it interoperable with QGIS.
 
 **QGIS** is desktop-first: a powerful local IDE with efficient geoprocessing, rich cartography, print layouts, and a flexible plugin system.
 It excels at workflows that require deep local processing and offline work.
 
 **JupyterGIS** is browser-first: no installation required, embeddable, shareable via a URL, and built with modern browser UI libraries.
 It can optionally decouple computation from the interface via the Jupyter protocol, making it cloud-native and ready for heavy data processing.
-It is highly scriptable, AI-commandable, and collaborative-first via CRDTs (Yjs/YDoc).
+It is highly scriptable — via Python and natural-language prompts (Jupyter AI / JupyterLite AI) — and collaborative-first via CRDTs (Yjs/YDoc).
 
 ### ArcGIS
 
@@ -113,8 +113,8 @@ Due to its open nature, JupyterGIS excels when you need tight integration with o
 
 **GEE** is proprietary and tightly coupled to Google's infrastructure. It offers an unmatched data catalog but is difficult to integrate with external systems, difficult to customize, and cannot be self-hosted.
 
-**JupyterGIS** offers an open-source alternative for compute heavy workloads through integration with [OpenEO](https://openeo.org/) for cloud processing and [TiTiler](https://developmentseed.org/titiler/) for dynamic raster tile serving backed by the Pangeo stack.
-Like with ArcGIS, the key differences are openness, integrability, data sovereignty, and browser-first collaboration while providing GEE-like cloud-native processing capabilities via open standards rather than a single vendor's infrastructure.
+**JupyterGIS** integrates with open-source tools for compute-heavy workloads: Jupyter kernels for arbitrary server-side processing, [OpenEO](https://openeo.org/) for cloud processing, and [TiTiler](https://developmentseed.org/titiler/) for dynamic raster tile serving backed by the Pangeo stack.
+JupyterGIS is open source, self-hostable, and built for integration — offering cloud-native processing via open standards rather than a single vendor's infrastructure.
 
 ### Felt
 
@@ -122,8 +122,7 @@ Like with ArcGIS, the key differences are openness, integrability, data sovereig
 
 **Felt** is a proprietary SaaS with a polished, Miro-like experience for visual collaboration. It does not support scripting, self-hosting, or integration with computational workflows.
 
-**JupyterGIS** shares the browser-first collaborative approach but adds integration with backend kernels, self-hosting, and deep integration with the scientific compute ecosystem for processing.
-As already stated, it is open source and can be modified and integrated with other systems.
+**JupyterGIS** shares the browser-first collaborative approach but is open source, self-hostable, and scriptable. It adds integration with Jupyter kernels for server-side processing and deep ties to the scientific Python ecosystem.
 
 ### Rendering libraries (MapLibre, OpenLayers, Leaflet, ...)
 
