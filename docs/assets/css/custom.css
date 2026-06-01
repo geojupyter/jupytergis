@@ -34,6 +34,7 @@
   font-weight: 600;
   font-size: 0.95rem;
   margin-left: 0.75rem;
+  text-decoration: none;
   transition:
     background 0.15s ease,
     box-shadow 0.15s ease;
@@ -44,6 +45,7 @@
   background-color: var(--jgis-teal-700);
   box-shadow: 0 0 16px rgba(26, 107, 107, 0.5);
   color: #fff !important;
+  text-decoration: none;
 }
 
 /* Mobile burger menu — highlight the "Try" link */

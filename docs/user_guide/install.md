@@ -1,62 +1,72 @@
 # Installation
 
-## Mamba / Conda (recommended)
-
-:::{note}
-It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since
-you'll be able to install `qgis` at the same time, allowing you to open `.qgz` files.
+:::{tip}
+Installing with a conda-based tool (`mamba`, `conda`, `micromamba`, or `pixi`) lets you
+install `qgis` alongside JupyterGIS, enabling `.qgz` file support.
+QGIS is a C++ application and only available as a conda-forge package — it cannot be
+installed via `pip` or `uv`.
 :::
+
+## Mamba / Conda (recommended)
 
 ```bash
 mamba install -c conda-forge jupytergis qgis
-```
-
-Once installed, launch JupyterLab:
-
-```bash
 jupyter lab
 ```
 
-## pip
-
-:::{warning}
-When installing with `pip`, QGIS compatibility functions won't work out of the box.
-You're on your own!
-:::
+Or with `conda`:
 
 ```bash
-pip install jupytergis
-```
-
-Once installed, launch JupyterLab:
-
-```bash
+conda install -c conda-forge jupytergis qgis
 jupyter lab
 ```
 
-## Run without installing
+## Pixi
 
-These commands launch JupyterGIS directly without a permanent installation.
+Install into a project:
 
-### Pixi
+```bash
+pixi add jupytergis qgis
+pixi run jupyter lab
+```
 
-[Pixi](https://github.com/prefix-dev/pixi)
+Or run directly without a permanent install:
 
 ```bash
 pixi exec --spec jupytergis --spec qgis jupyter lab
 ```
 
-### uv
+## pip
 
-[uv](https://github.com/astral-sh/uv)
+:::{warning}
+`.qgz` file support is not available — QGIS is not distributed on PyPI.
+:::
+
+```bash
+pip install jupytergis
+jupyter lab
+```
+
+## uv
+
+:::{warning}
+`.qgz` file support is not available — QGIS is not distributed on PyPI.
+:::
+
+Install into a project:
+
+```bash
+uv add jupytergis
+uv run jupyter lab
+```
+
+Or run directly without a permanent install:
 
 ```bash
 uv run --with jupytergis jupyter lab
 ```
 
-### Docker
-
-[Docker](https://www.docker.com/)
+## Docker
 
 ```bash
 docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
