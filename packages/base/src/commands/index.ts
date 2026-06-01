@@ -1832,7 +1832,9 @@ export function addCommands(
         return false;
       }
 
-      if (model.getSelectedStory().story?.storyType === STORY_TYPE.list) {
+      if (
+        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+      ) {
         return false;
       }
 
@@ -1868,7 +1870,9 @@ export function addCommands(
         return false;
       }
 
-      if (model.getSelectedStory().story?.storyType === STORY_TYPE.list) {
+      if (
+        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+      ) {
         return false;
       }
 

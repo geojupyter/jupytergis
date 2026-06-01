@@ -94,7 +94,8 @@ interface IRightPanelProps {
 const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const { patchGeoJSONFeatureProperties } = props;
   const isListStory =
-    props.model.getSelectedStory().story?.storyType === STORY_TYPE.list;
+    props.model.getSelectedStory().story?.storyType ===
+    STORY_TYPE.verticalScroll;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =

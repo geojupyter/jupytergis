@@ -2872,7 +2872,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const storyType = this._model.getSelectedStory().story?.storyType;
       // Don't want to handle next/prev logic in list mode
-      if (storyType === STORY_TYPE.list) {
+      if (storyType === STORY_TYPE.verticalScroll) {
         scrollContainer.scrollBy({ top: deltaY });
         return;
       }
@@ -3874,12 +3874,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 enabled={
                   this.state.isSpectaPresentation &&
                   this._model.getSelectedStory().story?.storyType ===
-                    STORY_TYPE.list
+                    STORY_TYPE.verticalScroll
                 }
               >
                 {this.state.isSpectaPresentation &&
                 this._model.getSelectedStory().story?.storyType ===
-                  STORY_TYPE.list ? (
+                  STORY_TYPE.verticalScroll ? (
                   <ListStoryStageOverlay
                     model={this._model}
                     segmentTransition={this.state.segmentTransition}

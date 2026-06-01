@@ -333,7 +333,7 @@
         "c4d4cbea-9c06-4ef3-9f98-efc47e153996",
         "943ae805-e9a6-48da-bdf5-89b16de25e3a"
       ],
-      "storyType": "list",
+      "storyType": "Vertical Scroll",
       "title": "Famous Statues"
     }
   },

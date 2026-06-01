@@ -65,7 +65,7 @@ function getStoryNavPlacement(
   storyType: IJGISStoryMap['storyType'],
   isMobile: boolean,
 ): StoryNavPlacement | null {
-  if (storyType === STORY_TYPE.list) {
+  if (storyType === STORY_TYPE.verticalScroll) {
     return null;
   }
 
@@ -143,7 +143,9 @@ function StoryViewerPanel({
   return (
     <div
       className={
-        storyData.storyType !== STORY_TYPE.list ? 'jgis-story-viewer-panel' : ''
+        storyData.storyType !== STORY_TYPE.verticalScroll
+          ? 'jgis-story-viewer-panel'
+          : ''
       }
     >
       <div

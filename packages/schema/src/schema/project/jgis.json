@@ -161,7 +161,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": ["guided", "unguided", "list"],
+          "enum": ["guided", "unguided", "Vertical Scroll"],
           "description": "The type of story map"
         },
         "storySegments": {

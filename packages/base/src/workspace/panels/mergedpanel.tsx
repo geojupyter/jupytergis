@@ -138,7 +138,8 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
   const isListStory =
-    props.model.getSelectedStory().story?.storyType === STORY_TYPE.list;
+    props.model.getSelectedStory().story?.storyType ===
+    STORY_TYPE.verticalScroll;
 
   const { leftPanelDisabled, rightPanelDisabled } = props.settings;
 

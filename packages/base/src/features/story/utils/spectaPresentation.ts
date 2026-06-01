@@ -7,7 +7,7 @@ import { STORY_TYPE } from '@/src/types';
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
 ): CSSProperties {
-  const isListMode = story?.storyType === STORY_TYPE.list;
+  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
   const style: CSSProperties = {};
@@ -41,7 +41,7 @@ export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
 ): CSSProperties {
   const style = getSpectaPresentationCssVars(story);
-  const isListMode = story?.storyType === STORY_TYPE.list;
+  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
   const bgColor = story?.presentationBgColor;
 
   if (!isListMode && bgColor) {

@@ -22,7 +22,7 @@ import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegm
 import { STORY_TYPE } from '@/src/types';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
-type StoryDesktopViewMode = 'single' | 'list';
+type StoryDesktopViewMode = 'single' | 'verticalScroll';
 
 interface ISpectaDesktopViewProps {
   model: IJupyterGISModel;
@@ -63,8 +63,12 @@ export function SpectaDesktopView({
   setIndex,
   onSegmentTransitionChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  const viewMode = storyData?.storyType === STORY_TYPE.list ? 'list' : 'single';
-  const sentinelsEnabled = viewMode === 'single';
+  const isVerticalScrollView =
+    storyData?.storyType === STORY_TYPE.verticalScroll;
+  const viewMode: StoryDesktopViewMode = isVerticalScrollView
+    ? 'verticalScroll'
+    : 'single';
+  const sentinelsEnabled = !isVerticalScrollView;
   const {
     scrollContainerRef,
     topSentinelRef,
@@ -88,15 +92,13 @@ export function SpectaDesktopView({
   );
 
   const segmentTransitionSyncEnabled =
-    Boolean(onSegmentTransitionChange) &&
-    viewMode === 'list' &&
-    storyData?.storyType === STORY_TYPE.list;
+    Boolean(onSegmentTransitionChange) && isVerticalScrollView;
 
   const { scrollTrackLayout, bindScrollTrackElement } =
     useListStoryScrollTrackContext();
 
   useLayoutEffect(() => {
-    if (viewMode !== 'list') {
+    if (!isVerticalScrollView) {
       bindScrollTrackElement(null);
       return;
     }
@@ -106,7 +108,7 @@ export function SpectaDesktopView({
     return () => {
       bindScrollTrackElement(null);
     };
-  }, [viewMode, bindScrollTrackElement, scrollContainerRef]);
+  }, [isVerticalScrollView, bindScrollTrackElement, scrollContainerRef]);
 
   useListStoryScroll({
     enabled: segmentTransitionSyncEnabled,
@@ -136,7 +138,7 @@ export function SpectaDesktopView({
         bottomSentinelRef={bottomSentinelRef}
       />
     ),
-    list: () => (
+    verticalScroll: () => (
       <ListStoryVirtualScrollTrack scrollTrackLayout={scrollTrackLayout} />
     ),
   };
@@ -170,8 +172,8 @@ export function SpectaDesktopView({
           <div
             ref={scrollContainerRef}
             className={`jgis-story-viewer-panel-specta-mod ${
-              viewMode === 'list'
-                ? 'jgis-story-viewer-panel-specta-mod-list'
+              isVerticalScrollView
+                ? 'jgis-story-viewer-panel-specta-mod-vertical-scroll'
                 : ''
             }`}
             id="jgis-story-segment-panel"
@@ -181,7 +183,7 @@ export function SpectaDesktopView({
           </div>
         </div>
       </div>
-      {viewMode !== 'list' && <SpectaPresentationProgressBar model={model} />}
+      {!isVerticalScrollView && <SpectaPresentationProgressBar model={model} />}
     </>
   );
 }
