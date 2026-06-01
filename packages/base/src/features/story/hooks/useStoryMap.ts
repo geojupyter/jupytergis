@@ -5,9 +5,9 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
+import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { STORY_TYPE } from '@/src/types';
-import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 /** Entry for a layer affected by layer override
  * remove if we added a layer or restore if we modified an existing layer.

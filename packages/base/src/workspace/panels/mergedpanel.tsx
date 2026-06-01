@@ -6,11 +6,10 @@ import {
   IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
-
-import { STORY_TYPE } from '@/src/types';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
+import { STORY_TYPE } from '@/src/types';
 import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';

@@ -11,7 +11,6 @@ import React, {
 } from 'react';
 
 import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import { STORY_TYPE } from '@/src/types';
 import { ListStoryVirtualScrollTrack } from '@/src/features/story/components/ListStoryVirtualScrollTrack';
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
@@ -20,6 +19,7 @@ import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollSt
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
+import { STORY_TYPE } from '@/src/types';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 type StoryDesktopViewMode = 'single' | 'list';
@@ -63,8 +63,7 @@ export function SpectaDesktopView({
   setIndex,
   onSegmentTransitionChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  const viewMode =
-    storyData?.storyType === STORY_TYPE.list ? 'list' : 'single';
+  const viewMode = storyData?.storyType === STORY_TYPE.list ? 'list' : 'single';
   const sentinelsEnabled = viewMode === 'single';
   const {
     scrollContainerRef,

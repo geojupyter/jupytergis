@@ -2,7 +2,6 @@ import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
 import { STORY_TYPE } from '@/src/types';
-
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';

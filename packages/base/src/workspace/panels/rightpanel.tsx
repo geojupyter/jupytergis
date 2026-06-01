@@ -7,12 +7,11 @@ import {
   IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
-
-import { STORY_TYPE } from '@/src/types';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
 import { useStorySegmentSync } from '@/src/features/story/hooks/useStorySegmentSync';
+import { STORY_TYPE } from '@/src/types';
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
