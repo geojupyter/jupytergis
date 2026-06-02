@@ -40,7 +40,9 @@ test.describe('Showcase', () => {
     // Allow tiles to finish rendering
     await page.waitForTimeout(8000);
 
-    expect(await main.screenshot({ type: 'jpeg', quality: 80 })).toMatchSnapshot({
+    expect(
+      await main.screenshot({ type: 'jpeg', quality: 80 }),
+    ).toMatchSnapshot({
       name: 'showcase-macrostrat-geology.jpg',
       maxDiffPixelRatio: 0.02,
     });
