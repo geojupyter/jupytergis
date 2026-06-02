@@ -121,21 +121,63 @@ function indexGraph(
   const bands = extraBand
     ? [numeratorBand, denominatorBand, extraBand]
     : [numeratorBand, denominatorBand];
-  const nirIndex = bands.indexOf(numeratorBand);
-  const redIndex = bands.indexOf(denominatorBand);
+  const numeratorIndex = bands.indexOf(numeratorBand);
+  const denominatorIndex = bands.indexOf(denominatorBand);
   return {
     loadcollection1: loadCollection(params, bands),
     reducedimension1: reduceTimeFirst('loadcollection1'),
+    // titiler-openeo's `ndvi` process has contradictory typing: its
+    // schema declares `nir`/`red` as band-name strings (per the openEO
+    // spec), but the Python impl annotates them as int and the pydantic
+    // pass rejects either choice — strings at runtime, ints at /validation.
+    // Compute the normalized difference inline over the bands dimension
+    // instead, using only core arithmetic processes.
     ndvi1: {
       arguments: {
         data: { from_node: 'reducedimension1' },
-        // titiler-openeo's `ndvi` implementation expects band indices,
-        // not band names — kept as integers until the backend aligns
-        // with the openEO spec (which calls for strings).
-        nir: nirIndex,
-        red: redIndex,
+        dimension: 'bands',
+        reducer: {
+          process_graph: {
+            nir: {
+              arguments: {
+                data: { from_parameter: 'data' },
+                index: numeratorIndex,
+              },
+              process_id: 'array_element',
+            },
+            red: {
+              arguments: {
+                data: { from_parameter: 'data' },
+                index: denominatorIndex,
+              },
+              process_id: 'array_element',
+            },
+            diff: {
+              arguments: {
+                x: { from_node: 'nir' },
+                y: { from_node: 'red' },
+              },
+              process_id: 'subtract',
+            },
+            sum: {
+              arguments: {
+                x: { from_node: 'nir' },
+                y: { from_node: 'red' },
+              },
+              process_id: 'add',
+            },
+            ndvi: {
+              arguments: {
+                x: { from_node: 'diff' },
+                y: { from_node: 'sum' },
+              },
+              process_id: 'divide',
+              result: true,
+            },
+          },
+        },
       },
-      process_id: 'ndvi',
+      process_id: 'reduce_dimension',
     },
     apply1: {
       arguments: {
