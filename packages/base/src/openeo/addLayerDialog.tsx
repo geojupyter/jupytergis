@@ -725,8 +725,15 @@ const Form: React.FC<IFormProps> = ({
 
   React.useEffect(() => {
     const fresh = lastResultVersionRef.current === versionRef.current;
-    onValidationChange(validation.state === 'valid' && !isChecking && fresh);
-  }, [validation, isChecking, onValidationChange]);
+    // Adding a layer also requires a live connection: the source needs a
+    // serverUrl to resolve its in-memory connection at tile-load time.
+    onValidationChange(
+      Boolean(connectionInfo?.url) &&
+        validation.state === 'valid' &&
+        !isChecking &&
+        fresh,
+    );
+  }, [validation, isChecking, connectionInfo, onValidationChange]);
 
   // Fetch backend catalog (processes + collections) so ModelBuilder can
   // label ports with types. Cached, so this is free if the Discovery
@@ -1428,7 +1435,7 @@ export async function showAddOpenEOLayerDialog(
     ok.disabled = !lastValid;
     ok.title = lastValid
       ? ''
-      : 'Process graph has validation errors. Fix them before adding the layer.';
+      : 'Connect to an OpenEO server and resolve any process-graph validation errors before adding the layer.';
   };
   const body = new AddLayerBody(
     initial,
