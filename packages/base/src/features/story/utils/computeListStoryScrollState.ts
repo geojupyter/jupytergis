@@ -23,21 +23,47 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function findSegmentAtScrollCenter(
-  scrollCenter: number,
+/** Same-segment scroll (from and to pane share content; to pane is the stack tail). */
+export function isIntraSegmentScroll(
+  transition: IListStorySegmentTransition | null,
+): boolean {
+  return transition !== null && transition.fromIndex === transition.toIndex;
+}
+
+function findSegmentAtScrollTop(
+  scrollTop: number,
   segments: IListStoryScrollTrackSegment[],
 ): IListStoryScrollTrackSegment {
-  if (scrollCenter < segments[0].start) {
+  if (scrollTop < segments[0].start) {
     return segments[0];
   }
 
   for (const segment of segments) {
-    if (scrollCenter >= segment.start && scrollCenter < segment.end) {
+    if (scrollTop >= segment.start && scrollTop < segment.end) {
       return segment;
     }
   }
 
   return segments[segments.length - 1];
+}
+
+function buildIntraSegmentScrollState(
+  segment: IListStoryScrollTrackSegment,
+  scrollTop: number,
+): IListStoryScrollState {
+  const span = segment.end - segment.start;
+  const progress = span > 0 ? clamp01((scrollTop - segment.start) / span) : 0;
+
+  return {
+    activeIndex: segment.index,
+    segmentTransition: {
+      progress,
+      fromIndex: segment.index,
+      toIndex: segment.index,
+      fromMode: segment.contentMode,
+      toMode: segment.contentMode,
+    },
+  };
 }
 
 function computePairTransition(
@@ -90,41 +116,34 @@ export function computeListStoryScrollState({
     return null;
   }
 
-  if (segments.length === 1) {
-    return {
-      activeIndex: segments[0].index,
-      segmentTransition: null,
-    };
-  }
+  if (segments.length > 1) {
+    for (let i = 0; i < segments.length - 1; i++) {
+      const fromSegment = segments[i];
+      const toSegment = segments[i + 1];
 
-  for (let i = 0; i < segments.length - 1; i++) {
-    const fromSegment = segments[i];
-    const toSegment = segments[i + 1];
-
-    const pairTransition = computePairTransition(
-      scrollTop,
-      fromSegment,
-      toSegment,
-    );
-    if (!pairTransition) {
-      continue;
-    }
-
-    return {
-      activeIndex: pairTransition.activeIndex,
-      segmentTransition: buildSegmentTransitionPayload(
+      const pairTransition = computePairTransition(
+        scrollTop,
         fromSegment,
         toSegment,
-        pairTransition.progress,
-      ),
-    };
+      );
+
+      if (!pairTransition) {
+        continue;
+      }
+
+      return {
+        activeIndex: pairTransition.activeIndex,
+        segmentTransition: buildSegmentTransitionPayload(
+          fromSegment,
+          toSegment,
+          pairTransition.progress,
+        ),
+      };
+    }
   }
 
-  const scrollCenter = scrollTop + viewportHeight / 2;
-  const activeSegment = findSegmentAtScrollCenter(scrollCenter, segments);
-
-  return {
-    activeIndex: activeSegment.index,
-    segmentTransition: null,
-  };
+  return buildIntraSegmentScrollState(
+    findSegmentAtScrollTop(scrollTop, segments),
+    scrollTop,
+  );
 }

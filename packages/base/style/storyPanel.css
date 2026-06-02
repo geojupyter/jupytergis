@@ -308,7 +308,6 @@
   )
   .jgis-story-stage-overlay-content {
   box-sizing: border-box;
-  overflow: auto;
 }
 
 .jgis-story-markdown-measure-host {
