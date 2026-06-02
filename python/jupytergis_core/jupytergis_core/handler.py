@@ -12,7 +12,13 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse
 
-from .processing import ALLOWED_OPERATIONS, gdal_available, run_gdal, run_gdal_url
+from .processing import (
+    ALLOWED_OPERATIONS,
+    gdal_available,
+    run_gdal,
+    run_gdal_url,
+    run_gdal_url_with_cutline,
+)
 
 
 @dataclass
@@ -409,6 +415,7 @@ class ProcessingHandler(APIHandler):
         options = body.get("options", [])
         geojson = body.get("geojson")
         url = body.get("url")
+        cutline_geojson = body.get("cutlineGeojson")
         output_name = body.get("outputName", "output.geojson")
 
         if operation not in ALLOWED_OPERATIONS:
@@ -440,6 +447,23 @@ class ProcessingHandler(APIHandler):
             self.finish(json.dumps({"error": "'url' must be a string"}))
             return
 
+        if cutline_geojson is not None and not isinstance(cutline_geojson, str):
+            self.set_status(400)
+            self.finish(
+                json.dumps({"error": "'cutlineGeojson' must be a string"}),
+            )
+            return
+
+        # A cutline only makes sense alongside a raster URL (gdalwarp -cutline).
+        if cutline_geojson and not url:
+            self.set_status(400)
+            self.finish(
+                json.dumps(
+                    {"error": "'cutlineGeojson' requires a raster 'url'"},
+                ),
+            )
+            return
+
         if not gdal_available():
             self.set_status(503)
             self.finish(
@@ -455,7 +479,21 @@ class ProcessingHandler(APIHandler):
             return
 
         try:
-            if url:
+            if url and cutline_geojson:
+                (
+                    result_content,
+                    result_format,
+                ) = await tornado.ioloop.IOLoop.current().run_in_executor(
+                    None,
+                    lambda: run_gdal_url_with_cutline(
+                        operation,
+                        options,
+                        url,
+                        cutline_geojson,
+                        output_name,
+                    ),
+                )
+            elif url:
                 (
                     result_content,
                     result_format,

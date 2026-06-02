@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "description": "ClipRasterByVector",
+  "title": "IClipRasterByVector",
+  "required": ["inputLayer", "clipLayer"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The raster layer to clip."
+    },
+    "clipLayer": {
+      "type": "string",
+      "description": "The vector layer to use as the cutline boundary."
+    },
+    "cropToCutline": {
+      "type": "boolean",
+      "title": "Crop to cutline extent",
+      "description": "Shrink the output extent to the cutline's bounding box. When off, the original raster extent is preserved and pixels outside the cutline are set to nodata.",
+      "default": true
+    },
+    "outputFileName": {
+      "type": "string",
+      "description": "Output file name for the clipped raster.",
+      "default": "clipped.tif"
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output clipped raster in jGIS file",
+      "default": false
+    }
+  }
+}

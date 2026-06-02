@@ -117,7 +117,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
+import { Fill, Icon, Stroke, Style } from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
@@ -156,8 +156,13 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
+import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
-import { grammarToOLStyle } from '../features/layers/symbology/grammarToOLStyle';
+import {
+  extractEncodingFieldValues,
+  grammarToOLStyle,
+} from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -673,51 +678,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   createSelectInteraction = () => {
-    const pointStyle = new Style({
-      image: new Circle({
-        radius: 5,
-        fill: new Fill({
-          color: '#C52707',
-        }),
-        stroke: new Stroke({
-          color: '#171717',
-          width: 2,
-        }),
-      }),
-    });
-
-    const lineStyle = new Style({
-      stroke: new Stroke({
-        color: '#171717',
-        width: 2,
-      }),
-    });
-
-    const polygonStyle = new Style({
-      fill: new Fill({ color: '#C5270780' }),
-      stroke: new Stroke({
-        color: '#171717',
-        width: 2,
-      }),
-    });
-
-    const styleFunction = (feature: FeatureLike) => {
-      const geometryType = feature.getGeometry()?.getType();
-      switch (geometryType) {
-        case 'Point':
-        case 'MultiPoint':
-          return pointStyle;
-        case 'LineString':
-        case 'MultiLineString':
-          return lineStyle;
-        case 'Polygon':
-        case 'MultiPolygon':
-          return polygonStyle;
-      }
-    };
-
     const selectInteraction = new Select({
-      hitTolerance: 5,
+      hitTolerance: 3,
       multi: true,
       layers: layer => {
         const localState = this._model?.sharedModel.awareness.getLocalState();
@@ -727,28 +689,94 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return false;
         }
         const selectedLayerId = Object.keys(selectedLayers)[0];
-
-        return layer === this.getLayer(selectedLayerId);
+        const expected = this.getLayer(selectedLayerId);
+        if (layer === expected) {
+          return true;
+        }
+        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
+        // OL Select flattens groups, so we receive leaf layers, not the group.
+        if (expected instanceof LayerGroup) {
+          return expected.getLayers().getArray().includes(layer);
+        }
+        return false;
       },
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
       },
-      style: styleFunction,
+      // Use the layer's own style so selected features keep their original
+      // appearance.  Visual highlight feedback comes from _highlightLayer.
+      style: null,
     });
 
     selectInteraction.on('select', event => {
       const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
+      const highlightFeatures: Feature[] = [];
+
+      // Look up the selected layer's style function for adaptive highlights.
+      const localState = this._model?.sharedModel.awareness.getLocalState();
+      const selectedLayers = localState?.selected?.value;
+      const selectedLayerId = selectedLayers
+        ? Object.keys(selectedLayers)[0]
+        : undefined;
+      const mapLayer = selectedLayerId
+        ? this.getLayer(selectedLayerId)
+        : undefined;
+
+      // For LayerGroup (multi-layer grammar), collect style functions from
+      // all sub-layers so we can match the right one per feature.
+      const styleFnCandidates: ReturnType<VectorLayer['getStyleFunction']>[] =
+        [];
+      if (mapLayer instanceof LayerGroup) {
+        for (const sub of mapLayer.getLayers().getArray()) {
+          if ('getStyleFunction' in sub) {
+            styleFnCandidates.push((sub as VectorLayer).getStyleFunction());
+          }
+        }
+      } else if (mapLayer && 'getStyleFunction' in mapLayer) {
+        styleFnCandidates.push((mapLayer as VectorLayer).getStyleFunction());
+      }
+      const resolution = this._Map.getView().getResolution() ?? 1;
+
       selectInteraction.getFeatures().forEach(feature => {
         identifiedFeatures.push({
           feature: feature.getProperties(),
           floaterOpen: false,
         });
+        const geom = feature.getGeometry();
+        if (geom) {
+          const hlFeature = new Feature({ geometry: geom });
+          // Try each style function candidate; use the first that resolves
+          // a non-empty style array (important for LayerGroup sub-layers
+          // where only one sub-layer's style applies to this feature).
+          for (const fn of styleFnCandidates) {
+            if (!fn) {
+              continue;
+            }
+            const resolved = fn(feature, resolution);
+            const styles = Array.isArray(resolved)
+              ? resolved
+              : resolved
+                ? [resolved]
+                : [];
+            if (styles.length > 0) {
+              const gType = geom.getType();
+              hlFeature.setStyle(
+                styles.map(s => this._buildHighlightStyle(s, gType)),
+              );
+              break;
+            }
+          }
+          highlightFeatures.push(hlFeature);
+        }
       });
 
       this._model.syncIdentifiedFeatures(
         identifiedFeatures,
         this._mainViewModel.id,
       );
+
+      // Sync _highlightLayer with the current selection (clears on deselect).
+      this._setHighlightFeatures(highlightFeatures);
     });
 
     this._Map.addInteraction(selectInteraction);
@@ -1503,12 +1531,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           const olSource = this._sources[
             layerParameters.source
           ] as VectorSource;
-          const featureValues =
+          const grammarState =
+            layerParameters.symbologyState as IGrammarSymbologyState;
+          const rows =
             olSource instanceof VectorSource
-              ? olSource
-                  .getFeatures()
-                  .flatMap(f => Object.values((f as Feature).getProperties()))
+              ? olSource.getFeatures().map(f => (f as Feature).getProperties())
               : [];
+          const featureValues = extractEncodingFieldValues(grammarState, rows);
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
             olSource,
@@ -2066,62 +2095,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
     });
 
-    if (!this._highlightLayer) {
-      this._highlightLayer = new VectorLayer({
-        source: new VectorSource(),
-        style: feature => {
-          const geomType = feature.getGeometry()?.getType();
-          switch (geomType) {
-            case 'Point':
-            case 'MultiPoint':
-              return new Style({
-                image: new Circle({
-                  radius: 6,
-                  fill: new Fill({
-                    color: 'rgba(255, 255, 0, 0.8)',
-                  }),
-                  stroke: new Stroke({
-                    color: '#ff0',
-                    width: 2,
-                  }),
-                }),
-              });
-            case 'LineString':
-            case 'MultiLineString':
-              return new Style({
-                stroke: new Stroke({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                  width: 3,
-                }),
-              });
-            case 'Polygon':
-            case 'MultiPolygon':
-              return new Style({
-                stroke: new Stroke({
-                  color: '#f00',
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                }),
-              });
-            default:
-              return new Style({
-                stroke: new Stroke({
-                  color: '#000',
-                  width: 2,
-                }),
-              });
-          }
-        },
-        zIndex: 999,
-      });
-      this._Map.addLayer(this._highlightLayer);
-    }
-
-    const source = this._highlightLayer.getSource();
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     source?.addFeature(olFeature);
+  }
+
+  private _ensureHighlightLayer(): void {
+    ensureHighlightLayer(this._Map, this._highlightLayerRef);
+  }
+
+  /**
+   * Replace the highlight layer contents with the given geometries.
+   * Clears the source first so that stale highlights are always removed,
+   * including when the selection becomes empty (geometries = []).
+   */
+  private _setHighlightGeometries(geometries: Geometry[]): void {
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
+    source?.clear();
+    for (const geom of geometries) {
+      source?.addFeature(new Feature({ geometry: geom }));
+    }
+  }
+
+  /**
+   * Replace the highlight layer contents with pre-styled features.
+   * Each feature carries its own highlight style via feature.setStyle().
+   */
+  private _setHighlightFeatures(features: Feature[]): void {
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
+    source?.clear();
+    for (const f of features) {
+      source?.addFeature(f);
+    }
+  }
+
+  private _buildHighlightStyle(original: Style, geomType?: string): Style {
+    return buildHighlightStyle(original, geomType);
   }
 
   /**
@@ -2174,25 +2186,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
-  private _getLayerCreatorId(layerId: string): number | undefined {
-    const states = this._model.sharedModel.awareness.getStates();
-
-    for (const [clientId, state] of states.entries()) {
-      if (state?.lastAddedLayer?.layerId === layerId) {
-        return clientId;
-      }
-    }
-
-    return undefined;
-  }
-
   /**
    * Track layer's extent and zoom in model's view state
    */
   private _trackLayerViewState(
     layerId: string,
     olLayer: Layer | LayerGroup,
-    shouldZoom = false,
   ): void {
     const effectiveLayer =
       olLayer instanceof LayerGroup
@@ -2219,27 +2218,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
-
-      if (shouldZoom) {
-        const jgisLayer = this._model.getLayer(layerId);
-        const sourceId = jgisLayer?.parameters?.source as string | undefined;
-        const jgisSource = sourceId
-          ? this._model.getSource(sourceId)
-          : undefined;
-        const isMarker = jgisSource?.type === 'MarkerSource';
-        if (isMarker) {
-          // Don't auto-zoom for marker layers: they are placed at the user's
-          // current view position, and fitting to a single point would zoom
-          // in to the maximum zoom level (#1422).
-          return;
-        }
-        const creatorId = this._getLayerCreatorId(layerId);
-        const currentClientId = this._model.getClientId();
-
-        if (creatorId === currentClientId) {
-          this._model.centerOnPosition(layerId);
-        }
-      }
     }
   }
 
@@ -2856,8 +2834,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _clearHighlightWhenIdentifyDisabled(): void {
-    if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
-      this._highlightLayer.getSource()?.clear();
+    if (
+      this._model.currentMode !== 'identifying' &&
+      this._highlightLayerRef.current
+    ) {
+      this._highlightLayerRef.current?.getSource()?.clear();
     }
   }
 
@@ -3405,6 +3386,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
+      case 'VectorLayer':
+        // Handled by selectInteraction (createSelectInteraction).
+        break;
+
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: IIdentifiedFeatureEntry[] = [];
@@ -4018,7 +4003,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
-  private _highlightLayer: VectorLayer<VectorSource>;
+  private _highlightLayerRef: {
+    current: VectorImageLayer<VectorSource> | null;
+  } = { current: null };
   private _draw: Draw;
   private _snap: Snap;
   private _modify: Modify;

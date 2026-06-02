@@ -4,7 +4,7 @@ import { FlatStyle } from 'ol/style/flat';
 
 import { VectorClassifications } from './classificationModes';
 import {
-  DEFAULT_COLOR,
+  colorToRgba,
   DEFAULT_STROKE_WIDTH,
   getColorMapList,
   IColorMap,
@@ -189,24 +189,12 @@ function generateColors(
     } else {
       rawColors = rawColors.slice(0, nClasses);
     }
-    // Parse categorical colors (they're CSS strings like "rgb(...)") to RGBA.
-    colorMap = rawColors.map(c => {
-      if (typeof c === 'string') {
-        const match = c.match(
-          /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
-        );
-        if (match) {
-          return [
-            +match[1],
-            +match[2],
-            +match[3],
-            match[4] !== undefined ? +match[4] : 1,
-          ] as RgbaColor;
-        }
-        return DEFAULT_COLOR;
-      }
-      return c as RgbaColor;
-    });
+    // Parse categorical colors to RGBA.  D3 categorical schemes produce hex
+    // strings (#rrggbb); continuous colormaps produce rgb() strings.
+    // colorToRgba handles both formats.
+    colorMap = rawColors.map(c =>
+      typeof c === 'string' ? colorToRgba(c) : (c as RgbaColor),
+    );
   } else {
     const nShades = Math.max(nClasses, 9);
     colorMap = colormap({

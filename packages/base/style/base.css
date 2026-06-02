@@ -136,7 +136,7 @@ button.jp-mod-styled.jp-mod-reject {
 @media (max-width: 768px) {
   .jgis-merged-panel-container {
     position: fixed;
-    bottom: 0;
+    bottom: var(--jp-statusbar-height, 0px);
     left: 0;
     right: 0;
     z-index: 1000;
@@ -147,14 +147,14 @@ button.jp-mod-styled.jp-mod-reject {
     height: 30vh;
   }
 
-  /* Drag-to-resize handle — visual pill only */
+  /* Drag-to-resize handle */
   .jgis-resize-handle {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 14px;
+    height: 24px;
     flex-shrink: 0;
-    pointer-events: none;
+    cursor: ns-resize;
   }
 
   .jgis-resize-handle::before {
@@ -163,6 +163,7 @@ button.jp-mod-styled.jp-mod-reject {
     height: 4px;
     border-radius: 2px;
     background-color: var(--jp-border-color1);
+    opacity: 0.5;
   }
 
   /* Panel tabs fill the remaining height */

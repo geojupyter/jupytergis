@@ -157,6 +157,42 @@ export function grammarToOLStyle(
 }
 
 // ---------------------------------------------------------------------------
+// Feature-value extraction helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract the encoding field column from feature property rows.
+ * colorRamp and categorical scales take a single input field; this returns
+ * all values for that field so the compiler can compute classification breaks.
+ */
+export function extractEncodingFieldValues(
+  state: IGrammarSymbologyState,
+  rows: Record<string, unknown>[],
+): unknown[] {
+  let field: string | undefined;
+  for (const gl of state.layers ?? []) {
+    for (const rule of gl.rules ?? []) {
+      const f = rule.fields?.[0];
+      if (f && !f.startsWith('$')) {
+        field = f;
+        break;
+      }
+    }
+    if (field) {
+      break;
+    }
+  }
+
+  if (!field) {
+    console.debug(
+      'extractEncodingFieldValues: no encoding field found in Grammar state',
+    );
+    return [];
+  }
+  return rows.map(r => r[field]).filter(v => v !== null && v !== undefined);
+}
+
+// ---------------------------------------------------------------------------
 // Channel expression builder
 // ---------------------------------------------------------------------------
 
