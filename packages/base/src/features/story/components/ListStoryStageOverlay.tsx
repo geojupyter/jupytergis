@@ -118,7 +118,19 @@ export function ListStoryStageOverlay({
   const isTransitioning = segmentTransition !== null;
   const activeItem = items.find(item => item.index === currentIndex);
   const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
-  const transitionProgress = isTransitioning ? segmentTransition.progress : 1;
+  const effectiveTransition = useMemo((): IListStorySegmentTransition => {
+    if (segmentTransition) {
+      return segmentTransition;
+    }
+
+    return {
+      progress: 0,
+      fromIndex: currentIndex,
+      toIndex: currentIndex,
+      fromMode: activeMode,
+      toMode: activeMode,
+    };
+  }, [segmentTransition, currentIndex, activeMode]);
 
   const { fromIndex, toIndex, fromPaneConfig, toPaneConfig } = useMemo(() => {
     if (!model || !activeItem) {
@@ -130,28 +142,19 @@ export function ListStoryStageOverlay({
       };
     }
 
-    if (segmentTransition) {
-      return {
-        fromIndex: segmentTransition.fromIndex,
-        toIndex: segmentTransition.toIndex,
-        fromPaneConfig: buildPaneConfig(
-          items.find(item => item.index === segmentTransition.fromIndex),
-          segmentTransition.fromMode,
-        ),
-        toPaneConfig: buildPaneConfig(
-          items.find(item => item.index === segmentTransition.toIndex),
-          segmentTransition.toMode,
-        ),
-      };
-    }
-
     return {
-      fromIndex: currentIndex,
-      toIndex: currentIndex,
-      fromPaneConfig: EMPTY_MARKDOWN_PANE,
-      toPaneConfig: buildPaneConfig(activeItem, activeMode),
+      fromIndex: effectiveTransition.fromIndex,
+      toIndex: effectiveTransition.toIndex,
+      fromPaneConfig: buildPaneConfig(
+        items.find(item => item.index === effectiveTransition.fromIndex),
+        effectiveTransition.fromMode,
+      ),
+      toPaneConfig: buildPaneConfig(
+        items.find(item => item.index === effectiveTransition.toIndex),
+        effectiveTransition.toMode,
+      ),
     };
-  }, [items, activeItem, currentIndex, activeMode, segmentTransition]);
+  }, [items, activeItem, currentIndex, effectiveTransition, model]);
 
   const overlayHeight = Math.max(stageHeight, 0);
 
@@ -179,11 +182,6 @@ export function ListStoryStageOverlay({
   }, [model, story]);
 
   useLayoutEffect(() => {
-    if (!isTransitioning) {
-      setTransitionTranslatePx(0);
-      return;
-    }
-
     const stack = stackRef.current;
     if (!stack) {
       return;
@@ -208,7 +206,7 @@ export function ListStoryStageOverlay({
     return () => {
       ro.disconnect();
     };
-  }, [isTransitioning, fromIndex, toIndex, fromPaneConfig, toPaneConfig]);
+  }, [fromIndex, toIndex, fromPaneConfig, toPaneConfig]);
 
   const overlaySized = stageHeight > 0;
 
@@ -221,11 +219,11 @@ export function ListStoryStageOverlay({
       ref={overlayRef}
       className={`jgis-story-stage-overlay${
         overlaySized ? ' jgis-story-stage-overlay--sized' : ''
-      }${isTransitioning ? ' jgis-story-stage-overlay--transitioning' : ''}`}
+      } jgis-story-stage-overlay--transitioning`}
       style={
         {
           ...spectaPresentationStyle,
-          '--jgis-segment-transition-progress': transitionProgress,
+          '--jgis-segment-transition-progress': effectiveTransition.progress,
           ...(overlaySized
             ? {
                 height: overlayHeight,
@@ -236,25 +234,15 @@ export function ListStoryStageOverlay({
         } as React.CSSProperties
       }
     >
-      {isTransitioning ? (
-        <div ref={stackRef} className="jgis-story-segment-transition-stack">
-          <SegmentOverlayPane
-            pane="from"
-            segmentIndex={fromIndex}
-            config={fromPaneConfig}
-            storyData={story}
-            items={items}
-          />
-          <div className="jgis-story-segment-transition-gap" aria-hidden />
-          <SegmentOverlayPane
-            pane="to"
-            segmentIndex={toIndex}
-            config={toPaneConfig}
-            storyData={story}
-            items={items}
-          />
-        </div>
-      ) : (
+      <div ref={stackRef} className="jgis-story-segment-transition-stack">
+        <SegmentOverlayPane
+          pane="from"
+          segmentIndex={fromIndex}
+          config={fromPaneConfig}
+          storyData={story}
+          items={items}
+        />
+        <div className="jgis-story-segment-transition-gap" aria-hidden />
         <SegmentOverlayPane
           pane="to"
           segmentIndex={toIndex}
@@ -262,7 +250,7 @@ export function ListStoryStageOverlay({
           storyData={story}
           items={items}
         />
-      )}
+      </div>
     </div>
   );
 }
