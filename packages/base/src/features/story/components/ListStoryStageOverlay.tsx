@@ -154,20 +154,22 @@ export function ListStoryStageOverlay({
       };
     }
 
-    return {
+    const fromItem = items.find(item => item.index === transition.fromIndex);
+    const toItem = items.find(item => item.index === transition.toIndex);
+
+    const fromPaneConfig = buildPaneConfig(fromItem, transition.fromMode);
+    const toPaneConfig = intraSegmentScroll
+      ? EMPTY_MARKDOWN_PANE
+      : buildPaneConfig(toItem, transition.toMode);
+
+    const paneState = {
       fromIndex: transition.fromIndex,
       toIndex: transition.toIndex,
-      fromPaneConfig: buildPaneConfig(
-        items.find(item => item.index === transition.fromIndex),
-        transition.fromMode,
-      ),
-      toPaneConfig: intraSegmentScroll
-        ? EMPTY_MARKDOWN_PANE
-        : buildPaneConfig(
-            items.find(item => item.index === transition.toIndex),
-            transition.toMode,
-          ),
+      fromPaneConfig,
+      toPaneConfig,
     };
+
+    return paneState;
   }, [items, currentIndex, transition, intraSegmentScroll, model]);
 
   const overlayHeight = Math.max(stageHeight, 0);
