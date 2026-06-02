@@ -2,7 +2,7 @@
 
 _More examples coming soon._
 
-```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-macrostrat-geology-chromium-linux.png
+```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-macrostrat-geology-chromium-linux.jpg
 :alt: JupyterGIS showing the Macrostrat geology overlay
 :width: 100%
 ```
