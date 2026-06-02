@@ -68,7 +68,7 @@ export function SpectaMobileListModeContent({
     <div
       ref={scrollContainerRef}
       id="jgis-story-segment-panel"
-      className="jgis-story-viewer-panel jgis-story-viewer-panel-specta-mod jgis-story-viewer-panel-specta-mod-list jgis-story-mobile-list-scroll"
+      className="jgis-story-viewer-panel-specta-mod-vertical-scroll jgis-story-mobile-list-scroll"
       style={presentationStyle}
     >
       <ListStoryVirtualScrollTrack scrollTrackLayout={scrollTrackLayout} />

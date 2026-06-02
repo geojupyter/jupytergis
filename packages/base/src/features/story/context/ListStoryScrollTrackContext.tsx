@@ -19,6 +19,24 @@ import {
   getListStoryMarkdownSegmentsFromItems,
 } from '@/src/features/story/utils/storySegmentViewItems';
 
+const LIST_STORY_VIRTUAL_TRACK_DEBUG = true;
+
+function logVirtualTrackDebug(
+  event: string,
+  payload?: Record<string, unknown>,
+): void {
+  if (!LIST_STORY_VIRTUAL_TRACK_DEBUG) {
+    return;
+  }
+
+  if (payload) {
+    console.log(`[list-story-virtual-track] ${event}`, payload);
+    return;
+  }
+
+  console.log(`[list-story-virtual-track] ${event}`);
+}
+
 interface IListStoryScrollTrackContextValue {
   scrollTrackLayout: IListStoryScrollTrackLayout | null;
   scrollTop: number;
@@ -44,6 +62,7 @@ export function ListStoryScrollTrackProvider({
   const [viewportHeight, setViewportHeight] = useState(0);
   const [mapViewportHeight, setMapViewportHeight] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
+  const lastScrollLogAtRef = useRef(0);
 
   const currentSegmentIndex = useCurrentSegmentIndex(model);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -105,11 +124,17 @@ export function ListStoryScrollTrackProvider({
       scrollerRef.current = element;
       setScrollTrackElement(element);
       if (!element) {
+        logVirtualTrackDebug('scroller unbound');
         setViewportHeight(0);
         setScrollTop(0);
         return;
       }
 
+      logVirtualTrackDebug('scroller bound', {
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+        scrollTop: element.scrollTop,
+      });
       syncScrollerMetrics(element);
     },
     [syncScrollerMetrics],
@@ -157,6 +182,22 @@ export function ListStoryScrollTrackProvider({
     const onScroll = (): void => {
       setScrollTop(scroller.scrollTop);
       setViewportHeight(scroller.clientHeight);
+
+      const now = Date.now();
+      if (now - lastScrollLogAtRef.current >= 250) {
+        lastScrollLogAtRef.current = now;
+        const maxScrollTop = Math.max(
+          0,
+          scroller.scrollHeight - scroller.clientHeight,
+        );
+        logVirtualTrackDebug('scroller scroll', {
+          scrollTop: scroller.scrollTop,
+          maxScrollTop,
+          atEnd: scroller.scrollTop >= maxScrollTop - 1,
+          clientHeight: scroller.clientHeight,
+          scrollHeight: scroller.scrollHeight,
+        });
+      }
     };
 
     scroller.addEventListener('scroll', onScroll, { passive: true });
@@ -245,6 +286,60 @@ export function ListStoryScrollTrackProvider({
 
     return buildScrollTrackLayout(heightsById);
   }, [enabled, items, viewportHeight, heightsById, buildScrollTrackLayout]);
+
+  useLayoutEffect(() => {
+    if (!scrollTrackLayout) {
+      logVirtualTrackDebug('layout cleared');
+      return;
+    }
+
+    const scroller = scrollerRef.current;
+    const virtualTrack = scroller?.querySelector('.jgis-story-virtual-track');
+    const virtualTrackEl =
+      virtualTrack instanceof HTMLElement ? virtualTrack : null;
+    const maxScrollTopEstimate = Math.max(
+      0,
+      scrollTrackLayout.scrollTrackHeight - viewportHeight,
+    );
+    const unreachableStarts = scrollTrackLayout.segments
+      .filter(segment => segment.start > maxScrollTopEstimate)
+      .map(segment => ({
+        index: segment.index,
+        id: segment.id,
+        start: segment.start,
+      }));
+
+    logVirtualTrackDebug('layout updated', {
+      scrollTrackHeight: scrollTrackLayout.scrollTrackHeight,
+      viewportHeight,
+      mapViewportHeight,
+      scrollTop,
+      maxScrollTopEstimate,
+      domScrollHeight: scroller?.scrollHeight ?? null,
+      domClientHeight: scroller?.clientHeight ?? null,
+      domMaxScrollTop:
+        scroller
+          ? Math.max(0, scroller.scrollHeight - scroller.clientHeight)
+          : null,
+      virtualTrackOffsetHeight: virtualTrackEl?.offsetHeight ?? null,
+      virtualTrackStyleHeight: virtualTrackEl?.style.height ?? null,
+      virtualTrackComputedHeight: virtualTrackEl
+        ? getComputedStyle(virtualTrackEl).height
+        : null,
+      unreachableStarts,
+      segments: scrollTrackLayout.segments.map((segment, i) => ({
+        index: segment.index,
+        id: segment.id,
+        mode: segment.contentMode,
+        height: segment.height,
+        measured: segment.measured,
+        start: segment.start,
+        end: segment.end,
+        gapAfter: segment.end - segment.start - segment.height,
+        isLast: i === scrollTrackLayout.segments.length - 1,
+      })),
+    });
+  }, [scrollTrackLayout, viewportHeight, mapViewportHeight, scrollTop]);
 
   const value = useMemo(
     (): IListStoryScrollTrackContextValue => ({
