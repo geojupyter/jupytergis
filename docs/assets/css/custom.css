@@ -3,91 +3,119 @@
    ============================================================ */
 
 :root {
-  /* Brand palette */
-  --jgis-teal-800: #1a6b6b;
-  --jgis-teal-700: #1f7d7d;
-  --jgis-teal-600: #238f8f;
-  --jgis-teal-400: #4ab8b8;
-  --jgis-teal-200: #a8dcdc;
-  --jgis-teal-50: #eef6f6;
+  /* Brand palette — bright yellow (based on #f7dc1e from main) */
+  --jgis-sun-800: #d4b800;
+  --jgis-sun-700: #e6c800;
+  --jgis-sun-600: #f0d500;
+  --jgis-sun-400: #f7dc1e;
+  --jgis-sun-200: #fbe87a;
+  --jgis-sun-50: #fefce8;
 
-  /* pydata_sphinx_theme overrides */
-  --pst-color-primary: var(--jgis-teal-800);
-  --pst-color-primary-bg: var(--jgis-teal-50);
-  --pst-color-primary-highlight: var(--jgis-teal-700);
-  --pst-color-secondary: var(--jgis-teal-600);
-  --pst-color-accent: var(--jgis-teal-400);
-  --pst-color-link: var(--jgis-teal-800);
-  --pst-color-link-hover: var(--jgis-teal-700);
-  --pst-color-target: var(--jgis-teal-50);
-  --pst-color-inline-code: var(--jgis-teal-800);
-  --pst-color-info: var(--jgis-teal-600);
-  --pst-color-info-bg: var(--jgis-teal-50);
+  /* Complementary blue for links */
+  --jgis-blue-700: #2b5ea7;
+  --jgis-blue-600: #3570be;
+
+  /* pydata_sphinx_theme overrides — light mode */
+  --pst-color-primary: var(--jgis-sun-800);
+  --pst-color-primary-bg: var(--jgis-sun-50);
+  --pst-color-primary-highlight: var(--jgis-sun-700);
+  --pst-color-secondary: var(--jgis-sun-600);
+  --pst-color-accent: var(--jgis-sun-400);
+  --pst-color-link: var(--jgis-blue-700);
+  --pst-color-link-hover: var(--jgis-blue-600);
+  --pst-color-target: var(--jgis-sun-50);
+  --pst-color-inline-code: var(--jgis-sun-800);
+  --pst-color-info: var(--jgis-sun-600);
+  --pst-color-info-bg: var(--jgis-sun-50);
+}
+
+/* Dark mode overrides */
+html[data-theme="dark"] {
+  --pst-color-primary: var(--jgis-sun-400);
+  --pst-color-primary-bg: #2a2315;
+  --pst-color-primary-highlight: var(--jgis-sun-200);
+  --pst-color-secondary: var(--jgis-sun-600);
+  --pst-color-accent: var(--jgis-sun-400);
+  --pst-color-link: #6da5e0;
+  --pst-color-link-hover: #8dbff0;
+  --pst-color-target: #2a2315;
+  --pst-color-inline-code: var(--jgis-sun-400);
+  --pst-color-info: var(--jgis-sun-600);
+  --pst-color-info-bg: #2a2315;
 }
 
 /* ── "Try with JupyterLite" navbar button ───────────────────── */
+.bd-header .navbar-nav .nav-link[href*='lite/lab'],
+.bd-header .navbar-nav .nav-link[href*='lite/lab']:hover,
+.bd-header .navbar-nav .nav-link[href*='lite/lab']::before,
+.bd-header .navbar-nav .nav-link[href*='lite/lab']::after {
+  text-decoration: none !important;
+  border-bottom: none !important;
+  box-shadow: none;
+}
+
 .bd-header .navbar-nav .nav-link[href*='lite/lab'] {
-  background-color: var(--jgis-teal-800);
-  color: #fff !important;
+  background-color: var(--jgis-sun-400);
+  color: var(--jgis-blue-700) !important;
   border-radius: 6px;
   padding: 0.45rem 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   margin-left: 0.75rem;
-  text-decoration: none;
+  text-decoration: none !important;
   transition:
     background 0.15s ease,
     box-shadow 0.15s ease;
-  box-shadow: 0 0 8px rgba(26, 107, 107, 0.35);
+  box-shadow: none;
 }
 
 .bd-header .navbar-nav .nav-link[href*='lite/lab']:hover {
-  background-color: var(--jgis-teal-700);
-  box-shadow: 0 0 16px rgba(26, 107, 107, 0.5);
-  color: #fff !important;
-  text-decoration: none;
+  background-color: var(--jgis-sun-600);
+  box-shadow: 0 0 16px rgba(212, 184, 0, 0.5);
+  color: var(--jgis-blue-700) !important;
+  text-decoration: none !important;
 }
 
 /* Mobile burger menu — highlight the "Try" link */
 .navbar-collapse .nav-link[href*='lite/lab'] {
-  background-color: var(--jgis-teal-800);
-  color: #fff !important;
+  background-color: var(--jgis-sun-400);
+  color: var(--jgis-blue-700) !important;
   border-radius: 6px;
   padding: 0.5rem 1rem;
   margin: 0.5rem 0;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-block;
 }
 
 /* ── Main page "Try it" button ──────────────────────────────── */
 .jgis-try-button {
   display: inline-block;
-  background-color: var(--jgis-teal-800);
-  color: #fff !important;
+  background-color: var(--jgis-sun-400);
+  color: var(--jgis-blue-700) !important;
   border-radius: 6px;
   padding: 0.6rem 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.05rem;
   text-decoration: none;
   margin: 1rem 0;
   transition:
     background 0.15s ease,
     box-shadow 0.15s ease;
-  box-shadow: 0 0 10px rgba(26, 107, 107, 0.35);
+  box-shadow: none;
 }
 
 .jgis-try-button:hover {
-  background-color: var(--jgis-teal-700);
-  box-shadow: 0 0 18px rgba(26, 107, 107, 0.5);
-  color: #fff !important;
+  background-color: var(--jgis-sun-600);
+  box-shadow: 0 0 18px rgba(212, 184, 0, 0.5);
+  color: var(--jgis-blue-700) !important;
   text-decoration: none;
 }
 
 /* ── Screenshot styling ─────────────────────────────────────── */
 .bd-content img[src*='jupytergis.png'] {
   border-radius: 8px;
-  border: 1px solid #dde8e8;
-  box-shadow: 0 4px 24px rgba(26, 107, 107, 0.12);
+  border: 1px solid #f5edc0;
+  box-shadow: 0 4px 24px rgba(212, 184, 0, 0.12);
   width: 100%;
   margin: 1.5rem 0;
   display: block;
