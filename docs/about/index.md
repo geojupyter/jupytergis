@@ -133,18 +133,6 @@ Felt does not support scripting or integration with computational workflows.
 **JupyterGIS** shares the browser-first collaborative approach but is fully open source, community-driven with multiple organizational stakeholders, self-hostable on any infrastructure, and scriptable.
 It adds integration with Jupyter kernels for server-side processing and deep ties to the scientific Python ecosystem.
 
-### GeoLibre
-
-[GeoLibre](https://geolibre.app/) is a lightweight, open-source desktop GIS built with Tauri, React, and MapLibre GL JS.
-It uses DuckDB-WASM for client-side geospatial processing and supports a wide range of formats including GeoParquet, PMTiles, and Cloud-Optimized GeoTIFFs.
-
-**GeoLibre** is desktop-first and single-user — a standalone application focused on local data exploration and visualization.
-It does not support real-time collaboration or integration with computational notebooks.
-
-**JupyterGIS** is browser-first, collaborative, and deeply integrated with the Jupyter ecosystem.
-Where GeoLibre focuses on lightweight local exploration, JupyterGIS is designed for team workflows that combine map visualization with computational analysis in notebooks.
-Both projects are open source and share a commitment to modern web technologies and open formats.
-
 ### Rendering libraries (MapLibre, OpenLayers, Leaflet, ...)
 
 [MapLibre](https://maplibre.org/), [OpenLayers](https://openlayers.org/), [Leaflet](https://leafletjs.com/), and similar projects are map rendering libraries — they draw maps, not build GIS environments.
