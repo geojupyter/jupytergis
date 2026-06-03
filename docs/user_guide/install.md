@@ -33,7 +33,6 @@ pip install jupytergis  # or jupytergis[tiler]!
 Once JupyterGIS is installed, start JupyterLab:
 
 ```bash
->>>>>>> f8e47efd (Update docs for tiler extra and related concerns)
 jupyter lab
 ```
 
