@@ -57,6 +57,7 @@
     "@jupyterlab/launcher": "^4.3.0",
     "@jupyterlab/logconsole": "^4.3.0",
     "@jupyterlab/observables": "^5.3.0",
+    "@jupyterlab/rendermime": "^4.3.0",
     "@jupyterlab/services": "^7.3.0",
     "@jupyterlab/translation": "^4.3.0",
     "@jupyterlab/ui-components": "^4.3.1",

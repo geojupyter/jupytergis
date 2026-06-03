@@ -10,6 +10,8 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
+import { useStorySegmentSync } from '@/src/features/story/hooks/useStorySegmentSync';
+import { STORY_TYPE } from '@/src/types';
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
@@ -60,19 +62,16 @@ export function RightPanelStoryViewer({
     isSpecta: false,
   });
 
+  useStorySegmentSync({ model, storyData, setIndex });
+
   return (
     <StoryViewerPanel
-      model={model}
       isSpecta={false}
       storyData={storyData}
       currentIndex={currentIndex}
       activeSlide={activeSlide}
       layerName={layerName}
-      handlePrev={handlePrev}
-      handleNext={handleNext}
-      hasPrev={hasPrev}
-      hasNext={hasNext}
-      setIndex={setIndex}
+      segmentNav={{ handlePrev, handleNext, hasPrev, hasNext }}
     />
   );
 }
@@ -92,8 +91,11 @@ interface IRightPanelProps {
   ) => Promise<boolean>;
 }
 
-export const RightPanel: React.FC<IRightPanelProps> = props => {
+const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const { patchGeoJSONFeatureProperties } = props;
+  const isListStory =
+    props.model.getSelectedStory().story?.storyType ===
+    STORY_TYPE.verticalScroll;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     const initialPresentationMode =
@@ -208,7 +210,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               style={{ paddingTop: 0 }}
             >
               {/* Only show switch when NOT in presentation mode */}
-              {!storyMapPresentationMode && (
+              {!storyMapPresentationMode && !isListStory && (
                 <PreviewModeSwitch
                   checked={!editorMode}
                   onCheckedChange={toggleEditor}
@@ -254,3 +256,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     </Draggable>
   );
 };
+
+RightPanelComponent.displayName = 'RightPanel';
+
+export const RightPanel = React.memo(RightPanelComponent);

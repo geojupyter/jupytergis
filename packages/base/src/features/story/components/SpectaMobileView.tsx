@@ -1,10 +1,7 @@
-import {
-  IJGISStoryMap,
-  IJupyterGISModel,
-  IStorySegmentLayer,
-} from '@jupytergis/schema';
+import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
 
+import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
   Drawer,
@@ -12,7 +9,6 @@ import {
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
 import StoryViewerPanel from '../StoryViewerPanel';
-import { getSpectaPresentationStyle } from '../hooks/useStoryMap';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
@@ -25,7 +21,6 @@ const SNAP_FIRST_DEFAULT = 0.7;
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 interface ISpectaMobileViewProps {
-  model: IJupyterGISModel;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -35,7 +30,6 @@ interface ISpectaMobileViewProps {
   handleNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
-  setIndex: (index: number) => void;
 }
 
 /**
@@ -65,7 +59,6 @@ function getFirstSnapFromSegmentHeader(
 }
 
 export function SpectaMobileView({
-  model,
   segmentContainerRef,
   storyData,
   currentIndex,
@@ -75,7 +68,6 @@ export function SpectaMobileView({
   handleNext,
   hasPrev,
   hasNext,
-  setIndex,
 }: ISpectaMobileViewProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [snapPoints, setSnapPoints] = useState<number[]>([
@@ -176,7 +168,6 @@ export function SpectaMobileView({
         <DrawerContent style={presentationStyle}>
           <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
-              model={model}
               isSpecta={true}
               isMobile={true}
               segmentContainerRef={segmentContainerRef}
@@ -184,11 +175,7 @@ export function SpectaMobileView({
               currentIndex={currentIndex}
               activeSlide={activeSlide}
               layerName={layerName}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-              setIndex={setIndex}
+              segmentNav={{ handlePrev, handleNext, hasPrev, hasNext }}
             />
           </div>
         </DrawerContent>
