@@ -29,11 +29,18 @@ import {
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
 import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
+import { type ISelectItem, Select } from '@/src/shared/components/Select';
+import {
   CategoricalEditor,
   ColorRampEditor,
   ConstantEditor,
   ScalarEditor,
 } from './ScaleEditor';
+import { Input } from '@/src/shared/components/Input';
+import { Button } from '@/src/shared/components/Button';
 
 // ---------------------------------------------------------------------------
 // Channel taxonomy
@@ -397,77 +404,70 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
 
   return (
     <span className="jp-gis-grammar-when-form">
-      <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
-        <select
-          className="jp-mod-styled"
-          value={draft.type}
-          onChange={e => patch({ type: e.target.value as PredicateType })}
-        >
-          <option value="geometryType">geometry type</option>
-          <option value="hasField">has field</option>
-          <option value="fieldEquals">field equals</option>
-          <option value="fieldCompare">field compare</option>
-          <option value="between">between</option>
-        </select>
-      </div>
+      <NativeSelect
+        value={draft.type}
+        onChange={e => patch({ type: e.target.value as PredicateType })}
+      >
+        <NativeSelectOption value="geometryType">
+          Geometry Type
+        </NativeSelectOption>
+        <NativeSelectOption value="hasField">Has Field</NativeSelectOption>
+        <NativeSelectOption value="fieldEquals">
+          Field Equals
+        </NativeSelectOption>
+        <NativeSelectOption value="fieldCompare">
+          Field Compare
+        </NativeSelectOption>
+        <NativeSelectOption value="between">Between</NativeSelectOption>
+      </NativeSelect>
 
       {draft.type === 'geometryType' && (
-        <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
-          <select
-            className="jp-mod-styled"
-            value={draft.geomValue}
-            onChange={e =>
-              patch({
-                geomValue: e.target.value as INewPredicate['geomValue'],
-              })
-            }
-          >
-            <option value="Point">Point</option>
-            <option value="LineString">LineString</option>
-            <option value="Polygon">Polygon</option>
-          </select>
-        </div>
+        <NativeSelect
+          value={draft.geomValue}
+          onChange={e =>
+            patch({
+              geomValue: e.target.value as INewPredicate['geomValue'],
+            })
+          }
+        >
+          <NativeSelectOption value="Point">Point</NativeSelectOption>
+          <NativeSelectOption value="LineString">LineString</NativeSelectOption>
+          <NativeSelectOption value="Polygon">Polygon</NativeSelectOption>
+        </NativeSelect>
       )}
 
       {(draft.type === 'hasField' ||
         draft.type === 'fieldEquals' ||
         draft.type === 'fieldCompare' ||
         draft.type === 'between') && (
-        <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
-          <select
-            className="jp-mod-styled"
-            value={draft.field}
-            onChange={e => patch({ field: e.target.value })}
-          >
-            <option value="">(field)</option>
-            {availableFields.map(f => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
-        </div>
+        <NativeSelect
+          value={draft.field}
+          onChange={e => patch({ field: e.target.value })}
+        >
+          <NativeSelectOption value="">(field)</NativeSelectOption>
+          {availableFields.map(field => (
+            <NativeSelectOption key={field} value={field}>
+              {field}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
       )}
 
       {draft.type === 'fieldCompare' && (
-        <div className="jp-select-wrapper" style={{ flex: '0 0 auto' }}>
-          <select
-            className="jp-mod-styled"
-            value={draft.compareOp}
-            onChange={e => patch({ compareOp: e.target.value as ICompareOp })}
-          >
-            {COMPARE_OPS.map(op => (
-              <option key={op} value={op}>
-                {op}
-              </option>
-            ))}
-          </select>
-        </div>
+        <NativeSelect
+          value={draft.compareOp}
+          onChange={e => patch({ compareOp: e.target.value as ICompareOp })}
+        >
+          {COMPARE_OPS.map(op => (
+            <NativeSelectOption key={op} value={op}>
+              {op}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
       )}
 
       {(draft.type === 'fieldEquals' || draft.type === 'fieldCompare') && (
-        <input
-          className="jp-mod-styled"
+        <Input
           style={{ flex: '0 0 80px', minWidth: 0 }}
           type={draft.type === 'fieldCompare' ? 'number' : 'text'}
           placeholder="value"
@@ -478,8 +478,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
 
       {draft.type === 'between' && (
         <>
-          <input
-            className="jp-mod-styled"
+          <Input
             style={{ flex: '0 0 60px', minWidth: 0 }}
             type="number"
             placeholder="min"
@@ -491,8 +490,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
           >
             –
           </span>
-          <input
-            className="jp-mod-styled"
+          <Input
             style={{ flex: '0 0 60px', minWidth: 0 }}
             type="number"
             placeholder="max"
@@ -502,23 +500,26 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         </>
       )}
 
-      <button
+      <Button
         type="button"
-        className="jp-gis-grammar-when-ok"
+        variant="icon"
+        size="icon-md"
         disabled={!built}
         onClick={() => built && onAdd(built)}
         title="Add predicate"
       >
         <FontAwesomeIcon icon={faCheck} />
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
-        className="jp-gis-grammar-when-cancel"
+        variant="icon"
+        size="icon-md"
+        className="jp-gis-grammar-when-form-cancel"
         onClick={onCancel}
         title="Cancel"
       >
         <FontAwesomeIcon icon={faXmark} />
-      </button>
+      </Button>
     </span>
   );
 };
@@ -567,20 +568,20 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
   }
 
   if (fieldCount === 1) {
+    const selectedField = fields[0] ?? '';
     return (
-      <div className="jp-select-wrapper" style={{ gridRow: 1, gridColumn: 1 }}>
-        <select
-          className="jp-mod-styled"
-          value={fields[0] ?? ''}
+      <div style={{ gridRow: 1, gridColumn: 1 }}>
+        <NativeSelect
+          value={selectedField}
           onChange={e => onFieldChange(0, e.target.value)}
         >
-          <option value="">(none)</option>
+          <NativeSelectOption value="">(none)</NativeSelectOption>
           {availableFields.map(f => (
-            <option key={f} value={f}>
+            <NativeSelectOption key={f} value={f}>
               {f}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
       </div>
     );
   }
@@ -600,34 +601,34 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
       {fields.map((f, i) => (
         <span key={i} className="jp-gis-grammar-when-chip">
           {f}
-          <button
+          <Button
             type="button"
             className="jp-gis-grammar-when-cancel"
             onClick={() => onFieldChange(i, '')}
             title="Remove field"
           >
             <FontAwesomeIcon icon={faXmark} />
-          </button>
+          </Button>
         </span>
       ))}
-      <div
-        className="jp-select-wrapper"
-        style={{ minWidth: 60, flex: '0 0 auto' }}
-      >
-        <select
-          className="jp-mod-styled"
+      <div style={{ minWidth: 60, flex: '0 0 auto' }}>
+        <NativeSelect
           value=""
-          onChange={e => onAddField(e.target.value)}
+          onChange={e => {
+            if (e.target.value) {
+              onAddField(e.target.value);
+            }
+          }}
         >
-          <option value="">+field</option>
+          <NativeSelectOption value="">+field</NativeSelectOption>
           {availableFields
             .filter(f => !fields.includes(f))
             .map(f => (
-              <option key={f} value={f}>
+              <NativeSelectOption key={f} value={f}>
                 {f}
-              </option>
+              </NativeSelectOption>
             ))}
-        </select>
+        </NativeSelect>
       </div>
     </div>
   );
@@ -803,23 +804,21 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         />
 
         {/* Scheme — row 1 */}
-        <div
-          className="jp-select-wrapper"
-          style={{ gridRow: 1, gridColumn: 2 }}
-        >
-          <select
-            className="jp-mod-styled"
+        <div style={{ gridRow: 1, gridColumn: 2 }}>
+          <NativeSelect
             value={row.scale.scheme}
             onChange={e =>
               handleSchemeChange(e.target.value as IScale['scheme'])
             }
           >
-            {SCHEME_OPTIONS.map(({ value, label, disabled }) => (
-              <option key={value} value={value} disabled={disabled}>
-                {label}
-              </option>
-            ))}
-          </select>
+            {SCHEME_OPTIONS.filter(({ disabled }) => !disabled).map(
+              ({ value, label }) => (
+                <NativeSelectOption key={value} value={value}>
+                  {label}
+                </NativeSelectOption>
+              ),
+            )}
+          </NativeSelect>
         </div>
 
         {/* Scale preview — spans all channel rows + optional add-channel row */}
@@ -843,26 +842,27 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               →
             </span>
             <div
-              className="jp-select-wrapper"
+              className="jp-gis-grammar-channel-select"
               style={{ gridRow: i + 1, gridColumn: 5 }}
             >
-              <select
-                className="jp-mod-styled"
+              <NativeSelect
                 value={ch}
                 onChange={e =>
                   handleChannelChange(i, e.target.value as StyleChannel)
                 }
               >
                 {compat.map(c => (
-                  <option key={c} value={c}>
+                  <NativeSelectOption key={c} value={c}>
                     {CHANNEL_LABELS[c] ?? c}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
-            <button
+            <Button
               type="button"
-              className="jp-gis-grammar-delete-btn"
+              variant="outline"
+              size="icon-md"
+              className="jp-mod-styled"
               style={{ gridRow: i + 1, gridColumn: 6 }}
               onClick={() => removeChannel(ch)}
               title={
@@ -870,7 +870,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               }
             >
               <FontAwesomeIcon icon={faTrash} />
-            </button>
+            </Button>
           </React.Fragment>
         ))}
 
@@ -884,11 +884,10 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               +
             </span>
             <div
-              className="jp-select-wrapper"
+              className="jp-gis-grammar-channel-select"
               style={{ gridRow: row.channels.length + 1, gridColumn: 5 }}
             >
-              <select
-                className="jp-mod-styled"
+              <NativeSelect
                 value=""
                 onChange={e => {
                   if (e.target.value) {
@@ -896,13 +895,13 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                   }
                 }}
               >
-                <option value="">(add channel)</option>
+                <NativeSelectOption value="">(add channel)</NativeSelectOption>
                 {availableToAdd.map(ch => (
-                  <option key={ch} value={ch}>
+                  <NativeSelectOption key={ch} value={ch}>
                     {CHANNEL_LABELS[ch] ?? ch}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           </React.Fragment>
         )}
@@ -912,7 +911,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(row.when?.length ?? 0) > 1 && (
-          <button
+          <Button
             type="button"
             className="jp-gis-grammar-when-op"
             onClick={() =>
@@ -923,18 +922,18 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             }
           >
             {row.whenOp ?? 'all'}
-          </button>
+          </Button>
         )}
         {row.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
-            <button
+            <Button
               type="button"
               onClick={() => removePredicate(i)}
               title="Remove condition"
             >
               <FontAwesomeIcon icon={faXmark} />
-            </button>
+            </Button>
           </span>
         ))}
         {addingWhen ? (
@@ -944,13 +943,13 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             onCancel={() => setAddingWhen(false)}
           />
         ) : (
-          <button
+          <Button
             type="button"
             className="jp-gis-grammar-when-add-btn"
             onClick={() => setAddingWhen(true)}
           >
             <FontAwesomeIcon icon={faPlus} />
-          </button>
+          </Button>
         )}
       </div>
 
