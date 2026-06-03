@@ -3,6 +3,7 @@ export {
   IOpenEODialogResult,
   IOpenEODialogOptions,
 } from './addLayerDialog';
+export { editOpenEOLayer, findOpenEOLayerIdForSource } from './editLayer';
 export {
   OPENEO_TEMPLATES,
   getTemplate,

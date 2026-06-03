@@ -375,13 +375,6 @@ const activate = async (
     rank: 55,
     args: { label: 'New JupyterGIS Project' },
   });
-
-  // Right-click an OpenEO layer in the Layers panel → edit its process graph
-  app.contextMenu.addItem({
-    command: CommandIDs.editOpenEOLayer,
-    selector: '.jp-gis-layerItem',
-    rank: 2,
-  });
 };
 
 const jGISPlugin: JupyterFrontEndPlugin<void> = {

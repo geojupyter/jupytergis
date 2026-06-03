@@ -32,11 +32,10 @@ import {
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import keybindings from '../keybindings.json';
 import {
-  connect as openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from '../mainview/OpenEOTileLayer';
-import { showAddOpenEOLayerDialog } from '../openeo';
+import { editOpenEOLayer, showAddOpenEOLayerDialog } from '../openeo';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
@@ -731,66 +730,11 @@ export function addCommands(
       if (!layerId) {
         return;
       }
-      const layer = model.getLayer(layerId);
-      if (!layer || layer.type !== 'OpenEOTileLayer') {
-        return;
-      }
-      const sourceId = (layer.parameters as any)?.source as string | undefined;
-      if (!sourceId) {
-        return;
-      }
-      const source = model.getSource(sourceId);
-      const sourceParams = (source?.parameters ?? {}) as {
-        serverUrl?: string;
-        processGraph?: Record<string, any>;
-      };
-      // Reconnect to the layer's server before editing. `connect` reuses
-      // the cached connection when the server is already authenticated;
-      // otherwise it prompts the user — the token is never stored.
-      const connectionInfo: IOpenEOConnectionInfo = {
-        url: sourceParams.serverUrl,
-      };
-      try {
-        await openEOConnect(connectionInfo);
-        _lastOpenEOConnection = { url: connectionInfo.url };
-      } catch {
-        return;
-      }
-      const knownServers = Array.from(
-        new Set(
-          [
-            ...listOpenEOConnections(),
-            ...listExistingOpenEOServers(current.model),
-          ].filter(Boolean),
-        ),
-      );
-      const result = await showAddOpenEOLayerDialog({
-        title: 'Edit OpenEO Layer',
-        okLabel: 'Save',
-        connectionInfo,
-        knownServers,
-        initialGraph: sourceParams.processGraph,
-        layerName: layer.name,
+      await editOpenEOLayer(model, layerId, {
+        onConnected: info => {
+          _lastOpenEOConnection = { url: info.url };
+        },
       });
-      if (!result) {
-        return;
-      }
-      if (source) {
-        model.sharedModel.updateSource(sourceId, {
-          ...source,
-          parameters: {
-            ...source.parameters,
-            serverUrl: result.serverUrl,
-            processGraph: result.processGraph,
-          },
-        });
-      }
-      if (result.layerName !== layer.name) {
-        model.sharedModel.updateLayer(layerId, {
-          ...layer,
-          name: result.layerName,
-        });
-      }
     },
   });
 
