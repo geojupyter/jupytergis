@@ -31,22 +31,40 @@ interface ISpectaMobileViewProps {
 
 export function SpectaMobileView({
   model,
+  segmentContainerRef,
+  storyData,
+  currentIndex,
   setIndex,
+  activeSlide,
+  layerName,
+  handlePrev,
+  handleNext,
+  hasPrev,
+  hasNext,
   onSegmentTransitionChange,
-  ...singleModeProps
 }: ISpectaMobileViewProps): JSX.Element {
   const viewMode: StoryMobileViewMode =
-    singleModeProps.storyData?.storyType === STORY_TYPE.verticalScroll
-      ? 'list'
-      : 'single';
+    storyData?.storyType === STORY_TYPE.verticalScroll ? 'list' : 'single';
 
   const renderModeContent: Record<StoryMobileViewMode, () => JSX.Element> = {
-    single: () => <SpectaMobileSingleModeContent {...singleModeProps} />,
+    single: () => (
+      <SpectaMobileSingleModeContent
+        segmentContainerRef={segmentContainerRef}
+        storyData={storyData}
+        currentIndex={currentIndex}
+        activeSlide={activeSlide}
+        layerName={layerName}
+        handlePrev={handlePrev}
+        handleNext={handleNext}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+      />
+    ),
     list: () => (
       <SpectaMobileListModeContent
         model={model}
-        storyData={singleModeProps.storyData}
-        currentIndex={singleModeProps.currentIndex}
+        storyData={storyData}
+        currentIndex={currentIndex}
         setIndex={setIndex}
         onSegmentTransitionChange={onSegmentTransitionChange}
       />

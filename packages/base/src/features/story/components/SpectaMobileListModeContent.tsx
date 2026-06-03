@@ -21,7 +21,6 @@ export interface ISpectaMobileListModeContentProps {
 
 /**
  * Mobile list story: full-viewport touch scroll on the virtual track drives
- * {@link ListStoryStageOverlay} on the map stage (via segment transition sync).
  */
 export function SpectaMobileListModeContent({
   model,
