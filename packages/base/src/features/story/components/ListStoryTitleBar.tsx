@@ -1,5 +1,5 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
@@ -16,8 +16,19 @@ interface IListStoryTitleBarProps {
 export function ListStoryTitleBar({
   model,
 }: IListStoryTitleBarProps): JSX.Element {
+  const segmentsRef = useRef<HTMLDivElement>(null);
   const currentIndex = useCurrentSegmentIndex(model);
   const { scrollToSegmentIndex } = useListStoryScrollTrackContext();
+
+  const scrollSegments = useCallback((direction: -1 | 1): void => {
+    const segments = segmentsRef.current;
+    if (!segments) {
+      return;
+    }
+
+    const amount = Math.max(120, segments.clientWidth * 0.6);
+    segments.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  }, []);
 
   const segmentItems = useMemo(
     () =>
@@ -30,7 +41,17 @@ export function ListStoryTitleBar({
 
   return (
     <nav className="jgis-story-title-bar" aria-label="Story segments">
-      <div className="jgis-story-title-bar-segments">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="jgis-story-title-bar-scroll-btn"
+        aria-label="Scroll segments left"
+        onClick={() => scrollSegments(-1)}
+      >
+        ‹
+      </Button>
+      <div ref={segmentsRef} className="jgis-story-title-bar-segments">
         {segmentItems.map(item => (
           <Button
             key={item.id}
@@ -46,6 +67,16 @@ export function ListStoryTitleBar({
           </Button>
         ))}
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="jgis-story-title-bar-scroll-btn"
+        aria-label="Scroll segments right"
+        onClick={() => scrollSegments(1)}
+      >
+        ›
+      </Button>
     </nav>
   );
 }

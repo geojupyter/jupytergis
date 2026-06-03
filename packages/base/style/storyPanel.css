@@ -213,24 +213,43 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 6;
+  z-index: 50;
   display: flex;
   align-items: center;
+  gap: 0.25rem;
   padding: 0.5rem 0.75rem;
   box-sizing: border-box;
   background-color: color-mix(in srgb, var(--jp-layout-color1), transparent 8%);
   border-bottom: 1px solid var(--jp-border-color2);
   pointer-events: auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.jgis-story-title-bar-scroll-btn {
+  flex-shrink: 0;
+  min-width: 2rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .jgis-story-title-bar-segments {
   display: flex;
-  flex-wrap: wrap;
+  flex: 1;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.25rem;
   min-width: 0;
-  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.jgis-story-title-bar-segment {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .jgis-story-title-bar-segment[aria-current='true'] {
