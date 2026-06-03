@@ -208,6 +208,37 @@
   overscroll-behavior: contain;
 }
 
+.jgis-story-title-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  background-color: color-mix(in srgb, var(--jp-layout-color1), transparent 8%);
+  border-bottom: 1px solid var(--jp-border-color2);
+  pointer-events: auto;
+}
+
+.jgis-story-title-bar-segments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.jgis-story-title-bar-segment[aria-current='true'] {
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+  background-color: var(--jp-layout-color2);
+}
+
 .jgis-story-stage-overlay {
   position: absolute;
   inset: 0;

@@ -2,6 +2,7 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
 import { ListStoryStageOverlay } from '@/src/features/story/components/ListStoryStageOverlay';
+import { ListStoryTitleBar } from '@/src/features/story/components/ListStoryTitleBar';
 import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
@@ -34,10 +35,13 @@ export function MainViewStoryStage({
     >
       <ListStoryScrollTrackProvider model={model} enabled={isListStory}>
         {isListStory ? (
-          <ListStoryStageOverlay
-            model={model}
-            segmentTransition={segmentTransition}
-          />
+          <>
+            <ListStoryTitleBar model={model} />
+            <ListStoryStageOverlay
+              model={model}
+              segmentTransition={segmentTransition}
+            />
+          </>
         ) : null}
         <div className="jgis-panels-wrapper">{panels}</div>
         <div ref={controlsToolbarRef} className="jgis-controls-toolbar"></div>
