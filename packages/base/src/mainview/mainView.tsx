@@ -2903,6 +2903,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     const handleScroll = (event: Event) => {
+      const wheelEvent = event as WheelEvent;
+      const titleBarSegments =
+        wheelEvent.target instanceof Element
+          ? wheelEvent.target.closest('.jgis-story-title-bar-segments')
+          : null;
+
+      if (titleBarSegments instanceof HTMLElement) {
+        const horizontalDelta =
+          wheelEvent.deltaX !== 0
+            ? wheelEvent.deltaX
+            : wheelEvent.shiftKey
+              ? wheelEvent.deltaY
+              : 0;
+
+        if (horizontalDelta !== 0) {
+          titleBarSegments.scrollLeft += horizontalDelta;
+        }
+
+        event.preventDefault();
+        return;
+      }
+
       event.preventDefault();
 
       if (!scrollContainer || !document.contains(scrollContainer)) {
@@ -2916,7 +2938,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       // frames on slow hardware). We accumulate deltaY and run flush once per
       // frame via rAF—the frame boundary batches events without adding delay.
       // So one scroll means one segment/scroll decision.
-      accumulatedDeltaY += (event as WheelEvent).deltaY;
+      accumulatedDeltaY += wheelEvent.deltaY;
       if (this._pendingStoryScrollRafId === null) {
         this._pendingStoryScrollRafId = requestAnimationFrame(
           processStoryScrollFrame,
