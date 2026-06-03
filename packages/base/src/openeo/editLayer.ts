@@ -1,11 +1,11 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 
+import { showAddOpenEOLayerDialog } from './addLayerDialog';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from '../mainview/OpenEOTileLayer';
-import { showAddOpenEOLayerDialog } from './addLayerDialog';
 
 /**
  * All distinct OpenEO server URLs referenced by layers already in the
