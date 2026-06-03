@@ -33,6 +33,7 @@
 @import url('./shared/command.css');
 @import url('./shared/combobox.css');
 @import url('./shared/input.css');
+@import url('./shared/nativeSelect.css');
 
 .errors {
   color: var(--jp-warn-color0);

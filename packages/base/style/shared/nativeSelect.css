@@ -1,0 +1,75 @@
+.jgis-native-select {
+  position: relative;
+  width: fit-content;
+}
+
+.jgis-native-select:has(select:disabled) {
+  opacity: 0.5;
+}
+
+[data-slot='native-select'] {
+  box-sizing: border-box;
+  height: 2rem;
+  width: 100%;
+  min-width: 0;
+  appearance: none;
+  border-radius: var(--jp-border-radius, 0.375rem);
+  border: 1px solid var(--jp-border-color1);
+  background-color: transparent;
+  padding: 0.25rem 2rem 0.25rem 0.625rem;
+  font-size: 0.875rem;
+  color: var(--jp-ui-font-color1);
+  transition:
+    color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  outline: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+[data-slot='native-select']::selection {
+  background-color: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+}
+
+[data-slot='native-select']:focus-visible {
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 3px rgba(var(--jp-brand-color1-rgb), 0.1);
+}
+
+[data-slot='native-select'][aria-invalid='true'] {
+  border-color: var(--jp-error-color1);
+  box-shadow: 0 0 0 3px rgba(var(--jp-error-color1-rgb), 0.2);
+}
+
+[data-slot='native-select']:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+[data-slot='native-select'][data-size='sm'] {
+  height: 1.75rem;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  border-radius: min(var(--jp-border-radius, 0.375rem), 10px);
+}
+
+.jgis-native-select-icon {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  right: 0.625rem;
+  width: 1rem;
+  height: 1rem;
+  transform: translateY(-50%);
+  color: var(--jp-ui-font-color2);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+[data-slot='native-select-option'],
+[data-slot='native-select-optgroup'] {
+  background: Canvas;
+  color: CanvasText;
+}
