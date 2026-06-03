@@ -28,19 +28,18 @@ import {
   drawColorRamp,
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import { Button } from '@/src/shared/components/Button';
+import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
-import { type ISelectItem, Select } from '@/src/shared/components/Select';
 import {
   CategoricalEditor,
   ColorRampEditor,
   ConstantEditor,
   ScalarEditor,
 } from './ScaleEditor';
-import { Input } from '@/src/shared/components/Input';
-import { Button } from '@/src/shared/components/Button';
 
 // ---------------------------------------------------------------------------
 // Channel taxonomy

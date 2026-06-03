@@ -35,11 +35,11 @@ import {
   saveSymbology,
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
+import { Button } from '@/src/shared/components/Button';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
-import { Button } from '@/src/shared/components/Button';
 
 const DEFAULT_CHANNELS: StyleChannel[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
