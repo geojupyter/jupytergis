@@ -28,6 +28,30 @@ export function removeFormEntry(
   }
 }
 
+/** Remove a property nested under a parent object in data, schema, and uiSchema. */
+export function removeNestedFormEntry(
+  parentKey: string,
+  entry: string,
+  data: IDict | undefined,
+  schema: RJSFSchema,
+  uiSchema: UiSchema,
+): void {
+  const parentData =
+    data && typeof data[parentKey] === 'object'
+      ? (data[parentKey] as IDict)
+      : undefined;
+  const parentSchema = schema.properties?.[parentKey] as IDict | undefined;
+  const parentUiSchema = (uiSchema[parentKey] as UiSchema) ?? {};
+
+  removeFormEntry(
+    entry,
+    parentData,
+    parentSchema as RJSFSchema,
+    parentUiSchema,
+  );
+  uiSchema[parentKey] = parentUiSchema;
+}
+
 /**
  * Apply base processSchema: array options, opacity field, readOnly handling.
  * Mutates schema, uiSchema, and optionally data (for readOnly removal in update).

@@ -5,14 +5,9 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import {
-  CSSProperties,
-  RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
+
+import { STORY_TYPE } from '@/src/types';
 
 /** Entry for a layer affected by layer override
  * remove if we added a layer or restore if we modified an existing layer.
@@ -28,26 +23,6 @@ export interface IUseStoryMapParams {
   removeLayer?: (id: string) => void;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   isSpecta: boolean;
-  /** Panel root element for applying specta presentation CSS variables. */
-  panelRef?: RefObject<HTMLDivElement | null>;
-}
-
-/** Inline style for specta presentation (bg and text color from story). */
-export function getSpectaPresentationStyle(
-  story: IJGISStoryMap | null,
-): CSSProperties {
-  const bgColor = story?.presentationBgColor;
-  const textColor = story?.presentationTextColor;
-  const style: CSSProperties = {};
-  if (bgColor) {
-    (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
-    style.backgroundColor = bgColor;
-  }
-  if (textColor) {
-    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
-    style.color = textColor;
-  }
-  return style;
 }
 
 export function useStoryMap({
@@ -55,7 +30,6 @@ export function useStoryMap({
   overrideLayerEntriesRef,
   removeLayer,
   addLayer,
-  panelRef,
   isSpecta,
 }: IUseStoryMapParams) {
   const [currentIndex, setCurrentIndex] = useState(
@@ -96,8 +70,10 @@ export function useStoryMap({
     () => storySegmentIds?.[currentIndex],
     [storySegmentIds, currentIndex],
   );
+  const currentSegmentContentMode = activeSlide?.content?.contentMode;
 
   const showGradient = storyData?.showGradient ?? true;
+  const isGuidedStory = storyData?.storyType === STORY_TYPE.guided;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 
@@ -118,12 +94,6 @@ export function useStoryMap({
     });
     entries.length = 0;
   }, [model, overrideLayerEntriesRef, removeLayer]);
-
-  const zoomToCurrentLayer = useCallback(() => {
-    if (currentStorySegmentId) {
-      model.centerOnPosition(currentStorySegmentId);
-    }
-  }, [model, currentStorySegmentId]);
 
   const setIndex = useCallback(
     (index: number) => {
@@ -295,10 +265,14 @@ export function useStoryMap({
   }, []);
 
   useEffect(() => {
-    if (currentStorySegmentId) {
-      zoomToCurrentLayer();
+    if (!currentStorySegmentId) {
+      return;
     }
-  }, [currentStorySegmentId, zoomToCurrentLayer]);
+    if (currentSegmentContentMode === 'markdown') {
+      return;
+    }
+    model.centerOnPosition(currentStorySegmentId);
+  }, [model, currentStorySegmentId, currentSegmentContentMode]);
 
   // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
   useEffect(() => {
@@ -306,11 +280,14 @@ export function useStoryMap({
       return;
     }
     clearOverrideLayers();
-    setSelectedLayerByIndex(currentIndex);
+    if (isGuidedStory) {
+      setSelectedLayerByIndex(currentIndex);
+    }
     overrideSymbology(currentIndex);
   }, [
     storyData,
     currentIndex,
+    isGuidedStory,
     setSelectedLayerByIndex,
     clearOverrideLayers,
     overrideSymbology,
@@ -318,24 +295,10 @@ export function useStoryMap({
 
   // Set selected layer on initial render and when story data changes
   useEffect(() => {
-    if (storyData?.storySegments && currentIndex >= 0) {
+    if (isGuidedStory && storyData?.storySegments && currentIndex >= 0) {
       setSelectedLayerByIndex(currentIndex);
     }
-  }, [storyData, currentIndex, setSelectedLayerByIndex]);
-
-  // Apply story presentation colors (specta) to panel root
-  useEffect(() => {
-    if (!isSpecta || !panelRef?.current) {
-      return;
-    }
-    const container = panelRef.current;
-    const style = getSpectaPresentationStyle(storyData);
-    Object.entries(style).forEach(([key, value]) => {
-      if (value !== null) {
-        container.style.setProperty(key, String(value));
-      }
-    });
-  }, [storyData, isSpecta, panelRef]);
+  }, [storyData, currentIndex, isGuidedStory, setSelectedLayerByIndex]);
 
   return {
     storyData,
@@ -353,6 +316,5 @@ export function useStoryMap({
     activeSlide,
     layerName,
     currentStorySegmentId,
-    zoomToCurrentLayer,
   };
 }

@@ -65,12 +65,6 @@ select option {
   max-width: 25%;
 }
 
-.jp-gis-band-container {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-
 .jp-gis-layer-symbology-container {
   display: flex;
   flex-direction: column;
@@ -131,27 +125,6 @@ select option {
 
 .jp-gis-symbology-button-container {
   padding-top: 0.5rem;
-}
-
-.jp-gis-band-info-loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  margin: auto;
-}
-
-.jp-gis-band-info-loading-container > span {
-  font-size: 1rem;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .jp-gis-color-ramp-dropdown {
@@ -307,7 +280,7 @@ select option {
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  background: var(--jp-layout-color3);
+  background: var(--jp-layout-color2);
   border-bottom: 1px solid var(--jp-border-color2);
   font-size: var(--jp-ui-font-size1);
 }
@@ -330,11 +303,23 @@ select option {
 /* 6-column grid: field | scheme | preview | arrow | channel | × */
 .jp-gis-grammar-rule-grid {
   display: grid;
-  grid-template-columns: 80px 80px 1fr auto 100px auto;
+  grid-template-columns: max-content max-content 1fr auto max-content auto;
   align-items: center;
   column-gap: 4px;
   row-gap: 3px;
   padding: 4px 6px;
+  position: relative;
+}
+
+.jp-gis-grammar-rule-grid .jp-gis-grammar-channel-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.jp-gis-grammar-rule-grid .jp-gis-grammar-channel-select .jgis-combobox-button,
+.jp-gis-grammar-rule-grid .jp-gis-grammar-channel-select .jgis-native-select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
@@ -493,11 +478,10 @@ select option {
   flex-wrap: nowrap;
 }
 
-.jp-gis-grammar-when-form .jp-select-wrapper {
-  margin-bottom: 0;
+.jp-gis-grammar-when-form .jgis-native-select {
+  flex: 0 0 auto;
 }
 
-.jp-gis-grammar-when-ok,
 .jp-gis-grammar-when-cancel {
   background: none;
   border: 1px solid var(--jp-border-color2);
@@ -509,9 +493,8 @@ select option {
   line-height: 1.4;
 }
 
-.jp-gis-grammar-when-ok:disabled {
-  opacity: 0.4;
-  cursor: default;
+.jgis-button.jp-gis-grammar-when-form-cancel {
+  color: var(--jp-error-color0);
 }
 
 /* Domain min/max pair inside a symbology row */
