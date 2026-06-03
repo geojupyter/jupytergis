@@ -46,6 +46,11 @@ for server-side raster processing at scale.
 
 ## Architecture
 
+JupyterGIS is built on top of the [Jupyter](https://jupyter.org/) ecosystem.
+This gives it browser-based UI, kernel integration for server-side computation, real-time collaboration infrastructure, AI integration (via [Jupyter AI](https://github.com/jupyterlab/jupyter-ai) / [JupyterLite AI](https://github.com/jupyterlite/jupyterlite-ai)), and deployment options ranging from zero-install browser links ([JupyterLite](https://jupyterlite.readthedocs.io/)) to multi-user servers ([JupyterHub](https://jupyterhub.readthedocs.io/)).
+However, JupyterGIS can also be used independently — as a standalone web application or an embeddable map widget — without requiring a full Jupyter environment.
+The following sections illustrate the key architectural choices that follow from this foundation.
+
 ### Browser-first
 
 JupyterGIS is browser-native by default, using WebAssembly to run tools like [GDAL](https://gdal.org) client-side, and it can be deployed as a zero-server JupyterLite site with full Python capabilities.
