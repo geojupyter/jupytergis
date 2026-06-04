@@ -1574,7 +1574,9 @@ export async function executeSQLProcessing(
   app: JupyterFrontEnd,
   exactLayerName?: string,
 ) {
-  const notification = createProcessingNotification(`Running ${processingType}`);
+  const notification = createProcessingNotification(
+    `Running ${processingType}`,
+  );
 
   const doProcessing = async (): Promise<string> => {
     if (isServerProcessingEnabled()) {
