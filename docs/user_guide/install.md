@@ -1,10 +1,15 @@
-# Installing JupyterGIS
+# Installation
 
 ````{tab} Mamba (recommended)
 
-:::{note}
-It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since you'll be able to install `qgis` at the same time, allowing you to open `.qgz` files.
+:::{tip}
+Installing with a conda-based tool (`mamba`, `conda`, `micromamba`, or `pixi`) lets you
+install `qgis` alongside JupyterGIS, enabling `.qgz` file support.
+QGIS is a C++ application and only available as a conda-forge package — it cannot be
+installed via `pip` or `uv`.
 :::
+
+## Mamba / Conda (recommended)
 
 ```bash
 mamba install -c conda-forge jupytergis qgis
@@ -14,12 +19,14 @@ mamba install -c conda-forge jupytergis qgis
 ````{tab} pip
 
 :::{warning}
-When installing with `pip`, QGIS compatibility functions won't work out of the box.
+When installing with `pip`, QGIS compatibility and optional tiler functions won't work out of the box.
+You may especially run in to problems with Python 3.14, for which [many geospatial
+libraries still lack wheels as of May 2026](https://github.com/Toblerity/Fiona/issues/1504).
 You're on your own!
 :::
 
 ```bash
-pip install jupytergis
+pip install jupytergis  # or jupytergis[tiler]!
 ```
 ````
 
@@ -29,31 +36,62 @@ Once JupyterGIS is installed, start JupyterLab:
 jupyter lab
 ```
 
-## Quickstart
-
-Here are a few neat options to quickstart in an ephemeral environment:
-
-````{tab} Docker
-
-[Docker](https://www.docker.com/)
+Or with `conda`:
 
 ```bash
-docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
+conda install -c conda-forge jupytergis qgis
+jupyter lab
 ```
-````
 
-````{tab} Pixi
-[Pixi](https://github.com/prefix-dev/pixi)
+## Pixi
+
+Install into a project:
+
+```bash
+pixi add jupytergis qgis
+pixi run jupyter lab
+```
+
+Or run directly without a permanent install:
 
 ```bash
 pixi exec --spec jupytergis --spec qgis jupyter lab
 ```
-````
 
-````{tab} uv
-[uv](https://github.com/astral-sh/uv)
+## pip
+
+:::{warning}
+`.qgz` file support is not available — QGIS is not distributed on PyPI.
+:::
+
+```bash
+pip install jupytergis
+jupyter lab
+```
+
+## uv
+
+:::{warning}
+`.qgz` file support is not available — QGIS is not distributed on PyPI.
+:::
+
+Install into a project:
+
+```bash
+uv add jupytergis
+uv run jupyter lab
+```
+
+Or run directly without a permanent install:
 
 ```bash
 uv run --with jupytergis jupyter lab
 ```
-````
+
+## Docker
+
+```bash
+docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
+```
+
+Docker build source: <https://github.com/geojupyter/jupytergis-docker>

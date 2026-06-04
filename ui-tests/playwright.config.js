@@ -15,6 +15,11 @@ module.exports = {
   use: {
     ...baseConfig.use,
     trace: "on-first-retry",
+    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
+      launchOptions: {
+        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+      },
+    }),
   },
   expect: {
     toMatchSnapshot: {

@@ -1,6 +1,6 @@
 import { IDict } from '@jupytergis/schema';
 import { RegistryFieldsType, UiSchema } from '@rjsf/utils';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import { ArrayFieldTemplate } from '@/src/shared/formbuilder/objectform/components/SegmentFormSymbology';
@@ -9,10 +9,35 @@ import StorySegmentReset from '@/src/shared/formbuilder/objectform/components/St
 import {
   processBaseSchema,
   removeFormEntry,
+  removeNestedFormEntry,
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { ILayerProps } from './layerform';
+
+function normalizeSegmentContent(content: IDict | undefined): IDict {
+  const value = content ?? {};
+
+  if (value.contentMode === 'markdown') {
+    return {
+      contentMode: 'markdown',
+      markdown: value.markdown ?? '',
+    };
+  }
+
+  return {
+    contentMode: 'map',
+    title: value.title ?? '',
+    image: value.image ?? '',
+    markdown: value.markdown ?? '',
+  };
+}
+
+function normalizeStorySegmentFormData(data: IDict): IDict {
+  const normalizedData = deepCopy(data);
+  normalizedData.content = normalizeSegmentContent(normalizedData.content);
+  return normalizedData;
+}
 
 function getFirstSelectedStorySegmentLayerId(
   model: ILayerProps['model'],
@@ -67,17 +92,41 @@ export function StorySegmentLayerPropertiesForm(
     handleChangeBase,
     handleSubmitBase,
   } = useSchemaFormState({
-    sourceData,
+    sourceData: sourceData
+      ? normalizeStorySegmentFormData(sourceData)
+      : undefined,
     schemaProp,
     model,
     syncData,
     cancel: props.cancel,
     onAfterChange: dialogOptions
       ? (data: IDict) => {
-          dialogOptions.layerData = { ...data };
+          dialogOptions.layerData = { ...normalizeStorySegmentFormData(data) };
         }
       : undefined,
   });
+
+  const handleChange = useCallback(
+    (data: IDict) => {
+      handleChangeBase(normalizeStorySegmentFormData(data));
+    },
+    [handleChangeBase],
+  );
+
+  const handleSubmit = useCallback(
+    (data: IDict) => {
+      handleSubmitBase(normalizeStorySegmentFormData(data));
+    },
+    [handleSubmitBase],
+  );
+
+  const displayFormData = useMemo(
+    () => normalizeStorySegmentFormData(formData),
+    [formData],
+  );
+
+  const contentMode =
+    displayFormData.content.contentMode === 'markdown' ? 'markdown' : 'map';
 
   const layerId = useMemo(
     () => getFirstSelectedStorySegmentLayerId(model),
@@ -89,28 +138,31 @@ export function StorySegmentLayerPropertiesForm(
     [baseFormContext, layerId],
   );
 
-  const uiSchema = useMemo(() => {
+  const { displaySchema, uiSchema } = useMemo(() => {
+    const displaySchema = deepCopy(schema);
     const builtUiSchema: UiSchema = {};
-    const dataCopy = deepCopy(formData);
+    const dataCopy = deepCopy(displayFormData);
+
     processBaseSchema(
       dataCopy,
-      schema,
+      displaySchema,
       builtUiSchema,
       formContext,
       removeFormEntry,
     );
 
-    if (schema.properties?.source) {
+    if (displaySchema.properties?.source) {
       const availableSources = model.getSourcesByType(sourceType);
 
-      (schema.properties.source as IDict).enumNames =
+      (displaySchema.properties.source as IDict).enumNames =
         Object.values(availableSources);
-      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+      (displaySchema.properties.source as IDict).enum =
+        Object.keys(availableSources);
     }
 
-    removeFormEntry('zoom', dataCopy, schema, builtUiSchema);
+    removeFormEntry('zoom', dataCopy, displaySchema, builtUiSchema);
 
-    const layerOverrideItems = schema.properties?.layerOverride as
+    const layerOverrideItems = displaySchema.properties?.layerOverride as
       | IDict
       | undefined;
     const itemsProps = layerOverrideItems?.items;
@@ -121,14 +173,11 @@ export function StorySegmentLayerPropertiesForm(
       delete itemsProperties.symbologyState;
     }
 
-    if (model.selected) {
-      builtUiSchema.extent = {
-        'ui:field': 'storySegmentReset',
-      };
-    }
-
-    builtUiSchema.content = {
+    const contentFieldUi = {
       ...(builtUiSchema.content as IDict),
+      contentMode: {
+        'ui:widget': 'select',
+      },
       markdown: {
         'ui:widget': 'textarea',
         'ui:options': {
@@ -137,28 +186,73 @@ export function StorySegmentLayerPropertiesForm(
       },
     };
 
-    builtUiSchema.layerOverride = {
-      ...(builtUiSchema.layerOverride as IDict),
-      items: {
-        'ui:title': '',
-        targetLayer: {
-          'ui:field': 'layerSelect',
-        },
-        opacity: {
-          'ui:field': 'opacity',
-        },
-        sourceProperties: {
-          'ui:field': SourcePropertiesField,
-        },
-      },
-      'ui:options': {
-        orderable: false,
-      },
-      'ui:ArrayFieldTemplate': ArrayFieldTemplate,
-    };
+    if (contentMode === 'markdown') {
+      removeNestedFormEntry(
+        'content',
+        'title',
+        dataCopy,
+        displaySchema,
+        builtUiSchema,
+      );
+      removeNestedFormEntry(
+        'content',
+        'image',
+        dataCopy,
+        displaySchema,
+        builtUiSchema,
+      );
+      removeFormEntry('transition', dataCopy, displaySchema, builtUiSchema);
+      removeFormEntry('layerOverride', dataCopy, displaySchema, builtUiSchema);
+      removeFormEntry('extent', dataCopy, displaySchema, builtUiSchema);
 
-    return builtUiSchema;
-  }, [schema, formData, formContext, model, sourceType]);
+      builtUiSchema.content = {
+        ...contentFieldUi,
+        'ui:order': ['contentMode', 'markdown'],
+      };
+    } else {
+      // contentMode === 'map'
+      builtUiSchema.content = {
+        ...contentFieldUi,
+        'ui:order': ['contentMode', 'title', 'image', 'markdown'],
+      };
+
+      if (model.selected) {
+        builtUiSchema.extent = {
+          'ui:field': 'storySegmentReset',
+        };
+      }
+
+      builtUiSchema.layerOverride = {
+        ...(builtUiSchema.layerOverride as IDict),
+        items: {
+          'ui:title': '',
+          targetLayer: {
+            'ui:field': 'layerSelect',
+          },
+          opacity: {
+            'ui:field': 'opacity',
+          },
+          sourceProperties: {
+            'ui:field': SourcePropertiesField,
+          },
+        },
+        'ui:options': {
+          orderable: false,
+        },
+        'ui:ArrayFieldTemplate': ArrayFieldTemplate,
+      };
+    }
+
+    return { displaySchema, uiSchema: builtUiSchema };
+  }, [
+    schema,
+    displayFormData,
+    formContext,
+    model,
+    sourceType,
+    contentMode,
+    model.selected,
+  ]);
 
   const additionalFields = useMemo<RegistryFieldsType>(
     () => ({
@@ -173,10 +267,10 @@ export function StorySegmentLayerPropertiesForm(
 
   return (
     <SchemaForm
-      schema={schema}
-      formData={formData}
-      onChange={handleChangeBase}
-      onSubmit={handleSubmitBase}
+      schema={displaySchema}
+      formData={displayFormData}
+      onChange={handleChange}
+      onSubmit={handleSubmit}
       formContext={formContextValue}
       filePath={filePath}
       uiSchema={uiSchema}

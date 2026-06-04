@@ -16,10 +16,16 @@
       }
     },
     "content": {
-      "type": "object",
       "title": "Segment Content",
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
+        "contentMode": {
+          "type": "string",
+          "title": "Content Mode",
+          "description": "Display map or markdown content while this segment is active",
+          "enum": ["map", "markdown"],
+          "default": "map"
+        },
         "title": {
           "title": "Segment Title",
           "type": "string",
@@ -36,7 +42,12 @@
           "default": ""
         }
       },
-      "default": {}
+      "required": ["contentMode"],
+      "default": {
+        "contentMode": "map",
+        "title": "",
+        "image": ""
+      }
     },
     "transition": {
       "type": "object",

@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-root",
-  "version": "0.15.0",
+  "version": "0.16.0-alpha.0",
   "private": true,
   "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {
@@ -56,6 +56,7 @@
     "@jupyterlab/apputils": "^4.0.0",
     "@lumino/coreutils": "^2.0.0",
     "@jupyterlab/notebook": "^4.0.0",
+    "@jupyterlab/rendermime": "^4.0.0",
     "@jupyterlab/services": " ^7.0.0",
     "webpack": ">=5.76.3 <5.107.0"
   },

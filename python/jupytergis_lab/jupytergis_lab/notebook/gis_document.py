@@ -4,7 +4,7 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from uuid import uuid4
 
 import requests
@@ -46,6 +46,14 @@ from jupytergis_lab.notebook.symbology import (  # noqa: TC001
     Symbology,
 )
 from jupytergis_lab.notebook.utils import get_gpkg_layers
+
+if TYPE_CHECKING:
+    from jupyter_tiler.titiler import (
+        BaseAlgorithm,
+        DataArray,
+        TiTilerServer,
+    )
+
 
 logger = logging.getLogger(__file__)
 
@@ -157,6 +165,8 @@ class GISDocument(CommWidget):
     ``pycrdt.Awareness`` via the inherited ``awareness`` property.
     """
 
+    tile_server: None | TiTilerServer
+
     def __init__(
         self,
         path: str | Path | None = None,
@@ -208,6 +218,8 @@ class GISDocument(CommWidget):
             self._options["pitch"] = pitch
         if projection is not None:
             self._options["projection"] = projection
+
+        self.tile_server = None
 
     @property
     def layers(self) -> dict:
@@ -867,6 +879,70 @@ class GISDocument(CommWidget):
             )
 
         return layer_ids
+
+    async def add_data_array_layer(
+        self,
+        data_array: DataArray,
+        *,
+        name: str = "Data Array layer",
+        colormap_name: str = "viridis",
+        colormap_range: tuple[float, float] | None = None,
+        opacity: float = 1,
+        tile_dim_scale: int = 1,
+        algorithm: BaseAlgorithm | None = None,
+        **params,
+    ):
+        """Add an Xarray DataArray as a layer on the map.
+
+        :param data_array: An Xarray DataArray to display on the map
+        :param name: The layer's name
+        :param colormap_name: A ``rio-tiler``-supported colormap name.
+            See the `rio-tiler docs <https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/colormap/#rio_tiler.colormap.ColorMaps.list>`_
+            for details.
+        :param colormap_range: The range of data values ``(min, max)`` to be colormapped
+        :param opacity: The opacity, between 0 and 1
+        :param tile_dim_scale: Tile dimension scale. Default ``1`` corresponds to 256*256px tiles
+        :param algorithm: A TiTiler algorithm class.
+            See the `TiTiler algorithm docs <https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm>`_
+            for details.
+        """
+        try:
+            from jupyter_tiler.titiler import _get_server, add_data_array
+        except ImportError as e:
+            raise RuntimeError(
+                "This method requires 'jupyter-tiler'."
+                " To resolve, `pip install jupytergis[tiler]`.",
+            ) from e
+
+        self.tile_server = _get_server()
+        url = await add_data_array(
+            data_array,
+            colormap_name=colormap_name,
+            colormap_range=colormap_range,
+            tile_dim_scale=tile_dim_scale,
+            algorithm=algorithm,
+            **params,
+        )
+
+        source_id = str(uuid4())
+        source = {
+            "type": SourceType.RasterSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": 0,
+                "maxZoom": 24,
+            },
+        }
+        self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def get_wms_available_layers(
         self,

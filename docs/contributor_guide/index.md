@@ -1,4 +1,4 @@
-# Contributor guide
+# Contributors
 
 We're thrilled you're ready to contribute to JupyterGIS!
 

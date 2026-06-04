@@ -9,6 +9,9 @@ node_modules/
 python/**/labextension
 python/**/_version.py
 
+# Jupyter ephemera
+.jupyter/
+
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
 jupytergis/_version.py

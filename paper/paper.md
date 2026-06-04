@@ -18,12 +18,17 @@ authors:
   - name: Gregory Mooney
     orcid: 0009-0007-5501-6471
     affiliation: 1
+  - name: Matthias Meschede
+    orcid: 0000-0002-9451-3928
+    affiliation: 1
   - name: Nicolas Brichet
     orcid: 0009-0009-2649-1809
     affiliation: 1
   - name: David Brochart
     orcid: 0009-0007-2318-0285
     affiliation: 1
+  - name: Nakul Verma
+    affiliation: 4
   - name: Anne Fouilloux
     orcid: 0000-0002-1784-2920
     affiliation: 3
@@ -42,6 +47,8 @@ affiliations:
     index: 2
   - name: LifeWatch ERIC, Spain
     index: 3
+  - name: Indira Gandhi National Open University
+    index: 4
 
 date: 21 December 2025
 bibliography: paper.bib
@@ -78,9 +85,11 @@ However, none of the existing open-source offerings address the growing demand f
 
 It provides a powerful alternative to proprietary software but does not allow real-time collaborative editing of GIS documents. As a desktop application, it must be installed on the user’s device.
 
-## Proprietary Cloud-Based Platforms
+## Closed-source Cloud-Based Platforms
 
 **Google Earth Engine** enables large-scale geospatial analysis in the cloud. However, its focus on script-based workflows and lack of interactive, collaborative editing make it less suitable for teams needing real-time collaboration.
+
+**Felt** is a collaborative web-based mapping tool focused on ease of use for non-technical users. It includes a REST API and a Python client to add layers to maps.
 
 ## In-Notebook Tools
 

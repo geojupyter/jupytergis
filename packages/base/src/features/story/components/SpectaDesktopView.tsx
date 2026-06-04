@@ -5,15 +5,24 @@ import {
 } from '@jupytergis/schema';
 import React, {
   RefObject,
-  useEffect,
   useImperativeHandle,
-  useRef,
+  useLayoutEffect,
+  useMemo,
 } from 'react';
 
-import StoryViewerPanel, {
-  type IStoryViewerPanelHandle,
-} from '@/src/features/story/StoryViewerPanel';
+import { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
+import { ListStoryVirtualScrollTrack } from '@/src/features/story/components/ListStoryVirtualScrollTrack';
+import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
+import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
+import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
+import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
+import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
+import { STORY_TYPE } from '@/src/types';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
+
+type StoryDesktopViewMode = 'single' | 'verticalScroll';
 
 interface ISpectaDesktopViewProps {
   model: IJupyterGISModel;
@@ -31,6 +40,9 @@ interface ISpectaDesktopViewProps {
   hasNext: boolean;
   showGradient: boolean;
   setIndex: (index: number) => void;
+  onSegmentTransitionChange?: (
+    payload: IListStorySegmentTransition | null,
+  ) => void;
 }
 
 export function SpectaDesktopView({
@@ -49,36 +61,87 @@ export function SpectaDesktopView({
   hasNext,
   showGradient,
   setIndex,
+  onSegmentTransitionChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const topSentinelRef = useRef<HTMLDivElement>(null);
-  const bottomSentinelRef = useRef<HTMLDivElement>(null);
-  const atTopRef = useRef(false);
-  const atBottomRef = useRef(false);
+  const isVerticalScrollView =
+    storyData?.storyType === STORY_TYPE.verticalScroll;
+  const viewMode: StoryDesktopViewMode = isVerticalScrollView
+    ? 'verticalScroll'
+    : 'single';
+  const sentinelsEnabled = !isVerticalScrollView;
+  const {
+    scrollContainerRef,
+    topSentinelRef,
+    bottomSentinelRef,
+    getAtTop,
+    getAtBottom,
+  } = useStoryScrollState({ currentIndex, sentinelsEnabled });
 
-  useEffect(() => {
-    const root = scrollContainerRef.current;
-    const topEl = topSentinelRef.current;
-    const bottomEl = bottomSentinelRef.current;
-    if (!root || !topEl || !bottomEl) {
+  const segmentViewItems = useMemo(
+    () => buildStorySegmentViewItems(model, storyData),
+    [model, storyData],
+  );
+
+  const spectaPresentationStyle = useMemo(
+    () => getSpectaPresentationCssVars(storyData),
+    [
+      storyData?.storyType,
+      storyData?.presentationBgColor,
+      storyData?.presentationTextColor,
+    ],
+  );
+
+  const segmentTransitionSyncEnabled =
+    Boolean(onSegmentTransitionChange) && isVerticalScrollView;
+
+  const { scrollTrackLayout, bindScrollTrackElement } =
+    useListStoryScrollTrackContext();
+
+  useLayoutEffect(() => {
+    if (!isVerticalScrollView) {
+      bindScrollTrackElement(null);
       return;
     }
-    const observer = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]) => {
-        for (const entry of entries) {
-          if (entry.target === topEl) {
-            atTopRef.current = entry.isIntersecting;
-          } else if (entry.target === bottomEl) {
-            atBottomRef.current = entry.isIntersecting;
-          }
-        }
-      },
-      { root, threshold: 0, rootMargin: '0px' },
-    );
-    observer.observe(topEl);
-    observer.observe(bottomEl);
-    return () => observer.disconnect();
-  }, [currentIndex]);
+
+    bindScrollTrackElement(scrollContainerRef.current);
+
+    return () => {
+      bindScrollTrackElement(null);
+    };
+  }, [isVerticalScrollView, bindScrollTrackElement, scrollContainerRef]);
+
+  useListStoryScroll({
+    enabled: segmentTransitionSyncEnabled,
+    scrollContainerRef,
+    storyData,
+    scrollTrackLayout,
+    items: segmentViewItems,
+    currentIndex,
+    setIndex,
+    onSegmentTransitionChange,
+  });
+
+  const renderModeContent: Record<StoryDesktopViewMode, () => JSX.Element> = {
+    single: () => (
+      <SpectaSingleModeContent
+        isSpecta={isSpecta}
+        segmentContainerRef={segmentContainerRef}
+        storyData={storyData}
+        currentIndex={currentIndex}
+        activeSlide={activeSlide}
+        layerName={layerName}
+        handlePrev={handlePrev}
+        handleNext={handleNext}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+        topSentinelRef={topSentinelRef}
+        bottomSentinelRef={bottomSentinelRef}
+      />
+    ),
+    verticalScroll: () => (
+      <ListStoryVirtualScrollTrack scrollTrackLayout={scrollTrackLayout} />
+    ),
+  };
 
   useImperativeHandle(
     storyViewerPanelRef,
@@ -88,11 +151,11 @@ export function SpectaDesktopView({
       spectaMode: isSpecta,
       hasPrev,
       hasNext,
-      getAtTop: () => atTopRef.current,
-      getAtBottom: () => atBottomRef.current,
+      getAtTop,
+      getAtBottom,
       getScrollContainer: () => scrollContainerRef.current,
     }),
-    [handlePrev, handleNext, isSpecta, hasPrev, hasNext],
+    [handlePrev, handleNext, isSpecta, hasPrev, hasNext, getAtTop, getAtBottom],
   );
 
   return (
@@ -101,43 +164,26 @@ export function SpectaDesktopView({
         className="jgis-specta-right-panel-container-mod jgis-right-panel-container"
         style={showGradient ? undefined : { width: '25%', borderRadius: 0 }}
       >
-        <div ref={containerRef} className="jgis-specta-story-panel-container">
+        <div
+          ref={containerRef}
+          className="jgis-specta-story-panel-container"
+          style={spectaPresentationStyle}
+        >
           <div
             ref={scrollContainerRef}
-            className="jgis-story-viewer-panel-specta-mod"
+            className={`jgis-story-viewer-panel-specta-mod ${
+              isVerticalScrollView
+                ? 'jgis-story-viewer-panel-specta-mod-vertical-scroll'
+                : ''
+            }`}
             id="jgis-story-segment-panel"
             style={showGradient ? undefined : { width: 'unset' }}
           >
-            <div
-              ref={topSentinelRef}
-              aria-hidden
-              data-story-scroll-sentinel="top"
-              style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-            />
-            <StoryViewerPanel
-              model={model}
-              isSpecta={isSpecta}
-              segmentContainerRef={segmentContainerRef}
-              storyData={storyData}
-              currentIndex={currentIndex}
-              activeSlide={activeSlide}
-              layerName={layerName}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-              setIndex={setIndex}
-            />
-            <div
-              ref={bottomSentinelRef}
-              aria-hidden
-              data-story-scroll-sentinel="bottom"
-              style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
-            />
+            {renderModeContent[viewMode]()}
           </div>
         </div>
       </div>
-      <SpectaPresentationProgressBar model={model} />
+      {!isVerticalScrollView && <SpectaPresentationProgressBar model={model} />}
     </>
   );
 }

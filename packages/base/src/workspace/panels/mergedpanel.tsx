@@ -9,6 +9,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
+import { STORY_TYPE } from '@/src/types';
 import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
@@ -136,6 +137,9 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     onPresentationModeEnabled: () => setCurTab('storyPanel'),
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
+  const isListStory =
+    props.model.getSelectedStory().story?.storyType ===
+    STORY_TYPE.verticalScroll;
 
   const { leftPanelDisabled, rightPanelDisabled } = props.settings;
 
@@ -200,7 +204,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       enabled: !rightPanelDisabled && !props.settings.storyMapsDisabled,
       content: (
         <>
-          {!storyMapPresentationMode && (
+          {!storyMapPresentationMode && !isListStory && (
             <PreviewModeSwitch
               checked={!editorMode}
               onCheckedChange={toggleEditor}

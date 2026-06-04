@@ -3,7 +3,7 @@ channels:
   - https://prefix.dev/emscripten-forge-dev
   - conda-forge
 dependencies:
-  - python=3.13
+  - python =3.13.*
   - pip
   - xeus-python
   - requests

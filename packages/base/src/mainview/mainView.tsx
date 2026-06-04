@@ -166,6 +166,10 @@ import {
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
+import { ListStoryStageOverlay } from '../features/story/components/ListStoryStageOverlay';
+import { ListStoryScrollTrackProvider } from '../features/story/context/ListStoryScrollTrackContext';
+import type { IListStorySegmentTransition } from '../features/story/types/types';
+import { STORY_TYPE } from '../types';
 import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
@@ -227,6 +231,8 @@ interface IStates {
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
   identifyFeatureFloatersVersion: number;
+  /** List story segment handoff for the map stage overlay; null when off. */
+  segmentTransition: IListStorySegmentTransition | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -362,6 +368,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       isSpectaPresentation: this._model.isSpectaMode(),
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
+      segmentTransition: null,
     };
 
     this._sources = [];
@@ -449,7 +456,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleIdentifiedFeaturesChanged,
       this,
     );
-
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
@@ -2910,6 +2916,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
+      const storyType = this._model.getSelectedStory().story?.storyType;
+      // Don't want to handle next/prev logic in list mode
+      if (storyType === STORY_TYPE.verticalScroll) {
+        scrollContainer.scrollBy({ top: deltaY });
+        return;
+      }
+
       const isScrollingUp = deltaY < 0;
       const isScrollingDown = deltaY > 0;
       const isAtTop = currentPanelHandle.getAtTop();
@@ -3546,6 +3559,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _handleSegmentTransitionChange = (
+    payload: IListStorySegmentTransition | null,
+  ): void => {
+    this.setState({ segmentTransition: payload });
+  };
+
   private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
     if (e.touches.length > 0) {
       this._spectaTouchStartX = e.touches[0].clientX;
@@ -3889,76 +3908,99 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
             <div
               ref={this.divRef}
+              className="jgis-mainview-stage"
               style={{
                 width: '100%',
                 height: '100%',
+                position: 'relative',
               }}
             >
-              <div className="jgis-panels-wrapper">
-                {!this.state.isSpectaPresentation ? (
-                  <>
-                    {this.props.isMobile &&
-                    this._state &&
-                    this._formSchemaRegistry &&
-                    this._annotationModel ? (
-                      <MergedPanel
+              <ListStoryScrollTrackProvider
+                model={this._model}
+                enabled={
+                  this.state.isSpectaPresentation &&
+                  this._model.getSelectedStory().story?.storyType ===
+                    STORY_TYPE.verticalScroll
+                }
+              >
+                {this.state.isSpectaPresentation &&
+                this._model.getSelectedStory().story?.storyType ===
+                  STORY_TYPE.verticalScroll ? (
+                  <ListStoryStageOverlay
+                    model={this._model}
+                    segmentTransition={this.state.segmentTransition}
+                  />
+                ) : null}
+                <div className="jgis-panels-wrapper">
+                  {!this.state.isSpectaPresentation ? (
+                    <>
+                      {this.props.isMobile &&
+                      this._state &&
+                      this._formSchemaRegistry &&
+                      this._annotationModel ? (
+                        <MergedPanel
+                          model={this._model}
+                          commands={this._mainViewModel.commands}
+                          state={this._state}
+                          settings={this.state.jgisSettings}
+                          formSchemaRegistry={this._formSchemaRegistry}
+                          annotationModel={this._annotationModel}
+                          addLayer={this.addLayer.bind(this)}
+                          removeLayer={this.removeLayer.bind(this)}
+                        />
+                      ) : (
+                        <>
+                          {this._state && (
+                            <LeftPanel
+                              model={this._model}
+                              commands={this._mainViewModel.commands}
+                              state={this._state}
+                              settings={this.state.jgisSettings}
+                            />
+                          )}
+                          {this._formSchemaRegistry &&
+                            this._annotationModel && (
+                              <RightPanel
+                                model={this._model}
+                                commands={this._mainViewModel.commands}
+                                formSchemaRegistry={this._formSchemaRegistry}
+                                annotationModel={this._annotationModel}
+                                addLayer={this.addLayer.bind(this)}
+                                removeLayer={this.removeLayer.bind(this)}
+                                settings={this.state.jgisSettings}
+                                patchGeoJSONFeatureProperties={
+                                  this._patchGeoJSONFeatureProperties
+                                }
+                              />
+                            )}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    this.state.initialLayersReady && (
+                      <SpectaPanel
                         model={this._model}
-                        commands={this._mainViewModel.commands}
-                        state={this._state}
-                        settings={this.state.jgisSettings}
-                        formSchemaRegistry={this._formSchemaRegistry}
-                        annotationModel={this._annotationModel}
-                        addLayer={this.addLayer.bind(this)}
-                        removeLayer={this.removeLayer.bind(this)}
+                        isSpecta={this.state.isSpectaPresentation}
+                        isMobile={this.props.isMobile}
+                        onSegmentTransitionEnd={() =>
+                          this._clearStoryScrollGuard()
+                        }
+                        containerRef={this.spectaContainerRef}
+                        storyViewerPanelRef={this.storyViewerPanelRef}
+                        addLayer={this._addLayerForPanels}
+                        removeLayer={this._removeLayerForPanels}
+                        onSegmentTransitionChange={
+                          this._handleSegmentTransitionChange
+                        }
                       />
-                    ) : (
-                      <>
-                        {this._state && (
-                          <LeftPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            state={this._state}
-                            settings={this.state.jgisSettings}
-                          />
-                        )}
-                        {this._formSchemaRegistry && this._annotationModel && (
-                          <RightPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            formSchemaRegistry={this._formSchemaRegistry}
-                            annotationModel={this._annotationModel}
-                            addLayer={this.addLayer.bind(this)}
-                            removeLayer={this.removeLayer.bind(this)}
-                            settings={this.state.jgisSettings}
-                            patchGeoJSONFeatureProperties={
-                              this._patchGeoJSONFeatureProperties
-                            }
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  this.state.initialLayersReady && (
-                    <SpectaPanel
-                      model={this._model}
-                      isSpecta={this.state.isSpectaPresentation}
-                      isMobile={this.props.isMobile}
-                      onSegmentTransitionEnd={() =>
-                        this._clearStoryScrollGuard()
-                      }
-                      containerRef={this.spectaContainerRef}
-                      storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this.addLayer.bind(this)}
-                      removeLayer={this.removeLayer.bind(this)}
-                    />
-                  )
-                )}
-              </div>
-              <div
-                ref={this.controlsToolbarRef}
-                className="jgis-controls-toolbar"
-              ></div>
+                    )
+                  )}
+                </div>
+                <div
+                  ref={this.controlsToolbarRef}
+                  className="jgis-controls-toolbar"
+                ></div>
+              </ListStoryScrollTrackProvider>
             </div>
           </div>
           {!this.state.isSpectaPresentation && (
@@ -4011,6 +4053,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
+  private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
+    this.addLayer(id, layer, index);
+  private _removeLayerForPanels = (id: string) => this.removeLayer(id);
   private _patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
 
   private _log(

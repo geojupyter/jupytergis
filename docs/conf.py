@@ -3,7 +3,28 @@ import os
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 html_theme = "pydata_sphinx_theme"
-html_theme_options = {"github_url": "https://github.com/geojupyter/jupytergis"}
+html_theme_options = {
+    "github_url": "https://github.com/geojupyter/jupytergis",
+    "navbar_align": "left",
+    "header_links_before_dropdown": 6,
+    "pygments_light_style": "tango",
+    "pygments_dark_style": "monokai",
+    "navbar_end": [
+        "theme-switcher",
+        "navbar-icon-links",
+    ],
+    "external_links": [
+        {"name": "Try", "url": "lite/lab/index.html"},
+    ],
+}
+
+# Hide left sidebar on single-page sections; keep it for Users and Contributors
+html_sidebars = {
+    "index": [],
+    "about/*": [],
+    "getting_started/*": [],
+    "changelog": [],
+}
 
 html_static_path = ["assets"]
 html_css_files = [
@@ -30,12 +51,16 @@ myst_fence_as_directive = ["mermaid"]
 
 master_doc = "index"
 project = "JupyterGIS"
+html_title = "JupyterGIS"
 copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"
 
 jupyterlite_contents = [
     "../examples",
+]
+jupyterlite_ignore_contents = [
+    r"\.\./examples/tiler-.*",
 ]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
@@ -47,10 +72,18 @@ pygments_style = "sphinx"
 todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
-intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "titiler": ("https://developmentseed.org/titiler/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+}
 
 nitpick_ignore = [
     ("py:mod", "ypywidgets"),
+    (
+        "py:class",
+        "titiler.core.algorithm.base.BaseAlgorithm",
+    ),  # TiTiler's docs don't include this
 ]
 
 jupyterlite_ignore_contents = [

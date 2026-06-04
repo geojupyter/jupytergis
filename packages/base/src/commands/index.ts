@@ -37,7 +37,11 @@ import {
 } from '../mainview/OpenEOTileLayer';
 import { editOpenEOLayer, showAddOpenEOLayerDialog } from '../openeo';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
+import {
+  JupyterGISTracker,
+  STORY_TYPE,
+  SYMBOLOGY_VALID_LAYER_TYPES,
+} from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -1982,6 +1986,12 @@ export function addCommands(
         return false;
       }
 
+      if (
+        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+      ) {
+        return false;
+      }
+
       return model.getCurrentSegmentIndex() > 0;
     },
     execute: () => {
@@ -2011,6 +2021,12 @@ export function addCommands(
 
       const isSpecta = model.isSpectaMode();
       if (!isSpecta) {
+        return false;
+      }
+
+      if (
+        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+      ) {
         return false;
       }
 
