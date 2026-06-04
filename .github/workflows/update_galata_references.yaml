@@ -40,12 +40,34 @@ jobs:
           create-args: >-
             python=3.12
 
+      - name: Setup pip cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python test dependencies # Needed for notebook tests!
+        shell: bash -l {0}
+        run: pip install --group test
+
       - name: Install the extension
         shell: bash -l {0}
         run: |
           whereis python
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+
+          # Add `[tiler]` extra to the jupytergis_lab wheel
+          args=()
+          for whl in jupytergis*.whl; do
+              if [[ "$whl" == *_lab*.whl ]]; then
+                  args+=("${whl}[tiler]")
+              else
+                  args+=("$whl")
+              fi
+          done
 
       - name: Install dependencies
         shell: bash -l {0}

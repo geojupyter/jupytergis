@@ -154,6 +154,7 @@ export class JupyterGISPanel extends SplitPanel {
       formSchemaRegistry: formSchemaRegistry,
       annotationModel: annotationModel,
       loggerRegistry: loggerRegistry,
+      rendermime: this._consoleOption.rendermime ?? null,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);

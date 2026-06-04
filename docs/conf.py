@@ -59,6 +59,9 @@ language = "en"
 jupyterlite_contents = [
     "../examples",
 ]
+jupyterlite_ignore_contents = [
+    r"\.\./examples/tiler-.*",
+]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
 jupyterlite_silence = False
@@ -69,10 +72,18 @@ pygments_style = "sphinx"
 todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
-intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "titiler": ("https://developmentseed.org/titiler/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+}
 
 nitpick_ignore = [
     ("py:mod", "ypywidgets"),
+    (
+        "py:class",
+        "titiler.core.algorithm.base.BaseAlgorithm",
+    ),  # TiTiler's docs don't include this
 ]
 
 jupyterlite_ignore_contents = [

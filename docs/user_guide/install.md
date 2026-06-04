@@ -1,5 +1,7 @@
 # Installation
 
+````{tab} Mamba (recommended)
+
 :::{tip}
 Installing with a conda-based tool (`mamba`, `conda`, `micromamba`, or `pixi`) lets you
 install `qgis` alongside JupyterGIS, enabling `.qgz` file support.
@@ -11,6 +13,26 @@ installed via `pip` or `uv`.
 
 ```bash
 mamba install -c conda-forge jupytergis qgis
+```
+````
+
+````{tab} pip
+
+:::{warning}
+When installing with `pip`, QGIS compatibility and optional tiler functions won't work out of the box.
+You may especially run in to problems with Python 3.14, for which [many geospatial
+libraries still lack wheels as of May 2026](https://github.com/Toblerity/Fiona/issues/1504).
+You're on your own!
+:::
+
+```bash
+pip install jupytergis  # or jupytergis[tiler]!
+```
+````
+
+Once JupyterGIS is installed, start JupyterLab:
+
+```bash
 jupyter lab
 ```
 

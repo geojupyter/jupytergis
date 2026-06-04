@@ -17,7 +17,6 @@ import {
   StyleChannel,
   RGBA,
 } from '@jupytergis/schema';
-import { Button } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -36,6 +35,11 @@ import {
   saveSymbology,
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
+import { Button } from '@/src/shared/components/Button';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 const DEFAULT_CHANNELS: StyleChannel[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
@@ -94,57 +98,49 @@ const TransformRow: React.FC<ITransformRowProps> = ({
   return (
     <div className="jp-gis-grammar-transform-row">
       {/* Type selector */}
-      <div className="jp-select-wrapper" style={{ flex: '0 0 120px' }}>
-        <select
-          className="jp-mod-styled"
-          value={transform.type}
-          onChange={e => handleTypeChange(e.target.value as ITransform['type'])}
-        >
-          {TRANSFORM_TYPES.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <NativeSelect
+        value={transform.type}
+        onChange={e => handleTypeChange(e.target.value as ITransform['type'])}
+      >
+        {TRANSFORM_TYPES.map(({ value, label }) => (
+          <NativeSelectOption key={value} value={value}>
+            {label}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
 
       {/* KDE params */}
       {transform.type === 'kde' && (
         <>
           <label>radius</label>
           <NumericInput
-            className="jp-mod-styled"
             style={{ width: 52 }}
             value={transform.radius}
             onChange={v => onChange({ ...transform, radius: v })}
           />
           <label>blur</label>
           <NumericInput
-            className="jp-mod-styled"
             style={{ width: 52 }}
             value={transform.blur}
             onChange={v => onChange({ ...transform, blur: v })}
           />
           <label>weight</label>
-          <div className="jp-select-wrapper" style={{ flex: '0 0 90px' }}>
-            <select
-              className="jp-mod-styled"
-              value={transform.weightField ?? ''}
-              onChange={e =>
-                onChange({
-                  ...transform,
-                  weightField: e.target.value || undefined,
-                })
-              }
-            >
-              <option value="">(none)</option>
-              {availableFields.map(f => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-          </div>
+          <NativeSelect
+            value={transform.weightField ?? ''}
+            onChange={e =>
+              onChange({
+                ...transform,
+                weightField: e.target.value || undefined,
+              })
+            }
+          >
+            <NativeSelectOption value="">(none)</NativeSelectOption>
+            {availableFields.map(field => (
+              <NativeSelectOption key={field} value={field}>
+                {field}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
         </>
       )}
 
@@ -153,7 +149,6 @@ const TransformRow: React.FC<ITransformRowProps> = ({
         <>
           <label>radius</label>
           <NumericInput
-            className="jp-mod-styled"
             style={{ width: 52 }}
             value={transform.radius}
             onChange={v => onChange({ ...transform, radius: v })}
@@ -161,7 +156,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
         </>
       )}
 
-      <button
+      <Button
         type="button"
         className="jp-gis-grammar-delete-btn"
         onClick={onDelete}
@@ -169,7 +164,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
         style={{ marginLeft: 'auto' }}
       >
         <FontAwesomeIcon icon={faTrash} />
-      </button>
+      </Button>
     </div>
   );
 };
@@ -290,23 +285,26 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         <span className="jp-gis-grammar-layer-label">
           Layer {layerIndex + 1}
         </span>
-        <button
+        <Button
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="outline"
           onClick={addTransform}
           title="Add transform"
         >
-          <FontAwesomeIcon icon={faPlus} /> transform
-        </button>
+          <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+          Transform
+        </Button>
+
         {totalLayers > 1 && (
-          <button
+          <Button
             type="button"
-            className="jp-gis-grammar-delete-btn"
+            variant="outline"
+            style={{ height: 32, width: 32 }}
             onClick={onDelete}
             title="Remove layer"
           >
             <FontAwesomeIcon icon={faTrash} />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -314,7 +312,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(layer.when?.length ?? 0) > 1 && (
-          <button
+          <Button
             type="button"
             className="jp-gis-grammar-when-op"
             onClick={() =>
@@ -325,18 +323,18 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             }
           >
             {layer.whenOp ?? 'all'}
-          </button>
+          </Button>
         )}
         {layer.when?.map((pred, i) => (
           <span key={i} className="jp-gis-grammar-when-chip">
             {formatPredicate(pred)}
-            <button
+            <Button
               type="button"
               onClick={() => removeLayerPredicate(i)}
               title="Remove condition"
             >
               <FontAwesomeIcon icon={faXmark} />
-            </button>
+            </Button>
           </span>
         ))}
         {addingLayerWhen ? (
@@ -346,13 +344,13 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             onCancel={() => setAddingLayerWhen(false)}
           />
         ) : (
-          <button
+          <Button
             type="button"
             className="jp-gis-grammar-when-add-btn"
             onClick={() => setAddingLayerWhen(true)}
           >
             <FontAwesomeIcon icon={faPlus} />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -383,6 +381,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       <div className="jp-gis-symbology-button-container">
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          style={{ margin: '0 0 0.5rem 1rem' }}
           onClick={addRow}
         >
           Add Mapping

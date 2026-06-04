@@ -1,6 +1,5 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
-  padding-right: 0;
   overflow: auto;
   position: relative;
 }
@@ -9,6 +8,10 @@
   width: 100%;
   animation: fadeIn 0.3s ease;
   /* animation-duration is set dynamically via inline style from segment.transition.time */
+}
+
+.jgis-story-segment-container--no-segment-animation {
+  animation: none;
 }
 
 @keyframes fadeIn {
@@ -128,9 +131,6 @@
   margin: 0 auto;
 }
 
-.jgis-story-viewer-content {
-}
-
 .jgis-story-viewer-content p,
 .jgis-story-viewer-content span,
 .jgis-story-viewer-content li {
@@ -172,16 +172,16 @@
   overflow: auto;
   background: linear-gradient(
     to left,
-    var(--jgis-specta-bg-color, var(--jp-layout-color0)) 49%,
+    var(--jgis-specta-panel-color, var(--jp-layout-color0)) 49%,
     color-mix(
         in srgb,
-        var(--jgis-specta-bg-color, var(--jp-layout-color0)) 60%,
+        var(--jgis-specta-panel-color, var(--jp-layout-color0)) 60%,
         transparent
       )
       65%,
     color-mix(
         in srgb,
-        var(--jgis-specta-bg-color, var(--jp-layout-color0)) 50%,
+        var(--jgis-specta-panel-color, var(--jp-layout-color0)) 50%,
         transparent
       )
       70%,
@@ -195,11 +195,142 @@
   width: 45%;
   align-items: center;
   font-size: var(--jp-ui-font-size3);
-  padding-right: 1.7rem;
+  padding-right: 0.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-font-color1));
-  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+  background-color: var(--jgis-specta-panel-color, var(--jp-layout-color0));
   overflow-y: auto;
   max-height: 100%;
+}
+
+.jgis-story-viewer-panel-specta-mod.jgis-story-viewer-panel-specta-mod-vertical-scroll {
+  align-items: flex-start;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.jgis-story-stage-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+.jgis-story-stage-overlay--sized {
+  bottom: auto;
+}
+
+.jgis-story-stage-overlay--transitioning {
+  overflow: hidden;
+}
+
+.jgis-story-segment-transition-stack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(
+    calc(
+      var(--jgis-segment-transition-progress, 0) * -1 *
+        var(--jgis-transition-translate, var(--jgis-handoff-gap-height, 100%))
+    )
+  );
+}
+
+.jgis-story-segment-transition-gap {
+  flex-shrink: 0;
+  height: var(--jgis-handoff-gap-height, 100%);
+  width: 100%;
+  pointer-events: none;
+}
+
+.jgis-story-segment-transition-stack .jgis-story-segment-overlay-pane {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.jgis-story-stage-overlay-content {
+  max-width: 60rem;
+  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.jgis-story-segment-overlay-pane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
+
+.jgis-story-markdown-scroll-pane {
+  top: 0;
+  height: auto;
+  box-sizing: border-box;
+  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+}
+
+.jgis-story-segment-transition-stack .jgis-story-map-scroll-pane {
+  height: var(--jgis-handoff-gap-height, 100%);
+  min-height: var(--jgis-handoff-gap-height, 100%);
+}
+
+.jgis-story-map-scroll-pane {
+  top: 0;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  box-sizing: border-box;
+  background-color: transparent;
+  align-items: flex-end;
+  padding-right: 1rem;
+}
+
+.jgis-story-map-overlay-content {
+  width: 25%;
+  max-width: 30rem;
+  max-height: 100%;
+  overflow: auto;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.jgis-story-segment-overlay-pane.jgis-story-markdown-scroll-pane:not(
+    .jgis-story-markdown-scroll-pane--measure
+  )
+  .jgis-story-stage-overlay-content {
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.jgis-story-markdown-measure-host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.jgis-story-markdown-scroll-pane--measure {
+  position: relative;
+  height: auto;
+}
+
+.jgis-story-virtual-track {
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .jGIS-property-panel

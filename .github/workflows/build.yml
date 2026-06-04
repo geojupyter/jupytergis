@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.14']
+        python-version: ['3.12', '3.13']
 
     steps:
       - name: Checkout
@@ -29,6 +29,7 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             pip
+            qgis
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -158,7 +159,21 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
+            pip
             qgis
+
+      - name: Setup pip cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python test dependencies # Needed for notebook tests!
+        shell: bash -l {0}
+        run: pip install --group test
 
       - name: Download extension package
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -170,7 +185,18 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+
+          # Add `[tiler]` extra to the jupytergis_lab wheel
+          args=()
+          for whl in jupytergis*.whl; do
+              if [[ "$whl" == *_lab*.whl ]]; then
+                  args+=("${whl}[tiler]")
+              else
+                  args+=("$whl")
+              fi
+          done
+
+          python -m pip install "${args[@]}"
 
       - name: Install
         shell: bash -l {0}
@@ -226,6 +252,7 @@ jobs:
             pip
             jupyterlite-core
             jupyterlite-xeus
+            micromamba<2.7
             jupyter_server
             specta
 
