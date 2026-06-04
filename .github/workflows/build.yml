@@ -252,6 +252,7 @@ jobs:
             pip
             jupyterlite-core
             jupyterlite-xeus
+            micromamba<2.7
             jupyter_server
             specta
 
