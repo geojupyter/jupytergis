@@ -56,6 +56,7 @@ from .grammar import (
     kde_grammar,
     raster_to_grammar,
     single_symbol_grammar,
+    subset_to_when,
 )
 
 # Prevent any Qt application and event loop to spawn when
@@ -283,14 +284,16 @@ def qgis_layer_to_jgis(
     if isinstance(layer, QgsVectorLayer):
         layer_type = "VectorLayer"
         source_type = "GeoJSONSource"
-        source = layer.source()
 
-        if source.startswith("http://") or source.startswith("https://"):
-            file_name = source
+        # OGR data sources look like "path|subset=...|layername=...". Split the
+        # data path off the provider options (the "|subset=" we add on export
+        # would otherwise be glued onto the GeoJSON URL/path).
+        source = layer.source()
+        path_part = source.split("|", 1)[0]
+        if path_part.startswith("http://") or path_part.startswith("https://"):
+            file_name = path_part
         else:
-            components = source.split("/")
-            file_name = components[-1]
-            file_name = file_name.split("|")[0]
+            file_name = path_part.split("/")[-1]
 
         source_parameters.update(path=file_name)
 
@@ -299,7 +302,16 @@ def qgis_layer_to_jgis(
         # Express the QGIS renderer as Grammar (symbologyState.layers), the single
         # source of truth post #1390. Single Symbol / Categorized / Graduated map
         # cleanly; anything else falls back to a default single symbol.
-        layer_parameters["symbologyState"] = _vector_renderer_to_grammar(renderer)
+        symbology_state = _vector_renderer_to_grammar(renderer)
+
+        # Translate the OGR subset string back into a layer-level grammar `when`
+        # so feature filters survive the round-trip (best-effort: simple filters).
+        when = subset_to_when(layer.subsetString())
+        if when:
+            for grammar_layer in symbology_state.get("layers", []):
+                grammar_layer["when"] = when
+
+        layer_parameters["symbologyState"] = symbology_state
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"

@@ -368,6 +368,39 @@ def grammar_layer_subset(grammar_layer: dict[str, Any]) -> str | None:
     )
 
 
+def subset_to_when(subset: str | None) -> list[dict[str, Any]] | None:
+    """Best-effort inverse of a QGIS subset string into grammar `when` predicates.
+
+    Handles the single-comparison form we emit (e.g. ``"continent" = 'Asia'`` or
+    ``"mag" > 5``). Returns None for anything more complex (the caller then just
+    drops the filter rather than producing a wrong predicate).
+    """
+    if not subset:
+        return None
+    match = re.match(r'^\s*"([^"]+)"\s*(<=|>=|!=|=|<|>)\s*(.+?)\s*$', subset)
+    if not match:
+        return None
+    field, op, raw = match.group(1), match.group(2), match.group(3)
+
+    if len(raw) >= 2 and raw[0] == "'" and raw[-1] == "'":
+        value: Any = raw[1:-1].replace("''", "'")
+        is_string = True
+    else:
+        try:
+            value = float(raw)
+            value = int(value) if value.is_integer() else value
+            is_string = False
+        except ValueError:
+            return None
+
+    if op == "=":
+        return [{"type": "fieldEquals", "field": field, "value": value}]
+    if is_string:
+        # fieldCompare only supports numeric values.
+        return None
+    return [{"type": "fieldCompare", "field": field, "op": op, "value": value}]
+
+
 def filters_to_subset(filters: dict[str, Any] | None) -> str | None:
     """QGIS subset string for a jGIS layer's ``filters`` (logicalOp + appliedFilters)."""
     if not filters:

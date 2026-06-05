@@ -741,3 +741,86 @@ def test_qgis_scalar_size_and_heatmap_alpha():
     assert len(heat_layers) == 1
     assert abs(heat_layers[0].opacity() - 0.9) < 1e-6
     assert "mag" in heat_layers[0].subsetString()
+
+
+def test_qgis_filter_roundtrip():
+    from ..grammar import subset_to_when
+
+    # Pure-function inverse of the subset strings we emit.
+    assert subset_to_when("\"continent\" = 'Asia'") == [
+        {"type": "fieldEquals", "field": "continent", "value": "Asia"},
+    ]
+    assert subset_to_when('"mag" > 5') == [
+        {"type": "fieldCompare", "field": "mag", "op": ">", "value": 5},
+    ]
+    assert subset_to_when("") is None
+    # Complex expressions are not parsed (filter dropped, path still valid).
+    assert subset_to_when('("a" = 1) OR ("b" = 2)') is None
+
+    # End-to-end: a layer-level `when` survives export -> import, and the source
+    # path is clean (no "|subset=" glued on).
+    filename = FILES / "project_filter.qgz"
+    if os.path.exists(filename):
+        os.remove(filename)
+
+    lid, sid = str(uuid4()), str(uuid4())
+    state = {
+        "layers": [
+            {
+                "id": "L",
+                "when": [
+                    {"type": "fieldEquals", "field": "continent", "value": "Asia"},
+                ],
+                "rules": [
+                    {
+                        "id": "r",
+                        "mappings": [
+                            _constant_rgba(
+                                [1.0, 2.0, 3.0, 1.0],
+                                ["fill-color", "circle-fill-color"],
+                            ),
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    path = (
+        "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
+        "master/geojson/ne_10m_roads.geojson"
+    )
+    jgis = {
+        "options": {
+            "projection": "EPSG:3857",
+            "extent": [-2e7, -1e7, 2e7, 1e7],
+            "useExtent": True,
+        },
+        "metadata": {},
+        "layers": {
+            lid: {
+                "name": "Roads",
+                "type": "VectorLayer",
+                "visible": True,
+                "parameters": {"opacity": 1.0, "source": sid, "symbologyState": state},
+            },
+        },
+        "sources": {
+            sid: {"name": "src", "type": "GeoJSONSource", "parameters": {"path": path}},
+        },
+        "layerTree": [lid],
+    }
+
+    assert export_project_to_qgis(filename, jgis)
+    imported = import_project_from_qgis(filename)
+
+    vlayer = next(
+        layer for layer in imported["layers"].values() if layer["type"] == "VectorLayer"
+    )
+    imported_path = imported["sources"][vlayer["parameters"]["source"]]["parameters"][
+        "path"
+    ]
+    assert imported_path == path  # no "|subset=" appended
+    grammar_layer = vlayer["parameters"]["symbologyState"]["layers"][0]
+    assert grammar_layer["when"] == [
+        {"type": "fieldEquals", "field": "continent", "value": "Asia"},
+    ]
