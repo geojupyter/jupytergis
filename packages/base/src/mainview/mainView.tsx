@@ -131,7 +131,6 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
-import { LoadingOverlay } from '@/src/shared/components/loading';
 import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { markerIcon } from '@/src/shared/icons';
 import {
@@ -143,10 +142,15 @@ import {
   throttle,
 } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
-import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import { FollowIndicator } from './FollowIndicator';
+import { ClientPointer } from './CollaboratorPointers';
 import { OpenEOTileLayer, OpenEOTileSource } from './OpenEOTileLayer';
 import TemporalSlider from './TemporalSlider';
+import { MainViewMapSurface } from './components/MainViewMapSurface';
+import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
+import { MainViewSidePanels } from './components/MainViewSidePanels';
+import { MainViewSpectaPanel } from './components/MainViewSpectaPanel';
+import { MainViewStoryStage } from './components/MainViewStoryStage';
+import { PositionedFloater } from './components/PositionedFloater';
 import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureProperties,
@@ -160,13 +164,9 @@ import {
   grammarToOLStyle,
 } from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
-import { SpectaPanel } from '../features/story/SpectaPanel';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { ListStoryStageOverlay } from '../features/story/components/ListStoryStageOverlay';
-import { ListStoryScrollTrackProvider } from '../features/story/context/ListStoryScrollTrackContext';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
 import { STORY_TYPE } from '../types';
-import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
 
 type OlLayerTypes =
   | TileLayer
@@ -178,8 +178,6 @@ type OlLayerTypes =
   | StacLayer
   | ImageLayer<any>
   | LayerGroup;
-
-const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
 
 const drawInteractionStyle = new Style({
   fill: new Fill({
@@ -3759,212 +3757,158 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.updateSource(id, source);
   };
 
+  private _renderAnnotationFloaters(): React.ReactNode {
+    const annotationModel = this._model.annotationModel;
+    if (!annotationModel) {
+      return null;
+    }
+
+    return Object.entries(this.state.annotations).map(([key, annotation]) => {
+      const screenPosition = this._computeAnnotationPosition(annotation);
+      if (!screenPosition) {
+        return null;
+      }
+
+      return (
+        <PositionedFloater
+          key={key}
+          id={key}
+          className="jGIS-Popup-Wrapper"
+          left={screenPosition.x}
+          top={screenPosition.y}
+        >
+          <AnnotationFloater itemId={key} annotationModel={annotationModel} />
+        </PositionedFloater>
+      );
+    });
+  }
+
+  private _renderFeatureFloaters(): React.ReactNode {
+    return this._getVisibleDrawIdentifiedFeatures().map(
+      ([floaterKey, feature]) => {
+        const screenPosition = this._computeFeatureFloaterPosition(feature);
+        if (!screenPosition) {
+          return null;
+        }
+
+        const id = `feature-floater-${floaterKey}`;
+        return (
+          <PositionedFloater
+            key={id}
+            id={id}
+            className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
+            left={screenPosition.x}
+            top={screenPosition.y}
+          >
+            <FeatureFloater feature={feature} />
+          </PositionedFloater>
+        );
+      },
+    );
+  }
+
   render(): JSX.Element {
+    const {
+      clientPointers,
+      displayTemporalController,
+      drawGeometryLabel,
+      editingVectorLayer,
+      filterStates,
+      initialLayersReady,
+      isSpectaPresentation,
+      jgisSettings,
+      loading,
+      loadingLayer,
+      remoteUser,
+      scale,
+      segmentTransition,
+      viewProjection,
+    } = this.state;
+    const { isMobile } = this.props;
+    const selectedStory = this._model.getSelectedStory().story;
+    const isListStory =
+      isSpectaPresentation &&
+      selectedStory?.storyType === STORY_TYPE.verticalScroll;
+    const showSidePanels = !isSpectaPresentation;
+    const showMergedMobilePanel =
+      isMobile &&
+      Boolean(this._state) &&
+      Boolean(this._formSchemaRegistry) &&
+      Boolean(this._annotationModel);
+    const spectaMobileTouch = isSpectaPresentation && isMobile;
+
     return (
       <>
-        {Object.entries(this.state.annotations).map(([key, annotation]) => {
-          if (!this._model.annotationModel) {
-            return null;
-          }
-          const screenPosition = this._computeAnnotationPosition(annotation);
-          return (
-            screenPosition && (
-              <div
-                key={key}
-                id={key}
-                style={{
-                  left: screenPosition.x,
-                  top: screenPosition.y,
-                }}
-                className={'jGIS-Popup-Wrapper'}
-              >
-                <AnnotationFloater
-                  itemId={key}
-                  annotationModel={this._model.annotationModel}
-                />
-              </div>
-            )
-          );
-        })}
-        {this._getVisibleDrawIdentifiedFeatures().map(
-          ([floaterKey, feature]) => {
-            const screenPosition = this._computeFeatureFloaterPosition(feature);
-            if (!screenPosition) {
-              return null;
-            }
-
-            return (
-              <div
-                key={`feature-floater-${floaterKey}`}
-                id={`feature-floater-${floaterKey}`}
-                style={{
-                  left: screenPosition.x,
-                  top: screenPosition.y,
-                }}
-                className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
-              >
-                <FeatureFloater feature={feature} />
-              </div>
-            );
-          },
-        )}
-
-        {this.state.editingVectorLayer && (
-          <div className="jgis-geometry-type-selector-overlay">
-            <select
-              className="geometry-type-selector"
-              id="geometry-type-selector"
-              value={this.state.drawGeometryLabel ?? ''}
-              onChange={this._handleDrawGeometryTypeChange}
-            >
-              <option value="" disabled hidden>
-                Geometry type
-              </option>
-              {DRAW_GEOMETRIES.map(geometryType => (
-                <option key={geometryType} value={geometryType}>
-                  {geometryType}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <MainViewOverlayLayer
+          annotationFloaters={this._renderAnnotationFloaters()}
+          featureFloaters={this._renderFeatureFloaters()}
+          editingVectorLayer={editingVectorLayer}
+          drawGeometryLabel={drawGeometryLabel}
+          onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
+        />
 
         <div className="jGIS-Mainview-Container">
-          {this.state.displayTemporalController && (
-            <TemporalSlider
-              model={this._model}
-              filterStates={this.state.filterStates}
-            />
-          )}
-          <div
-            ref={this.mainViewRef}
-            className="jGIS-Mainview data-jgis-keybinding"
-            tabIndex={0}
-            style={{
-              border: this.state.remoteUser
-                ? `solid 3px ${this.state.remoteUser.color}`
-                : 'unset',
-            }}
-            onTouchStart={
-              this.state.isSpectaPresentation && this.props.isMobile
-                ? this._handleSpectaTouchStart
-                : undefined
-            }
-            onTouchEnd={
-              this.state.isSpectaPresentation && this.props.isMobile
-                ? this._handleSpectaTouchEnd
-                : undefined
-            }
+          {displayTemporalController ? (
+            <TemporalSlider model={this._model} filterStates={filterStates} />
+          ) : null}
+          <MainViewMapSurface
+            mainViewRef={this.mainViewRef}
+            loading={loading}
+            remoteUser={remoteUser}
+            clientPointers={clientPointers}
+            spectaMobileTouch={spectaMobileTouch}
+            onTouchStart={this._handleSpectaTouchStart}
+            onTouchEnd={this._handleSpectaTouchEnd}
           >
-            <LoadingOverlay loading={this.state.loading} />
-            <FollowIndicator remoteUser={this.state.remoteUser} />
-            <CollaboratorPointers clients={this.state.clientPointers} />
-
-            <div
-              ref={this.divRef}
-              className="jgis-mainview-stage"
-              style={{
-                width: '100%',
-                height: '100%',
-                position: 'relative',
-              }}
-            >
-              <ListStoryScrollTrackProvider
-                model={this._model}
-                enabled={
-                  this.state.isSpectaPresentation &&
-                  this._model.getSelectedStory().story?.storyType ===
-                    STORY_TYPE.verticalScroll
-                }
-              >
-                {this.state.isSpectaPresentation &&
-                this._model.getSelectedStory().story?.storyType ===
-                  STORY_TYPE.verticalScroll ? (
-                  <ListStoryStageOverlay
+            <MainViewStoryStage
+              model={this._model}
+              isListStory={isListStory}
+              segmentTransition={segmentTransition}
+              stageRef={this.divRef}
+              controlsToolbarRef={this.controlsToolbarRef}
+              panels={
+                showSidePanels ? (
+                  <MainViewSidePanels
                     model={this._model}
-                    segmentTransition={this.state.segmentTransition}
+                    commands={this._mainViewModel.commands}
+                    settings={jgisSettings}
+                    showMergedMobilePanel={showMergedMobilePanel}
+                    state={this._state}
+                    formSchemaRegistry={this._formSchemaRegistry}
+                    annotationModel={this._annotationModel}
+                    addLayer={this.addLayer.bind(this)}
+                    removeLayer={this.removeLayer.bind(this)}
+                    patchGeoJSONFeatureProperties={
+                      this._patchGeoJSONFeatureProperties
+                    }
                   />
-                ) : null}
-                <div className="jgis-panels-wrapper">
-                  {!this.state.isSpectaPresentation ? (
-                    <>
-                      {this.props.isMobile &&
-                      this._state &&
-                      this._formSchemaRegistry &&
-                      this._annotationModel ? (
-                        <MergedPanel
-                          model={this._model}
-                          commands={this._mainViewModel.commands}
-                          state={this._state}
-                          settings={this.state.jgisSettings}
-                          formSchemaRegistry={this._formSchemaRegistry}
-                          annotationModel={this._annotationModel}
-                          addLayer={this.addLayer.bind(this)}
-                          removeLayer={this.removeLayer.bind(this)}
-                        />
-                      ) : (
-                        <>
-                          {this._state && (
-                            <LeftPanel
-                              model={this._model}
-                              commands={this._mainViewModel.commands}
-                              state={this._state}
-                              settings={this.state.jgisSettings}
-                            />
-                          )}
-                          {this._formSchemaRegistry &&
-                            this._annotationModel && (
-                              <RightPanel
-                                model={this._model}
-                                commands={this._mainViewModel.commands}
-                                formSchemaRegistry={this._formSchemaRegistry}
-                                annotationModel={this._annotationModel}
-                                addLayer={this.addLayer.bind(this)}
-                                removeLayer={this.removeLayer.bind(this)}
-                                settings={this.state.jgisSettings}
-                                patchGeoJSONFeatureProperties={
-                                  this._patchGeoJSONFeatureProperties
-                                }
-                              />
-                            )}
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    this.state.initialLayersReady && (
-                      <SpectaPanel
-                        model={this._model}
-                        isSpecta={this.state.isSpectaPresentation}
-                        isMobile={this.props.isMobile}
-                        onSegmentTransitionEnd={() =>
-                          this._clearStoryScrollGuard()
-                        }
-                        containerRef={this.spectaContainerRef}
-                        storyViewerPanelRef={this.storyViewerPanelRef}
-                        addLayer={this._addLayerForPanels}
-                        removeLayer={this._removeLayerForPanels}
-                        onSegmentTransitionChange={
-                          this._handleSegmentTransitionChange
-                        }
-                      />
-                    )
-                  )}
-                </div>
-                <div
-                  ref={this.controlsToolbarRef}
-                  className="jgis-controls-toolbar"
-                ></div>
-              </ListStoryScrollTrackProvider>
-            </div>
-          </div>
-          {!this.state.isSpectaPresentation && (
+                ) : (
+                  <MainViewSpectaPanel
+                    model={this._model}
+                    isSpecta={isSpectaPresentation}
+                    isMobile={isMobile}
+                    initialLayersReady={initialLayersReady}
+                    containerRef={this.spectaContainerRef}
+                    storyViewerPanelRef={this.storyViewerPanelRef}
+                    addLayer={this._addLayerForPanels}
+                    removeLayer={this._removeLayerForPanels}
+                    onSegmentTransitionEnd={this._clearStoryScrollGuard}
+                    onSegmentTransitionChange={
+                      this._handleSegmentTransitionChange
+                    }
+                  />
+                )
+              }
+            />
+          </MainViewMapSurface>
+          {!isSpectaPresentation ? (
             <StatusBar
               jgisModel={this._model}
-              loading={this.state.loadingLayer}
-              projection={this.state.viewProjection}
-              scale={this.state.scale}
+              loading={loadingLayer}
+              projection={viewProjection}
+              scale={scale}
             />
-          )}
+          ) : null}
         </div>
       </>
     );

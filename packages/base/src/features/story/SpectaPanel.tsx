@@ -73,15 +73,18 @@ export function SpectaPanel({
   if (isMobile) {
     return (
       <SpectaMobileView
+        model={model}
         segmentContainerRef={segmentContainerRef}
         storyData={storyData}
         currentIndex={currentIndex}
+        setIndex={setIndex}
         activeSlide={activeSlide}
         layerName={layerName}
         handlePrev={handlePrev}
         handleNext={handleNext}
         hasPrev={hasPrev}
         hasNext={hasNext}
+        onSegmentTransitionChange={onSegmentTransitionChange}
       />
     );
   }
