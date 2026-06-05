@@ -201,6 +201,7 @@ interface IMainViewProps {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
+  notebookTracker?: { currentWidget: { content: any } | null };
   /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
 }
@@ -239,6 +240,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._annotationModel = props.annotationModel;
 
     this._loggerRegistry = props.loggerRegistry;
+
+    this._notebookTracker = props.notebookTracker;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -3951,6 +3954,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
+  private _notebookTracker?: { currentWidget: { content: any } | null };
   private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
     this.addLayer(id, layer, index);
   private _removeLayerForPanels = (id: string) => this.removeLayer(id);

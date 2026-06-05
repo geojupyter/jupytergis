@@ -106,6 +106,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       formSchemaRegistry,
       state,
       annotationModel,
+      notebookTracker,
     });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
@@ -113,7 +114,6 @@ export class YJupyterGISLuminoWidget extends Panel {
         commands,
         model,
         externalCommands: externalCommands?.getCommands() || [],
-        notebookTracker,
       });
     }
     this._jgisWidget = new JupyterGISOutputWidget({

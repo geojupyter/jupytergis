@@ -1,25 +1,25 @@
 {
   "layerTree": [
     "f99eb7b0-5e38-4078-b310-36a0746472aa",
-    "148f2fb3-3077-4dcb-8d70-831570d5021f"
+    "148f2fb3-3077-4dcb-8d70-831570d5021f",
+    "01e93534-e86c-4e68-b66f-96a8d9d68795"
   ],
   "layers": {
+    "01e93534-e86c-4e68-b66f-96a8d9d68795": {
+      "name": "Marker",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "29e8f030-2cac-487b-829c-c950380ae97f",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
     "148f2fb3-3077-4dcb-8d70-831570d5021f": {
       "name": "Buildings Vector Tile",
       "parameters": {
-        "color": {
-          "circle-fill-color": "#f66151",
-          "circle-radius": 5.0,
-          "circle-stroke-color": "#f66151",
-          "circle-stroke-line-cap": "round",
-          "circle-stroke-line-join": "round",
-          "circle-stroke-width": 1.25,
-          "fill-color": "#f66151",
-          "stroke-color": "#f66151",
-          "stroke-line-cap": "round",
-          "stroke-line-join": "round",
-          "stroke-width": 1.25
-        },
         "opacity": 1.0,
         "source": "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4",
         "symbologyState": {
@@ -46,28 +46,43 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -10018807.154509751,
-      4968969.924033576,
-      -9493559.118590718,
-      5313197.028536311
+      -10068220.291834144,
+      5079451.779416179,
+      -10058529.198293595,
+      5090428.138992602
     ],
-    "latitude": 41.86704023051257,
-    "longitude": -87.64128426232207,
+    "latitude": 41.49035343813466,
+    "longitude": -90.40083343313266,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 8.089610803710057
+    "zoom": 14.02638057130257
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
+    "29e8f030-2cac-487b-829c-c950380ae97f": {
+      "name": "Marker",
+      "parameters": {
+        "color": "",
+        "feature": {
+          "coords": [
+            -10064160.617088174,
+            5085598.388792081
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    },
     "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4": {
       "name": "Vector Tile Source",
       "parameters": {
         "attribution": "",
+        "httpHeaders": "",
         "maxZoom": 12.0,
         "minZoom": 1.0,
         "provider": "",
         "url": "https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
-        "urlParameters": {}
+        "urlParameters": {},
+        "useProxy": false
       },
       "type": "VectorTileSource"
     },
@@ -87,5 +102,6 @@
       "type": "RasterSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }

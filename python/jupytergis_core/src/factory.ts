@@ -87,12 +87,12 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       formSchemaRegistry: this.options.formSchemaRegistry,
       annotationModel: this.options.annotationModel,
       loggerRegistry: this.options.loggerRegistry,
+      notebookTracker: this.options.notebookTracker,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
       model,
       externalCommands: this._externalCommandRegistry.getCommands(),
-      notebookTracker: this.options.notebookTracker,
     });
 
     return new JupyterGISDocumentWidget({

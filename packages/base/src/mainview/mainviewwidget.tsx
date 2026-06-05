@@ -15,6 +15,7 @@ export interface IOptions {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
+  notebookTracker?: { currentWidget: { content: any } | null };
   rendermime?: IRenderMimeRegistry | null;
 }
 
