@@ -19,9 +19,39 @@ export const FormGenerator = ({operation, jgisPath, layers, onExecute}: FormGene
                 {(() => { switch (arg_type) {
                     case "number":
                         return <input id={arg_name} type="number" />;
+                    case "NormalLayer":
+                        return <select id={arg_name}>
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer' || layer.type === 'RasterLayer').map((layer: any) => (
+                                <option key={layer.id} value={layer.source}>{layer.name}</option>
+                            ))}
+                        </select>;
                     case "VectorLayer":
                         return <select id={arg_name}>
-                            {layers.map((layer: any) => (
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer').map((layer: any) => (
+                                <option key={layer.id} value={layer.source}>{layer.name}</option>
+                            ))}
+                        </select>;
+                    case "LineLayer":
+                        return <select id={arg_name}>
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer' && layer.vectorType === 'line').map((layer: any) => (
+                                <option key={layer.id} value={layer.source}>{layer.name}</option>
+                            ))}
+                        </select>;
+                    case "PointLayer":
+                        return <select id={arg_name}>
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer' && layer.vectorType === 'circle').map((layer: any) => (
+                                <option key={layer.id} value={layer.source}>{layer.name}</option>
+                            ))}
+                        </select>;
+                    case "PolygonLayer":
+                        return <select id={arg_name}>
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer' && layer.vectorType === 'fill').map((layer: any) => (
+                                <option key={layer.id} value={layer.source}>{layer.name}</option>
+                            ))}
+                        </select>;
+                    case "RasterLayer":
+                        return <select id={arg_name}>
+                            {layers.filter((layer: any) => layer.type === 'RasterLayer').map((layer: any) => (
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
