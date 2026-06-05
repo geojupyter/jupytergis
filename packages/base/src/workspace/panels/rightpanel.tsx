@@ -6,8 +6,7 @@ import {
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
-import { showDialog } from '@jupyterlab/apputils';
-import { ReactWidget } from '@jupyterlab/ui-components';
+
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
@@ -141,6 +140,9 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
+  const [processingSelectedOp, setProcessingSelectedOp] =
+    React.useState<any>(null);
+
   const tabInfo = [
     !props.settings.objectPropertiesDisabled && !storyMapPresentationMode
       ? { name: 'objectProperties', title: 'Object Properties' }
@@ -214,45 +216,47 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
           )}
 
           <TabsContent value="processing" className="jgis-panel-tab-content">
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {Array.from(geoProcessingOperationRegistry.operations.entries()).map(([id, item]) => (
-                <li key={id}>
-                  <button
-                    style={{ width: '100%', textAlign: 'left', padding: '6px 8px', cursor: 'pointer' }}
-                    onClick={() => {
-                      showDialog({
-                        title: item.name,
-                        body: ReactWidget.create(
-                          <FormGenerator
-                            operation={item}
-                            layers={Object.entries(props.model.getLayers()).map(([lid, layer]) => ({
-                              id: lid,
-                              name: layer.name,
-                              source: props.model.getSource(layer.parameters?.source)?.parameters?.path,
-                              type: layer.type
-                            }))}
-                            jgisPath={props.model.filePath.split('/').pop() ?? ''}
-                            onExecute={(output: string) => {
-                              const notebook = props.notebookTracker?.currentWidget?.content;
-                              if (!notebook?.model) {
-                                console.debug('No Notebook model found');
-                                return;
-                              }
-                              notebook.model.sharedModel.insertCell(
-                                notebook.activeCellIndex + 1,
-                                { cell_type: 'code', source: output, metadata: {} }
-                              );
-                            }}
-                          />
-                        )
-                      });
+            {processingSelectedOp === null ? (
+              <ul id="processing-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {Array.from(geoProcessingOperationRegistry.operations.entries()).map(([id, item]) => (
+                  <li key={id}>
+                    <button
+                      style={{ width: '100%', textAlign: 'left', padding: '6px 8px', cursor: 'pointer' }}
+                      onClick={() => setProcessingSelectedOp(item)}
+                    >
+                      {item.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div>
+                <button onClick={() => setProcessingSelectedOp(null)}>←</button>
+                <div id="processing-form-div" style={{ padding: '10px' }}>
+                  <FormGenerator
+                    operation={processingSelectedOp}
+                    layers={Object.entries(props.model.getLayers()).map(([lid, layer]) => ({
+                      id: lid,
+                      name: layer.name,
+                      source: props.model.getSource(layer.parameters?.source)?.parameters?.path,
+                      type: layer.type
+                    }))}
+                    jgisPath={props.model.filePath.split('/').pop() ?? ''}
+                    onExecute={(output: string) => {
+                      const notebook = props.notebookTracker?.currentWidget?.content;
+                      if (!notebook?.model) {
+                        console.debug('No Notebook model found');
+                        return;
+                      }
+                      notebook.model.sharedModel.insertCell(
+                        notebook.activeCellIndex + 1,
+                        { cell_type: 'code', source: output, metadata: {} }
+                      );
                     }}
-                  >
-                    {item.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  />
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {!props.settings.storyMapsDisabled && (
