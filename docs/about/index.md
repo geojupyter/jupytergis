@@ -46,6 +46,11 @@ for server-side raster processing at scale.
 
 ## Architecture
 
+JupyterGIS is built on top of the [Jupyter](https://jupyter.org/) ecosystem.
+This gives it browser-based UI, kernel integration for server-side computation, real-time collaboration infrastructure, AI integration (via [Jupyter AI](https://github.com/jupyterlab/jupyter-ai) / [JupyterLite AI](https://github.com/jupyterlite/ai)), and deployment options ranging from zero-install browser links ([JupyterLite](https://jupyterlite.readthedocs.io/)) to multi-user servers ([JupyterHub](https://jupyterhub.readthedocs.io/)).
+However, JupyterGIS can also be used independently — as a standalone web application or an embeddable map widget — without requiring a full Jupyter environment.
+The following sections illustrate the key architectural choices that follow from this foundation.
+
 ### Browser-first
 
 JupyterGIS is browser-native by default, using WebAssembly to run tools like [GDAL](https://gdal.org) client-side, and it can be deployed as a zero-server JupyterLite site with full Python capabilities.
@@ -82,6 +87,7 @@ This design allows modification, adaptation, and integration into other systems 
 ## Comparison with other GIS tools
 
 These architectural choices place JupyterGIS in a unique position in the GIS landscape — at the intersection of collaborative editing, computational notebooks, and cloud-native geospatial.
+If you believe any of these comparisons is inaccurate, please [open an issue](https://github.com/geojupyter/jupytergis/issues/new) so we can correct it.
 
 ### QGIS
 
@@ -100,10 +106,10 @@ It is highly scriptable — via Python and natural-language prompts (Jupyter AI 
 
 [ArcGIS](https://www.esri.com/en-us/arcgis/about-arcgis/overview) (Esri) is the industry-standard commercial GIS platform — powerful, feature-complete, and mature.
 
-**ArcGIS** is proprietary with per-seat licensing and a deep ecosystem (Living Atlas, ArcGIS Online).
-It is the proprietary default choice for many organizations already invested in Esri infrastructure.
+**ArcGIS** is proprietary and closed-source with per-seat licensing and a deep ecosystem (Living Atlas, ArcGIS Online).
+It is the default choice for many organizations already invested in Esri infrastructure, but it cannot be inspected, modified, or independently audited, and it is governed by a single company.
 
-**JupyterGIS**, in contrast, is free, open source, built for modification and integration.
+**JupyterGIS**, in contrast, is free, open source, community-driven with multiple organizational stakeholders, and built for modification and integration.
 It is also browser-first, scriptable, cloud-native, and can connect to powerful backend kernels.
 Due to its open nature, JupyterGIS excels when you need tight integration with other systems, browser-first access, customization and sovereign infrastructure that you control.
 
@@ -111,7 +117,7 @@ Due to its open nature, JupyterGIS excels when you need tight integration with o
 
 [Google Earth Engine](https://earthengine.google.com/) (GEE) is a cloud platform for planetary-scale geospatial analysis, backed by Google's data catalog and compute infrastructure.
 
-**GEE** is proprietary and tightly coupled to Google's infrastructure. It offers an unmatched data catalog but is difficult to integrate with external systems, difficult to customize, and cannot be self-hosted.
+**GEE** is proprietary, closed-source, and tightly coupled to Google's infrastructure. It offers an unmatched data catalog but cannot be inspected or modified, is difficult to integrate with external systems, and cannot be self-hosted. It is governed by a single company.
 
 **JupyterGIS** integrates with open-source tools for compute-heavy workloads: Jupyter kernels for arbitrary server-side processing, [OpenEO](https://openeo.org/) for cloud processing, and [TiTiler](https://developmentseed.org/titiler/) for dynamic raster tile serving backed by the Pangeo stack.
 JupyterGIS is open source, self-hostable, and built for integration — offering cloud-native processing via open standards rather than a single vendor's infrastructure.
@@ -120,9 +126,12 @@ JupyterGIS is open source, self-hostable, and built for integration — offering
 
 [Felt](https://felt.com) is a modern, collaborative web-based mapping tool focused on ease of use for non-technical users.
 
-**Felt** is a proprietary SaaS with a polished, Miro-like experience for visual collaboration. It does not support scripting, self-hosting, or integration with computational workflows.
+**Felt** is a proprietary SaaS with a polished, Miro-like experience for visual collaboration.
+It offers enterprise VPC deployment for regulated industries, but the source code is closed — it cannot be inspected, modified, or independently audited, and it is governed by a single company.
+Felt does not support scripting or integration with computational workflows.
 
-**JupyterGIS** shares the browser-first collaborative approach but is open source, self-hostable, and scriptable. It adds integration with Jupyter kernels for server-side processing and deep ties to the scientific Python ecosystem.
+**JupyterGIS** shares the browser-first collaborative approach but is fully open source, community-driven with multiple organizational stakeholders, self-hostable on any infrastructure, and scriptable.
+It adds integration with Jupyter kernels for server-side processing and deep ties to the scientific Python ecosystem.
 
 ### Rendering libraries (MapLibre, OpenLayers, Leaflet, ...)
 
