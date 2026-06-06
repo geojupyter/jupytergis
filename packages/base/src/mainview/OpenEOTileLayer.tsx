@@ -75,13 +75,25 @@ export async function promptOpenEOLogin(serverUrl: string): Promise<void> {
  * user to sign in again before existing OpenEO layers can render.
  */
 /**
- * Snapshot of the OpenEO servers we currently hold live connections for.
- * Used to populate the server picker in the Add OpenEO Layer dialog so
- * the user can switch between previously-authenticated servers without
- * signing in again.
+ * The OpenEO servers we currently hold live connections for, ordered
+ * oldest-first (insertion/recency order — see `connect`). Used to
+ * populate the server picker in the Add/Edit OpenEO Layer dialog so the
+ * user can switch between previously-authenticated servers without
+ * signing in again. Global to all documents.
  */
 export function listOpenEOConnections(): string[] {
   return Object.keys(CONNECTIONS);
+}
+
+/**
+ * The most recently used OpenEO connection, or null if none. Used to
+ * pre-fill the Add OpenEO Layer dialog so a new layer reuses the server
+ * the user last worked with.
+ */
+export function getLatestOpenEOConnection(): IOpenEOConnectionInfo | null {
+  const urls = Object.keys(CONNECTIONS);
+  const latest = urls[urls.length - 1];
+  return latest ? { url: latest } : null;
 }
 
 export function getOpenEOConnection(serverUrl: string): Connection {
@@ -218,9 +230,13 @@ export async function connect(
     url = `https://${url}`;
   }
 
-  // Already connected to that server url
+  // Already connected to that server url. Re-insert so the cache stays
+  // ordered by recency (last key === most recently used).
   if (CONNECTIONS[url]) {
-    return CONNECTIONS[url];
+    const existing = CONNECTIONS[url];
+    delete CONNECTIONS[url];
+    CONNECTIONS[url] = existing;
+    return existing;
   }
 
   const errorTitle = 'Failed to connect to the OpenEO server';

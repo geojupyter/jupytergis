@@ -8,29 +8,6 @@ import {
 } from '../mainview/OpenEOTileLayer';
 
 /**
- * All distinct OpenEO server URLs referenced by layers already in the
- * document, used to pre-populate the server picker in the edit dialog.
- */
-function listExistingOpenEOServers(model: IJupyterGISModel): string[] {
-  const layers = model.sharedModel.layers ?? {};
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const layer of Object.values(layers)) {
-    if (layer?.type !== 'OpenEOTileLayer') {
-      continue;
-    }
-    const sourceId = layer.parameters?.source as string | undefined;
-    const source = sourceId ? model.getSource(sourceId) : undefined;
-    const params = (source?.parameters ?? {}) as { serverUrl?: string };
-    if (params.serverUrl && !seen.has(params.serverUrl)) {
-      seen.add(params.serverUrl);
-      out.push(params.serverUrl);
-    }
-  }
-  return out;
-}
-
-/**
  * Find the id of the OpenEO layer that references the given source.
  */
 export function findOpenEOLayerIdForSource(
@@ -55,15 +32,10 @@ export function findOpenEOLayerIdForSource(
  *
  * @param model - the active document model
  * @param layerId - the OpenEO layer to edit
- * @param options.onConnected - called once the layer's server connection is
- *   (re)established, so callers can cache it for subsequent layer creation.
  */
 export async function editOpenEOLayer(
   model: IJupyterGISModel,
   layerId: string,
-  options?: {
-    onConnected?: (info: IOpenEOConnectionInfo) => void;
-  },
 ): Promise<void> {
   const layer = model.getLayer(layerId);
   if (!layer || layer.type !== 'OpenEOTileLayer') {
@@ -89,22 +61,14 @@ export async function editOpenEOLayer(
   };
   try {
     await openEOConnect(connectionInfo);
-    options?.onConnected?.(connectionInfo);
   } catch {
     return;
   }
-  const knownServers = Array.from(
-    new Set(
-      [...listOpenEOConnections(), ...listExistingOpenEOServers(model)].filter(
-        Boolean,
-      ),
-    ),
-  );
   const result = await showAddOpenEOLayerDialog({
     title: 'Edit OpenEO Layer',
     okLabel: 'Save',
     connectionInfo,
-    knownServers,
+    knownServers: listOpenEOConnections(),
     initialGraph: sourceParams.processGraph,
     layerName: layer.name,
   });

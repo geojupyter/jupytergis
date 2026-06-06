@@ -32,7 +32,7 @@ import {
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import keybindings from '../keybindings.json';
 import {
-  IOpenEOConnectionInfo,
+  getLatestOpenEOConnection,
   listOpenEOConnections,
 } from '../mainview/OpenEOTileLayer';
 import { editOpenEOLayer, showAddOpenEOLayerDialog } from '../openeo';
@@ -45,51 +45,6 @@ import {
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
-
-/**
- * The last OpenEO server the user successfully signed in to, reused when
- * creating further layers so they don't have to re-enter credentials.
- * In-memory only — never persisted; cleared on reload.
- */
-let _lastOpenEOConnection: IOpenEOConnectionInfo | null = null;
-
-/**
- * Recover the server URL of an OpenEO layer already in the document so a
- * fresh sign-in dialog can pre-fill it after a reload. Bearer tokens are
- * intentionally never persisted to the .jGIS file, so the user has to
- * re-authenticate; we just save them retyping the URL.
- */
-function findExistingOpenEOConnection(
-  model: IJupyterGISModel,
-): IOpenEOConnectionInfo | null {
-  const urls = listExistingOpenEOServers(model);
-  return urls.length > 0 ? { url: urls[0] } : null;
-}
-
-/**
- * All distinct OpenEO server URLs referenced by layers already in the
- * document. Used to populate the server picker in the Add OpenEO Layer
- * dialog so the user can reuse a server they've previously authenticated
- * against in this document without retyping.
- */
-function listExistingOpenEOServers(model: IJupyterGISModel): string[] {
-  const layers = model.sharedModel.layers ?? {};
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const layer of Object.values(layers)) {
-    if (layer?.type !== 'OpenEOTileLayer') {
-      continue;
-    }
-    const sourceId = (layer.parameters as any)?.source as string | undefined;
-    const source = sourceId ? model.getSource(sourceId) : undefined;
-    const params = (source?.parameters ?? {}) as { serverUrl?: string };
-    if (params.serverUrl && !seen.has(params.serverUrl)) {
-      seen.add(params.serverUrl);
-      out.push(params.serverUrl);
-    }
-  }
-  return out;
-}
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -661,28 +616,15 @@ export function addCommands(
       if (!current) {
         return;
       }
-      // Seed the dialog with whatever servers we already know about:
-      // the last session, live connections in memory, plus URLs from
-      // existing OpenEO layers in the document. The user picks/connects
-      // inside the dialog itself, so we don't pre-authenticate here.
-      const initial =
-        _lastOpenEOConnection ?? findExistingOpenEOConnection(current.model);
-      const knownServers = Array.from(
-        new Set(
-          [
-            ...listOpenEOConnections(),
-            ...listExistingOpenEOServers(current.model),
-            ...(_lastOpenEOConnection?.url ? [_lastOpenEOConnection.url] : []),
-          ].filter(Boolean),
-        ),
-      );
+      // Seed the dialog from the global pool of live OpenEO connections
+      // (shared across all documents): pre-fill with the most recently
+      // used server and offer the rest in the picker. The user
+      // picks/connects inside the dialog itself, so we don't
+      // pre-authenticate here.
       const result = await showAddOpenEOLayerDialog({
-        connectionInfo: initial,
-        knownServers,
+        connectionInfo: getLatestOpenEOConnection(),
+        knownServers: listOpenEOConnections(),
       });
-      if (result?.serverUrl) {
-        _lastOpenEOConnection = { url: result.serverUrl };
-      }
       if (!result) {
         return;
       }
@@ -735,11 +677,7 @@ export function addCommands(
       if (!layerId) {
         return;
       }
-      await editOpenEOLayer(model, layerId, {
-        onConnected: info => {
-          _lastOpenEOConnection = { url: info.url };
-        },
-      });
+      await editOpenEOLayer(model, layerId);
     },
   });
 
