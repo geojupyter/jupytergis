@@ -235,13 +235,23 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
                 <div id="processing-form-div" style={{ padding: '10px' }}>
                   <FormGenerator
                     operation={processingSelectedOp}
-                    layers={Object.entries(props.model.getLayers()).map(([lid, layer]) => ({
-                      id: lid,
-                      name: layer.name,
-                      source: props.model.getSource(layer.parameters?.source)?.parameters?.path,
-                      type: layer.type,
-                      vectorType: layer.type === 'VectorLayer' ? layer.parameters?.symbologyState?.geometryType : undefined
-                    }))}
+                    layers={Object.entries(props.model.getLayers()).map(([lid, layer]) => {
+                      const sourceParams = props.model.getSource(layer.parameters?.source)?.parameters;
+                      let sourcePath: string | undefined = sourceParams?.path;
+                      if (sourcePath === undefined) {
+                        sourcePath = sourceParams?.urls?.[0]?.url;
+                      }
+                      if (sourcePath === undefined) {
+                        sourcePath = sourceParams?.url;
+                      }
+                      return {
+                        id: lid,
+                        name: layer.name,
+                        source: sourcePath,
+                        type: layer.type,
+                        vectorType: layer.type === 'VectorLayer' ? layer.parameters?.symbologyState?.geometryType : undefined
+                      };
+                    })}
                     jgisPath={props.model.filePath.split('/').pop() ?? ''}
                     onExecute={(output: string) => {
                       const notebook = props.notebookTracker?.currentWidget?.content;

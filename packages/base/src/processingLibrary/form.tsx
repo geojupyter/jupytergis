@@ -19,10 +19,11 @@ export const FormGenerator = ({operation, jgisPath, layers, onExecute}: FormGene
                 {(() => { switch (arg_type) {
                     case "number":
                         return <input id={arg_name} type="number" />;
+                    // NormalLayer values encode both path and type so templates can branch on layer type
                     case "NormalLayer":
                         return <select id={arg_name}>
-                            {layers.filter((layer: any) => layer.type === 'VectorLayer' || layer.type === 'RasterLayer').map((layer: any) => (
-                                <option key={layer.id} value={layer.source}>{layer.name}</option>
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer' || layer.type === 'GeoTiffLayer').map((layer: any) => (
+                                <option key={layer.id} value={JSON.stringify({path: layer.source, type: layer.type})}>{layer.name}</option>
                             ))}
                         </select>;
                     case "VectorLayer":
@@ -31,27 +32,28 @@ export const FormGenerator = ({operation, jgisPath, layers, onExecute}: FormGene
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
+                    // TODO: figure out how tofilter by actual geometry type
                     case "LineLayer":
                         return <select id={arg_name}>
-                            {layers.filter((layer: any) => layer.type === 'VectorLayer' && layer.vectorType === 'line').map((layer: any) => (
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer').map((layer: any) => (
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
                     case "PointLayer":
                         return <select id={arg_name}>
-                            {layers.filter((layer: any) => layer.type === 'VectorLayer' && layer.vectorType === 'circle').map((layer: any) => (
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer').map((layer: any) => (
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
                     case "PolygonLayer":
                         return <select id={arg_name}>
-                            {layers.filter((layer: any) => layer.type === 'VectorLayer' && layer.vectorType === 'fill').map((layer: any) => (
+                            {layers.filter((layer: any) => layer.type === 'VectorLayer').map((layer: any) => (
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
                     case "RasterLayer":
                         return <select id={arg_name}>
-                            {layers.filter((layer: any) => layer.type === 'RasterLayer').map((layer: any) => (
+                            {layers.filter((layer: any) => layer.type === 'RasterLayer' || layer.type === 'GeoTiffLayer').map((layer: any) => (
                                 <option key={layer.id} value={layer.source}>{layer.name}</option>
                             ))}
                         </select>;
