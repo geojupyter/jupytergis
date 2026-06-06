@@ -344,10 +344,17 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
 
   /**
    * The OpenEO server URL. The live connection is resolved from the
-   * module-level `CONNECTIONS` cache via `getOpenEOConnection`; no
-   * credentials are accepted or stored here.
+   * module-level `CONNECTIONS` cache via `getOpenEOConnection`.
    */
   serverUrl: string;
+
+  /**
+   * Optional persisted session bearer. When the server isn't already in
+   * the in-memory cache (e.g. right after a page reload, or a document
+   * opened from a notebook session), it is used to re-establish the
+   * connection silently instead of prompting the user to sign in again.
+   */
+  authBearer?: string;
 }
 
 export class OpenEOTileSource extends XYZSource {
@@ -415,7 +422,8 @@ export class OpenEOTileSource extends XYZSource {
     });
 
     this.serverUrl = options.serverUrl;
-    this._connect(options.serverUrl, options.processGraph);
+    this.authBearer = options.authBearer;
+    this._connect(options.serverUrl, options.authBearer, options.processGraph);
   }
 
   /**
@@ -437,19 +445,35 @@ export class OpenEOTileSource extends XYZSource {
   private _lastTileErrors = new Map<string, number>();
 
   /**
-   * Resolve the live OpenEO connection for `serverUrl` from the in-memory
-   * cache and create an XYZ service for the process graph. If the user is
-   * not signed in (typical right after a page reload), surface a "Log in"
-   * dialog instead of throwing and leave the layer unrendered until the
-   * user signs back in. Once they do, `openEOEvents.connected` fires and
-   * mainView reconstructs this source.
+   * Resolve the live OpenEO connection for `serverUrl` and create an XYZ
+   * service for the process graph. Resolution order:
+   *   1. The in-memory cache, if the user already signed in this session.
+   *   2. A persisted `authBearer` (e.g. saved from a notebook session),
+   *      used to re-establish the connection silently.
+   *   3. Otherwise surface a "Log in" dialog and leave the layer
+   *      unrendered until the user signs back in — once they do,
+   *      `openEOEvents.connected` fires and mainView reconstructs this
+   *      source.
    */
-  private async _connect(serverUrl: string, graph: Process) {
+  private async _connect(
+    serverUrl: string,
+    authBearer: string | undefined,
+    graph: Process,
+  ) {
     try {
       this._connection = getOpenEOConnection(serverUrl);
     } catch {
-      void promptOpenEOLogin(serverUrl);
-      return;
+      if (authBearer) {
+        try {
+          this._connection = await connect({ url: serverUrl, authBearer });
+        } catch {
+          void promptOpenEOLogin(serverUrl);
+          return;
+        }
+      } else {
+        void promptOpenEOLogin(serverUrl);
+        return;
+      }
     }
     this._connected.resolve();
     this._updateUrl(graph);
@@ -488,4 +512,6 @@ export class OpenEOTileSource extends XYZSource {
   processGraph: Process;
 
   serverUrl: string;
+
+  authBearer?: string;
 }

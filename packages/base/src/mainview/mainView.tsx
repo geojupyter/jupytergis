@@ -1033,6 +1033,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
           newSource = new OpenEOTileSource({
             serverUrl: sourceParameters.serverUrl ?? '',
+            authBearer: sourceParameters.authBearer,
             processGraph: sourceParameters.processGraph,
           });
 

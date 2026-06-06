@@ -14,6 +14,10 @@
     "serverUrl": {
       "description": "The OpenEO tile server url.",
       "type": "string"
+    },
+    "authBearer": {
+      "description": "The OpenEO connection identifier (session bearer token). Persisted so a connection opened from the notebook can be reused by the UI without signing in again.",
+      "type": "string"
     }
   }
 }

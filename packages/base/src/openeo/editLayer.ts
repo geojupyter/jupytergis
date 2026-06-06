@@ -76,13 +76,16 @@ export async function editOpenEOLayer(
   const source = model.getSource(sourceId);
   const sourceParams = (source?.parameters ?? {}) as {
     serverUrl?: string;
+    authBearer?: string;
     processGraph?: Record<string, any>;
   };
   // Reconnect to the layer's server before editing. `connect` reuses the
-  // cached connection when the server is already authenticated; otherwise
-  // it prompts the user — the token is never stored.
+  // cached connection when the server is already authenticated, and the
+  // persisted bearer lets it re-establish silently after a reload instead
+  // of prompting the user again.
   const connectionInfo: IOpenEOConnectionInfo = {
     url: sourceParams.serverUrl,
+    authBearer: sourceParams.authBearer,
   };
   try {
     await openEOConnect(connectionInfo);
@@ -114,6 +117,7 @@ export async function editOpenEOLayer(
       parameters: {
         ...source.parameters,
         serverUrl: result.serverUrl,
+        authBearer: result.authBearer,
         processGraph: result.processGraph,
       },
     });

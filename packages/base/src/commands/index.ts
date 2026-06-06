@@ -689,14 +689,15 @@ export function addCommands(
       const model = current.model;
       const sourceId = UUID.uuid4();
       const layerId = UUID.uuid4();
-      // The bearer token deliberately does NOT go into the .jGIS file —
-      // the live connection lives in-memory only (CONNECTIONS in
-      // OpenEOTileLayer.tsx), so the user must re-sign-in after a reload.
+      // Persist the bearer alongside the server url so the layer can
+      // re-establish its connection after a reload (or when the document
+      // is reopened) without forcing the user to sign in again.
       model.sharedModel.addSource(sourceId, {
         name: `${result.layerName} Source`,
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
+          authBearer: result.authBearer,
           processGraph: result.processGraph,
         },
       });
