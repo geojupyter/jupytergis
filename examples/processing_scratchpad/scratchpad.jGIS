@@ -1,0 +1,105 @@
+{
+  "layerTree": [
+    "47dc47fe-f99b-4514-bbc5-92c5ca5b4f5a",
+    "c1fd15d7-8792-42b7-aa83-a1d24ed8e6d2"
+  ],
+  "layers": {
+    "47dc47fe-f99b-4514-bbc5-92c5ca5b4f5a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "7690377d-6b0a-4e74-99a7-fdc2aa9488e1"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "c1fd15d7-8792-42b7-aa83-a1d24ed8e6d2": {
+      "name": "ortho_small",
+      "parameters": {
+        "color": [
+          "array",
+          [
+            "band",
+            1.0
+          ],
+          [
+            "band",
+            2.0
+          ],
+          [
+            "band",
+            3.0
+          ],
+          [
+            "band",
+            9.0
+          ]
+        ],
+        "opacity": 1.0,
+        "source": "221e6b6b-db31-460e-b311-487a46562996",
+        "symbologyState": {
+          "alphaBand": 0.0,
+          "blueBand": 3.0,
+          "greenBand": 2.0,
+          "redBand": 1.0,
+          "renderType": "Multiband Color"
+        }
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -13607003.106276961,
+      4444627.041820838,
+      -13605676.593327498,
+      4445322.703026966
+    ],
+    "latitude": 37.0420875406448,
+    "longitude": -122.22783048001855,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "storyMapPresentationMode": false,
+    "zoom": 18.006251539581967
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "221e6b6b-db31-460e-b311-487a46562996": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "httpHeaders": "",
+        "interpolate": false,
+        "normalize": true,
+        "urls": [
+          {
+            "max": 65535.0,
+            "min": 0.0,
+            "url": "ortho_small.tif"
+          }
+        ],
+        "useProxy": false,
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    },
+    "7690377d-6b0a-4e74-99a7-fdc2aa9488e1": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "httpHeaders": "",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {},
+        "useProxy": false
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
