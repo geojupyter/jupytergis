@@ -3884,6 +3884,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                     patchGeoJSONFeatureProperties={
                       this._patchGeoJSONFeatureProperties
                     }
+                    notebookTracker={this._notebookTracker}
                   />
                 ) : (
                   <MainViewSpectaPanel

@@ -39,6 +39,7 @@ export class JupyterGISMainViewPanel extends ReactWidget {
           formSchemaRegistry={this._options.formSchemaRegistry}
           annotationModel={this._options.annotationModel}
           loggerRegistry={this._options.loggerRegistry}
+          notebookTracker={this._options.notebookTracker}
         />
       </StoryRenderMimeProvider>
     );
