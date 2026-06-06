@@ -21,6 +21,7 @@ import {
 
 interface IListStoryScrollTrackContextValue {
   scrollTrackLayout: IListStoryScrollTrackLayout | null;
+  scrollTop: number;
   bindScrollTrackElement: (element: HTMLDivElement | null) => void;
 }
 
@@ -42,9 +43,12 @@ export function ListStoryScrollTrackProvider({
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
   const [mapViewportHeight, setMapViewportHeight] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const currentSegmentIndex = useCurrentSegmentIndex(model);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTrackElement, setScrollTrackElement] =
+    useState<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     const bump = (): void => {
@@ -91,17 +95,24 @@ export function ListStoryScrollTrackProvider({
     [items, viewportHeight, mapViewportHeightOption],
   );
 
+  const syncScrollerMetrics = useCallback((scroller: HTMLDivElement): void => {
+    setViewportHeight(scroller.clientHeight);
+    setScrollTop(scroller.scrollTop);
+  }, []);
+
   const bindScrollTrackElement = useCallback(
     (element: HTMLDivElement | null) => {
       scrollerRef.current = element;
+      setScrollTrackElement(element);
       if (!element) {
         setViewportHeight(0);
+        setScrollTop(0);
         return;
       }
 
-      setViewportHeight(element.clientHeight);
+      syncScrollerMetrics(element);
     },
-    [],
+    [syncScrollerMetrics],
   );
 
   const observeElementHeight = useCallback(
@@ -125,17 +136,36 @@ export function ListStoryScrollTrackProvider({
   );
 
   useLayoutEffect(() => {
-    const scroller = scrollerRef.current;
+    const scroller = scrollTrackElement;
     if (!scroller || !enabled) {
       return;
     }
 
     const update = (): void => {
-      setViewportHeight(scroller.clientHeight);
+      syncScrollerMetrics(scroller);
     };
 
     return observeElementHeight(scroller, update);
-  }, [enabled, storyRevision, observeElementHeight]);
+  }, [enabled, scrollTrackElement, observeElementHeight, syncScrollerMetrics]);
+
+  useLayoutEffect(() => {
+    const scroller = scrollTrackElement;
+    if (!scroller || !enabled) {
+      return;
+    }
+
+    const onScroll = (): void => {
+      setScrollTop(scroller.scrollTop);
+      setViewportHeight(scroller.clientHeight);
+    };
+
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+    };
+  }, [enabled, scrollTrackElement]);
 
   useLayoutEffect(() => {
     if (!enabled) {
@@ -219,9 +249,10 @@ export function ListStoryScrollTrackProvider({
   const value = useMemo(
     (): IListStoryScrollTrackContextValue => ({
       scrollTrackLayout,
+      scrollTop,
       bindScrollTrackElement,
     }),
-    [scrollTrackLayout, bindScrollTrackElement],
+    [scrollTrackLayout, scrollTop, bindScrollTrackElement],
   );
 
   return (

@@ -308,7 +308,6 @@
   )
   .jgis-story-stage-overlay-content {
   box-sizing: border-box;
-  overflow: auto;
 }
 
 .jgis-story-markdown-measure-host {
@@ -350,6 +349,40 @@
   position: fixed;
   bottom: 0.125rem;
   right: 0.125rem;
+}
+
+/* Full-viewport touch scroll driver; segment UI is on ListStoryStageOverlay. */
+.jgis-story-mobile-list-scroll {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  width: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background: transparent;
+}
+
+/* Mobile list only (scroll driver mounted); desktop list keeps 25% map cards. */
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-map-scroll-pane {
+  padding-left: 1rem;
+}
+
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-map-overlay-content {
+  width: fit-content;
+  background-color: color-mix(
+    in srgb,
+    var(--jgis-specta-bg-color, var(--jp-layout-color0)) 90%,
+    transparent
+  );
+}
+
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-viewer-image-section {
+  opacity: 0.9;
 }
 
 /* Hierarchy: .form-group > .jp-FormGroup-content > .jp-objectFieldWrapper > #jgis-source-properties-field */
