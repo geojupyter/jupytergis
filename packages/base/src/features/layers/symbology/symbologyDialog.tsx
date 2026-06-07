@@ -137,7 +137,10 @@ export class SymbologyWidget extends Dialog<boolean> {
       />
     );
 
-    super({ title: 'Symbology', body });
+    const layerId = Object.keys(options.model.localState!.selected.value!)[0];
+    const layerName = options.model.getLayer(layerId)!.name;
+
+    super({ title: `Symbology — ${layerName}`, body });
 
     this.id = 'jupytergis::symbologyWidget';
     this.okSignal = new Signal(this);
