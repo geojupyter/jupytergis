@@ -201,7 +201,7 @@ interface IMainViewProps {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
-  /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
+  /** True when viewport matches (max-width: 960px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
 }
 

@@ -9,7 +9,7 @@
   max-height: 100%;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jGIS-layerbrowser-FormDialog .jp-Dialog-content {
     width: 100%;
     height: 100%;
@@ -97,7 +97,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jGIS-layer-browser-grid {
     grid-template-columns: repeat(2, minmax(0px, 1fr));
     padding: 0.5rem;
