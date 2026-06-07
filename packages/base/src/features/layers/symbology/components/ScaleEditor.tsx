@@ -31,7 +31,7 @@ import {
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 
 function stopsToRows(
-  stops: Array<{ stop: number | string | null; color: RGBA }>,
+  stops: Array<{ stop: number | string; color: RGBA }>,
 ): IStopRow[] {
   return stops.map(s => ({
     id: UUID.uuid4(),
@@ -42,7 +42,7 @@ function stopsToRows(
 
 function rowsToColorStops(
   rows: IStopRow[],
-): Array<{ stop: number | string | null; color: RGBA }> {
+): Array<{ stop: number | string; color: RGBA }> {
   return rows
     .filter(r => r.output !== undefined)
     .map(r => ({ stop: r.stop, color: r.output as RGBA }));
@@ -312,13 +312,13 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
     );
     const rows = computed.map(s => ({
       id: UUID.uuid4(),
-      stop: s.value as string | number | null,
+      stop: s.value as string | number,
       output: s.color as RgbaColor,
     }));
     setStopRows(rows);
     update({
       colorStops: computed.map(s => ({
-        stop: s.value as string | number | null,
+        stop: s.value as string | number,
         color: s.color as RGBA,
       })),
     });

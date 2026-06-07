@@ -8,12 +8,18 @@ import {
   RgbaColor,
 } from '@/src/features/layers/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import {
+  STOP_NULL,
+  STOP_UNDEFINED,
+} from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
+const SENTINELS = new Set([STOP_NULL, STOP_UNDEFINED]);
+
 const StopRow: React.FC<{
   index: number;
-  dataValue: number | string | null;
+  dataValue: number | string;
   symbologyValue: SymbologyValue;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
@@ -46,10 +52,12 @@ const StopRow: React.FC<{
   const handleBlur = () => {
     const newRows = [...stopRows];
     newRows.sort((a, b) => {
-      if (a.stop === null) {
+      const aIsSentinel = SENTINELS.has(a.stop as string);
+      const bIsSentinel = SENTINELS.has(b.stop as string);
+      if (aIsSentinel && !bIsSentinel) {
         return 1;
       }
-      if (b.stop === null) {
+      if (!aIsSentinel && bIsSentinel) {
         return -1;
       }
       if (a.stop < b.stop) {
@@ -77,25 +85,19 @@ const StopRow: React.FC<{
 
   return (
     <div className="jp-gis-color-row">
-      {dataValue === null ? (
-        <input
-          id={`jp-gis-color-value-${index}`}
-          type="text"
-          value="null"
-          readOnly
-          className="jp-mod-styled jp-gis-color-row-value-input"
-          style={{ fontStyle: 'italic' }}
-        />
-      ) : (
-        <input
-          id={`jp-gis-color-value-${index}`}
-          type={useNumber ? 'number' : 'text'}
-          value={dataValue}
-          onChange={handleStopChange}
-          onBlur={handleBlur}
-          className="jp-mod-styled jp-gis-color-row-value-input"
-        />
-      )}
+      <input
+        id={`jp-gis-color-value-${index}`}
+        type={useNumber ? 'number' : 'text'}
+        value={dataValue}
+        onChange={handleStopChange}
+        onBlur={handleBlur}
+        className="jp-mod-styled jp-gis-color-row-value-input"
+        style={
+          SENTINELS.has(dataValue as string)
+            ? { fontStyle: 'italic' }
+            : undefined
+        }
+      />
 
       {useNumber ? (
         <input

@@ -664,8 +664,9 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
     expect(evaluate(expr, ColorType, { type: 'other' })).toEqual([0, 0, 0, 0]);
   });
 
-  it('categorical null stop parses and evaluates for null, undefined, and missing', () => {
+  it('__null__ stop matches explicit null, __undefined__ matches missing property', () => {
     const nullColor = [255, 0, 255, 1] as [number, number, number, number];
+    const undefColor = [128, 128, 128, 1] as [number, number, number, number];
     const roadColor = [255, 0, 0, 1] as [number, number, number, number];
     const fallback = [0, 0, 0, 0] as [number, number, number, number];
 
@@ -682,7 +683,8 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
                 fallback,
                 colorStops: [
                   { stop: 'road', color: roadColor },
-                  { stop: null, color: nullColor },
+                  { stop: '__null__', color: nullColor },
+                  { stop: '__undefined__', color: undefColor },
                 ],
               },
             },
@@ -696,13 +698,14 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
     expect(evaluate(style['fill-color'], ColorType, { type: 'road' })).toEqual(
       roadColor,
     );
-    // Missing property → null color
-    expect(evaluate(style['fill-color'], ColorType, {})).toEqual(nullColor);
     // Explicit null → null color
     expect(evaluate(style['fill-color'], ColorType, { type: null })).toEqual(
       nullColor,
     );
-    // Explicit undefined → null color
+    // Missing property → undefined color
+    expect(evaluate(style['fill-color'], ColorType, {})).toEqual(undefColor);
+    // Explicit undefined (key exists, value undefined) → null color
+    // (OL's ['has', field] returns true when the key exists, even if undefined)
     expect(
       evaluate(style['fill-color'], ColorType, { type: undefined }),
     ).toEqual(nullColor);
