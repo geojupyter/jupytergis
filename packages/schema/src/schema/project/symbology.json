@@ -213,7 +213,11 @@
                 "additionalProperties": false,
                 "properties": {
                   "stop": {
-                    "oneOf": [{ "type": "string" }, { "type": "number" }]
+                    "oneOf": [
+                      { "type": "string" },
+                      { "type": "number" },
+                      { "type": "null" }
+                    ]
                   },
                   "color": { "$ref": "#/definitions/RGBA" }
                 }

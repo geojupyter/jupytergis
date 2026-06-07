@@ -549,10 +549,19 @@ function compileCategorical(
 
   const caseExpr: ExpressionValue[] = ['case'];
   for (const stop of stops) {
-    caseExpr.push(
-      ['==', fieldExpr(field), stop.value as ExpressionValue],
-      stop.color as ExpressionValue,
-    );
+    const condition =
+      stop.value === null
+        ? ([
+            '==',
+            ['coalesce', fieldExpr(field), '__jgis_null__'],
+            '__jgis_null__',
+          ] as ExpressionValue)
+        : ([
+            '==',
+            fieldExpr(field),
+            stop.value as ExpressionValue,
+          ] as ExpressionValue);
+    caseExpr.push(condition, stop.color as ExpressionValue);
   }
   caseExpr.push(scale.params.fallback);
   return caseExpr;

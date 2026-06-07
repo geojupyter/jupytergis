@@ -29,7 +29,7 @@ export const DEFAULT_FLAT_STYLE: FlatStyle = {
 
 /** A computed stop: value → RGBA color. */
 export interface IComputedStop {
-  value: number | string | boolean;
+  value: number | string | boolean | null;
   color: RgbaColor;
 }
 
@@ -131,8 +131,16 @@ export function computeCategorizedColorStops(
   const reverse = state.reverseRamp ?? false;
 
   const uniqueValues = [
-    ...new Set(featureValues.filter(v => v !== undefined && v !== null)),
-  ].sort((a: any, b: any) => (a < b ? -1 : a > b ? 1 : 0));
+    ...new Set(featureValues.map(v => (v === undefined ? null : v))),
+  ].sort((a: any, b: any) => {
+    if (a === null) {
+      return 1;
+    }
+    if (b === null) {
+      return -1;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
 
   if (uniqueValues.length === 0) {
     return [];
@@ -146,7 +154,7 @@ export function computeCategorizedColorStops(
   const colors = generateColors(colorRamp, uniqueValues.length, reverse);
 
   return uniqueValues.map((v, i) => ({
-    value: v as number | string | boolean,
+    value: v as number | string | boolean | null,
     color: colors[i],
   }));
 }

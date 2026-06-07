@@ -13,7 +13,7 @@ import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
 const StopRow: React.FC<{
   index: number;
-  dataValue: number | string;
+  dataValue: number | string | null;
   symbologyValue: SymbologyValue;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
@@ -46,6 +46,12 @@ const StopRow: React.FC<{
   const handleBlur = () => {
     const newRows = [...stopRows];
     newRows.sort((a, b) => {
+      if (a.stop === null) {
+        return 1;
+      }
+      if (b.stop === null) {
+        return -1;
+      }
       if (a.stop < b.stop) {
         return -1;
       }
@@ -71,14 +77,25 @@ const StopRow: React.FC<{
 
   return (
     <div className="jp-gis-color-row">
-      <input
-        id={`jp-gis-color-value-${index}`}
-        type={useNumber ? 'number' : 'text'}
-        value={dataValue}
-        onChange={handleStopChange}
-        onBlur={handleBlur}
-        className="jp-mod-styled jp-gis-color-row-value-input"
-      />
+      {dataValue === null ? (
+        <input
+          id={`jp-gis-color-value-${index}`}
+          type="text"
+          value="null"
+          readOnly
+          className="jp-mod-styled jp-gis-color-row-value-input"
+          style={{ fontStyle: 'italic' }}
+        />
+      ) : (
+        <input
+          id={`jp-gis-color-value-${index}`}
+          type={useNumber ? 'number' : 'text'}
+          value={dataValue}
+          onChange={handleStopChange}
+          onBlur={handleBlur}
+          className="jp-mod-styled jp-gis-color-row-value-input"
+        />
+      )}
 
       {useNumber ? (
         <input
