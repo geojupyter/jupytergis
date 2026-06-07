@@ -6,7 +6,13 @@
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
-import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowDown,
+  faArrowUp,
+  faPlus,
+  faTrash,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IEncodingRule,
@@ -18,7 +24,7 @@ import {
   RGBA,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
@@ -182,6 +188,8 @@ interface ILayerSectionProps {
   isRasterLayer?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 const LayerSection: React.FC<ILayerSectionProps> = ({
@@ -193,8 +201,25 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   isRasterLayer = false,
   onChange,
   onDelete,
+  onMoveUp,
+  onMoveDown,
 }) => {
   const [addingLayerWhen, setAddingLayerWhen] = useState(false);
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const moveRow = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) {
+        return;
+      }
+      const next = [...layer.rows];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      onChange({ ...layer, rows: next });
+    },
+    [layer, onChange],
+  );
 
   const addLayerPredicate = useCallback(
     (pred: IPredicate) => {
@@ -295,6 +320,28 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           Transform
         </Button>
 
+        {totalLayers > 1 && onMoveUp && (
+          <Button
+            type="button"
+            variant="outline"
+            style={{ height: 32, width: 32 }}
+            onClick={onMoveUp}
+            title="Move layer up"
+          >
+            <FontAwesomeIcon icon={faArrowUp} />
+          </Button>
+        )}
+        {totalLayers > 1 && onMoveDown && (
+          <Button
+            type="button"
+            variant="outline"
+            style={{ height: 32, width: 32 }}
+            onClick={onMoveDown}
+            title="Move layer down"
+          >
+            <FontAwesomeIcon icon={faArrowDown} />
+          </Button>
+        )}
         {totalLayers > 1 && (
           <Button
             type="button"
@@ -365,17 +412,46 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         />
       ))}
 
-      {/* Mapping rows */}
+      {/* Mapping rows — draggable to reorder */}
       {layer.rows.map((row, i) => (
-        <MappingRow
+        <div
           key={row.id}
-          row={row}
-          availableFields={encodingFields}
-          featureValues={featureValues}
-          isRaster={isRaster}
-          onChange={updated => updateRow(i, updated)}
-          onDelete={() => removeRow(i)}
-        />
+          draggable
+          onDragStart={() => {
+            dragIndexRef.current = i;
+          }}
+          onDragOver={e => {
+            e.preventDefault();
+            setDragOverIndex(i);
+          }}
+          onDrop={() => {
+            if (dragIndexRef.current !== null) {
+              moveRow(dragIndexRef.current, i);
+            }
+            dragIndexRef.current = null;
+            setDragOverIndex(null);
+          }}
+          onDragEnd={() => {
+            dragIndexRef.current = null;
+            setDragOverIndex(null);
+          }}
+          style={{
+            borderTop:
+              dragOverIndex === i && dragIndexRef.current !== i
+                ? '2px solid var(--jp-brand-color1)'
+                : '2px solid transparent',
+            cursor: 'grab',
+          }}
+        >
+          <MappingRow
+            row={row}
+            availableFields={encodingFields}
+            featureValues={featureValues}
+            isRaster={isRaster}
+            onChange={updated => updateRow(i, updated)}
+            onDelete={() => removeRow(i)}
+          />
+        </div>
       ))}
 
       <div className="jp-gis-symbology-button-container">
@@ -519,6 +595,21 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     ]);
   };
 
+  const moveLayer = useCallback(
+    (from: number, to: number) => {
+      if (from === to) {
+        return;
+      }
+      setLayers(prev => {
+        const next = [...prev];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    },
+    [setLayers],
+  );
+
   const availableFields = isRasterLayer
     ? bandRows.map(b => `$band-${b.band}`)
     : Object.keys(selectableAttributesAndValues);
@@ -538,6 +629,10 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
           onDelete={() => setLayers(prev => prev.filter((_, j) => j !== i))}
+          onMoveUp={i > 0 ? () => moveLayer(i, i - 1) : undefined}
+          onMoveDown={
+            i < layers.length - 1 ? () => moveLayer(i, i + 1) : undefined
+          }
         />
       ))}
       <div className="jp-gis-symbology-button-container">
