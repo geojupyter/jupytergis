@@ -3991,7 +3991,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 // ! TODO make mainview a modern react component instead of a class
 /** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
 function MainViewWithMediaQuery(props: Omit<IMainViewProps, 'isMobile'>) {
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery('(max-width: 960px)');
   return <MainView {...props} isMobile={isMobile} />;
 }
 
