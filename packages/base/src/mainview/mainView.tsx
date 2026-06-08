@@ -3885,6 +3885,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             <MainViewStoryStage
               model={this._model}
               isListStory={isListStory}
+              isMobile={isMobile}
               segmentTransition={segmentTransition}
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}

@@ -9,6 +9,7 @@ import type { IListStorySegmentTransition } from '@/src/features/story/types/typ
 export interface IMainViewStoryStageProps {
   model: IJupyterGISModel;
   isListStory: boolean;
+  isMobile: boolean;
   segmentTransition: IListStorySegmentTransition | null;
   stageRef: RefObject<HTMLDivElement>;
   controlsToolbarRef: RefObject<HTMLDivElement>;
@@ -18,6 +19,7 @@ export interface IMainViewStoryStageProps {
 export function MainViewStoryStage({
   model,
   isListStory,
+  isMobile,
   segmentTransition,
   stageRef,
   controlsToolbarRef,
@@ -36,7 +38,7 @@ export function MainViewStoryStage({
       <ListStoryScrollTrackProvider model={model} enabled={isListStory}>
         {isListStory ? (
           <>
-            <ListStoryTitleBar model={model} />
+            <ListStoryTitleBar model={model} isMobile={isMobile} />
             <ListStoryStageOverlay
               model={model}
               segmentTransition={segmentTransition}

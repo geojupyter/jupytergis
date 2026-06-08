@@ -228,11 +228,21 @@
   overflow: hidden;
 }
 
-.jgis-story-title-bar-scroll-btn {
+.jgis-story-title-bar-scroll-btn,
+.jgis-story-title-bar-menu-btn {
   flex-shrink: 0;
   min-width: 2rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+}
+
+.jgis-story-title-bar--mobile {
+  justify-content: flex-start;
+  padding: 0.5rem 0;
+}
+
+.jgis-story-title-bar--mobile .jgis-story-title-bar-segments {
+  flex: 1;
 }
 
 .jgis-story-title-bar-segments {

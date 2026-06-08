@@ -9,19 +9,57 @@ import React, {
 
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
+import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 
 interface IListStoryTitleBarProps {
   model: IJupyterGISModel;
+  isMobile: boolean;
 }
+
+interface IListStoryTitleBarSegmentsProps {
+  segmentItems: IStorySegmentViewItem[];
+  currentIndex: number;
+  onSegmentClick: (index: number) => void;
+}
+
+const ListStoryTitleBarSegments = React.forwardRef<
+  HTMLDivElement,
+  IListStoryTitleBarSegmentsProps
+>(function ListStoryTitleBarSegments(
+  { segmentItems, currentIndex, onSegmentClick },
+  ref,
+) {
+  return (
+    <div ref={ref} className="jgis-story-title-bar-segments">
+      {segmentItems.map(item => {
+        const isActive = item.index === currentIndex;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className="jGIS-layer-browser-category jgis-story-title-bar-segment"
+            data-state={isActive ? 'active' : 'inactive'}
+            aria-current={isActive ? 'true' : undefined}
+            aria-label={`Go to ${item.layerName}`}
+            onClick={() => onSegmentClick(item.index)}
+          >
+            {item.layerName}
+          </button>
+        );
+      })}
+    </div>
+  );
+});
 
 /**
  * Story stage title bar: one button per segment, labeled with the segment layer name.
  */
 export function ListStoryTitleBar({
   model,
+  isMobile,
 }: IListStoryTitleBarProps): JSX.Element {
   const segmentsRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -55,6 +93,10 @@ export function ListStoryTitleBar({
   );
 
   useLayoutEffect(() => {
+    if (isMobile) {
+      return;
+    }
+
     const segments = segmentsRef.current;
     if (!segments) {
       return;
@@ -72,7 +114,7 @@ export function ListStoryTitleBar({
     return () => {
       ro.disconnect();
     };
-  }, []);
+  }, [isMobile]);
 
   useLayoutEffect(() => {
     const segments = segmentsRef.current;
@@ -95,8 +137,23 @@ export function ListStoryTitleBar({
   }, [currentIndex]);
 
   return (
-    <nav className="jgis-story-title-bar" aria-label="Story segments">
-      {hasOverflow ? (
+    <nav
+      className={`jgis-story-title-bar${
+        isMobile ? ' jgis-story-title-bar--mobile' : ''
+      }`}
+      aria-label="Story segments"
+    >
+      {isMobile ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="jgis-story-title-bar-menu-btn"
+          aria-label="Open story menu"
+        >
+          <Menu />
+        </Button>
+      ) : null}
+      {!isMobile && hasOverflow ? (
         <Button
           type="button"
           variant="ghost"
@@ -109,25 +166,13 @@ export function ListStoryTitleBar({
           <ChevronLeft />
         </Button>
       ) : null}
-      <div ref={segmentsRef} className="jgis-story-title-bar-segments">
-        {segmentItems.map(item => {
-          const isActive = item.index === currentIndex;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className="jGIS-layer-browser-category jgis-story-title-bar-segment"
-              data-state={isActive ? 'active' : 'inactive'}
-              aria-current={isActive ? 'true' : undefined}
-              aria-label={`Go to ${item.layerName}`}
-              onClick={() => scrollToSegmentIndex(item.index)}
-            >
-              {item.layerName}
-            </button>
-          );
-        })}
-      </div>
-      {hasOverflow ? (
+      <ListStoryTitleBarSegments
+        ref={segmentsRef}
+        segmentItems={segmentItems}
+        currentIndex={currentIndex}
+        onSegmentClick={scrollToSegmentIndex}
+      />
+      {!isMobile && hasOverflow ? (
         <Button
           type="button"
           variant="ghost"
