@@ -70,6 +70,9 @@ export function OpenEOSourcePropertiesForm(
     // serverUrl is resolved/managed through the process-graph editor, not
     // edited inline. Drop it from the form, schema and uiSchema.
     removeFormEntry('serverUrl', formData, schema, builtUiSchema);
+    // authBearer is an internal session token, never user-editable; keep
+    // it out of the properties form.
+    removeFormEntry('authBearer', formData, schema, builtUiSchema);
     return builtUiSchema;
   }, [schema, formData, formContext]);
 
