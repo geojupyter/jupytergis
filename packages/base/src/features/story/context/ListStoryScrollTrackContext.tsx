@@ -23,7 +23,10 @@ interface IListStoryScrollTrackContextValue {
   scrollTrackLayout: IListStoryScrollTrackLayout | null;
   scrollTop: number;
   bindScrollTrackElement: (element: HTMLDivElement | null) => void;
-  scrollToSegmentIndex: (index: number) => void;
+  scrollToSegmentIndex: (
+    index: number,
+    options?: { behavior?: ScrollBehavior },
+  ) => void;
 }
 
 const ListStoryScrollTrackContext =
@@ -248,7 +251,7 @@ export function ListStoryScrollTrackProvider({
   }, [enabled, items, viewportHeight, heightsById, buildScrollTrackLayout]);
 
   const scrollToSegmentIndex = useCallback(
-    (index: number) => {
+    (index: number, options?: { behavior?: ScrollBehavior }) => {
       const safeIndex = Math.max(0, index);
       const scroller = scrollerRef.current;
       const segment = scrollTrackLayout?.segments.find(
@@ -256,8 +259,11 @@ export function ListStoryScrollTrackProvider({
       );
 
       if (scroller && segment != null) {
-        scroller.scrollTop = segment.start;
-        setScrollTop(segment.start);
+        scroller.scrollTo({
+          top: segment.start,
+          behavior: options?.behavior ?? 'smooth',
+        });
+        return;
       }
 
       model.setCurrentSegmentIndex(safeIndex);
