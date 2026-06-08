@@ -30,6 +30,9 @@ requires-python = ">=3.12"
 [project.entry-points.jupyter_ydoc]
 jgis = "jupytergis_core.jgis_ydoc:YJGIS"
 
+[project.entry-points."jupyterlite.addon.v0"]
+jupytergis-xeus-workaround = "jupytergis_core.jupyterlite_workaround_addon:JupyterGISXeusWorkaroundAddon"
+
 [tool.hatch.version]
 source = "nodejs"
 
