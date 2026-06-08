@@ -65,16 +65,6 @@ export async function promptOpenEOLogin(serverUrl: string): Promise<void> {
 }
 
 /**
- * Return the live `Connection` for `serverUrl` if the user is currently
- * signed in to it. Throws otherwise — callers (the tile source, the
- * dialog) are expected to surface the error and prompt the user to
- * (re-)connect via the sign-in flow.
- *
- * The live connection is kept entirely in-memory: bearer tokens are
- * never persisted to the .jGIS file, so reloading the page requires the
- * user to sign in again before existing OpenEO layers can render.
- */
-/**
  * The OpenEO servers we currently hold live connections for, ordered
  * oldest-first (insertion/recency order — see `connect`). Used to
  * populate the server picker in the Add/Edit OpenEO Layer dialog so the
@@ -96,6 +86,12 @@ export function getLatestOpenEOConnection(): IOpenEOConnectionInfo | null {
   return latest ? { url: latest } : null;
 }
 
+/**
+ * Return the live `Connection` for `serverUrl` if the user is currently
+ * signed in to it. Throws otherwise — callers (the tile source, the
+ * dialog) are expected to surface the error and re-establish the session
+ * (silently from a persisted bearer, or via the sign-in flow).
+ */
 export function getOpenEOConnection(serverUrl: string): Connection {
   // Match `connect()`'s normalization so cache lookups are consistent.
   let url = serverUrl;
@@ -258,25 +254,22 @@ export async function connect(
       addNamespaceToProcess: true,
     });
 
-    const providers = await connection.listAuthProviders();
-
-    let providerType = 'basic';
-    let token: string | null = null;
+    // Restore a previously-persisted session without prompting. The
+    // bearer is stored in openEO's canonical `type/providerId/token` form
+    // (the same form Python's `connection.auth.bearer` uses), so it can be
+    // handed straight to `setAuthToken`. We don't persist
+    // `AuthProvider.getToken()` directly: on JWT backends it returns a
+    // bare token with no `type/providerId/` prefix, which we couldn't
+    // parse back — that was why reloads kept prompting for sign-in.
     if (authBearer) {
-      providerType = authBearer.split('/')[0];
-      token = authBearer.split('/')[2];
+      const [type, providerId, ...rest] = authBearer.split('/');
+      const token = rest.join('/');
+      if (type && token) {
+        connection.setAuthToken(type, providerId ?? '', token);
+      }
     }
 
-    const authProvider = providers.find(
-      provider => provider.type === providerType,
-    );
-    if (!authProvider) {
-      throw new Error(`Failed to get "${providerType}" OpenEO provider.`);
-    }
-
-    if (token) {
-      authProvider.setToken(token);
-    } else {
+    if (!connection.isAuthenticated()) {
       if (!signIn) {
         // TODO Add support for signin dialogs for OIDC?
         signIn = await showSigninDialog(url);
@@ -286,12 +279,20 @@ export async function connect(
         }
       }
 
+      const providers = await connection.listAuthProviders();
+      const authProvider = providers.find(
+        provider => provider.type === 'basic',
+      );
+      if (!authProvider) {
+        throw new Error('Failed to get "basic" OpenEO provider.');
+      }
+
       await authProvider.login(signIn.username, signIn.password);
 
-      const token = authProvider.getToken();
-
-      if (token) {
-        connectionInfo.authBearer = token;
+      // Persist in canonical form so the session can be restored after a
+      // reload (see above).
+      if (authProvider.token) {
+        connectionInfo.authBearer = `${authProvider.getType()}/${authProvider.getProviderId()}/${authProvider.token}`;
       }
     }
 
