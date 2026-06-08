@@ -76,8 +76,8 @@ Discrete color map
    TODO. Sometimes refered to as a "categorical" color map or "color palette".
 ```
 
-
 ## References
 
 ```{footbibliography}
+
 ```
