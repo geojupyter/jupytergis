@@ -28,20 +28,30 @@ export function ListStoryTitleBar({
   const currentIndex = useCurrentSegmentIndex(model);
   const { scrollToSegmentIndex } = useListStoryScrollTrackContext();
 
-  const scrollSegments = useCallback((direction: -1 | 1): void => {
-    const segments = segmentsRef.current;
-    if (!segments) {
-      return;
-    }
-
-    const amount = Math.max(120, segments.clientWidth * 0.6);
-    segments.scrollBy({ left: direction * amount, behavior: 'smooth' });
-  }, []);
-
   const segmentItems = useMemo(
     () =>
       buildStorySegmentViewItems(model, model.getSelectedStory().story ?? null),
     [model],
+  );
+
+  const currentPosition = segmentItems.findIndex(
+    item => item.index === currentIndex,
+  );
+  const hasPrev = currentPosition > 0;
+  const hasNext =
+    currentPosition >= 0 && currentPosition < segmentItems.length - 1;
+
+  const goToAdjacentSegment = useCallback(
+    (direction: -1 | 1): void => {
+      const nextPosition = currentPosition + direction;
+      const nextItem = segmentItems[nextPosition];
+      if (!nextItem) {
+        return;
+      }
+
+      scrollToSegmentIndex(nextItem.index);
+    },
+    [currentPosition, segmentItems, scrollToSegmentIndex],
   );
 
   useLayoutEffect(() => {
@@ -64,6 +74,26 @@ export function ListStoryTitleBar({
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const segments = segmentsRef.current;
+    if (!segments) {
+      return;
+    }
+
+    const active = segments.querySelector(
+      '.jgis-story-title-bar-segment[data-state="active"]',
+    );
+    if (!(active instanceof HTMLElement)) {
+      return;
+    }
+
+    active.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }, [currentIndex]);
+
   return (
     <nav className="jgis-story-title-bar" aria-label="Story segments">
       {hasOverflow ? (
@@ -72,8 +102,9 @@ export function ListStoryTitleBar({
           variant="ghost"
           size="icon-sm"
           className="jgis-story-title-bar-scroll-btn"
-          aria-label="Scroll segments left"
-          onClick={() => scrollSegments(-1)}
+          aria-label="Previous segment"
+          disabled={!hasPrev}
+          onClick={() => goToAdjacentSegment(-1)}
         >
           <ChevronLeft />
         </Button>
@@ -84,6 +115,7 @@ export function ListStoryTitleBar({
           return (
             <button
               key={item.id}
+              type="button"
               className="jGIS-layer-browser-category jgis-story-title-bar-segment"
               data-state={isActive ? 'active' : 'inactive'}
               aria-current={isActive ? 'true' : undefined}
@@ -101,8 +133,9 @@ export function ListStoryTitleBar({
           variant="ghost"
           size="icon-sm"
           className="jgis-story-title-bar-scroll-btn"
-          aria-label="Scroll segments right"
-          onClick={() => scrollSegments(1)}
+          aria-label="Next segment"
+          disabled={!hasNext}
+          onClick={() => goToAdjacentSegment(1)}
         >
           <ChevronRight />
         </Button>
