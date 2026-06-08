@@ -32,10 +32,7 @@ export function ListStoryTitleBar({
 
   const segmentItems = useMemo(
     () =>
-      buildStorySegmentViewItems(
-        model,
-        model.getSelectedStory().story ?? null,
-      ),
+      buildStorySegmentViewItems(model, model.getSelectedStory().story ?? null),
     [model],
   );
 
@@ -52,20 +49,22 @@ export function ListStoryTitleBar({
         ‹
       </Button>
       <div ref={segmentsRef} className="jgis-story-title-bar-segments">
-        {segmentItems.map(item => (
-          <Button
-            key={item.id}
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="jgis-story-title-bar-segment"
-            aria-current={item.index === currentIndex ? 'true' : undefined}
-            aria-label={`Go to ${item.layerName}`}
-            onClick={() => scrollToSegmentIndex(item.index)}
-          >
-            {item.layerName}
-          </Button>
-        ))}
+        {segmentItems.map(item => {
+          const isActive = item.index === currentIndex;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className="jGIS-layer-browser-category jgis-story-title-bar-segment"
+              data-state={isActive ? 'active' : 'inactive'}
+              aria-current={isActive ? 'true' : undefined}
+              aria-label={`Go to ${item.layerName}`}
+              onClick={() => scrollToSegmentIndex(item.index)}
+            >
+              {item.layerName}
+            </button>
+          );
+        })}
       </div>
       <Button
         type="button"

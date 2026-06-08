@@ -220,7 +220,6 @@
   padding: 0.5rem 0.75rem;
   box-sizing: border-box;
   background-color: color-mix(in srgb, var(--jp-layout-color1), transparent 8%);
-  border-bottom: 1px solid var(--jp-border-color2);
   pointer-events: auto;
   min-width: 0;
   overflow: hidden;
@@ -237,11 +236,8 @@
   display: flex;
   flex: 1;
   flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.25rem;
+  gap: 1.5rem;
   min-width: 0;
-  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   touch-action: pan-x;
@@ -251,12 +247,10 @@
 .jgis-story-title-bar-segment {
   flex-shrink: 0;
   white-space: nowrap;
-}
-
-.jgis-story-title-bar-segment[aria-current='true'] {
-  font-weight: 600;
-  color: var(--jp-ui-font-color1);
-  background-color: var(--jp-layout-color2);
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
 }
 
 .jgis-story-stage-overlay {
