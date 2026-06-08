@@ -12,6 +12,11 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/src/shared/components/Popover';
 import { ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 
 interface IListStoryTitleBarProps {
@@ -63,6 +68,7 @@ export function ListStoryTitleBar({
 }: IListStoryTitleBarProps): JSX.Element {
   const segmentsRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const currentIndex = useCurrentSegmentIndex(model);
   const { scrollToSegmentIndex } = useListStoryScrollTrackContext();
 
@@ -90,6 +96,14 @@ export function ListStoryTitleBar({
       scrollToSegmentIndex(nextItem.index);
     },
     [currentPosition, segmentItems, scrollToSegmentIndex],
+  );
+
+  const handleMenuSegmentClick = useCallback(
+    (index: number): void => {
+      scrollToSegmentIndex(index);
+      setMenuOpen(false);
+    },
+    [scrollToSegmentIndex],
   );
 
   useLayoutEffect(() => {
@@ -144,14 +158,39 @@ export function ListStoryTitleBar({
       aria-label="Story segments"
     >
       {isMobile ? (
-        <Button
-          type="button"
-          variant="ghost"
-          className="jgis-story-title-bar-menu-btn"
-          aria-label="Open story menu"
-        >
-          <Menu />
-        </Button>
+        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="jgis-story-title-bar-menu-btn"
+              aria-label="Open story menu"
+            >
+              <Menu />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="center"
+            side="bottom"
+            className="jgis-story-title-bar-segment-menu"
+          >
+            {segmentItems.map(item => {
+              const isActive = item.index === currentIndex;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="jGIS-layer-browser-category jgis-story-title-bar-segment-menu-item"
+                  data-state={isActive ? 'active' : 'inactive'}
+                  aria-current={isActive ? 'true' : undefined}
+                  onClick={() => handleMenuSegmentClick(item.index)}
+                >
+                  {item.layerName}
+                </button>
+              );
+            })}
+          </PopoverContent>
+        </Popover>
       ) : null}
       {!isMobile && hasOverflow ? (
         <Button
