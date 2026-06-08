@@ -23,6 +23,7 @@ export interface IMainViewSidePanelsProps {
   addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer: (id: string) => void;
   patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
+  notebookTracker?: { currentWidget: { content: any } | null };
 }
 
 export function MainViewSidePanels({
@@ -36,6 +37,7 @@ export function MainViewSidePanels({
   addLayer,
   removeLayer,
   patchGeoJSONFeatureProperties,
+  notebookTracker,
 }: IMainViewSidePanelsProps): JSX.Element {
   if (showMergedMobilePanel) {
     return (
@@ -72,6 +74,7 @@ export function MainViewSidePanels({
           removeLayer={removeLayer}
           settings={settings}
           patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
+          notebookTracker={notebookTracker}
         />
       ) : null}
     </>

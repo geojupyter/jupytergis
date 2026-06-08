@@ -106,6 +106,7 @@ export class JupyterGISPanel extends SplitPanel {
     formSchemaRegistry,
     annotationModel,
     loggerRegistry,
+    notebookTracker,
     ...consoleOption
   }: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
@@ -113,6 +114,7 @@ export class JupyterGISPanel extends SplitPanel {
     this._state = state;
     this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
+    this._notebookTracker = notebookTracker;
 
     const readyPromise = model.sharedModel.initialSyncReady;
 
@@ -154,6 +156,7 @@ export class JupyterGISPanel extends SplitPanel {
       formSchemaRegistry: formSchemaRegistry,
       annotationModel: annotationModel,
       loggerRegistry: loggerRegistry,
+      notebookTracker: this._notebookTracker,
       rendermime: this._consoleOption.rendermime ?? null,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
@@ -286,6 +289,7 @@ export class JupyterGISPanel extends SplitPanel {
   private _consoleOpened = false;
   private _consoleOption: Partial<ConsoleView.IOptions>;
   private _consoleTracker: IConsoleTracker | undefined;
+  private _notebookTracker: { currentWidget: { content: any } | null } | undefined;
 }
 
 export namespace JupyterGISPanel {
@@ -297,5 +301,6 @@ export namespace JupyterGISPanel {
     formSchemaRegistry?: IJGISFormSchemaRegistry;
     annotationModel?: IAnnotationModel;
     loggerRegistry?: ILoggerRegistry;
+    notebookTracker?: { currentWidget: { content: any } | null };
   }
 }

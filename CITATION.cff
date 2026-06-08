@@ -148,6 +148,9 @@ authors:
   - given-names: "Josue"
     alias: "josueggh"
     website: "https://www.eusoj.dev/"
+  - given-names: "Benjamin"
+    family-names: "Szeghy"
+    website: "bennyszeghy.com"
 
 
 # TODO: Fill in grant numbers. Are there more grants?
