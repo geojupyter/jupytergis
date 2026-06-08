@@ -142,8 +142,7 @@ import {
   throttle,
 } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
-import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import { FollowIndicator } from './FollowIndicator';
+import { ClientPointer } from './CollaboratorPointers';
 import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
