@@ -664,6 +664,57 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
     expect(evaluate(expr, ColorType, { type: 'other' })).toEqual([0, 0, 0, 0]);
   });
 
+  it('__null__ stop matches explicit null, __undefined__ matches missing property', () => {
+    const nullColor = [255, 0, 255, 1] as [number, number, number, number];
+    const undefColor = [128, 128, 128, 1] as [number, number, number, number];
+    const roadColor = [255, 0, 0, 1] as [number, number, number, number];
+    const fallback = [0, 0, 0, 0] as [number, number, number, number];
+
+    const style = grammarToOLStyle(
+      makeState({
+        id: '1',
+        fields: ['type'],
+        mappings: [
+          {
+            scale: {
+              scheme: 'categorical',
+              params: {
+                colorRamp: 'schemeCategory10',
+                fallback,
+                colorStops: [
+                  { stop: 'road', color: roadColor },
+                  { stop: '__null__', color: nullColor },
+                  { stop: '__undefined__', color: undefColor },
+                ],
+              },
+            },
+            channels: ['fill-color'],
+          },
+        ],
+      }),
+    ) as any;
+
+    // Matched value → road color
+    expect(evaluate(style['fill-color'], ColorType, { type: 'road' })).toEqual(
+      roadColor,
+    );
+    // Explicit null → null color
+    expect(evaluate(style['fill-color'], ColorType, { type: null })).toEqual(
+      nullColor,
+    );
+    // Missing property → undefined color
+    expect(evaluate(style['fill-color'], ColorType, {})).toEqual(undefColor);
+    // Explicit undefined (key exists, value undefined) → null color
+    // (OL's ['has', field] returns true when the key exists, even if undefined)
+    expect(
+      evaluate(style['fill-color'], ColorType, { type: undefined }),
+    ).toEqual(nullColor);
+    // Unmatched value → fallback
+    expect(evaluate(style['fill-color'], ColorType, { type: 'river' })).toEqual(
+      fallback,
+    );
+  });
+
   it('cycled categorical expression routes 11th value to same color as 1st', () => {
     // schemeCategory10 has 10 colors; with 12 unique values the 11th and 12th
     // must cycle back to palette[0] and palette[1].  This test would fail

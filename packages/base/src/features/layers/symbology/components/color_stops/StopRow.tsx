@@ -8,8 +8,14 @@ import {
   RgbaColor,
 } from '@/src/features/layers/symbology/colorRampUtils';
 import RgbaColorPicker from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import {
+  STOP_NULL,
+  STOP_UNDEFINED,
+} from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
+
+const SENTINELS = new Set([STOP_NULL, STOP_UNDEFINED]);
 
 const StopRow: React.FC<{
   index: number;
@@ -46,6 +52,14 @@ const StopRow: React.FC<{
   const handleBlur = () => {
     const newRows = [...stopRows];
     newRows.sort((a, b) => {
+      const aIsSentinel = SENTINELS.has(a.stop as string);
+      const bIsSentinel = SENTINELS.has(b.stop as string);
+      if (aIsSentinel && !bIsSentinel) {
+        return 1;
+      }
+      if (!aIsSentinel && bIsSentinel) {
+        return -1;
+      }
       if (a.stop < b.stop) {
         return -1;
       }
@@ -78,6 +92,11 @@ const StopRow: React.FC<{
         onChange={handleStopChange}
         onBlur={handleBlur}
         className="jp-mod-styled jp-gis-color-row-value-input"
+        style={
+          SENTINELS.has(dataValue as string)
+            ? { fontStyle: 'italic' }
+            : undefined
+        }
       />
 
       {useNumber ? (

@@ -134,7 +134,7 @@ function defaultScaleForScheme(
       return {
         scheme: 'categorical',
         params: {
-          colorRamp: 'viridis',
+          colorRamp: 'schemeCategory10',
           reverse: false,
           fallback: [0, 0, 0, 0] as RGBA,
         },
