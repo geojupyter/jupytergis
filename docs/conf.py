@@ -21,7 +21,6 @@ html_theme_options = {
 # Hide left sidebar on single-page sections; keep it for Users and Contributors
 html_sidebars = {
     "index": [],
-    "about/*": [],
     "getting_started/*": [],
     "changelog": [],
 }
