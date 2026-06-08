@@ -217,6 +217,7 @@
   position: relative;
   z-index: 50;
   display: flex;
+  justify-content: space-around;
   align-items: center;
   gap: 0.25rem;
   padding: 0.5rem 0.75rem;
@@ -236,7 +237,6 @@
 
 .jgis-story-title-bar-segments {
   display: flex;
-  flex: 1;
   flex-wrap: nowrap;
   gap: 1.5rem;
   min-width: 0;
