@@ -52,7 +52,15 @@ export async function promptOpenEOLogin(serverUrl: string): Promise<void> {
       return;
     }
     try {
-      await connect({ url: serverUrl });
+      const info: IOpenEOConnectionInfo = { url: serverUrl };
+      await connect(info);
+      // Now that the session is live, ask mainView to rebuild the OpenEO
+      // layers that bailed out while waiting for sign-in. Only this
+      // recovery path emits `connected` — a normal restore builds each
+      // source exactly once and renders itself, so it must not trigger a
+      // second (re-entrant) rebuild that would fire a duplicate
+      // createService request.
+      openEOEvents.connected.emit({ serverUrl: info.url ?? serverUrl });
     } catch {
       // `connect` already surfaced the error / the user cancelled the
       // sign-in form. The layers stay unrendered; the user can try again
@@ -326,10 +334,11 @@ export async function connect(
     connectionInfo.url = url;
     connectionInfo.authBearer = bearerFromConnection(connection) ?? authBearer;
 
-    // Let listeners (mainView) rebuild any OpenEO layers that were
-    // waiting on this server — typical after a page reload, where the
-    // in-memory connection cache starts empty.
-    openEOEvents.connected.emit({ serverUrl: url });
+    // NB: we intentionally do NOT emit `openEOEvents.connected` here. A tile
+    // source that calls connect() during its own construction renders itself
+    // once this resolves; emitting would make mainView rebuild it
+    // re-entrantly and fire a duplicate createService. Only promptOpenEOLogin
+    // (the sign-in recovery path) emits, to rebuild sources that were waiting.
 
     return connection;
   } catch (error) {
