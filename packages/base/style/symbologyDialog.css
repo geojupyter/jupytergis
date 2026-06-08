@@ -14,7 +14,7 @@ select option {
   max-height: 80%;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jp-gis-symbology-dialog .jp-Dialog-content {
     width: 100%;
     max-width: 100%;
@@ -322,7 +322,7 @@ select option {
   box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jp-gis-grammar-rule-grid {
     grid-template-columns: 1fr 1fr auto;
   }
@@ -505,7 +505,7 @@ select option {
   max-width: 50%;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jp-gis-symbology-row {
     flex-wrap: wrap;
     gap: 0.5rem;
