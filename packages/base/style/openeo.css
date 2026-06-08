@@ -108,41 +108,7 @@
   min-height: 0;
 }
 
-/* Discovery panel */
-.jp-openeo-discovery {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  height: 100%;
-  overflow: auto;
-  font-size: var(--jp-ui-font-size1);
-}
-
-.jp-openeo-discovery-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.jp-openeo-discovery-header label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.jp-openeo-discovery-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.jp-openeo-error {
-  color: var(--jp-error-color1);
-  font-size: var(--jp-ui-font-size0);
-  white-space: pre-wrap;
-  margin: 4px 0 0;
-}
-
+/* Catalog browser (collections / processes) shown in the Add Layer dialog */
 .jp-openeo-filter {
   padding: 4px;
 }
@@ -178,27 +144,6 @@
   gap: 2px;
 }
 
-.jp-openeo-list-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.jp-openeo-list-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 4px 6px;
-  cursor: pointer;
-  color: var(--jp-ui-font-color1);
-}
-
-.jp-openeo-list-row:hover {
-  background: var(--jp-layout-color2);
-}
-
 .jp-openeo-id {
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
@@ -207,21 +152,6 @@
 .jp-openeo-secondary {
   color: var(--jp-ui-font-color2);
   font-size: var(--jp-ui-font-size0);
-}
-
-.jp-openeo-detail {
-  padding: 6px 12px;
-  background: var(--jp-layout-color2);
-  font-size: var(--jp-ui-font-size0);
-}
-
-.jp-openeo-detail pre {
-  background: var(--jp-layout-color1);
-  padding: 6px;
-  overflow: auto;
-  max-height: 200px;
-  font-family: var(--jp-code-font-family);
-  font-size: var(--jp-code-font-size);
 }
 
 .jp-openeo-empty {

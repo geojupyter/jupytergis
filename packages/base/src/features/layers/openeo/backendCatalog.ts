@@ -79,16 +79,3 @@ export async function fetchBackendCatalog(
     throw err;
   }
 }
-
-/**
- * Manually seed the cache. The Discovery panel calls this after the
- * user connects so the dialog can reuse the data without a second
- * round-trip.
- */
-export function seedBackendCatalog(
-  url: string,
-  catalog: IBackendCatalog,
-): void {
-  const key = normalizeUrl(url);
-  _catalogCache.set(key, Promise.resolve(catalog));
-}

@@ -10,10 +10,5 @@ export {
   IOpenEOTemplate,
   IOpenEOTemplateParams,
 } from './templates';
-export { OpenEODiscoveryPanel } from './discoveryPanel';
 export { validateProcessGraph, IValidationError } from './validation';
-export {
-  fetchBackendCatalog,
-  seedBackendCatalog,
-  IBackendCatalog,
-} from './backendCatalog';
+export { fetchBackendCatalog, IBackendCatalog } from './backendCatalog';
