@@ -87,6 +87,21 @@ export function getLatestOpenEOConnection(): IOpenEOConnectionInfo | null {
 }
 
 /**
+ * Build openEO's canonical `type/providerId/token` bearer string from a
+ * live connection's active auth provider, or `undefined` if it isn't
+ * authenticated. This is the form we persist (and `connect()` restores),
+ * rather than `AuthProvider.getToken()` which drops the prefix on JWT
+ * backends.
+ */
+function bearerFromConnection(connection: Connection): string | undefined {
+  const provider = connection.getAuthProvider();
+  if (!provider || !provider.token) {
+    return undefined;
+  }
+  return `${provider.getType()}/${provider.getProviderId()}/${provider.token}`;
+}
+
+/**
  * Return the live `Connection` for `serverUrl` if the user is currently
  * signed in to it. Throws otherwise — callers (the tile source, the
  * dialog) are expected to surface the error and re-establish the session
@@ -227,11 +242,16 @@ export async function connect(
   }
 
   // Already connected to that server url. Re-insert so the cache stays
-  // ordered by recency (last key === most recently used).
+  // ordered by recency (last key === most recently used), and reflect the
+  // resolved url + live bearer back so callers can persist them even when
+  // no fresh sign-in happened (otherwise a second layer reusing the cached
+  // connection would save a null bearer and prompt on reload).
   if (CONNECTIONS[url]) {
     const existing = CONNECTIONS[url];
     delete CONNECTIONS[url];
     CONNECTIONS[url] = existing;
+    connectionInfo.url = url;
+    connectionInfo.authBearer = bearerFromConnection(existing) ?? authBearer;
     return existing;
   }
 
@@ -288,12 +308,6 @@ export async function connect(
       }
 
       await authProvider.login(signIn.username, signIn.password);
-
-      // Persist in canonical form so the session can be restored after a
-      // reload (see above).
-      if (authProvider.token) {
-        connectionInfo.authBearer = `${authProvider.getType()}/${authProvider.getProviderId()}/${authProvider.token}`;
-      }
     }
 
     const serviceTypes = await connection.listServiceTypes();
@@ -305,9 +319,12 @@ export async function connect(
 
     CONNECTIONS[url] = connection;
 
-    // Reflect the resolved server url back so callers (e.g. the layer
-    // creation dialog) can persist it alongside the bearer token.
+    // Reflect the resolved server url + live bearer back so callers (the
+    // layer dialog) can persist them. The bearer is stored in canonical
+    // form so `connect()` can restore the session after a reload (see
+    // above).
     connectionInfo.url = url;
+    connectionInfo.authBearer = bearerFromConnection(connection) ?? authBearer;
 
     // Let listeners (mainView) rebuild any OpenEO layers that were
     // waiting on this server — typical after a page reload, where the
