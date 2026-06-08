@@ -209,10 +209,8 @@
 }
 
 .jgis-story-title-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  height: 2.5rem;
+  position: relative;
   z-index: 50;
   display: flex;
   align-items: center;
@@ -241,7 +239,8 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   touch-action: pan-x;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  overflow: hidden;
 }
 
 .jgis-story-title-bar-segment {
@@ -256,6 +255,7 @@
 .jgis-story-stage-overlay {
   position: absolute;
   inset: 0;
+  top: 2.5rem;
   z-index: 5;
 }
 
