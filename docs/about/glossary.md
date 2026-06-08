@@ -39,7 +39,7 @@ Symbology
    How data is encoded {term}`visually encoded <visual encoding>` on the map.
 
 Symbology Rule
-   A set of {term}`Symbolizers` that define a single representation of a data layer.
+   A set of {term}`Symbolizers <symbolizer>` that define a single representation of a data layer.
    Symbology rules are ordered; a higher rule will appear "above" a lower rule when
    rendered. A Rule can have a pre-processor, for example Kernel Density Estimation
    (KDE), which is applied before its Symbolizers.
