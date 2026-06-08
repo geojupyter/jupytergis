@@ -23,6 +23,14 @@ import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
+import {
+  editOpenEOLayer,
+  showAddOpenEOLayerDialog,
+} from '../features/layers/openeo';
+import {
+  getLatestOpenEOConnection,
+  listOpenEOConnections,
+} from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
@@ -31,11 +39,6 @@ import {
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import keybindings from '../keybindings.json';
-import {
-  getLatestOpenEOConnection,
-  listOpenEOConnections,
-} from '../mainview/OpenEOTileLayer';
-import { editOpenEOLayer, showAddOpenEOLayerDialog } from '../openeo';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
   JupyterGISTracker,

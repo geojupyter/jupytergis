@@ -6,6 +6,11 @@ import {
 } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+import {
+  connect as openEOConnect,
+  IOpenEOConnectionInfo,
+  listOpenEOConnections,
+} from './OpenEOTileLayer';
 import { fetchBackendCatalog, IBackendCatalog } from './backendCatalog';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
@@ -20,11 +25,6 @@ import {
   validateProcessGraph,
   validateProcessGraphLocally,
 } from './validation';
-import {
-  connect as openEOConnect,
-  IOpenEOConnectionInfo,
-  listOpenEOConnections,
-} from '../mainview/OpenEOTileLayer';
 
 export interface IOpenEODialogResult {
   layerName: string;

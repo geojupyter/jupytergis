@@ -9,7 +9,10 @@ import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
-import { editOpenEOLayer, findOpenEOLayerIdForSource } from '@/src/openeo';
+import {
+  editOpenEOLayer,
+  findOpenEOLayerIdForSource,
+} from '@/src/features/layers/openeo';
 import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,

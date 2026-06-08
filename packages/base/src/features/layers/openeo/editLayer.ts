@@ -1,11 +1,11 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 
-import { showAddOpenEOLayerDialog } from './addLayerDialog';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
-} from '../mainview/OpenEOTileLayer';
+} from './OpenEOTileLayer';
+import { showAddOpenEOLayerDialog } from './addLayerDialog';
 
 /**
  * Find the id of the OpenEO layer that references the given source.

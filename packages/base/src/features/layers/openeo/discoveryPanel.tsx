@@ -1,7 +1,7 @@
 import * as React from 'react';
 
+import { connect, IOpenEOConnectionInfo } from './OpenEOTileLayer';
 import { seedBackendCatalog } from './backendCatalog';
-import { connect, IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
 
 interface IDiscoveryPanelProps {
   /** Pre-fill the server URL field (optional). */

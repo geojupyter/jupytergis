@@ -144,11 +144,6 @@ import {
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
-import {
-  OpenEOTileLayer,
-  OpenEOTileSource,
-  openEOEvents,
-} from './OpenEOTileLayer';
 import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
@@ -163,6 +158,11 @@ import {
 import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
+import {
+  OpenEOTileLayer,
+  OpenEOTileSource,
+  openEOEvents,
+} from '../features/layers/openeo/OpenEOTileLayer';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
 import {
   extractEncodingFieldValues,

@@ -13,8 +13,8 @@ import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
 import { useUIState } from './hooks/useUIState';
+import { OpenEODiscoveryPanel } from '../../features/layers/openeo/discoveryPanel';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
-import { OpenEODiscoveryPanel } from '../../openeo/discoveryPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;

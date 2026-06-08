@@ -1,4 +1,4 @@
-import { connect, IOpenEOConnectionInfo } from '../mainview/OpenEOTileLayer';
+import { connect, IOpenEOConnectionInfo } from './OpenEOTileLayer';
 
 export interface IFileFormat {
   id: string;
