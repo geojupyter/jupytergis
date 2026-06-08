@@ -208,8 +208,12 @@
   overscroll-behavior: contain;
 }
 
+.jgis-mainview-stage {
+  --jgis-story-title-bar-height: 2.5rem;
+}
+
 .jgis-story-title-bar {
-  height: 2.5rem;
+  height: var(--jgis-story-title-bar-height);
   position: relative;
   z-index: 50;
   display: flex;
@@ -255,7 +259,7 @@
 .jgis-story-stage-overlay {
   position: absolute;
   inset: 0;
-  top: 2.5rem;
+  top: var(--jgis-story-title-bar-height);
   z-index: 5;
 }
 
