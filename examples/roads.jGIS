@@ -9,28 +9,161 @@
         "opacity": 1.0,
         "source": "b9e30ab1-864e-4395-9071-cddb6ac813e5",
         "symbologyState": {
-          "colorRamp": "rainbow",
-          "fallbackColor": [
-            0.0,
-            0.0,
-            0.0,
-            0.0
-          ],
-          "method": "color",
-          "mode": "equal interval",
-          "nClasses": 9.0,
-          "radius": 5.0,
-          "reverseRamp": false,
-          "strokeColor": [
-            51.0,
-            153.0,
-            204.0,
-            1.0
-          ],
-          "strokeFollowsFill": true,
-          "strokeWidth": 1.25,
-          "vmax": 1583.0,
-          "vmin": 0.0
+          "layers": [
+            {
+              "id": "a494f63f-0148-41f5-af00-40b3d0324936",
+              "rules": [
+                {
+                  "fields": [
+                    "length_km"
+                  ],
+                  "id": "29006c09-5ad9-4c3a-8130-9b5970d7a447",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-width"
+                      ],
+                      "scale": {
+                        "params": {
+                          "domain": [
+                            0.0,
+                            100.0
+                          ],
+                          "fallback": 1.0,
+                          "mode": "equal interval",
+                          "nStops": 5.0,
+                          "range": [
+                            1.0,
+                            5.0
+                          ],
+                          "scalarStops": [
+                            {
+                              "output": 1.0,
+                              "stop": 0.0
+                            },
+                            {
+                              "output": 5.0,
+                              "stop": 100.0
+                            }
+                          ]
+                        },
+                        "scheme": "scalar"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    "type"
+                  ],
+                  "id": "349c3f32-12c1-4826-bdce-c8a4afb11fde",
+                  "mappings": [
+                    {
+                      "channels": [
+                        "stroke-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "colorRamp": "schemePaired",
+                          "colorStops": [
+                            {
+                              "color": [
+                                166.0,
+                                206.0,
+                                227.0,
+                                1.0
+                              ],
+                              "stop": "Beltway"
+                            },
+                            {
+                              "color": [
+                                31.0,
+                                120.0,
+                                180.0,
+                                1.0
+                              ],
+                              "stop": "Bypass"
+                            },
+                            {
+                              "color": [
+                                178.0,
+                                223.0,
+                                138.0,
+                                1.0
+                              ],
+                              "stop": "Ferry Route"
+                            },
+                            {
+                              "color": [
+                                51.0,
+                                160.0,
+                                44.0,
+                                1.0
+                              ],
+                              "stop": "Ferry, seasonal"
+                            },
+                            {
+                              "color": [
+                                251.0,
+                                154.0,
+                                153.0,
+                                1.0
+                              ],
+                              "stop": "Major Highway"
+                            },
+                            {
+                              "color": [
+                                227.0,
+                                26.0,
+                                28.0,
+                                1.0
+                              ],
+                              "stop": "Road"
+                            },
+                            {
+                              "color": [
+                                253.0,
+                                191.0,
+                                111.0,
+                                1.0
+                              ],
+                              "stop": "Secondary Highway"
+                            },
+                            {
+                              "color": [
+                                255.0,
+                                127.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": "Track"
+                            },
+                            {
+                              "color": [
+                                202.0,
+                                178.0,
+                                214.0,
+                                1.0
+                              ],
+                              "stop": "Unknown"
+                            }
+                          ],
+                          "fallback": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "reverse": false
+                        },
+                        "scheme": "categorical"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       },
       "type": "VectorLayer",
@@ -41,26 +174,29 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -43216944.10677188,
-      -6833774.1332121305,
-      -21198382.47087673,
-      15848797.20219735
+      -1463586.4910046477,
+      4183091.2939588428,
+      2700021.1077105016,
+      6844144.568799384
     ],
-    "latitude": 37.48916746447347,
-    "longitude": 70.67363801873915,
+    "latitude": 44.31049195912095,
+    "longitude": 5.553540570006655,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.5592111847299606
+    "zoom": 5.863918537208475
   },
-  "schemaVersion": "0.5.0",
+  "schemaVersion": "0.6.0",
   "sources": {
     "b9e30ab1-864e-4395-9071-cddb6ac813e5": {
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson"
+        "httpHeaders": "",
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
+        "useProxy": false
       },
       "type": "GeoJSONSource"
     }
   },
-  "stories": {}
+  "stories": {},
+  "viewState": {}
 }
