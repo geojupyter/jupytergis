@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 
 import type { IListStoryTitleBarContentProps } from '@/src/features/story/types/types';
 import { Button } from '@/src/shared/components/Button';
@@ -19,18 +19,15 @@ export function ListStoryTitleBarDesktop({
   const hasNext =
     currentPosition >= 0 && currentPosition < segmentItems.length - 1;
 
-  const goToAdjacentSegment = useCallback(
-    (direction: -1 | 1): void => {
-      const nextPosition = currentPosition + direction;
-      const nextItem = segmentItems[nextPosition];
-      if (!nextItem) {
-        return;
-      }
+  const goToAdjacentSegment = (direction: -1 | 1): void => {
+    const nextPosition = currentPosition + direction;
+    const nextItem = segmentItems[nextPosition];
+    if (!nextItem) {
+      return;
+    }
 
-      onSegmentClick(nextItem.index);
-    },
-    [currentPosition, segmentItems, onSegmentClick],
-  );
+    onSegmentClick(nextItem.index);
+  };
 
   useLayoutEffect(() => {
     const segments = segmentsRef.current;
@@ -61,14 +58,13 @@ export function ListStoryTitleBarDesktop({
     const active = segments.querySelector(
       '.jgis-story-title-bar-segment[data-state="active"]',
     );
-    if (!(active instanceof HTMLElement)) {
+
+    if (!active) {
       return;
     }
 
     active.scrollIntoView({
       behavior: 'smooth',
-      block: 'nearest',
-      inline: 'nearest',
     });
   }, [currentIndex]);
 

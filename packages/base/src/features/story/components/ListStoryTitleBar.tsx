@@ -12,9 +12,6 @@ interface IListStoryTitleBarProps {
   isMobile: boolean;
 }
 
-/**
- * Story stage title bar: one button per segment, labeled with the segment layer name.
- */
 export function ListStoryTitleBar({
   model,
   isMobile,

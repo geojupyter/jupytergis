@@ -12,13 +12,13 @@ import {
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
 
-type TSlideDirection = 'next' | 'prev';
+type SlideDirection = 'next' | 'prev';
 
 function getSlideDirection(
   prevSegmentId: string | undefined,
   currentPosition: number,
   segmentItems: IStorySegmentViewItem[],
-): TSlideDirection | undefined {
+): SlideDirection | undefined {
   if (!prevSegmentId || currentPosition < 0) {
     return undefined;
   }
@@ -26,6 +26,7 @@ function getSlideDirection(
   const prevPosition = segmentItems.findIndex(
     item => item.id === prevSegmentId,
   );
+
   if (prevPosition < 0) {
     return undefined;
   }
@@ -47,7 +48,7 @@ export function ListStoryTitleBarMobile({
     currentPosition >= 0 ? segmentItems[currentPosition] : undefined;
 
   const prevSegmentIdRef = useRef<string | undefined>(undefined);
-  const slideDirectionRef = useRef<TSlideDirection | undefined>(undefined);
+  const slideDirectionRef = useRef<SlideDirection | undefined>(undefined);
   const activeSegmentId = activeSegment?.id;
 
   if (activeSegmentId !== prevSegmentIdRef.current) {
@@ -59,13 +60,10 @@ export function ListStoryTitleBarMobile({
     prevSegmentIdRef.current = activeSegmentId;
   }
 
-  const handleMenuSegmentClick = useCallback(
-    (index: number): void => {
-      onSegmentClick(index);
-      setMenuOpen(false);
-    },
-    [onSegmentClick],
-  );
+  const handleMenuSegmentClick = (index: number): void => {
+    onSegmentClick(index);
+    setMenuOpen(false);
+  };
 
   return (
     <nav
