@@ -460,22 +460,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       layer => layer.type !== 'StorySegmentLayer',
     ).length;
 
-    const scaleLine = new ScaleLine({
-      target: this.controlsToolbarRef.current || undefined,
-    });
+    const controlsToolbar = this.controlsToolbarRef.current || undefined;
+    const controls: Control[] = [new ScaleLine({ target: controlsToolbar })];
 
-    const fullScreen = new FullScreen({
-      target: this.controlsToolbarRef.current || undefined,
-    });
-
-    const controls: Control[] = [scaleLine, fullScreen];
-
-    if (this._model.jgisSettings.zoomButtonsEnabled) {
-      this._zoomControl = new Zoom({
-        target: this.controlsToolbarRef.current || undefined,
-      });
-      controls.push(this._zoomControl);
+    if (!this._model.isSpectaMode()) {
+      controls.push(new FullScreen({ target: controlsToolbar }));
     }
+
+    let zoomControl: Zoom | undefined;
+    if (this._model.jgisSettings.zoomButtonsEnabled) {
+      zoomControl = new Zoom({ target: controlsToolbar });
+      controls.push(zoomControl);
+    }
+
+    // const { controls, zoomControl } = buildMapToolbarControls({
+    //   toolbarElement: this.controlsToolbarRef.current,
+    //   isSpecta: this._model.isSpectaMode() ?? false,
+    //   includeZoom: this._model.jgisSettings.zoomButtonsEnabled ?? false,
+    // });
+    this._zoomControl = zoomControl;
 
     if (this.divRef.current) {
       this._Map = new OlMap({
