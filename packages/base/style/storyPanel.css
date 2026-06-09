@@ -259,6 +259,7 @@
   pointer-events: none;
   opacity: 1;
   font-weight: bold;
+  margin-top: 3px;
 }
 
 .jgis-story-title-bar-active-segment[data-slide-direction] {
@@ -305,6 +306,7 @@
   text-decoration: none;
 }
 
+.jgis-story-title-bar-active-segment::after,
 .jgis-story-title-bar-label::after {
   content: '';
   position: absolute;
@@ -319,6 +321,7 @@
   background-color: transparent;
 }
 
+.jgis-story-title-bar-active-segment[data-state='active']::after,
 .jgis-story-title-bar-label[data-state='active']::after {
   width: 100%;
   background-color: var(--jp-inverse-layout-color2);
