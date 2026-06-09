@@ -467,13 +467,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       controls.push(new FullScreen({ target: controlsToolbar }));
     }
 
-    let zoomControl: Zoom | undefined;
     if (this._model.jgisSettings.zoomButtonsEnabled) {
-      zoomControl = new Zoom({ target: controlsToolbar });
-      controls.push(zoomControl);
+      this._zoomControl = new Zoom({ target: controlsToolbar });
+      controls.push(this._zoomControl);
     }
-
-    this._zoomControl = zoomControl;
 
     if (this.divRef.current) {
       this._Map = new OlMap({
@@ -2902,26 +2899,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const handleScroll = (event: Event) => {
       const wheelEvent = event as WheelEvent;
-      const titleBarSegments =
-        wheelEvent.target instanceof Element
-          ? wheelEvent.target.closest('.jgis-story-title-bar-segments')
-          : null;
-
-      if (titleBarSegments instanceof HTMLElement) {
-        const horizontalDelta =
-          wheelEvent.deltaX !== 0
-            ? wheelEvent.deltaX
-            : wheelEvent.shiftKey
-              ? wheelEvent.deltaY
-              : 0;
-
-        if (horizontalDelta !== 0) {
-          titleBarSegments.scrollLeft += horizontalDelta;
-        }
-
-        event.preventDefault();
-        return;
-      }
 
       event.preventDefault();
 

@@ -83,7 +83,11 @@ export function ListStoryTitleBarDesktop({
           <ChevronLeft />
         </Button>
       ) : null}
-      <div ref={segmentsRef} className="jgis-story-title-bar-segments">
+      <div
+        ref={segmentsRef}
+        className="jgis-story-title-bar-segments"
+        onWheelCapture={event => event.stopPropagation()}
+      >
         {segmentItems.map(item => {
           const isActive = item.index === currentIndex;
           return (
