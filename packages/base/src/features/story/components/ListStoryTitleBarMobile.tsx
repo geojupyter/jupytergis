@@ -1,13 +1,16 @@
+import { Menu } from 'lucide-react';
 import React, { useCallback, useRef, useState } from 'react';
 
-import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
+import type {
+  IListStoryTitleBarContentProps,
+  IStorySegmentViewItem,
+} from '@/src/features/story/types/types';
 import { Button } from '@/src/shared/components/Button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
-import { Menu } from 'lucide-react';
 
 type TSlideDirection = 'next' | 'prev';
 
@@ -30,23 +33,18 @@ function getSlideDirection(
   return currentPosition > prevPosition ? 'next' : 'prev';
 }
 
-export interface IListStoryTitleBarMobileProps {
-  segmentItems: IStorySegmentViewItem[];
-  currentIndex: number;
-  onSegmentClick: (index: number) => void;
-}
-
 export function ListStoryTitleBarMobile({
   segmentItems,
   currentIndex,
   onSegmentClick,
-}: IListStoryTitleBarMobileProps): JSX.Element {
+}: IListStoryTitleBarContentProps): JSX.Element {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const activeSegment = segmentItems.find(item => item.index === currentIndex);
   const currentPosition = segmentItems.findIndex(
     item => item.index === currentIndex,
   );
+  const activeSegment =
+    currentPosition >= 0 ? segmentItems[currentPosition] : undefined;
 
   const prevSegmentIdRef = useRef<string | undefined>(undefined);
   const slideDirectionRef = useRef<TSlideDirection | undefined>(undefined);
@@ -96,7 +94,7 @@ export function ListStoryTitleBarMobile({
               <button
                 key={item.id}
                 type="button"
-                className="jGIS-layer-browser-category jgis-story-title-bar-segment-menu-item"
+                className="jgis-story-title-bar-label jgis-story-title-bar-segment-menu-item"
                 data-state={isActive ? 'active' : 'inactive'}
                 aria-current={isActive ? 'true' : undefined}
                 onClick={() => handleMenuSegmentClick(item.index)}
@@ -109,7 +107,7 @@ export function ListStoryTitleBarMobile({
       </Popover>
       <span
         key={activeSegment?.id}
-        className="jGIS-layer-browser-category jgis-story-title-bar-active-segment"
+        className="jgis-story-title-bar-active-segment"
         data-state="active"
         data-slide-direction={slideDirectionRef.current}
       >

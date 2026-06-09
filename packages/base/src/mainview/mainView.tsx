@@ -473,11 +473,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       controls.push(zoomControl);
     }
 
-    // const { controls, zoomControl } = buildMapToolbarControls({
-    //   toolbarElement: this.controlsToolbarRef.current,
-    //   isSpecta: this._model.isSpectaMode() ?? false,
-    //   includeZoom: this._model.jgisSettings.zoomButtonsEnabled ?? false,
-    // });
     this._zoomControl = zoomControl;
 
     if (this.divRef.current) {

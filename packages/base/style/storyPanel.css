@@ -202,12 +202,6 @@
   max-height: 100%;
 }
 
-.jgis-story-viewer-panel-specta-mod.jgis-story-viewer-panel-specta-mod-vertical-scroll {
-  /* align-items: flex-start;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain; */
-}
-
 .jgis-mainview-stage {
   --jgis-story-title-bar-height: 2.5rem;
 }
@@ -240,11 +234,6 @@
   justify-content: flex-start;
   padding: 0.5rem 0;
   overflow: visible;
-}
-
-.jgis-story-title-bar--mobile .jgis-story-title-bar-segments {
-  flex: 1;
-  min-width: 0;
 }
 
 .jgis-story-title-bar--mobile .jgis-story-title-bar-menu-btn {
@@ -302,6 +291,38 @@
   overflow: hidden;
 }
 
+.jgis-story-title-bar-label {
+  position: relative;
+  opacity: 0.7;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.jgis-story-title-bar-label::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  transition:
+    background-color 300ms ease-in,
+    width 300ms ease-in,
+    opacity 300ms ease-in;
+  background-color: transparent;
+}
+
+.jgis-story-title-bar-label[data-state='active']::after {
+  width: 100%;
+  background-color: var(--jp-inverse-layout-color2);
+}
+
+.jgis-story-title-bar-label[data-state='active'] {
+  opacity: 1;
+  font-weight: bold;
+}
+
 .jgis-story-title-bar-segment {
   flex-shrink: 0;
   white-space: nowrap;
@@ -326,7 +347,6 @@
 
 .jgis-story-title-bar-segment-menu-item {
   width: 100%;
-  /* text-align: left; */
   border: none;
   background: transparent;
   font: inherit;
@@ -482,8 +502,7 @@
 .jgis-story-mobile-list-scroll {
   position: fixed;
   inset: 0;
-  top: 2.5rem;
-  /* z-index: 6; */
+  top: var(--jgis-story-title-bar-height);
   width: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;

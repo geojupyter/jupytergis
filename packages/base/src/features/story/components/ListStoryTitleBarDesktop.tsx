@@ -1,20 +1,14 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
-import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
+import type { IListStoryTitleBarContentProps } from '@/src/features/story/types/types';
 import { Button } from '@/src/shared/components/Button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-export interface IListStoryTitleBarDesktopProps {
-  segmentItems: IStorySegmentViewItem[];
-  currentIndex: number;
-  onSegmentClick: (index: number) => void;
-}
 
 export function ListStoryTitleBarDesktop({
   segmentItems,
   currentIndex,
   onSegmentClick,
-}: IListStoryTitleBarDesktopProps): JSX.Element {
+}: IListStoryTitleBarContentProps): JSX.Element {
   const segmentsRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
 
@@ -100,7 +94,7 @@ export function ListStoryTitleBarDesktop({
             <button
               key={item.id}
               type="button"
-              className="jGIS-layer-browser-category jgis-story-title-bar-segment"
+              className="jgis-story-title-bar-label jgis-story-title-bar-segment"
               data-state={isActive ? 'active' : 'inactive'}
               aria-current={isActive ? 'true' : undefined}
               aria-label={`Go to ${item.layerName}`}

@@ -258,7 +258,7 @@ export function ListStoryScrollTrackProvider({
         s => s.index === safeIndex,
       );
 
-      if (scroller && segment != null) {
+      if (scroller && segment !== undefined) {
         scroller.scrollTo({
           top: segment.start,
           behavior: options?.behavior ?? 'smooth',
