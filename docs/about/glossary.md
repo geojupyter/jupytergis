@@ -51,7 +51,7 @@ Symbolizer
 Visual encoding
    A method of representing a data {term}`attribute` visually. Encoding methods include
    position on a scale, length, direction, angle, area, volume, curvature, shading, and
-   color {footcite:p}`1984:cleveland-mcgill{figure 1}`
+   color ({footcite:t}`1984:cleveland-mcgill`, figure 1).
 
 Color map
    A gradient or set of colors used to {term}`visually encode} data with color on the
