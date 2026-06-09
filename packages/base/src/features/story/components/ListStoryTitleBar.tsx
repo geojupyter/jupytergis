@@ -78,9 +78,30 @@ export function ListStoryTitleBar({
     [model],
   );
 
+  const activeSegment = segmentItems.find(item => item.index === currentIndex);
+
   const currentPosition = segmentItems.findIndex(
     item => item.index === currentIndex,
   );
+  const prevSegmentIdRef = useRef<string | undefined>(undefined);
+  const slideDirectionRef = useRef<'next' | 'prev' | undefined>(undefined);
+
+  if (activeSegment?.id !== prevSegmentIdRef.current) {
+    const prevId = prevSegmentIdRef.current;
+    if (prevId) {
+      const prevPosition = segmentItems.findIndex(item => item.id === prevId);
+      if (prevPosition >= 0 && currentPosition >= 0) {
+        slideDirectionRef.current =
+          currentPosition > prevPosition ? 'next' : 'prev';
+      } else {
+        slideDirectionRef.current = undefined;
+      }
+    } else {
+      slideDirectionRef.current = undefined;
+    }
+    prevSegmentIdRef.current = activeSegment?.id;
+  }
+
   const hasPrev = currentPosition > 0;
   const hasNext =
     currentPosition >= 0 && currentPosition < segmentItems.length - 1;
@@ -131,6 +152,10 @@ export function ListStoryTitleBar({
   }, [isMobile]);
 
   useLayoutEffect(() => {
+    if (isMobile) {
+      return;
+    }
+
     const segments = segmentsRef.current;
     if (!segments) {
       return;
@@ -148,7 +173,7 @@ export function ListStoryTitleBar({
       block: 'nearest',
       inline: 'nearest',
     });
-  }, [currentIndex]);
+  }, [currentIndex, isMobile]);
 
   return (
     <nav
@@ -205,12 +230,23 @@ export function ListStoryTitleBar({
           <ChevronLeft />
         </Button>
       ) : null}
-      <ListStoryTitleBarSegments
-        ref={segmentsRef}
-        segmentItems={segmentItems}
-        currentIndex={currentIndex}
-        onSegmentClick={scrollToSegmentIndex}
-      />
+      {isMobile ? (
+        <span
+          key={activeSegment?.id}
+          className="jGIS-layer-browser-category jgis-story-title-bar-active-segment"
+          data-state="active"
+          data-slide-direction={slideDirectionRef.current}
+        >
+          {activeSegment?.layerName ?? ''}
+        </span>
+      ) : (
+        <ListStoryTitleBarSegments
+          ref={segmentsRef}
+          segmentItems={segmentItems}
+          currentIndex={currentIndex}
+          onSegmentClick={scrollToSegmentIndex}
+        />
+      )}
       {!isMobile && hasOverflow ? (
         <Button
           type="button"
