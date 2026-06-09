@@ -1,9 +1,5 @@
 import os
 
-# Apply the xeus micromamba workaround in this process; jupytergis_core also
-# registers a JupyterLite pre_build addon for the ``jupyter lite build`` subprocess.
-import jupytergis  # noqa: F401
-
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 html_theme = "pydata_sphinx_theme"
