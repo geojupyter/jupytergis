@@ -202,6 +202,12 @@
   max-height: 100%;
 }
 
+.jgis-story-viewer-panel-specta-mod.jgis-story-viewer-panel-specta-mod-vertical-scroll {
+  align-items: flex-start;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 .jgis-mainview-stage {
   --jgis-story-title-bar-height: 2.5rem;
 }
