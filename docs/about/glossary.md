@@ -46,7 +46,7 @@ Symbology Rule
 
 Symbolizer
    A triple of data input, interpolation, and {term}`visual encoding`. A {term}`Rule
-   <symbology rule>` is composted of many Symbolizers.
+   <symbology rule>` is composed of many Symbolizers.
 
 Visual encoding
    A method of representing a data {term}`attribute` visually. Encoding methods include
