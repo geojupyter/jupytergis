@@ -70,6 +70,10 @@ jobs:
               fi
           done
 
+          python -m pip install "${args[@]}"
+
+          rm jupytergis*.whl
+
       - name: Install dependencies
         shell: bash -l {0}
         working-directory: ui-tests
