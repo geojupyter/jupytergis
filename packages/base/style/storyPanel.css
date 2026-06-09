@@ -220,7 +220,7 @@
   justify-content: space-around;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0 0.75rem;
   box-sizing: border-box;
   background-color: color-mix(in srgb, var(--jp-layout-color1), transparent 8%);
   pointer-events: auto;
