@@ -83,7 +83,7 @@
 
 .jp-openeo-bbox,
 .jp-openeo-temporal {
-  display: grid !important;
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   border: 1px solid var(--jp-border-color2);
