@@ -36,7 +36,7 @@ Attribute
 ```{glossary}
 
 Symbology
-   How data is encoded {term}`visually encoded <visual encoding>` on the map.
+   How data is {term}`visually encoded <visual encoding>` on the map.
 
 Symbology Rule
    A set of {term}`Symbolizers <symbolizer>` that define a single representation of a data layer.
