@@ -11,4 +11,3 @@ export {
   IOpenEOTemplateParams,
 } from './templates';
 export { validateProcessGraph, IValidationError } from './validation';
-export { fetchBackendCatalog, IBackendCatalog } from './backendCatalog';

@@ -6,12 +6,12 @@ import {
 } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
-import { fetchBackendCatalog, IBackendCatalog } from './backendCatalog';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import {
