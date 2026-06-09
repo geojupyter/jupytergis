@@ -9,6 +9,27 @@ import {
 } from '@/src/shared/components/Popover';
 import { Menu } from 'lucide-react';
 
+type TSlideDirection = 'next' | 'prev';
+
+function getSlideDirection(
+  prevSegmentId: string | undefined,
+  currentPosition: number,
+  segmentItems: IStorySegmentViewItem[],
+): TSlideDirection | undefined {
+  if (!prevSegmentId || currentPosition < 0) {
+    return undefined;
+  }
+
+  const prevPosition = segmentItems.findIndex(
+    item => item.id === prevSegmentId,
+  );
+  if (prevPosition < 0) {
+    return undefined;
+  }
+
+  return currentPosition > prevPosition ? 'next' : 'prev';
+}
+
 export interface IListStoryTitleBarMobileProps {
   segmentItems: IStorySegmentViewItem[];
   currentIndex: number;
@@ -28,24 +49,16 @@ export function ListStoryTitleBarMobile({
   );
 
   const prevSegmentIdRef = useRef<string | undefined>(undefined);
-  const slideDirectionRef = useRef<'next' | 'prev' | undefined>(undefined);
+  const slideDirectionRef = useRef<TSlideDirection | undefined>(undefined);
+  const activeSegmentId = activeSegment?.id;
 
-  if (activeSegment?.id !== prevSegmentIdRef.current) {
-    const prevId = prevSegmentIdRef.current;
-
-    if (prevId) {
-      const prevPosition = segmentItems.findIndex(item => item.id === prevId);
-
-      if (prevPosition >= 0 && currentPosition >= 0) {
-        slideDirectionRef.current =
-          currentPosition > prevPosition ? 'next' : 'prev';
-      } else {
-        slideDirectionRef.current = undefined;
-      }
-    } else {
-      slideDirectionRef.current = undefined;
-    }
-    prevSegmentIdRef.current = activeSegment?.id;
+  if (activeSegmentId !== prevSegmentIdRef.current) {
+    slideDirectionRef.current = getSlideDirection(
+      prevSegmentIdRef.current,
+      currentPosition,
+      segmentItems,
+    );
+    prevSegmentIdRef.current = activeSegmentId;
   }
 
   const handleMenuSegmentClick = useCallback(

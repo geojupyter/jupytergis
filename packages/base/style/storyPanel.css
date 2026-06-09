@@ -266,30 +266,22 @@
   font-weight: bold;
 }
 
+.jgis-story-title-bar-active-segment[data-slide-direction] {
+  animation: jgis-story-title-bar-active-segment-enter 0.5s ease-out both;
+}
+
 .jgis-story-title-bar-active-segment[data-slide-direction='next'] {
-  animation: jgis-story-title-bar-active-segment-enter-next 0.5s ease-out both;
+  --jgis-story-title-bar-slide-offset: 0.35rem;
 }
 
 .jgis-story-title-bar-active-segment[data-slide-direction='prev'] {
-  animation: jgis-story-title-bar-active-segment-enter-prev 0.5s ease-out both;
+  --jgis-story-title-bar-slide-offset: -0.35rem;
 }
 
-@keyframes jgis-story-title-bar-active-segment-enter-next {
+@keyframes jgis-story-title-bar-active-segment-enter {
   from {
     opacity: 0;
-    transform: translate(-50%, 0.35rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-@keyframes jgis-story-title-bar-active-segment-enter-prev {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -0.35rem);
+    transform: translate(-50%, var(--jgis-story-title-bar-slide-offset));
   }
 
   to {
