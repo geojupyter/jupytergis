@@ -55,7 +55,9 @@ Visual encoding
 
 Color map
    A gradient or set of colors used to {term}`visually encode} data with color on the
-   map. Sometimes referred to as a "color ramp" or "color scale".
+   map.
+
+   Sometimes referred to as a "color ramp" or "color scale".
 
    **Important**: Color is a fraught {term}`visual encoding` method. Is your colormap
    [perceptually uniform](https://chrisholdgraf.com/blog/2018/makeitpop)? Is it usable
@@ -64,16 +66,24 @@ Color map
    poorly with your chosen color map for any form of human color vision)?
 
 Continuous color map
-   TODO
+   A colormap which progresses between two colors. A continuous colormap is useful for
+   representing a scalar value like temperature or magnitude.
 
 Divergent color map
-   TODO
+   A colormap which diverges from a central value to extremes at each end. For example,
+   a white center, dark red on one end, and dark blue on the other end. A divergent
+   colormap is useful for representing gain or loss, or anomaly.
 
 Cyclic color map
-   TODO
+   A colormap which ends where it starts. A cyclic colormap is useful for representing
+   cyclic values like phase or angle.
 
 Discrete color map
-   TODO. Sometimes refered to as a "categorical" color map or "color palette".
+   A colormap with a small set of discrete colors, without transitions between them. A
+   discrete colormap is useful for representing categorical data, like land surface
+   classification.
+
+   Sometimes refered to as a "categorical" color map or "color palette".
 ```
 
 ## References
