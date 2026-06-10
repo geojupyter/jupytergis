@@ -2848,14 +2848,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._clearStoryScrollGuard = clearGuard;
 
     let accumulatedDeltaY = 0;
-    let scrollContainer: HTMLDivElement | null =
-      this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+    let scrollContainer: HTMLDivElement | null = null;
+
+    const resolveStoryScrollContainer = (): HTMLDivElement | null => {
+      const fromPanel =
+        this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+
+      if (fromPanel && document.contains(fromPanel)) {
+        return fromPanel;
+      }
+
+      const mobileScroll = document.querySelector(
+        '.jgis-story-mobile-list-scroll',
+      );
+
+      if (mobileScroll instanceof HTMLDivElement) {
+        return mobileScroll;
+      }
+
+      return null;
+    };
+
+    scrollContainer = resolveStoryScrollContainer();
 
     const processStoryScrollFrame = (): void => {
       this._pendingStoryScrollRafId = null;
 
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer = resolveStoryScrollContainer();
+      }
+
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !scrollContainer) {
+      const storyType = this._model.getSelectedStory().story?.storyType;
+
+      if (!scrollContainer) {
         accumulatedDeltaY = 0;
         return;
       }
@@ -2863,10 +2889,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
-      const storyType = this._model.getSelectedStory().story?.storyType;
       // Don't want to handle next/prev logic in list mode
       if (storyType === STORY_TYPE.verticalScroll) {
         scrollContainer.scrollBy({ top: deltaY });
+        return;
+      }
+
+      if (!currentPanelHandle) {
         return;
       }
 
@@ -2903,8 +2932,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       event.preventDefault();
 
       if (!scrollContainer || !document.contains(scrollContainer)) {
-        scrollContainer =
-          this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+        scrollContainer = resolveStoryScrollContainer();
       }
       if (!scrollContainer) {
         return;
