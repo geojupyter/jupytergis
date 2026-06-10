@@ -49,9 +49,8 @@ Symbolizer
    <symbology rule>` is composed of many Symbolizers.
 
 Visual encoding
-   A method of representing a data {term}`attribute` visually. Encoding methods include
-   position on a scale, length, direction, angle, area, volume, curvature, shading, and
-   color ({footcite:t}`1984:cleveland-mcgill`, figure 1).
+   How data {term}`attributes <attribute>` are matched to visual characteristics like
+   shape, color, or position ({footcite:t}`1984:cleveland-mcgill`, figure 1).
 
 Color map
    A gradient or set of colors used to {term}`visually encode} data with color on the
