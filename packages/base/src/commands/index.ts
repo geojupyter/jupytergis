@@ -1541,7 +1541,24 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.togglePanel, {
     label: trans.__('Toggle Panel'),
-    caption: 'Toggle the side panels.',
+    caption: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return '';
+      }
+
+      const { leftPanelDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+      const { leftPanelOpen = true, rightPanelOpen = true } =
+        current.model.getUIState();
+      const show =
+        (!leftPanelDisabled && !leftPanelOpen) ||
+        (!rightPanelDisabled && !rightPanelOpen);
+
+      return show
+        ? trans.__('Show the side panels.')
+        : trans.__('Hide the side panels.');
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
