@@ -32,6 +32,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { StoryEditorWidget } from '../features/story/storyEditorDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -1857,6 +1858,21 @@ export function addCommands(
     ...icons.get(CommandIDs.addStorySegment),
   });
 
+  commands.addCommand(CommandIDs.openStoryEditor, {
+    label: trans.__('Open Story Editor'),
+    caption: 'Open the story editor for the current JupyterGIS document.',
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return !current.model.jgisSettings.storyMapsDisabled;
+    },
+    execute: Private.createStoryEditor(tracker, commands),
+    ...icons.get(CommandIDs.openStoryEditor),
+  });
+
   commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
     label: trans.__('Toggle Story Presentation Mode'),
     isToggled: () => {
@@ -2051,6 +2067,25 @@ export function addCommands(
 }
 
 namespace Private {
+  export function createStoryEditor(
+    tracker: JupyterGISTracker,
+    commands: CommandRegistry,
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new StoryEditorWidget({
+        model: current.model,
+        commands,
+      });
+      await dialog.launch();
+    };
+  }
+
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,

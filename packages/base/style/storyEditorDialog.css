@@ -1,0 +1,27 @@
+.jgis-story-editor-dialog .jp-Dialog-header {
+  font-weight: bold;
+}
+
+.jgis-story-editor-dialog .jp-Dialog-content {
+  width: calc(80% - 4rem);
+  max-width: 40rem;
+  height: fit-content;
+  max-height: 80%;
+  overflow: auto;
+}
+
+@media (max-width: 960px) {
+  .jgis-story-editor-dialog .jp-Dialog-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90%;
+    margin: 0;
+    border-radius: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+.jgis-story-editor-dialog .jgis-story-editor-panel {
+  padding: 0.5rem 0;
+}

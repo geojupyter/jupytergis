@@ -70,6 +70,7 @@ export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
+export const openStoryEditor = 'jupytergis:openStoryEditor';
 export const toggleStoryPresentationMode =
   'jupytergis:toggleStoryPresentationMode';
 export const createStorySegmentFromLayer =

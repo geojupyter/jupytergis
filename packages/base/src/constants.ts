@@ -71,6 +71,7 @@ const iconObject = {
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
+  [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-pen-to-square' },
   [CommandIDs.toggleStoryPresentationMode]: {
     iconClass: 'fa fa-book jgis-icon-adjust',
   },
