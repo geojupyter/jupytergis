@@ -448,7 +448,6 @@
 
 .jgis-story-map-overlay-content {
   width: 25%;
-  max-width: 30rem;
   max-height: 100%;
   overflow: auto;
   padding: 0.75rem;
