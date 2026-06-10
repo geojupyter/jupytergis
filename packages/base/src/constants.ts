@@ -74,6 +74,7 @@ const iconObject = {
   [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-scroll jgis-icon-adjust' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.togglePanel]: { iconClass: 'fa fa-layer-group jgis-icon-adjust' },
 };
 
 /**
