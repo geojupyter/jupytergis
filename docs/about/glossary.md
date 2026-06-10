@@ -62,7 +62,8 @@ Color map
    [perceptually uniform](https://chrisholdgraf.com/blog/2018/makeitpop)? Is it usable
    by people with color vision deficiencies? How does it interact with the other
    elements on the map (for example, does your basemap include colors that interact
-   poorly with your chosen color map for any form of human color vision)?
+   poorly with your chosen color map for any form of human color vision)? Also see
+   [understanding docs for WCAG SC 1.4.1 "Use of Color"](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html).
 
 Continuous color map
    A colormap which progresses between two colors. A continuous colormap is useful for
