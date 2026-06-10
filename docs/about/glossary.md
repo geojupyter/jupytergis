@@ -72,7 +72,8 @@ Sequential color map
 Divergent color map
    A colormap which diverges from a central value to extremes at each end. For example,
    a white center, dark red on one end, and dark blue on the other end. A divergent
-   colormap is useful for representing gain or loss, or anomaly.
+   colormap is useful for representing scalar values that diverge from a critical value
+   such as gain or loss (divergence from 0), or anomaly (divergence from average).
 
 Cyclic color map
    A colormap which ends where it starts. A cyclic colormap is useful for representing
