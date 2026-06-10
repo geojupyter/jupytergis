@@ -53,7 +53,7 @@ Visual encoding
    shape, color, or position ({footcite:t}`1984:cleveland-mcgill`, figure 1).
 
 Color map
-   A gradient or set of colors used to {term}`visually encode} data with color on the
+   A gradient or set of colors used to {term}`visually encode` data with color on the
    map.
 
    Sometimes referred to as a "color ramp" or "color scale".
