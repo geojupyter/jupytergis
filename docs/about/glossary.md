@@ -67,7 +67,7 @@ Color map
 
 Sequential color map
    A colormap which progresses between two colors. A sequential colormap is useful for
-   representing a scalar value like temperature or magnitude.
+   representing an ordered scalar value like temperature or magnitude.
 
 Divergent color map
    A colormap which diverges from a central value to extremes at each end. For example,
