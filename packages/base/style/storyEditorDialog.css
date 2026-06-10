@@ -3,8 +3,8 @@
 }
 
 .jgis-story-editor-dialog .jp-Dialog-content {
-  width: calc(80% - 4rem);
-  max-width: 40rem;
+  width: calc(90% - 4rem);
+  max-width: 56rem;
   height: fit-content;
   max-height: 80%;
   overflow: auto;
@@ -24,4 +24,32 @@
 
 .jgis-story-editor-dialog .jgis-story-editor-panel {
   padding: 0.5rem 0;
+}
+
+.jgis-story-editor-dialog-tabs {
+  box-shadow: none;
+}
+
+.jgis-story-editor-dialog-tab-content {
+  padding-top: 0;
+}
+
+.jgis-story-editor-segments-panel {
+  display: flex;
+  min-height: 20rem;
+  max-height: min(60vh, 32rem);
+}
+
+.jgis-story-editor-segments-list {
+  flex: 0 0 38%;
+  max-width: 14rem;
+  overflow: auto;
+  border-right: 1px solid var(--jp-border-color1);
+}
+
+.jgis-story-editor-segments-properties {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 0 0.75rem;
 }

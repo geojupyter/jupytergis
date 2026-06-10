@@ -1,19 +1,30 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISFormSchemaRegistry,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
-import StoryEditorPanel from './StoryEditorPanel';
+import { StoryEditorDialogBody } from './StoryEditorDialogBody';
 
 export interface IStoryEditorWidgetOptions {
   model: IJupyterGISModel;
   commands: CommandRegistry;
+  state: IStateDB;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
-      <StoryEditorPanel model={options.model} commands={options.commands} />
+      <StoryEditorDialogBody
+        model={options.model}
+        commands={options.commands}
+        state={options.state}
+        formSchemaRegistry={options.formSchemaRegistry}
+      />
     );
 
     super({

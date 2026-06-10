@@ -1869,7 +1869,12 @@ export function addCommands(
 
       return !current.model.jgisSettings.storyMapsDisabled;
     },
-    execute: Private.createStoryEditor(tracker, commands),
+    execute: Private.createStoryEditor(
+      tracker,
+      commands,
+      formSchemaRegistry,
+      state,
+    ),
     ...icons.get(CommandIDs.openStoryEditor),
   });
 
@@ -2070,6 +2075,8 @@ namespace Private {
   export function createStoryEditor(
     tracker: JupyterGISTracker,
     commands: CommandRegistry,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    state: IStateDB,
   ) {
     return async () => {
       const current = tracker.currentWidget;
@@ -2081,6 +2088,8 @@ namespace Private {
       const dialog = new StoryEditorWidget({
         model: current.model,
         commands,
+        state,
+        formSchemaRegistry,
       });
       await dialog.launch();
     };
