@@ -79,9 +79,9 @@ Cyclic color map
    A colormap which ends where it starts. A cyclic colormap is useful for representing
    cyclic values like phase or angle.
 
-Discrete color map
+Categorical color map
    A colormap with a small set of discrete colors, without transitions between them. A
-   discrete colormap is useful for representing categorical data, like land surface
+   categorical colormap is useful for representing categorical data, like land surface
    classification.
 
    Sometimes refered to as a "categorical" color map or "color palette".
