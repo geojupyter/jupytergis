@@ -257,6 +257,7 @@ select option {
   border-radius: 4px;
   margin-bottom: 8px;
   overflow: hidden;
+  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);
 }
 
 .jp-gis-grammar-layer-header {
@@ -264,8 +265,7 @@ select option {
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  background: var(--jp-layout-color2);
-  border-bottom: 1px solid var(--jp-border-color2);
+  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);
 }
 
 .jp-gis-grammar-layer-label {
@@ -280,7 +280,7 @@ select option {
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  background: var(--jp-layout-color2);
+  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);
   border-bottom: 1px solid var(--jp-border-color2);
   font-size: var(--jp-ui-font-size1);
 }
@@ -291,8 +291,20 @@ select option {
 }
 
 .jp-gis-grammar-transform-row input,
-.jp-gis-grammar-transform-row [data-slot='native-select'] {
+.jp-gis-grammar-transform-row [data-slot='native-select'],
+.jp-gis-grammar-transform-row select,
+.jp-gis-grammar-transform-row .jgis-native-select {
+  background: var(--jp-layout-color0);
+  background-color: var(--jp-layout-color0);
+  border-color: transparent;
+}
+
+.jp-gis-grammar-transform-row .jgis-button,
+.jp-gis-grammar-layer-header .jgis-button,
+.jp-gis-grammar-layer-section > .jp-gis-grammar-when-row .jgis-button {
+  background: transparent;
   background-color: transparent;
+  border-color: transparent;
 }
 
 /* ---------------------------------------------------------------------------
@@ -320,7 +332,7 @@ select option {
   gap: 0;
   padding: 2px 0;
   color: var(--jp-ui-font-color3);
-  background: var(--jp-layout-color2);
+  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);
   border: 1px solid var(--jp-border-color2);
   border-right: none;
   border-radius: 4px 0 0 4px;
@@ -400,6 +412,7 @@ select option {
   border: 1px solid var(--jp-border-color2);
   border-radius: 4px;
   overflow: hidden;
+  background: var(--jp-layout-color0);
 }
 
 /* Desktop: horizontal flow — input → scale+preview → output */
@@ -423,7 +436,6 @@ select option {
 }
 
 .jp-gis-grammar-scale-section .jp-gis-grammar-preview-btn {
-  flex: 1;
   min-width: 0;
 }
 
@@ -484,6 +496,7 @@ select option {
   .jp-gis-grammar-rule-grid > .jp-gis-grammar-arrow {
     align-self: flex-start;
     text-align: left;
+    transform: rotate(90deg);
   }
 
   .jp-gis-grammar-scale-section .jgis-native-select {
@@ -497,6 +510,7 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: var(--jp-layout-color0);
 }
 
 /* Preview button spans all channel rows — stretches vertically */
@@ -528,7 +542,7 @@ select option {
 }
 
 .jp-gis-grammar-preview-btn:hover {
-  background: var(--jp-layout-color2);
+  background: color-mix(in srgb, var(--jp-layout-color2) 40%, transparent);
 }
 
 .jp-gis-grammar-preview-btn:hover .jp-gis-grammar-preview-chevron {
@@ -588,6 +602,10 @@ select option {
 
 /* When clause */
 
+.jp-gis-grammar-layer-section > .jp-gis-grammar-when-row {
+  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);
+}
+
 .jp-gis-grammar-when-row {
   display: flex;
   align-items: center;
@@ -595,7 +613,7 @@ select option {
   gap: 4px;
   padding: 3px 6px 4px;
   border-top: 1px solid var(--jp-border-color3);
-  background: var(--jp-layout-color2);
+  background: var(--jp-layout-color1);
 }
 
 .jp-gis-grammar-when-label {
@@ -610,8 +628,8 @@ select option {
   padding: 0 4px;
   font-size: var(--jp-ui-font-size0);
   border-radius: 10px;
-  border: 1px solid var(--jp-border-color2);
-  background: var(--jp-layout-color2);
+  border: 1px solid transparent;
+  background: var(--jp-layout-color0);
   color: var(--jp-ui-font-color1);
   cursor: pointer;
 }
@@ -621,8 +639,8 @@ select option {
   align-items: center;
   gap: 2px;
   padding: 1px 6px;
-  background: var(--jp-layout-color2);
-  border: 1px solid var(--jp-border-color2);
+  background: var(--jp-layout-color0);
+  border: 1px solid transparent;
   border-radius: 10px;
   font-size: var(--jp-ui-font-size0);
   white-space: nowrap;
@@ -638,8 +656,9 @@ select option {
   font-size: 11px;
 }
 
-.jp-gis-grammar-when-add-btn {
-  background: none;
+.jgis-button.jp-gis-grammar-when-add-btn {
+  background: transparent;
+  background-color: transparent;
   border: 1px dashed var(--jp-border-color2);
   border-radius: 10px;
   padding: 1px 8px;

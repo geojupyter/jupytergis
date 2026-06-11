@@ -505,10 +505,11 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 
       <div className="jp-gis-symbology-button-container">
         <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          variant="ghost"
           style={{ margin: '0 0 0.5rem 1rem' }}
           onClick={addRow}
         >
+          <FontAwesomeIcon icon={faPlus} />
           Add Mapping
         </Button>
       </div>
