@@ -670,6 +670,7 @@ interface IMappingRowProps {
   availableFields: string[];
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
+  header?: React.ReactNode;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -683,6 +684,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   availableFields,
   featureValues,
   isRaster = false,
+  header,
   onChange,
   onDelete,
 }) => {
@@ -791,6 +793,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
   return (
     <div className="jp-gis-grammar-rule">
+      {header}
       {/* CSS grid: col1=field col2=scheme col3=preview col4=arrow col5=channel col6=× */}
       <div className="jp-gis-grammar-rule-grid">
         {/* Field selector — row 1. Layout depends on fieldCountForScale. */}

@@ -291,6 +291,64 @@ select option {
 }
 
 /* ---------------------------------------------------------------------------
+ * Grammar reorder pill (drag handle + arrows above each rule)
+ * --------------------------------------------------------------------------*/
+
+.jp-gis-grammar-drag-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-gis-grammar-reorder-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--jp-border-color2);
+  color: var(--jp-ui-font-color3);
+}
+
+.jp-gis-grammar-reorder-bar .jgis-button {
+  height: 20px;
+  width: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  color: var(--jp-ui-font-color3);
+  background: none;
+}
+
+.jp-gis-grammar-reorder-bar .jgis-button:hover:not(:disabled) {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color3);
+}
+
+.jp-gis-grammar-reorder-bar .jgis-button:disabled {
+  opacity: 0.3;
+}
+
+.jp-gis-grammar-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: grab;
+  color: var(--jp-ui-font-color3);
+}
+
+.jp-gis-grammar-drag-handle:hover {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color3);
+}
+
+.jp-gis-grammar-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ---------------------------------------------------------------------------
  * Grammar rule rows
  * --------------------------------------------------------------------------*/
 

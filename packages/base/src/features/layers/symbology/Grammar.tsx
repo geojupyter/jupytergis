@@ -9,6 +9,7 @@
 import {
   faArrowDown,
   faArrowUp,
+  faGripVertical,
   faPlus,
   faTrash,
   faXmark,
@@ -206,6 +207,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 }) => {
   const [addingLayerWhen, setAddingLayerWhen] = useState(false);
   const dragIndexRef = useRef<number | null>(null);
+  const dragOverRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const moveRow = useCallback(
@@ -412,27 +414,33 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         />
       ))}
 
-      {/* Mapping rows — draggable to reorder */}
+      {/* Mapping rows — reorder bar (drag + arrows) above each rule */}
       {layer.rows.map((row, i) => (
         <div
           key={row.id}
-          draggable
-          onDragStart={() => {
-            dragIndexRef.current = i;
-          }}
+          className="jp-gis-grammar-drag-wrapper"
+          draggable={dragIndexRef.current !== null}
           onDragOver={e => {
             e.preventDefault();
-            setDragOverIndex(i);
+            const rect = e.currentTarget.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            const idx = e.clientY < midY ? i : i + 1;
+            dragOverRef.current = idx;
+            setDragOverIndex(idx);
           }}
           onDrop={() => {
-            if (dragIndexRef.current !== null) {
-              moveRow(dragIndexRef.current, i);
+            const over = dragOverRef.current;
+            if (dragIndexRef.current !== null && over !== null) {
+              const to = over > dragIndexRef.current ? over - 1 : over;
+              moveRow(dragIndexRef.current, to);
             }
             dragIndexRef.current = null;
+            dragOverRef.current = null;
             setDragOverIndex(null);
           }}
           onDragEnd={() => {
             dragIndexRef.current = null;
+            dragOverRef.current = null;
             setDragOverIndex(null);
           }}
           style={{
@@ -440,7 +448,12 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               dragOverIndex === i && dragIndexRef.current !== i
                 ? '2px solid var(--jp-brand-color1)'
                 : '2px solid transparent',
-            cursor: 'grab',
+            borderBottom:
+              dragOverIndex === layer.rows.length &&
+              i === layer.rows.length - 1 &&
+              dragIndexRef.current !== i
+                ? '2px solid var(--jp-brand-color1)'
+                : '2px solid transparent',
           }}
         >
           <MappingRow
@@ -450,6 +463,44 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             isRaster={isRaster}
             onChange={updated => updateRow(i, updated)}
             onDelete={() => removeRow(i)}
+            header={
+              layer.rows.length > 1 ? (
+                <div className="jp-gis-grammar-reorder-bar">
+                  <Button
+                    type="button"
+                    disabled={i === 0}
+                    onClick={() => moveRow(i, i - 1)}
+                    title="Move up"
+                  >
+                    <FontAwesomeIcon icon={faArrowUp} />
+                  </Button>
+                  <div
+                    className="jp-gis-grammar-drag-handle"
+                    draggable
+                    onDragStart={e => {
+                      dragIndexRef.current = i;
+                      const wrapper = e.currentTarget.closest(
+                        '.jp-gis-grammar-drag-wrapper',
+                      );
+                      if (wrapper) {
+                        e.dataTransfer.setDragImage(wrapper, 0, 0);
+                      }
+                    }}
+                    title="Drag to reorder"
+                  >
+                    <FontAwesomeIcon icon={faGripVertical} />
+                  </div>
+                  <Button
+                    type="button"
+                    disabled={i === layer.rows.length - 1}
+                    onClick={() => moveRow(i, i + 1)}
+                    title="Move down"
+                  >
+                    <FontAwesomeIcon icon={faArrowDown} />
+                  </Button>
+                </div>
+              ) : undefined
+            }
           />
         </div>
       ))}
