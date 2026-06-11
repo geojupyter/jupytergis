@@ -7,7 +7,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
-import { StoryEditorDialogBody } from './StoryEditorDialogBody';
+import { StoryEditorDialogBodyDraft } from './StoryEditorDialogBodyDraft';
 
 export interface IStoryEditorWidgetOptions {
   model: IJupyterGISModel;
@@ -19,7 +19,7 @@ export interface IStoryEditorWidgetOptions {
 export class StoryEditorWidget extends Dialog<boolean> {
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
-      <StoryEditorDialogBody
+      <StoryEditorDialogBodyDraft
         model={options.model}
         commands={options.commands}
         state={options.state}
