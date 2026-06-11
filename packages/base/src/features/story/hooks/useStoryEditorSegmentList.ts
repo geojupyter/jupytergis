@@ -3,7 +3,11 @@ import { CommandRegistry } from '@lumino/commands';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
+import type {
+  IStorySegmentViewItem,
+  StorySegmentDisplayMode,
+} from '@/src/features/story/types/types';
+import { updateSegmentContentMode as applySegmentContentMode } from '@/src/features/story/utils/storySegmentContent';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
 function getSingleSelectedLayerId(
@@ -60,6 +64,10 @@ interface IUseStoryEditorSegmentListResult {
   selectSegment: (segmentId: string) => void;
   addSegment: () => void;
   updateStory: (patch: Partial<IJGISStoryMap>) => void;
+  updateSegmentContentMode: (
+    segmentId: string,
+    mode: StorySegmentDisplayMode,
+  ) => void;
 }
 
 export function useStoryEditorSegmentList(
@@ -148,6 +156,13 @@ export function useStoryEditorSegmentList(
     void commands.execute(CommandIDs.addStorySegment);
   }, [commands]);
 
+  const updateSegmentContentMode = useCallback(
+    (segmentId: string, mode: StorySegmentDisplayMode) => {
+      applySegmentContentMode(model, segmentId, mode);
+    },
+    [model],
+  );
+
   useEffect(() => {
     const handleSegmentAdded = (
       _sender: IJupyterGISModel,
@@ -175,5 +190,6 @@ export function useStoryEditorSegmentList(
     selectSegment,
     addSegment,
     updateStory,
+    updateSegmentContentMode,
   };
 }

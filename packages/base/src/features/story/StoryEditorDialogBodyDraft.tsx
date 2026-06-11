@@ -2,16 +2,18 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { faMap } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
+import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
-import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
+import type {
+  IStorySegmentViewItem,
+  StorySegmentDisplayMode,
+} from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getStorySegmentDisplayTitle } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
@@ -30,8 +32,6 @@ export interface IStoryEditorDialogBodyDraftProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
-type SegmentStopType = 'map' | 'markdown';
-
 const DUMMY_LAYERS = [
   { name: 'floods', visible: true, changed: true },
   { name: 'boundaries', visible: true, changed: true },
@@ -40,16 +40,15 @@ const DUMMY_LAYERS = [
 
 function SegmentEditorPlaceholder({
   segment,
-  stopType,
-  onStopTypeChange,
+  onContentModeChange,
 }: {
   segment: IStorySegmentViewItem;
-  stopType: SegmentStopType;
-  onStopTypeChange: (type: SegmentStopType) => void;
+  onContentModeChange: (mode: StorySegmentDisplayMode) => void;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(false);
   const [animationOpen, setAnimationOpen] = useState(false);
   const title = getStorySegmentDisplayTitle(segment);
+  const stopType = getSegmentDisplayMode(segment.activeSlide);
 
   return (
     <div className="jgis-story-editor-draft-editor">
@@ -65,38 +64,10 @@ function SegmentEditorPlaceholder({
         </Button>
       </div>
 
-      <section className="jgis-story-editor-draft-section">
-        <div className="jgis-story-editor-draft-section-label">
-          What is this stop?
-        </div>
-        <div className="jgis-story-editor-draft-stop-type-picker">
-          <button
-            type="button"
-            className={`jgis-story-editor-draft-stop-type-card${
-              stopType === 'map'
-                ? ' jgis-story-editor-draft-stop-type-card--selected'
-                : ''
-            }`}
-            onClick={() => onStopTypeChange('map')}
-          >
-            <FontAwesomeIcon icon={faMap} />
-            <strong>Map stop</strong>
-            <span>Saved map view with optional title and caption</span>
-          </button>
-          <button
-            type="button"
-            className={`jgis-story-editor-draft-stop-type-card${
-              stopType === 'markdown'
-                ? ' jgis-story-editor-draft-stop-type-card--selected'
-                : ''
-            }`}
-            onClick={() => onStopTypeChange('markdown')}
-          >
-            <strong>Text stop</strong>
-            <span>Full-screen markdown chapter</span>
-          </button>
-        </div>
-      </section>
+      <SegmentStopTypePicker
+        value={stopType}
+        onChange={onContentModeChange}
+      />
 
       {stopType === 'map' ? (
         <>
@@ -279,21 +250,10 @@ export function StoryEditorDialogBodyDraft({
     selectSegment,
     addSegment,
     updateStory,
+    updateSegmentContentMode,
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
-  const [stopTypeOverride, setStopTypeOverride] =
-    useState<SegmentStopType | null>(null);
-
-  useEffect(() => {
-    setStopTypeOverride(null);
-  }, [selectedSegmentId]);
-
-  const stopType =
-    stopTypeOverride ??
-    (selectedSegment
-      ? getSegmentDisplayMode(selectedSegment.activeSlide)
-      : 'map');
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor-draft">
@@ -316,8 +276,9 @@ export function StoryEditorDialogBodyDraft({
           {selectedSegment ? (
             <SegmentEditorPlaceholder
               segment={selectedSegment}
-              stopType={stopType}
-              onStopTypeChange={setStopTypeOverride}
+              onContentModeChange={mode => {
+                updateSegmentContentMode(selectedSegment.id, mode);
+              }}
             />
           ) : (
             <SegmentEditorEmptyState />
