@@ -4,7 +4,6 @@ import {
   IAnnotationModel,
   IDict,
   IGeoTiffSource,
-  IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -87,7 +86,6 @@ import Draw, { DrawEvent } from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import {
-  Heatmap as HeatmapLayer,
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
@@ -174,7 +172,6 @@ type OlLayerTypes =
   | VectorImageLayer
   | VectorTileLayer
   | GeoTiffLayer
-  | HeatmapLayer
   | StacLayer
   | ImageLayer<any>
   | LayerGroup;
@@ -1630,20 +1627,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
         break;
       }
-      case 'HeatmapLayer': {
-        layerParameters = layer.parameters as IHeatmapLayer;
-
-        newMapLayer = new HeatmapLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          blur: layerParameters.blur ?? 15,
-          radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.symbologyState?.gradient,
-        });
-
-        break;
-      }
       case 'StacLayer': {
         layerParameters = layer.parameters as IStacLayer;
 
@@ -1945,27 +1928,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
-      case 'HeatmapLayer': {
-        const layerParams = layer.parameters as IHeatmapLayer;
-        const heatmap = mapLayer as HeatmapLayer;
-
-        heatmap.setOpacity(layerParams.opacity ?? 1);
-        heatmap.setBlur(layerParams.blur ?? 15);
-        heatmap.setRadius(layerParams.radius ?? 8);
-        heatmap.setGradient(
-          layerParams.symbologyState?.gradient ?? [
-            '#00f',
-            '#0ff',
-            '#0f0',
-            '#ff0',
-            '#f00',
-          ],
-        );
-
-        this.handleTemporalController(id, layer);
-
-        break;
-      }
       case 'StacLayer':
         mapLayer.setOpacity(layer.parameters?.opacity || 1);
         break;
@@ -1992,9 +1954,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const layerParams = layer.parameters as IHeatmapLayer;
+    const layerParams = layer.parameters;
 
-    const source: VectorSource = this._sources[layerParams.source];
+    const source: VectorSource = this._sources[layerParams?.source];
 
     if (layer.filters?.appliedFilters.length) {
       // Heatmaps don't work with existing filter system so this should be fine
@@ -2377,7 +2339,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !!selectedLayers &&
       Object.keys(selectedLayers).length === 1 &&
       !this._model.getSource(selectedLayerId!) &&
-      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
+      ['VectorLayer'].includes(layerType ?? '');
     const displayTemporalController =
       isTemporalControllerActive && isSelectionValid;
 
