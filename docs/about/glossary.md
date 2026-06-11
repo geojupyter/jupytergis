@@ -84,7 +84,8 @@ Categorical color map
    categorical colormap is useful for representing categorical data, like land surface
    classification.
 
-   Sometimes refered to as a "categorical" color map or "color palette".
+   Sometimes refered to as a "discrete" or "qualitative" color map, or a "color
+   palette".
 ```
 
 ## References
