@@ -314,7 +314,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         </span>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           onClick={addTransform}
           title="Add transform"
         >
@@ -325,7 +325,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {totalLayers > 1 && onMoveUp && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             style={{ height: 32, width: 32 }}
             onClick={onMoveUp}
             title="Move layer up"
@@ -336,7 +336,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {totalLayers > 1 && onMoveDown && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             style={{ height: 32, width: 32 }}
             onClick={onMoveDown}
             title="Move layer down"
@@ -347,7 +347,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {totalLayers > 1 && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             style={{ height: 32, width: 32 }}
             onClick={onDelete}
             title="Remove layer"

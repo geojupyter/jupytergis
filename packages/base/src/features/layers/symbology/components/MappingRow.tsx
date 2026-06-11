@@ -830,10 +830,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             title={expanded ? 'Collapse editor' : 'Edit scale'}
           >
             <ScalePreview scale={row.scale} />
-            <span
-              className="jp-gis-grammar-preview-chevron"
-              aria-hidden="true"
-            >
+            <span className="jp-gis-grammar-preview-chevron" aria-hidden="true">
               {expanded ? '▾' : '▸'}
             </span>
           </button>
@@ -864,7 +861,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               </div>
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="icon-md"
                 className="jp-mod-styled"
                 onClick={() => removeChannel(ch)}

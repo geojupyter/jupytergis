@@ -290,6 +290,11 @@ select option {
   white-space: nowrap;
 }
 
+.jp-gis-grammar-transform-row input,
+.jp-gis-grammar-transform-row [data-slot='native-select'] {
+  background-color: transparent;
+}
+
 /* ---------------------------------------------------------------------------
  * Grammar reorder pill (drag handle + arrows above each rule)
  * --------------------------------------------------------------------------*/
@@ -444,11 +449,13 @@ select option {
   box-sizing: border-box;
 }
 
-.jp-gis-grammar-rule-grid [data-slot='native-select'] {
+.jp-gis-grammar-rule-grid [data-slot='native-select'],
+.jp-gis-grammar-transform-row [data-slot='native-select'] {
   border-color: transparent;
 }
 
-.jp-gis-grammar-rule-grid [data-slot='native-select']:hover {
+.jp-gis-grammar-rule-grid [data-slot='native-select']:hover,
+.jp-gis-grammar-transform-row [data-slot='native-select']:hover {
   border-color: var(--jp-border-color1);
 }
 
@@ -495,7 +502,7 @@ select option {
 /* Preview button spans all channel rows — stretches vertically */
 .jp-gis-grammar-preview-btn {
   background: none;
-  border: 1px solid var(--jp-border-color2);
+  border: 1px solid transparent;
   border-radius: 4px;
   padding: 4px 8px;
   cursor: pointer;
@@ -509,12 +516,19 @@ select option {
   overflow: hidden;
 }
 
+.jp-gis-grammar-preview-btn:hover {
+  border-color: var(--jp-border-color2);
+}
+
 .jp-gis-grammar-preview-chevron {
   flex-shrink: 0;
-  margin-left: auto;
   color: var(--jp-ui-font-color3);
   font-size: 12px;
   line-height: 1;
+}
+
+.jp-gis-grammar-preview-btn:hover {
+  background: var(--jp-layout-color2);
 }
 
 .jp-gis-grammar-preview-btn:hover .jp-gis-grammar-preview-chevron {
@@ -581,7 +595,7 @@ select option {
   gap: 4px;
   padding: 3px 6px 4px;
   border-top: 1px solid var(--jp-border-color3);
-  background: var(--jp-layout-color1);
+  background: var(--jp-layout-color2);
 }
 
 .jp-gis-grammar-when-label {
