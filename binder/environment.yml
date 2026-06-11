@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   # runtime dependencies
-  - python >=3.12,<3.14  # jupyter-tiler doesn't support Python 3.14
+  - python >=3.12,<3.14 # jupyter-tiler doesn't support Python 3.14
   - nodejs >=24,<25
   - yarn
 
