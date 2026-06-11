@@ -19,6 +19,12 @@ export interface IStorySegmentViewItem {
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
 }
 
+export interface IListStoryTitleBarContentProps {
+  segmentItems: IStorySegmentViewItem[];
+  currentIndex: number;
+  onSegmentClick: (index: number) => void;
+}
+
 export interface IListStoryMarkdownSegment {
   id: string;
   index: number;
