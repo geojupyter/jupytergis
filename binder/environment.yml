@@ -9,6 +9,3 @@ dependencies:
 
   # Dependencies
   - jupyterlab >=4.5.1
-
-  # Binder
-  - jupyterlab-link-share
