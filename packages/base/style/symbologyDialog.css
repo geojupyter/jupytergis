@@ -509,6 +509,18 @@ select option {
   overflow: hidden;
 }
 
+.jp-gis-grammar-preview-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--jp-ui-font-color3);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.jp-gis-grammar-preview-btn:hover .jp-gis-grammar-preview-chevron {
+  color: var(--jp-ui-font-color1);
+}
+
 .jp-gis-scale-preview {
   display: flex;
   align-items: center;

@@ -830,6 +830,12 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             title={expanded ? 'Collapse editor' : 'Edit scale'}
           >
             <ScalePreview scale={row.scale} />
+            <span
+              className="jp-gis-grammar-preview-chevron"
+              aria-hidden="true"
+            >
+              {expanded ? '▾' : '▸'}
+            </span>
           </button>
         </div>
 
