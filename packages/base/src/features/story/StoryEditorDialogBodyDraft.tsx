@@ -1,11 +1,9 @@
-import {
-  IJGISFormSchemaRegistry,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useRef, useState } from 'react';
 
+import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
@@ -15,7 +13,11 @@ import type {
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import { getStorySegmentDisplayTitle } from '@/src/features/story/utils/storySegmentViewItems';
+import {
+  getStoryMarkdownFromSlide,
+  getStorySegmentDisplayTitle,
+} from '@/src/features/story/utils/storySegmentViewItems';
+import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
 import { Button } from '@/src/shared/components/Button';
 import {
   Collapsible,
@@ -41,13 +43,17 @@ const DUMMY_LAYERS = [
 function SegmentEditorPlaceholder({
   segment,
   onContentModeChange,
+  onContentChange,
 }: {
   segment: IStorySegmentViewItem;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
+  onContentChange: (patch: SegmentContentPatch) => void;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(false);
   const [animationOpen, setAnimationOpen] = useState(false);
-  const title = getStorySegmentDisplayTitle(segment);
+  const displayTitle = getStorySegmentDisplayTitle(segment);
+  const contentTitle = segment.activeSlide?.content?.title ?? '';
+  const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const stopType = getSegmentDisplayMode(segment.activeSlide);
 
   return (
@@ -57,17 +63,16 @@ function SegmentEditorPlaceholder({
           <div className="jgis-story-editor-draft-editor-kicker">
             Segment {segment.index + 1}
           </div>
-          <h3 className="jgis-story-editor-draft-editor-title">{title}</h3>
+          <h3 className="jgis-story-editor-draft-editor-title">
+            {displayTitle}
+          </h3>
         </div>
         <Button variant="ghost" size="sm">
           ⋮
         </Button>
       </div>
 
-      <SegmentStopTypePicker
-        value={stopType}
-        onChange={onContentModeChange}
-      />
+      <SegmentStopTypePicker value={stopType} onChange={onContentModeChange} />
 
       {stopType === 'map' ? (
         <>
@@ -98,28 +103,24 @@ function SegmentEditorPlaceholder({
               Content
             </CollapsibleTrigger>
             <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
+              <label className="jgis-story-editor-draft-field">
+                <span>Title</span>
+                <Input
+                  value={contentTitle}
+                  onChange={event => {
+                    onContentChange({ title: event.target.value });
+                  }}
+                />
+              </label>
               <div className="jgis-story-editor-draft-image-placeholder">
                 Hero image placeholder
               </div>
-              <label className="jgis-story-editor-draft-field">
-                <span>Title</span>
-                <Input defaultValue={title} readOnly />
-              </label>
-              <div className="jgis-story-editor-draft-markdown-tabs">
-                <span className="jgis-story-editor-draft-markdown-tab jgis-story-editor-draft-markdown-tab--active">
-                  Write
-                </span>
-                <span className="jgis-story-editor-draft-markdown-tab">
-                  Preview
-                </span>
-              </div>
-              <textarea
-                className="jgis-story-editor-draft-textarea"
-                readOnly
+              <SegmentMarkdownEditor
+                value={markdown}
+                onChange={nextMarkdown => {
+                  onContentChange({ markdown: nextMarkdown });
+                }}
                 rows={4}
-                defaultValue={
-                  '## Rising waters\n\nIn 2019, rainfall exceeded historical norms across the basin…'
-                }
               />
             </CollapsibleContent>
           </Collapsible>
@@ -192,21 +193,13 @@ function SegmentEditorPlaceholder({
             Content
           </CollapsibleTrigger>
           <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
-            <div className="jgis-story-editor-draft-markdown-tabs">
-              <span className="jgis-story-editor-draft-markdown-tab jgis-story-editor-draft-markdown-tab--active">
-                Write
-              </span>
-              <span className="jgis-story-editor-draft-markdown-tab">
-                Preview
-              </span>
-            </div>
-            <textarea
-              className="jgis-story-editor-draft-textarea jgis-story-editor-draft-textarea--tall"
-              readOnly
+            <SegmentMarkdownEditor
+              value={markdown}
+              onChange={nextMarkdown => {
+                onContentChange({ markdown: nextMarkdown });
+              }}
+              tall
               rows={10}
-              defaultValue={
-                '# Conclusion\n\nThese events highlight the need for improved early warning systems and resilient infrastructure planning.'
-              }
             />
           </CollapsibleContent>
         </Collapsible>
@@ -251,6 +244,7 @@ export function StoryEditorDialogBodyDraft({
     addSegment,
     updateStory,
     updateSegmentContentMode,
+    updateSegmentContent,
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
@@ -275,9 +269,13 @@ export function StoryEditorDialogBodyDraft({
         <main className="jgis-story-editor-draft-workspace">
           {selectedSegment ? (
             <SegmentEditorPlaceholder
+              key={selectedSegment.id}
               segment={selectedSegment}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
+              }}
+              onContentChange={patch => {
+                updateSegmentContent(selectedSegment.id, patch);
               }}
             />
           ) : (

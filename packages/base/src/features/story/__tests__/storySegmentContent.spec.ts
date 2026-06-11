@@ -1,4 +1,7 @@
-import { normalizeSegmentContentForMode } from '@/src/features/story/utils/storySegmentContent';
+import {
+  normalizeSegmentContentForMode,
+  updateSegmentContent,
+} from '@/src/features/story/utils/storySegmentContent';
 
 describe('normalizeSegmentContentForMode', () => {
   it('keeps map fields when switching to map', () => {
@@ -33,6 +36,37 @@ describe('normalizeSegmentContentForMode', () => {
     ).toEqual({
       contentMode: 'markdown',
       markdown: 'Caption text',
+    });
+  });
+});
+
+describe('updateSegmentContent', () => {
+  it('merges content fields on the segment layer', () => {
+    const updateObjectParameters = jest.fn();
+    const model = {
+      getLayer: jest.fn(() => ({
+        type: 'StorySegmentLayer',
+        parameters: {
+          content: {
+            contentMode: 'map',
+            title: 'Old title',
+            markdown: 'Old body',
+          },
+        },
+      })),
+      sharedModel: { updateObjectParameters },
+    };
+
+    updateSegmentContent(model as never, 'segment-1', {
+      markdown: 'New body',
+    });
+
+    expect(updateObjectParameters).toHaveBeenCalledWith('segment-1', {
+      content: {
+        contentMode: 'map',
+        title: 'Old title',
+        markdown: 'New body',
+      },
     });
   });
 });

@@ -448,6 +448,12 @@
   background: var(--jp-layout-color1);
 }
 
+.jgis-story-editor-draft-markdown-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .jgis-story-editor-draft-markdown-tabs {
   display: flex;
   gap: 0.5rem;
@@ -458,6 +464,9 @@
   padding: 0.2rem 0.45rem;
   border-radius: 4px;
   color: var(--jp-ui-font-color2);
+  border: none;
+  background: transparent;
+  cursor: pointer;
 }
 
 .jgis-story-editor-draft-markdown-tab--active {
@@ -480,6 +489,21 @@
 
 .jgis-story-editor-draft-textarea--tall {
   min-height: 10rem;
+}
+
+.jgis-story-editor-draft-markdown-preview {
+  min-height: 6rem;
+  padding: 0.5rem;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 4px;
+  background: var(--jp-layout-color1);
+  overflow: auto;
+}
+
+.jgis-story-editor-draft-markdown-preview-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--jp-ui-font-color2);
 }
 
 .jgis-story-editor-draft-layer-list {
