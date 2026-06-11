@@ -32,7 +32,7 @@ _("mamba", "uninstall", "-n", "notebook", "jupyter-resource-usage")
 _(sys.executable, "-m", "pip", "check")
 
 # install the labextension
-_(sys.executable, "-m", "pip", "install", ".")
+_(sys.executable, "scripts/dev-install.py")
 
 # verify the environment the extension didn't break anything
 _(sys.executable, "-m", "pip", "check")
