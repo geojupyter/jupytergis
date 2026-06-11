@@ -1934,11 +1934,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  /**
-   * Heatmap layers don't work with style based filtering.
-   * This modifies the features in the underlying source
-   * to work with the temporal controller
-   */
   handleTemporalController = (id: string, layer: IJGISLayer) => {
     const selectedLayer = this._model?.localState?.selected?.value;
 
@@ -1954,12 +1949,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const layerParams = layer.parameters;
+    const layerParams = layer.parameters as IVectorLayer;
 
-    const source: VectorSource = this._sources[layerParams?.source];
+    const source: VectorSource = this._sources[layerParams.source];
 
     if (layer.filters?.appliedFilters.length) {
-      // Heatmaps don't work with existing filter system so this should be fine
       const activeFilter = layer.filters.appliedFilters[0];
 
       // Save original features on first filter application
@@ -2339,7 +2333,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !!selectedLayers &&
       Object.keys(selectedLayers).length === 1 &&
       !this._model.getSource(selectedLayerId!) &&
-      ['VectorLayer'].includes(layerType ?? '');
+      layerType === 'VectorLayer';
     const displayTemporalController =
       isTemporalControllerActive && isSelectionValid;
 

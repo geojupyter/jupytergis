@@ -38,7 +38,7 @@ import type { IGrammarLayer } from './_interface/project/symbology';
 export interface IGrammarSymbologyState {
   /**
    * Ordered list of independent rendering layers sharing the same source.
-   * Each layer produces one renderer layer (VectorLayer).
+   * Each layer produces one renderer layer (Vector, Image, WebGLTile, etc.).
    * Layers are rendered in order (first = bottom).
    */
   layers: IGrammarLayer[];
