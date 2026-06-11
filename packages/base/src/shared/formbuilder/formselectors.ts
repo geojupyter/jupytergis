@@ -2,7 +2,6 @@ import { LayerType, SourceType } from '@jupytergis/schema';
 import * as React from 'react';
 
 import {
-  HeatmapLayerPropertiesForm,
   HillshadeLayerPropertiesForm,
   StorySegmentLayerPropertiesForm,
   LayerPropertiesForm,
@@ -36,9 +35,6 @@ export function getLayerTypeForm(
       break;
     case 'GeoTiffLayer':
       LayerForm = GeoTiffLayerPropertiesForm;
-      break;
-    case 'HeatmapLayer':
-      LayerForm = HeatmapLayerPropertiesForm;
       break;
     case 'StorySegmentLayer':
       LayerForm = StorySegmentLayerPropertiesForm;
