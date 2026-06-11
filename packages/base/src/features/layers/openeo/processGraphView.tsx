@@ -1,70 +1,31 @@
 import { Notification } from '@jupyterlab/apputils';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import * as React from 'react';
 
-// `@openeo/vue-components` is a Vue CLI `wc-async` build (an entry file plus
-// ~150 sibling chunks loaded relative to its own script URL), so it cannot be
-// `import`ed cleanly through JupyterLab's webpack. We ship the prebuilt
-// `assets/` folder as static files of the jupytergis-core labextension (see
-// `cp:openeo-vue-components` in python/jupytergis_core/package.json) and load
-// the entry via a `<script>` tag, which lets the wc-async runtime pull its
-// sibling chunks as same-directory siblings.
-const VUE_COMPONENTS_VERSION = '2.23.3';
-function bundleUrl(): string {
-  return URLExt.join(
-    PageConfig.getOption('fullLabextensionsUrl'),
-    '@jupytergis/jupytergis-core/static/openeo-vue-components/openeo.js',
-  );
-}
+// The openEO graph editor is the `<openeo-model-builder>` custom element,
+// compiled into this bundle from @openeo/vue-components' `ModelBuilder.vue`
+// SFC (see registerModelBuilder.ts + the vue-loader rules in the core
+// labextension's webpack.config.js).
+let _registerPromise: Promise<void> | null = null;
 
-let _bundlePromise: Promise<void> | null = null;
-
-function ensureOpenEOVueBundle(): Promise<void> {
-  if (typeof window === 'undefined') {
+function ensureOpenEOModelBuilder(): Promise<void> {
+  if (typeof window === 'undefined' || !window.customElements) {
     return Promise.reject(new Error('window not available'));
   }
-  if ((window as any).customElements?.get('openeo-model-builder')) {
+  if (window.customElements.get('openeo-model-builder')) {
     return Promise.resolve();
   }
-  if (_bundlePromise) {
-    return _bundlePromise;
+  if (!_registerPromise) {
+    _registerPromise = import('./registerModelBuilder')
+      .then(({ registerOpenEOModelBuilder }) => {
+        registerOpenEOModelBuilder();
+      })
+      .catch(err => {
+        // Drop the cached promise so a later mount can retry the load.
+        _registerPromise = null;
+        throw err;
+      });
   }
-  _bundlePromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[data-openeo-vue-components="${VUE_COMPONENTS_VERSION}"]`,
-    );
-    const script = existing ?? document.createElement('script');
-    if (!existing) {
-      script.src = bundleUrl();
-      script.async = true;
-      script.dataset.openeoVueComponents = VUE_COMPONENTS_VERSION;
-      document.head.appendChild(script);
-    }
-    const check = () => !!window.customElements?.get('openeo-model-builder');
-    if (check()) {
-      resolve();
-      return;
-    }
-    script.addEventListener('load', () => {
-      const start = Date.now();
-      const poll = () => {
-        if (check()) {
-          resolve();
-          return;
-        }
-        if (Date.now() - start > 10000) {
-          reject(new Error('openeo-model-builder not registered after load'));
-          return;
-        }
-        setTimeout(poll, 50);
-      };
-      poll();
-    });
-    script.addEventListener('error', () =>
-      reject(new Error(`Failed to load ${bundleUrl()}`)),
-    );
-  });
-  return _bundlePromise;
+  return _registerPromise;
 }
 
 interface IProcessGraphViewProps {
@@ -118,7 +79,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
 
   React.useEffect(() => {
     let cancelled = false;
-    ensureOpenEOVueBundle()
+    ensureOpenEOModelBuilder()
       .then(() => {
         if (!cancelled) {
           setReady(true);
