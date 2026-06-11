@@ -17,7 +17,6 @@ from jupytergis_core.schema import (
     IGeoParquetSource,
     IGeoTiffLayer,
     IGeoTiffSource,
-    IHeatmapLayer,
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
@@ -618,78 +617,6 @@ class GISDocument(CommWidget):
             "name": name,
             "visible": True,
             "parameters": {"source": source_id},
-        }
-
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-
-    def add_heatmap_layer(
-        self,
-        feature: str,
-        path: str | Path | None = None,
-        data: dict | None = None,
-        name: str = "Heatmap Layer",
-        opacity: float = 1,
-        blur: int = 15,
-        radius: int = 8,
-        gradient: list[str] | None = None,
-    ):
-        """Add a Heatmap Layer to the document.
-
-        :param name: The name that will be used for the object in the document.
-        :param path: The path to the JSON file to embed into the jGIS file.
-        :param data: The raw GeoJSON data to embed into the jGIS file.
-        :param gradient: The color gradient to apply.
-        :param opacity: The opacity, between 0 and 1.
-        :param blur: The blur size in pixels
-        :param radius: The radius size in pixels
-        :param feature: The feature to use to heatmap weights
-        """
-        if isinstance(path, Path):
-            path = str(path)
-
-        if path is None and data is None:
-            raise ValueError("Cannot create a GeoJSON source without data")
-
-        if path is not None and data is not None:
-            raise ValueError("Cannot set GeoJSON source data and path at the same time")
-
-        if path is not None:
-            # We cannot put the path to the file in the model
-            # We don't know where the kernel runs/live
-            # The front-end would have no way of finding the file reliably
-            # TODO Support urls to JSON files, in that case, don't embed the data
-            with open(path) as fobj:
-                parameters = {"data": json.loads(fobj.read())}
-
-        if data is not None:
-            parameters = {"data": data}
-
-        if gradient is None:
-            gradient = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
-
-        source = {
-            "type": SourceType.GeoJSONSource,
-            "name": f"{name} Source",
-            "parameters": parameters,
-        }
-
-        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-
-        layer = {
-            "type": LayerType.HeatmapLayer,
-            "name": name,
-            "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-                "blur": blur,
-                "radius": radius,
-                "feature": feature,
-                "symbologyState": {
-                    "renderType": "Heatmap",
-                    "gradient": gradient,
-                },
-            },
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -1424,7 +1351,6 @@ class JGISLayer(BaseModel):
         | IHillshadeLayer
         | IImageLayer
         | IGeoTiffLayer
-        | IHeatmapLayer
         | IStorySegmentLayer
         | IOpenEOTileLayer
     )
@@ -1539,7 +1465,6 @@ OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.GeoTiffLayer, IGeoTiffLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
-OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 
