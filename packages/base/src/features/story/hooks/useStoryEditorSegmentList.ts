@@ -59,6 +59,7 @@ interface IUseStoryEditorSegmentListResult {
   selectedSegment: IStorySegmentViewItem | null;
   selectSegment: (segmentId: string) => void;
   addSegment: () => void;
+  updateStory: (patch: Partial<IJGISStoryMap>) => void;
 }
 
 export function useStoryEditorSegmentList(
@@ -97,6 +98,21 @@ export function useStoryEditorSegmentList(
       story: selected.story ?? null,
     };
   }, [model, revision]);
+
+  const updateStory = useCallback(
+    (patch: Partial<IJGISStoryMap>) => {
+      if (!storyId || !story) {
+        return;
+      }
+
+      model.sharedModel.updateStoryMap(storyId, {
+        ...story,
+        ...patch,
+        storySegments: story.storySegments ?? [],
+      });
+    },
+    [model, storyId, story],
+  );
 
   const segments = useMemo(
     () => buildStorySegmentViewItems(model, story),
@@ -158,5 +174,6 @@ export function useStoryEditorSegmentList(
     selectedSegment,
     selectSegment,
     addSegment,
+    updateStory,
   };
 }

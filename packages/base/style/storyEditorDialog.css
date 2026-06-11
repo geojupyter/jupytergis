@@ -112,17 +112,30 @@
   white-space: nowrap;
 }
 
-.jgis-story-editor-draft-settings-popover {
-  width: 16rem;
-  padding: 0.75rem;
+.jgis-story-editor-draft-settings-sheet-body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 0 1rem 1rem;
+  overflow: auto;
 }
 
-.jgis-story-editor-draft-settings-popover-title {
-  font-weight: 600;
-  font-size: 0.9rem;
+.jgis-story-editor-draft-field-label {
+  font-size: 0.8rem;
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-button.jgis-story-editor-draft-story-type-select {
+  width: 100%;
+  max-width: none;
+}
+
+.jgis-native-select.jgis-story-editor-draft-story-type-native-select {
+  width: 100%;
+}
+
+[data-slot='select-trigger'].jgis-story-editor-draft-story-type-select2 {
+  width: 100%;
 }
 
 .jgis-story-editor-draft-settings-section {
@@ -364,7 +377,11 @@
 
 .jgis-story-editor-draft-stop-type-card--selected {
   border-color: var(--jp-brand-color1);
-  background: color-mix(in srgb, var(--jp-brand-color1) 8%, var(--jp-layout-color1));
+  background: color-mix(
+    in srgb,
+    var(--jp-brand-color1) 8%,
+    var(--jp-layout-color1)
+  );
 }
 
 .jgis-story-editor-draft-collapsible-trigger {

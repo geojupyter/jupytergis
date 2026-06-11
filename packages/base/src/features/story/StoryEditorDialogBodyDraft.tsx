@@ -2,12 +2,13 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { faGear, faMap } from '@fortawesome/free-solid-svg-icons';
+import { faMap } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
+import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
@@ -20,11 +21,6 @@ import {
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
 import { Input } from '@/src/shared/components/Input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/src/shared/components/Popover';
 import { Switch } from '@/src/shared/components/Switch';
 
 export interface IStoryEditorDialogBodyDraftProps {
@@ -36,70 +32,11 @@ export interface IStoryEditorDialogBodyDraftProps {
 
 type SegmentStopType = 'map' | 'markdown';
 
-const DUMMY_STORY = {
-  title: 'My Flood Map',
-  storyType: 'Vertical Scroll',
-  gradientEnabled: true,
-};
-
 const DUMMY_LAYERS = [
   { name: 'floods', visible: true, changed: true },
   { name: 'boundaries', visible: true, changed: true },
   { name: 'basemap', visible: true, changed: false },
 ];
-
-function StorySettingsPopover(): JSX.Element {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon-sm" title="Story settings">
-          <FontAwesomeIcon icon={faGear} />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="jgis-story-editor-draft-settings-popover"
-      >
-        <div className="jgis-story-editor-draft-settings-popover-title">
-          Story settings
-        </div>
-        <label className="jgis-story-editor-draft-field">
-          <span>Title</span>
-          <Input defaultValue={DUMMY_STORY.title} readOnly />
-        </label>
-        <label className="jgis-story-editor-draft-field">
-          <span>Story type</span>
-          <select
-            className="jgis-story-editor-draft-select"
-            defaultValue="verticalScroll"
-            disabled
-          >
-            <option value="guided">Guided</option>
-            <option value="unguided">Unguided</option>
-            <option value="verticalScroll">Vertical scroll</option>
-          </select>
-        </label>
-        <div className="jgis-story-editor-draft-settings-section">
-          <div className="jgis-story-editor-draft-settings-section-title">
-            Presentation
-          </div>
-          <label className="jgis-story-editor-draft-toggle-row">
-            <span>Use gradient background</span>
-            <Switch defaultChecked={DUMMY_STORY.gradientEnabled} disabled />
-          </label>
-          <label className="jgis-story-editor-draft-field">
-            <span>Background color</span>
-            <Input type="color" defaultValue="#1a1a2e" disabled />
-          </label>
-          <label className="jgis-story-editor-draft-field">
-            <span>Text color</span>
-            <Input type="color" defaultValue="#f5f5f5" disabled />
-          </label>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 function SegmentEditorPlaceholder({
   segment,
@@ -341,8 +278,10 @@ export function StoryEditorDialogBodyDraft({
     selectedSegment,
     selectSegment,
     addSegment,
+    updateStory,
   } = useStoryEditorSegmentList(model, commands);
 
+  const portalContainerRef = useRef<HTMLDivElement>(null);
   const [stopTypeOverride, setStopTypeOverride] =
     useState<SegmentStopType | null>(null);
 
@@ -357,26 +296,13 @@ export function StoryEditorDialogBodyDraft({
       : 'map');
 
   return (
-    <div className="jgis-story-editor-draft">
-      <div className="jgis-story-editor-draft-toolbar">
-        <div className="jgis-story-editor-draft-context-bar">
-          <span className="jgis-story-editor-draft-context-pill">
-            {DUMMY_STORY.storyType}
-          </span>
-          <span className="jgis-story-editor-draft-context-meta">
-            {segments.length} segment{segments.length === 1 ? '' : 's'}
-          </span>
-          {story ? (
-            <span className="jgis-story-editor-draft-context-meta">
-              {story.title || 'Untitled story'}
-            </span>
-          ) : null}
-          <span className="jgis-story-editor-draft-context-meta">
-            gradient on
-          </span>
-        </div>
-        <StorySettingsPopover />
-      </div>
+    <div ref={portalContainerRef} className="jgis-story-editor-draft">
+      <StoryEditorHeaderBar
+        story={story}
+        segmentCount={segments.length}
+        onUpdateStory={updateStory}
+        portalContainerRef={portalContainerRef}
+      />
 
       <div className="jgis-story-editor-draft-main">
         <StoryEditorSegmentList
