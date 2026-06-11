@@ -456,6 +456,42 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                 : '2px solid transparent',
           }}
         >
+          {layer.rows.length > 1 && (
+            <div className="jp-gis-grammar-reorder-bar">
+              <Button
+                type="button"
+                disabled={i === 0}
+                onClick={() => moveRow(i, i - 1)}
+                title="Move up"
+              >
+                <FontAwesomeIcon icon={faArrowUp} />
+              </Button>
+              <div
+                className="jp-gis-grammar-drag-handle"
+                draggable
+                onDragStart={e => {
+                  dragIndexRef.current = i;
+                  const wrapper = e.currentTarget.closest(
+                    '.jp-gis-grammar-drag-wrapper',
+                  );
+                  if (wrapper) {
+                    e.dataTransfer.setDragImage(wrapper, 0, 0);
+                  }
+                }}
+                title="Drag to reorder"
+              >
+                <FontAwesomeIcon icon={faGripVertical} />
+              </div>
+              <Button
+                type="button"
+                disabled={i === layer.rows.length - 1}
+                onClick={() => moveRow(i, i + 1)}
+                title="Move down"
+              >
+                <FontAwesomeIcon icon={faArrowDown} />
+              </Button>
+            </div>
+          )}
           <MappingRow
             row={row}
             availableFields={encodingFields}
@@ -463,44 +499,6 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             isRaster={isRaster}
             onChange={updated => updateRow(i, updated)}
             onDelete={() => removeRow(i)}
-            header={
-              layer.rows.length > 1 ? (
-                <div className="jp-gis-grammar-reorder-bar">
-                  <Button
-                    type="button"
-                    disabled={i === 0}
-                    onClick={() => moveRow(i, i - 1)}
-                    title="Move up"
-                  >
-                    <FontAwesomeIcon icon={faArrowUp} />
-                  </Button>
-                  <div
-                    className="jp-gis-grammar-drag-handle"
-                    draggable
-                    onDragStart={e => {
-                      dragIndexRef.current = i;
-                      const wrapper = e.currentTarget.closest(
-                        '.jp-gis-grammar-drag-wrapper',
-                      );
-                      if (wrapper) {
-                        e.dataTransfer.setDragImage(wrapper, 0, 0);
-                      }
-                    }}
-                    title="Drag to reorder"
-                  >
-                    <FontAwesomeIcon icon={faGripVertical} />
-                  </div>
-                  <Button
-                    type="button"
-                    disabled={i === layer.rows.length - 1}
-                    onClick={() => moveRow(i, i + 1)}
-                    title="Move down"
-                  >
-                    <FontAwesomeIcon icon={faArrowDown} />
-                  </Button>
-                </div>
-              ) : undefined
-            }
           />
         </div>
       ))}
