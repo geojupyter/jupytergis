@@ -11,4 +11,4 @@ dependencies:
   - jupyterlab >=4.5.1
 
   # Binder
-  - jupyterlab-link-share=0.2
+  - jupyterlab-link-share
