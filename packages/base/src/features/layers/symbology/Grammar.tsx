@@ -89,33 +89,15 @@ interface ITransformRowProps {
   transform: ITransform;
   availableFields: string[];
   onChange: (t: ITransform) => void;
-  onDelete: () => void;
 }
 
 const TransformRow: React.FC<ITransformRowProps> = ({
   transform,
   availableFields,
   onChange,
-  onDelete,
 }) => {
-  const handleTypeChange = (type: ITransform['type']) => {
-    onChange(defaultTransform(type));
-  };
-
   return (
     <div className="jp-gis-grammar-transform-row">
-      {/* Type selector */}
-      <NativeSelect
-        value={transform.type}
-        onChange={e => handleTypeChange(e.target.value as ITransform['type'])}
-      >
-        {TRANSFORM_TYPES.map(({ value, label }) => (
-          <NativeSelectOption key={value} value={value}>
-            {label}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-
       {/* KDE params */}
       {transform.type === 'kde' && (
         <>
@@ -162,16 +144,6 @@ const TransformRow: React.FC<ITransformRowProps> = ({
           />
         </>
       )}
-
-      <Button
-        type="button"
-        className="jp-gis-grammar-delete-btn"
-        onClick={onDelete}
-        title="Remove transform"
-        style={{ marginLeft: 'auto' }}
-      >
-        <FontAwesomeIcon icon={faTrash} />
-      </Button>
     </div>
   );
 };
@@ -239,31 +211,22 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const updateTransform = useCallback(
-    (index: number, t: ITransform) => {
-      const next = [...layer.transforms];
-      next[index] = t;
-      onChange({ ...layer, transforms: next });
-    },
-    [layer, onChange],
-  );
-
-  const removeTransform = useCallback(
-    (index: number) => {
+  const setTransform = useCallback(
+    (type: ITransform['type'] | 'none') => {
       onChange({
         ...layer,
-        transforms: layer.transforms.filter((_, i) => i !== index),
+        transforms: type === 'none' ? [] : [defaultTransform(type)],
       });
     },
     [layer, onChange],
   );
 
-  const addTransform = useCallback(() => {
-    onChange({
-      ...layer,
-      transforms: [...layer.transforms, defaultTransform('kde')],
-    });
-  }, [layer, onChange]);
+  const updateTransform = useCallback(
+    (t: ITransform) => {
+      onChange({ ...layer, transforms: [t] });
+    },
+    [layer, onChange],
+  );
 
   const updateRow = useCallback(
     (index: number, row: IGrammarRow) => {
@@ -312,15 +275,19 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         <span className="jp-gis-grammar-layer-label">
           Layer {layerIndex + 1}
         </span>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={addTransform}
-          title="Add transform"
+        <NativeSelect
+          value={layer.transforms[0]?.type ?? 'none'}
+          onChange={e =>
+            setTransform(e.target.value as ITransform['type'] | 'none')
+          }
         >
-          <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
-          Transform
-        </Button>
+          <NativeSelectOption value="none">no transform</NativeSelectOption>
+          {TRANSFORM_TYPES.map(({ value, label }) => (
+            <NativeSelectOption key={value} value={value}>
+              {label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
 
         {totalLayers > 1 && onMoveUp && (
           <Button
@@ -403,16 +370,14 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         )}
       </div>
 
-      {/* Transforms */}
-      {layer.transforms.map((t, i) => (
+      {/* Transform params (single transform per layer) */}
+      {layer.transforms[0] && (
         <TransformRow
-          key={i}
-          transform={t}
+          transform={layer.transforms[0]}
           availableFields={availableFields}
-          onChange={updated => updateTransform(i, updated)}
-          onDelete={() => removeTransform(i)}
+          onChange={updateTransform}
         />
-      ))}
+      )}
 
       {/* Mapping rows — reorder bar (drag + arrows) above each rule */}
       {layer.rows.map((row, i) => (
@@ -686,10 +651,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={addLayer}
-        >
+        <Button className="jp-gis-grammar-action-btn" onClick={addLayer}>
           Add Layer
         </Button>
       </div>

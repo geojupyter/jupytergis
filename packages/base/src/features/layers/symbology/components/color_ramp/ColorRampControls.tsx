@@ -147,7 +147,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
         <LoadingIcon />
       ) : (
         <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          className="jp-gis-grammar-action-btn"
           disabled={
             !isValidNumberOfShades(numberOfShades) || !selectedMode || !!warning
           }

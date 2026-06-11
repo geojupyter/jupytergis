@@ -513,6 +513,26 @@ select option {
   background: var(--jp-layout-color0);
 }
 
+.jp-gis-grammar-action-btn {
+  background: transparent;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: var(--jp-border-radius, 0.375rem);
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  padding: 4px 12px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.jp-gis-grammar-action-btn:hover {
+  background: var(--jp-layout-color2);
+}
+
+.jp-gis-grammar-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Preview button spans all channel rows — stretches vertically */
 .jp-gis-grammar-preview-btn {
   background: none;
