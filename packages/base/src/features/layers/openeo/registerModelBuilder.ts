@@ -31,7 +31,7 @@ export function registerOpenEOModelBuilder(): void {
   if (window.customElements.get(ELEMENT_NAME)) {
     return;
   }
-  const WrappedElement = wrap(Vue, ModelBuilder) as {
+  const WrappedElement = wrap(Vue, { ...ModelBuilder }) as {
     new (): HTMLElement & { connectedCallback(): void };
   };
   class OpenEOModelBuilder extends WrappedElement {
