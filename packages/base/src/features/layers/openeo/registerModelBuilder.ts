@@ -3,8 +3,8 @@ import ModelBuilder from '@openeo/vue-components/components/ModelBuilder.vue';
 // Vue 2.7's types declare a *global* JSX namespace that collides with React's
 // across this project, so pull the Vue runtime + wrapper in untyped via require.
 /* eslint-disable @typescript-eslint/no-var-requires */
-const Vue = require('vue');
 const wrapModule = require('@vue/web-component-wrapper');
+const Vue = require('vue');
 const wrap = wrapModule.default ?? wrapModule;
 /* eslint-enable @typescript-eslint/no-var-requires */
 

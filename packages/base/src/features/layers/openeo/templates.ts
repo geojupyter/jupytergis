@@ -251,7 +251,3 @@ export const OPENEO_TEMPLATES: IOpenEOTemplate[] = [
     buildGraph: params => indexGraph(params, 'B08', 'B04'),
   },
 ];
-
-export function getTemplate(id: string): IOpenEOTemplate | undefined {
-  return OPENEO_TEMPLATES.find(t => t.id === id);
-}

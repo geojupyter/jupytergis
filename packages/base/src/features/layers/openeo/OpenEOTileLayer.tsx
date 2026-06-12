@@ -9,7 +9,6 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import { Connection, OpenEO, Process, Service } from '@openeo/js-client';
 import TileLayer from 'ol/layer/Tile';
-import { ProjectionLike } from 'ol/proj';
 import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
@@ -37,7 +36,7 @@ export const openEOEvents = new OpenEOEvents();
  * don't pop N dialogs on document load.
  */
 const _pendingLoginPrompts = new Set<string>();
-export async function promptOpenEOLogin(serverUrl: string): Promise<void> {
+async function promptOpenEOLogin(serverUrl: string): Promise<void> {
   if (_pendingLoginPrompts.has(serverUrl)) {
     return;
   }
@@ -115,7 +114,7 @@ function bearerFromConnection(connection: Connection): string | undefined {
  * dialog) are expected to surface the error and re-establish the session
  * (silently from a persisted bearer, or via the sign-in flow).
  */
-export function getOpenEOConnection(serverUrl: string): Connection {
+function getOpenEOConnection(serverUrl: string): Connection {
   // Match `connect()`'s normalization so cache lookups are consistent.
   let url = serverUrl;
   if (url && !url.match(/^https?:\/\//i)) {
@@ -130,7 +129,7 @@ export function getOpenEOConnection(serverUrl: string): Connection {
   return connection;
 }
 
-export interface ISigninValues {
+interface ISigninValues {
   serverUrl: string;
   username: string;
   password: string;
@@ -366,13 +365,6 @@ export interface IOpenEOConnectionInfo {
    * sign-in popup would otherwise never appear).
    */
   signIn?: ISigninValues;
-}
-
-export interface IOpenEOTileLayerOptions {
-  /**
-   * The tile size
-   */
-  projection?: ProjectionLike;
 }
 
 export class OpenEOTileLayer extends TileLayer {
