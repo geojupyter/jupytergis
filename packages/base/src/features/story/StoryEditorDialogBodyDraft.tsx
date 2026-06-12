@@ -3,6 +3,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useRef, useState } from 'react';
 
+import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
@@ -53,6 +54,7 @@ function SegmentEditorPlaceholder({
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
   const contentTitle = segment.activeSlide?.content?.title ?? '';
+  const imageUrl = segment.activeSlide?.content?.image ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const stopType = getSegmentDisplayMode(segment.activeSlide);
 
@@ -112,9 +114,12 @@ function SegmentEditorPlaceholder({
                   }}
                 />
               </label>
-              <div className="jgis-story-editor-draft-image-placeholder">
-                Hero image placeholder
-              </div>
+              <SegmentImageUrlField
+                value={imageUrl}
+                onChange={nextImageUrl => {
+                  onContentChange({ image: nextImageUrl });
+                }}
+              />
               <SegmentMarkdownEditor
                 value={markdown}
                 onChange={nextMarkdown => {
