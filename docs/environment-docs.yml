@@ -18,6 +18,7 @@ dependencies:
   - sphinx-exercise
   - sphinx-togglebutton
   - sphinxcontrib-mermaid
+  - sphinxcontrib-bibtex
   - myst-parser
   - xeus-python # TODO: Do we need this?
   - specta

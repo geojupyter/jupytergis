@@ -21,7 +21,6 @@ html_theme_options = {
 # Hide left sidebar on single-page sections; keep it for Users and Contributors
 html_sidebars = {
     "index": [],
-    "about/*": [],
     "getting_started/*": [],
     "changelog": [],
 }
@@ -38,6 +37,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinxcontrib.mermaid",
+    "sphinxcontrib.bibtex",
     "sphinx_inline_tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
@@ -55,6 +55,10 @@ html_title = "JupyterGIS"
 copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"
+
+bibtex_bibfiles = [
+    "refs.bib",
+]
 
 jupyterlite_contents = [
     "../examples",
