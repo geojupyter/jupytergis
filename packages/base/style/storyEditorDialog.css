@@ -474,9 +474,15 @@
 .jgis-story-editor-markdown-textarea {
   width: 100%;
   box-sizing: border-box;
+  outline: none;
   color: inherit;
   font: inherit;
   resize: vertical;
+}
+
+.jgis-story-editor-markdown-textarea:focus-visible {
+  border-color: var(--jp-brand-color1);
+  border-radius: var(--jp-border-radius);
 }
 
 .jgis-story-editor-markdown-textarea--tall {
