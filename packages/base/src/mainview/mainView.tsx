@@ -4,7 +4,6 @@ import {
   IAnnotationModel,
   IDict,
   IGeoTiffSource,
-  IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -87,7 +86,6 @@ import Draw, { DrawEvent } from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import {
-  Heatmap as HeatmapLayer,
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
@@ -174,7 +172,6 @@ type OlLayerTypes =
   | VectorImageLayer
   | VectorTileLayer
   | GeoTiffLayer
-  | HeatmapLayer
   | StacLayer
   | ImageLayer<any>
   | LayerGroup;
@@ -1625,20 +1622,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
         break;
       }
-      case 'HeatmapLayer': {
-        layerParameters = layer.parameters as IHeatmapLayer;
-
-        newMapLayer = new HeatmapLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          blur: layerParameters.blur ?? 15,
-          radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.symbologyState?.gradient,
-        });
-
-        break;
-      }
       case 'StacLayer': {
         layerParameters = layer.parameters as IStacLayer;
 
@@ -1940,95 +1923,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
-      case 'HeatmapLayer': {
-        const layerParams = layer.parameters as IHeatmapLayer;
-        const heatmap = mapLayer as HeatmapLayer;
-
-        heatmap.setOpacity(layerParams.opacity ?? 1);
-        heatmap.setBlur(layerParams.blur ?? 15);
-        heatmap.setRadius(layerParams.radius ?? 8);
-        heatmap.setGradient(
-          layerParams.symbologyState?.gradient ?? [
-            '#00f',
-            '#0ff',
-            '#0f0',
-            '#ff0',
-            '#f00',
-          ],
-        );
-
-        this.handleTemporalController(id, layer);
-
-        break;
-      }
       case 'StacLayer':
         mapLayer.setOpacity(layer.parameters?.opacity || 1);
         break;
     }
   }
-
-  /**
-   * Heatmap layers don't work with style based filtering.
-   * This modifies the features in the underlying source
-   * to work with the temporal controller
-   */
-  handleTemporalController = (id: string, layer: IJGISLayer) => {
-    const selectedLayer = this._model?.localState?.selected?.value;
-
-    // Temporal Controller shouldn't be active if more than one layer is selected
-    if (!selectedLayer || Object.keys(selectedLayer).length !== 1) {
-      return;
-    }
-
-    const selectedLayerId = Object.keys(selectedLayer)[0];
-
-    // Don't do anything to unselected layers
-    if (selectedLayerId !== id) {
-      return;
-    }
-
-    const layerParams = layer.parameters as IHeatmapLayer;
-
-    const source: VectorSource = this._sources[layerParams.source];
-
-    if (layer.filters?.appliedFilters.length) {
-      // Heatmaps don't work with existing filter system so this should be fine
-      const activeFilter = layer.filters.appliedFilters[0];
-
-      // Save original features on first filter application
-      if (!Object.keys(this._originalFeatures).includes(id)) {
-        this._originalFeatures[id] = source.getFeatures() ?? [];
-      }
-
-      // clear current features
-      source.clear();
-
-      const startTime = activeFilter.betweenMin ?? 0;
-      const endTime = activeFilter.betweenMax ?? 1000;
-
-      const filteredFeatures = (this._originalFeatures[id] ?? []).filter(
-        feature => {
-          const featureTime = feature.get(activeFilter.feature);
-          return featureTime >= startTime && featureTime <= endTime;
-        },
-      );
-
-      // set state for restoration
-      this.setState(old => ({
-        ...old,
-        filterStates: {
-          ...this.state.filterStates,
-          [selectedLayerId]: activeFilter,
-        },
-      }));
-
-      source.addFeatures(filteredFeatures);
-    } else {
-      // Restore original features when no filters are applied
-      source.addFeatures(this._originalFeatures[id] ?? []);
-      delete this._originalFeatures[id];
-    }
-  };
 
   private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
@@ -2372,7 +2271,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !!selectedLayers &&
       Object.keys(selectedLayers).length === 1 &&
       !this._model.getSource(selectedLayerId!) &&
-      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
+      layerType === 'VectorLayer';
     const displayTemporalController =
       isTemporalControllerActive && isSelectionValid;
 

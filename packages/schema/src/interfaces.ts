@@ -35,7 +35,6 @@ import {
   IGeoJSONSource,
   IGeoParquetSource,
   IGeoTiffSource,
-  IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -501,7 +500,6 @@ export type ILayerGalleryEntry = {
   thumbnail: string;
   layerType: LayerType;
   layerParameters:
-    | IHeatmapLayer
     | IHillshadeLayer
     | IImageLayer
     | IRasterLayer

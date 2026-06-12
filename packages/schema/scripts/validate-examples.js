@@ -21,7 +21,6 @@ const LAYER_SCHEMAS = {
   HillshadeLayer: 'layers/hillshadeLayer.json',
   GeoTiffLayer: 'layers/geoTiffLayer.json',
   ImageLayer: 'layers/imageLayer.json',
-  HeatmapLayer: 'layers/heatmapLayer.json',
   StacLayer: 'layers/stacLayer.json',
   StorySegmentLayer: 'layers/storySegmentLayer.json',
 };

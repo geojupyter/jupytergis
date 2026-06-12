@@ -42,7 +42,6 @@ const iconObject = {
   VectorLayer: { iconClass: 'fa fa-vector-square' },
   VectorTileLayer: { iconClass: 'fa fa-vector-square' },
   HillshadeLayer: { icon: moundIcon },
-  HeatmapLayer: { iconClass: 'fa fa-fire' },
   GeoTiffLayer: { iconClass: 'fa fa-image' },
   StacLayer: { icon: rasterIcon },
   ImageLayer: { iconClass: 'fa fa-image' },

@@ -59,7 +59,6 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'VectorLayer',
   'VectorTileLayer',
   'GeoTiffLayer',
-  'HeatmapLayer',
 ];
 
 export const STORY_TYPE = {

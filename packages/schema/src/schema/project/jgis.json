@@ -46,7 +46,6 @@
         "HillshadeLayer",
         "GeoTiffLayer",
         "ImageLayer",
-        "HeatmapLayer",
         "StacLayer",
         "StorySegmentLayer",
         "OpenEOTileLayer"
