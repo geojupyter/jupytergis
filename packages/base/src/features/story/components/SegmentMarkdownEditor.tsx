@@ -86,7 +86,7 @@ export function SegmentMarkdownEditor({
         className="jgis-story-editor-markdown-tab-content"
       >
         <textarea
-          className={`jgis-story-editor-markdown-textarea${
+          className={`jgis-story-editor-markdown jgis-story-editor-markdown-textarea${
             tall ? ' jgis-story-editor-markdown-textarea--tall' : ''
           }`}
           rows={rows}
@@ -101,7 +101,7 @@ export function SegmentMarkdownEditor({
         value="preview"
         className="jgis-story-editor-markdown-tab-content"
       >
-        <div className="jgis-story-editor-markdown-preview jgis-story-viewer-content">
+        <div className="jgis-story-editor-markdown jgis-story-editor-markdown-preview jgis-story-viewer-content">
           {draft.trim() ? (
             <Markdown>{draft}</Markdown>
           ) : (
