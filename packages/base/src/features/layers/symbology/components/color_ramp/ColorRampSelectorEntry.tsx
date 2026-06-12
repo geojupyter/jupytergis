@@ -1,7 +1,7 @@
 /**
  * @module ColorRampSelectorEntry
  *
- * Represents a single selectable color ramp option in the `ColorRampSelector`.
+ * Represents a single selectable color map option in the `ColorRampSelector`.
  * Renders a preview ColorRamp on a canvas and triggers `onClick` when selected.
  *
  * Props:

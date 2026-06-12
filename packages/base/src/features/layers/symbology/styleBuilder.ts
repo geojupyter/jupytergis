@@ -169,7 +169,7 @@ export function computeCategorizedColorStops(
   }));
 }
 
-// Color ramp helpers
+// color map helpers
 
 function mapStopsToColors(
   stops: number[],

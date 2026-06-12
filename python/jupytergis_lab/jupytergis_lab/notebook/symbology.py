@@ -43,12 +43,12 @@ class GraduatedSymbology(BaseSymbology):
             ``data`` is just a kernel-side convenience.
         method: ``"color"`` drives fill/stroke colors; ``"radius"`` drives
             circle size for point layers.
-        color_ramp: Name of the color ramp (e.g. ``"viridis"``,
+        color_ramp: Name of the color map (e.g. ``"viridis"``,
             ``"plasma"``, ``"magma"``).
         n_classes: Number of classification bins. Must be ``>= 1``.
         mode: Classification method. One of ``"equal interval"``,
             ``"quantile"``, ``"jenks"``, ``"pretty"``, ``"logarithmic"``.
-        reverse: Reverse the color ramp.
+        reverse: Reverse the color map.
         vmin: Lower bound of the classification range. If omitted, derived
             from ``data`` when given, otherwise computed by the frontend
             from the source.
