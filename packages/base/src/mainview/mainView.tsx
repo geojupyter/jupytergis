@@ -1934,63 +1934,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  handleTemporalController = (id: string, layer: IJGISLayer) => {
-    const selectedLayer = this._model?.localState?.selected?.value;
-
-    // Temporal Controller shouldn't be active if more than one layer is selected
-    if (!selectedLayer || Object.keys(selectedLayer).length !== 1) {
-      return;
-    }
-
-    const selectedLayerId = Object.keys(selectedLayer)[0];
-
-    // Don't do anything to unselected layers
-    if (selectedLayerId !== id) {
-      return;
-    }
-
-    const layerParams = layer.parameters as IVectorLayer;
-
-    const source: VectorSource = this._sources[layerParams.source];
-
-    if (layer.filters?.appliedFilters.length) {
-      const activeFilter = layer.filters.appliedFilters[0];
-
-      // Save original features on first filter application
-      if (!Object.keys(this._originalFeatures).includes(id)) {
-        this._originalFeatures[id] = source.getFeatures() ?? [];
-      }
-
-      // clear current features
-      source.clear();
-
-      const startTime = activeFilter.betweenMin ?? 0;
-      const endTime = activeFilter.betweenMax ?? 1000;
-
-      const filteredFeatures = (this._originalFeatures[id] ?? []).filter(
-        feature => {
-          const featureTime = feature.get(activeFilter.feature);
-          return featureTime >= startTime && featureTime <= endTime;
-        },
-      );
-
-      // set state for restoration
-      this.setState(old => ({
-        ...old,
-        filterStates: {
-          ...this.state.filterStates,
-          [selectedLayerId]: activeFilter,
-        },
-      }));
-
-      source.addFeatures(filteredFeatures);
-    } else {
-      // Restore original features when no filters are applied
-      source.addFeatures(this._originalFeatures[id] ?? []);
-      delete this._originalFeatures[id];
-    }
-  };
-
   private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
       this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
