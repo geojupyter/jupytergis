@@ -4,8 +4,8 @@
       "jgis": {
         "name": "jgis",
         "extensions": [".jgis", ".JGIS"],
-        "mimeTypes": ["text/plain"],
-        "fileFormat": "text"
+        "mimeTypes": ["application/json"],
+        "fileFormat": "json"
       }
     }
   }

@@ -203,9 +203,9 @@ const activate = async (
   app.docRegistry.addFileType({
     name: CONTENT_TYPE,
     displayName: 'JGIS',
-    mimeTypes: ['text/json'],
+    mimeTypes: ['application/json'],
     extensions: ['.jgis', '.JGIS'],
-    fileFormat: 'text',
+    fileFormat: 'json',
     icon: logoMiniIcon,
   });
 
@@ -279,8 +279,7 @@ const activate = async (
 
       model = await app.serviceManager.contents.save(model.path, {
         ...model,
-        format: 'text',
-        size: undefined,
+        format: 'json',
         content: DEFAULT_JGIS_DOCUMENT_CONTENT,
       });
 

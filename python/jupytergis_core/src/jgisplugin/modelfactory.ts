@@ -44,7 +44,7 @@ export class JupyterGISModelFactory implements DocumentRegistry.IModelFactory<Ju
    * @returns the file format
    */
   get fileFormat(): Contents.FileFormat {
-    return 'text';
+    return 'json';
   }
 
   /**

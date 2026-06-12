@@ -201,8 +201,8 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             await app.serviceManager.contents.get(localPath);
           } catch (e) {
             await app.serviceManager.contents.save(localPath, {
-              content: btoa(DEFAULT_JGIS_DOCUMENT_CONTENT),
-              format: 'base64',
+              content: DEFAULT_JGIS_DOCUMENT_CONTENT,
+              format: 'json',
             });
           }
         } else {

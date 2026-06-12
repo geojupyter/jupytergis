@@ -30,16 +30,24 @@ import { migrateDocument } from './migrations';
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
 /** Default JSON content for a new JupyterGIS document. */
-export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
-	"schemaVersion": "${SCHEMA_VERSION}",
-	"layers": {},
-	"sources": {},
-  "stories": {},
-  "viewState": {},
-	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}", "storyMapPresentationMode": false},
-	"layerTree": [],
-	"metadata": {}
-}`;
+export const DEFAULT_JGIS_DOCUMENT_CONTENT = {
+	schemaVersion: SCHEMA_VERSION,
+	layers: {},
+	sources: {},
+  stories: {},
+  viewState: {},
+	options: {
+    latitude: 0,
+    longitude: 0,
+    zoom: 0,
+    bearing: 0,
+    pitch: 0,
+    projection: DEFAULT_PROJECTION,
+    storyMapPresentationMode: false
+  },
+	layerTree: [],
+	metadata: {}
+};
 
 export class JupyterGISDoc
   extends YDocument<IJupyterGISDocChange>
