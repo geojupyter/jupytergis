@@ -1,6 +1,6 @@
 # Gallery
 
-```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-macrostrat-geology-chromium-linux.jpg
+```{image} ../ui-tests/tests/showcase.spec.ts-snapshots/showcase-macrostrat-geology-chromium-linux.jpg
 :alt: JupyterGIS showing the Macrostrat geology overlay
 :width: 100%
 ```
@@ -11,7 +11,7 @@ properties visible.
 
 ---
 
-```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-earthquakes-chromium-linux.jpg
+```{image} ../ui-tests/tests/showcase.spec.ts-snapshots/showcase-earthquakes-chromium-linux.jpg
 :alt: JupyterGIS showing earthquake data with heatmap and graduated circles
 :width: 100%
 ```
@@ -21,7 +21,7 @@ and magnitude-scaled graduated circles, demonstrating JupyterGIS symbology featu
 
 ---
 
-```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-story-map-chromium-linux.jpg
+```{image} ../ui-tests/tests/showcase.spec.ts-snapshots/showcase-story-map-chromium-linux.jpg
 :alt: JupyterGIS story map with guided narrative
 :width: 100%
 ```
@@ -31,7 +31,7 @@ feature, combining map navigation with rich text and imagery.
 
 ---
 
-```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-france-hiking-chromium-linux.jpg
+```{image} ../ui-tests/tests/showcase.spec.ts-snapshots/showcase-france-hiking-chromium-linux.jpg
 :alt: JupyterGIS showing France hiking trails with multiple raster layers
 :width: 100%
 ```
@@ -41,7 +41,7 @@ WaymarkedTrails hiking overlays, and NASA satellite imagery over France.
 
 ---
 
-```{image} ../../ui-tests/tests/showcase.spec.ts-snapshots/showcase-buildings-chromium-linux.jpg
+```{image} ../ui-tests/tests/showcase.spec.ts-snapshots/showcase-buildings-chromium-linux.jpg
 :alt: JupyterGIS showing building footprints from Planetary Computer
 :width: 100%
 ```
