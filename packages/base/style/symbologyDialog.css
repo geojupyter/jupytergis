@@ -294,8 +294,8 @@ select option {
 .jp-gis-grammar-transform-row [data-slot='native-select'],
 .jp-gis-grammar-transform-row select,
 .jp-gis-grammar-transform-row .jgis-native-select {
-  background: var(--jp-layout-color0);
-  background-color: var(--jp-layout-color0);
+  background: transparent;
+  background-color: transparent;
   border-color: transparent;
 }
 
@@ -703,15 +703,29 @@ select option {
   flex: 0 0 auto;
 }
 
-.jp-gis-grammar-when-cancel {
-  background: none;
-  border: 1px solid var(--jp-border-color2);
-  border-radius: 3px;
-  padding: 1px 5px;
-  cursor: pointer;
+/* Make when-form selects compact to match the when-row height */
+.jp-gis-grammar-when-form [data-slot='native-select'] {
+  height: 24px;
   font-size: var(--jp-ui-font-size0);
-  color: var(--jp-ui-font-color1);
-  line-height: 1.4;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-color: transparent;
+}
+
+/* Make when-form inputs compact too */
+.jp-gis-grammar-when-form [data-slot='input'],
+.jp-gis-grammar-when-form input {
+  height: 24px;
+  font-size: var(--jp-ui-font-size0);
+  border-color: var(--jp-border-color2);
+  box-shadow: none;
+}
+
+/* Icon buttons in the when-form should be transparent, not white */
+.jp-gis-grammar-when-form .jgis-button {
+  background: transparent;
+  background-color: transparent;
+  border-color: transparent;
 }
 
 .jgis-button.jp-gis-grammar-when-form-cancel {

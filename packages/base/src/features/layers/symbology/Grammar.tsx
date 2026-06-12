@@ -89,15 +89,33 @@ interface ITransformRowProps {
   transform: ITransform;
   availableFields: string[];
   onChange: (t: ITransform) => void;
+  onDelete: () => void;
 }
 
 const TransformRow: React.FC<ITransformRowProps> = ({
   transform,
   availableFields,
   onChange,
+  onDelete,
 }) => {
+  const handleTypeChange = (type: ITransform['type']) => {
+    onChange(defaultTransform(type));
+  };
+
   return (
     <div className="jp-gis-grammar-transform-row">
+      {/* Type selector */}
+      <NativeSelect
+        value={transform.type}
+        onChange={e => handleTypeChange(e.target.value as ITransform['type'])}
+      >
+        {TRANSFORM_TYPES.map(({ value, label }) => (
+          <NativeSelectOption key={value} value={value}>
+            {label}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+
       {/* KDE params */}
       {transform.type === 'kde' && (
         <>
@@ -144,6 +162,16 @@ const TransformRow: React.FC<ITransformRowProps> = ({
           />
         </>
       )}
+
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={onDelete}
+        title="Remove transform"
+        style={{ marginLeft: 'auto' }}
+      >
+        <FontAwesomeIcon icon={faTrash} />
+      </Button>
     </div>
   );
 };
@@ -211,15 +239,15 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const setTransform = useCallback(
-    (type: ITransform['type'] | 'none') => {
-      onChange({
-        ...layer,
-        transforms: type === 'none' ? [] : [defaultTransform(type)],
-      });
-    },
-    [layer, onChange],
-  );
+  const addTransform = useCallback(() => {
+    if (layer.transforms.length > 0) {
+      return;
+    }
+    onChange({
+      ...layer,
+      transforms: [defaultTransform('kde')],
+    });
+  }, [layer, onChange]);
 
   const updateTransform = useCallback(
     (t: ITransform) => {
@@ -227,6 +255,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     },
     [layer, onChange],
   );
+
+  const removeTransform = useCallback(() => {
+    onChange({ ...layer, transforms: [] });
+  }, [layer, onChange]);
 
   const updateRow = useCallback(
     (index: number, row: IGrammarRow) => {
@@ -275,19 +307,17 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         <span className="jp-gis-grammar-layer-label">
           Layer {layerIndex + 1}
         </span>
-        <NativeSelect
-          value={layer.transforms[0]?.type ?? 'none'}
-          onChange={e =>
-            setTransform(e.target.value as ITransform['type'] | 'none')
-          }
-        >
-          <NativeSelectOption value="none">no transform</NativeSelectOption>
-          {TRANSFORM_TYPES.map(({ value, label }) => (
-            <NativeSelectOption key={value} value={value}>
-              {label}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+        {layer.transforms.length === 0 && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={addTransform}
+            title="Add transform"
+          >
+            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+            Transform
+          </Button>
+        )}
 
         {totalLayers > 1 && onMoveUp && (
           <Button
@@ -376,97 +406,114 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           transform={layer.transforms[0]}
           availableFields={availableFields}
           onChange={updateTransform}
+          onDelete={removeTransform}
         />
       )}
 
       {/* Mapping rows — reorder bar (drag + arrows) above each rule */}
-      {layer.rows.map((row, i) => (
-        <div
-          key={row.id}
-          className="jp-gis-grammar-drag-wrapper"
-          draggable={dragIndexRef.current !== null}
-          onDragOver={e => {
-            e.preventDefault();
-            const rect = e.currentTarget.getBoundingClientRect();
+      {/* Container handles drag events so drops work even at top/bottom edges */}
+      <div
+        className="jp-gis-grammar-rules-container"
+        onDragOver={e => {
+          e.preventDefault();
+          // Find which wrapper the cursor is closest to
+          const wrappers = Array.from(
+            e.currentTarget.querySelectorAll(
+              ':scope > .jp-gis-grammar-drag-wrapper',
+            ),
+          );
+          let idx = layer.rows.length;
+          for (let j = 0; j < wrappers.length; j++) {
+            const rect = wrappers[j].getBoundingClientRect();
             const midY = rect.top + rect.height / 2;
-            const idx = e.clientY < midY ? i : i + 1;
-            dragOverRef.current = idx;
-            setDragOverIndex(idx);
-          }}
-          onDrop={() => {
-            const over = dragOverRef.current;
-            if (dragIndexRef.current !== null && over !== null) {
-              const to = over > dragIndexRef.current ? over - 1 : over;
-              moveRow(dragIndexRef.current, to);
+            if (e.clientY < midY) {
+              idx = j;
+              break;
             }
-            dragIndexRef.current = null;
-            dragOverRef.current = null;
-            setDragOverIndex(null);
-          }}
-          onDragEnd={() => {
-            dragIndexRef.current = null;
-            dragOverRef.current = null;
-            setDragOverIndex(null);
-          }}
-          style={{
-            borderTop:
-              dragOverIndex === i && dragIndexRef.current !== i
-                ? '2px solid var(--jp-brand-color1)'
-                : '2px solid transparent',
-            borderBottom:
-              dragOverIndex === layer.rows.length &&
-              i === layer.rows.length - 1 &&
-              dragIndexRef.current !== i
-                ? '2px solid var(--jp-brand-color1)'
-                : '2px solid transparent',
-          }}
-        >
-          {layer.rows.length > 1 && (
-            <div className="jp-gis-grammar-reorder-bar">
-              <Button
-                type="button"
-                disabled={i === 0}
-                onClick={() => moveRow(i, i - 1)}
-                title="Move up"
-              >
-                <FontAwesomeIcon icon={faArrowUp} />
-              </Button>
-              <div
-                className="jp-gis-grammar-drag-handle"
-                draggable
-                onDragStart={e => {
-                  dragIndexRef.current = i;
-                  const wrapper = e.currentTarget.closest(
-                    '.jp-gis-grammar-drag-wrapper',
-                  );
-                  if (wrapper) {
-                    e.dataTransfer.setDragImage(wrapper, 0, 0);
-                  }
-                }}
-                title="Drag to reorder"
-              >
-                <FontAwesomeIcon icon={faGripVertical} />
+          }
+          dragOverRef.current = idx;
+          setDragOverIndex(idx);
+        }}
+        onDrop={() => {
+          const over = dragOverRef.current;
+          if (dragIndexRef.current !== null && over !== null) {
+            const to = over > dragIndexRef.current ? over - 1 : over;
+            moveRow(dragIndexRef.current, to);
+          }
+          dragIndexRef.current = null;
+          dragOverRef.current = null;
+          setDragOverIndex(null);
+        }}
+        onDragEnd={() => {
+          dragIndexRef.current = null;
+          dragOverRef.current = null;
+          setDragOverIndex(null);
+        }}
+      >
+        {layer.rows.map((row, i) => (
+          <div
+            key={row.id}
+            className="jp-gis-grammar-drag-wrapper"
+            style={{
+              borderTop:
+                dragOverIndex === i && dragIndexRef.current !== i
+                  ? '2px solid var(--jp-brand-color1)'
+                  : '2px solid transparent',
+              borderBottom:
+                dragOverIndex === layer.rows.length &&
+                i === layer.rows.length - 1 &&
+                dragIndexRef.current !== i
+                  ? '2px solid var(--jp-brand-color1)'
+                  : '2px solid transparent',
+            }}
+          >
+            {layer.rows.length > 1 && (
+              <div className="jp-gis-grammar-reorder-bar">
+                <Button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => moveRow(i, i - 1)}
+                  title="Move up"
+                >
+                  <FontAwesomeIcon icon={faArrowUp} />
+                </Button>
+                <div
+                  className="jp-gis-grammar-drag-handle"
+                  draggable
+                  onDragStart={e => {
+                    dragIndexRef.current = i;
+                    const wrapper = e.currentTarget.closest(
+                      '.jp-gis-grammar-drag-wrapper',
+                    );
+                    if (wrapper) {
+                      e.dataTransfer.setDragImage(wrapper, 0, 0);
+                    }
+                  }}
+                  title="Drag to reorder"
+                >
+                  <FontAwesomeIcon icon={faGripVertical} />
+                </div>
+                <Button
+                  type="button"
+                  disabled={i === layer.rows.length - 1}
+                  onClick={() => moveRow(i, i + 1)}
+                  title="Move down"
+                >
+                  <FontAwesomeIcon icon={faArrowDown} />
+                </Button>
               </div>
-              <Button
-                type="button"
-                disabled={i === layer.rows.length - 1}
-                onClick={() => moveRow(i, i + 1)}
-                title="Move down"
-              >
-                <FontAwesomeIcon icon={faArrowDown} />
-              </Button>
-            </div>
-          )}
-          <MappingRow
-            row={row}
-            availableFields={encodingFields}
-            featureValues={featureValues}
-            isRaster={isRaster}
-            onChange={updated => updateRow(i, updated)}
-            onDelete={() => removeRow(i)}
-          />
-        </div>
-      ))}
+            )}
+            <MappingRow
+              row={row}
+              availableFields={encodingFields}
+              featureValues={featureValues}
+              isRaster={isRaster}
+              onChange={updated => updateRow(i, updated)}
+              onDelete={() => removeRow(i)}
+            />
+          </div>
+        ))}
+      </div>
 
       <div className="jp-gis-symbology-button-container">
         <Button
