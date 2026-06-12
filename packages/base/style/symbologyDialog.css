@@ -316,6 +316,7 @@ select option {
   display: flex;
   flex-direction: row;
   align-items: stretch;
+  padding: 3px;
 }
 
 .jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule {
