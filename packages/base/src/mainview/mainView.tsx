@@ -457,20 +457,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       layer => layer.type !== 'StorySegmentLayer',
     ).length;
 
-    const scaleLine = new ScaleLine({
-      target: this.controlsToolbarRef.current || undefined,
-    });
+    const controlsToolbar = this.controlsToolbarRef.current || undefined;
+    const controls: Control[] = [new ScaleLine({ target: controlsToolbar })];
 
-    const fullScreen = new FullScreen({
-      target: this.controlsToolbarRef.current || undefined,
-    });
-
-    const controls: Control[] = [scaleLine, fullScreen];
+    if (!this._model.isSpectaMode()) {
+      controls.push(new FullScreen({ target: controlsToolbar }));
+    }
 
     if (this._model.jgisSettings.zoomButtonsEnabled) {
-      this._zoomControl = new Zoom({
-        target: this.controlsToolbarRef.current || undefined,
-      });
+      this._zoomControl = new Zoom({ target: controlsToolbar });
       controls.push(this._zoomControl);
     }
 
@@ -2752,14 +2747,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._clearStoryScrollGuard = clearGuard;
 
     let accumulatedDeltaY = 0;
-    let scrollContainer: HTMLDivElement | null =
-      this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+    let scrollContainer: HTMLDivElement | null = null;
+
+    const resolveStoryScrollContainer = (): HTMLDivElement | null => {
+      const fromPanel =
+        this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+
+      if (fromPanel && document.contains(fromPanel)) {
+        return fromPanel;
+      }
+
+      const mobileScroll = document.querySelector(
+        '.jgis-story-mobile-list-scroll',
+      );
+
+      if (mobileScroll instanceof HTMLDivElement) {
+        return mobileScroll;
+      }
+
+      return null;
+    };
+
+    scrollContainer = resolveStoryScrollContainer();
 
     const processStoryScrollFrame = (): void => {
       this._pendingStoryScrollRafId = null;
 
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer = resolveStoryScrollContainer();
+      }
+
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !scrollContainer) {
+      const storyType = this._model.getSelectedStory().story?.storyType;
+
+      if (!scrollContainer) {
         accumulatedDeltaY = 0;
         return;
       }
@@ -2767,10 +2788,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
-      const storyType = this._model.getSelectedStory().story?.storyType;
       // Don't want to handle next/prev logic in list mode
       if (storyType === STORY_TYPE.verticalScroll) {
         scrollContainer.scrollBy({ top: deltaY });
+        return;
+      }
+
+      if (!currentPanelHandle) {
         return;
       }
 
@@ -2802,11 +2826,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     const handleScroll = (event: Event) => {
+      const wheelEvent = event as WheelEvent;
+
       event.preventDefault();
 
       if (!scrollContainer || !document.contains(scrollContainer)) {
-        scrollContainer =
-          this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+        scrollContainer = resolveStoryScrollContainer();
       }
       if (!scrollContainer) {
         return;
@@ -2815,7 +2840,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       // frames on slow hardware). We accumulate deltaY and run flush once per
       // frame via rAF—the frame boundary batches events without adding delay.
       // So one scroll means one segment/scroll decision.
-      accumulatedDeltaY += (event as WheelEvent).deltaY;
+      accumulatedDeltaY += wheelEvent.deltaY;
       if (this._pendingStoryScrollRafId === null) {
         this._pendingStoryScrollRafId = requestAnimationFrame(
           processStoryScrollFrame,
@@ -3762,6 +3787,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             <MainViewStoryStage
               model={this._model}
               isListStory={isListStory}
+              isMobile={isMobile}
               segmentTransition={segmentTransition}
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}

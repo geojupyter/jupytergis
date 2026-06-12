@@ -253,6 +253,12 @@ button.jp-mod-styled.jp-mod-reject {
     bottom: unset;
     align-items: flex-start;
   }
+
+  body[data-notebook='specta'] .jgis-controls-toolbar {
+    top: unset;
+    bottom: 0.125rem;
+    align-items: flex-end;
+  }
 }
 
 .jgis-geometry-type-selector-overlay {
