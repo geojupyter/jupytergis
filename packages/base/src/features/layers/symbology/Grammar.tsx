@@ -6,7 +6,14 @@
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
-import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowDown,
+  faArrowUp,
+  faGripVertical,
+  faPlus,
+  faTrash,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IEncodingRule,
@@ -18,7 +25,7 @@ import {
   RGBA,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
@@ -158,7 +165,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
 
       <Button
         type="button"
-        className="jp-gis-grammar-delete-btn"
+        variant="ghost"
         onClick={onDelete}
         title="Remove transform"
         style={{ marginLeft: 'auto' }}
@@ -182,6 +189,8 @@ interface ILayerSectionProps {
   isRasterLayer?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 const LayerSection: React.FC<ILayerSectionProps> = ({
@@ -193,8 +202,26 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   isRasterLayer = false,
   onChange,
   onDelete,
+  onMoveUp,
+  onMoveDown,
 }) => {
   const [addingLayerWhen, setAddingLayerWhen] = useState(false);
+  const dragIndexRef = useRef<number | null>(null);
+  const dragOverRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const moveRow = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) {
+        return;
+      }
+      const next = [...layer.rows];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      onChange({ ...layer, rows: next });
+    },
+    [layer, onChange],
+  );
 
   const addLayerPredicate = useCallback(
     (pred: IPredicate) => {
@@ -212,30 +239,25 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const updateTransform = useCallback(
-    (index: number, t: ITransform) => {
-      const next = [...layer.transforms];
-      next[index] = t;
-      onChange({ ...layer, transforms: next });
-    },
-    [layer, onChange],
-  );
-
-  const removeTransform = useCallback(
-    (index: number) => {
-      onChange({
-        ...layer,
-        transforms: layer.transforms.filter((_, i) => i !== index),
-      });
-    },
-    [layer, onChange],
-  );
-
   const addTransform = useCallback(() => {
+    if (layer.transforms.length > 0) {
+      return;
+    }
     onChange({
       ...layer,
-      transforms: [...layer.transforms, defaultTransform('kde')],
+      transforms: [defaultTransform('kde')],
     });
+  }, [layer, onChange]);
+
+  const updateTransform = useCallback(
+    (t: ITransform) => {
+      onChange({ ...layer, transforms: [t] });
+    },
+    [layer, onChange],
+  );
+
+  const removeTransform = useCallback(() => {
+    onChange({ ...layer, transforms: [] });
   }, [layer, onChange]);
 
   const updateRow = useCallback(
@@ -285,20 +307,44 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         <span className="jp-gis-grammar-layer-label">
           Layer {layerIndex + 1}
         </span>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addTransform}
-          title="Add transform"
-        >
-          <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
-          Transform
-        </Button>
+        {layer.transforms.length === 0 && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={addTransform}
+            title="Add transform"
+          >
+            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+            Transform
+          </Button>
+        )}
 
+        {totalLayers > 1 && onMoveUp && (
+          <Button
+            type="button"
+            variant="ghost"
+            style={{ height: 32, width: 32 }}
+            onClick={onMoveUp}
+            title="Move layer up"
+          >
+            <FontAwesomeIcon icon={faArrowUp} />
+          </Button>
+        )}
+        {totalLayers > 1 && onMoveDown && (
+          <Button
+            type="button"
+            variant="ghost"
+            style={{ height: 32, width: 32 }}
+            onClick={onMoveDown}
+            title="Move layer down"
+          >
+            <FontAwesomeIcon icon={faArrowDown} />
+          </Button>
+        )}
         {totalLayers > 1 && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             style={{ height: 32, width: 32 }}
             onClick={onDelete}
             title="Remove layer"
@@ -354,36 +400,128 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         )}
       </div>
 
-      {/* Transforms */}
-      {layer.transforms.map((t, i) => (
+      {/* Transform params (single transform per layer) */}
+      {layer.transforms[0] && (
         <TransformRow
-          key={i}
-          transform={t}
+          transform={layer.transforms[0]}
           availableFields={availableFields}
-          onChange={updated => updateTransform(i, updated)}
-          onDelete={() => removeTransform(i)}
+          onChange={updateTransform}
+          onDelete={removeTransform}
         />
-      ))}
+      )}
 
-      {/* Mapping rows */}
-      {layer.rows.map((row, i) => (
-        <MappingRow
-          key={row.id}
-          row={row}
-          availableFields={encodingFields}
-          featureValues={featureValues}
-          isRaster={isRaster}
-          onChange={updated => updateRow(i, updated)}
-          onDelete={() => removeRow(i)}
-        />
-      ))}
+      {/* Mapping rows — reorder bar (drag + arrows) above each rule */}
+      {/* Container handles drag events so drops work even at top/bottom edges */}
+      <div
+        className="jp-gis-grammar-rules-container"
+        onDragOver={e => {
+          e.preventDefault();
+          // Find which wrapper the cursor is closest to
+          const wrappers = Array.from(
+            e.currentTarget.querySelectorAll(
+              ':scope > .jp-gis-grammar-drag-wrapper',
+            ),
+          );
+          let idx = layer.rows.length;
+          for (let j = 0; j < wrappers.length; j++) {
+            const rect = wrappers[j].getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            if (e.clientY < midY) {
+              idx = j;
+              break;
+            }
+          }
+          dragOverRef.current = idx;
+          setDragOverIndex(idx);
+        }}
+        onDrop={() => {
+          const over = dragOverRef.current;
+          if (dragIndexRef.current !== null && over !== null) {
+            const to = over > dragIndexRef.current ? over - 1 : over;
+            moveRow(dragIndexRef.current, to);
+          }
+          dragIndexRef.current = null;
+          dragOverRef.current = null;
+          setDragOverIndex(null);
+        }}
+        onDragEnd={() => {
+          dragIndexRef.current = null;
+          dragOverRef.current = null;
+          setDragOverIndex(null);
+        }}
+      >
+        {layer.rows.map((row, i) => (
+          <div
+            key={row.id}
+            className="jp-gis-grammar-drag-wrapper"
+            style={{
+              borderTop:
+                dragOverIndex === i && dragIndexRef.current !== i
+                  ? '2px solid var(--jp-brand-color1)'
+                  : '2px solid transparent',
+              borderBottom:
+                dragOverIndex === layer.rows.length &&
+                i === layer.rows.length - 1 &&
+                dragIndexRef.current !== i
+                  ? '2px solid var(--jp-brand-color1)'
+                  : '2px solid transparent',
+            }}
+          >
+            {layer.rows.length > 1 && (
+              <div className="jp-gis-grammar-reorder-bar">
+                <Button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => moveRow(i, i - 1)}
+                  title="Move up"
+                >
+                  <FontAwesomeIcon icon={faArrowUp} />
+                </Button>
+                <div
+                  className="jp-gis-grammar-drag-handle"
+                  draggable
+                  onDragStart={e => {
+                    dragIndexRef.current = i;
+                    const wrapper = e.currentTarget.closest(
+                      '.jp-gis-grammar-drag-wrapper',
+                    );
+                    if (wrapper) {
+                      e.dataTransfer.setDragImage(wrapper, 0, 0);
+                    }
+                  }}
+                  title="Drag to reorder"
+                >
+                  <FontAwesomeIcon icon={faGripVertical} />
+                </div>
+                <Button
+                  type="button"
+                  disabled={i === layer.rows.length - 1}
+                  onClick={() => moveRow(i, i + 1)}
+                  title="Move down"
+                >
+                  <FontAwesomeIcon icon={faArrowDown} />
+                </Button>
+              </div>
+            )}
+            <MappingRow
+              row={row}
+              availableFields={encodingFields}
+              featureValues={featureValues}
+              isRaster={isRaster}
+              onChange={updated => updateRow(i, updated)}
+              onDelete={() => removeRow(i)}
+            />
+          </div>
+        ))}
+      </div>
 
       <div className="jp-gis-symbology-button-container">
         <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          variant="ghost"
           style={{ margin: '0 0 0.5rem 1rem' }}
           onClick={addRow}
         >
+          <FontAwesomeIcon icon={faPlus} />
           Add Mapping
         </Button>
       </div>
@@ -519,6 +657,21 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     ]);
   };
 
+  const moveLayer = useCallback(
+    (from: number, to: number) => {
+      if (from === to) {
+        return;
+      }
+      setLayers(prev => {
+        const next = [...prev];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    },
+    [setLayers],
+  );
+
   const availableFields = isRasterLayer
     ? bandRows.map(b => `$band-${b.band}`)
     : Object.keys(selectableAttributesAndValues);
@@ -538,13 +691,14 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
           onDelete={() => setLayers(prev => prev.filter((_, j) => j !== i))}
+          onMoveUp={i > 0 ? () => moveLayer(i, i - 1) : undefined}
+          onMoveDown={
+            i < layers.length - 1 ? () => moveLayer(i, i + 1) : undefined
+          }
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={addLayer}
-        >
+        <Button className="jp-gis-grammar-action-btn" onClick={addLayer}>
           Add Layer
         </Button>
       </div>
