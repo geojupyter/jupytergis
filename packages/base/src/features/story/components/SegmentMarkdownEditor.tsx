@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/src/shared/components/Tabs';
+
 type MarkdownEditorTab = 'write' | 'preview';
 
 export interface ISegmentMarkdownEditorProps {
@@ -58,44 +65,29 @@ export function SegmentMarkdownEditor({
   };
 
   return (
-    <div className="jgis-story-editor-draft-markdown-editor">
-      <div
-        className="jgis-story-editor-draft-markdown-tabs"
-        role="tablist"
+    <Tabs
+      value={tab}
+      onValueChange={nextTab => setTab(nextTab as MarkdownEditorTab)}
+    >
+      <TabsList
+        className="jgis-story-editor-markdown-tabs"
         aria-label="Markdown editor"
       >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'write'}
-          className={`jgis-story-editor-draft-markdown-tab${
-            tab === 'write'
-              ? ' jgis-story-editor-draft-markdown-tab--active'
-              : ''
-          }`}
-          onClick={() => setTab('write')}
-        >
+        <TabsTrigger className="jgis-underline-indicator" value="write">
           Write
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'preview'}
-          className={`jgis-story-editor-draft-markdown-tab${
-            tab === 'preview'
-              ? ' jgis-story-editor-draft-markdown-tab--active'
-              : ''
-          }`}
-          onClick={() => setTab('preview')}
-        >
+        </TabsTrigger>
+        <TabsTrigger className="jgis-underline-indicator" value="preview">
           Preview
-        </button>
-      </div>
+        </TabsTrigger>
+      </TabsList>
 
-      {tab === 'write' ? (
+      <TabsContent
+        value="write"
+        className="jgis-story-editor-markdown-tab-content"
+      >
         <textarea
-          className={`jgis-story-editor-draft-textarea${
-            tall ? ' jgis-story-editor-draft-textarea--tall' : ''
+          className={`jgis-story-editor-markdown-textarea${
+            tall ? ' jgis-story-editor-markdown-textarea--tall' : ''
           }`}
           rows={rows}
           value={draft}
@@ -103,20 +95,22 @@ export function SegmentMarkdownEditor({
           onBlur={handleBlur}
           aria-label="Markdown source"
         />
-      ) : (
-        <div
-          className="jgis-story-editor-draft-markdown-preview jgis-story-viewer-content"
-          role="tabpanel"
-        >
+      </TabsContent>
+
+      <TabsContent
+        value="preview"
+        className="jgis-story-editor-markdown-tab-content"
+      >
+        <div className="jgis-story-editor-markdown-preview jgis-story-viewer-content">
           {draft.trim() ? (
             <Markdown>{draft}</Markdown>
           ) : (
-            <p className="jgis-story-editor-draft-markdown-preview-empty">
+            <p className="jgis-story-editor-markdown-preview-empty">
               Nothing to preview yet.
             </p>
           )}
         </div>
-      )}
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 }

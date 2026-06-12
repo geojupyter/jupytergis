@@ -38,6 +38,33 @@
 @import url('./shared/input.css');
 @import url('./shared/nativeSelect.css');
 
+.jgis-underline-indicator {
+  position: relative;
+  opacity: 0.7;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.jgis-underline-indicator::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  transition:
+    background-color 300ms ease-in,
+    width 300ms ease-in,
+    opacity 300ms ease-in;
+  background-color: transparent;
+}
+
+.jgis-underline-indicator[data-state='active']::after {
+  width: 100%;
+  background-color: var(--jp-inverse-layout-color2);
+}
+
 .errors {
   color: var(--jp-warn-color0);
   font-weight: bold;

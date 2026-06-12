@@ -94,7 +94,7 @@ export function ListStoryTitleBarDesktop({
             <button
               key={item.id}
               type="button"
-              className="jgis-story-title-bar-label jgis-story-title-bar-segment"
+              className="jgis-underline-indicator jgis-story-title-bar-label jgis-story-title-bar-segment"
               data-state={isActive ? 'active' : 'inactive'}
               aria-current={isActive ? 'true' : undefined}
               aria-label={`Go to ${item.layerName}`}

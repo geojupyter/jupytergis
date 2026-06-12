@@ -308,27 +308,6 @@
   text-decoration: none;
 }
 
-.jgis-story-title-bar-active-segment::after,
-.jgis-story-title-bar-label::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 3px;
-  transition:
-    background-color 300ms ease-in,
-    width 300ms ease-in,
-    opacity 300ms ease-in;
-  background-color: transparent;
-}
-
-.jgis-story-title-bar-active-segment[data-state='active']::after,
-.jgis-story-title-bar-label[data-state='active']::after {
-  width: 100%;
-  background-color: var(--jp-inverse-layout-color2);
-}
-
 .jgis-story-title-bar-label[data-state='active'] {
   opacity: 1;
   font-weight: bold;

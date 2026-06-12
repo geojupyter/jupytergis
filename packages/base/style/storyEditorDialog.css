@@ -216,10 +216,10 @@
 .jgis-story-editor-draft-segment-list-items {
   flex: 1;
   overflow: auto;
-  padding: 0.35rem;
+  padding: 0.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
 .jgis-story-editor-draft-segment-list-empty {
@@ -448,34 +448,17 @@
   background: var(--jp-layout-color1);
 }
 
-.jgis-story-editor-draft-markdown-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.jgis-story-editor-draft-markdown-tabs {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.jgis-story-editor-draft-markdown-tab {
+.jgis-story-editor-markdown-tabs .jgis-tabs-trigger {
   font-size: 0.75rem;
   padding: 0.2rem 0.45rem;
-  border-radius: 4px;
   color: var(--jp-ui-font-color2);
-  border: none;
-  background: transparent;
-  cursor: pointer;
 }
 
-.jgis-story-editor-draft-markdown-tab--active {
-  background: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color1);
-  font-weight: 600;
+.jgis-tabs-content.jgis-story-editor-markdown-tab-content {
+  padding-top: 0;
 }
 
-.jgis-story-editor-draft-textarea {
+.jgis-story-editor-markdown-textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 0.5rem;
@@ -487,11 +470,11 @@
   resize: vertical;
 }
 
-.jgis-story-editor-draft-textarea--tall {
+.jgis-story-editor-markdown-textarea--tall {
   min-height: 10rem;
 }
 
-.jgis-story-editor-draft-markdown-preview {
+.jgis-story-editor-markdown-preview {
   min-height: 6rem;
   padding: 0.5rem;
   border: 1px solid var(--jp-border-color1);
@@ -500,7 +483,7 @@
   overflow: auto;
 }
 
-.jgis-story-editor-draft-markdown-preview-empty {
+.jgis-story-editor-markdown-preview-empty {
   margin: 0;
   font-size: 0.875rem;
   color: var(--jp-ui-font-color2);
