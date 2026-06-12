@@ -4,6 +4,7 @@ import { CommandRegistry } from '@lumino/commands';
 import React, { useRef, useState } from 'react';
 
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
+import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
@@ -26,7 +27,6 @@ import {
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
 import { Input } from '@/src/shared/components/Input';
-import { Switch } from '@/src/shared/components/Switch';
 
 export interface IStoryEditorDialogBodyDraftProps {
   model: IJupyterGISModel;
@@ -35,17 +35,15 @@ export interface IStoryEditorDialogBodyDraftProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
-const DUMMY_LAYERS = [
-  { name: 'floods', visible: true, changed: true },
-  { name: 'boundaries', visible: true, changed: true },
-  { name: 'basemap', visible: true, changed: false },
-];
-
 function SegmentEditorPlaceholder({
+  model,
+  state,
   segment,
   onContentModeChange,
   onContentChange,
 }: {
+  model: IJupyterGISModel;
+  state: IStateDB;
   segment: IStorySegmentViewItem;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
@@ -135,29 +133,11 @@ function SegmentEditorPlaceholder({
               Layers on this stop
             </CollapsibleTrigger>
             <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
-              <ul className="jgis-story-editor-draft-layer-list">
-                {DUMMY_LAYERS.map(layer => (
-                  <li
-                    key={layer.name}
-                    className="jgis-story-editor-draft-layer-row"
-                  >
-                    <span>{layer.name}</span>
-                    <Switch defaultChecked={layer.visible} disabled />
-                    {layer.changed ? (
-                      <span className="jgis-story-editor-draft-layer-changed">
-                        changed
-                      </span>
-                    ) : (
-                      <span className="jgis-story-editor-draft-layer-unchanged">
-                        unchanged
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <Button variant="link" size="sm">
-                + Add style override…
-              </Button>
+              <SegmentLayerOverrides
+                model={model}
+                state={state}
+                segmentId={segment.id}
+              />
             </CollapsibleContent>
           </Collapsible>
 
@@ -239,6 +219,7 @@ function SegmentEditorEmptyState(): JSX.Element {
 export function StoryEditorDialogBodyDraft({
   model,
   commands,
+  state,
 }: IStoryEditorDialogBodyDraftProps): JSX.Element {
   const {
     story,
@@ -275,6 +256,8 @@ export function StoryEditorDialogBodyDraft({
           {selectedSegment ? (
             <SegmentEditorPlaceholder
               key={selectedSegment.id}
+              model={model}
+              state={state}
               segment={selectedSegment}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
