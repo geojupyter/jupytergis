@@ -166,7 +166,7 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 - feat: add RGBA color picker to vector symbology dialogs [#1195](https://github.com/geojupyter/jupytergis/pull/1195) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
 - Improve Graduated symbology: log breaks fix and vmin/vmax controls [#1193](https://github.com/geojupyter/jupytergis/pull/1193) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
 - Add Natural Earth and ESRI overlay layers to gallery [#1191](https://github.com/geojupyter/jupytergis/pull/1191) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
-- Add D3 categorical color maps [#1186](https://github.com/geojupyter/jupytergis/pull/1186) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add D3 categorical color ramps [#1186](https://github.com/geojupyter/jupytergis/pull/1186) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
 - StopRow now supports strings values [#1183](https://github.com/geojupyter/jupytergis/pull/1183) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
 - Add support for WMS layers [#1178](https://github.com/geojupyter/jupytergis/pull/1178) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
 
@@ -267,7 +267,7 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 - Add keybinding class into toolbar section [#1156](https://github.com/geojupyter/jupytergis/pull/1156) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
 - Fix symbology value selection [#1153](https://github.com/geojupyter/jupytergis/pull/1153) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
 - Symbology panel: Fix initial state by restoring nclasses correctly [#1149](https://github.com/geojupyter/jupytergis/pull/1149) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
-- Hydrate color map "reverse" state from project state [#1146](https://github.com/geojupyter/jupytergis/pull/1146) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Hydrate color ramp "reverse" state from project state [#1146](https://github.com/geojupyter/jupytergis/pull/1146) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
 - Dont show segments in layer selection dropdown [#1143](https://github.com/geojupyter/jupytergis/pull/1143) ([@gjmooney](https://github.com/gjmooney), [@mfisher87](https://github.com/mfisher87))
 - Specta symbology override fix [#1134](https://github.com/geojupyter/jupytergis/pull/1134) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
 
@@ -574,7 +574,7 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 - Display side panels in full screen view [#979](https://github.com/geojupyter/jupytergis/pull/979) ([@gjmooney](https://github.com/gjmooney))
 - Resolve some browser errors [#971](https://github.com/geojupyter/jupytergis/pull/971) ([@gjmooney](https://github.com/gjmooney))
 - In graduated symbology mode, remove static fill color field and fix stroke color field [#952](https://github.com/geojupyter/jupytergis/pull/952) ([@nakul-py](https://github.com/nakul-py))
-- Fix color map gradient cut off, add labels [#950](https://github.com/geojupyter/jupytergis/pull/950) ([@nakul-py](https://github.com/nakul-py))
+- Fix color ramp gradient cut off, add labels [#950](https://github.com/geojupyter/jupytergis/pull/950) ([@nakul-py](https://github.com/nakul-py))
 
 ### Maintenance and upkeep improvements
 
@@ -655,7 +655,7 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ### Enhancements made
 
 - Identify panel: try to infer the feature name instead of showing the default "Feature X" name [#906](https://github.com/geojupyter/jupytergis/pull/906) ([@martinRenou](https://github.com/martinRenou))
-- Adding Checkbox for reverse color map [#904](https://github.com/geojupyter/jupytergis/pull/904) ([@nakul-py](https://github.com/nakul-py))
+- Adding Checkbox for reverse Color Ramp [#904](https://github.com/geojupyter/jupytergis/pull/904) ([@nakul-py](https://github.com/nakul-py))
 - Lazy load gdal [#901](https://github.com/geojupyter/jupytergis/pull/901) ([@martinRenou](https://github.com/martinRenou))
 - Automatically switch to identify panel when identifying [#900](https://github.com/geojupyter/jupytergis/pull/900) ([@arjxn-py](https://github.com/arjxn-py))
 - Introduce settings to optionally disable some features (filtering/annotations etc) [#898](https://github.com/geojupyter/jupytergis/pull/898) ([@arjxn-py](https://github.com/arjxn-py))
@@ -1266,7 +1266,7 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 - Open jgis files with json viewer [#210](https://github.com/geojupyter/jupytergis/pull/210) ([@gjmooney](https://github.com/gjmooney))
 - Add support for other projections [#199](https://github.com/geojupyter/jupytergis/pull/199) ([@gjmooney](https://github.com/gjmooney))
 - Symbology refactor [#193](https://github.com/geojupyter/jupytergis/pull/193) ([@gjmooney](https://github.com/gjmooney))
-- color maps and classification [#177](https://github.com/geojupyter/jupytergis/pull/177) ([@gjmooney](https://github.com/gjmooney))
+- Color ramps and classification [#177](https://github.com/geojupyter/jupytergis/pull/177) ([@gjmooney](https://github.com/gjmooney))
 
 ### Bugs fixed
 
