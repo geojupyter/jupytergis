@@ -317,7 +317,7 @@ select option {
   flex-direction: row;
   align-items: stretch;
   padding-left: 5px;
-  padding-right: 8px;  /* A little more on the right because of the scroll bar */
+  padding-right: 8px; /* A little more on the right because of the scroll bar */
 }
 
 .jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule {
