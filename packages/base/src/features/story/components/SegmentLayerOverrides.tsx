@@ -1,6 +1,6 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
-import React from 'react';
+import React, { type RefObject } from 'react';
 
 import { SymbologyWidget } from '@/src/features/layers/symbology/symbologyDialog';
 import {
@@ -10,6 +10,7 @@ import {
 import { Button } from '@/src/shared/components/Button';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
+import { SegmentOverrideSheet } from './SegmentOverrideSheet';
 
 const SELECTION_SETTLE_MS = 100;
 
@@ -17,6 +18,7 @@ export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
   state: IStateDB;
   segmentId: string;
+  portalContainerRef: RefObject<HTMLElement | null>;
 }
 
 async function openSegmentLayerSymbology(
@@ -49,6 +51,7 @@ export function SegmentLayerOverrides({
   model,
   state,
   segmentId,
+  portalContainerRef,
 }: ISegmentLayerOverridesProps): JSX.Element {
   const rows = buildSegmentLayerRows(model, segmentId);
 
@@ -95,19 +98,12 @@ export function SegmentLayerOverrides({
               {row.isChanged ? 'changed' : 'unchanged'}
             </span>
             {canEditStyle ? (
-              <Button
-                type="button"
-                onClick={() => {
-                  void openSegmentLayerSymbology(
-                    model,
-                    state,
-                    segmentId,
-                    row.layerId,
-                  );
-                }}
-              >
-                Style
-              </Button>
+              <SegmentOverrideSheet
+                model={model}
+                segmentId={segmentId}
+                layerId={row.layerId}
+                portalContainerRef={portalContainerRef}
+              />
             ) : null}
           </li>
         );

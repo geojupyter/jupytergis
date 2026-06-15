@@ -39,12 +39,14 @@ function SegmentEditorPlaceholder({
   model,
   state,
   segment,
+  portalContainerRef,
   onContentModeChange,
   onContentChange,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
   segment: IStorySegmentViewItem;
+  portalContainerRef: React.RefObject<HTMLElement | null>;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
 }): JSX.Element {
@@ -137,6 +139,7 @@ function SegmentEditorPlaceholder({
                 model={model}
                 state={state}
                 segmentId={segment.id}
+                portalContainerRef={portalContainerRef}
               />
             </CollapsibleContent>
           </Collapsible>
@@ -259,6 +262,7 @@ export function StoryEditorDialogBodyDraft({
               model={model}
               state={state}
               segment={selectedSegment}
+              portalContainerRef={portalContainerRef}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}

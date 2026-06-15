@@ -40,7 +40,7 @@ export interface IStopRow {
   output: SymbologyValue;
 }
 
-const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
+export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   isStorySegmentOverride,
