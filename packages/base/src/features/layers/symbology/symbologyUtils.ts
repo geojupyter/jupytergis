@@ -73,13 +73,17 @@ export function getEffectiveSymbologyParams(
   }
   const segment = model.getLayer(segmentId);
   const override = segment?.parameters?.layerOverride?.find(
-    (override: { targetLayer?: string }) => override.targetLayer === layerId,
+    (entry: { targetLayer?: string }) => entry.targetLayer === layerId,
   );
+
+  if (!override) {
+    return layer.parameters as IEffectiveSymbologyParams;
+  }
 
   if (!override.symbologyState) {
     override.symbologyState = {};
   }
-  return (override as IEffectiveSymbologyParams) ?? null;
+  return override as IEffectiveSymbologyParams;
 }
 
 export function saveSymbology(options: ISaveSymbologyOptions): void {

@@ -790,6 +790,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       extent,
       zoom,
       transition: { type: 'linear', time: 1 },
+      layerOverride: [],
       content: {
         contentMode: 'map',
         title: '',
