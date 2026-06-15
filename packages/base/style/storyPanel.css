@@ -552,6 +552,7 @@
   gap: 1rem;
   align-items: center;
   cursor: pointer;
+  padding-top: 0.5rem;
 }
 
 .jgis-symbology-override-collapsible-trigger span {

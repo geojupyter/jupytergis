@@ -22,11 +22,6 @@ import {
 } from '@/src/features/story/utils/storySegmentViewItems';
 import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
 import { Button } from '@/src/shared/components/Button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/src/shared/components/Collapsible';
 import { Input } from '@/src/shared/components/Input';
 
 export interface IStoryEditorDialogBodyDraftProps {
@@ -79,33 +74,28 @@ function SegmentEditorPlaceholder({
 
       {stopType === 'map' ? (
         <>
-          <Collapsible defaultOpen>
-            <CollapsibleTrigger className="jgis-story-editor-draft-collapsible-trigger">
-              Map view
-            </CollapsibleTrigger>
-            <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
-              <div className="jgis-story-editor-draft-map-view-row">
-                <div
-                  className="jgis-story-editor-draft-map-thumb"
-                  aria-hidden
-                />
-                <div className="jgis-story-editor-draft-map-view-actions">
-                  <Button variant="outline" size="sm">
-                    Use current map view
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    Preview on main map
-                  </Button>
-                </div>
+          <StoryEditorSection triggerText="Map view" defaultOpen>
+            <div className="jgis-story-editor-draft-map-view-row">
+              <div className="jgis-story-editor-draft-map-thumb" aria-hidden />
+              <div className="jgis-story-editor-draft-map-view-actions">
+                <Button variant="outline" size="sm">
+                  Use current map view
+                </Button>
+                <Button variant="ghost" size="sm">
+                  Preview on main map
+                </Button>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </StoryEditorSection>
 
-          <Collapsible defaultOpen>
-            <CollapsibleTrigger className="jgis-story-editor-draft-collapsible-trigger">
-              Content
-            </CollapsibleTrigger>
-            <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
+          <StoryEditorSection triggerText="Content" defaultOpen>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
               <label className="jgis-story-editor-draft-field">
                 <span>Title</span>
                 <Input
@@ -128,8 +118,8 @@ function SegmentEditorPlaceholder({
                 }}
                 rows={4}
               />
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </StoryEditorSection>
 
           <StoryEditorSection
             triggerText="Layers on this stop"
@@ -144,53 +134,47 @@ function SegmentEditorPlaceholder({
             />
           </StoryEditorSection>
 
-          <Collapsible open={animationOpen} onOpenChange={setAnimationOpen}>
-            <CollapsibleTrigger className="jgis-story-editor-draft-collapsible-trigger">
-              Animation to this stop
-            </CollapsibleTrigger>
-            <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
-              <div className="jgis-story-editor-draft-animation-row">
-                <select
-                  className="jgis-story-editor-draft-select"
-                  defaultValue="smooth"
-                  disabled
-                >
-                  <option value="immediate">Instant</option>
-                  <option value="smooth">Smooth pan</option>
-                  <option value="linear">Linear</option>
-                </select>
-                <Input
-                  type="range"
-                  min={0}
-                  max={3}
-                  step={0.1}
-                  defaultValue={1}
-                  disabled
-                />
-                <span>1.0s</span>
-                <Button variant="outline" size="sm">
-                  Play
-                </Button>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          <StoryEditorSection
+            triggerText="Animation to this stop"
+            open={animationOpen}
+            onOpenChange={setAnimationOpen}
+          >
+            <div className="jgis-story-editor-draft-animation-row">
+              <select
+                className="jgis-story-editor-draft-select"
+                defaultValue="smooth"
+                disabled
+              >
+                <option value="immediate">Instant</option>
+                <option value="smooth">Smooth pan</option>
+                <option value="linear">Linear</option>
+              </select>
+              <Input
+                type="range"
+                min={0}
+                max={3}
+                step={0.1}
+                defaultValue={1}
+                disabled
+              />
+              <span>1.0s</span>
+              <Button variant="outline" size="sm">
+                Play
+              </Button>
+            </div>
+          </StoryEditorSection>
         </>
       ) : (
-        <Collapsible defaultOpen>
-          <CollapsibleTrigger className="jgis-story-editor-draft-collapsible-trigger">
-            Content
-          </CollapsibleTrigger>
-          <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
-            <SegmentMarkdownEditor
-              value={markdown}
-              onChange={nextMarkdown => {
-                onContentChange({ markdown: nextMarkdown });
-              }}
-              tall
-              rows={10}
-            />
-          </CollapsibleContent>
-        </Collapsible>
+        <StoryEditorSection triggerText="Content" defaultOpen>
+          <SegmentMarkdownEditor
+            value={markdown}
+            onChange={nextMarkdown => {
+              onContentChange({ markdown: nextMarkdown });
+            }}
+            tall
+            rows={10}
+          />
+        </StoryEditorSection>
       )}
 
       <div className="jgis-story-editor-draft-preview">

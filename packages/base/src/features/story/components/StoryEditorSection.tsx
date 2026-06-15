@@ -12,6 +12,7 @@ interface StoryEditorSectionProps {
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  defaultOpen?: boolean;
 }
 
 function StoryEditorSection({
@@ -19,9 +20,14 @@ function StoryEditorSection({
   triggerText,
   open,
   onOpenChange,
+  defaultOpen,
 }: StoryEditorSectionProps) {
   return (
-    <Collapsible open={open} onOpenChange={onOpenChange}>
+    <Collapsible
+      open={open}
+      onOpenChange={onOpenChange}
+      defaultOpen={defaultOpen}
+    >
       <CollapsibleTrigger asChild>
         <div className="jgis-symbology-override-collapsible-trigger">
           <Button
