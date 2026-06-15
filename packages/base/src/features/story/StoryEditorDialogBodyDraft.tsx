@@ -21,8 +21,20 @@ import {
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
 import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
+import {
+  formatSegmentTransitionTime,
+  getSegmentTransitionTime,
+  MAX_SEGMENT_TRANSITION_TIME,
+  MIN_SEGMENT_TRANSITION_TIME,
+  SEGMENT_TRANSITION_TIME_STEP,
+  type SegmentTransitionPatch,
+} from '@/src/features/story/utils/storySegmentTransition';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 export interface IStoryEditorDialogBodyDraftProps {
   model: IJupyterGISModel;
@@ -38,6 +50,7 @@ function SegmentEditorPlaceholder({
   portalContainerRef,
   onContentModeChange,
   onContentChange,
+  onTransitionChange,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -45,6 +58,7 @@ function SegmentEditorPlaceholder({
   portalContainerRef: React.RefObject<HTMLElement | null>;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
+  onTransitionChange: (patch: SegmentTransitionPatch) => void;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
@@ -53,6 +67,11 @@ function SegmentEditorPlaceholder({
   const imageUrl = segment.activeSlide?.content?.image ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const stopType = getSegmentDisplayMode(segment.activeSlide);
+  const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
+  const transitionTime = getSegmentTransitionTime(
+    segment.activeSlide?.transition,
+  );
+  const isImmediateTransition = transitionType === 'immediate';
 
   return (
     <div className="jgis-story-editor-draft-editor">
@@ -140,27 +159,34 @@ function SegmentEditorPlaceholder({
             onOpenChange={setAnimationOpen}
           >
             <div className="jgis-story-editor-draft-animation-row">
-              <select
+              <NativeSelect
                 className="jgis-story-editor-draft-select"
+                size="sm"
                 defaultValue="smooth"
-                disabled
               >
-                <option value="immediate">Instant</option>
-                <option value="smooth">Smooth pan</option>
-                <option value="linear">Linear</option>
-              </select>
+                <NativeSelectOption value="immediate">
+                  Instant
+                </NativeSelectOption>
+                <NativeSelectOption value="smooth">
+                  Smooth pan
+                </NativeSelectOption>
+                <NativeSelectOption value="linear">Linear</NativeSelectOption>
+              </NativeSelect>
               <Input
                 type="range"
-                min={0}
-                max={3}
-                step={0.1}
-                defaultValue={1}
-                disabled
+                min={MIN_SEGMENT_TRANSITION_TIME}
+                max={MAX_SEGMENT_TRANSITION_TIME}
+                step={SEGMENT_TRANSITION_TIME_STEP}
+                value={transitionTime}
+                disabled={isImmediateTransition}
+                aria-label="Transition duration"
+                onChange={event => {
+                  onTransitionChange({
+                    time: Number(event.target.value),
+                  });
+                }}
               />
-              <span>1.0s</span>
-              <Button variant="outline" size="sm">
-                Play
-              </Button>
+              <span>{formatSegmentTransitionTime(transitionTime)}</span>
             </div>
           </StoryEditorSection>
         </>
@@ -218,6 +244,7 @@ export function StoryEditorDialogBodyDraft({
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
+    updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
@@ -252,6 +279,9 @@ export function StoryEditorDialogBodyDraft({
               }}
               onContentChange={patch => {
                 updateSegmentContent(selectedSegment.id, patch);
+              }}
+              onTransitionChange={patch => {
+                updateSegmentTransition(selectedSegment.id, patch);
               }}
             />
           ) : (

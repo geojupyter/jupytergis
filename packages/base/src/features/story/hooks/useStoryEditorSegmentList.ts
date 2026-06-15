@@ -12,6 +12,10 @@ import {
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
 } from '@/src/features/story/utils/storySegmentContent';
+import {
+  type SegmentTransitionPatch,
+  updateSegmentTransition as applySegmentTransition,
+} from '@/src/features/story/utils/storySegmentTransition';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
 function getSingleSelectedLayerId(
@@ -75,6 +79,10 @@ interface IUseStoryEditorSegmentListResult {
   updateSegmentContent: (
     segmentId: string,
     patch: SegmentContentPatch,
+  ) => void;
+  updateSegmentTransition: (
+    segmentId: string,
+    patch: SegmentTransitionPatch,
   ) => void;
 }
 
@@ -178,6 +186,13 @@ export function useStoryEditorSegmentList(
     [model],
   );
 
+  const updateSegmentTransition = useCallback(
+    (segmentId: string, patch: SegmentTransitionPatch) => {
+      applySegmentTransition(model, segmentId, patch);
+    },
+    [model],
+  );
+
   useEffect(() => {
     const handleSegmentAdded = (
       _sender: IJupyterGISModel,
@@ -207,5 +222,6 @@ export function useStoryEditorSegmentList(
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
+    updateSegmentTransition,
   };
 }
