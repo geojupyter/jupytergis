@@ -171,7 +171,7 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
-  { value: 'colorRamp', label: 'colorRamp' },
+  { value: 'colorRamp', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
