@@ -52,7 +52,11 @@ export function SegmentOverrideSheet({
 
   return (
     <Sheet onOpenChange={handleOpenChange} modal={false}>
-      <SheetTrigger>Open</SheetTrigger>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="sm">
+          Style
+        </Button>
+      </SheetTrigger>
       <SheetContent container={portalContainerRef.current}>
         <SheetHeader>
           <SheetTitle>Are you absolutely sure?</SheetTitle>
