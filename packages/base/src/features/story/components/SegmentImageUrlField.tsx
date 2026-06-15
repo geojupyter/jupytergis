@@ -60,14 +60,19 @@ export function SegmentImageUrlField({
           />
         </label>
         <div className="jgis-story-editor-segment-image-url-actions">
-          <Button type="button" size="sm" onClick={handleCommit}>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleCommit}
+            variant="secondary"
+          >
             Use URL
           </Button>
           {trimmedValue ? (
             <Button
               type="button"
               size="sm"
-              variant="ghost"
+              variant="destructive"
               onClick={() => {
                 setDraftUrl(value);
                 setIsEditing(false);
