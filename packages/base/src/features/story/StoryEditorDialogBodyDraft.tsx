@@ -8,6 +8,7 @@ import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLa
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
+import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import StoryEditorSection from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
@@ -95,15 +96,20 @@ function SegmentEditorPlaceholder({
         <>
           <StoryEditorSection triggerText="Map view" defaultOpen>
             <div className="jgis-story-editor-draft-map-view-row">
-              <div className="jgis-story-editor-draft-map-thumb" aria-hidden />
-              <div className="jgis-story-editor-draft-map-view-actions">
-                <Button variant="outline" size="sm">
-                  Use current map view
-                </Button>
-                <Button variant="ghost" size="sm">
-                  Preview on main map
-                </Button>
-              </div>
+              <p className="jgis-story-editor-draft-map-view-help">
+                Set this stop&apos;s map view by positioning the main map.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  StoryEditorSession.getInstance().enterMapPickMode(
+                    segment.id,
+                  );
+                }}
+              >
+                Set map view on map
+              </Button>
             </div>
           </StoryEditorSection>
 

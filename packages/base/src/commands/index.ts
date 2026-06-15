@@ -33,6 +33,7 @@ import {
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { StoryEditorWidget } from '../features/story/storyEditorDialog';
+import { StoryEditorSession } from '../features/story/storyEditorSession';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -2085,13 +2086,29 @@ namespace Private {
         return;
       }
 
+      const session = StoryEditorSession.getInstance();
+      if (session.isActiveFor(current.model)) {
+        if (session.isPickingMapView()) {
+          session.restoreEditor();
+        } else {
+          session.focusDialog();
+        }
+        return;
+      }
+
       const dialog = new StoryEditorWidget({
         model: current.model,
         commands,
         state,
         formSchemaRegistry,
       });
-      await dialog.launch();
+      session.attachDialog(dialog, current.model);
+
+      try {
+        await dialog.launch();
+      } finally {
+        session.clear();
+      }
     };
   }
 

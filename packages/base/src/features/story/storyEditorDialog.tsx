@@ -8,6 +8,7 @@ import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
 import { StoryEditorDialogBodyDraft } from './StoryEditorDialogBodyDraft';
+import { StoryEditorSession } from './storyEditorSession';
 
 export interface IStoryEditorWidgetOptions {
   model: IJupyterGISModel;
@@ -35,5 +36,21 @@ export class StoryEditorWidget extends Dialog<boolean> {
 
     this.id = 'jupytergis::storyEditor';
     this.addClass('jgis-story-editor-dialog');
+  }
+
+  minimize(): void {
+    this.addClass('jgis-story-editor-dialog--minimized');
+    this.hide();
+  }
+
+  restore(): void {
+    this.removeClass('jgis-story-editor-dialog--minimized');
+    this.show();
+    this.activate();
+  }
+
+  dispose(): void {
+    StoryEditorSession.getInstance().clear();
+    super.dispose();
   }
 }
