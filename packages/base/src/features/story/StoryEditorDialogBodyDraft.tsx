@@ -8,6 +8,7 @@ import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLa
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
+import StoryEditorSection from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import type {
@@ -50,7 +51,7 @@ function SegmentEditorPlaceholder({
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
 }): JSX.Element {
-  const [layersOpen, setLayersOpen] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
   const contentTitle = segment.activeSlide?.content?.title ?? '';
@@ -130,19 +131,18 @@ function SegmentEditorPlaceholder({
             </CollapsibleContent>
           </Collapsible>
 
-          <Collapsible open={layersOpen} onOpenChange={setLayersOpen}>
-            <CollapsibleTrigger className="jgis-story-editor-draft-collapsible-trigger">
-              Layers on this stop
-            </CollapsibleTrigger>
-            <CollapsibleContent className="jgis-story-editor-draft-collapsible-content">
-              <SegmentLayerOverrides
-                model={model}
-                state={state}
-                segmentId={segment.id}
-                portalContainerRef={portalContainerRef}
-              />
-            </CollapsibleContent>
-          </Collapsible>
+          <StoryEditorSection
+            triggerText="Layers on this stop"
+            open={layersOpen}
+            onOpenChange={setLayersOpen}
+          >
+            <SegmentLayerOverrides
+              model={model}
+              state={state}
+              segmentId={segment.id}
+              portalContainerRef={portalContainerRef}
+            />
+          </StoryEditorSection>
 
           <Collapsible open={animationOpen} onOpenChange={setAnimationOpen}>
             <CollapsibleTrigger className="jgis-story-editor-draft-collapsible-trigger">

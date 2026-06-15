@@ -553,3 +553,7 @@
   align-items: center;
   cursor: pointer;
 }
+
+.jgis-symbology-override-collapsible-trigger span {
+  font-weight: bold;
+}
