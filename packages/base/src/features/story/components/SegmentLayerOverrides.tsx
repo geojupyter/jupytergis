@@ -74,7 +74,14 @@ export function SegmentLayerOverrides({
         return (
           <li key={row.layerId} className="jgis-story-editor-segment-layer-row">
             <span className="jgis-story-editor-segment-layer-name">
-              {row.layerName}
+              <span className="jgis-story-editor-segment-layer-name-text">
+                {row.layerName}
+              </span>
+              {row.isChanged ? (
+                <span className="jgis-story-editor-segment-layer-override-pill">
+                  Override
+                </span>
+              ) : null}
             </span>
             <Switch
               checked={row.effectiveVisible}
@@ -88,15 +95,6 @@ export function SegmentLayerOverrides({
               }}
               aria-label={`Toggle visibility for ${row.layerName}`}
             />
-            <span
-              className={
-                row.isChanged
-                  ? 'jgis-story-editor-segment-layer-changed'
-                  : 'jgis-story-editor-segment-layer-unchanged'
-              }
-            >
-              {row.isChanged ? 'changed' : 'unchanged'}
-            </span>
             {canEditStyle ? (
               <SegmentOverrideSheet
                 model={model}

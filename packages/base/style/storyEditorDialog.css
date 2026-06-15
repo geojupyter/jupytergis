@@ -557,12 +557,27 @@
 .jgis-story-editor-segment-layer-name {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
-.jgis-story-editor-segment-layer-changed,
-.jgis-story-editor-segment-layer-unchanged {
-  font-size: 0.68rem;
-  color: var(--jp-ui-font-color2);
+.jgis-story-editor-segment-layer-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jgis-story-editor-segment-layer-override-pill {
+  flex-shrink: 0;
+  padding: 0.0625rem 0.35rem;
+  border-radius: var(--jp-border-radius);
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.4;
+  background-color: var(--jp-error-color0);
+  color: var(--jp-ui-inverse-font-color0);
 }
 
 .jgis-story-editor-segment-layer-style-btn {
