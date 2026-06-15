@@ -868,7 +868,7 @@ def jgis_layer_to_qgis(
         source_min = source_parameters["urls"][0]["min"]
         source_max = source_parameters["urls"][0]["max"]
 
-        # Create a color ramp shader
+        # Create a color map shader
         color_ramp_shader = QgsColorRampShader()
         color_stops = []
 

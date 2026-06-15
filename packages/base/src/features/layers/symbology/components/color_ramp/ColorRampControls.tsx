@@ -2,10 +2,10 @@
  * @module ColorRampControls
  *
  * This component provides the main UI controls for classifying raster layers
- * using different color ramps and classification modes.
+ * using different color maps and classification modes.
  *
  * Allows users to:
- * - Select a color ramp (`ColorRampSelector`)
+ * - Select a color map (`ColorRampSelector`)
  * - Choose classification mode and number of classes (`ModeSelectRow`)
  * - Run classification via `classifyFunc`, with loading state (`LoadingIcon`)
  *
@@ -117,7 +117,7 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     <div className="jp-gis-color-ramp-container">
       {showRampSelector && (
         <div className="jp-gis-symbology-row">
-          <label htmlFor="color-ramp-select">Color Ramp:</label>
+          <label htmlFor="color-ramp-select">Color Map:</label>
           <ColorRampSelector
             selectedRamp={selectedRamp}
             setSelected={handleRampChange}
