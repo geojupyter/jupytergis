@@ -86,7 +86,7 @@ export class JupyterGISDoc
     this._initialSyncReadyResolve();
   }
 
-  getSource(): JSONObject {
+  getSource(): string {
     const layers = this._layers.toJSON();
     const layerTree = this._layerTree.toJSON();
     const options = this._options.toJSON();
@@ -95,15 +95,19 @@ export class JupyterGISDoc
     const viewState = this._viewState.toJSON();
     const metadata = this._metadata.toJSON();
 
-    return {
-      layers,
-      layerTree,
-      sources,
-      stories,
-      viewState,
-      options,
-      metadata,
-    };
+    return JSON.stringify(
+      {
+        layers,
+        layerTree,
+        sources,
+        stories,
+        viewState,
+        options,
+        metadata,
+      },
+      null,
+      '  ',
+    );
   }
 
   setSource(value: JSONObject | string): void {

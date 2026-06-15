@@ -188,7 +188,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
 
-  getSource(): JSONObject;
+  getSource(): string;
   setSource(value: JSONObject | string): void;
 
   layerExists(id: string): boolean;
