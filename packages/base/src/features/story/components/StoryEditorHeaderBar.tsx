@@ -76,8 +76,8 @@ function StorySettingsPopover({
         <PopoverHeader>
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
-        <div className="jgis-story-editor-draft-settings-sheet-body">
-          <label className="jgis-story-editor-draft-field">
+        <div className="jgis-story-editor-settings-sheet-body">
+          <label className="jgis-story-editor-field">
             <span>Title</span>
             <Input
               value={story.title ?? ''}
@@ -86,10 +86,10 @@ function StorySettingsPopover({
               }}
             />
           </label>
-          <label className="jgis-story-editor-draft-field">
+          <label className="jgis-story-editor-field">
             <span>Story type</span>
             <NativeSelect
-              className="jgis-story-editor-draft-story-type-native-select"
+              className="jgis-story-editor-story-type-native-select"
               value={story.storyType ?? STORY_TYPE.guided}
               onChange={event => {
                 onUpdateStory({
@@ -104,11 +104,11 @@ function StorySettingsPopover({
               ))}
             </NativeSelect>
           </label>
-          <div className="jgis-story-editor-draft-settings-section">
-            <div className="jgis-story-editor-draft-settings-section-title">
+          <div className="jgis-story-editor-settings-section">
+            <div className="jgis-story-editor-settings-section-title">
               Presentation
             </div>
-            <label className="jgis-story-editor-draft-toggle-row">
+            <label className="jgis-story-editor-toggle-row">
               <span>Use gradient background</span>
               <Switch
                 checked={story.showGradient !== false}
@@ -117,7 +117,7 @@ function StorySettingsPopover({
                 }}
               />
             </label>
-            <label className="jgis-story-editor-draft-field">
+            <label className="jgis-story-editor-field">
               <span>Background color</span>
               <Input
                 type="color"
@@ -130,7 +130,7 @@ function StorySettingsPopover({
                 }}
               />
             </label>
-            <label className="jgis-story-editor-draft-field">
+            <label className="jgis-story-editor-field">
               <span>Text color</span>
               <Input
                 type="color"
@@ -157,24 +157,24 @@ export function StoryEditorHeaderBar({
   portalContainerRef,
 }: IStoryEditorHeaderBarProps): JSX.Element {
   return (
-    <div className="jgis-story-editor-draft-toolbar">
-      <div className="jgis-story-editor-draft-context-bar">
-        <span className="jgis-story-editor-draft-context-pill">
+    <div className="jgis-story-editor-toolbar">
+      <div className="jgis-story-editor-context-bar">
+        <span className="jgis-story-editor-context-pill">
           {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
         </span>
-        <span className="jgis-story-editor-draft-context-meta">
+        <span className="jgis-story-editor-context-meta">
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>
         {story ? (
           <span
-            className="jgis-story-editor-draft-context-meta jgis-story-editor-draft-context-title"
+            className="jgis-story-editor-context-meta jgis-story-editor-context-title"
             title={story.title || 'Untitled story'}
           >
             {story.title?.trim() || 'Untitled story'}
           </span>
         ) : null}
         {story ? (
-          <span className="jgis-story-editor-draft-context-meta">
+          <span className="jgis-story-editor-context-meta">
             {formatGradientLabel(story.showGradient)}
           </span>
         ) : null}

@@ -14,16 +14,16 @@ export function SegmentStopTypePicker({
   onChange,
 }: ISegmentStopTypePickerProps): JSX.Element {
   return (
-    <section className="jgis-story-editor-draft-section">
-      <div className="jgis-story-editor-draft-section-label">
+    <section className="jgis-story-editor-section">
+      <div className="jgis-story-editor-section-label">
         What is this stop?
       </div>
-      <div className="jgis-story-editor-draft-stop-type-picker">
+      <div className="jgis-story-editor-stop-type-picker">
         <button
           type="button"
-          className={`jgis-story-editor-draft-stop-type-card${
+          className={`jgis-story-editor-stop-type-card${
             value === 'map'
-              ? ' jgis-story-editor-draft-stop-type-card--selected'
+              ? ' jgis-story-editor-stop-type-card--selected'
               : ''
           }`}
           aria-pressed={value === 'map'}
@@ -37,9 +37,9 @@ export function SegmentStopTypePicker({
         </button>
         <button
           type="button"
-          className={`jgis-story-editor-draft-stop-type-card${
+          className={`jgis-story-editor-stop-type-card${
             value === 'markdown'
-              ? ' jgis-story-editor-draft-stop-type-card--selected'
+              ? ' jgis-story-editor-stop-type-card--selected'
               : ''
           }`}
           aria-pressed={value === 'markdown'}

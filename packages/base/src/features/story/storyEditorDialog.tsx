@@ -7,7 +7,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
-import { StoryEditorDialogBodyDraft } from './StoryEditorDialogBodyDraft';
+import { StoryEditorDialogBody } from './StoryEditorDialogBody';
 import { StoryEditorSession } from './storyEditorSession';
 
 export interface IStoryEditorWidgetOptions {
@@ -20,7 +20,7 @@ export interface IStoryEditorWidgetOptions {
 export class StoryEditorWidget extends Dialog<boolean> {
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
-      <StoryEditorDialogBodyDraft
+      <StoryEditorDialogBody
         model={options.model}
         commands={options.commands}
         state={options.state}

@@ -29,19 +29,19 @@ function SegmentListItem({
   return (
     <button
       type="button"
-      className={`jgis-story-editor-draft-segment-item${
-        selected ? ' jgis-story-editor-draft-segment-item--selected' : ''
+      className={`jgis-story-editor-segment-item${
+        selected ? ' jgis-story-editor-segment-item--selected' : ''
       }`}
       onClick={onSelect}
       aria-current={selected ? 'true' : undefined}
     >
-      <span className="jgis-story-editor-draft-segment-item-index">
+      <span className="jgis-story-editor-segment-item-index">
         {segment.index + 1}.
       </span>
-      <span className="jgis-story-editor-draft-segment-item-title">
+      <span className="jgis-story-editor-segment-item-title">
         {title}
       </span>
-      <span className="jgis-story-editor-draft-segment-item-type">
+      <span className="jgis-story-editor-segment-item-type">
         {stopType === 'map' ? 'Map' : 'Text'}
       </span>
     </button>
@@ -55,13 +55,13 @@ export function StoryEditorSegmentList({
   onAddSegment,
 }: IStoryEditorSegmentListProps): JSX.Element {
   return (
-    <aside className="jgis-story-editor-draft-segment-list">
-      <div className="jgis-story-editor-draft-segment-list-header">
+    <aside className="jgis-story-editor-segment-list">
+      <div className="jgis-story-editor-segment-list-header">
         Segments
       </div>
-      <div className="jgis-story-editor-draft-segment-list-items">
+      <div className="jgis-story-editor-segment-list-items">
         {segments.length === 0 ? (
-          <p className="jgis-story-editor-draft-segment-list-empty">
+          <p className="jgis-story-editor-segment-list-empty">
             No segments yet. Add one from the current map view.
           </p>
         ) : (
@@ -78,7 +78,7 @@ export function StoryEditorSegmentList({
       <Button
         variant="outline"
         size="sm"
-        className="jgis-story-editor-draft-add-segment"
+        className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
       >
         <FontAwesomeIcon icon={faPlus} /> Add segment

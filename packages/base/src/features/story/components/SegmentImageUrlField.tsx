@@ -44,7 +44,7 @@ export function SegmentImageUrlField({
   if (showUrlInput) {
     return (
       <div className="jgis-story-editor-segment-image">
-        <label className="jgis-story-editor-draft-field">
+        <label className="jgis-story-editor-field">
           <span>Hero image URL</span>
           <Input
             type="url"
