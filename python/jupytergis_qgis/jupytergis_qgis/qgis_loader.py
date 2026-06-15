@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import math
 import os
 import sys
 from pathlib import Path
@@ -16,6 +17,11 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsCategorizedSymbolRenderer,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
+    QgsExpression,
+    QgsExpressionNodeBinaryOperator,
+    QgsExpressionNodeColumnRef,
+    QgsExpressionNodeFunction,
+    QgsExpressionNodeLiteral,
     QgsFillSymbol,
     QgsGraduatedSymbolRenderer,
     QgsHeatmapRenderer,
@@ -24,14 +30,19 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsLineSymbol,
     QgsMapLayer,
     QgsMarkerSymbol,
+    QgsMultiBandColorRenderer,
     QgsPointClusterRenderer,
     QgsProject,
+    QgsRasterBandStats,
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsRuleBasedRenderer,
     QgsSettings,
+    QgsSingleBandGrayRenderer,
+    QgsSingleBandPseudoColorRenderer,
     QgsSingleSymbolRenderer,
+    QgsSymbolLayer,
     QgsVectorLayer,
     QgsVectorTileLayer,
 )
@@ -53,7 +64,10 @@ from .grammar import (
     grammar_layer_to_renderer,
     grammar_to_flat_colors,
     grammar_to_raster_renderer,
+    grayscale_raster_to_grammar,
     kde_grammar,
+    multiband_raster_to_grammar,
+    raster_flat_color_to_grammar,
     raster_to_grammar,
     single_symbol_grammar,
     subset_to_when,
@@ -118,6 +132,32 @@ def _extract_symbol_style(symbol):
     return fill, stroke, stroke_width, radius, geometry_type
 
 
+def _is_finite_number(value) -> bool:
+    return isinstance(value, int | float) and math.isfinite(value)
+
+
+def _raster_min_max(provider, band: int, enhancement) -> tuple[float, float]:
+    """Numeric (min, max) for a GeoTiff source band, never None/NaN.
+
+    GeoTiff sources require numeric min/max (used to normalize for display).
+    Prefer QGIS's contrast-enhancement stretch, fall back to band statistics,
+    then to a 0-255 default.
+    """
+    if enhancement is not None:
+        lo, hi = enhancement.minimumValue(), enhancement.maximumValue()
+        if _is_finite_number(lo) and _is_finite_number(hi) and lo != hi:
+            return float(lo), float(hi)
+    if provider is not None:
+        stats = provider.bandStatistics(
+            band,
+            QgsRasterBandStats.Min | QgsRasterBandStats.Max,
+        )
+        lo, hi = stats.minimumValue, stats.maximumValue
+        if _is_finite_number(lo) and _is_finite_number(hi) and lo != hi:
+            return float(lo), float(hi)
+    return 0.0, 255.0
+
+
 def _heatmap_color_stops(renderer):
     """Sample a heatmap renderer's color ramp into 9 grammar colorStops over [0, 1]."""
     ramp = renderer.colorRamp()
@@ -136,6 +176,400 @@ def _heatmap_color_stops(renderer):
         }
         for i in range(n)
     ]
+
+
+# Comparison operators QGIS uses in the rule/filter expressions it generates,
+# mapped to the grammar `fieldCompare` operator strings.
+_COMPARE_OPS = {
+    QgsExpressionNodeBinaryOperator.boGT: ">",
+    QgsExpressionNodeBinaryOperator.boLT: "<",
+    QgsExpressionNodeBinaryOperator.boGE: ">=",
+    QgsExpressionNodeBinaryOperator.boLE: "<=",
+    QgsExpressionNodeBinaryOperator.boNE: "!=",
+}
+
+
+def _comparison_node(node):
+    """(field, op, value) for a ``"field" <op> literal`` node, else None.
+
+    Uses QGIS's own parsed AST — no string matching.
+    """
+    if (
+        isinstance(node, QgsExpressionNodeBinaryOperator)
+        and isinstance(node.opLeft(), QgsExpressionNodeColumnRef)
+        and isinstance(node.opRight(), QgsExpressionNodeLiteral)
+    ):
+        return (node.opLeft().name(), node.op(), node.opRight().value())
+    return None
+
+
+def _classify_leaf_filter(expr: str):
+    """Classify a class rule's filter as ('eq', field, value) / ('range', ...).
+
+    QGIS emits ``"field" = v`` for categories and ``"field" >= lo AND "field"
+    <(=) hi`` for graduated ranges; anything else returns None.
+    """
+    parsed = QgsExpression(expr or "")
+    if parsed.hasParserError() or parsed.rootNode() is None:
+        return None
+    node = parsed.rootNode()
+
+    single = _comparison_node(node)
+    if single and single[1] == QgsExpressionNodeBinaryOperator.boEQ:
+        return ("eq", single[0], single[2])
+
+    if (
+        isinstance(node, QgsExpressionNodeBinaryOperator)
+        and node.op() == QgsExpressionNodeBinaryOperator.boAnd
+    ):
+        lo = _comparison_node(node.opLeft())
+        hi = _comparison_node(node.opRight())
+        if (
+            lo
+            and hi
+            and lo[0] == hi[0]
+            and lo[1]
+            in (
+                QgsExpressionNodeBinaryOperator.boGE,
+                QgsExpressionNodeBinaryOperator.boGT,
+            )
+            and hi[1]
+            in (
+                QgsExpressionNodeBinaryOperator.boLE,
+                QgsExpressionNodeBinaryOperator.boLT,
+            )
+        ):
+            return ("range", lo[0], float(lo[2]), float(hi[2]))
+    return None
+
+
+def _node_to_predicate(node):
+    """One grammar `when` predicate from a parsed comparison/function node."""
+    # geometry_type($geometry) = 'Point'
+    if (
+        isinstance(node, QgsExpressionNodeBinaryOperator)
+        and node.op() == QgsExpressionNodeBinaryOperator.boEQ
+        and isinstance(node.opLeft(), QgsExpressionNodeFunction)
+        and isinstance(node.opRight(), QgsExpressionNodeLiteral)
+    ):
+        fn = QgsExpression.Functions()[node.opLeft().fnIndex()]
+        if fn.name() == "geometry_type":
+            qgis_to_grammar = {
+                "Point": "Point",
+                "Line": "LineString",
+                "Polygon": "Polygon",
+            }
+            value = qgis_to_grammar.get(node.opRight().value())
+            if value:
+                return {"type": "geometryType", "value": value}
+
+    cmp = _comparison_node(node)
+    if cmp:
+        field, op, value = cmp
+        if op == QgsExpressionNodeBinaryOperator.boEQ:
+            return {"type": "fieldEquals", "field": field, "value": value}
+        if op in _COMPARE_OPS and isinstance(value, int | float):
+            return {
+                "type": "fieldCompare",
+                "field": field,
+                "op": _COMPARE_OPS[op],
+                "value": value,
+            }
+
+    # range "field" >= lo AND "field" <= hi -> between
+    classified = _classify_leaf_filter(node.dump())
+    if classified and classified[0] == "range":
+        return {
+            "type": "between",
+            "field": classified[1],
+            "min": classified[2],
+            "max": classified[3],
+        }
+    return None
+
+
+def _expr_to_when(expr: str):
+    """Parse a QGIS filter back into grammar `when` predicates + combinator.
+
+    Handles the AND/OR-of-comparisons shape we emit; returns (None, None) when
+    the expression isn't a clean set of predicates.
+    """
+    parsed = QgsExpression(expr or "")
+    if parsed.hasParserError() or parsed.rootNode() is None:
+        return None, None
+    node = parsed.rootNode()
+
+    # A bare range (field >= lo AND field <= hi) is a single `between` predicate.
+    if _classify_leaf_filter(expr) and _classify_leaf_filter(expr)[0] == "range":
+        predicate = _node_to_predicate(node)
+        return ([predicate], "all") if predicate else (None, None)
+
+    if isinstance(node, QgsExpressionNodeBinaryOperator) and node.op() in (
+        QgsExpressionNodeBinaryOperator.boAnd,
+        QgsExpressionNodeBinaryOperator.boOr,
+    ):
+        when_op = "any" if node.op() == QgsExpressionNodeBinaryOperator.boOr else "all"
+        predicates = [
+            _node_to_predicate(node.opLeft()),
+            _node_to_predicate(node.opRight()),
+        ]
+        if all(predicates):
+            return predicates, when_op
+        return None, None
+
+    predicate = _node_to_predicate(node)
+    return ([predicate], "all") if predicate else (None, None)
+
+
+def _scale_linear_args(node):
+    """The 5 child nodes of a ``scale_linear(...)`` call inside ``node``, or None."""
+    if isinstance(node, QgsExpressionNodeFunction):
+        fn = QgsExpression.Functions()[node.fnIndex()]
+        if fn.name() == "scale_linear":
+            args = node.args().list()
+            return args if len(args) == 5 else None
+    if isinstance(node, QgsExpressionNodeBinaryOperator):
+        return _scale_linear_args(node.opLeft()) or _scale_linear_args(node.opRight())
+    return None
+
+
+def _scalar_from_property(prop):
+    """A grammar (field, domain, range) scalar from a ``scale_linear`` QgsProperty."""
+    parsed = QgsExpression(prop.expressionString())
+    if parsed.hasParserError() or parsed.rootNode() is None:
+        return None
+    args = _scale_linear_args(parsed.rootNode())
+    if not args or not isinstance(args[0], QgsExpressionNodeColumnRef):
+        return None
+    field = args[0].name()
+    try:
+        d0, d1, r0, r1 = (float(a.value()) for a in args[1:])
+    except (AttributeError, TypeError, ValueError):
+        return None
+    return field, [d0, d1], [r0, r1]
+
+
+def _data_defined_mappings(symbol):
+    """Grammar mappings for a symbol's data-defined overrides + the channels used.
+
+    Reads ``QgsProperty`` objects straight off the symbol (field reference ->
+    identity, ``scale_linear`` expression -> scalar); QGIS deserialised them, so
+    there is no string parsing of static/field properties.
+    """
+    mappings: list[dict] = []
+    channels_replaced: set[str] = set()
+    field: str | None = None
+    if symbol is None:
+        return mappings, channels_replaced, field
+
+    # Marker size (circle-radius); the diameter doubling is undone via the
+    # scale_linear range carried in the expression.
+    if isinstance(symbol, QgsMarkerSymbol):
+        size_prop = symbol.dataDefinedSize()
+        if (
+            size_prop is not None
+            and size_prop.isActive()
+            and size_prop.expressionString()
+        ):
+            scalar = _scalar_from_property(size_prop)
+            if scalar:
+                field, domain, output_range = scalar
+                mappings.append(
+                    {
+                        "scale": {
+                            "scheme": "scalar",
+                            "params": {
+                                "domain": domain,
+                                "range": output_range,
+                                "mode": "equal interval",
+                                "nStops": 5,
+                                "fallback": 0.0,
+                            },
+                        },
+                        "channels": ["circle-radius"],
+                    },
+                )
+                channels_replaced.add("circle-radius")
+
+    symbol_layer = symbol.symbolLayer(0)
+    if symbol_layer is None:
+        return mappings, channels_replaced, field
+
+    collection = symbol_layer.dataDefinedProperties()
+    stroke_prop = collection.property(QgsSymbolLayer.PropertyStrokeColor)
+    if stroke_prop is not None and stroke_prop.isActive() and stroke_prop.field():
+        field = field or stroke_prop.field()
+        mappings.append(
+            {
+                "scale": {"scheme": "identity"},
+                "channels": ["stroke-color", "circle-stroke-color"],
+            },
+        )
+        channels_replaced.update({"stroke-color", "circle-stroke-color"})
+
+    width_prop = collection.property(QgsSymbolLayer.PropertyStrokeWidth)
+    if width_prop is not None and width_prop.isActive():
+        if width_prop.field():
+            field = field or width_prop.field()
+            mappings.append(
+                {
+                    "scale": {"scheme": "identity"},
+                    "channels": ["stroke-width", "circle-stroke-width"],
+                },
+            )
+            channels_replaced.update({"stroke-width", "circle-stroke-width"})
+        elif width_prop.expressionString():
+            scalar = _scalar_from_property(width_prop)
+            if scalar:
+                field, domain, output_range = scalar
+                mappings.append(
+                    {
+                        "scale": {
+                            "scheme": "scalar",
+                            "params": {
+                                "domain": domain,
+                                "range": output_range,
+                                "mode": "equal interval",
+                                "nStops": 5,
+                                "fallback": 0.0,
+                            },
+                        },
+                        "channels": ["stroke-width", "circle-stroke-width"],
+                    },
+                )
+                channels_replaced.update({"stroke-width", "circle-stroke-width"})
+
+    return mappings, channels_replaced, field
+
+
+def _single_symbol_grammar_from_symbol(symbol):
+    """Single-symbol grammar from a QGIS symbol, including data-defined channels."""
+    fill, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
+    grammar = single_symbol_grammar(fill, stroke, stroke_width, radius)
+    extra, replaced, field = _data_defined_mappings(symbol)
+    if extra:
+        rule = grammar["layers"][0]["rules"][0]
+        rule["mappings"] = [
+            mapping
+            for mapping in rule["mappings"]
+            if not (set(mapping["channels"]) & replaced)
+        ]
+        rule["mappings"].extend(extra)
+        if field:
+            rule["fields"] = [field]
+    return grammar
+
+
+def _leaves_to_grammar(leaves):
+    """Classify a set of sibling class rules into categorical/graduated/single."""
+    parsed = [(_classify_leaf_filter(rule.filterExpression()), rule) for rule in leaves]
+    classes = [item for item in parsed if item[0]]
+    fields = {item[0][1] for item in classes}
+    kinds = {item[0][0] for item in classes}
+
+    if leaves and len(classes) == len(leaves) and len(fields) == 1:
+        field = next(iter(fields))
+        _, stroke, stroke_width, radius, _ = _extract_symbol_style(leaves[0].symbol())
+
+        if kinds == {"eq"}:
+            stops = [
+                {"stop": value, "color": _extract_symbol_style(rule.symbol())[0]}
+                for (_, _, value), rule in classes
+            ]
+            return categorized_grammar(
+                field,
+                "viridis",
+                stroke,
+                stroke_width,
+                radius,
+                color_stops=stops,
+            )
+
+        if kinds == {"range"}:
+            ranges = sorted(
+                (
+                    (lo, hi, _extract_symbol_style(rule.symbol())[0])
+                    for (_, _, lo, hi), rule in classes
+                ),
+                key=lambda item: item[0],
+            )
+            # N ranges need N+1 stops; range i is [stops[i], stops[i+1]] with the
+            # range's colour on the upper stop (mirrors graduated export).
+            stops = [{"stop": ranges[0][0], "color": ranges[0][2]}]
+            stops.extend({"stop": hi, "color": color} for _, hi, color in ranges)
+            return graduated_grammar(
+                field,
+                "viridis",
+                len(ranges),
+                "equal interval",
+                stroke,
+                stroke_width,
+                radius,
+                color_stops=stops,
+            )
+
+    # Single rule or mixed predicates: a single symbol (with data-defined channels).
+    symbol = leaves[0].symbol() if leaves else None
+    return _single_symbol_grammar_from_symbol(symbol)
+
+
+def _collect_leaves(rule, ancestors, out):
+    """Gather (ancestor-filter chain, leaf rule) pairs from a rule tree."""
+    for child in rule.children():
+        if child.symbol() is not None:
+            out.append((tuple(ancestors), child))
+        else:
+            _collect_leaves(child, [*ancestors, child.filterExpression()], out)
+
+
+def _rule_based_to_grammar(renderer):
+    """Fold a QgsRuleBasedRenderer back into a Grammar symbologyState.
+
+    Unguarded leaves (no ancestor filter) classify into categorical / graduated /
+    single via :func:`_leaves_to_grammar`. Leaves nested under a ``when`` parent
+    become extra grammar rules carrying the parsed ``when`` predicates and the
+    leaf's constant fill colour.
+    """
+    leaves: list = []
+    _collect_leaves(renderer.rootRule(), [], leaves)
+
+    base = [rule for ancestors, rule in leaves if not any(ancestors)]
+    guarded: dict = {}
+    for ancestors, rule in leaves:
+        if any(ancestors):
+            guarded.setdefault(ancestors, []).append(rule)
+
+    grammar = (
+        _leaves_to_grammar(base)
+        if base
+        else {
+            "layers": [{"id": str(uuid4()), "rules": []}],
+        }
+    )
+    layer = grammar["layers"][0]
+
+    for ancestors, rules in guarded.items():
+        # The guard is the AND of the ancestor-filter chain; we emit one parent
+        # per guarded rule, so the chain is normally a single expression.
+        when, when_op = _expr_to_when(" AND ".join(a for a in ancestors if a))
+        if not when:
+            continue
+        fill, _, _, _, _ = _extract_symbol_style(rules[0].symbol())
+        guarded_rule = {
+            "id": str(uuid4()),
+            "mappings": [
+                {
+                    "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
+                    "channels": ["fill-color", "circle-fill-color"],
+                },
+            ],
+            "when": when,
+        }
+        if when_op and when_op != "all":
+            guarded_rule["whenOp"] = when_op
+        layer["rules"].append(guarded_rule)
+
+    return grammar
 
 
 def _vector_renderer_to_grammar(renderer):
@@ -164,15 +598,7 @@ def _vector_renderer_to_grammar(renderer):
         return cluster_grammar(inner, renderer.tolerance())
 
     if isinstance(renderer, QgsRuleBasedRenderer):
-        # Best-effort: rebuild a single symbol from the first rule that has one.
-        # The per-rule filter expressions are not parsed back into predicates.
-        symbol = None
-        for rule in renderer.rootRule().children():
-            if rule.symbol() is not None:
-                symbol = rule.symbol()
-                break
-        fill, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-        return single_symbol_grammar(fill, stroke, stroke_width, radius)
+        return _rule_based_to_grammar(renderer)
 
     if isinstance(renderer, QgsCategorizedSymbolRenderer):
         field = renderer.classAttribute()
@@ -232,32 +658,84 @@ def qgis_layer_to_jgis(
             layer_type = "GeoTiffLayer"
             source_type = "GeoTiffSource"
 
-            # Read the pseudocolor renderer and express it as Grammar
-            # (symbologyState.layers). The colour ramp is the single source of
-            # truth post #1390; no OpenLayers `color` array is persisted.
+            # Express the renderer as Grammar (symbologyState.layers), the single
+            # source of truth post #1390; no OpenLayers `color` array is persisted.
             renderer = layer.renderer()
-            shader = renderer.shader()
-            shaderFunc = shader.rasterShaderFunction()
-            colorList = shaderFunc.colorRampItemList()
-            band = renderer.band()
-            source_min = renderer.classificationMin()
-            source_max = renderer.classificationMax()
+            provider = layer.dataProvider()
+
+            if isinstance(renderer, QgsMultiBandColorRenderer):
+                # Multiband RGB -> pixel-red/green/blue band mappings. A band's
+                # contrast stretch (if any) becomes a scalar rescale.
+                bands = {
+                    0: renderer.redBand(),
+                    1: renderer.greenBand(),
+                    2: renderer.blueBand(),
+                }
+                enhancements = {
+                    0: renderer.redContrastEnhancement(),
+                    1: renderer.greenContrastEnhancement(),
+                    2: renderer.blueContrastEnhancement(),
+                }
+                ranges = {
+                    index: (enhancement.minimumValue(), enhancement.maximumValue())
+                    for index, enhancement in enhancements.items()
+                    if enhancement is not None
+                    and _is_finite_number(enhancement.minimumValue())
+                    and _is_finite_number(enhancement.maximumValue())
+                }
+                # A dedicated alpha/mask band (renderer.alphaBand() is -1 when
+                # unset) round-trips as a pixel-alpha mapping.
+                alpha_band = renderer.alphaBand()
+                layer_parameters["symbologyState"] = multiband_raster_to_grammar(
+                    bands,
+                    ranges,
+                    alpha_band if alpha_band >= 1 else None,
+                )
+                source_min, source_max = _raster_min_max(
+                    provider,
+                    renderer.redBand(),
+                    renderer.redContrastEnhancement(),
+                )
+            elif isinstance(renderer, QgsSingleBandPseudoColorRenderer):
+                shaderFunc = renderer.shader().rasterShaderFunction()
+                colorList = shaderFunc.colorRampItemList()
+                band = renderer.band()
+                source_min = renderer.classificationMin()
+                source_max = renderer.classificationMax()
+                if not (
+                    _is_finite_number(source_min) and _is_finite_number(source_max)
+                ):
+                    source_min, source_max = _raster_min_max(provider, band, None)
+                layer_parameters["symbologyState"] = raster_to_grammar(
+                    colorList,
+                    band,
+                    source_min,
+                    source_max,
+                )
+            elif isinstance(renderer, QgsSingleBandGrayRenderer):
+                band = renderer.grayBand()
+                source_min, source_max = _raster_min_max(
+                    provider,
+                    band,
+                    renderer.contrastEnhancement(),
+                )
+                layer_parameters["symbologyState"] = grayscale_raster_to_grammar(band)
+            else:
+                # Unknown raster renderer: keep the layer with a default stretch.
+                source_min, source_max = _raster_min_max(provider, 1, None)
+                layer_parameters["symbologyState"] = {"layers": []}
 
             # Remove "/vsicurl/" from source
-            urls = [
-                {
-                    "url": layer.source()[9:],
-                    "min": source_min,
-                    "max": source_max,
-                },
-            ]
-
-            source_parameters.update(urls=urls, normalize=True, wrapX=True)
-            layer_parameters["symbologyState"] = raster_to_grammar(
-                colorList,
-                band,
-                source_min,
-                source_max,
+            source_parameters.update(
+                urls=[
+                    {
+                        "url": layer.source()[9:],
+                        "min": source_min,
+                        "max": source_max,
+                    },
+                ],
+                normalize=True,
+                wrapX=True,
             )
 
         else:
@@ -629,15 +1107,23 @@ def jgis_layer_to_qgis(
     elif layer_type == "GeoTiffLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
         # TODO: Support sources with multiple URLs
-        url = "/vsicurl/" + source_parameters["urls"][0]["url"]
+        first_url = source_parameters["urls"][0]
+        url = "/vsicurl/" + first_url["url"]
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
         symbology_state = layer_params.get("symbologyState", {})
+        # Legacy (pre-Grammar) GeoTiff layers keep their ramp in the OL `color`
+        # expression rather than `symbologyState.layers`; migrate it so the ramp
+        # exports instead of falling back to QGIS's default grayscale renderer.
+        if not symbology_state.get("layers"):
+            symbology_state = raster_flat_color_to_grammar(layer_params.get("color"))
         result = grammar_to_raster_renderer(
             symbology_state,
             map_layer.dataProvider(),
             logs,
             layer_id,
+            first_url.get("min"),
+            first_url.get("max"),
         )
         if result is not None:
             renderer, _, _ = result
@@ -718,6 +1204,10 @@ def export_project_to_qgis(
     project = QgsProject.instance()
     if os.path.exists(path):
         project.read(path)
+        # Drop the previously registered layers, not just the tree: re-added
+        # layers reuse the same ids, and addMapLayer keeps the existing layer on
+        # an id collision, which would otherwise re-save the old symbology.
+        project.removeAllMapLayers()
         root = project.layerTreeRoot()
         root.clear()
     else:

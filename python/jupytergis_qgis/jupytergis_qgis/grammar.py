@@ -11,12 +11,14 @@ from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsCategorizedSymbolRenderer,
     QgsColorRampShader,
+    QgsContrastEnhancement,
     QgsFillSymbol,
     QgsGradientColorRamp,
     QgsGraduatedSymbolRenderer,
     QgsHeatmapRenderer,
     QgsLineSymbol,
     QgsMarkerSymbol,
+    QgsMultiBandColorRenderer,
     QgsPointClusterRenderer,
     QgsProperty,
     QgsRasterShader,
@@ -25,6 +27,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsRuleBasedRenderer,
     QgsSingleBandPseudoColorRenderer,
     QgsSingleSymbolRenderer,
+    QgsSymbolLayer,
 )
 
 # Grammar defaults, mirroring packages/schema/src/grammar/grammarConversions.ts
@@ -43,6 +46,8 @@ _STROKE_WIDTH_CHANNELS = {"stroke-width", "circle-stroke-width"}
 _RADIUS_CHANNELS = {"circle-radius"}
 _PIXEL_COLOR_CHANNELS = {"pixel-color", "pixel-rgb"}
 _PIXEL_ALPHA_CHANNELS = {"pixel-alpha"}
+# Multiband RGB sub-channel -> color index (red=0, green=1, blue=2).
+_PIXEL_BAND_CHANNELS = {"pixel-red": 0, "pixel-green": 1, "pixel-blue": 2}
 
 # jGIS classification mode name -> QgsGraduatedSymbolRenderer method constant.
 _GRADUATED_MODE_MAP = {
@@ -70,7 +75,7 @@ def _rgba_to_qcolor(rgba: Any) -> QColor:
     if isinstance(rgba, str) and rgba.startswith("#"):
         r, g, b, a = hex_to_rgba(rgba)
         return QColor(int(r), int(g), int(b), int(a * 255))
-    if isinstance(rgba, (list, tuple)) and len(rgba) == 4:
+    if isinstance(rgba, list | tuple) and len(rgba) == 4:
         r, g, b, a = rgba
         return QColor(int(r), int(g), int(b), int(a * 255))
     return QColor(0, 0, 0, 255)
@@ -84,6 +89,22 @@ def _qcolor_to_rgba(color: QColor) -> list[float]:
         float(color.blue()),
         float(color.alpha()) / 255,
     ]
+
+
+def _normalize(value: float, vmin: float, vmax: float) -> float:
+    """Map a raw raster value to the [0, 1] space JupyterGIS colorRamps use.
+
+    JupyterGIS renders GeoTIFF bands normalized to [0, 1] (source min/max do the
+    scaling), so grammar colorRamp stops live in [0, 1] — not raw value space.
+    """
+    if vmax == vmin:
+        return 0.0
+    return (value - vmin) / (vmax - vmin)
+
+
+def _denormalize(value: float, vmin: float, vmax: float) -> float:
+    """Inverse of :func:`_normalize`: a [0, 1] stop back to a raw QGIS value."""
+    return vmin + value * (vmax - vmin)
 
 
 def _parse_band(fields: list[str]) -> int | None:
@@ -138,18 +159,23 @@ def graduated_grammar(
     stroke_width: float,
     radius: float,
     reverse: bool = False,
+    color_stops: list | None = None,
 ) -> dict[str, Any]:
-    """Grammar for a graduated (colorRamp on numeric field) style."""
-    color_ramp_scale = {
-        "scheme": "colorRamp",
-        "params": {
-            "name": color_ramp,
-            "nShades": n_classes,
-            "mode": mode,
-            "reverse": reverse,
-            "fallback": list(_TRANSPARENT),
-        },
+    """Grammar for a graduated (colorRamp on numeric field) style.
+
+    ``color_stops`` (``[{"stop": value, "color": rgba}, ...]``) pins the exact
+    per-class breaks/colors; without it the ramp is recomputed from the data.
+    """
+    params: dict[str, Any] = {
+        "name": color_ramp,
+        "nShades": n_classes,
+        "mode": mode,
+        "reverse": reverse,
+        "fallback": list(_TRANSPARENT),
     }
+    if color_stops:
+        params["colorStops"] = color_stops
+    color_ramp_scale = {"scheme": "colorRamp", "params": params}
     mappings = [
         {"scale": color_ramp_scale, "channels": ["fill-color", "circle-fill-color"]},
         {
@@ -178,16 +204,21 @@ def categorized_grammar(
     stroke_width: float,
     radius: float,
     reverse: bool = False,
+    color_stops: list | None = None,
 ) -> dict[str, Any]:
-    """Grammar for a categorized (categorical scale on a field) style."""
-    categorical_scale = {
-        "scheme": "categorical",
-        "params": {
-            "colorRamp": color_ramp,
-            "reverse": reverse,
-            "fallback": list(_TRANSPARENT),
-        },
+    """Grammar for a categorized (categorical scale on a field) style.
+
+    ``color_stops`` (``[{"stop": value, "color": rgba}, ...]``) pins the exact
+    per-category colors; without it categories are colored from the ramp.
+    """
+    params: dict[str, Any] = {
+        "colorRamp": color_ramp,
+        "reverse": reverse,
+        "fallback": list(_TRANSPARENT),
     }
+    if color_stops:
+        params["colorStops"] = color_stops
+    categorical_scale = {"scheme": "categorical", "params": params}
     mappings = [
         {"scale": categorical_scale, "channels": ["fill-color", "circle-fill-color"]},
         {
@@ -227,27 +258,42 @@ def flat_colors_to_grammar(colors: dict[str, list]) -> dict[str, Any]:
     return {"layers": [{"id": _new_id(), "rules": [rule]}]}
 
 
-def raster_to_grammar(
-    color_ramp_items: list,
-    band: int,
-    source_min: float,
-    source_max: float,
-) -> dict[str, Any]:
-    """Grammar for a single-band pseudocolor raster from QGIS color ramp items.
+def raster_flat_color_to_grammar(color: Any) -> dict[str, Any]:
+    """Migrate a legacy OpenLayers raster ``color`` expression to Grammar.
 
-    QGIS discrete/exact ramps are approximated as an interpolated colorRamp; the
-    explicit ``colorStops`` preserve the exact value→color pairs either way.
+    Pre-Grammar GeoTiff layers stored symbology as an OL ``interpolate``
+    expression, e.g. ``["interpolate", ["linear"], ["band", 1], stop, rgba, ...]``.
+    Fold its (stop, color) pairs into a single-band pseudocolor ``pixel-color``
+    colorRamp (stops are already in normalized [0, 1] band space). Returns an
+    empty symbology state when ``color`` is not a recognised interpolate.
     """
+    if not isinstance(color, list) or len(color) < 5 or color[0] != "interpolate":
+        return {"layers": []}
+
+    band = 1
+    band_expr = color[2]
+    if isinstance(band_expr, list) and len(band_expr) >= 2 and band_expr[0] == "band":
+        try:
+            band = int(band_expr[1])
+        except (TypeError, ValueError):
+            band = 1
+
     color_stops = []
-    for node in color_ramp_items:
-        value = node.value
-        if value in (float("inf"), float("-inf")):
+    pairs = color[3:]
+    for i in range(0, len(pairs) - 1, 2):
+        stop, rgba = pairs[i], pairs[i + 1]
+        if not isinstance(stop, int | float) or not isinstance(rgba, list):
             continue
-        color_stops.append({"stop": value, "color": _qcolor_to_rgba(node.color)})
+        color_stops.append(
+            {"stop": float(stop), "color": [float(component) for component in rgba]},
+        )
+
+    if len(color_stops) < 2:
+        return {"layers": []}
 
     params = {
         "name": "custom",
-        "domain": [source_min, source_max],
+        "domain": [0.0, 1.0],
         "nShades": len(color_stops),
         "mode": "equal interval",
         "reverse": False,
@@ -265,6 +311,143 @@ def raster_to_grammar(
         ],
     }
     return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+
+
+def raster_to_grammar(
+    color_ramp_items: list,
+    band: int,
+    source_min: float,
+    source_max: float,
+) -> dict[str, Any]:
+    """Grammar for a single-band pseudocolor raster from QGIS color ramp items.
+
+    QGIS discrete/exact ramps are approximated as an interpolated colorRamp; the
+    explicit ``colorStops`` preserve the exact value→color pairs either way.
+    QGIS ramp values are raw; they are normalized to [0, 1] (via source min/max)
+    to match the space JupyterGIS colorRamps render in.
+    """
+    color_stops = []
+    for node in color_ramp_items:
+        value = node.value
+        if value in (float("inf"), float("-inf")):
+            continue
+        color_stops.append(
+            {
+                "stop": _normalize(value, source_min, source_max),
+                "color": _qcolor_to_rgba(node.color),
+            },
+        )
+
+    params = {
+        "name": "custom",
+        "domain": [0.0, 1.0],
+        "nShades": len(color_stops),
+        "mode": "equal interval",
+        "reverse": False,
+        "fallback": list(_TRANSPARENT),
+        "colorStops": color_stops,
+    }
+    rule = {
+        "id": _new_id(),
+        "fields": [f"$band-{int(band)}"],
+        "mappings": [
+            {
+                "scale": {"scheme": "colorRamp", "params": params},
+                "channels": ["pixel-color"],
+            },
+        ],
+    }
+    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+
+
+def grayscale_raster_to_grammar(band: int) -> dict[str, Any]:
+    """Grammar for a single-band grey raster (a black->white colorRamp).
+
+    QGIS's default single-band renderer is greyscale; express it as a pixel-color
+    ramp so JupyterGIS displays it (and it round-trips back to a single-band
+    pseudocolor renderer). Stops are in normalized [0, 1] space — the source
+    min/max handle the raw-value scaling — so the band actually spans the ramp.
+    """
+    params = {
+        "name": "custom",
+        "domain": [0.0, 1.0],
+        "nShades": 2,
+        "mode": "equal interval",
+        "reverse": False,
+        "fallback": list(_TRANSPARENT),
+        "colorStops": [
+            {"stop": 0.0, "color": [0.0, 0.0, 0.0, 1.0]},
+            {"stop": 1.0, "color": [255.0, 255.0, 255.0, 1.0]},
+        ],
+    }
+    rule = {
+        "id": _new_id(),
+        "fields": [f"$band-{int(band)}"],
+        "mappings": [
+            {
+                "scale": {"scheme": "colorRamp", "params": params},
+                "channels": ["pixel-color"],
+            },
+        ],
+    }
+    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+
+
+def multiband_raster_to_grammar(
+    bands: dict[int, int],
+    ranges: dict[int, tuple[float, float]] | None = None,
+    alpha_band: int | None = None,
+) -> dict[str, Any]:
+    """Grammar for a multiband RGB raster from QGIS band assignments.
+
+    ``bands`` maps a color index (0=red, 1=green, 2=blue) to a QGIS band number.
+    ``ranges`` optionally maps the same index to a (min, max) contrast stretch —
+    present bands get a ``scalar`` rescale, absent ones an ``identity`` pass.
+    ``alpha_band`` (a dedicated mask band) becomes a ``pixel-alpha`` mapping so
+    the transparency round-trips back to a QGIS alpha band on re-export.
+    """
+    ranges = ranges or {}
+    index_to_channel = {0: "pixel-red", 1: "pixel-green", 2: "pixel-blue"}
+    rules = []
+    for index in sorted(bands):
+        band = bands[index]
+        if band is None or band < 1:
+            continue
+        stretch = ranges.get(index)
+        if stretch is not None:
+            scale = {
+                "scheme": "scalar",
+                "params": {
+                    "domain": [float(stretch[0]), float(stretch[1])],
+                    "range": [0.0, 255.0],
+                    "fallback": 0.0,
+                },
+            }
+        else:
+            scale = {"scheme": "identity", "params": {}}
+        rules.append(
+            {
+                "id": _new_id(),
+                "fields": [f"$band-{int(band)}"],
+                "mappings": [
+                    {"scale": scale, "channels": [index_to_channel[index]]},
+                ],
+            },
+        )
+    if alpha_band is not None and alpha_band >= 1:
+        rules.append(
+            {
+                "id": _new_id(),
+                "fields": [f"$band-{int(alpha_band)}"],
+                "mappings": [
+                    {
+                        "scale": {"scheme": "identity", "params": {}},
+                        "channels": ["pixel-alpha"],
+                    },
+                ],
+            },
+        )
+    return {"layers": [{"id": _new_id(), "rules": rules}]}
 
 
 def kde_grammar(
@@ -440,11 +623,11 @@ def combine_subsets(*subsets: str | None) -> str | None:
 # ---------------------------------------------------------------------------
 # Export: Grammar symbologyState -> QGIS renderer
 # ---------------------------------------------------------------------------
-def _scalar_size_expr(field: str | None, params: dict[str, Any]) -> str | None:
-    """QGIS data-defined marker-size expression for a scalar circle-radius scale.
+def _scale_linear_expr(field: str | None, params: dict[str, Any]) -> str | None:
+    """QGIS ``scale_linear`` expression for a scalar scale, or None.
 
-    Grammar circle-radius is a radius; a QGIS marker's size is the diameter, so
-    the linear mapping is doubled.
+    ``scale_linear`` is the single QGIS built-in we emit; it round-trips through
+    a ``QgsProperty`` and is recognised again on import.
     """
     domain = params.get("domain")
     output_range = params.get("range")
@@ -458,7 +641,17 @@ def _scalar_size_expr(field: str | None, params: dict[str, Any]) -> str | None:
         return None
     d0, d1 = domain
     r0, r1 = output_range
-    return f'2 * scale_linear("{field}", {d0}, {d1}, {r0}, {r1})'
+    return f'scale_linear("{field}", {d0}, {d1}, {r0}, {r1})'
+
+
+def _scalar_size_expr(field: str | None, params: dict[str, Any]) -> str | None:
+    """Data-defined marker-size expression for a scalar circle-radius scale.
+
+    Grammar circle-radius is a radius; a QGIS marker's size is the diameter, so
+    the linear mapping is doubled.
+    """
+    expr = _scale_linear_expr(field, params)
+    return f"2 * {expr}" if expr else None
 
 
 def grammar_layer_geometry_hint(grammar_layer: dict[str, Any]) -> str | None:
@@ -494,13 +687,21 @@ def _collect_vector_style(
     logs: dict[str, list[str]],
     layer_id: str,
 ) -> dict[str, Any]:
-    """Flatten a grammar layer's rules into the channels QGIS can represent."""
+    """Flatten a grammar layer's rules into the channels QGIS can represent.
+
+    Constant channels become plain symbol properties; data-driven stroke colour
+    / width / radius become ``QgsProperty`` overrides (field reference for
+    ``identity``, ``scale_linear`` for ``scalar``) that QGIS serialises and
+    reads back natively.
+    """
     fill_scale = None
     fill_field = None
     stroke_rgba = None
     stroke_width = None
     radius = None
-    radius_expr = None
+    stroke_color_prop = None
+    stroke_width_prop = None
+    radius_prop = None
 
     for rule in grammar_layer.get("rules", []):
         fields = rule.get("fields") or []
@@ -517,32 +718,51 @@ def _collect_vector_style(
             elif channels & _STROKE_COLOR_CHANNELS:
                 if scheme == "constant_rgba":
                     stroke_rgba = params.get("value")
+                elif scheme == "identity" and field:
+                    stroke_color_prop = QgsProperty.fromField(field)
                 else:
                     _warn(
                         logs,
                         layer_id,
-                        "data-driven stroke color is not supported; "
+                        "data-driven stroke color could not be translated; "
                         "using a solid stroke.",
                     )
             elif channels & _STROKE_WIDTH_CHANNELS:
                 if scheme == "constant_num":
                     stroke_width = params.get("value")
+                elif scheme == "identity" and field:
+                    stroke_width_prop = QgsProperty.fromField(field)
+                elif scheme == "scalar":
+                    expr = _scale_linear_expr(field, params)
+                    if expr:
+                        stroke_width_prop = QgsProperty.fromExpression(expr)
+                    else:
+                        _warn(
+                            logs,
+                            layer_id,
+                            "data-driven stroke width could not be translated; "
+                            "using a constant width.",
+                        )
                 else:
                     _warn(
                         logs,
                         layer_id,
-                        "data-driven stroke width is not supported; "
+                        "data-driven stroke width could not be translated; "
                         "using a constant width.",
                     )
             elif channels & _RADIUS_CHANNELS:
                 if scheme == "constant_num":
                     radius = params.get("value")
+                elif scheme == "identity" and field:
+                    radius_prop = QgsProperty.fromField(field)
                 elif scheme == "scalar":
                     # Data-driven radius -> QGIS data-defined marker size.
-                    radius_expr = _scalar_size_expr(field, params)
+                    expr = _scalar_size_expr(field, params)
                     output_range = params.get("range")
                     radius = output_range[1] if output_range else params.get("fallback")
-                    if radius_expr is None:
+                    if expr:
+                        radius_prop = QgsProperty.fromExpression(expr)
+                    else:
                         _warn(
                             logs,
                             layer_id,
@@ -560,7 +780,9 @@ def _collect_vector_style(
         if stroke_width is not None
         else _DEFAULT_STROKE_WIDTH,
         "radius": radius if radius is not None else _DEFAULT_RADIUS,
-        "radius_expr": radius_expr,
+        "stroke_color_prop": stroke_color_prop,
+        "stroke_width_prop": stroke_width_prop,
+        "radius_prop": radius_prop,
     }
 
 
@@ -585,18 +807,31 @@ def _make_base_symbol(
 
     stroke_color = _rgba_to_qcolor(style["stroke_rgba"])
     stroke_width = style["stroke_width"]
+    stroke_color_prop = style.get("stroke_color_prop")
+    stroke_width_prop = style.get("stroke_width_prop")
+    radius_prop = style.get("radius_prop")
 
     if geometry_type == "circle":
         symbol_layer.setStrokeColor(stroke_color)
         symbol_layer.setStrokeWidth(stroke_width)
-        radius_expr = style.get("radius_expr")
-        if radius_expr:
-            symbol.setDataDefinedSize(QgsProperty.fromExpression(radius_expr))
+        if radius_prop is not None:
+            symbol.setDataDefinedSize(radius_prop)
     elif geometry_type == "line":
         symbol_layer.setWidth(float(stroke_width))
     elif geometry_type == "fill":
         symbol_layer.setStrokeColor(stroke_color)
         symbol_layer.setStrokeWidth(stroke_width)
+
+    if stroke_color_prop is not None:
+        symbol_layer.setDataDefinedProperty(
+            QgsSymbolLayer.PropertyStrokeColor,
+            stroke_color_prop,
+        )
+    if stroke_width_prop is not None:
+        symbol_layer.setDataDefinedProperty(
+            QgsSymbolLayer.PropertyStrokeWidth,
+            stroke_width_prop,
+        )
 
     return symbol
 
@@ -773,50 +1008,81 @@ def _cluster_renderer(preprocess, inner_renderer, logs, layer_id):
     return renderer
 
 
-def _rule_based_renderer(
-    grammar_layer,
+def _to_rule_based(inner):
+    """Convert a native vector renderer to rule-based using QGIS itself.
+
+    QGIS generates the per-class rules, filters and symbols via
+    ``convertFromRenderer``; we never hand-write classification expressions.
+    Returns the native renderer unchanged if QGIS cannot convert it, and None
+    when there is nothing to convert.
+    """
+    if inner is None:
+        return None
+    converted = QgsRuleBasedRenderer.convertFromRenderer(inner)
+    # An unclassified graduated/categorized renderer (data couldn't load, so no
+    # ranges/categories materialised) converts to an empty rule set, which would
+    # drop the classification field. Keep the native renderer in that case — it
+    # still carries the field/scheme, and import handles it either way.
+    if converted is None or not converted.rootRule().children():
+        return inner
+    return converted
+
+
+def _append_converted_children(parent, inner) -> None:
+    """Append the rules QGIS produces for ``inner`` as children of ``parent``."""
+    if inner is None:
+        return
+    converted = QgsRuleBasedRenderer.convertFromRenderer(inner)
+    if converted is None:
+        return
+    for child in list(converted.rootRule().children()):
+        parent.appendChild(child.clone())
+
+
+def _assemble_rule_based(
+    base_rules,
+    guarded_rules,
     geometry_type,
     opacity,
     map_layer,
     logs,
     layer_id,
 ):
-    """Map rule-level `when` predicates to a QgsRuleBasedRenderer.
+    """Build a QgsRuleBasedRenderer honouring rule-level ``when`` predicates.
 
-    Unconditional rules form a base style; each guarded rule becomes a QGIS rule
-    with a filter expression and a single symbol (base + the rule's own colours).
-    Field-driven colour scales inside a guarded rule are approximated to a
-    constant, with a warning.
+    Unguarded rules form the default branch; each guarded rule's full symbology
+    (graduated/categorized/single) is built natively, converted by QGIS, and
+    nested under a parent rule carrying the ``when`` filter. QGIS ANDs the
+    nested filters at render time, so a guarded rule keeps its full field-driven
+    colours instead of being flattened to a constant.
     """
-    rules = grammar_layer.get("rules", [])
-    base_rules = [r for r in rules if not r.get("when")]
-    guarded_rules = [r for r in rules if r.get("when")]
-
     root = QgsRuleBasedRenderer.Rule(None)
+
+    if base_rules:
+        base_inner = _build_inner_renderer(
+            {"rules": base_rules},
+            geometry_type,
+            opacity,
+            map_layer,
+            logs,
+            layer_id,
+        )
+        _append_converted_children(root, base_inner)
 
     for guarded in guarded_rules:
         merged = {"rules": [*base_rules, guarded]}
-        style = _collect_vector_style(merged, logs, layer_id)
-        if style["fill_scale"] and style["fill_scale"].get("scheme") not in (
-            "constant_rgba",
-            None,
-        ):
-            _warn(
-                logs,
-                layer_id,
-                "a field-driven colour inside a `when` rule was approximated "
-                "to a constant colour.",
-            )
-        symbol = _single_symbol_from_style(style, geometry_type, opacity)
+        inner = _build_inner_renderer(
+            merged,
+            geometry_type,
+            opacity,
+            map_layer,
+            logs,
+            layer_id,
+        )
         expr = _when_to_expr(guarded["when"], guarded.get("whenOp", "all")) or ""
-        root.appendChild(QgsRuleBasedRenderer.Rule(symbol, filterExp=expr))
-
-    if base_rules:
-        base_style = _collect_vector_style({"rules": base_rules}, logs, layer_id)
-        base_symbol = _single_symbol_from_style(base_style, geometry_type, opacity)
-        else_rule = QgsRuleBasedRenderer.Rule(base_symbol)
-        else_rule.setIsElse(True)
-        root.appendChild(else_rule)
+        parent = QgsRuleBasedRenderer.Rule(None, filterExp=expr)
+        _append_converted_children(parent, inner)
+        root.appendChild(parent)
 
     return QgsRuleBasedRenderer(root)
 
@@ -831,21 +1097,27 @@ def grammar_layer_to_renderer(
 ):
     """Build a QGIS renderer for a single grammar rendering layer, or None.
 
-    Routes KDE/cluster ``preprocess`` to heatmap/cluster renderers and rule-level
-    ``when`` predicates to a rule-based renderer; otherwise builds a plain
-    Single Symbol / Graduated / Categorized renderer.
+    Vector-symbol layers are always emitted as a QgsRuleBasedRenderer: the
+    symbology is built with native renderer classes (Single/Graduated/
+    Categorized) and converted by QGIS via ``convertFromRenderer``. KDE
+    (heatmap) and cluster layers keep their dedicated renderers, which QGIS
+    cannot express as rules.
     """
     preprocess = grammar_layer.get("preprocess") or []
     has_kde = any(t.get("type") == "kde" for t in preprocess)
     has_cluster = any(t.get("type") == "cluster" for t in preprocess)
-    has_rule_when = any(r.get("when") for r in grammar_layer.get("rules", []))
 
     if has_kde:
         return _heatmap_renderer(grammar_layer, logs, layer_id)
 
-    if has_rule_when:
-        inner = _rule_based_renderer(
-            grammar_layer,
+    rules = grammar_layer.get("rules", [])
+    guarded_rules = [r for r in rules if r.get("when")]
+
+    if guarded_rules:
+        base_rules = [r for r in rules if not r.get("when")]
+        renderer = _assemble_rule_based(
+            base_rules,
+            guarded_rules,
             geometry_type,
             opacity,
             map_layer,
@@ -861,10 +1133,11 @@ def grammar_layer_to_renderer(
             logs,
             layer_id,
         )
+        renderer = _to_rule_based(inner)
 
-    if has_cluster and inner is not None:
-        return _cluster_renderer(preprocess, inner, logs, layer_id)
-    return inner
+    if has_cluster and renderer is not None:
+        return _cluster_renderer(preprocess, renderer, logs, layer_id)
+    return renderer
 
 
 def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
@@ -882,20 +1155,93 @@ def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
     return colors
 
 
+def _multiband_color_renderer(
+    multiband: dict[int, tuple[int, dict[str, Any]]],
+    alpha_band: int | None,
+    data_provider,
+    logs: dict[str, list[str]],
+    layer_id: str,
+):
+    """Build a QgsMultiBandColorRenderer from pixel-red/green/blue band mappings.
+
+    A ``scalar`` scale on a band becomes a per-band contrast stretch; a dedicated
+    ``pixel-alpha`` band becomes the renderer's alpha band. Returns
+    ``(renderer, None, None)`` to match the raster renderer signature.
+    """
+    red = multiband.get(0, (1, {}))[0]
+    green = multiband.get(1, (2, {}))[0]
+    blue = multiband.get(2, (3, {}))[0]
+
+    renderer = QgsMultiBandColorRenderer(data_provider, red, green, blue)
+    if (
+        alpha_band is not None
+        and alpha_band >= 1
+        and alpha_band
+        not in (
+            red,
+            green,
+            blue,
+        )
+    ):
+        renderer.setAlphaBand(alpha_band)
+
+    setters = {
+        0: renderer.setRedContrastEnhancement,
+        1: renderer.setGreenContrastEnhancement,
+        2: renderer.setBlueContrastEnhancement,
+    }
+    for index, (band, scale) in multiband.items():
+        if scale.get("scheme") != "scalar" or data_provider is None:
+            continue
+        domain = scale.get("params", {}).get("domain")
+        if not domain or len(domain) != 2:
+            continue
+        dtype = data_provider.dataType(band)
+        if dtype == Qgis.DataType.UnknownDataType:
+            _warn(
+                logs,
+                layer_id,
+                "could not apply a band contrast stretch (raster data unavailable).",
+            )
+            continue
+        enhancement = QgsContrastEnhancement(dtype)
+        enhancement.setMinimumValue(float(domain[0]))
+        enhancement.setMaximumValue(float(domain[1]))
+        enhancement.setContrastEnhancementAlgorithm(
+            QgsContrastEnhancement.StretchToMinimumMaximum,
+        )
+        setters[index](enhancement)
+
+    return renderer, None, None
+
+
 def grammar_to_raster_renderer(
     symbology_state: dict[str, Any],
     data_provider,
     logs: dict[str, list[str]],
     layer_id: str,
+    source_min: float | None = None,
+    source_max: float | None = None,
 ):
-    """Build a QgsSingleBandPseudoColorRenderer from Grammar.
+    """Build a raster renderer from Grammar.
 
-    Returns ``(renderer, vmin, vmax)`` or None when there is no pixel colorRamp
-    mapping.
+    ``source_min``/``source_max`` are the raster source's normalization range;
+    grammar colorRamp stops (normalized [0, 1]) are scaled back to raw values so
+    QGIS classifies on the real band range.
+
+    Returns a ``QgsMultiBandColorRenderer`` for pixel-red/green/blue band
+    mappings, otherwise a ``QgsSingleBandPseudoColorRenderer`` from a pixel-color
+    colorRamp. The result is ``(renderer, vmin, vmax)`` (vmin/vmax are ``None``
+    for multiband), or ``None`` when there is no recognised pixel mapping.
     """
     color_params = None
     band = 1
     alpha_present = False
+    # Band referenced by a pixel-alpha mapping, when it is a dedicated mask band
+    # (``$band-N``). Used as the QGIS alpha band for multiband RGB rasters.
+    alpha_band: int | None = None
+    # color index (0=red,1=green,2=blue) -> (band, scale) for multiband RGB.
+    multiband: dict[int, tuple[int, dict[str, Any]]] = {}
 
     for grammar_layer in symbology_state.get("layers") or []:
         if grammar_layer.get("preprocess"):
@@ -918,6 +1264,26 @@ def grammar_to_raster_renderer(
                         band = rule_band
                 elif channels & _PIXEL_ALPHA_CHANNELS:
                     alpha_present = True
+                    if rule_band is not None:
+                        alpha_band = rule_band
+                else:
+                    for channel in channels & _PIXEL_BAND_CHANNELS.keys():
+                        if rule_band is not None:
+                            multiband[_PIXEL_BAND_CHANNELS[channel]] = (
+                                rule_band,
+                                scale,
+                            )
+
+    # Multiband RGB takes priority: a pixel-red/green/blue mapping cannot be
+    # expressed by a single-band pseudocolor ramp.
+    if multiband:
+        return _multiband_color_renderer(
+            multiband,
+            alpha_band,
+            data_provider,
+            logs,
+            layer_id,
+        )
 
     if color_params is None:
         return None
@@ -936,6 +1302,17 @@ def grammar_to_raster_renderer(
     color_stops = color_params.get("colorStops")
     n_shades = int(color_params.get("nShades", 9))
 
+    # Grammar stops/domain are normalized [0, 1]; scale them back to raw band
+    # values for QGIS (a no-op when the source range is unknown).
+    if source_min is not None and source_max is not None:
+
+        def _raw(value: float) -> float:
+            return _denormalize(value, source_min, source_max)
+    else:
+
+        def _raw(value: float) -> float:
+            return value
+
     shader = QgsColorRampShader()
     shader.setColorRampType(QgsColorRampShader.Interpolated)
     items = []
@@ -943,15 +1320,16 @@ def grammar_to_raster_renderer(
     if color_stops and len(color_stops) >= 2:
         items.extend(
             QgsColorRampShader.ColorRampItem(
-                stop.get("stop", 0),
+                _raw(stop.get("stop", 0)),
                 _rgba_to_qcolor(stop.get("color", _TRANSPARENT)),
             )
             for stop in color_stops
         )
-        vmin = domain[0] if domain else color_stops[0].get("stop", 0)
-        vmax = domain[1] if domain else color_stops[-1].get("stop", 0)
+        vmin = _raw(domain[0] if domain else color_stops[0].get("stop", 0))
+        vmax = _raw(domain[1] if domain else color_stops[-1].get("stop", 0))
     else:
-        vmin, vmax = domain or (0.0, 1.0)
+        norm_min, norm_max = domain or (0.0, 1.0)
+        vmin, vmax = _raw(norm_min), _raw(norm_max)
         colors = sample_colors(name, n=max(n_shades, 2), reverse=reverse)
         for i, color in enumerate(colors):
             value = vmin + (vmax - vmin) * i / max(len(colors) - 1, 1)

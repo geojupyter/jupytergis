@@ -133,6 +133,28 @@ def _constant_rgba(value, channels):
     }
 
 
+def _make_rgb_tif(path):
+    """Write a tiny valid 3-band byte GeoTIFF for raster tests."""
+    from osgeo import gdal
+
+    ds = gdal.GetDriverByName("GTiff").Create(str(path), 4, 4, 3, gdal.GDT_Byte)
+    for band in range(1, 4):
+        ds.GetRasterBand(band).Fill(band * 10)
+    ds.FlushCache()
+    ds = None
+
+
+def _make_gray_tif(path):
+    """Write a tiny single-band float GeoTIFF with a value gradient (min < max)."""
+    import numpy as np
+    from osgeo import gdal
+
+    ds = gdal.GetDriverByName("GTiff").Create(str(path), 4, 4, 1, gdal.GDT_Float32)
+    ds.GetRasterBand(1).WriteArray(np.arange(16, dtype="float32").reshape(4, 4))
+    ds.FlushCache()
+    ds = None
+
+
 def _fill_mapping(symbology_state):
     """Return (scheme, fields, params) of the mapping driving 'fill-color'."""
     for grammar_layer in symbology_state.get("layers", []):
@@ -596,7 +618,7 @@ def test_qgis_scalar_size_and_heatmap_alpha():
         QgsHeatmapRenderer,
         QgsMarkerSymbol,
         QgsProject,
-        QgsSingleSymbolRenderer,
+        QgsRuleBasedRenderer,
     )
 
     filename = FILES / "project_eq.qgz"
@@ -721,14 +743,15 @@ def test_qgis_scalar_size_and_heatmap_alpha():
     ]
     assert len(eq_layers) == 2
 
-    # Points layer: data-defined marker size from the scalar scale.
+    # Points layer: now a rule-based renderer (every vector layer is), with the
+    # data-defined marker size from the scalar scale carried on the rule symbol.
     point_layers = [
         layer
         for layer in eq_layers
-        if isinstance(layer.renderer(), QgsSingleSymbolRenderer)
+        if isinstance(layer.renderer(), QgsRuleBasedRenderer)
     ]
     assert len(point_layers) == 1
-    symbol = point_layers[0].renderer().symbol()
+    symbol = point_layers[0].renderer().rootRule().children()[0].symbol()
     assert isinstance(symbol, QgsMarkerSymbol)
     dd = symbol.dataDefinedSize()
     assert dd.isActive()
@@ -824,3 +847,622 @@ def test_qgis_filter_roundtrip():
     assert grammar_layer["when"] == [
         {"type": "fieldEquals", "field": "continent", "value": "Asia"},
     ]
+
+
+def _vector_tile_jgis(lid, sid, fill_rgba):
+    state = {
+        "layers": [
+            {
+                "id": "vt-0",
+                "rules": [
+                    {
+                        "id": "r0",
+                        "mappings": [
+                            _constant_rgba(fill_rgba, ["fill-color"]),
+                            _constant_rgba([0.0, 255.0, 0.0, 1.0], ["stroke-color"]),
+                            _constant_rgba(
+                                [0.0, 0.0, 255.0, 1.0],
+                                ["circle-fill-color"],
+                            ),
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    return {
+        "options": {
+            "projection": "EPSG:3857",
+            "extent": [-2e7, -1e7, 2e7, 1e7],
+            "useExtent": True,
+        },
+        "metadata": {},
+        "layers": {
+            lid: {
+                "name": "Tiles",
+                "type": "VectorTileLayer",
+                "visible": True,
+                "parameters": {"opacity": 1.0, "source": sid, "symbologyState": state},
+            },
+        },
+        "sources": {
+            sid: {
+                "name": "src",
+                "type": "VectorTileSource",
+                "parameters": {
+                    "url": "https://example.com/tiles/{z}/{x}/{y}.pbf",
+                    "minZoom": 0,
+                    "maxZoom": 14,
+                },
+            },
+        },
+        "layerTree": [lid],
+    }
+
+
+def test_qgis_vector_tile_roundtrip():
+    """Edited vector-tile colours must survive export -> reopen (PR #1482 bug).
+
+    Exports twice over the same file (the "save again" path): the second save
+    must win. The bug was that overwriting kept the first save's symbology.
+    """
+    from ..grammar import grammar_to_flat_colors
+
+    filename = FILES / "project_vt.qgz"
+    if os.path.exists(filename):
+        os.remove(filename)
+
+    lid, sid = str(uuid4()), str(uuid4())
+    # First save (red), then overwrite with the edited colour (green).
+    assert export_project_to_qgis(
+        filename,
+        _vector_tile_jgis(lid, sid, [255.0, 0, 0, 1]),
+    )
+    assert export_project_to_qgis(
+        filename,
+        _vector_tile_jgis(lid, sid, [0, 255.0, 0, 1]),
+    )
+    imported = import_project_from_qgis(filename)
+
+    vt = next(
+        layer
+        for layer in imported["layers"].values()
+        if layer["type"] == "VectorTileLayer"
+    )
+    colors = grammar_to_flat_colors(vt["parameters"]["symbologyState"])
+
+    # The second save must win, not the stale first one.
+    assert colors["fill-color"][:3] == [0.0, 255.0, 0.0]
+    assert colors["stroke-color"][:3] == [0.0, 255.0, 0.0]
+    assert colors["circle-fill-color"][:3] == [0.0, 0.0, 255.0]
+
+
+def _channel_band_sig(grammar):
+    """Map each pixel channel to its (band-field, scale-scheme), ignoring ids."""
+    sig = {}
+    for rule in grammar["layers"][0]["rules"]:
+        mapping = rule["mappings"][0]
+        sig[mapping["channels"][0]] = (rule["fields"][0], mapping["scale"]["scheme"])
+    return sig
+
+
+def test_multiband_raster_roundtrip():
+    """Multiband RGB rasters export to QgsMultiBandColorRenderer and back.
+
+    Single-band pseudocolor can't carry an R/G/B mapping; before this the
+    exporter wrote no renderer (reload showed the default) and the importer
+    crashed calling .shader() on a multiband renderer (PR #1482).
+    """
+    from qgis.core import QgsMultiBandColorRenderer, QgsRasterLayer
+
+    from ..grammar import grammar_to_raster_renderer, multiband_raster_to_grammar
+
+    tif = FILES / "_mb.tif"
+    _make_rgb_tif(tif)
+    try:
+        layer = QgsRasterLayer(str(tif), "mb", "gdal")
+        assert layer.isValid()
+        logs = {"warnings": [], "errors": []}
+
+        # Export: R<-band3, G<-band2, B<-band1, with a contrast stretch on red.
+        grammar_in = multiband_raster_to_grammar({0: 3, 1: 2, 2: 1}, {0: (0.0, 100.0)})
+        renderer, _vmin, _vmax = grammar_to_raster_renderer(
+            grammar_in,
+            layer.dataProvider(),
+            logs,
+            "lid",
+        )
+        assert isinstance(renderer, QgsMultiBandColorRenderer)
+        assert (renderer.redBand(), renderer.greenBand(), renderer.blueBand()) == (
+            3,
+            2,
+            1,
+        )
+        ce = renderer.redContrastEnhancement()
+        assert ce is not None
+        assert (ce.minimumValue(), ce.maximumValue()) == (0.0, 100.0)
+        assert logs["warnings"] == []
+
+        # Import: renderer -> grammar (mirrors qgis_layer_to_jgis multiband branch).
+        bands = {
+            0: renderer.redBand(),
+            1: renderer.greenBand(),
+            2: renderer.blueBand(),
+        }
+        ranges = {0: (ce.minimumValue(), ce.maximumValue())}
+        grammar_out = multiband_raster_to_grammar(bands, ranges)
+
+        assert _channel_band_sig(grammar_out) == _channel_band_sig(grammar_in)
+    finally:
+        if os.path.exists(tif):
+            os.remove(tif)
+
+
+def test_multiband_alpha_band_roundtrip():
+    """A dedicated pixel-alpha band becomes the QGIS renderer's alpha band.
+
+    Without this the alpha/mask band was dropped, so masked (nodata) pixels
+    rendered opaque black in QGIS instead of transparent.
+    """
+    from osgeo import gdal
+    from qgis.core import QgsMultiBandColorRenderer, QgsRasterLayer
+
+    from ..grammar import grammar_to_raster_renderer, multiband_raster_to_grammar
+
+    tif = FILES / "_rgba.tif"
+    ds = gdal.GetDriverByName("GTiff").Create(str(tif), 4, 4, 4, gdal.GDT_Byte)
+    for band in range(1, 5):
+        ds.GetRasterBand(band).Fill(band * 10)
+    ds.FlushCache()
+    ds = None
+    try:
+        layer = QgsRasterLayer(str(tif), "rgba", "gdal")
+        assert layer.isValid()
+        logs = {"warnings": [], "errors": []}
+
+        # R/G/B <- bands 1/2/3, alpha <- band 4.
+        grammar_in = multiband_raster_to_grammar({0: 1, 1: 2, 2: 3}, alpha_band=4)
+        renderer, _vmin, _vmax = grammar_to_raster_renderer(
+            grammar_in,
+            layer.dataProvider(),
+            logs,
+            "lid",
+        )
+        assert isinstance(renderer, QgsMultiBandColorRenderer)
+        assert renderer.alphaBand() == 4
+        # The dropped-alpha warning must not fire for a dedicated alpha band.
+        assert logs["warnings"] == []
+
+        # Import: renderer -> grammar keeps the pixel-alpha band.
+        bands = {
+            0: renderer.redBand(),
+            1: renderer.greenBand(),
+            2: renderer.blueBand(),
+        }
+        grammar_out = multiband_raster_to_grammar(
+            bands,
+            alpha_band=renderer.alphaBand(),
+        )
+        assert _channel_band_sig(grammar_out)["pixel-alpha"] == ("$band-4", "identity")
+    finally:
+        if os.path.exists(tif):
+            os.remove(tif)
+
+
+def test_single_band_gray_import_has_min_max():
+    """Single-band rasters get numeric min/max + a displayable grayscale grammar.
+
+    A single-band float GeoTIFF (e.g. ESA biomass) loads with a gray renderer;
+    before this it fell through to empty symbology with no min/max, so the source
+    failed validation (".urls.0.min must be number") and didn't render.
+    """
+    from qgis.core import QgsRasterLayer, QgsSingleBandGrayRenderer
+
+    from ..grammar import grayscale_raster_to_grammar
+    from ..qgis_loader import _raster_min_max
+
+    tif = FILES / "_gray.tif"
+    _make_gray_tif(tif)
+    try:
+        layer = QgsRasterLayer(str(tif), "g", "gdal")
+        assert layer.isValid()
+        renderer = layer.renderer()
+        assert isinstance(renderer, QgsSingleBandGrayRenderer)
+
+        vmin, vmax = _raster_min_max(
+            layer.dataProvider(),
+            renderer.grayBand(),
+            renderer.contrastEnhancement(),
+        )
+        # Numeric, finite, non-degenerate — satisfies the GeoTiff source schema.
+        assert isinstance(vmin, float)
+        assert isinstance(vmax, float)
+        assert vmin < vmax
+
+        grammar = grayscale_raster_to_grammar(renderer.grayBand())
+        mapping = grammar["layers"][0]["rules"][0]["mappings"][0]
+        assert mapping["channels"] == ["pixel-color"]
+        assert mapping["scale"]["scheme"] == "colorRamp"
+        # Stops/domain are normalized [0, 1] (JupyterGIS renders normalized bands);
+        # raw [vmin, vmax] stops would collapse the data to one colour ("1 pixel").
+        assert mapping["scale"]["params"]["domain"] == [0.0, 1.0]
+        stops = [s["stop"] for s in mapping["scale"]["params"]["colorStops"]]
+        assert stops == [0.0, 1.0]
+    finally:
+        if os.path.exists(tif):
+            os.remove(tif)
+
+
+def test_raster_colorramp_value_space_roundtrip():
+    """Grammar colorRamp stops stay normalized [0,1]; QGIS gets raw band values.
+
+    The source min/max scale between the two spaces so the ramp spans the data
+    instead of collapsing to one colour.
+    """
+    from qgis.core import QgsSingleBandPseudoColorRenderer
+
+    from ..grammar import grammar_to_raster_renderer, raster_to_grammar
+
+    tif = FILES / "_gray.tif"
+    _make_gray_tif(tif)
+    try:
+        from qgis.core import QgsRasterLayer
+
+        layer = QgsRasterLayer(str(tif), "g", "gdal")
+        logs = {"warnings": [], "errors": []}
+
+        # A normalized grammar (stops 0..1) over a raw source range [0, 200].
+        grammar = {
+            "layers": [
+                {
+                    "id": "l",
+                    "rules": [
+                        {
+                            "id": "r",
+                            "fields": ["$band-1"],
+                            "mappings": [
+                                {
+                                    "scale": {
+                                        "scheme": "colorRamp",
+                                        "params": {
+                                            "domain": [0.0, 1.0],
+                                            "colorStops": [
+                                                {"stop": 0.0, "color": [0, 0, 0, 1]},
+                                                {
+                                                    "stop": 1.0,
+                                                    "color": [255, 255, 255, 1],
+                                                },
+                                            ],
+                                        },
+                                    },
+                                    "channels": ["pixel-color"],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        }
+        renderer, vmin, vmax = grammar_to_raster_renderer(
+            grammar,
+            layer.dataProvider(),
+            logs,
+            "lid",
+            0.0,
+            200.0,
+        )
+        assert isinstance(renderer, QgsSingleBandPseudoColorRenderer)
+        # The [0, 1] stops are scaled to the raw [0, 200] band range for QGIS.
+        assert (vmin, vmax) == (0.0, 200.0)
+        items = renderer.shader().rasterShaderFunction().colorRampItemList()
+        assert [round(i.value, 3) for i in items] == [0.0, 200.0]
+
+        # Importing those raw QGIS items normalizes them back to [0, 1].
+        regrammar = raster_to_grammar(items, 1, 0.0, 200.0)
+        stops = regrammar["layers"][0]["rules"][0]["mappings"][0]["scale"]["params"][
+            "colorStops"
+        ]
+        assert [s["stop"] for s in stops] == [0.0, 1.0]
+    finally:
+        if os.path.exists(tif):
+            os.remove(tif)
+
+
+def test_raster_flat_color_to_grammar_migrates_legacy_ramp():
+    """A legacy OL `color` interpolate expression folds into a pixel-color ramp.
+
+    Pre-Grammar GeoTiff layers stored their ramp in `parameters.color` rather
+    than `symbologyState.layers`; the exporter must migrate it (including the
+    transparent value-0 stop that makes nodata transparent) instead of dropping
+    it and falling back to QGIS's default grayscale renderer.
+    """
+    from ..grammar import raster_flat_color_to_grammar
+
+    color = [
+        "interpolate",
+        ["linear"],
+        ["band", 1.0],
+        0.0,
+        [0.0, 0.0, 0.0, 0.0],
+        0.0,
+        [68.0, 1.0, 84.0, 1.0],
+        0.5,
+        [33.0, 144.0, 141.0, 1.0],
+        1.0,
+        [253.0, 231.0, 37.0, 1.0],
+    ]
+    grammar = raster_flat_color_to_grammar(color)
+
+    rule = grammar["layers"][0]["rules"][0]
+    assert rule["fields"] == ["$band-1"]
+    mapping = rule["mappings"][0]
+    assert mapping["channels"] == ["pixel-color"]
+    assert mapping["scale"]["scheme"] == "colorRamp"
+    stops = mapping["scale"]["params"]["colorStops"]
+    # Stops (already normalized [0, 1]) pass straight through, transparent 0 kept.
+    assert [s["stop"] for s in stops] == [0.0, 0.0, 0.5, 1.0]
+    assert stops[0]["color"] == [0.0, 0.0, 0.0, 0.0]
+    assert stops[-1]["color"] == [253.0, 231.0, 37.0, 1.0]
+
+    # Non-interpolate / malformed input yields an empty symbology state.
+    assert raster_flat_color_to_grammar(None) == {"layers": []}
+    assert raster_flat_color_to_grammar(["foo"]) == {"layers": []}
+
+
+def _rule_based_renderer(rules):
+    """Build a QgsRuleBasedRenderer from (filterExpression, hex-color) pairs."""
+    from qgis.core import QgsFillSymbol, QgsRuleBasedRenderer
+
+    root = QgsRuleBasedRenderer.Rule(None)
+    for filter_exp, color in rules:
+        symbol = QgsFillSymbol.createSimple({"color": color})
+        root.appendChild(QgsRuleBasedRenderer.Rule(symbol, filterExp=filter_exp))
+    return QgsRuleBasedRenderer(root)
+
+
+def test_rule_based_import_categorical():
+    """Equality-filtered rules fold back into a categorical grammar w/ colours."""
+    from ..qgis_loader import _vector_renderer_to_grammar
+
+    renderer = _rule_based_renderer(
+        [
+            ("\"continent\" = 'Asia'", "#ff0000"),
+            ("\"continent\" = 'Europe'", "#0000ff"),
+        ],
+    )
+    scheme, fields, params = _fill_mapping(_vector_renderer_to_grammar(renderer))
+    assert scheme == "categorical"
+    assert fields == ["continent"]
+    stops = {s["stop"]: s["color"][:3] for s in params["colorStops"]}
+    assert stops["Asia"] == [255.0, 0.0, 0.0]
+    assert stops["Europe"] == [0.0, 0.0, 255.0]
+
+
+def test_rule_based_import_graduated():
+    """Range-filtered rules fold back into a graduated grammar with N+1 stops."""
+    from ..qgis_loader import _vector_renderer_to_grammar
+
+    renderer = _rule_based_renderer(
+        [
+            ('"pop" >= 0 AND "pop" < 50', "#ff0000"),
+            ('"pop" >= 50 AND "pop" <= 100', "#00ff00"),
+        ],
+    )
+    scheme, fields, params = _fill_mapping(_vector_renderer_to_grammar(renderer))
+    assert scheme == "colorRamp"
+    assert fields == ["pop"]
+    assert [s["stop"] for s in params["colorStops"]] == [0.0, 50.0, 100.0]
+
+
+def test_rule_based_import_complex_falls_back():
+    """A non-class predicate stays a single symbol (no false categorization)."""
+    from ..qgis_loader import _vector_renderer_to_grammar
+
+    renderer = _rule_based_renderer([('"mag" > 5', "#123456")])
+    scheme, _, _ = _fill_mapping(_vector_renderer_to_grammar(renderer))
+    assert scheme == "constant_rgba"
+
+
+def _roundtrip_layer(grammar_layer, geometry_type):
+    """Grammar layer -> QGIS renderer (via convertFromRenderer) -> grammar."""
+    from qgis.core import QgsRuleBasedRenderer
+
+    from ..grammar import grammar_layer_to_renderer
+    from ..qgis_loader import _vector_renderer_to_grammar
+
+    logs = {"warnings": [], "errors": []}
+    renderer = grammar_layer_to_renderer(
+        grammar_layer,
+        geometry_type,
+        1.0,
+        None,
+        logs,
+        "L",
+    )
+    # Vector-symbol layers are always emitted as rule-based.
+    assert isinstance(renderer, QgsRuleBasedRenderer)
+    state = _vector_renderer_to_grammar(renderer)
+    return state["layers"][0], logs
+
+
+def _mapping_for_channel(grammar_layer, channel):
+    """(scheme, params, fields, when) of the mapping driving ``channel``."""
+    for rule in grammar_layer.get("rules", []):
+        for mapping in rule.get("mappings", []):
+            if channel in mapping.get("channels", []):
+                scale = mapping["scale"]
+                return (
+                    scale["scheme"],
+                    scale.get("params", {}),
+                    rule.get("fields"),
+                    rule.get("when"),
+                )
+    return None, None, None, None
+
+
+def test_graduated_roundtrip_rule_based():
+    """ColorRamp fill with materialized stops -> rule-based -> colorRamp."""
+    layer = _grammar(
+        [
+            {
+                "id": "r",
+                "fields": ["pop"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "colorRamp",
+                            "params": {
+                                "name": "viridis",
+                                "nShades": 2,
+                                "mode": "equal interval",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": 0.0, "color": [255, 0, 0, 1.0]},
+                                    {"stop": 5.0, "color": [0, 255, 0, 1.0]},
+                                    {"stop": 10.0, "color": [0, 0, 255, 1.0]},
+                                ],
+                            },
+                        },
+                        "channels": ["fill-color", "circle-fill-color"],
+                    },
+                ],
+            },
+        ],
+    )["layers"][0]
+    out, logs = _roundtrip_layer(layer, "fill")
+    scheme, params, fields, _ = _mapping_for_channel(out, "fill-color")
+    assert scheme == "colorRamp"
+    assert fields == ["pop"]
+    assert [s["stop"] for s in params["colorStops"]] == [0.0, 5.0, 10.0]
+    assert logs["warnings"] == []
+
+
+def test_categorized_roundtrip_rule_based():
+    """Categorical fill with materialized stops -> rule-based -> categorical."""
+    layer = _grammar(
+        [
+            {
+                "id": "r",
+                "fields": ["continent"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "categorical",
+                            "params": {
+                                "colorRamp": "viridis",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": "Asia", "color": [255, 0, 0, 1.0]},
+                                    {"stop": "Europe", "color": [0, 0, 255, 1.0]},
+                                ],
+                            },
+                        },
+                        "channels": ["fill-color", "circle-fill-color"],
+                    },
+                ],
+            },
+        ],
+    )["layers"][0]
+    out, _ = _roundtrip_layer(layer, "fill")
+    scheme, params, fields, _ = _mapping_for_channel(out, "fill-color")
+    assert scheme == "categorical"
+    assert fields == ["continent"]
+    stops = {
+        s["stop"]: [round(c) for c in s["color"][:3]] for s in params["colorStops"]
+    }
+    assert stops == {"Asia": [255, 0, 0], "Europe": [0, 0, 255]}
+
+
+def test_scalar_size_roundtrip():
+    """A data-driven circle radius round-trips as a scalar scale (no warnings)."""
+    layer = {
+        "id": "x",
+        "rules": [
+            {
+                "id": "r-fill",
+                "mappings": [_constant_rgba([255, 0, 0, 1.0], ["circle-fill-color"])],
+            },
+            {
+                "id": "r-size",
+                "fields": ["mag"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "scalar",
+                            "params": {
+                                "domain": [3.0, 9.0],
+                                "range": [1.0, 10.0],
+                                "mode": "equal interval",
+                                "nStops": 5,
+                                "fallback": 0.0,
+                            },
+                        },
+                        "channels": ["circle-radius"],
+                    },
+                ],
+            },
+        ],
+    }
+    out, logs = _roundtrip_layer(layer, "circle")
+    scheme, params, fields, _ = _mapping_for_channel(out, "circle-radius")
+    assert scheme == "scalar"
+    assert fields == ["mag"]
+    assert params["domain"] == [3.0, 9.0]
+    assert params["range"] == [1.0, 10.0]
+    assert logs["warnings"] == []
+
+
+def test_identity_stroke_roundtrip():
+    """A data-driven (identity) stroke colour round-trips as an identity scale."""
+    layer = {
+        "id": "x",
+        "rules": [
+            {
+                "id": "r-fill",
+                "mappings": [_constant_rgba([255, 0, 0, 1.0], ["fill-color"])],
+            },
+            {
+                "id": "r-stroke",
+                "fields": ["colour"],
+                "mappings": [
+                    {"scale": {"scheme": "identity"}, "channels": ["stroke-color"]},
+                ],
+            },
+        ],
+    }
+    out, logs = _roundtrip_layer(layer, "fill")
+    scheme, _, fields, _ = _mapping_for_channel(out, "stroke-color")
+    assert scheme == "identity"
+    assert fields == ["colour"]
+    assert logs["warnings"] == []
+
+
+def test_rule_when_roundtrip():
+    """A rule-level `when` round-trips as a guarded grammar rule (predicate kept)."""
+    layer = {
+        "id": "x",
+        "rules": [
+            {
+                "id": "base",
+                "mappings": [_constant_rgba([200, 200, 200, 1.0], ["fill-color"])],
+            },
+            {
+                "id": "guard",
+                "when": [
+                    {"type": "fieldCompare", "field": "mag", "op": ">", "value": 5},
+                ],
+                "mappings": [_constant_rgba([255, 0, 0, 1.0], ["fill-color"])],
+            },
+        ],
+    }
+    out, _ = _roundtrip_layer(layer, "fill")
+    guarded = [rule for rule in out["rules"] if rule.get("when")]
+    assert len(guarded) == 1
+    assert guarded[0]["when"] == [
+        {"type": "fieldCompare", "field": "mag", "op": ">", "value": 5.0},
+    ]
+    # The guarded rule keeps its constant fill colour.
+    fill = next(m for m in guarded[0]["mappings"] if "fill-color" in m["channels"])
+    assert [round(c) for c in fill["scale"]["params"]["value"][:3]] == [255, 0, 0]
