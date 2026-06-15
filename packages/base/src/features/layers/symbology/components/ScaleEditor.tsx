@@ -189,7 +189,7 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
-        <label>Colormap</label>
+        <label>Color map</label>
         <ColorRampSelector
           selectedRamp={params.name as ColorRampName}
           setSelected={name => update({ name })}
