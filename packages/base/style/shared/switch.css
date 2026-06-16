@@ -45,6 +45,22 @@ button.jgis-switch.jp-mod-styled {
   background-color: var(--jp-layout-color3);
 }
 
+.jgis-switch:hover[data-state='checked'] {
+  background-color: var(--jp-accent-color1);
+}
+
+.jgis-switch:hover[data-state='unchecked'] {
+  background-color: var(--jp-layout-color3);
+}
+
+button.jgis-switch.jp-mod-styled:hover[data-state='checked'] {
+  background-color: var(--jp-accent-color1);
+}
+
+button.jgis-switch.jp-mod-styled:hover[data-state='unchecked'] {
+  background-color: var(--jp-layout-color3);
+}
+
 .jgis-switch-thumb {
   background-color: var(--jp-layout-color1);
   pointer-events: none;
