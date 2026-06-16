@@ -197,7 +197,7 @@ interface IMainViewProps {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
-  /** True when viewport matches (max-width: 960px). Injected by MainViewWithMediaQuery. */
+  /** True when viewport matches (max-width: 960px). Injected by MainViewWithObserver. */
   isMobile: boolean;
   containerRef?: React.RefObject<HTMLDivElement>;
 }
@@ -3947,4 +3947,4 @@ function MainViewWithObserver(props: Omit<IMainViewProps, 'isMobile'>) {
   );
 }
 
-export { MainViewWithObserver as MainViewWithMediaQuery };
+export { MainViewWithObserver };
