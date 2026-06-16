@@ -1,7 +1,7 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState, type RefObject } from 'react';
+import React, { useEffect, useState, type RefObject } from 'react';
 
 import {
   formatGradientLabel,
@@ -50,6 +50,47 @@ function toColorInputValue(
   return fallback;
 }
 
+function StoryTitleInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (title: string) => void;
+}): JSX.Element {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  return (
+    <Input
+      className="jgis-story-editor-toolbar-title"
+      value={draft}
+      placeholder="Untitled story"
+      aria-label="Story title"
+      onChange={event => {
+        setDraft(event.target.value);
+      }}
+      onKeyDown={event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.currentTarget.blur();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          setDraft(value);
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={() => {
+        if (draft !== value) {
+          onChange(draft);
+        }
+      }}
+    />
+  );
+}
+
 function StorySettingsPopover({
   story,
   onUpdateStory,
@@ -77,15 +118,6 @@ function StorySettingsPopover({
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
         <div className="jgis-story-editor-settings-sheet-body">
-          <label className="jgis-story-editor-field">
-            <span>Title</span>
-            <Input
-              value={story.title ?? ''}
-              onChange={event => {
-                onUpdateStory({ title: event.target.value });
-              }}
-            />
-          </label>
           <label className="jgis-story-editor-field">
             <span>Story type</span>
             <NativeSelect
@@ -157,20 +189,20 @@ export function StoryEditorHeaderBar({
   return (
     <div className="jgis-story-editor-toolbar">
       <div className="jgis-story-editor-context-bar">
+        {story ? (
+          <StoryTitleInput
+            value={story.title ?? ''}
+            onChange={title => {
+              onUpdateStory({ title });
+            }}
+          />
+        ) : null}
         <span className="jgis-story-editor-context-pill">
           {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
         </span>
         <span className="jgis-story-editor-context-meta">
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>
-        {story ? (
-          <span
-            className="jgis-story-editor-context-meta jgis-story-editor-context-title"
-            title={story.title || 'Untitled story'}
-          >
-            {story.title?.trim() || 'Untitled story'}
-          </span>
-        ) : null}
         {story ? (
           <span className="jgis-story-editor-context-meta">
             {formatGradientLabel(story.showGradient)}
