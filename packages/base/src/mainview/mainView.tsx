@@ -199,6 +199,7 @@ interface IMainViewProps {
   loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 960px). Injected by MainViewWithMediaQuery. */
   isMobile: boolean;
+  containerRef?: React.RefObject<HTMLDivElement>;
 }
 
 interface IStates {
@@ -3770,7 +3771,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
         />
 
-        <div className="jGIS-Mainview-Container">
+        <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
           {displayTemporalController ? (
             <TemporalSlider model={this._model} filterStates={filterStates} />
           ) : null}
@@ -3915,29 +3916,35 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 // ! TODO make mainview a modern react component instead of a class
 /* thin React wrapper to resize the panels on window resize with the help of ResizeObserver */
 function MainViewWithObserver(props: Omit<IMainViewProps, 'isMobile'>) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
-    const container = document.querySelector('.jGIS-Mainview-Container');
+    const container = containerRef.current;
     if (!container) {
       return;
     }
 
-    // Set initial state synchronously before first paint
-    setIsMobile(container.clientWidth < 960);
+    const update = (width: number) => {
+      const narrow = width < 960;
+      setIsMobile(narrow);
+      container.classList.toggle('jgis-narrow', narrow);
+    };
 
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const narrow = entry.contentRect.width < 960;
-        setIsMobile(narrow);
-        container.classList.toggle('jgis-narrow', narrow);
-      }
+    // Initial sync
+    update(container.clientWidth);
+
+    const observer = new ResizeObserver(([entry]) => {
+      update(entry.contentRect.width);
     });
 
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
-  return <MainView {...props} isMobile={isMobile} />;
+
+  return (
+    <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
+  );
 }
 
 export { MainViewWithObserver as MainViewWithMediaQuery };
