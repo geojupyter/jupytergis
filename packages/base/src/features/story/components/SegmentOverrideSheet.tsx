@@ -53,7 +53,7 @@ export function SegmentOverrideSheet({
   return (
     <Sheet onOpenChange={handleOpenChange} modal={false}>
       <SheetTrigger asChild>
-        <Button variant="secondary">Style</Button>
+        <Button variant="outline">Edit</Button>
       </SheetTrigger>
       <SheetContent container={portalContainerRef.current}>
         <SheetHeader>

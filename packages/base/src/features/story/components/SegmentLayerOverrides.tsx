@@ -1,5 +1,6 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
+import { CheckIcon } from 'lucide-react';
 import React, { type RefObject } from 'react';
 
 import { SymbologyWidget } from '@/src/features/layers/symbology/symbologyDialog';
@@ -8,7 +9,6 @@ import {
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
 import { Button } from '@/src/shared/components/Button';
-import Badge from '@/src/shared/components/Badge';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
 import { SegmentOverrideSheet } from './SegmentOverrideSheet';
@@ -63,46 +63,70 @@ export function SegmentLayerOverrides({
   }
 
   return (
-    <ul className="jgis-story-editor-segment-layer-list">
-      {rows.map(row => {
-        const layer = model.getLayer(row.layerId);
-        const canEditStyle =
-          layer !== undefined &&
-          SYMBOLOGY_VALID_LAYER_TYPES.includes(layer.type);
+    <div className="jgis-story-editor-segment-layer-grid">
+      <div
+        className="jgis-story-editor-segment-layer-header"
+        aria-hidden="true"
+      >
+        <span>Layer Name</span>
+        <span>Visibility</span>
+        <span>Style</span>
+        <span>Override</span>
+      </div>
+      <ul className="jgis-story-editor-segment-layer-list">
+        {rows.map(row => {
+          const layer = model.getLayer(row.layerId);
+          const canEditStyle =
+            layer !== undefined &&
+            SYMBOLOGY_VALID_LAYER_TYPES.includes(layer.type);
 
-        return (
-          <li key={row.layerId} className="jgis-story-editor-segment-layer-row">
-            <span className="jgis-story-editor-segment-layer-name">
-              <span className="jgis-story-editor-segment-layer-name-text">
+          return (
+            <li
+              key={row.layerId}
+              className="jgis-story-editor-segment-layer-row"
+            >
+              <span
+                className="jgis-story-editor-segment-layer-name-text"
+                title={row.layerName}
+              >
                 {row.layerName}
               </span>
-              {row.isChanged ? (
-                <Badge variant="destructive">Override</Badge>
-              ) : null}
-            </span>
-            <Switch
-              checked={row.effectiveVisible}
-              onCheckedChange={checked => {
-                setSegmentLayerVisibility(
-                  model,
-                  segmentId,
-                  row.layerId,
-                  checked,
-                );
-              }}
-              aria-label={`Toggle visibility for ${row.layerName}`}
-            />
-            {canEditStyle ? (
-              <SegmentOverrideSheet
-                model={model}
-                segmentId={segmentId}
-                layerId={row.layerId}
-                portalContainerRef={portalContainerRef}
-              />
-            ) : null}
-          </li>
-        );
-      })}
-    </ul>
+              <span className="jgis-story-editor-segment-layer-visibility">
+                <Switch
+                  checked={row.effectiveVisible}
+                  onCheckedChange={checked => {
+                    setSegmentLayerVisibility(
+                      model,
+                      segmentId,
+                      row.layerId,
+                      checked,
+                    );
+                  }}
+                  aria-label={`Toggle visibility for ${row.layerName}`}
+                />
+              </span>
+              <span className="jgis-story-editor-segment-layer-style">
+                {canEditStyle ? (
+                  <SegmentOverrideSheet
+                    model={model}
+                    segmentId={segmentId}
+                    layerId={row.layerId}
+                    portalContainerRef={portalContainerRef}
+                  />
+                ) : null}
+              </span>
+              <span className="jgis-story-editor-segment-layer-override">
+                {row.isChanged ? (
+                  <CheckIcon
+                    className="jgis-story-editor-segment-layer-override-icon"
+                    aria-label="Override applied"
+                  />
+                ) : null}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
