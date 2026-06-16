@@ -129,7 +129,6 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
-import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -3914,10 +3913,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 }
 
 // ! TODO make mainview a modern react component instead of a class
-/** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
-function MainViewWithMediaQuery(props: Omit<IMainViewProps, 'isMobile'>) {
-  const isMobile = useMediaQuery('(max-width: 960px)');
+/* thin React wrapper to resize the panels on window resize with the help of ResizeObserver */
+function MainViewWithObserver(props: Omit<IMainViewProps, 'isMobile'>) {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const container = document.querySelector('.jGIS-Mainview-Container');
+    if (!container) {
+      return;
+    }
+
+    // Set initial state synchronously before first paint
+    setIsMobile(container.clientWidth < 960);
+
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const narrow = entry.contentRect.width < 960;
+        setIsMobile(narrow);
+        container.classList.toggle('jgis-narrow', narrow);
+      }
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
   return <MainView {...props} isMobile={isMobile} />;
 }
 
-export { MainViewWithMediaQuery };
+export { MainViewWithObserver as MainViewWithMediaQuery };
