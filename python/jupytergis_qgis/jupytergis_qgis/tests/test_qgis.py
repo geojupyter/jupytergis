@@ -1264,8 +1264,8 @@ def test_rule_based_import_complex_falls_back():
 
 
 def _roundtrip_layer(grammar_layer, geometry_type):
-    """Grammar layer -> QGIS renderer (via convertFromRenderer) -> grammar."""
-    from qgis.core import QgsRuleBasedRenderer
+    """Grammar layer -> QGIS renderer -> grammar."""
+    from qgis.core import QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer
 
     from ..grammar import grammar_layer_to_renderer
     from ..qgis_loader import _vector_renderer_to_grammar
@@ -1279,8 +1279,13 @@ def _roundtrip_layer(grammar_layer, geometry_type):
         logs,
         "L",
     )
-    # Vector-symbol layers are always emitted as rule-based.
-    assert isinstance(renderer, QgsRuleBasedRenderer)
+    # Categorized / single / when-guarded layers are emitted as rule-based;
+    # graduated stays a native QgsGraduatedSymbolRenderer (its outer domain
+    # bounds don't survive QGIS's rule-based conversion).
+    assert isinstance(
+        renderer,
+        (QgsRuleBasedRenderer, QgsGraduatedSymbolRenderer),
+    )
     state = _vector_renderer_to_grammar(renderer)
     return state["layers"][0], logs
 
@@ -1300,8 +1305,12 @@ def _mapping_for_channel(grammar_layer, channel):
     return None, None, None, None
 
 
-def test_graduated_roundtrip_rule_based():
-    """ColorRamp fill with materialized stops -> rule-based -> colorRamp."""
+def test_graduated_roundtrip():
+    """ColorRamp fill with materialized stops -> native graduated -> colorRamp.
+
+    Graduated layers export as a native QgsGraduatedSymbolRenderer (not rule-based)
+    so the exact class breaks survive the round-trip on all QGIS versions.
+    """
     layer = _grammar(
         [
             {

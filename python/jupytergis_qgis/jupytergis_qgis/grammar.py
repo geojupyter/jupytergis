@@ -1018,11 +1018,15 @@ def _to_rule_based(inner):
     """
     if inner is None:
         return None
+    # Graduated renderers lose their outer domain bounds when QGIS converts them
+    # to rule-based: QGIS >= 3.44
+    if isinstance(inner, QgsGraduatedSymbolRenderer):
+        return inner
     converted = QgsRuleBasedRenderer.convertFromRenderer(inner)
-    # An unclassified graduated/categorized renderer (data couldn't load, so no
-    # ranges/categories materialised) converts to an empty rule set, which would
-    # drop the classification field. Keep the native renderer in that case — it
-    # still carries the field/scheme, and import handles it either way.
+    # An unclassified categorized renderer (data couldn't load, so no categories
+    # materialised) converts to an empty rule set, which would drop the
+    # classification field. Keep the native renderer in that case — it still
+    # carries the field/scheme, and import handles it either way.
     if converted is None or not converted.rootRule().children():
         return inner
     return converted

@@ -610,11 +610,23 @@ def _vector_renderer_to_grammar(renderer):
 
     if isinstance(renderer, QgsGraduatedSymbolRenderer):
         field = renderer.classAttribute()
-        symbol = None
-        for class_range in renderer.ranges():
-            symbol = class_range.symbol()
-        n_classes = len(renderer.ranges()) or 9
+        ranges = renderer.ranges()
+        symbol = ranges[-1].symbol() if ranges else None
+        n_classes = len(ranges) or 9
         _, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
+        # Recover the exact class breaks as colorStops
+        color_stops = None
+        if ranges:
+            ordered = sorted(ranges, key=lambda r: r.lowerValue())
+            first_fill = _extract_symbol_style(ordered[0].symbol())[0]
+            color_stops = [{"stop": ordered[0].lowerValue(), "color": first_fill}]
+            color_stops.extend(
+                {
+                    "stop": class_range.upperValue(),
+                    "color": _extract_symbol_style(class_range.symbol())[0],
+                }
+                for class_range in ordered
+            )
         return graduated_grammar(
             field,
             "viridis",
@@ -623,6 +635,7 @@ def _vector_renderer_to_grammar(renderer):
             stroke,
             stroke_width,
             radius,
+            color_stops=color_stops,
         )
 
     # Single Symbol — and any unrecognised renderer falls back to its symbol.
@@ -1083,10 +1096,14 @@ def jgis_layer_to_qgis(
             if not geometry_type:
                 geometry_type = grammar_layer_geometry_hint(grammar_layer) or "fill"
 
+            # Opacity is applied once, at the QGIS layer level (set below via
+            # layer_opacities). Passing it into the renderer too would set symbol
+            # opacity as well, and QGIS multiplies symbol x layer opacity -> the
+            # effective opacity would be squared. Build symbols at full opacity.
             renderer = grammar_layer_to_renderer(
                 grammar_layer,
                 geometry_type,
-                opacity,
+                1.0,
                 vlayer,
                 logs,
                 layer_id,
