@@ -350,32 +350,36 @@
   gap: 0.5rem;
 }
 
-.jgis-story-editor-stop-type-card {
+.jgis-story-editor-stop-type-picker
+  .jgis-button.jgis-story-editor-stop-type-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.25rem;
-  padding: 0.65rem 0.75rem;
   border: 1px solid var(--jp-border-color1);
   border-radius: var(--jp-border-radius);
   background: var(--jp-layout-color1);
   color: inherit;
   font: inherit;
-  text-align: left;
-  cursor: pointer;
+  height: 3.25rem;
+  max-width: unset;
 }
 
-.jgis-story-editor-stop-type-card strong {
+.jgis-story-editor-stop-type-picker
+  .jgis-button.jgis-story-editor-stop-type-card
+  strong {
   font-size: 0.85rem;
 }
 
-.jgis-story-editor-stop-type-card span {
+.jgis-story-editor-stop-type-picker
+  .jgis-button.jgis-story-editor-stop-type-card
+  span {
   font-size: 0.72rem;
   color: var(--jp-ui-font-color2);
   line-height: 1.35;
 }
 
-.jgis-story-editor-stop-type-card--selected {
+.jgis-story-editor-stop-type-picker
+  .jgis-button.jgis-story-editor-stop-type-card--selected {
   border-color: var(--jp-brand-color1);
   background: color-mix(
     in srgb,
