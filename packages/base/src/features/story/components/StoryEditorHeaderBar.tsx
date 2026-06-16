@@ -105,9 +105,7 @@ function StorySettingsPopover({
             </NativeSelect>
           </label>
           <div className="jgis-story-editor-settings-section">
-            <div className="jgis-story-editor-settings-section-title">
-              Presentation
-            </div>
+            <div className="jgis-story-editor-eyebrow">Presentation</div>
             <label className="jgis-story-editor-toggle-row">
               <span>Use gradient background</span>
               <Switch

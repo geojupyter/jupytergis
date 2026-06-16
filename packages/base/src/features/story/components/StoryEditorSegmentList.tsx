@@ -56,12 +56,12 @@ export function StoryEditorSegmentList({
 }: IStoryEditorSegmentListProps): JSX.Element {
   return (
     <aside className="jgis-story-editor-segment-list">
-      <div className="jgis-story-editor-segment-list-header">
+      <div className="jgis-story-editor-segment-list-header jgis-story-editor-eyebrow">
         Segments
       </div>
       <div className="jgis-story-editor-segment-list-items">
         {segments.length === 0 ? (
-          <p className="jgis-story-editor-segment-list-empty">
+          <p className="jgis-story-editor-segment-list-empty jgis-story-editor-help">
             No segments yet. Add one from the current map view.
           </p>
         ) : (

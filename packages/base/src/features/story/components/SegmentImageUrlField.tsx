@@ -43,12 +43,11 @@ export function SegmentImageUrlField({
 
   if (showUrlInput) {
     return (
-      <div className="jgis-story-editor-segment-image">
+      <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
         <label className="jgis-story-editor-field">
           <span>Hero image URL</span>
           <Input
             type="url"
-            className="jgis-story-editor-segment-image-url-input"
             placeholder="https://example.com/image.jpg"
             value={draftUrl}
             onChange={event => setDraftUrl(event.target.value)}
@@ -59,7 +58,7 @@ export function SegmentImageUrlField({
             }}
           />
         </label>
-        <div className="jgis-story-editor-segment-image-url-actions">
+        <div className="jgis-story-editor-actions">
           <Button
             type="button"
             size="sm"
@@ -88,15 +87,15 @@ export function SegmentImageUrlField({
   }
 
   return (
-    <div className="jgis-story-editor-segment-image">
-      <div className="jgis-story-editor-segment-image-card">
+    <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
+      <div className="jgis-story-editor-surface">
         <img
           className="jgis-story-editor-segment-image-card-media"
           src={value}
           alt=""
           onError={() => setPreviewFailed(true)}
         />
-        <div className="jgis-story-editor-segment-image-card-actions">
+        <div className="jgis-story-editor-actions">
           <Button
             type="button"
             size="sm"

@@ -78,7 +78,7 @@ function SegmentEditor({
     <div className="jgis-story-editor-segment">
       <div className="jgis-story-editor-segment-header">
         <div>
-          <div className="jgis-story-editor-segment-kicker">
+          <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
           <h3 className="jgis-story-editor-segment-title">{displayTitle}</h3>
@@ -90,8 +90,8 @@ function SegmentEditor({
       {stopType === 'map' ? (
         <>
           <StoryEditorSection triggerText="Map view" defaultOpen>
-            <div className="jgis-story-editor-map-view-row">
-              <p className="jgis-story-editor-map-view-help">
+            <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
+              <p className="jgis-story-editor-help">
                 Set this stop&apos;s map view by positioning the main map.
               </p>
               <Button
@@ -107,13 +107,7 @@ function SegmentEditor({
           </StoryEditorSection>
 
           <StoryEditorSection triggerText="Content" defaultOpen>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-              }}
-            >
+            <div className="jgis-story-editor-stack">
               <label className="jgis-story-editor-field">
                 <span>Title</span>
                 <Input
@@ -157,7 +151,7 @@ function SegmentEditor({
             open={animationOpen}
             onOpenChange={setAnimationOpen}
           >
-            <div className="jgis-story-editor-animation-row">
+            <div className="jgis-story-editor-row">
               <NativeSelect size="sm" defaultValue="smooth">
                 <NativeSelectOption value="immediate">
                   Instant
@@ -199,9 +193,7 @@ function SegmentEditor({
       )}
 
       <div className="jgis-story-editor-preview">
-        <div className="jgis-story-editor-preview-label">
-          Presentation preview
-        </div>
+        <div className="jgis-story-editor-eyebrow">Presentation preview</div>
         <div className="jgis-story-editor-preview-frame">
           <div className="jgis-story-editor-preview-chrome">
             <span>desktop</span>

@@ -18,8 +18,8 @@ export function SegmentStopTypePicker({
     value === 'markdown' ? 'markdown' : 'map';
 
   return (
-    <section className="jgis-story-editor-section">
-      <div className="jgis-story-editor-section-label">What is this stop?</div>
+    <section className="jgis-story-editor-block">
+      <div className="jgis-story-editor-label">What is this stop?</div>
       <div className="jgis-story-editor-stop-type-picker">
         <Button
           type="button"
@@ -31,7 +31,7 @@ export function SegmentStopTypePicker({
           aria-pressed={selectedValue === 'map'}
           onClick={() => onChange('map')}
         >
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="jgis-story-editor-row">
             <FontAwesomeIcon icon={faMap} />
             <strong>Map stop</strong>
           </div>

@@ -57,7 +57,7 @@ export function SegmentLayerOverrides({
 
   if (rows.length === 0) {
     return (
-      <p className="jgis-story-editor-segment-layer-empty">
+      <p className="jgis-story-editor-help">
         No map layers in this project.
       </p>
     );

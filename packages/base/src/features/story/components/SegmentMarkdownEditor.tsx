@@ -105,7 +105,7 @@ export function SegmentMarkdownEditor({
           {draft.trim() ? (
             <Markdown>{draft}</Markdown>
           ) : (
-            <p className="jgis-story-editor-markdown-preview-empty">
+            <p className="jgis-story-editor-help">
               Nothing to preview yet.
             </p>
           )}
