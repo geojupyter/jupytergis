@@ -1,0 +1,31 @@
+/* -----------------------------------------------------------------------------
+| Placement of the Cancel action on a running processing notification.
+|
+| JupyterLab renders notification actions in a `.jp-toast-buttonBar` row *below*
+| the message, which lands the Cancel button under the toast's close (X) button
+| and adds height. For our long-running (in-progress) processing toasts we lift
+| that bar up to the top-right corner so Cancel sits just to the LEFT of the X,
+| vertically aligned with it, and adds no extra height.
+|
+| The toast element (`.Toastify__toast`) is `position: relative`, so the bar can
+| be absolutely positioned against it. Scoped to in-progress toasts so other
+| notifications (info/success/error with actions) keep the default layout.
+|---------------------------------------------------------------------------- */
+
+.jp-Notification-Toast-in-progress .jp-toast-buttonBar {
+  position: absolute;
+  top: 7px;
+  right: 30px;
+  padding-block-start: 0;
+}
+
+/* Keep the message clear of the absolutely-positioned Cancel button. */
+.jp-Notification-Toast-in-progress .jp-toast-message {
+  padding-inline-end: 92px;
+}
+
+.jp-toast-button {
+  margin: 0;
+  padding: 0 8px;
+  line-height: 1.6;
+}
