@@ -111,6 +111,7 @@ WhenInput = Predicate | Sequence[Predicate] | None
 def _as_predicate(predicate: schema_symbology.IPredicate) -> Predicate:
     return Predicate._from_internal(predicate)
 
+
 class ScalarStop:
     """User-facing scalar interpolation stop.
 
