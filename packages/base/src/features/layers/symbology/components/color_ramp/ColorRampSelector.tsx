@@ -1,13 +1,13 @@
 /**
  * @module ColorRampSelector
  *
- * Dropdown component for selecting a color ramp.
+ * Dropdown component for selecting a color map.
  * - Displays the currently selected ramp as a preview on a canvas.
  * - Expands to show a list of available ramps (`ColorRampSelectorEntry`).
  * - Updates the preview and notifies parent via `setSelected` when a ramp is chosen.
  *
  * Props:
- * - `selectedRamp`: Name of the currently selected color ramp.
+ * - `selectedRamp`: Name of the currently selected color map.
  * - `setSelected`: Callback fired with the new ramp when selected.
  */
 
@@ -77,7 +77,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   };
 
   const updateCanvas = (rampName: string) => {
-    // update canvas for displayed color ramp
+    // update canvas for displayed color map
     const canvas = document.getElementById('cv') as HTMLCanvasElement;
     if (!canvas) {
       return;
@@ -143,7 +143,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
             checked={reverse}
             onChange={e => setReverse(e.target.checked)}
           />
-          Reverse Color Ramp
+          Reverse Color Map
         </label>
       </div>
     </div>

@@ -42,7 +42,7 @@ about/index
 getting_started/index
 user_guide/index
 contributor_guide/index
-about/gallery
+gallery
 ```
 
 ```{toctree}

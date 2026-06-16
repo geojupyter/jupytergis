@@ -9,6 +9,7 @@ import type {
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
+import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   buildStorySegmentViewItems,
@@ -86,9 +87,21 @@ function SegmentOverlayPane({
   );
 }
 
+function buildFallbackTransition(
+  activeItem: IStorySegmentViewItem,
+): IListStorySegmentTransition {
+  const mode = getSegmentDisplayMode(activeItem.activeSlide);
+  return {
+    progress: 0,
+    fromIndex: activeItem.index,
+    toIndex: activeItem.index,
+    fromMode: mode,
+    toMode: mode,
+  };
+}
+
 /**
  * List-story stage overlay: map + markdown segments on the map stage.
- * The story column scrolls only the virtual track; this is the visible UI.
  */
 export function ListStoryStageOverlay({
   model,
@@ -115,13 +128,24 @@ export function ListStoryStageOverlay({
     ],
   );
 
-  const isTransitioning = segmentTransition !== null;
   const activeItem = items.find(item => item.index === currentIndex);
-  const activeMode = getSegmentDisplayMode(activeItem?.activeSlide);
-  const transitionProgress = isTransitioning ? segmentTransition.progress : 1;
+
+  const transition = useMemo((): IListStorySegmentTransition | null => {
+    if (segmentTransition) {
+      return segmentTransition;
+    }
+
+    if (activeItem) {
+      return buildFallbackTransition(activeItem);
+    }
+
+    return null;
+  }, [segmentTransition, activeItem]);
+
+  const intraSegmentScroll = isIntraSegmentScroll(transition);
 
   const { fromIndex, toIndex, fromPaneConfig, toPaneConfig } = useMemo(() => {
-    if (!model || !activeItem) {
+    if (!model || !transition) {
       return {
         fromIndex: currentIndex,
         toIndex: currentIndex,
@@ -130,30 +154,26 @@ export function ListStoryStageOverlay({
       };
     }
 
-    if (segmentTransition) {
-      return {
-        fromIndex: segmentTransition.fromIndex,
-        toIndex: segmentTransition.toIndex,
-        fromPaneConfig: buildPaneConfig(
-          items.find(item => item.index === segmentTransition.fromIndex),
-          segmentTransition.fromMode,
-        ),
-        toPaneConfig: buildPaneConfig(
-          items.find(item => item.index === segmentTransition.toIndex),
-          segmentTransition.toMode,
-        ),
-      };
-    }
+    const fromItem = items.find(item => item.index === transition.fromIndex);
+    const toItem = items.find(item => item.index === transition.toIndex);
 
-    return {
-      fromIndex: currentIndex,
-      toIndex: currentIndex,
-      fromPaneConfig: EMPTY_MARKDOWN_PANE,
-      toPaneConfig: buildPaneConfig(activeItem, activeMode),
+    const fromPaneConfig = buildPaneConfig(fromItem, transition.fromMode);
+    const toPaneConfig = intraSegmentScroll
+      ? EMPTY_MARKDOWN_PANE
+      : buildPaneConfig(toItem, transition.toMode);
+
+    const paneState = {
+      fromIndex: transition.fromIndex,
+      toIndex: transition.toIndex,
+      fromPaneConfig,
+      toPaneConfig,
     };
-  }, [items, activeItem, currentIndex, activeMode, segmentTransition]);
+
+    return paneState;
+  }, [items, currentIndex, transition, intraSegmentScroll, model]);
 
   const overlayHeight = Math.max(stageHeight, 0);
+  const transitionProgress = transition?.progress ?? 0;
 
   useLayoutEffect(() => {
     const parent = overlayRef.current?.parentElement;
@@ -179,11 +199,6 @@ export function ListStoryStageOverlay({
   }, [model, story]);
 
   useLayoutEffect(() => {
-    if (!isTransitioning) {
-      setTransitionTranslatePx(0);
-      return;
-    }
-
     const stack = stackRef.current;
     if (!stack) {
       return;
@@ -191,12 +206,18 @@ export function ListStoryStageOverlay({
 
     const measure = (): void => {
       const fromPane = stack.querySelector('[data-pane="from"]');
-      const gap = stack.querySelector('.jgis-story-segment-transition-gap');
-      if (!(fromPane instanceof HTMLElement) || !(gap instanceof HTMLElement)) {
+
+      if (!(fromPane instanceof HTMLElement)) {
         return;
       }
 
-      const travel = fromPane.offsetHeight + gap.offsetHeight;
+      const gap = stack.querySelector('.jgis-story-segment-transition-gap');
+      const gapHeight =
+        gap instanceof HTMLElement && !intraSegmentScroll
+          ? gap.offsetHeight
+          : 0;
+
+      const travel = fromPane.offsetHeight + gapHeight;
       setTransitionTranslatePx(prev => (prev === travel ? prev : travel));
     };
 
@@ -208,11 +229,11 @@ export function ListStoryStageOverlay({
     return () => {
       ro.disconnect();
     };
-  }, [isTransitioning, fromIndex, toIndex, fromPaneConfig, toPaneConfig]);
+  }, [fromIndex, toIndex, fromPaneConfig, toPaneConfig, intraSegmentScroll]);
 
   const overlaySized = stageHeight > 0;
 
-  if (!model || !story || !activeItem) {
+  if (!model || !story || !activeItem || !transition) {
     return null;
   }
 
@@ -221,7 +242,7 @@ export function ListStoryStageOverlay({
       ref={overlayRef}
       className={`jgis-story-stage-overlay${
         overlaySized ? ' jgis-story-stage-overlay--sized' : ''
-      }${isTransitioning ? ' jgis-story-stage-overlay--transitioning' : ''}`}
+      } jgis-story-stage-overlay--transitioning`}
       style={
         {
           ...spectaPresentationStyle,
@@ -236,33 +257,27 @@ export function ListStoryStageOverlay({
         } as React.CSSProperties
       }
     >
-      {isTransitioning ? (
-        <div ref={stackRef} className="jgis-story-segment-transition-stack">
-          <SegmentOverlayPane
-            pane="from"
-            segmentIndex={fromIndex}
-            config={fromPaneConfig}
-            storyData={story}
-            items={items}
-          />
-          <div className="jgis-story-segment-transition-gap" aria-hidden />
-          <SegmentOverlayPane
-            pane="to"
-            segmentIndex={toIndex}
-            config={toPaneConfig}
-            storyData={story}
-            items={items}
-          />
-        </div>
-      ) : (
+      <div ref={stackRef} className="jgis-story-segment-transition-stack">
         <SegmentOverlayPane
-          pane="to"
-          segmentIndex={toIndex}
-          config={toPaneConfig}
+          pane="from"
+          segmentIndex={fromIndex}
+          config={fromPaneConfig}
           storyData={story}
           items={items}
         />
-      )}
+        {!intraSegmentScroll ? (
+          <>
+            <div className="jgis-story-segment-transition-gap" aria-hidden />
+            <SegmentOverlayPane
+              pane="to"
+              segmentIndex={toIndex}
+              config={toPaneConfig}
+              storyData={story}
+              items={items}
+            />
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }

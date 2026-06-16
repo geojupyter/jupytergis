@@ -134,14 +134,13 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 /* Mobile bottom sheet — merged panel only */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jgis-merged-panel-container {
     position: fixed;
-    bottom: var(--jp-statusbar-height, 0px);
+    bottom: 16px;
     left: 0;
     right: 0;
     z-index: 1000;
-    border-radius: 8px 8px 0 0;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
@@ -247,6 +246,21 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0.125rem;
 }
 
+/* Move controls toolbar to top of map so it's not behind the bottom sheet */
+@media (max-width: 960px) {
+  .jgis-controls-toolbar {
+    top: 0.125rem;
+    bottom: unset;
+    align-items: flex-start;
+  }
+
+  body[data-notebook='specta'] .jgis-controls-toolbar {
+    top: unset;
+    bottom: 0.125rem;
+    align-items: flex-end;
+  }
+}
+
 .jgis-geometry-type-selector-overlay {
   position: absolute;
   bottom: 20px;
@@ -262,7 +276,7 @@ button.jp-mod-styled.jp-mod-reject {
   z-index: 9999;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jgis-panels-wrapper {
     position: fixed;
     top: 30px;

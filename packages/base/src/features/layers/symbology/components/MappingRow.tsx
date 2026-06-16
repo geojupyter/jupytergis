@@ -134,7 +134,7 @@ function defaultScaleForScheme(
       return {
         scheme: 'categorical',
         params: {
-          colorRamp: 'viridis',
+          colorRamp: 'schemeCategory10',
           reverse: false,
           fallback: [0, 0, 0, 0] as RGBA,
         },
@@ -171,7 +171,7 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
-  { value: 'colorRamp', label: 'colorRamp' },
+  { value: 'colorRamp', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
@@ -786,24 +786,29 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
   const compat = compatibleChannels(row.scale, isRaster);
   const availableToAdd = compat.filter(ch => !row.channels.includes(ch));
-  const previewRowSpan =
-    row.channels.length + (availableToAdd.length > 0 ? 1 : 0);
 
   return (
     <div className="jp-gis-grammar-rule">
-      {/* CSS grid: col1=field col2=scheme col3=preview col4=arrow col5=channel col6=× */}
+      {/* Desktop: 7-col grid; Mobile: stacked top-to-bottom via sections */}
       <div className="jp-gis-grammar-rule-grid">
-        {/* Field selector — row 1. Layout depends on fieldCountForScale. */}
-        <FieldSelector
-          fieldCount={fieldCountForScale(row.scale.scheme)}
-          fields={row.fields ?? []}
-          availableFields={availableFields}
-          onFieldChange={handleFieldChange}
-          onAddField={addField}
-        />
+        {/* --- Input section --- */}
+        <div className="jp-gis-grammar-section jp-gis-grammar-input-section">
+          <FieldSelector
+            fieldCount={fieldCountForScale(row.scale.scheme)}
+            fields={row.fields ?? []}
+            availableFields={availableFields}
+            onFieldChange={handleFieldChange}
+            onAddField={addField}
+          />
+        </div>
 
-        {/* Scheme — row 1 */}
-        <div style={{ gridRow: 1, gridColumn: 2 }}>
+        {/* Arrow: input → scale */}
+        <span className="jp-gis-grammar-arrow jp-gis-grammar-arrow-input">
+          →
+        </span>
+
+        {/* --- Scale section --- */}
+        <div className="jp-gis-grammar-section jp-gis-grammar-scale-section">
           <NativeSelect
             value={row.scale.scheme}
             onChange={e =>
@@ -818,92 +823,84 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               ),
             )}
           </NativeSelect>
+          <button
+            type="button"
+            className="jp-gis-grammar-preview-btn"
+            onClick={() => setExpanded(v => !v)}
+            title={expanded ? 'Collapse editor' : 'Edit scale'}
+          >
+            <ScalePreview scale={row.scale} />
+            <span className="jp-gis-grammar-preview-chevron" aria-hidden="true">
+              {expanded ? '▾' : '▸'}
+            </span>
+          </button>
         </div>
 
-        {/* Scale preview — spans all channel rows + optional add-channel row */}
-        <button
-          type="button"
-          className="jp-gis-grammar-preview-btn"
-          style={{ gridRow: `1 / span ${previewRowSpan}`, gridColumn: 3 }}
-          onClick={() => setExpanded(v => !v)}
-          title={expanded ? 'Collapse editor' : 'Edit scale'}
-        >
-          <ScalePreview scale={row.scale} />
-        </button>
+        {/* Arrow: scale → output */}
+        <span className="jp-gis-grammar-arrow jp-gis-grammar-arrow-output">
+          →
+        </span>
 
-        {/* Per-channel rows */}
-        {row.channels.map((ch, i) => (
-          <React.Fragment key={`${ch}-${i}`}>
-            <span
-              className="jp-gis-grammar-arrow"
-              style={{ gridRow: i + 1, gridColumn: 4 }}
-            >
-              →
-            </span>
-            <div
-              className="jp-gis-grammar-channel-select"
-              style={{ gridRow: i + 1, gridColumn: 5 }}
-            >
-              <NativeSelect
-                value={ch}
-                onChange={e =>
-                  handleChannelChange(i, e.target.value as StyleChannel)
+        {/* --- Output section --- */}
+        <div className="jp-gis-grammar-section jp-gis-grammar-output-section">
+          {row.channels.map((ch, i) => (
+            <div key={`${ch}-${i}`} className="jp-gis-grammar-channel-row">
+              <div className="jp-gis-grammar-channel-select">
+                <NativeSelect
+                  value={ch}
+                  onChange={e =>
+                    handleChannelChange(i, e.target.value as StyleChannel)
+                  }
+                >
+                  {compat.map(c => (
+                    <NativeSelectOption key={c} value={c}>
+                      {CHANNEL_LABELS[c] ?? c}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-md"
+                className="jp-mod-styled"
+                onClick={() => removeChannel(ch)}
+                title={
+                  row.channels.length === 1
+                    ? 'Remove mapping'
+                    : 'Remove channel'
                 }
               >
-                {compat.map(c => (
-                  <NativeSelectOption key={c} value={c}>
-                    {CHANNEL_LABELS[c] ?? c}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+                <FontAwesomeIcon icon={faTrash} />
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-md"
-              className="jp-mod-styled"
-              style={{ gridRow: i + 1, gridColumn: 6 }}
-              onClick={() => removeChannel(ch)}
-              title={
-                row.channels.length === 1 ? 'Remove mapping' : 'Remove channel'
-              }
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </Button>
-          </React.Fragment>
-        ))}
+          ))}
 
-        {/* Add channel row */}
-        {availableToAdd.length > 0 && (
-          <React.Fragment>
-            <span
-              className="jp-gis-grammar-arrow"
-              style={{ gridRow: row.channels.length + 1, gridColumn: 4 }}
-            >
-              +
-            </span>
-            <div
-              className="jp-gis-grammar-channel-select"
-              style={{ gridRow: row.channels.length + 1, gridColumn: 5 }}
-            >
-              <NativeSelect
-                value=""
-                onChange={e => {
-                  if (e.target.value) {
-                    addChannel(e.target.value as StyleChannel);
-                  }
-                }}
-              >
-                <NativeSelectOption value="">(add channel)</NativeSelectOption>
-                {availableToAdd.map(ch => (
-                  <NativeSelectOption key={ch} value={ch}>
-                    {CHANNEL_LABELS[ch] ?? ch}
+          {/* Add channel row */}
+          {availableToAdd.length > 0 && (
+            <div className="jp-gis-grammar-channel-row">
+              <div className="jp-gis-grammar-channel-select">
+                <NativeSelect
+                  value=""
+                  onChange={e => {
+                    if (e.target.value) {
+                      addChannel(e.target.value as StyleChannel);
+                    }
+                  }}
+                >
+                  <NativeSelectOption value="">
+                    (add channel)
                   </NativeSelectOption>
-                ))}
-              </NativeSelect>
+                  {availableToAdd.map(ch => (
+                    <NativeSelectOption key={ch} value={ch}>
+                      {CHANNEL_LABELS[ch] ?? ch}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
             </div>
-          </React.Fragment>
-        )}
+          )}
+        </div>
       </div>
 
       {/* When clause */}

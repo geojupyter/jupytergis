@@ -37,16 +37,25 @@ describe('computeListStoryScrollState', () => {
     storyItem('c', 2, 'map'),
   ];
 
-  it('returns first segment when only one segment', () => {
+  it('scrolls a single segment via intra-segment transition', () => {
     const segments = layoutSegments({
       items: [storyItem('only', 0, 'map')],
       viewportHeight: 400,
       mapViewportHeight: 350,
     });
 
+    const only = segments[0];
+    const progress = 50 / (only.end - only.start);
+
     expect(compute(50, segments)).toEqual({
       activeIndex: 0,
-      segmentTransition: null,
+      segmentTransition: {
+        progress,
+        fromIndex: 0,
+        toIndex: 0,
+        fromMode: 'map',
+        toMode: 'map',
+      },
     });
   });
 
@@ -100,7 +109,7 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('has no segmentTransition in the last segment body after its handoff completes', () => {
+  it('scrolls through a trailing map segment via intra-segment transition', () => {
     const segments = layoutSegments({
       items: threeSegmentItems,
       viewportHeight: 400,
@@ -108,11 +117,52 @@ describe('computeListStoryScrollState', () => {
       heightsById: { b: 400 },
     });
 
-    const bodyScroll = segments[2].start + 100;
+    const last = segments[2];
+    const bodyScroll = last.start + 100;
+    const progress = 100 / (last.end - last.start);
+
     expect(compute(bodyScroll, segments)).toEqual({
       activeIndex: 2,
-      segmentTransition: null,
+      segmentTransition: {
+        progress,
+        fromIndex: 2,
+        toIndex: 2,
+        fromMode: 'map',
+        toMode: 'map',
+      },
     });
+  });
+
+  it('scrolls through a trailing markdown segment via intra-segment transition', () => {
+    const segments = layoutSegments({
+      items: [
+        storyItem('map', 0, 'map'),
+        storyItem('md', 1, 'markdown', 'line\nline'),
+      ],
+      viewportHeight: 400,
+      mapViewportHeight: 350,
+      heightsById: { md: 500 },
+    });
+
+    const last = segments[1];
+    const span = last.end - last.start;
+
+    expect(compute(last.start, segments)?.segmentTransition).toEqual({
+      progress: 0,
+      fromIndex: 1,
+      toIndex: 1,
+      fromMode: 'markdown',
+      toMode: 'markdown',
+    });
+
+    expect(
+      compute(last.start + Math.floor(span / 2), segments)?.segmentTransition
+        ?.progress,
+    ).toBeCloseTo(0.5, 2);
+
+    expect(
+      compute(last.end - 1, segments)?.segmentTransition?.progress,
+    ).toBeCloseTo(1, 2);
   });
 
   it('activates the next pair during later handoffs', () => {
@@ -177,7 +227,7 @@ describe('computeListStoryScrollState', () => {
     });
   });
 
-  it('has no segmentTransition before the first segment', () => {
+  it('clamps intra-segment progress before the first segment', () => {
     const segments = layoutSegments({
       items: twoSegmentItems,
       viewportHeight: 400,
@@ -187,11 +237,17 @@ describe('computeListStoryScrollState', () => {
 
     expect(compute(-50, segments)).toEqual({
       activeIndex: 0,
-      segmentTransition: null,
+      segmentTransition: {
+        progress: 0,
+        fromIndex: 0,
+        toIndex: 0,
+        fromMode: 'map',
+        toMode: 'map',
+      },
     });
   });
 
-  it('falls through when a transition segment has zero height', () => {
+  it('falls through to intra-segment when a transition segment has zero height', () => {
     expect(
       compute(200, [
         {
@@ -222,7 +278,16 @@ describe('computeListStoryScrollState', () => {
           contentMode: 'map',
         },
       ]),
-    ).toEqual({ activeIndex: 2, segmentTransition: null });
+    ).toEqual({
+      activeIndex: 2,
+      segmentTransition: {
+        progress: 0,
+        fromIndex: 2,
+        toIndex: 2,
+        fromMode: 'map',
+        toMode: 'map',
+      },
+    });
   });
 
   it('clamps progress to [0, 1]', () => {

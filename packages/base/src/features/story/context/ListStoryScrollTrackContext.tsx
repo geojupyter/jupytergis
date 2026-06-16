@@ -21,7 +21,12 @@ import {
 
 interface IListStoryScrollTrackContextValue {
   scrollTrackLayout: IListStoryScrollTrackLayout | null;
+  scrollTop: number;
   bindScrollTrackElement: (element: HTMLDivElement | null) => void;
+  scrollToSegmentIndex: (
+    index: number,
+    options?: { behavior?: ScrollBehavior },
+  ) => void;
 }
 
 const ListStoryScrollTrackContext =
@@ -42,9 +47,12 @@ export function ListStoryScrollTrackProvider({
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
   const [mapViewportHeight, setMapViewportHeight] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const currentSegmentIndex = useCurrentSegmentIndex(model);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTrackElement, setScrollTrackElement] =
+    useState<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     const bump = (): void => {
@@ -91,17 +99,24 @@ export function ListStoryScrollTrackProvider({
     [items, viewportHeight, mapViewportHeightOption],
   );
 
+  const syncScrollerMetrics = useCallback((scroller: HTMLDivElement): void => {
+    setViewportHeight(scroller.clientHeight);
+    setScrollTop(scroller.scrollTop);
+  }, []);
+
   const bindScrollTrackElement = useCallback(
     (element: HTMLDivElement | null) => {
       scrollerRef.current = element;
+      setScrollTrackElement(element);
       if (!element) {
         setViewportHeight(0);
+        setScrollTop(0);
         return;
       }
 
-      setViewportHeight(element.clientHeight);
+      syncScrollerMetrics(element);
     },
-    [],
+    [syncScrollerMetrics],
   );
 
   const observeElementHeight = useCallback(
@@ -125,17 +140,36 @@ export function ListStoryScrollTrackProvider({
   );
 
   useLayoutEffect(() => {
-    const scroller = scrollerRef.current;
+    const scroller = scrollTrackElement;
     if (!scroller || !enabled) {
       return;
     }
 
     const update = (): void => {
-      setViewportHeight(scroller.clientHeight);
+      syncScrollerMetrics(scroller);
     };
 
     return observeElementHeight(scroller, update);
-  }, [enabled, storyRevision, observeElementHeight]);
+  }, [enabled, scrollTrackElement, observeElementHeight, syncScrollerMetrics]);
+
+  useLayoutEffect(() => {
+    const scroller = scrollTrackElement;
+    if (!scroller || !enabled) {
+      return;
+    }
+
+    const onScroll = (): void => {
+      setScrollTop(scroller.scrollTop);
+      setViewportHeight(scroller.clientHeight);
+    };
+
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+    };
+  }, [enabled, scrollTrackElement]);
 
   useLayoutEffect(() => {
     if (!enabled) {
@@ -216,12 +250,40 @@ export function ListStoryScrollTrackProvider({
     return buildScrollTrackLayout(heightsById);
   }, [enabled, items, viewportHeight, heightsById, buildScrollTrackLayout]);
 
+  const scrollToSegmentIndex = useCallback(
+    (index: number, options?: { behavior?: ScrollBehavior }) => {
+      const safeIndex = Math.max(0, index);
+      const scroller = scrollerRef.current;
+      const segment = scrollTrackLayout?.segments.find(
+        s => s.index === safeIndex,
+      );
+
+      if (scroller && segment !== undefined) {
+        scroller.scrollTo({
+          top: segment.start,
+          behavior: options?.behavior ?? 'smooth',
+        });
+        return;
+      }
+
+      model.setCurrentSegmentIndex(safeIndex);
+    },
+    [model, scrollTrackLayout],
+  );
+
   const value = useMemo(
     (): IListStoryScrollTrackContextValue => ({
       scrollTrackLayout,
+      scrollTop,
       bindScrollTrackElement,
+      scrollToSegmentIndex,
     }),
-    [scrollTrackLayout, bindScrollTrackElement],
+    [
+      scrollTrackLayout,
+      scrollTop,
+      bindScrollTrackElement,
+      scrollToSegmentIndex,
+    ],
   );
 
   return (

@@ -20,12 +20,12 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@93556350e3433849ea434d68e8b8f7d9e9a402a4
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@95d85449e4f3f352e261221f6529f8ed307f5728
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download extension package
-        uses: dawidd6/action-download-artifact@8305c0f1062bb0d184d09ef4493ecb9288447732  # v20
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151  # v21
         with:
           pr: ${{github.event.issue.number}}
           workflow: 'build.yml'
@@ -39,6 +39,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
+            jupyterlab
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -69,6 +70,10 @@ jobs:
               fi
           done
 
+          python -m pip install "${args[@]}"
+
+          rm jupytergis*.whl
+
       - name: Install dependencies
         shell: bash -l {0}
         working-directory: ui-tests
@@ -78,7 +83,7 @@ jobs:
           jlpm install
           jlpm playwright install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@93556350e3433849ea434d68e8b8f7d9e9a402a4
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@95d85449e4f3f352e261221f6529f8ed307f5728
         with:
           npm_client: jlpm
           browser: chromium

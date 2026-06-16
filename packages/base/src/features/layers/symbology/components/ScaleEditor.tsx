@@ -189,7 +189,7 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
-        <label>Ramp</label>
+        <label>Color map</label>
         <ColorRampSelector
           selectedRamp={params.name as ColorRampName}
           setSelected={name => update({ name })}
@@ -250,7 +250,7 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
         />
       </div>
       <button
-        className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+        className="jp-gis-grammar-action-btn"
         disabled={!field}
         onClick={classify}
       >
@@ -352,7 +352,7 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
         />
       </div>
       <button
-        className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+        className="jp-gis-grammar-action-btn"
         disabled={!field}
         onClick={classify}
       >
@@ -476,10 +476,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
           onChange={v => update({ fallback: v })}
         />
       </div>
-      <button
-        className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-        onClick={classify}
-      >
+      <button className="jp-gis-grammar-action-btn" onClick={classify}>
         Set stops
       </button>
       {stopRows.length > 0 && (

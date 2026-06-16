@@ -355,11 +355,10 @@ export function addCommands(
         return false;
       }
 
-      // Selection should only be one vector or heatmap layer
       return (
         Object.keys(selectedLayers).length === 1 &&
         !model.getSource(layerId) &&
-        ['VectorLayer', 'HeatmapLayer'].includes(layerType)
+        layerType === 'VectorLayer'
       );
     },
 

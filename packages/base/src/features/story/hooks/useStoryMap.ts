@@ -4,7 +4,6 @@ import type {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { STORY_TYPE } from '@/src/types';
@@ -201,19 +200,6 @@ export function useStoryMap({
 
               model.triggerLayerUpdate(sourceId, source);
             }
-          }
-          if (symbologyState?.renderType === 'Heatmap') {
-            targetLayer.type = 'HeatmapLayer';
-            if (addLayer) {
-              const newId = UUID.uuid4();
-              addLayer(newId, targetLayer, 100);
-              overrideLayerEntriesRef.current?.push({
-                layerId: newId,
-                action: 'remove',
-              });
-            }
-          } else {
-            model.triggerLayerUpdate(targetLayerId, targetLayer);
           }
         }
       });
