@@ -8,6 +8,7 @@ import {
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
 import { STORY_TYPE } from '@/src/types';
+import Badge from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
@@ -105,7 +106,11 @@ function StorySettingsPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon-sm" title="Story settings">
+        <Button
+          variant="ghost"
+          title="Story settings"
+          style={{ marginBottom: 1 }}
+        >
           <FontAwesomeIcon icon={faGear} />
         </Button>
       </PopoverTrigger>
@@ -187,19 +192,19 @@ export function StoryEditorHeaderBar({
   portalContainerRef,
 }: IStoryEditorHeaderBarProps): JSX.Element {
   return (
-    <div className="jgis-story-editor-toolbar">
-      <div className="jgis-story-editor-context-bar">
-        {story ? (
-          <StoryTitleInput
-            value={story.title ?? ''}
-            onChange={title => {
-              onUpdateStory({ title });
-            }}
-          />
-        ) : null}
-        <span className="jgis-story-editor-context-pill">
+    <div className="jgis-story-editor-context-bar">
+      {story ? (
+        <StoryTitleInput
+          value={story.title ?? ''}
+          onChange={title => {
+            onUpdateStory({ title });
+          }}
+        />
+      ) : null}
+      <div className="jgis-story-editor-context-meta-group">
+        <Badge variant="secondary">
           {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
-        </span>
+        </Badge>
         <span className="jgis-story-editor-context-meta">
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>
@@ -208,18 +213,14 @@ export function StoryEditorHeaderBar({
             {formatGradientLabel(story.showGradient)}
           </span>
         ) : null}
+        {story && (
+          <StorySettingsPopover
+            story={story}
+            onUpdateStory={onUpdateStory}
+            portalContainerRef={portalContainerRef}
+          />
+        )}
       </div>
-      {story ? (
-        <StorySettingsPopover
-          story={story}
-          onUpdateStory={onUpdateStory}
-          portalContainerRef={portalContainerRef}
-        />
-      ) : (
-        <Button variant="ghost" size="icon-sm" title="Story settings" disabled>
-          <FontAwesomeIcon icon={faGear} />
-        </Button>
-      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
 import { Button } from '@/src/shared/components/Button';
+import Badge from '@/src/shared/components/Badge';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
 import { SegmentOverrideSheet } from './SegmentOverrideSheet';
@@ -57,9 +58,7 @@ export function SegmentLayerOverrides({
 
   if (rows.length === 0) {
     return (
-      <p className="jgis-story-editor-help">
-        No map layers in this project.
-      </p>
+      <p className="jgis-story-editor-help">No map layers in this project.</p>
     );
   }
 
@@ -78,9 +77,7 @@ export function SegmentLayerOverrides({
                 {row.layerName}
               </span>
               {row.isChanged ? (
-                <span className="jgis-story-editor-segment-layer-override-pill">
-                  Override
-                </span>
+                <Badge variant="destructive">Override</Badge>
               ) : null}
             </span>
             <Switch
