@@ -159,5 +159,7 @@ examples/local_examples/*
 
 packages/base/_generated/
 
+/titiler-openeo/
+
 # jupyter-collaboration cache
 .jupyter

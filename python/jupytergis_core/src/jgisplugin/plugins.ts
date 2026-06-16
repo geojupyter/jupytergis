@@ -335,6 +335,11 @@ const activate = async (
       category: 'JupyterGIS',
     });
 
+    palette.addItem({
+      command: CommandIDs.openNewOpenEODialog,
+      category: 'JupyterGIS',
+    });
+
     // Panel toggles
     palette.addItem({
       command: CommandIDs.togglePanel,
