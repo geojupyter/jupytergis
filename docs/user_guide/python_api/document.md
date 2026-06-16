@@ -212,9 +212,6 @@ doc
 ```python
 layer_id = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
-snapshot = doc.to_py()
-print(snapshot.keys())  # layers, sources, layerTree, options, metadata
-
 doc.remove_layer(layer_id)
 ```
 
