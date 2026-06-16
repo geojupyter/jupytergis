@@ -27,6 +27,7 @@ function StoryEditorSection({
       open={open}
       onOpenChange={onOpenChange}
       defaultOpen={defaultOpen}
+      className="jgis-story-editor-section-card"
     >
       <CollapsibleTrigger asChild>
         <div className="jgis-symbology-override-collapsible-trigger">
@@ -41,7 +42,9 @@ function StoryEditorSection({
           <span>{triggerText}</span>
         </div>
       </CollapsibleTrigger>
-      <CollapsibleContent>{children}</CollapsibleContent>
+      <CollapsibleContent style={{ paddingTop: '0.5rem' }}>
+        {children}
+      </CollapsibleContent>
     </Collapsible>
   );
 }

@@ -165,7 +165,7 @@
   color: var(--jp-ui-font-color2);
 }
 
-.jgis-story-editor-select {
+/* .jgis-story-editor-select {
   width: 100%;
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--jp-border-color1);
@@ -173,7 +173,7 @@
   background: var(--jp-layout-color1);
   color: inherit;
   font: inherit;
-}
+} */
 
 .jgis-story-editor-toggle-row {
   display: flex;
@@ -445,7 +445,8 @@
   border-radius: var(--jp-border-radius);
   border: 1px solid var(--jp-border-color1);
   background: var(--jp-layout-color1);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--jp-shadow-ambient-color, #000) 18%, transparent);
+  box-shadow: 0 4px 16px
+    color-mix(in srgb, var(--jp-shadow-ambient-color, #000) 18%, transparent);
 }
 
 .jgis-story-map-pick-bar-message {
@@ -578,6 +579,7 @@
   /* gap: 0.5rem; */
   border-radius: var(--jp-border-radius);
   overflow: hidden;
+  margin: 0;
 }
 
 .jgis-story-editor-segment-layer-row {
@@ -642,10 +644,10 @@
   font-size: 0.8rem;
 }
 
-.jgis-story-editor-animation-row .jgis-story-editor-select {
+/* .jgis-story-editor-animation-row .jgis-story-editor-select {
   width: auto;
   min-width: 7rem;
-}
+} */
 
 .jgis-story-editor-preview {
   margin-top: 0.25rem;

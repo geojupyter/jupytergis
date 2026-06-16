@@ -83,9 +83,6 @@ function SegmentEditor({
           </div>
           <h3 className="jgis-story-editor-segment-title">{displayTitle}</h3>
         </div>
-        <Button variant="ghost" size="sm">
-          ⋮
-        </Button>
       </div>
 
       <SegmentStopTypePicker value={stopType} onChange={onContentModeChange} />
@@ -101,9 +98,7 @@ function SegmentEditor({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  StoryEditorSession.getInstance().enterMapPickMode(
-                    segment.id,
-                  );
+                  StoryEditorSession.getInstance().enterMapPickMode(segment.id);
                 }}
               >
                 Set map view on map
@@ -163,11 +158,7 @@ function SegmentEditor({
             onOpenChange={setAnimationOpen}
           >
             <div className="jgis-story-editor-animation-row">
-              <NativeSelect
-                className="jgis-story-editor-select"
-                size="sm"
-                defaultValue="smooth"
-              >
+              <NativeSelect size="sm" defaultValue="smooth">
                 <NativeSelectOption value="immediate">
                   Instant
                 </NativeSelectOption>
