@@ -67,6 +67,14 @@
           "type": "number",
           "default": 1
         },
+        "min": {
+          "type": "number",
+          "default": null
+        },
+        "max": {
+          "type": "number",
+          "default": null
+        },
         "redBand": {
           "type": "number",
           "default": 1

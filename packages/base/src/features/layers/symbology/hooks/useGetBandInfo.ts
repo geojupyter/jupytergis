@@ -29,6 +29,8 @@ const useGetBandInfo = (
       const source = model.getSource(layer?.parameters?.source);
       const sourceInfo = source?.parameters?.urls[0];
 
+      const symbology = layer?.parameters?.symbologyState;
+
       if (!sourceInfo?.url) {
         setError('No source URL found.');
         setLoading(false);
@@ -67,8 +69,8 @@ const useGetBandInfo = (
         bandsArr.push({
           band: i + 1,
           stats: {
-            minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100,
+            minimum: symbology.min ?? 0,
+            maximum: symbology.max ?? 100,
           },
         });
       }

@@ -277,8 +277,6 @@ export function addLayerCreationCommands(options: {
               type: 'object',
               properties: {
                 url: { type: 'string' },
-                min: { type: 'number' },
-                max: { type: 'number' },
               },
             },
           },
