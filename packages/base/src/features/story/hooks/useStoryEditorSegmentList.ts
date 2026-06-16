@@ -71,6 +71,8 @@ interface IUseStoryEditorSegmentListResult {
   selectedSegment: IStorySegmentViewItem | null;
   selectSegment: (segmentId: string) => void;
   addSegment: () => void;
+  removeSegment: (segmentId: string) => void;
+  canRemoveSegment: boolean;
   updateStory: (patch: Partial<IJGISStoryMap>) => void;
   updateSegmentContentMode: (
     segmentId: string,
@@ -172,6 +174,53 @@ export function useStoryEditorSegmentList(
     void commands.execute(CommandIDs.addStorySegment);
   }, [commands]);
 
+  const canRemoveSegment = segments.length > 1;
+
+  const removeSegment = useCallback(
+    (segmentId: string) => {
+      if (!story?.storySegments || story.storySegments.length <= 1) {
+        return;
+      }
+
+      const deletedIndex = story.storySegments.indexOf(segmentId);
+      const currentIndex = model.getCurrentSegmentIndex();
+      const wasSelected = selectedSegmentId === segmentId;
+
+      model.removeLayer(segmentId);
+
+      const remainingIds =
+        model.getSelectedStory().story?.storySegments ?? [];
+
+      if (remainingIds.length === 0) {
+        model.syncSelected({}, model.getClientId().toString());
+        model.setCurrentSegmentIndex(0);
+        return;
+      }
+
+      let nextIndex = currentIndex;
+      if (deletedIndex >= 0 && deletedIndex < currentIndex) {
+        nextIndex = currentIndex - 1;
+      } else if (deletedIndex === currentIndex) {
+        nextIndex = Math.min(deletedIndex, remainingIds.length - 1);
+      } else {
+        nextIndex = Math.min(currentIndex, remainingIds.length - 1);
+      }
+
+      model.setCurrentSegmentIndex(nextIndex);
+
+      if (wasSelected) {
+        const nextSegmentId = remainingIds[nextIndex];
+        if (nextSegmentId) {
+          model.syncSelected(
+            { [nextSegmentId]: { type: 'layer' } },
+            model.getClientId().toString(),
+          );
+        }
+      }
+    },
+    [model, selectedSegmentId, story],
+  );
+
   const updateSegmentContentMode = useCallback(
     (segmentId: string, mode: StorySegmentDisplayMode) => {
       applySegmentContentMode(model, segmentId, mode);
@@ -219,6 +268,8 @@ export function useStoryEditorSegmentList(
     selectedSegment,
     selectSegment,
     addSegment,
+    removeSegment,
+    canRemoveSegment,
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,

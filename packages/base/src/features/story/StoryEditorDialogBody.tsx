@@ -1,4 +1,6 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useRef, useState } from 'react';
@@ -36,6 +38,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
+import { Trash2 } from 'lucide-react';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -49,17 +52,21 @@ function SegmentEditor({
   state,
   segment,
   portalContainerRef,
+  canRemoveSegment,
   onContentModeChange,
   onContentChange,
   onTransitionChange,
+  onRemoveSegment,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
   segment: IStorySegmentViewItem;
   portalContainerRef: React.RefObject<HTMLElement | null>;
+  canRemoveSegment: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
+  onRemoveSegment: () => void;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
@@ -83,6 +90,16 @@ function SegmentEditor({
           </div>
           <h3 className="jgis-story-editor-segment-title">{displayTitle}</h3>
         </div>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          data-icon="inline-start"
+          disabled={!canRemoveSegment}
+          onClick={onRemoveSegment}
+        >
+          <Trash2 className="jgis-inline-icon" /> Delete
+        </Button>
       </div>
 
       <SegmentStopTypePicker value={stopType} onChange={onContentModeChange} />
@@ -228,6 +245,8 @@ export function StoryEditorDialogBody({
     selectedSegment,
     selectSegment,
     addSegment,
+    removeSegment,
+    canRemoveSegment,
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
@@ -261,6 +280,7 @@ export function StoryEditorDialogBody({
               state={state}
               segment={selectedSegment}
               portalContainerRef={portalContainerRef}
+              canRemoveSegment={canRemoveSegment}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}
@@ -269,6 +289,9 @@ export function StoryEditorDialogBody({
               }}
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);
+              }}
+              onRemoveSegment={() => {
+                removeSegment(selectedSegment.id);
               }}
             />
           ) : (
