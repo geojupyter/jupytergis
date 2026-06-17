@@ -1,6 +1,7 @@
 import {
   buildSegmentLayerRows,
   isLayerOverrideChanged,
+  resetSegmentLayerOverride,
   setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
@@ -126,6 +127,26 @@ describe('storySegmentLayerOverrides', () => {
     setSegmentLayerOpacity(model as never, 'segment-1', 'layer-1', 1);
 
     expect(updateObjectParameters).toHaveBeenLastCalledWith('segment-1', {
+      layerOverride: [],
+    });
+  });
+
+  it('removes a single layer override', () => {
+    const updateObjectParameters = jest.fn();
+    const model = {
+      getLayer: (id: string) => {
+        if (id === 'segment-1') {
+          return segmentLayer;
+        }
+        return undefined;
+      },
+      sharedModel: { updateObjectParameters },
+    };
+
+    expect(
+      resetSegmentLayerOverride(model as never, 'segment-1', 'layer-1'),
+    ).toBe(true);
+    expect(updateObjectParameters).toHaveBeenCalledWith('segment-1', {
       layerOverride: [],
     });
   });

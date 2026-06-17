@@ -1,18 +1,19 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, RotateCcw } from 'lucide-react';
 import React, { type RefObject } from 'react';
 
+import { SegmentOverrideSheet } from '@/src/features/story/components/SegmentOverrideSheet';
 import {
   buildSegmentLayerRows,
+  resetSegmentLayerOverride,
   setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
-import { SegmentOverrideSheet } from '@/src/features/story/components/SegmentOverrideSheet';
+import { Button } from '@/src/shared/components/Button';
 import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
-import { Input } from '@/src/shared/components/Input';
 
 export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
@@ -46,6 +47,7 @@ export function SegmentLayerOverrides({
         <span>Opacity</span>
         <span>Symbology</span>
         <span>Override</span>
+        <span>Reset</span>
       </div>
       <ul className="jgis-story-editor-segment-layer-list">
         {rows.map(row => {
@@ -116,6 +118,24 @@ export function SegmentLayerOverrides({
                     aria-label="Override applied"
                   />
                 ) : null}
+              </span>
+              <span className="jgis-story-editor-segment-layer-reset">
+                <Button
+                  type="button"
+                  variant="icon"
+                  size="icon-sm"
+                  disabled={!row.isChanged}
+                  aria-label={`Reset overrides for ${row.layerName}`}
+                  onClick={() => {
+                    resetSegmentLayerOverride(
+                      model,
+                      segmentId,
+                      row.layerId,
+                    );
+                  }}
+                >
+                  <RotateCcw />
+                </Button>
               </span>
             </li>
           );

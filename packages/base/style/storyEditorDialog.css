@@ -582,7 +582,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
 }
 
 .jgis-story-editor-segment-layer-grid {
-  --jgis-story-editor-segment-layer-columns: minmax(0, 1fr) 3.5rem 5rem 4.5rem 3.5rem;
+  --jgis-story-editor-segment-layer-columns: minmax(0, 1fr) 3.5rem 5rem 4.5rem 3.5rem 2.5rem;
   border-radius: var(--jp-border-radius);
   overflow: hidden;
 }
@@ -654,6 +654,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
 }
 
 .jgis-story-editor-segment-layer-override,
+.jgis-story-editor-segment-layer-reset,
 .jgis-story-editor-segment-layer-visibility,
 .jgis-story-editor-segment-layer-symbology {
   display: flex;

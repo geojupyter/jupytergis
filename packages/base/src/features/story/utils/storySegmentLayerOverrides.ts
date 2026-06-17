@@ -327,3 +327,34 @@ export function setSegmentLayerOpacity(
 
   return true;
 }
+
+export function resetSegmentLayerOverride(
+  model: IJupyterGISModel,
+  segmentId: string,
+  targetLayerId: string,
+): boolean {
+  const segment = model.getLayer(segmentId);
+
+  if (!segment || segment.type !== 'StorySegmentLayer') {
+    return false;
+  }
+
+  const parameters = segment.parameters as IStorySegmentLayer;
+  const layerOverride = parameters.layerOverride ?? [];
+  const index = layerOverride.findIndex(
+    entry => entry.targetLayer === targetLayerId,
+  );
+
+  if (index < 0) {
+    return false;
+  }
+
+  const next = [...layerOverride];
+  next.splice(index, 1);
+
+  model.sharedModel.updateObjectParameters(segmentId, {
+    layerOverride: next,
+  });
+
+  return true;
+}
