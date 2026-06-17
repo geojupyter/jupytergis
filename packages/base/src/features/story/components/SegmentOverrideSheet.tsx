@@ -55,27 +55,34 @@ export function SegmentOverrideSheet({
       <SheetTrigger asChild>
         <Button variant="outline">Edit</Button>
       </SheetTrigger>
-      <SheetContent container={portalContainerRef.current}>
+      <SheetContent
+        container={portalContainerRef.current}
+        showCloseButton={false}
+      >
         <SheetHeader>
-          <SheetTitle>Are you absolutely sure?</SheetTitle>
-          <SheetDescription>This action cannot be undone.</SheetDescription>
+          <SheetTitle>Layer Symbology Override</SheetTitle>
         </SheetHeader>
-        <SymbologyDialog
-          model={model}
-          okSignalPromise={okSignalPromise}
-          layerId={layerId}
-          isStorySegmentOverride
-          segmentId={segmentId}
-        />
-        <SheetFooter>
-          <Button
-            type="button"
-            onClick={() => {
-              okSignal.emit(null);
-            }}
-          >
-            Save changes
-          </Button>
+        <div className="jgis-story-editor-sheet-container">
+          <SymbologyDialog
+            model={model}
+            okSignalPromise={okSignalPromise}
+            layerId={layerId}
+            isStorySegmentOverride
+            segmentId={segmentId}
+          />
+        </div>
+        <SheetFooter className="jgis-story-editor-sheet-footer">
+          <SheetClose asChild>
+            <Button
+              type="button"
+              className="jp-mod-accept jp-mod-styled"
+              onClick={() => {
+                okSignal.emit(null);
+              }}
+            >
+              Save changes
+            </Button>
+          </SheetClose>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
           </SheetClose>

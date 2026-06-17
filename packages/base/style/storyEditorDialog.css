@@ -639,6 +639,15 @@
   color: var(--jp-brand-color1);
 }
 
+.jgis-story-editor-sheet-container {
+  padding: 0.5rem;
+}
+
+.jgis-story-editor-sheet-footer {
+  align-self: center;
+  width: 20rem;
+}
+
 .jgis-story-editor-preview {
   margin-top: 0.25rem;
   padding-top: 0.75rem;
