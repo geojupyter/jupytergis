@@ -118,7 +118,7 @@ class TestGrammarSymbologyBuilders:
         symbology = [
             [
                 constant(2).encoding("stroke-width"),
-                field("mag").color_ramp("viridis").encoding("fill"),
+                field("mag").colormap("viridis").encoding("fill"),
             ],
         ]
         state = to_symbology_state(symbology)
@@ -161,11 +161,11 @@ class TestGrammarSymbologyBuilders:
         assert rule["when"][0]["type"] == "fieldCompare"
         assert rule["mappings"][0]["scale"]["scheme"] == "constant_rgba"
 
-    def test_color_ramp_builds_colorramp_scale(self):
+    def test_colormap_builds_colorramp_scale(self):
         state = to_symbology_state(
             [
                 [
-                    field("mag").color_ramp("viridis").encoding("fill"),
+                    field("mag").colormap("viridis").encoding("fill"),
                 ],
             ],
         )
@@ -201,7 +201,7 @@ class TestGrammarSymbologyBuilders:
             field("mag").identity().scalar(domain=(0, 1), output_range=(1, 3))
 
         with pytest.raises(TypeError):
-            field("mag").color_ramp("viridis").categorical(colormap="viridis")
+            field("mag").colormap("viridis").categorical(colormap="viridis")
 
     def test_unfinished_chain_requires_encoding(self):
         with pytest.raises(TypeError, match="encoding"):
@@ -218,7 +218,7 @@ class TestGrammarSymbologyBuilders:
                     radius=20,
                     blur=30,
                     weight="mag",
-                    mappings=[field("mag").color_ramp("viridis").encoding("fill")],
+                    mappings=[field("mag").colormap("viridis").encoding("fill")],
                 ),
             ],
         )
