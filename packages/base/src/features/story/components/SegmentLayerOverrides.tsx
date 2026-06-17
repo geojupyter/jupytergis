@@ -70,13 +70,13 @@ export function SegmentLayerOverrides({
       >
         <span>Layer Name</span>
         <span>Visibility</span>
-        <span>Style</span>
+        <span>Symbology</span>
         <span>Override</span>
       </div>
       <ul className="jgis-story-editor-segment-layer-list">
         {rows.map(row => {
           const layer = model.getLayer(row.layerId);
-          const canEditStyle =
+          const canEditSymbology =
             layer !== undefined &&
             SYMBOLOGY_VALID_LAYER_TYPES.includes(layer.type);
 
@@ -105,8 +105,8 @@ export function SegmentLayerOverrides({
                   aria-label={`Toggle visibility for ${row.layerName}`}
                 />
               </span>
-              <span className="jgis-story-editor-segment-layer-style">
-                {canEditStyle ? (
+              <span className="jgis-story-editor-segment-layer-symbology">
+                {canEditSymbology ? (
                   <SegmentOverrideSheet
                     model={model}
                     segmentId={segmentId}

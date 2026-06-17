@@ -627,7 +627,7 @@
 
 .jgis-story-editor-segment-layer-override,
 .jgis-story-editor-segment-layer-visibility,
-.jgis-story-editor-segment-layer-style {
+.jgis-story-editor-segment-layer-symbology {
   display: flex;
   justify-content: center;
   align-items: center;

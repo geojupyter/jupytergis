@@ -109,7 +109,7 @@ function SegmentEditor({
           <StoryEditorSection triggerText="Map view" defaultOpen>
             <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
               <p className="jgis-story-editor-help">
-                Set this stop&apos;s map view by positioning the main map.
+                Set this segment's map view by positioning the main map.
               </p>
               <Button
                 variant="outline"
@@ -151,7 +151,7 @@ function SegmentEditor({
           </StoryEditorSection>
 
           <StoryEditorSection
-            triggerText="Layers on this stop"
+            triggerText="Layers on this segment"
             open={layersOpen}
             onOpenChange={setLayersOpen}
           >
@@ -164,7 +164,7 @@ function SegmentEditor({
           </StoryEditorSection>
 
           <StoryEditorSection
-            triggerText="Animation to this stop"
+            triggerText="Animation to this segment"
             open={animationOpen}
             onOpenChange={setAnimationOpen}
           >

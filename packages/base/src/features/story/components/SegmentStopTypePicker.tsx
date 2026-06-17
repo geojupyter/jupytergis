@@ -19,7 +19,7 @@ export function SegmentStopTypePicker({
 
   return (
     <section className="jgis-story-editor-block">
-      <div className="jgis-story-editor-label">What is this stop?</div>
+      <div className="jgis-story-editor-label">What is this segment?</div>
       <div className="jgis-story-editor-stop-type-picker">
         <Button
           type="button"
