@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import React, { type RefObject, useMemo, useRef } from 'react';
+import React, { type RefObject, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -32,6 +32,8 @@ export function SegmentOverrideSheet({
   layerId,
   portalContainerRef,
 }: ISegmentOverrideSheetProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const previousSelectionRef = useRef(model.selected);
   const { okSignalPromise, okSignal } = useMemo(() => {
     const delegate = new PromiseDelegate<Signal<SymbologyWidget, null>>();
@@ -40,8 +42,10 @@ export function SegmentOverrideSheet({
     return { okSignalPromise: delegate, okSignal: signal };
   }, []);
 
-  const handleOpenChange = (open: boolean): void => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean): void => {
+    setOpen(nextOpen);
+
+    if (nextOpen) {
       previousSelectionRef.current = model.selected;
       model.syncSelected({ [layerId]: { type: 'layer' } });
       return;
@@ -50,10 +54,17 @@ export function SegmentOverrideSheet({
     model.syncSelected(previousSelectionRef.current ?? {});
   };
 
+  const handleSave = (): void => {
+    okSignal.emit(null);
+    handleOpenChange(false);
+  };
+
   return (
-    <Sheet onOpenChange={handleOpenChange} modal={false}>
+    <Sheet open={open} onOpenChange={handleOpenChange} modal={false}>
       <SheetTrigger asChild>
-        <Button variant="outline">Edit</Button>
+        <Button ref={triggerRef} variant="outline">
+          Edit
+        </Button>
       </SheetTrigger>
       <SheetContent
         container={portalContainerRef.current}
@@ -61,6 +72,10 @@ export function SegmentOverrideSheet({
       >
         <SheetHeader>
           <SheetTitle>Layer Symbology Override</SheetTitle>
+          <SheetDescription>
+            Edit symbology overrides for this layer on the current story
+            segment.
+          </SheetDescription>
         </SheetHeader>
         <div className="jgis-story-editor-sheet-container">
           <SymbologyDialog
@@ -72,17 +87,13 @@ export function SegmentOverrideSheet({
           />
         </div>
         <SheetFooter className="jgis-story-editor-sheet-footer">
-          <SheetClose asChild>
-            <Button
-              type="button"
-              className="jp-mod-accept jp-mod-styled"
-              onClick={() => {
-                okSignal.emit(null);
-              }}
-            >
-              Save changes
-            </Button>
-          </SheetClose>
+          <Button
+            type="button"
+            className="jp-mod-accept jp-mod-styled"
+            onClick={handleSave}
+          >
+            Save changes
+          </Button>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
           </SheetClose>

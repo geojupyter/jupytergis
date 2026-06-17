@@ -208,19 +208,6 @@ function SegmentEditor({
           />
         </StoryEditorSection>
       )}
-
-      <div className="jgis-story-editor-preview">
-        <div className="jgis-story-editor-eyebrow">Presentation preview</div>
-        <div className="jgis-story-editor-preview-frame">
-          <div className="jgis-story-editor-preview-chrome">
-            <span>desktop</span>
-            <span>mobile</span>
-          </div>
-          <div className="jgis-story-editor-preview-body">
-            How this stop looks in Specta
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
