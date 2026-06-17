@@ -68,16 +68,13 @@ for channel_value in _TARGET_CHANNEL_VALUES:
 VisualEncoding = Enum("VisualEncoding", _TARGET_CHANNEL_MEMBERS, type=str)
 VisualEncodings = VisualEncoding | str | Sequence[VisualEncoding | str]
 
-ClassificationMode = Enum(
-    "ClassificationMode",
-    {
-        "EQUAL_INTERVAL": "equal interval",
-        "QUANTILE": "quantile",
-        "JENKS": "jenks",
-        "PRETTY": "pretty",
-        "LOGARITHMIC": "logarithmic",
-    },
-)
+
+class ClassificationMode(Enum):
+    EQUAL_INTERVAL = "equal interval"
+    QUANTILE = "quantile"
+    JENKS = "jenks"
+    PRETTY = "pretty"
+    LOGARITHMIC = "logarithmic"
 
 
 class Predicate:
