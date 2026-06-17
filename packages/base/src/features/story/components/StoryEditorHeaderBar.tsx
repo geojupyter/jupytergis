@@ -1,13 +1,12 @@
-import type { IJGISStoryMap } from '@jupytergis/schema';
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IJGISStoryMap } from '@jupytergis/schema';
 import React, { useEffect, useState, type RefObject } from 'react';
 
 import {
   formatGradientLabel,
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
-import { STORY_TYPE } from '@/src/types';
 import Badge from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
@@ -15,7 +14,6 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
-import { Switch } from '@/src/shared/components/Switch';
 import {
   Popover,
   PopoverContent,
@@ -23,6 +21,8 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
+import { Switch } from '@/src/shared/components/Switch';
+import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorHeaderBarProps {
   story: IJGISStoryMap | null;

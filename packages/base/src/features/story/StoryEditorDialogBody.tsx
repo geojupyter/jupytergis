@@ -1,8 +1,7 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
+import { Trash2 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
@@ -19,10 +18,6 @@ import type {
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import {
-  getStoryMarkdownFromSlide,
-  getStorySegmentDisplayTitle,
-} from '@/src/features/story/utils/storySegmentViewItems';
 import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
 import {
   formatSegmentTransitionTime,
@@ -32,6 +27,10 @@ import {
   SEGMENT_TRANSITION_TIME_STEP,
   type SegmentTransitionPatch,
 } from '@/src/features/story/utils/storySegmentTransition';
+import {
+  getStoryMarkdownFromSlide,
+  getStorySegmentDisplayTitle,
+} from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
@@ -39,7 +38,6 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
-import { Trash2 } from 'lucide-react';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;

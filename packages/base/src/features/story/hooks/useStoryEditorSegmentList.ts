@@ -78,10 +78,7 @@ interface IUseStoryEditorSegmentListResult {
     segmentId: string,
     mode: StorySegmentDisplayMode,
   ) => void;
-  updateSegmentContent: (
-    segmentId: string,
-    patch: SegmentContentPatch,
-  ) => void;
+  updateSegmentContent: (segmentId: string, patch: SegmentContentPatch) => void;
   updateSegmentTransition: (
     segmentId: string,
     patch: SegmentTransitionPatch,
@@ -188,8 +185,7 @@ export function useStoryEditorSegmentList(
 
       model.removeLayer(segmentId);
 
-      const remainingIds =
-        model.getSelectedStory().story?.storySegments ?? [];
+      const remainingIds = model.getSelectedStory().story?.storySegments ?? [];
 
       if (remainingIds.length === 0) {
         model.syncSelected({}, model.getClientId().toString());

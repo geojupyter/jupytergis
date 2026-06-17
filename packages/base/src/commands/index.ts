@@ -32,14 +32,14 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
-import { StoryEditorWidget } from '../features/story/storyEditorDialog';
-import { StoryEditorSession } from '../features/story/storyEditorSession';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import { StoryEditorWidget } from '../features/story/storyEditorDialog';
+import { StoryEditorSession } from '../features/story/storyEditorSession';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {

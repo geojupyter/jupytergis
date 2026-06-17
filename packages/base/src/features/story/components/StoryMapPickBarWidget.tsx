@@ -1,10 +1,7 @@
 import { ReactWidget } from '@jupyterlab/apputils';
 import React from 'react';
 
-import {
-  StoryMapPickBar,
-  type IStoryMapPickBarProps,
-} from './StoryMapPickBar';
+import { StoryMapPickBar, type IStoryMapPickBarProps } from './StoryMapPickBar';
 
 export class StoryMapPickBarWidget extends ReactWidget {
   constructor(private readonly _props: IStoryMapPickBarProps) {

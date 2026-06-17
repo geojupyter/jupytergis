@@ -1,6 +1,5 @@
 import type {
   IJGISLayer,
-  IJGISLayerItem,
   IJGISLayerTree,
   IJupyterGISModel,
   IStorySegmentLayer,
@@ -169,7 +168,9 @@ function upsertLayerOverride(
   targetLayerId: string,
   mutate: (entry: LayerOverrideItem) => LayerOverrideItem,
 ): LayerOverrideItem[] {
-  const index = overrides.findIndex(entry => entry.targetLayer === targetLayerId);
+  const index = overrides.findIndex(
+    entry => entry.targetLayer === targetLayerId,
+  );
   const draft =
     index >= 0
       ? mutate({ ...overrides[index] })

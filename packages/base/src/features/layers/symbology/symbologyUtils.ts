@@ -144,10 +144,7 @@ export function hasMeaningfulGrammarSymbologyState(
     return false;
   }
 
-  return symbologyState.layers.some(layer => {
-    const { id: _id, ...content } = layer;
-    return symbologyValueHasContent(content);
-  });
+  return symbologyState.layers.some(layer => symbologyValueHasContent(layer));
 }
 
 export function symbologyStatesEqual(

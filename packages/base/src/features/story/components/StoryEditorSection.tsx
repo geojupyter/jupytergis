@@ -1,13 +1,14 @@
+import { ChevronRightIcon } from 'lucide-react';
+import React from 'react';
+
 import { Button } from '@/src/shared/components/Button';
 import {
   CollapsibleTrigger,
   CollapsibleContent,
   Collapsible,
 } from '@/src/shared/components/Collapsible';
-import { ChevronRightIcon } from 'lucide-react';
-import React from 'react';
 
-interface StoryEditorSectionProps {
+interface IStoryEditorSectionProps {
   triggerText: string;
   children: React.ReactNode;
   open?: boolean;
@@ -21,7 +22,7 @@ function StoryEditorSection({
   open,
   onOpenChange,
   defaultOpen,
-}: StoryEditorSectionProps) {
+}: IStoryEditorSectionProps) {
   return (
     <Collapsible
       open={open}

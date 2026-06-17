@@ -7,9 +7,7 @@ function Popover({
   modal = false,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-  return (
-    <PopoverPrimitive.Root data-slot="popover" modal={modal} {...props} />
-  );
+  return <PopoverPrimitive.Root data-slot="popover" modal={modal} {...props} />;
 }
 
 function PopoverTrigger({
@@ -18,8 +16,9 @@ function PopoverTrigger({
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
 
-interface IPopoverContentProps
-  extends React.ComponentProps<typeof PopoverPrimitive.Content> {
+interface IPopoverContentProps extends React.ComponentProps<
+  typeof PopoverPrimitive.Content
+> {
   portalContainer?: HTMLElement | null;
 }
 

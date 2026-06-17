@@ -24,24 +24,27 @@ describe('storySegmentLayerOverrides', () => {
   };
 
   it('detects visibility overrides as changed', () => {
-    expect(isLayerOverrideChanged(targetLayer as never, { visible: false })).toBe(
-      true,
-    );
+    expect(
+      isLayerOverrideChanged(targetLayer as never, { visible: false }),
+    ).toBe(true);
   });
 
   it('ignores empty symbology overrides', () => {
     expect(
-      isLayerOverrideChanged(targetLayer as never, {
-        targetLayer: 'layer-1',
-        symbologyState: {
-          layers: [
-            {
-              id: 'ec1ba238-0a8a-48fe-8540-60ae1d5f9d7f',
-              rules: [],
-            },
-          ],
-        },
-      } as never),
+      isLayerOverrideChanged(
+        targetLayer as never,
+        {
+          targetLayer: 'layer-1',
+          symbologyState: {
+            layers: [
+              {
+                id: 'ec1ba238-0a8a-48fe-8540-60ae1d5f9d7f',
+                rules: [],
+              },
+            ],
+          },
+        } as never,
+      ),
     ).toBe(false);
   });
 

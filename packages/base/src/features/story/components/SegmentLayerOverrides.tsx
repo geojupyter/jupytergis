@@ -127,11 +127,7 @@ export function SegmentLayerOverrides({
                   disabled={!row.isChanged}
                   aria-label={`Reset overrides for ${row.layerName}`}
                   onClick={() => {
-                    resetSegmentLayerOverride(
-                      model,
-                      segmentId,
-                      row.layerId,
-                    );
+                    resetSegmentLayerOverride(model, segmentId, row.layerId);
                   }}
                 >
                   <RotateCcw />

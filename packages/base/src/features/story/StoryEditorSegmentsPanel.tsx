@@ -1,7 +1,4 @@
-import {
-  IJGISFormSchemaRegistry,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useState } from 'react';

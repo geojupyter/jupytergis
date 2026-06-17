@@ -38,9 +38,7 @@ function SegmentListItem({
       <span className="jgis-story-editor-segment-item-index">
         {segment.index + 1}.
       </span>
-      <span className="jgis-story-editor-segment-item-title">
-        {title}
-      </span>
+      <span className="jgis-story-editor-segment-item-title">{title}</span>
       <span className="jgis-story-editor-segment-item-type">
         {stopType === 'map' ? 'Map' : 'Text'}
       </span>
