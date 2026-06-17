@@ -26,18 +26,6 @@ def hex_to_rgba(hex_color: str) -> tuple[int, int, int, float]:
     raise ValueError(f"Invalid hex color: {hex_color}")
 
 
-def try_hex_to_rgba(hex_color: str) -> tuple[int, int, int, float] | None:
-    """Non-raising variant of :func:`hex_to_rgba`. Returns ``None`` on any
-    parse failure instead of raising.
-    """
-    if not isinstance(hex_color, str):
-        return None
-    try:
-        return hex_to_rgba(hex_color)
-    except ValueError:
-        return None
-
-
 def rgb_to_hex(rgb_str: str) -> str:
     """Convert a comma-separated ``"r,g,b"`` (or ``"r,g,b,a"``) string to a
     ``#rrggbb`` hex code. Any channel past the first three is ignored.
