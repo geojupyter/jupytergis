@@ -1,7 +1,6 @@
 import pytest
 
 from jupytergis_lab import GISDocument
-from jupytergis_lab.notebook.gis_document import _vector_symbology_state_from_color_expr
 from jupytergis_lab.notebook.symbology import (
     cluster,
     constant,
@@ -76,31 +75,6 @@ class TestGeoParquetLayer(TestDocument):
         )
         state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
         assert "layers" in state
-
-
-class TestLegacyColorExprTranslator:
-    @pytest.mark.parametrize(
-        "color_expr,n_rules",
-        [
-            pytest.param(None, 0, id="none"),
-            pytest.param({}, 0, id="empty-dict"),
-            pytest.param(
-                {"fill-color": "#00FF00", "stroke-color": "#FF0000"},
-                2,
-                id="fill-and-stroke",
-            ),
-            pytest.param(
-                {"circle-fill-color": "#abcdef", "circle-radius": 4.5},
-                2,
-                id="circle",
-            ),
-        ],
-    )
-    def test_vector_symbology_state_from_color_expr(self, color_expr, n_rules):
-        state = _vector_symbology_state_from_color_expr(color_expr)
-        assert "layers" in state
-        assert len(state["layers"]) == 1
-        assert len(state["layers"][0]["rules"]) == n_rules
 
 
 class TestGrammarSymbologyBuilders:

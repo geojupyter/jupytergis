@@ -10,7 +10,6 @@ from uuid import uuid4
 
 import requests
 from IPython.display import display
-from jupytergis_core.colors import try_hex_to_rgba
 from jupytergis_core.schema import (
     IGeoJSONSource,
     IGeoPackageRasterSource,
@@ -62,94 +61,6 @@ def reversed_tree(root):
     if isinstance(root, list):
         return reversed([reversed_tree(el) for el in root])
     return root
-
-
-def _color_to_rgba(value: Any) -> list[float] | None:
-    """Coerce an OL-flavored color value (hex string or [r, g, b, a] array)
-    into an ``[r, g, b, a]`` list. Returns ``None`` if ``value`` is an OL
-    expression (e.g. ``["interpolate", ...]``) or otherwise unparseable.
-    """
-    if isinstance(value, str):
-        rgba = try_hex_to_rgba(value)
-        return list(rgba) if rgba else None
-    if isinstance(value, list | tuple) and value and isinstance(value[0], int | float):
-        rgba = list(value) + [1.0] * (4 - len(value))
-        return [float(c) for c in rgba[:4]]
-    return None
-
-
-def _make_constant_rgba_rule(channels: list[str], color: list[float]) -> dict:
-    return {
-        "id": str(uuid4()),
-        "mappings": [
-            {
-                "scale": {"scheme": "constant_rgba", "params": {"value": color}},
-                "channels": channels,
-            },
-        ],
-    }
-
-
-def _make_constant_num_rule(channels: list[str], value: float) -> dict:
-    return {
-        "id": str(uuid4()),
-        "mappings": [
-            {
-                "scale": {"scheme": "constant_num", "params": {"value": value}},
-                "channels": channels,
-            },
-        ],
-    }
-
-
-def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
-    """Translate a legacy ``color_expr`` dict into a grammar symbology state.
-
-    This remains for layer methods that still expose the old styling API.
-    """
-    rules: list[dict] = []
-
-    if isinstance(color_expr, dict):
-        fill = _color_to_rgba(
-            color_expr.get("fill-color") or color_expr.get("circle-fill-color"),
-        )
-        if fill is not None:
-            rules.append(
-                _make_constant_rgba_rule(
-                    ["fill-color", "circle-fill-color"],
-                    fill,
-                ),
-            )
-
-        stroke = _color_to_rgba(
-            color_expr.get("stroke-color") or color_expr.get("circle-stroke-color"),
-        )
-        if stroke is not None:
-            rules.append(
-                _make_constant_rgba_rule(
-                    ["stroke-color", "circle-stroke-color"],
-                    stroke,
-                ),
-            )
-
-        stroke_width = color_expr.get("stroke-width") or color_expr.get(
-            "circle-stroke-width",
-        )
-        if isinstance(stroke_width, (int, float)):
-            rules.append(
-                _make_constant_num_rule(
-                    ["stroke-width", "circle-stroke-width"],
-                    stroke_width,
-                ),
-            )
-
-        radius = color_expr.get("circle-radius")
-        if isinstance(radius, (int, float)):
-            rules.append(_make_constant_num_rule(["circle-radius"], radius))
-
-    return {
-        "layers": [{"id": str(uuid4()), "rules": rules}],
-    }
 
 
 def _extract_layer_name(path: str | Path) -> str:
