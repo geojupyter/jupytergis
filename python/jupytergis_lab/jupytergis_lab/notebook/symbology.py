@@ -167,7 +167,7 @@ class FieldPredicate:
         """
         return hash(self.name)
 
-    def __eq__(self, other: object) -> Predicate:  # type: ignore[override]
+    def __eq__(self, other: object) -> Predicate:
         """Build a field-equality predicate.
 
         :param other: Expected value (string or number).
@@ -179,7 +179,7 @@ class FieldPredicate:
             )
         return field_equals(self.name, other)
 
-    def __ne__(self, other: object) -> Predicate:  # type: ignore[override]
+    def __ne__(self, other: object) -> Predicate:
         """Build a numeric not-equal predicate.
 
         :param other: Numeric threshold.
