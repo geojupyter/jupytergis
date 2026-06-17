@@ -82,6 +82,8 @@ function defaultTransform(type: ITransform['type']): ITransform {
       return { type: 'kde', radius: 10, blur: 15 };
     case 'cluster':
       return { type: 'cluster', radius: 40 };
+    default:
+      throw new Error(`Invalid transform type ${type}`);
   }
 }
 

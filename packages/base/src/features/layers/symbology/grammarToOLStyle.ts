@@ -337,6 +337,8 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
         ['>=', fieldExpr(predicate.field), predicate.min],
         ['<=', fieldExpr(predicate.field), predicate.max],
       ];
+    default:
+      throw new Error(`Invalid predicate type ${predicate.type}`);
   }
 }
 
@@ -418,6 +420,8 @@ function compileMapping(
       }
       return ['coalesce', fieldExpr(field), typedFallback] as ExpressionValue;
     }
+    default:
+      throw new Error(`Invalid scale scheme ${scale.scheme}`);
   }
 }
 
