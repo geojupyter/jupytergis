@@ -13,39 +13,11 @@ import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
 import { SegmentOverrideSheet } from './SegmentOverrideSheet';
 
-const SELECTION_SETTLE_MS = 100;
-
 export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
   state: IStateDB;
   segmentId: string;
   portalContainerRef: RefObject<HTMLElement | null>;
-}
-
-async function openSegmentLayerSymbology(
-  model: IJupyterGISModel,
-  state: IStateDB,
-  segmentId: string,
-  targetLayerId: string,
-): Promise<void> {
-  const targetLayer = model.getLayer(targetLayerId);
-  if (!targetLayer || !SYMBOLOGY_VALID_LAYER_TYPES.includes(targetLayer.type)) {
-    return;
-  }
-
-  const previousSelection = model.selected;
-  model.syncSelected({ [targetLayerId]: { type: 'layer' } });
-  await new Promise(resolve => setTimeout(resolve, SELECTION_SETTLE_MS));
-
-  const dialog = new SymbologyWidget({
-    model,
-    state,
-    isStorySegmentOverride: true,
-    segmentId,
-  });
-  await dialog.launch();
-
-  model.syncSelected(previousSelection ?? {});
 }
 
 export function SegmentLayerOverrides({
