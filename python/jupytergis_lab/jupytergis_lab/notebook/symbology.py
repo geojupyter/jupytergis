@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict
 
 RGBA = tuple[float, float, float, float]
 WhenOpInput = Literal["all", "any"] | None
-ScaleKind = Literal["identity", "color_ramp", "categorical", "scalar"]
+ScaleKind = Literal["identity", "colormap", "categorical", "scalar"]
 
 # Extract all valid channel names from auto-generated schema enums
 _SCHEMA_CHANNEL_VALUES = tuple(
@@ -248,7 +248,7 @@ class FieldPredicate:
         """Apply an identity scale to this field before ``encoding(...)``."""
         return self._as_source().identity()
 
-    def color_ramp(
+    def colormap(
         self,
         colormap: str = "viridis",
         *,
@@ -259,7 +259,7 @@ class FieldPredicate:
         fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
     ) -> "MappingChain":
         """Apply a color-ramp scale to this field before ``encoding(...)``."""
-        return self._as_source().color_ramp(
+        return self._as_source().colormap(
             colormap=colormap,
             domain=domain,
             n_shades=n_shades,
@@ -306,7 +306,7 @@ def field(name: str) -> FieldPredicate:
 
     Examples::
 
-        field("temperature").color_ramp("viridis").encoding("fill")
+        field("temperature").colormap("viridis").encoding("fill")
         when(field("magnitude") > 3).constant("red").encoding("fill")
     """
     return FieldPredicate(name)
@@ -325,7 +325,7 @@ class MappingChain:
     """Fluent chain for building a single mapping.
 
     A mapping chain starts from ``field(...)`` or ``constant(...)``, optionally
-    applies a scale (``identity``, ``color_ramp``, ``categorical``, ``scalar``),
+    applies a scale (``identity``, ``colormap``, ``categorical``, ``scalar``),
     and is finalized with ``encoding(...)``.
     """
 
@@ -400,7 +400,7 @@ class MappingChain:
         self._assert_scale_not_mixed("identity")
         return self._copy(scale=_identity_scale(), scale_kind="identity")
 
-    def color_ramp(
+    def colormap(
         self,
         colormap: str = "viridis",
         *,
@@ -422,11 +422,11 @@ class MappingChain:
         :raises TypeError: If the source was created with :func:`constant`.
         """
         if self._kind != "field":
-            raise TypeError("color_ramp scale requires a field(...) source")
-        self._assert_scale_not_mixed("color_ramp")
+            raise TypeError("colormap scale requires a field(...) source")
+        self._assert_scale_not_mixed("colormap")
 
         return self._copy(
-            scale=_color_ramp_scale(
+            scale=_colormap_scale(
                 name=colormap,
                 domain=domain,
                 n_shades=n_shades,
@@ -434,7 +434,7 @@ class MappingChain:
                 reverse=reverse,
                 fallback=fallback,
             ),
-            scale_kind="color_ramp",
+            scale_kind="colormap",
         )
 
     def categorical(
@@ -953,7 +953,7 @@ def expression(
     )
 
 
-def _color_ramp_scale(
+def _colormap_scale(
     name: str,
     *,
     domain: Sequence[float] | None = None,

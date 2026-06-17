@@ -27,7 +27,7 @@ doc.add_geojson_layer(
     path="data/eq.geojson",
     symbology=[
         field("mag").encoding("radius"),
-        field("felt").color_ramp(
+        field("felt").colormap(
             "viridis",
             domain=[1, 9000],
             mode=ClassificationMode.LOGARITHMIC,
@@ -82,7 +82,7 @@ doc.add_geotiff_layer(
     max=25000,
     symbology=[
         field("$band-1").scalar(domain=(0, 0.5), output_range=(0, 1)).encoding("pixel-alpha"),
-        field("$band-1").color_ramp("winter", n_shades=9).encoding("pixel-rgb"),
+        field("$band-1").colormap("winter", n_shades=9).encoding("pixel-rgb"),
     ],
 )
 doc
@@ -164,7 +164,7 @@ Heatmap and clustering preprocessors:
 ```python
 from jupytergis import cluster, constant, field, heatmap
 
-heat = heatmap(radius=20, blur=30, mappings=[field("mag").color_ramp("hot").encoding("fill")])
+heat = heatmap(radius=20, blur=30, mappings=[field("mag").colormap("hot").encoding("fill")])
 clusters = cluster(radius=40, mappings=[constant("black").encoding("stroke")])
 ```
 
