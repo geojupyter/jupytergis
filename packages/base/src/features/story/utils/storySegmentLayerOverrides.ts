@@ -6,7 +6,14 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 
-type LayerOverrideItem = NonNullable<IStorySegmentLayer['layerOverride']>[number];
+import {
+  hasMeaningfulGrammarSymbologyState,
+  symbologyStatesEqual,
+} from '@/src/features/layers/symbology/symbologyUtils';
+
+type LayerOverrideItem = NonNullable<
+  IStorySegmentLayer['layerOverride']
+>[number];
 
 export interface ISegmentLayerRow {
   layerId: string;
@@ -48,12 +55,46 @@ export function getLayerOverrideEntry(
   return overrides?.find(entry => entry.targetLayer === targetLayerId);
 }
 
-function hasStyleOverrideFields(override: LayerOverrideItem): boolean {
-  if (override.opacity !== undefined) {
+function getBaseVisible(layer: IJGISLayer): boolean {
+  return layer.visible ?? true;
+}
+
+function getBaseOpacity(layer: IJGISLayer): number {
+  return (layer.parameters as { opacity?: number })?.opacity ?? 1;
+}
+
+function getLayerSymbologyState(layer: IJGISLayer): unknown {
+  return (layer.parameters as { symbologyState?: unknown })?.symbologyState;
+}
+
+function shouldPersistSymbologyOverride(
+  layer: IJGISLayer,
+  symbologyState: LayerOverrideItem['symbologyState'],
+): boolean {
+  if (!hasMeaningfulGrammarSymbologyState(symbologyState)) {
+    return false;
+  }
+
+  const baseSymbology = getLayerSymbologyState(layer);
+  if (!hasMeaningfulGrammarSymbologyState(baseSymbology)) {
     return true;
   }
 
-  if (override.symbologyState && Object.keys(override.symbologyState).length > 0) {
+  return !symbologyStatesEqual(baseSymbology, symbologyState);
+}
+
+function hasStyleOverrideFieldsForLayer(
+  layer: IJGISLayer,
+  override: LayerOverrideItem,
+): boolean {
+  if (
+    override.opacity !== undefined &&
+    override.opacity !== getBaseOpacity(layer)
+  ) {
+    return true;
+  }
+
+  if (shouldPersistSymbologyOverride(layer, override.symbologyState)) {
     return true;
   }
 
@@ -71,6 +112,86 @@ function hasStyleOverrideFields(override: LayerOverrideItem): boolean {
   return false;
 }
 
+/** Strip override fields that match the base layer; drop entry if nothing remains. */
+function normalizeLayerOverride(
+  layer: IJGISLayer,
+  override: LayerOverrideItem,
+): LayerOverrideItem | null {
+  const normalized: LayerOverrideItem = {
+    targetLayer: override.targetLayer,
+  };
+
+  if (
+    override.visible !== undefined &&
+    override.visible !== getBaseVisible(layer)
+  ) {
+    normalized.visible = override.visible;
+  }
+
+  if (
+    override.opacity !== undefined &&
+    override.opacity !== getBaseOpacity(layer)
+  ) {
+    normalized.opacity = override.opacity;
+  }
+
+  if (shouldPersistSymbologyOverride(layer, override.symbologyState)) {
+    normalized.symbologyState = override.symbologyState;
+  }
+
+  if (override.color && Object.keys(override.color).length > 0) {
+    normalized.color = override.color;
+  }
+
+  if (
+    override.sourceProperties &&
+    Object.keys(override.sourceProperties).length > 0
+  ) {
+    normalized.sourceProperties = override.sourceProperties;
+  }
+
+  if (
+    normalized.visible === undefined &&
+    normalized.opacity === undefined &&
+    !hasStyleOverrideFieldsForLayer(layer, normalized)
+  ) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function upsertLayerOverride(
+  overrides: LayerOverrideItem[],
+  layer: IJGISLayer,
+  targetLayerId: string,
+  mutate: (entry: LayerOverrideItem) => LayerOverrideItem,
+): LayerOverrideItem[] {
+  const index = overrides.findIndex(entry => entry.targetLayer === targetLayerId);
+  const draft =
+    index >= 0
+      ? mutate({ ...overrides[index] })
+      : mutate({ targetLayer: targetLayerId });
+
+  const normalized = normalizeLayerOverride(layer, draft);
+  const next = [...overrides];
+
+  if (normalized === null) {
+    if (index >= 0) {
+      next.splice(index, 1);
+    }
+    return next;
+  }
+
+  if (index >= 0) {
+    next[index] = normalized;
+  } else {
+    next.push(normalized);
+  }
+
+  return next;
+}
+
 export function isLayerOverrideChanged(
   layer: IJGISLayer,
   override: LayerOverrideItem | undefined,
@@ -79,38 +200,7 @@ export function isLayerOverrideChanged(
     return false;
   }
 
-  const baseVisible = layer.visible ?? true;
-  const baseOpacity = (layer.parameters as { opacity?: number })?.opacity ?? 1;
-
-  if (override.visible !== undefined && override.visible !== baseVisible) {
-    return true;
-  }
-
-  if (override.opacity !== undefined && override.opacity !== baseOpacity) {
-    return true;
-  }
-
-  return hasStyleOverrideFields(override);
-}
-
-function isRedundantOverride(
-  layer: IJGISLayer,
-  override: LayerOverrideItem,
-): boolean {
-  const baseVisible = layer.visible ?? true;
-
-  if (override.visible !== undefined && override.visible !== baseVisible) {
-    return false;
-  }
-
-  if (override.opacity !== undefined) {
-    const baseOpacity = (layer.parameters as { opacity?: number })?.opacity ?? 1;
-    if (override.opacity !== baseOpacity) {
-      return false;
-    }
-  }
-
-  return !hasStyleOverrideFields(override);
+  return normalizeLayerOverride(layer, override) !== null;
 }
 
 export function buildSegmentLayerRows(
@@ -130,7 +220,7 @@ export function buildSegmentLayerRows(
     }
 
     const override = getLayerOverrideEntry(overrides, layerId);
-    const baseVisible = layer.visible ?? true;
+    const baseVisible = getBaseVisible(layer);
     const effectiveVisible = override?.visible ?? baseVisible;
 
     return [
@@ -140,7 +230,9 @@ export function buildSegmentLayerRows(
         baseVisible,
         effectiveVisible,
         isChanged: isLayerOverrideChanged(layer, override),
-        hasStyleOverride: hasStyleOverrideFields(override ?? {}),
+        hasStyleOverride: override
+          ? hasStyleOverrideFieldsForLayer(layer, override)
+          : false,
       },
     ];
   });
@@ -165,29 +257,24 @@ export function setSegmentLayerVisibility(
   }
 
   const parameters = segment.parameters as IStorySegmentLayer;
-  const overrides = [...(parameters.layerOverride ?? [])];
-  const index = overrides.findIndex(entry => entry.targetLayer === targetLayerId);
-  const baseVisible = targetLayer.visible ?? true;
-
-  if (visible === baseVisible) {
-    if (index >= 0) {
-      const nextEntry = { ...overrides[index] };
-      delete nextEntry.visible;
-
-      if (isRedundantOverride(targetLayer, nextEntry)) {
-        overrides.splice(index, 1);
+  const baseVisible = getBaseVisible(targetLayer);
+  const layerOverride = upsertLayerOverride(
+    [...(parameters.layerOverride ?? [])],
+    targetLayer,
+    targetLayerId,
+    entry => {
+      const next = { ...entry };
+      if (visible === baseVisible) {
+        delete next.visible;
       } else {
-        overrides[index] = nextEntry;
+        next.visible = visible;
       }
-    }
-  } else if (index >= 0) {
-    overrides[index] = { ...overrides[index], visible };
-  } else {
-    overrides.push({ targetLayer: targetLayerId, visible });
-  }
+      return next;
+    },
+  );
 
   model.sharedModel.updateObjectParameters(segmentId, {
-    layerOverride: overrides,
+    layerOverride,
   });
 
   return true;
