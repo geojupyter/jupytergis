@@ -354,6 +354,15 @@
   cursor: pointer;
 }
 
+/* JupyterLab dialogs add jp-mod-styled to buttons; undo flat-button sizing. */
+button.jgis-story-editor-segment-item.jp-mod-styled {
+  height: auto;
+  line-height: normal;
+  padding: 0.625rem 0.5rem;
+  letter-spacing: normal;
+  text-align: left;
+}
+
 .jgis-story-editor-segment-item:hover {
   background: var(--jp-layout-color2);
 }
