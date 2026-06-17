@@ -573,7 +573,7 @@
 }
 
 .jgis-story-editor-segment-layer-grid {
-  --jgis-story-editor-segment-layer-columns: minmax(0, 1fr) 3.5rem 4rem 3.5rem;
+  --jgis-story-editor-segment-layer-columns: minmax(0, 1fr) 3.5rem 4.5rem 3.5rem;
   border-radius: var(--jp-border-radius);
   overflow: hidden;
 }

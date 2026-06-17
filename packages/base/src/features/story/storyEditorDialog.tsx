@@ -1,7 +1,4 @@
-import {
-  IJGISFormSchemaRegistry,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -47,6 +44,18 @@ export class StoryEditorWidget extends Dialog<boolean> {
     this.removeClass('jgis-story-editor-dialog--minimized');
     this.show();
     this.activate();
+  }
+
+  // Prevent Jupyter Dialog from from eating enter key presses
+  protected _evtKeydown(event: KeyboardEvent): void {
+    if (
+      event.key === 'Enter' &&
+      document.activeElement instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    super._evtKeydown(event);
   }
 
   dispose(): void {
