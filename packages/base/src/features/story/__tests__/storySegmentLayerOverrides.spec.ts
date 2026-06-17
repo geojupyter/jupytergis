@@ -48,6 +48,22 @@ describe('storySegmentLayerOverrides', () => {
     ).toBe(false);
   });
 
+  it('ignores empty symbology overrides', () => {
+    expect(
+      isLayerOverrideChanged(targetLayer as never, {
+        targetLayer: 'layer-1',
+        symbologyState: {
+          layers: [
+            {
+              id: 'ec1ba238-0a8a-48fe-8540-60ae1d5f9d7f',
+              rules: [],
+            },
+          ],
+        },
+      } as never),
+    ).toBe(false);
+  });
+
   it('builds rows from the layer tree', () => {
     const model = {
       getLayerTree: () => ['layer-1'],

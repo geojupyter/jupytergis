@@ -159,6 +159,77 @@ export function symbologyStatesEqual(
   return JSON.stringify(baseSymbology) === JSON.stringify(overrideSymbology);
 }
 
+const GRAMMAR_SYMBOLOGY_METADATA_KEYS = new Set(['id']);
+
+function isGrammarSymbologyState(
+  value: unknown,
+): value is IGrammarSymbologyState {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Array.isArray((value as IGrammarSymbologyState).layers)
+  );
+}
+
+/** True when a symbology value carries renderable content (not just ids/empties). */
+function symbologyValueHasContent(value: unknown, key?: string): boolean {
+  if (key && GRAMMAR_SYMBOLOGY_METADATA_KEYS.has(key)) {
+    return false;
+  }
+
+  if (value === undefined || value === null) {
+    return false;
+  }
+
+  if (typeof value === 'string') {
+    return value.length > 0;
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(item => symbologyValueHasContent(item));
+  }
+
+  if (typeof value === 'object') {
+    return Object.entries(value).some(([entryKey, entryValue]) =>
+      symbologyValueHasContent(entryValue, entryKey),
+    );
+  }
+
+  return true;
+}
+
+export function hasMeaningfulGrammarSymbologyState(
+  symbologyState: unknown,
+): boolean {
+  if (!symbologyState || typeof symbologyState !== 'object') {
+    return false;
+  }
+
+  if (!isGrammarSymbologyState(symbologyState)) {
+    return symbologyValueHasContent(symbologyState);
+  }
+
+  if (symbologyState.layers.length === 0) {
+    return false;
+  }
+
+  return symbologyState.layers.some(layer => {
+    const { id: _id, ...content } = layer;
+    return symbologyValueHasContent(content);
+  });
+}
+
+export function symbologyStatesEqual(
+  baseSymbology: unknown,
+  overrideSymbology: unknown,
+): boolean {
+  return JSON.stringify(baseSymbology) === JSON.stringify(overrideSymbology);
+}
+
 export function saveSymbology(options: ISaveSymbologyOptions): void {
   const {
     model,
