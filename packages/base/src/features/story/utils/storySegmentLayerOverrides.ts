@@ -20,6 +20,8 @@ export interface ISegmentLayerRow {
   layerName: string;
   baseVisible: boolean;
   effectiveVisible: boolean;
+  baseOpacity: number;
+  effectiveOpacity: number;
   isChanged: boolean;
   hasStyleOverride: boolean;
 }
@@ -222,6 +224,8 @@ export function buildSegmentLayerRows(
     const override = getLayerOverrideEntry(overrides, layerId);
     const baseVisible = getBaseVisible(layer);
     const effectiveVisible = override?.visible ?? baseVisible;
+    const baseOpacity = getBaseOpacity(layer);
+    const effectiveOpacity = override?.opacity ?? baseOpacity;
 
     return [
       {
@@ -229,6 +233,8 @@ export function buildSegmentLayerRows(
         layerName: layer.name,
         baseVisible,
         effectiveVisible,
+        baseOpacity,
+        effectiveOpacity,
         isChanged: isLayerOverrideChanged(layer, override),
         hasStyleOverride: override
           ? hasStyleOverrideFieldsForLayer(layer, override)
@@ -268,6 +274,48 @@ export function setSegmentLayerVisibility(
         delete next.visible;
       } else {
         next.visible = visible;
+      }
+      return next;
+    },
+  );
+
+  model.sharedModel.updateObjectParameters(segmentId, {
+    layerOverride,
+  });
+
+  return true;
+}
+
+export function setSegmentLayerOpacity(
+  model: IJupyterGISModel,
+  segmentId: string,
+  targetLayerId: string,
+  opacity: number,
+): boolean {
+  const segment = model.getLayer(segmentId);
+  const targetLayer = model.getLayer(targetLayerId);
+
+  if (
+    !segment ||
+    segment.type !== 'StorySegmentLayer' ||
+    !targetLayer ||
+    targetLayer.type === 'StorySegmentLayer'
+  ) {
+    return false;
+  }
+
+  const parameters = segment.parameters as IStorySegmentLayer;
+  const baseOpacity = getBaseOpacity(targetLayer);
+  const layerOverride = upsertLayerOverride(
+    [...(parameters.layerOverride ?? [])],
+    targetLayer,
+    targetLayerId,
+    entry => {
+      const next = { ...entry };
+      if (opacity === baseOpacity) {
+        delete next.opacity;
+      } else {
+        next.opacity = opacity;
       }
       return next;
     },

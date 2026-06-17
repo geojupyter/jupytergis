@@ -1,6 +1,7 @@
 import {
   buildSegmentLayerRows,
   isLayerOverrideChanged,
+  setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
 
@@ -63,6 +64,8 @@ describe('storySegmentLayerOverrides', () => {
         layerName: 'floods',
         baseVisible: true,
         effectiveVisible: false,
+        baseOpacity: 1,
+        effectiveOpacity: 1,
         isChanged: true,
         hasStyleOverride: false,
       },
@@ -92,6 +95,37 @@ describe('storySegmentLayerOverrides', () => {
     setSegmentLayerVisibility(model as never, 'segment-1', 'layer-1', true);
 
     expect(updateObjectParameters).toHaveBeenCalledWith('segment-1', {
+      layerOverride: [],
+    });
+  });
+
+  it('stores opacity overrides and removes redundant values', () => {
+    const updateObjectParameters = jest.fn();
+    const model = {
+      getLayer: (id: string) => {
+        if (id === 'layer-1') {
+          return targetLayer;
+        }
+        if (id === 'segment-1') {
+          return {
+            ...segmentLayer,
+            parameters: { layerOverride: [] },
+          };
+        }
+        return undefined;
+      },
+      sharedModel: { updateObjectParameters },
+    };
+
+    setSegmentLayerOpacity(model as never, 'segment-1', 'layer-1', 0.5);
+
+    expect(updateObjectParameters).toHaveBeenCalledWith('segment-1', {
+      layerOverride: [{ targetLayer: 'layer-1', opacity: 0.5 }],
+    });
+
+    setSegmentLayerOpacity(model as never, 'segment-1', 'layer-1', 1);
+
+    expect(updateObjectParameters).toHaveBeenLastCalledWith('segment-1', {
       layerOverride: [],
     });
   });

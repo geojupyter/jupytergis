@@ -582,7 +582,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
 }
 
 .jgis-story-editor-segment-layer-grid {
-  --jgis-story-editor-segment-layer-columns: minmax(0, 1fr) 3.5rem 4.5rem 3.5rem;
+  --jgis-story-editor-segment-layer-columns: minmax(0, 1fr) 3.5rem 5rem 4.5rem 3.5rem;
   border-radius: var(--jp-border-radius);
   overflow: hidden;
 }
@@ -632,6 +632,25 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.jgis-story-editor-segment-layer-opacity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.jgis-story-editor-segment-layer-opacity input[type='range'] {
+  width: 100%;
+  min-width: 0;
+}
+
+.jgis-story-editor-segment-layer-opacity-value {
+  font-size: 0.625rem;
+  color: var(--jp-ui-font-color2);
+  line-height: 1;
 }
 
 .jgis-story-editor-segment-layer-override,

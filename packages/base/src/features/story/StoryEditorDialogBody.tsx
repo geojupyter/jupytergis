@@ -38,6 +38,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
+import { Slider } from '@/src/shared/components/Slider';
 import { Trash2 } from 'lucide-react';
 
 export interface IStoryEditorDialogBodyProps {
@@ -178,18 +179,16 @@ function SegmentEditor({
                 </NativeSelectOption>
                 <NativeSelectOption value="linear">Linear</NativeSelectOption>
               </NativeSelect>
-              <Input
-                type="range"
+              <Slider
                 min={MIN_SEGMENT_TRANSITION_TIME}
                 max={MAX_SEGMENT_TRANSITION_TIME}
                 step={SEGMENT_TRANSITION_TIME_STEP}
-                value={transitionTime}
+                value={[transitionTime]}
                 disabled={isImmediateTransition}
                 aria-label="Transition duration"
-                onChange={event => {
-                  onTransitionChange({
-                    time: Number(event.target.value),
-                  });
+                style={{ maxWidth: '10rem' }}
+                onValueChange={([time]) => {
+                  onTransitionChange({ time });
                 }}
               />
               <span>{formatSegmentTransitionTime(transitionTime)}</span>

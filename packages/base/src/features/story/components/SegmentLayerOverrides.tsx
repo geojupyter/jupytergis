@@ -3,15 +3,16 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CheckIcon } from 'lucide-react';
 import React, { type RefObject } from 'react';
 
-import { SymbologyWidget } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   buildSegmentLayerRows,
+  setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
-import { Button } from '@/src/shared/components/Button';
+import { SegmentOverrideSheet } from '@/src/features/story/components/SegmentOverrideSheet';
+import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
-import { SegmentOverrideSheet } from './SegmentOverrideSheet';
+import { Input } from '@/src/shared/components/Input';
 
 export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
@@ -42,6 +43,7 @@ export function SegmentLayerOverrides({
       >
         <span>Layer Name</span>
         <span>Visibility</span>
+        <span>Opacity</span>
         <span>Symbology</span>
         <span>Override</span>
       </div>
@@ -76,6 +78,26 @@ export function SegmentLayerOverrides({
                   }}
                   aria-label={`Toggle visibility for ${row.layerName}`}
                 />
+              </span>
+              <span className="jgis-story-editor-segment-layer-opacity">
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[Math.round(row.effectiveOpacity * 100)]}
+                  aria-label={`Opacity for ${row.layerName}`}
+                  onValueChange={([opacity]) => {
+                    setSegmentLayerOpacity(
+                      model,
+                      segmentId,
+                      row.layerId,
+                      opacity / 100,
+                    );
+                  }}
+                />
+                <span className="jgis-story-editor-segment-layer-opacity-value">
+                  {Math.round(row.effectiveOpacity * 100)}%
+                </span>
               </span>
               <span className="jgis-story-editor-segment-layer-symbology">
                 {canEditSymbology ? (
