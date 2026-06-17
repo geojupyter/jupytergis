@@ -54,9 +54,11 @@ function toColorInputValue(
 function StoryTitleInput({
   value,
   onChange,
+  disabled = false,
 }: {
   value: string;
   onChange: (title: string) => void;
+  disabled?: boolean;
 }): JSX.Element {
   const [draft, setDraft] = useState(value);
 
@@ -67,13 +69,18 @@ function StoryTitleInput({
   return (
     <Input
       className="jgis-story-editor-toolbar-title"
-      value={draft}
-      placeholder="Untitled story"
+      value={disabled ? '' : draft}
+      placeholder={disabled ? 'No story' : 'Untitled story'}
+      disabled={disabled}
       aria-label="Story title"
       onChange={event => {
         setDraft(event.target.value);
       }}
       onKeyDown={event => {
+        if (disabled) {
+          return;
+        }
+
         if (event.key === 'Enter') {
           event.preventDefault();
           event.currentTarget.blur();
@@ -84,7 +91,7 @@ function StoryTitleInput({
         }
       }}
       onBlur={() => {
-        if (draft !== value) {
+        if (!disabled && draft !== value) {
           onChange(draft);
         }
       }}
@@ -193,14 +200,13 @@ export function StoryEditorHeaderBar({
 }: IStoryEditorHeaderBarProps): JSX.Element {
   return (
     <div className="jgis-story-editor-context-bar">
-      {story ? (
-        <StoryTitleInput
-          value={story.title ?? ''}
-          onChange={title => {
-            onUpdateStory({ title });
-          }}
-        />
-      ) : null}
+      <StoryTitleInput
+        value={story?.title ?? ''}
+        disabled={!story}
+        onChange={title => {
+          onUpdateStory({ title });
+        }}
+      />
       <div className="jgis-story-editor-context-meta-group">
         <Badge variant="secondary">
           {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
