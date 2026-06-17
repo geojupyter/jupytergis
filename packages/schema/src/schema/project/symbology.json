@@ -62,83 +62,88 @@
       "type": "string",
       "enum": [">", "<", ">=", "<=", "!="]
     },
+    "IGeometryTypePredicate": {
+      "type": "object",
+      "title": "IGeometryTypePredicate",
+      "description": "Filter by geometry type.",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "geometryType" },
+        "value": {
+          "type": "string",
+          "enum": ["Point", "LineString", "Polygon"]
+        }
+      }
+    },
+    "IHasFieldPredicate": {
+      "type": "object",
+      "title": "IHasFieldPredicate",
+      "description": "Filter by presence of a field.",
+      "required": ["field"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "hasField" },
+        "field": { "type": "string" }
+      }
+    },
+    "IFieldEqualsPredicate": {
+      "type": "object",
+      "title": "IFieldEqualsPredicate",
+      "description": "Filter by exact field value (string or number).",
+      "required": ["field", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "fieldEquals" },
+        "field": { "type": "string" },
+        "value": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
+      }
+    },
+    "IFieldComparePredicate": {
+      "type": "object",
+      "title": "IFieldComparePredicate",
+      "description": "Filter by numeric field comparison.",
+      "required": ["field", "op", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "fieldCompare" },
+        "field": { "type": "string" },
+        "op": { "$ref": "#/definitions/ICompareOp" },
+        "value": { "type": "number" }
+      }
+    },
+    "IBetweenPredicate": {
+      "type": "object",
+      "title": "IBetweenPredicate",
+      "description": "Filter by numeric field range (inclusive).",
+      "required": ["field", "min", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "between" },
+        "field": { "type": "string" },
+        "min": { "type": "number" },
+        "max": { "type": "number" }
+      }
+    },
     "IPredicate": {
       "title": "IPredicate",
       "description": "Predicate union used for conditional rule/layer guards (the `when` field).",
       "oneOf": [
-        {
-          "type": "object",
-          "title": "IGeometryTypePredicate",
-          "description": "Filter by geometry type.",
-          "required": ["type", "value"],
-          "additionalProperties": false,
-          "properties": {
-            "type": { "type": "string", "enum": ["geometryType"] },
-            "value": {
-              "type": "string",
-              "enum": ["Point", "LineString", "Polygon"]
-            }
-          }
-        },
-        {
-          "type": "object",
-          "title": "IHasFieldPredicate",
-          "description": "Filter by presence of a field.",
-          "required": ["type", "field"],
-          "additionalProperties": false,
-          "properties": {
-            "type": { "type": "string", "enum": ["hasField"] },
-            "field": { "type": "string" }
-          }
-        },
-        {
-          "type": "object",
-          "title": "IFieldEqualsPredicate",
-          "description": "Filter by exact field value (string or number).",
-          "required": ["type", "field", "value"],
-          "additionalProperties": false,
-          "properties": {
-            "type": { "type": "string", "enum": ["fieldEquals"] },
-            "field": { "type": "string" },
-            "value": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
-          }
-        },
-        {
-          "type": "object",
-          "title": "IFieldComparePredicate",
-          "description": "Filter by numeric field comparison.",
-          "required": ["type", "field", "op", "value"],
-          "additionalProperties": false,
-          "properties": {
-            "type": { "type": "string", "enum": ["fieldCompare"] },
-            "field": { "type": "string" },
-            "op": { "$ref": "#/definitions/ICompareOp" },
-            "value": { "type": "number" }
-          }
-        },
-        {
-          "type": "object",
-          "title": "IBetweenPredicate",
-          "description": "Filter by numeric field range (inclusive).",
-          "required": ["type", "field", "min", "max"],
-          "additionalProperties": false,
-          "properties": {
-            "type": { "type": "string", "enum": ["between"] },
-            "field": { "type": "string" },
-            "min": { "type": "number" },
-            "max": { "type": "number" }
-          }
-        }
+        { "$ref": "#/definitions/IGeometryTypePredicate" },
+        { "$ref": "#/definitions/IHasFieldPredicate" },
+        { "$ref": "#/definitions/IFieldEqualsPredicate" },
+        { "$ref": "#/definitions/IFieldComparePredicate" },
+        { "$ref": "#/definitions/IBetweenPredicate" }
       ]
     },
     "IKDETransform": {
       "type": "object",
       "title": "IKDETransform",
       "description": "KDE heatmap transform. Density output addressed as '$density'.",
-      "required": ["type", "radius", "blur"],
+      "required": ["radius", "blur"],
       "additionalProperties": false,
       "properties": {
-        "type": { "type": "string", "enum": ["kde"] },
+        "type": { "const": "kde" },
         "radius": { "type": "number", "minimum": 1 },
         "blur": { "type": "number", "minimum": 0 },
         "weightField": { "type": "string" }
@@ -148,10 +153,10 @@
       "type": "object",
       "title": "IClusterTransform",
       "description": "Cluster transform. Aggregates nearby points into centroids.",
-      "required": ["type", "radius"],
+      "required": ["radius"],
       "additionalProperties": false,
       "properties": {
-        "type": { "type": "string", "enum": ["cluster"] },
+        "type": { "const": "cluster" },
         "radius": { "type": "number", "minimum": 1 }
       }
     },
@@ -167,10 +172,10 @@
       "type": "object",
       "title": "IColorRampScale",
       "description": "Maps a numeric field through a named color palette to RGBA.",
-      "required": ["scheme", "params"],
+      "required": ["params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["colorRamp"] },
+        "scheme": { "const": "colorRamp" },
         "params": {
           "type": "object",
           "title": "IColorRampScaleParams",
@@ -211,10 +216,10 @@
       "type": "object",
       "title": "ICategoricalScale",
       "description": "Maps discrete field values to colors sampled from a named palette.",
-      "required": ["scheme", "params"],
+      "required": ["params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["categorical"] },
+        "scheme": { "const": "categorical" },
         "params": {
           "type": "object",
           "title": "ICategoricalScaleParams",
@@ -250,10 +255,10 @@
       "type": "object",
       "title": "IScalarScale",
       "description": "Maps a numeric field to a numeric output (radius, width, sub-channel value).",
-      "required": ["scheme", "params"],
+      "required": ["params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["scalar"] },
+        "scheme": { "const": "scalar" },
         "params": {
           "type": "object",
           "title": "IScalarScaleParams",
@@ -296,10 +301,10 @@
       "type": "object",
       "title": "IConstantRGBAScale",
       "description": "Fixed RGBA color regardless of feature data.",
-      "required": ["scheme", "params"],
+      "required": ["params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["constant_rgba"] },
+        "scheme": { "const": "constant_rgba" },
         "params": {
           "type": "object",
           "title": "IConstantRGBAParams",
@@ -316,10 +321,10 @@
       "type": "object",
       "title": "IConstantNumScale",
       "description": "Fixed numeric value regardless of feature data.",
-      "required": ["scheme", "params"],
+      "required": ["params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["constant_num"] },
+        "scheme": { "const": "constant_num" },
         "params": {
           "type": "object",
           "title": "IConstantNumParams",
@@ -336,20 +341,20 @@
       "type": "object",
       "title": "IIdentityScale",
       "description": "Passes the field value through unchanged.",
-      "required": ["scheme"],
+      "required": [],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["identity"] }
+        "scheme": { "const": "identity" }
       }
     },
     "IExpressionScale": {
       "type": "object",
       "title": "IExpressionScale",
       "description": "Evaluates an expression against one or more input fields (reserved).",
-      "required": ["scheme", "params"],
+      "required": ["params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "type": "string", "enum": ["expression"] },
+        "scheme": { "const": "expression" },
         "params": {
           "type": "object",
           "title": "IExpressionScaleParams",

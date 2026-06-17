@@ -912,7 +912,6 @@ def _constant_color_scale(
     value: RGBA | Sequence[float] | str,
 ) -> schema_symbology.IConstantRGBAScale:
     return schema_symbology.IConstantRGBAScale(
-        scheme=schema_symbology.Scheme3.constant_rgba,
         params=schema_symbology.Params3(
             value=schema_symbology.RGBA(root=_coerce_rgba(value)),
         ),
@@ -921,13 +920,12 @@ def _constant_color_scale(
 
 def _constant_num_scale(value: float) -> schema_symbology.IConstantNumScale:
     return schema_symbology.IConstantNumScale(
-        scheme=schema_symbology.Scheme4.constant_num,
         params=schema_symbology.Params4(value=value),
     )
 
 
 def _identity_scale() -> schema_symbology.IIdentityScale:
-    return schema_symbology.IIdentityScale(scheme=schema_symbology.Scheme5.identity)
+    return schema_symbology.IIdentityScale()
 
 
 def expression(
@@ -948,7 +946,6 @@ def expression(
         fallback_value = _coerce_rgba(fallback)
 
     return schema_symbology.IExpressionScale(
-        scheme=schema_symbology.Scheme6.expression,
         params=schema_symbology.Params5(expr=expr, fallback=fallback_value),
     )
 
@@ -973,7 +970,6 @@ def _colormap_scale(
         colorStops=list(color_stops) if color_stops is not None else None,
     )
     return schema_symbology.IColorRampScale(
-        scheme=schema_symbology.Scheme.colorRamp,
         params=params,
     )
 
@@ -986,7 +982,6 @@ def _categorical_scale(
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
 ) -> schema_symbology.ICategoricalScale:
     return schema_symbology.ICategoricalScale(
-        scheme=schema_symbology.Scheme1.categorical,
         params=schema_symbology.Params1(
             colorRamp=name,
             nShades=n_shades,
@@ -1010,7 +1005,6 @@ def _scalar_scale(
         scalarStops=_normalize_scalar_stops(scalar_stops),
     )
     return schema_symbology.IScalarScale(
-        scheme=schema_symbology.Scheme2.scalar,
         params=params,
     )
 
@@ -1100,8 +1094,7 @@ def geometry_type(
     """
     return _as_predicate(
         schema_symbology.IPredicate(
-            root=schema_symbology.IPredicate1(
-                type=schema_symbology.Type.geometryType,
+            root=schema_symbology.IGeometryTypePredicate(
                 value=schema_symbology.Value(value),
             ),
         ),
@@ -1116,8 +1109,7 @@ def has_field(field: str) -> Predicate:
     """
     return _as_predicate(
         schema_symbology.IPredicate(
-            root=schema_symbology.IPredicate2(
-                type=schema_symbology.Type86.hasField,
+            root=schema_symbology.IHasFieldPredicate(
                 field=field,
             ),
         ),
@@ -1133,8 +1125,7 @@ def field_equals(field: str, value: str | float) -> Predicate:
     """
     return _as_predicate(
         schema_symbology.IPredicate(
-            root=schema_symbology.IPredicate3(
-                type=schema_symbology.Type87.fieldEquals,
+            root=schema_symbology.IFieldEqualsPredicate(
                 field=field,
                 value=value,
             ),
@@ -1153,8 +1144,7 @@ def field_compare(field: str, op: str, value: float) -> Predicate:
     """
     return _as_predicate(
         schema_symbology.IPredicate(
-            root=schema_symbology.IPredicate4(
-                type=schema_symbology.Type88.fieldCompare,
+            root=schema_symbology.IFieldComparePredicate(
                 field=field,
                 op=schema_symbology.ICompareOp(op),
                 value=value,
@@ -1175,8 +1165,7 @@ def between(field: str, minimum: float, maximum: float) -> Predicate:
     """
     return _as_predicate(
         schema_symbology.IPredicate(
-            root=schema_symbology.IPredicate5(
-                type=schema_symbology.Type89.between,
+            root=schema_symbology.IBetweenPredicate(
                 field=field,
                 min=minimum,
                 max=maximum,
@@ -1202,7 +1191,6 @@ def kde_transform(
     """
     return schema_symbology.ITransform(
         root=schema_symbology.IKDETransform(
-            type=schema_symbology.Type90.kde,
             radius=radius,
             blur=blur,
             weightField=weight_field,
@@ -1220,7 +1208,6 @@ def cluster_transform(radius: float) -> schema_symbology.ITransform:
     """
     return schema_symbology.ITransform(
         root=schema_symbology.IClusterTransform(
-            type=schema_symbology.Type91.cluster,
             radius=radius,
         ),
     )
