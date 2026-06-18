@@ -14,16 +14,10 @@ except ImportError:
     )
     __version__ = "dev"
 
-from .notebook import GISDocument
-from .notebook.explore import explore
-from .notebook.symbology import GraduatedSymbology  # noqa
+from .notebook import GISDocument  # noqa
+from .notebook.explore import explore  # noqa
+from .notebook.symbology import *  # noqa
 
 
 def _jupyter_labextension_paths():
     return [{"src": "labextension", "dest": "@jupytergis/jupytergis-lab"}]
-
-
-__all__ = [
-    "GISDocument",
-    "explore",
-]

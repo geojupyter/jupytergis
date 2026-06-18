@@ -10,16 +10,6 @@ You can use `conda` or `mamba` as drop-in replacements for `micromamba` in the s
 below, but they will not be as fast.
 :::
 
-## Prerequisites
-
-The docs build requires JupyterGIS to be built first:
-
-```bash
-jlpm install
-jlpm build
-jlpm build:packages
-```
-
 ## Create the docs environment
 
 :::{important}
@@ -35,6 +25,7 @@ micromamba create -n jupytergis-docs -f docs/environment-docs.yml
 From the repository root:
 
 ```bash
+python scripts/dev-install.py  # If not done already
 micromamba run -n jupytergis-docs docs/build.sh
 ```
 

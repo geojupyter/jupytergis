@@ -6,6 +6,7 @@ dependencies:
   - python=3.13
   - pip
   - xeus-python
+  - webcolors
   - requests
   - jupyter_ydoc=2.1.5
   - ypywidgets>=0.9.6,<0.10.0
