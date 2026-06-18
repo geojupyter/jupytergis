@@ -3,7 +3,6 @@ import {
   IJGISLayerTree,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
 /**
@@ -14,10 +13,7 @@ import * as React from 'react';
  * Also pre-selects the last item on first load, and syncs segment order back
  * to the story map whenever the segment tree changes.
  */
-export function useLayerTree(
-  model: IJupyterGISModel,
-  commands: CommandRegistry,
-): {
+export function useLayerTree(model: IJupyterGISModel): {
   layerTree: IJGISLayerTree;
   segmentTree: IJGISLayerTree;
 } {

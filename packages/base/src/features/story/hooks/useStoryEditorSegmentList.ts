@@ -78,6 +78,32 @@ export function useStoryEditorSegmentList(
     };
   }, [model]);
 
+  useEffect(() => {
+    const handleSegmentAdded = (
+      _sender: IJupyterGISModel,
+      payload: { storySegmentId: string },
+    ): void => {
+      const { story: currentStory } = model.getSelectedStory();
+      const index =
+        currentStory?.storySegments?.indexOf(payload.storySegmentId) ?? -1;
+
+      if (index >= 0) {
+        model.setCurrentSegmentIndex(index);
+      }
+
+      model.syncSelected(
+        { [payload.storySegmentId]: { type: 'layer' } },
+        model.getClientId().toString(),
+      );
+    };
+
+    model.segmentAdded.connect(handleSegmentAdded);
+
+    return () => {
+      model.segmentAdded.disconnect(handleSegmentAdded);
+    };
+  }, [model]);
+
   const { storyId, story } = useMemo(() => {
     const selected = model.getSelectedStory();
 
@@ -202,32 +228,6 @@ export function useStoryEditorSegmentList(
     },
     [model],
   );
-
-  useEffect(() => {
-    const handleSegmentAdded = (
-      _sender: IJupyterGISModel,
-      payload: { storySegmentId: string },
-    ): void => {
-      const { story: currentStory } = model.getSelectedStory();
-      const index =
-        currentStory?.storySegments?.indexOf(payload.storySegmentId) ?? -1;
-
-      if (index >= 0) {
-        model.setCurrentSegmentIndex(index);
-      }
-
-      model.syncSelected(
-        { [payload.storySegmentId]: { type: 'layer' } },
-        model.getClientId().toString(),
-      );
-    };
-
-    model.segmentAdded.connect(handleSegmentAdded);
-
-    return () => {
-      model.segmentAdded.disconnect(handleSegmentAdded);
-    };
-  }, [model]);
 
   return {
     storyId,

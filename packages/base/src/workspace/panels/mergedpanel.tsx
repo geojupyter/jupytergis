@@ -116,9 +116,9 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
-  const { layerTree } = useLayerTree(props.model, props.commands);
+  const { layerTree } = useLayerTree(props.model);
 
-  const { storyMapPresentationMode } = useRightPanelOptions(props.model, {
+  useRightPanelOptions(props.model, {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
 
@@ -130,8 +130,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       title: 'Layers',
       enabled:
         !leftPanelDisabled &&
-        !props.settings.layersDisabled &&
-        !storyMapPresentationMode,
+        !props.settings.layersDisabled,
       content: (
         <LayersBodyComponent
           model={props.model}
@@ -146,8 +145,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       title: 'Stac Browser',
       enabled:
         !leftPanelDisabled &&
-        !props.settings.stacBrowserDisabled &&
-        !storyMapPresentationMode,
+        !props.settings.stacBrowserDisabled,
       content: <StacPanel model={props.model} />,
     },
     {
@@ -155,8 +153,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       title: 'Object Properties',
       enabled:
         !rightPanelDisabled &&
-        !props.settings.objectPropertiesDisabled &&
-        !storyMapPresentationMode,
+        !props.settings.objectPropertiesDisabled,
       content: (
         <ObjectPropertiesReact
           setSelectedObject={setSelectedObjectProperties}

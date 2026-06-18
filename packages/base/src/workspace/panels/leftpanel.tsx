@@ -30,29 +30,19 @@ interface ILeftPanelProps {
 
 export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   const nodeRef = React.useRef<HTMLDivElement>(null);
-  const [options, setOptions] = React.useState(props.model.getOptions());
-  const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const [leftPanelOpen] = useUIState('leftPanelOpen', props.model);
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     if (!props.settings.layersDisabled) {
       return 'layers';
     }
-    if (!props.settings.stacBrowserDisabled && !storyMapPresentationMode) {
+    if (!props.settings.stacBrowserDisabled) {
       return 'stac';
     }
     return '';
   });
 
-  React.useEffect(() => {
-    const onOptionsChanged = () => setOptions({ ...props.model.getOptions() });
-    props.model.sharedOptionsChanged.connect(onOptionsChanged);
-    return () => {
-      props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
-    };
-  }, [props.model]);
-
-  const { layerTree } = useLayerTree(props.model, props.commands);
+  const { layerTree } = useLayerTree(props.model);
 
   const allLeftTabsDisabled =
     props.settings.layersDisabled && props.settings.stacBrowserDisabled;
@@ -75,7 +65,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     {
       name: 'stac',
       title: 'Stac Browser',
-      enabled: !props.settings.stacBrowserDisabled && !storyMapPresentationMode,
+      enabled: !props.settings.stacBrowserDisabled,
       contentClassName: 'jgis-panel-tab-content-stac-panel',
       content: <StacPanel model={props.model} />,
     },

@@ -50,7 +50,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
     return '';
   });
 
-  const { storyMapPresentationMode } = useRightPanelOptions(props.model, {
+  useRightPanelOptions(props.model, {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
 
@@ -58,7 +58,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
     React.useState(undefined);
 
   const tabInfo = [
-    !props.settings.objectPropertiesDisabled && !storyMapPresentationMode
+    !props.settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
     !props.settings.annotationsDisabled
