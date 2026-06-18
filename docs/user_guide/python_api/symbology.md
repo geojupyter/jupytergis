@@ -170,7 +170,6 @@ clusters = cluster(radius=40, mappings=[constant("black").encoding("stroke")])
 symbology = [heat, clusters]
 ```
 
-
 (encoding-values)=
 
 ## Allowed `encoding` values
