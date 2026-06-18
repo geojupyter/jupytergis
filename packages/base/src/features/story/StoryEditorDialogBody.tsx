@@ -38,6 +38,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
+import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -52,6 +53,7 @@ function SegmentEditor({
   segment,
   portalContainerRef,
   canRemoveSegment,
+  showSegmentAnimation,
   onContentModeChange,
   onContentChange,
   onTransitionChange,
@@ -62,6 +64,7 @@ function SegmentEditor({
   segment: IStorySegmentViewItem;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
+  showSegmentAnimation: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
@@ -177,36 +180,38 @@ function SegmentEditor({
             />
           </StoryEditorSection>
 
-          <StoryEditorSection
-            triggerText="Animation to this segment"
-            open={animationOpen}
-            onOpenChange={setAnimationOpen}
-          >
-            <div className="jgis-story-editor-row">
-              <NativeSelect size="sm" defaultValue="smooth">
-                <NativeSelectOption value="immediate">
-                  Instant
-                </NativeSelectOption>
-                <NativeSelectOption value="smooth">
-                  Smooth pan
-                </NativeSelectOption>
-                <NativeSelectOption value="linear">Linear</NativeSelectOption>
-              </NativeSelect>
-              <Slider
-                min={MIN_SEGMENT_TRANSITION_TIME}
-                max={MAX_SEGMENT_TRANSITION_TIME}
-                step={SEGMENT_TRANSITION_TIME_STEP}
-                value={[transitionTime]}
-                disabled={isImmediateTransition}
-                aria-label="Transition duration"
-                style={{ maxWidth: '10rem' }}
-                onValueChange={([time]) => {
-                  onTransitionChange({ time });
-                }}
-              />
-              <span>{formatSegmentTransitionTime(transitionTime)}</span>
-            </div>
-          </StoryEditorSection>
+          {showSegmentAnimation ? (
+            <StoryEditorSection
+              triggerText="Animation to this segment"
+              open={animationOpen}
+              onOpenChange={setAnimationOpen}
+            >
+              <div className="jgis-story-editor-row">
+                <NativeSelect size="sm" defaultValue="smooth">
+                  <NativeSelectOption value="immediate">
+                    Instant
+                  </NativeSelectOption>
+                  <NativeSelectOption value="smooth">
+                    Smooth pan
+                  </NativeSelectOption>
+                  <NativeSelectOption value="linear">Linear</NativeSelectOption>
+                </NativeSelect>
+                <Slider
+                  min={MIN_SEGMENT_TRANSITION_TIME}
+                  max={MAX_SEGMENT_TRANSITION_TIME}
+                  step={SEGMENT_TRANSITION_TIME_STEP}
+                  value={[transitionTime]}
+                  disabled={isImmediateTransition}
+                  aria-label="Transition duration"
+                  style={{ maxWidth: '10rem' }}
+                  onValueChange={([time]) => {
+                    onTransitionChange({ time });
+                  }}
+                />
+                <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              </div>
+            </StoryEditorSection>
+          ) : null}
         </>
       ) : (
         <StoryEditorSection triggerText="Content" defaultOpen>
@@ -253,6 +258,8 @@ export function StoryEditorDialogBody({
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
+  const showSegmentAnimation =
+    story?.storyType !== STORY_TYPE.verticalScroll;
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
@@ -280,6 +287,7 @@ export function StoryEditorDialogBody({
               segment={selectedSegment}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
+              showSegmentAnimation={showSegmentAnimation}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}
