@@ -2088,9 +2088,9 @@ namespace Private {
 
       const session = StoryEditorSession.getInstance();
       if (session.isActiveFor(current.model)) {
-        if (session.isPickingMapView()) {
-          session.restoreEditor();
-        } else {
+      if (session.isMapInteractionMode()) {
+        session.restoreEditor();
+      } else {
           session.focusDialog();
         }
         return;

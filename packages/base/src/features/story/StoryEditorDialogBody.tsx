@@ -110,15 +110,31 @@ function SegmentEditor({
               <p className="jgis-story-editor-help">
                 Set this segment's map view by positioning the main map.
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  StoryEditorSession.getInstance().enterMapPickMode(segment.id);
-                }}
-              >
-                Set map view on map
-              </Button>
+              <div className="jgis-story-editor-row">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    StoryEditorSession.getInstance().enterMapPickMode(
+                      segment.id,
+                    );
+                  }}
+                >
+                  Set map view on map
+                </Button>
+                <Button
+                  type="button"
+                  className="jp-mod-styled jp-mod-accept"
+                  size="sm"
+                  onClick={() => {
+                    StoryEditorSession.getInstance().enterPreviewMode(
+                      segment.id,
+                    );
+                  }}
+                >
+                  Preview layer overrides on map
+                </Button>
+              </div>
             </div>
           </StoryEditorSection>
 
