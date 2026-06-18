@@ -14,6 +14,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsContrastEnhancement,
     QgsFillSymbol,
     QgsGradientColorRamp,
+    QgsGradientStop,
     QgsGraduatedSymbolRenderer,
     QgsHeatmapRenderer,
     QgsLineSymbol,
@@ -29,6 +30,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsSingleSymbolRenderer,
     QgsSymbolLayer,
 )
+from qgis.PyQt import sip
 
 # Grammar defaults, mirroring packages/schema/src/grammar/grammarConversions.ts
 # and python/jupytergis_core/.../migrations/v0_5_to_v0_6.py so import output stays
@@ -38,6 +40,9 @@ _DEFAULT_FILL = [255.0, 255.0, 255.0, 0.4]
 _DEFAULT_STROKE = [51.0, 153.0, 204.0, 1.0]
 _DEFAULT_RADIUS = 5.0
 _TRANSPARENT = [0.0, 0.0, 0.0, 0.0]
+_OL_CANVAS_STROKE = [0.0, 0.0, 0.0, 1.0]
+# Number of gradient stops sampled for an exported heatmap colour ramp.
+_HEATMAP_RAMP_STOPS = 9
 
 # Channel groups (see packages/schema/src/_interface/project/symbology.d.ts).
 _FILL_CHANNELS = {"fill-color", "circle-fill-color"}
@@ -119,6 +124,30 @@ def _parse_band(fields: list[str]) -> int | None:
 # ---------------------------------------------------------------------------
 # Import: QGIS renderer -> Grammar symbologyState
 # ---------------------------------------------------------------------------
+def _stroke_size_mappings(
+    stroke: list,
+    stroke_width: float,
+    radius: float,
+) -> list[dict[str, Any]]:
+    """The constant stroke-colour / stroke-width / radius mappings shared by every
+    vector style builder (they differ only in their fill mapping).
+    """
+    return [
+        {
+            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
+            "channels": ["stroke-color", "circle-stroke-color"],
+        },
+        {
+            "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
+            "channels": ["stroke-width", "circle-stroke-width"],
+        },
+        {
+            "scale": {"scheme": "constant_num", "params": {"value": radius}},
+            "channels": ["circle-radius"],
+        },
+    ]
+
+
 def single_symbol_grammar(
     fill: list,
     stroke: list,
@@ -133,18 +162,7 @@ def single_symbol_grammar(
                 "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
                 "channels": ["fill-color", "circle-fill-color"],
             },
-            {
-                "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
-            },
-            {
-                "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-                "channels": ["stroke-width", "circle-stroke-width"],
-            },
-            {
-                "scale": {"scheme": "constant_num", "params": {"value": radius}},
-                "channels": ["circle-radius"],
-            },
+            *_stroke_size_mappings(stroke, stroke_width, radius),
         ],
     }
     return {"layers": [{"id": _new_id(), "rules": [rule]}]}
@@ -178,18 +196,7 @@ def graduated_grammar(
     color_ramp_scale = {"scheme": "colorRamp", "params": params}
     mappings = [
         {"scale": color_ramp_scale, "channels": ["fill-color", "circle-fill-color"]},
-        {
-            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        },
-        {
-            "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
-        },
-        {
-            "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
-        },
+        *_stroke_size_mappings(stroke, stroke_width, radius),
     ]
     rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
     if field:
@@ -221,18 +228,7 @@ def categorized_grammar(
     categorical_scale = {"scheme": "categorical", "params": params}
     mappings = [
         {"scale": categorical_scale, "channels": ["fill-color", "circle-fill-color"]},
-        {
-            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        },
-        {
-            "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
-        },
-        {
-            "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
-        },
+        *_stroke_size_mappings(stroke, stroke_width, radius),
     ]
     rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
     if field:
@@ -240,21 +236,31 @@ def categorized_grammar(
     return {"layers": [{"id": _new_id(), "rules": [rule]}]}
 
 
-def flat_colors_to_grammar(colors: dict[str, list]) -> dict[str, Any]:
-    """Grammar with one constant_rgba mapping per channel (used for vector tiles).
+def _single_band_pseudocolor_grammar(band: int, color_stops: list) -> dict[str, Any]:
+    """A single-band pseudocolor ``pixel-color`` colorRamp grammar.
 
-    ``colors`` maps a style channel name to an [r, g, b, a] list.
+    Shared skeleton for every single-band raster import; ``color_stops`` are in
+    normalized [0, 1] band space (the source min/max handle the raw scaling).
     """
-    mappings = [
-        {
-            "scale": {"scheme": "constant_rgba", "params": {"value": rgba}},
-            "channels": [channel],
-        }
-        for channel, rgba in colors.items()
-    ]
-    if not mappings:
-        return {"layers": []}
-    rule = {"id": _new_id(), "mappings": mappings}
+    params = {
+        "name": "custom",
+        "domain": [0.0, 1.0],
+        "nShades": len(color_stops),
+        "mode": "equal interval",
+        "reverse": False,
+        "fallback": list(_TRANSPARENT),
+        "colorStops": color_stops,
+    }
+    rule = {
+        "id": _new_id(),
+        "fields": [f"$band-{int(band)}"],
+        "mappings": [
+            {
+                "scale": {"scheme": "colorRamp", "params": params},
+                "channels": ["pixel-color"],
+            },
+        ],
+    }
     return {"layers": [{"id": _new_id(), "rules": [rule]}]}
 
 
@@ -290,27 +296,7 @@ def raster_flat_color_to_grammar(color: Any) -> dict[str, Any]:
 
     if len(color_stops) < 2:
         return {"layers": []}
-
-    params = {
-        "name": "custom",
-        "domain": [0.0, 1.0],
-        "nShades": len(color_stops),
-        "mode": "equal interval",
-        "reverse": False,
-        "fallback": list(_TRANSPARENT),
-        "colorStops": color_stops,
-    }
-    rule = {
-        "id": _new_id(),
-        "fields": [f"$band-{int(band)}"],
-        "mappings": [
-            {
-                "scale": {"scheme": "colorRamp", "params": params},
-                "channels": ["pixel-color"],
-            },
-        ],
-    }
-    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+    return _single_band_pseudocolor_grammar(band, color_stops)
 
 
 def raster_to_grammar(
@@ -326,38 +312,15 @@ def raster_to_grammar(
     QGIS ramp values are raw; they are normalized to [0, 1] (via source min/max)
     to match the space JupyterGIS colorRamps render in.
     """
-    color_stops = []
-    for node in color_ramp_items:
-        value = node.value
-        if value in (float("inf"), float("-inf")):
-            continue
-        color_stops.append(
-            {
-                "stop": _normalize(value, source_min, source_max),
-                "color": _qcolor_to_rgba(node.color),
-            },
-        )
-
-    params = {
-        "name": "custom",
-        "domain": [0.0, 1.0],
-        "nShades": len(color_stops),
-        "mode": "equal interval",
-        "reverse": False,
-        "fallback": list(_TRANSPARENT),
-        "colorStops": color_stops,
-    }
-    rule = {
-        "id": _new_id(),
-        "fields": [f"$band-{int(band)}"],
-        "mappings": [
-            {
-                "scale": {"scheme": "colorRamp", "params": params},
-                "channels": ["pixel-color"],
-            },
-        ],
-    }
-    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+    color_stops = [
+        {
+            "stop": _normalize(node.value, source_min, source_max),
+            "color": _qcolor_to_rgba(node.color),
+        }
+        for node in color_ramp_items
+        if node.value not in (float("inf"), float("-inf"))
+    ]
+    return _single_band_pseudocolor_grammar(band, color_stops)
 
 
 def grayscale_raster_to_grammar(band: int) -> dict[str, Any]:
@@ -368,29 +331,13 @@ def grayscale_raster_to_grammar(band: int) -> dict[str, Any]:
     pseudocolor renderer). Stops are in normalized [0, 1] space — the source
     min/max handle the raw-value scaling — so the band actually spans the ramp.
     """
-    params = {
-        "name": "custom",
-        "domain": [0.0, 1.0],
-        "nShades": 2,
-        "mode": "equal interval",
-        "reverse": False,
-        "fallback": list(_TRANSPARENT),
-        "colorStops": [
+    return _single_band_pseudocolor_grammar(
+        band,
+        [
             {"stop": 0.0, "color": [0.0, 0.0, 0.0, 1.0]},
             {"stop": 1.0, "color": [255.0, 255.0, 255.0, 1.0]},
         ],
-    }
-    rule = {
-        "id": _new_id(),
-        "fields": [f"$band-{int(band)}"],
-        "mappings": [
-            {
-                "scale": {"scheme": "colorRamp", "params": params},
-                "channels": ["pixel-color"],
-            },
-        ],
-    }
-    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+    )
 
 
 def multiband_raster_to_grammar(
@@ -565,7 +512,11 @@ def subset_to_when(subset: str | None) -> list[dict[str, Any]] | None:
         return None
     field, op, raw = match.group(1), match.group(2), match.group(3)
 
-    if len(raw) >= 2 and raw[0] == "'" and raw[-1] == "'":
+    # Only accept a value that is a *complete* literal. Bare quote-bookended
+    # matching (raw[0] == raw[-1] == "'") would treat a compound expression like
+    # ``'x' OR "b" = 'y'`` as one string and emit a bogus predicate; require every
+    # interior quote to be doubled so only a genuine single literal is parsed.
+    if re.fullmatch(r"'(?:[^']|'')*'", raw):
         value: Any = raw[1:-1].replace("''", "'")
         is_string = True
     else:
@@ -775,7 +726,7 @@ def _collect_vector_style(
         "fill_field": fill_field,
         "stroke_rgba": stroke_rgba
         if stroke_rgba is not None
-        else list(_DEFAULT_STROKE),
+        else list(_OL_CANVAS_STROKE),
         "stroke_width": stroke_width
         if stroke_width is not None
         else _DEFAULT_STROKE_WIDTH,
@@ -909,31 +860,51 @@ def _single_symbol_from_style(style, geometry_type, opacity):
     if symbol is None:
         return None
     fill_scale = style["fill_scale"]
-    fill_rgba = list(_DEFAULT_FILL)
     if fill_scale and fill_scale.get("scheme") == "constant_rgba":
-        fill_rgba = fill_scale["params"].get("value", fill_rgba)
+        fill_rgba = fill_scale["params"].get("value", list(_DEFAULT_FILL))
+    elif geometry_type == "fill":
+        # A polygon with no fill mapping renders no fill in JupyterGIS; use a
+        # transparent fill so a stroke-only layer doesn't gain an opaque fill on
+        # round-trip (the outline still shows).
+        fill_rgba = list(_TRANSPARENT)
+    else:
+        fill_rgba = list(_DEFAULT_FILL)
     symbol.setColor(_rgba_to_qcolor(fill_rgba))
     if geometry_type == "circle":
         symbol.setSize(2 * style["radius"])
     return symbol
 
 
-def _find_color_ramp(grammar_layer):
-    """Return a QgsGradientColorRamp from the first colorRamp scale, or None."""
+def _heatmap_color_ramp(grammar_layer):
+    """A QGIS heatmap gradient from the layer's colorRamp scale, or None.
+
+    Alpha ramps from 0 (transparent) at low density to opaque at high density: a
+    QGIS heatmap maps density 0 -> the ramp's first colour, so an opaque first
+    colour paints the whole extent (the heatmap "covering the map"). The hues come
+    from the named ramp (e.g. viridis) so hotspots read as the expected colours.
+    """
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
             scale = mapping.get("scale", {})
-            if scale.get("scheme") == "colorRamp":
-                params = scale.get("params", {})
-                endpoints = sample_colors(
-                    params.get("name", "viridis"),
-                    n=2,
-                    reverse=params.get("reverse", False),
-                )
-                return QgsGradientColorRamp(
-                    QColor(*endpoints[0]),
-                    QColor(*endpoints[1]),
-                )
+            if scale.get("scheme") != "colorRamp":
+                continue
+            params = scale.get("params", {})
+            colors = sample_colors(
+                params.get("name", "viridis"),
+                n=_HEATMAP_RAMP_STOPS,
+                reverse=params.get("reverse", False),
+            )
+            last = _HEATMAP_RAMP_STOPS - 1
+
+            def _stop_color(i: int, colors: list = colors, last: int = last) -> QColor:
+                r, g, b = colors[i][0], colors[i][1], colors[i][2]
+                return QColor(int(r), int(g), int(b), round(255 * i / last))
+
+            ramp = QgsGradientColorRamp(_stop_color(0), _stop_color(last))
+            ramp.setStops(
+                [QgsGradientStop(i / last, _stop_color(i)) for i in range(1, last)],
+            )
+            return ramp
     return None
 
 
@@ -979,25 +950,33 @@ def _build_inner_renderer(
     )
 
 
-def _heatmap_renderer(grammar_layer, logs, layer_id):
+def _heatmap_renderer(grammar_layer):
     """Map a KDE preprocess transform to a QgsHeatmapRenderer (points only)."""
     kde = next(
         (t for t in grammar_layer.get("preprocess", []) if t.get("type") == "kde"),
         {},
     )
     renderer = QgsHeatmapRenderer()
-    renderer.setRadius(kde.get("radius", 10))
+    # QGIS has a single kernel radius; the OpenLayers `blur` is a separate spread,
+    # so fold it in (radius + blur) to approximate the frontend's smoothness.
+    renderer.setRadius(kde.get("radius", 10) + kde.get("blur", 0))
     renderer.setRadiusUnit(Qgis.RenderUnit.Pixels)
     weight_field = kde.get("weightField")
     if weight_field and not str(weight_field).startswith("$"):
         renderer.setWeightExpression(f'"{weight_field}"')
-    ramp = _find_color_ramp(grammar_layer)
+    ramp = _heatmap_color_ramp(grammar_layer)
     if ramp is not None:
         renderer.setColorRamp(ramp)
+        # QgsHeatmapRenderer.setColorRamp() takes ownership of the raw pointer
+        # (mGradientRamp.reset(ramp)), but sip still thinks Python owns `ramp`.
+        # On a large layer, GC can run before project.write() and free it,
+        # leaving QGIS to serialise a degraded 2-stop opaque ramp (the heatmap
+        # then paints the whole map). Hand ownership to C++ so Python won't.
+        sip.transferto(ramp, None)
     return renderer
 
 
-def _cluster_renderer(preprocess, inner_renderer, logs, layer_id):
+def _cluster_renderer(preprocess, inner_renderer):
     """Wrap an inner renderer in a QgsPointClusterRenderer (points only)."""
     cluster = next((t for t in preprocess if t.get("type") == "cluster"), {})
     renderer = QgsPointClusterRenderer()
@@ -1112,7 +1091,7 @@ def grammar_layer_to_renderer(
     has_cluster = any(t.get("type") == "cluster" for t in preprocess)
 
     if has_kde:
-        return _heatmap_renderer(grammar_layer, logs, layer_id)
+        return _heatmap_renderer(grammar_layer)
 
     rules = grammar_layer.get("rules", [])
     guarded_rules = [r for r in rules if r.get("when")]
@@ -1140,7 +1119,7 @@ def grammar_layer_to_renderer(
         renderer = _to_rule_based(inner)
 
     if has_cluster and renderer is not None:
-        return _cluster_renderer(preprocess, renderer, logs, layer_id)
+        return _cluster_renderer(preprocess, renderer)
     return renderer
 
 
@@ -1157,6 +1136,278 @@ def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
                 for channel in mapping.get("channels", []):
                     colors.setdefault(channel, value)
     return colors
+
+
+# Geometry types used by QgsVectorTileBasicRendererStyle (0=point, 1=line, 2=poly).
+_VT_GEOM_POINT, _VT_GEOM_LINE, _VT_GEOM_POLYGON = 0, 1, 2
+_VT_WHEN_GEOM = {
+    "Point": _VT_GEOM_POINT,
+    "LineString": _VT_GEOM_LINE,
+    "Polygon": _VT_GEOM_POLYGON,
+}
+# Ungated channel -> (geometry, slot), preserving the historic flat-colour mapping.
+_VT_CHANNEL_TARGET = {
+    "fill-color": (_VT_GEOM_POLYGON, "fill"),
+    "stroke-color": (_VT_GEOM_LINE, "stroke"),
+    "circle-fill-color": (_VT_GEOM_POINT, "fill"),
+    "circle-stroke-color": (_VT_GEOM_POINT, "stroke"),
+}
+
+
+def _vt_layer_geom(grammar_layer: dict[str, Any]) -> int | None:
+    """The geometry a layer's ``when: geometryType`` restricts it to, or None."""
+    for predicate in grammar_layer.get("when") or []:
+        if predicate.get("type") == "geometryType":
+            return _VT_WHEN_GEOM.get(predicate.get("value"))
+    return None
+
+
+def _ramp_classes(field: str, stops: list) -> list[tuple[str, list]] | None:
+    """Split a colorRamp into N constant-colour classes over a numeric field.
+
+    N stops -> N intervals: ``< s1``, ``[s1, s2)``, ..., ``>= s(N-1)``, each
+    coloured by its stop. Discrete (not a smooth gradient), but renders identically
+    in every QGIS version — unlike a data-defined colour expression.
+    """
+    points: list[tuple[float, list]] = []
+    for stop in stops:
+        try:
+            value = float(stop["stop"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        color = stop.get("color")
+        if not isinstance(color, list) or len(color) < 3:
+            continue
+        points.append((value, color))
+    if len(points) < 2:
+        return None
+    points.sort(key=lambda item: item[0])
+
+    classes = []
+    last = len(points) - 1
+    for i, (value, color) in enumerate(points):
+        if i == 0:
+            expr = f'"{field}" < {points[1][0]}'
+        elif i == last:
+            expr = f'"{field}" >= {value}'
+        else:
+            expr = f'"{field}" >= {value} AND "{field}" < {points[i + 1][0]}'
+        classes.append((expr, color))
+    return classes
+
+
+def _categorical_classes(field: str, stops: list) -> list[tuple[str, list]] | None:
+    """One ``"field" = value`` class per categorical stop."""
+    classes = []
+    for stop in stops:
+        if "stop" not in stop or not isinstance(stop.get("color"), list):
+            continue
+        classes.append((f'"{field}" = {_sql_literal(stop["stop"])}', stop["color"]))
+    return classes or None
+
+
+def _scale_classes(
+    scale: dict[str, Any] | None,
+    field: str | None,
+    logs: dict[str, list[str]],
+    layer_id: str,
+) -> list[tuple[str | None, list]] | None:
+    """Classes ``[(filter | None, rgba)]`` for a colour scale, or None.
+
+    A constant colour is a single class with no filter; colorRamp / categorical
+    expand to several filtered classes.
+    """
+    if not scale:
+        return None
+    scheme = scale.get("scheme")
+    params = scale.get("params", {})
+    if scheme == "constant_rgba":
+        return [(None, params.get("value"))]
+    if scheme == "colorRamp" and field:
+        classes = _ramp_classes(field, params.get("colorStops") or [])
+        if classes:
+            return classes
+    elif scheme == "categorical" and field:
+        classes = _categorical_classes(field, params.get("colorStops") or [])
+        if classes:
+            return classes
+    _warn(
+        logs,
+        layer_id,
+        f"vector-tile {scheme!r} colour could not be translated; "
+        "using a default colour.",
+    )
+    return None
+
+
+def _emit_vt_specs(
+    geom: int,
+    fill_scale: dict[str, Any] | None,
+    stroke_scale: dict[str, Any] | None,
+    field: str | None,
+    logs: dict[str, list[str]],
+    layer_id: str,
+) -> list[dict[str, Any]]:
+    """Style specs for one geometry from its fill/stroke colour scales.
+
+    Fill and stroke that share a ramp produce aligned classes; a constant colour
+    repeats across every class of the data-driven one.
+    """
+    fill_classes = _scale_classes(fill_scale, field, logs, layer_id)
+    stroke_classes = _scale_classes(stroke_scale, field, logs, layer_id)
+    if not fill_classes and not stroke_classes:
+        return []
+
+    driver = None
+    for candidate in (fill_classes, stroke_classes):
+        if candidate and (driver is None or len(candidate) > len(driver)):
+            driver = candidate
+
+    specs = []
+    for index, (filter_expr, _) in enumerate(driver):
+        fill = None
+        if fill_classes:
+            aligned = len(fill_classes) == len(driver)
+            fill = fill_classes[index][1] if aligned else fill_classes[0][1]
+        stroke = None
+        if stroke_classes:
+            aligned = len(stroke_classes) == len(driver)
+            stroke = stroke_classes[index][1] if aligned else stroke_classes[0][1]
+        specs.append(
+            {"geom": geom, "filter": filter_expr, "fill": fill, "stroke": stroke},
+        )
+    return specs
+
+
+def grammar_to_vector_tile_styles(
+    symbology_state: dict[str, Any],
+    logs: dict[str, list[str]],
+    layer_id: str,
+) -> list[dict[str, Any]]:
+    """Vector-tile style specs from a grammar — constant colours only.
+
+    A data-driven colour (colorRamp / categorical) becomes several styles, one per
+    class, each a value filter plus a constant colour, because QGIS data-defined
+    symbol colours do NOT round-trip across QGIS versions (3.40 writes them, 3.44
+    drops them) while plain constant-colour styles render everywhere. Returns
+    ``[{"geom", "filter", "fill", "stroke"}, ...]``.
+    """
+    specs: list[dict[str, Any]] = []
+    for grammar_layer in symbology_state.get("layers") or []:
+        gate = _vt_layer_geom(grammar_layer)
+        for rule in grammar_layer.get("rules", []):
+            field = (rule.get("fields") or [None])[0]
+            if gate is not None:
+                fill_scale = stroke_scale = None
+                for mapping in rule.get("mappings", []):
+                    channels = set(mapping.get("channels", []))
+                    if channels & _FILL_CHANNELS:
+                        fill_scale = mapping.get("scale", {})
+                    if channels & _STROKE_COLOR_CHANNELS:
+                        stroke_scale = mapping.get("scale", {})
+                specs.extend(
+                    _emit_vt_specs(
+                        gate,
+                        fill_scale,
+                        stroke_scale,
+                        field,
+                        logs,
+                        layer_id,
+                    ),
+                )
+            else:
+                # Ungated: each channel maps to its own geometry/slot.
+                for mapping in rule.get("mappings", []):
+                    scale = mapping.get("scale", {})
+                    for channel in mapping.get("channels", []):
+                        target = _VT_CHANNEL_TARGET.get(channel)
+                        if not target:
+                            continue
+                        geom, slot = target
+                        fill = scale if slot == "fill" else None
+                        stroke = scale if slot == "stroke" else None
+                        specs.extend(
+                            _emit_vt_specs(geom, fill, stroke, field, logs, layer_id),
+                        )
+    return specs
+
+
+# Import: vector-tile geometry (int) -> grammar channel for a colour slot.
+_VT_IMPORT_CHANNELS = {
+    (_VT_GEOM_POLYGON, "fill"): "fill-color",
+    (_VT_GEOM_POLYGON, "stroke"): "stroke-color",
+    (_VT_GEOM_LINE, "stroke"): "stroke-color",
+    (_VT_GEOM_POINT, "fill"): "circle-fill-color",
+    (_VT_GEOM_POINT, "stroke"): "circle-stroke-color",
+}
+_VT_GEOM_WHEN = {geom: name for name, geom in _VT_WHEN_GEOM.items()}
+
+
+def _vt_instr_to_scale(instr: tuple) -> tuple[dict | None, str | None]:
+    """A grammar scale dict (+ optional field) for an imported colour instruction."""
+    kind = instr[0]
+    if kind == "const":
+        return {"scheme": "constant_rgba", "params": {"value": instr[1]}}, None
+    if kind == "colorRamp":
+        _, field, stops = instr
+        return {
+            "scheme": "colorRamp",
+            "params": {
+                "name": "custom",
+                "nShades": len(stops),
+                "mode": "equal interval",
+                "reverse": False,
+                "fallback": list(_TRANSPARENT),
+                "colorStops": stops,
+            },
+        }, field
+    if kind == "categorical":
+        _, field, stops = instr
+        return {
+            "scheme": "categorical",
+            "params": {
+                "colorRamp": "custom",
+                "reverse": False,
+                "fallback": list(_TRANSPARENT),
+                "colorStops": stops,
+            },
+        }, field
+    return None, None
+
+
+def vector_tile_grammar(
+    geom_styles: dict[int, dict[str, tuple]],
+) -> dict[str, Any]:
+    """Grammar for a vector tile from per-geometry colour instructions.
+
+    Inverse of :func:`grammar_to_vector_tile_styles`: each geometry becomes a
+    ``when: geometryType`` gated layer carrying its fill/stroke colour scales.
+    """
+    layers = []
+    for geom, slots in geom_styles.items():
+        mappings = []
+        field = None
+        for slot, instr in slots.items():
+            channel = _VT_IMPORT_CHANNELS.get((geom, slot))
+            if channel is None:
+                continue
+            scale, scale_field = _vt_instr_to_scale(instr)
+            if scale is None:
+                continue
+            if scale_field:
+                field = scale_field
+            mappings.append({"scale": scale, "channels": [channel]})
+        if not mappings:
+            continue
+        rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
+        if field:
+            rule["fields"] = [field]
+        layer: dict[str, Any] = {"id": _new_id(), "rules": [rule]}
+        when_geom = _VT_GEOM_WHEN.get(geom)
+        if when_geom:
+            layer["when"] = [{"type": "geometryType", "value": when_geom}]
+        layers.append(layer)
+    return {"layers": layers}
 
 
 def _multiband_color_renderer(

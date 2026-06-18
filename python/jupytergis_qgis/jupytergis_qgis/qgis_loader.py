@@ -3,6 +3,7 @@ from __future__ import annotations
 import atexit
 import math
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -44,8 +45,10 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsSingleSymbolRenderer,
     QgsSymbolLayer,
     QgsVectorLayer,
+    QgsVectorTileBasicRendererStyle,
     QgsVectorTileLayer,
 )
+from qgis.PyQt.QtCore import Qt
 
 from .grammar import (
     _DEFAULT_FILL,
@@ -56,14 +59,13 @@ from .grammar import (
     cluster_grammar,
     combine_subsets,
     filters_to_subset,
-    flat_colors_to_grammar,
     graduated_grammar,
     grammar_layer_alpha_factor,
     grammar_layer_geometry_hint,
     grammar_layer_subset,
     grammar_layer_to_renderer,
-    grammar_to_flat_colors,
     grammar_to_raster_renderer,
+    grammar_to_vector_tile_styles,
     grayscale_raster_to_grammar,
     kde_grammar,
     multiband_raster_to_grammar,
@@ -71,6 +73,7 @@ from .grammar import (
     raster_to_grammar,
     single_symbol_grammar,
     subset_to_when,
+    vector_tile_grammar,
 )
 
 # Prevent any Qt application and event loop to spawn when
@@ -105,6 +108,9 @@ def _extract_symbol_style(symbol):
         return fill, stroke, stroke_width, radius, geometry_type
 
     color = list(hex_to_rgba(symbol.color().name()))
+    # .name() is "#rrggbb" and drops alpha; keep the real alpha so a transparent
+    # (e.g. stroke-only) fill round-trips instead of coming back opaque.
+    color[3] = symbol.color().alphaF()
     symbol_layer = symbol.symbolLayer(0)
     props = symbol_layer.properties() if symbol_layer is not None else {}
 
@@ -117,6 +123,7 @@ def _extract_symbol_style(symbol):
         geometry_type = "circle"
         fill = color
         stroke = outline_stroke if outline_stroke is not None else color
+        stroke_width = float(props.get("outline_width", _DEFAULT_STROKE_WIDTH))
         radius = symbol.size() / 2
     elif isinstance(symbol, QgsLineSymbol):
         geometry_type = "line"
@@ -176,6 +183,147 @@ def _heatmap_color_stops(renderer):
         }
         for i in range(n)
     ]
+
+
+def _vt_qcolor(rgba) -> QColor:
+    """A QColor from a grammar [r, g, b, a] list (alpha 0-1)."""
+    alpha = rgba[3] if len(rgba) > 3 else 1.0
+    return QColor(int(rgba[0]), int(rgba[1]), int(rgba[2]), int(alpha * 255))
+
+
+def _vt_spec_to_style(spec: dict, index: int):
+    """Build one QgsVectorTileBasicRendererStyle from a grammar style spec."""
+    geom = spec["geom"]
+    fill = spec.get("fill")
+    stroke = spec.get("stroke")
+    if geom == 2:  # polygon
+        symbol = QgsFillSymbol()
+        symbol_layer = symbol.symbolLayer(0)
+        if fill is not None:
+            symbol.setColor(_vt_qcolor(fill))
+        if stroke is not None:
+            symbol_layer.setStrokeColor(_vt_qcolor(stroke))
+        else:
+            symbol_layer.setStrokeStyle(Qt.NoPen)
+    elif geom == 1:  # line — its single colour is the stroke (fall back to fill)
+        symbol = QgsLineSymbol()
+        color = stroke if stroke is not None else fill
+        if color is not None:
+            symbol.setColor(_vt_qcolor(color))
+    elif geom == 0:  # point
+        symbol = QgsMarkerSymbol()
+        symbol_layer = symbol.symbolLayer(0)
+        if fill is not None:
+            symbol.setColor(_vt_qcolor(fill))
+        if stroke is not None:
+            symbol_layer.setStrokeColor(_vt_qcolor(stroke))
+    else:
+        return None
+
+    geom_enum = {
+        0: Qgis.GeometryType.Point,
+        1: Qgis.GeometryType.Line,
+        2: Qgis.GeometryType.Polygon,
+    }[geom]
+    style = QgsVectorTileBasicRendererStyle(f"class{index}", "", geom_enum)
+    style.setSymbol(symbol)
+    style.setFilterExpression(spec.get("filter") or "")
+    style.setEnabled(True)
+    return style
+
+
+def _vt_style_color(style) -> list:
+    """The primary colour of a vector-tile style as a grammar [r, g, b, a] list."""
+    symbol = style.symbol()
+    rgba = list(hex_to_rgba(symbol.color().name()))
+    rgba[3] = symbol.opacity()
+    return rgba
+
+
+def _vt_parse_filter(expr: str):
+    """Parse a class filter into ``('eq', value)`` / ``('range', lo, hi)``.
+
+    Handles the class shapes the exporter writes: ``"f" = v`` (categorical),
+    ``"f" < hi`` (first class), ``"f" >= lo AND "f" < hi`` (middle) and
+    ``"f" >= lo`` (last); ``lo`` / ``hi`` may be None for an open end.
+    """
+    parsed = QgsExpression(expr or "")
+    if parsed.hasParserError() or parsed.rootNode() is None:
+        return None
+    node = parsed.rootNode()
+    single = _comparison_node(node)
+    if single:
+        _, op, value = single
+        if op == QgsExpressionNodeBinaryOperator.boEQ:
+            return ("eq", value)
+        if op in (
+            QgsExpressionNodeBinaryOperator.boLT,
+            QgsExpressionNodeBinaryOperator.boLE,
+        ):
+            return ("range", None, float(value))
+        if op in (
+            QgsExpressionNodeBinaryOperator.boGT,
+            QgsExpressionNodeBinaryOperator.boGE,
+        ):
+            return ("range", float(value), None)
+    if (
+        isinstance(node, QgsExpressionNodeBinaryOperator)
+        and node.op() == QgsExpressionNodeBinaryOperator.boAnd
+    ):
+        left = _comparison_node(node.opLeft())
+        right = _comparison_node(node.opRight())
+        if left and right:
+            lo = hi = None
+            for _, op, value in (left, right):
+                if op in (
+                    QgsExpressionNodeBinaryOperator.boGT,
+                    QgsExpressionNodeBinaryOperator.boGE,
+                ):
+                    lo = float(value)
+                else:
+                    hi = float(value)
+            return ("range", lo, hi)
+    return None
+
+
+def _vt_reconstruct(styles) -> tuple:
+    """Fold a geometry's class styles back into one colour instruction.
+
+    A single unfiltered style is a constant; several filtered classes rebuild a
+    colorRamp (range filters) or categorical (equality filters) on the field.
+    """
+    if len(styles) == 1 and not styles[0].filterExpression():
+        return ("const", _vt_style_color(styles[0]))
+
+    field = None
+    ranges = []
+    categories = []
+    for style in styles:
+        expr = style.filterExpression()
+        match = re.search(r'"([^"]+)"', expr or "")
+        if match:
+            field = match.group(1)
+        parsed = _vt_parse_filter(expr)
+        color = _vt_style_color(style)
+        if parsed and parsed[0] == "range":
+            ranges.append((parsed[1], parsed[2], color))
+        elif parsed and parsed[0] == "eq":
+            categories.append({"stop": parsed[1], "color": color})
+
+    if field and categories and not ranges:
+        return ("categorical", field, categories)
+    if field and ranges:
+        # Order by lower bound (open first class sorts first); each class's stop is
+        # its lower bound, so the ramp spans the recovered class breaks.
+        ranges.sort(key=lambda item: (item[0] is not None, item[0]))
+        stops = []
+        for lo, hi, color in ranges:
+            value = lo if lo is not None else hi
+            if value is not None and (not stops or stops[-1]["stop"] != float(value)):
+                stops.append({"stop": float(value), "color": color})
+        if len(stops) >= 2:
+            return ("colorRamp", field, stops)
+    return ("const", _vt_style_color(styles[0]))
 
 
 # Comparison operators QGIS uses in the rule/filter expressions it generates,
@@ -442,10 +590,16 @@ def _data_defined_mappings(symbol):
     return mappings, channels_replaced, field
 
 
-def _single_symbol_grammar_from_symbol(symbol):
-    """Single-symbol grammar from a QGIS symbol, including data-defined channels."""
-    fill, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-    grammar = single_symbol_grammar(fill, stroke, stroke_width, radius)
+def _merge_data_defined_mappings(grammar, symbol):
+    """Splice a symbol's data-defined channel mappings into a built grammar.
+
+    Native graduated / categorized / single-symbol renderers carry data-driven
+    radius and stroke as ``QgsProperty`` overrides on the symbol, but the
+    ``*_grammar`` builders only emit constant mappings. Replace those constants
+    with the recovered scalar / identity mappings (e.g. a data-driven
+    circle-radius marker size) so the round-trip keeps the data-driven channel
+    instead of flattening it to a constant.
+    """
     extra, replaced, field = _data_defined_mappings(symbol)
     if extra:
         rule = grammar["layers"][0]["rules"][0]
@@ -455,9 +609,16 @@ def _single_symbol_grammar_from_symbol(symbol):
             if not (set(mapping["channels"]) & replaced)
         ]
         rule["mappings"].extend(extra)
-        if field:
+        if field and not rule.get("fields"):
             rule["fields"] = [field]
     return grammar
+
+
+def _single_symbol_grammar_from_symbol(symbol):
+    """Single-symbol grammar from a QGIS symbol, including data-defined channels."""
+    fill, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
+    grammar = single_symbol_grammar(fill, stroke, stroke_width, radius)
+    return _merge_data_defined_mappings(grammar, symbol)
 
 
 def _leaves_to_grammar(leaves):
@@ -606,28 +767,38 @@ def _vector_renderer_to_grammar(renderer):
         for category in renderer.categories():
             symbol = category.symbol()
         _, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-        return categorized_grammar(field, "viridis", stroke, stroke_width, radius)
+        grammar = categorized_grammar(field, "viridis", stroke, stroke_width, radius)
+        return _merge_data_defined_mappings(grammar, symbol)
 
     if isinstance(renderer, QgsGraduatedSymbolRenderer):
         field = renderer.classAttribute()
-        ranges = renderer.ranges()
+        # An open first/last class (-inf/+inf bound) would otherwise leak a
+        # non-finite value into the grammar stops, so drop those classes here.
+        ranges = sorted(
+            (
+                class_range
+                for class_range in renderer.ranges()
+                if _is_finite_number(class_range.lowerValue())
+                and _is_finite_number(class_range.upperValue())
+            ),
+            key=lambda r: r.lowerValue(),
+        )
         symbol = ranges[-1].symbol() if ranges else None
         n_classes = len(ranges) or 9
         _, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
         # Recover the exact class breaks as colorStops
         color_stops = None
         if ranges:
-            ordered = sorted(ranges, key=lambda r: r.lowerValue())
-            first_fill = _extract_symbol_style(ordered[0].symbol())[0]
-            color_stops = [{"stop": ordered[0].lowerValue(), "color": first_fill}]
+            first_fill = _extract_symbol_style(ranges[0].symbol())[0]
+            color_stops = [{"stop": ranges[0].lowerValue(), "color": first_fill}]
             color_stops.extend(
                 {
                     "stop": class_range.upperValue(),
                     "color": _extract_symbol_style(class_range.symbol())[0],
                 }
-                for class_range in ordered
+                for class_range in ranges
             )
-        return graduated_grammar(
+        grammar = graduated_grammar(
             field,
             "viridis",
             n_classes,
@@ -637,6 +808,7 @@ def _vector_renderer_to_grammar(renderer):
             radius,
             color_stops=color_stops,
         )
+        return _merge_data_defined_mappings(grammar, symbol)
 
     # Single Symbol — and any unrecognised renderer falls back to its symbol.
     symbol = (
@@ -825,26 +997,15 @@ def qgis_layer_to_jgis(
         )
 
         renderer = layer.renderer()
-        styles = renderer.styles()
-        colors: dict[str, list] = {}
-
-        for style in styles:
-            symbol = style.symbol()
-            geometry_type = style.geometryType()
-
-            rgba = list(hex_to_rgba(symbol.color().name()))
-            rgba[3] = symbol.opacity()
-
-            # 0 = points, 1 = lines, 2 = polygons
-            if geometry_type == 0:
-                colors["circle-fill-color"] = rgba
-                colors["circle-stroke-color"] = list(rgba)
-            if geometry_type == 1:
-                colors["stroke-color"] = rgba
-            if geometry_type == 2:
-                colors["fill-color"] = rgba
-
-        layer_parameters["symbologyState"] = flat_colors_to_grammar(colors)
+        styles_by_geom: dict[int, list] = {}
+        for style in renderer.styles():
+            styles_by_geom.setdefault(int(style.geometryType()), []).append(style)
+        # A line's colour is its "stroke"; polygons/points carry it as "fill".
+        geom_styles = {
+            geom: {("stroke" if geom == 1 else "fill"): _vt_reconstruct(styles)}
+            for geom, styles in styles_by_geom.items()
+        }
+        layer_parameters["symbologyState"] = vector_tile_grammar(geom_styles)
 
     if layer_type is None:
         print(f"JUPYTERGIS - Unable to load layer type {type(layer)}")
@@ -1031,33 +1192,19 @@ def jgis_layer_to_qgis(
     elif layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         source_parameters = source.get("parameters", {})
         symbology_state = layer_params.get("symbologyState", {})
-        # Pull the constant per-channel colours out of the Grammar.
-        color_params = grammar_to_flat_colors(symbology_state)
+        # Each spec is one constant-colour style (a value-filtered class for a
+        # colorRamp/categorical, or a single unfiltered style for a constant).
+        # No data-defined colours: those do not load across QGIS versions.
+        style_specs = grammar_to_vector_tile_styles(symbology_state, logs, layer_id)
         uri = build_uri(source_parameters, "VectorTileSource")
 
         map_layer = QgsVectorTileLayer(uri, layer_name)
-        renderer = map_layer.renderer()
-        styles = renderer.styles()
-        parsed_styles = []
-
-        def _apply(symbol, rgba):
-            symbol.setColor(QColor(int(rgba[0]), int(rgba[1]), int(rgba[2])))
-            symbol.setOpacity(rgba[3])
-
-        if color_params:
-            for style in styles:
-                symbol = style.symbol()
-                geometry_type = style.geometryType()
-                # 0 = points, 1 = lines, 2 = polygons
-                if geometry_type == 0 and "circle-fill-color" in color_params:
-                    _apply(symbol, color_params["circle-fill-color"])
-                if geometry_type == 1 and "stroke-color" in color_params:
-                    _apply(symbol, color_params["stroke-color"])
-                if geometry_type == 2 and "fill-color" in color_params:
-                    _apply(symbol, color_params["fill-color"])
-                parsed_styles.append(style)
-
-            renderer.setStyles(parsed_styles)
+        if style_specs:
+            qgis_styles = [
+                _vt_spec_to_style(spec, index) for index, spec in enumerate(style_specs)
+            ]
+            renderer = map_layer.renderer()
+            renderer.setStyles([style for style in qgis_styles if style is not None])
 
         map_layers.append(map_layer)
         layer_opacities.append(opacity)
@@ -1218,18 +1365,14 @@ def export_project_to_qgis(
     if isinstance(path, Path):
         path = str(path)
 
+    # Always rebuild the project from scratch: the JupyterGIS document is the
+    # source of truth for layers, sources, CRS and extent. Reading an existing
+    # .qgz back into the singleton project leaks stale state from it (e.g. a
+    # heatmap's old colour ramp survives removeAllMapLayers()/clear() and
+    # clobbers the freshly-built renderer on re-export over the same file).
     project = QgsProject.instance()
-    if os.path.exists(path):
-        project.read(path)
-        # Drop the previously registered layers, not just the tree: re-added
-        # layers reuse the same ids, and addMapLayer keeps the existing layer on
-        # an id collision, which would otherwise re-save the old symbology.
-        project.removeAllMapLayers()
-        root = project.layerTreeRoot()
-        root.clear()
-    else:
-        project.clear()
-        root = project.layerTreeRoot()
+    project.clear()
+    root = project.layerTreeRoot()
 
     if not project.crs().isValid():
         dst_crs_id = "EPSG:3857"

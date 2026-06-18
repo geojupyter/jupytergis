@@ -937,6 +937,86 @@ def test_qgis_vector_tile_roundtrip():
     assert colors["circle-fill-color"][:3] == [0.0, 0.0, 255.0]
 
 
+def test_vector_tile_colorramp_to_class_styles():
+    """A vector-tile colorRamp -> one constant-colour style per class.
+
+    Data-defined symbol colours do not load across QGIS versions, so a ramp must
+    export as value-filtered constant-colour classes (which render everywhere).
+    The Polygon ramp fills and outlines each class; the LineString stays constant.
+    """
+    from ..grammar import grammar_to_vector_tile_styles
+
+    symbology_state = {
+        "layers": [
+            {
+                "id": "poly",
+                "when": [{"type": "geometryType", "value": "Polygon"}],
+                "rules": [
+                    {
+                        "id": "r",
+                        "fields": ["best_age_top"],
+                        "mappings": [
+                            {
+                                "channels": ["fill-color", "stroke-color"],
+                                "scale": {
+                                    "scheme": "colorRamp",
+                                    "params": {
+                                        "name": "viridis",
+                                        "colorStops": [
+                                            {
+                                                "stop": 1.0,
+                                                "color": [68.0, 1.0, 84.0, 1.0],
+                                            },
+                                            {
+                                                "stop": 100.0,
+                                                "color": [59.0, 81.0, 139.0, 1.0],
+                                            },
+                                            {
+                                                "stop": 3600.0,
+                                                "color": [253.0, 231.0, 37.0, 1.0],
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "id": "line",
+                "when": [{"type": "geometryType", "value": "LineString"}],
+                "rules": [
+                    {
+                        "id": "r2",
+                        "mappings": [
+                            _constant_rgba([0.0, 0.0, 0.0, 0.72], ["stroke-color"]),
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    logs = {"warnings": [], "errors": []}
+    specs = grammar_to_vector_tile_styles(symbology_state, logs, "L")
+
+    poly = [s for s in specs if s["geom"] == 2]
+    # Three stops -> three Polygon classes, each a constant colour with a filter.
+    assert len(poly) == 3
+    assert all("best_age_top" in s["filter"] for s in poly)
+    assert poly[0]["fill"] == [68.0, 1.0, 84.0, 1.0]
+    assert poly[0]["stroke"] == [68.0, 1.0, 84.0, 1.0]
+    assert poly[-1]["fill"] == [253.0, 231.0, 37.0, 1.0]
+
+    # LineString: one unfiltered constant stroke; no Point styles; no warnings.
+    line = [s for s in specs if s["geom"] == 1]
+    assert line == [
+        {"geom": 1, "filter": None, "fill": None, "stroke": [0.0, 0.0, 0.0, 0.72]},
+    ]
+    assert not [s for s in specs if s["geom"] == 0]
+    assert logs["warnings"] == []
+
+
 def _channel_band_sig(grammar):
     """Map each pixel channel to its (band-field, scale-scheme), ignoring ids."""
     sig = {}
