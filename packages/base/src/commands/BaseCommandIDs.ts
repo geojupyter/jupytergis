@@ -30,11 +30,13 @@ export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
+export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
 
 // Layer and group actions
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
+export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
 export const duplicateSelected = 'jupytergis:duplicateSelected';
 export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
 export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';

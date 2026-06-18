@@ -40,9 +40,9 @@ import {
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
   IViewState,
-  IGrammarSymbologyState,
   IOpenEOTileSource,
   IOpenEOTileLayer,
+  IGrammarSymbologyState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -141,7 +141,6 @@ import {
 } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import { ClientPointer } from './CollaboratorPointers';
-import { OpenEOTileLayer, OpenEOTileSource } from './OpenEOTileLayer';
 import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
@@ -156,6 +155,11 @@ import {
 import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
+import {
+  OpenEOTileLayer,
+  OpenEOTileSource,
+  openEOEvents,
+} from '../features/layers/openeo/OpenEOTileLayer';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
 import {
   extractEncodingFieldValues,
@@ -314,6 +318,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+
+    // After a user signs in to an OpenEO server, rebuild any of this
+    // document's OpenEO tile sources whose serverUrl matches — they
+    // would have failed to construct on document load when CONNECTIONS
+    // was still empty.
+    openEOEvents.connected.connect(this._onOpenEOConnected, this);
     this._model.geolocationChanged.connect(
       this._handleGeolocationChanged,
       this,
@@ -430,6 +440,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     remoteUserSignals.forEach(signal =>
       signal.disconnect(this._handleRemoteUserChanged, this),
     );
+    openEOEvents.connected.disconnect(this._onOpenEOConnected, this);
     this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
     this._model.selectedChanged.disconnect(
       this._handleTemporalControllerActiveChanged,
@@ -1012,10 +1023,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           const sourceParameters = source.parameters as IOpenEOTileSource;
 
           newSource = new OpenEOTileSource({
-            connectionInfo: {
-              url: sourceParameters.serverUrl,
-              authBearer: sourceParameters.authBearer,
-            },
+            serverUrl: sourceParameters.serverUrl ?? '',
+            authBearer: sourceParameters.authBearer,
             processGraph: sourceParameters.processGraph,
           });
 
@@ -2628,6 +2637,44 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
     this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
+  }
+
+  /**
+   * Rebuild every OpenEO tile source in this document whose `serverUrl`
+   * matches the freshly-signed-in server. Called when the shared
+   * `openEOEvents.connected` signal fires (i.e. right after `connect()`
+   * caches a new live connection). Without this, layers created before
+   * the user signed in stay broken because their constructor already
+   * threw on the empty cache.
+   */
+  private _onOpenEOConnected(
+    _: unknown,
+    { serverUrl }: { serverUrl: string },
+  ): void {
+    if (!this._ready) {
+      return;
+    }
+    const sources = this._model.sharedModel.sources ?? {};
+    for (const [sourceId, source] of Object.entries(sources)) {
+      if (source?.type !== 'OpenEOTileSource') {
+        continue;
+      }
+      const sourceServerUrl = (source.parameters as any)?.serverUrl as
+        | string
+        | undefined;
+      if (!sourceServerUrl) {
+        continue;
+      }
+      // Match the normalization `connect()` does so a saved `localhost:8080`
+      // matches the live connection at `https://localhost:8080`.
+      const normalize = (u: string) =>
+        u.match(/^https?:\/\//i) ? u : `https://${u}`;
+      if (normalize(sourceServerUrl) === normalize(serverUrl)) {
+        // updateSource removes the OL source and reconstructs it; the new
+        // OpenEOTileSource finds the cached connection and renders.
+        void this.updateSource(sourceId, source);
+      }
+    }
   }
 
   private _onSourcesChange(

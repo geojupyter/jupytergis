@@ -379,6 +379,10 @@ class GISDocument(CommWidget):
         name: str | None = None,
         opacity: float = 1,
     ):
+        # Persist the bearer token alongside the server url so a connection
+        # opened here from the notebook is reused by the frontend without the
+        # user having to sign in a second time from the UI. The bearer is a
+        # session identifier, not long-lived credentials.
         source = {
             "type": SourceType.OpenEOTileSource,
             "name": f"{name} Source" if name is not None else "OpenEO Tiles Source",
