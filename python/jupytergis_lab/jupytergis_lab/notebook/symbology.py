@@ -35,7 +35,7 @@ _SCHEMA_CHANNEL_VALUES = tuple(
     ),
 )
 
-TARGET_SHORTCUTS: dict[str, list[schema_symbology.StyleChannel]] = {
+ENCODING_SHORTCUTS: dict[str, list[schema_symbology.Encoding]] = {
     "fill": ["fill-color", "circle-fill-color"],
     "stroke": ["stroke-color", "circle-stroke-color"],
     "radius": ["circle-radius"],
@@ -54,18 +54,18 @@ def _enum_member_name(value: str) -> str:
     return name.lower()
 
 
-_TARGET_CHANNEL_VALUES = [*TARGET_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]
-_TARGET_CHANNEL_MEMBERS: dict[str, str] = {}
-for channel_value in _TARGET_CHANNEL_VALUES:
+_ENCODING_VALUES = [*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]
+_ENCODING_MEMBERS: dict[str, str] = {}
+for channel_value in _ENCODING_VALUES:
     member_name = _enum_member_name(channel_value)
     base_name = member_name
     suffix = 1
-    while member_name in _TARGET_CHANNEL_MEMBERS:
+    while member_name in _ENCODING_MEMBERS:
         suffix += 1
         member_name = f"{base_name}_{suffix}"
-    _TARGET_CHANNEL_MEMBERS[member_name] = channel_value
+    _ENCODING_MEMBERS[member_name] = channel_value
 
-VisualEncoding = Enum("VisualEncoding", _TARGET_CHANNEL_MEMBERS, type=str)
+VisualEncoding = Enum("VisualEncoding", _ENCODING_MEMBERS, type=str)
 VisualEncodings = VisualEncoding | str | Sequence[VisualEncoding | str]
 
 
@@ -514,7 +514,7 @@ class MappingChain:
             selected_when_op = "all"
 
         rule = encoding_rule(
-            mapping(scale=scale, channels=_resolve_target_channels(targets)),
+            mapping(scale=scale, channels=_resolve_ENCODINGs(targets)),
             fields=fields,
             when=selected_when,
             when_op=selected_when_op,
@@ -745,13 +745,13 @@ def _normalize_when(
     return normalized
 
 
-def _coerce_style_channel(channel: Any) -> schema_symbology.StyleChannel:
-    if isinstance(channel, schema_symbology.StyleChannel):
+def _coerce_style_channel(channel: Any) -> schema_symbology.Encoding:
+    if isinstance(channel, schema_symbology.Encoding):
         return channel
-    return schema_symbology.StyleChannel(root=channel)
+    return schema_symbology.Encoding(root=channel)
 
 
-def _normalize_channels(channels: Sequence[Any]) -> list[schema_symbology.StyleChannel]:
+def _normalize_channels(channels: Sequence[Any]) -> list[schema_symbology.Encoding]:
     return [_coerce_style_channel(channel) for channel in channels]
 
 
@@ -1123,7 +1123,7 @@ def _constant_rule(
     else:
         scale = _constant_color_scale(value)
     return encoding_rule(
-        mapping(scale=scale, channels=_resolve_target_channels(target)),
+        mapping(scale=scale, channels=_resolve_ENCODINGs(target)),
         when=_normalize_when(when),
         when_op=when_op,
     )
@@ -1138,7 +1138,7 @@ def _mapped_rule(
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
     return encoding_rule(
-        mapping(scale=scale, channels=_resolve_target_channels(target)),
+        mapping(scale=scale, channels=_resolve_ENCODINGs(target)),
         fields=[value],
         when=_normalize_when(when),
         when_op=when_op,
@@ -1149,24 +1149,24 @@ def _single_layer(*rules: schema_symbology.IEncodingRule) -> GrammarSymbology:
     return symbology_state(layers=[grammar_layer(*rules)])
 
 
-def _resolve_target_channels(
+def _resolve_ENCODINGs(
     target: VisualEncodings,
-) -> list[schema_symbology.StyleChannel]:
+) -> list[schema_symbology.Encoding]:
     requested = [target] if isinstance(target, str) else list(target)
-    channels: list[schema_symbology.StyleChannel] = []
+    channels: list[schema_symbology.Encoding] = []
     for item in requested:
         # Check if it's a shorthand
-        if item in TARGET_SHORTCUTS:
-            channels.extend(TARGET_SHORTCUTS[item])
+        if item in ENCODING_SHORTCUTS:
+            channels.extend(ENCODING_SHORTCUTS[item])
         # Otherwise check if it's a valid schema channel
         elif item in _SCHEMA_CHANNEL_VALUES:
             channels.append(item)
         else:
             raise ValueError(
-                f"Unsupported target: {item!r}.\nSupported targets are: {[*TARGET_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]}",
+                f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]}",
             )
 
-    deduped: list[schema_symbology.StyleChannel] = []
+    deduped: list[schema_symbology.Encoding] = []
     for channel in channels:
         if channel not in deduped:
             deduped.append(channel)

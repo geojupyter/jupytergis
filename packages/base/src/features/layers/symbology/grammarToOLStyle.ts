@@ -19,7 +19,7 @@ import {
   IScalarScale,
   IGrammarSymbologyState,
   IPredicate,
-  StyleChannel,
+  Encoding,
   RGBA,
   UInt8Channel,
   UNormChannel,
@@ -90,7 +90,7 @@ export function grammarToOLStyle(
   // Accumulate per-channel entries from all layers and their rules.
   // Layers with a kde/cluster preprocess are handled at the renderer level;
   // this compiler only produces the flat-style for the vector portion.
-  const accumulator = new Map<StyleChannel, IChannelEntry[]>();
+  const accumulator = new Map<Encoding, IChannelEntry[]>();
 
   // Guard: state.layers may be absent on legacy Grammar states that predate
   // the layers nesting (e.g. stored as { rules: [...] } without a layers wrapper).
@@ -129,7 +129,7 @@ export function grammarToOLStyle(
               'pixel-red',
               'pixel-green',
               'pixel-blue',
-            ] as StyleChannel[]) {
+            ] as Encoding[]) {
               const expr = compileMapping(field, mapping, featureValues, sub);
               const entries = accumulator.get(sub) ?? [];
               entries.push({ guard, expr });
@@ -149,7 +149,7 @@ export function grammarToOLStyle(
   }
 
   // Build per-channel OL expressions.
-  const channelExprs = new Map<StyleChannel, ExpressionValue>();
+  const channelExprs = new Map<Encoding, ExpressionValue>();
   for (const [channel, entries] of accumulator) {
     channelExprs.set(channel, buildChannelExpr(entries, channel));
   }
@@ -205,7 +205,7 @@ export function extractEncodingFieldValues(
  */
 function buildChannelExpr(
   entries: IChannelEntry[],
-  channel: StyleChannel,
+  channel: Encoding,
 ): ExpressionValue {
   const conditional = entries.filter(e => e.guard !== undefined);
   const unconditional = entries.filter(e => e.guard === undefined);
@@ -228,8 +228,8 @@ function buildChannelExpr(
 }
 
 /** Typed zero for channels with no unconditional rule. */
-function channelZero(channel: StyleChannel): ExpressionValue {
-  const rgbaChannels = new Set<StyleChannel>([
+function channelZero(channel: Encoding): ExpressionValue {
+  const rgbaChannels = new Set<Encoding>([
     'fill-color',
     'stroke-color',
     'circle-fill-color',
@@ -255,12 +255,12 @@ const PIXEL_ALPHA_SUB: UNormChannel[] = ['pixel-alpha'];
  * Virtual channels (pixel-rgb) are already fanned out before this runs.
  */
 function assembleStyle(
-  channelExprs: Map<StyleChannel, ExpressionValue>,
+  channelExprs: Map<Encoding, ExpressionValue>,
 ): Record<string, ExpressionValue> {
   const style: Record<string, ExpressionValue> = {};
 
   // Collect named channels directly.
-  const skip = new Set<StyleChannel>([
+  const skip = new Set<Encoding>([
     ...FILL_SUB,
     ...FILL_ALPHA_SUB,
     ...PIXEL_SUB,
@@ -350,7 +350,7 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
  * Return the RGBA array index for a sub-channel, or undefined for full-color
  * channels.  Used to decompose a colorRamp into a single numeric component.
  */
-function colorComponentIndex(channel: StyleChannel): number | undefined {
+function colorComponentIndex(channel: Encoding): number | undefined {
   switch (channel) {
     case 'fill-red':
     case 'pixel-red':
@@ -373,7 +373,7 @@ function compileMapping(
   field: string | undefined,
   mapping: IMapping,
   featureValues: unknown[],
-  channel: StyleChannel,
+  channel: Encoding,
 ): ExpressionValue {
   const { scale } = mapping;
   switch (scale.scheme) {
@@ -441,7 +441,7 @@ function compileColorRamp(
   field: string,
   scale: IColorRampScale,
   featureValues: unknown[],
-  channel?: StyleChannel,
+  channel?: Encoding,
 ): ExpressionValue {
   const stops = resolveColorStops(scale, featureValues);
 

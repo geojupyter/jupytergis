@@ -47,8 +47,8 @@
       "type": "string",
       "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
     },
-    "StyleChannel": {
-      "title": "StyleChannel",
+    "Encoding": {
+      "title": "Encoding",
       "description": "Any supported output style channel for vector or raster symbology.",
       "anyOf": [
         { "$ref": "#/definitions/RGBAChannel" },
@@ -394,7 +394,7 @@
         "channels": {
           "type": "array",
           "description": "Target output channel names.",
-          "items": { "$ref": "#/definitions/StyleChannel" },
+          "items": { "$ref": "#/definitions/Encoding" },
           "minItems": 1
         }
       }

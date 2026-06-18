@@ -190,7 +190,7 @@ symbology_list = [
 ]
 ```
 
-(stylechannel-values)=
+(encoding-values)=
 
 ## Allowed `encoding` values
 
