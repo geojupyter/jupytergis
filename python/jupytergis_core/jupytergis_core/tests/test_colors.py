@@ -1,6 +1,7 @@
 import pytest
 
-from jupytergis_core.colors import coerce_rgba, RGBA
+from jupytergis_core.colors import coerce_rgba
+
 
 @pytest.mark.parametrize(
     "input,output",
@@ -15,5 +16,5 @@ def test_colors(input, output):
 
 
 def test_invalid_color():
-    with pytest.raises(ValueError):
-        coerce_rgba("Invalid color")
+    with pytest.raises(ValueError, match="Invalid color"):
+        coerce_rgba("blabla")
