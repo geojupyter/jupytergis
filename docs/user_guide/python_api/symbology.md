@@ -159,7 +159,7 @@ from jupytergis import field
 symbology = [field("population").scalar(domain=[0, 1_000_000], output_range=[2, 15]).encoding("radius")]
 ```
 
-Heatmap and clustering preprocessors:
+Heatmap and clustering preprocessors as separate symbology layers:
 
 ```python
 from jupytergis import cluster, constant, field, heatmap
