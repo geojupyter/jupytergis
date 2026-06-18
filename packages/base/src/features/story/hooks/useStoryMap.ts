@@ -6,7 +6,6 @@ import type {
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { STORY_TYPE } from '@/src/types';
-
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,

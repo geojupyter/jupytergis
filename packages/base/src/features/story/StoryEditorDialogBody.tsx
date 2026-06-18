@@ -267,8 +267,7 @@ export function StoryEditorDialogBody({
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
-  const showSegmentAnimation =
-    story?.storyType !== STORY_TYPE.verticalScroll;
+  const showSegmentAnimation = story?.storyType !== STORY_TYPE.verticalScroll;
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">

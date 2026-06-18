@@ -85,8 +85,8 @@ export function getEffectiveSymbologyParams(
   return {
     ...layerParameters,
     ...override,
-    symbologyState:
-      override.symbologyState ?? layerParameters.symbologyState ?? { layers: [] },
+    symbologyState: override.symbologyState ??
+      layerParameters.symbologyState ?? { layers: [] },
   } as IEffectiveSymbologyParams;
 }
 
