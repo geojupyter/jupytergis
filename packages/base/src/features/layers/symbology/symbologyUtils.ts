@@ -51,6 +51,8 @@ export type IEffectiveSymbologyParams =
   | VectorSymbologyParams
   | RasterSymbologyParams;
 
+const GRAMMAR_SYMBOLOGY_METADATA_KEYS = new Set(['id']);
+
 /**
  * Resolve the effective symbology params for this dialog: either the layer's
  * parameters or the matching segment override when editing a story-segment override.
@@ -89,8 +91,6 @@ export function getEffectiveSymbologyParams(
       layerParameters.symbologyState ?? { layers: [] },
   } as IEffectiveSymbologyParams;
 }
-
-const GRAMMAR_SYMBOLOGY_METADATA_KEYS = new Set(['id']);
 
 function isGrammarSymbologyState(
   value: unknown,
