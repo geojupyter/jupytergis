@@ -3957,8 +3957,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                     state={this._state}
                     formSchemaRegistry={this._formSchemaRegistry}
                     annotationModel={this._annotationModel}
-                    addLayer={this.addLayer.bind(this)}
-                    removeLayer={this.removeLayer.bind(this)}
                     patchGeoJSONFeatureProperties={
                       this._patchGeoJSONFeatureProperties
                     }

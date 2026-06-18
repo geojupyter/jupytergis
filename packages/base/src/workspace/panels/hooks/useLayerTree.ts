@@ -19,12 +19,6 @@ import { CommandIDs } from '../../../constants';
 export function useLayerTree(
   model: IJupyterGISModel,
   commands: CommandRegistry,
-  opts?: {
-    onSegmentAdded?: (payload: {
-      storySegmentId: string;
-      storyId: string;
-    }) => void;
-  },
 ): {
   layerTree: IJGISLayerTree;
   segmentTree: IJGISLayerTree;
@@ -33,11 +27,6 @@ export function useLayerTree(
     model.getLayerTree(),
   );
   const hasSyncedInitialSelectionRef = React.useRef(false);
-  // Ref keeps the callback fresh without re-registering the signal handler on every render
-  const onSegmentAddedRef = React.useRef(opts?.onSegmentAdded);
-  React.useEffect(() => {
-    onSegmentAddedRef.current = opts?.onSegmentAdded;
-  });
 
   React.useEffect(() => {
     const syncInitialSelection = (tree: IJGISLayerTree) => {
@@ -71,7 +60,6 @@ export function useLayerTree(
         { [payload.storySegmentId]: { type: 'layer' } },
         model.getClientId().toString(),
       );
-      onSegmentAddedRef.current?.(payload);
     };
 
     model.sharedModel.layersChanged.connect(updateLayerTree);

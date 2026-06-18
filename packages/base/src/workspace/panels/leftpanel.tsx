@@ -41,9 +41,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     if (!props.settings.stacBrowserDisabled && !storyMapPresentationMode) {
       return 'stac';
     }
-    if (!props.settings.storyMapsDisabled) {
-      return 'segments';
-    }
     return '';
   });
 
@@ -55,14 +52,10 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     };
   }, [props.model]);
 
-  const { layerTree, segmentTree } = useLayerTree(props.model, props.commands, {
-    onSegmentAdded: () => setCurTab('segments'),
-  });
+  const { layerTree } = useLayerTree(props.model, props.commands);
 
   const allLeftTabsDisabled =
-    props.settings.layersDisabled &&
-    props.settings.stacBrowserDisabled &&
-    props.settings.storyMapsDisabled;
+    props.settings.layersDisabled && props.settings.stacBrowserDisabled;
 
   const tabs: ITabConfig[] = [
     {
@@ -85,19 +78,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
       enabled: !props.settings.stacBrowserDisabled && !storyMapPresentationMode,
       contentClassName: 'jgis-panel-tab-content-stac-panel',
       content: <StacPanel model={props.model} />,
-    },
-    {
-      name: 'segments',
-      title: 'Segments',
-      enabled: !props.settings.storyMapsDisabled,
-      content: (
-        <LayersBodyComponent
-          model={props.model}
-          commands={props.commands}
-          state={props.state}
-          layerTree={segmentTree}
-        />
-      ),
     },
   ];
 

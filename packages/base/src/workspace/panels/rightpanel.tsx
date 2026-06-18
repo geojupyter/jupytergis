@@ -2,7 +2,6 @@ import {
   IAnnotationModel,
   IDict,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
@@ -10,20 +9,11 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { useStorySegmentSync } from '@/src/features/story/hooks/useStorySegmentSync';
-import { STORY_TYPE } from '@/src/types';
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from '../../features/objectproperties';
-import StoryEditorPanel from '../../features/story/StoryEditorPanel';
-import StoryViewerPanel from '../../features/story/StoryViewerPanel';
-import { PreviewModeSwitch } from '../../features/story/components/PreviewModeSwitch';
-import {
-  useStoryMap,
-  type IOverrideLayerEntry,
-} from '../../features/story/hooks/useStoryMap';
 import {
   TabsRoot,
   TabsContent,
@@ -31,59 +21,12 @@ import {
   TabsTrigger,
 } from '../../shared/components/Tabs';
 
-/** Story viewer + useStoryMap hook
- * only mounted when story tab is active to avoid the hook causing re-renders when tab is hidden.
- **/
-export function RightPanelStoryViewer({
-  model,
-  addLayer,
-  removeLayer,
-}: {
-  model: IJupyterGISModel;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
-}) {
-  const overrideLayerEntriesRef = React.useRef<IOverrideLayerEntry[]>([]);
-  const {
-    storyData,
-    currentIndex,
-    setIndex,
-    handlePrev,
-    handleNext,
-    hasPrev,
-    hasNext,
-    activeSlide,
-    layerName,
-  } = useStoryMap({
-    model,
-    overrideLayerEntriesRef,
-    removeLayer,
-    addLayer,
-    isSpecta: false,
-  });
-
-  useStorySegmentSync({ model, storyData, setIndex });
-
-  return (
-    <StoryViewerPanel
-      isSpecta={false}
-      storyData={storyData}
-      currentIndex={currentIndex}
-      activeSlide={activeSlide}
-      layerName={layerName}
-      segmentNav={{ handlePrev, handleNext, hasPrev, hasNext }}
-    />
-  );
-}
-
 interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   annotationModel: IAnnotationModel;
   model: IJupyterGISModel;
   commands: CommandRegistry;
   settings: IJupyterGISSettings;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
   patchGeoJSONFeatureProperties?: (
     sourceId: string,
     target: { featureId: string },
@@ -93,21 +36,10 @@ interface IRightPanelProps {
 
 const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const { patchGeoJSONFeatureProperties } = props;
-  const isListStory =
-    props.model.getSelectedStory().story?.storyType ===
-    STORY_TYPE.verticalScroll;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    const initialPresentationMode =
-      props.model.getOptions().storyMapPresentationMode ?? false;
-    if (initialPresentationMode) {
-      return 'storyPanel';
-    }
     if (!props.settings.objectPropertiesDisabled) {
       return 'objectProperties';
-    }
-    if (!props.settings.storyMapsDisabled) {
-      return 'storyPanel';
     }
     if (!props.settings.annotationsDisabled) {
       return 'annotations';
@@ -118,14 +50,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
     return '';
   });
 
-  const {
-    storyMapPresentationMode,
-    editorMode,
-    showEditor,
-    storyPanelTitle,
-    toggleEditor,
-  } = useRightPanelOptions(props.model, {
-    onPresentationModeEnabled: () => setCurTab('storyPanel'),
+  const { storyMapPresentationMode } = useRightPanelOptions(props.model, {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
 
@@ -135,9 +60,6 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const tabInfo = [
     !props.settings.objectPropertiesDisabled && !storyMapPresentationMode
       ? { name: 'objectProperties', title: 'Object Properties' }
-      : false,
-    !props.settings.storyMapsDisabled
-      ? { name: 'storyPanel', title: storyPanelTitle }
       : false,
     !props.settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
@@ -200,34 +122,6 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
                 formSchemaRegistry={props.formSchemaRegistry}
                 model={props.model}
               />
-            </TabsContent>
-          )}
-
-          {!props.settings.storyMapsDisabled && (
-            <TabsContent
-              value="storyPanel"
-              className="jgis-panel-tab-content"
-              style={{ paddingTop: 0 }}
-            >
-              {/* Only show switch when NOT in presentation mode */}
-              {!storyMapPresentationMode && !isListStory && (
-                <PreviewModeSwitch
-                  checked={!editorMode}
-                  onCheckedChange={toggleEditor}
-                />
-              )}
-              {showEditor ? (
-                <StoryEditorPanel
-                  model={props.model}
-                  commands={props.commands}
-                />
-              ) : curTab === 'storyPanel' ? (
-                <RightPanelStoryViewer
-                  model={props.model}
-                  addLayer={props.addLayer}
-                  removeLayer={props.removeLayer}
-                />
-              ) : null}
             </TabsContent>
           )}
 
