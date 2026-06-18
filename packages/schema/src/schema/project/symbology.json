@@ -66,7 +66,7 @@
       "type": "object",
       "title": "IGeometryTypePredicate",
       "description": "Filter by geometry type.",
-      "required": ["value"],
+      "required": ["type", "value"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "geometryType" },
@@ -80,7 +80,7 @@
       "type": "object",
       "title": "IHasFieldPredicate",
       "description": "Filter by presence of a field.",
-      "required": ["field"],
+      "required": ["type", "field"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "hasField" },
@@ -91,7 +91,7 @@
       "type": "object",
       "title": "IFieldEqualsPredicate",
       "description": "Filter by exact field value (string or number).",
-      "required": ["field", "value"],
+      "required": ["type", "field", "value"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "fieldEquals" },
@@ -103,7 +103,7 @@
       "type": "object",
       "title": "IFieldComparePredicate",
       "description": "Filter by numeric field comparison.",
-      "required": ["field", "op", "value"],
+      "required": ["type", "field", "op", "value"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "fieldCompare" },
@@ -116,7 +116,7 @@
       "type": "object",
       "title": "IBetweenPredicate",
       "description": "Filter by numeric field range (inclusive).",
-      "required": ["field", "min", "max"],
+      "required": ["type", "field", "min", "max"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "between" },
@@ -140,7 +140,7 @@
       "type": "object",
       "title": "IKDETransform",
       "description": "KDE heatmap transform. Density output addressed as '$density'.",
-      "required": ["radius", "blur"],
+      "required": ["type", "radius", "blur"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "kde" },
@@ -153,7 +153,7 @@
       "type": "object",
       "title": "IClusterTransform",
       "description": "Cluster transform. Aggregates nearby points into centroids.",
-      "required": ["radius"],
+      "required": ["type", "radius"],
       "additionalProperties": false,
       "properties": {
         "type": { "const": "cluster" },
@@ -172,7 +172,7 @@
       "type": "object",
       "title": "IColorRampScale",
       "description": "Maps a numeric field through a named color palette to RGBA.",
-      "required": ["params"],
+      "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "colorRamp" },
@@ -216,7 +216,7 @@
       "type": "object",
       "title": "ICategoricalScale",
       "description": "Maps discrete field values to colors sampled from a named palette.",
-      "required": ["params"],
+      "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "categorical" },
@@ -255,7 +255,7 @@
       "type": "object",
       "title": "IScalarScale",
       "description": "Maps a numeric field to a numeric output (radius, width, sub-channel value).",
-      "required": ["params"],
+      "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "scalar" },
@@ -301,7 +301,7 @@
       "type": "object",
       "title": "IConstantRGBAScale",
       "description": "Fixed RGBA color regardless of feature data.",
-      "required": ["params"],
+      "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "constant_rgba" },
@@ -321,7 +321,7 @@
       "type": "object",
       "title": "IConstantNumScale",
       "description": "Fixed numeric value regardless of feature data.",
-      "required": ["params"],
+      "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "constant_num" },
@@ -341,7 +341,7 @@
       "type": "object",
       "title": "IIdentityScale",
       "description": "Passes the field value through unchanged.",
-      "required": [],
+      "required": ["scheme"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "identity" }
@@ -351,7 +351,7 @@
       "type": "object",
       "title": "IExpressionScale",
       "description": "Evaluates an expression against one or more input fields (reserved).",
-      "required": ["params"],
+      "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "expression" },
