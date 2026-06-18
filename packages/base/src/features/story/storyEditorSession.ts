@@ -1,8 +1,12 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { Widget } from '@lumino/widgets';
+import React from 'react';
 
-import { StoryMapPickBarWidget } from './components/StoryMapPickBarWidget';
-import { StoryMapPreviewBarWidget } from './components/StoryMapPreviewBarWidget';
+import {
+  MapPickBarActions,
+  MapPreviewBarActions,
+} from './components/PickBarActions';
+import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
 import type { StoryEditorWidget } from './storyEditorDialog';
 import {
   applySegmentLayerOverrides,
@@ -25,8 +29,7 @@ export class StoryEditorSession {
   private _pickingSegmentId: string | null = null;
   private _previewSegmentId: string | null = null;
   private _mode: StoryEditorSessionMode = 'idle';
-  private _pickBar: StoryMapPickBarWidget | null = null;
-  private _previewBar: StoryMapPreviewBarWidget | null = null;
+  private _mapBar: StoryMapInteractionBarWidget | null = null;
   private _overrideEntries: IOverrideLayerEntry[] = [];
 
   public static getInstance(): StoryEditorSession {
@@ -70,7 +73,17 @@ export class StoryEditorSession {
     this._mode = 'picking-map-view';
     this._focusSegmentOnMap(segmentId);
     this._dialog.minimize();
-    this._showPickBar();
+    this._showMapBar(
+      'Pan and zoom the map, then apply this view to the story stop.',
+      React.createElement(MapPickBarActions, {
+        onBack: () => {
+          this.restoreEditor();
+        },
+        onApply: () => {
+          this.applyMapView();
+        },
+      }),
+    );
   }
 
   public enterPreviewMode(segmentId: string): void {
@@ -83,7 +96,14 @@ export class StoryEditorSession {
     this._focusSegmentOnMap(segmentId);
     applySegmentLayerOverrides(this._model, segmentId, this._overrideEntries);
     this._dialog.minimize();
-    this._showPreviewBar();
+    this._showMapBar(
+      'Previewing this stop on the map with its layer overrides.',
+      React.createElement(MapPreviewBarActions, {
+        onBack: () => {
+          this.restoreEditor();
+        },
+      }),
+    );
   }
 
   public applyMapView(): void {
@@ -103,8 +123,7 @@ export class StoryEditorSession {
     this._pickingSegmentId = null;
     this._previewSegmentId = null;
     this._mode = 'editing';
-    this._hidePickBar();
-    this._hidePreviewBar();
+    this._hideMapBar();
     this._dialog?.restore();
   }
 
@@ -118,17 +137,7 @@ export class StoryEditorSession {
       clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
     }
 
-    if (this._pickBar) {
-      this._pickBar.hide();
-      this._pickBar.dispose();
-      this._pickBar = null;
-    }
-
-    if (this._previewBar) {
-      this._previewBar.hide();
-      this._previewBar.dispose();
-      this._previewBar = null;
-    }
+    this._disposeMapBar();
 
     this._dialog = null;
     this._model = null;
@@ -158,40 +167,24 @@ export class StoryEditorSession {
     this._model.centerOnPosition(segmentId);
   }
 
-  private _showPickBar(): void {
-    if (!this._pickBar) {
-      this._pickBar = new StoryMapPickBarWidget({
-        onApply: () => {
-          this.applyMapView();
-        },
-        onBack: () => {
-          this.restoreEditor();
-        },
-      });
-      Widget.attach(this._pickBar, document.body);
+  private _showMapBar(message: string, children: React.ReactNode): void {
+    this._disposeMapBar();
+    this._mapBar = new StoryMapInteractionBarWidget({ message, children });
+    Widget.attach(this._mapBar, document.body);
+    this._mapBar.show();
+  }
+
+  private _hideMapBar(): void {
+    this._mapBar?.hide();
+  }
+
+  private _disposeMapBar(): void {
+    if (!this._mapBar) {
+      return;
     }
 
-    this._pickBar.show();
-  }
-
-  private _hidePickBar(): void {
-    this._pickBar?.hide();
-  }
-
-  private _showPreviewBar(): void {
-    if (!this._previewBar) {
-      this._previewBar = new StoryMapPreviewBarWidget({
-        onBack: () => {
-          this.restoreEditor();
-        },
-      });
-      Widget.attach(this._previewBar, document.body);
-    }
-
-    this._previewBar.show();
-  }
-
-  private _hidePreviewBar(): void {
-    this._previewBar?.hide();
+    this._mapBar.hide();
+    this._mapBar.dispose();
+    this._mapBar = null;
   }
 }

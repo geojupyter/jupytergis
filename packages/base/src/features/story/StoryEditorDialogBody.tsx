@@ -108,7 +108,8 @@ function SegmentEditor({
           <StoryEditorSection triggerText="Map view" defaultOpen>
             <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
               <p className="jgis-story-editor-help">
-                Set this segment's map view by positioning the main map.
+                Set the map view by panning and zooming on the map, or preview
+                this stop with its layer overrides applied.
               </p>
               <div className="jgis-story-editor-row">
                 <Button
