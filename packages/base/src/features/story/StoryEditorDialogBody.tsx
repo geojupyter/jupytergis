@@ -271,6 +271,7 @@ export function StoryEditorDialogBody({
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
       <StoryEditorHeaderBar
+        model={model}
         story={story}
         segmentCount={segments.length}
         onUpdateStory={updateStory}

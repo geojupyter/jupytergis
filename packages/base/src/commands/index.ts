@@ -1878,6 +1878,39 @@ export function addCommands(
     ...icons.get(CommandIDs.openStoryEditor),
   });
 
+  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
+    label: trans.__('Toggle Story Presentation Mode'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return current.model.isStoryPreviewActive();
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      return model.canUseStoryPreview();
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      StoryEditorSession.getInstance().toggleStoryPreview(current.model);
+    },
+    ...icons.get(CommandIDs.toggleStoryPresentationMode),
+  });
+
+  StoryEditorSession.setPreviewChangeNotifier(() => {
+    commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+  });
+
   commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
     label: trans.__('Create Story Segment for Layer'),
 

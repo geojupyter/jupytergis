@@ -1,8 +1,9 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { IJGISStoryMap } from '@jupytergis/schema';
+import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState, type RefObject } from 'react';
 
+import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
@@ -26,6 +27,7 @@ import { Switch } from '@/src/shared/components/Switch';
 import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorHeaderBarProps {
+  model: IJupyterGISModel;
   story: IJGISStoryMap | null;
   segmentCount: number;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
@@ -174,11 +176,14 @@ function StorySettingsPopover({
 }
 
 export function StoryEditorHeaderBar({
+  model,
   story,
   segmentCount,
   onUpdateStory,
   portalContainerRef,
 }: IStoryEditorHeaderBarProps): JSX.Element {
+  const canPreview = model.canUseStoryPreview();
+
   return (
     <div className="jgis-story-editor-context-bar">
       <StoryTitleInput
@@ -199,6 +204,18 @@ export function StoryEditorHeaderBar({
           <span className="jgis-story-editor-context-meta">
             {formatGradientLabel(story.showGradient)}
           </span>
+        ) : null}
+        {story && canPreview ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              StoryEditorSession.getInstance().enterStoryPreviewMode();
+            }}
+          >
+            Preview story
+          </Button>
         ) : null}
         {story && (
           <StorySettingsPopover

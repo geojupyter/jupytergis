@@ -17,10 +17,14 @@ import {
   clearSegmentLayerOverrideEntries,
 } from './utils/storySegmentOverrides';
 
-type StoryEditorMapInteractionMode = 'map-view' | 'previewing-segment';
+type StoryEditorMapInteractionMode =
+  | 'map-view'
+  | 'previewing-segment'
+  | 'previewing-story';
 
 export class StoryEditorSession {
   private static instance: StoryEditorSession;
+  private static _previewChangeNotifier: (() => void) | null = null;
 
   private _dialog: StoryEditorWidget | null = null;
   private _model: IJupyterGISModel | null = null;
@@ -29,6 +33,10 @@ export class StoryEditorSession {
   private _mapInteractionMode: StoryEditorMapInteractionMode | null = null;
   private _mapBar: StoryMapInteractionBarWidget | null = null;
   private _overrideEntries: IOverrideLayerEntry[] = [];
+
+  public static setPreviewChangeNotifier(notifier: (() => void) | null): void {
+    StoryEditorSession._previewChangeNotifier = notifier;
+  }
 
   public static getInstance(): StoryEditorSession {
     if (!StoryEditorSession.instance) {
@@ -58,6 +66,10 @@ export class StoryEditorSession {
 
   public isPreviewingSegment(): boolean {
     return this._mapInteractionMode === 'previewing-segment';
+  }
+
+  public isPreviewingStory(): boolean {
+    return this._mapInteractionMode === 'previewing-story';
   }
 
   public isMapInteractionMode(): boolean {
@@ -107,6 +119,44 @@ export class StoryEditorSession {
     );
   }
 
+  public enterStoryPreviewMode(): void {
+    if (!this._dialog || !this._model || !this._model.canUseStoryPreview()) {
+      return;
+    }
+
+    this._clearSegmentInteractionState();
+    this._mapInteractionMode = 'previewing-story';
+    this._model.setStoryPreviewActive(true);
+    this._dialog.minimize();
+    this._notifyPreviewChanged();
+  }
+
+  public toggleStoryPreview(model: IJupyterGISModel): void {
+    if (!model.canUseStoryPreview()) {
+      return;
+    }
+
+    const editorAttached = this._dialog !== null && this._model === model;
+
+    if (model.isStoryPreviewActive()) {
+      if (editorAttached && this.isPreviewingStory()) {
+        this.restoreEditor();
+      } else {
+        model.setStoryPreviewActive(false);
+        this._notifyPreviewChanged();
+      }
+      return;
+    }
+
+    if (editorAttached) {
+      this.enterStoryPreviewMode();
+      return;
+    }
+
+    model.setStoryPreviewActive(true);
+    this._notifyPreviewChanged();
+  }
+
   public applyMapView(): void {
     if (!this._model || !this._mapViewSegmentId) {
       return;
@@ -117,10 +167,6 @@ export class StoryEditorSession {
   }
 
   public restoreEditor(): void {
-    if (this.isPreviewingSegment() && this._model) {
-      clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
-    }
-
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
     this._togglePanels();
@@ -134,8 +180,15 @@ export class StoryEditorSession {
   }
 
   public clear(): void {
-    if (this.isPreviewingSegment() && this._model) {
-      clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
+    if (this._model) {
+      this._clearSegmentInteractionState();
+      if (
+        this._mapInteractionMode === 'previewing-story' ||
+        this._model.isStoryPreviewActive()
+      ) {
+        this._model.setStoryPreviewActive(false);
+        this._notifyPreviewChanged();
+      }
     }
 
     this._disposeMapBar();
@@ -145,7 +198,23 @@ export class StoryEditorSession {
     this._commands = null;
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
+    this._mapViewSegmentId = null;
+    this._mapInteractionMode = null;
     this._overrideEntries = [];
+  }
+
+  private _notifyPreviewChanged(): void {
+    StoryEditorSession._previewChangeNotifier?.();
+  }
+
+  private _clearSegmentInteractionState(): void {
+    if (this._mapInteractionMode === 'previewing-segment' && this._model) {
+      clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
+    }
+
+    this._pickingSegmentId = null;
+    this._previewSegmentId = null;
+    this._mapInteractionMode = null;
   }
 
   private _focusSegmentOnMap(segmentId: string): void {

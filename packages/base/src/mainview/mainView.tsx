@@ -327,6 +327,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.storyPreviewActiveChanged.connect(
+      this._onStoryPreviewActiveChanged,
+      this,
+    );
 
     // After a user signs in to an OpenEO server, rebuild any of this
     // document's OpenEO tile sources whose serverUrl matches — they
@@ -369,7 +373,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       editingVectorLayer: false,
       drawGeometryLabel: '',
       jgisSettings: this._model.jgisSettings,
-      isSpectaPresentation: this._model.isSpectaMode(),
+      isSpectaPresentation: this._model.isStoryPresentationActive(),
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
       segmentTransition: null,
@@ -405,19 +409,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
     this._mainViewModel.initSignal();
+    if (
+      this.state.isSpectaPresentation &&
+      this._model.isSpectaMode() &&
+      !this._spectaModeSetupDone
+    ) {
+      this._setupSpectaMode();
+      this._spectaModeSetupDone = true;
+    }
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
   }
 
   componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
-    // Run setup when isSpectaPresentation changes from false/undefined to true
-    if (
-      this.state.isSpectaPresentation &&
-      !this._isSpectaPresentationInitialized
-    ) {
+    const enteredPresentation =
+      !prevState.isSpectaPresentation && this.state.isSpectaPresentation;
+    const exitedPresentation =
+      prevState.isSpectaPresentation && !this.state.isSpectaPresentation;
+
+    if (enteredPresentation && this._model.isSpectaMode()) {
       this._setupSpectaMode();
-      this._isSpectaPresentationInitialized = true;
+      this._spectaModeSetupDone = true;
+    }
+
+    if (exitedPresentation && this._spectaModeSetupDone) {
+      this._teardownSpectaMode();
+      this._spectaModeSetupDone = false;
     }
   }
 
@@ -458,6 +476,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.selectedChanged.disconnect(this._handleSelectedChanged, this);
     this._model.identifiedFeaturesChanged.disconnect(
       this._handleIdentifiedFeaturesChanged,
+      this,
+    );
+    this._model.storyPreviewActiveChanged.disconnect(
+      this._onStoryPreviewActiveChanged,
       this,
     );
     // Clean up story scroll listener
@@ -2509,24 +2531,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState(old => ({ ...old, clientPointers }));
   }
 
+  private _onStoryPreviewActiveChanged = (): void => {
+    this.setState({
+      isSpectaPresentation: this._model.isStoryPresentationActive(),
+    });
+  };
+
   private _onSharedOptionsChanged(): void {
     if (!this._Map) {
       return;
     }
 
-    // ! would prefer a model ready signal or something, this feels hacky
-    const enableSpectaPresentation = this._model.isSpectaMode();
-
-    // Handle initialization based on specta presentation state
-    if (!this._isSpectaPresentationInitialized) {
-      if (enableSpectaPresentation) {
-        // _setupSpectaMode will be called in componentDidUpdate when state changes
-        this.setState(old => ({ ...old, isSpectaPresentation: true }));
-      } else {
-        // Add context menu when not in specta mode
+    if (!this._contextMenuAttached) {
+      if (!this._model.isSpectaMode()) {
         this.addContextMenu();
-        this._isSpectaPresentationInitialized = true;
       }
+      this._contextMenuAttached = true;
     }
 
     if (!this._isPositionInitialized) {
@@ -3026,6 +3046,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       this._storyScrollHandler = null;
     }
+  };
+
+  private _teardownSpectaMode = (): void => {
+    this._cleanupStoryScrollListener();
   };
 
   private _onSharedMetadataChanged = (
@@ -4061,7 +4085,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _featurePropertyCache: Map<string | number, any> = new Map();
-  private _isSpectaPresentationInitialized = false;
+  private _contextMenuAttached = false;
+  private _spectaModeSetupDone = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;

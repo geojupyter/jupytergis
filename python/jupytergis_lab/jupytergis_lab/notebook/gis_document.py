@@ -136,7 +136,6 @@ class GISDocument(CommWidget):
                 "bearing": 0,
                 "pitch": 0,
                 "projection": "EPSG:3857",
-                "storyMapPresentationMode": False,
             },
         )
         self.ydoc["layerTree"] = self._layerTree = Array()
