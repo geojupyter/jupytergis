@@ -76,8 +76,8 @@ const PIXEL_FLOAT_CHANNELS: Encoding[] = [
   'pixel-alpha',
 ];
 const ALL_PIXEL_CHANNELS = Array.from(
-  new Set(...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS),
-) as Encoding[];
+  new Set([...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS]),
+);
 
 /** Display labels for channels that need a friendlier name. */
 const CHANNEL_LABELS: Partial<Record<Encoding, string>> = {
