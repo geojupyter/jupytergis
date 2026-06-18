@@ -193,13 +193,8 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
     segment.parameters.layerOverride = [];
   }
 
-  // Find the override for the target layer (from the selected layer in the dialog)
-  const targetLayerId = model.selected
-    ? Object.keys(model.selected).find(
-        id =>
-          id !== segmentId && model.getLayer(id)?.type !== 'StorySegmentLayer',
-      )
-    : undefined;
+  // Persist override symbology for the explicit target layer.
+  const targetLayerId = layerId;
 
   if (!targetLayerId) {
     return;

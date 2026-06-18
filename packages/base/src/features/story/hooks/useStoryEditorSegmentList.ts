@@ -18,22 +18,7 @@ import {
 } from '@/src/features/story/utils/storySegmentTransition';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
-function getSingleSelectedLayerId(
-  selected: Record<string, unknown> | null | undefined,
-): string | null {
-  if (!selected) {
-    return null;
-  }
-
-  const selectedLayerIds = Object.keys(selected);
-  if (selectedLayerIds.length !== 1) {
-    return null;
-  }
-
-  return selectedLayerIds[0];
-}
-
-function resolveSelectedSegmentId(
+function getSegmentIdAtCurrentIndex(
   model: IJupyterGISModel,
   story: IJGISStoryMap | null,
 ): string | null {
@@ -42,25 +27,9 @@ function resolveSelectedSegmentId(
     return null;
   }
 
-  const selectedLayerId = getSingleSelectedLayerId(
-    model.localState?.selected?.value,
-  );
-
-  if (
-    selectedLayerId &&
-    segmentIds.includes(selectedLayerId) &&
-    model.getLayer(selectedLayerId)?.type === 'StorySegmentLayer'
-  ) {
-    return selectedLayerId;
-  }
-
-  const currentIndex = model.getCurrentSegmentIndex();
-  const fromIndex = segmentIds[currentIndex];
-  if (fromIndex) {
-    return fromIndex;
-  }
-
-  return segmentIds[0] ?? null;
+  const rawIndex = model.getCurrentSegmentIndex() ?? 0;
+  const index = Math.min(Math.max(rawIndex, 0), segmentIds.length - 1);
+  return segmentIds[index] ?? null;
 }
 
 interface IUseStoryEditorSegmentListResult {
@@ -97,17 +66,13 @@ export function useStoryEditorSegmentList(
     };
 
     model.sharedModel.layersChanged.connect(bump);
-    model.sharedModel.layerTreeChanged.connect(bump);
     model.sharedModel.storyMapsChanged.connect(bump);
-    model.selectedChanged.connect(bump);
     model.currentSegmentIndexChanged.connect(bump);
     model.segmentAdded.connect(bump);
 
     return () => {
       model.sharedModel.layersChanged.disconnect(bump);
-      model.sharedModel.layerTreeChanged.disconnect(bump);
       model.sharedModel.storyMapsChanged.disconnect(bump);
-      model.selectedChanged.disconnect(bump);
       model.currentSegmentIndexChanged.disconnect(bump);
       model.segmentAdded.disconnect(bump);
     };
@@ -143,7 +108,7 @@ export function useStoryEditorSegmentList(
   );
 
   const selectedSegmentId = useMemo(
-    () => resolveSelectedSegmentId(model, story),
+    () => getSegmentIdAtCurrentIndex(model, story),
     [model, story, revision],
   );
 
@@ -243,6 +208,14 @@ export function useStoryEditorSegmentList(
       _sender: IJupyterGISModel,
       payload: { storySegmentId: string },
     ): void => {
+      const { story: currentStory } = model.getSelectedStory();
+      const index =
+        currentStory?.storySegments?.indexOf(payload.storySegmentId) ?? -1;
+
+      if (index >= 0) {
+        model.setCurrentSegmentIndex(index);
+      }
+
       model.syncSelected(
         { [payload.storySegmentId]: { type: 'layer' } },
         model.getClientId().toString(),

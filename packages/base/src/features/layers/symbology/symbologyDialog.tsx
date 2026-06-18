@@ -43,16 +43,24 @@ export interface IStopRow {
 export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
+  layerId,
   isStorySegmentOverride,
   segmentId,
 }) => {
-  const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
+  const [selectedLayer, setSelectedLayer] = useState<string | null>(
+    layerId ?? null,
+  );
   const [componentToRender, setComponentToRender] =
     useState<JSX.Element | null>(null);
 
   let LayerSymbology: React.JSX.Element;
 
   useEffect(() => {
+    if (layerId) {
+      setSelectedLayer(layerId);
+      return;
+    }
+
     const handleSelectedChanged = () => {
       if (!model.localState?.selected?.value) {
         return;
@@ -71,7 +79,7 @@ export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
     return () => {
       model.selectedChanged.disconnect(handleSelectedChanged);
     };
-  }, []);
+  }, [layerId, model]);
 
   useEffect(() => {
     if (!selectedLayer) {

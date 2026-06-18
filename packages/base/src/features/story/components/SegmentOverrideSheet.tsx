@@ -34,7 +34,6 @@ export function SegmentOverrideSheet({
 }: ISegmentOverrideSheetProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const previousSelectionRef = useRef(model.selected);
   const { okSignalPromise, okSignal } = useMemo(() => {
     const delegate = new PromiseDelegate<Signal<SymbologyWidget, null>>();
     const signal = new Signal<SymbologyWidget, null>({} as SymbologyWidget);
@@ -44,14 +43,6 @@ export function SegmentOverrideSheet({
 
   const handleOpenChange = (nextOpen: boolean): void => {
     setOpen(nextOpen);
-
-    if (nextOpen) {
-      previousSelectionRef.current = model.selected;
-      model.syncSelected({ [layerId]: { type: 'layer' } });
-      return;
-    }
-
-    model.syncSelected(previousSelectionRef.current ?? {});
   };
 
   const handleSave = (): void => {

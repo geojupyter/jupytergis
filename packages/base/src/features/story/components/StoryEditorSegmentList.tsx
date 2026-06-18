@@ -75,7 +75,6 @@ export function StoryEditorSegmentList({
       </div>
       <Button
         variant="outline"
-        size="sm"
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
       >
