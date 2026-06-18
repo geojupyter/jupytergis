@@ -184,19 +184,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('openStoryEditor', openStoryEditorButton);
       openStoryEditorButton.node.dataset.testid = 'open-story-editor-button';
 
-      const storyModePresentationToggleButton = new CommandToolbarButton({
-        id: CommandIDs.toggleStoryPresentationMode,
-        label: '',
-        commands: options.commands,
-      });
-
-      this.addItem(
-        'toggleStoryPresentationMode',
-        storyModePresentationToggleButton,
-      );
-      storyModePresentationToggleButton.node.dataset.testid =
-        'toggleStoryPresentationMode-button';
-
       this._togglePanelButton = new CommandToolbarButton({
         id: CommandIDs.togglePanel,
         label: '',

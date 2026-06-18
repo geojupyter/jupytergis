@@ -80,10 +80,14 @@ export function getEffectiveSymbologyParams(
     return layer.parameters as IEffectiveSymbologyParams;
   }
 
-  if (!override.symbologyState) {
-    override.symbologyState = {};
-  }
-  return override as IEffectiveSymbologyParams;
+  const layerParameters = layer.parameters as IEffectiveSymbologyParams;
+
+  return {
+    ...layerParameters,
+    ...override,
+    symbologyState:
+      override.symbologyState ?? layerParameters.symbologyState ?? { layers: [] },
+  } as IEffectiveSymbologyParams;
 }
 
 const GRAMMAR_SYMBOLOGY_METADATA_KEYS = new Set(['id']);
@@ -211,6 +215,7 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
       targetLayer: targetLayerId,
       visible: true,
       opacity: 1,
+      symbologyState: { layers: [] },
     };
     overrides.push(override);
   }

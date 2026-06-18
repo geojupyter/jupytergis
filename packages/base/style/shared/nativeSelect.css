@@ -31,7 +31,6 @@
 [data-slot='native-select']::selection {
   background-color: var(--jp-brand-color1);
   color: var(--jp-ui-inverse-font-color1);
-  border: red 1px solid;
 }
 
 [data-slot='native-select']:focus {

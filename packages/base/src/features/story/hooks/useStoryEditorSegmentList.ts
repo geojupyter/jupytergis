@@ -104,7 +104,7 @@ export function useStoryEditorSegmentList(
 
   const segments = useMemo(
     () => buildStorySegmentViewItems(model, story),
-    [model, story],
+    [model, story, revision],
   );
 
   const selectedSegmentId = useMemo(

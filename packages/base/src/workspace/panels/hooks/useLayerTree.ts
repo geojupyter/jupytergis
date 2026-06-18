@@ -6,8 +6,6 @@ import {
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
-import { CommandIDs } from '../../../constants';
-
 /**
  * Subscribes to the model's layer tree and splits it into two derived trees:
  * - `layerTree`: regular map layers (excludes StorySegmentLayers)
@@ -49,7 +47,6 @@ export function useLayerTree(
       const freshTree = model.getLayerTree() || [];
       setRawLayerTree(freshTree);
       syncInitialSelection(freshTree);
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     };
 
     const handleSegmentAdded = (

@@ -187,7 +187,16 @@ function SegmentEditor({
               onOpenChange={setAnimationOpen}
             >
               <div className="jgis-story-editor-row">
-                <NativeSelect size="sm" defaultValue="smooth">
+                <NativeSelect
+                  size="sm"
+                  value={transitionType}
+                  onChange={event => {
+                    onTransitionChange({
+                      type: event.target
+                        .value as SegmentTransitionPatch['type'],
+                    });
+                  }}
+                >
                   <NativeSelectOption value="immediate">
                     Instant
                   </NativeSelectOption>
