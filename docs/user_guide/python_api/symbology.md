@@ -168,27 +168,6 @@ heat = heatmap(radius=20, blur=30, mappings=[field("$density").colormap("hot").e
 clusters = cluster(radius=40, mappings=[constant("black").encoding("stroke")])
 ```
 
-Combine multiple symbology fragments into multiple grammar layers:
-
-```python
-from jupytergis import constant
-
-symbology = [
-    [constant("#00FF00").encoding("fill")],
-    [constant(2).encoding("stroke-width")],
-]
-```
-
-Use a list of symbology objects (equivalent to multiple symbology layers):
-
-```python
-from jupytergis import constant
-
-symbology_list = [
-    [constant("#00FF00").encoding("fill")],
-    [constant(3).encoding("radius")],
-]
-```
 
 (encoding-values)=
 
