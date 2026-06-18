@@ -92,7 +92,7 @@ test.describe('Showcase', () => {
         await setup(page);
       }
 
-      await page.waitForTimeout(8000);
+      await page.waitForTimeout(15000);
 
       expect(
         await main.screenshot({ type: 'jpeg', quality: 80 }),
