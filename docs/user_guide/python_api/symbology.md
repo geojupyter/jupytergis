@@ -166,6 +166,8 @@ from jupytergis import cluster, constant, field, heatmap
 
 heat = heatmap(radius=20, blur=30, mappings=[field("$density").colormap("hot").encoding("pixel-rgb")])
 clusters = cluster(radius=40, mappings=[constant("black").encoding("stroke")])
+
+symbology = [heat, clusters]
 ```
 
 
