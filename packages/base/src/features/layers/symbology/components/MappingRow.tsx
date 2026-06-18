@@ -18,7 +18,7 @@ import {
   IConstantRGBAScale,
   IPredicate,
   IScale,
-  StyleChannel,
+  Encoding,
   RGBA,
 } from '@jupytergis/schema';
 import React, { useCallback, useRef, useState } from 'react';
@@ -45,13 +45,13 @@ import {
 // Channel taxonomy
 // ---------------------------------------------------------------------------
 
-const RGBA_CHANNELS: StyleChannel[] = [
+const RGBA_CHANNELS: Encoding[] = [
   'fill-color',
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
 ];
-const POSFLOAT_CHANNELS: StyleChannel[] = [
+const POSFLOAT_CHANNELS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
@@ -62,22 +62,29 @@ const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
 // pixel-rgb:   virtual channel — RGB only; pair with pixel-alpha for separate alpha.
 // pixel-alpha: alpha sub-channel (0-1 scalar).
-const PIXEL_RGBA_CHANNELS: StyleChannel[] = [
+const PIXEL_RGBA_CHANNELS: Encoding[] = [
   'pixel-color',
   'pixel-rgb',
   'pixel-red',
   'pixel-green',
   'pixel-blue',
 ];
-const PIXEL_FLOAT_CHANNELS: StyleChannel[] = ['pixel-alpha'];
-const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
+const PIXEL_FLOAT_CHANNELS: Encoding[] = [
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+  'pixel-alpha',
+];
+const ALL_PIXEL_CHANNELS = Array.from(
+  new Set([...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS]),
+);
 
 /** Display labels for channels that need a friendlier name. */
-const CHANNEL_LABELS: Partial<Record<StyleChannel, string>> = {
+const CHANNEL_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
 };
 
-function compatibleChannels(scale: IScale, isRaster = false): StyleChannel[] {
+function compatibleChannels(scale: IScale, isRaster = false): Encoding[] {
   if (isRaster) {
     switch (scale.scheme) {
       case 'colorRamp':
@@ -106,7 +113,7 @@ function compatibleChannels(scale: IScale, isRaster = false): StyleChannel[] {
 
 function defaultScaleForScheme(
   scheme: IScale['scheme'],
-  _currentChannels: StyleChannel[],
+  _currentChannels: Encoding[],
 ): IScale {
   switch (scheme) {
     case 'constant_rgba':
@@ -145,8 +152,6 @@ function defaultScaleForScheme(
         params: {
           domain: [0, 100],
           range: [1, 20],
-          mode: 'equal interval',
-          nStops: 5,
           fallback: 1,
         },
       };
@@ -320,6 +325,8 @@ export function formatPredicate(pred: IPredicate): string {
       return `${pred.field} ${pred.op} ${pred.value}`;
     case 'between':
       return `${pred.field} between ${pred.min} and ${pred.max}`;
+    default:
+      throw new Error(`Invalid predicate type ${pred}`);
   }
 }
 
@@ -380,6 +387,8 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
         ? { type: 'between', field: p.field, min, max }
         : null;
     }
+    default:
+      throw new Error(`Invalid predicate type ${p.type}`);
   }
 }
 
@@ -642,7 +651,7 @@ export interface IGrammarRow {
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
-  channels: StyleChannel[];
+  channels: Encoding[];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
 }
@@ -741,7 +750,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const handleChannelChange = useCallback(
-    (index: number, ch: StyleChannel) => {
+    (index: number, ch: Encoding) => {
       const next = [...row.channels];
       next[index] = ch;
       onChange({ ...row, channels: next });
@@ -750,7 +759,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const removeChannel = useCallback(
-    (ch: StyleChannel) => {
+    (ch: Encoding) => {
       const next = row.channels.filter(c => c !== ch);
       if (next.length > 0) {
         onChange({ ...row, channels: next });
@@ -762,7 +771,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const addChannel = useCallback(
-    (ch: StyleChannel) => {
+    (ch: Encoding) => {
       onChange({ ...row, channels: [...row.channels, ch] });
     },
     [row, onChange],
@@ -849,7 +858,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 <NativeSelect
                   value={ch}
                   onChange={e =>
-                    handleChannelChange(i, e.target.value as StyleChannel)
+                    handleChannelChange(i, e.target.value as Encoding)
                   }
                 >
                   {compat.map(c => (
@@ -884,7 +893,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                   value=""
                   onChange={e => {
                     if (e.target.value) {
-                      addChannel(e.target.value as StyleChannel);
+                      addChannel(e.target.value as Encoding);
                     }
                   }}
                 >

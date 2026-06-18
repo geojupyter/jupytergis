@@ -8,4 +8,4 @@ dependencies:
   - pycrdt
   - markupsafe
   - pip:
-      - jupytergis-lite==0.16.0a0
+      - jupytergis-lite==0.16.0a1

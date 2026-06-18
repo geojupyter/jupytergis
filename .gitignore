@@ -82,6 +82,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/html
 
 # PyBuilder
 target/
@@ -158,6 +159,8 @@ packages/schema/src/processing/_generated/*
 examples/local_examples/*
 
 packages/base/_generated/
+
+/titiler-openeo/
 
 # jupyter-collaboration cache
 .jupyter
