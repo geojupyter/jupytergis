@@ -92,12 +92,11 @@ function SegmentEditor({
         <Button
           type="button"
           variant="destructive"
-          size="sm"
-          data-icon="inline-start"
           disabled={!canRemoveSegment}
           onClick={onRemoveSegment}
         >
-          <Trash2 className="jgis-inline-icon" /> Delete
+          <Trash2 data-icon="inline-start" className="jgis-inline-icon" />{' '}
+          Delete
         </Button>
       </div>
 
@@ -126,7 +125,6 @@ function SegmentEditor({
                 <Button
                   type="button"
                   className="jp-mod-styled jp-mod-accept"
-                  size="sm"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterPreviewMode(
                       segment.id,

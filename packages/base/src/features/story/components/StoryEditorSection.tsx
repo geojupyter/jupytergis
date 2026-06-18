@@ -36,9 +36,8 @@ function StoryEditorSection({
             size="icon-sm"
             variant="icon"
             className="jgis-rotate-90 jgis-bg-transparent"
-            data-icon="inline-start"
           >
-            <ChevronRightIcon />
+            <ChevronRightIcon data-icon="inline-start" />
           </Button>
           <span>{triggerText}</span>
         </div>
