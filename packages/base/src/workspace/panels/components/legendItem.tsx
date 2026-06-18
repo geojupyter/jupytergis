@@ -251,7 +251,7 @@ function formatPredicate(p: IPredicate): string {
     case 'between':
       return `${p.field} between ${p.min} and ${p.max}`;
     default:
-      throw new Error(`Invalid predicate type ${p.type}`);
+      throw new Error(`Invalid predicate type ${p}`);
   }
 }
 
