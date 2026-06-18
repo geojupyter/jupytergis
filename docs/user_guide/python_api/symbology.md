@@ -148,7 +148,7 @@ Categorical mapping:
 ```python
 from jupytergis import field
 
-symbology = [field("landuse").categorical(colormap="viridis").encoding("fill")]
+symbology = [field("landuse").categorical(colormap="schemeSet1").encoding("fill")]
 ```
 
 Scalar mapping:
