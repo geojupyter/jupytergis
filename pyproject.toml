@@ -13,6 +13,8 @@ requires-python = ">=3.12"
 test = [
     "pytest",
     "dirty-equals",
+    "numpy",
+    "rioxarray",
 ]
 build = [
     "build",

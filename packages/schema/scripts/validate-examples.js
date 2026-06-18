@@ -22,7 +22,6 @@ const LAYER_SCHEMAS = {
   GeoTiffLayer: 'layers/geoTiffLayer.json',
   GeoZarrLayer: 'layers/geoZarrLayer.json',
   ImageLayer: 'layers/imageLayer.json',
-  HeatmapLayer: 'layers/heatmapLayer.json',
   StacLayer: 'layers/stacLayer.json',
   StorySegmentLayer: 'layers/storySegmentLayer.json',
 };

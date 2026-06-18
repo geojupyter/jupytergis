@@ -7,7 +7,6 @@ import React, { useEffect, useState } from 'react';
 
 import { SymbologyTab, SymbologyValue } from '@/src/types';
 import Grammar from './Grammar';
-import Heatmap from './Heatmap';
 
 export interface ISymbologyDialogProps {
   model: IJupyterGISModel;
@@ -87,17 +86,6 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
 
     // TODO GeoTiffLayers can also be used for other layers, need a better way to determine source + layer combo
     switch (layer.type) {
-      case 'HeatmapLayer':
-        LayerSymbology = (
-          <Heatmap
-            model={model}
-            okSignalPromise={okSignalPromise}
-            layerId={selectedLayer}
-            isStorySegmentOverride={isStorySegmentOverride}
-            segmentId={segmentId}
-          />
-        );
-        break;
       case 'VectorLayer':
       case 'VectorTileLayer':
       case 'GeoTiffLayer':
@@ -138,7 +126,10 @@ export class SymbologyWidget extends Dialog<boolean> {
       />
     );
 
-    super({ title: 'Symbology', body });
+    const layerId = Object.keys(options.model.localState!.selected.value!)[0];
+    const layerName = options.model.getLayer(layerId)!.name;
+
+    super({ title: `Symbology — ${layerName}`, body });
 
     this.id = 'jupytergis::symbologyWidget';
     this.okSignal = new Signal(this);

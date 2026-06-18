@@ -18,7 +18,6 @@ export * from './_interface/project/sources/geoZarrSource';
 export * from './_interface/project/sources/openeoTileSource';
 
 // Layers
-export * from './_interface/project/layers/heatmapLayer';
 export * from './_interface/project/layers/hillshadeLayer';
 export * from './_interface/project/layers/storySegmentLayer';
 export * from './_interface/project/layers/rasterLayer';
@@ -41,7 +40,7 @@ import type { IGrammarLayer } from './_interface/project/symbology';
 export interface IGrammarSymbologyState {
   /**
    * Ordered list of independent rendering layers sharing the same source.
-   * Each layer produces one renderer layer (VectorLayer, HeatmapLayer, etc.).
+   * Each layer produces one renderer layer (Vector, Image, WebGLTile, etc.).
    * Layers are rendered in order (first = bottom).
    */
   layers: IGrammarLayer[];

@@ -20,12 +20,12 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@93556350e3433849ea434d68e8b8f7d9e9a402a4
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@95d85449e4f3f352e261221f6529f8ed307f5728
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download extension package
-        uses: dawidd6/action-download-artifact@8305c0f1062bb0d184d09ef4493ecb9288447732  # v20
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151  # v21
         with:
           pr: ${{github.event.issue.number}}
           workflow: 'build.yml'
@@ -39,13 +39,40 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
+            jupyterlab
+
+      - name: Setup pip cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python test dependencies # Needed for notebook tests!
+        shell: bash -l {0}
+        run: pip install --group test
 
       - name: Install the extension
         shell: bash -l {0}
         run: |
           whereis python
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+
+          # Add `[tiler]` extra to the jupytergis_lab wheel
+          args=()
+          for whl in jupytergis*.whl; do
+              if [[ "$whl" == *_lab*.whl ]]; then
+                  args+=("${whl}[tiler]")
+              else
+                  args+=("$whl")
+              fi
+          done
+
+          python -m pip install "${args[@]}"
+
+          rm jupytergis*.whl
 
       - name: Install dependencies
         shell: bash -l {0}
@@ -56,7 +83,7 @@ jobs:
           jlpm install
           jlpm playwright install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@93556350e3433849ea434d68e8b8f7d9e9a402a4
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@95d85449e4f3f352e261221f6529f8ed307f5728
         with:
           npm_client: jlpm
           browser: chromium

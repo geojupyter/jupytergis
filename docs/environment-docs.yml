@@ -3,11 +3,12 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python
+  - python =3.13.*
 
   # Build docs & JupyterLite
   - jupyterlite-core
   - jupyterlite-xeus
+  - micromamba
   - jupyterlite-sphinx
   - jupytext =1.19.0
   - sphinx
@@ -17,6 +18,7 @@ dependencies:
   - sphinx-exercise
   - sphinx-togglebutton
   - sphinxcontrib-mermaid
+  - sphinxcontrib-bibtex
   - myst-parser
   - xeus-python # TODO: Do we need this?
   - specta
@@ -26,4 +28,4 @@ dependencies:
       # IMPORTANT: You must do `jlpm build` at the root of the repo before this can work.
       # See: https://github.com/geojupyter/jupytergis/issues/585
       - ../python/jupytergis_core
-      - ../python/jupytergis_lab
+      - ../python/jupytergis_lab[tiler]

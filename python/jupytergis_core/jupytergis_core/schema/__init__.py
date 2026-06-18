@@ -7,7 +7,6 @@ from .interfaces.project.layers.hillshadeLayer import IHillshadeLayer  # noqa
 from .interfaces.project.layers.imageLayer import IImageLayer  # noqa
 from .interfaces.project.layers.geoTiffLayer import IGeoTiffLayer  # noqa
 from .interfaces.project.layers.geoZarrLayer import IGeoZarrLayer  # noqa
-from .interfaces.project.layers.heatmapLayer import IHeatmapLayer  # noqa
 from .interfaces.project.layers.storySegmentLayer import IStorySegmentLayer  # noqa
 from .interfaces.project.layers.openeoTileLayer import IOpenEOTileLayer  # noqa
 

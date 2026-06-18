@@ -54,6 +54,11 @@ import { IViewState, Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
+const SPECTA_STORY_TYPES: IJGISStoryMap['storyType'][] = [
+  'guided',
+  'Vertical Scroll',
+];
+
 const DEFAULT_SETTINGS: IJupyterGISSettings = {
   proxyUrl: 'https://corsproxy.io',
   leftPanelDisabled: false,
@@ -372,7 +377,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   toString(): string {
-    return JSON.stringify(this.getContent(), null, 2);
+    // Trailing newline for POSIX compliance (e.g. end-of-file-fixer pre-commit hook)
+    return JSON.stringify(this.getContent(), null, 2) + '\n';
   }
 
   fromString(data: string): void {
@@ -719,9 +725,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   isSpectaMode(): boolean {
     const hasStories = Object.keys(this.sharedModel.stories).length > 0;
     const isSpecta = !!document.querySelector('meta[name="specta-config"]');
-    const guidedMode = this.getSelectedStory().story?.storyType === 'guided';
+    const storyType = this.getSelectedStory().story?.storyType;
+    const isModeForSpecta =
+      storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
 
-    return isSpecta && hasStories && guidedMode;
+    return isSpecta && hasStories && isModeForSpecta;
   }
 
   /**
@@ -782,6 +790,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       extent,
       zoom,
       transition: { type: 'linear', time: 1 },
+      content: {
+        contentMode: 'map',
+        title: '',
+        image: '',
+      },
     };
     const layerModel: IJGISLayer = {
       type: 'StorySegmentLayer',

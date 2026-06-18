@@ -29,6 +29,8 @@ import { ExpressionValue } from 'ol/expr/expression';
 import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
+  STOP_NULL,
+  STOP_UNDEFINED,
   SymbologyState,
 } from './styleBuilder';
 
@@ -549,10 +551,25 @@ function compileCategorical(
 
   const caseExpr: ExpressionValue[] = ['case'];
   for (const stop of stops) {
-    caseExpr.push(
-      ['==', fieldExpr(field), stop.value as ExpressionValue],
-      stop.color as ExpressionValue,
-    );
+    let condition: ExpressionValue;
+    if (stop.value === STOP_UNDEFINED) {
+      // Property missing entirely
+      condition = ['!', ['has', field]] as ExpressionValue;
+    } else if (stop.value === STOP_NULL) {
+      // Property exists but value is null
+      condition = [
+        'all',
+        ['has', field],
+        ['==', ['coalesce', fieldExpr(field), '__jgis_ns__'], '__jgis_ns__'],
+      ] as ExpressionValue;
+    } else {
+      condition = [
+        '==',
+        fieldExpr(field),
+        stop.value as ExpressionValue,
+      ] as ExpressionValue;
+    }
+    caseExpr.push(condition, stop.color as ExpressionValue);
   }
   caseExpr.push(scale.params.fallback);
   return caseExpr;

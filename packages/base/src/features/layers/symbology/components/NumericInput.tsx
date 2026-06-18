@@ -11,6 +11,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
+import { Input } from '@/src/shared/components/Input';
+
 interface INumericInputProps {
   value: number;
   onChange: (v: number) => void;
@@ -58,20 +60,13 @@ export const NumericInput: React.FC<INumericInputProps> = ({
     trimmed === '' || trimmed === '-' || Number.isFinite(Number(trimmed));
 
   return (
-    <input
+    <Input
       className={className}
-      style={
-        isValid
-          ? style
-          : {
-              ...style,
-              outline: '2px solid var(--jp-error-color1, #d32f2f)',
-              outlineOffset: '-1px',
-            }
-      }
+      style={style}
       type="text"
       placeholder={placeholder}
       value={raw}
+      aria-invalid={!isValid}
       onChange={e => setRaw(e.target.value)}
       onFocus={() => {
         focused.current = true;

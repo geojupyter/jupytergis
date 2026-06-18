@@ -1,3 +1,3 @@
-__version__ = "0.15.0"
+__version__ = "0.16.0a1"
 
 from jupytergis_lab import GISDocument, explore  # noqa

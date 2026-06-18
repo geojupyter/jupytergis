@@ -36,7 +36,6 @@ import {
   IGeoParquetSource,
   IGeoTiffSource,
   IGeoZarrSource,
-  IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -191,7 +190,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
 
-  getSource(): JSONObject;
+  getSource(): string;
   setSource(value: JSONObject | string): void;
 
   layerExists(id: string): boolean;
@@ -503,7 +502,6 @@ export type ILayerGalleryEntry = {
   thumbnail: string;
   layerType: LayerType;
   layerParameters:
-    | IHeatmapLayer
     | IHillshadeLayer
     | IImageLayer
     | IRasterLayer

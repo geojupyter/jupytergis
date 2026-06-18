@@ -2,6 +2,203 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0a1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-alpha.0...1cc7935a7f40f1a38b7d1abb23527f8d706e0188))
+
+### Enhancements made
+
+- Differentiate symbology mappings as distinct "cards" [#1517](https://github.com/geojupyter/jupytergis/pull/1517) ([@mfisher87](https://github.com/mfisher87), [@MMesch](https://github.com/MMesch))
+- Add navbar to vertical scroll stories [#1497](https://github.com/geojupyter/jupytergis/pull/1497) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- Categorical symbology: classify null/missing values, default to categorical palette [#1489](https://github.com/geojupyter/jupytergis/pull/1489) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add missing layer type icons in layers panel [#1487](https://github.com/geojupyter/jupytergis/pull/1487) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Enable reordering symbology rules and layers; top-to-bottom mobile UI for symbology; symbology UI harmonization [#1486](https://github.com/geojupyter/jupytergis/pull/1486) ([@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- Fix mobile bottom sheet breakpoint and layout [#1485](https://github.com/geojupyter/jupytergis/pull/1485) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Show layer name in symbology dialog title [#1484](https://github.com/geojupyter/jupytergis/pull/1484) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Update nblink lock using latest alpha [#1474](https://github.com/geojupyter/jupytergis/pull/1474) ([@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- Expand documentation gallery with showcase screenshots [#1470](https://github.com/geojupyter/jupytergis/pull/1470) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Add mobile view for vertical scroll stories [#1463](https://github.com/geojupyter/jupytergis/pull/1463) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Fix: sharedModel.source should be a string, not JSON [#1520](https://github.com/geojupyter/jupytergis/pull/1520) ([@martinRenou](https://github.com/martinRenou))
+- Fix About page comparison accuracy [#1468](https://github.com/geojupyter/jupytergis/pull/1468) ([@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Fix broken binder build [#1506](https://github.com/geojupyter/jupytergis/pull/1506) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- Remove `HeatmapLayer` concept from codebase [#1503](https://github.com/geojupyter/jupytergis/pull/1503) ([@nakul-py](https://github.com/nakul-py), [@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Fix bot [#1494](https://github.com/geojupyter/jupytergis/pull/1494) ([@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Fix galata bot [#1493](https://github.com/geojupyter/jupytergis/pull/1493) ([@martinRenou](https://github.com/martinRenou))
+- ci: Relax micromamba specifications [#1483](https://github.com/geojupyter/jupytergis/pull/1483) ([@jjerphan](https://github.com/jjerphan), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Fix CI: Pin micromamba [#1473](https://github.com/geojupyter/jupytergis/pull/1473) ([@martinRenou](https://github.com/martinRenou))
+
+### Documentation improvements
+
+- Fix roads example [#1492](https://github.com/geojupyter/jupytergis/pull/1492) ([@martinRenou](https://github.com/martinRenou))
+- Add a glossary [#1491](https://github.com/geojupyter/jupytergis/pull/1491) ([@mfisher87](https://github.com/mfisher87), [@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@sampottinger](https://github.com/sampottinger))
+- Add troubleshooting docs for missing `build_log.json` error during dev setup [#1480](https://github.com/geojupyter/jupytergis/pull/1480) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+
+### Other merged PRs
+
+- chore(deps): bump the gha-dependencies group across 1 directory with 6 updates [#1465](https://github.com/geojupyter/jupytergis/pull/1465) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-06-03&to=2026-06-15&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-06-03..2026-06-15&type=Issues)) | @jjerphan ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajjerphan+updated%3A2026-06-03..2026-06-15&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-06-03..2026-06-15&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-06-03..2026-06-15&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-06-03..2026-06-15&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-06-03..2026-06-15&type=Issues)) | @sampottinger ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Asampottinger+updated%3A2026-06-03..2026-06-15&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
+## 0.16.0a0
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.15.0...db68d54a89fd51cc07fa1416c7913680a26c53fc))
+
+### Enhancements made
+
+- Symbology panel UI update [#1469](https://github.com/geojupyter/jupytergis/pull/1469) ([@gjmooney](https://github.com/gjmooney), [@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- Add a blog-like specta presentation mode [#1455](https://github.com/geojupyter/jupytergis/pull/1455) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Raster clipping from vector [#1451](https://github.com/geojupyter/jupytergis/pull/1451) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- fix: remove implicit autozoom on layer add [#1450](https://github.com/geojupyter/jupytergis/pull/1450) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Docs revamp: structure, theme, gallery, build guide [#1443](https://github.com/geojupyter/jupytergis/pull/1443) ([@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- chore: Bump yjs-widgets [#1439](https://github.com/geojupyter/jupytergis/pull/1439) ([@AntoinePrv](https://github.com/AntoinePrv), [@martinRenou](https://github.com/martinRenou))
+- refactor: move formbuilder/ to shared/formbuilder/ and rename types/ to typings/ [#1431](https://github.com/geojupyter/jupytergis/pull/1431) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- fix: layer gallery takes full width and uses 2-column grid on mobile [#1429](https://github.com/geojupyter/jupytergis/pull/1429) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- fix: symbology panel takes full width and stacks fields on mobile [#1428](https://github.com/geojupyter/jupytergis/pull/1428) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- test: add real OL runtime tests for expression parsing and evaluation [#1423](https://github.com/geojupyter/jupytergis/pull/1423) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- feat: add more-options button to layer/group rows for mobile context menu [#1403](https://github.com/geojupyter/jupytergis/pull/1403) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Progress Notification for All Processing Commands [#1402](https://github.com/geojupyter/jupytergis/pull/1402) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Processing: raster clipping by bounding box [#1398](https://github.com/geojupyter/jupytergis/pull/1398) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Processing: clip vector layer by vector cutline [#1395](https://github.com/geojupyter/jupytergis/pull/1395) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- feat: Grammar symbology panel [#1390](https://github.com/geojupyter/jupytergis/pull/1390) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Clickable Legends Area [#1388](https://github.com/geojupyter/jupytergis/pull/1388) ([@arjxn-py](https://github.com/arjxn-py))
+- Expanded legends by default [#1385](https://github.com/geojupyter/jupytergis/pull/1385) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Let lint handle no unused vars [#1372](https://github.com/geojupyter/jupytergis/pull/1372) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Rename `WebGlLayer` to `GeoTiffLayer` [#1371](https://github.com/geojupyter/jupytergis/pull/1371) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add identify panel based GeoJSON feature editing and map floaters [#1368](https://github.com/geojupyter/jupytergis/pull/1368) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87), [@nakul-py](https://github.com/nakul-py))
+- Add URL parameters dict argument to add_raster_layer [#1350](https://github.com/geojupyter/jupytergis/pull/1350) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py))
+- Enable server-side geoprocessing [#1349](https://github.com/geojupyter/jupytergis/pull/1349) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add `add_data_array_layer` method to `GISDocument` API (`jupyter-tiler` as extra dep) [#1347](https://github.com/geojupyter/jupytergis/pull/1347) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- Split awareness updates into field-specific model signals [#1343](https://github.com/geojupyter/jupytergis/pull/1343) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Raise Jest config to make tests work in schema dir [#1342](https://github.com/geojupyter/jupytergis/pull/1342) ([@gjmooney](https://github.com/gjmooney), [@MMesch](https://github.com/MMesch))
+- feat: migration infrastructure + initial v0.5 to v0.6 step [#1341](https://github.com/geojupyter/jupytergis/pull/1341) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- feat(test): JS unit test infrastructure + fix graduated symbology gradient stops [#1331](https://github.com/geojupyter/jupytergis/pull/1331) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@gjmooney](https://github.com/gjmooney))
+- Create and edit vector layers: Part 2: The Reckoning [#1322](https://github.com/geojupyter/jupytergis/pull/1322) ([@gjmooney](https://github.com/gjmooney), [@HaudinFlorence](https://github.com/HaudinFlorence), [@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- Use Vector Image Layer [#1316](https://github.com/geojupyter/jupytergis/pull/1316) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- feat: per-session panel toggle with StateDB persistence [#1300](https://github.com/geojupyter/jupytergis/pull/1300) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Improve layer gallery contributor experience [#1290](https://github.com/geojupyter/jupytergis/pull/1290) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- OpenEO Process graph layers [#1287](https://github.com/geojupyter/jupytergis/pull/1287) ([@martinRenou](https://github.com/martinRenou), [@arjxn-py](https://github.com/arjxn-py))
+- feat: mobile bottom sheet with MergedPanel [#1282](https://github.com/geojupyter/jupytergis/pull/1282) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- Decouple our internal symbology expression from OpenLayers [#1268](https://github.com/geojupyter/jupytergis/pull/1268) ([@arjxn-py](https://github.com/arjxn-py), [@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- `getColorMap` as an parent method [#1267](https://github.com/geojupyter/jupytergis/pull/1267) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Wire notebook GIS widget to shared Y doc awareness [#1246](https://github.com/geojupyter/jupytergis/pull/1246) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- Add proxy support and HTTP header forwarding for vector tile requests [#1244](https://github.com/geojupyter/jupytergis/pull/1244) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- refactor: move console, identify, and annotations to features/ [#1243](https://github.com/geojupyter/jupytergis/pull/1243) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Apply Graduated Symbology from Python API [#1208](https://github.com/geojupyter/jupytergis/pull/1208) ([@arjxn-py](https://github.com/arjxn-py), [@MMesch](https://github.com/MMesch), [@Mary-h86](https://github.com/Mary-h86), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add GeoPackage data format [#1190](https://github.com/geojupyter/jupytergis/pull/1190) ([@arjxn-py](https://github.com/arjxn-py), [@elifsu-simula](https://github.com/elifsu-simula), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Bugs fixed
+
+- fix: pin react-draggable to 4.5.0 [#1457](https://github.com/geojupyter/jupytergis/pull/1457) ([@MMesch](https://github.com/MMesch), [@gjmooney](https://github.com/gjmooney))
+- fix: reduce identify hit tolerance from 5 to 3 pixels [#1454](https://github.com/geojupyter/jupytergis/pull/1454) ([@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- fix: append trailing newline when saving jGIS files [#1453](https://github.com/geojupyter/jupytergis/pull/1453) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- fix: mobile bottom sheet collapses to pill-only minimum [#1436](https://github.com/geojupyter/jupytergis/pull/1436) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- fix: upgrade license-webpack-plugin to ^4.0.0 to support webpack 5.107+ [#1432](https://github.com/geojupyter/jupytergis/pull/1432) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- fix: categorical color maps now cycle correctly through D3 palettes [#1427](https://github.com/geojupyter/jupytergis/pull/1427) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- fix: marker tool no longer auto-zooms to maximum zoom level [#1426](https://github.com/geojupyter/jupytergis/pull/1426) ([@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- fix: identify no longer shrinks circle on Grammar vector layers [#1425](https://github.com/geojupyter/jupytergis/pull/1425) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Enable selection-dependent commands on project open [#1384](https://github.com/geojupyter/jupytergis/pull/1384) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Fix legend toggle button shifting layer items in panel [#1379](https://github.com/geojupyter/jupytergis/pull/1379) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- More snapshot regression fix [#1370](https://github.com/geojupyter/jupytergis/pull/1370) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Fix snapshot regression [#1369](https://github.com/geojupyter/jupytergis/pull/1369) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Fix buffer form opening [#1367](https://github.com/geojupyter/jupytergis/pull/1367) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- fix: categorized symbology on VectorTile sources [#1363](https://github.com/geojupyter/jupytergis/pull/1363) ([@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- Conditionally render TemporalSlider [#1351](https://github.com/geojupyter/jupytergis/pull/1351) ([@arjxn-py](https://github.com/arjxn-py), [@MMesch](https://github.com/MMesch))
+- Consistent Toolbar buttons color [#1332](https://github.com/geojupyter/jupytergis/pull/1332) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py))
+- Add helper to pass color expression with python api [#1329](https://github.com/geojupyter/jupytergis/pull/1329) ([@arjxn-py](https://github.com/arjxn-py), [@MMesch](https://github.com/MMesch), [@nakul-py](https://github.com/nakul-py))
+- Bugfix: `symbologyState` incorrectly initialized as `undefined` [#1326](https://github.com/geojupyter/jupytergis/pull/1326) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py))
+- docs(examples): open existing france_hiking project instead of creating one [#1324](https://github.com/geojupyter/jupytergis/pull/1324) ([@tmchow](https://github.com/tmchow), [@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- fix: update VectorTile proxy loader for OpenLayers 10.9.0 [#1317](https://github.com/geojupyter/jupytergis/pull/1317) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: move dialogs to feature directories; fix: process/dissolve quits instantly [#1308](https://github.com/geojupyter/jupytergis/pull/1308) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- fix macrostrat raster url [#1306](https://github.com/geojupyter/jupytergis/pull/1306) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- fix: temporal controller visibility based on layer selection [#1305](https://github.com/geojupyter/jupytergis/pull/1305) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- fix: make left panel draggable; align structure with right panel [#1301](https://github.com/geojupyter/jupytergis/pull/1301) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Fix Add Story Segment bug [#1275](https://github.com/geojupyter/jupytergis/pull/1275) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- refactor/fix: move processing, stac-browser to features/ and toolbar to workspace/. Fix bug with processing command. [#1258](https://github.com/geojupyter/jupytergis/pull/1258) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Exclude Categorical Colormaps for Heatmap symbology [#1242](https://github.com/geojupyter/jupytergis/pull/1242) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- fix: Update lockfile for react-draggable pin [#1461](https://github.com/geojupyter/jupytergis/pull/1461) ([@mfisher87](https://github.com/mfisher87))
+- refactor: extract identify highlight utilities from mainView [#1447](https://github.com/geojupyter/jupytergis/pull/1447) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Fix import [#1434](https://github.com/geojupyter/jupytergis/pull/1434) ([@martinRenou](https://github.com/martinRenou))
+- Refactor schemas for symbology [#1414](https://github.com/geojupyter/jupytergis/pull/1414) ([@martinRenou](https://github.com/martinRenou), [@MMesch](https://github.com/MMesch), [@mfisher87](https://github.com/mfisher87))
+- Add jupyter-collaboration cache files to .gitignore [#1413](https://github.com/geojupyter/jupytergis/pull/1413) ([@martinRenou](https://github.com/martinRenou), [@arjxn-py](https://github.com/arjxn-py))
+- Upgrade jupyter-releaser action to fix broken release workflows [#1408](https://github.com/geojupyter/jupytergis/pull/1408) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- Update Geopackage URL in unit tests [#1406](https://github.com/geojupyter/jupytergis/pull/1406) ([@arjxn-py](https://github.com/arjxn-py))
+- Downgrade maintainer tools version [#1386](https://github.com/geojupyter/jupytergis/pull/1386) ([@arjxn-py](https://github.com/arjxn-py))
+- Improve GHA job/workflow names for readability [#1375](https://github.com/geojupyter/jupytergis/pull/1375) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py))
+- Add nbstripout pre-commit hook [#1374](https://github.com/geojupyter/jupytergis/pull/1374) ([@mfisher87](https://github.com/mfisher87), [@nakul-py](https://github.com/nakul-py))
+- Enable a large number of linter rules and apply autofixes [#1360](https://github.com/geojupyter/jupytergis/pull/1360) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py))
+- Drop support for Python 3.10 & 3.11 [#1359](https://github.com/geojupyter/jupytergis/pull/1359) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py))
+- Fix build errors introduced by #1290, do a bit of cleanup [#1346](https://github.com/geojupyter/jupytergis/pull/1346) ([@mfisher87](https://github.com/mfisher87), [@gjmooney](https://github.com/gjmooney))
+- ci: speed up workflows [#1340](https://github.com/geojupyter/jupytergis/pull/1340) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@mfisher87](https://github.com/mfisher87))
+- refactor: move menus.ts and widget.ts to workspace/ [#1336](https://github.com/geojupyter/jupytergis/pull/1336) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: move processing forms to features/processing/forms/ [#1335](https://github.com/geojupyter/jupytergis/pull/1335) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: move layer/source forms to features/layers/forms [#1314](https://github.com/geojupyter/jupytergis/pull/1314) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- refactor: move store.ts to shared/store.ts [#1313](https://github.com/geojupyter/jupytergis/pull/1313) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+- Pin Bot Version [#1311](https://github.com/geojupyter/jupytergis/pull/1311) ([@arjxn-py](https://github.com/arjxn-py), [@mfisher87](https://github.com/mfisher87))
+- refactor: move icons to shared. [#1310](https://github.com/geojupyter/jupytergis/pull/1310) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: move layerCreationFormDialog to features/layers [#1309](https://github.com/geojupyter/jupytergis/pull/1309) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- UI Test for graduated lines [#1307](https://github.com/geojupyter/jupytergis/pull/1307) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Revert "update snapshot action version in workflows temporarily" [#1297](https://github.com/geojupyter/jupytergis/pull/1297) ([@arjxn-py](https://github.com/arjxn-py))
+- update snapshot action version in workflows temporarily [#1296](https://github.com/geojupyter/jupytergis/pull/1296) ([@arjxn-py](https://github.com/arjxn-py))
+- Notebook.link lock update [#1295](https://github.com/geojupyter/jupytergis/pull/1295) ([@martinRenou](https://github.com/martinRenou), [@arjxn-py](https://github.com/arjxn-py))
+- Extract hardcoded & .txt dependencies to pep735 dependency groups [#1291](https://github.com/geojupyter/jupytergis/pull/1291) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- Disable pre-commit autofixes on PRs [#1289](https://github.com/geojupyter/jupytergis/pull/1289) ([@mfisher87](https://github.com/mfisher87), [@gjmooney](https://github.com/gjmooney))
+- Enable autofixable pyflakes & isort lint rulesets [#1288](https://github.com/geojupyter/jupytergis/pull/1288) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- refactor: useRightPanelOptions uses callbacks instead of owning curTab [#1280](https://github.com/geojupyter/jupytergis/pull/1280) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: extract panel logic in hooks and TabbedPanel component [#1277](https://github.com/geojupyter/jupytergis/pull/1277) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: move layer-browser and symbology to features/ [#1276](https://github.com/geojupyter/jupytergis/pull/1276) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py))
+- refactor: move filter, story, objectproperties to features/ and panelview to workspace/panels/ [#1272](https://github.com/geojupyter/jupytergis/pull/1272) ([@MMesch](https://github.com/MMesch), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Update `nodejs` to LTS(24) [#1270](https://github.com/geojupyter/jupytergis/pull/1270) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Fix linter false positive & improve workflow UX [#1266](https://github.com/geojupyter/jupytergis/pull/1266) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py))
+- Extract independent test workflows from build workflow [#1265](https://github.com/geojupyter/jupytergis/pull/1265) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py))
+- Apply linter autofixes [#1263](https://github.com/geojupyter/jupytergis/pull/1263) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py))
+- fix(types): replace `any` types in FilterRow with proper types [#1262](https://github.com/geojupyter/jupytergis/pull/1262) ([@tmchow](https://github.com/tmchow), [@claude](https://github.com/claude), [@mfisher87](https://github.com/mfisher87))
+- refactor: move statusbar to workspace/statusbar [#1256](https://github.com/geojupyter/jupytergis/pull/1256) ([@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou))
+
+### Documentation improvements
+
+- Add Matthias and Nakul as co-authors [#1467](https://github.com/geojupyter/jupytergis/pull/1467) ([@SylvainCorlay](https://github.com/SylvainCorlay), [@arjxn-py](https://github.com/arjxn-py))
+- Update download link in tutorial docs for the NYC Roads shapefile layer [#1353](https://github.com/geojupyter/jupytergis/pull/1353) ([@chrislkeller](https://github.com/chrislkeller), [@mfisher87](https://github.com/mfisher87))
+- Document guide for authoring JupyterGIS skills for JupyterLite AI [#1333](https://github.com/geojupyter/jupytergis/pull/1333) ([@arjxn-py](https://github.com/arjxn-py), [@MMesch](https://github.com/MMesch))
+- Remove more screenshots from JOSS paper [#1328](https://github.com/geojupyter/jupytergis/pull/1328) ([@SylvainCorlay](https://github.com/SylvainCorlay))
+- Iterate on JOSS paper [#1327](https://github.com/geojupyter/jupytergis/pull/1327) ([@SylvainCorlay](https://github.com/SylvainCorlay))
+- Use direct link to contributer guide [#1318](https://github.com/geojupyter/jupytergis/pull/1318) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Other merged PRs
+
+- Bump pillow from 12.1.1 to 12.2.0 in /scripts/layer_gallery [#1387](https://github.com/geojupyter/jupytergis/pull/1387) ([@arjxn-py](https://github.com/arjxn-py))
+- Bump the gha-dependencies group with 9 updates [#1378](https://github.com/geojupyter/jupytergis/pull/1378) ([@mfisher87](https://github.com/mfisher87))
+- Bump axios from 1.14.0 to 1.15.0 [#1298](https://github.com/geojupyter/jupytergis/pull/1298) ([@mfisher87](https://github.com/mfisher87))
+- Bump picomatch from 2.3.1 to 2.3.2 in /ui-tests [#1285](https://github.com/geojupyter/jupytergis/pull/1285) ([@arjxn-py](https://github.com/arjxn-py))
+- Fix bot: Wrong yarn being used [#1274](https://github.com/geojupyter/jupytergis/pull/1274) ([@martinRenou](https://github.com/martinRenou))
+- Bump handlebars from 4.7.8 to 4.7.9 [#1261](https://github.com/geojupyter/jupytergis/pull/1261) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-04-03&to=2026-06-03&type=c))
+
+@AntoinePrv ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AAntoinePrv+updated%3A2026-04-03..2026-06-03&type=Issues)) | @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-04-03..2026-06-03&type=Issues)) | @chrislkeller ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Achrislkeller+updated%3A2026-04-03..2026-06-03&type=Issues)) | @claude ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aclaude+updated%3A2026-04-03..2026-06-03&type=Issues)) | @elifsu-simula ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aelifsu-simula+updated%3A2026-04-03..2026-06-03&type=Issues)) | @Gauss-Taylor-Euler ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2026-04-03..2026-06-03&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-04-03..2026-06-03&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-04-03..2026-06-03&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-04-03..2026-06-03&type=Issues)) | @Mary-h86 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMary-h86+updated%3A2026-04-03..2026-06-03&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-04-03..2026-06-03&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-04-03..2026-06-03&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-04-03..2026-06-03&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-04-03..2026-06-03&type=Issues)) | @tmchow ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atmchow+updated%3A2026-04-03..2026-06-03&type=Issues))
+
 ## 0.15.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.14.1...5c8116f025fca8909c49585395137e4bdfeb1036))
@@ -61,8 +258,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-03-23&to=2026-04-03&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-03-23..2026-04-03&type=Issues)) | @elifsu-simula ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aelifsu-simula+updated%3A2026-03-23..2026-04-03&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-03-23..2026-04-03&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-03-23..2026-04-03&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-03-23..2026-04-03&type=Issues)) | @matyasrada ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amatyasrada+updated%3A2026-03-23..2026-04-03&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-03-23..2026-04-03&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-03-23..2026-04-03&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-03-23..2026-04-03&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-03-23..2026-04-03&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.14.1
 
