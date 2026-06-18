@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Literal, Self
 from uuid import uuid4
 
-import webcolors
+from jupytergis_core.colors import RGBA, coerce_rgba
 from jupytergis_core.schema.interfaces.project import symbology as schema_symbology
 from jupytergis_core.schema.interfaces.project.symbology import (
     PosFloatChannel,
@@ -14,7 +14,6 @@ from jupytergis_core.schema.interfaces.project.symbology import (
 )
 from pydantic import BaseModel, ConfigDict
 
-RGBA = tuple[float, float, float, float]
 WhenOpInput = Literal["all", "any"] | None
 ScaleKind = Literal["identity", "colormap", "categorical", "scalar"]
 
@@ -679,37 +678,6 @@ class GrammarSymbology(BaseModel):
 Symbology = GrammarSymbology
 
 
-def _coerce_rgba(value: RGBA | Sequence[float] | str) -> list[float]:
-    rgba = None
-
-    if isinstance(value, str):
-        color = None
-
-        try:
-            hex_color = webcolors.normalize_hex(value)
-            color = webcolors.hex_to_rgb(hex_color)
-        except ValueError as err:
-            if value not in webcolors.names("css3"):
-                raise ValueError(f'Invalid color "{value}"') from err
-
-            color = webcolors.html5_parse_legacy_color(value)
-
-        rgba = [*list(color), 1]
-
-    if (
-        isinstance(value, (list, tuple))
-        and value
-        and isinstance(value[0], (int, float))
-    ):
-        rgba = list(value) + [1.0] * (4 - len(value))
-        rgba = [float(component) for component in rgba[:4]]
-
-    if rgba is None:
-        raise ValueError(f"Could not interpret color value: {value!r}")
-
-    return rgba
-
-
 def _coerce_condition_number(value: object) -> float:
     if not isinstance(value, int | float):
         raise TypeError("field comparison predicates only support numeric values")
@@ -760,7 +728,7 @@ def _constant_color_scale(
 ) -> schema_symbology.IConstantRGBAScale:
     return schema_symbology.IConstantRGBAScale(
         params=schema_symbology.Params3(
-            value=schema_symbology.RGBA(root=_coerce_rgba(value)),
+            value=schema_symbology.RGBA(root=coerce_rgba(value)),
         ),
     )
 
@@ -790,7 +758,7 @@ def expression(
     if isinstance(fallback, (int, float)):
         fallback_value = float(fallback)
     else:
-        fallback_value = _coerce_rgba(fallback)
+        fallback_value = coerce_rgba(fallback)
 
     return schema_symbology.IExpressionScale(
         params=schema_symbology.Params5(expr=expr, fallback=fallback_value),
@@ -813,7 +781,7 @@ def _colormap_scale(
         nShades=n_shades,
         mode=mode.value,
         reverse=reverse,
-        fallback=schema_symbology.RGBA(root=_coerce_rgba(fallback)),
+        fallback=schema_symbology.RGBA(root=coerce_rgba(fallback)),
         colorStops=list(color_stops) if color_stops is not None else None,
     )
     return schema_symbology.IColorRampScale(
@@ -833,7 +801,7 @@ def _categorical_scale(
             colorRamp=name,
             nShades=n_shades,
             reverse=reverse,
-            fallback=schema_symbology.RGBA(root=_coerce_rgba(fallback)),
+            fallback=schema_symbology.RGBA(root=coerce_rgba(fallback)),
         ),
     )
 
