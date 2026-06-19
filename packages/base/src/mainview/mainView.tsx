@@ -173,6 +173,7 @@ import {
   buildZarrColorStyle,
   getBandInfoFromZarr,
   getDefaultRGBBands,
+  IZarrBandInfo,
 } from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
@@ -1204,33 +1205,34 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
           let bands: string[] = sourceParameters.bands || [];
 
-          try {
-            if (bands.length === 0) {
-              const bandInfo = await getBandInfoFromZarr(sourceParameters.url);
+          if (bands.length === 0) {
+            let bandInfo: IZarrBandInfo[] = [];
 
-              if (bandInfo.length > 0) {
-                bands = getDefaultRGBBands(bandInfo);
-
-                // Persist to model for future loads
-                const updatedSource: IJGISSource = {
-                  ...source,
-                  parameters: {
-                    ...sourceParameters,
-                    bands,
-                  },
-                };
-
-                this._model.sharedModel.updateSource(id, updatedSource);
-              } else {
-                console.warn('No bands detected from Zarr store');
-                bands = bandInfo.slice(0, 3).map(b => b.name);
-              }
+            try {
+              bandInfo = await getBandInfoFromZarr(sourceParameters.url);
+            } catch (err) {
+              console.warn('Failed to auto-detect Zarr bands:', err);
             }
-          } catch (err) {
-            console.warn('Failed to auto-detect Zarr bands:', err);
-            bands = sourceParameters.bands?.length
-              ? sourceParameters.bands
-              : ['b04', 'b03', 'b02'];
+
+            if (bandInfo.length > 0) {
+              bands = getDefaultRGBBands(bandInfo);
+
+              // Persist to model for future loads
+              const updatedSource: IJGISSource = {
+                ...source,
+                parameters: {
+                  ...sourceParameters,
+                  bands,
+                },
+              };
+
+              this._model.sharedModel.updateSource(id, updatedSource);
+            } else {
+              console.warn('No bands detected from Zarr store');
+              bands = sourceParameters.bands?.length
+                ? sourceParameters.bands
+                : ['b04', 'b03', 'b02'];
+            }
           }
 
           newSource = new GeoZarr({
