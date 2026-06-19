@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
   "jupyter-ydoc>=2,<4",
   "branca>=0.6",
+  "webcolors",
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}

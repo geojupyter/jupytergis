@@ -31,6 +31,9 @@ build:
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build:packages"
       # Create the env for building the docs
       - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
+      # Install JupyterGIS for autodocs (--no-deps for not pulling jupyter-collaboration)
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs pip install ./python/jupytergis --no-deps"
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs pip install ./python/jupytergis_core ./python/jupytergis_lab ./python/jupytergis_lab[tiler]"
 
     # Override the install step to do nothing - we already created the envs
     install:

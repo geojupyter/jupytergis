@@ -21,7 +21,7 @@ import {
   IGrammarSymbologyState,
   IPredicate,
   ITransform,
-  StyleChannel,
+  Encoding,
   RGBA,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
@@ -48,7 +48,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 
-const DEFAULT_CHANNELS: StyleChannel[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_CHANNELS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
 // ---------------------------------------------------------------------------
@@ -82,6 +82,8 @@ function defaultTransform(type: ITransform['type']): ITransform {
       return { type: 'kde', radius: 10, blur: 15 };
     case 'cluster':
       return { type: 'cluster', radius: 40 };
+    default:
+      throw new Error(`Invalid transform type ${type}`);
   }
 }
 
@@ -280,7 +282,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultChannels: StyleChannel[] = isRaster
+    const defaultChannels: Encoding[] = isRaster
       ? ['pixel-color']
       : DEFAULT_CHANNELS;
     onChange({
@@ -589,7 +591,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
-            channels: [...(mapping.channels as StyleChannel[])],
+            channels: [...(mapping.channels as Encoding[])],
             ...(rule.when ? { when: rule.when } : {}),
             ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
           })),
@@ -614,7 +616,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           mappings: [
             {
               scale: row.scale,
-              channels: row.channels as [StyleChannel, ...StyleChannel[]],
+              channels: row.channels as [Encoding, ...Encoding[]],
             },
           ],
         }));
