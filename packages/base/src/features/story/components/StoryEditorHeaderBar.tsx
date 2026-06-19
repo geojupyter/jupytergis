@@ -7,6 +7,7 @@ import {
   formatGradientLabel,
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
+import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import Badge from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
@@ -29,26 +30,6 @@ export interface IStoryEditorHeaderBarProps {
   segmentCount: number;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
   portalContainerRef: RefObject<HTMLElement | null>;
-}
-
-const STORY_TYPE_OPTIONS = [
-  { value: STORY_TYPE.guided, label: 'Guided' },
-  { value: STORY_TYPE.unguided, label: 'Unguided' },
-  { value: STORY_TYPE.verticalScroll, label: 'Vertical scroll' },
-] as const;
-
-const DEFAULT_BG_COLOR = '#1a1a2e';
-const DEFAULT_TEXT_COLOR = '#f5f5f5';
-
-function toColorInputValue(
-  color: string | undefined,
-  fallback: string,
-): string {
-  if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
-    return color;
-  }
-
-  return fallback;
 }
 
 function StoryTitleInput({
@@ -141,9 +122,9 @@ function StorySettingsPopover({
                 });
               }}
             >
-              {STORY_TYPE_OPTIONS.map(option => (
-                <NativeSelectOption key={option.value} value={option.value}>
-                  {option.label}
+              {Object.values(STORY_TYPE).map(storyType => (
+                <NativeSelectOption key={storyType} value={storyType}>
+                  {formatStoryTypeLabel(storyType)}
                 </NativeSelectOption>
               ))}
             </NativeSelect>
@@ -163,9 +144,9 @@ function StorySettingsPopover({
               <span>Background color</span>
               <Input
                 type="color"
-                value={toColorInputValue(
+                value={resolveStoryPresentationColorForInput(
                   story.presentationBgColor,
-                  DEFAULT_BG_COLOR,
+                  'bg',
                 )}
                 onChange={event => {
                   onUpdateStory({ presentationBgColor: event.target.value });
@@ -176,9 +157,9 @@ function StorySettingsPopover({
               <span>Text color</span>
               <Input
                 type="color"
-                value={toColorInputValue(
+                value={resolveStoryPresentationColorForInput(
                   story.presentationTextColor,
-                  DEFAULT_TEXT_COLOR,
+                  'text',
                 )}
                 onChange={event => {
                   onUpdateStory({ presentationTextColor: event.target.value });
