@@ -42,7 +42,7 @@ jobs:
         run: |
             pip install jupyterlab
             jlpm install
-            jlpm playwright install
+            jlpm playwright install chromium --only-shell
 
       - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@95d85449e4f3f352e261221f6529f8ed307f5728
         with:
