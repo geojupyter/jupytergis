@@ -8,10 +8,10 @@ import {
 } from './components/PickBarActions';
 import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
 import type { StoryEditorWidget } from './storyEditorDialog';
+import type { IOverrideLayerEntry } from './types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
-  type IOverrideLayerEntry,
 } from './utils/storySegmentLayerPreview';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
 

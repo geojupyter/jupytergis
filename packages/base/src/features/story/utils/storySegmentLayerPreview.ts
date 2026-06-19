@@ -1,9 +1,6 @@
 import type { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 
-export interface IOverrideLayerEntry {
-  layerId: string;
-  action: 'remove' | 'restore';
-}
+import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 
 export function applySegmentLayerOverrides(
   model: IJupyterGISModel,

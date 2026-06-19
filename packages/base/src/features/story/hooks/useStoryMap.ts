@@ -6,13 +6,11 @@ import type {
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { STORY_TYPE } from '@/src/types';
+import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
-  type IOverrideLayerEntry,
-} from '../utils/storySegmentLayerPreview';
-
-export type { IOverrideLayerEntry };
+} from '@/src/features/story/utils/storySegmentLayerPreview';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
@@ -26,8 +24,6 @@ export function useStoryMap({
   model,
   overrideLayerEntriesRef,
   removeLayer,
-  addLayer,
-  isSpecta,
 }: IUseStoryMapParams) {
   const [currentIndex, setCurrentIndex] = useState(
     () => model.getCurrentSegmentIndex() ?? 0,

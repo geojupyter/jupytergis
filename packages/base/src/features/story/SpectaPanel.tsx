@@ -4,8 +4,11 @@ import React, { RefObject, useEffect, useRef } from 'react';
 import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
-import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
-import type { IListStorySegmentTransition } from './types/types';
+import { useStoryMap } from './hooks/useStoryMap';
+import type {
+  IOverrideLayerEntry,
+  IListStorySegmentTransition,
+} from './types/types';
 
 interface ISpectaPanelProps {
   model: IJupyterGISModel;
