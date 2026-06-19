@@ -219,7 +219,7 @@ jobs:
       - name: Install browser
         shell: bash -l {0}
         working-directory: ui-tests
-        run: jlpm playwright install chromium --only-shell
+        run: jlpm playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
@@ -340,7 +340,7 @@ jobs:
 
       - name: Install browser
         shell: bash -l {0}
-        run: jlpm playwright install chromium --only-shell
+        run: jlpm playwright install chromium
         working-directory: ui-tests
 
       - name: Execute integration tests

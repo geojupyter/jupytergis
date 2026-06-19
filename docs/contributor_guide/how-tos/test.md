@@ -27,7 +27,7 @@ want to run them locally.
 
 ```bash
 jlpm install                      # Install ui testing dependencies
-jlpm playwright install chromium --only-shell  # Install testing browser
+jlpm playwright install chromium  # Install testing browser
 jlpm run test                     # Run tests
 ```
 
