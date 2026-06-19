@@ -24,6 +24,7 @@ import {
 } from '@/src/shared/components/Popover';
 import { Switch } from '@/src/shared/components/Switch';
 import { STORY_TYPE } from '@/src/types';
+import { Settings } from 'lucide-react';
 
 export interface IStoryEditorHeaderBarProps {
   story: IJGISStoryMap | null;
@@ -99,7 +100,7 @@ function StorySettingsPopover({
           title="Story settings"
           style={{ marginBottom: 1 }}
         >
-          <FontAwesomeIcon icon={faGear} />
+          <FontAwesomeIcon icon={faGear} style={{ marginBottom: 3 }} />
         </Button>
       </PopoverTrigger>
       <PopoverContent
