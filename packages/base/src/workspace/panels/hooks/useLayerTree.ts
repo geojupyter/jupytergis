@@ -45,25 +45,13 @@ export function useLayerTree(model: IJupyterGISModel): {
       syncInitialSelection(freshTree);
     };
 
-    const handleSegmentAdded = (
-      _sender: IJupyterGISModel,
-      payload: { storySegmentId: string; storyId: string },
-    ) => {
-      model.syncSelected(
-        { [payload.storySegmentId]: { type: 'layer' } },
-        model.getClientId().toString(),
-      );
-    };
-
     model.sharedModel.layersChanged.connect(updateLayerTree);
     model.sharedModel.layerTreeChanged.connect(updateLayerTree);
-    model.segmentAdded.connect(handleSegmentAdded);
     updateLayerTree();
 
     return () => {
       model.sharedModel.layersChanged.disconnect(updateLayerTree);
       model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
-      model.segmentAdded.disconnect(handleSegmentAdded);
     };
   }, [model]);
 

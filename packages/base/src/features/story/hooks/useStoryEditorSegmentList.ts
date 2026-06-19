@@ -18,20 +18,6 @@ import {
 } from '@/src/features/story/utils/storySegmentTransition';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
-function getSegmentIdAtCurrentIndex(
-  model: IJupyterGISModel,
-  story: IJGISStoryMap | null,
-): string | null {
-  const segmentIds = story?.storySegments ?? [];
-  if (segmentIds.length === 0) {
-    return null;
-  }
-
-  const rawIndex = model.getCurrentSegmentIndex() ?? 0;
-  const index = Math.min(Math.max(rawIndex, 0), segmentIds.length - 1);
-  return segmentIds[index] ?? null;
-}
-
 interface IUseStoryEditorSegmentListResult {
   storyId: string | null;
   story: IJGISStoryMap | null;
@@ -90,11 +76,6 @@ export function useStoryEditorSegmentList(
       if (index >= 0) {
         model.setCurrentSegmentIndex(index);
       }
-
-      model.syncSelected(
-        { [payload.storySegmentId]: { type: 'layer' } },
-        model.getClientId().toString(),
-      );
     };
 
     model.segmentAdded.connect(handleSegmentAdded);
@@ -134,7 +115,8 @@ export function useStoryEditorSegmentList(
   );
 
   const selectedSegmentId = useMemo(
-    () => getSegmentIdAtCurrentIndex(model, story),
+    () =>
+      story?.storySegments?.[model.getCurrentSegmentIndex()] ?? null,
     [model, story, revision],
   );
 
@@ -145,11 +127,6 @@ export function useStoryEditorSegmentList(
 
   const selectSegment = useCallback(
     (segmentId: string) => {
-      model.syncSelected(
-        { [segmentId]: { type: 'layer' } },
-        model.getClientId().toString(),
-      );
-
       const index = story?.storySegments?.indexOf(segmentId) ?? -1;
       if (index >= 0) {
         model.setCurrentSegmentIndex(index);
@@ -172,14 +149,12 @@ export function useStoryEditorSegmentList(
 
       const deletedIndex = story.storySegments.indexOf(segmentId);
       const currentIndex = model.getCurrentSegmentIndex();
-      const wasSelected = selectedSegmentId === segmentId;
 
       model.removeLayer(segmentId);
 
       const remainingIds = model.getSelectedStory().story?.storySegments ?? [];
 
       if (remainingIds.length === 0) {
-        model.syncSelected({}, model.getClientId().toString());
         model.setCurrentSegmentIndex(0);
         return;
       }
@@ -194,18 +169,8 @@ export function useStoryEditorSegmentList(
       }
 
       model.setCurrentSegmentIndex(nextIndex);
-
-      if (wasSelected) {
-        const nextSegmentId = remainingIds[nextIndex];
-        if (nextSegmentId) {
-          model.syncSelected(
-            { [nextSegmentId]: { type: 'layer' } },
-            model.getClientId().toString(),
-          );
-        }
-      }
     },
-    [model, selectedSegmentId, story],
+    [model, story],
   );
 
   const updateSegmentContentMode = useCallback(
