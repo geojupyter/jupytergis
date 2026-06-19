@@ -1450,20 +1450,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter/ydoc@npm:^2.0.0 || ^3.0.0-a3":
-  version: 3.4.1
-  resolution: "@jupyter/ydoc@npm:3.4.1"
-  dependencies:
-    "@jupyterlab/nbformat": ^3.0.0 || ^4.0.0-alpha.21 || ^4.0.0
-    "@lumino/coreutils": ^1.11.0 || ^2.0.0
-    "@lumino/disposable": ^1.10.0 || ^2.0.0
-    "@lumino/signaling": ^1.10.0 || ^2.0.0
-    y-protocols: ^1.0.5
-    yjs: ^13.5.40
-  checksum: 58fc222bb5a4d2fbf6b41668442793717253d55e7b5181ce9048780d2ce7bc061538c464356d6293d34ad33c9a550cd8c377b56e281eb55b18fde7e6a022d68c
-  languageName: node
-  linkType: hard
-
 "@jupytergis/base@^0.16.0-alpha.1, @jupytergis/base@workspace:packages/base":
   version: 0.0.0-use.local
   resolution: "@jupytergis/base@workspace:packages/base"
@@ -1625,7 +1611,7 @@ __metadata:
     rimraf: ^3.0.2
     typescript: ^5
     yjs: ^13.5.0
-    yjs-widgets: ^0.5
+    yjs-widgets: ^0.5.2
   languageName: unknown
   linkType: soft
 
@@ -1709,7 +1695,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyterlab/application@npm:^4.0.0, @jupyterlab/application@npm:^4.6, @jupyterlab/application@npm:^4.6.0":
+"@jupyterlab/application@npm:^4.6, @jupyterlab/application@npm:^4.6.0":
   version: 4.6.0
   resolution: "@jupyterlab/application@npm:4.6.0"
   dependencies:
@@ -1953,7 +1939,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/console@npm:^4.2.4, @jupyterlab/console@npm:^4.6":
+"@jupyterlab/console@npm:^4.6":
   version: 4.6.0
   resolution: "@jupyterlab/console@npm:4.6.0"
   dependencies:
@@ -1979,7 +1965,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/coreutils@npm:^6.0.0, @jupyterlab/coreutils@npm:^6.5.0, @jupyterlab/coreutils@npm:^6.6, @jupyterlab/coreutils@npm:^6.6.0":
+"@jupyterlab/coreutils@npm:^6.5.0, @jupyterlab/coreutils@npm:^6.6, @jupyterlab/coreutils@npm:^6.6.0":
   version: 6.6.0
   resolution: "@jupyterlab/coreutils@npm:6.6.0"
   dependencies:
@@ -19607,16 +19593,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yjs-widgets@npm:^0.5":
-  version: 0.5.1
-  resolution: "yjs-widgets@npm:0.5.1"
+"yjs-widgets@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "yjs-widgets@npm:0.5.2"
   dependencies:
-    "@jupyter/ydoc": ^2.0.0 || ^3.0.0-a3
-    "@jupyterlab/application": ^4.0.0
-    "@jupyterlab/apputils": ^4.0.0
-    "@jupyterlab/console": ^4.2.4
-    "@jupyterlab/coreutils": ^6.0.0
-    "@jupyterlab/notebook": ^4.0.0
+    "@jupyter/ydoc": ^2.0.0 || ^3.0.0 || ^4.0.0
+    "@jupyterlab/application": ^4.6
+    "@jupyterlab/apputils": ^4.6
+    "@jupyterlab/console": ^4.6
+    "@jupyterlab/coreutils": ^6.6
+    "@jupyterlab/notebook": ^4.6
     "@jupyterlab/services": ^7.0.0
     "@lumino/coreutils": ^2.1.1
     "@lumino/signaling": ^2.1.1
@@ -19626,7 +19612,7 @@ __metadata:
     webpack: ^5.77.0
     webpack-cli: ^5.0.1
     y-protocols: ^1.0.6
-  checksum: afab53512106940214258c168fe3683b26385f13a02e73e05381fa4de77d5b6f525959f1a3c3d5697c50962e017d01cfa61238fc6bc39cd6c0f8cb28058684b7
+  checksum: 37154ac8eef8b9ae5a97a5a8cd4bb09cbd21fde57ac2017478aa48eedef51942b18d6c7d380e1da0524aa3607a2212200a44bf54c8f4ceee0768c6702c5b71e5
   languageName: node
   linkType: hard
 
