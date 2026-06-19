@@ -304,9 +304,7 @@ export function StoryEditorDialogBody({
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
-              onRemoveSegment={() => {
-                removeSegment(selectedSegment.id);
-              }}
+              onRemoveSegment={removeSegment}
             />
           ) : (
             <SegmentEditorEmptyState />

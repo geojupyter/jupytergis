@@ -26,7 +26,7 @@ interface IUseStoryEditorSegmentListResult {
   selectedSegment: IStorySegmentViewItem | null;
   selectSegment: (segmentId: string) => void;
   addSegment: () => void;
-  removeSegment: (segmentId: string) => void;
+  removeSegment: () => void;
   canRemoveSegment: boolean;
   updateStory: (patch: Partial<IJGISStoryMap>) => void;
   updateSegmentContentMode: (
@@ -115,8 +115,7 @@ export function useStoryEditorSegmentList(
   );
 
   const selectedSegmentId = useMemo(
-    () =>
-      story?.storySegments?.[model.getCurrentSegmentIndex()] ?? null,
+    () => story?.storySegments?.[model.getCurrentSegmentIndex()] ?? null,
     [model, story, revision],
   );
 
@@ -141,37 +140,25 @@ export function useStoryEditorSegmentList(
 
   const canRemoveSegment = segments.length > 1;
 
-  const removeSegment = useCallback(
-    (segmentId: string) => {
-      if (!story?.storySegments || story.storySegments.length <= 1) {
-        return;
-      }
+  const removeSegment = useCallback(() => {
+    if (
+      !selectedSegmentId ||
+      !story?.storySegments ||
+      story.storySegments.length <= 1
+    ) {
+      return;
+    }
 
-      const deletedIndex = story.storySegments.indexOf(segmentId);
-      const currentIndex = model.getCurrentSegmentIndex();
+    const currentIndex = model.getCurrentSegmentIndex();
+    model.removeLayer(selectedSegmentId);
 
-      model.removeLayer(segmentId);
+    const remainingCount =
+      model.getSelectedStory().story?.storySegments?.length ?? 0;
 
-      const remainingIds = model.getSelectedStory().story?.storySegments ?? [];
-
-      if (remainingIds.length === 0) {
-        model.setCurrentSegmentIndex(0);
-        return;
-      }
-
-      let nextIndex = currentIndex;
-      if (deletedIndex >= 0 && deletedIndex < currentIndex) {
-        nextIndex = currentIndex - 1;
-      } else if (deletedIndex === currentIndex) {
-        nextIndex = Math.min(deletedIndex, remainingIds.length - 1);
-      } else {
-        nextIndex = Math.min(currentIndex, remainingIds.length - 1);
-      }
-
-      model.setCurrentSegmentIndex(nextIndex);
-    },
-    [model, story],
-  );
+    model.setCurrentSegmentIndex(
+      remainingCount === 0 ? 0 : Math.min(currentIndex, remainingCount - 1),
+    );
+  }, [model, selectedSegmentId, story]);
 
   const updateSegmentContentMode = useCallback(
     (segmentId: string, mode: StorySegmentDisplayMode) => {
