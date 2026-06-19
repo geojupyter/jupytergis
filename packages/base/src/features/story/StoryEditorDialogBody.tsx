@@ -9,7 +9,7 @@ import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLa
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
-import StoryEditorSection from '@/src/features/story/components/StoryEditorSection';
+import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
@@ -116,7 +116,6 @@ function SegmentEditor({
               <div className="jgis-story-editor-row">
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterMapPickMode(
                       segment.id,

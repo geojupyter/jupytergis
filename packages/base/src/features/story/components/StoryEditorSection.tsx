@@ -16,7 +16,7 @@ interface IStoryEditorSectionProps {
   defaultOpen?: boolean;
 }
 
-function StoryEditorSection({
+export function StoryEditorSection({
   children,
   triggerText,
   open,
@@ -48,5 +48,3 @@ function StoryEditorSection({
     </Collapsible>
   );
 }
-
-export default StoryEditorSection;

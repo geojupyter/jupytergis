@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 
+import { debounce } from '@/src/tools';
 import {
   Tabs,
   TabsContent,
@@ -10,12 +11,12 @@ import {
 
 type MarkdownEditorTab = 'write' | 'preview';
 
+const MARKDOWN_EDIT_DEBOUNCE_WAIT = 300;
 export interface ISegmentMarkdownEditorProps {
   value: string;
   onChange: (markdown: string) => void;
   rows?: number;
   tall?: boolean;
-  debounceMs?: number;
 }
 
 export function SegmentMarkdownEditor({
@@ -23,42 +24,31 @@ export function SegmentMarkdownEditor({
   onChange,
   rows = 6,
   tall = false,
-  debounceMs = 300,
 }: ISegmentMarkdownEditorProps): JSX.Element {
   const [tab, setTab] = useState<MarkdownEditorTab>('write');
   const [draft, setDraft] = useState(value);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const onChangeRef = useRef(onChange);
+
+  onChangeRef.current = onChange;
+  const debouncedOnChange = useMemo(
+    () =>
+      debounce((nextValue: string) => {
+        onChangeRef.current(nextValue);
+      }, MARKDOWN_EDIT_DEBOUNCE_WAIT),
+    [MARKDOWN_EDIT_DEBOUNCE_WAIT],
+  );
 
   useEffect(() => {
     setDraft(value);
   }, [value]);
 
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
-
   const handleDraftChange = (nextValue: string): void => {
     setDraft(nextValue);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      onChange(nextValue);
-    }, debounceMs);
+    debouncedOnChange(nextValue);
   };
 
   const handleBlur = (): void => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
-
     if (draft !== value) {
       onChange(draft);
     }
