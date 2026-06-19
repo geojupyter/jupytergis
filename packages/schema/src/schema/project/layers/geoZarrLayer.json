@@ -99,15 +99,6 @@
         "colorRamp": {
           "type": "string",
           "default": "viridis"
-        },
-        "nclasses": {
-          "type": "string",
-          "default": "9"
-        },
-        "mode": {
-          "type": "string",
-          "default": "equal interval",
-          "enum": ["continuous", "equal interval", "quantile"]
         }
       },
       "additionalProperties": false,
@@ -119,9 +110,7 @@
         "blueBand": 3,
         "alphaBand": 4,
         "interpolation": "linear",
-        "colorRamp": "viridis",
-        "nClasses": "9",
-        "mode": "equal interval"
+        "colorRamp": "viridis"
       }
     }
   }

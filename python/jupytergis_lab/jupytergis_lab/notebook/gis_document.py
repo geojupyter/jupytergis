@@ -537,27 +537,25 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
-    def add_zarr_layer(
+    def add_geoZarr_layer(
         self,
         url: str,
         bands: list[str] | None = None,
         name: str = "Zarr Layer",
         opacity: float = 1.0,
-        gamma: float = 1.5,
+        gamma: float = 1,
         wrap_x: bool = False,
-        color_expr=None,
+        symbology: SymbologyInput = None,
     ):
         """Add a Zarr layer
 
-        :param url: URL to the root of the Zarr store.
-        :param bands: Named band identifiers to load (e.g. ['b04','b03','b02']).
-                      When None or empty, all bands are loaded in stored order.
-        :param name: Display name for the layer.
+        :param url: URL of the GeoZarr.
+        :param bands: Named band identifiers to load (e.g. ['b04','b03','b02']). When None or empty, all bands are loaded in stored order.
+        :param name: The name that will be used for the object in the document, defaults to "GeoTIFF Layer"
         :param opacity: Layer opacity between 0 and 1.
-        :param gamma: Gamma correction applied to all bands (default 1.5).
-        :param wrap_x: Wrap the world horizontally.
-        :param color_expr: Optional OpenLayers WebGL color expression.
-                           When set, overrides gamma.
+        :param gamma: Gamma correction applied to all bands (default 1).
+        :param wrap_x: Render tiles beyond the tile grid extent, defaults to False
+        :param symbology: The symbology configuration to persist with the layer.
         """
         source = {
             "type": SourceType.GeoZarrSource,
@@ -579,10 +577,12 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "opacity": opacity,
                 "gamma": gamma,
-                "color": color_expr,
-                "symbologyState": {"renderType": "Multiband Color"},
             },
         }
+
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is not None:
+            layer["parameters"]["symbologyState"] = symbology_state
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
