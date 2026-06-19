@@ -1,5 +1,3 @@
-import { STORY_TYPE } from '@/src/types';
-
 export function formatStoryTypeLabel(storyType: string | undefined): string {
   if (!storyType) {
     return 'No story type';

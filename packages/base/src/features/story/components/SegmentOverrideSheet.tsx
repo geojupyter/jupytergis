@@ -3,6 +3,10 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { type RefObject, useMemo, useState } from 'react';
 
+import {
+  SymbologyDialog,
+  SymbologyWidget,
+} from '@/src/features/layers/symbology/symbologyDialog';
 import { Button } from '@/src/shared/components/Button';
 import {
   Sheet,
@@ -14,10 +18,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/src/shared/components/Sheet';
-import {
-  SymbologyDialog,
-  SymbologyWidget,
-} from '@/src/features/layers/symbology/symbologyDialog';
 
 export interface ISegmentOverrideSheetProps {
   model: IJupyterGISModel;

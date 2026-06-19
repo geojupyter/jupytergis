@@ -128,9 +128,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     {
       name: 'layers',
       title: 'Layers',
-      enabled:
-        !leftPanelDisabled &&
-        !props.settings.layersDisabled,
+      enabled: !leftPanelDisabled && !props.settings.layersDisabled,
       content: (
         <LayersBodyComponent
           model={props.model}
@@ -143,17 +141,13 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     {
       name: 'stac',
       title: 'Stac Browser',
-      enabled:
-        !leftPanelDisabled &&
-        !props.settings.stacBrowserDisabled,
+      enabled: !leftPanelDisabled && !props.settings.stacBrowserDisabled,
       content: <StacPanel model={props.model} />,
     },
     {
       name: 'objectProperties',
       title: 'Object Properties',
-      enabled:
-        !rightPanelDisabled &&
-        !props.settings.objectPropertiesDisabled,
+      enabled: !rightPanelDisabled && !props.settings.objectPropertiesDisabled,
       content: (
         <ObjectPropertiesReact
           setSelectedObject={setSelectedObjectProperties}

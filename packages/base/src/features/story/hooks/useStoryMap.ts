@@ -5,12 +5,12 @@ import type {
 } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { STORY_TYPE } from '@/src/types';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '@/src/features/story/utils/storySegmentOverrides';
+import { STORY_TYPE } from '@/src/types';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;

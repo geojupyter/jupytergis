@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import React, { useEffect, useState, type RefObject } from 'react';
 
+import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
-import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import Badge from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
@@ -24,7 +24,6 @@ import {
 } from '@/src/shared/components/Popover';
 import { Switch } from '@/src/shared/components/Switch';
 import { STORY_TYPE } from '@/src/types';
-import { Settings } from 'lucide-react';
 
 export interface IStoryEditorHeaderBarProps {
   story: IJGISStoryMap | null;

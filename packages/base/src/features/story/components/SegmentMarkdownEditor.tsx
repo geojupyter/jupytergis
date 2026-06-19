@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 
-import { debounce } from '@/src/tools';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
+import { debounce } from '@/src/tools';
 
 type MarkdownEditorTab = 'write' | 'preview';
 

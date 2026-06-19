@@ -1,8 +1,8 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import type { CSSProperties } from 'react';
 
-import { STORY_TYPE } from '@/src/types';
 import { getCssVarAsColor } from '@/src/tools';
+import { STORY_TYPE } from '@/src/types';
 
 /** Jupyter theme vars used when presentation colors are unset (see storyPanel.css). */
 const JP_THEME_BG_VAR = '--jp-layout-color0';

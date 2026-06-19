@@ -9,11 +9,11 @@ import {
 import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
 import type { StoryEditorWidget } from './storyEditorDialog';
 import type { IOverrideLayerEntry } from './types/types';
+import { updateSegmentMapView } from './utils/storySegmentMapView';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from './utils/storySegmentOverrides';
-import { updateSegmentMapView } from './utils/storySegmentMapView';
 
 type StoryEditorMapInteractionMode = 'map-view' | 'previewing-segment';
 
