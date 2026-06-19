@@ -23,7 +23,7 @@ function SegmentListItem({
   selected: boolean;
   onSelect: () => void;
 }): JSX.Element {
-  const stopType = getSegmentDisplayMode(segment.activeSlide);
+  const segmentMode = getSegmentDisplayMode(segment.activeSlide);
   const title = getStorySegmentDisplayTitle(segment);
 
   return (
@@ -40,7 +40,7 @@ function SegmentListItem({
       </span>
       <span className="jgis-story-editor-segment-item-title">{title}</span>
       <span className="jgis-story-editor-segment-item-type">
-        {stopType === 'map' ? 'Map' : 'Text'}
+        {segmentMode === 'map' ? 'Map' : 'Text'}
       </span>
     </button>
   );

@@ -5,27 +5,27 @@ import React from 'react';
 import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
 import { Button } from '@/src/shared/components/Button';
 
-export interface ISegmentStopTypePickerProps {
+export interface ISegmentModePickerProps {
   value: StorySegmentDisplayMode;
   onChange: (mode: StorySegmentDisplayMode) => void;
 }
 
-export function SegmentStopTypePicker({
+export function SegmentModePicker({
   value,
   onChange,
-}: ISegmentStopTypePickerProps): JSX.Element {
+}: ISegmentModePickerProps): JSX.Element {
   const selectedValue: StorySegmentDisplayMode =
     value === 'markdown' ? 'markdown' : 'map';
 
   return (
     <section className="jgis-story-editor-block">
       <div className="jgis-story-editor-label">What is this segment?</div>
-      <div className="jgis-story-editor-stop-type-picker">
+      <div className="jgis-story-editor-segment-mode-picker">
         <Button
           type="button"
-          className={`jgis-story-editor-stop-type-card${
+          className={`jgis-story-editor-segment-mode-card${
             selectedValue === 'map'
-              ? ' jgis-story-editor-stop-type-card--selected'
+              ? ' jgis-story-editor-segment-mode-card--selected'
               : ''
           }`}
           aria-pressed={selectedValue === 'map'}
@@ -33,21 +33,21 @@ export function SegmentStopTypePicker({
         >
           <div className="jgis-story-editor-row">
             <FontAwesomeIcon icon={faMap} />
-            <strong>Map stop</strong>
+            <strong>Map segment</strong>
           </div>
           <span>Saved map view with optional title and caption</span>
         </Button>
         <Button
           type="button"
-          className={`jgis-story-editor-stop-type-card${
+          className={`jgis-story-editor-segment-mode-card${
             selectedValue === 'markdown'
-              ? ' jgis-story-editor-stop-type-card--selected'
+              ? ' jgis-story-editor-segment-mode-card--selected'
               : ''
           }`}
           aria-pressed={selectedValue === 'markdown'}
           onClick={() => onChange('markdown')}
         >
-          <strong>Text stop</strong>
+          <strong>Text segment</strong>
           <span>Full-screen markdown chapter</span>
         </Button>
       </div>

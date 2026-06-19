@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import React, { type RefObject, useMemo, useRef, useState } from 'react';
+import React, { type RefObject, useMemo, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -17,7 +17,7 @@ import {
 import {
   SymbologyDialog,
   SymbologyWidget,
-} from '../../layers/symbology/symbologyDialog';
+} from '@/src/features/layers/symbology/symbologyDialog';
 
 export interface ISegmentOverrideSheetProps {
   model: IJupyterGISModel;
@@ -33,7 +33,7 @@ export function SegmentOverrideSheet({
   portalContainerRef,
 }: ISegmentOverrideSheetProps): JSX.Element {
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+
   const { okSignalPromise, okSignal } = useMemo(() => {
     const delegate = new PromiseDelegate<Signal<SymbologyWidget, null>>();
     const signal = new Signal<SymbologyWidget, null>({} as SymbologyWidget);
@@ -41,21 +41,15 @@ export function SegmentOverrideSheet({
     return { okSignalPromise: delegate, okSignal: signal };
   }, []);
 
-  const handleOpenChange = (nextOpen: boolean): void => {
-    setOpen(nextOpen);
-  };
-
   const handleSave = (): void => {
     okSignal.emit(null);
-    handleOpenChange(false);
+    setOpen(false);
   };
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange} modal={false}>
+    <Sheet open={open} onOpenChange={setOpen} modal={false}>
       <SheetTrigger asChild>
-        <Button ref={triggerRef} variant="outline">
-          Edit
-        </Button>
+        <Button variant="outline">Edit</Button>
       </SheetTrigger>
       <SheetContent
         container={portalContainerRef.current}
@@ -64,7 +58,7 @@ export function SegmentOverrideSheet({
         <SheetHeader>
           <SheetTitle>Layer Symbology Override</SheetTitle>
           <SheetDescription>
-            Edit symbology overrides for this layer on the current story
+            Edit symbology overrides for this layer on the selected story
             segment.
           </SheetDescription>
         </SheetHeader>

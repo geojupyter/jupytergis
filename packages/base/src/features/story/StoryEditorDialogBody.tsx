@@ -7,7 +7,7 @@ import React, { useRef, useState } from 'react';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
-import { SegmentStopTypePicker } from '@/src/features/story/components/SegmentStopTypePicker';
+import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
@@ -76,7 +76,7 @@ function SegmentEditor({
   const contentTitle = segment.activeSlide?.content?.title ?? '';
   const imageUrl = segment.activeSlide?.content?.image ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
-  const stopType = getSegmentDisplayMode(segment.activeSlide);
+  const segmentMode = getSegmentDisplayMode(segment.activeSlide);
   const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
   const transitionTime = getSegmentTransitionTime(
     segment.activeSlide?.transition,
@@ -103,15 +103,15 @@ function SegmentEditor({
         </Button>
       </div>
 
-      <SegmentStopTypePicker value={stopType} onChange={onContentModeChange} />
+      <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
 
-      {stopType === 'map' ? (
+      {segmentMode === 'map' ? (
         <>
           <StoryEditorSection triggerText="Map view" defaultOpen>
             <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
               <p className="jgis-story-editor-help">
                 Set the map view by panning and zooming on the map, or preview
-                this stop with its layer overrides applied.
+                this segment with its layer overrides applied.
               </p>
               <div className="jgis-story-editor-row">
                 <Button

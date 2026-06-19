@@ -74,7 +74,7 @@ export class StoryEditorSession {
     this._focusSegmentOnMap(segmentId);
     this._dialog.minimize();
     this._showMapBar(
-      'Pan and zoom the map, then apply this view to the story stop.',
+      'Pan and zoom the map, then apply this view to the segment.',
       React.createElement(MapPickBarActions, {
         onBack: () => {
           this.restoreEditor();
@@ -97,7 +97,7 @@ export class StoryEditorSession {
     applySegmentLayerOverrides(this._model, segmentId, this._overrideEntries);
     this._dialog.minimize();
     this._showMapBar(
-      'Previewing this stop on the map with its layer overrides.',
+      'Previewing this segment on the map with its layer overrides.',
       React.createElement(MapPreviewBarActions, {
         onBack: () => {
           this.restoreEditor();
