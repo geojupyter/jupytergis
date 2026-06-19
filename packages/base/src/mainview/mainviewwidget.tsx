@@ -1,11 +1,13 @@
 import { IAnnotationModel, IJGISFormSchemaRegistry } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
-import { MainViewWithMediaQuery } from './mainView';
-import { MainViewModel } from './mainviewmodel';
+import { StoryRenderMimeProvider } from '@/src/features/story/components/ListStoryOverlayMarkdown';
+import { MainViewWithMediaQuery } from '@/src/mainview/mainView';
+import { MainViewModel } from '@/src/mainview/mainviewmodel';
 
 export interface IOptions {
   mainViewModel: MainViewModel;
@@ -13,6 +15,7 @@ export interface IOptions {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
+  rendermime?: IRenderMimeRegistry | null;
 }
 
 export class JupyterGISMainViewPanel extends ReactWidget {
@@ -28,13 +31,15 @@ export class JupyterGISMainViewPanel extends ReactWidget {
 
   render(): JSX.Element {
     return (
-      <MainViewWithMediaQuery
-        state={this._state}
-        viewModel={this._options.mainViewModel}
-        formSchemaRegistry={this._options.formSchemaRegistry}
-        annotationModel={this._options.annotationModel}
-        loggerRegistry={this._options.loggerRegistry}
-      />
+      <StoryRenderMimeProvider rendermime={this._options.rendermime}>
+        <MainViewWithMediaQuery
+          state={this._state}
+          viewModel={this._options.mainViewModel}
+          formSchemaRegistry={this._options.formSchemaRegistry}
+          annotationModel={this._options.annotationModel}
+          loggerRegistry={this._options.loggerRegistry}
+        />
+      </StoryRenderMimeProvider>
     );
   }
 

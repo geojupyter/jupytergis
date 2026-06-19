@@ -3,17 +3,18 @@ channels:
   - https://prefix.dev/emscripten-forge-dev
   - conda-forge
 dependencies:
-  - python=3.13
+  - python =3.13.*
   - pip
   - xeus-python
   - requests
+  - webcolors
   - jupyter_ydoc=2.1.5
   - ypywidgets>=0.9.6,<0.10.0
   - comm>=0.1.2,<0.2.0
   - pydantic>=2,<3
   - sidecar
   - pip:
-      - yjs-widgets>=0.4,<0.5
+      - yjs-widgets>=0.4,<0.6
       - my-jupyter-shared-drive>=0.2.2
       - ../python/jupytergis_lab
       - ../python/jupytergis_core

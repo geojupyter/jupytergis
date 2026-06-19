@@ -21,9 +21,9 @@ build:
     # multiple environments.
     create_environment:
       # Pin micromamba
-      - /bin/bash --login -c "micromamba self-update --version 2.0.7"
+      - /bin/bash --login -c "micromamba self-update"
       # Create the isolated env for building JupyterGIS
-      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge nodejs=24 pip python=3.13"
+      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge nodejs=24 pip python=3.13.\* proj"
       - /bin/bash --login -c "micromamba run -n jupytergis-build pip install --group build"
       # Build JupyterGIS Javascript packages; required for building the docs env
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm install"
@@ -31,6 +31,9 @@ build:
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build:packages"
       # Create the env for building the docs
       - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
+      # Install JupyterGIS for autodocs (--no-deps for not pulling jupyter-collaboration)
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs pip install ./python/jupytergis --no-deps"
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs pip install ./python/jupytergis_core ./python/jupytergis_lab ./python/jupytergis_lab[tiler]"
 
     # Override the install step to do nothing - we already created the envs
     install:

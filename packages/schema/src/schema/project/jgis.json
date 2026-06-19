@@ -46,7 +46,6 @@
         "HillshadeLayer",
         "GeoTiffLayer",
         "ImageLayer",
-        "HeatmapLayer",
         "StacLayer",
         "StorySegmentLayer",
         "OpenEOTileLayer"
@@ -161,7 +160,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": ["guided", "unguided"],
+          "enum": ["guided", "unguided", "Vertical Scroll"],
           "description": "The type of story map"
         },
         "storySegments": {

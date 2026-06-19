@@ -5,6 +5,7 @@ import type { IStoryViewerPanelHandle } from './StoryViewerPanel';
 import { SpectaDesktopView } from './components/SpectaDesktopView';
 import { SpectaMobileView } from './components/SpectaMobileView';
 import { useStoryMap, type IOverrideLayerEntry } from './hooks/useStoryMap';
+import type { IListStorySegmentTransition } from './types/types';
 
 interface ISpectaPanelProps {
   model: IJupyterGISModel;
@@ -15,6 +16,10 @@ interface ISpectaPanelProps {
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
+  /** List stories: segment handoff state for the map stage overlay. */
+  onSegmentTransitionChange?: (
+    payload: IListStorySegmentTransition | null,
+  ) => void;
 }
 
 export function SpectaPanel({
@@ -26,6 +31,7 @@ export function SpectaPanel({
   storyViewerPanelRef,
   addLayer,
   removeLayer,
+  onSegmentTransitionChange,
 }: ISpectaPanelProps) {
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
   const segmentContainerRef = useRef<HTMLDivElement>(null);
@@ -45,7 +51,6 @@ export function SpectaPanel({
     overrideLayerEntriesRef,
     removeLayer,
     addLayer,
-    panelRef: isMobile ? undefined : containerRef,
     isSpecta,
   });
 
@@ -72,13 +77,14 @@ export function SpectaPanel({
         segmentContainerRef={segmentContainerRef}
         storyData={storyData}
         currentIndex={currentIndex}
+        setIndex={setIndex}
         activeSlide={activeSlide}
         layerName={layerName}
         handlePrev={handlePrev}
         handleNext={handleNext}
         hasPrev={hasPrev}
         hasNext={hasNext}
-        setIndex={setIndex}
+        onSegmentTransitionChange={onSegmentTransitionChange}
       />
     );
   }
@@ -100,6 +106,7 @@ export function SpectaPanel({
       hasNext={hasNext}
       showGradient={showGradient}
       setIndex={setIndex}
+      onSegmentTransitionChange={onSegmentTransitionChange}
     />
   );
 }

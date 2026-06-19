@@ -61,6 +61,21 @@ export interface IServerProcessingRequest {
   outputName: string;
 }
 
+export interface IServerProcessingUrlRequest {
+  operation: string;
+  options: string[];
+  url: string;
+  outputName: string;
+}
+
+export interface IServerProcessingUrlWithCutlineRequest {
+  operation: string;
+  options: string[];
+  url: string;
+  cutlineGeojson: string;
+  outputName: string;
+}
+
 export interface IServerProcessingResponse {
   result: string;
   format: 'text' | 'base64';
@@ -77,6 +92,66 @@ export async function runServerProcessing(
 
   const response = await ServerConnection.makeRequest(
     url,
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    settings,
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error.error || `Server processing failed: ${response.status}`,
+    );
+  }
+
+  return await response.json();
+}
+
+/**
+ * Send a URL-based processing request — the server uses /vsicurl/ so GDAL
+ * issues HTTP range requests instead of downloading the full file.
+ * Ideal for Cloud-Optimized GeoTIFFs (COGs).
+ */
+export async function runServerProcessingUrl(
+  request: IServerProcessingUrlRequest,
+): Promise<IServerProcessingResponse> {
+  const settings = ServerConnection.makeSettings();
+  const endpoint = `${settings.baseUrl}${PROCESSING_ENDPOINT.slice(1)}`;
+
+  const response = await ServerConnection.makeRequest(
+    endpoint,
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    settings,
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error.error || `Server processing failed: ${response.status}`,
+    );
+  }
+
+  return await response.json();
+}
+
+/**
+ * Run a GDAL operation that needs both a remote raster URL and a vector
+ * cutline (e.g. `gdalwarp -cutline`). The server writes the cutline GeoJSON
+ * to a temp file and substitutes `{cutlinePath}` in the options list.
+ */
+export async function runServerProcessingUrlWithCutline(
+  request: IServerProcessingUrlWithCutlineRequest,
+): Promise<IServerProcessingResponse> {
+  const settings = ServerConnection.makeSettings();
+  const endpoint = `${settings.baseUrl}${PROCESSING_ENDPOINT.slice(1)}`;
+
+  const response = await ServerConnection.makeRequest(
+    endpoint,
     {
       method: 'POST',
       body: JSON.stringify(request),

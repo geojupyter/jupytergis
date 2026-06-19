@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.14']
+        python-version: ['3.12', '3.13']
 
     steps:
       - name: Checkout
@@ -24,10 +24,12 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
+          cache-environment: true
           environment-name: gis
           create-args: >-
             python=${{ matrix.python-version }}
             pip
+            qgis
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -145,6 +147,11 @@ jobs:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/pw-browsers
 
     steps:
+      - name: Install QGIS runtime deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libqca-qt5-2 libqca-qt5-2-plugins
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -157,7 +164,21 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
+            pip
             qgis
+
+      - name: Setup pip cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python test dependencies # Needed for notebook tests!
+        shell: bash -l {0}
+        run: pip install --group test
 
       - name: Download extension package
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -169,14 +190,36 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+
+          # Add `[tiler]` extra to the jupytergis_lab wheel
+          args=()
+          for whl in jupytergis*.whl; do
+              if [[ "$whl" == *_lab*.whl ]]; then
+                  args+=("${whl}[tiler]")
+              else
+                  args+=("$whl")
+              fi
+          done
+
+          python -m pip install "${args[@]}"
 
       - name: Install
         shell: bash -l {0}
         working-directory: ui-tests
-        run: |
-          jlpm install
-          jlpm playwright install chromium
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: jlpm install
+
+      - name: Set up browser cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ${{ github.workspace }}/pw-browsers
+          key: ${{ runner.os }}-${{ hashFiles('ui-tests/yarn.lock') }}
+
+      - name: Install browser
+        shell: bash -l {0}
+        working-directory: ui-tests
+        run: jlpm playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
@@ -214,6 +257,7 @@ jobs:
             pip
             jupyterlite-core
             jupyterlite-xeus
+            micromamba
             jupyter_server
             specta
 
@@ -296,7 +340,7 @@ jobs:
 
       - name: Install browser
         shell: bash -l {0}
-        run: npx playwright install chromium
+        run: jlpm playwright install chromium
         working-directory: ui-tests
 
       - name: Execute integration tests

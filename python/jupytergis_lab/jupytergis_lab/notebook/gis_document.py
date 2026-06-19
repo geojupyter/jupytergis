@@ -4,12 +4,12 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
 from IPython.display import display
-from jupytergis_core.colors import try_hex_to_rgba
 from jupytergis_core.schema import (
     IGeoJSONSource,
     IGeoPackageRasterSource,
@@ -17,7 +17,6 @@ from jupytergis_core.schema import (
     IGeoParquetSource,
     IGeoTiffLayer,
     IGeoTiffSource,
-    IHeatmapLayer,
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
@@ -42,11 +41,19 @@ from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
-from jupytergis_lab.notebook.symbology import (  # noqa: TC001
-    GraduatedSymbology,
-    Symbology,
+from jupytergis_lab.notebook.symbology import (
+    SymbologyInput,
+    to_symbology_state,
 )
 from jupytergis_lab.notebook.utils import get_gpkg_layers
+
+if TYPE_CHECKING:
+    from jupyter_tiler.titiler import (
+        BaseAlgorithm,
+        DataArray,
+        TiTilerServer,
+    )
+
 
 logger = logging.getLogger(__file__)
 
@@ -57,93 +64,30 @@ def reversed_tree(root):
     return root
 
 
-def _color_to_rgba(value: Any) -> list[float] | None:
-    """Coerce an OL-flavored color value (hex string or [r, g, b, a] array)
-    into an ``[r, g, b, a]`` list. Returns ``None`` if ``value`` is an OL
-    expression (e.g. ``["interpolate", ...]``) or otherwise unparseable.
+def _extract_layer_name(path: str | Path) -> str:
+    """Extract a meaningful layer name from a file path or URL.
+
+    Examples:
+        "/path/to/earthquakes.geojson" → "earthquakes"
+        "https://example.com/data/france_regions.geojson" → "france_regions"
+        "hillshade.tif" → "hillshade"
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            → "tile.openstreetmap.org"
+
     """
-    if isinstance(value, str):
-        rgba = try_hex_to_rgba(value)
-        return list(rgba) if rgba else None
-    if isinstance(value, list | tuple) and value and isinstance(value[0], int | float):
-        rgba = list(value) + [1.0] * (4 - len(value))
-        return [float(c) for c in rgba[:4]]
-    return None
+    if isinstance(path, Path):
+        path = str(path)
 
+    parsed = urlparse(path)
 
-def _make_constant_rgba_rule(channels: list[str], color: list[float]) -> dict:
-    return {
-        "id": str(uuid4()),
-        "mappings": [
-            {
-                "scale": {"scheme": "constant_rgba", "params": {"value": color}},
-                "channels": channels,
-            },
-        ],
-    }
+    if parsed.scheme and any(token in parsed.path for token in ("{z}", "{x}", "{y}")):
+        return parsed.netloc
 
+    filename = path.rstrip("/").split("/")[-1]
 
-def _make_constant_num_rule(channels: list[str], value: float) -> dict:
-    return {
-        "id": str(uuid4()),
-        "mappings": [
-            {
-                "scale": {"scheme": "constant_num", "params": {"value": value}},
-                "channels": channels,
-            },
-        ],
-    }
+    name_without_ext = filename.rsplit(".", 1)[0]
 
-
-def _vector_symbology_state_from_color_expr(color_expr: Any) -> dict[str, Any]:
-    """Translate a legacy ``color_expr`` dict (OpenLayers FlatStyle keys such as
-    ``fill-color``, ``stroke-color``, ``circle-radius``) into a Grammar
-    ``symbologyState`` dict. Expression values that aren't solid colors are
-    ignored.
-    """
-    rules: list[dict] = []
-
-    if isinstance(color_expr, dict):
-        fill = _color_to_rgba(
-            color_expr.get("fill-color") or color_expr.get("circle-fill-color"),
-        )
-        if fill is not None:
-            rules.append(
-                _make_constant_rgba_rule(
-                    ["fill-color", "circle-fill-color"],
-                    fill,
-                ),
-            )
-
-        stroke = _color_to_rgba(
-            color_expr.get("stroke-color") or color_expr.get("circle-stroke-color"),
-        )
-        if stroke is not None:
-            rules.append(
-                _make_constant_rgba_rule(
-                    ["stroke-color", "circle-stroke-color"],
-                    stroke,
-                ),
-            )
-
-        stroke_width = color_expr.get("stroke-width") or color_expr.get(
-            "circle-stroke-width",
-        )
-        if isinstance(stroke_width, (int, float)):
-            rules.append(
-                _make_constant_num_rule(
-                    ["stroke-width", "circle-stroke-width"],
-                    stroke_width,
-                ),
-            )
-
-        radius = color_expr.get("circle-radius")
-        if isinstance(radius, (int, float)):
-            rules.append(_make_constant_num_rule(["circle-radius"], radius))
-
-    return {
-        "layers": [{"id": str(uuid4()), "rules": rules}],
-    }
+    return name_without_ext or filename
 
 
 def _python_expr_to_vega_expr(python_expr: str | None) -> str | None:
@@ -184,6 +128,8 @@ class GISDocument(CommWidget):
     current snapshot is available as ``awareness.states`` on the underlying
     ``pycrdt.Awareness`` via the inherited ``awareness`` property.
     """
+
+    tile_server: None | TiTilerServer
 
     def __init__(
         self,
@@ -237,6 +183,8 @@ class GISDocument(CommWidget):
         if projection is not None:
             self._options["projection"] = projection
 
+        self.tile_server = None
+
     @property
     def layers(self) -> dict:
         """Get the layer list"""
@@ -285,7 +233,7 @@ class GISDocument(CommWidget):
     def add_raster_layer(
         self,
         url: str,
-        name: str = "Raster Layer",
+        name: str | None = None,
         attribution: str = "",
         opacity: float = 1,
         url_parameters: dict[str, Any] | None = None,
@@ -298,6 +246,10 @@ class GISDocument(CommWidget):
         :param opacity: The opacity, between 0 and 1.
         :param url_parameters: Extra URL parameters for tile requests.
         """
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
+
         source = {
             "type": SourceType.RasterSource,
             "name": f"{name} Source",
@@ -327,18 +279,14 @@ class GISDocument(CommWidget):
     def add_vectortile_layer(
         self,
         url: str,
-        name: str = "Vector Tile Layer",
+        name: str | None = None,
         attribution: str = "",
         min_zoom: int = 0,
         max_zoom: int = 24,
-        color_expr=None,
         vega_expr: str | None = None,
         python_expr: str | None = None,
         opacity: float = 1,
-        logical_op: str | None = None,
-        feature: str | None = None,
-        operator: str | None = None,
-        value: str | float | None = None,
+        symbology: SymbologyInput = None,
     ):
         """Add a Vector Tile Layer to the document.
 
@@ -346,7 +294,12 @@ class GISDocument(CommWidget):
         :param url: The tiles url.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
+        :param symbology: The symbology configuration to persist with the layer.
         """
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
+
         source = {
             "type": SourceType.VectorTileSource,
             "name": f"{name} Source",
@@ -374,15 +327,12 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "opacity": opacity,
                 "vega": vega_expr,
-                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
-            },
-            "filters": {
-                "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value},
-                ],
-                "logicalOp": logical_op,
             },
         }
+
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is not None:
+            layer["parameters"]["symbologyState"] = symbology_state
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
@@ -390,29 +340,20 @@ class GISDocument(CommWidget):
         self,
         path: str | Path | None = None,
         data: dict | None = None,
-        name: str = "GeoJSON Layer",
+        name: str | None = None,
         opacity: float = 1,
-        logical_op: str | None = None,
-        feature: str | None = None,
-        operator: str | None = None,
-        value: str | float | None = None,
-        color_expr=None,
         vega_expr: str | None = None,
         python_expr: str | None = None,
+        symbology: SymbologyInput = None,
     ):
         """Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
-        :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
-        :param opacity: The opacity, between 0 and 1.
-        :param color_expr: The style expression used to style the layer, defaults to None
         :param vega_expr: A Vega expression string will be converted to OpenLayers expression in the frontend.
+        :param symbology: The symbology configuration to persist with the layer.
         """
-        if isinstance(path, Path):
-            path = str(path)
-
-        if path is None and data is None:
+        if isinstance(path, Path) and data is not None:
             raise ValueError("Cannot create a GeoJSON layer without data")
 
         if path is not None and data is not None:
@@ -435,8 +376,9 @@ class GISDocument(CommWidget):
         if data is not None:
             parameters["data"] = data
 
-        if color_expr is None:
-            color_expr = {}
+        # Extract name from path if not provided
+        if name is None and path is not None:
+            name = _extract_layer_name(path)
 
         vega_expr = _resolve_vega_expr(vega_expr, python_expr)
 
@@ -456,27 +398,28 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "vega": vega_expr,
                 "opacity": opacity,
-                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
-            },
-            "filters": {
-                "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value},
-                ],
-                "logicalOp": logical_op,
             },
         }
+
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is not None:
+            layer["parameters"]["symbologyState"] = symbology_state
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_openeo_tile_layer(
         self,
         graph,
-        name="OpenEO Tiles",
+        name: str | None = None,
         opacity: float = 1,
     ):
+        # Persist the bearer token alongside the server url so a connection
+        # opened here from the notebook is reused by the frontend without the
+        # user having to sign in a second time from the UI. The bearer is a
+        # session identifier, not long-lived credentials.
         source = {
             "type": SourceType.OpenEOTileSource,
-            "name": f"{name} Source",
+            "name": f"{name} Source" if name is not None else "OpenEO Tiles Source",
             "parameters": {
                 "processGraph": graph.flat_graph(),
                 "serverUrl": graph.connection.root_url,
@@ -488,7 +431,7 @@ class GISDocument(CommWidget):
 
         layer = {
             "type": LayerType.OpenEOTileLayer,
-            "name": name,
+            "name": name if name is not None else "OpenEO Tiles Layer",
             "visible": True,
             "parameters": {"source": source_id, "opacity": opacity},
         }
@@ -499,7 +442,7 @@ class GISDocument(CommWidget):
         self,
         url: str,
         coordinates: [],
-        name: str = "Image Layer",
+        name: str | None = None,
         opacity: float = 1,
     ):
         """Add a Image Layer to the document.
@@ -511,6 +454,9 @@ class GISDocument(CommWidget):
         """
         if url is None or coordinates is None:
             raise ValueError("URL and Coordinates are required")
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
 
         source = {
             "type": SourceType.ImageSource,
@@ -532,7 +478,7 @@ class GISDocument(CommWidget):
     def add_video_layer(
         self,
         urls: list,
-        name: str = "Image Layer",
+        name: str | None = None,
         coordinates: list | None = None,
         opacity: float = 1,
     ):
@@ -548,6 +494,9 @@ class GISDocument(CommWidget):
 
         if urls is None or coordinates is None:
             raise ValueError("URLs and Coordinates are required")
+        # Extract name from first URL if not provided
+        if name is None and urls:
+            name = _extract_layer_name(urls[0])
 
         source = {
             "type": SourceType.VideoSource,
@@ -566,29 +515,33 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
-    def add_tiff_layer(
+    def add_geotiff_layer(
         self,
         url: str,
         min: int = None,
         max: int = None,
-        name: str = "Tiff Layer",
+        name: str | None = None,
         normalize: bool = True,
         wrapX: bool = False,
         attribution: str = "",
         opacity: float = 1.0,
-        color_expr=None,
+        symbology: SymbologyInput = None,
     ):
-        """Add a tiff layer
+        """Add a GeoTIFF layer.
 
-        :param url: URL of the tif
+        :param url: URL of the GeoTIFF
         :param min: Minimum pixel value to be displayed, defaults to letting the map display set the value
         :param max: Maximum pixel value to be displayed, defaults to letting the map display set the value
-        :param name: The name that will be used for the object in the document, defaults to "Tiff Layer"
+        :param name: The name that will be used for the object in the document, defaults to "GeoTIFF Layer"
         :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
         :param wrapX: Render tiles beyond the tile grid extent, defaults to False
         :param opacity: The opacity, between 0 and 1, defaults to 1.0
-        :param color_expr: The style expression used to style the layer, defaults to None
+        :param symbology: The symbology configuration to persist with the layer.
         """
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
+
         source = {
             "type": SourceType.GeoTiffSource,
             "name": f"{name} Source",
@@ -607,16 +560,19 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "color": color_expr,
             },
         }
+
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is not None:
+            layer["parameters"]["symbologyState"] = symbology_state
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_hillshade_layer(
         self,
         url: str,
-        name: str = "Hillshade Layer",
+        name: str | None = None,
         urlParameters: dict | None = None,
         attribution: str = "",
     ):
@@ -628,6 +584,9 @@ class GISDocument(CommWidget):
         """
         if urlParameters is None:
             urlParameters = {}
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
 
         source = {
             "type": SourceType.RasterDemSource,
@@ -649,103 +608,27 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
-    def add_heatmap_layer(
-        self,
-        feature: str,
-        path: str | Path | None = None,
-        data: dict | None = None,
-        name: str = "Heatmap Layer",
-        opacity: float = 1,
-        blur: int = 15,
-        radius: int = 8,
-        gradient: list[str] | None = None,
-    ):
-        """Add a Heatmap Layer to the document.
-
-        :param name: The name that will be used for the object in the document.
-        :param path: The path to the JSON file to embed into the jGIS file.
-        :param data: The raw GeoJSON data to embed into the jGIS file.
-        :param gradient: The color gradient to apply.
-        :param opacity: The opacity, between 0 and 1.
-        :param blur: The blur size in pixels
-        :param radius: The radius size in pixels
-        :param feature: The feature to use to heatmap weights
-        """
-        if isinstance(path, Path):
-            path = str(path)
-
-        if path is None and data is None:
-            raise ValueError("Cannot create a GeoJSON source without data")
-
-        if path is not None and data is not None:
-            raise ValueError("Cannot set GeoJSON source data and path at the same time")
-
-        if path is not None:
-            # We cannot put the path to the file in the model
-            # We don't know where the kernel runs/live
-            # The front-end would have no way of finding the file reliably
-            # TODO Support urls to JSON files, in that case, don't embed the data
-            with open(path) as fobj:
-                parameters = {"data": json.loads(fobj.read())}
-
-        if data is not None:
-            parameters = {"data": data}
-
-        if gradient is None:
-            gradient = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
-
-        source = {
-            "type": SourceType.GeoJSONSource,
-            "name": f"{name} Source",
-            "parameters": parameters,
-        }
-
-        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-
-        layer = {
-            "type": LayerType.HeatmapLayer,
-            "name": name,
-            "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-                "blur": blur,
-                "radius": radius,
-                "feature": feature,
-                "symbologyState": {
-                    "renderType": "Heatmap",
-                    "gradient": gradient,
-                },
-            },
-        }
-
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-
     def add_geoparquet_layer(
         self,
         path: str,
-        name: str = "GeoParquetLayer",
+        name: str | None = None,
         opacity: float = 1,
-        logical_op: str | None = None,
-        feature: str | None = None,
-        operator: str | None = None,
-        value: str | float | None = None,
-        color_expr=None,
         vega_expr: str | None = None,
         python_expr: str | None = None,
+        symbology: SymbologyInput = None,
     ):
-        """Add a GeoParquet Layer to the document
+        """Add a GeoParquet Layer to the document.
 
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
         :param opacity: The opacity, between 0 and 1.
-        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param feature: The feature to be filtered on
-        :param operator: The operator used to compare the feature and value
-        :param value: The value to be filtered on
-        :param color_expr: The style expression used to style the layer
         :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
+        :param symbology: The symbology configuration to persist with the layer.
         """
+        # Extract name from path if not provided
+        if name is None:
+            name = _extract_layer_name(path)
+
         source = {
             "type": SourceType.GeoParquetSource,
             "name": f"{name} Source",
@@ -764,15 +647,12 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "opacity": opacity,
                 "vega": vega_expr,
-                "symbologyState": _vector_symbology_state_from_color_expr(color_expr),
-            },
-            "filters": {
-                "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value},
-                ],
-                "logicalOp": logical_op,
             },
         }
+
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is not None:
+            layer["parameters"]["symbologyState"] = symbology_state
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
@@ -780,36 +660,28 @@ class GISDocument(CommWidget):
         self,
         path: str,
         table_names: list[str] | str | None = None,
-        name: str = "GeoPackage Layer",
+        name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
-        logical_op: str | None = None,
-        feature: str | None = None,
-        operator: str | None = None,
-        value: str | float | None = None,
-        color_expr=None,
         vega_expr: str | None = None,
         python_expr: str | None = None,
+        symbology: SymbologyInput = None,
     ):
-        """Add a GeoPackage Vector Layer to the document
+        """Add a GeoPackage Vector Layer to the document.
 
         :param path: The path to the GeoPackage file to embed into the jGIS file.
         :param table_names: A list of table names to create layers for.
         :param name: The name that will be used for the object in the document.
         :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
-        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param feature: The feature to be filtered on
-        :param operator: The operator used to compare the feature and value
-        :param value: The value to be filtered on
-        :param color_expr: The style expression used to style the layer
         :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
+        :param symbology: The symbology configuration to persist with the layers.
         """
         if isinstance(table_names, str):
-            table_names = [part.strip() for part in table_names.split(",")]
-
-        if not table_names:
             table_names = get_gpkg_layers(path, "features")
+        # Extract name from path if not provided
+        if name is None:
+            name = _extract_layer_name(path)
 
         layer_ids = []
 
@@ -819,6 +691,7 @@ class GISDocument(CommWidget):
             projection = "EPSG:3857"
 
         vega_expr = _resolve_vega_expr(vega_expr, python_expr)
+        symbology_state = to_symbology_state(symbology)
 
         for table_name in table_names:
             source = {
@@ -844,17 +717,11 @@ class GISDocument(CommWidget):
                     "type": type,
                     "opacity": opacity,
                     "vega": vega_expr,
-                    "symbologyState": _vector_symbology_state_from_color_expr(
-                        color_expr,
-                    ),
-                },
-                "filters": {
-                    "appliedFilters": [
-                        {"feature": feature, "operator": operator, "value": value},
-                    ],
-                    "logicalOp": logical_op,
                 },
             }
+
+            if symbology_state is not None:
+                layer["parameters"]["symbologyState"] = symbology_state
 
             layer_id = str(uuid4()) + "/" + str(table_name)
             layer_ids.append(
@@ -867,7 +734,7 @@ class GISDocument(CommWidget):
         self,
         path: str,
         table_names: list[str] | str | None = None,
-        name: str = "GeoPackage Layer",
+        name: str | None = None,
         attribution: str = "",
         opacity: float = 1,
     ):
@@ -884,6 +751,9 @@ class GISDocument(CommWidget):
 
         if not table_names:
             table_names = get_gpkg_layers(path, "tiles")
+        # Extract name from path if not provided
+        if name is None:
+            name = _extract_layer_name(path)
 
         layer_ids = []
 
@@ -915,6 +785,70 @@ class GISDocument(CommWidget):
             )
 
         return layer_ids
+
+    async def add_data_array_layer(
+        self,
+        data_array: DataArray,
+        *,
+        name: str = "Data Array layer",
+        colormap_name: str = "viridis",
+        colormap_range: tuple[float, float] | None = None,
+        opacity: float = 1,
+        tile_dim_scale: int = 1,
+        algorithm: BaseAlgorithm | None = None,
+        **params,
+    ):
+        """Add an Xarray DataArray as a layer on the map.
+
+        :param data_array: An Xarray DataArray to display on the map
+        :param name: The layer's name
+        :param colormap_name: A ``rio-tiler``-supported colormap name.
+            See the `rio-tiler docs <https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/colormap/#rio_tiler.colormap.ColorMaps.list>`_
+            for details.
+        :param colormap_range: The range of data values ``(min, max)`` to be colormapped
+        :param opacity: The opacity, between 0 and 1
+        :param tile_dim_scale: Tile dimension scale. Default ``1`` corresponds to 256*256px tiles
+        :param algorithm: A TiTiler algorithm class.
+            See the `TiTiler algorithm docs <https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm>`_
+            for details.
+        """
+        try:
+            from jupyter_tiler.titiler import _get_server, add_data_array
+        except ImportError as e:
+            raise RuntimeError(
+                "This method requires 'jupyter-tiler'."
+                " To resolve, `pip install jupytergis[tiler]`.",
+            ) from e
+
+        self.tile_server = _get_server()
+        url = await add_data_array(
+            data_array,
+            colormap_name=colormap_name,
+            colormap_range=colormap_range,
+            tile_dim_scale=tile_dim_scale,
+            algorithm=algorithm,
+            **params,
+        )
+
+        source_id = str(uuid4())
+        source = {
+            "type": SourceType.RasterSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": 0,
+                "maxZoom": 24,
+            },
+        }
+        self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def get_wms_available_layers(
         self,
@@ -1014,7 +948,7 @@ class GISDocument(CommWidget):
         self,
         url: str,
         layer_name: str,
-        name: str = "WMS Layer",
+        name: str | None = None,
         attribution: str = "",
         opacity: float = 1,
         interpolate: bool = False,
@@ -1039,6 +973,10 @@ class GISDocument(CommWidget):
             raise ValueError("url must be a non-empty string")
         if not layer_name or not isinstance(layer_name, str):
             raise ValueError("layer_name must be a non-empty string")
+
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
 
         # Normalize: strip any existing query string since the frontend will
         # add WMS params (LAYERS/TILED) itself.
@@ -1100,163 +1038,6 @@ class GISDocument(CommWidget):
         if source_is_orphan:
             del self._sources[source_id]
 
-    def create_color_expr(
-        self,
-        color_stops: dict,
-        band: float = 1.0,
-        interpolation_type: str = "linear",
-    ):
-        """Create a color expression used to style the layer
-
-        :param color_stops: Dictionary of stop values to [r, g, b, a] colors
-        :param band: The band to be colored, defaults to 1.0
-        :param interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
-        """
-        if interpolation_type not in ["linear", "discrete", "exact"]:
-            raise ValueError(
-                "Interpolation type must be one of linear, discrete, or exact",
-            )
-
-        color = []
-        if interpolation_type == "linear":
-            color = ["interpolate", ["linear"]]
-            color.append(["band", band])
-            # Transparency for nodata
-            color.append(0.0)
-            color.append([0.0, 0.0, 0.0, 0.0])
-
-            for value, colorVal in color_stops.items():
-                color.append(value)
-                color.append(colorVal)
-
-            return color
-
-        if interpolation_type == "discrete":
-            operator = "<="
-
-        if interpolation_type == "exact":
-            operator = "=="
-
-        color = ["case"]
-        # Transparency for nodata
-        color.append(["==", ["band", band], 0.0])
-        color.append([0.0, 0.0, 0.0, 0.0])
-
-        for value, colorVal in color_stops.items():
-            color.append([operator, ["band", band], value])
-            color.append(colorVal)
-
-        # Fallback color
-        color.append([0.0, 0.0, 0.0, 1.0])
-
-        return color
-
-    def add_filter(
-        self,
-        layer_id: str,
-        logical_op: str,
-        feature: str,
-        operator: str,
-        value: str | float,
-    ):
-        """Add a filter to a layer
-
-        :param layer_id: The ID of the layer to filter
-        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param feature: The feature to be filtered on
-        :param operator: The operator used to compare the feature and value
-        :param value: The value to be filtered on
-        """
-        layer = self._layers.get(layer_id)
-
-        # Check if the layer exists
-        if layer is None:
-            raise ValueError(f"No layer found with ID: {layer_id}")
-
-        # Initialize filters if it doesn't exist
-        if "filters" not in layer:
-            layer["filters"] = {
-                "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value},
-                ],
-                "logicalOp": logical_op,
-            }
-
-            self._layers[layer_id] = layer
-            return
-
-        # Add new filter
-        filters = layer["filters"]
-        filters["appliedFilters"].append(
-            {"feature": feature, "operator": operator, "value": value},
-        )
-
-        # update the logical operation
-        filters["logicalOp"] = logical_op
-
-        self._layers[layer_id] = layer
-
-    def update_filter(
-        self,
-        layer_id: str,
-        logical_op: str,
-        feature: str,
-        operator: str,
-        value: str | float,
-    ):
-        """Update a filter applied to a layer
-
-        :param layer_id: The ID of the layer to filter
-        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param feature: The feature to update the value for
-        :param operator: The operator used to compare the feature and value
-        :param value: The new value to be filtered on
-        """
-        layer = self._layers.get(layer_id)
-
-        # Check if the layer exists
-        if layer is None:
-            raise ValueError(f"No layer found with ID: {layer_id}")
-
-        if "filters" not in layer:
-            raise ValueError(f"No filters applied to layer: {layer_id}")
-
-        # Find the feature within the layer
-        feature = next(
-            (f for f in layer["filters"]["appliedFilters"] if f["feature"] == feature),
-            None,
-        )
-        if feature is None:
-            raise ValueError(
-                f"No feature found with ID: {feature} in layer: {layer_id}",
-            )
-            return
-
-        # Update the feature value
-        feature["value"] = value
-
-        # update the logical operation
-        layer["filters"]["logicalOp"] = logical_op
-
-        self._layers[layer_id] = layer
-
-    def clear_filters(self, layer_id: str):
-        """Clear filters on a layer
-
-        :param layer_id: The ID of the layer to clear filters from
-        """
-        layer = self._layers.get(layer_id)
-
-        # Check if the layer exists
-        if layer is None:
-            raise ValueError(f"No layer found with ID: {layer_id}")
-
-        if "filters" not in layer:
-            raise ValueError(f"No filters applied to layer: {layer_id}")
-
-        layer["filters"]["appliedFilters"] = []
-        self._layers[layer_id] = layer
-
     def _add_source(self, new_object, id: str | None = None) -> str:
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
@@ -1311,76 +1092,24 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_symbology(self, layer_id: str, symbology: Symbology):
+    def apply_symbology(self, layer_id: str, symbology: SymbologyInput):
         layer = self._layers.get(layer_id)
 
         if layer is None:
             raise ValueError(f"No layer found with ID: {layer_id}")
 
-        if symbology.type == "graduated":
-            self._apply_graduated_symbology(layer, symbology)
-        else:
-            raise ValueError(f"Unsupported symbology type: {symbology.type}")
-
-        self._layers[layer_id] = layer
-
-    def _apply_graduated_symbology(self, layer: dict, symbology: GraduatedSymbology):
-        """Persist a Graduated ``symbologyState`` on ``layer``.
-
-        Stops and the OpenLayers color expression are computed at runtime by
-        the frontend (``styleBuilder``) from this minimal state. The kernel
-        only writes config — it does not generate stops or color expressions.
-        """
-        if layer["type"] not in ("VectorLayer", "VectorTileLayer"):
-            raise ValueError("Graduated symbology only supports vector layers")
-
-        # If the caller didn't pass an explicit range but did pass a sample,
-        # derive vmin/vmax from it. Otherwise leave both unset and let the
-        # frontend compute the range from the live source data.
-        vmin = symbology.vmin
-        vmax = symbology.vmax
-        if (vmin is None or vmax is None) and symbology.data:
-            sample = [float(v) for v in symbology.data]
-            if vmin is None:
-                vmin = min(sample)
-            if vmax is None:
-                vmax = max(sample)
-
-        state: dict[str, Any] = {
-            "renderType": "Graduated",
-            "value": symbology.value,
-            "method": symbology.method,
-            "colorRamp": symbology.color_ramp,
-            "nClasses": float(symbology.n_classes),
-            "mode": symbology.mode,
-            "reverseRamp": symbology.reverse,
-            "strokeFollowsFill": symbology.stroke_follows_fill,
-        }
-
-        if vmin is not None:
-            state["vmin"] = float(vmin)
-        if vmax is not None:
-            state["vmax"] = float(vmax)
-        if symbology.fallback_color is not None:
-            state["fallbackColor"] = list(symbology.fallback_color)
-        if symbology.stroke_color is not None:
-            state["strokeColor"] = list(symbology.stroke_color)
-        if symbology.stroke_width is not None:
-            state["strokeWidth"] = float(symbology.stroke_width)
-        if symbology.radius is not None:
-            state["radius"] = float(symbology.radius)
-        if symbology.stops_override:
-            state["stopsOverride"] = [
-                {"value": float(s.value), "color": list(s.color)}
-                for s in symbology.stops_override
-            ]
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is None:
+            raise ValueError("Symbology cannot be None")
 
         params = layer.setdefault("parameters", {})
-        params["symbologyState"] = state
+        params["symbologyState"] = symbology_state
 
         # Drop legacy color expression cache — symbologyState is the source of
         # truth now, and the frontend ignores ``params.color``.
         params.pop("color", None)
+
+        self._layers[layer_id] = layer
 
 
 class JGISLayer(BaseModel):
@@ -1398,7 +1127,6 @@ class JGISLayer(BaseModel):
         | IHillshadeLayer
         | IImageLayer
         | IGeoTiffLayer
-        | IHeatmapLayer
         | IStorySegmentLayer
         | IOpenEOTileLayer
     )
@@ -1513,7 +1241,6 @@ OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.GeoTiffLayer, IGeoTiffLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
-OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 

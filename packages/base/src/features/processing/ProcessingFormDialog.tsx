@@ -5,6 +5,7 @@ import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
 import type { IBaseFormProps } from '@/src/types';
+import { ClipRasterByExtentForm } from './forms/clipRasterByExtentForm';
 import { DissolveForm } from './forms/dissolveProcessForm';
 import { DefaultProcessingForm } from './forms/processingForm';
 import { RasterizeForm } from './forms/rasterizeForm';
@@ -54,6 +55,9 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
       break;
     case 'Rasterize':
       FormComponent = RasterizeForm;
+      break;
+    case 'ClipRasterByExtent':
+      FormComponent = ClipRasterByExtentForm;
       break;
     default:
       FormComponent = DefaultProcessingForm;
@@ -114,8 +118,12 @@ export class ProcessingFormDialog extends Dialog<IDict> {
         );
       }
 
-      // Ensure outputLayerName field exists in schema
-      if (!options.schema.properties?.outputLayerName) {
+      // Ensure outputLayerName field exists in schema. Skip if the schema
+      // already produces a file output (e.g. raster outputs use outputFileName).
+      if (
+        !options.schema.properties?.outputLayerName &&
+        !options.schema.properties?.outputFileName
+      ) {
         options.schema.properties.outputLayerName = {
           type: 'string',
           title: 'Output Layer Name',

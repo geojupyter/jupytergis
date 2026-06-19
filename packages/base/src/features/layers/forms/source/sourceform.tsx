@@ -7,12 +7,12 @@ import { Signal } from '@lumino/signaling';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
 
@@ -21,6 +21,11 @@ export interface ISourceFormProps extends IBaseFormProps {
    * The source type for this form.
    */
   sourceType: SourceType;
+
+  /**
+   * The id of the source being edited, when known (object properties panel).
+   */
+  sourceId?: string;
 
   /**
    * The signal emitted when the source form has changed.

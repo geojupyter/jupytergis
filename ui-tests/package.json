@@ -10,19 +10,16 @@
     "test:local": "npx playwright test --ignore-snapshots --workers 1",
     "test:lite": "npx playwright test tests/lite.spec.ts --workers 1 --config playwright-lite.config.js --browser chromium",
     "test:locallite": "npx playwright test tests/lite.spec.ts --ignore-snapshots --workers 1 --config playwright-lite.config.js",
-    "test:update": "npx playwright test --update-snapshots",
+    "test:update": "npx playwright test --update-snapshots --browser chromium",
     "test:updatelite": "jlpm run test:lite --update-snapshots",
     "test:debug": "PWDEBUG=1 npx playwright test --workers 1"
   },
   "devDependencies": {
-    "@jupyterlab/galata": "^5.5.1",
-    "@playwright/test": "^1.48.0",
+    "@jupyterlab/galata": "^5.6.0-rc.0",
+    "@playwright/test": "^1.57.0",
     "@types/klaw-sync": "^6.0.1"
   },
   "dependencies": {
     "klaw-sync": "^6.0.0"
-  },
-  "resolutions": {
-    "@jupyterlab/debugger": "4.2.5"
   }
 }

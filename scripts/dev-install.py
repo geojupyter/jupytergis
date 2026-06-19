@@ -17,12 +17,18 @@ def install_dev():
     ]
 
     execute("python -m pip install --group build")
-    execute("jlpm install")
+    execute("jlpm install --immutable")  # Use lockfile for safety!
     execute("jlpm build")
+
     for py_package in python_packages:
         execute(f"pip uninstall {py_package} -y")
         execute("jlpm clean:all", cwd=root_path / "python" / py_package)
-        execute(f"pip install -e {python_package_prefix}/{py_package}")
+
+        install_cmd = f"pip install -e {python_package_prefix}/{py_package}"
+        if py_package == "jupytergis_lab":
+            install_cmd += "[tiler]"
+
+        execute(install_cmd)
 
         if py_package == "jupytergis_qgis":
             execute("jupyter server extension enable jupytergis_qgis")
@@ -31,7 +37,7 @@ def install_dev():
             f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite",
         )
 
-    execute(f"pip install -e {python_package_prefix}/jupytergis")
+    execute(f"pip install -e {python_package_prefix}/jupytergis[tiler]")
 
 
 if __name__ == "__main__":

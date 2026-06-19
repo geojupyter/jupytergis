@@ -23,8 +23,8 @@ contact:
   - name: "The GeoJupyter Community Chat"
     website: "https://jupyter.zulipchat.com"
 
-version: "0.15.0"
-date-released: "2026-04-03"
+version: "0.16.0a2"
+date-released: "2026-06-19"
 
 # TODO: More comprehensive authors list. Initialized from the JOSS paper.
 authors:
@@ -126,6 +126,11 @@ authors:
     family-names: "Meschede"
     alias: "MMesch"
     website: "https://mmesch.com"
+  - given-names: "A Samuel"
+    family-names: "Pottinger"
+    alias: "sampottinger"
+    website: "https://gleap.org/"
+    orcid: "https://orcid.org/0000-0002-0458-4985"
   - given-names: "Konstantin"
     family-names: "Taletskiy"
     alias: "ktaletsk"

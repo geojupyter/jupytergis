@@ -15,7 +15,9 @@
 @import url('./tabPanel.css');
 @import url('./stacBrowser.css');
 @import url('./storyPanel.css');
+@import url('./storySpectaArticleOverlay.css');
 @import url('./identify.css');
+@import url('./openeo.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
@@ -33,6 +35,7 @@
 @import url('./shared/command.css');
 @import url('./shared/combobox.css');
 @import url('./shared/input.css');
+@import url('./shared/nativeSelect.css');
 
 .errors {
   color: var(--jp-warn-color0);
@@ -132,28 +135,27 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 /* Mobile bottom sheet — merged panel only */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jgis-merged-panel-container {
     position: fixed;
-    bottom: 0;
+    bottom: 16px;
     left: 0;
     right: 0;
     z-index: 1000;
-    border-radius: 8px 8px 0 0;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     height: 30vh;
   }
 
-  /* Drag-to-resize handle — visual pill only */
+  /* Drag-to-resize handle */
   .jgis-resize-handle {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 14px;
+    height: 24px;
     flex-shrink: 0;
-    pointer-events: none;
+    cursor: ns-resize;
   }
 
   .jgis-resize-handle::before {
@@ -162,6 +164,7 @@ button.jp-mod-styled.jp-mod-reject {
     height: 4px;
     border-radius: 2px;
     background-color: var(--jp-border-color1);
+    opacity: 0.5;
   }
 
   /* Panel tabs fill the remaining height */
@@ -244,6 +247,21 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0.125rem;
 }
 
+/* Move controls toolbar to top of map so it's not behind the bottom sheet */
+@media (max-width: 960px) {
+  .jgis-controls-toolbar {
+    top: 0.125rem;
+    bottom: unset;
+    align-items: flex-start;
+  }
+
+  body[data-notebook='specta'] .jgis-controls-toolbar {
+    top: unset;
+    bottom: 0.125rem;
+    align-items: flex-end;
+  }
+}
+
 .jgis-geometry-type-selector-overlay {
   position: absolute;
   bottom: 20px;
@@ -259,7 +277,7 @@ button.jp-mod-styled.jp-mod-reject {
   z-index: 9999;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .jgis-panels-wrapper {
     position: fixed;
     top: 30px;

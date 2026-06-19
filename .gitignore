@@ -9,6 +9,9 @@ node_modules/
 python/**/labextension
 python/**/_version.py
 
+# Jupyter ephemera
+.jupyter/
+
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
 jupytergis/_version.py
@@ -79,6 +82,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/html
 
 # PyBuilder
 target/
@@ -155,3 +159,8 @@ packages/schema/src/processing/_generated/*
 examples/local_examples/*
 
 packages/base/_generated/
+
+/titiler-openeo/
+
+# jupyter-collaboration cache
+.jupyter

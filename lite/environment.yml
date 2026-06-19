@@ -6,6 +6,7 @@ dependencies:
   - python=3.13
   - pip
   - xeus-python
+  - webcolors
   - requests
   - jupyter_ydoc=2.1.5
   - ypywidgets>=0.9.6,<0.10.0
@@ -13,7 +14,7 @@ dependencies:
   - pydantic>=2,<3
   - sidecar
   - pip:
-      - yjs-widgets>=0.4,<0.5
+      - yjs-widgets>=0.4,<0.6
       - my-jupyter-shared-drive>=0.2.2
       - ../jupytergis_lab-0.0.1-py3-none-any.whl
       - ../jupytergis_core-0.0.1-py3-none-any.whl

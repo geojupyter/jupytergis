@@ -4,7 +4,7 @@ import { FlatStyle } from 'ol/style/flat';
 
 import { VectorClassifications } from './classificationModes';
 import {
-  DEFAULT_COLOR,
+  colorToRgba,
   DEFAULT_STROKE_WIDTH,
   getColorMapList,
   IColorMap,
@@ -26,6 +26,10 @@ export const DEFAULT_FLAT_STYLE: FlatStyle = {
   'circle-stroke-width': 1.25,
   'circle-stroke-color': '#3399CC',
 };
+
+/** Sentinel stop values for missing data. */
+export const STOP_NULL = '__null__';
+export const STOP_UNDEFINED = '__undefined__';
 
 /** A computed stop: value → RGBA color. */
 export interface IComputedStop {
@@ -131,8 +135,22 @@ export function computeCategorizedColorStops(
   const reverse = state.reverseRamp ?? false;
 
   const uniqueValues = [
-    ...new Set(featureValues.filter(v => v !== undefined && v !== null)),
-  ].sort((a: any, b: any) => (a < b ? -1 : a > b ? 1 : 0));
+    ...new Set(
+      featureValues.map(v =>
+        v === null ? STOP_NULL : v === undefined ? STOP_UNDEFINED : v,
+      ),
+    ),
+  ].sort((a: any, b: any) => {
+    const aIsSentinel = a === STOP_NULL || a === STOP_UNDEFINED;
+    const bIsSentinel = b === STOP_NULL || b === STOP_UNDEFINED;
+    if (aIsSentinel && !bIsSentinel) {
+      return 1;
+    }
+    if (!aIsSentinel && bIsSentinel) {
+      return -1;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
 
   if (uniqueValues.length === 0) {
     return [];
@@ -151,7 +169,7 @@ export function computeCategorizedColorStops(
   }));
 }
 
-// Color ramp helpers
+// color map helpers
 
 function mapStopsToColors(
   stops: number[],
@@ -189,24 +207,12 @@ function generateColors(
     } else {
       rawColors = rawColors.slice(0, nClasses);
     }
-    // Parse categorical colors (they're CSS strings like "rgb(...)") to RGBA.
-    colorMap = rawColors.map(c => {
-      if (typeof c === 'string') {
-        const match = c.match(
-          /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
-        );
-        if (match) {
-          return [
-            +match[1],
-            +match[2],
-            +match[3],
-            match[4] !== undefined ? +match[4] : 1,
-          ] as RgbaColor;
-        }
-        return DEFAULT_COLOR;
-      }
-      return c as RgbaColor;
-    });
+    // Parse categorical colors to RGBA.  D3 categorical schemes produce hex
+    // strings (#rrggbb); continuous colormaps produce rgb() strings.
+    // colorToRgba handles both formats.
+    colorMap = rawColors.map(c =>
+      typeof c === 'string' ? colorToRgba(c) : (c as RgbaColor),
+    );
   } else {
     const nShades = Math.max(nClasses, 9);
     colorMap = colormap({

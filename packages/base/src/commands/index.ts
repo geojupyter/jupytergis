@@ -23,13 +23,28 @@ import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
+import {
+  editOpenEOLayer,
+  showAddOpenEOLayerDialog,
+} from '../features/layers/openeo';
+import {
+  getLatestOpenEOConnection,
+  listOpenEOConnections,
+} from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
-import { getSingleSelectedLayer } from '../features/processing/index';
+import {
+  getSingleSelectedLayer,
+  selectedLayerIsOfType,
+} from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
+import {
+  JupyterGISTracker,
+  STORY_TYPE,
+  SYMBOLOGY_VALID_LAYER_TYPES,
+} from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -351,11 +366,10 @@ export function addCommands(
         return false;
       }
 
-      // Selection should only be one vector or heatmap layer
       return (
         Object.keys(selectedLayers).length === 1 &&
         !model.getSource(layerId) &&
-        ['VectorLayer', 'HeatmapLayer'].includes(layerType)
+        layerType === 'VectorLayer'
       );
     },
 
@@ -582,6 +596,91 @@ export function addCommands(
       layerType: 'HillshadeLayer',
     }),
     ...icons.get(CommandIDs.openNewHillshadeDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewOpenEODialog, {
+    label: trans.__('OpenEO Layer'),
+    caption:
+      'Open a dialog to add an OpenEO process-graph tile layer to the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      // Seed the dialog from the global pool of live OpenEO connections
+      // (shared across all documents): pre-fill with the most recently
+      // used server and offer the rest in the picker. The user
+      // picks/connects inside the dialog itself, so we don't
+      // pre-authenticate here.
+      const result = await showAddOpenEOLayerDialog({
+        connectionInfo: getLatestOpenEOConnection(),
+        knownServers: listOpenEOConnections(),
+      });
+      if (!result) {
+        return;
+      }
+      const model = current.model;
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+      // Persist the bearer alongside the server url so the layer can
+      // re-establish its connection after a reload (or when the document
+      // is reopened) without forcing the user to sign in again.
+      model.sharedModel.addSource(sourceId, {
+        name: `${result.layerName} Source`,
+        type: 'OpenEOTileSource',
+        parameters: {
+          serverUrl: result.serverUrl,
+          authBearer: result.authBearer,
+          processGraph: result.processGraph,
+        },
+      });
+      model.addLayer(layerId, {
+        name: result.layerName,
+        type: 'OpenEOTileLayer',
+        visible: true,
+        parameters: { opacity: 0.9, source: sourceId },
+      });
+    },
+    ...icons.get(CommandIDs.openNewOpenEODialog),
+  });
+
+  commands.addCommand(CommandIDs.editOpenEOLayer, {
+    label: trans.__('Edit OpenEO Layer…'),
+    caption: 'Edit the process graph of the selected OpenEO layer.',
+    isVisible: () => selectedLayerIsOfType(['OpenEOTileLayer'], tracker),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const model = current.model;
+      const localState = model.sharedModel.awareness.getLocalState();
+      const selected = (localState?.['selected']?.value ?? {}) as Record<
+        string,
+        any
+      >;
+      const layerId = Object.keys(selected)[0];
+      if (!layerId) {
+        return;
+      }
+      await editOpenEOLayer(model, layerId);
+    },
   });
 
   commands.addCommand(CommandIDs.openNewImageDialog, {
@@ -1828,6 +1927,12 @@ export function addCommands(
         return false;
       }
 
+      if (
+        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+      ) {
+        return false;
+      }
+
       return model.getCurrentSegmentIndex() > 0;
     },
     execute: () => {
@@ -1857,6 +1962,12 @@ export function addCommands(
 
       const isSpecta = model.isSpectaMode();
       if (!isSpecta) {
+        return false;
+      }
+
+      if (
+        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+      ) {
         return false;
       }
 
