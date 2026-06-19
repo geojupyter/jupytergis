@@ -2,21 +2,25 @@ import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 
-export interface IMapPickBarActionsProps {
+export interface IMapViewBarActionsProps {
   onBack: () => void;
   onApply: () => void;
 }
 
-export function MapPickBarActions({
+export function MapViewBarActions({
   onBack,
   onApply,
-}: IMapPickBarActionsProps): JSX.Element {
+}: IMapViewBarActionsProps): JSX.Element {
   return (
     <>
       <Button variant="outline" size="sm" onClick={onBack}>
         Back to editor
       </Button>
-      <Button size="sm" onClick={onApply}>
+      <Button
+        size="sm"
+        className="jp-mod-styled jp-mod-accept"
+        onClick={onApply}
+      >
         Apply view
       </Button>
     </>

@@ -10,9 +10,9 @@ export function StoryMapInteractionBar({
   children,
 }: IStoryMapInteractionBarProps): JSX.Element {
   return (
-    <div className="jgis-story-map-pick-bar">
-      <p className="jgis-story-map-pick-bar-message">{message}</p>
-      <div className="jgis-story-map-pick-bar-actions">{children}</div>
+    <div className="jgis-story-map-interaction-bar">
+      <p className="jgis-story-map-interaction-bar-message">{message}</p>
+      <div className="jgis-story-map-interaction-bar-actions">{children}</div>
     </div>
   );
 }

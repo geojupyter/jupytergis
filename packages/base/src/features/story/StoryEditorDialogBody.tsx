@@ -117,7 +117,7 @@ function SegmentEditor({
                 <Button
                   variant="outline"
                   onClick={() => {
-                    StoryEditorSession.getInstance().enterMapPickMode(
+                    StoryEditorSession.getInstance().enterMapViewMode(
                       segment.id,
                     );
                   }}

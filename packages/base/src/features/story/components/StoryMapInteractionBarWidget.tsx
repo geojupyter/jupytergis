@@ -9,7 +9,7 @@ import {
 export class StoryMapInteractionBarWidget extends ReactWidget {
   constructor(private readonly _props: IStoryMapInteractionBarProps) {
     super();
-    this.addClass('jgis-story-map-pick-bar-root');
+    this.addClass('jgis-story-map-interaction-bar-root');
   }
 
   render(): JSX.Element {

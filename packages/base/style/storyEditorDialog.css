@@ -481,7 +481,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
   display: none !important;
 }
 
-.jgis-story-map-pick-bar-root {
+.jgis-story-map-interaction-bar-root {
   position: fixed;
   left: 50%;
   bottom: 1.25rem;
@@ -490,7 +490,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
   pointer-events: auto;
 }
 
-.jgis-story-map-pick-bar {
+.jgis-story-map-interaction-bar {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -502,14 +502,14 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
     color-mix(in srgb, var(--jp-shadow-ambient-color, #000) 18%, transparent);
 }
 
-.jgis-story-map-pick-bar-message {
+.jgis-story-map-interaction-bar-message {
   margin: 0;
   font-size: 0.82rem;
   color: var(--jp-ui-font-color1);
   white-space: nowrap;
 }
 
-.jgis-story-map-pick-bar-actions {
+.jgis-story-map-interaction-bar-actions {
   display: flex;
   gap: 0.375rem;
   flex-shrink: 0;

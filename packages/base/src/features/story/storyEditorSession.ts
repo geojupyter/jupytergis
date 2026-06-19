@@ -3,9 +3,9 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import {
-  MapPickBarActions,
   MapPreviewBarActions,
-} from './components/PickBarActions';
+  MapViewBarActions,
+} from './components/MapInteractionBarActions';
 import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
 import type { StoryEditorWidget } from './storyEditorDialog';
 import type { IOverrideLayerEntry } from './types/types';
@@ -15,20 +15,15 @@ import {
 } from './utils/storySegmentLayerPreview';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
 
-export type StoryEditorSessionMode =
-  | 'idle'
-  | 'editing'
-  | 'picking-map-view'
-  | 'previewing-segment';
+type StoryEditorMapInteractionMode = 'map-view' | 'previewing-segment';
 
 export class StoryEditorSession {
   private static instance: StoryEditorSession;
 
   private _dialog: StoryEditorWidget | null = null;
   private _model: IJupyterGISModel | null = null;
-  private _pickingSegmentId: string | null = null;
-  private _previewSegmentId: string | null = null;
-  private _mode: StoryEditorSessionMode = 'idle';
+  private _mapViewSegmentId: string | null = null;
+  private _mapInteractionMode: StoryEditorMapInteractionMode | null = null;
   private _mapBar: StoryMapInteractionBarWidget | null = null;
   private _overrideEntries: IOverrideLayerEntry[] = [];
 
@@ -45,37 +40,37 @@ export class StoryEditorSession {
   ): void {
     this._dialog = dialog;
     this._model = model;
-    this._mode = 'editing';
+    this._mapInteractionMode = null;
   }
 
   public isActiveFor(model: IJupyterGISModel): boolean {
     return this._dialog !== null && this._model === model;
   }
 
-  public isPickingMapView(): boolean {
-    return this._mode === 'picking-map-view';
+  public isMapViewMode(): boolean {
+    return this._mapInteractionMode === 'map-view';
   }
 
   public isPreviewingSegment(): boolean {
-    return this._mode === 'previewing-segment';
+    return this._mapInteractionMode === 'previewing-segment';
   }
 
   public isMapInteractionMode(): boolean {
-    return this.isPickingMapView() || this.isPreviewingSegment();
+    return this._mapInteractionMode !== null;
   }
 
-  public enterMapPickMode(segmentId: string): void {
+  public enterMapViewMode(segmentId: string): void {
     if (!this._dialog || !this._model) {
       return;
     }
 
-    this._pickingSegmentId = segmentId;
-    this._mode = 'picking-map-view';
+    this._mapViewSegmentId = segmentId;
+    this._mapInteractionMode = 'map-view';
     this._focusSegmentOnMap(segmentId);
     this._dialog.minimize();
     this._showMapBar(
       'Pan and zoom the map, then apply this view to the segment.',
-      React.createElement(MapPickBarActions, {
+      React.createElement(MapViewBarActions, {
         onBack: () => {
           this.restoreEditor();
         },
@@ -91,8 +86,7 @@ export class StoryEditorSession {
       return;
     }
 
-    this._previewSegmentId = segmentId;
-    this._mode = 'previewing-segment';
+    this._mapInteractionMode = 'previewing-segment';
     this._focusSegmentOnMap(segmentId);
     applySegmentLayerOverrides(this._model, segmentId, this._overrideEntries);
     this._dialog.minimize();
@@ -107,22 +101,21 @@ export class StoryEditorSession {
   }
 
   public applyMapView(): void {
-    if (!this._model || !this._pickingSegmentId) {
+    if (!this._model || !this._mapViewSegmentId) {
       return;
     }
 
-    updateSegmentMapView(this._model, this._pickingSegmentId);
+    updateSegmentMapView(this._model, this._mapViewSegmentId);
     this.restoreEditor();
   }
 
   public restoreEditor(): void {
-    if (this._mode === 'previewing-segment' && this._model) {
+    if (this.isPreviewingSegment() && this._model) {
       clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
     }
 
-    this._pickingSegmentId = null;
-    this._previewSegmentId = null;
-    this._mode = 'editing';
+    this._mapViewSegmentId = null;
+    this._mapInteractionMode = null;
     this._hideMapBar();
     this._dialog?.restore();
   }
@@ -133,7 +126,7 @@ export class StoryEditorSession {
   }
 
   public clear(): void {
-    if (this._model && this._mode === 'previewing-segment') {
+    if (this.isPreviewingSegment() && this._model) {
       clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
     }
 
@@ -141,30 +134,13 @@ export class StoryEditorSession {
 
     this._dialog = null;
     this._model = null;
-    this._pickingSegmentId = null;
-    this._previewSegmentId = null;
-    this._mode = 'idle';
+    this._mapViewSegmentId = null;
+    this._mapInteractionMode = null;
     this._overrideEntries = [];
   }
 
   private _focusSegmentOnMap(segmentId: string): void {
-    if (!this._model) {
-      return;
-    }
-
-    this._model.syncSelected(
-      { [segmentId]: { type: 'layer' } },
-      this._model.getClientId().toString(),
-    );
-
-    const segmentIndex =
-      this._model.getSelectedStory().story?.storySegments?.indexOf(segmentId) ??
-      -1;
-    if (segmentIndex >= 0) {
-      this._model.setCurrentSegmentIndex(segmentIndex);
-    }
-
-    this._model.centerOnPosition(segmentId);
+    this._model?.centerOnPosition(segmentId);
   }
 
   private _showMapBar(message: string, children: React.ReactNode): void {
