@@ -361,13 +361,15 @@ button.jgis-story-editor-segment-item.jp-mod-styled {
   padding: 0.625rem 0.5rem;
   letter-spacing: normal;
   text-align: left;
+  border: 1px solid transparent;
 }
 
 .jgis-story-editor-segment-item:hover {
   background: var(--jp-layout-color2);
 }
 
-.jgis-story-editor-segment-item--selected {
+.jgis-story-editor-segment-item--selected,
+button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-item--selected {
   background: color-mix(in srgb, var(--jp-brand-color1) 12%, transparent);
   border-color: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
 }
