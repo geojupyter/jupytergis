@@ -28,7 +28,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
     super({
       title: 'Story Editor',
       body,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      buttons: [],
     });
 
     this.id = 'jupytergis::storyEditor';
