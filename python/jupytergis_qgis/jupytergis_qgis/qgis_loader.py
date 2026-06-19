@@ -15,7 +15,6 @@ from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsApplication,
-    QgsCategorizedSymbolRenderer,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
     QgsExpression,
@@ -24,7 +23,6 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsExpressionNodeFunction,
     QgsExpressionNodeLiteral,
     QgsFillSymbol,
-    QgsGraduatedSymbolRenderer,
     QgsHeatmapRenderer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
@@ -38,7 +36,6 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
-    QgsRuleBasedRenderer,
     QgsSettings,
     QgsSingleBandGrayRenderer,
     QgsSingleBandPseudoColorRenderer,
@@ -50,20 +47,18 @@ from qgis.core import (  # type: ignore[import-untyped]
 )
 from qgis.PyQt.QtCore import Qt
 
+from .data_defined import dd_symbol_to_grammar, grammar_layer_to_renderer
 from .grammar import (
     _DEFAULT_FILL,
     _DEFAULT_RADIUS,
     _DEFAULT_STROKE,
     _DEFAULT_STROKE_WIDTH,
-    categorized_grammar,
     cluster_grammar,
     combine_subsets,
     filters_to_subset,
-    graduated_grammar,
     grammar_layer_alpha_factor,
     grammar_layer_geometry_hint,
     grammar_layer_subset,
-    grammar_layer_to_renderer,
     grammar_to_raster_renderer,
     grammar_to_vector_tile_styles,
     grayscale_raster_to_grammar,
@@ -71,7 +66,6 @@ from .grammar import (
     multiband_raster_to_grammar,
     raster_flat_color_to_grammar,
     raster_to_grammar,
-    single_symbol_grammar,
     subset_to_when,
     vector_tile_grammar,
 )
@@ -614,127 +608,41 @@ def _merge_data_defined_mappings(grammar, symbol):
     return grammar
 
 
-def _single_symbol_grammar_from_symbol(symbol):
-    """Single-symbol grammar from a QGIS symbol, including data-defined channels."""
-    fill, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-    grammar = single_symbol_grammar(fill, stroke, stroke_width, radius)
-    return _merge_data_defined_mappings(grammar, symbol)
+def _add_data_defined_rule(grammar, symbol):
+    """Recover a symbol's data-defined channels into a *separate* grammar rule.
 
-
-def _leaves_to_grammar(leaves):
-    """Classify a set of sibling class rules into categorical/graduated/single."""
-    parsed = [(_classify_leaf_filter(rule.filterExpression()), rule) for rule in leaves]
-    classes = [item for item in parsed if item[0]]
-    fields = {item[0][1] for item in classes}
-    kinds = {item[0][0] for item in classes}
-
-    if leaves and len(classes) == len(leaves) and len(fields) == 1:
-        field = next(iter(fields))
-        _, stroke, stroke_width, radius, _ = _extract_symbol_style(leaves[0].symbol())
-
-        if kinds == {"eq"}:
-            stops = [
-                {"stop": value, "color": _extract_symbol_style(rule.symbol())[0]}
-                for (_, _, value), rule in classes
-            ]
-            return categorized_grammar(
-                field,
-                "viridis",
-                stroke,
-                stroke_width,
-                radius,
-                color_stops=stops,
-            )
-
-        if kinds == {"range"}:
-            ranges = sorted(
-                (
-                    (lo, hi, _extract_symbol_style(rule.symbol())[0])
-                    for (_, _, lo, hi), rule in classes
-                ),
-                key=lambda item: item[0],
-            )
-            # N ranges need N+1 stops; range i is [stops[i], stops[i+1]] with the
-            # range's colour on the upper stop (mirrors graduated export).
-            stops = [{"stop": ranges[0][0], "color": ranges[0][2]}]
-            stops.extend({"stop": hi, "color": color} for _, hi, color in ranges)
-            return graduated_grammar(
-                field,
-                "viridis",
-                len(ranges),
-                "equal interval",
-                stroke,
-                stroke_width,
-                radius,
-                color_stops=stops,
-            )
-
-    # Single rule or mixed predicates: a single symbol (with data-defined channels).
-    symbol = leaves[0].symbol() if leaves else None
-    return _single_symbol_grammar_from_symbol(symbol)
-
-
-def _collect_leaves(rule, ancestors, out):
-    """Gather (ancestor-filter chain, leaf rule) pairs from a rule tree."""
-    for child in rule.children():
-        if child.symbol() is not None:
-            out.append((tuple(ancestors), child))
-        else:
-            _collect_leaves(child, [*ancestors, child.filterExpression()], out)
-
-
-def _rule_based_to_grammar(renderer):
-    """Fold a QgsRuleBasedRenderer back into a Grammar symbologyState.
-
-    Unguarded leaves (no ancestor filter) classify into categorical / graduated /
-    single via :func:`_leaves_to_grammar`. Leaves nested under a ``when`` parent
-    become extra grammar rules carrying the parsed ``when`` predicates and the
-    leaf's constant fill colour.
+    For a classified renderer the first rule is keyed on the classification
+    field, but a data-defined channel (e.g. a line width scaled from
+    ``length_km`` while the colour is categorical on ``type``) is keyed on its
+    own field. So drop the constants it supersedes from the colour rule and add
+    the recovered mappings as a new rule carrying their own field, instead of
+    merging them into the colour rule (which would re-key them on the wrong
+    field).
     """
-    leaves: list = []
-    _collect_leaves(renderer.rootRule(), [], leaves)
-
-    base = [rule for ancestors, rule in leaves if not any(ancestors)]
-    guarded: dict = {}
-    for ancestors, rule in leaves:
-        if any(ancestors):
-            guarded.setdefault(ancestors, []).append(rule)
-
-    grammar = (
-        _leaves_to_grammar(base)
-        if base
-        else {
-            "layers": [{"id": str(uuid4()), "rules": []}],
-        }
-    )
+    extra, replaced, field = _data_defined_mappings(symbol)
+    if not extra:
+        return grammar
     layer = grammar["layers"][0]
-
-    for ancestors, rules in guarded.items():
-        # The guard is the AND of the ancestor-filter chain; we emit one parent
-        # per guarded rule, so the chain is normally a single expression.
-        when, when_op = _expr_to_when(" AND ".join(a for a in ancestors if a))
-        if not when:
-            continue
-        fill, _, _, _, _ = _extract_symbol_style(rules[0].symbol())
-        guarded_rule = {
-            "id": str(uuid4()),
-            "mappings": [
-                {
-                    "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
-                    "channels": ["fill-color", "circle-fill-color"],
-                },
-            ],
-            "when": when,
-        }
-        if when_op and when_op != "all":
-            guarded_rule["whenOp"] = when_op
-        layer["rules"].append(guarded_rule)
-
+    color_rule = layer["rules"][0]
+    color_rule["mappings"] = [
+        mapping
+        for mapping in color_rule["mappings"]
+        if not (set(mapping["channels"]) & replaced)
+    ]
+    rule = {"id": str(uuid4()), "mappings": extra}
+    if field:
+        rule["fields"] = [field]
+    layer["rules"].append(rule)
     return grammar
 
 
 def _vector_renderer_to_grammar(renderer):
-    """Convert a QGIS vector renderer to a Grammar symbologyState dict."""
+    """Convert a QGIS vector renderer to a Grammar symbologyState dict.
+
+    Heatmap and cluster renderers keep their dedicated translations; every other
+    vector renderer is the data-defined single symbol that export now produces and
+    is decoded by :func:`dd_symbol_to_grammar`.
+    """
     if isinstance(renderer, QgsHeatmapRenderer):
         weight_expr = renderer.weightExpression() or ""
         weight_field = weight_expr.strip().strip('"') or None
@@ -749,73 +657,14 @@ def _vector_renderer_to_grammar(renderer):
         inner = (
             _vector_renderer_to_grammar(embedded)
             if embedded is not None
-            else single_symbol_grammar(
-                list(_DEFAULT_FILL),
-                list(_DEFAULT_STROKE),
-                _DEFAULT_STROKE_WIDTH,
-                _DEFAULT_RADIUS,
-            )
+            else dd_symbol_to_grammar(None)
         )
         return cluster_grammar(inner, renderer.tolerance())
 
-    if isinstance(renderer, QgsRuleBasedRenderer):
-        return _rule_based_to_grammar(renderer)
-
-    if isinstance(renderer, QgsCategorizedSymbolRenderer):
-        field = renderer.classAttribute()
-        symbol = None
-        for category in renderer.categories():
-            symbol = category.symbol()
-        _, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-        grammar = categorized_grammar(field, "viridis", stroke, stroke_width, radius)
-        return _merge_data_defined_mappings(grammar, symbol)
-
-    if isinstance(renderer, QgsGraduatedSymbolRenderer):
-        field = renderer.classAttribute()
-        # An open first/last class (-inf/+inf bound) would otherwise leak a
-        # non-finite value into the grammar stops, so drop those classes here.
-        ranges = sorted(
-            (
-                class_range
-                for class_range in renderer.ranges()
-                if _is_finite_number(class_range.lowerValue())
-                and _is_finite_number(class_range.upperValue())
-            ),
-            key=lambda r: r.lowerValue(),
-        )
-        symbol = ranges[-1].symbol() if ranges else None
-        n_classes = len(ranges) or 9
-        _, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-        # Recover the exact class breaks as colorStops
-        color_stops = None
-        if ranges:
-            first_fill = _extract_symbol_style(ranges[0].symbol())[0]
-            color_stops = [{"stop": ranges[0].lowerValue(), "color": first_fill}]
-            color_stops.extend(
-                {
-                    "stop": class_range.upperValue(),
-                    "color": _extract_symbol_style(class_range.symbol())[0],
-                }
-                for class_range in ranges
-            )
-        grammar = graduated_grammar(
-            field,
-            "viridis",
-            n_classes,
-            "equal interval",
-            stroke,
-            stroke_width,
-            radius,
-            color_stops=color_stops,
-        )
-        return _merge_data_defined_mappings(grammar, symbol)
-
-    # Single Symbol — and any unrecognised renderer falls back to its symbol.
     symbol = (
         renderer.symbol() if isinstance(renderer, QgsSingleSymbolRenderer) else None
     )
-    fill, stroke, stroke_width, radius, _ = _extract_symbol_style(symbol)
-    return single_symbol_grammar(fill, stroke, stroke_width, radius)
+    return dd_symbol_to_grammar(symbol)
 
 
 def qgis_layer_to_jgis(

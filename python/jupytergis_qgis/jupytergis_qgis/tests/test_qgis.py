@@ -155,12 +155,12 @@ def _make_gray_tif(path):
     ds = None
 
 
-def _fill_mapping(symbology_state):
-    """Return (scheme, fields, params) of the mapping driving 'fill-color'."""
+def _fill_mapping(symbology_state, channel="fill-color"):
+    """Return (scheme, fields, params) of the mapping driving ``channel``."""
     for grammar_layer in symbology_state.get("layers", []):
         for rule in grammar_layer.get("rules", []):
             for mapping in rule.get("mappings", []):
-                if "fill-color" in mapping.get("channels", []):
+                if channel in mapping.get("channels", []):
                     scale = mapping["scale"]
                     return scale["scheme"], rule.get("fields"), scale.get("params", {})
     return None, None, None
@@ -216,6 +216,8 @@ def test_qgis_saver():
         ],
     )
 
+    # The categorized layer is the roads (line) source, so its categorical colour
+    # drives stroke-color (a line has no fill).
     categorized_state = _grammar(
         [
             {
@@ -229,9 +231,13 @@ def test_qgis_saver():
                                 "colorRamp": "viridis",
                                 "reverse": False,
                                 "fallback": [0.0, 0.0, 0.0, 0.0],
+                                "colorStops": [
+                                    {"stop": "City", "color": [255.0, 0.0, 0.0, 1.0]},
+                                    {"stop": "Town", "color": [0.0, 0.0, 255.0, 1.0]},
+                                ],
                             },
                         },
-                        "channels": ["fill-color", "circle-fill-color"],
+                        "channels": ["stroke-color"],
                     },
                 ],
             },
@@ -434,9 +440,10 @@ def test_qgis_saver():
     assert scheme == "colorRamp"
     assert fields == ["POP_RANK"]
 
-    # Categorized -> categorical scale keyed on the original field.
+    # Categorized line -> categorical scale on stroke-color keyed on the field.
     scheme, fields, _ = _fill_mapping(
         imported_layers[layer_ids[6]]["parameters"]["symbologyState"],
+        channel="stroke-color",
     )
     assert scheme == "categorical"
     assert fields == ["min_label"]
@@ -618,7 +625,7 @@ def test_qgis_scalar_size_and_heatmap_alpha():
         QgsHeatmapRenderer,
         QgsMarkerSymbol,
         QgsProject,
-        QgsRuleBasedRenderer,
+        QgsSingleSymbolRenderer,
     )
 
     filename = FILES / "project_eq.qgz"
@@ -743,16 +750,16 @@ def test_qgis_scalar_size_and_heatmap_alpha():
     ]
     assert len(eq_layers) == 2
 
-    # Points layer: now a rule-based renderer (every vector layer is), with the
-    # data-defined marker size from the scalar scale carried on the rule symbol.
+    # Points layer: a single symbol with the data-defined marker size carried on
+    # the symbol (every vector layer is now a data-defined single symbol).
     point_layers = [
         layer
         for layer in eq_layers
-        if isinstance(layer.renderer(), QgsRuleBasedRenderer)
+        if isinstance(layer.renderer(), QgsSingleSymbolRenderer)
+        and isinstance(layer.renderer().symbol(), QgsMarkerSymbol)
     ]
     assert len(point_layers) == 1
-    symbol = point_layers[0].renderer().rootRule().children()[0].symbol()
-    assert isinstance(symbol, QgsMarkerSymbol)
+    symbol = point_layers[0].renderer().symbol()
     dd = symbol.dataDefinedSize()
     assert dd.isActive()
     assert "scale_linear" in dd.asExpression()
@@ -1289,65 +1296,11 @@ def test_raster_flat_color_to_grammar_migrates_legacy_ramp():
     assert raster_flat_color_to_grammar(["foo"]) == {"layers": []}
 
 
-def _rule_based_renderer(rules):
-    """Build a QgsRuleBasedRenderer from (filterExpression, hex-color) pairs."""
-    from qgis.core import QgsFillSymbol, QgsRuleBasedRenderer
-
-    root = QgsRuleBasedRenderer.Rule(None)
-    for filter_exp, color in rules:
-        symbol = QgsFillSymbol.createSimple({"color": color})
-        root.appendChild(QgsRuleBasedRenderer.Rule(symbol, filterExp=filter_exp))
-    return QgsRuleBasedRenderer(root)
-
-
-def test_rule_based_import_categorical():
-    """Equality-filtered rules fold back into a categorical grammar w/ colours."""
-    from ..qgis_loader import _vector_renderer_to_grammar
-
-    renderer = _rule_based_renderer(
-        [
-            ("\"continent\" = 'Asia'", "#ff0000"),
-            ("\"continent\" = 'Europe'", "#0000ff"),
-        ],
-    )
-    scheme, fields, params = _fill_mapping(_vector_renderer_to_grammar(renderer))
-    assert scheme == "categorical"
-    assert fields == ["continent"]
-    stops = {s["stop"]: s["color"][:3] for s in params["colorStops"]}
-    assert stops["Asia"] == [255.0, 0.0, 0.0]
-    assert stops["Europe"] == [0.0, 0.0, 255.0]
-
-
-def test_rule_based_import_graduated():
-    """Range-filtered rules fold back into a graduated grammar with N+1 stops."""
-    from ..qgis_loader import _vector_renderer_to_grammar
-
-    renderer = _rule_based_renderer(
-        [
-            ('"pop" >= 0 AND "pop" < 50', "#ff0000"),
-            ('"pop" >= 50 AND "pop" <= 100', "#00ff00"),
-        ],
-    )
-    scheme, fields, params = _fill_mapping(_vector_renderer_to_grammar(renderer))
-    assert scheme == "colorRamp"
-    assert fields == ["pop"]
-    assert [s["stop"] for s in params["colorStops"]] == [0.0, 50.0, 100.0]
-
-
-def test_rule_based_import_complex_falls_back():
-    """A non-class predicate stays a single symbol (no false categorization)."""
-    from ..qgis_loader import _vector_renderer_to_grammar
-
-    renderer = _rule_based_renderer([('"mag" > 5', "#123456")])
-    scheme, _, _ = _fill_mapping(_vector_renderer_to_grammar(renderer))
-    assert scheme == "constant_rgba"
-
-
 def _roundtrip_layer(grammar_layer, geometry_type):
-    """Grammar layer -> QGIS renderer -> grammar."""
-    from qgis.core import QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer
+    """Grammar layer -> data-defined QGIS symbol -> grammar."""
+    from qgis.core import QgsPointClusterRenderer, QgsSingleSymbolRenderer
 
-    from ..grammar import grammar_layer_to_renderer
+    from ..data_defined import grammar_layer_to_renderer
     from ..qgis_loader import _vector_renderer_to_grammar
 
     logs = {"warnings": [], "errors": []}
@@ -1359,12 +1312,11 @@ def _roundtrip_layer(grammar_layer, geometry_type):
         logs,
         "L",
     )
-    # Categorized / single / when-guarded layers are emitted as rule-based;
-    # graduated stays a native QgsGraduatedSymbolRenderer (its outer domain
-    # bounds don't survive QGIS's rule-based conversion).
+    # Vector layers are now a single symbol with data-defined channels (cluster
+    # layers wrap it in a point-cluster renderer).
     assert isinstance(
         renderer,
-        (QgsRuleBasedRenderer, QgsGraduatedSymbolRenderer),
+        (QgsSingleSymbolRenderer, QgsPointClusterRenderer),
     )
     state = _vector_renderer_to_grammar(renderer)
     return state["layers"][0], logs
@@ -1462,6 +1414,76 @@ def test_categorized_roundtrip_rule_based():
         s["stop"]: [round(c) for c in s["color"][:3]] for s in params["colorStops"]
     }
     assert stops == {"Asia": [255, 0, 0], "Europe": [0, 0, 255]}
+
+
+def test_line_categorical_stroke_color_roundtrip():
+    """A line coloured categorically by a field (e.g. roads by type) round-trips
+    as a categorical scale on stroke-color, not fill-color (a line has no fill).
+
+    A data-driven stroke width on a *different* field (length_km) round-trips as
+    a scalar mapping in its own rule, not flattened to a constant.
+    """
+    layer = _grammar(
+        [
+            {
+                "id": "r-color",
+                "fields": ["type"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "categorical",
+                            "params": {
+                                "colorRamp": "schemePaired",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": "Road", "color": [227, 26, 28, 1.0]},
+                                    {"stop": "Track", "color": [255, 127, 0, 1.0]},
+                                ],
+                            },
+                        },
+                        "channels": ["stroke-color"],
+                    },
+                ],
+            },
+            {
+                "id": "r-width",
+                "fields": ["length_km"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "scalar",
+                            "params": {
+                                "domain": [0.0, 100.0],
+                                "range": [1.0, 5.0],
+                                "mode": "equal interval",
+                                "nStops": 5,
+                                "fallback": 1.0,
+                            },
+                        },
+                        "channels": ["stroke-width"],
+                    },
+                ],
+            },
+        ],
+    )["layers"][0]
+    out, logs = _roundtrip_layer(layer, "line")
+    scheme, params, fields, _ = _mapping_for_channel(out, "stroke-color")
+    assert scheme == "categorical"
+    assert fields == ["type"]
+    stops = {
+        s["stop"]: [round(c) for c in s["color"][:3]] for s in params["colorStops"]
+    }
+    assert stops == {"Road": [227, 26, 28], "Track": [255, 127, 0]}
+    # A line has no fill, so the colour must not land on fill-color.
+    assert _mapping_for_channel(out, "fill-color")[0] is None
+    # The data-driven width survives as a scalar on its own field.
+    w_scheme, w_params, w_fields, _ = _mapping_for_channel(out, "stroke-width")
+    assert w_scheme == "scalar"
+    assert w_fields == ["length_km"]
+    assert w_params["domain"] == [0.0, 100.0]
+    assert w_params["range"] == [1.0, 5.0]
+    assert logs["warnings"] == []
 
 
 def test_scalar_size_roundtrip():

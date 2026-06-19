@@ -9,13 +9,11 @@ from jupytergis_core.colors import hex_to_rgba
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
-    QgsCategorizedSymbolRenderer,
     QgsColorRampShader,
     QgsContrastEnhancement,
     QgsFillSymbol,
     QgsGradientColorRamp,
     QgsGradientStop,
-    QgsGraduatedSymbolRenderer,
     QgsHeatmapRenderer,
     QgsLineSymbol,
     QgsMarkerSymbol,
@@ -23,11 +21,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsPointClusterRenderer,
     QgsProperty,
     QgsRasterShader,
-    QgsRendererCategory,
-    QgsRendererRange,
-    QgsRuleBasedRenderer,
     QgsSingleBandPseudoColorRenderer,
-    QgsSingleSymbolRenderer,
     QgsSymbolLayer,
 )
 from qgis.PyQt import sip
@@ -53,15 +47,6 @@ _PIXEL_COLOR_CHANNELS = {"pixel-color", "pixel-rgb"}
 _PIXEL_ALPHA_CHANNELS = {"pixel-alpha"}
 # Multiband RGB sub-channel -> color index (red=0, green=1, blue=2).
 _PIXEL_BAND_CHANNELS = {"pixel-red": 0, "pixel-green": 1, "pixel-blue": 2}
-
-# jGIS classification mode name -> QgsGraduatedSymbolRenderer method constant.
-_GRADUATED_MODE_MAP = {
-    "equal interval": 0,  # EqualInterval
-    "quantile": 1,  # Quantile
-    "jenks": 2,  # Jenks
-    "pretty": 4,  # Pretty
-    "logarithmic": 3,  # StdDev (closest match)
-}
 
 
 # ---------------------------------------------------------------------------
@@ -148,23 +133,50 @@ def _stroke_size_mappings(
     ]
 
 
+def _line_width_mapping(stroke_width: float) -> dict[str, Any]:
+    """The constant stroke-width mapping for a line (its only size channel)."""
+    return {
+        "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
+        "channels": ["stroke-width"],
+    }
+
+
+def _color_mapping(scale: dict[str, Any], geometry: str) -> dict[str, Any]:
+    """A colour mapping on the channel that carries a geometry's colour.
+
+    A line's colour is its stroke; polygons/points colour their fill.
+    """
+    channels = (
+        ["stroke-color"] if geometry == "line" else ["fill-color", "circle-fill-color"]
+    )
+    return {"scale": scale, "channels": channels}
+
+
 def single_symbol_grammar(
     fill: list,
     stroke: list,
     stroke_width: float,
     radius: float,
+    geometry: str = "fill",
 ) -> dict[str, Any]:
     """Grammar for a constant (Single Symbol) style."""
-    rule = {
-        "id": _new_id(),
-        "mappings": [
-            {
-                "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
-                "channels": ["fill-color", "circle-fill-color"],
-            },
+    if geometry == "line":
+        mappings = [
+            _color_mapping(
+                {"scheme": "constant_rgba", "params": {"value": stroke}},
+                geometry,
+            ),
+            _line_width_mapping(stroke_width),
+        ]
+    else:
+        mappings = [
+            _color_mapping(
+                {"scheme": "constant_rgba", "params": {"value": fill}},
+                geometry,
+            ),
             *_stroke_size_mappings(stroke, stroke_width, radius),
-        ],
-    }
+        ]
+    rule = {"id": _new_id(), "mappings": mappings}
     return {"layers": [{"id": _new_id(), "rules": [rule]}]}
 
 
@@ -178,6 +190,7 @@ def graduated_grammar(
     radius: float,
     reverse: bool = False,
     color_stops: list | None = None,
+    geometry: str = "fill",
 ) -> dict[str, Any]:
     """Grammar for a graduated (colorRamp on numeric field) style.
 
@@ -194,10 +207,16 @@ def graduated_grammar(
     if color_stops:
         params["colorStops"] = color_stops
     color_ramp_scale = {"scheme": "colorRamp", "params": params}
-    mappings = [
-        {"scale": color_ramp_scale, "channels": ["fill-color", "circle-fill-color"]},
-        *_stroke_size_mappings(stroke, stroke_width, radius),
-    ]
+    if geometry == "line":
+        mappings = [
+            _color_mapping(color_ramp_scale, geometry),
+            _line_width_mapping(stroke_width),
+        ]
+    else:
+        mappings = [
+            _color_mapping(color_ramp_scale, geometry),
+            *_stroke_size_mappings(stroke, stroke_width, radius),
+        ]
     rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
     if field:
         rule["fields"] = [field]
@@ -212,6 +231,7 @@ def categorized_grammar(
     radius: float,
     reverse: bool = False,
     color_stops: list | None = None,
+    geometry: str = "fill",
 ) -> dict[str, Any]:
     """Grammar for a categorized (categorical scale on a field) style.
 
@@ -226,10 +246,16 @@ def categorized_grammar(
     if color_stops:
         params["colorStops"] = color_stops
     categorical_scale = {"scheme": "categorical", "params": params}
-    mappings = [
-        {"scale": categorical_scale, "channels": ["fill-color", "circle-fill-color"]},
-        *_stroke_size_mappings(stroke, stroke_width, radius),
-    ]
+    if geometry == "line":
+        mappings = [
+            _color_mapping(categorical_scale, geometry),
+            _line_width_mapping(stroke_width),
+        ]
+    else:
+        mappings = [
+            _color_mapping(categorical_scale, geometry),
+            *_stroke_size_mappings(stroke, stroke_width, radius),
+        ]
     rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
     if field:
         rule["fields"] = [field]
@@ -422,7 +448,8 @@ def kde_grammar(
             },
         ],
     }
-    kde: dict[str, Any] = {"type": "kde", "radius": radius, "blur": 0}
+    half = radius / 2.0
+    kde: dict[str, Any] = {"type": "kde", "radius": half, "blur": half}
     if weight_field:
         kde["weightField"] = weight_field
     return {"layers": [{"id": _new_id(), "preprocess": [kde], "rules": [rule]}]}
@@ -647,6 +674,8 @@ def _collect_vector_style(
     """
     fill_scale = None
     fill_field = None
+    stroke_scale = None
+    stroke_field = None
     stroke_rgba = None
     stroke_width = None
     radius = None
@@ -671,6 +700,13 @@ def _collect_vector_style(
                     stroke_rgba = params.get("value")
                 elif scheme == "identity" and field:
                     stroke_color_prop = QgsProperty.fromField(field)
+                elif scheme in ("categorical", "colorRamp") and field:
+                    # A data-driven stroke colour (e.g. roads coloured by type).
+                    # For a line this IS the layer's colour and becomes a
+                    # categorized/graduated renderer; _build_inner_renderer picks
+                    # it up via stroke_scale for line geometry.
+                    stroke_scale = scale
+                    stroke_field = field
                 else:
                     _warn(
                         logs,
@@ -724,6 +760,8 @@ def _collect_vector_style(
     return {
         "fill_scale": fill_scale,
         "fill_field": fill_field,
+        "stroke_scale": stroke_scale,
+        "stroke_field": stroke_field,
         "stroke_rgba": stroke_rgba
         if stroke_rgba is not None
         else list(_OL_CANVAS_STROKE),
@@ -787,94 +825,6 @@ def _make_base_symbol(
     return symbol
 
 
-def _graduated_renderer(field, params, geometry_type, base_symbol, map_layer, style):
-    renderer = QgsGraduatedSymbolRenderer(field)
-    renderer.setSourceSymbol(base_symbol.clone())
-
-    name = params.get("name", "viridis")
-    reverse = params.get("reverse", False)
-    endpoints = sample_colors(name, n=2, reverse=reverse)
-    renderer.setSourceColorRamp(
-        QgsGradientColorRamp(QColor(*endpoints[0]), QColor(*endpoints[1])),
-    )
-
-    color_stops = params.get("colorStops")
-    if color_stops and len(color_stops) >= 2:
-        for i in range(1, len(color_stops)):
-            lower = color_stops[i - 1].get("stop", 0)
-            upper = color_stops[i].get("stop", 0)
-            rgba = color_stops[i].get("color", _TRANSPARENT)
-            range_symbol = base_symbol.clone()
-            range_symbol.setColor(_rgba_to_qcolor(rgba))
-            if geometry_type == "circle":
-                range_symbol.setSize(2 * style["radius"])
-            renderer.addClassRange(
-                QgsRendererRange(lower, upper, range_symbol, f"{lower} - {upper}"),
-            )
-    elif map_layer:
-        mode = params.get("mode", "equal interval")
-        n_classes = int(params.get("nShades", 9))
-        renderer.updateClasses(map_layer, _GRADUATED_MODE_MAP.get(mode, 0), n_classes)
-
-    return renderer
-
-
-def _categorized_renderer(field, params, geometry_type, base_symbol, map_layer, style):
-    renderer = QgsCategorizedSymbolRenderer(field)
-    color_stops = params.get("colorStops")
-
-    if color_stops:
-        for stop in color_stops:
-            value = stop.get("stop")
-            rgba = stop.get("color", _TRANSPARENT)
-            cat_symbol = base_symbol.clone()
-            cat_symbol.setColor(_rgba_to_qcolor(rgba))
-            if geometry_type == "circle":
-                cat_symbol.setSize(2 * style["radius"])
-            renderer.addCategory(QgsRendererCategory(value, cat_symbol, str(value)))
-    elif map_layer:
-        idx = map_layer.fields().indexOf(field)
-        unique_values = sorted(map_layer.uniqueValues(idx)) if idx >= 0 else []
-        n = max(len(unique_values), 1)
-        colors = [
-            QColor(*rgba)
-            for rgba in sample_colors(
-                params.get("colorRamp", "viridis"),
-                n=n,
-                reverse=params.get("reverse", False),
-            )
-        ]
-        for i, value in enumerate(unique_values):
-            cat_symbol = base_symbol.clone()
-            cat_symbol.setColor(colors[i])
-            if geometry_type == "circle":
-                cat_symbol.setSize(2 * style["radius"])
-            renderer.addCategory(QgsRendererCategory(value, cat_symbol, str(value)))
-
-    return renderer
-
-
-def _single_symbol_from_style(style, geometry_type, opacity):
-    """Build a single QGIS symbol (constant fill) from a collected style dict."""
-    symbol = _make_base_symbol(geometry_type, opacity, style)
-    if symbol is None:
-        return None
-    fill_scale = style["fill_scale"]
-    if fill_scale and fill_scale.get("scheme") == "constant_rgba":
-        fill_rgba = fill_scale["params"].get("value", list(_DEFAULT_FILL))
-    elif geometry_type == "fill":
-        # A polygon with no fill mapping renders no fill in JupyterGIS; use a
-        # transparent fill so a stroke-only layer doesn't gain an opaque fill on
-        # round-trip (the outline still shows).
-        fill_rgba = list(_TRANSPARENT)
-    else:
-        fill_rgba = list(_DEFAULT_FILL)
-    symbol.setColor(_rgba_to_qcolor(fill_rgba))
-    if geometry_type == "circle":
-        symbol.setSize(2 * style["radius"])
-    return symbol
-
-
 def _heatmap_color_ramp(grammar_layer):
     """A QGIS heatmap gradient from the layer's colorRamp scale, or None.
 
@@ -898,7 +848,8 @@ def _heatmap_color_ramp(grammar_layer):
 
             def _stop_color(i: int, colors: list = colors, last: int = last) -> QColor:
                 r, g, b = colors[i][0], colors[i][1], colors[i][2]
-                return QColor(int(r), int(g), int(b), round(255 * i / last))
+                alpha = round(255 * min(1.0, 4 * i / last))
+                return QColor(int(r), int(g), int(b), alpha)
 
             ramp = QgsGradientColorRamp(_stop_color(0), _stop_color(last))
             ramp.setStops(
@@ -906,48 +857,6 @@ def _heatmap_color_ramp(grammar_layer):
             )
             return ramp
     return None
-
-
-def _build_inner_renderer(
-    grammar_layer,
-    geometry_type,
-    opacity,
-    map_layer,
-    logs,
-    layer_id,
-):
-    """Single Symbol / Graduated / Categorized renderer for one grammar layer."""
-    style = _collect_vector_style(grammar_layer, logs, layer_id)
-    base_symbol = _make_base_symbol(geometry_type, opacity, style)
-    if base_symbol is None:
-        return None
-
-    fill_scale = style["fill_scale"]
-    fill_field = style["fill_field"]
-    scheme = fill_scale.get("scheme") if fill_scale else None
-
-    if scheme == "colorRamp" and fill_field:
-        return _graduated_renderer(
-            fill_field,
-            fill_scale["params"],
-            geometry_type,
-            base_symbol,
-            map_layer,
-            style,
-        )
-    if scheme == "categorical" and fill_field:
-        return _categorized_renderer(
-            fill_field,
-            fill_scale["params"],
-            geometry_type,
-            base_symbol,
-            map_layer,
-            style,
-        )
-
-    return QgsSingleSymbolRenderer(
-        _single_symbol_from_style(style, geometry_type, opacity),
-    )
 
 
 def _heatmap_renderer(grammar_layer):
@@ -961,6 +870,7 @@ def _heatmap_renderer(grammar_layer):
     # so fold it in (radius + blur) to approximate the frontend's smoothness.
     renderer.setRadius(kde.get("radius", 10) + kde.get("blur", 0))
     renderer.setRadiusUnit(Qgis.RenderUnit.Pixels)
+    renderer.setRenderQuality(1)
     weight_field = kde.get("weightField")
     if weight_field and not str(weight_field).startswith("$"):
         renderer.setWeightExpression(f'"{weight_field}"')
@@ -984,142 +894,6 @@ def _cluster_renderer(preprocess, inner_renderer):
         renderer.setEmbeddedRenderer(inner_renderer)
     renderer.setTolerance(cluster.get("radius", 10))
     renderer.setToleranceUnit(Qgis.RenderUnit.Pixels)
-    return renderer
-
-
-def _to_rule_based(inner):
-    """Convert a native vector renderer to rule-based using QGIS itself.
-
-    QGIS generates the per-class rules, filters and symbols via
-    ``convertFromRenderer``; we never hand-write classification expressions.
-    Returns the native renderer unchanged if QGIS cannot convert it, and None
-    when there is nothing to convert.
-    """
-    if inner is None:
-        return None
-    # Graduated renderers lose their outer domain bounds when QGIS converts them
-    # to rule-based: QGIS >= 3.44
-    if isinstance(inner, QgsGraduatedSymbolRenderer):
-        return inner
-    converted = QgsRuleBasedRenderer.convertFromRenderer(inner)
-    # An unclassified categorized renderer (data couldn't load, so no categories
-    # materialised) converts to an empty rule set, which would drop the
-    # classification field. Keep the native renderer in that case — it still
-    # carries the field/scheme, and import handles it either way.
-    if converted is None or not converted.rootRule().children():
-        return inner
-    return converted
-
-
-def _append_converted_children(parent, inner) -> None:
-    """Append the rules QGIS produces for ``inner`` as children of ``parent``."""
-    if inner is None:
-        return
-    converted = QgsRuleBasedRenderer.convertFromRenderer(inner)
-    if converted is None:
-        return
-    for child in list(converted.rootRule().children()):
-        parent.appendChild(child.clone())
-
-
-def _assemble_rule_based(
-    base_rules,
-    guarded_rules,
-    geometry_type,
-    opacity,
-    map_layer,
-    logs,
-    layer_id,
-):
-    """Build a QgsRuleBasedRenderer honouring rule-level ``when`` predicates.
-
-    Unguarded rules form the default branch; each guarded rule's full symbology
-    (graduated/categorized/single) is built natively, converted by QGIS, and
-    nested under a parent rule carrying the ``when`` filter. QGIS ANDs the
-    nested filters at render time, so a guarded rule keeps its full field-driven
-    colours instead of being flattened to a constant.
-    """
-    root = QgsRuleBasedRenderer.Rule(None)
-
-    if base_rules:
-        base_inner = _build_inner_renderer(
-            {"rules": base_rules},
-            geometry_type,
-            opacity,
-            map_layer,
-            logs,
-            layer_id,
-        )
-        _append_converted_children(root, base_inner)
-
-    for guarded in guarded_rules:
-        merged = {"rules": [*base_rules, guarded]}
-        inner = _build_inner_renderer(
-            merged,
-            geometry_type,
-            opacity,
-            map_layer,
-            logs,
-            layer_id,
-        )
-        expr = _when_to_expr(guarded["when"], guarded.get("whenOp", "all")) or ""
-        parent = QgsRuleBasedRenderer.Rule(None, filterExp=expr)
-        _append_converted_children(parent, inner)
-        root.appendChild(parent)
-
-    return QgsRuleBasedRenderer(root)
-
-
-def grammar_layer_to_renderer(
-    grammar_layer: dict[str, Any],
-    geometry_type: str,
-    opacity: float,
-    map_layer,
-    logs: dict[str, list[str]],
-    layer_id: str,
-):
-    """Build a QGIS renderer for a single grammar rendering layer, or None.
-
-    Vector-symbol layers are always emitted as a QgsRuleBasedRenderer: the
-    symbology is built with native renderer classes (Single/Graduated/
-    Categorized) and converted by QGIS via ``convertFromRenderer``. KDE
-    (heatmap) and cluster layers keep their dedicated renderers, which QGIS
-    cannot express as rules.
-    """
-    preprocess = grammar_layer.get("preprocess") or []
-    has_kde = any(t.get("type") == "kde" for t in preprocess)
-    has_cluster = any(t.get("type") == "cluster" for t in preprocess)
-
-    if has_kde:
-        return _heatmap_renderer(grammar_layer)
-
-    rules = grammar_layer.get("rules", [])
-    guarded_rules = [r for r in rules if r.get("when")]
-
-    if guarded_rules:
-        base_rules = [r for r in rules if not r.get("when")]
-        renderer = _assemble_rule_based(
-            base_rules,
-            guarded_rules,
-            geometry_type,
-            opacity,
-            map_layer,
-            logs,
-            layer_id,
-        )
-    else:
-        inner = _build_inner_renderer(
-            grammar_layer,
-            geometry_type,
-            opacity,
-            map_layer,
-            logs,
-            layer_id,
-        )
-        renderer = _to_rule_based(inner)
-
-    if has_cluster and renderer is not None:
-        return _cluster_renderer(preprocess, renderer)
     return renderer
 
 

@@ -201,6 +201,21 @@ function extractGradient(rules: IEncodingRule[]): string[] | undefined {
         continue;
       }
 
+      // Prefer explicit colorStops when present (e.g. a heatmap round-tripped
+      // through QGIS, which stores the gradient as stops rather than a named
+      // ramp). Without this the unknown name falls through to DEFAULT_GRADIENT
+      // (a blue→red ramp), so a viridis heatmap would render with a red core.
+      const colorStops = (mapping.scale.params as any).colorStops as
+        | { stop: number; color: [number, number, number, number] }[]
+        | undefined;
+      if (Array.isArray(colorStops) && colorStops.length > 0) {
+        const stops = [...colorStops].sort((a, b) => a.stop - b.stop);
+        const gradient = stops.map(({ color: [r, g, b, a = 1] }) => {
+          return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
+        });
+        return mapping.scale.params.reverse ? [...gradient].reverse() : gradient;
+      }
+
       const colorMap = getColorMap(mapping.scale.params.name as any);
       if (!colorMap || colorMap.colors.length === 0) {
         continue;
