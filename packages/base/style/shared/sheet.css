@@ -150,7 +150,6 @@
 @media (min-width: 640px) {
   .jgis-sheet-content[data-side='right'] {
     max-width: 50%;
-    /* max-width: 24rem; */
   }
 }
 
