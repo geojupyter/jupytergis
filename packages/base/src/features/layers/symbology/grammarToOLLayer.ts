@@ -213,7 +213,9 @@ function extractGradient(rules: IEncodingRule[]): string[] | undefined {
         const gradient = stops.map(({ color: [r, g, b, a = 1] }) => {
           return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
         });
-        return mapping.scale.params.reverse ? [...gradient].reverse() : gradient;
+        return mapping.scale.params.reverse
+          ? [...gradient].reverse()
+          : gradient;
       }
 
       const colorMap = getColorMap(mapping.scale.params.name as any);
