@@ -114,10 +114,14 @@ export function useStoryEditorSegmentList(
     [model, story, revision],
   );
 
-  const selectedSegmentId = useMemo(
-    () => story?.storySegments?.[model.getCurrentSegmentIndex()] ?? null,
-    [model, story, revision],
-  );
+  const selectedSegmentId = useMemo(() => {
+    const segmentIds = story?.storySegments;
+    if (!segmentIds?.length) {
+      return null;
+    }
+    const index = model.getCurrentSegmentIndex() ?? 0;
+    return segmentIds[index] ?? segmentIds[0] ?? null;
+  }, [model, story, revision]);
 
   const selectedSegment = useMemo(
     () => segments.find(segment => segment.id === selectedSegmentId) ?? null,
