@@ -12,7 +12,7 @@ import type { IOverrideLayerEntry } from './types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
-} from './utils/storySegmentLayerPreview';
+} from './utils/storySegmentOverrides';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
 
 type StoryEditorMapInteractionMode = 'map-view' | 'previewing-segment';

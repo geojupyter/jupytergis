@@ -10,7 +10,7 @@ import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
-} from '@/src/features/story/utils/storySegmentLayerPreview';
+} from '@/src/features/story/utils/storySegmentOverrides';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
