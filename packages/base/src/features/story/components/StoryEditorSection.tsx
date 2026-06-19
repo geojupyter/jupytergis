@@ -1,5 +1,5 @@
 import { ChevronRightIcon } from 'lucide-react';
-import React from 'react';
+import React, { useId } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -23,28 +23,35 @@ export function StoryEditorSection({
   onOpenChange,
   defaultOpen,
 }: IStoryEditorSectionProps) {
+  const triggerId = useId();
+
   return (
     <Collapsible
       open={open}
       onOpenChange={onOpenChange}
       defaultOpen={defaultOpen}
-      className="jgis-story-editor-section"
+      asChild
     >
-      <CollapsibleTrigger asChild>
-        <div className="jgis-story-editor-section-trigger">
-          <Button
-            size="icon-sm"
-            variant="icon"
-            className="jgis-rotate-90 jgis-bg-transparent"
-          >
-            <ChevronRightIcon data-icon="inline-start" />
-          </Button>
-          <span>{triggerText}</span>
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="jgis-story-editor-section-body">
-        {children}
-      </CollapsibleContent>
+      <section
+        className="jgis-story-editor-section"
+        aria-labelledby={triggerId}
+      >
+        <CollapsibleTrigger asChild>
+          <div className="jgis-story-editor-section-trigger">
+            <Button
+              size="icon-sm"
+              variant="icon"
+              className="jgis-rotate-90 jgis-bg-transparent"
+            >
+              <ChevronRightIcon data-icon="inline-start" />
+            </Button>
+            <span id={triggerId}>{triggerText}</span>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="jgis-story-editor-section-body">
+          {children}
+        </CollapsibleContent>
+      </section>
     </Collapsible>
   );
 }
