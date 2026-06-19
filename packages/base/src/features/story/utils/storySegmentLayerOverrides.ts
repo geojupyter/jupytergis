@@ -46,6 +46,7 @@ function visitMapLayerIds(
 export function getMapLayerIds(model: IJupyterGISModel): string[] {
   const layerIds: string[] = [];
   visitMapLayerIds(model.getLayerTree(), model, layerIds);
+
   return layerIds;
 }
 
@@ -95,10 +96,6 @@ function hasStyleOverrideFieldsForLayer(
     return true;
   }
 
-  if (shouldPersistSymbologyOverride(layer, override.symbologyState)) {
-    return true;
-  }
-
   if (override.color && Object.keys(override.color).length > 0) {
     return true;
   }
@@ -107,6 +104,10 @@ function hasStyleOverrideFieldsForLayer(
     override.sourceProperties &&
     Object.keys(override.sourceProperties).length > 0
   ) {
+    return true;
+  }
+
+  if (shouldPersistSymbologyOverride(layer, override.symbologyState)) {
     return true;
   }
 
@@ -171,6 +172,7 @@ function upsertLayerOverride(
   const index = overrides.findIndex(
     entry => entry.targetLayer === targetLayerId,
   );
+
   const draft =
     index >= 0
       ? mutate({ ...overrides[index] })
