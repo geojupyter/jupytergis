@@ -1392,7 +1392,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
-  private _currentSegmentIndex: number;
+  private _currentSegmentIndex = 0;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
   stories: Map<string, IJGISStoryMap> = new Map();
 
