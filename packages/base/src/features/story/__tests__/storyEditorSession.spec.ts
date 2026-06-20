@@ -26,11 +26,11 @@ jest.mock('@lumino/widgets', () => ({
 }));
 
 import { StoryEditorSession } from '../storyEditorSession';
+import { updateSegmentMapView } from '../utils/storySegmentMapView';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '../utils/storySegmentOverrides';
-import { updateSegmentMapView } from '../utils/storySegmentMapView';
 
 function createDialog() {
   return {
