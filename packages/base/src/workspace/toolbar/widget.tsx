@@ -137,6 +137,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('Geolocation', geolocationButton);
       geolocationButton.node.dataset.testid = 'geolocation-button';
 
+      const locationIndicatorButton = new CommandToolbarButton({
+        id: CommandIDs.toggleLocationIndicator,
+        commands: options.commands,
+        label: '📍',
+      });
+
+      this.addItem('LocationIndicator', locationIndicatorButton);
+      locationIndicatorButton.node.dataset.testid = 'location-indicator-button';
+
       const identifyButton = new CommandToolbarButton({
         id: CommandIDs.identify,
         label: '',

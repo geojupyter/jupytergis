@@ -1313,6 +1313,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._geolocationChanged;
   }
 
+  get locationIndicatorToggled() {
+    return this._locationIndicatorToggled;
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -1386,6 +1390,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
 
   private _editingVectorLayer: boolean;
+
+  private _locationIndicatorToggled = new Signal<this, boolean>(this);
 
   static worker: Worker;
 

@@ -1478,6 +1478,35 @@ export function addCommands(
     icon: targetWithCenterIcon,
   });
 
+  let _watchId: number | null = null;
+
+  commands.addCommand(CommandIDs.toggleLocationIndicator, {
+    label: trans.__('Toggle Location Indicator'),
+    caption: 'Display a live location indicator based on your GPS position.',
+    isToggled: () => _watchId !== null,
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      if (_watchId !== null) {
+        navigator.geolocation.clearWatch(_watchId);
+        _watchId = null;
+        commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+        return;
+      }
+
+      _watchId = navigator.geolocation.watchPosition(
+        pos => {
+          console.log(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
+      );
+
+      commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+    },
+  });
+
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Toggle Left Panel'),
