@@ -337,6 +337,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
+    this._model.locationIndicatorToggled.connect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
 
     // Keep draw editing UI/interactions in sync with the shared editing mode.
     this._model.editingVectorLayerChanged.connect(
@@ -3581,6 +3585,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private _handleLocationIndicatorToggled(
+    _sender: any,
+    coords: JgisCoordinates | null,
+  ): void {
+    if (!coords) {
+      if (this._locationIndicatorLayer) {
+        this._Map.removeLayer(this._locationIndicatorLayer);
+        this._locationIndicatorLayer = null;
+      }
+      return;
+    }
+
+    const point = new Point([coords.x, coords.y]);
+
+    if (!this._locationIndicatorLayer) {
+      const feature = new Feature(point);
+      const source = new VectorSource({ features: [feature] });
+      this._locationIndicatorLayer = new VectorLayer({ source });
+      this._Map.addLayer(this._locationIndicatorLayer);
+    } else {
+      this._locationIndicatorLayer
+        .getSource()!
+        .getFeatures()[0]
+        .setGeometry(point);
+    }
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -4006,6 +4037,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
+  private _locationIndicatorLayer: VectorLayer<VectorSource> | null = null;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;

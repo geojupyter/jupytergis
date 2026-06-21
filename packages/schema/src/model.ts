@@ -1391,7 +1391,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _editingVectorLayer: boolean;
 
-  private _locationIndicatorToggled = new Signal<this, boolean>(this);
+  private _locationIndicatorToggled = new Signal<this, JgisCoordinates | null>(this);
 
   static worker: Worker;
 

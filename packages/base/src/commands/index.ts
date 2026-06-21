@@ -1486,7 +1486,13 @@ export function addCommands(
     isToggled: () => _watchId !== null,
     isEnabled: () => Boolean(tracker.currentWidget),
     execute: () => {
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
       if (_watchId !== null) {
+        viewModel.locationIndicatorToggled.emit(null);
         navigator.geolocation.clearWatch(_watchId);
         _watchId = null;
         commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
@@ -1495,12 +1501,16 @@ export function addCommands(
 
       _watchId = navigator.geolocation.watchPosition(
         pos => {
-          console.log(pos.coords.latitude, pos.coords.longitude);
+          const coords = fromLonLat([
+            pos.coords.longitude,
+            pos.coords.latitude,
+          ]);
+          viewModel.locationIndicatorToggled.emit({ x: coords[0], y: coords[1] });
         },
         err => {
           console.warn(`Geolocation error (${err.code}): ${err.message}`);
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: Infinity },
       );
 
       commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
