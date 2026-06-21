@@ -3602,7 +3602,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!this._locationIndicatorLayer) {
       const feature = new Feature(point);
       const source = new VectorSource({ features: [feature] });
-      this._locationIndicatorLayer = new VectorLayer({ source });
+      this._locationIndicatorLayer = new VectorLayer({
+        source,
+        style: [
+          new Style({
+            image: new CircleStyle({
+              radius: 30,
+              fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+            }),
+          }),
+          new Style({
+            image: new CircleStyle({
+              radius: 8,
+              fill: new Fill({ color: 'blue' }),
+              stroke: new Stroke({ color: 'white', width: 2 }),
+            }),
+          }),
+        ]
+      });
       this._Map.addLayer(this._locationIndicatorLayer);
     } else {
       this._locationIndicatorLayer
