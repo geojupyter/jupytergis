@@ -664,6 +664,7 @@ def _collect_vector_style(
     grammar_layer: dict[str, Any],
     logs: dict[str, list[str]],
     layer_id: str,
+    geometry: str = "fill",
 ) -> dict[str, Any]:
     """Flatten a grammar layer's rules into the channels QGIS can represent.
 
@@ -671,6 +672,11 @@ def _collect_vector_style(
     / width / radius become ``QgsProperty`` overrides (field reference for
     ``identity``, ``scale_linear`` for ``scalar``) that QGIS serialises and
     reads back natively.
+
+    ``geometry`` makes the colour routing geometry-aware: a line's colour lives
+    on ``stroke-color`` even when the same mapping also lists ``circle-fill-color``
+    (the frontend emits both). Without this a line's ramp was filed as a *fill*
+    scale, leaving the line with no colour (it rendered black).
     """
     fill_scale = None
     fill_field = None
@@ -692,7 +698,10 @@ def _collect_vector_style(
             scheme = scale.get("scheme")
             params = scale.get("params", {})
 
-            if channels & _FILL_CHANNELS:
+            is_line_color = geometry == "line" and bool(
+                channels & _STROKE_COLOR_CHANNELS,
+            )
+            if (channels & _FILL_CHANNELS) and not is_line_color:
                 fill_scale = scale
                 fill_field = field
             elif channels & _STROKE_COLOR_CHANNELS:

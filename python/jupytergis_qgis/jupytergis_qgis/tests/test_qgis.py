@@ -1577,3 +1577,274 @@ def test_rule_when_roundtrip():
     # The guarded rule keeps its constant fill colour.
     fill = next(m for m in guarded[0]["mappings"] if "fill-color" in m["channels"])
     assert [round(c) for c in fill["scale"]["params"]["value"][:3]] == [255, 0, 0]
+
+
+def test_line_colorramp_mixed_channels_roundtrip():
+    """A line coloured by a colorRamp tagged on BOTH stroke-color and
+    circle-fill-color (as the frontend emits) must export the ramp on the line's
+    stroke — not get mis-filed as a fill scale and lost, which rendered black.
+    """
+    layer = _grammar(
+        [
+            {
+                "id": "r",
+                "fields": ["length_km"],
+                "mappings": [
+                    {
+                        "channels": ["stroke-color", "circle-fill-color"],
+                        "scale": {
+                            "scheme": "colorRamp",
+                            "params": {
+                                "name": "viridis",
+                                "nShades": 2,
+                                "mode": "equal interval",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": 0.0, "color": [68, 1, 84, 1.0]},
+                                    {"stop": 100.0, "color": [253, 231, 37, 1.0]},
+                                ],
+                            },
+                        },
+                    },
+                ],
+            },
+        ],
+    )["layers"][0]
+    out, logs = _roundtrip_layer(layer, "line")
+    scheme, _params, fields, _when = _mapping_for_channel(out, "stroke-color")
+    assert scheme == "colorRamp"
+    assert fields == ["length_km"]
+    # The line has no fill, so the ramp must NOT have landed on fill-color.
+    assert _mapping_for_channel(out, "fill-color")[0] is None
+    assert logs["warnings"] == []
+
+
+def test_roads_when_colorramp_and_constant_roundtrip(tmp_path):
+    """roads.jGIS shape: two grammar layers on one line source, each with a
+    layer-level ``when`` — Asia coloured by a colorRamp on length_km, Africa a
+    constant colour. The Asia ramp is tagged stroke-color + circle-fill-color; on a
+    line it must export as a data-driven stroke colour (not black) and round-trip
+    back with its ``when`` and scheme intact.
+    """
+    import json
+
+    gj = tmp_path / "roads_line.geojson"
+    feats = [
+        {
+            "type": "Feature",
+            "properties": {"continent": c, "length_km": lk},
+            "geometry": {"type": "LineString", "coordinates": [[0, i], [3, i]]},
+        }
+        for i, (c, lk) in enumerate([("Asia", 50), ("Asia", 800), ("Africa", 120)])
+    ]
+    gj.write_text(json.dumps({"type": "FeatureCollection", "features": feats}))
+
+    asia = {
+        "id": "L-asia",
+        "when": [{"type": "fieldEquals", "field": "continent", "value": "Asia"}],
+        "rules": [
+            {
+                "id": "r",
+                "fields": ["length_km"],
+                "mappings": [
+                    {
+                        "channels": ["stroke-color", "circle-fill-color"],
+                        "scale": {
+                            "scheme": "colorRamp",
+                            "params": {
+                                "name": "viridis",
+                                "domain": [0.0, 1583.0],
+                                "nShades": 3,
+                                "mode": "quantile",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": 0.0, "color": [68, 1, 84, 1.0]},
+                                    {"stop": 117.7, "color": [59, 81, 139, 1.0]},
+                                    {"stop": 1583.0, "color": [253, 231, 37, 1.0]},
+                                ],
+                            },
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+    africa = {
+        "id": "L-africa",
+        "when": [{"type": "fieldEquals", "field": "continent", "value": "Africa"}],
+        "rules": [
+            {
+                "id": "r",
+                "mappings": [
+                    {
+                        "channels": ["stroke-color"],
+                        "scale": {
+                            "scheme": "constant_rgba",
+                            "params": {"value": [0, 255, 0, 1.0]},
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+    lid = "11111111-2222-3333-4444-555555555555"
+    jgis = {
+        "options": {"projection": "EPSG:4326"},
+        "layers": {
+            lid: {
+                "name": "Roads",
+                "type": "VectorLayer",
+                "visible": True,
+                "parameters": {
+                    "opacity": 1.0,
+                    "source": "s",
+                    "symbologyState": {"layers": [asia, africa]},
+                },
+            },
+        },
+        "sources": {
+            "s": {
+                "name": "s",
+                "type": "GeoJSONSource",
+                "parameters": {"path": str(gj)},
+            },
+        },
+        "layerTree": [lid],
+    }
+
+    out = tmp_path / "roads_out.qgz"
+    logs = export_project_to_qgis(str(out), jgis)
+    assert logs["errors"] == []
+    # The colorRamp on the line must translate; a dropped ramp warns + renders black.
+    assert not any("could not be translated" in w for w in logs["warnings"])
+
+    reimported = import_project_from_qgis(str(out))
+    # Each grammar layer round-trips to its own jGIS layer (N layers -> N layers).
+    by_continent = {}
+    for layer in reimported["layers"].values():
+        state = layer["parameters"]["symbologyState"]
+        for grammar_layer in state.get("layers", []):
+            when = grammar_layer.get("when") or []
+            if when:
+                by_continent[when[0]["value"]] = grammar_layer
+    assert set(by_continent) == {"Asia", "Africa"}
+
+    # Asia: data-driven colorRamp on the line's stroke-color, keyed on length_km.
+    scheme, _params, fields, _when = _mapping_for_channel(
+        by_continent["Asia"],
+        "stroke-color",
+    )
+    assert scheme == "colorRamp"
+    assert fields == ["length_km"]
+    # Africa: constant green stroke colour preserved.
+    a_scheme, a_params, _f, _w = _mapping_for_channel(
+        by_continent["Africa"],
+        "stroke-color",
+    )
+    assert a_scheme == "constant_rgba"
+    assert [round(c) for c in a_params["value"][:3]] == [0, 255, 0]
+
+
+def test_polygon_categorical_outline_roundtrip():
+    """A polygon whose OUTLINE (stroke-color) is data-driven by a categorical scale
+    must export that outline as its own data-defined stroke colour and round-trip.
+
+    Before the colour-slot rewrite the outline was not a slot of its own: a secondary
+    data-driven colour was collected but never applied, so the outline silently fell
+    back to a flat default. The fill stays an independent constant.
+    """
+    layer = _grammar(
+        [
+            {
+                "id": "r-outline",
+                "fields": ["continent"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "categorical",
+                            "params": {
+                                "colorRamp": "viridis",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": "Asia", "color": [255, 0, 0, 1.0]},
+                                    {"stop": "Europe", "color": [0, 0, 255, 1.0]},
+                                ],
+                            },
+                        },
+                        "channels": ["stroke-color"],
+                    },
+                ],
+            },
+            {
+                "id": "r-fill",
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "constant_rgba",
+                            "params": {"value": [200, 200, 200, 1.0]},
+                        },
+                        "channels": ["fill-color", "circle-fill-color"],
+                    },
+                ],
+            },
+        ],
+    )["layers"][0]
+    out, logs = _roundtrip_layer(layer, "fill")
+    # Outline: categorical stroke colour preserved (was dropped before the rewrite).
+    scheme, params, fields, _ = _mapping_for_channel(out, "stroke-color")
+    assert scheme == "categorical"
+    assert fields == ["continent"]
+    stops = {
+        s["stop"]: [round(c) for c in s["color"][:3]] for s in params["colorStops"]
+    }
+    assert stops == {"Asia": [255, 0, 0], "Europe": [0, 0, 255]}
+    # Fill stays an independent plain constant grey.
+    f_scheme, f_params, _f, _w = _mapping_for_channel(out, "fill-color")
+    assert f_scheme == "constant_rgba"
+    assert [round(c) for c in f_params["value"][:3]] == [200, 200, 200]
+    assert logs["warnings"] == []
+
+
+def test_line_color_via_circle_fill_only_roundtrip():
+    """A line whose only colour mapping is tagged on circle-fill-color (not
+    stroke-color) must still colour the line's stroke.
+
+    Geometry-aware routing sends a line's sole colour to its stroke slot instead of
+    filing it as a fill (a line has no fill), which previously left the line black.
+    """
+    layer = _grammar(
+        [
+            {
+                "id": "r",
+                "fields": ["type"],
+                "mappings": [
+                    {
+                        "scale": {
+                            "scheme": "categorical",
+                            "params": {
+                                "colorRamp": "viridis",
+                                "reverse": False,
+                                "fallback": [0, 0, 0, 0],
+                                "colorStops": [
+                                    {"stop": "Road", "color": [227, 26, 28, 1.0]},
+                                    {"stop": "Track", "color": [255, 127, 0, 1.0]},
+                                ],
+                            },
+                        },
+                        "channels": ["circle-fill-color"],
+                    },
+                ],
+            },
+        ],
+    )["layers"][0]
+    out, logs = _roundtrip_layer(layer, "line")
+    # The sole colour mapping lands on the line's stroke, not dropped to black.
+    scheme, _params, fields, _ = _mapping_for_channel(out, "stroke-color")
+    assert scheme == "categorical"
+    assert fields == ["type"]
+    # A line has no fill, so the colour must NOT have landed on fill-color.
+    assert _mapping_for_channel(out, "fill-color")[0] is None
+    assert logs["warnings"] == []

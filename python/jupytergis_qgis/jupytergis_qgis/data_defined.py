@@ -18,11 +18,15 @@ from typing import Any
 
 from jupytergis_core.color_ramps import sample_colors
 from qgis.core import (  # type: ignore[import-untyped]
+    Qgis,
     QgsExpression,
     QgsExpressionNodeBinaryOperator,
     QgsExpressionNodeCondition,
     QgsExpressionNodeFunction,
     QgsExpressionNodeLiteral,
+    QgsFillSymbol,
+    QgsLineSymbol,
+    QgsMarkerSymbol,
     QgsProperty,
     QgsSingleSymbolRenderer,
     QgsSymbolLayer,
@@ -30,19 +34,23 @@ from qgis.core import (  # type: ignore[import-untyped]
 
 from .grammar import (
     _DEFAULT_FILL,
+    _DEFAULT_RADIUS,
+    _DEFAULT_STROKE_WIDTH,
     _FILL_CHANNELS,
+    _OL_CANVAS_STROKE,
+    _RADIUS_CHANNELS,
     _STROKE_COLOR_CHANNELS,
+    _STROKE_WIDTH_CHANNELS,
     _TRANSPARENT,
     _cluster_renderer,
-    _collect_vector_style,
     _heatmap_renderer,
-    _make_base_symbol,
+    _new_id,
     _rgba_to_qcolor,
+    _scalar_size_expr,
+    _scale_linear_expr,
     _sql_literal,
+    _warn,
     _when_to_expr,
-    categorized_grammar,
-    graduated_grammar,
-    single_symbol_grammar,
 )
 
 # ---------------------------------------------------------------------------
@@ -134,13 +142,23 @@ def _scale_to_color_expr(scale: dict, field: str | None) -> str | None:
     return None
 
 
-def _rule_constant_color(rule: dict, color_channels: set[str]) -> Any:
-    """The constant_rgba colour a (guarded) rule paints on its colour channel."""
+def _rule_color_expr(rule: dict, color_channels: set[str]) -> str | None:
+    """The colour a (guarded) rule paints, as a data-defined expression.
+
+    Not just constants: a guarded rule may carry a categorical / colorRamp colour
+    (e.g. roads coloured by ``type`` but only ``WHEN continent = 'Asia'``), which
+    becomes a nested ``CASE``. Returning only constants here dropped that colour
+    entirely (the symbol fell back to black).
+    """
+    fields = rule.get("fields") or []
+    field = fields[0] if fields else None
     for mapping in rule.get("mappings", []):
         if set(mapping.get("channels", [])) & color_channels:
             scale = mapping.get("scale", {})
             if scale.get("scheme") == "constant_rgba":
-                return scale.get("params", {}).get("value")
+                value = scale.get("params", {}).get("value")
+                return _color_rgba_literal(value) if value is not None else None
+            return _scale_to_color_expr(scale, field)
     return None
 
 
@@ -151,18 +169,120 @@ def _guarded_color_expr(
 ) -> str | None:
     """Wrap ``base_expr`` in a ``CASE`` honouring each rule-level ``when`` guard.
 
-    A feature matching a guard takes that rule's constant colour; otherwise it
-    falls through to ``base_expr`` (the unguarded styling).
+    A feature matching a guard takes that rule's colour (constant, categorical or
+    colorRamp); otherwise it falls through to ``base_expr`` (the unguarded styling).
     """
     branches = []
     for rule in guarded_rules:
         when_expr = _when_to_expr(rule.get("when") or [], rule.get("whenOp", "all"))
-        color = _rule_constant_color(rule, color_channels)
-        if when_expr and color is not None:
-            branches.append(f"WHEN ({when_expr}) THEN {_color_rgba_literal(color)}")
+        color_expr = _rule_color_expr(rule, color_channels)
+        if when_expr and color_expr is not None:
+            branches.append(f"WHEN ({when_expr}) THEN {color_expr}")
     if not branches:
         return None
     return f"CASE {' '.join(branches)} ELSE {base_expr} END"
+
+
+# ---------------------------------------------------------------------------
+# Geometry-aware colour / width / radius slots (shared by export + import)
+# ---------------------------------------------------------------------------
+def _color_slots(geometry: str):
+    """(grammar channel set, QGIS property, is_primary) per colour slot.
+
+    A line has one colour (its stroke) and accepts either fill or stroke channels
+    for it; an area/point has a primary fill and a secondary outline (stroke).
+    """
+    if geometry == "line":
+        return [
+            (
+                _FILL_CHANNELS | _STROKE_COLOR_CHANNELS,
+                QgsSymbolLayer.PropertyStrokeColor,
+                True,
+            ),
+        ]
+    return [
+        (_FILL_CHANNELS, QgsSymbolLayer.PropertyFillColor, True),
+        (_STROKE_COLOR_CHANNELS, QgsSymbolLayer.PropertyStrokeColor, False),
+    ]
+
+
+def _find_mapping(rules: list[dict], channel_set: set[str]):
+    """The first ``(scale, field)`` whose mapping touches ``channel_set``."""
+    for rule in rules:
+        field = (rule.get("fields") or [None])[0]
+        for mapping in rule.get("mappings", []):
+            if set(mapping.get("channels", [])) & channel_set:
+                return mapping.get("scale", {}), field
+    return None, None
+
+
+def _color_instruction(scale: dict, field: str | None):
+    """A colour as ``('const', rgba)`` / ``('field', name)`` / ``('expr', str)``.
+
+    ``None`` means the scale cannot be encoded (caller warns + uses a default).
+    Handles every colour scale uniformly, on any slot (primary or outline).
+    """
+    scheme = scale.get("scheme")
+    params = scale.get("params", {})
+    if scheme == "constant_rgba":
+        value = params.get("value")
+        return ("const", value) if value is not None else None
+    if scheme == "identity" and field:
+        return ("field", field)
+    if scheme == "colorRamp" and field:
+        return ("expr", _colorramp_case_expr(field, _colorramp_stops(params)))
+    if scheme == "categorical" and field:
+        stops = params.get("colorStops")
+        if stops:
+            return (
+                "expr",
+                _categorical_case_expr(
+                    field,
+                    stops,
+                    params.get("fallback", _TRANSPARENT),
+                ),
+            )
+    return None
+
+
+def _num_instruction(scale: dict, field: str | None, is_radius: bool):
+    """A width/radius as ``('const', n)`` / ``('field', name)`` / ``('expr', str)``."""
+    scheme = scale.get("scheme")
+    params = scale.get("params", {})
+    if scheme == "constant_num":
+        value = params.get("value")
+        return ("const", value) if value is not None else None
+    if scheme == "identity" and field:
+        return ("field", field)
+    if scheme == "scalar":
+        expr = (
+            _scalar_size_expr(field, params)
+            if is_radius
+            else _scale_linear_expr(field, params)
+        )
+        if expr:
+            return ("expr", expr)
+    return None
+
+
+def _instr_color_expr(instr) -> str:
+    """A colour instruction rendered as an expression (for guard nesting)."""
+    kind, value = instr
+    if kind == "const":
+        return _color_rgba_literal(value)
+    if kind == "field":
+        return f'"{value}"'
+    return value
+
+
+def _default_primary_color(geometry: str) -> list:
+    # A polygon with no fill renders transparent (a stroke-only layer keeps no
+    # fill); a point defaults to the OL fill; a line falls back to canvas black.
+    if geometry == "fill":
+        return list(_TRANSPARENT)
+    if geometry == "circle":
+        return list(_DEFAULT_FILL)
+    return list(_OL_CANVAS_STROKE)
 
 
 def grammar_layer_to_dd_symbol(
@@ -171,81 +291,112 @@ def grammar_layer_to_dd_symbol(
     logs: dict[str, list[str]],
     layer_id: str,
 ):
-    """One QGIS symbol whose channels are data-defined from a grammar layer."""
-    rules = grammar_layer.get("rules", [])
-    guarded_rules = [r for r in rules if r.get("when")]
-    base_rules = [r for r in rules if not r.get("when")]
+    """One QGIS symbol whose channels are data-defined from a grammar layer.
 
-    # _collect_vector_style flattens the unguarded rules into the fill/stroke
-    # scales plus the constant + data-defined (stroke colour/width, radius)
-    # overrides; _make_base_symbol applies all of those to a fresh symbol.
-    style = _collect_vector_style({"rules": base_rules}, logs, layer_id)
-    symbol = _make_base_symbol(geometry_type, 1.0, style)
-    if symbol is None:
+    Every channel is resolved by geometry-aware *slot* — the primary colour (fill
+    for area/point, stroke for a line), the outline colour (area/point only), the
+    width and the marker radius. Each slot accepts any scale (constant / identity
+    / categorical / colorRamp) and rule-level ``when`` guards wrap the primary
+    colour in a nested CASE. A scale that cannot translate warns rather than
+    silently dropping to black.
+    """
+    if geometry_type == "circle":
+        symbol = QgsMarkerSymbol()
+    elif geometry_type == "line":
+        symbol = QgsLineSymbol()
+    elif geometry_type == "fill":
+        symbol = QgsFillSymbol()
+    else:
         return None
-    symbol_layer = symbol.symbolLayer(0)
+    symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+    sl = symbol.symbolLayer(0)
 
+    rules = grammar_layer.get("rules", [])
+    base_rules = [r for r in rules if not r.get("when")]
+    guarded_rules = [r for r in rules if r.get("when")]
     is_line = geometry_type == "line"
-    color_scale = style["stroke_scale"] if is_line else style["fill_scale"]
-    color_field = style["stroke_field"] if is_line else style["fill_field"]
-    color_channels = _STROKE_COLOR_CHANNELS if is_line else _FILL_CHANNELS
-    color_prop = (
-        QgsSymbolLayer.PropertyStrokeColor
-        if is_line
-        else QgsSymbolLayer.PropertyFillColor
-    )
 
-    color_expr: str | None = None
-    plain_constant: Any = None
+    # --- colour slots (primary + outline) ---
+    for channel_set, prop, is_primary in _color_slots(geometry_type):
+        scale, field = _find_mapping(base_rules, channel_set)
+        instr = _color_instruction(scale, field) if scale else None
+        if scale and instr is None:
+            _warn(
+                logs,
+                layer_id,
+                f"data-driven {'fill' if is_primary else 'stroke'} colour could not "
+                "be translated; using a solid colour.",
+            )
+        if instr is None:
+            default = (
+                _default_primary_color(geometry_type)
+                if is_primary
+                else list(_OL_CANVAS_STROKE)
+            )
+            instr = ("const", default)
+        if is_primary and guarded_rules:
+            guarded = _guarded_color_expr(
+                _instr_color_expr(instr),
+                guarded_rules,
+                channel_set,
+            )
+            if guarded:
+                instr = ("expr", guarded)
+        kind, value = instr
+        if kind == "const":
+            (symbol.setColor if is_primary else sl.setStrokeColor)(
+                _rgba_to_qcolor(value),
+            )
+        elif kind == "field":
+            sl.setDataDefinedProperty(prop, QgsProperty.fromField(value))
+        else:
+            sl.setDataDefinedProperty(prop, QgsProperty.fromExpression(value))
 
-    if color_scale and color_scale.get("scheme") == "identity" and color_field:
-        # A field-driven colour (the field already holds colour values).
-        symbol_layer.setDataDefinedProperty(
-            color_prop,
-            QgsProperty.fromField(color_field),
+    # --- width (line width or outline width) ---
+    wscale, wfield = _find_mapping(base_rules, _STROKE_WIDTH_CHANNELS)
+    winstr = _num_instruction(wscale, wfield, False) if wscale else None
+    if wscale and winstr is None:
+        _warn(
+            logs,
+            layer_id,
+            "data-driven width could not be translated; using a constant width.",
+        )
+    if winstr is None:
+        winstr = ("const", _DEFAULT_STROKE_WIDTH)
+    wkind, wvalue = winstr
+    if wkind == "const":
+        (sl.setWidth if is_line else sl.setStrokeWidth)(float(wvalue))
+    elif wkind == "field":
+        sl.setDataDefinedProperty(
+            QgsSymbolLayer.PropertyStrokeWidth,
+            QgsProperty.fromField(wvalue),
         )
     else:
-        if color_scale is None or color_scale.get("scheme") == "constant_rgba":
-            if color_scale is not None:
-                base_color = color_scale["params"].get("value")
-            elif is_line:
-                base_color = style["stroke_rgba"]
-            elif geometry_type == "fill":
-                # A polygon with no fill mapping renders no fill in JupyterGIS.
-                base_color = list(_TRANSPARENT)
-            else:
-                base_color = list(_DEFAULT_FILL)
-            base_expr = _color_rgba_literal(base_color)
-            plain_constant = base_color
-        else:
-            base_expr = _scale_to_color_expr(color_scale, color_field)
-            if base_expr is None:
-                base_color = (
-                    list(_TRANSPARENT)
-                    if geometry_type == "fill"
-                    else list(_DEFAULT_FILL)
-                )
-                base_expr = _color_rgba_literal(base_color)
-                plain_constant = base_color
+        sl.setDataDefinedProperty(
+            QgsSymbolLayer.PropertyStrokeWidth,
+            QgsProperty.fromExpression(wvalue),
+        )
 
-        if guarded_rules:
-            guarded = _guarded_color_expr(base_expr, guarded_rules, color_channels)
-            if guarded:
-                color_expr = guarded
-                plain_constant = None
-        if color_expr is None and plain_constant is None:
-            color_expr = base_expr  # a colorRamp / categorical CASE
-
-        if color_expr is not None:
-            symbol_layer.setDataDefinedProperty(
-                color_prop,
-                QgsProperty.fromExpression(color_expr),
+    # --- marker radius (points only) ---
+    if geometry_type == "circle":
+        rscale, rfield = _find_mapping(base_rules, _RADIUS_CHANNELS)
+        rinstr = _num_instruction(rscale, rfield, True) if rscale else None
+        if rscale and rinstr is None:
+            _warn(
+                logs,
+                layer_id,
+                "data-driven circle radius could not be translated; using a "
+                "constant radius.",
             )
-        elif plain_constant is not None:
-            symbol.setColor(_rgba_to_qcolor(plain_constant))
-
-    if geometry_type == "circle" and style.get("radius_prop") is None:
-        symbol.setSize(2 * style["radius"])
+        if rinstr is None:
+            rinstr = ("const", _DEFAULT_RADIUS)
+        rkind, rvalue = rinstr
+        if rkind == "const":
+            symbol.setSize(2 * float(rvalue))
+        elif rkind == "field":
+            symbol.setDataDefinedSize(QgsProperty.fromField(rvalue))
+        else:
+            symbol.setDataDefinedSize(QgsProperty.fromExpression(rvalue))
 
     return symbol
 
@@ -349,118 +500,203 @@ def _parse_color_expr(expr: str):
     return None
 
 
-def _set_primary_color_mapping(grammar: dict, scale: dict, field: str, geometry: str):
-    """Replace a built grammar's primary colour mapping (used for identity)."""
-    channels = (
-        ["stroke-color"] if geometry == "line" else ["fill-color", "circle-fill-color"]
-    )
-    rule = grammar["layers"][0]["rules"][0]
-    for mapping in rule["mappings"]:
-        if set(mapping["channels"]) & set(channels):
-            mapping["scale"] = scale
-            rule["fields"] = [field]
-            return grammar
-    return grammar
+def _color_scale_from_property(ddp, prop_key, const_rgba):
+    """Read a colour slot back into ``(scale, field, guards)``.
+
+    The inverse of the export colour slot: a field reference -> identity, a
+    ``CASE`` -> categorical / colorRamp / guarded, otherwise the symbol's constant.
+    Used for both the primary and the outline colour so each round-trips with its
+    own scale (not just identity).
+    """
+    if ddp is not None:
+        prop = ddp.property(prop_key)
+        if prop is not None and prop.isActive():
+            if prop.field():
+                return {"scheme": "identity"}, prop.field(), []
+            expr = prop.expressionString()
+            if expr:
+                parsed = _parse_color_expr(expr)
+                if parsed and parsed[0] == "colorRamp":
+                    _, field, stops = parsed
+                    return (
+                        {
+                            "scheme": "colorRamp",
+                            "params": {
+                                "name": "viridis",
+                                "nShades": len(stops),
+                                "mode": "equal interval",
+                                "reverse": False,
+                                "fallback": list(_TRANSPARENT),
+                                "colorStops": stops,
+                            },
+                        },
+                        field,
+                        [],
+                    )
+                if parsed and parsed[0] == "categorical":
+                    _, field, stops = parsed
+                    return (
+                        {
+                            "scheme": "categorical",
+                            "params": {
+                                "colorRamp": "viridis",
+                                "reverse": False,
+                                "fallback": list(_TRANSPARENT),
+                                "colorStops": stops,
+                            },
+                        },
+                        field,
+                        [],
+                    )
+                if parsed and parsed[0] == "guarded":
+                    _, else_rgba, guards = parsed
+                    base = else_rgba or const_rgba
+                    return (
+                        {"scheme": "constant_rgba", "params": {"value": base}},
+                        None,
+                        guards,
+                    )
+    return {"scheme": "constant_rgba", "params": {"value": const_rgba}}, None, []
+
+
+def _num_scale_from_property(ddp, prop_key, const_value, scalar_from_property):
+    """Read a width/radius slot back into ``(scale, field)``."""
+    if ddp is not None:
+        prop = ddp.property(prop_key)
+        if prop is not None and prop.isActive():
+            if prop.field():
+                return {"scheme": "identity"}, prop.field()
+            if prop.expressionString():
+                scalar = scalar_from_property(prop)
+                if scalar:
+                    field, domain, output_range = scalar
+                    return (
+                        {
+                            "scheme": "scalar",
+                            "params": {
+                                "domain": domain,
+                                "range": output_range,
+                                "mode": "equal interval",
+                                "nStops": 5,
+                                "fallback": 0.0,
+                            },
+                        },
+                        field,
+                    )
+    return {"scheme": "constant_num", "params": {"value": const_value}}, None
 
 
 def dd_symbol_to_grammar(symbol):
-    """Convert a data-defined single symbol back into a Grammar symbologyState."""
-    from .qgis_loader import (
-        _add_data_defined_rule,
-        _extract_symbol_style,
-        _merge_data_defined_mappings,
-    )
+    """Convert a data-defined single symbol back into a Grammar symbologyState.
+
+    The exact inverse of :func:`grammar_layer_to_dd_symbol`: each slot (primary
+    colour, outline colour, width, radius) is read back into a mapping, mappings
+    are grouped into rules by their input field, and rule-level ``when`` guards
+    become guarded rules.
+    """
+    from .qgis_loader import _extract_symbol_style, _scalar_from_property
 
     fill, stroke, stroke_width, radius, geometry = _extract_symbol_style(symbol)
     is_line = geometry == "line"
-    color_prop_key = (
+    sl = symbol.symbolLayer(0) if symbol is not None else None
+    ddp = sl.dataDefinedProperties() if sl is not None else None
+
+    collected: list = []  # (channels, scale, field)
+    guard_rules: list[dict] = []
+
+    # primary colour (fill for area/point, stroke for a line)
+    primary_prop = (
         QgsSymbolLayer.PropertyStrokeColor
         if is_line
         else QgsSymbolLayer.PropertyFillColor
     )
+    primary_channels = (
+        ["stroke-color"] if is_line else ["fill-color", "circle-fill-color"]
+    )
+    primary_const = stroke if is_line else fill
+    scale, field, guards = _color_scale_from_property(ddp, primary_prop, primary_const)
+    collected.append((primary_channels, scale, field))
+    for when, when_op, rgba in guards:
+        rule = {
+            "id": _new_id(),
+            "when": when,
+            "mappings": [
+                {
+                    "scale": {"scheme": "constant_rgba", "params": {"value": rgba}},
+                    "channels": primary_channels,
+                },
+            ],
+        }
+        if when_op and when_op != "all":
+            rule["whenOp"] = when_op
+        guard_rules.append(rule)
 
-    parsed = None
-    symbol_layer = symbol.symbolLayer(0) if symbol is not None else None
-    if symbol_layer is not None:
-        prop = symbol_layer.dataDefinedProperties().property(color_prop_key)
-        if prop is not None and prop.isActive():
-            if prop.field():
-                parsed = ("identity", prop.field())
-            elif prop.expressionString():
-                parsed = _parse_color_expr(prop.expressionString())
-
-    kind = parsed[0] if parsed else None
-
-    if kind == "colorRamp":
-        _, field, stops = parsed
-        grammar = graduated_grammar(
-            field,
-            "viridis",
-            len(stops),
-            "equal interval",
+    # outline colour (area / point only)
+    if not is_line:
+        s_scale, s_field, _ = _color_scale_from_property(
+            ddp,
+            QgsSymbolLayer.PropertyStrokeColor,
             stroke,
-            stroke_width,
-            radius,
-            color_stops=stops,
-            geometry=geometry,
         )
-        return _add_data_defined_rule(grammar, symbol)
+        collected.append((["stroke-color", "circle-stroke-color"], s_scale, s_field))
 
-    if kind == "categorical":
-        _, field, stops = parsed
-        grammar = categorized_grammar(
-            field,
-            "viridis",
-            stroke,
-            stroke_width,
-            radius,
-            color_stops=stops,
-            geometry=geometry,
-        )
-        return _add_data_defined_rule(grammar, symbol)
+    # width
+    w_scale, w_field = _num_scale_from_property(
+        ddp,
+        QgsSymbolLayer.PropertyStrokeWidth,
+        stroke_width,
+        _scalar_from_property,
+    )
+    w_channels = (
+        ["stroke-width"] if is_line else ["stroke-width", "circle-stroke-width"]
+    )
+    collected.append((w_channels, w_scale, w_field))
 
-    if kind == "guarded":
-        _, else_rgba, guards = parsed
-        base_fill = else_rgba if (else_rgba and not is_line) else fill
-        base_stroke = else_rgba if (else_rgba and is_line) else stroke
-        grammar = single_symbol_grammar(
-            base_fill,
-            base_stroke,
-            stroke_width,
-            radius,
-            geometry,
-        )
-        color_channels = (
-            ["stroke-color"] if is_line else ["fill-color", "circle-fill-color"]
-        )
-        for when, when_op, rgba in guards:
-            rule: dict[str, Any] = {
-                "id": _new_rule_id(),
-                "mappings": [
-                    {
-                        "scale": {"scheme": "constant_rgba", "params": {"value": rgba}},
-                        "channels": color_channels,
-                    },
-                ],
-                "when": when,
-            }
-            if when_op and when_op != "all":
-                rule["whenOp"] = when_op
-            grammar["layers"][0]["rules"].append(rule)
-        return _merge_data_defined_mappings(grammar, symbol)
+    # marker radius
+    if geometry == "circle":
+        r_scale: dict = {"scheme": "constant_num", "params": {"value": radius}}
+        r_field = None
+        if isinstance(symbol, QgsMarkerSymbol):
+            size_prop = symbol.dataDefinedSize()
+            if (
+                size_prop is not None
+                and size_prop.isActive()
+                and size_prop.expressionString()
+            ):
+                scalar = _scalar_from_property(size_prop)
+                if scalar:
+                    r_field, domain, output_range = scalar
+                    r_scale = {
+                        "scheme": "scalar",
+                        "params": {
+                            "domain": domain,
+                            "range": output_range,
+                            "mode": "equal interval",
+                            "nStops": 5,
+                            "fallback": 0.0,
+                        },
+                    }
+        collected.append((["circle-radius"], r_scale, r_field))
 
-    grammar = single_symbol_grammar(fill, stroke, stroke_width, radius, geometry)
-    if kind == "identity":
-        grammar = _set_primary_color_mapping(
-            grammar,
-            {"scheme": "identity"},
-            parsed[1],
-            geometry,
-        )
-    return _merge_data_defined_mappings(grammar, symbol)
-
-
-def _new_rule_id() -> str:
-    from .grammar import _new_id
-
-    return _new_id()
+    # group mappings into rules by their input field (constants share one rule)
+    by_field: dict = {}
+    const_mappings: list = []
+    for channels, scale, field in collected:
+        mapping = {"scale": scale, "channels": channels}
+        if field is not None:
+            by_field.setdefault(field, []).append(mapping)
+        else:
+            const_mappings.append(mapping)
+    rules = [
+        {"id": _new_id(), "fields": [field], "mappings": maps}
+        for field, maps in by_field.items()
+    ]
+    if const_mappings:
+        if rules:
+            rules[0]["mappings"].extend(const_mappings)
+        else:
+            rules.append({"id": _new_id(), "mappings": const_mappings})
+    rules.extend(guard_rules)
+    if not rules:
+        rules = [{"id": _new_id(), "mappings": []}]
+    return {"layers": [{"id": _new_id(), "rules": rules}]}
