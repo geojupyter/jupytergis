@@ -17,6 +17,8 @@ from jupytergis_core.schema import (
     IGeoParquetSource,
     IGeoTiffLayer,
     IGeoTiffSource,
+    IGeoZarrLayer,
+    IGeoZarrSource,
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
@@ -526,6 +528,55 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
+            },
+        }
+
+        symbology_state = to_symbology_state(symbology)
+        if symbology_state is not None:
+            layer["parameters"]["symbologyState"] = symbology_state
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_geoZarr_layer(
+        self,
+        url: str,
+        bands: list[str] | None = None,
+        name: str = "Zarr Layer",
+        opacity: float = 1.0,
+        gamma: float = 1,
+        wrap_x: bool = False,
+        symbology: SymbologyInput = None,
+    ):
+        """Add a Zarr layer
+
+        :param url: URL of the GeoZarr.
+        :param bands: Named band identifiers to load (e.g. ['b04','b03','b02']). When None or empty, all bands are loaded in stored order.
+        :param name: The name that will be used for the object in the document, defaults to "GeoTIFF Layer"
+        :param opacity: Layer opacity between 0 and 1.
+        :param gamma: Gamma correction applied to all bands (default 1).
+        :param wrap_x: Render tiles beyond the tile grid extent, defaults to False
+        :param symbology: The symbology configuration to persist with the layer.
+        """
+        source = {
+            "type": SourceType.GeoZarrSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "bands": bands or [],
+                "wrapX": wrap_x,
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.GeoZarrLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "opacity": opacity,
+                "gamma": gamma,
             },
         }
 
@@ -1086,6 +1137,7 @@ class JGISLayer(BaseModel):
         | IHillshadeLayer
         | IImageLayer
         | IGeoTiffLayer
+        | IGeoZarrLayer
         | IStorySegmentLayer
         | IOpenEOTileLayer
     )
@@ -1111,6 +1163,7 @@ class JGISSource(BaseModel):
         | IImageSource
         | IVideoSource
         | IGeoTiffSource
+        | IGeoZarrSource
         | IRasterDemSource
         | IGeoParquetSource
         | IGeoPackageVectorSource
@@ -1199,6 +1252,7 @@ OBJECT_FACTORY.register_factory(LayerType.VectorLayer, IVectorLayer)
 OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.GeoTiffLayer, IGeoTiffLayer)
+OBJECT_FACTORY.register_factory(LayerType.GeoZarrLayer, IGeoZarrLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
@@ -1210,6 +1264,7 @@ OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoZarrSource, IGeoZarrSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoParquetSource, IGeoParquetSource)
 OBJECT_FACTORY.register_factory(

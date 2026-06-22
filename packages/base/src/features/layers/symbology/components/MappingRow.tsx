@@ -392,8 +392,13 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
   }
 }
 
+interface IFieldOption {
+  value: string;
+  label: string;
+}
+
 interface IWhenAddFormProps {
-  availableFields: string[];
+  availableFields: IFieldOption[];
   onAdd: (pred: IPredicate) => void;
   onCancel: () => void;
 }
@@ -454,8 +459,8 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         >
           <NativeSelectOption value="">(field)</NativeSelectOption>
           {availableFields.map(field => (
-            <NativeSelectOption key={field} value={field}>
-              {field}
+            <NativeSelectOption key={field.value} value={field.value}>
+              {field.label}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -539,7 +544,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
 interface IFieldSelectorProps {
   fieldCount: 0 | 1 | 'any';
   fields: string[];
-  availableFields: string[];
+  availableFields: IFieldOption[];
   onFieldChange: (index: number, value: string) => void;
   onAddField: (value: string) => void;
 }
@@ -585,8 +590,8 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
         >
           <NativeSelectOption value="">(none)</NativeSelectOption>
           {availableFields.map(f => (
-            <NativeSelectOption key={f} value={f}>
-              {f}
+            <NativeSelectOption key={f.value} value={f.value}>
+              {f.label}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -630,10 +635,10 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
         >
           <NativeSelectOption value="">+field</NativeSelectOption>
           {availableFields
-            .filter(f => !fields.includes(f))
+            .filter(f => !fields.includes(f.value))
             .map(f => (
-              <NativeSelectOption key={f} value={f}>
-                {f}
+              <NativeSelectOption key={f.value} value={f.value}>
+                {f.label}
               </NativeSelectOption>
             ))}
         </NativeSelect>
@@ -676,7 +681,7 @@ export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
 
 interface IMappingRowProps {
   row: IGrammarRow;
-  availableFields: string[];
+  availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
   onChange: (row: IGrammarRow) => void;

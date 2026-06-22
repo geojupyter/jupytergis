@@ -271,6 +271,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'GeoTiffLayer',
+        'GeoZarrLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
 
@@ -294,6 +295,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'GeoTiffLayer',
+        'GeoZarrLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
@@ -792,6 +794,40 @@ export function addCommands(
       layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoTiffDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewGeoZarrDialog, {
+    label: trans.__('GeoZarr'),
+    caption:
+      'Open a dialog to create a new GeoZarr layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoZarr Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: {
+        name: 'Custom GeoZarr Source',
+        url: '',
+        bands: [],
+        wrapX: false,
+      },
+      layerData: { name: 'Custom GeoZarr Layer' },
+      sourceType: 'GeoZarrSource',
+      layerType: 'GeoZarrLayer',
+    }),
+    ...icons.get(CommandIDs.openNewGeoZarrDialog),
   });
 
   commands.addCommand(CommandIDs.openNewShapefileDialog, {

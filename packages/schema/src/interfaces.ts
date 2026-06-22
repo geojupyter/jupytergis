@@ -35,6 +35,7 @@ import {
   IGeoJSONSource,
   IGeoParquetSource,
   IGeoTiffSource,
+  IGeoZarrSource,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -52,6 +53,7 @@ import {
   IVectorTileSource,
   IVideoSource,
   IGeoTiffLayer,
+  IGeoZarrLayer,
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
@@ -508,12 +510,14 @@ export type ILayerGalleryEntry = {
     | IVectorLayer
     | IVectorTileLayer
     | IGeoTiffLayer
+    | IGeoZarrLayer
     | IOpenEOTileLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
     | IGeoParquetSource
     | IGeoTiffSource
+    | IGeoZarrSource
     | IImageSource
     | IMarkerSource
     | IRasterDemSource

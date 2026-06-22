@@ -961,6 +961,13 @@ def jgis_layer_to_qgis(
         # Apply the renderer to the layer
         map_layer.setRenderer(renderer)
 
+    if layer_type == "GeoZarrLayer":
+        logs["warnings"].append(
+            f"Layer {layer_id} ({layer_name}) not exported: "
+            "GeoZarr layers are not supported in QGIS.",
+        )
+        return None
+
     if map_layer is None:
         logs["warnings"].append(
             f"Layer {layer_id} not exported: enable to export layer type {layer_type}",

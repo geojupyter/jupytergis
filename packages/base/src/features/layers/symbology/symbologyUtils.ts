@@ -3,6 +3,7 @@ import {
   IJupyterGISModel,
   IVectorLayer,
   IGeoTiffLayer,
+  IGeoZarrLayer,
 } from '@jupytergis/schema';
 
 /**
@@ -15,7 +16,8 @@ import {
 export interface ISymbologyPayload {
   symbologyState:
     | IVectorLayer['symbologyState']
-    | IGeoTiffLayer['symbologyState'];
+    | IGeoTiffLayer['symbologyState']
+    | IGeoZarrLayer['symbologyState'];
   /**
    * Only used by GeoTiff band-math (`IGeoTiffLayer['color']`); never set for
    * vector layers. Typed as `unknown` because the GeoTiff schema's color type
@@ -39,15 +41,15 @@ export type VectorSymbologyParams = Pick<
   'symbologyState' | 'color'
 >;
 
-export type GeoTiffSymbologyParams = Pick<
-  IGeoTiffLayer,
-  'symbologyState' | 'color'
+export type RasterSymbologyParams = Pick<
+  IGeoTiffLayer | IGeoZarrLayer,
+  'symbologyState'
 >;
 
 /** Params-shaped object used for reading symbology (layer.parameters or segment override). */
 export type IEffectiveSymbologyParams =
   | VectorSymbologyParams
-  | GeoTiffSymbologyParams;
+  | RasterSymbologyParams;
 
 /**
  * Resolve the effective symbology params for this dialog: either the layer's
