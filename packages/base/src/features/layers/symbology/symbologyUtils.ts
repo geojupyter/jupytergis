@@ -4,11 +4,6 @@ import {
   IVectorLayer,
   IGeoTiffLayer,
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
-import colormap from 'colormap';
-
-import { IColorMap } from './colorRampUtils';
-import { IStopRow } from './symbologyDialog';
 
 /**
  * Payload when saving symbology. As of #698, only `symbologyState` is persisted
@@ -157,56 +152,4 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
   }
 
   model.sharedModel.updateLayer(segmentId, segment);
-}
-
-export namespace Utils {
-  export const getValueColorPairs = (
-    stops: number[],
-    colorRamp: IColorMap,
-    nClasses: number,
-    reverse = false,
-  ) => {
-    const isCategorical = colorRamp.type === 'categorical';
-
-    let colorMap: any[];
-
-    if (isCategorical) {
-      colorMap = [...colorRamp.colors];
-
-      if (colorMap.length < nClasses) {
-        colorMap = Array.from({ length: nClasses }, (_, i) => {
-          return colorMap[i % colorMap.length];
-        });
-      } else {
-        colorMap = colorMap.slice(0, nClasses);
-      }
-    } else {
-      const nShades = Math.max(nClasses, 9);
-
-      colorMap = colormap({
-        colormap: colorRamp.name,
-        nshades: nShades,
-        format: 'rgba',
-      });
-    }
-
-    if (reverse) {
-      colorMap = [...colorMap].reverse();
-    }
-
-    const valueColorPairs: IStopRow[] = [];
-
-    for (let i = 0; i < nClasses; i++) {
-      const colorIndex = isCategorical
-        ? i
-        : Math.round((i / (nClasses - 1)) * (colorMap.length - 1));
-      valueColorPairs.push({
-        id: UUID.uuid4(),
-        stop: stops[i],
-        output: colorMap[colorIndex],
-      });
-    }
-
-    return valueColorPairs;
-  };
 }
