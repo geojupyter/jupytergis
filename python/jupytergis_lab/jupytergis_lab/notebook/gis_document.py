@@ -124,21 +124,34 @@ class GISDocument(CommWidget):
             },
         )
 
-        self.ydoc["layers"] = self._layers = Map()
-        self.ydoc["sources"] = self._sources = Map()
-        self.ydoc["options"] = self._options = Map(
-            {
-                "latitude": 0,
-                "longitude": 0,
-                "zoom": 0,
-                "bearing": 0,
-                "pitch": 0,
-                "projection": "EPSG:3857",
-                "storyMapPresentationMode": False,
-            },
-        )
-        self.ydoc["layerTree"] = self._layerTree = Array()
-        self.ydoc["metadata"] = self._metadata = Map()
+        if path is None:
+            self.ydoc["layers"] = self._layers = Map()
+            self.ydoc["sources"] = self._sources = Map()
+            self.ydoc["options"] = self._options = Map[
+                float | str | bool | None | list[float]
+            ](
+                {
+                    "latitude": 0,
+                    "longitude": 0,
+                    "zoom": 0,
+                    "bearing": 0,
+                    "pitch": 0,
+                    "extent": None,
+                    "projection": "EPSG:3857",
+                    "useExtent": False,
+                    "storyMapPresentationMode": False,
+                },
+            )
+            self.ydoc["layerTree"] = self._layerTree = Array()
+            self.ydoc["metadata"] = self._metadata = Map()
+        else:
+            # Bind to the synced document loaded from the file. 
+            # Replacing these wipes the options before the map renders.
+            self._layers = self.ydoc["layers"]
+            self._sources = self.ydoc["sources"]
+            self._options = self.ydoc["options"]
+            self._layerTree = self.ydoc["layerTree"]
+            self._metadata = self.ydoc["metadata"]
 
         if latitude is not None:
             self._options["latitude"] = latitude
