@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import json
 import math
 import os
 import re
@@ -47,7 +48,11 @@ from qgis.core import (  # type: ignore[import-untyped]
 )
 from qgis.PyQt.QtCore import Qt
 
-from .data_defined import dd_symbol_to_grammar, grammar_layer_to_renderer
+from .data_defined import (
+    _RAMP_META_KEY,
+    dd_symbol_to_grammar,
+    grammar_layer_to_renderer,
+)
 from .grammar import (
     _DEFAULT_FILL,
     _DEFAULT_RADIUS,
@@ -584,78 +589,30 @@ def _data_defined_mappings(symbol):
     return mappings, channels_replaced, field
 
 
-def _merge_data_defined_mappings(grammar, symbol):
-    """Splice a symbol's data-defined channel mappings into a built grammar.
-
-    Native graduated / categorized / single-symbol renderers carry data-driven
-    radius and stroke as ``QgsProperty`` overrides on the symbol, but the
-    ``*_grammar`` builders only emit constant mappings. Replace those constants
-    with the recovered scalar / identity mappings (e.g. a data-driven
-    circle-radius marker size) so the round-trip keeps the data-driven channel
-    instead of flattening it to a constant.
-    """
-    extra, replaced, field = _data_defined_mappings(symbol)
-    if extra:
-        rule = grammar["layers"][0]["rules"][0]
-        rule["mappings"] = [
-            mapping
-            for mapping in rule["mappings"]
-            if not (set(mapping["channels"]) & replaced)
-        ]
-        rule["mappings"].extend(extra)
-        if field and not rule.get("fields"):
-            rule["fields"] = [field]
-    return grammar
-
-
-def _add_data_defined_rule(grammar, symbol):
-    """Recover a symbol's data-defined channels into a *separate* grammar rule.
-
-    For a classified renderer the first rule is keyed on the classification
-    field, but a data-defined channel (e.g. a line width scaled from
-    ``length_km`` while the colour is categorical on ``type``) is keyed on its
-    own field. So drop the constants it supersedes from the colour rule and add
-    the recovered mappings as a new rule carrying their own field, instead of
-    merging them into the colour rule (which would re-key them on the wrong
-    field).
-    """
-    extra, replaced, field = _data_defined_mappings(symbol)
-    if not extra:
-        return grammar
-    layer = grammar["layers"][0]
-    color_rule = layer["rules"][0]
-    color_rule["mappings"] = [
-        mapping
-        for mapping in color_rule["mappings"]
-        if not (set(mapping["channels"]) & replaced)
-    ]
-    rule = {"id": str(uuid4()), "mappings": extra}
-    if field:
-        rule["fields"] = [field]
-    layer["rules"].append(rule)
-    return grammar
-
-
-def _vector_renderer_to_grammar(renderer):
+def _vector_renderer_to_grammar(renderer, ramp_meta=None):
     """Convert a QGIS vector renderer to a Grammar symbologyState dict.
 
     Heatmap and cluster renderers keep their dedicated translations; every other
     vector renderer is the data-defined single symbol that export now produces and
-    is decoded by :func:`dd_symbol_to_grammar`.
+    is decoded by :func:`dd_symbol_to_grammar`. ``ramp_meta`` is the layer's stashed
+    per-slot ramp identity so the named colour ramp survives the round-trip.
     """
     if isinstance(renderer, QgsHeatmapRenderer):
         weight_expr = renderer.weightExpression() or ""
         weight_field = weight_expr.strip().strip('"') or None
+        heatmap = (ramp_meta or {}).get("heatmap") or {}
         return kde_grammar(
             renderer.radius(),
             weight_field,
             _heatmap_color_stops(renderer),
+            heatmap.get("name"),
+            bool(heatmap.get("reverse", False)),
         )
 
     if isinstance(renderer, QgsPointClusterRenderer):
         embedded = renderer.embeddedRenderer()
         inner = (
-            _vector_renderer_to_grammar(embedded)
+            _vector_renderer_to_grammar(embedded, ramp_meta)
             if embedded is not None
             else dd_symbol_to_grammar(None)
         )
@@ -664,7 +621,7 @@ def _vector_renderer_to_grammar(renderer):
     symbol = (
         renderer.symbol() if isinstance(renderer, QgsSingleSymbolRenderer) else None
     )
-    return dd_symbol_to_grammar(symbol)
+    return dd_symbol_to_grammar(symbol, ramp_meta)
 
 
 def qgis_layer_to_jgis(
@@ -811,10 +768,21 @@ def qgis_layer_to_jgis(
 
         renderer = layer.renderer()
 
+        # The named colour ramp baked into a data-defined CASE is recovered from the
+        # layer custom property export stashed it under (the stops alone can't say
+        # which ramp produced them).
+        ramp_meta = {}
+        raw_ramp_meta = layer.customProperty(_RAMP_META_KEY)
+        if raw_ramp_meta:
+            try:
+                ramp_meta = json.loads(raw_ramp_meta)
+            except (ValueError, TypeError):
+                ramp_meta = {}
+
         # Express the QGIS renderer as Grammar (symbologyState.layers), the single
         # source of truth post #1390. Single Symbol / Categorized / Graduated map
         # cleanly; anything else falls back to a default single symbol.
-        symbology_state = _vector_renderer_to_grammar(renderer)
+        symbology_state = _vector_renderer_to_grammar(renderer, ramp_meta)
 
         # Translate the OGR subset string back into a layer-level grammar `when`
         # so feature filters survive the round-trip (best-effort: simple filters).

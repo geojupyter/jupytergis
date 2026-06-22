@@ -619,6 +619,16 @@ def test_qgis_multilayer_kde_roundtrip():
     grammar_layer = kde_layers[0]["parameters"]["symbologyState"]["layers"][0]
     assert grammar_layer["preprocess"][0]["type"] == "kde"
 
+    # The heatmap colour-ramp name survives the round-trip (the gradient bakes
+    # colours and loses it; a fresh import would otherwise read back "custom").
+    ramp = next(
+        m["scale"]["params"]
+        for r in grammar_layer["rules"]
+        for m in r["mappings"]
+        if "pixel-rgb" in m["channels"]
+    )
+    assert ramp["name"] == "viridis"
+
 
 def test_qgis_scalar_size_and_heatmap_alpha():
     from qgis.core import (
@@ -1848,3 +1858,125 @@ def test_line_color_via_circle_fill_only_roundtrip():
     # A line has no fill, so the colour must NOT have landed on fill-color.
     assert _mapping_for_channel(out, "fill-color")[0] is None
     assert logs["warnings"] == []
+
+
+def test_colorramp_name_survives_reopen(tmp_path):
+    """The selected colour ramp (its name + direction) must survive a .qgz reopen.
+
+    Export bakes a colorRamp into concrete colour stops, which loses which named
+    ramp was picked; the name is stashed on the layer's custom property so import
+    restores the picker selection instead of defaulting to viridis.
+    """
+    import json
+
+    gj = tmp_path / "regions.geojson"
+    feats = [
+        {
+            "type": "Feature",
+            "properties": {"pop": pop},
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[0, i], [1, i], [1, i + 1], [0, i], [0, i]]],
+            },
+        }
+        for i, pop in enumerate([10, 500, 5000])
+    ]
+    gj.write_text(json.dumps({"type": "FeatureCollection", "features": feats}))
+
+    lid = "22222222-3333-4444-5555-666666666666"
+    jgis = {
+        "options": {"projection": "EPSG:4326"},
+        "layers": {
+            lid: {
+                "name": "Regions",
+                "type": "VectorLayer",
+                "visible": True,
+                "parameters": {
+                    "opacity": 1.0,
+                    "source": "s",
+                    "symbologyState": {
+                        "layers": [
+                            {
+                                "id": "L",
+                                "rules": [
+                                    {
+                                        "id": "r",
+                                        "fields": ["pop"],
+                                        "mappings": [
+                                            {
+                                                "scale": {
+                                                    "scheme": "colorRamp",
+                                                    "params": {
+                                                        "name": "plasma",
+                                                        "nShades": 3,
+                                                        "mode": "equal interval",
+                                                        "reverse": True,
+                                                        "fallback": [0, 0, 0, 0],
+                                                        "colorStops": [
+                                                            {
+                                                                "stop": 0.0,
+                                                                "color": [
+                                                                    13,
+                                                                    8,
+                                                                    135,
+                                                                    1.0,
+                                                                ],
+                                                            },
+                                                            {
+                                                                "stop": 2500.0,
+                                                                "color": [
+                                                                    204,
+                                                                    71,
+                                                                    120,
+                                                                    1.0,
+                                                                ],
+                                                            },
+                                                            {
+                                                                "stop": 5000.0,
+                                                                "color": [
+                                                                    240,
+                                                                    249,
+                                                                    33,
+                                                                    1.0,
+                                                                ],
+                                                            },
+                                                        ],
+                                                    },
+                                                },
+                                                "channels": [
+                                                    "fill-color",
+                                                    "circle-fill-color",
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+        },
+        "sources": {
+            "s": {
+                "name": "s",
+                "type": "GeoJSONSource",
+                "parameters": {"path": str(gj)},
+            },
+        },
+        "layerTree": [lid],
+    }
+
+    out = tmp_path / "regions.qgz"
+    logs = export_project_to_qgis(str(out), jgis)
+    assert logs["errors"] == []
+
+    reimported = import_project_from_qgis(str(out))
+    layer = next(iter(reimported["layers"].values()))
+    state = layer["parameters"]["symbologyState"]
+    scheme, params, fields, _ = _mapping_for_channel(state["layers"][0], "fill-color")
+    assert scheme == "colorRamp"
+    assert fields == ["pop"]
+    # The picker's ramp name + direction are restored, not defaulted to viridis.
+    assert params["name"] == "plasma"
+    assert params["reverse"] is True

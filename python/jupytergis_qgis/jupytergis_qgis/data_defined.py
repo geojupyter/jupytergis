@@ -14,6 +14,7 @@ cluster have no data-defined equivalent and keep their dedicated renderers in
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from jupytergis_core.color_ramps import sample_colors
@@ -118,48 +119,20 @@ def _colorramp_stops(params: dict) -> list[dict]:
     ]
 
 
-def _scale_to_color_expr(scale: dict, field: str | None) -> str | None:
-    """A data-defined colour expression for a colorRamp / categorical scale, or None.
-
-    ``None`` means the scale cannot be encoded as a data-driven colour (no field,
-    or a categorical with no materialised categories); the caller falls back to a
-    constant colour.
-    """
-    scheme = scale.get("scheme")
-    params = scale.get("params", {})
-    if not field:
-        return None
-    if scheme == "colorRamp":
-        return _colorramp_case_expr(field, _colorramp_stops(params))
-    if scheme == "categorical":
-        stops = params.get("colorStops")
-        if stops:
-            return _categorical_case_expr(
-                field,
-                stops,
-                params.get("fallback", _TRANSPARENT),
-            )
-    return None
-
-
 def _rule_color_expr(rule: dict, color_channels: set[str]) -> str | None:
     """The colour a (guarded) rule paints, as a data-defined expression.
 
-    Not just constants: a guarded rule may carry a categorical / colorRamp colour
-    (e.g. roads coloured by ``type`` but only ``WHEN continent = 'Asia'``), which
-    becomes a nested ``CASE``. Returning only constants here dropped that colour
-    entirely (the symbol fell back to black).
+    A guarded rule may carry any colour scale (constant, identity, categorical,
+    colorRamp), so it reuses the same slot encoder as the base symbol via
+    :func:`_color_instruction` — returning only constants here dropped categorical /
+    colorRamp guard colours (e.g. roads coloured by ``type`` only ``WHEN continent =
+    'Asia'``), leaving the symbol black.
     """
-    fields = rule.get("fields") or []
-    field = fields[0] if fields else None
-    for mapping in rule.get("mappings", []):
-        if set(mapping.get("channels", [])) & color_channels:
-            scale = mapping.get("scale", {})
-            if scale.get("scheme") == "constant_rgba":
-                value = scale.get("params", {}).get("value")
-                return _color_rgba_literal(value) if value is not None else None
-            return _scale_to_color_expr(scale, field)
-    return None
+    scale, field = _find_mapping([rule], color_channels)
+    if not scale:
+        return None
+    instr = _color_instruction(scale, field)
+    return _instr_color_expr(instr) if instr else None
 
 
 def _guarded_color_expr(
@@ -283,6 +256,49 @@ def _default_primary_color(geometry: str) -> list:
     if geometry == "circle":
         return list(_DEFAULT_FILL)
     return list(_OL_CANVAS_STROKE)
+
+
+# Layer custom-property key under which the per-slot ramp identity is stashed.
+_RAMP_META_KEY = "jgis/colorRamps"
+
+
+def _ramp_meta(grammar_layer: dict[str, Any], geometry_type: str) -> dict:
+    """Per-slot ramp identity (name + reverse) that a data-defined CASE can't carry.
+
+    Export bakes a colorRamp / categorical scale into concrete colours (a vector
+    ``color_rgba`` CASE, or a QGIS heatmap gradient): the colours render correctly
+    but *which* named ramp produced them is lost, so on reopen the colormap picker
+    would show "custom". Capture the name and direction per colour slot (the vector
+    fill/outline slots plus the heatmap ``pixel-rgb`` ramp) so import can restore the
+    original selection.
+    """
+    base_rules = [r for r in grammar_layer.get("rules", []) if not r.get("when")]
+    meta: dict[str, dict] = {}
+    # The KDE heatmap ramp lives on the pixel-rgb channel, outside the vector slots.
+    hscale, _hfield = _find_mapping(base_rules, {"pixel-rgb"})
+    if hscale and hscale.get("scheme") == "colorRamp":
+        hparams = hscale.get("params", {})
+        meta["heatmap"] = {
+            "name": hparams.get("name", "viridis"),
+            "reverse": bool(hparams.get("reverse", False)),
+        }
+    for channel_set, _prop, is_primary in _color_slots(geometry_type):
+        scale, field = _find_mapping(base_rules, channel_set)
+        if not scale or not field:
+            continue
+        params = scale.get("params", {})
+        slot = "primary" if is_primary else "outline"
+        if scale.get("scheme") == "colorRamp":
+            meta[slot] = {
+                "name": params.get("name", "viridis"),
+                "reverse": bool(params.get("reverse", False)),
+            }
+        elif scale.get("scheme") == "categorical" and params.get("colorStops"):
+            meta[slot] = {
+                "name": params.get("colorRamp", "viridis"),
+                "reverse": bool(params.get("reverse", False)),
+            }
+    return meta
 
 
 def grammar_layer_to_dd_symbol(
@@ -413,10 +429,17 @@ def grammar_layer_to_renderer(
 
     Vector-symbol layers become a single ``QgsSingleSymbolRenderer`` with
     data-defined channels. KDE (heatmap) and cluster layers keep their dedicated
-    renderers (no data-defined equivalent). ``map_layer`` is unused now that the
-    data drives the symbol via expressions rather than classified renderers.
+    renderers (no data-defined equivalent). The named colour ramp is stashed on
+    ``map_layer`` so import can restore the picker selection (see
+    :func:`_ramp_meta`).
     """
     preprocess = grammar_layer.get("preprocess") or []
+    # Stash the named ramp(s) for every renderer kind (heatmap included) before the
+    # KDE early-return, so import can restore the picker instead of showing "custom".
+    if map_layer is not None:
+        meta = _ramp_meta(grammar_layer, geometry_type)
+        if meta:
+            map_layer.setCustomProperty(_RAMP_META_KEY, json.dumps(meta))
     if any(t.get("type") == "kde" for t in preprocess):
         return _heatmap_renderer(grammar_layer)
 
@@ -500,14 +523,18 @@ def _parse_color_expr(expr: str):
     return None
 
 
-def _color_scale_from_property(ddp, prop_key, const_rgba):
+def _color_scale_from_property(ddp, prop_key, const_rgba, ramp=None):
     """Read a colour slot back into ``(scale, field, guards)``.
 
     The inverse of the export colour slot: a field reference -> identity, a
     ``CASE`` -> categorical / colorRamp / guarded, otherwise the symbol's constant.
     Used for both the primary and the outline colour so each round-trips with its
-    own scale (not just identity).
+    own scale (not just identity). ``ramp`` is the slot's stashed ``{name, reverse}``
+    (see :func:`_ramp_meta`) restoring the named ramp the baked stops can't carry.
     """
+    ramp = ramp or {}
+    ramp_name = ramp.get("name", "viridis")
+    ramp_reverse = bool(ramp.get("reverse", False))
     if ddp is not None:
         prop = ddp.property(prop_key)
         if prop is not None and prop.isActive():
@@ -522,10 +549,10 @@ def _color_scale_from_property(ddp, prop_key, const_rgba):
                         {
                             "scheme": "colorRamp",
                             "params": {
-                                "name": "viridis",
+                                "name": ramp_name,
                                 "nShades": len(stops),
                                 "mode": "equal interval",
-                                "reverse": False,
+                                "reverse": ramp_reverse,
                                 "fallback": list(_TRANSPARENT),
                                 "colorStops": stops,
                             },
@@ -539,8 +566,8 @@ def _color_scale_from_property(ddp, prop_key, const_rgba):
                         {
                             "scheme": "categorical",
                             "params": {
-                                "colorRamp": "viridis",
-                                "reverse": False,
+                                "colorRamp": ramp_name,
+                                "reverse": ramp_reverse,
                                 "fallback": list(_TRANSPARENT),
                                 "colorStops": stops,
                             },
@@ -586,16 +613,18 @@ def _num_scale_from_property(ddp, prop_key, const_value, scalar_from_property):
     return {"scheme": "constant_num", "params": {"value": const_value}}, None
 
 
-def dd_symbol_to_grammar(symbol):
+def dd_symbol_to_grammar(symbol, ramp_meta=None):
     """Convert a data-defined single symbol back into a Grammar symbologyState.
 
     The exact inverse of :func:`grammar_layer_to_dd_symbol`: each slot (primary
     colour, outline colour, width, radius) is read back into a mapping, mappings
     are grouped into rules by their input field, and rule-level ``when`` guards
-    become guarded rules.
+    become guarded rules. ``ramp_meta`` is the layer's stashed per-slot ramp
+    identity (see :func:`_ramp_meta`) restoring the named ramp on each colour slot.
     """
     from .qgis_loader import _extract_symbol_style, _scalar_from_property
 
+    ramp_meta = ramp_meta or {}
     fill, stroke, stroke_width, radius, geometry = _extract_symbol_style(symbol)
     is_line = geometry == "line"
     sl = symbol.symbolLayer(0) if symbol is not None else None
@@ -614,7 +643,12 @@ def dd_symbol_to_grammar(symbol):
         ["stroke-color"] if is_line else ["fill-color", "circle-fill-color"]
     )
     primary_const = stroke if is_line else fill
-    scale, field, guards = _color_scale_from_property(ddp, primary_prop, primary_const)
+    scale, field, guards = _color_scale_from_property(
+        ddp,
+        primary_prop,
+        primary_const,
+        ramp_meta.get("primary"),
+    )
     collected.append((primary_channels, scale, field))
     for when, when_op, rgba in guards:
         rule = {
@@ -637,6 +671,7 @@ def dd_symbol_to_grammar(symbol):
             ddp,
             QgsSymbolLayer.PropertyStrokeColor,
             stroke,
+            ramp_meta.get("outline"),
         )
         collected.append((["stroke-color", "circle-stroke-color"], s_scale, s_field))
 

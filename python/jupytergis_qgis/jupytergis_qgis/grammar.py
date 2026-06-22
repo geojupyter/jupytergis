@@ -11,18 +11,13 @@ from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsColorRampShader,
     QgsContrastEnhancement,
-    QgsFillSymbol,
     QgsGradientColorRamp,
     QgsGradientStop,
     QgsHeatmapRenderer,
-    QgsLineSymbol,
-    QgsMarkerSymbol,
     QgsMultiBandColorRenderer,
     QgsPointClusterRenderer,
-    QgsProperty,
     QgsRasterShader,
     QgsSingleBandPseudoColorRenderer,
-    QgsSymbolLayer,
 )
 from qgis.PyQt import sip
 
@@ -109,157 +104,6 @@ def _parse_band(fields: list[str]) -> int | None:
 # ---------------------------------------------------------------------------
 # Import: QGIS renderer -> Grammar symbologyState
 # ---------------------------------------------------------------------------
-def _stroke_size_mappings(
-    stroke: list,
-    stroke_width: float,
-    radius: float,
-) -> list[dict[str, Any]]:
-    """The constant stroke-colour / stroke-width / radius mappings shared by every
-    vector style builder (they differ only in their fill mapping).
-    """
-    return [
-        {
-            "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-            "channels": ["stroke-color", "circle-stroke-color"],
-        },
-        {
-            "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
-        },
-        {
-            "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
-        },
-    ]
-
-
-def _line_width_mapping(stroke_width: float) -> dict[str, Any]:
-    """The constant stroke-width mapping for a line (its only size channel)."""
-    return {
-        "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-        "channels": ["stroke-width"],
-    }
-
-
-def _color_mapping(scale: dict[str, Any], geometry: str) -> dict[str, Any]:
-    """A colour mapping on the channel that carries a geometry's colour.
-
-    A line's colour is its stroke; polygons/points colour their fill.
-    """
-    channels = (
-        ["stroke-color"] if geometry == "line" else ["fill-color", "circle-fill-color"]
-    )
-    return {"scale": scale, "channels": channels}
-
-
-def single_symbol_grammar(
-    fill: list,
-    stroke: list,
-    stroke_width: float,
-    radius: float,
-    geometry: str = "fill",
-) -> dict[str, Any]:
-    """Grammar for a constant (Single Symbol) style."""
-    if geometry == "line":
-        mappings = [
-            _color_mapping(
-                {"scheme": "constant_rgba", "params": {"value": stroke}},
-                geometry,
-            ),
-            _line_width_mapping(stroke_width),
-        ]
-    else:
-        mappings = [
-            _color_mapping(
-                {"scheme": "constant_rgba", "params": {"value": fill}},
-                geometry,
-            ),
-            *_stroke_size_mappings(stroke, stroke_width, radius),
-        ]
-    rule = {"id": _new_id(), "mappings": mappings}
-    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
-
-
-def graduated_grammar(
-    field: str | None,
-    color_ramp: str,
-    n_classes: int,
-    mode: str,
-    stroke: list,
-    stroke_width: float,
-    radius: float,
-    reverse: bool = False,
-    color_stops: list | None = None,
-    geometry: str = "fill",
-) -> dict[str, Any]:
-    """Grammar for a graduated (colorRamp on numeric field) style.
-
-    ``color_stops`` (``[{"stop": value, "color": rgba}, ...]``) pins the exact
-    per-class breaks/colors; without it the ramp is recomputed from the data.
-    """
-    params: dict[str, Any] = {
-        "name": color_ramp,
-        "nShades": n_classes,
-        "mode": mode,
-        "reverse": reverse,
-        "fallback": list(_TRANSPARENT),
-    }
-    if color_stops:
-        params["colorStops"] = color_stops
-    color_ramp_scale = {"scheme": "colorRamp", "params": params}
-    if geometry == "line":
-        mappings = [
-            _color_mapping(color_ramp_scale, geometry),
-            _line_width_mapping(stroke_width),
-        ]
-    else:
-        mappings = [
-            _color_mapping(color_ramp_scale, geometry),
-            *_stroke_size_mappings(stroke, stroke_width, radius),
-        ]
-    rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
-    if field:
-        rule["fields"] = [field]
-    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
-
-
-def categorized_grammar(
-    field: str | None,
-    color_ramp: str,
-    stroke: list,
-    stroke_width: float,
-    radius: float,
-    reverse: bool = False,
-    color_stops: list | None = None,
-    geometry: str = "fill",
-) -> dict[str, Any]:
-    """Grammar for a categorized (categorical scale on a field) style.
-
-    ``color_stops`` (``[{"stop": value, "color": rgba}, ...]``) pins the exact
-    per-category colors; without it categories are colored from the ramp.
-    """
-    params: dict[str, Any] = {
-        "colorRamp": color_ramp,
-        "reverse": reverse,
-        "fallback": list(_TRANSPARENT),
-    }
-    if color_stops:
-        params["colorStops"] = color_stops
-    categorical_scale = {"scheme": "categorical", "params": params}
-    if geometry == "line":
-        mappings = [
-            _color_mapping(categorical_scale, geometry),
-            _line_width_mapping(stroke_width),
-        ]
-    else:
-        mappings = [
-            _color_mapping(categorical_scale, geometry),
-            *_stroke_size_mappings(stroke, stroke_width, radius),
-        ]
-    rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
-    if field:
-        rule["fields"] = [field]
-    return {"layers": [{"id": _new_id(), "rules": [rule]}]}
 
 
 def _single_band_pseudocolor_grammar(band: int, color_stops: list) -> dict[str, Any]:
@@ -427,13 +271,20 @@ def kde_grammar(
     radius: float,
     weight_field: str | None,
     color_stops: list | None,
+    ramp_name: str | None = None,
+    reverse: bool = False,
 ) -> dict[str, Any]:
-    """Grammar for a KDE heatmap layer read back from a QgsHeatmapRenderer."""
+    """Grammar for a KDE heatmap layer read back from a QgsHeatmapRenderer.
+
+    ``ramp_name`` is the stashed colour-ramp name (the heatmap gradient bakes
+    colours and loses it); falls back to ``"custom"`` for layers exported before the
+    name was persisted.
+    """
     params: dict[str, Any] = {
-        "name": "custom",
+        "name": ramp_name or "custom",
         "nShades": len(color_stops) if color_stops else 9,
         "mode": "equal interval",
-        "reverse": False,
+        "reverse": reverse,
         "fallback": list(_TRANSPARENT),
     }
     if color_stops:
@@ -658,180 +509,6 @@ def grammar_layer_alpha_factor(grammar_layer: dict[str, Any]) -> float:
                 if scale.get("scheme") == "constant_num":
                     return scale.get("params", {}).get("value", 1.0)
     return 1.0
-
-
-def _collect_vector_style(
-    grammar_layer: dict[str, Any],
-    logs: dict[str, list[str]],
-    layer_id: str,
-    geometry: str = "fill",
-) -> dict[str, Any]:
-    """Flatten a grammar layer's rules into the channels QGIS can represent.
-
-    Constant channels become plain symbol properties; data-driven stroke colour
-    / width / radius become ``QgsProperty`` overrides (field reference for
-    ``identity``, ``scale_linear`` for ``scalar``) that QGIS serialises and
-    reads back natively.
-
-    ``geometry`` makes the colour routing geometry-aware: a line's colour lives
-    on ``stroke-color`` even when the same mapping also lists ``circle-fill-color``
-    (the frontend emits both). Without this a line's ramp was filed as a *fill*
-    scale, leaving the line with no colour (it rendered black).
-    """
-    fill_scale = None
-    fill_field = None
-    stroke_scale = None
-    stroke_field = None
-    stroke_rgba = None
-    stroke_width = None
-    radius = None
-    stroke_color_prop = None
-    stroke_width_prop = None
-    radius_prop = None
-
-    for rule in grammar_layer.get("rules", []):
-        fields = rule.get("fields") or []
-        field = fields[0] if fields else None
-        for mapping in rule.get("mappings", []):
-            channels = set(mapping.get("channels", []))
-            scale = mapping.get("scale", {})
-            scheme = scale.get("scheme")
-            params = scale.get("params", {})
-
-            is_line_color = geometry == "line" and bool(
-                channels & _STROKE_COLOR_CHANNELS,
-            )
-            if (channels & _FILL_CHANNELS) and not is_line_color:
-                fill_scale = scale
-                fill_field = field
-            elif channels & _STROKE_COLOR_CHANNELS:
-                if scheme == "constant_rgba":
-                    stroke_rgba = params.get("value")
-                elif scheme == "identity" and field:
-                    stroke_color_prop = QgsProperty.fromField(field)
-                elif scheme in ("categorical", "colorRamp") and field:
-                    # A data-driven stroke colour (e.g. roads coloured by type).
-                    # For a line this IS the layer's colour and becomes a
-                    # categorized/graduated renderer; _build_inner_renderer picks
-                    # it up via stroke_scale for line geometry.
-                    stroke_scale = scale
-                    stroke_field = field
-                else:
-                    _warn(
-                        logs,
-                        layer_id,
-                        "data-driven stroke color could not be translated; "
-                        "using a solid stroke.",
-                    )
-            elif channels & _STROKE_WIDTH_CHANNELS:
-                if scheme == "constant_num":
-                    stroke_width = params.get("value")
-                elif scheme == "identity" and field:
-                    stroke_width_prop = QgsProperty.fromField(field)
-                elif scheme == "scalar":
-                    expr = _scale_linear_expr(field, params)
-                    if expr:
-                        stroke_width_prop = QgsProperty.fromExpression(expr)
-                    else:
-                        _warn(
-                            logs,
-                            layer_id,
-                            "data-driven stroke width could not be translated; "
-                            "using a constant width.",
-                        )
-                else:
-                    _warn(
-                        logs,
-                        layer_id,
-                        "data-driven stroke width could not be translated; "
-                        "using a constant width.",
-                    )
-            elif channels & _RADIUS_CHANNELS:
-                if scheme == "constant_num":
-                    radius = params.get("value")
-                elif scheme == "identity" and field:
-                    radius_prop = QgsProperty.fromField(field)
-                elif scheme == "scalar":
-                    # Data-driven radius -> QGIS data-defined marker size.
-                    expr = _scalar_size_expr(field, params)
-                    output_range = params.get("range")
-                    radius = output_range[1] if output_range else params.get("fallback")
-                    if expr:
-                        radius_prop = QgsProperty.fromExpression(expr)
-                    else:
-                        _warn(
-                            logs,
-                            layer_id,
-                            "data-driven circle radius could not be translated; "
-                            "using the maximum radius.",
-                        )
-
-    return {
-        "fill_scale": fill_scale,
-        "fill_field": fill_field,
-        "stroke_scale": stroke_scale,
-        "stroke_field": stroke_field,
-        "stroke_rgba": stroke_rgba
-        if stroke_rgba is not None
-        else list(_OL_CANVAS_STROKE),
-        "stroke_width": stroke_width
-        if stroke_width is not None
-        else _DEFAULT_STROKE_WIDTH,
-        "radius": radius if radius is not None else _DEFAULT_RADIUS,
-        "stroke_color_prop": stroke_color_prop,
-        "stroke_width_prop": stroke_width_prop,
-        "radius_prop": radius_prop,
-    }
-
-
-def _make_base_symbol(
-    geometry_type: str,
-    opacity: float,
-    style: dict[str, Any],
-):
-    """Create a QGIS symbol of the right geometry seeded with stroke/width."""
-    if geometry_type == "circle":
-        symbol = QgsMarkerSymbol()
-    elif geometry_type == "line":
-        symbol = QgsLineSymbol()
-    elif geometry_type == "fill":
-        symbol = QgsFillSymbol()
-    else:
-        return None
-
-    symbol.setOpacity(opacity)
-    symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
-    symbol_layer = symbol.symbolLayer(0)
-
-    stroke_color = _rgba_to_qcolor(style["stroke_rgba"])
-    stroke_width = style["stroke_width"]
-    stroke_color_prop = style.get("stroke_color_prop")
-    stroke_width_prop = style.get("stroke_width_prop")
-    radius_prop = style.get("radius_prop")
-
-    if geometry_type == "circle":
-        symbol_layer.setStrokeColor(stroke_color)
-        symbol_layer.setStrokeWidth(stroke_width)
-        if radius_prop is not None:
-            symbol.setDataDefinedSize(radius_prop)
-    elif geometry_type == "line":
-        symbol_layer.setWidth(float(stroke_width))
-    elif geometry_type == "fill":
-        symbol_layer.setStrokeColor(stroke_color)
-        symbol_layer.setStrokeWidth(stroke_width)
-
-    if stroke_color_prop is not None:
-        symbol_layer.setDataDefinedProperty(
-            QgsSymbolLayer.PropertyStrokeColor,
-            stroke_color_prop,
-        )
-    if stroke_width_prop is not None:
-        symbol_layer.setDataDefinedProperty(
-            QgsSymbolLayer.PropertyStrokeWidth,
-            stroke_width_prop,
-        )
-
-    return symbol
 
 
 def _heatmap_color_ramp(grammar_layer):
