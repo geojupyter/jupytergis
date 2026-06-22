@@ -20,11 +20,6 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - name: Install QGIS runtime deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libqca-qt5-2 libqca-qt5-2-plugins
-
       - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@95d85449e4f3f352e261221f6529f8ed307f5728
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
