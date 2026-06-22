@@ -409,11 +409,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
     this._mainViewModel.initSignal();
-    if (
-      this.state.isSpectaPresentation &&
-      this._model.isSpectaMode() &&
-      !this._spectaModeSetupDone
-    ) {
+    if (this.state.isSpectaPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
@@ -428,7 +424,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const exitedPresentation =
       prevState.isSpectaPresentation && !this.state.isSpectaPresentation;
 
-    if (enteredPresentation && this._model.isSpectaMode()) {
+    if (enteredPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
@@ -2874,6 +2870,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Updates specta state and presentation colors when story data becomes available.
    */
   private _setupSpectaMode = (): void => {
+    this._cleanupStoryScrollListener();
     this._removeAllInteractions();
     this._setupStoryScrollListener();
 
