@@ -294,7 +294,6 @@ export namespace GeoTiffClassifications {
     const breaks: number[] = [];
     const isDiscrete = colorRampType === 'discrete';
 
-    console.debug('[GeoTIFF] classifyQuantileBreaks called');
     const pool = new Pool();
     const tiff = await fromUrl(url);
     const image = await tiff.getImage();
