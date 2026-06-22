@@ -135,79 +135,91 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 /* Mobile bottom sheet — merged panel only */
-@media (max-width: 960px) {
-  .jgis-merged-panel-container {
-    position: fixed;
-    bottom: 16px;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    height: 30vh;
-  }
+.jGIS-Mainview-Container.jgis-narrow .jgis-merged-panel-container {
+  position: fixed;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  height: 30vh;
+}
 
-  /* Drag-to-resize handle */
-  .jgis-resize-handle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 24px;
-    flex-shrink: 0;
-    cursor: ns-resize;
-  }
+/* Drag-to-resize handle */
+.jGIS-Mainview-Container.jgis-narrow .jgis-resize-handle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: ns-resize;
+}
 
-  .jgis-resize-handle::before {
-    content: '';
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background-color: var(--jp-border-color1);
-    opacity: 0.5;
-  }
+.jGIS-Mainview-Container.jgis-narrow .jgis-resize-handle::before {
+  content: '';
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--jp-border-color1);
+  opacity: 0.5;
+}
 
-  /* Panel tabs fill the remaining height */
-  .jgis-merged-panel-container .jgis-panel-tabs {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
+/* Panel tabs fill the remaining height */
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-panel-tabs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 
-  .jgis-merged-panel-container .jgis-tabs-content[data-state='active'] {
-    flex: 1;
-    min-height: 0;
-    height: unset;
-    overflow-y: auto;
-  }
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-tabs-content[data-state='active'] {
+  flex: 1;
+  min-height: 0;
+  height: unset;
+  overflow-y: auto;
+}
 
-  /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
-  .jgis-merged-panel-container .jgis-tabs-list {
-    cursor: ns-resize;
-    justify-content: flex-start;
-    touch-action: pan-x;
-    scrollbar-width: thin;
-    scrollbar-color: var(--jp-border-color1) transparent;
-  }
+/* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-tabs-list {
+  cursor: ns-resize;
+  justify-content: flex-start;
+  touch-action: pan-x;
+  scrollbar-width: thin;
+  scrollbar-color: var(--jp-border-color1) transparent;
+}
 
-  .jgis-merged-panel-container .jgis-tabs-list:active {
-    cursor: ns-resize;
-  }
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-tabs-list:active {
+  cursor: ns-resize;
+}
 
-  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar {
-    height: 3px;
-  }
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-tabs-list::-webkit-scrollbar {
+  height: 3px;
+}
 
-  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar-track {
-    background: transparent;
-  }
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-tabs-list::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  .jgis-merged-panel-container .jgis-tabs-list::-webkit-scrollbar-thumb {
-    background-color: var(--jp-border-color1);
-    border-radius: 2px;
-  }
+.jGIS-Mainview-Container.jgis-narrow
+  .jgis-merged-panel-container
+  .jgis-tabs-list::-webkit-scrollbar-thumb {
+  background-color: var(--jp-border-color1);
+  border-radius: 2px;
 }
 
 .jgis-icon-adjust {
@@ -248,18 +260,18 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 /* Move controls toolbar to top of map so it's not behind the bottom sheet */
-@media (max-width: 960px) {
-  .jgis-controls-toolbar {
-    top: 0.125rem;
-    bottom: unset;
-    align-items: flex-start;
-  }
+.jGIS-Mainview-Container.jgis-narrow .jgis-controls-toolbar {
+  top: 0.125rem;
+  bottom: unset;
+  align-items: flex-start;
+}
 
-  body[data-notebook='specta'] .jgis-controls-toolbar {
-    top: unset;
-    bottom: 0.125rem;
-    align-items: flex-end;
-  }
+body[data-notebook='specta']
+  .jGIS-Mainview-Container.jgis-narrow
+  .jgis-controls-toolbar {
+  top: unset;
+  bottom: 0.125rem;
+  align-items: flex-end;
 }
 
 .jgis-geometry-type-selector-overlay {
@@ -277,24 +289,22 @@ button.jp-mod-styled.jp-mod-reject {
   z-index: 9999;
 }
 
-@media (max-width: 960px) {
-  .jgis-panels-wrapper {
-    position: fixed;
-    top: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 0 5px;
-    z-index: 1000;
-    width: 60%;
-  }
+.jGIS-Mainview-Container.jgis-narrow .jgis-panels-wrapper {
+  position: fixed;
+  top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 5px;
+  z-index: 1000;
+  width: 60%;
+}
 
-  .jgis-left-panel-container,
-  .jgis-right-panel-container {
-    position: relative;
-    margin: 0;
-  }
+.jGIS-Mainview-Container.jgis-narrow .jgis-left-panel-container,
+.jGIS-Mainview-Container.jgis-narrow .jgis-right-panel-container {
+  position: relative;
+  margin: 0;
 }
 
 /* Fix for map in mobile specta view */

@@ -248,7 +248,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
 
   return (
     <div
-      className="jgis-merged-panel-container"
+      className="jgis-merged-panel-container jp-gis-layerPanel"
       style={{
         display:
           (leftPanelDisabled || leftPanelOpen === false) &&

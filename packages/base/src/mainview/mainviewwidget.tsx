@@ -6,7 +6,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
 import { StoryRenderMimeProvider } from '@/src/features/story/components/ListStoryOverlayMarkdown';
-import { MainViewWithMediaQuery } from '@/src/mainview/mainView';
+import { MainViewWithObserver } from '@/src/mainview/mainView';
 import { MainViewModel } from '@/src/mainview/mainviewmodel';
 
 export interface IOptions {
@@ -32,7 +32,7 @@ export class JupyterGISMainViewPanel extends ReactWidget {
   render(): JSX.Element {
     return (
       <StoryRenderMimeProvider rendermime={this._options.rendermime}>
-        <MainViewWithMediaQuery
+        <MainViewWithObserver
           state={this._state}
           viewModel={this._options.mainViewModel}
           formSchemaRegistry={this._options.formSchemaRegistry}

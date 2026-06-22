@@ -129,7 +129,6 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
-import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -202,8 +201,9 @@ interface IMainViewProps {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
-  /** True when viewport matches (max-width: 960px). Injected by MainViewWithMediaQuery. */
+  /** True when viewport matches (max-width: 960px). Injected by MainViewWithObserver. */
   isMobile: boolean;
+  containerRef?: React.RefObject<HTMLDivElement>;
 }
 
 interface IStates {
@@ -3818,7 +3818,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
         />
 
-        <div className="jGIS-Mainview-Container">
+        <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
           {displayTemporalController ? (
             <TemporalSlider model={this._model} filterStates={filterStates} />
           ) : null}
@@ -3961,10 +3961,37 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 }
 
 // ! TODO make mainview a modern react component instead of a class
-/** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
-function MainViewWithMediaQuery(props: Omit<IMainViewProps, 'isMobile'>) {
-  const isMobile = useMediaQuery('(max-width: 960px)');
-  return <MainView {...props} isMobile={isMobile} />;
+/* thin React wrapper to resize the panels on window resize with the help of ResizeObserver */
+function MainViewWithObserver(props: Omit<IMainViewProps, 'isMobile'>) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const update = (width: number) => {
+      const narrow = width < 960;
+      setIsMobile(narrow);
+      container.classList.toggle('jgis-narrow', narrow);
+    };
+
+    // Initial sync
+    update(container.clientWidth);
+
+    const observer = new ResizeObserver(([entry]) => {
+      update(entry.contentRect.width);
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
+  );
 }
 
-export { MainViewWithMediaQuery };
+export { MainViewWithObserver };
