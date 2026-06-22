@@ -38,14 +38,6 @@ import {
   JupyterYModel,
 } from 'yjs-widgets';
 
-export interface ICommMetadata {
-  create_ydoc: boolean;
-  path: string;
-  format: string;
-  contentType: string;
-  ymodel_name: string;
-}
-
 export const CLASS_NAME = 'jupytergis-notebook-widget';
 
 export class YJupyterGISModel extends JupyterYModel {

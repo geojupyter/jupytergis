@@ -5,7 +5,6 @@ import {
   IGeoTiffLayer,
 } from '@jupytergis/schema';
 
-
 /**
  * Payload when saving symbology. As of #698, only `symbologyState` is persisted
  * for vector layers — the OpenLayers FlatStyle is derived at render time from
