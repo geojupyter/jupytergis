@@ -124,7 +124,7 @@ export class StoryEditorSession {
       return;
     }
 
-    this._clearSegmentInteractionState();
+    this._clearMapInteractionState();
     this._mapInteractionMode = 'previewing-story';
     this._model.setStoryPreviewActive(true);
     this._dialog.minimize();
@@ -167,6 +167,7 @@ export class StoryEditorSession {
   }
 
   public restoreEditor(): void {
+    this._exitCurrentMapInteractionMode();
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
     this._togglePanels();
@@ -181,11 +182,8 @@ export class StoryEditorSession {
 
   public clear(): void {
     if (this._model) {
-      this._clearSegmentInteractionState();
-      if (
-        this._mapInteractionMode === 'previewing-story' ||
-        this._model.isStoryPreviewActive()
-      ) {
+      this._exitCurrentMapInteractionMode();
+      if (this._model.isStoryPreviewActive()) {
         this._model.setStoryPreviewActive(false);
         this._notifyPreviewChanged();
       }
@@ -198,8 +196,6 @@ export class StoryEditorSession {
     this._commands = null;
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
-    this._mapViewSegmentId = null;
-    this._mapInteractionMode = null;
     this._overrideEntries = [];
   }
 
@@ -207,14 +203,30 @@ export class StoryEditorSession {
     StoryEditorSession._previewChangeNotifier?.();
   }
 
-  private _clearSegmentInteractionState(): void {
-    if (this._mapInteractionMode === 'previewing-segment' && this._model) {
-      clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
+  private _exitCurrentMapInteractionMode(): void {
+    if (!this._model) {
+      return;
     }
 
-    this._pickingSegmentId = null;
-    this._previewSegmentId = null;
+    switch (this._mapInteractionMode) {
+      case 'previewing-segment':
+        clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
+        break;
+      case 'previewing-story':
+        this._model.setStoryPreviewActive(false);
+        this._notifyPreviewChanged();
+        break;
+      case 'map-view':
+      case null:
+        break;
+    }
+  }
+
+  private _clearMapInteractionState(): void {
+    this._exitCurrentMapInteractionMode();
+    this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
+    this._hideMapBar();
   }
 
   private _focusSegmentOnMap(segmentId: string): void {

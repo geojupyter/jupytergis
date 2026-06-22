@@ -47,9 +47,13 @@ function createDialog() {
   };
 }
 
-function createModel() {
+function createModel(overrides: Record<string, unknown> = {}) {
   return {
     centerOnPosition: jest.fn(),
+    canUseStoryPreview: jest.fn(() => true),
+    isStoryPreviewActive: jest.fn(() => false),
+    setStoryPreviewActive: jest.fn(),
+    ...overrides,
   };
 }
 
@@ -135,5 +139,25 @@ describe('StoryEditorSession', () => {
 
     expect(clearSegmentLayerOverrideEntries).toHaveBeenCalledWith(model, []);
     expect(session.isActiveFor(model as never)).toBe(false);
+  });
+
+  it('enters story preview mode and restores the editor when preview ends', () => {
+    const dialog = createDialog();
+    const model = createModel({
+      isStoryPreviewActive: jest.fn(() => true),
+    });
+
+    session.attachDialog(dialog as never, model as never);
+    session.enterStoryPreviewMode();
+
+    expect(session.isPreviewingStory()).toBe(true);
+    expect(model.setStoryPreviewActive).toHaveBeenCalledWith(true);
+    expect(dialog.minimize).toHaveBeenCalled();
+
+    session.restoreEditor();
+
+    expect(model.setStoryPreviewActive).toHaveBeenCalledWith(false);
+    expect(dialog.restore).toHaveBeenCalled();
+    expect(session.isMapInteractionMode()).toBe(false);
   });
 });
