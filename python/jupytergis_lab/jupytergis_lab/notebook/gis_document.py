@@ -145,7 +145,7 @@ class GISDocument(CommWidget):
             self.ydoc["layerTree"] = self._layerTree = Array()
             self.ydoc["metadata"] = self._metadata = Map()
         else:
-            # Bind to the synced document loaded from the file. 
+            # Bind to the synced document loaded from the file.
             # Replacing these wipes the options before the map renders.
             self._layers = self.ydoc["layers"]
             self._sources = self.ydoc["sources"]
