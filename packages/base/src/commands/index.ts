@@ -1946,7 +1946,7 @@ export function addCommands(
     },
   });
 
-  /* Needs to be enabled in Specta mode, so add without Specta-aware wrapper */
+  /* Enabled during story presentation (Specta embed or in-lab preview). */
   originalAddCommand(CommandIDs.storyPrev, {
     label: trans.__('Previous Story Segment'),
     isEnabled: () => {
@@ -1962,7 +1962,7 @@ export function addCommands(
         return false;
       }
 
-      if (!model.isSpectaMode()) {
+      if (!model.isStoryPresentationActive()) {
         return false;
       }
 
@@ -1999,8 +1999,7 @@ export function addCommands(
         return false;
       }
 
-      const isSpecta = model.isSpectaMode();
-      if (!isSpecta) {
+      if (!model.isStoryPresentationActive()) {
         return false;
       }
 
@@ -2024,6 +2023,12 @@ export function addCommands(
     },
   });
 
+  const notifyStoryPresentationCommandsChanged = () => {
+    commands.notifyCommandChanged(CommandIDs.openStoryEditor);
+    commands.notifyCommandChanged(CommandIDs.storyPrev);
+    commands.notifyCommandChanged(CommandIDs.storyNext);
+  };
+
   const notifyCommandsChanged = () => {
     for (const command of Object.values(CommandIDs)) {
       try {
@@ -2042,9 +2047,15 @@ export function addCommands(
 
     const model = tracker.currentWidget?.model;
     model?.selectedChanged.connect(notifyCommandsChanged);
+    model?.storyPreviewActiveChanged.connect(
+      notifyStoryPresentationCommandsChanged,
+    );
 
     cleanup = () => {
       model?.selectedChanged.disconnect(notifyCommandsChanged);
+      model?.storyPreviewActiveChanged.disconnect(
+        notifyStoryPresentationCommandsChanged,
+      );
     };
 
     notifyCommandsChanged();
