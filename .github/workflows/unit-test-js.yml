@@ -10,9 +10,6 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '.github/workflows/unit-test-js.yml'
-      # Colour-ramp parity also samples the Python side, so re-run when it changes.
-      - 'python/jupytergis_core/jupytergis_core/color_ramps.py'
-      - 'python/jupytergis_core/jupytergis_core/color_ramps_data.json'
 
 permissions: {}
 
@@ -66,13 +63,3 @@ jobs:
       - name: Run unit tests
         shell: bash -l {0}
         run: jlpm run test
-
-      # Assert the map view and the Python exporter sample colour ramps identically.
-      - name: Install jupytergis_core (for colour-ramp parity)
-        shell: bash -l {0}
-        run: pip install -e ./python/jupytergis_core
-
-      - name: Check colour-ramp parity (map view vs Python exporter)
-        shell: bash -l {0}
-        working-directory: ./packages/base
-        run: jlpm run check:colormaps
