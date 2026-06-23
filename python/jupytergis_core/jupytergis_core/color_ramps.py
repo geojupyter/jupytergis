@@ -33,11 +33,16 @@ def _ramp_data() -> dict[str, dict[str, list]]:
         return {"control_points": {}, "categorical": {}}
 
 
+def _round_half_up(x: float) -> int:
+    # JS `Math.round`: ties round toward +inf (`floor(x + 0.5)` for x >= 0). Python's
+    # built-in `round` is half-to-even, which silently desyncs from the frontend.
+    return math.floor(x + 0.5)
+
+
 def _lerp(a: float, b: float, t: float) -> int:
     # Byte-identical to the colormap package: it interpolates as `a*(1-t)+b*t` (the
-    # `lerp` npm package, FP-distinct from `a+(b-a)*t`) and rounds with Math.round
-    # (half up — `floor(x+0.5)` for non-negative values, vs Python's half-to-even).
-    return math.floor(a * (1 - t) + b * t + 0.5)
+    # `lerp` npm package, FP-distinct from `a+(b-a)*t`) then rounds with Math.round.
+    return _round_half_up(a * (1 - t) + b * t)
 
 
 def _colormap_exact(points: list[list[float]], n: int) -> list[tuple[int, int, int]]:
@@ -49,7 +54,9 @@ def _colormap_exact(points: list[list[float]], n: int) -> list[tuple[int, int, i
     own constraint); the caller uses :func:`_interp_continuous` below that.
     """
     nshades = n - 1
-    grid = [round(p[0] * nshades) for p in points]
+    # Math.round (half-up), not Python's half-to-even round: a control point whose
+    # grid index lands on a .5 would otherwise shift by one and desync a whole segment.
+    grid = [_round_half_up(p[0] * nshades) for p in points]
     out: list[tuple[int, int, int]] = []
     for i in range(len(points) - 1):
         steps = grid[i + 1] - grid[i]
