@@ -4,6 +4,7 @@ import {
   IVectorLayer,
   IGeoTiffLayer,
   IGeoZarrLayer,
+  IGrammarSymbologyState,
 } from '@jupytergis/schema';
 
 /**
