@@ -2066,7 +2066,7 @@ namespace Private {
       state,
       formSchemaRegistry,
     });
-    session.attachDialog(dialog, model);
+    session.attachDialog(dialog, model, commands);
 
     try {
       await dialog.launch();
