@@ -84,6 +84,7 @@ import {
   DoubleClickZoom,
   Select,
 } from 'ol/interaction';
+import type Interaction from 'ol/interaction/Interaction';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
@@ -2881,6 +2882,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _removeAllInteractions = (): void => {
+    if (!this._Map) {
+      return;
+    }
+
     // Remove all default interactions
     const interactions = this._Map.getInteractions();
     const interactionArray = interactions.getArray();
@@ -2900,16 +2905,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       Select,
     ];
 
-    this._zoomControl && this._Map.removeControl(this._zoomControl);
+    this._spectaRemovedInteractions = [];
 
     interactionsToRemove.forEach(InteractionClass => {
       const interaction = interactionArray.find(
         interaction => interaction instanceof InteractionClass,
       );
       if (interaction) {
+        this._spectaRemovedInteractions.push(interaction);
         this._Map.removeInteraction(interaction);
       }
     });
+
+    if (this._zoomControl) {
+      this._spectaZoomControlWasRemoved = true;
+      this._Map.removeControl(this._zoomControl);
+    } else {
+      this._spectaZoomControlWasRemoved = false;
+    }
+  };
+
+  private _restoreMapInteractions = (): void => {
+    if (!this._Map) {
+      return;
+    }
+
+    for (const interaction of this._spectaRemovedInteractions) {
+      this._Map.addInteraction(interaction);
+    }
+    this._spectaRemovedInteractions = [];
+
+    if (this._spectaZoomControlWasRemoved && this._zoomControl) {
+      this._Map.addControl(this._zoomControl);
+      this._spectaZoomControlWasRemoved = false;
+    }
   };
 
   private _setupStoryScrollListener = (): void => {
@@ -3047,6 +3076,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _teardownSpectaMode = (): void => {
     this._cleanupStoryScrollListener();
+    this._restoreMapInteractions();
   };
 
   private _onSharedMetadataChanged = (
@@ -4084,6 +4114,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _contextMenuAttached = false;
   private _spectaModeSetupDone = false;
+  private _spectaRemovedInteractions: Interaction[] = [];
+  private _spectaZoomControlWasRemoved = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
