@@ -17,6 +17,7 @@ export { IVideoSource } from './_interface/project/sources/videoSource';
 export { IGeoParquetSource } from './_interface/project/sources/geoParquetSource';
 export { IMarkerSource } from './_interface/project/sources/markerSource';
 export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
+export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
 export { IOpenEOTileSource } from './_interface/project/sources/openeoTileSource';
 
 // Layers
@@ -28,6 +29,7 @@ export { IImageLayer } from './_interface/project/layers/imageLayer';
 export { IStacLayer } from './_interface/project/layers/stacLayer';
 export { IVectorTileLayer } from './_interface/project/layers/vectorTileLayer';
 export { IGeoTiffLayer } from './_interface/project/layers/geoTiffLayer';
+export { IGeoZarrLayer } from './_interface/project/layers/geoZarrLayer';
 export { IOpenEOTileLayer } from './_interface/project/layers/openeoTileLayer';
 
 // Processing

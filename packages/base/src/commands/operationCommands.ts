@@ -14,6 +14,7 @@ export namespace LayerCreationCommandIDs {
   export const newImageWithParams = 'jupytergis:newImageWithParams';
   export const newVideoWithParams = 'jupytergis:newVideoWithParams';
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
+  export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
 }
 
@@ -293,7 +294,43 @@ export function addLayerCreationCommands(options: {
         source: id,
         opacity: p.opacity ?? 1,
         color: p.color,
-        symbologyState: p.symbologyState ?? { renderType: 'continuous' },
+        symbologyState: p.symbologyState ?? {
+          renderType: 'Singleband Pseudocolor',
+        },
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newGeoZarrWithParams,
+      label: 'New GeoZarr Layer From Parameters',
+      caption:
+        'Add a new GeoZarr layer (by Zarr store URL) and add it to the given JupyterGIS file',
+      sourceType: 'GeoZarrSource',
+      layerType: 'GeoZarrLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['url'],
+        properties: {
+          url: { type: 'string', description: 'URL to the Zarr store' },
+          bands: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Band names to load (e.g. ["b02","b03","b04"])',
+          },
+          wrapX: { type: 'boolean', default: false },
+        },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        gamma: { type: 'number', default: 1.5 },
+        color: { type: 'any' },
+        symbologyState: { type: 'object' },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        gamma: p.gamma ?? 1.5,
+        color: p.color,
+        symbologyState: p.symbologyState ?? { renderType: 'Multiband Color' },
       }),
     },
     {

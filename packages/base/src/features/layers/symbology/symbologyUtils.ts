@@ -3,12 +3,8 @@ import {
   IJupyterGISModel,
   IVectorLayer,
   IGeoTiffLayer,
+  IGeoZarrLayer,
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
-import colormap from 'colormap';
-
-import { IColorMap } from './colorRampUtils';
-import { IStopRow } from './symbologyDialog';
 
 /**
  * Payload when saving symbology. As of #698, only `symbologyState` is persisted
@@ -20,7 +16,8 @@ import { IStopRow } from './symbologyDialog';
 export interface ISymbologyPayload {
   symbologyState:
     | IVectorLayer['symbologyState']
-    | IGeoTiffLayer['symbologyState'];
+    | IGeoTiffLayer['symbologyState']
+    | IGeoZarrLayer['symbologyState'];
   /**
    * Only used by GeoTiff band-math (`IGeoTiffLayer['color']`); never set for
    * vector layers. Typed as `unknown` because the GeoTiff schema's color type
@@ -44,15 +41,15 @@ export type VectorSymbologyParams = Pick<
   'symbologyState' | 'color'
 >;
 
-export type GeoTiffSymbologyParams = Pick<
-  IGeoTiffLayer,
-  'symbologyState' | 'color'
+export type RasterSymbologyParams = Pick<
+  IGeoTiffLayer | IGeoZarrLayer,
+  'symbologyState'
 >;
 
 /** Params-shaped object used for reading symbology (layer.parameters or segment override). */
 export type IEffectiveSymbologyParams =
   | VectorSymbologyParams
-  | GeoTiffSymbologyParams;
+  | RasterSymbologyParams;
 
 /**
  * Resolve the effective symbology params for this dialog: either the layer's
@@ -157,56 +154,4 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
   }
 
   model.sharedModel.updateLayer(segmentId, segment);
-}
-
-export namespace Utils {
-  export const getValueColorPairs = (
-    stops: number[],
-    colorRamp: IColorMap,
-    nClasses: number,
-    reverse = false,
-  ) => {
-    const isCategorical = colorRamp.type === 'categorical';
-
-    let colorMap: any[];
-
-    if (isCategorical) {
-      colorMap = [...colorRamp.colors];
-
-      if (colorMap.length < nClasses) {
-        colorMap = Array.from({ length: nClasses }, (_, i) => {
-          return colorMap[i % colorMap.length];
-        });
-      } else {
-        colorMap = colorMap.slice(0, nClasses);
-      }
-    } else {
-      const nShades = Math.max(nClasses, 9);
-
-      colorMap = colormap({
-        colormap: colorRamp.name,
-        nshades: nShades,
-        format: 'rgba',
-      });
-    }
-
-    if (reverse) {
-      colorMap = [...colorMap].reverse();
-    }
-
-    const valueColorPairs: IStopRow[] = [];
-
-    for (let i = 0; i < nClasses; i++) {
-      const colorIndex = isCategorical
-        ? i
-        : Math.round((i / (nClasses - 1)) * (colorMap.length - 1));
-      valueColorPairs.push({
-        id: UUID.uuid4(),
-        stop: stops[i],
-        output: colorMap[colorIndex],
-      });
-    }
-
-    return valueColorPairs;
-  };
 }
