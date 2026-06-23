@@ -122,7 +122,7 @@ function SegmentEditor({
                     );
                   }}
                 >
-                  Set map view on map
+                  Set segment viewport
                 </Button>
                 <Button
                   type="button"
@@ -133,7 +133,7 @@ function SegmentEditor({
                     );
                   }}
                 >
-                  Preview layer overrides on map
+                  Preview layer overrides
                 </Button>
               </div>
             </div>
