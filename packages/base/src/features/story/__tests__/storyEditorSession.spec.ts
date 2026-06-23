@@ -25,6 +25,12 @@ jest.mock('@lumino/widgets', () => ({
   },
 }));
 
+jest.mock('@/src/constants', () => ({
+  CommandIDs: {
+    togglePanel: 'jupytergis:togglePanel',
+  },
+}));
+
 import { CommandIDs } from '@/src/constants';
 import { StoryEditorSession } from '../storyEditorSession';
 import { updateSegmentMapView } from '../utils/storySegmentMapView';
