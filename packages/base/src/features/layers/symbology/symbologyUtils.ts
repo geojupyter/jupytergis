@@ -4,6 +4,7 @@ import {
   IVectorLayer,
   IGeoTiffLayer,
   IGeoZarrLayer,
+  IGrammarSymbologyState,
 } from '@jupytergis/schema';
 
 /**
@@ -51,6 +52,8 @@ export type IEffectiveSymbologyParams =
   | VectorSymbologyParams
   | RasterSymbologyParams;
 
+const GRAMMAR_SYMBOLOGY_METADATA_KEYS = new Set(['id']);
+
 /**
  * Resolve the effective symbology params for this dialog: either the layer's
  * parameters or the matching segment override when editing a story-segment override.
@@ -73,13 +76,87 @@ export function getEffectiveSymbologyParams(
   }
   const segment = model.getLayer(segmentId);
   const override = segment?.parameters?.layerOverride?.find(
-    (override: { targetLayer?: string }) => override.targetLayer === layerId,
+    (entry: { targetLayer?: string }) => entry.targetLayer === layerId,
   );
 
-  if (!override.symbologyState) {
-    override.symbologyState = {};
+  if (!override) {
+    return layer.parameters as IEffectiveSymbologyParams;
   }
-  return (override as IEffectiveSymbologyParams) ?? null;
+
+  const layerParameters = layer.parameters as IEffectiveSymbologyParams;
+
+  return {
+    ...layerParameters,
+    ...override,
+    symbologyState: override.symbologyState ??
+      layerParameters.symbologyState ?? { layers: [] },
+  } as IEffectiveSymbologyParams;
+}
+
+function isGrammarSymbologyState(
+  value: unknown,
+): value is IGrammarSymbologyState {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Array.isArray((value as IGrammarSymbologyState).layers)
+  );
+}
+
+/** True when a symbology value carries renderable content (not just ids/empties). */
+function symbologyValueHasContent(value: unknown, key?: string): boolean {
+  if (key && GRAMMAR_SYMBOLOGY_METADATA_KEYS.has(key)) {
+    return false;
+  }
+
+  if (value === undefined || value === null) {
+    return false;
+  }
+
+  if (typeof value === 'string') {
+    return value.length > 0;
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(item => symbologyValueHasContent(item));
+  }
+
+  if (typeof value === 'object') {
+    return Object.entries(value).some(([entryKey, entryValue]) =>
+      symbologyValueHasContent(entryValue, entryKey),
+    );
+  }
+
+  return true;
+}
+
+export function hasMeaningfulGrammarSymbologyState(
+  symbologyState: unknown,
+): boolean {
+  if (!symbologyState || typeof symbologyState !== 'object') {
+    return false;
+  }
+
+  if (!isGrammarSymbologyState(symbologyState)) {
+    return symbologyValueHasContent(symbologyState);
+  }
+
+  if (symbologyState.layers.length === 0) {
+    return false;
+  }
+
+  return symbologyState.layers.some(layer => symbologyValueHasContent(layer));
+}
+
+export function symbologyStatesEqual(
+  baseSymbology: unknown,
+  overrideSymbology: unknown,
+): boolean {
+  return JSON.stringify(baseSymbology) === JSON.stringify(overrideSymbology);
 }
 
 export function saveSymbology(options: ISaveSymbologyOptions): void {
@@ -121,13 +198,8 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
     segment.parameters.layerOverride = [];
   }
 
-  // Find the override for the target layer (from the selected layer in the dialog)
-  const targetLayerId = model.selected
-    ? Object.keys(model.selected).find(
-        id =>
-          id !== segmentId && model.getLayer(id)?.type !== 'StorySegmentLayer',
-      )
-    : undefined;
+  // Persist override symbology for the explicit target layer.
+  const targetLayerId = layerId;
 
   if (!targetLayerId) {
     return;
@@ -144,6 +216,7 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
       targetLayer: targetLayerId,
       visible: true,
       opacity: 1,
+      symbologyState: { layers: [] },
     };
     overrides.push(override);
   }

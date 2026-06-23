@@ -1828,10 +1828,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
       }
 
-      this._model.syncSelected(
-        { [id]: { type: 'layer' } },
-        this._model.getClientId().toString(),
-      );
+      if (layer.type !== 'StorySegmentLayer') {
+        this._model.syncSelected(
+          { [id]: { type: 'layer' } },
+          this._model.getClientId().toString(),
+        );
+      }
     } catch (error: any) {
       if (
         this.state.loadingErrors.find(
@@ -3957,8 +3959,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                     state={this._state}
                     formSchemaRegistry={this._formSchemaRegistry}
                     annotationModel={this._annotationModel}
-                    addLayer={this.addLayer.bind(this)}
-                    removeLayer={this.removeLayer.bind(this)}
                     patchGeoJSONFeatureProperties={
                       this._patchGeoJSONFeatureProperties
                     }

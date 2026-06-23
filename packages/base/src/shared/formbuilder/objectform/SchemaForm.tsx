@@ -6,12 +6,10 @@ import validatorAjv8 from '@rjsf/validator-ajv8';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
-import { LayerSelect } from './components/LayerSelect';
 import OpacitySlider from './components/OpacitySlider';
 
 const defaultFields: RegistryFieldsType = {
   opacity: OpacitySlider,
-  layerSelect: LayerSelect,
 };
 
 export interface ISchemaFormProps {
@@ -23,13 +21,13 @@ export interface ISchemaFormProps {
   onChange: (data: IDict) => void;
   /** Called when form is submitted (e.g. submit button or Enter). */
   onSubmit: (data: IDict) => void;
-  /** Context for custom fields (e.g. LayerSelect) that need model and formData. */
+  /** Context for custom fields that need model and formData. */
   formContext: IJupyterGISFormContext;
   /** Path to the file; used for data-path on the panel. */
   filePath?: string;
   /** Enable live validation. Default true. */
   liveValidate?: boolean;
-  /** Additional custom fields to register (merged with opacity, layerSelect). */
+  /** Additional custom fields to register (merged with opacity). */
   additionalFields?: RegistryFieldsType;
   /** Optional pre-built uiSchema (e.g. from processBaseSchema). When provided, merged with additionalProperties hidden field. */
   uiSchema?: UiSchema;

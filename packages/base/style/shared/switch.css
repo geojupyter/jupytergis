@@ -14,6 +14,18 @@
   cursor: pointer;
 }
 
+/* JupyterLab dialogs add jp-mod-styled to buttons; undo flat-button sizing. */
+button.jgis-switch.jp-mod-styled {
+  height: 1.15rem;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  padding: 2px;
+  border: 1px solid transparent;
+  line-height: normal;
+  letter-spacing: normal;
+  text-align: left;
+}
+
 .jgis-switch:focus-visible {
   border-color: var(--jp-border-color0);
   box-shadow: 0 0 0 3px
@@ -30,6 +42,22 @@
 }
 
 .jgis-switch[data-state='unchecked'] {
+  background-color: var(--jp-layout-color3);
+}
+
+.jgis-switch:hover[data-state='checked'] {
+  background-color: var(--jp-accent-color1);
+}
+
+.jgis-switch:hover[data-state='unchecked'] {
+  background-color: var(--jp-layout-color3);
+}
+
+button.jgis-switch.jp-mod-styled:hover[data-state='checked'] {
+  background-color: var(--jp-accent-color1);
+}
+
+button.jgis-switch.jp-mod-styled:hover[data-state='unchecked'] {
   background-color: var(--jp-layout-color3);
 }
 

@@ -47,7 +47,7 @@
 
 .jgis-button[data-variant='destructive'] {
   background-color: var(--jp-error-color0);
-  color: var(--jp-ui-font-color0);
+  color: var(--jp-ui-inverse-font-color0);
   transition: background-color 0.2s ease;
 }
 
@@ -76,7 +76,7 @@
 
 .jgis-button[data-variant='secondary'] {
   background-color: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color2);
+  color: var(--jp-ui-font-color0);
   transition: background-color 0.2s ease;
 }
 
