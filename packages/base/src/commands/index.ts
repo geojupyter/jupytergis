@@ -38,6 +38,8 @@ import {
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import { StoryEditorWidget } from '../features/story/storyEditorDialog';
+import { StoryEditorSession } from '../features/story/storyEditorSession';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
@@ -271,6 +273,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'GeoTiffLayer',
+        'GeoZarrLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
 
@@ -294,6 +297,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'GeoTiffLayer',
+        'GeoZarrLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
@@ -792,6 +796,40 @@ export function addCommands(
       layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoTiffDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewGeoZarrDialog, {
+    label: trans.__('GeoZarr'),
+    caption:
+      'Open a dialog to create a new GeoZarr layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoZarr Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: {
+        name: 'Custom GeoZarr Source',
+        url: '',
+        bands: [],
+        wrapX: false,
+      },
+      layerData: { name: 'Custom GeoZarr Layer' },
+      sourceType: 'GeoZarrSource',
+      layerType: 'GeoZarrLayer',
+    }),
+    ...icons.get(CommandIDs.openNewGeoZarrDialog),
   });
 
   commands.addCommand(CommandIDs.openNewShapefileDialog, {
@@ -1816,53 +1854,28 @@ export function addCommands(
       }
 
       current.model.addStorySegment();
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
     ...icons.get(CommandIDs.addStorySegment),
   });
 
-  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
-    label: trans.__('Toggle Story Presentation Mode'),
-    isToggled: () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return false;
-      }
-
-      const { storyMapPresentationMode } = current.model.getOptions();
-
-      return storyMapPresentationMode ?? false;
-    },
+  commands.addCommand(CommandIDs.openStoryEditor, {
+    label: trans.__('Open Story Editor'),
+    caption: 'Open the story editor for the current JupyterGIS document.',
     isEnabled: () => {
-      const storySegments =
-        tracker.currentWidget?.model.getSelectedStory().story?.storySegments;
-
-      if (
-        tracker.currentWidget?.model.jgisSettings.storyMapsDisabled ||
-        !storySegments ||
-        storySegments.length < 1
-      ) {
+      const current = tracker.currentWidget;
+      if (!current) {
         return false;
       }
 
-      return true;
+      return !current.model.jgisSettings.storyMapsDisabled;
     },
-    execute: args => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-
-      const currentOptions = current.model.getOptions();
-
-      current.model.setOptions({
-        ...currentOptions,
-        storyMapPresentationMode: !currentOptions.storyMapPresentationMode,
-      });
-
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
-    },
-    ...icons.get(CommandIDs.toggleStoryPresentationMode),
+    execute: Private.createStoryEditor(
+      tracker,
+      commands,
+      formSchemaRegistry,
+      state,
+    ),
+    ...icons.get(CommandIDs.openStoryEditor),
   });
 
   commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
@@ -2015,6 +2028,45 @@ export function addCommands(
 }
 
 namespace Private {
+  export function createStoryEditor(
+    tracker: JupyterGISTracker,
+    commands: CommandRegistry,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    state: IStateDB,
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const session = StoryEditorSession.getInstance();
+      if (session.isActiveFor(current.model)) {
+        if (session.isMapInteractionMode()) {
+          session.restoreEditor();
+        } else {
+          session.focusDialog();
+        }
+        return;
+      }
+
+      const dialog = new StoryEditorWidget({
+        model: current.model,
+        commands,
+        state,
+        formSchemaRegistry,
+      });
+      session.attachDialog(dialog, current.model, commands);
+
+      try {
+        await dialog.launch();
+      } finally {
+        session.clear();
+      }
+    };
+  }
+
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,

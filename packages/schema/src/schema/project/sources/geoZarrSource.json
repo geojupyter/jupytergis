@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "description": "GeoZarrSource",
+  "title": "IGeoZarrSource",
+  "required": ["url"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The URL of the GeoZarr source.",
+      "default": ""
+    },
+    "bands": {
+      "type": "array",
+      "description": "Named band identifiers to load from the Zarr store (e.g. [\"b04\", \"b03\", \"b02\"]). When omitted, all bands are loaded in their stored order.",
+      "items": {
+        "type": "string"
+      },
+      "default": ["b04", "b03", "b02"]
+    },
+    "wrapX": {
+      "type": "boolean",
+      "description": "Wrap the map horizontally?",
+      "default": false
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "default": "",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -874,6 +874,10 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoZarrSource': {
+        return null;
+      }
+
       case 'GeoPackageVectorSource': {
         const projection = model.sharedModel.options.projection;
         if (!projection) {
@@ -1252,17 +1256,6 @@ export const objectEntries = Object.entries as <
 >(
   obj: T,
 ) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
-
-/**
- * Extract the layerOverride array index from an RJSF idSchema (e.g. from $id like "root_layerOverride_0_sourceProperties").
- */
-export function extractLayerOverrideIndex(idSchema: {
-  $id?: string;
-}): number | undefined {
-  const id = idSchema?.$id ?? '';
-  const match = id.match(/layerOverride_(\d+)/);
-  return match ? parseInt(match[1], 10) : undefined;
-}
 
 export interface IFileFormat {
   id: string;

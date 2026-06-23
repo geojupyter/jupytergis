@@ -1113,6 +1113,13 @@ def jgis_layer_to_qgis(
         map_layers.append(map_layer)
         layer_opacities.append(opacity)
 
+    if layer_type == "GeoZarrLayer":
+        logs["warnings"].append(
+            f"Layer {layer_id} ({layer_name}) not exported: "
+            "GeoZarr layers are not supported in QGIS.",
+        )
+        return []
+
     if not map_layers:
         logs["warnings"].append(
             f"Layer {layer_id} not exported: enable to export layer type {layer_type}",

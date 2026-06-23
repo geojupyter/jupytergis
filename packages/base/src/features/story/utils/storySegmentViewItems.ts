@@ -30,6 +30,17 @@ export function buildStorySegmentViewItems(
   return items;
 }
 
+export function getStorySegmentDisplayTitle(
+  item: IStorySegmentViewItem,
+): string {
+  const contentTitle = item.activeSlide?.content?.title;
+  if (typeof contentTitle === 'string' && contentTitle.trim() !== '') {
+    return contentTitle;
+  }
+
+  return item.layerName;
+}
+
 export function getStoryMarkdownFromSlide(
   activeSlide: IStorySegmentViewItem['activeSlide'],
 ): string {

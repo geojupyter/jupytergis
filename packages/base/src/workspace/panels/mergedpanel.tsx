@@ -1,7 +1,6 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
@@ -9,19 +8,15 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
-import { STORY_TYPE } from '@/src/types';
 import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
 import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
-import { RightPanelStoryViewer } from './rightpanel';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { ObjectPropertiesReact } from '../../features/objectproperties';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
-import StoryEditorPanel from '../../features/story/StoryEditorPanel';
-import { PreviewModeSwitch } from '../../features/story/components/PreviewModeSwitch';
 
 export interface IMergedPanelProps {
   model: IJupyterGISModel;
@@ -30,8 +25,6 @@ export interface IMergedPanelProps {
   settings: IJupyterGISSettings;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   annotationModel: IAnnotationModel;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
 }
 
 export const MergedPanel: React.FC<IMergedPanelProps> = props => {
@@ -123,23 +116,11 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
-  const { layerTree, segmentTree } = useLayerTree(props.model, props.commands, {
-    onSegmentAdded: () => setCurTab('segments'),
-  });
+  const { layerTree } = useLayerTree(props.model);
 
-  const {
-    storyMapPresentationMode,
-    editorMode,
-    showEditor,
-    storyPanelTitle,
-    toggleEditor,
-  } = useRightPanelOptions(props.model, {
-    onPresentationModeEnabled: () => setCurTab('storyPanel'),
+  useRightPanelOptions(props.model, {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
-  const isListStory =
-    props.model.getSelectedStory().story?.storyType ===
-    STORY_TYPE.verticalScroll;
 
   const { leftPanelDisabled, rightPanelDisabled } = props.settings;
 
@@ -147,10 +128,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     {
       name: 'layers',
       title: 'Layers',
-      enabled:
-        !leftPanelDisabled &&
-        !props.settings.layersDisabled &&
-        !storyMapPresentationMode,
+      enabled: !leftPanelDisabled && !props.settings.layersDisabled,
       content: (
         <LayersBodyComponent
           model={props.model}
@@ -163,32 +141,13 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     {
       name: 'stac',
       title: 'Stac Browser',
-      enabled:
-        !leftPanelDisabled &&
-        !props.settings.stacBrowserDisabled &&
-        !storyMapPresentationMode,
+      enabled: !leftPanelDisabled && !props.settings.stacBrowserDisabled,
       content: <StacPanel model={props.model} />,
-    },
-    {
-      name: 'segments',
-      title: 'Segments',
-      enabled: !leftPanelDisabled && !props.settings.storyMapsDisabled,
-      content: (
-        <LayersBodyComponent
-          model={props.model}
-          commands={props.commands}
-          state={props.state}
-          layerTree={segmentTree}
-        />
-      ),
     },
     {
       name: 'objectProperties',
       title: 'Object Properties',
-      enabled:
-        !rightPanelDisabled &&
-        !props.settings.objectPropertiesDisabled &&
-        !storyMapPresentationMode,
+      enabled: !rightPanelDisabled && !props.settings.objectPropertiesDisabled,
       content: (
         <ObjectPropertiesReact
           setSelectedObject={setSelectedObjectProperties}
@@ -196,30 +155,6 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
           formSchemaRegistry={props.formSchemaRegistry}
           model={props.model}
         />
-      ),
-    },
-    {
-      name: 'storyPanel',
-      title: storyPanelTitle,
-      enabled: !rightPanelDisabled && !props.settings.storyMapsDisabled,
-      content: (
-        <>
-          {!storyMapPresentationMode && !isListStory && (
-            <PreviewModeSwitch
-              checked={!editorMode}
-              onCheckedChange={toggleEditor}
-            />
-          )}
-          {showEditor ? (
-            <StoryEditorPanel model={props.model} commands={props.commands} />
-          ) : curTab === 'storyPanel' ? (
-            <RightPanelStoryViewer
-              model={props.model}
-              addLayer={props.addLayer}
-              removeLayer={props.removeLayer}
-            />
-          ) : null}
-        </>
       ),
     },
     {
@@ -248,7 +183,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
 
   return (
     <div
-      className="jgis-merged-panel-container"
+      className="jgis-merged-panel-container jp-gis-layerPanel"
       style={{
         display:
           (leftPanelDisabled || leftPanelOpen === false) &&

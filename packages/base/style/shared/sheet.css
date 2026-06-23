@@ -121,6 +121,7 @@
   transition-duration: 0.2s;
   transition-timing-function: ease-in-out;
   background-clip: padding-box;
+  overflow: scroll;
 }
 
 /* Right */
@@ -148,7 +149,7 @@
 
 @media (min-width: 640px) {
   .jgis-sheet-content[data-side='right'] {
-    max-width: 24rem;
+    max-width: 50%;
   }
 }
 
@@ -235,7 +236,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding: 1rem;
+  padding: 0 1rem;
 }
 
 .jgis-sheet-footer {

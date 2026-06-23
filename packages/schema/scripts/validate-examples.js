@@ -20,6 +20,7 @@ const LAYER_SCHEMAS = {
   VectorTileLayer: 'layers/vectorTileLayer.json',
   HillshadeLayer: 'layers/hillshadeLayer.json',
   GeoTiffLayer: 'layers/geoTiffLayer.json',
+  GeoZarrLayer: 'layers/geoZarrLayer.json',
   ImageLayer: 'layers/imageLayer.json',
   StacLayer: 'layers/stacLayer.json',
   StorySegmentLayer: 'layers/storySegmentLayer.json',
@@ -34,6 +35,7 @@ const SOURCE_SCHEMAS = {
   ImageSource: 'sources/imageSource.json',
   ShapefileSource: 'sources/shapefileSource.json',
   GeoTiffSource: 'sources/geoTiffSource.json',
+  GeoZarrSource: 'sources/geoZarrSource.json',
   GeoParquetSource: 'sources/geoParquetSource.json',
   MarkerSource: 'sources/markerSource.json',
 };
