@@ -28,6 +28,7 @@ jest.mock('@lumino/widgets', () => ({
 jest.mock('@/src/constants', () => ({
   CommandIDs: {
     togglePanel: 'jupytergis:togglePanel',
+    openStoryEditor: 'jupytergis:openStoryEditor',
   },
 }));
 
@@ -61,6 +62,7 @@ function createCommands() {
   return {
     execute: jest.fn(),
     isToggled: jest.fn(() => false),
+    notifyCommandChanged: jest.fn(),
   } as unknown as import('@lumino/commands').CommandRegistry;
 }
 
@@ -146,18 +148,21 @@ describe('StoryEditorSession', () => {
     const model = createModel({
       isStoryPreviewActive: jest.fn(() => true),
     });
+    const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never);
+    session.attachDialog(dialog as never, model as never, commands);
     session.enterStoryPreviewMode();
 
     expect(session.isPreviewingStory()).toBe(true);
     expect(model.setStoryPreviewActive).toHaveBeenCalledWith(true);
     expect(dialog.minimize).toHaveBeenCalled();
+    expect(commands.execute).not.toHaveBeenCalled();
 
     session.restoreEditor();
 
     expect(model.setStoryPreviewActive).toHaveBeenCalledWith(false);
     expect(dialog.restore).toHaveBeenCalled();
     expect(session.isMapInteractionMode()).toBe(false);
+    expect(commands.execute).not.toHaveBeenCalled();
   });
 });

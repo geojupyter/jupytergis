@@ -162,10 +162,16 @@ export class StoryEditorSession {
   }
 
   public restoreEditor(): void {
+    const previousMode = this._mapInteractionMode;
     this._exitCurrentMapInteractionMode();
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
-    this._togglePanels();
+    if (
+      previousMode === 'map-view' ||
+      previousMode === 'previewing-segment'
+    ) {
+      this._togglePanels();
+    }
     this._hideMapBar();
     this._dialog?.restore();
   }
