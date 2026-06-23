@@ -1,7 +1,9 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
+import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
 import React from 'react';
 
+import { CommandIDs } from '@/src/constants';
 import {
   MapPreviewBarActions,
   MapViewBarActions,
@@ -22,6 +24,7 @@ export class StoryEditorSession {
 
   private _dialog: StoryEditorWidget | null = null;
   private _model: IJupyterGISModel | null = null;
+  private _commands: CommandRegistry | null = null;
   private _mapViewSegmentId: string | null = null;
   private _mapInteractionMode: StoryEditorMapInteractionMode | null = null;
   private _mapBar: StoryMapInteractionBarWidget | null = null;
@@ -37,9 +40,11 @@ export class StoryEditorSession {
   public attachDialog(
     dialog: StoryEditorWidget,
     model: IJupyterGISModel,
+    commands: CommandRegistry,
   ): void {
     this._dialog = dialog;
     this._model = model;
+    this._commands = commands;
     this._mapInteractionMode = null;
   }
 
@@ -68,6 +73,7 @@ export class StoryEditorSession {
     this._mapInteractionMode = 'map-view';
     this._focusSegmentOnMap(segmentId);
     this._dialog.minimize();
+    this._togglePanels();
     this._showMapBar(
       'Pan and zoom the map, then apply this view to the segment.',
       React.createElement(MapViewBarActions, {
@@ -90,6 +96,7 @@ export class StoryEditorSession {
     this._focusSegmentOnMap(segmentId);
     applySegmentLayerOverrides(this._model, segmentId, this._overrideEntries);
     this._dialog.minimize();
+    this._togglePanels();
     this._showMapBar(
       'Previewing this segment on the map with its layer overrides.',
       React.createElement(MapPreviewBarActions, {
@@ -116,6 +123,7 @@ export class StoryEditorSession {
 
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
+    this._togglePanels();
     this._hideMapBar();
     this._dialog?.restore();
   }
@@ -134,6 +142,7 @@ export class StoryEditorSession {
 
     this._dialog = null;
     this._model = null;
+    this._commands = null;
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
     this._overrideEntries = [];
@@ -141,6 +150,14 @@ export class StoryEditorSession {
 
   private _focusSegmentOnMap(segmentId: string): void {
     this._model?.centerOnPosition(segmentId);
+  }
+
+  private _togglePanels(): void {
+    if (!this._commands) {
+      return;
+    }
+
+    void this._commands.execute(CommandIDs.togglePanel);
   }
 
   private _showMapBar(message: string, children: React.ReactNode): void {

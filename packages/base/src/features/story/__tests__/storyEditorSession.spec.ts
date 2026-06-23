@@ -25,6 +25,7 @@ jest.mock('@lumino/widgets', () => ({
   },
 }));
 
+import { CommandIDs } from '@/src/constants';
 import { StoryEditorSession } from '../storyEditorSession';
 import { updateSegmentMapView } from '../utils/storySegmentMapView';
 import {
@@ -44,6 +45,13 @@ function createModel() {
   return {
     centerOnPosition: jest.fn(),
   };
+}
+
+function createCommands() {
+  return {
+    execute: jest.fn(),
+    isToggled: jest.fn(() => false),
+  } as unknown as import('@lumino/commands').CommandRegistry;
 }
 
 describe('StoryEditorSession', () => {
@@ -69,13 +77,15 @@ describe('StoryEditorSession', () => {
   it('enters map view mode and applies the segment view', () => {
     const dialog = createDialog();
     const model = createModel();
+    const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never);
+    session.attachDialog(dialog as never, model as never, commands);
     session.enterMapViewMode('segment-1');
 
     expect(session.isMapViewMode()).toBe(true);
     expect(model.centerOnPosition).toHaveBeenCalledWith('segment-1');
     expect(dialog.minimize).toHaveBeenCalled();
+    expect(commands.execute).toHaveBeenCalledWith(CommandIDs.togglePanel);
 
     session.applyMapView();
 
@@ -87,8 +97,9 @@ describe('StoryEditorSession', () => {
   it('previews a segment and clears overrides when restored', () => {
     const dialog = createDialog();
     const model = createModel();
+    const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never);
+    session.attachDialog(dialog as never, model as never, commands);
     session.enterPreviewMode('segment-2');
 
     expect(session.isPreviewingSegment()).toBe(true);
@@ -98,6 +109,7 @@ describe('StoryEditorSession', () => {
       [],
     );
     expect(dialog.minimize).toHaveBeenCalled();
+    expect(commands.execute).toHaveBeenCalledWith(CommandIDs.togglePanel);
 
     session.restoreEditor();
 
@@ -109,8 +121,9 @@ describe('StoryEditorSession', () => {
   it('clears preview overrides when the dialog is dismissed', () => {
     const dialog = createDialog();
     const model = createModel();
+    const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never);
+    session.attachDialog(dialog as never, model as never, commands);
     session.enterPreviewMode('segment-3');
     session.clear();
 
