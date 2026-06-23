@@ -1869,17 +1869,6 @@ export function addCommands(
 
       return !current.model.jgisSettings.storyMapsDisabled;
     },
-    execute: Private.createStoryEditor(
-      tracker,
-      commands,
-      formSchemaRegistry,
-      state,
-    ),
-    ...icons.get(CommandIDs.openStoryEditor),
-  });
-
-  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
-    label: trans.__('Toggle Story Presentation Mode'),
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -1888,27 +1877,30 @@ export function addCommands(
 
       return current.model.isStoryPreviewActive();
     },
-    isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      if (!model) {
-        return false;
-      }
-
-      return model.canUseStoryPreview();
-    },
-    execute: () => {
+    execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
 
-      StoryEditorSession.getInstance().toggleStoryPreview(current.model);
-    },
-    ...icons.get(CommandIDs.toggleStoryPresentationMode),
-  });
+      const session = StoryEditorSession.getInstance();
+      if (session.isActiveFor(current.model)) {
+        if (session.isMapInteractionMode()) {
+          session.restoreEditor();
+        } else {
+          session.focusDialog();
+        }
+        return;
+      }
 
-  StoryEditorSession.setPreviewChangeNotifier(() => {
-    commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+      await Private.launchStoryEditor(
+        current.model,
+        commands,
+        formSchemaRegistry,
+        state,
+      );
+    },
+    ...icons.get(CommandIDs.openStoryEditor),
   });
 
   commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
@@ -2061,43 +2053,26 @@ export function addCommands(
 }
 
 namespace Private {
-  export function createStoryEditor(
-    tracker: JupyterGISTracker,
+  export async function launchStoryEditor(
+    model: IJupyterGISModel,
     commands: CommandRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     state: IStateDB,
-  ) {
-    return async () => {
-      const current = tracker.currentWidget;
+  ): Promise<void> {
+    const session = StoryEditorSession.getInstance();
+    const dialog = new StoryEditorWidget({
+      model,
+      commands,
+      state,
+      formSchemaRegistry,
+    });
+    session.attachDialog(dialog, model);
 
-      if (!current) {
-        return;
-      }
-
-      const session = StoryEditorSession.getInstance();
-      if (session.isActiveFor(current.model)) {
-        if (session.isMapInteractionMode()) {
-          session.restoreEditor();
-        } else {
-          session.focusDialog();
-        }
-        return;
-      }
-
-      const dialog = new StoryEditorWidget({
-        model: current.model,
-        commands,
-        state,
-        formSchemaRegistry,
-      });
-      session.attachDialog(dialog, current.model, commands);
-
-      try {
-        await dialog.launch();
-      } finally {
-        session.clear();
-      }
-    };
+    try {
+      await dialog.launch();
+    } finally {
+      session.clear();
+    }
   }
 
   export function createLayerBrowser(
