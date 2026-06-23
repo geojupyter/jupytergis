@@ -24,7 +24,6 @@ type StoryEditorMapInteractionMode =
 
 export class StoryEditorSession {
   private static instance: StoryEditorSession;
-  private static _previewChangeNotifier: (() => void) | null = null;
 
   private _dialog: StoryEditorWidget | null = null;
   private _model: IJupyterGISModel | null = null;
@@ -33,10 +32,6 @@ export class StoryEditorSession {
   private _mapInteractionMode: StoryEditorMapInteractionMode | null = null;
   private _mapBar: StoryMapInteractionBarWidget | null = null;
   private _overrideEntries: IOverrideLayerEntry[] = [];
-
-  public static setPreviewChangeNotifier(notifier: (() => void) | null): void {
-    StoryEditorSession._previewChangeNotifier = notifier;
-  }
 
   public static getInstance(): StoryEditorSession {
     if (!StoryEditorSession.instance) {
@@ -200,7 +195,7 @@ export class StoryEditorSession {
   }
 
   private _notifyPreviewChanged(): void {
-    StoryEditorSession._previewChangeNotifier?.();
+    this._commands?.notifyCommandChanged(CommandIDs.openStoryEditor);
   }
 
   private _exitCurrentMapInteractionMode(): void {
