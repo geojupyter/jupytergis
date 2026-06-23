@@ -32,13 +32,14 @@ jest.mock('@/src/constants', () => ({
   },
 }));
 
-import { CommandIDs } from '@/src/constants';
 import { StoryEditorSession } from '../storyEditorSession';
 import { updateSegmentMapView } from '../utils/storySegmentMapView';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '../utils/storySegmentOverrides';
+
+const TOGGLE_PANEL_COMMAND = 'jupytergis:togglePanel';
 
 function createDialog() {
   return {
@@ -97,7 +98,7 @@ describe('StoryEditorSession', () => {
     expect(session.isMapViewMode()).toBe(true);
     expect(model.centerOnPosition).toHaveBeenCalledWith('segment-1');
     expect(dialog.minimize).toHaveBeenCalled();
-    expect(commands.execute).toHaveBeenCalledWith(CommandIDs.togglePanel);
+    expect(commands.execute).toHaveBeenCalledWith(TOGGLE_PANEL_COMMAND);
 
     session.applyMapView();
 
@@ -121,7 +122,7 @@ describe('StoryEditorSession', () => {
       [],
     );
     expect(dialog.minimize).toHaveBeenCalled();
-    expect(commands.execute).toHaveBeenCalledWith(CommandIDs.togglePanel);
+    expect(commands.execute).toHaveBeenCalledWith(TOGGLE_PANEL_COMMAND);
 
     session.restoreEditor();
 

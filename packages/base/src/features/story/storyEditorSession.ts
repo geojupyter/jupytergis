@@ -126,32 +126,6 @@ export class StoryEditorSession {
     this._notifyPreviewChanged();
   }
 
-  public toggleStoryPreview(model: IJupyterGISModel): void {
-    if (!model.canUseStoryPreview()) {
-      return;
-    }
-
-    const editorAttached = this._dialog !== null && this._model === model;
-
-    if (model.isStoryPreviewActive()) {
-      if (editorAttached && this.isPreviewingStory()) {
-        this.restoreEditor();
-      } else {
-        model.setStoryPreviewActive(false);
-        this._notifyPreviewChanged();
-      }
-      return;
-    }
-
-    if (editorAttached) {
-      this.enterStoryPreviewMode();
-      return;
-    }
-
-    model.setStoryPreviewActive(true);
-    this._notifyPreviewChanged();
-  }
-
   public applyMapView(): void {
     if (!this._model || !this._mapViewSegmentId) {
       return;

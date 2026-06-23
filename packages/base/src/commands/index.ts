@@ -1886,7 +1886,6 @@ export function addCommands(
       const session = StoryEditorSession.getInstance();
       if (session.isActiveFor(current.model)) {
         if (session.isMapInteractionMode()) {
-          commands.notifyCommandChanged(CommandIDs.openStoryEditor);
           session.restoreEditor();
         } else {
           session.focusDialog();
