@@ -3052,8 +3052,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     this._storyScrollHandler = handleScroll;
-    const container = document.querySelector('.jGIS-Mainview-Container');
+    const container = this.props.containerRef?.current;
     if (container) {
+      this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
     }
   };
@@ -3063,14 +3064,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       cancelAnimationFrame(this._pendingStoryScrollRafId);
       this._pendingStoryScrollRafId = null;
     }
-    if (this._storyScrollHandler) {
-      const containerElement = document.querySelector(
-        '.jGIS-Mainview-Container',
+    if (this._storyScrollHandler && this._storyScrollContainerEl) {
+      this._storyScrollContainerEl.removeEventListener(
+        'wheel',
+        this._storyScrollHandler,
       );
-      if (containerElement) {
-        containerElement.removeEventListener('wheel', this._storyScrollHandler);
-      }
       this._storyScrollHandler = null;
+      this._storyScrollContainerEl = null;
     }
   };
 
@@ -4117,6 +4117,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _spectaRemovedInteractions: Interaction[] = [];
   private _spectaZoomControlWasRemoved = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _storyScrollContainerEl: HTMLDivElement | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
