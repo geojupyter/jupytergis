@@ -37,7 +37,6 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
-from py2vega import Variable, py2vega
 from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
@@ -90,33 +89,6 @@ def _extract_layer_name(path: str | Path) -> str:
     name_without_ext = filename.rsplit(".", 1)[0]
 
     return name_without_ext or filename
-
-
-def _python_expr_to_vega_expr(python_expr: str | None) -> str | None:
-    if python_expr is None:
-        return None
-    if not isinstance(python_expr, str) or not python_expr.strip():
-        raise ValueError("python_expr must be a non-empty string")
-    try:
-        return py2vega(
-            python_expr,
-            whitelist=[Variable("datum")],
-        )
-    except Exception as e:
-        raise ValueError(f"Invalid Python expression: {e}") from e
-
-
-def _resolve_vega_expr(
-    vega_expr: str | None = None,
-    python_expr: str | None = None,
-) -> str | None:
-    if vega_expr is not None and python_expr is not None:
-        raise ValueError("Provide either vega_expr or python_expr, not both")
-
-    if python_expr is not None:
-        return _python_expr_to_vega_expr(python_expr)
-
-    return vega_expr
 
 
 class GISDocument(CommWidget):
@@ -285,8 +257,6 @@ class GISDocument(CommWidget):
         attribution: str = "",
         min_zoom: int = 0,
         max_zoom: int = 24,
-        vega_expr: str | None = None,
-        python_expr: str | None = None,
         opacity: float = 1,
         symbology: SymbologyInput = None,
     ):
@@ -319,8 +289,6 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
-        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
-
         layer = {
             "type": LayerType.VectorTileLayer,
             "name": name,
@@ -328,7 +296,6 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "vega": vega_expr,
             },
         }
 
@@ -344,15 +311,12 @@ class GISDocument(CommWidget):
         data: dict | None = None,
         name: str | None = None,
         opacity: float = 1,
-        vega_expr: str | None = None,
-        python_expr: str | None = None,
         symbology: SymbologyInput = None,
     ):
         """Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
         :param data: The raw GeoJSON data to embed into the jGIS file.
-        :param vega_expr: A Vega expression string will be converted to OpenLayers expression in the frontend.
         :param symbology: The symbology configuration to persist with the layer.
         """
         if isinstance(path, Path) and data is not None:
@@ -382,8 +346,6 @@ class GISDocument(CommWidget):
         if name is None and path is not None:
             name = _extract_layer_name(path)
 
-        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
-
         source = {
             "type": SourceType.GeoJSONSource,
             "name": f"{name} Source",
@@ -398,7 +360,6 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "vega": vega_expr,
                 "opacity": opacity,
             },
         }
@@ -664,8 +625,6 @@ class GISDocument(CommWidget):
         path: str,
         name: str | None = None,
         opacity: float = 1,
-        vega_expr: str | None = None,
-        python_expr: str | None = None,
         symbology: SymbologyInput = None,
     ):
         """Add a GeoParquet Layer to the document.
@@ -673,7 +632,6 @@ class GISDocument(CommWidget):
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
         :param opacity: The opacity, between 0 and 1.
-        :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
         :param symbology: The symbology configuration to persist with the layer.
         """
         # Extract name from path if not provided
@@ -688,8 +646,6 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
-        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
-
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
@@ -697,7 +653,6 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "opacity": opacity,
-                "vega": vega_expr,
             },
         }
 
@@ -714,8 +669,6 @@ class GISDocument(CommWidget):
         name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
-        vega_expr: str | None = None,
-        python_expr: str | None = None,
         symbology: SymbologyInput = None,
     ):
         """Add a GeoPackage Vector Layer to the document.
@@ -725,7 +678,6 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document.
         :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
-        :param vega_expr: A Vega expression string converted to OpenLayers expression in the frontend.
         :param symbology: The symbology configuration to persist with the layers.
         """
         if isinstance(table_names, str):
@@ -741,7 +693,6 @@ class GISDocument(CommWidget):
         else:
             projection = "EPSG:3857"
 
-        vega_expr = _resolve_vega_expr(vega_expr, python_expr)
         symbology_state = to_symbology_state(symbology)
 
         for table_name in table_names:
@@ -767,7 +718,6 @@ class GISDocument(CommWidget):
                     "source": source_id,
                     "type": type,
                     "opacity": opacity,
-                    "vega": vega_expr,
                 },
             }
 
