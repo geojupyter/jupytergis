@@ -2,6 +2,11 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
+export interface IOverrideLayerEntry {
+  layerId: string;
+  action: 'remove' | 'restore';
+}
+
 /** Active handoff between two segments while scrolling the virtual track. */
 export interface IListStorySegmentTransition {
   /** 0–1 across the handoff span (outgoing segment + gap + incoming segment). */

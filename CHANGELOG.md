@@ -2,6 +2,35 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0a3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-alpha.2...926a83efc6140f9832cbec0edcb80d7da74b771b))
+
+### Enhancements made
+
+- Create a story editor dialog [#1540](https://github.com/geojupyter/jupytergis/pull/1540) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87), [@nakul-py](https://github.com/nakul-py))
+- Add GeoZarr Support [#1400](https://github.com/geojupyter/jupytergis/pull/1400) ([@nakul-py](https://github.com/nakul-py), [@MMesch](https://github.com/MMesch), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87), [@vincentsarago](https://github.com/vincentsarago))
+
+### Bugs fixed
+
+- Bottom merged panel resizing with React hooks. [#1526](https://github.com/geojupyter/jupytergis/pull/1526) ([@nakul-py](https://github.com/nakul-py), [@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Maintenance and upkeep improvements
+
+- Remove Some dead code [#1544](https://github.com/geojupyter/jupytergis/pull/1544) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- nblink: Install pydantic with mamba + bump jupytergis [#1539](https://github.com/geojupyter/jupytergis/pull/1539) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-06-19&to=2026-06-23&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-06-19..2026-06-23&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-06-19..2026-06-23&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-06-19..2026-06-23&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-06-19..2026-06-23&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-06-19..2026-06-23&type=Issues)) | @vincentsarago ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Avincentsarago+updated%3A2026-06-19..2026-06-23&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0a2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-alpha.1...247fc2be93ecf732398a509922864657f39f7956))
@@ -31,8 +60,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-06-15&to=2026-06-19&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-06-15..2026-06-19&type=Issues)) | @davidbrochart ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adavidbrochart+updated%3A2026-06-15..2026-06-19&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-06-15..2026-06-19&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-06-15..2026-06-19&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-06-15..2026-06-19&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-06-15..2026-06-19&type=Issues)) | @tanishxdev ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atanishxdev+updated%3A2026-06-15..2026-06-19&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0a1
 

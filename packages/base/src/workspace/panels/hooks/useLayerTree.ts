@@ -3,10 +3,7 @@ import {
   IJGISLayerTree,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
-
-import { CommandIDs } from '../../../constants';
 
 /**
  * Subscribes to the model's layer tree and splits it into two derived trees:
@@ -16,16 +13,7 @@ import { CommandIDs } from '../../../constants';
  * Also pre-selects the last item on first load, and syncs segment order back
  * to the story map whenever the segment tree changes.
  */
-export function useLayerTree(
-  model: IJupyterGISModel,
-  commands: CommandRegistry,
-  opts?: {
-    onSegmentAdded?: (payload: {
-      storySegmentId: string;
-      storyId: string;
-    }) => void;
-  },
-): {
+export function useLayerTree(model: IJupyterGISModel): {
   layerTree: IJGISLayerTree;
   segmentTree: IJGISLayerTree;
 } {
@@ -33,11 +21,6 @@ export function useLayerTree(
     model.getLayerTree(),
   );
   const hasSyncedInitialSelectionRef = React.useRef(false);
-  // Ref keeps the callback fresh without re-registering the signal handler on every render
-  const onSegmentAddedRef = React.useRef(opts?.onSegmentAdded);
-  React.useEffect(() => {
-    onSegmentAddedRef.current = opts?.onSegmentAdded;
-  });
 
   React.useEffect(() => {
     const syncInitialSelection = (tree: IJGISLayerTree) => {
@@ -60,29 +43,15 @@ export function useLayerTree(
       const freshTree = model.getLayerTree() || [];
       setRawLayerTree(freshTree);
       syncInitialSelection(freshTree);
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
-    };
-
-    const handleSegmentAdded = (
-      _sender: IJupyterGISModel,
-      payload: { storySegmentId: string; storyId: string },
-    ) => {
-      model.syncSelected(
-        { [payload.storySegmentId]: { type: 'layer' } },
-        model.getClientId().toString(),
-      );
-      onSegmentAddedRef.current?.(payload);
     };
 
     model.sharedModel.layersChanged.connect(updateLayerTree);
     model.sharedModel.layerTreeChanged.connect(updateLayerTree);
-    model.segmentAdded.connect(handleSegmentAdded);
     updateLayerTree();
 
     return () => {
       model.sharedModel.layersChanged.disconnect(updateLayerTree);
       model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
-      model.segmentAdded.disconnect(handleSegmentAdded);
     };
   }, [model]);
 

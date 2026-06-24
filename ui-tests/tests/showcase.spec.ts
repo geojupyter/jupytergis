@@ -26,18 +26,18 @@ const SHOWCASES: IShowcase[] = [
     file: 'earthquakes.jGIS',
     snapshot: 'showcase-earthquakes.jpg',
   },
-  {
-    name: 'Story map',
-    file: 'story_map.jGIS',
-    snapshot: 'showcase-story-map.jpg',
-    setup: async (page: Page) => {
-      // Open the Story tab and enable preview mode
-      const storyTab = page.getByRole('tab', { name: /Story/ });
-      await storyTab.click();
-      const previewSwitch = page.locator('#preview-mode-switch');
-      await previewSwitch.click();
-    },
-  },
+  // {
+  //   name: 'Story map',
+  //   file: 'story_map.jGIS',
+  //   snapshot: 'showcase-story-map.jpg',
+  //   setup: async (page: Page) => {
+  //     // Open the Story tab and enable preview mode
+  //     const storyTab = page.getByRole('tab', { name: /Story/ });
+  //     await storyTab.click();
+  //     const previewSwitch = page.locator('#preview-mode-switch');
+  //     await previewSwitch.click();
+  //   },
+  // },
   {
     name: 'France hiking layers',
     file: 'france_hiking.jGIS',

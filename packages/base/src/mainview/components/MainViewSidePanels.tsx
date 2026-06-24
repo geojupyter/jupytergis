@@ -1,7 +1,6 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
@@ -20,8 +19,6 @@ export interface IMainViewSidePanelsProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
-  addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer: (id: string) => void;
   patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
 }
 
@@ -33,8 +30,6 @@ export function MainViewSidePanels({
   state,
   formSchemaRegistry,
   annotationModel,
-  addLayer,
-  removeLayer,
   patchGeoJSONFeatureProperties,
 }: IMainViewSidePanelsProps): JSX.Element {
   if (showMergedMobilePanel) {
@@ -46,8 +41,6 @@ export function MainViewSidePanels({
         settings={settings}
         formSchemaRegistry={formSchemaRegistry!}
         annotationModel={annotationModel!}
-        addLayer={addLayer}
-        removeLayer={removeLayer}
       />
     );
   }
@@ -68,8 +61,6 @@ export function MainViewSidePanels({
           commands={commands}
           formSchemaRegistry={formSchemaRegistry}
           annotationModel={annotationModel}
-          addLayer={addLayer}
-          removeLayer={removeLayer}
           settings={settings}
           patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
         />
