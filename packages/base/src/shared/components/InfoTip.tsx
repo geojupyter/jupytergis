@@ -1,20 +1,19 @@
 import { ChevronRightIcon, Info } from 'lucide-react';
 import React, { ReactNode } from 'react';
-import {
-  HoverCardTrigger,
-  HoverCardContent,
-  HoverCard,
-} from './HoverCard';
+
+import { Button } from './Button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from './Collapsible';
-import { Button } from './Button';
+import { HoverCardTrigger, HoverCardContent, HoverCard } from './HoverCard';
 import { cn } from './utils';
 
-interface InfoTipProps
-  extends Omit<React.ComponentProps<typeof HoverCardContent>, 'children'> {
+interface IInfoTipProps extends Omit<
+  React.ComponentProps<typeof HoverCardContent>,
+  'children'
+> {
   text: string;
   openDelay?: number;
   closeDelay?: number;
@@ -29,7 +28,7 @@ export function InfoTip({
   className,
   portalContainerRef,
   ...contentProps
-}: InfoTipProps) {
+}: IInfoTipProps) {
   return (
     <HoverCard openDelay={openDelay} closeDelay={closeDelay}>
       <HoverCardTrigger aria-label="More information">
