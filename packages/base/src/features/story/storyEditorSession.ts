@@ -4,11 +4,15 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { CommandIDs } from '@/src/constants';
+import { STORY_TYPE } from '@/src/types';
 import {
   MapPreviewBarActions,
   MapViewBarActions,
 } from './components/MapInteractionBarActions';
-import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
+import {
+  StoryMapInteractionBarWidget,
+  type StoryMapInteractionBarPlacement,
+} from './components/StoryMapInteractionBarWidget';
 import type { StoryEditorWidget } from './storyEditorDialog';
 import type { IOverrideLayerEntry } from './types/types';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
@@ -124,6 +128,15 @@ export class StoryEditorSession {
     this._model.setStoryPreviewActive(true);
     this._dialog.minimize();
     this._notifyPreviewChanged();
+    this._showMapBar(
+      'Previewing the story.',
+      React.createElement(MapPreviewBarActions, {
+        onBack: () => {
+          this.restoreEditor();
+        },
+      }),
+      this._getStoryPreviewBarPlacement(),
+    );
   }
 
   public applyMapView(): void {
@@ -140,10 +153,7 @@ export class StoryEditorSession {
     this._exitCurrentMapInteractionMode();
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
-    if (
-      previousMode === 'map-view' ||
-      previousMode === 'previewing-segment'
-    ) {
+    if (previousMode === 'map-view' || previousMode === 'previewing-segment') {
       this._togglePanels();
     }
     this._hideMapBar();
@@ -216,11 +226,39 @@ export class StoryEditorSession {
     void this._commands.execute(CommandIDs.togglePanel);
   }
 
-  private _showMapBar(message: string, children: React.ReactNode): void {
+  private _showMapBar(
+    message: string,
+    children: React.ReactNode,
+    placement: StoryMapInteractionBarPlacement = 'overlay-bottom',
+  ): void {
     this._disposeMapBar();
-    this._mapBar = new StoryMapInteractionBarWidget({ message, children });
-    Widget.attach(this._mapBar, document.body);
+    this._mapBar = new StoryMapInteractionBarWidget({
+      message,
+      children,
+      placement,
+    });
+    Widget.attach(this._mapBar, this._resolveMapBarParent(placement));
     this._mapBar.show();
+  }
+
+  private _getStoryPreviewBarPlacement(): StoryMapInteractionBarPlacement {
+    const storyType = this._model?.getSelectedStory().story?.storyType;
+    if (storyType === STORY_TYPE.guided) {
+      return 'main-top-left';
+    }
+
+    return 'overlay-bottom';
+  }
+
+  private _resolveMapBarParent(
+    placement: StoryMapInteractionBarPlacement,
+  ): HTMLElement {
+    const mapBarParent =
+      placement === 'main-top-left'
+        ? document.querySelector<HTMLElement>('.jGIS-Mainview-Container')
+        : null;
+
+    return mapBarParent ?? document.body;
   }
 
   private _hideMapBar(): void {

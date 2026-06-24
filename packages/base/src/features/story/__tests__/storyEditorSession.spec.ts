@@ -32,6 +32,8 @@ jest.mock('@/src/constants', () => ({
   },
 }));
 
+import { STORY_TYPE } from '@/src/types';
+import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
 import { StoryEditorSession } from '../storyEditorSession';
 import { updateSegmentMapView } from '../utils/storySegmentMapView';
 import {
@@ -55,6 +57,9 @@ function createModel(overrides: Record<string, unknown> = {}) {
     canUseStoryPreview: jest.fn(() => true),
     isStoryPreviewActive: jest.fn(() => false),
     setStoryPreviewActive: jest.fn(),
+    getSelectedStory: jest.fn(() => ({
+      story: { storyType: STORY_TYPE.guided },
+    })),
     ...overrides,
   };
 }
@@ -157,6 +162,9 @@ describe('StoryEditorSession', () => {
     expect(session.isPreviewingStory()).toBe(true);
     expect(model.setStoryPreviewActive).toHaveBeenCalledWith(true);
     expect(dialog.minimize).toHaveBeenCalled();
+    expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
+      expect.objectContaining({ placement: 'main-top-left' }),
+    );
     expect(commands.execute).not.toHaveBeenCalled();
 
     session.restoreEditor();
@@ -165,5 +173,22 @@ describe('StoryEditorSession', () => {
     expect(dialog.restore).toHaveBeenCalled();
     expect(session.isMapInteractionMode()).toBe(false);
     expect(commands.execute).not.toHaveBeenCalled();
+  });
+
+  it('uses bottom-center bar placement for non-guided story preview', () => {
+    const dialog = createDialog();
+    const model = createModel({
+      getSelectedStory: jest.fn(() => ({
+        story: { storyType: STORY_TYPE.verticalScroll },
+      })),
+    });
+    const commands = createCommands();
+
+    session.attachDialog(dialog as never, model as never, commands);
+    session.enterStoryPreviewMode();
+
+    expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
+      expect.objectContaining({ placement: 'overlay-bottom' }),
+    );
   });
 });
