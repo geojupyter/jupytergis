@@ -26,7 +26,7 @@
 
 .jgis-hover-card-content {
   position: relative;
-  z-index: 50;
+  z-index: 99999;
   width: 16rem;
   padding: 0.625rem;
   border-radius: 0.5rem;
