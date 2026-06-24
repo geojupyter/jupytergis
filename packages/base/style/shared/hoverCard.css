@@ -1,3 +1,29 @@
+.jgis-hover-card-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--jp-ui-font-color0);
+  cursor: help;
+  line-height: 1;
+}
+
+.jgis-hover-card-trigger:hover {
+  color: var(--jp-ui-font-color0);
+}
+
+.jp-Dialog.jp-ThemedContainer .jp-Dialog-content .jgis-hover-card-trigger,
+.jp-Dialog.jp-ThemedContainer .jp-Dialog-body .jgis-hover-card-trigger {
+  color: var(--jp-ui-font-color0);
+}
+
+.jp-Dialog.jp-ThemedContainer .jp-Dialog-content .jgis-hover-card-trigger:hover,
+.jp-Dialog.jp-ThemedContainer .jp-Dialog-body .jgis-hover-card-trigger:hover {
+  color: var(--jp-ui-font-color0);
+}
+
 .jgis-hover-card-content {
   position: relative;
   z-index: 50;

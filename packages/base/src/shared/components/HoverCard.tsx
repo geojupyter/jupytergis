@@ -9,10 +9,15 @@ function HoverCard({
 }
 
 function HoverCardTrigger({
+  className,
   ...props
 }: React.ComponentProps<typeof HoverCardPrimitive.Trigger>) {
   return (
-    <HoverCardPrimitive.Trigger data-slot="hover-card-trigger" {...props} />
+    <HoverCardPrimitive.Trigger
+      data-slot="hover-card-trigger"
+      className={cn('jgis-hover-card-trigger', className)}
+      {...props}
+    />
   );
 }
 
