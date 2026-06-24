@@ -84,8 +84,8 @@ import {
   DoubleClickZoom,
   Select,
 } from 'ol/interaction';
-import type Interaction from 'ol/interaction/Interaction';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
+import type Interaction from 'ol/interaction/Interaction';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import {

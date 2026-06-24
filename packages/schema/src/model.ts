@@ -783,9 +783,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _isStoryTypeSupportedForPresentation(
     storyType: IJGISStoryMap['storyType'] | undefined,
   ): boolean {
-    return (
-      storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType)
-    );
+    return storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
   }
 
   /**

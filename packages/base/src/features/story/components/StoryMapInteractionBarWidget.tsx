@@ -10,8 +10,7 @@ export type StoryMapInteractionBarPlacement =
   | 'overlay-bottom'
   | 'main-top-left';
 
-export interface IStoryMapInteractionBarWidgetOptions
-  extends IStoryMapInteractionBarProps {
+export interface IStoryMapInteractionBarWidgetOptions extends IStoryMapInteractionBarProps {
   placement?: StoryMapInteractionBarPlacement;
 }
 
