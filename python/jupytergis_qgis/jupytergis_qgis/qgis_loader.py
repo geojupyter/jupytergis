@@ -958,6 +958,75 @@ def qgis_layer_tree_to_jgis(
     return {"layers": layers, "sources": sources, "layerTree": layer_tree}
 
 
+# A jGIS layer with several renderings is exported as one QGIS layer per
+# rendering, all sharing the data source; the extras get an "<id>::<n>" id
+# (see jgis_layer_to_qgis). This matches "<base>::<index>" so import can fold
+# them back into a single jGIS layer.
+_MULTI_RENDER_ID_RE = re.compile(r"(?P<base>.+)::(?P<index>\d+)$")
+
+
+def _prune_ids_from_tree(layer_tree: list, removed: set[str]) -> list:
+    """Drop merged layer ids from the (possibly nested) layer tree."""
+    pruned = []
+    for item in layer_tree:
+        if isinstance(item, str):
+            if item not in removed:
+                pruned.append(item)
+        else:
+            item["layers"] = _prune_ids_from_tree(item.get("layers", []), removed)
+            pruned.append(item)
+    return pruned
+
+
+def _merge_multi_render_layers(jgis: dict[str, Any]) -> dict[str, Any]:
+    """Recombine the "<id>::<n>" QGIS layers back into one jGIS layer whose
+    symbologyState holds the several renderings (e.g. points + heatmap).
+    """
+    layers = jgis["layers"]
+
+    # base id -> [(index, extra_id), ...]
+    extras: dict[str, list[tuple[int, str]]] = {}
+    for layer_id in layers:
+        match = _MULTI_RENDER_ID_RE.fullmatch(layer_id)
+        if match:
+            extras.setdefault(match["base"], []).append(
+                (int(match["index"]), layer_id),
+            )
+
+    removed: set[str] = set()
+    for base_id, items in extras.items():
+        base = layers.get(base_id)
+        if base is None:
+            # No base layer to merge into (e.g. it failed to import); leave the
+            # extras as standalone layers rather than dropping them.
+            continue
+        base_grammar = (
+            base.setdefault("parameters", {})
+            .setdefault("symbologyState", {})
+            .setdefault("layers", [])
+        )
+        for _, extra_id in sorted(items):
+            extra = layers.pop(extra_id)
+            removed.add(extra_id)
+            base_grammar.extend(
+                extra.get("parameters", {}).get("symbologyState", {}).get("layers", []),
+            )
+
+    if removed:
+        jgis["layerTree"] = _prune_ids_from_tree(jgis["layerTree"], removed)
+        # Drop sources no longer referenced by any surviving layer.
+        used_sources = {
+            layer.get("parameters", {}).get("source") for layer in layers.values()
+        }
+        jgis["sources"] = {
+            source_id: source
+            for source_id, source in jgis["sources"].items()
+            if source_id in used_sources
+        }
+
+    return jgis
+
+
 def import_project_from_qgis(path: str | Path):
     if isinstance(path, Path):
         path = str(path)
@@ -969,6 +1038,7 @@ def import_project_from_qgis(path: str | Path):
     layer_tree_root = project.layerTreeRoot()
     qgis_settings = QgsSettings()
     jgis_layer_tree = qgis_layer_tree_to_jgis(layer_tree_root, settings=qgis_settings)
+    jgis_layer_tree = _merge_multi_render_layers(jgis_layer_tree)
 
     # extract the viewport in lat/long coordinates
     view_settings = project.viewSettings()

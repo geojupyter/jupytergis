@@ -600,23 +600,22 @@ def test_qgis_multilayer_kde_roundtrip():
     assert export_project_to_qgis(filename, jgis)
     imported = import_project_from_qgis(filename)
 
-    # One jGIS layer with two grammar layers -> two QGIS layers -> two jGIS layers.
+    # One jGIS layer with two grammar layers -> two QGIS layers (sharing the data
+    # source) -> folded back into ONE jGIS layer with two renderings on import.
     vlayers = [
         layer for layer in imported["layers"].values() if layer["type"] == "VectorLayer"
     ]
-    assert len(vlayers) == 2
+    assert len(vlayers) == 1
+    grammar_layers = vlayers[0]["parameters"]["symbologyState"]["layers"]
+    assert len(grammar_layers) == 2
 
-    # Exactly one of them is a KDE heatmap (preprocess kde).
-    kde_layers = [
-        layer
-        for layer in vlayers
-        if any(
-            gl.get("preprocess")
-            for gl in layer["parameters"]["symbologyState"].get("layers", [])
-        )
-    ]
-    assert len(kde_layers) == 1
-    grammar_layer = kde_layers[0]["parameters"]["symbologyState"]["layers"][0]
+    # The single layer item appears once in the tree (no "::n" extra leaks).
+    assert len(imported["layerTree"]) == 1
+
+    # Exactly one rendering is a KDE heatmap (preprocess kde).
+    kde_grammar_layers = [gl for gl in grammar_layers if gl.get("preprocess")]
+    assert len(kde_grammar_layers) == 1
+    grammar_layer = kde_grammar_layers[0]
     assert grammar_layer["preprocess"][0]["type"] == "kde"
 
     # The heatmap colour-ramp name survives the round-trip (the gradient bakes
