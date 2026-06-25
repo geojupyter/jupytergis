@@ -220,4 +220,20 @@ describe('useStoryEditorSegmentList', () => {
 
     expect(model.removeLayer).not.toHaveBeenCalled();
   });
+
+  it('reorders story segments', () => {
+    const story = createStory();
+    const { model } = createModel({ story, currentIndex: 0 });
+    const view = mountHook(model, commands);
+
+    act(() => {
+      view.current.reorderSegments(0, 1);
+    });
+
+    expect(model.sharedModel.updateStoryMap).toHaveBeenCalledWith('story-1', {
+      ...story,
+      storySegments: ['segment-2', 'segment-1'],
+    });
+    expect(model.setCurrentSegmentIndex).toHaveBeenCalledWith(1);
+  });
 });
