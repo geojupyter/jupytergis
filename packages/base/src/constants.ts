@@ -5,6 +5,7 @@ import * as BaseCommandIDs from './commands/BaseCommandIDs';
 import {
   bookOpenIcon,
   clockIcon,
+  columns2Icon,
   geoJSONIcon,
   geoPackageIcon,
   infoIcon,
@@ -74,6 +75,7 @@ const iconObject = {
   [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-scroll jgis-icon-adjust' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.togglePanel]: { icon: columns2Icon },
 };
 
 /**

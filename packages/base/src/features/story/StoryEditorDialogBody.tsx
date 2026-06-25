@@ -259,6 +259,7 @@ export function StoryEditorDialogBody({
     addSegment,
     removeSegment,
     canRemoveSegment,
+    reorderSegments,
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
@@ -271,6 +272,7 @@ export function StoryEditorDialogBody({
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
       <StoryEditorHeaderBar
+        model={model}
         story={story}
         segmentCount={segments.length}
         onUpdateStory={updateStory}
@@ -283,6 +285,7 @@ export function StoryEditorDialogBody({
           selectedSegmentId={selectedSegmentId}
           onSelectSegment={selectSegment}
           onAddSegment={addSegment}
+          onReorderSegments={reorderSegments}
         />
 
         <main className="jgis-story-editor-workspace">

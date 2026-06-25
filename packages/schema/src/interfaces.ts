@@ -423,6 +423,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
   segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
+  isStoryPreviewActive(): boolean;
+  isStoryPresentationActive(): boolean;
+  canUseStoryPreview(): boolean;
+  setStoryPreviewActive(active: boolean): void;
+  storyPreviewActiveChanged: ISignal<IJupyterGISModel, boolean>;
 
   setUIState(value: Partial<IJGISUIState>): void;
   getUIState(): IJGISUIState;

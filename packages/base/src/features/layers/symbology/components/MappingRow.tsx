@@ -39,6 +39,7 @@ import {
   ColorRampEditor,
   ConstantEditor,
   ScalarEditor,
+  ExpressionEditor,
 } from './ScaleEditor';
 
 // ---------------------------------------------------------------------------
@@ -162,6 +163,15 @@ function defaultScaleForScheme(
         scheme: 'constant_num',
         params: { value: 1 },
       } as IConstantNumScale;
+
+    case 'expression':
+      return {
+        scheme: 'expression',
+        params: {
+          expr: '',
+          fallback: [0, 0, 0, 0] as RGBA,
+        },
+      };
   }
 }
 
@@ -180,7 +190,7 @@ const SCHEME_OPTIONS: {
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
-  { value: 'expression', label: 'expression (coming soon)', disabled: true },
+  { value: 'expression', label: 'expression' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -994,8 +1004,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               onChange={handleScaleChange}
             />
           )}
-          {(row.scale.scheme === 'identity' ||
-            row.scale.scheme === 'expression') && (
+          {row.scale.scheme === 'identity' && (
             <p
               style={{
                 margin: 0,
@@ -1003,8 +1012,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 fontSize: 'var(--jp-ui-font-size1)',
               }}
             >
-              No configuration for {row.scale.scheme} scale.
+              No configuration for identity scale.
             </p>
+          )}
+          {row.scale.scheme === 'expression' && (
+            <ExpressionEditor scale={row.scale} onChange={handleScaleChange} />
           )}
         </div>
       )}

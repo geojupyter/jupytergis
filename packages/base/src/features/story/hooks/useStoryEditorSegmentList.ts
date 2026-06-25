@@ -28,6 +28,7 @@ interface IUseStoryEditorSegmentListResult {
   addSegment: () => void;
   removeSegment: () => void;
   canRemoveSegment: boolean;
+  reorderSegments: (fromIndex: number, toIndex: number) => void;
   updateStory: (patch: Partial<IJGISStoryMap>) => void;
   updateSegmentContentMode: (
     segmentId: string,
@@ -164,6 +165,47 @@ export function useStoryEditorSegmentList(
     );
   }, [model, selectedSegmentId, story]);
 
+  const reorderSegments = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (
+        !storyId ||
+        !story?.storySegments ||
+        story.storySegments.length <= 1 ||
+        fromIndex === toIndex
+      ) {
+        return;
+      }
+
+      const segmentIds = story.storySegments;
+
+      if (
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= segmentIds.length ||
+        toIndex >= segmentIds.length
+      ) {
+        return;
+      }
+
+      const nextSegmentIds = [...segmentIds];
+      const [movedId] = nextSegmentIds.splice(fromIndex, 1);
+      nextSegmentIds.splice(toIndex, 0, movedId);
+
+      model.sharedModel.updateStoryMap(storyId, {
+        ...story,
+        storySegments: nextSegmentIds,
+      });
+
+      const currentIndex = model.getCurrentSegmentIndex() ?? 0;
+      const currentId = segmentIds[currentIndex];
+      const nextIndex = nextSegmentIds.indexOf(currentId);
+      if (nextIndex >= 0) {
+        model.setCurrentSegmentIndex(nextIndex);
+      }
+    },
+    [model, storyId, story],
+  );
+
   const updateSegmentContentMode = useCallback(
     (segmentId: string, mode: StorySegmentDisplayMode) => {
       applySegmentContentMode(model, segmentId, mode);
@@ -195,6 +237,7 @@ export function useStoryEditorSegmentList(
     addSegment,
     removeSegment,
     canRemoveSegment,
+    reorderSegments,
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,

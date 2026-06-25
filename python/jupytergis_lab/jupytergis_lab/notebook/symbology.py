@@ -12,6 +12,7 @@ from jupytergis_core.schema.interfaces.project.symbology import (
     UNormChannel,
     VirtualChannel,
 )
+from py2vega import Variable, py2vega
 from pydantic import BaseModel, ConfigDict
 
 WhenOpInput = Literal["all", "any"] | None
@@ -311,6 +312,26 @@ def field(name: str) -> FieldPredicate:
     return FieldPredicate(name)
 
 
+class ExpressionPredicate:
+    """Create an expression-based mapping source."""
+
+    def __init__(self, code: str, expr_type: Literal["vega", "py"]):
+        self.code = code
+        self.expr_type = expr_type
+
+    def _as_source(self) -> "MappingChain":
+        vega_code = (
+            self.code
+            if self.expr_type == "vega"
+            else _python_expr_to_vega_expr(self.code)
+        )
+        expr_scale = expression(vega_code, fallback=(0, 0, 0, 1))
+        return MappingChain(kind="expr", value=0, scale=expr_scale)
+
+    def encoding(self, *targets):
+        return self._as_source().encoding(*targets)
+
+
 class Mapping:
     """Final mapping produced by ``...encoding(...)`` chains."""
 
@@ -323,7 +344,7 @@ class Mapping:
 class MappingChain:
     """Fluent chain for building a single mapping.
 
-    A mapping chain starts from ``field(...)`` or ``constant(...)``, optionally
+    A mapping chain starts from ``field(...)`` or ``constant(...)`` or ``expr(...)``, optionally
     applies a scale (``identity``, ``colormap``, ``categorical``, ``scalar``),
     and is finalized with ``encoding(...)``.
     """
@@ -340,7 +361,7 @@ class MappingChain:
     def __init__(
         self,
         *,
-        kind: Literal["field", "constant"],
+        kind: Literal["field", "constant", "expr"],
         value: str | float | RGBA | Sequence[float],
         scale: Any | None = None,
         scale_kind: ScaleKind | None = None,
@@ -498,6 +519,10 @@ class MappingChain:
             assert isinstance(self._value, str)
             fields = [self._value]
             scale = self._scale if self._scale is not None else _identity_scale()
+        elif self._kind == "expr":
+            assert self._scale is not None, "expression kind requires a scale"
+            fields = None
+            scale = self._scale
         else:
             fields = None
             if self._scale is not None:
@@ -594,9 +619,11 @@ class WhenBuilder:
     def when_op(self, when_op: WhenOpInput) -> "WhenBuilder":
         """Set the logical combinator for this builder's predicates."""
         return WhenBuilder(
-            when=[_as_predicate(predicate) for predicate in self._when]
-            if self._when is not None
-            else None,
+            when=(
+                [_as_predicate(predicate) for predicate in self._when]
+                if self._when is not None
+                else None
+            ),
             when_op=when_op,
         )
 
@@ -625,6 +652,35 @@ def constant(value: float | RGBA | Sequence[float] | str) -> MappingChain:
     Finalize with ``encoding(...)`` to create a mapping.
     """
     return MappingChain(kind="constant", value=value)
+
+
+def vega_expr(code: str) -> ExpressionPredicate:
+    """Create an expression-based mapping source using Vega syntax.
+
+    The expression is evaluated at render time for each feature. Use the
+    ``datum`` variable to reference feature properties.
+
+    Example::
+
+        vega_expr("datum.population > 1000000 ? 'cyan' : 'pink'").encoding("fill")
+    """
+    if not isinstance(code, str) or not code.strip():
+        raise ValueError("vega_expr must be a non-empty string")
+    return ExpressionPredicate(code, "vega")
+
+
+def python_expr(code: str) -> ExpressionPredicate:
+    """Create an expression-based mapping source using Python syntax.
+
+    The Python expression is converted to Vega and evaluated at render time.
+    Use the ``datum`` variable to reference feature properties.
+
+    Example::
+
+        python_expr("'red' if datum.population > 1000000 else 'orange'").encoding("fill")
+    """
+    _python_expr_to_vega_expr(code)
+    return ExpressionPredicate(code, "py")
 
 
 def when(*when: WhenInput) -> WhenBuilder:
@@ -741,6 +797,19 @@ def _constant_num_scale(value: float) -> schema_symbology.IConstantNumScale:
 
 def _identity_scale() -> schema_symbology.IIdentityScale:
     return schema_symbology.IIdentityScale()
+
+
+def _python_expr_to_vega_expr(python_expr: str) -> str:
+    """Convert Python expression to Vega expression."""
+    if not isinstance(python_expr, str) or not python_expr.strip():
+        raise ValueError("python_expr must be a non-empty string")
+    try:
+        return py2vega(
+            python_expr,
+            whitelist=[Variable("datum")],
+        )
+    except Exception as e:
+        raise ValueError(f"Invalid Python expression: {e}") from e
 
 
 def expression(
