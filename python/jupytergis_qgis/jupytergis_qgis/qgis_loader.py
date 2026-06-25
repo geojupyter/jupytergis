@@ -808,7 +808,21 @@ def qgis_layer_to_jgis(
         if path_part.startswith("http://") or path_part.startswith("https://"):
             file_name = path_part
         else:
-            file_name = path_part.split("/")[-1]
+            # QGIS resolves layer sources to absolute paths. jGIS stores paths
+            # relative to its document directory (same place the project lives),
+            # so re-relativise to keep any subdirectory (e.g. "data/eq.geojson")
+            # rather than collapsing to the bare basename. Only fall back to the
+            # basename when the data sits outside the project tree, to avoid
+            # emitting fragile "../" paths.
+            project_dir = QgsProject.instance().absolutePath()
+            src = Path(path_part)
+            if project_dir and src.is_absolute():
+                try:
+                    file_name = str(src.relative_to(project_dir))
+                except ValueError:
+                    file_name = src.name
+            else:
+                file_name = path_part
 
         source_parameters.update(path=file_name)
 
