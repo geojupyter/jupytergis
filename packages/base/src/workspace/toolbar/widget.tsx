@@ -18,7 +18,7 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { terminalToolbarIcon } from '@/src/shared/icons';
+import { targetWithoutCenterIcon, terminalToolbarIcon } from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
@@ -128,23 +128,27 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('separator1', new Separator());
 
-      const geolocationButton = new CommandToolbarButton({
-        id: CommandIDs.getGeolocation,
-        commands: options.commands,
-        label: '',
+      const geolocationDropdownMenu = new MenuSvg({ commands: options.commands });
+      geolocationDropdownMenu.addItem({
+        type: 'command',
+        command: CommandIDs.getGeolocation,
+      });
+      geolocationDropdownMenu.addItem({
+        type: 'command',
+        command: CommandIDs.toggleLocationIndicator,
       });
 
-      this.addItem('Geolocation', geolocationButton);
-      geolocationButton.node.dataset.testid = 'geolocation-button';
-
-      const locationIndicatorButton = new CommandToolbarButton({
-        id: CommandIDs.toggleLocationIndicator,
-        commands: options.commands,
-        label: '📍',
+      const geolocationDropdownButton = new ToolbarButton({
+        icon: targetWithoutCenterIcon,
+        noFocusOnClick: false,
+        onClick: () => {
+          const bbox = geolocationDropdownButton.node.getBoundingClientRect();
+          geolocationDropdownMenu.open(bbox.x, bbox.bottom);
+        },
       });
 
-      this.addItem('LocationIndicator', locationIndicatorButton);
-      locationIndicatorButton.node.dataset.testid = 'location-indicator-button';
+      this.addItem('Geolocation', geolocationDropdownButton);
+      geolocationDropdownButton.node.dataset.testid = 'geolocation-button';
 
       const identifyButton = new CommandToolbarButton({
         id: CommandIDs.identify,
