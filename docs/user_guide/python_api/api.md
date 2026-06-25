@@ -35,6 +35,9 @@
 .. autoclass:: FieldPredicate
     :members:
 
+.. autoclass:: ExpressionPredicate
+    :members:
+
 .. autoclass:: Predicate
     :members:
 

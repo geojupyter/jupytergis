@@ -316,7 +316,9 @@ class GISDocument(CommWidget):
         """Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
+        :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
+        :param opacity: The opacity, between 0 and 1.
         :param symbology: The symbology configuration to persist with the layer.
         """
         if isinstance(path, Path) and data is not None:

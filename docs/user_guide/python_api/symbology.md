@@ -59,6 +59,53 @@ doc
 ```
 
 ```python
+from jupytergis import GISDocument, constant, field, vega_expr
+
+doc = GISDocument()
+
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
+doc.add_geojson_layer(
+    path="data/eq.geojson",
+    symbology=[
+        field("mag").encoding("radius"),
+        vega_expr(
+            "datum.mag > 7 ? 'red' : "
+            "datum.mag > 5 ? 'orange' : "
+            "datum.mag > 4 ? 'yellow' : "
+            "datum.mag > 3 ? 'cyan' : 'pink'",
+        ).encoding("fill"),
+        constant("green").encoding("stroke"),
+    ],
+)
+
+doc
+```
+
+```python
+from jupytergis import GISDocument, constant, python_expr
+
+doc = GISDocument()
+
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
+
+doc.add_geojson_layer(
+    path="data/france_regions.geojson",
+    symbology=[
+        python_expr(
+            "'purple' if datum.code > 80 else"
+            "'red' if datum.code > 60 else"
+            "'green' if datum.code > 40 else"
+            "'cyan' if datum.code > 20 else 'gray'",
+        ).encoding("fill"),
+        constant("black").encoding("stroke"),
+    ],
+)
+doc
+```
+
+```python
 from jupytergis import GISDocument, field
 
 doc = GISDocument()

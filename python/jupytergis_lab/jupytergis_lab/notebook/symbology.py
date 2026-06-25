@@ -326,7 +326,7 @@ class ExpressionPredicate:
             else _python_expr_to_vega_expr(self.code)
         )
         expr_scale = expression(vega_code, fallback=(0, 0, 0, 1))
-        return MappingChain(kind="constant", value=0, scale=expr_scale)
+        return MappingChain(kind="expr", value=0, scale=expr_scale)
 
     def encoding(self, *targets):
         return self._as_source().encoding(*targets)
@@ -344,7 +344,7 @@ class Mapping:
 class MappingChain:
     """Fluent chain for building a single mapping.
 
-    A mapping chain starts from ``field(...)`` or ``constant(...)``, optionally
+    A mapping chain starts from ``field(...)`` or ``constant(...)`` or ``expr(...)``, optionally
     applies a scale (``identity``, ``colormap``, ``categorical``, ``scalar``),
     and is finalized with ``encoding(...)``.
     """
@@ -361,7 +361,7 @@ class MappingChain:
     def __init__(
         self,
         *,
-        kind: Literal["field", "constant"],
+        kind: Literal["field", "constant", "expr"],
         value: str | float | RGBA | Sequence[float],
         scale: Any | None = None,
         scale_kind: ScaleKind | None = None,
@@ -519,6 +519,10 @@ class MappingChain:
             assert isinstance(self._value, str)
             fields = [self._value]
             scale = self._scale if self._scale is not None else _identity_scale()
+        elif self._kind == "expr":
+            assert self._scale is not None, "expression kind requires a scale"
+            fields = None
+            scale = self._scale
         else:
             fields = None
             if self._scale is not None:
