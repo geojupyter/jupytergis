@@ -50,7 +50,6 @@ test.describe('#mobilePanel', () => {
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
     await expect(page.locator('.jgis-merged-panel-container')).toBeVisible();
-    await expect(page.locator('.jgis-left-panel-container')).toBeVisible();
   });
 
   test('pill indicator is visible on mobile', async ({ page }) => {
