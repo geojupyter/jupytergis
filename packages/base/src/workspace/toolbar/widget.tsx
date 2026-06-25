@@ -18,7 +18,7 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { targetWithoutCenterIcon, terminalToolbarIcon } from '@/src/shared/icons';
+import { targetWithCenterIcon, terminalToolbarIcon } from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
@@ -139,7 +139,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
 
       const geolocationDropdownButton = new ToolbarButton({
-        icon: targetWithoutCenterIcon,
+        icon: targetWithCenterIcon,
         noFocusOnClick: false,
         onClick: () => {
           const bbox = geolocationDropdownButton.node.getBoundingClientRect();
