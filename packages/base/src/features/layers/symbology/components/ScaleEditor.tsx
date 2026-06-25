@@ -34,6 +34,7 @@ import {
   IComputedStop,
 } from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
+import { InfoTip } from '@/src/shared/components/InfoTip';
 
 function stopsToRows(
   stops: Array<{ stop: number | string; color: RGBA }>,
@@ -455,7 +456,26 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
-        <label>Vega Expression</label>
+        <label>
+          Vega Expression{' '}
+          <InfoTip text="Use Vega expressions to style features dynamically (e.g. conditional colors based on attributes like datum.population).">
+            <ul style={{ paddingLeft: 16, margin: 0 }}>
+              <li>
+                Access fields with <code>datum.fieldName</code>
+              </li>
+              <li>
+                Use ternary logic: <code>condition ? a : b</code>
+              </li>
+            </ul>
+            <a
+              href="https://vega.github.io/vega/docs/expressions/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Full Vega Expression Docs
+            </a>
+          </InfoTip>
+        </label>
         <div
           ref={editorRef}
           style={{
