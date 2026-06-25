@@ -317,6 +317,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
   locationIndicatorToggled: Signal<IJupyterGISModel, JgisCoordinates | null>;
+  mapRotationChanged: Signal<IJupyterGISModel, number>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;

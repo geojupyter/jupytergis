@@ -341,6 +341,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleLocationIndicatorToggled,
       this,
     );
+    this._model.mapRotationChanged.connect(this._handleMapRotationChanged, this);
 
     // Keep draw editing UI/interactions in sync with the shared editing mode.
     this._model.editingVectorLayerChanged.connect(
@@ -3568,6 +3569,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
       feature.set(`${selectedFeature}ms`, parsedTime);
     });
+  }
+
+  private _handleMapRotationChanged(_sender: any, rotation: number): void {
+    this._Map.getView().setRotation(rotation);
   }
 
   private _handleGeolocationChanged(

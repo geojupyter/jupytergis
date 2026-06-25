@@ -1530,13 +1530,16 @@ export function addCommands(
         return;
       }
 
-      _orientationHandler = (e: DeviceOrientationEvent) => {
-        console.log('deviceorientation', {
-          alpha: e.alpha,
-          beta: e.beta,
-          gamma: e.gamma,
-          absolute: e.absolute,
-        });
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
+      _orientationHandler = (mag: DeviceOrientationEvent) => {
+        if (mag.alpha === null) {
+          return;
+        }
+        viewModel.mapRotationChanged.emit((-mag.alpha * Math.PI) / 180);
       };
       window.addEventListener('deviceorientation', _orientationHandler);
       commands.notifyCommandChanged(CommandIDs.orientMap);
