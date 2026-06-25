@@ -10,7 +10,7 @@ from urllib.parse import unquote
 from uuid import uuid4
 
 from jupytergis_core.color_ramps import sample_colors
-from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
+from jupytergis_core.colors import coerce_rgba, rgb_to_hex
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
@@ -205,7 +205,7 @@ def qgis_layer_to_jgis(
                     .properties()
                     .get("outline_color", "0,0,0,255")
                 )
-                stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
+                stroke_rgba = coerce_rgba(rgb_to_hex(outline_color_str))
                 symb_state["strokeColor"] = list(stroke_rgba)
 
                 if isinstance(cat_symbol, QgsMarkerSymbol):
@@ -242,7 +242,7 @@ def qgis_layer_to_jgis(
                         .properties()
                         .get("outline_color", "0,0,0,255")
                     )
-                    stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
+                    stroke_rgba = coerce_rgba(rgb_to_hex(outline_color_str))
                     symb_state["strokeColor"] = list(stroke_rgba)
                     symb_state["geometryType"] = "circle"
                 elif isinstance(range_symbol, QgsLineSymbol):
@@ -257,12 +257,12 @@ def qgis_layer_to_jgis(
                         .properties()
                         .get("outline_color", "0,0,0,255")
                     )
-                    stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
+                    stroke_rgba = coerce_rgba(rgb_to_hex(outline_color_str))
                     symb_state["strokeColor"] = list(stroke_rgba)
                     symb_state["geometryType"] = "fill"
 
         if symbol:
-            r, g, b, a = hex_to_rgba(symbol.color().name())
+            r, g, b, a = coerce_rgba(symbol.color().name())
             fill_color = [r, g, b, a]
 
             if isinstance(symbol, QgsMarkerSymbol):
@@ -283,7 +283,7 @@ def qgis_layer_to_jgis(
                 outline_color_str = (
                     symbol.symbolLayer(0).properties().get("outline_color", "0,0,0,255")
                 )
-                stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
+                stroke_rgba = coerce_rgba(rgb_to_hex(outline_color_str))
                 symb_state["strokeColor"] = list(stroke_rgba)
                 symb_state["geometryType"] = "fill"
 
@@ -500,7 +500,7 @@ def import_project_from_qgis(path: str | Path):
 def _rgba_to_qcolor(rgba):
     """Convert an [r,g,b,a] list (a in 0-1) to QColor."""
     if isinstance(rgba, str) and rgba.startswith("#"):
-        r, g, b, a = hex_to_rgba(rgba)
+        r, g, b, a = coerce_rgba(rgba)
         return QColor(int(r), int(g), int(b), int(a * 255))
     if isinstance(rgba, list) and len(rgba) == 4:
         r, g, b, a = rgba

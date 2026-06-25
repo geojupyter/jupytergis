@@ -1,6 +1,6 @@
 import pytest
 
-from jupytergis_core.colors import coerce_rgba
+from jupytergis_core.colors import coerce_rgba, rgb_to_hex
 
 
 @pytest.mark.parametrize(
@@ -18,3 +18,15 @@ def test_colors(input, output):
 def test_invalid_color():
     with pytest.raises(ValueError, match="Invalid color"):
         coerce_rgba("blabla")
+
+
+@pytest.mark.parametrize(
+    "input,output",
+    [
+        pytest.param("255,0,0", "#ff0000", id="red"),
+        pytest.param("0,255,0,255", "#00ff00", id="green_with_alpha"),
+        pytest.param("0,0,255,128", "#0000ff", id="blue_with_alpha"),
+    ],
+)
+def test_rgb_to_hex(input, output):
+    assert rgb_to_hex(input) == output
