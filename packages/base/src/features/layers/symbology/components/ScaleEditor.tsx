@@ -5,7 +5,7 @@
 
 import { javascript } from '@codemirror/lang-javascript';
 import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, placeholder } from '@codemirror/view';
 import {
   ClassificationMode,
   ICategoricalScale,
@@ -413,6 +413,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
         javascript(),
         jupyterTheme,
         EditorView.lineWrapping,
+        placeholder("e.g. datum.value > 10 ? 'red' : 'blue'"),
         EditorView.updateListener.of(updateView => {
           if (updateView.docChanged) {
             const value = updateView.state.doc.toString();
@@ -454,7 +455,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
-        <label>Expression</label>
+        <label>Vega Expression</label>
         <div
           ref={editorRef}
           style={{
