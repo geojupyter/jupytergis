@@ -2083,7 +2083,7 @@ namespace Private {
       dialog,
       model,
       commands,
-      resolveMainViewContainer(tracker, model),
+      Private.resolveMainViewContainer(tracker, model),
     );
 
     try {
@@ -2271,7 +2271,7 @@ namespace Private {
     return `${cleanBase} Copy_${nextNumber}`;
   }
 
-  function resolveMainViewContainer(
+  export function resolveMainViewContainer(
     tracker: JupyterGISTracker,
     model: IJupyterGISModel,
   ): HTMLElement | null {

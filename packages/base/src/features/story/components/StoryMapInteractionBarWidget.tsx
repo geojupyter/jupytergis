@@ -1,11 +1,11 @@
 import { ReactWidget } from '@jupyterlab/apputils';
 import React from 'react';
 
-import type { StoryMapInteractionBarPlacement } from '../types/types';
 import {
   StoryMapInteractionBar,
   type IStoryMapInteractionBarProps,
 } from '@/src/features/story/components/StoryMapInteractionBar';
+import type { StoryMapInteractionBarPlacement } from '../types/types';
 
 interface IStoryMapInteractionBarWidgetOptions extends IStoryMapInteractionBarProps {
   placement?: StoryMapInteractionBarPlacement;

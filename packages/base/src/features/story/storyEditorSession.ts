@@ -9,12 +9,12 @@ import {
   MapPreviewBarActions,
   MapViewBarActions,
 } from './components/MapInteractionBarActions';
-import {
-  StoryMapInteractionBarWidget,
-} from './components/StoryMapInteractionBarWidget';
-import type { StoryMapInteractionBarPlacement } from './types/types';
+import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
 import type { StoryEditorWidget } from './storyEditorDialog';
-import type { IOverrideLayerEntry } from './types/types';
+import type {
+  IOverrideLayerEntry,
+  StoryMapInteractionBarPlacement,
+} from './types/types';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
 import {
   applySegmentLayerOverrides,
