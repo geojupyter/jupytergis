@@ -48,7 +48,6 @@
     "longitude": -19.952643100704634,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "storyMapPresentationMode": false,
     "zoom": 8.544160986142069
   },
   "schemaVersion": "0.6.0",
