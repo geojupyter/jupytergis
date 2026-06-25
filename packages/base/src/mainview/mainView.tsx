@@ -2539,10 +2539,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    if (!this._contextMenuAttached) {
-      if (!this._model.isSpectaMode()) {
-        this.addContextMenu();
-      }
+    if (!this._contextMenuAttached && !this._model.isSpectaMode()) {
+      this.addContextMenu();
       this._contextMenuAttached = true;
     }
 

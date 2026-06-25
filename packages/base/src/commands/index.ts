@@ -1893,7 +1893,7 @@ export function addCommands(
         return;
       }
 
-      await Private.launchStoryEditor(
+      await Private.createStoryEditor(
         current.model,
         commands,
         formSchemaRegistry,
@@ -1945,7 +1945,7 @@ export function addCommands(
     },
   });
 
-  /* Enabled during story presentation (Specta embed or in-lab preview). */
+  /* Enabled during story presentation (Specta or lab preview). */
   originalAddCommand(CommandIDs.storyPrev, {
     label: trans.__('Previous Story Segment'),
     isEnabled: () => {
@@ -2064,7 +2064,7 @@ export function addCommands(
 }
 
 namespace Private {
-  export async function launchStoryEditor(
+  export async function createStoryEditor(
     model: IJupyterGISModel,
     commands: CommandRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry,

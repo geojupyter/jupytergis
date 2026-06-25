@@ -741,7 +741,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
-   * Whether the story viewer presentation UI should be shown (Specta embed or
+   * Whether the story viewer presentation UI should be shown (Specta or
    * in-lab preview).
    */
   isStoryPresentationActive(): boolean {
