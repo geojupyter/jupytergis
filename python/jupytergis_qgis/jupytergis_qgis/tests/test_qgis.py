@@ -4,7 +4,13 @@ from uuid import uuid4
 
 from dirty_equals import IsPartialDict, IsStr
 
-from ..qgis_loader import export_project_to_qgis, import_project_from_qgis
+from ..qgis_loader import (
+    _parse_gdal_gpkg_source,
+    _parse_ogr_gpkg_source,
+    _to_gdal_readable_path,
+    export_project_to_qgis,
+    import_project_from_qgis,
+)
 
 FILES = Path(__file__).parent / "files"
 
@@ -337,3 +343,186 @@ def test_qgis_saver():
     imported_jgis = import_project_from_qgis(filename)
 
     assert jgis == imported_jgis
+
+
+def test_gpkg_uri_helpers_handle_remote_urls():
+    """Remote GeoPackage sources must be wrapped in /vsicurl/ for GDAL/OGR,
+    and that prefix must be stripped again on import so the jgis path stays
+    clean."""
+    url = "https://example.com/data.gpkg"
+    assert _to_gdal_readable_path(url) == "/vsicurl/" + url
+    assert _to_gdal_readable_path("/local/file.gpkg") == "/local/file.gpkg"
+
+    assert _parse_ogr_gpkg_source(f"/vsicurl/{url}|layername=foo") == (url, "foo")
+    assert _parse_ogr_gpkg_source("/a/b.gpkg|layername=bar") == ("/a/b.gpkg", "bar")
+    assert _parse_ogr_gpkg_source("/not/a/gpkg") is None
+
+    assert _parse_gdal_gpkg_source(f"GPKG:/vsicurl/{url}:tiles") == (url, "tiles")
+    assert _parse_gdal_gpkg_source("GPKG:/a/b.gpkg:tiles") == ("/a/b.gpkg", "tiles")
+    assert _parse_gdal_gpkg_source("GPKG:/a/b.gpkg") == ("/a/b.gpkg", None)
+    assert _parse_gdal_gpkg_source("/not/gpkg") is None
+
+
+def _base_options():
+    return {
+        "bearing": 0.0,
+        "pitch": 0,
+        "projection": "EPSG:3857",
+        "extent": [
+            -25164292.70393259,
+            -15184674.291019961,
+            26220958.18294687,
+            20663680.478501424,
+        ],
+        "useExtent": True,
+    }
+
+
+def test_qgis_bundles_local_geojson_to_sidecar_gpkg():
+    """Exporting a jgis whose vector source is a local GeoJSON should produce
+    a sidecar .gpkg next to the .qgz, and the re-imported jgis should reference
+    that sidecar via a GeoPackageVectorSource."""
+    geojson_path = str(FILES / "sample.geojson")
+    project_path = FILES / "project_bundle.qgz"
+    sidecar_path = FILES / "project_bundle.gpkg"
+    for p in (project_path, sidecar_path):
+        if p.exists():
+            p.unlink()
+
+    layer_id = str(uuid4())
+    source_id = str(uuid4())
+    jgis = {
+        "options": _base_options(),
+        "layers": {
+            layer_id: {
+                "name": "Sample Layer",
+                "parameters": {
+                    "color": {
+                        "fill-color": "#4ea4d0",
+                        "stroke-color": "#000000",
+                    },
+                    "opacity": 1.0,
+                    "source": source_id,
+                    "symbologyState": {"renderType": "Single Symbol"},
+                    "type": "fill",
+                },
+                "type": "VectorLayer",
+                "visible": True,
+            },
+        },
+        "layerTree": [layer_id],
+        "sources": {
+            source_id: {
+                "name": "Sample Source",
+                "type": "GeoJSONSource",
+                "parameters": {"path": geojson_path},
+            },
+        },
+        "metadata": {},
+    }
+
+    logs = export_project_to_qgis(str(project_path), jgis)
+    assert logs is not None
+    assert logs.get("errors") == []
+    assert sidecar_path.exists(), "Sidecar GeoPackage was not created"
+
+    imported_jgis = import_project_from_qgis(str(project_path))
+    imported_source = next(iter(imported_jgis["sources"].values()))
+    assert imported_source["type"] == "GeoPackageVectorSource"
+    assert imported_source["parameters"]["path"] == str(sidecar_path)
+    assert imported_source["parameters"]["tables"] == "sample"
+
+
+def test_qgis_geopackage_round_trip():
+    """A jgis with a GeoPackageVectorSource should round-trip through .qgz
+    while preserving the source type, path, and table name."""
+    geojson_path = str(FILES / "sample.geojson")
+    seed_project = FILES / "project_seed.qgz"
+    gpkg_path = FILES / "project_seed.gpkg"
+    for p in (seed_project, gpkg_path):
+        if p.exists():
+            p.unlink()
+
+    seed_layer_id = str(uuid4())
+    seed_source_id = str(uuid4())
+    seed_jgis = {
+        "options": _base_options(),
+        "layers": {
+            seed_layer_id: {
+                "name": "Seed Layer",
+                "parameters": {
+                    "color": {
+                        "fill-color": "#4ea4d0",
+                        "stroke-color": "#000000",
+                    },
+                    "opacity": 1.0,
+                    "source": seed_source_id,
+                    "symbologyState": {"renderType": "Single Symbol"},
+                    "type": "fill",
+                },
+                "type": "VectorLayer",
+                "visible": True,
+            }
+        },
+        "layerTree": [seed_layer_id],
+        "sources": {
+            seed_source_id: {
+                "name": "Seed Source",
+                "type": "GeoJSONSource",
+                "parameters": {"path": geojson_path},
+            }
+        },
+        "metadata": {},
+    }
+    export_project_to_qgis(str(seed_project), seed_jgis)
+    assert gpkg_path.exists()
+
+    project_path = FILES / "project_gpkg.qgz"
+    if project_path.exists():
+        project_path.unlink()
+
+    layer_id = str(uuid4())
+    source_id = str(uuid4())
+    jgis = {
+        "options": _base_options(),
+        "layers": {
+            layer_id: {
+                "name": "GeoPackage Layer",
+                "parameters": {
+                    "color": {
+                        "fill-color": "#4ea4d0",
+                        "stroke-color": "#000000",
+                    },
+                    "opacity": 1.0,
+                    "source": source_id,
+                    "symbologyState": {"renderType": "Single Symbol"},
+                    "type": "fill",
+                },
+                "type": "VectorLayer",
+                "visible": True,
+            }
+        },
+        "layerTree": [layer_id],
+        "sources": {
+            source_id: {
+                "name": "GeoPackage Source",
+                "type": "GeoPackageVectorSource",
+                "parameters": {
+                    "path": str(gpkg_path),
+                    "tables": "sample",
+                    "projection": "EPSG:4326",
+                },
+            }
+        },
+        "metadata": {},
+    }
+    logs = export_project_to_qgis(str(project_path), jgis)
+    assert logs is not None
+    assert logs.get("errors") == []
+
+    imported_jgis = import_project_from_qgis(str(project_path))
+    imported_source = imported_jgis["sources"][source_id]
+    assert imported_source["type"] == "GeoPackageVectorSource"
+    assert imported_source["parameters"]["path"] == str(gpkg_path)
+    assert imported_source["parameters"]["tables"] == "sample"
+    assert imported_jgis["layers"][layer_id]["type"] == "VectorLayer"
