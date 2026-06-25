@@ -1980,3 +1980,276 @@ def test_colorramp_name_survives_reopen(tmp_path):
     # The picker's ramp name + direction are restored, not defaulted to viridis.
     assert params["name"] == "plasma"
     assert params["reverse"] is True
+
+
+def test_heatmap_ramp_only_first_stop_transparent():
+    """The heatmap gradient is opaque except its first stop.
+
+    A QGIS heatmap maps density 0 to the ramp's first colour, so only that stop
+    stays transparent (else the heatmap paints the whole canvas); every other stop
+    is fully opaque, matching the source ramp (the old gradual alpha ramp wrongly
+    left the first few stops semi-transparent).
+    """
+    from ..grammar import _heatmap_color_ramp
+
+    grammar_layer = {
+        "rules": [
+            {
+                "fields": ["$density"],
+                "mappings": [
+                    {
+                        "channels": ["pixel-rgb"],
+                        "scale": {
+                            "scheme": "colorRamp",
+                            "params": {"name": "viridis", "reverse": False},
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+    ramp = _heatmap_color_ramp(grammar_layer)
+    assert ramp is not None
+    assert ramp.color1().alpha() == 0  # density 0 -> transparent
+    assert ramp.color2().alpha() == 255  # peak density -> opaque
+    # Every interior stop is opaque too (no lingering semi-transparency).
+    assert [stop.color.alpha() for stop in ramp.stops()] == [255] * len(ramp.stops())
+
+
+def _vector_tile_ramp_jgis(lid, sid, line_stroke_rgba, stroke_width):
+    """A vector tile with a Polygon colorRamp + width and a LineString stroke."""
+    state = {
+        "layers": [
+            {
+                "id": "poly",
+                "when": [{"type": "geometryType", "value": "Polygon"}],
+                "rules": [
+                    {
+                        "id": "r-fill",
+                        "fields": ["best_age_top"],
+                        "mappings": [
+                            {
+                                "channels": ["fill-color", "stroke-color"],
+                                "scale": {
+                                    "scheme": "colorRamp",
+                                    "params": {
+                                        "name": "viridis",
+                                        "colorStops": [
+                                            {
+                                                "stop": 1.0,
+                                                "color": [68.0, 1.0, 84.0, 1.0],
+                                            },
+                                            {
+                                                "stop": 100.0,
+                                                "color": [59.0, 81.0, 139.0, 1.0],
+                                            },
+                                            {
+                                                "stop": 3600.0,
+                                                "color": [253.0, 231.0, 37.0, 1.0],
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "id": "r-width",
+                        "mappings": [
+                            {
+                                "channels": ["stroke-width"],
+                                "scale": {
+                                    "scheme": "constant_num",
+                                    "params": {"value": stroke_width},
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "id": "line",
+                "when": [{"type": "geometryType", "value": "LineString"}],
+                "rules": [
+                    {
+                        "id": "r-line",
+                        "mappings": [
+                            _constant_rgba(line_stroke_rgba, ["stroke-color"]),
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    return {
+        "options": {
+            "projection": "EPSG:3857",
+            "extent": [-2e7, -1e7, 2e7, 1e7],
+            "useExtent": True,
+        },
+        "metadata": {},
+        "layers": {
+            lid: {
+                "name": "Tiles",
+                "type": "VectorTileLayer",
+                "visible": True,
+                "parameters": {"opacity": 1.0, "source": sid, "symbologyState": state},
+            },
+        },
+        "sources": {
+            sid: {
+                "name": "src",
+                "type": "VectorTileSource",
+                "parameters": {
+                    "url": "https://example.com/tiles/{z}/{x}/{y}.pbf",
+                    "minZoom": 0,
+                    "maxZoom": 14,
+                },
+            },
+        },
+        "layerTree": [lid],
+    }
+
+
+def test_vector_tile_colorramp_width_alpha_roundtrip():
+    """A vector-tile colorRamp keeps its first stop, stroke width and stroke alpha.
+
+    The first colorRamp stop (the domain minimum) used to be dropped and the next
+    class shifted onto it; a constant stroke width was dropped entirely; a stroke
+    colour's alpha came back fully opaque. All three now survive the round trip.
+    """
+    filename = FILES / "project_vt_ramp.qgz"
+    if os.path.exists(filename):
+        os.remove(filename)
+
+    lid, sid = str(uuid4()), str(uuid4())
+    assert export_project_to_qgis(
+        filename,
+        _vector_tile_ramp_jgis(lid, sid, [0.0, 0.0, 0.0, 0.72], 1.25),
+    )
+    imported = import_project_from_qgis(filename)
+    vt = next(
+        layer
+        for layer in imported["layers"].values()
+        if layer["type"] == "VectorTileLayer"
+    )
+    state = vt["parameters"]["symbologyState"]
+
+    polygon = next(
+        gl
+        for gl in state["layers"]
+        if gl.get("when", [{}])[0].get("value") == "Polygon"
+    )
+    scheme, params, fields, _ = _mapping_for_channel(polygon, "fill-color")
+    assert scheme == "colorRamp"
+    assert fields == ["best_age_top"]
+    stops = params["colorStops"]
+    # The first stop (value == 1) survives and is not collapsed into the next.
+    assert stops[0]["stop"] == 1.0
+    assert stops[0]["color"][:3] == [68, 1, 84]
+    assert [s["stop"] for s in stops] == [1.0, 100.0, 3600.0]
+    # The constant polygon stroke width round-trips.
+    width_scheme, width_params, _, _ = _mapping_for_channel(polygon, "stroke-width")
+    assert width_scheme == "constant_num"
+    assert width_params["value"] == 1.25
+
+    line = next(
+        gl
+        for gl in state["layers"]
+        if gl.get("when", [{}])[0].get("value") == "LineString"
+    )
+    _, line_params, _, _ = _mapping_for_channel(line, "stroke-color")
+    # Alpha survives (8-bit colour precision -> ~0.72).
+    assert abs(line_params["value"][3] - 0.72) < 0.01
+
+
+def test_vector_tile_identical_geometry_rules_collapse():
+    """An ungated categorical split across geometries folds back into one layer.
+
+    Exporting an ungated categorical colour produces one style set per geometry
+    (polygon/line/point); the reimport must detect they are identical and emit a
+    single ungated grammar layer instead of three geometryType-gated ones.
+    """
+    filename = FILES / "project_vt_collapse.qgz"
+    if os.path.exists(filename):
+        os.remove(filename)
+
+    lid, sid = str(uuid4()), str(uuid4())
+    categorical = {
+        "scheme": "categorical",
+        "params": {
+            "colorRamp": "custom",
+            "reverse": False,
+            "fallback": [0, 0, 0, 0],
+            "colorStops": [
+                {"stop": "water", "color": [0.0, 0.0, 255.0, 1.0]},
+                {"stop": "land", "color": [0.0, 255.0, 0.0, 1.0]},
+            ],
+        },
+    }
+    state = {
+        "layers": [
+            {
+                "id": "tz",
+                "rules": [
+                    {
+                        "id": "r",
+                        "fields": ["Layer"],
+                        "mappings": [
+                            {
+                                "channels": [
+                                    "fill-color",
+                                    "stroke-color",
+                                    "circle-fill-color",
+                                    "circle-stroke-color",
+                                ],
+                                "scale": categorical,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    jgis = {
+        "options": {
+            "projection": "EPSG:3857",
+            "extent": [-2e7, -1e7, 2e7, 1e7],
+            "useExtent": True,
+        },
+        "metadata": {},
+        "layers": {
+            lid: {
+                "name": "Tiles",
+                "type": "VectorTileLayer",
+                "visible": True,
+                "parameters": {"opacity": 1.0, "source": sid, "symbologyState": state},
+            },
+        },
+        "sources": {
+            sid: {
+                "name": "src",
+                "type": "VectorTileSource",
+                "parameters": {
+                    "url": "https://example.com/tiles/{z}/{x}/{y}.pbf",
+                    "minZoom": 0,
+                    "maxZoom": 14,
+                },
+            },
+        },
+        "layerTree": [lid],
+    }
+    assert export_project_to_qgis(filename, jgis)
+    imported = import_project_from_qgis(filename)
+    vt = next(
+        layer
+        for layer in imported["layers"].values()
+        if layer["type"] == "VectorTileLayer"
+    )
+    layers = vt["parameters"]["symbologyState"]["layers"]
+    # One ungated layer, not three geometryType-gated rules.
+    assert len(layers) == 1
+    assert not layers[0].get("when")
+    scheme, _, fields, _ = _mapping_for_channel(layers[0], "fill-color")
+    assert scheme == "categorical"
+    assert fields == ["Layer"]

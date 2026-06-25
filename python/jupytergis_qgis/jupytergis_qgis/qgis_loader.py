@@ -195,6 +195,7 @@ def _vt_spec_to_style(spec: dict, index: int):
     geom = spec["geom"]
     fill = spec.get("fill")
     stroke = spec.get("stroke")
+    width = spec.get("width")
     if geom == 2:  # polygon
         symbol = QgsFillSymbol()
         symbol_layer = symbol.symbolLayer(0)
@@ -204,11 +205,16 @@ def _vt_spec_to_style(spec: dict, index: int):
             symbol_layer.setStrokeColor(_vt_qcolor(stroke))
         else:
             symbol_layer.setStrokeStyle(Qt.NoPen)
+        if width is not None:
+            symbol_layer.setStrokeWidth(width)
     elif geom == 1:  # line — its single colour is the stroke (fall back to fill)
         symbol = QgsLineSymbol()
+        symbol_layer = symbol.symbolLayer(0)
         color = stroke if stroke is not None else fill
         if color is not None:
             symbol.setColor(_vt_qcolor(color))
+        if width is not None:
+            symbol_layer.setWidth(width)
     elif geom == 0:  # point
         symbol = QgsMarkerSymbol()
         symbol_layer = symbol.symbolLayer(0)
@@ -216,6 +222,8 @@ def _vt_spec_to_style(spec: dict, index: int):
             symbol.setColor(_vt_qcolor(fill))
         if stroke is not None:
             symbol_layer.setStrokeColor(_vt_qcolor(stroke))
+        if width is not None:
+            symbol_layer.setStrokeWidth(width)
     else:
         return None
 
@@ -232,11 +240,42 @@ def _vt_spec_to_style(spec: dict, index: int):
 
 
 def _vt_style_color(style) -> list:
-    """The primary colour of a vector-tile style as a grammar [r, g, b, a] list."""
-    symbol = style.symbol()
-    rgba = list(hex_to_rgba(symbol.color().name()))
-    rgba[3] = symbol.opacity()
-    return rgba
+    """The primary colour of a vector-tile style as a grammar [r, g, b, a] list.
+
+    Alpha rides on the symbol colour (``QColor.alphaF()``), not the symbol opacity
+    -- the exporter writes the colour with its alpha baked in, so reading
+    ``symbol.opacity()`` (always 1.0) dropped the transparency (e.g. a line stroke
+    ``[0, 0, 0, 0.72]`` came back fully opaque).
+    """
+    color = style.symbol().color()
+    return [color.red(), color.green(), color.blue(), color.alphaF()]
+
+
+def _vt_style_width(style) -> float | None:
+    """A vector-tile style's *explicit* constant stroke width, or None.
+
+    A line's width is its own; a polygon/point width is its outline's, reported
+    only when an outline is drawn (skips QGIS's default ``NoPen`` fills). A width
+    equal to QGIS's default for that symbol is treated as unset, so the round trip
+    doesn't invent a width row the source never had.
+    """
+    geom = int(style.geometryType())
+    symbol_layer = style.symbol().symbolLayer(0)
+    if geom == 1:  # line
+        width = symbol_layer.width()
+        fresh = QgsLineSymbol()
+        default = fresh.symbolLayer(0).width()
+        return width if width != default else None
+    stroke_style = getattr(symbol_layer, "strokeStyle", None)
+    if stroke_style is not None and stroke_style() == Qt.NoPen:
+        return None
+    stroke_width = getattr(symbol_layer, "strokeWidth", None)
+    if stroke_width is None:
+        return None
+    width = stroke_width()
+    fresh = QgsFillSymbol() if geom == 2 else QgsMarkerSymbol()
+    default = fresh.symbolLayer(0).strokeWidth()
+    return width if width != default else None
 
 
 def _vt_parse_filter(expr: str):
@@ -310,7 +349,14 @@ def _vt_reconstruct(styles) -> tuple:
             categories.append({"stop": parsed[1], "color": color})
 
     if field and categories and not ranges:
-        return ("categorical", field, categories)
+        seen: set = set()
+        unique = []
+        for category in categories:
+            key = str(category["stop"])
+            if key not in seen:
+                seen.add(key)
+                unique.append(category)
+        return ("categorical", field, unique)
     if field and ranges:
         # Order by lower bound (open first class sorts first); each class's stop is
         # its lower bound, so the ramp spans the recovered class breaks.
@@ -822,7 +868,15 @@ def qgis_layer_to_jgis(
             geom: {("stroke" if geom == 1 else "fill"): _vt_reconstruct(styles)}
             for geom, styles in styles_by_geom.items()
         }
-        layer_parameters["symbologyState"] = vector_tile_grammar(geom_styles)
+        geom_widths = {
+            geom: width
+            for geom, styles in styles_by_geom.items()
+            if (width := _vt_style_width(styles[0])) is not None
+        }
+        layer_parameters["symbologyState"] = vector_tile_grammar(
+            geom_styles,
+            geom_widths,
+        )
 
     if layer_type is None:
         print(f"JUPYTERGIS - Unable to load layer type {type(layer)}")

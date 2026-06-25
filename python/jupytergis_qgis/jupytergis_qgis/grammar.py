@@ -514,10 +514,12 @@ def grammar_layer_alpha_factor(grammar_layer: dict[str, Any]) -> float:
 def _heatmap_color_ramp(grammar_layer):
     """A QGIS heatmap gradient from the layer's colorRamp scale, or None.
 
-    Alpha ramps from 0 (transparent) at low density to opaque at high density: a
-    QGIS heatmap maps density 0 -> the ramp's first colour, so an opaque first
-    colour paints the whole extent (the heatmap "covering the map"). The hues come
-    from the named ramp (e.g. viridis) so hotspots read as the expected colours.
+    Only the first stop (density 0) is transparent; every other stop is fully
+    opaque. A QGIS heatmap maps density 0 -> the ramp's first colour, so an opaque
+    first colour would paint the whole extent (the heatmap "covering the map") --
+    keeping just that one stop transparent avoids it while matching the source
+    ramp, which is opaque (the earlier gradual alpha ramp wrongly left the first
+    few stops semi-transparent). The hues come from the named ramp (e.g. viridis).
     """
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
@@ -532,9 +534,9 @@ def _heatmap_color_ramp(grammar_layer):
             )
             last = _HEATMAP_RAMP_STOPS - 1
 
-            def _stop_color(i: int, colors: list = colors, last: int = last) -> QColor:
+            def _stop_color(i: int, colors: list = colors) -> QColor:
                 r, g, b = colors[i][0], colors[i][1], colors[i][2]
-                alpha = round(255 * min(1.0, 4 * i / last))
+                alpha = 0 if i == 0 else 255
                 return QColor(int(r), int(g), int(b), alpha)
 
             ramp = QgsGradientColorRamp(_stop_color(0), _stop_color(last))
@@ -622,12 +624,49 @@ def _vt_layer_geom(grammar_layer: dict[str, Any]) -> int | None:
     return None
 
 
+def _vt_layer_widths(
+    grammar_layer: dict[str, Any],
+    gate: int | None,
+) -> dict[int, float]:
+    """Constant stroke widths a layer applies, keyed by geometry.
+
+    ``stroke-width`` drives line and polygon-outline width; ``circle-stroke-width``
+    drives point-outline width. A gated layer routes both to its one geometry.
+    """
+    widths: dict[int, float] = {}
+    for rule in grammar_layer.get("rules", []):
+        for mapping in rule.get("mappings", []):
+            scale = mapping.get("scale", {})
+            if scale.get("scheme") != "constant_num":
+                continue
+            value = scale.get("params", {}).get("value")
+            if value is None:
+                continue
+            channels = set(mapping.get("channels", []))
+            if "stroke-width" in channels:
+                geoms = (
+                    (gate,) if gate is not None else (_VT_GEOM_LINE, _VT_GEOM_POLYGON)
+                )
+                for geom in geoms:
+                    widths.setdefault(geom, float(value))
+            if "circle-stroke-width" in channels:
+                geoms = (gate,) if gate is not None else (_VT_GEOM_POINT,)
+                for geom in geoms:
+                    widths.setdefault(geom, float(value))
+    return widths
+
+
 def _ramp_classes(field: str, stops: list) -> list[tuple[str, list]] | None:
     """Split a colorRamp into N constant-colour classes over a numeric field.
 
-    N stops -> N intervals: ``< s1``, ``[s1, s2)``, ..., ``>= s(N-1)``, each
+    N stops -> N intervals: ``[s0, s1)``, ``[s1, s2)``, ..., ``>= s(N-1)``, each
     coloured by its stop. Discrete (not a smooth gradient), but renders identically
     in every QGIS version — unlike a data-defined colour expression.
+
+    The first class keeps its lower bound ``>= s0`` (s0 is the ramp's first stop,
+    i.e. the domain minimum, so no in-range feature is excluded) so the first stop
+    survives the round trip; an open ``< s1`` would lose s0 and let the reimport
+    collapse the first two classes into one.
     """
     points: list[tuple[float, list]] = []
     for stop in stops:
@@ -646,9 +685,7 @@ def _ramp_classes(field: str, stops: list) -> list[tuple[str, list]] | None:
     classes = []
     last = len(points) - 1
     for i, (value, color) in enumerate(points):
-        if i == 0:
-            expr = f'"{field}" < {points[1][0]}'
-        elif i == last:
+        if i == last:
             expr = f'"{field}" >= {value}'
         else:
             expr = f'"{field}" >= {value} AND "{field}" < {points[i + 1][0]}'
@@ -749,12 +786,14 @@ def grammar_to_vector_tile_styles(
     A data-driven colour (colorRamp / categorical) becomes several styles, one per
     class, each a value filter plus a constant colour, because QGIS data-defined
     symbol colours do NOT round-trip across QGIS versions (3.40 writes them, 3.44
-    drops them) while plain constant-colour styles render everywhere. Returns
-    ``[{"geom", "filter", "fill", "stroke"}, ...]``.
+    drops them) while plain constant-colour styles render everywhere. A constant
+    stroke width rides on every class of its geometry. Returns
+    ``[{"geom", "filter", "fill", "stroke"[, "width"]}, ...]``.
     """
     specs: list[dict[str, Any]] = []
     for grammar_layer in symbology_state.get("layers") or []:
         gate = _vt_layer_geom(grammar_layer)
+        layer_specs: list[dict[str, Any]] = []
         for rule in grammar_layer.get("rules", []):
             field = (rule.get("fields") or [None])[0]
             if gate is not None:
@@ -765,7 +804,7 @@ def grammar_to_vector_tile_styles(
                         fill_scale = mapping.get("scale", {})
                     if channels & _STROKE_COLOR_CHANNELS:
                         stroke_scale = mapping.get("scale", {})
-                specs.extend(
+                layer_specs.extend(
                     _emit_vt_specs(
                         gate,
                         fill_scale,
@@ -786,9 +825,16 @@ def grammar_to_vector_tile_styles(
                         geom, slot = target
                         fill = scale if slot == "fill" else None
                         stroke = scale if slot == "stroke" else None
-                        specs.extend(
+                        layer_specs.extend(
                             _emit_vt_specs(geom, fill, stroke, field, logs, layer_id),
                         )
+
+        widths = _vt_layer_widths(grammar_layer, gate)
+        for spec in layer_specs:
+            width = widths.get(spec["geom"])
+            if width is not None:
+                spec["width"] = width
+        specs.extend(layer_specs)
     return specs
 
 
@@ -835,14 +881,59 @@ def _vt_instr_to_scale(instr: tuple) -> tuple[dict | None, str | None]:
     return None, None
 
 
+def _vt_width_mapping(geom: int, width: float) -> dict[str, Any]:
+    """A constant stroke-width mapping for a geometry's import."""
+    channel = "circle-stroke-width" if geom == _VT_GEOM_POINT else "stroke-width"
+    return {
+        "scale": {"scheme": "constant_num", "params": {"value": width}},
+        "channels": [channel],
+    }
+
+
 def vector_tile_grammar(
     geom_styles: dict[int, dict[str, tuple]],
+    geom_widths: dict[int, float] | None = None,
 ) -> dict[str, Any]:
     """Grammar for a vector tile from per-geometry colour instructions.
 
     Inverse of :func:`grammar_to_vector_tile_styles`: each geometry becomes a
-    ``when: geometryType`` gated layer carrying its fill/stroke colour scales.
+    ``when: geometryType`` gated layer carrying its fill/stroke colour scales and
+    any constant stroke width.
+
+    When every geometry reconstructs to the *same* data-driven colour (QGIS export
+    splits one ungated colorRamp/categorical into a style set per geometry), the
+    geometries are folded back into a single ungated layer rather than emitting one
+    identical rule per geometry.
     """
+    geom_widths = geom_widths or {}
+
+    colour_instrs = [
+        (geom, slot, instr)
+        for geom, slots in geom_styles.items()
+        for slot, instr in slots.items()
+    ]
+    data_driven = [t for t in colour_instrs if t[2][0] in ("colorRamp", "categorical")]
+    if (
+        len(data_driven) > 1
+        and len(data_driven) == len(colour_instrs)
+        and all(instr == data_driven[0][2] for _, _, instr in data_driven)
+    ):
+        scale, field = _vt_instr_to_scale(data_driven[0][2])
+        channels = []
+        for geom, slot, _ in data_driven:
+            channel = _VT_IMPORT_CHANNELS.get((geom, slot))
+            if channel and channel not in channels:
+                channels.append(channel)
+        mappings: list[dict[str, Any]] = [{"scale": scale, "channels": channels}]
+        for geom, width in geom_widths.items():
+            mapping = _vt_width_mapping(geom, width)
+            if mapping not in mappings:
+                mappings.append(mapping)
+        rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
+        if field:
+            rule["fields"] = [field]
+        return {"layers": [{"id": _new_id(), "rules": [rule]}]}
+
     layers = []
     for geom, slots in geom_styles.items():
         mappings = []
@@ -857,9 +948,11 @@ def vector_tile_grammar(
             if scale_field:
                 field = scale_field
             mappings.append({"scale": scale, "channels": [channel]})
+        if geom in geom_widths:
+            mappings.append(_vt_width_mapping(geom, geom_widths[geom]))
         if not mappings:
             continue
-        rule: dict[str, Any] = {"id": _new_id(), "mappings": mappings}
+        rule = {"id": _new_id(), "mappings": mappings}
         if field:
             rule["fields"] = [field]
         layer: dict[str, Any] = {"id": _new_id(), "rules": [rule]}
