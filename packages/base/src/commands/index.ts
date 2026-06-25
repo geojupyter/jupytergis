@@ -1516,6 +1516,33 @@ export function addCommands(
     },
   });
 
+  let _orientationHandler: ((e: DeviceOrientationEvent) => void) | null = null;
+
+  commands.addCommand(CommandIDs.orientMap, {
+    label: trans.__('Orient Map'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => _orientationHandler !== null,
+    execute: () => {
+      if (_orientationHandler !== null) {
+        window.removeEventListener('deviceorientation', _orientationHandler);
+        _orientationHandler = null;
+        commands.notifyCommandChanged(CommandIDs.orientMap);
+        return;
+      }
+
+      _orientationHandler = (e: DeviceOrientationEvent) => {
+        console.log('deviceorientation', {
+          alpha: e.alpha,
+          beta: e.beta,
+          gamma: e.gamma,
+          absolute: e.absolute,
+        });
+      };
+      window.addEventListener('deviceorientation', _orientationHandler);
+      commands.notifyCommandChanged(CommandIDs.orientMap);
+    },
+  });
+
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Toggle Left Panel'),
