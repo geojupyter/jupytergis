@@ -137,6 +137,10 @@ export class ToolbarWidget extends ReactiveToolbar {
         type: 'command',
         command: CommandIDs.toggleLocationIndicator,
       });
+      geolocationDropdownMenu.addItem({
+        type: 'command',
+        command: CommandIDs.orientMap,
+      });
 
       const geolocationDropdownButton = new ToolbarButton({
         icon: targetWithCenterIcon,

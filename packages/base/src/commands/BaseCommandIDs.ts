@@ -14,6 +14,7 @@ export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
+export const orientMap = 'jupytergis:orientMap';
 
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
