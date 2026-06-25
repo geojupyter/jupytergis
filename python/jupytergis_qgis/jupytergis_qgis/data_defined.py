@@ -44,9 +44,13 @@ from .grammar import (
     _STROKE_WIDTH_CHANNELS,
     _TRANSPARENT,
     _cluster_renderer,
+    _comparison_node,
+    _expr_to_when,
+    _extract_symbol_style,
     _heatmap_renderer,
     _new_id,
     _rgba_to_qcolor,
+    _scalar_from_property,
     _scalar_size_expr,
     _scale_linear_expr,
     _sql_literal,
@@ -480,9 +484,6 @@ def _parse_color_expr(expr: str):
     - ``("guarded", else_rgba, [(when, when_op, rgba), ...])`` — anything else,
     - ``None`` — not a recognised CASE (caller uses the symbol's constant colour).
     """
-    # Imported lazily: these live in qgis_loader, which imports this module.
-    from .qgis_loader import _comparison_node, _expr_to_when
-
     parsed = QgsExpression(expr or "")
     if parsed.hasParserError() or parsed.rootNode() is None:
         return None
@@ -622,8 +623,6 @@ def dd_symbol_to_grammar(symbol, ramp_meta=None):
     become guarded rules. ``ramp_meta`` is the layer's stashed per-slot ramp
     identity (see :func:`_ramp_meta`) restoring the named ramp on each colour slot.
     """
-    from .qgis_loader import _extract_symbol_style, _scalar_from_property
-
     ramp_meta = ramp_meta or {}
     fill, stroke, stroke_width, radius, geometry = _extract_symbol_style(symbol)
     is_line = geometry == "line"

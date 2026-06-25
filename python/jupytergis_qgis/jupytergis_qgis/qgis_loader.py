@@ -11,7 +11,6 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
-from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
@@ -20,9 +19,6 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsDataSourceUri,
     QgsExpression,
     QgsExpressionNodeBinaryOperator,
-    QgsExpressionNodeColumnRef,
-    QgsExpressionNodeFunction,
-    QgsExpressionNodeLiteral,
     QgsFillSymbol,
     QgsHeatmapRenderer,
     QgsLayerTreeGroup,
@@ -54,10 +50,8 @@ from .data_defined import (
     grammar_layer_to_renderer,
 )
 from .grammar import (
-    _DEFAULT_FILL,
-    _DEFAULT_RADIUS,
-    _DEFAULT_STROKE,
-    _DEFAULT_STROKE_WIDTH,
+    _comparison_node,
+    _scalar_from_property,
     cluster_grammar,
     combine_subsets,
     filters_to_subset,
@@ -88,54 +82,6 @@ qgs.initQgis()
 @atexit.register
 def closeQgis():
     qgs.exitQgis()
-
-
-def _extract_symbol_style(symbol):
-    """Pull (fill, stroke, stroke_width, radius, geometry_type) from a QGIS symbol.
-
-    Colors are returned as grammar [r, g, b, a] lists (a in 0-1). The geometry
-    type is informational only — grammar is geometry-agnostic, so export
-    re-infers it from the data.
-    """
-    fill = list(_DEFAULT_FILL)
-    stroke = list(_DEFAULT_STROKE)
-    stroke_width = _DEFAULT_STROKE_WIDTH
-    radius = _DEFAULT_RADIUS
-    geometry_type = "fill"
-
-    if symbol is None:
-        return fill, stroke, stroke_width, radius, geometry_type
-
-    color = list(hex_to_rgba(symbol.color().name()))
-    # .name() is "#rrggbb" and drops alpha; keep the real alpha so a transparent
-    # (e.g. stroke-only) fill round-trips instead of coming back opaque.
-    color[3] = symbol.color().alphaF()
-    symbol_layer = symbol.symbolLayer(0)
-    props = symbol_layer.properties() if symbol_layer is not None else {}
-
-    outline_color_str = props.get("outline_color")
-    outline_stroke = (
-        list(hex_to_rgba(rgb_to_hex(outline_color_str))) if outline_color_str else None
-    )
-
-    if isinstance(symbol, QgsMarkerSymbol):
-        geometry_type = "circle"
-        fill = color
-        stroke = outline_stroke if outline_stroke is not None else color
-        stroke_width = float(props.get("outline_width", _DEFAULT_STROKE_WIDTH))
-        radius = symbol.size() / 2
-    elif isinstance(symbol, QgsLineSymbol):
-        geometry_type = "line"
-        stroke = color
-        stroke_width = float(props.get("line_width", _DEFAULT_STROKE_WIDTH))
-    elif isinstance(symbol, QgsFillSymbol):
-        geometry_type = "fill"
-        fill = color
-        if outline_stroke is not None:
-            stroke = outline_stroke
-        stroke_width = float(props.get("outline_width", _DEFAULT_STROKE_WIDTH))
-
-    return fill, stroke, stroke_width, radius, geometry_type
 
 
 def _is_finite_number(value) -> bool:
@@ -369,177 +315,6 @@ def _vt_reconstruct(styles) -> tuple:
         if len(stops) >= 2:
             return ("colorRamp", field, stops)
     return ("const", _vt_style_color(styles[0]))
-
-
-# Comparison operators QGIS uses in the rule/filter expressions it generates,
-# mapped to the grammar `fieldCompare` operator strings.
-_COMPARE_OPS = {
-    QgsExpressionNodeBinaryOperator.boGT: ">",
-    QgsExpressionNodeBinaryOperator.boLT: "<",
-    QgsExpressionNodeBinaryOperator.boGE: ">=",
-    QgsExpressionNodeBinaryOperator.boLE: "<=",
-    QgsExpressionNodeBinaryOperator.boNE: "!=",
-}
-
-
-def _comparison_node(node):
-    """(field, op, value) for a ``"field" <op> literal`` node, else None.
-
-    Uses QGIS's own parsed AST — no string matching.
-    """
-    if (
-        isinstance(node, QgsExpressionNodeBinaryOperator)
-        and isinstance(node.opLeft(), QgsExpressionNodeColumnRef)
-        and isinstance(node.opRight(), QgsExpressionNodeLiteral)
-    ):
-        return (node.opLeft().name(), node.op(), node.opRight().value())
-    return None
-
-
-def _classify_leaf_filter(expr: str):
-    """Classify a class rule's filter as ('eq', field, value) / ('range', ...).
-
-    QGIS emits ``"field" = v`` for categories and ``"field" >= lo AND "field"
-    <(=) hi`` for graduated ranges; anything else returns None.
-    """
-    parsed = QgsExpression(expr or "")
-    if parsed.hasParserError() or parsed.rootNode() is None:
-        return None
-    node = parsed.rootNode()
-
-    single = _comparison_node(node)
-    if single and single[1] == QgsExpressionNodeBinaryOperator.boEQ:
-        return ("eq", single[0], single[2])
-
-    if (
-        isinstance(node, QgsExpressionNodeBinaryOperator)
-        and node.op() == QgsExpressionNodeBinaryOperator.boAnd
-    ):
-        lo = _comparison_node(node.opLeft())
-        hi = _comparison_node(node.opRight())
-        if (
-            lo
-            and hi
-            and lo[0] == hi[0]
-            and lo[1]
-            in (
-                QgsExpressionNodeBinaryOperator.boGE,
-                QgsExpressionNodeBinaryOperator.boGT,
-            )
-            and hi[1]
-            in (
-                QgsExpressionNodeBinaryOperator.boLE,
-                QgsExpressionNodeBinaryOperator.boLT,
-            )
-        ):
-            return ("range", lo[0], float(lo[2]), float(hi[2]))
-    return None
-
-
-def _node_to_predicate(node):
-    """One grammar `when` predicate from a parsed comparison/function node."""
-    # geometry_type($geometry) = 'Point'
-    if (
-        isinstance(node, QgsExpressionNodeBinaryOperator)
-        and node.op() == QgsExpressionNodeBinaryOperator.boEQ
-        and isinstance(node.opLeft(), QgsExpressionNodeFunction)
-        and isinstance(node.opRight(), QgsExpressionNodeLiteral)
-    ):
-        fn = QgsExpression.Functions()[node.opLeft().fnIndex()]
-        if fn.name() == "geometry_type":
-            qgis_to_grammar = {
-                "Point": "Point",
-                "Line": "LineString",
-                "Polygon": "Polygon",
-            }
-            value = qgis_to_grammar.get(node.opRight().value())
-            if value:
-                return {"type": "geometryType", "value": value}
-
-    cmp = _comparison_node(node)
-    if cmp:
-        field, op, value = cmp
-        if op == QgsExpressionNodeBinaryOperator.boEQ:
-            return {"type": "fieldEquals", "field": field, "value": value}
-        if op in _COMPARE_OPS and isinstance(value, int | float):
-            return {
-                "type": "fieldCompare",
-                "field": field,
-                "op": _COMPARE_OPS[op],
-                "value": value,
-            }
-
-    # range "field" >= lo AND "field" <= hi -> between
-    classified = _classify_leaf_filter(node.dump())
-    if classified and classified[0] == "range":
-        return {
-            "type": "between",
-            "field": classified[1],
-            "min": classified[2],
-            "max": classified[3],
-        }
-    return None
-
-
-def _expr_to_when(expr: str):
-    """Parse a QGIS filter back into grammar `when` predicates + combinator.
-
-    Handles the AND/OR-of-comparisons shape we emit; returns (None, None) when
-    the expression isn't a clean set of predicates.
-    """
-    parsed = QgsExpression(expr or "")
-    if parsed.hasParserError() or parsed.rootNode() is None:
-        return None, None
-    node = parsed.rootNode()
-
-    # A bare range (field >= lo AND field <= hi) is a single `between` predicate.
-    if _classify_leaf_filter(expr) and _classify_leaf_filter(expr)[0] == "range":
-        predicate = _node_to_predicate(node)
-        return ([predicate], "all") if predicate else (None, None)
-
-    if isinstance(node, QgsExpressionNodeBinaryOperator) and node.op() in (
-        QgsExpressionNodeBinaryOperator.boAnd,
-        QgsExpressionNodeBinaryOperator.boOr,
-    ):
-        when_op = "any" if node.op() == QgsExpressionNodeBinaryOperator.boOr else "all"
-        predicates = [
-            _node_to_predicate(node.opLeft()),
-            _node_to_predicate(node.opRight()),
-        ]
-        if all(predicates):
-            return predicates, when_op
-        return None, None
-
-    predicate = _node_to_predicate(node)
-    return ([predicate], "all") if predicate else (None, None)
-
-
-def _scale_linear_args(node):
-    """The 5 child nodes of a ``scale_linear(...)`` call inside ``node``, or None."""
-    if isinstance(node, QgsExpressionNodeFunction):
-        fn = QgsExpression.Functions()[node.fnIndex()]
-        if fn.name() == "scale_linear":
-            args = node.args().list()
-            return args if len(args) == 5 else None
-    if isinstance(node, QgsExpressionNodeBinaryOperator):
-        return _scale_linear_args(node.opLeft()) or _scale_linear_args(node.opRight())
-    return None
-
-
-def _scalar_from_property(prop):
-    """A grammar (field, domain, range) scalar from a ``scale_linear`` QgsProperty."""
-    parsed = QgsExpression(prop.expressionString())
-    if parsed.hasParserError() or parsed.rootNode() is None:
-        return None
-    args = _scale_linear_args(parsed.rootNode())
-    if not args or not isinstance(args[0], QgsExpressionNodeColumnRef):
-        return None
-    field = args[0].name()
-    try:
-        d0, d1, r0, r1 = (float(a.value()) for a in args[1:])
-    except (AttributeError, TypeError, ValueError):
-        return None
-    return field, [d0, d1], [r0, r1]
 
 
 def _data_defined_mappings(symbol):
