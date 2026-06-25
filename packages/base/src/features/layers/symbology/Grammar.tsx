@@ -48,6 +48,8 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 
+import {InfoTip} from '@/src/shared/components/InfoTip';
+
 const DEFAULT_CHANNELS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
@@ -313,6 +315,23 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       {/* Layer header */}
       <div className="jp-gis-grammar-layer-header">
         <span className="jp-gis-grammar-layer-label">
+          <InfoTip text="Groups Symbolizers to define a visual output, rendered in order.">
+            A
+            <a href="https://jupytergis.readthedocs.io/en/latest/about/glossary.html#term-Symbology-Rule"
+               target="_blank"
+               rel="noopener noreferrer">
+              Symbology Rule
+            </a>
+            is a set of
+            <a href="https://jupytergis.readthedocs.io/en/latest/about/glossary.html#term-Symbolizer"
+               target="_blank"
+               rel="noopener noreferrer">
+              Symbolizers
+            </a>
+            that define a single representation of a data layer.
+            Symbology rules are ordered; a higher rule will appear “above” a lower rule when rendered.
+            A Rule can have a pre-processor, for example Kernel Density Estimation (KDE), which is applied before its Symbolizers.
+          </InfoTip>
           Layer {layerIndex + 1}
         </span>
         {layer.transforms.length === 0 && (
