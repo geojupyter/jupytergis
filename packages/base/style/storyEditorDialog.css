@@ -525,6 +525,21 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   pointer-events: auto;
 }
 
+.jgis-story-map-interaction-bar-root--main-top-left {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  bottom: auto;
+  transform: none;
+  z-index: 50;
+}
+
+.jGIS-Mainview-Container:has(
+  .jgis-story-map-interaction-bar-root--main-top-left
+) {
+  position: relative;
+}
+
 .jgis-story-map-interaction-bar {
   display: flex;
   align-items: center;

@@ -36,7 +36,7 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"sources": {},
   "stories": {},
   "viewState": {},
-	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}", "storyMapPresentationMode": false},
+	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}"},
 	"layerTree": [],
 	"metadata": {}
 }`;

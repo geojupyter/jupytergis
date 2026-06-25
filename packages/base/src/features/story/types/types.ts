@@ -2,6 +2,10 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
+export type StoryMapInteractionBarPlacement =
+  | 'overlay-bottom'
+  | 'main-top-left';
+
 export interface IOverrideLayerEntry {
   layerId: string;
   action: 'remove' | 'restore';

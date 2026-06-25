@@ -367,6 +367,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   dispose(): void {
+    this._storyPreviewActive = false;
     if (this._isDisposed) {
       return;
     }
@@ -730,6 +731,59 @@ export class JupyterGISModel implements IJupyterGISModel {
       storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
 
     return isSpecta && hasStories && isModeForSpecta;
+  }
+
+  /**
+   * Whether the in-lab story presentation preview is active (session-only).
+   */
+  isStoryPreviewActive(): boolean {
+    return this._storyPreviewActive;
+  }
+
+  /**
+   * Whether the story viewer presentation UI should be shown (Specta or
+   * in-lab preview).
+   */
+  isStoryPresentationActive(): boolean {
+    return this.isSpectaMode() || this._storyPreviewActive;
+  }
+
+  /**
+   * Whether the current story supports presentation preview.
+   */
+  canUseStoryPreview(): boolean {
+    const storySegments = this.getSelectedStory().story?.storySegments;
+    return (
+      !this.jgisSettings.storyMapsDisabled &&
+      !!storySegments &&
+      storySegments.length >= 1 &&
+      this._isStoryTypeSupportedForPresentation(
+        this.getSelectedStory().story?.storyType,
+      )
+    );
+  }
+
+  setStoryPreviewActive(active: boolean): void {
+    if (active && !this.canUseStoryPreview()) {
+      return;
+    }
+
+    if (this._storyPreviewActive === active) {
+      return;
+    }
+
+    this._storyPreviewActive = active;
+    this._storyPreviewActiveChanged.emit(active);
+  }
+
+  get storyPreviewActiveChanged(): ISignal<this, boolean> {
+    return this._storyPreviewActiveChanged;
+  }
+
+  private _isStoryTypeSupportedForPresentation(
+    storyType: IJGISStoryMap['storyType'] | undefined,
+  ): boolean {
+    return storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
   }
 
   /**
@@ -1394,6 +1448,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
+  private _storyPreviewActive = false;
+  private _storyPreviewActiveChanged = new Signal<this, boolean>(this);
   stories: Map<string, IJGISStoryMap> = new Map();
 
   private _localUIState: Partial<IJGISUIState> = {};

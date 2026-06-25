@@ -47,7 +47,7 @@ import {
   STORY_TYPE,
   SYMBOLOGY_VALID_LAYER_TYPES,
 } from '../types';
-import { JupyterGISDocumentWidget } from '../workspace/widget';
+import { JupyterGISDocumentWidget, JupyterGISPanel } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -1886,12 +1886,38 @@ export function addCommands(
 
       return !current.model.jgisSettings.storyMapsDisabled;
     },
-    execute: Private.createStoryEditor(
-      tracker,
-      commands,
-      formSchemaRegistry,
-      state,
-    ),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return current.model.isStoryPreviewActive();
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const session = StoryEditorSession.getInstance();
+      if (session.isActiveFor(current.model)) {
+        if (session.isMapInteractionMode()) {
+          session.restoreEditor();
+        } else {
+          session.focusDialog();
+        }
+        return;
+      }
+
+      await Private.createStoryEditor(
+        current.model,
+        commands,
+        formSchemaRegistry,
+        state,
+        tracker,
+      );
+    },
     ...icons.get(CommandIDs.openStoryEditor),
   });
 
@@ -1937,7 +1963,7 @@ export function addCommands(
     },
   });
 
-  /* Needs to be enabled in Specta mode, so add without Specta-aware wrapper */
+  /* Enabled during story presentation (Specta or lab preview). */
   originalAddCommand(CommandIDs.storyPrev, {
     label: trans.__('Previous Story Segment'),
     isEnabled: () => {
@@ -1953,7 +1979,7 @@ export function addCommands(
         return false;
       }
 
-      if (!model.isSpectaMode()) {
+      if (!model.isStoryPresentationActive()) {
         return false;
       }
 
@@ -1990,8 +2016,7 @@ export function addCommands(
         return false;
       }
 
-      const isSpecta = model.isSpectaMode();
-      if (!isSpecta) {
+      if (!model.isStoryPresentationActive()) {
         return false;
       }
 
@@ -2015,6 +2040,12 @@ export function addCommands(
     },
   });
 
+  const notifyStoryPresentationCommandsChanged = () => {
+    commands.notifyCommandChanged(CommandIDs.openStoryEditor);
+    commands.notifyCommandChanged(CommandIDs.storyPrev);
+    commands.notifyCommandChanged(CommandIDs.storyNext);
+  };
+
   const notifyCommandsChanged = () => {
     for (const command of Object.values(CommandIDs)) {
       try {
@@ -2033,9 +2064,15 @@ export function addCommands(
 
     const model = tracker.currentWidget?.model;
     model?.selectedChanged.connect(notifyCommandsChanged);
+    model?.storyPreviewActiveChanged.connect(
+      notifyStoryPresentationCommandsChanged,
+    );
 
     cleanup = () => {
       model?.selectedChanged.disconnect(notifyCommandsChanged);
+      model?.storyPreviewActiveChanged.disconnect(
+        notifyStoryPresentationCommandsChanged,
+      );
     };
 
     notifyCommandsChanged();
@@ -2045,43 +2082,32 @@ export function addCommands(
 }
 
 namespace Private {
-  export function createStoryEditor(
-    tracker: JupyterGISTracker,
+  export async function createStoryEditor(
+    model: IJupyterGISModel,
     commands: CommandRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     state: IStateDB,
-  ) {
-    return async () => {
-      const current = tracker.currentWidget;
+    tracker: JupyterGISTracker,
+  ): Promise<void> {
+    const session = StoryEditorSession.getInstance();
+    const dialog = new StoryEditorWidget({
+      model,
+      commands,
+      state,
+      formSchemaRegistry,
+    });
+    session.attachDialog(
+      dialog,
+      model,
+      commands,
+      Private.resolveMainViewContainer(tracker, model),
+    );
 
-      if (!current) {
-        return;
-      }
-
-      const session = StoryEditorSession.getInstance();
-      if (session.isActiveFor(current.model)) {
-        if (session.isMapInteractionMode()) {
-          session.restoreEditor();
-        } else {
-          session.focusDialog();
-        }
-        return;
-      }
-
-      const dialog = new StoryEditorWidget({
-        model: current.model,
-        commands,
-        state,
-        formSchemaRegistry,
-      });
-      session.attachDialog(dialog, current.model, commands);
-
-      try {
-        await dialog.launch();
-      } finally {
-        session.clear();
-      }
-    };
+    try {
+      await dialog.launch();
+    } finally {
+      session.clear();
+    }
   }
 
   export function createLayerBrowser(
@@ -2260,5 +2286,22 @@ namespace Private {
     const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 
     return `${cleanBase} Copy_${nextNumber}`;
+  }
+
+  export function resolveMainViewContainer(
+    tracker: JupyterGISTracker,
+    model: IJupyterGISModel,
+  ): HTMLElement | null {
+    const widget = tracker.find(w => w.model === model);
+    const panel = widget?.content;
+    if (!(panel instanceof JupyterGISPanel)) {
+      return null;
+    }
+
+    return (
+      panel.jupyterGISMainViewPanel?.node.querySelector<HTMLElement>(
+        '.jGIS-Mainview-Container',
+      ) ?? null
+    );
   }
 }

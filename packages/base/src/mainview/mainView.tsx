@@ -85,6 +85,7 @@ import {
   Select,
 } from 'ol/interaction';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
+import type Interaction from 'ol/interaction/Interaction';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import {
@@ -327,6 +328,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.storyPreviewActiveChanged.connect(
+      this._onStoryPreviewActiveChanged,
+      this,
+    );
 
     // After a user signs in to an OpenEO server, rebuild any of this
     // document's OpenEO tile sources whose serverUrl matches — they
@@ -369,7 +374,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       editingVectorLayer: false,
       drawGeometryLabel: '',
       jgisSettings: this._model.jgisSettings,
-      isSpectaPresentation: this._model.isSpectaMode(),
+      isSpectaPresentation: this._model.isStoryPresentationActive(),
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
       segmentTransition: null,
@@ -405,19 +410,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
     this._mainViewModel.initSignal();
+    if (this.state.isSpectaPresentation && !this._spectaModeSetupDone) {
+      this._setupSpectaMode();
+      this._spectaModeSetupDone = true;
+    }
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
   }
 
   componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
-    // Run setup when isSpectaPresentation changes from false/undefined to true
-    if (
-      this.state.isSpectaPresentation &&
-      !this._isSpectaPresentationInitialized
-    ) {
+    const enteredPresentation =
+      !prevState.isSpectaPresentation && this.state.isSpectaPresentation;
+    const exitedPresentation =
+      prevState.isSpectaPresentation && !this.state.isSpectaPresentation;
+
+    if (enteredPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
-      this._isSpectaPresentationInitialized = true;
+      this._spectaModeSetupDone = true;
+    }
+
+    if (exitedPresentation && this._spectaModeSetupDone) {
+      this._teardownSpectaMode();
+      this._spectaModeSetupDone = false;
     }
   }
 
@@ -458,6 +473,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.selectedChanged.disconnect(this._handleSelectedChanged, this);
     this._model.identifiedFeaturesChanged.disconnect(
       this._handleIdentifiedFeaturesChanged,
+      this,
+    );
+    this._model.storyPreviewActiveChanged.disconnect(
+      this._onStoryPreviewActiveChanged,
       this,
     );
     // Clean up story scroll listener
@@ -2509,24 +2528,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState(old => ({ ...old, clientPointers }));
   }
 
+  private _onStoryPreviewActiveChanged = (): void => {
+    this.setState({
+      isSpectaPresentation: this._model.isStoryPresentationActive(),
+    });
+  };
+
   private _onSharedOptionsChanged(): void {
     if (!this._Map) {
       return;
     }
 
-    // ! would prefer a model ready signal or something, this feels hacky
-    const enableSpectaPresentation = this._model.isSpectaMode();
-
-    // Handle initialization based on specta presentation state
-    if (!this._isSpectaPresentationInitialized) {
-      if (enableSpectaPresentation) {
-        // _setupSpectaMode will be called in componentDidUpdate when state changes
-        this.setState(old => ({ ...old, isSpectaPresentation: true }));
-      } else {
-        // Add context menu when not in specta mode
-        this.addContextMenu();
-        this._isSpectaPresentationInitialized = true;
-      }
+    if (!this._contextMenuAttached && !this._model.isSpectaMode()) {
+      this.addContextMenu();
+      this._contextMenuAttached = true;
     }
 
     if (!this._isPositionInitialized) {
@@ -2854,6 +2869,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Updates specta state and presentation colors when story data becomes available.
    */
   private _setupSpectaMode = (): void => {
+    this._cleanupStoryScrollListener();
     this._removeAllInteractions();
     this._setupStoryScrollListener();
 
@@ -2864,6 +2880,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _removeAllInteractions = (): void => {
+    if (!this._Map) {
+      return;
+    }
+
     // Remove all default interactions
     const interactions = this._Map.getInteractions();
     const interactionArray = interactions.getArray();
@@ -2883,16 +2903,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       Select,
     ];
 
-    this._zoomControl && this._Map.removeControl(this._zoomControl);
+    this._spectaRemovedInteractions = [];
 
     interactionsToRemove.forEach(InteractionClass => {
       const interaction = interactionArray.find(
         interaction => interaction instanceof InteractionClass,
       );
       if (interaction) {
+        this._spectaRemovedInteractions.push(interaction);
         this._Map.removeInteraction(interaction);
       }
     });
+
+    if (this._zoomControl) {
+      this._spectaZoomControlWasRemoved = true;
+      this._Map.removeControl(this._zoomControl);
+    } else {
+      this._spectaZoomControlWasRemoved = false;
+    }
+  };
+
+  private _restoreMapInteractions = (): void => {
+    if (!this._Map) {
+      return;
+    }
+
+    for (const interaction of this._spectaRemovedInteractions) {
+      this._Map.addInteraction(interaction);
+    }
+    this._spectaRemovedInteractions = [];
+
+    if (this._spectaZoomControlWasRemoved && this._zoomControl) {
+      this._Map.addControl(this._zoomControl);
+      this._spectaZoomControlWasRemoved = false;
+    }
   };
 
   private _setupStoryScrollListener = (): void => {
@@ -3006,8 +3050,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     this._storyScrollHandler = handleScroll;
-    const container = document.querySelector('.jGIS-Mainview-Container');
+    const container = this.props.containerRef?.current;
     if (container) {
+      this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
     }
   };
@@ -3017,15 +3062,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       cancelAnimationFrame(this._pendingStoryScrollRafId);
       this._pendingStoryScrollRafId = null;
     }
-    if (this._storyScrollHandler) {
-      const containerElement = document.querySelector(
-        '.jGIS-Mainview-Container',
+    if (this._storyScrollHandler && this._storyScrollContainerEl) {
+      this._storyScrollContainerEl.removeEventListener(
+        'wheel',
+        this._storyScrollHandler,
       );
-      if (containerElement) {
-        containerElement.removeEventListener('wheel', this._storyScrollHandler);
-      }
       this._storyScrollHandler = null;
+      this._storyScrollContainerEl = null;
     }
+  };
+
+  private _teardownSpectaMode = (): void => {
+    this._cleanupStoryScrollListener();
+    this._restoreMapInteractions();
   };
 
   private _onSharedMetadataChanged = (
@@ -4061,8 +4110,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _featurePropertyCache: Map<string | number, any> = new Map();
-  private _isSpectaPresentationInitialized = false;
+  private _contextMenuAttached = false;
+  private _spectaModeSetupDone = false;
+  private _spectaRemovedInteractions: Interaction[] = [];
+  private _spectaZoomControlWasRemoved = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _storyScrollContainerEl: HTMLDivElement | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
