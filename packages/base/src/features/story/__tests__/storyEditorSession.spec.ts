@@ -97,7 +97,7 @@ describe('StoryEditorSession', () => {
     const model = createModel();
     const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never, commands);
+    session.attachDialog(dialog as never, model as never, commands, null);
     session.enterMapViewMode('segment-1');
 
     expect(session.isMapViewMode()).toBe(true);
@@ -117,7 +117,7 @@ describe('StoryEditorSession', () => {
     const model = createModel();
     const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never, commands);
+    session.attachDialog(dialog as never, model as never, commands, null);
     session.enterPreviewMode('segment-2');
 
     expect(session.isPreviewingSegment()).toBe(true);
@@ -141,7 +141,7 @@ describe('StoryEditorSession', () => {
     const model = createModel();
     const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never, commands);
+    session.attachDialog(dialog as never, model as never, commands, null);
     session.enterPreviewMode('segment-3');
     session.clear();
 
@@ -156,7 +156,7 @@ describe('StoryEditorSession', () => {
     });
     const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never, commands);
+    session.attachDialog(dialog as never, model as never, commands, null);
     session.enterStoryPreviewMode();
 
     expect(session.isPreviewingStory()).toBe(true);
@@ -184,7 +184,7 @@ describe('StoryEditorSession', () => {
     });
     const commands = createCommands();
 
-    session.attachDialog(dialog as never, model as never, commands);
+    session.attachDialog(dialog as never, model as never, commands, null);
     session.enterStoryPreviewMode();
 
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(

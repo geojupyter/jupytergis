@@ -36,6 +36,7 @@ export class StoryEditorSession {
   private _mapInteractionMode: StoryEditorMapInteractionMode | null = null;
   private _mapBar: StoryMapInteractionBarWidget | null = null;
   private _overrideEntries: IOverrideLayerEntry[] = [];
+  private _mainViewContainer: HTMLElement | null = null;
 
   public static getInstance(): StoryEditorSession {
     if (!StoryEditorSession.instance) {
@@ -48,10 +49,12 @@ export class StoryEditorSession {
     dialog: StoryEditorWidget,
     model: IJupyterGISModel,
     commands: CommandRegistry,
+    mainViewContainer: HTMLElement | null,
   ): void {
     this._dialog = dialog;
     this._model = model;
     this._commands = commands;
+    this._mainViewContainer = mainViewContainer;
     this._mapInteractionMode = null;
   }
 
@@ -182,6 +185,7 @@ export class StoryEditorSession {
     this._mapViewSegmentId = null;
     this._mapInteractionMode = null;
     this._overrideEntries = [];
+    this._mainViewContainer = null;
   }
 
   private _notifyPreviewChanged(): void {
@@ -253,12 +257,11 @@ export class StoryEditorSession {
   private _resolveMapBarParent(
     placement: StoryMapInteractionBarPlacement,
   ): HTMLElement {
-    const mapBarParent =
-      placement === 'main-top-left'
-        ? document.querySelector<HTMLElement>('.jGIS-Mainview-Container')
-        : null;
+    if (placement === 'main-top-left' && this._mainViewContainer) {
+      return this._mainViewContainer;
+    }
 
-    return mapBarParent ?? document.body;
+    return document.body;
   }
 
   private _hideMapBar(): void {
