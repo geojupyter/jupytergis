@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import atexit
 import json
-import math
 import os
 import re
 import sys
@@ -11,48 +10,37 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
-from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
-    QgsExpression,
-    QgsExpressionNodeBinaryOperator,
-    QgsFillSymbol,
-    QgsHeatmapRenderer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
-    QgsLineSymbol,
     QgsMapLayer,
-    QgsMarkerSymbol,
     QgsMultiBandColorRenderer,
-    QgsPointClusterRenderer,
     QgsProject,
-    QgsRasterBandStats,
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
     QgsSingleBandGrayRenderer,
     QgsSingleBandPseudoColorRenderer,
-    QgsSingleSymbolRenderer,
-    QgsSymbolLayer,
     QgsVectorLayer,
-    QgsVectorTileBasicRendererStyle,
     QgsVectorTileLayer,
 )
-from qgis.PyQt.QtCore import Qt
 
 from .data_defined import (
     _RAMP_META_KEY,
-    dd_symbol_to_grammar,
+    _vector_renderer_to_grammar,
     grammar_layer_to_renderer,
 )
 from .grammar import (
-    _comparison_node,
-    _scalar_from_property,
-    cluster_grammar,
+    _is_finite_number,
+    _raster_min_max,
+    _vt_reconstruct,
+    _vt_spec_to_style,
+    _vt_style_width,
     combine_subsets,
     filters_to_subset,
     grammar_layer_alpha_factor,
@@ -61,7 +49,6 @@ from .grammar import (
     grammar_to_raster_renderer,
     grammar_to_vector_tile_styles,
     grayscale_raster_to_grammar,
-    kde_grammar,
     multiband_raster_to_grammar,
     raster_flat_color_to_grammar,
     raster_to_grammar,
@@ -82,367 +69,6 @@ qgs.initQgis()
 @atexit.register
 def closeQgis():
     qgs.exitQgis()
-
-
-def _is_finite_number(value) -> bool:
-    return isinstance(value, int | float) and math.isfinite(value)
-
-
-def _raster_min_max(provider, band: int, enhancement) -> tuple[float, float]:
-    """Numeric (min, max) for a GeoTiff source band, never None/NaN.
-
-    GeoTiff sources require numeric min/max (used to normalize for display).
-    Prefer QGIS's contrast-enhancement stretch, fall back to band statistics,
-    then to a 0-255 default.
-    """
-    if enhancement is not None:
-        lo, hi = enhancement.minimumValue(), enhancement.maximumValue()
-        if _is_finite_number(lo) and _is_finite_number(hi) and lo != hi:
-            return float(lo), float(hi)
-    if provider is not None:
-        stats = provider.bandStatistics(
-            band,
-            QgsRasterBandStats.Min | QgsRasterBandStats.Max,
-        )
-        lo, hi = stats.minimumValue, stats.maximumValue
-        if _is_finite_number(lo) and _is_finite_number(hi) and lo != hi:
-            return float(lo), float(hi)
-    return 0.0, 255.0
-
-
-def _heatmap_color_stops(renderer):
-    """Sample a heatmap renderer's color ramp into 9 grammar colorStops over [0, 1]."""
-    ramp = renderer.colorRamp()
-    if ramp is None:
-        return None
-    n = 9
-    return [
-        {
-            "stop": i / (n - 1),
-            "color": [
-                float(ramp.color(i / (n - 1)).red()),
-                float(ramp.color(i / (n - 1)).green()),
-                float(ramp.color(i / (n - 1)).blue()),
-                float(ramp.color(i / (n - 1)).alpha()) / 255,
-            ],
-        }
-        for i in range(n)
-    ]
-
-
-def _vt_qcolor(rgba) -> QColor:
-    """A QColor from a grammar [r, g, b, a] list (alpha 0-1)."""
-    alpha = rgba[3] if len(rgba) > 3 else 1.0
-    return QColor(int(rgba[0]), int(rgba[1]), int(rgba[2]), int(alpha * 255))
-
-
-def _vt_spec_to_style(spec: dict, index: int):
-    """Build one QgsVectorTileBasicRendererStyle from a grammar style spec."""
-    geom = spec["geom"]
-    fill = spec.get("fill")
-    stroke = spec.get("stroke")
-    width = spec.get("width")
-    if geom == 2:  # polygon
-        symbol = QgsFillSymbol()
-        symbol_layer = symbol.symbolLayer(0)
-        if fill is not None:
-            symbol.setColor(_vt_qcolor(fill))
-        if stroke is not None:
-            symbol_layer.setStrokeColor(_vt_qcolor(stroke))
-        else:
-            symbol_layer.setStrokeStyle(Qt.NoPen)
-        if width is not None:
-            symbol_layer.setStrokeWidth(width)
-    elif geom == 1:  # line — its single colour is the stroke (fall back to fill)
-        symbol = QgsLineSymbol()
-        symbol_layer = symbol.symbolLayer(0)
-        color = stroke if stroke is not None else fill
-        if color is not None:
-            symbol.setColor(_vt_qcolor(color))
-        if width is not None:
-            symbol_layer.setWidth(width)
-    elif geom == 0:  # point
-        symbol = QgsMarkerSymbol()
-        symbol_layer = symbol.symbolLayer(0)
-        if fill is not None:
-            symbol.setColor(_vt_qcolor(fill))
-        if stroke is not None:
-            symbol_layer.setStrokeColor(_vt_qcolor(stroke))
-        if width is not None:
-            symbol_layer.setStrokeWidth(width)
-    else:
-        return None
-
-    geom_enum = {
-        0: Qgis.GeometryType.Point,
-        1: Qgis.GeometryType.Line,
-        2: Qgis.GeometryType.Polygon,
-    }[geom]
-    style = QgsVectorTileBasicRendererStyle(f"class{index}", "", geom_enum)
-    style.setSymbol(symbol)
-    style.setFilterExpression(spec.get("filter") or "")
-    style.setEnabled(True)
-    return style
-
-
-def _vt_style_color(style) -> list:
-    """The primary colour of a vector-tile style as a grammar [r, g, b, a] list.
-
-    Alpha rides on the symbol colour (``QColor.alphaF()``), not the symbol opacity
-    -- the exporter writes the colour with its alpha baked in, so reading
-    ``symbol.opacity()`` (always 1.0) dropped the transparency (e.g. a line stroke
-    ``[0, 0, 0, 0.72]`` came back fully opaque).
-    """
-    color = style.symbol().color()
-    return [color.red(), color.green(), color.blue(), color.alphaF()]
-
-
-def _vt_style_width(style) -> float | None:
-    """A vector-tile style's *explicit* constant stroke width, or None.
-
-    A line's width is its own; a polygon/point width is its outline's, reported
-    only when an outline is drawn (skips QGIS's default ``NoPen`` fills). A width
-    equal to QGIS's default for that symbol is treated as unset, so the round trip
-    doesn't invent a width row the source never had.
-    """
-    geom = int(style.geometryType())
-    symbol_layer = style.symbol().symbolLayer(0)
-    if geom == 1:  # line
-        width = symbol_layer.width()
-        fresh = QgsLineSymbol()
-        default = fresh.symbolLayer(0).width()
-        return width if width != default else None
-    stroke_style = getattr(symbol_layer, "strokeStyle", None)
-    if stroke_style is not None and stroke_style() == Qt.NoPen:
-        return None
-    stroke_width = getattr(symbol_layer, "strokeWidth", None)
-    if stroke_width is None:
-        return None
-    width = stroke_width()
-    fresh = QgsFillSymbol() if geom == 2 else QgsMarkerSymbol()
-    default = fresh.symbolLayer(0).strokeWidth()
-    return width if width != default else None
-
-
-def _vt_parse_filter(expr: str):
-    """Parse a class filter into ``('eq', value)`` / ``('range', lo, hi)``.
-
-    Handles the class shapes the exporter writes: ``"f" = v`` (categorical),
-    ``"f" < hi`` (first class), ``"f" >= lo AND "f" < hi`` (middle) and
-    ``"f" >= lo`` (last); ``lo`` / ``hi`` may be None for an open end.
-    """
-    parsed = QgsExpression(expr or "")
-    if parsed.hasParserError() or parsed.rootNode() is None:
-        return None
-    node = parsed.rootNode()
-    single = _comparison_node(node)
-    if single:
-        _, op, value = single
-        if op == QgsExpressionNodeBinaryOperator.boEQ:
-            return ("eq", value)
-        if op in (
-            QgsExpressionNodeBinaryOperator.boLT,
-            QgsExpressionNodeBinaryOperator.boLE,
-        ):
-            return ("range", None, float(value))
-        if op in (
-            QgsExpressionNodeBinaryOperator.boGT,
-            QgsExpressionNodeBinaryOperator.boGE,
-        ):
-            return ("range", float(value), None)
-    if (
-        isinstance(node, QgsExpressionNodeBinaryOperator)
-        and node.op() == QgsExpressionNodeBinaryOperator.boAnd
-    ):
-        left = _comparison_node(node.opLeft())
-        right = _comparison_node(node.opRight())
-        if left and right:
-            lo = hi = None
-            for _, op, value in (left, right):
-                if op in (
-                    QgsExpressionNodeBinaryOperator.boGT,
-                    QgsExpressionNodeBinaryOperator.boGE,
-                ):
-                    lo = float(value)
-                else:
-                    hi = float(value)
-            return ("range", lo, hi)
-    return None
-
-
-def _vt_reconstruct(styles) -> tuple:
-    """Fold a geometry's class styles back into one colour instruction.
-
-    A single unfiltered style is a constant; several filtered classes rebuild a
-    colorRamp (range filters) or categorical (equality filters) on the field.
-    """
-    if len(styles) == 1 and not styles[0].filterExpression():
-        return ("const", _vt_style_color(styles[0]))
-
-    field = None
-    ranges = []
-    categories = []
-    for style in styles:
-        expr = style.filterExpression()
-        match = re.search(r'"([^"]+)"', expr or "")
-        if match:
-            field = match.group(1)
-        parsed = _vt_parse_filter(expr)
-        color = _vt_style_color(style)
-        if parsed and parsed[0] == "range":
-            ranges.append((parsed[1], parsed[2], color))
-        elif parsed and parsed[0] == "eq":
-            categories.append({"stop": parsed[1], "color": color})
-
-    if field and categories and not ranges:
-        seen: set = set()
-        unique = []
-        for category in categories:
-            key = str(category["stop"])
-            if key not in seen:
-                seen.add(key)
-                unique.append(category)
-        return ("categorical", field, unique)
-    if field and ranges:
-        # Order by lower bound (open first class sorts first); each class's stop is
-        # its lower bound, so the ramp spans the recovered class breaks.
-        ranges.sort(key=lambda item: (item[0] is not None, item[0]))
-        stops = []
-        for lo, hi, color in ranges:
-            value = lo if lo is not None else hi
-            if value is not None and (not stops or stops[-1]["stop"] != float(value)):
-                stops.append({"stop": float(value), "color": color})
-        if len(stops) >= 2:
-            return ("colorRamp", field, stops)
-    return ("const", _vt_style_color(styles[0]))
-
-
-def _data_defined_mappings(symbol):
-    """Grammar mappings for a symbol's data-defined overrides + the channels used.
-
-    Reads ``QgsProperty`` objects straight off the symbol (field reference ->
-    identity, ``scale_linear`` expression -> scalar); QGIS deserialised them, so
-    there is no string parsing of static/field properties.
-    """
-    mappings: list[dict] = []
-    channels_replaced: set[str] = set()
-    field: str | None = None
-    if symbol is None:
-        return mappings, channels_replaced, field
-
-    # Marker size (circle-radius); the diameter doubling is undone via the
-    # scale_linear range carried in the expression.
-    if isinstance(symbol, QgsMarkerSymbol):
-        size_prop = symbol.dataDefinedSize()
-        if (
-            size_prop is not None
-            and size_prop.isActive()
-            and size_prop.expressionString()
-        ):
-            scalar = _scalar_from_property(size_prop)
-            if scalar:
-                field, domain, output_range = scalar
-                mappings.append(
-                    {
-                        "scale": {
-                            "scheme": "scalar",
-                            "params": {
-                                "domain": domain,
-                                "range": output_range,
-                                "mode": "equal interval",
-                                "nStops": 5,
-                                "fallback": 0.0,
-                            },
-                        },
-                        "channels": ["circle-radius"],
-                    },
-                )
-                channels_replaced.add("circle-radius")
-
-    symbol_layer = symbol.symbolLayer(0)
-    if symbol_layer is None:
-        return mappings, channels_replaced, field
-
-    collection = symbol_layer.dataDefinedProperties()
-    stroke_prop = collection.property(QgsSymbolLayer.PropertyStrokeColor)
-    if stroke_prop is not None and stroke_prop.isActive() and stroke_prop.field():
-        field = field or stroke_prop.field()
-        mappings.append(
-            {
-                "scale": {"scheme": "identity"},
-                "channels": ["stroke-color", "circle-stroke-color"],
-            },
-        )
-        channels_replaced.update({"stroke-color", "circle-stroke-color"})
-
-    width_prop = collection.property(QgsSymbolLayer.PropertyStrokeWidth)
-    if width_prop is not None and width_prop.isActive():
-        if width_prop.field():
-            field = field or width_prop.field()
-            mappings.append(
-                {
-                    "scale": {"scheme": "identity"},
-                    "channels": ["stroke-width", "circle-stroke-width"],
-                },
-            )
-            channels_replaced.update({"stroke-width", "circle-stroke-width"})
-        elif width_prop.expressionString():
-            scalar = _scalar_from_property(width_prop)
-            if scalar:
-                field, domain, output_range = scalar
-                mappings.append(
-                    {
-                        "scale": {
-                            "scheme": "scalar",
-                            "params": {
-                                "domain": domain,
-                                "range": output_range,
-                                "mode": "equal interval",
-                                "nStops": 5,
-                                "fallback": 0.0,
-                            },
-                        },
-                        "channels": ["stroke-width", "circle-stroke-width"],
-                    },
-                )
-                channels_replaced.update({"stroke-width", "circle-stroke-width"})
-
-    return mappings, channels_replaced, field
-
-
-def _vector_renderer_to_grammar(renderer, ramp_meta=None):
-    """Convert a QGIS vector renderer to a Grammar symbologyState dict.
-
-    Heatmap and cluster renderers keep their dedicated translations; every other
-    vector renderer is the data-defined single symbol that export now produces and
-    is decoded by :func:`dd_symbol_to_grammar`. ``ramp_meta`` is the layer's stashed
-    per-slot ramp identity so the named colour ramp survives the round-trip.
-    """
-    if isinstance(renderer, QgsHeatmapRenderer):
-        weight_expr = renderer.weightExpression() or ""
-        weight_field = weight_expr.strip().strip('"') or None
-        heatmap = (ramp_meta or {}).get("heatmap") or {}
-        return kde_grammar(
-            renderer.radius(),
-            weight_field,
-            _heatmap_color_stops(renderer),
-            heatmap.get("name"),
-            bool(heatmap.get("reverse", False)),
-        )
-
-    if isinstance(renderer, QgsPointClusterRenderer):
-        embedded = renderer.embeddedRenderer()
-        inner = (
-            _vector_renderer_to_grammar(embedded, ramp_meta)
-            if embedded is not None
-            else dd_symbol_to_grammar(None)
-        )
-        return cluster_grammar(inner, renderer.tolerance())
-
-    symbol = (
-        renderer.symbol() if isinstance(renderer, QgsSingleSymbolRenderer) else None
-    )
-    return dd_symbol_to_grammar(symbol, ramp_meta)
 
 
 def qgis_layer_to_jgis(

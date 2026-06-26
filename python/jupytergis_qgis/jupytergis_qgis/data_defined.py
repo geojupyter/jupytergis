@@ -26,8 +26,10 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsExpressionNodeFunction,
     QgsExpressionNodeLiteral,
     QgsFillSymbol,
+    QgsHeatmapRenderer,
     QgsLineSymbol,
     QgsMarkerSymbol,
+    QgsPointClusterRenderer,
     QgsProperty,
     QgsSingleSymbolRenderer,
     QgsSymbolLayer,
@@ -47,6 +49,7 @@ from .grammar import (
     _comparison_node,
     _expr_to_when,
     _extract_symbol_style,
+    _heatmap_color_stops,
     _heatmap_renderer,
     _new_id,
     _rgba_to_qcolor,
@@ -56,6 +59,8 @@ from .grammar import (
     _sql_literal,
     _warn,
     _when_to_expr,
+    cluster_grammar,
+    kde_grammar,
 )
 
 # ---------------------------------------------------------------------------
@@ -734,3 +739,38 @@ def dd_symbol_to_grammar(symbol, ramp_meta=None):
     if not rules:
         rules = [{"id": _new_id(), "mappings": []}]
     return {"layers": [{"id": _new_id(), "rules": rules}]}
+
+
+def _vector_renderer_to_grammar(renderer, ramp_meta=None):
+    """Convert a QGIS vector renderer to a Grammar symbologyState dict.
+
+    Heatmap and cluster renderers keep their dedicated translations; every other
+    vector renderer is the data-defined single symbol that export now produces and
+    is decoded by :func:`dd_symbol_to_grammar`. ``ramp_meta`` is the layer's stashed
+    per-slot ramp identity so the named colour ramp survives the round-trip.
+    """
+    if isinstance(renderer, QgsHeatmapRenderer):
+        weight_expr = renderer.weightExpression() or ""
+        weight_field = weight_expr.strip().strip('"') or None
+        heatmap = (ramp_meta or {}).get("heatmap") or {}
+        return kde_grammar(
+            renderer.radius(),
+            weight_field,
+            _heatmap_color_stops(renderer),
+            heatmap.get("name"),
+            bool(heatmap.get("reverse", False)),
+        )
+
+    if isinstance(renderer, QgsPointClusterRenderer):
+        embedded = renderer.embeddedRenderer()
+        inner = (
+            _vector_renderer_to_grammar(embedded, ramp_meta)
+            if embedded is not None
+            else dd_symbol_to_grammar(None)
+        )
+        return cluster_grammar(inner, renderer.tolerance())
+
+    symbol = (
+        renderer.symbol() if isinstance(renderer, QgsSingleSymbolRenderer) else None
+    )
+    return dd_symbol_to_grammar(symbol, ramp_meta)
