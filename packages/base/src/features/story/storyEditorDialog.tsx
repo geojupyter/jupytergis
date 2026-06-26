@@ -15,6 +15,8 @@ export interface IStoryEditorWidgetOptions {
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
+  readonly model: IJupyterGISModel;
+
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
       <StoryEditorDialogBody
@@ -31,6 +33,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
       buttons: [],
     });
 
+    this.model = options.model;
     this.id = 'jupytergis::storyEditor';
     this.addClass('jgis-story-editor-dialog');
   }
@@ -48,7 +51,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
   }
 
   dispose(): void {
-    StoryEditorSession.getInstance().onDialogDisposed();
+    StoryEditorSession.getInstance().onDialogDisposed(this.model);
     super.dispose();
   }
 }

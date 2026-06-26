@@ -34,20 +34,30 @@ interface IModelEditorInteraction {
   overrideEntries: IOverrideLayerEntry[];
 }
 
+interface IModelEditorState {
+  dialog: StoryEditorWidget | null;
+  mainViewContainer: HTMLElement | null;
+  wantsEditor: boolean;
+}
+
 interface IMapBarConfig {
   message: string;
   children: React.ReactNode;
   placement: StoryMapInteractionBarPlacement;
 }
 
+interface ISharedEditorContext {
+  commands: CommandRegistry;
+  state: IStateDB;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  tracker: JupyterGISTracker;
+}
+
 export class StoryEditorSession {
   private static instance: StoryEditorSession;
 
-  private _dialog: StoryEditorWidget | null = null;
-  private _model: IJupyterGISModel | null = null;
-  private _commands: CommandRegistry | null = null;
-  private _state: IStateDB | null = null;
-  private _formSchemaRegistry: IJGISFormSchemaRegistry | null = null;
+  private _context: ISharedEditorContext | null = null;
+  private readonly _editors = new Map<IJupyterGISModel, IModelEditorState>();
   private readonly _modelInteractions = new Map<
     IJupyterGISModel,
     IModelEditorInteraction
@@ -56,11 +66,10 @@ export class StoryEditorSession {
     IJupyterGISModel,
     StoryMapInteractionBarWidget
   >();
-  private _mainViewContainer: HTMLElement | null = null;
-  private _tracker: JupyterGISTracker | null = null;
   private readonly _previewListeners = new Map<IJupyterGISModel, () => void>();
 
   private readonly _onTrackerCurrentChanged = (): void => {
+    this._syncDialogVisibility();
     this._refreshBars();
   };
 
@@ -84,18 +93,27 @@ export class StoryEditorSession {
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
   ): void {
-    this._dialog = dialog;
-    this._model = model;
-    this._commands = commands;
-    this._mainViewContainer = mainViewContainer;
-    this._state = state;
-    this._formSchemaRegistry = formSchemaRegistry;
-    this._tracker = tracker;
+    this._setSharedContext({
+      commands,
+      state,
+      formSchemaRegistry,
+      tracker,
+    });
+    this._parkDialogsExcept(model);
+    const editorState = this._getOrCreateEditorState(model);
+    editorState.dialog = dialog;
+    editorState.mainViewContainer = mainViewContainer;
+    editorState.wantsEditor = true;
     this._bindTracker();
   }
 
-  public onDialogDisposed(): void {
-    this._dialog = null;
+  public onDialogDisposed(model: IJupyterGISModel): void {
+    const editorState = this._editors.get(model);
+    if (editorState) {
+      editorState.dialog = null;
+      editorState.wantsEditor = false;
+    }
+
     this.closeEditorIfIdle();
   }
 
@@ -105,7 +123,11 @@ export class StoryEditorSession {
       return;
     }
 
-    this._dialog = null;
+    for (const [, editorState] of this._editors) {
+      editorState.dialog = null;
+      editorState.wantsEditor = false;
+    }
+
     if (this._trackerHasStoryPreview()) {
       this._refreshBars();
     }
@@ -113,7 +135,7 @@ export class StoryEditorSession {
 
   public isActiveFor(model: IJupyterGISModel): boolean {
     return (
-      (this._model === model && this._dialog !== null) ||
+      this._hasOpenDialog(model) ||
       this._modelInteractions.has(model) ||
       model.isStoryPreviewActive()
     );
@@ -147,11 +169,11 @@ export class StoryEditorSession {
   }
 
   public enterMapViewMode(segmentId: string): void {
-    if (!this._dialog || !this._model) {
+    const model = this._resolveEditingModel();
+    if (!model || !this._hasOpenDialog(model)) {
       return;
     }
 
-    const model = this._model;
     const shouldHidePanels = !this._hasAnyEditorInteraction();
     this._modelInteractions.set(model, {
       mode: 'map-view',
@@ -159,19 +181,19 @@ export class StoryEditorSession {
       overrideEntries: [],
     });
     this._focusSegmentOnMap(model, segmentId);
-    this._releaseDialog();
+    this._releaseDialogForModel(model);
     if (shouldHidePanels) {
-      this._togglePanels();
+      this._togglePanelsForModel(model);
     }
     this._refreshBars();
   }
 
   public enterPreviewMode(segmentId: string): void {
-    if (!this._dialog || !this._model) {
+    const model = this._resolveEditingModel();
+    if (!model || !this._hasOpenDialog(model)) {
       return;
     }
 
-    const model = this._model;
     const overrideEntries: IOverrideLayerEntry[] = [];
     const shouldHidePanels = !this._hasAnyEditorInteraction();
     this._modelInteractions.set(model, {
@@ -181,22 +203,23 @@ export class StoryEditorSession {
     });
     this._focusSegmentOnMap(model, segmentId);
     applySegmentLayerOverrides(model, segmentId, overrideEntries);
-    this._releaseDialog();
+    this._releaseDialogForModel(model);
     if (shouldHidePanels) {
-      this._togglePanels();
+      this._togglePanelsForModel(model);
     }
     this._refreshBars();
   }
 
   public enterStoryPreviewMode(): void {
-    if (!this._dialog || !this._model || !this._model.canUseStoryPreview()) {
+    const model = this._resolveEditingModel();
+    if (!model || !this._hasOpenDialog(model) || !model.canUseStoryPreview()) {
       return;
     }
 
-    this._clearModelEditorInteraction(this._model);
-    this._model.setStoryPreviewActive(true);
+    this._clearModelEditorInteraction(model);
+    model.setStoryPreviewActive(true);
     this._notifyPreviewChanged();
-    this._releaseDialog();
+    this._releaseDialogForModel(model);
     this._refreshBars();
   }
 
@@ -246,23 +269,33 @@ export class StoryEditorSession {
     }
 
     if (hadInteraction && !this._hasAnyEditorInteraction()) {
-      this._togglePanels();
+      this._togglePanelsForModel(model);
     }
 
     this._disposeBarForModel(model);
     this._refreshBars();
-    this._syncSessionToModel(model);
-    void this._openDialog();
+    void this._openDialogForModel(model);
   }
 
   public focusDialog(): void {
-    if (!this._dialog) {
-      void this._openDialog();
+    const model = this._resolveContextModel();
+    if (!model) {
       return;
     }
 
-    this._dialog.show();
-    this._dialog.activate();
+    this.focusDialogForModel(model);
+  }
+
+  public focusDialogForModel(model: IJupyterGISModel): void {
+    const dialog = this._getDialog(model);
+    if (!dialog) {
+      void this._openDialogForModel(model);
+      return;
+    }
+
+    this._parkDialogsExcept(model);
+    dialog.show();
+    dialog.activate();
   }
 
   public clear(): void {
@@ -272,43 +305,73 @@ export class StoryEditorSession {
       }
     }
 
-    if (this._model?.isStoryPreviewActive()) {
-      this._model.setStoryPreviewActive(false);
-      this._notifyPreviewChanged();
-    }
+    this._context?.tracker.forEach(widget => {
+      const model = widget.model;
+      if (model?.isStoryPreviewActive()) {
+        model.setStoryPreviewActive(false);
+        this._notifyPreviewChanged();
+      }
+    });
 
     this._modelInteractions.clear();
+    for (const [, editorState] of this._editors) {
+      if (editorState.dialog) {
+        editorState.dialog.dispose();
+      }
+    }
+    this._editors.clear();
     this._disposeAllMapBars();
     this._unbindTracker();
+    this._context = null;
+  }
 
-    this._dialog = null;
-    this._model = null;
-    this._commands = null;
-    this._state = null;
-    this._formSchemaRegistry = null;
-    this._mainViewContainer = null;
-    this._tracker = null;
+  private _setSharedContext(context: ISharedEditorContext): void {
+    this._context = context;
+  }
+
+  private _getOrCreateEditorState(model: IJupyterGISModel): IModelEditorState {
+    let editorState = this._editors.get(model);
+    if (!editorState) {
+      editorState = {
+        dialog: null,
+        mainViewContainer: null,
+        wantsEditor: false,
+      };
+      this._editors.set(model, editorState);
+    }
+
+    return editorState;
+  }
+
+  private _getDialog(model: IJupyterGISModel): StoryEditorWidget | null {
+    return this._editors.get(model)?.dialog ?? null;
+  }
+
+  private _hasOpenDialog(model: IJupyterGISModel): boolean {
+    return this._getDialog(model) !== null;
   }
 
   private _bindTracker(): void {
     this._unbindTracker();
-    this._tracker?.currentChanged.connect(this._onTrackerCurrentChanged);
-    this._tracker?.widgetAdded.connect(this._onTrackerWidgetAdded);
+    this._context?.tracker.currentChanged.connect(this._onTrackerCurrentChanged);
+    this._context?.tracker.widgetAdded.connect(this._onTrackerWidgetAdded);
     this._bindPreviewListeners();
   }
 
   private _unbindTracker(): void {
-    this._tracker?.currentChanged.disconnect(this._onTrackerCurrentChanged);
-    this._tracker?.widgetAdded.disconnect(this._onTrackerWidgetAdded);
+    this._context?.tracker.currentChanged.disconnect(
+      this._onTrackerCurrentChanged,
+    );
+    this._context?.tracker.widgetAdded.disconnect(this._onTrackerWidgetAdded);
     this._unbindPreviewListeners();
   }
 
   private _bindPreviewListeners(): void {
-    if (!this._tracker) {
+    if (!this._context?.tracker) {
       return;
     }
 
-    this._tracker.forEach(widget => {
+    this._context.tracker.forEach(widget => {
       const model = widget.model;
       if (!model || this._previewListeners.has(model)) {
         return;
@@ -337,12 +400,12 @@ export class StoryEditorSession {
     }
 
     const modelsToEnsure = new Set<IJupyterGISModel>();
-    const currentModel = this._tracker?.currentWidget?.model ?? null;
+    const currentModel = this._context?.tracker.currentWidget?.model ?? null;
     if (currentModel && this._modelNeedsBar(currentModel)) {
       modelsToEnsure.add(currentModel);
     }
 
-    this._tracker?.forEach(widget => {
+    this._context?.tracker.forEach(widget => {
       const model = widget.model;
       if (model && this._modelNeedsBar(model)) {
         modelsToEnsure.add(model);
@@ -357,7 +420,7 @@ export class StoryEditorSession {
   }
 
   private _syncBarVisibility(): void {
-    const currentModel = this._tracker?.currentWidget?.model ?? null;
+    const currentModel = this._context?.tracker.currentWidget?.model ?? null;
 
     for (const [model, bar] of this._mapBars) {
       if (model === currentModel && this._modelNeedsBar(model)) {
@@ -455,8 +518,7 @@ export class StoryEditorSession {
 
     this._disposeBarForModel(model);
     this._syncBarVisibility();
-    this._syncSessionToModel(model);
-    void this._openDialog();
+    void this._openDialogForModel(model);
   }
 
   private _restoreFromStoryPreview(model: IJupyterGISModel): void {
@@ -467,8 +529,7 @@ export class StoryEditorSession {
 
     this._disposeBarForModel(model);
     this._refreshBars();
-    this._syncSessionToModel(model);
-    void this._openDialog();
+    void this._openDialogForModel(model);
   }
 
   private _clearModelEditorInteraction(model: IJupyterGISModel): void {
@@ -481,17 +542,23 @@ export class StoryEditorSession {
     this._disposeBarForModel(model);
   }
 
-  private _syncSessionToModel(model: IJupyterGISModel): void {
-    this._model = model;
-    if (this._tracker) {
-      this._mainViewContainer =
-        resolveMainViewContainer(this._tracker, model) ??
-        this._mainViewContainer;
-    }
+  private _resolveContextModel(): IJupyterGISModel | null {
+    return this._context?.tracker.currentWidget?.model ?? null;
   }
 
-  private _resolveContextModel(): IJupyterGISModel | null {
-    return this._tracker?.currentWidget?.model ?? this._model;
+  private _resolveEditingModel(): IJupyterGISModel | null {
+    const currentModel = this._resolveContextModel();
+    if (currentModel && this._hasOpenDialog(currentModel)) {
+      return currentModel;
+    }
+
+    for (const [model, editorState] of this._editors) {
+      if (editorState.dialog) {
+        return model;
+      }
+    }
+
+    return currentModel;
   }
 
   private _hasAnyEditorInteraction(): boolean {
@@ -509,12 +576,12 @@ export class StoryEditorSession {
   private _someTrackedModel(
     predicate: (model: IJupyterGISModel) => boolean,
   ): boolean {
-    if (!this._tracker) {
+    if (!this._context?.tracker) {
       return false;
     }
 
     let found = false;
-    this._tracker.forEach(widget => {
+    this._context.tracker.forEach(widget => {
       const model = widget.model;
       if (!found && model && predicate(model)) {
         found = true;
@@ -547,12 +614,15 @@ export class StoryEditorSession {
   private _resolveMapBarParentForModel(
     model: IJupyterGISModel,
   ): HTMLElement | null {
-    if (!this._tracker) {
-      return this._mainViewContainer;
+    const editorState = this._editors.get(model);
+    if (!this._context?.tracker) {
+      return editorState?.mainViewContainer ?? null;
     }
 
     return (
-      resolveMainViewContainer(this._tracker, model) ?? this._mainViewContainer
+      resolveMainViewContainer(this._context.tracker, model) ??
+      editorState?.mainViewContainer ??
+      null
     );
   }
 
@@ -573,27 +643,34 @@ export class StoryEditorSession {
     }
   }
 
-  private async _openDialog(): Promise<void> {
-    if (
-      !this._model ||
-      !this._commands ||
-      !this._state ||
-      !this._formSchemaRegistry
-    ) {
+  private async _openDialogForModel(model: IJupyterGISModel): Promise<void> {
+    if (!this._context) {
       return;
     }
 
-    if (this._dialog) {
-      this._releaseDialog();
+    const existingDialog = this._getDialog(model);
+    if (existingDialog) {
+      this._parkDialogsExcept(model);
+      existingDialog.show();
+      existingDialog.activate();
+      return;
     }
 
+    this._parkDialogsExcept(model);
+
+    const editorState = this._getOrCreateEditorState(model);
+    editorState.wantsEditor = true;
+    editorState.mainViewContainer =
+      resolveMainViewContainer(this._context.tracker, model) ??
+      editorState.mainViewContainer;
+
     const dialog = new StoryEditorWidget({
-      model: this._model,
-      commands: this._commands,
-      state: this._state,
-      formSchemaRegistry: this._formSchemaRegistry,
+      model,
+      commands: this._context.commands,
+      state: this._context.state,
+      formSchemaRegistry: this._context.formSchemaRegistry,
     });
-    this._dialog = dialog;
+    editorState.dialog = dialog;
 
     try {
       await dialog.launch();
@@ -602,18 +679,52 @@ export class StoryEditorSession {
     }
   }
 
-  private _releaseDialog(): void {
-    if (!this._dialog) {
+  private _syncDialogVisibility(): void {
+    const currentModel = this._resolveContextModel();
+
+    for (const [model, editorState] of this._editors) {
+      const dialog = editorState.dialog;
+      if (!dialog) {
+        continue;
+      }
+
+      const shouldShow =
+        model === currentModel &&
+        editorState.wantsEditor &&
+        !this._modelInteractions.has(model) &&
+        !model.isStoryPreviewActive();
+
+      if (shouldShow) {
+        dialog.show();
+      } else {
+        dialog.hide();
+      }
+    }
+  }
+
+  private _parkDialogsExcept(activeModel: IJupyterGISModel | null): void {
+    for (const [model, editorState] of this._editors) {
+      if (!editorState.dialog || model === activeModel) {
+        continue;
+      }
+
+      editorState.dialog.hide();
+    }
+  }
+
+  private _releaseDialogForModel(model: IJupyterGISModel): void {
+    const editorState = this._editors.get(model);
+    if (!editorState?.dialog) {
       return;
     }
 
-    const dialog = this._dialog;
-    this._dialog = null;
+    const dialog = editorState.dialog;
+    editorState.dialog = null;
     dialog.reject();
   }
 
   private _notifyPreviewChanged(): void {
-    this._commands?.notifyCommandChanged(CommandIDs.openStoryEditor);
+    this._context?.commands.notifyCommandChanged(CommandIDs.openStoryEditor);
   }
 
   private _focusSegmentOnMap(
@@ -623,11 +734,11 @@ export class StoryEditorSession {
     model.centerOnPosition(segmentId);
   }
 
-  private _togglePanels(): void {
-    if (!this._commands) {
+  private _togglePanelsForModel(_model: IJupyterGISModel): void {
+    if (!this._context) {
       return;
     }
 
-    void this._commands.execute(CommandIDs.togglePanel);
+    void this._context.commands.execute(CommandIDs.togglePanel);
   }
 }

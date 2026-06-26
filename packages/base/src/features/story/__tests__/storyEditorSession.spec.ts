@@ -25,7 +25,9 @@ jest.mock('../storyEditorDialog', () => ({
     launch: jest.fn().mockResolvedValue({}),
     reject: jest.fn(),
     show: jest.fn(),
+    hide: jest.fn(),
     activate: jest.fn(),
+    dispose: jest.fn(),
   })),
 }));
 
@@ -65,7 +67,9 @@ function createDialog() {
     reject: jest.fn(),
     launch: jest.fn().mockResolvedValue({}),
     show: jest.fn(),
+    hide: jest.fn(),
     activate: jest.fn(),
+    dispose: jest.fn(),
   };
 }
 
@@ -228,7 +232,7 @@ describe('StoryEditorSession', () => {
 
     attachSession(session, dialog, model, commands);
     session.enterMapViewMode('segment-1');
-    session.onDialogDisposed();
+    session.onDialogDisposed(model as never);
 
     expect(session.isMapViewMode()).toBe(true);
     expect(session.isActiveFor(model as never)).toBe(true);
@@ -496,6 +500,44 @@ describe('StoryEditorSession', () => {
       expect.objectContaining({ node: expect.any(HTMLElement) }),
       parentA,
     );
+  });
+
+  it('tracks an open dialog per model', () => {
+    const dialogA = createDialog();
+    const dialogB = createDialog();
+    const modelA = createModel({ filePath: 'a.jGIS' });
+    const modelB = createModel({ filePath: 'b.jGIS' });
+    const commands = createCommands();
+    const tracker = createTracker(modelA, [modelB]);
+
+    attachSession(session, dialogA, modelA, commands, tracker);
+    expect(session.isActiveFor(modelA as never)).toBe(true);
+    expect(session.isActiveFor(modelB as never)).toBe(false);
+
+    attachSession(session, dialogB, modelB, commands, tracker);
+    expect(dialogA.hide).toHaveBeenCalled();
+    expect(session.isActiveFor(modelA as never)).toBe(true);
+    expect(session.isActiveFor(modelB as never)).toBe(true);
+  });
+
+  it('shows the parked dialog when returning to its tab', () => {
+    const dialogA = createDialog();
+    const dialogB = createDialog();
+    const modelA = createModel({ filePath: 'a.jGIS' });
+    const modelB = createModel({ filePath: 'b.jGIS' });
+    const commands = createCommands();
+    const tracker = createTracker(modelA, [modelB]);
+
+    attachSession(session, dialogA, modelA, commands, tracker);
+    attachSession(session, dialogB, modelB, commands, tracker);
+
+    dialogA.show.mockClear();
+    dialogB.hide.mockClear();
+    tracker.currentWidget = { model: modelA };
+    session['_onTrackerCurrentChanged']();
+
+    expect(dialogA.show).toHaveBeenCalled();
+    expect(dialogB.hide).toHaveBeenCalled();
   });
 
   it('keeps map view bars on both tabs when each tab enters map view mode', () => {
