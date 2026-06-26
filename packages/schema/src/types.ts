@@ -13,7 +13,6 @@ export { IRasterDemSource } from './_interface/project/sources/rasterDemSource';
 export { IRasterSource } from './_interface/project/sources/rasterSource';
 export { IShapefileSource } from './_interface/project/sources/shapefileSource';
 export { IVectorTileSource } from './_interface/project/sources/vectorTileSource';
-export { IVideoSource } from './_interface/project/sources/videoSource';
 export { IGeoParquetSource } from './_interface/project/sources/geoParquetSource';
 export { IMarkerSource } from './_interface/project/sources/markerSource';
 export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';

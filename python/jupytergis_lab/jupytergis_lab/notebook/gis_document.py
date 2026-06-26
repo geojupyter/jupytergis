@@ -32,7 +32,6 @@ from jupytergis_core.schema import (
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
-    IVideoSource,
     IWmsTileSource,
     LayerType,
     SourceType,
@@ -432,46 +431,6 @@ class GISDocument(CommWidget):
 
         layer = {
             "type": LayerType.ImageLayer,
-            "name": name,
-            "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity},
-        }
-
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-
-    def add_video_layer(
-        self,
-        urls: list,
-        name: str | None = None,
-        coordinates: list | None = None,
-        opacity: float = 1,
-    ):
-        """Add a Video Layer to the document.
-
-        :param name: The name that will be used for the object in the document.
-        :param urls: URLs to video content in order of preferred format.
-        :param coordinates: Corners of video specified in longitude, latitude pairs.
-        :param opacity: The opacity, between 0 and 1.
-        """
-        if coordinates is None:
-            coordinates = []
-
-        if urls is None or coordinates is None:
-            raise ValueError("URLs and Coordinates are required")
-        # Extract name from first URL if not provided
-        if name is None and urls:
-            name = _extract_layer_name(urls[0])
-
-        source = {
-            "type": SourceType.VideoSource,
-            "name": f"{name} Source",
-            "parameters": {"urls": urls, "coordinates": coordinates},
-        }
-
-        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-
-        layer = {
-            "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
             "parameters": {"source": source_id, "opacity": opacity},
@@ -1155,7 +1114,6 @@ class JGISSource(BaseModel):
         | IMarkerSource
         | IGeoJSONSource
         | IImageSource
-        | IVideoSource
         | IGeoTiffSource
         | IGeoZarrSource
         | IRasterDemSource
@@ -1256,7 +1214,6 @@ OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
-OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoZarrSource, IGeoZarrSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
