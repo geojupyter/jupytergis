@@ -185,8 +185,8 @@ describe('StoryEditorSession', () => {
   it('reports inactive until a dialog is attached', () => {
     const model = createModel();
 
-    expect(session.isActiveFor(model as never)).toBe(false);
-    expect(session.isMapInteractionMode()).toBe(false);
+    expect(session.getMode(model as never)).toBe('inactive');
+    expect(session.hasActiveInteraction()).toBe(false);
   });
 
   it('enters map view mode and applies the segment view', async () => {
@@ -197,8 +197,7 @@ describe('StoryEditorSession', () => {
     attachSession(session, dialog, model, commands);
     session.enterMapViewMode('segment-1');
 
-    expect(session.isMapViewMode()).toBe(true);
-    expect(session.isActiveFor(model as never)).toBe(true);
+    expect(session.getMode(model as never)).toBe('map-view');
     expect(model.centerOnPosition).toHaveBeenCalledWith('segment-1');
     expect(dialog.reject).toHaveBeenCalled();
     expect(model.setUIState).toHaveBeenCalledWith({
@@ -227,7 +226,7 @@ describe('StoryEditorSession', () => {
     attachSession(session, dialog, model, commands);
     session.enterPreviewMode('segment-2');
 
-    expect(session.isPreviewingSegment()).toBe(true);
+    expect(session.getMode(model as never)).toBe('segment-preview');
     expect(applySegmentLayerOverrides).toHaveBeenCalledWith(
       model,
       'segment-2',
@@ -247,7 +246,7 @@ describe('StoryEditorSession', () => {
       leftPanelOpen: true,
       rightPanelOpen: true,
     });
-    expect(session.isMapInteractionMode()).toBe(false);
+    expect(session.hasActiveInteraction()).toBe(false);
   });
 
   it('keeps the session alive when the dialog closes during map interaction', () => {
@@ -259,8 +258,7 @@ describe('StoryEditorSession', () => {
     session.enterMapViewMode('segment-1');
     session.onDialogDisposed(model as never);
 
-    expect(session.isMapViewMode()).toBe(true);
-    expect(session.isActiveFor(model as never)).toBe(true);
+    expect(session.getMode(model as never)).toBe('map-view');
   });
 
   it('clears preview overrides when the dialog is dismissed', () => {
@@ -273,7 +271,7 @@ describe('StoryEditorSession', () => {
     session.clear();
 
     expect(clearSegmentLayerOverrideEntries).toHaveBeenCalledWith(model, []);
-    expect(session.isActiveFor(model as never)).toBe(false);
+    expect(session.getMode(model as never)).toBe('inactive');
   });
 
   it('enters story preview mode and restores the editor when preview ends', () => {
@@ -288,7 +286,7 @@ describe('StoryEditorSession', () => {
     attachSession(session, dialog, model, commands);
     session.enterStoryPreviewMode();
 
-    expect(session.isPreviewingStory()).toBe(true);
+    expect(session.getMode(model as never)).toBe('story-preview');
     expect(model.setStoryPreviewActive).toHaveBeenCalledWith(true);
     expect(dialog.reject).toHaveBeenCalled();
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
@@ -303,7 +301,7 @@ describe('StoryEditorSession', () => {
 
     expect(model.setStoryPreviewActive).toHaveBeenCalledWith(false);
     expect(StoryEditorWidget).toHaveBeenCalled();
-    expect(session.isMapInteractionMode()).toBe(false);
+    expect(session.hasActiveInteraction()).toBe(false);
     expect(commands.execute).not.toHaveBeenCalled();
   });
 
@@ -438,7 +436,7 @@ describe('StoryEditorSession', () => {
 
     tracker.currentWidget = { model: modelB };
     session['_onTrackerCurrentChanged']();
-    session['_exitStoryPreviewForModel'](modelB);
+    session.exitStoryPreviewForModel(modelB);
 
     modelB.isStoryPreviewActive = jest.fn(() => false);
     mapBarA.show.mockClear();
@@ -474,7 +472,7 @@ describe('StoryEditorSession', () => {
     tracker.currentChanged.disconnect.mockClear();
     session.closeEditorIfIdle();
 
-    expect(session.isActiveFor(modelB as never)).toBe(false);
+    expect(session.getMode(modelB as never)).toBe('inactive');
     expect(tracker.currentChanged.disconnect).not.toHaveBeenCalled();
   });
 
@@ -536,13 +534,13 @@ describe('StoryEditorSession', () => {
     const tracker = createTracker(modelA, [modelB]);
 
     attachSession(session, dialogA, modelA, commands, tracker);
-    expect(session.isActiveFor(modelA as never)).toBe(true);
-    expect(session.isActiveFor(modelB as never)).toBe(false);
+    expect(session.getMode(modelA as never)).not.toBe('inactive');
+    expect(session.getMode(modelB as never)).toBe('inactive');
 
     attachSession(session, dialogB, modelB, commands, tracker);
     expect(dialogA.hide).toHaveBeenCalled();
-    expect(session.isActiveFor(modelA as never)).toBe(true);
-    expect(session.isActiveFor(modelB as never)).toBe(true);
+    expect(session.getMode(modelA as never)).not.toBe('inactive');
+    expect(session.getMode(modelB as never)).not.toBe('inactive');
   });
 
   it('shows the parked dialog when returning to its tab', () => {
@@ -608,7 +606,7 @@ describe('StoryEditorSession', () => {
     tracker.currentWidget = { model: modelA };
     session['_onTrackerCurrentChanged']();
 
-    expect(session.isActiveFor(modelA as never)).toBe(true);
+    expect(session.getMode(modelA as never)).not.toBe('inactive');
     expect(barA.show).toHaveBeenCalled();
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledTimes(2);
   });
@@ -645,7 +643,7 @@ describe('StoryEditorSession', () => {
     session.restoreEditor();
 
     jest.mocked(StoryEditorWidget).mockClear();
-    session['_exitStoryPreviewForModel'](modelB);
+    session.exitStoryPreviewForModel(modelB);
 
     expect(StoryEditorWidget).toHaveBeenCalledWith(
       expect.objectContaining({ model: modelB }),

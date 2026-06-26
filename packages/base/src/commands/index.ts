@@ -1830,8 +1830,8 @@ export function addCommands(
       }
 
       const session = StoryEditorSession.getInstance();
-      if (session.isActiveFor(current.model)) {
-        if (session.isMapInteractionMode()) {
+      if (session.getMode(current.model) !== 'inactive') {
+        if (session.hasActiveInteraction()) {
           session.restoreEditor();
         } else {
           session.focusDialog();
@@ -2037,7 +2037,7 @@ namespace Private {
     try {
       await dialog.launch();
     } finally {
-      if (!session.isMapInteractionMode()) {
+      if (!session.hasActiveInteraction()) {
         session.closeEditorIfIdle();
       }
     }

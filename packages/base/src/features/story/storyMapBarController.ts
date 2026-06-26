@@ -36,9 +36,6 @@ export interface IStoryMapBarHost {
       editorState: IStoryMapBarEditorState,
     ) => void,
   ): void;
-}
-
-export interface IStoryMapBarActions {
   restoreEditorForModel(model: IJupyterGISModel): void;
   applyMapViewForModel(model: IJupyterGISModel): void;
   exitStoryPreviewForModel(model: IJupyterGISModel): void;
@@ -47,10 +44,7 @@ export interface IStoryMapBarActions {
 export class StoryMapBarController {
   private readonly _previewListeners = new Map<IJupyterGISModel, () => void>();
 
-  constructor(
-    private readonly _host: IStoryMapBarHost,
-    private readonly _actions: IStoryMapBarActions,
-  ) {}
+  constructor(private readonly _host: IStoryMapBarHost) {}
 
   public bindPreviewListeners(tracker: JupyterGISTracker): void {
     tracker.forEach(widget => {
@@ -178,7 +172,7 @@ export class StoryMapBarController {
         message: this._getStoryPreviewBarMessage(model),
         children: React.createElement(MapPreviewBarActions, {
           onBack: () => {
-            this._actions.exitStoryPreviewForModel(model);
+            this._host.exitStoryPreviewForModel(model);
           },
         }),
         placement: this._getStoryPreviewBarPlacement(model),
@@ -197,10 +191,10 @@ export class StoryMapBarController {
             'Pan and zoom the map, then apply this view to the segment.',
           children: React.createElement(MapViewBarActions, {
             onBack: () => {
-              this._actions.restoreEditorForModel(model);
+              this._host.restoreEditorForModel(model);
             },
             onApply: () => {
-              this._actions.applyMapViewForModel(model);
+              this._host.applyMapViewForModel(model);
             },
           }),
           placement: 'overlay-bottom',
@@ -211,7 +205,7 @@ export class StoryMapBarController {
             'Previewing this segment on the map with its layer overrides.',
           children: React.createElement(MapPreviewBarActions, {
             onBack: () => {
-              this._actions.restoreEditorForModel(model);
+              this._host.restoreEditorForModel(model);
             },
           }),
           placement: 'overlay-bottom',
