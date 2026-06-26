@@ -326,12 +326,12 @@ describe('StoryEditorSession', () => {
     jest.mocked(Widget.attach).mockClear();
 
     tracker.currentWidget = { model: otherModel };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
     expect(mapBar.hide).toHaveBeenCalled();
     expect(Widget.attach).not.toHaveBeenCalled();
 
     tracker.currentWidget = { model };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
 
     expect(Widget.attach).not.toHaveBeenCalled();
     expect(mapBar.show).toHaveBeenCalled();
@@ -385,7 +385,7 @@ describe('StoryEditorSession', () => {
       );
 
     tracker.currentWidget = { model: modelA };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
 
     expect(StoryMapInteractionBarWidget).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -435,13 +435,13 @@ describe('StoryEditorSession', () => {
       );
 
     tracker.currentWidget = { model: modelB };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
     session.exitStoryPreviewForModel(modelB);
 
     modelB.isStoryPreviewActive = jest.fn(() => false);
     mapBarA.show.mockClear();
     tracker.currentWidget = { model: modelA };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
 
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -513,7 +513,7 @@ describe('StoryEditorSession', () => {
 
     jest.mocked(StoryEditorWidget).mockClear();
     tracker.currentWidget = { model: modelA };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Previewing "Story A".',
@@ -557,7 +557,7 @@ describe('StoryEditorSession', () => {
     dialogA.show.mockClear();
     dialogB.hide.mockClear();
     tracker.currentWidget = { model: modelA };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
 
     expect(dialogA.show).toHaveBeenCalled();
     expect(dialogB.hide).toHaveBeenCalled();
@@ -604,7 +604,7 @@ describe('StoryEditorSession', () => {
     session.enterMapViewMode('segment-b');
 
     tracker.currentWidget = { model: modelA };
-    session['_onTrackerCurrentChanged']();
+    session['onTrackerCurrentChanged']();
 
     expect(session.getMode(modelA as never)).not.toBe('inactive');
     expect(barA.show).toHaveBeenCalled();
