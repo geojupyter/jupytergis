@@ -1,3 +1,6 @@
+import { javascript } from '@codemirror/lang-javascript';
+import { EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import {
   IGrammarLayer,
   IGrammarSymbologyState,
@@ -6,6 +9,7 @@ import {
   IPredicate,
   RGBA,
 } from '@jupytergis/schema';
+import { jupyterTheme } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
 
 import {
@@ -904,27 +908,55 @@ const ExpressionLegend: React.FC<ExpressionEntry> = ({
   expr,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
   const isLong = expr.length > 80;
+
+  useEffect(() => {
+    if (!editorRef.current) {
+      return;
+    }
+
+    viewRef.current?.destroy();
+
+    const state = EditorState.create({
+      doc: expr,
+      extensions: [
+        javascript(),
+        jupyterTheme,
+
+        EditorView.editable.of(false),
+        EditorView.lineWrapping,
+        EditorView.theme({
+          '&.cm-editor': {
+            fontSize: '1em',
+          },
+        }),
+      ],
+    });
+
+    viewRef.current = new EditorView({
+      state,
+      parent: editorRef.current,
+    });
+
+    return () => {
+      viewRef.current?.destroy();
+      viewRef.current = null;
+    };
+  }, []);
 
   return (
     <div style={{ padding: 6 }}>
       <EntryHeader field={field} channel={channel} when={when} />
-      <code
+
+      <div
+        ref={editorRef}
         style={{
-          display: '-webkit-box',
-          WebkitLineClamp: expanded ? 'none' : 2,
-          WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
-          fontSize: '1em',
-          padding: '4px 6px',
-          backgroundColor: 'var(--jp-layout-color2)',
-          color: 'var(--jp-content-font-color1)',
-          borderRadius: 3,
-          border: '1px solid var(--jp-border-color1)',
+          maxHeight: expanded ? 'none' : '3em',
         }}
-      >
-        {expr}
-      </code>
+      />
       {isLong && (
         <div style={{ marginTop: 2 }}>
           <span
