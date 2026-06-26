@@ -40,6 +40,7 @@ import {
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import { StoryEditorWidget } from '../features/story/storyEditorDialog';
 import { StoryEditorSession } from '../features/story/storyEditorSession';
+import { resolveMainViewContainer } from '../features/story/utils/resolveMainViewContainer';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
@@ -47,7 +48,7 @@ import {
   STORY_TYPE,
   SYMBOLOGY_VALID_LAYER_TYPES,
 } from '../types';
-import { JupyterGISDocumentWidget, JupyterGISPanel } from '../workspace/widget';
+import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -2059,13 +2060,18 @@ namespace Private {
       dialog,
       model,
       commands,
-      Private.resolveMainViewContainer(tracker, model),
+      resolveMainViewContainer(tracker, model),
+      state,
+      formSchemaRegistry,
+      tracker,
     );
 
     try {
       await dialog.launch();
     } finally {
-      session.clear();
+      if (!session.isMapInteractionMode()) {
+        session.closeEditorIfIdle();
+      }
     }
   }
 
@@ -2245,22 +2251,5 @@ namespace Private {
     const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 
     return `${cleanBase} Copy_${nextNumber}`;
-  }
-
-  export function resolveMainViewContainer(
-    tracker: JupyterGISTracker,
-    model: IJupyterGISModel,
-  ): HTMLElement | null {
-    const widget = tracker.find(w => w.model === model);
-    const panel = widget?.content;
-    if (!(panel instanceof JupyterGISPanel)) {
-      return null;
-    }
-
-    return (
-      panel.jupyterGISMainViewPanel?.node.querySelector<HTMLElement>(
-        '.jGIS-Mainview-Container',
-      ) ?? null
-    );
   }
 }

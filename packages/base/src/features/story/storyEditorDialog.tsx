@@ -35,17 +35,6 @@ export class StoryEditorWidget extends Dialog<boolean> {
     this.addClass('jgis-story-editor-dialog');
   }
 
-  minimize(): void {
-    this.addClass('jgis-story-editor-dialog--minimized');
-    this.hide();
-  }
-
-  restore(): void {
-    this.removeClass('jgis-story-editor-dialog--minimized');
-    this.show();
-    this.activate();
-  }
-
   // Prevent Jupyter Dialog from from eating enter key presses
   protected _evtKeydown(event: KeyboardEvent): void {
     if (
@@ -59,7 +48,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
   }
 
   dispose(): void {
-    StoryEditorSession.getInstance().clear();
+    StoryEditorSession.getInstance().onDialogDisposed();
     super.dispose();
   }
 }
