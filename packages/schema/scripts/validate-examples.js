@@ -31,7 +31,6 @@ const SOURCE_SCHEMAS = {
   VectorTileSource: 'sources/vectorTileSource.json',
   GeoJSONSource: 'sources/geoJsonSource.json',
   RasterDemSource: 'sources/rasterDemSource.json',
-  VideoSource: 'sources/videoSource.json',
   ImageSource: 'sources/imageSource.json',
   ShapefileSource: 'sources/shapefileSource.json',
   GeoTiffSource: 'sources/geoTiffSource.json',

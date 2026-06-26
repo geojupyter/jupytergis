@@ -725,47 +725,6 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewImageDialog),
   });
 
-  commands.addCommand(CommandIDs.openNewVideoDialog, {
-    label: trans.__('Video'),
-    caption:
-      'Open a dialog to create a new video layer and source in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Video Layer',
-      createLayer: true,
-      createSource: true,
-      sourceData: {
-        name: 'Custom Video Source',
-        urls: [
-          'https://static-assets.mapbox.com/mapbox-gl-js/drone.mp4',
-          'https://static-assets.mapbox.com/mapbox-gl-js/drone.webm',
-        ],
-        coordinates: [
-          [-122.51596391201019, 37.56238816766053],
-          [-122.51467645168304, 37.56410183312965],
-          [-122.51309394836426, 37.563391708549425],
-          [-122.51423120498657, 37.56161849366671],
-        ],
-      },
-      layerData: { name: 'Custom Video Layer' },
-      sourceType: 'VideoSource',
-      layerType: 'RasterLayer',
-    }),
-    ...icons.get(CommandIDs.openNewVideoDialog),
-  });
-
   commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
     label: trans.__('GeoTiff'),
     caption:

@@ -35,7 +35,6 @@ const iconObject = {
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
   ImageSource: { iconClass: 'fa fa-image' },
-  VideoSource: { iconClass: 'fa fa-video' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
   RasterLayer: { icon: rasterIcon },
@@ -46,7 +45,6 @@ const iconObject = {
   GeoTiffLayer: { iconClass: 'fa fa-image' },
   StacLayer: { icon: rasterIcon },
   ImageLayer: { iconClass: 'fa fa-image' },
-  VideoLayer: { iconClass: 'fa fa-video' },
   StorySegmentLayer: { iconClass: 'fa fa-link' },
 
   [CommandIDs.redo]: { icon: redoIcon },
@@ -58,7 +56,6 @@ const iconObject = {
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },
-  [CommandIDs.openNewVideoDialog]: { iconClass: 'fa fa-video' },
   [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },
   [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
   [CommandIDs.openNewShapefileDialog]: { iconClass: 'fa fa-file' },

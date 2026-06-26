@@ -14,7 +14,6 @@ from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # no
 from .interfaces.project.sources.markerSource import IMarkerSource  # noqa
 from .interfaces.project.sources.rasterSource import IRasterSource  # noqa
 from .interfaces.project.sources.geoJsonSource import IGeoJSONSource  # noqa
-from .interfaces.project.sources.videoSource import IVideoSource  # noqa
 from .interfaces.project.sources.imageSource import IImageSource  # noqa
 from .interfaces.project.sources.geoTiffSource import IGeoTiffSource  # noqa
 from .interfaces.project.sources.geoZarrSource import IGeoZarrSource  # noqa
