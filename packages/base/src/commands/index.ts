@@ -40,7 +40,7 @@ import {
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import { StoryEditorWidget } from '../features/story/storyEditorDialog';
 import { StoryEditorSession } from '../features/story/storyEditorSession';
-import { resolveMainViewContainer } from '../features/story/utils/resolveMainViewContainer';
+import { modelHasHiddenPanel, toggleModelPanels } from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
@@ -1507,15 +1507,7 @@ export function addCommands(
         return '';
       }
 
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-
-      return show
+      return modelHasHiddenPanel(current.model)
         ? trans.__('Show the side panels.')
         : trans.__('Hide the side panels.');
     },
@@ -1525,37 +1517,14 @@ export function addCommands(
       if (!current) {
         return false;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      return show;
+      return modelHasHiddenPanel(current.model);
     },
     execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      // Show all if any non-disabled panel is hidden; hide all otherwise.
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      const newState: { leftPanelOpen?: boolean; rightPanelOpen?: boolean } =
-        {};
-      if (!leftPanelDisabled) {
-        newState.leftPanelOpen = show;
-      }
-      if (!rightPanelDisabled) {
-        newState.rightPanelOpen = show;
-      }
-      current.model.setUIState(newState);
+      toggleModelPanels(current.model);
       commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
     ...icons.get(CommandIDs.togglePanel),
@@ -2060,7 +2029,6 @@ namespace Private {
       dialog,
       model,
       commands,
-      resolveMainViewContainer(tracker, model),
       state,
       formSchemaRegistry,
       tracker,

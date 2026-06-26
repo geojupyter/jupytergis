@@ -38,7 +38,7 @@ jest.mock('@lumino/widgets', () => ({
 }));
 
 jest.mock('../utils/resolveMainViewContainer', () => ({
-  resolveMainViewContainer: jest.fn(() => null),
+  resolveMainViewContainer: jest.fn(() => document.createElement('div')),
 }));
 
 jest.mock('@/src/constants', () => ({
@@ -158,12 +158,10 @@ function attachSession(
   commands: ReturnType<typeof createCommands>,
   tracker = createTracker(model),
 ): ReturnType<typeof createTracker> {
-  const container = document.createElement('div');
   session.attachDialog(
     dialog as never,
     model as never,
     commands,
-    container,
     {} as never,
     {} as never,
     tracker as never,
