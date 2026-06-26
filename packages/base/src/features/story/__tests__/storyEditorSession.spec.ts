@@ -44,6 +44,8 @@ jest.mock('../utils/resolveMainViewContainer', () => ({
 jest.mock('@/src/constants', () => ({
   CommandIDs: {
     togglePanel: 'jupytergis:togglePanel',
+    toggleLeftPanel: 'jupytergis:toggleLeftPanel',
+    toggleRightPanel: 'jupytergis:toggleRightPanel',
     openStoryEditor: 'jupytergis:openStoryEditor',
   },
 }));
@@ -75,6 +77,7 @@ function createDialog() {
 
 function createModel(overrides: Record<string, unknown> = {}) {
   let storyPreviewActive = false;
+  let uiState = { leftPanelOpen: true, rightPanelOpen: true };
   const storyPreviewActiveChanged = {
     connect: jest.fn(),
     disconnect: jest.fn(),
@@ -88,6 +91,14 @@ function createModel(overrides: Record<string, unknown> = {}) {
       storyPreviewActive = active;
     }),
     storyPreviewActiveChanged,
+    jgisSettings: {
+      leftPanelDisabled: false,
+      rightPanelDisabled: false,
+    },
+    getUIState: jest.fn(() => uiState),
+    setUIState: jest.fn((partial: Partial<typeof uiState>) => {
+      uiState = { ...uiState, ...partial };
+    }),
     getSelectedStory: jest.fn(() => ({
       story: { storyType: STORY_TYPE.guided },
     })),
@@ -192,13 +203,22 @@ describe('StoryEditorSession', () => {
     expect(session.isActiveFor(model as never)).toBe(true);
     expect(model.centerOnPosition).toHaveBeenCalledWith('segment-1');
     expect(dialog.reject).toHaveBeenCalled();
-    expect(commands.execute).toHaveBeenCalledWith(TOGGLE_PANEL_COMMAND);
+    expect(model.setUIState).toHaveBeenCalledWith({
+      leftPanelOpen: false,
+      rightPanelOpen: false,
+    });
+    expect(commands.notifyCommandChanged).toHaveBeenCalledWith(
+      TOGGLE_PANEL_COMMAND,
+    );
 
     session.applyMapView();
 
     expect(updateSegmentMapView).toHaveBeenCalledWith(model, 'segment-1');
     expect(StoryEditorWidget).toHaveBeenCalled();
-    expect(session.isMapInteractionMode()).toBe(false);
+    expect(model.setUIState).toHaveBeenCalledWith({
+      leftPanelOpen: true,
+      rightPanelOpen: true,
+    });
   });
 
   it('previews a segment and clears overrides when restored', () => {
@@ -216,12 +236,19 @@ describe('StoryEditorSession', () => {
       [],
     );
     expect(dialog.reject).toHaveBeenCalled();
-    expect(commands.execute).toHaveBeenCalledWith(TOGGLE_PANEL_COMMAND);
+    expect(model.setUIState).toHaveBeenCalledWith({
+      leftPanelOpen: false,
+      rightPanelOpen: false,
+    });
 
     session.restoreEditor();
 
     expect(clearSegmentLayerOverrideEntries).toHaveBeenCalledWith(model, []);
     expect(StoryEditorWidget).toHaveBeenCalled();
+    expect(model.setUIState).toHaveBeenCalledWith({
+      leftPanelOpen: true,
+      rightPanelOpen: true,
+    });
     expect(session.isMapInteractionMode()).toBe(false);
   });
 
@@ -538,6 +565,29 @@ describe('StoryEditorSession', () => {
 
     expect(dialogA.show).toHaveBeenCalled();
     expect(dialogB.hide).toHaveBeenCalled();
+  });
+
+  it('hides panels per model when each tab enters map view mode', () => {
+    const dialogA = createDialog();
+    const dialogB = createDialog();
+    const modelA = createModel({ filePath: 'a.jGIS' });
+    const modelB = createModel({ filePath: 'b.jGIS' });
+    const commands = createCommands();
+    const tracker = createTracker(modelA, [modelB]);
+
+    attachSession(session, dialogA, modelA, commands, tracker);
+    session.enterMapViewMode('segment-a');
+    expect(modelA.setUIState).toHaveBeenCalledWith({
+      leftPanelOpen: false,
+      rightPanelOpen: false,
+    });
+
+    attachSession(session, dialogB, modelB, commands, tracker);
+    session.enterMapViewMode('segment-b');
+    expect(modelB.setUIState).toHaveBeenCalledWith({
+      leftPanelOpen: false,
+      rightPanelOpen: false,
+    });
   });
 
   it('keeps map view bars on both tabs when each tab enters map view mode', () => {
