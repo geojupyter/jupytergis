@@ -60,12 +60,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     this._bars.refresh();
   };
 
-  private readonly _onTrackerWidgetAdded = (): void => {
-    if (this._context?.tracker) {
-      this._bars.bindPreviewListeners(this._context.tracker);
-    }
-  };
-
   private constructor() {
     this._bars = new StoryMapBarController(this);
   }
@@ -377,18 +371,12 @@ export class StoryEditorSession implements IStoryMapBarHost {
   private _bindTracker(): void {
     this._unbindTracker();
     this._context?.tracker.currentChanged.connect(this._onTrackerCurrentChanged);
-    this._context?.tracker.widgetAdded.connect(this._onTrackerWidgetAdded);
-    if (this._context?.tracker) {
-      this._bars.bindPreviewListeners(this._context.tracker);
-    }
   }
 
   private _unbindTracker(): void {
     this._context?.tracker.currentChanged.disconnect(
       this._onTrackerCurrentChanged,
     );
-    this._context?.tracker.widgetAdded.disconnect(this._onTrackerWidgetAdded);
-    this._bars.unbindPreviewListeners();
   }
 
   private _resolveContextModel(): IJupyterGISModel | null {

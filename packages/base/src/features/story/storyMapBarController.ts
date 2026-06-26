@@ -42,31 +42,7 @@ export interface IStoryMapBarHost {
 }
 
 export class StoryMapBarController {
-  private readonly _previewListeners = new Map<IJupyterGISModel, () => void>();
-
   constructor(private readonly _host: IStoryMapBarHost) {}
-
-  public bindPreviewListeners(tracker: JupyterGISTracker): void {
-    tracker.forEach(widget => {
-      const model = widget.model;
-      if (!model || this._previewListeners.has(model)) {
-        return;
-      }
-
-      const handler = (): void => {
-        this.refresh();
-      };
-      model.storyPreviewActiveChanged.connect(handler);
-      this._previewListeners.set(model, handler);
-    });
-  }
-
-  public unbindPreviewListeners(): void {
-    for (const [model, handler] of this._previewListeners) {
-      model.storyPreviewActiveChanged.disconnect(handler);
-    }
-    this._previewListeners.clear();
-  }
 
   public refresh(): void {
     this._host.forEachEditor((model, editorState) => {
