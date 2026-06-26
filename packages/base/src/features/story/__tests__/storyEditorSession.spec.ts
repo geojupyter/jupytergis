@@ -250,7 +250,6 @@ describe('StoryEditorSession', () => {
   it('enters story preview mode and restores the editor when preview ends', () => {
     const dialog = createDialog();
     const model = createModel({
-      isStoryPreviewActive: jest.fn(() => true),
       getSelectedStory: jest.fn(() => ({
         story: { storyType: STORY_TYPE.guided, title: 'My Story' },
       })),
@@ -454,14 +453,12 @@ describe('StoryEditorSession', () => {
     const dialog = createDialog();
     const modelA = createModel({
       filePath: 'a.jGIS',
-      isStoryPreviewActive: jest.fn(() => true),
       getSelectedStory: jest.fn(() => ({
         story: { storyType: STORY_TYPE.guided, title: 'Story A' },
       })),
     });
     const modelB = createModel({
       filePath: 'b.jGIS',
-      isStoryPreviewActive: jest.fn(() => true),
       getSelectedStory: jest.fn(() => ({
         story: { storyType: STORY_TYPE.verticalScroll, title: 'Story B' },
       })),
@@ -472,7 +469,7 @@ describe('StoryEditorSession', () => {
 
     attachSession(session, dialog, modelB, commands, tracker);
     session.enterStoryPreviewMode();
-    modelA.isStoryPreviewActive = jest.fn(() => true);
+    modelA.setStoryPreviewActive(true);
 
     jest
       .mocked(resolveMainViewContainer)
@@ -487,11 +484,10 @@ describe('StoryEditorSession', () => {
       expect.objectContaining({ model: modelB }),
     );
 
-    modelB.isStoryPreviewActive = jest.fn(() => false);
     jest.mocked(StoryEditorWidget).mockClear();
     tracker.currentWidget = { model: modelA };
     session['_onTrackerCurrentChanged']();
-    expect(StoryMapInteractionBarWidget).toHaveBeenLastCalledWith(
+    expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Previewing "Story A".',
       }),
@@ -500,6 +496,31 @@ describe('StoryEditorSession', () => {
       expect.objectContaining({ node: expect.any(HTMLElement) }),
       parentA,
     );
+  });
+
+  it('keeps map view bars on both tabs when each tab enters map view mode', () => {
+    const dialogA = createDialog();
+    const dialogB = createDialog();
+    const modelA = createModel({ filePath: 'a.jGIS' });
+    const modelB = createModel({ filePath: 'b.jGIS' });
+    const commands = createCommands();
+    const tracker = createTracker(modelA, [modelB]);
+
+    attachSession(session, dialogA, modelA, commands, tracker);
+    session.enterMapViewMode('segment-a');
+
+    const barA = (StoryMapInteractionBarWidget as jest.Mock).mock.results[0]
+      .value as { show: jest.Mock; hide: jest.Mock };
+
+    attachSession(session, dialogB, modelB, commands, tracker);
+    session.enterMapViewMode('segment-b');
+
+    tracker.currentWidget = { model: modelA };
+    session['_onTrackerCurrentChanged']();
+
+    expect(session.isActiveFor(modelA as never)).toBe(true);
+    expect(barA.show).toHaveBeenCalled();
+    expect(StoryMapInteractionBarWidget).toHaveBeenCalledTimes(2);
   });
 
   it('opens the dialog when exiting preview while another tab still previews', () => {
