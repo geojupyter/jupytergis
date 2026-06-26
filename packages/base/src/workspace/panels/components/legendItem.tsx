@@ -85,12 +85,21 @@ type StrokeWidthEntry = {
   domain: [number, number];
 };
 
+type ExpressionEntry = {
+  type: 'expression';
+  field?: string;
+  channel?: string;
+  when?: string;
+  expr: string;
+};
+
 type LegendEntry =
   | GradientEntry
   | CategoricalEntry
   | SwatchEntry
   | SizeEntry
-  | StrokeWidthEntry;
+  | StrokeWidthEntry
+  | ExpressionEntry;
 
 // ---------------------------------------------------------------------------
 // Colour helpers
@@ -512,7 +521,18 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
               });
               break;
             }
-            // expression / constant_num on color channel: skip.
+            case 'expression': {
+              const p = scale.params;
+              entries.push({
+                type: 'expression',
+                field,
+                channel: channelLbl,
+                when: whenLbl,
+                expr: p.expr,
+              });
+              break;
+            }
+            // constant_num on color channel: skip.
             default:
               break;
           }
@@ -877,6 +897,53 @@ const StrokeWidthLegend: React.FC<StrokeWidthEntry> = ({
   </div>
 );
 
+const ExpressionLegend: React.FC<ExpressionEntry> = ({
+  field,
+  channel,
+  when,
+  expr,
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = expr.length > 80;
+
+  return (
+    <div style={{ padding: 6 }}>
+      <EntryHeader field={field} channel={channel} when={when} />
+      <code
+        style={{
+          display: '-webkit-box',
+          WebkitLineClamp: expanded ? 'none' : 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          fontSize: '1em',
+          padding: '4px 6px',
+          backgroundColor: 'var(--jp-layout-color2)',
+          color: 'var(--jp-content-font-color1)',
+          borderRadius: 3,
+          border: '1px solid var(--jp-border-color1)',
+        }}
+      >
+        {expr}
+      </code>
+      {isLong && (
+        <div style={{ marginTop: 2 }}>
+          <span
+            onClick={() => setExpanded(v => !v)}
+            style={{
+              fontSize: '0.90em',
+              cursor: 'pointer',
+              color: 'var(--jp-content-font-color2)',
+              userSelect: 'none',
+            }}
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ---------------------------------------------------------------------------
 // Heatmap legend
 // ---------------------------------------------------------------------------
@@ -990,6 +1057,9 @@ export const LegendItem: React.FC<{
             return <SizeLegend key={i} {...entry} />;
           case 'stroke-width':
             return <StrokeWidthLegend key={i} {...entry} />;
+          case 'expression': {
+            return <ExpressionLegend key={i} {...entry} />;
+          }
         }
       })}
     </div>
