@@ -944,7 +944,7 @@ const ExpressionLegend: React.FC<ExpressionEntry> = ({
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, []);
+  }, [expr]);
 
   return (
     <div style={{ padding: 6 }}>
