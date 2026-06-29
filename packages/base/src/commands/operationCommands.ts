@@ -12,7 +12,6 @@ export namespace LayerCreationCommandIDs {
   export const newGeoParquetWithParams = 'jupytergis:newGeoParquetWithParams';
   export const newHillshadeWithParams = 'jupytergis:newHillshadeWithParams';
   export const newImageWithParams = 'jupytergis:newImageWithParams';
-  export const newVideoWithParams = 'jupytergis:newVideoWithParams';
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
   export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
@@ -225,30 +224,6 @@ export function addLayerCreationCommands(options: {
         required: ['path', 'coordinates'],
         properties: {
           path: { type: 'string' },
-          coordinates: {
-            type: 'array',
-            items: { type: 'array', items: { type: 'number' } },
-          },
-        },
-      },
-      layerParamsSchema: { opacity: { type: 'number', default: 1 } },
-      buildParameters: (p, id) => ({
-        source: id,
-        opacity: p.opacity ?? 1,
-      }),
-    },
-    {
-      id: LayerCreationCommandIDs.newVideoWithParams,
-      label: 'New Video Layer From Parameters',
-      caption:
-        'Add a new video layer (by file path or URL) and add it to the given JupyterGIS file',
-      sourceType: 'VideoSource',
-      layerType: 'RasterLayer',
-      sourceSchema: {
-        type: 'object',
-        required: ['urls', 'coordinates'],
-        properties: {
-          urls: { type: 'array', items: { type: 'string' } },
           coordinates: {
             type: 'array',
             items: { type: 'array', items: { type: 'number' } },

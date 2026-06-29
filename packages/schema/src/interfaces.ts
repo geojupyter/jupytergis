@@ -51,7 +51,6 @@ import {
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
-  IVideoSource,
   IGeoTiffLayer,
   IGeoZarrLayer,
   Modes,
@@ -530,7 +529,6 @@ export type ILayerGalleryEntry = {
     | IRasterSource
     | IShapefileSource
     | IVectorTileSource
-    | IVideoSource
     | IOpenEOTileSource;
   provider: string;
   description: string;

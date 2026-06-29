@@ -1,3 +1,6 @@
+import { javascript } from '@codemirror/lang-javascript';
+import { EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import {
   IGrammarLayer,
   IGrammarSymbologyState,
@@ -6,6 +9,7 @@ import {
   IPredicate,
   RGBA,
 } from '@jupytergis/schema';
+import { jupyterTheme } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
 
 import {
@@ -85,12 +89,21 @@ type StrokeWidthEntry = {
   domain: [number, number];
 };
 
+type ExpressionEntry = {
+  type: 'expression';
+  field?: string;
+  channel?: string;
+  when?: string;
+  expr: string;
+};
+
 type LegendEntry =
   | GradientEntry
   | CategoricalEntry
   | SwatchEntry
   | SizeEntry
-  | StrokeWidthEntry;
+  | StrokeWidthEntry
+  | ExpressionEntry;
 
 // ---------------------------------------------------------------------------
 // Colour helpers
@@ -512,7 +525,18 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
               });
               break;
             }
-            // expression / constant_num on color channel: skip.
+            case 'expression': {
+              const p = scale.params;
+              entries.push({
+                type: 'expression',
+                field,
+                channel: channelLbl,
+                when: whenLbl,
+                expr: p.expr,
+              });
+              break;
+            }
+            // constant_num on color channel: skip.
             default:
               break;
           }
@@ -877,6 +901,81 @@ const StrokeWidthLegend: React.FC<StrokeWidthEntry> = ({
   </div>
 );
 
+const ExpressionLegend: React.FC<ExpressionEntry> = ({
+  field,
+  channel,
+  when,
+  expr,
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const isLong = expr.length > 80;
+
+  useEffect(() => {
+    if (!editorRef.current) {
+      return;
+    }
+
+    viewRef.current?.destroy();
+
+    const state = EditorState.create({
+      doc: expr,
+      extensions: [
+        javascript(),
+        jupyterTheme,
+
+        EditorView.editable.of(false),
+        EditorView.lineWrapping,
+        EditorView.theme({
+          '&.cm-editor': {
+            fontSize: '1em',
+          },
+        }),
+      ],
+    });
+
+    viewRef.current = new EditorView({
+      state,
+      parent: editorRef.current,
+    });
+
+    return () => {
+      viewRef.current?.destroy();
+      viewRef.current = null;
+    };
+  }, [expr]);
+
+  return (
+    <div style={{ padding: 6 }}>
+      <EntryHeader field={field} channel={channel} when={when} />
+
+      <div
+        ref={editorRef}
+        style={{
+          overflow: 'hidden',
+          maxHeight: expanded ? 'none' : '3em',
+        }}
+      />
+      {isLong && (
+        <div style={{ marginTop: 2 }}>
+          <span
+            onClick={() => setExpanded(v => !v)}
+            style={{
+              fontSize: '0.90em',
+              cursor: 'pointer',
+              color: 'var(--jp-content-font-color2)',
+              userSelect: 'none',
+            }}
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ---------------------------------------------------------------------------
 // Heatmap legend
 // ---------------------------------------------------------------------------
@@ -990,6 +1089,9 @@ export const LegendItem: React.FC<{
             return <SizeLegend key={i} {...entry} />;
           case 'stroke-width':
             return <StrokeWidthLegend key={i} {...entry} />;
+          case 'expression': {
+            return <ExpressionLegend key={i} {...entry} />;
+          }
         }
       })}
     </div>

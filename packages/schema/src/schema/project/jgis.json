@@ -60,7 +60,6 @@
         "VectorTileSource",
         "GeoJSONSource",
         "RasterDemSource",
-        "VideoSource",
         "ImageSource",
         "ShapefileSource",
         "GeoTiffSource",

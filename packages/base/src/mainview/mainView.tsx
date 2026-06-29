@@ -1161,12 +1161,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
-        case 'VideoSource': {
-          this._log('warning', 'Video Tiles not supported with Open Layers');
-
-          break;
-        }
-
         case 'GeoTiffSource': {
           const sourceParameters = source.parameters as IGeoTiffSource;
 
