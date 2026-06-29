@@ -71,8 +71,19 @@ def _warn(logs: dict[str, list[str]], layer_id: str, message: str) -> None:
 def _rgba_to_qcolor(rgba: Any) -> QColor:
     """Convert an [r, g, b, a] list (a in 0-1) or '#rrggbb' string to QColor."""
     if isinstance(rgba, str) and rgba.startswith("#"):
-        hex_color = webcolors.normalize_hex(rgba)
-        rgb = webcolors.hex_to_rgb(hex_color)
+        hex_color = rgba.lstrip("#")
+
+        if len(hex_color) == 4:
+            hex_color = "".join(c * 2 for c in hex_color)
+        elif len(hex_color) == 3:
+            hex_color = "".join(c * 2 for c in hex_color) + "ff"
+
+        if len(hex_color) == 8:
+            rgb = webcolors.hex_to_rgb(f"#{hex_color[:6]}")
+            alpha = int(hex_color[6:8], 16)
+            return QColor(rgb.red, rgb.green, rgb.blue, alpha)
+
+        rgb = webcolors.hex_to_rgb(webcolors.normalize_hex(rgba))
         return QColor(rgb.red, rgb.green, rgb.blue, 255)
     if isinstance(rgba, list | tuple) and len(rgba) == 4:
         r, g, b, a = rgba
