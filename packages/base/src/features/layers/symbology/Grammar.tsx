@@ -193,6 +193,7 @@ interface ILayerSectionProps {
   availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
+  allowExpression?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -206,6 +207,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   availableFields,
   featureValues,
   isRasterLayer = false,
+  allowExpression = true,
   onChange,
   onDelete,
   onMoveUp,
@@ -516,6 +518,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               availableFields={encodingFields}
               featureValues={featureValues}
               isRaster={isRaster}
+              allowExpression={allowExpression}
               onChange={updated => updateRow(i, updated)}
               onDelete={() => removeRow(i)}
             />
@@ -704,6 +707,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           availableFields={availableFields}
           featureValues={selectableAttributesAndValues}
           isRasterLayer={isRasterLayer}
+          allowExpression={!model.isQgisDocument}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
