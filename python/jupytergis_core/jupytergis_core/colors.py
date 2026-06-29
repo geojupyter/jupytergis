@@ -16,7 +16,6 @@ import webcolors
 RGBA = tuple[float, float, float, float]
 
 
-
 def rgb_to_hex(rgb_str: str) -> str:
     """Convert a comma-separated ``"r,g,b"`` (or ``"r,g,b,a"``) string to a
     ``#rrggbb`` hex code. Any channel past the first three is ignored.

@@ -1192,14 +1192,14 @@ def _extract_symbol_style(symbol):
         return fill, stroke, stroke_width, radius, geometry_type
 
     rgb = webcolors.hex_to_rgb(
-    webcolors.normalize_hex(symbol.color().name()),
-)
+        webcolors.normalize_hex(symbol.color().name()),
+    )
 
     color = [
-    float(rgb.red),
-    float(rgb.green),
-    float(rgb.blue),
-    symbol.color().alphaF(),
+        float(rgb.red),
+        float(rgb.green),
+        float(rgb.blue),
+        symbol.color().alphaF(),
     ]
     symbol_layer = symbol.symbolLayer(0)
     props = symbol_layer.properties() if symbol_layer is not None else {}
@@ -1209,13 +1209,13 @@ def _extract_symbol_style(symbol):
     if outline_color_str:
         rgb = webcolors.hex_to_rgb(
             webcolors.normalize_hex(rgb_to_hex(outline_color_str)),
-    )
+        )
         outline_stroke = [
-        float(rgb.red),
-        float(rgb.green),
-        float(rgb.blue),
-        1.0,
-    ]
+            float(rgb.red),
+            float(rgb.green),
+            float(rgb.blue),
+            1.0,
+        ]
     else:
         outline_stroke = None
 
