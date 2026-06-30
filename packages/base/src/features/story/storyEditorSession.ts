@@ -8,7 +8,6 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandIDs } from '@/src/constants';
 import type { JupyterGISTracker } from '@/src/types';
 import { StoryEditorWidget } from './storyEditorDialog';
-import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
 import {
   StoryMapBarController,
   type IStoryMapBarHost,
@@ -34,7 +33,6 @@ interface IModelEditorState {
   dialog: StoryEditorWidget | null;
   wantsEditor: boolean;
   interaction: IModelEditorInteraction | null;
-  mapBar: StoryMapInteractionBarWidget | null;
 }
 
 interface ISharedEditorContext {
@@ -167,36 +165,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     return this._editors.get(model)?.interaction ?? null;
   }
 
-  public getEditorState(
-    model: IJupyterGISModel,
-  ): IModelEditorState | undefined {
-    return this._editors.get(model);
-  }
-
-  public getOrCreateEditorState(model: IJupyterGISModel): IModelEditorState {
-    let editorState = this._editors.get(model);
-    if (!editorState) {
-      editorState = {
-        dialog: null,
-        wantsEditor: false,
-        interaction: null,
-        mapBar: null,
-      };
-
-      this._editors.set(model, editorState);
-    }
-
-    return editorState;
-  }
-
-  public forEachEditor(
-    callback: (model: IJupyterGISModel, editorState: IModelEditorState) => void,
-  ): void {
-    for (const [model, editorState] of this._editors) {
-      callback(model, editorState);
-    }
-  }
-
   public enterMapViewMode(segmentId: string): void {
     this.enterSegmentInteraction('map-view', segmentId);
   }
@@ -299,6 +267,21 @@ export class StoryEditorSession implements IStoryMapBarHost {
     this._editors.clear();
     this.unbindTracker();
     this._context = null;
+  }
+
+  private getOrCreateEditorState(model: IJupyterGISModel): IModelEditorState {
+    let editorState = this._editors.get(model);
+    if (!editorState) {
+      editorState = {
+        dialog: null,
+        wantsEditor: false,
+        interaction: null,
+      };
+
+      this._editors.set(model, editorState);
+    }
+
+    return editorState;
   }
 
   private getDialog(model: IJupyterGISModel): StoryEditorWidget | null {

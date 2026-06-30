@@ -19,37 +19,30 @@ interface IMapBarConfig {
   placement: StoryMapInteractionBarPlacement;
 }
 
-export interface IStoryMapBarEditorState {
-  mapBar: StoryMapInteractionBarWidget | null;
-}
-
 export interface IStoryMapBarHost {
   getTracker(): JupyterGISTracker | null;
   getInteraction(
     model: IJupyterGISModel,
   ): { mode: MapBarInteractionMode } | null;
-  getEditorState(model: IJupyterGISModel): IStoryMapBarEditorState | undefined;
-  getOrCreateEditorState(model: IJupyterGISModel): IStoryMapBarEditorState;
-  forEachEditor(
-    callback: (
-      model: IJupyterGISModel,
-      editorState: IStoryMapBarEditorState,
-    ) => void,
-  ): void;
   restoreEditorForModel(model: IJupyterGISModel): void;
   applyMapViewForModel(model: IJupyterGISModel): void;
   exitStoryPreviewForModel(model: IJupyterGISModel): void;
 }
 
 export class StoryMapBarController {
+  private readonly _mapBars = new Map<
+    IJupyterGISModel,
+    StoryMapInteractionBarWidget
+  >();
+
   constructor(private readonly _host: IStoryMapBarHost) {}
 
   public refresh(): void {
-    this._host.forEachEditor((model, editorState) => {
-      if (editorState.mapBar && !this._modelNeedsBar(model)) {
+    for (const model of [...this._mapBars.keys()]) {
+      if (!this._modelNeedsBar(model)) {
         this.disposeForModel(model);
       }
-    });
+    }
 
     const tracker = this._host.getTracker();
     const modelsToEnsure = new Set<IJupyterGISModel>();
@@ -74,21 +67,20 @@ export class StoryMapBarController {
   }
 
   public disposeForModel(model: IJupyterGISModel): void {
-    const editorState = this._host.getEditorState(model);
-    const bar = editorState?.mapBar;
+    const bar = this._mapBars.get(model);
     if (!bar) {
       return;
     }
 
     bar.hide();
     bar.dispose();
-    editorState.mapBar = null;
+    this._mapBars.delete(model);
   }
 
   public disposeAll(): void {
-    this._host.forEachEditor(model => {
+    for (const model of [...this._mapBars.keys()]) {
       this.disposeForModel(model);
-    });
+    }
   }
 
   private _modelNeedsBar(model: IJupyterGISModel): boolean {
@@ -99,14 +91,12 @@ export class StoryMapBarController {
 
   private _ensureBarForModel(model: IJupyterGISModel, retry = 0): void {
     const config = this._getBarConfigForModel(model);
-    const editorState = this._host.getOrCreateEditorState(model);
-
     if (!config) {
       this.disposeForModel(model);
       return;
     }
 
-    if (editorState.mapBar) {
+    if (this._mapBars.has(model)) {
       return;
     }
 
@@ -122,24 +112,19 @@ export class StoryMapBarController {
 
     const bar = new StoryMapInteractionBarWidget(config);
     Widget.attach(bar, parent);
-    editorState.mapBar = bar;
+    this._mapBars.set(model, bar);
   }
 
   private _syncVisibility(): void {
     const currentModel = this._host.getTracker()?.currentWidget?.model ?? null;
 
-    this._host.forEachEditor((model, editorState) => {
-      const bar = editorState.mapBar;
-      if (!bar) {
-        return;
-      }
-
+    for (const [model, bar] of this._mapBars) {
       if (model === currentModel && this._modelNeedsBar(model)) {
         bar.show();
       } else {
         bar.hide();
       }
-    });
+    }
   }
 
   private _getBarConfigForModel(model: IJupyterGISModel): IMapBarConfig | null {
