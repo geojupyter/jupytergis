@@ -95,6 +95,24 @@ export class StoryEditorSession implements IStoryMapBarHost {
     this.bindTracker();
   }
 
+  public async openEditor(
+    model: IJupyterGISModel,
+    commands: CommandRegistry,
+    state: IStateDB,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    tracker: JupyterGISTracker,
+  ): Promise<void> {
+    this._context = {
+      commands,
+      state,
+      formSchemaRegistry,
+      tracker,
+    };
+    this.bindTracker();
+
+    await this.openDialogForModel(model);
+  }
+
   public onDialogDisposed(model: IJupyterGISModel): void {
     const editorState = this._editors.get(model);
     if (editorState) {

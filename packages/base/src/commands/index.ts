@@ -38,7 +38,6 @@ import {
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
-import { StoryEditorWidget } from '../features/story/storyEditorDialog';
 import { StoryEditorMode, StoryEditorSession } from '../features/story/storyEditorSession';
 import {
   modelHasHiddenPanel,
@@ -2024,27 +2023,13 @@ namespace Private {
     state: IStateDB,
     tracker: JupyterGISTracker,
   ): Promise<void> {
-    const session = StoryEditorSession.getInstance();
-    const dialog = new StoryEditorWidget({
-      model,
-      commands,
-      state,
-      formSchemaRegistry,
-    });
-    session.attachDialog(
-      dialog,
+    await StoryEditorSession.getInstance().openEditor(
       model,
       commands,
       state,
       formSchemaRegistry,
       tracker,
     );
-
-    try {
-      await dialog.launch();
-    } finally {
-      session.closeEditorIfIdle();
-    }
   }
 
   export function createLayerBrowser(
