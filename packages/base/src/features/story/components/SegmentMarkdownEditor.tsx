@@ -45,6 +45,11 @@ export function SegmentMarkdownEditor({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<CodeMirrorEditor | null>(null);
   const codeModelRef = useRef<CodeEditor.Model | null>(null);
+  const seedMarkdownRef = useRef({ segmentId, markdown: initialMarkdown });
+
+  if (seedMarkdownRef.current.segmentId !== segmentId) {
+    seedMarkdownRef.current = { segmentId, markdown: initialMarkdown };
+  }
 
   const minHeight = markdownEditorMinHeight(rows, tall);
 
@@ -57,7 +62,7 @@ export function SegmentMarkdownEditor({
     const sharedModel = getStorySegmentMarkdownSharedModel(
       model,
       segmentId,
-      initialMarkdown,
+      seedMarkdownRef.current.markdown,
     );
     const codeModel = new CodeEditor.Model({
       sharedModel: sharedModel as import('@jupyter/ydoc').IYText,
@@ -90,7 +95,7 @@ export function SegmentMarkdownEditor({
       codeModel.dispose();
       codeModelRef.current = null;
     };
-  }, [model, segmentId, editorServices, initialMarkdown, minHeight]);
+  }, [model, segmentId, editorServices, minHeight]);
 
   return (
     <Tabs
