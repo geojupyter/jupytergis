@@ -139,6 +139,7 @@ export function attachSession(
     {} as never,
     {} as never,
     tracker as never,
+    {} as never,
   );
   return tracker;
 }

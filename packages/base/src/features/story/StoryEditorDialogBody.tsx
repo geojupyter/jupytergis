@@ -1,4 +1,5 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
@@ -45,12 +46,14 @@ export interface IStoryEditorDialogBodyProps {
   commands: CommandRegistry;
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  editorServices: IEditorServices;
 }
 
 function SegmentEditor({
   model,
   state,
   segment,
+  editorServices,
   portalContainerRef,
   canRemoveSegment,
   showSegmentAnimation,
@@ -62,6 +65,7 @@ function SegmentEditor({
   model: IJupyterGISModel;
   state: IStateDB;
   segment: IStorySegmentViewItem;
+  editorServices: IEditorServices;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
   showSegmentAnimation: boolean;
@@ -157,10 +161,10 @@ function SegmentEditor({
                 }}
               />
               <SegmentMarkdownEditor
-                value={markdown}
-                onChange={nextMarkdown => {
-                  onContentChange({ markdown: nextMarkdown });
-                }}
+                model={model}
+                segmentId={segment.id}
+                editorServices={editorServices}
+                initialMarkdown={markdown}
                 rows={4}
               />
             </div>
@@ -224,10 +228,10 @@ function SegmentEditor({
       ) : (
         <StoryEditorSection triggerText="Content" defaultOpen>
           <SegmentMarkdownEditor
-            value={markdown}
-            onChange={nextMarkdown => {
-              onContentChange({ markdown: nextMarkdown });
-            }}
+            model={model}
+            segmentId={segment.id}
+            editorServices={editorServices}
+            initialMarkdown={markdown}
             tall
             rows={10}
           />
@@ -249,6 +253,7 @@ export function StoryEditorDialogBody({
   model,
   commands,
   state,
+  editorServices,
 }: IStoryEditorDialogBodyProps): JSX.Element {
   const {
     story,
@@ -295,6 +300,7 @@ export function StoryEditorDialogBody({
               model={model}
               state={state}
               segment={selectedSegment}
+              editorServices={editorServices}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
               showSegmentAnimation={showSegmentAnimation}

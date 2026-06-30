@@ -1,4 +1,5 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { Dialog } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -12,6 +13,7 @@ export interface IStoryEditorWidgetOptions {
   commands: CommandRegistry;
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  editorServices: IEditorServices;
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
@@ -24,6 +26,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
         commands={options.commands}
         state={options.state}
         formSchemaRegistry={options.formSchemaRegistry}
+        editorServices={options.editorServices}
       />
     );
 
@@ -40,11 +43,14 @@ export class StoryEditorWidget extends Dialog<boolean> {
 
   // Prevent Jupyter Dialog from from eating enter key presses
   protected _evtKeydown(event: KeyboardEvent): void {
-    if (
-      event.key === 'Enter' &&
-      document.activeElement instanceof HTMLTextAreaElement
-    ) {
-      return;
+    if (event.key === 'Enter') {
+      const active = document.activeElement;
+      if (active instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (active?.closest('.cm-editor')) {
+        return;
+      }
     }
 
     super._evtKeydown(event);

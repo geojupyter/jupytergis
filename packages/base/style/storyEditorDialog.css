@@ -609,22 +609,28 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   background: var(--jp-layout-color1);
 }
 
-.jgis-story-editor-markdown-textarea {
+.jgis-story-editor-markdown-host {
   width: 100%;
   box-sizing: border-box;
-  outline: none;
-  color: inherit;
-  font: inherit;
-  resize: vertical;
+  padding: 0;
 }
 
-.jgis-story-editor-markdown-textarea:focus-visible {
+.jgis-story-editor-markdown-editor {
+  width: 100%;
+}
+
+.jgis-story-editor-markdown-editor .cm-editor {
+  outline: none;
+  background: transparent;
+}
+
+.jgis-story-editor-markdown-editor .cm-editor.cm-focused {
+  outline: none;
+}
+
+.jgis-story-editor-markdown-host:focus-within {
   border-color: var(--jp-brand-color1);
   border-radius: var(--jp-border-radius);
-}
-
-.jgis-story-editor-markdown-textarea--tall {
-  min-height: 10rem;
 }
 
 .jgis-story-editor-markdown-preview {

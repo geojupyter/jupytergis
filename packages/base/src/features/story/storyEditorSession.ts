@@ -2,6 +2,7 @@ import type {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 
@@ -40,6 +41,7 @@ interface ISharedEditorContext {
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   tracker: JupyterGISTracker;
+  editorServices: IEditorServices;
 }
 
 export const StoryEditorMode = {
@@ -82,12 +84,14 @@ export class StoryEditorSession implements IStoryMapBarHost {
     state: IStateDB,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
+    editorServices: IEditorServices,
   ): void {
     this._context = {
       commands,
       state,
       formSchemaRegistry,
       tracker,
+      editorServices,
     };
 
     this.releaseOtherDialogs(model);
@@ -102,12 +106,14 @@ export class StoryEditorSession implements IStoryMapBarHost {
     state: IStateDB,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
+    editorServices: IEditorServices,
   ): Promise<void> {
     this._context = {
       commands,
       state,
       formSchemaRegistry,
       tracker,
+      editorServices,
     };
     this.bindTracker();
 
@@ -441,6 +447,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
       commands: this._context.commands,
       state: this._context.state,
       formSchemaRegistry: this._context.formSchemaRegistry,
+      editorServices: this._context.editorServices,
     });
     editorState.dialog = dialog;
 
