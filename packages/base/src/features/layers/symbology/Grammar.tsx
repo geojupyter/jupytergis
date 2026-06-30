@@ -20,6 +20,7 @@ import {
   IGrammarLayer,
   IGrammarSymbologyState,
   IPredicate,
+  IScale,
   ITransform,
   Encoding,
   RGBA,
@@ -50,6 +51,10 @@ import {
 
 const DEFAULT_CHANNELS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
+
+// Scale schemes that cannot be round-tripped through the QGIS format, and are
+// therefore hidden from the picker while a QGIS document is open.
+const QGIS_UNSUPPORTED_SCHEMES: IScale['scheme'][] = ['expression'];
 
 // ---------------------------------------------------------------------------
 // Layer UI state
@@ -193,6 +198,7 @@ interface ILayerSectionProps {
   availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
+  disabledSchemes?: IScale['scheme'][];
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -206,6 +212,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   availableFields,
   featureValues,
   isRasterLayer = false,
+  disabledSchemes = [],
   onChange,
   onDelete,
   onMoveUp,
@@ -516,6 +523,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               availableFields={encodingFields}
               featureValues={featureValues}
               isRaster={isRaster}
+              disabledSchemes={disabledSchemes}
               onChange={updated => updateRow(i, updated)}
               onDelete={() => removeRow(i)}
             />
@@ -704,6 +712,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           availableFields={availableFields}
           featureValues={selectableAttributesAndValues}
           isRasterLayer={isRasterLayer}
+          disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }

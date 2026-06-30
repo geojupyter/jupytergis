@@ -51,6 +51,25 @@ import { JupyterGISDocumentWidget, JupyterGISPanel } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
+/**
+ * Commands for JupyterGIS-only features that cannot be round-tripped through
+ * the QGIS format. They are disabled while a QGIS document (`.qgs`/`.qgz`) is
+ * open so users don't create work that would be lost on save.
+ */
+const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
+  // OpenEO layers
+  CommandIDs.openNewOpenEODialog,
+  CommandIDs.editOpenEOLayer,
+  // GeoZarr layers
+  CommandIDs.openNewGeoZarrDialog,
+  // Story maps
+  CommandIDs.addStorySegment,
+  CommandIDs.openStoryEditor,
+  CommandIDs.createStorySegmentFromLayer,
+  CommandIDs.storyPrev,
+  CommandIDs.storyNext,
+]);
+
 interface ICreateEntry {
   tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -90,19 +109,48 @@ export function addCommands(
 
   addLayerCreationCommands({ tracker, commands, trans });
   /**
-   * Wraps a command definition to automatically disable it in Specta mode
+   * Wraps a command definition to automatically disable it when the active
+   * document does not support it: in Specta mode, or for JupyterGIS-only
+   * features (see QGIS_UNSUPPORTED_COMMANDS) while a QGIS document is open.
    */
-  const createSpectaAwareCommand = (
+  const createRestrictedCommand = (
+    id: string,
     command: CommandRegistry.ICommandOptions,
   ): CommandRegistry.ICommandOptions => {
     const originalIsEnabled = command.isEnabled;
+    const originalCaption = command.caption;
+    const originalLabel = command.label;
+
+    // True when the command is unsupported by QGIS and a QGIS file is open.
+    const isQgisRestricted = () => {
+      const currentModel = tracker.currentWidget?.model;
+      return (
+        !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
+      );
+    };
+
+    const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
+      typeof originalLabel === 'function'
+        ? originalLabel(args ?? {})
+        : (originalLabel ?? '');
 
     return {
       ...command,
+      label: (args?: ReadonlyPartialJSONObject) => {
+        const label = resolveLabel(args);
+        if (isQgisRestricted() && label) {
+          return trans.__('%1 (convert to .jGIS to enable)', label);
+        }
+        return label;
+      },
       isEnabled: (args?: ReadonlyPartialJSONObject) => {
-        // First check if we're in Specta mode
-        const currentModel = tracker.currentWidget?.model;
-        if (currentModel?.isSpectaMode()) {
+        // Disable everything in Specta mode.
+        if (tracker.currentWidget?.model?.isSpectaMode()) {
+          return false;
+        }
+        // Disable features unsupported by QGIS while a QGIS file is open,
+        // since they cannot be round-tripped through the QGIS format.
+        if (isQgisRestricted()) {
           return false;
         }
         // Then check the original isEnabled if it exists
@@ -111,6 +159,15 @@ export function addCommands(
         }
         // Default to enabled if no original check
         return true;
+      },
+      caption: (args?: ReadonlyPartialJSONObject) => {
+        // Hint the user how to regain access to the disabled feature.
+        if (isQgisRestricted()) {
+          return trans.__('(convert to .jGIS to enable)');
+        }
+        return typeof originalCaption === 'function'
+          ? originalCaption(args ?? {})
+          : (originalCaption ?? '');
       },
     };
   };
@@ -121,7 +178,7 @@ export function addCommands(
     id: string,
     options: CommandRegistry.ICommandOptions,
   ) => {
-    return originalAddCommand(id, createSpectaAwareCommand(options));
+    return originalAddCommand(id, createRestrictedCommand(id, options));
   };
 
   commands.addCommand(CommandIDs.symbology, {

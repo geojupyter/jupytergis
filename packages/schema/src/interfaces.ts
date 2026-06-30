@@ -323,6 +323,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   contentsManager: Contents.IManager | undefined;
   filePath: string;
 
+  /**
+   * Whether the document is backed by a QGIS file (`.qgs`/`.qgz`).
+   */
+  readonly isQgisDocument: boolean;
+
   pathChanged: ISignal<IJupyterGISModel, string>;
 
   stories: Map<string, IJGISStoryMap>;
