@@ -24,6 +24,7 @@ jest.mock('../storyEditorDialog', () => ({
   StoryEditorWidget: jest.fn().mockImplementation(() => ({
     launch: jest.fn().mockResolvedValue({}),
     reject: jest.fn(),
+    close: jest.fn(),
     show: jest.fn(),
     hide: jest.fn(),
     activate: jest.fn(),
@@ -37,8 +38,8 @@ jest.mock('@lumino/widgets', () => ({
   },
 }));
 
-jest.mock('../utils/resolveMainViewContainer', () => ({
-  resolveMainViewContainer: jest.fn(() => document.createElement('div')),
+jest.mock('@/src/workspace/widget', () => ({
+  JupyterGISPanel: class JupyterGISPanel {},
 }));
 
 jest.mock('@/src/constants', () => ({
@@ -51,10 +52,10 @@ jest.mock('@/src/constants', () => ({
 }));
 
 import { STORY_TYPE } from '@/src/types';
+import { JupyterGISPanel } from '@/src/workspace/widget';
 import { Widget } from '@lumino/widgets';
 import { StoryEditorWidget } from '../storyEditorDialog';
 import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
-import { resolveMainViewContainer } from '../utils/resolveMainViewContainer';
 import { StoryEditorSession } from '../storyEditorSession';
 import { updateSegmentMapView } from '../utils/storySegmentMapView';
 import {
@@ -67,6 +68,7 @@ const TOGGLE_PANEL_COMMAND = 'jupytergis:togglePanel';
 function createDialog() {
   return {
     reject: jest.fn(),
+    close: jest.fn(),
     launch: jest.fn().mockResolvedValue({}),
     show: jest.fn(),
     hide: jest.fn(),
@@ -114,13 +116,34 @@ function createCommands() {
   } as unknown as import('@lumino/commands').CommandRegistry;
 }
 
+function createMainViewPanel(
+  mainViewContainer: HTMLElement,
+): InstanceType<typeof JupyterGISPanel> {
+  const panel = new JupyterGISPanel();
+  panel.jupyterGISMainViewPanel = {
+    node: {
+      querySelector: <T extends Element>(selector: string): T | null =>
+        selector === '.jGIS-Mainview-Container'
+          ? (mainViewContainer as T)
+          : null,
+    },
+  } as never;
+  return panel;
+}
+
 function createTracker(
   model: ReturnType<typeof createModel>,
   extraModels: ReturnType<typeof createModel>[] = [],
 ) {
   const widgets = [
-    { model },
-    ...extraModels.map(extraModel => ({ model: extraModel })),
+    {
+      model,
+      content: createMainViewPanel(document.createElement('div')),
+    },
+    ...extraModels.map(extraModel => ({
+      model: extraModel,
+      content: createMainViewPanel(document.createElement('div')),
+    })),
   ];
   const currentChanged = {
     connect: jest.fn(),
@@ -135,12 +158,19 @@ function createTracker(
     currentWidget: { model },
     currentChanged,
     widgetAdded,
-    find: jest.fn((predicate: (widget: { model: typeof model }) => boolean) =>
+    find: jest.fn((predicate: (widget: (typeof widgets)[number]) => boolean) =>
       widgets.find(predicate),
     ),
-    forEach: (fn: (widget: { model: typeof model }) => void) => {
+    forEach: (fn: (widget: (typeof widgets)[number]) => void) => {
       for (const widget of widgets) {
         fn(widget);
+      }
+    },
+    configureMainViewParents(
+      resolver: (targetModel: typeof model) => HTMLElement,
+    ): void {
+      for (const widget of widgets) {
+        widget.content = createMainViewPanel(resolver(widget.model));
       }
     },
     [Symbol.iterator]: function* () {
@@ -199,7 +229,7 @@ describe('StoryEditorSession', () => {
 
     expect(session.getMode(model as never)).toBe('map-view');
     expect(model.centerOnPosition).toHaveBeenCalledWith('segment-1');
-    expect(dialog.reject).toHaveBeenCalled();
+    expect(dialog.close).toHaveBeenCalled();
     expect(model.setUIState).toHaveBeenCalledWith({
       leftPanelOpen: false,
       rightPanelOpen: false,
@@ -232,7 +262,7 @@ describe('StoryEditorSession', () => {
       'segment-2',
       [],
     );
-    expect(dialog.reject).toHaveBeenCalled();
+    expect(dialog.close).toHaveBeenCalled();
     expect(model.setUIState).toHaveBeenCalledWith({
       leftPanelOpen: false,
       rightPanelOpen: false,
@@ -288,7 +318,7 @@ describe('StoryEditorSession', () => {
 
     expect(session.getMode(model as never)).toBe('story-preview');
     expect(model.setStoryPreviewActive).toHaveBeenCalledWith(true);
-    expect(dialog.reject).toHaveBeenCalled();
+    expect(dialog.close).toHaveBeenCalled();
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Previewing "My Story".',
@@ -371,18 +401,16 @@ describe('StoryEditorSession', () => {
       })),
     });
     const commands = createCommands();
-    const tracker = createTracker(modelB);
+    const tracker = createTracker(modelB, [modelA]);
     const parentA = document.createElement('div');
     const parentB = document.createElement('div');
 
     attachSession(session, dialog, modelB, commands, tracker);
     session.enterStoryPreviewMode();
 
-    jest
-      .mocked(resolveMainViewContainer)
-      .mockImplementation((_tracker, model) =>
-        model === modelA ? parentA : parentB,
-      );
+    tracker.configureMainViewParents(model =>
+      model === modelA ? parentA : parentB,
+    );
 
     tracker.currentWidget = { model: modelA };
     session['onTrackerCurrentChanged']();
@@ -428,11 +456,9 @@ describe('StoryEditorSession', () => {
       hide: jest.Mock;
     };
 
-    jest
-      .mocked(resolveMainViewContainer)
-      .mockImplementation((_tracker, model) =>
-        model === modelA ? parentA : parentB,
-      );
+    tracker.configureMainViewParents(model =>
+      model === modelA ? parentA : parentB,
+    );
 
     tracker.currentWidget = { model: modelB };
     session['onTrackerCurrentChanged']();
@@ -498,11 +524,9 @@ describe('StoryEditorSession', () => {
     session.enterStoryPreviewMode();
     modelA.setStoryPreviewActive(true);
 
-    jest
-      .mocked(resolveMainViewContainer)
-      .mockImplementation((_tracker, model) =>
-        model === modelA ? parentA : document.createElement('div'),
-      );
+    tracker.configureMainViewParents(model =>
+      model === modelA ? parentA : document.createElement('div'),
+    );
 
     tracker.currentWidget = { model: modelB };
     session.restoreEditor();
@@ -538,7 +562,7 @@ describe('StoryEditorSession', () => {
     expect(session.getMode(modelB as never)).toBe('inactive');
 
     attachSession(session, dialogB, modelB, commands, tracker);
-    expect(dialogA.reject).toHaveBeenCalled();
+    expect(dialogA.close).toHaveBeenCalled();
     expect(session.getMode(modelA as never)).toBe('inactive');
     expect(session.getMode(modelB as never)).toBe('editing');
   });

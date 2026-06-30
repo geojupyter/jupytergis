@@ -3,7 +3,7 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { STORY_TYPE, type JupyterGISTracker } from '@/src/types';
-import { resolveMainViewContainer } from '@/src/features/story/utils/resolveMainViewContainer';
+import { JupyterGISPanel } from '@/src/workspace/widget';
 import {
   MapPreviewBarActions,
   MapViewBarActions,
@@ -204,6 +204,16 @@ export class StoryMapBarController {
       return null;
     }
 
-    return resolveMainViewContainer(tracker, model);
+    const widget = tracker.find(w => w.model === model);
+    const panel = widget?.content;
+    if (!(panel instanceof JupyterGISPanel)) {
+      return null;
+    }
+
+    return (
+      panel.jupyterGISMainViewPanel?.node.querySelector<HTMLElement>(
+        '.jGIS-Mainview-Container',
+      ) ?? null
+    );
   }
 }
