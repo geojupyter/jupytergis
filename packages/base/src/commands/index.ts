@@ -163,9 +163,7 @@ export function addCommands(
       caption: (args?: ReadonlyPartialJSONObject) => {
         // Hint the user how to regain access to the disabled feature.
         if (isQgisRestricted()) {
-          return trans.__(
-            '(convert to .jGIS to enable)',
-          );
+          return trans.__('(convert to .jGIS to enable)');
         }
         return typeof originalCaption === 'function'
           ? originalCaption(args ?? {})
