@@ -20,23 +20,6 @@ export function modelHasOpenPanel(model: IJupyterGISModel): boolean {
   );
 }
 
-function buildPanelState(
-  model: IJupyterGISModel,
-  open: boolean,
-): Partial<IJGISUIState> | null {
-  const { leftPanelDisabled, rightPanelDisabled } = model.jgisSettings;
-  const newState: Partial<IJGISUIState> = {};
-
-  if (!leftPanelDisabled) {
-    newState.leftPanelOpen = open;
-  }
-  if (!rightPanelDisabled) {
-    newState.rightPanelOpen = open;
-  }
-
-  return Object.keys(newState).length > 0 ? newState : null;
-}
-
 /** Sets all non-disabled panels open or closed. Returns true if state changed. */
 export function setModelPanelsOpen(
   model: IJupyterGISModel,
@@ -50,9 +33,14 @@ export function setModelPanelsOpen(
     return false;
   }
 
-  const newState = buildPanelState(model, open);
-  if (!newState) {
-    return false;
+  const { leftPanelDisabled, rightPanelDisabled } = model.jgisSettings;
+  const newState: Partial<IJGISUIState> = {};
+
+  if (!leftPanelDisabled) {
+    newState.leftPanelOpen = open;
+  }
+  if (!rightPanelDisabled) {
+    newState.rightPanelOpen = open;
   }
 
   model.setUIState(newState);

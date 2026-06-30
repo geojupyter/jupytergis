@@ -40,7 +40,10 @@ import {
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import { StoryEditorWidget } from '../features/story/storyEditorDialog';
 import { StoryEditorSession } from '../features/story/storyEditorSession';
-import { modelHasHiddenPanel, toggleModelPanels } from '../features/story/utils/modelPanelState';
+import {
+  modelHasHiddenPanel,
+  toggleModelPanels,
+} from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
@@ -1830,22 +1833,25 @@ export function addCommands(
       }
 
       const session = StoryEditorSession.getInstance();
-      if (session.getMode(current.model) !== 'inactive') {
-        if (session.hasActiveInteraction()) {
-          session.restoreEditor();
-        } else {
-          session.focusDialog();
-        }
+      const mode = session.getMode(current.model);
+
+      if (mode === 'inactive') {
+        await Private.createStoryEditor(
+          current.model,
+          commands,
+          formSchemaRegistry,
+          state,
+          tracker,
+        );
         return;
       }
 
-      await Private.createStoryEditor(
-        current.model,
-        commands,
-        formSchemaRegistry,
-        state,
-        tracker,
-      );
+      if (mode === 'editing') {
+        session.focusDialog();
+        return;
+      }
+
+      session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
   });
@@ -2037,9 +2043,7 @@ namespace Private {
     try {
       await dialog.launch();
     } finally {
-      if (!session.hasActiveInteraction()) {
-        session.closeEditorIfIdle();
-      }
+      session.closeEditorIfIdle();
     }
   }
 
