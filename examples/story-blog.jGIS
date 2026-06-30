@@ -150,9 +150,7 @@
       "parameters": {
         "content": {
           "contentMode": "markdown",
-          "image": "",
-          "markdown": "## Colors\n\nAncient statues often show the bare surface of the material of which they are made. For example, many people associate Greek classical art with white marble sculpture, but there is evidence that many statues were painted in bright colors. Most of the color has weathered off over time; small remnants were removed during cleaning; in some cases small traces remained that could be identified. A travelling exhibition of 20 coloured replicas of Greek and Roman works, alongside 35 original statues and reliefs, was held in Europe and the United States in 2008: Gods in Color: Painted Sculpture of Classical Antiquity.\n\nDetails such as whether the paint was applied in one or two coats, how finely the pigments were ground or exactly which binding medium would have been used in each case\u2014all elements that would affect the appearance of a finished piece\u2014are not known. Gisela Richter goes so far as to say of classical Greek sculpture, \"All stone sculpture, whether limestone or marble, was painted, either wholly or in part.\"\n\nMedieval statues were also usually painted, with some still retaining their original pigments. The coloring of statues ceased during the Renaissance, since excavated classical sculptures, which had lost their coloring, became regarded as the best models.\n\n## Closing\n\nStatues remain among the most visible forms of public and religious art worldwide. From prehistoric figurines and temple cult images to Renaissance masters and abstract modern works, they continue to mark sacred spaces, commemorate people and events, and shape how communities see themselves in shared places\u2014whether carved in marble, cast in bronze, or built at colossal scale beside rivers and on city skylines.",
-          "title": ""
+          "markdown": "## Colors\n\nAncient statues often show the bare surface of the material of which they are made. For example, many people associate Greek classical art with white marble sculpture, but there is evidence that many statues were painted in bright colors. Most of the color has weathered off over time; small remnants were removed during cleaning; in some cases small traces remained that could be identified. A travelling exhibition of 20 coloured replicas of Greek and Roman works, alongside 35 original statues and reliefs, was held in Europe and the United States in 2008: Gods in Color: Painted Sculpture of Classical Antiquity.\n\nDetails such as whether the paint was applied in one or two coats, how finely the pigments were ground or exactly which binding medium would have been used in each case\u2014all elements that would affect the appearance of a finished piece\u2014are not known. Gisela Richter goes so far as to say of classical Greek sculpture, \"All stone sculpture, whether limestone or marble, was painted, either wholly or in part.\"\n\nMedieval statues were also usually painted, with some still retaining their original pigments. The coloring of statues ceased during the Renaissance, since excavated classical sculptures, which had lost their coloring, became regarded as the best models.\n\n## Closing\n\nStatues remain among the most visible forms of public and religious art worldwide. From prehistoric figurines and temple cult images to Renaissance masters and abstract modern works, they continue to mark sacred spaces, commemorate people and events, and shape how communities see themselves in shared places\u2014whether carved in marble, cast in bronze, or built at colossal scale beside rivers and on city skylines."
         },
         "extent": [
           -8244347.787989774,
@@ -258,16 +256,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8244275.607159973,
-      4964129.341267141,
-      -8240218.674367058,
-      4968723.003307292
+      1252018.046267381,
+      5429976.656369547,
+      1255222.8918759273,
+      5432669.082116469
     ],
-    "latitude": 40.687973332266864,
-    "longitude": -74.04136582038291,
+    "latitude": 43.77911345173413,
+    "longitude": 11.261464278521506,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 15.368058180489786
+    "zoom": 15.689645426857403
   },
   "schemaVersion": "0.6.0",
   "sources": {
