@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 import json
 import logging
 import xml.etree.ElementTree as ET
@@ -53,6 +54,7 @@ if TYPE_CHECKING:
         DataArray,
         TiTilerServer,
     )
+    from rio_tiler.models import ImageData
 
 
 logger = logging.getLogger(__file__)
@@ -791,6 +793,61 @@ class GISDocument(CommWidget):
             tile_dim_scale=tile_dim_scale,
             algorithm=algorithm,
             **params,
+        )
+
+        source_id = str(uuid4())
+        source = {
+            "type": SourceType.RasterSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": 0,
+                "maxZoom": 24,
+            },
+        }
+        self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    async def add_stac_array_layer(
+        self,
+        stac_url: str,
+        collection_id: str,
+        assets: list[str],
+        array_to_image: Callable[[DataArray], ImageData] | None = None,
+        name: str = "STAC Array layer",
+        *,
+        max_items: int = 4,
+        resolution_scale: float = 2.0,
+        resampling: str = "linear",
+        opacity: float = 1,
+        **kwargs: str | int,
+    ):
+        """TODO
+
+        TODO
+        """
+        try:
+            from jupyter_tiler.titiler import _get_server, add_stac_array
+        except ImportError as e:
+            raise RuntimeError(
+                "This method requires 'jupyter-tiler'."
+                " To resolve, `pip install jupytergis[tiler]`.",
+            ) from e
+
+        self.tile_server = _get_server()
+        url = await add_stac_array(
+            stac_url,
+            collection_id=collection_id,
+            array_to_image=array_to_image,
+            assets=assets,
+            **kwargs,
         )
 
         source_id = str(uuid4())
