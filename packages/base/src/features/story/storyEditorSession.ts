@@ -234,6 +234,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
   public focusDialogForModel(model: IJupyterGISModel): void {
     const dialog = this.getDialog(model);
+
     if (!dialog) {
       void this.openDialogForModel(model);
       return;
@@ -316,10 +317,13 @@ export class StoryEditorSession implements IStoryMapBarHost {
       overrideEntries,
       panelsHidden,
     });
+
     model.centerOnPosition(segmentId);
+
     if (mode === 'previewing-segment') {
       applySegmentLayerOverrides(model, segmentId, overrideEntries);
     }
+
     this.releaseDialogForModel(model);
     this._bars.refresh();
   }
