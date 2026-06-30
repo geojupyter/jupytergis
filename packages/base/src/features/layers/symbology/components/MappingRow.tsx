@@ -694,7 +694,7 @@ interface IMappingRowProps {
   availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
-  allowExpression?: boolean;
+  disabledSchemes?: IScale['scheme'][];
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -708,7 +708,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   availableFields,
   featureValues,
   isRaster = false,
-  allowExpression = true,
+  disabledSchemes = [],
   onChange,
   onDelete,
 }) => {
@@ -843,7 +843,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           >
             {SCHEME_OPTIONS.filter(
               ({ value, disabled }) =>
-                !disabled && (allowExpression || value !== 'expression'),
+                !disabled && !disabledSchemes.includes(value),
             ).map(({ value, label }) => (
               <NativeSelectOption key={value} value={value}>
                 {label}

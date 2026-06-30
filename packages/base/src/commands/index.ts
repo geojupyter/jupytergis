@@ -118,18 +118,39 @@ export function addCommands(
     command: CommandRegistry.ICommandOptions,
   ): CommandRegistry.ICommandOptions => {
     const originalIsEnabled = command.isEnabled;
+    const originalCaption = command.caption;
+    const originalLabel = command.label;
+
+    // True when the command is unsupported by QGIS and a QGIS file is open.
+    const isQgisRestricted = () => {
+      const currentModel = tracker.currentWidget?.model;
+      return (
+        !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
+      );
+    };
+
+    const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
+      typeof originalLabel === 'function'
+        ? originalLabel(args ?? {})
+        : (originalLabel ?? '');
 
     return {
       ...command,
+      label: (args?: ReadonlyPartialJSONObject) => {
+        const label = resolveLabel(args);
+        if (isQgisRestricted() && label) {
+          return trans.__('%1 (convert to .jGIS to enable)', label);
+        }
+        return label;
+      },
       isEnabled: (args?: ReadonlyPartialJSONObject) => {
-        const currentModel = tracker.currentWidget?.model;
         // Disable everything in Specta mode.
-        if (currentModel?.isSpectaMode()) {
+        if (tracker.currentWidget?.model?.isSpectaMode()) {
           return false;
         }
         // Disable features unsupported by QGIS while a QGIS file is open,
         // since they cannot be round-tripped through the QGIS format.
-        if (currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)) {
+        if (isQgisRestricted()) {
           return false;
         }
         // Then check the original isEnabled if it exists
@@ -138,6 +159,17 @@ export function addCommands(
         }
         // Default to enabled if no original check
         return true;
+      },
+      caption: (args?: ReadonlyPartialJSONObject) => {
+        // Hint the user how to regain access to the disabled feature.
+        if (isQgisRestricted()) {
+          return trans.__(
+            '(convert to .jGIS to enable)',
+          );
+        }
+        return typeof originalCaption === 'function'
+          ? originalCaption(args ?? {})
+          : (originalCaption ?? '');
       },
     };
   };
