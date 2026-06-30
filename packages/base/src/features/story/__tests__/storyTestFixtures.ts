@@ -1,6 +1,7 @@
+import { jest } from '@jest/globals';
+
 import { STORY_TYPE } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
-
 import type { StoryEditorSession } from '../storyEditorSession';
 
 export function createDialog() {

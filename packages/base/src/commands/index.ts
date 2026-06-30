@@ -38,7 +38,10 @@ import {
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
-import { StoryEditorMode, StoryEditorSession } from '../features/story/storyEditorSession';
+import {
+  StoryEditorMode,
+  StoryEditorSession,
+} from '../features/story/storyEditorSession';
 import {
   modelHasHiddenPanel,
   toggleModelPanels,

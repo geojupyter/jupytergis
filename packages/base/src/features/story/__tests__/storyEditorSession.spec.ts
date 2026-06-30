@@ -50,19 +50,12 @@ jest.mock('@/src/constants', () => ({
   },
 }));
 
-import { STORY_TYPE } from '@/src/types';
 import { Widget } from '@lumino/widgets';
-import { StoryEditorWidget } from '../storyEditorDialog';
+
+import { STORY_TYPE } from '@/src/types';
 import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
-import {
-  StoryEditorMode,
-  StoryEditorSession,
-} from '../storyEditorSession';
-import { updateSegmentMapView } from '../utils/storySegmentMapView';
-import {
-  applySegmentLayerOverrides,
-  clearSegmentLayerOverrideEntries,
-} from '../utils/storySegmentOverrides';
+import { StoryEditorWidget } from '../storyEditorDialog';
+import { StoryEditorMode, StoryEditorSession } from '../storyEditorSession';
 import {
   attachSession,
   createCommands,
@@ -71,6 +64,11 @@ import {
   createTracker,
   notifyTrackerTabChange,
 } from './storyTestFixtures';
+import { updateSegmentMapView } from '../utils/storySegmentMapView';
+import {
+  applySegmentLayerOverrides,
+  clearSegmentLayerOverrideEntries,
+} from '../utils/storySegmentOverrides';
 
 const TOGGLE_PANEL_COMMAND = 'jupytergis:togglePanel';
 
@@ -161,7 +159,9 @@ describe('StoryEditorSession', () => {
       attachSession(session, dialog, model, commands);
       session.enterStoryPreviewMode();
 
-      expect(session.getMode(model as never)).toBe(StoryEditorMode.storyPreview);
+      expect(session.getMode(model as never)).toBe(
+        StoryEditorMode.storyPreview,
+      );
       expect(model.setStoryPreviewActive).toHaveBeenCalledWith(true);
       expect(dialog.close).toHaveBeenCalled();
       expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
@@ -306,8 +306,8 @@ describe('StoryEditorSession', () => {
       attachSession(session, dialog, modelA, commands, tracker);
       session.enterStoryPreviewMode();
 
-      const mapBarA = (StoryMapInteractionBarWidget as jest.Mock).mock.results[0]
-        .value as { show: jest.Mock };
+      const mapBarA = (StoryMapInteractionBarWidget as jest.Mock).mock
+        .results[0].value as { show: jest.Mock };
 
       tracker.configureMainViewParents(model =>
         model === modelA ? parentA : parentB,

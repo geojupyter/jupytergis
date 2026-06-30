@@ -21,15 +21,16 @@ jest.mock('@/src/workspace/widget', () => ({
   JupyterGISPanel: class JupyterGISPanel {},
 }));
 
-import { STORY_TYPE } from '@/src/types';
 import { Widget } from '@lumino/widgets';
+
+import { STORY_TYPE } from '@/src/types';
 import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
 import {
   StoryMapBarController,
   type IStoryMapBarHost,
 } from '../storyMapBarController';
-import { SegmentInteractionMode } from '../types/types';
 import { createModel, createTracker } from './storyTestFixtures';
+import { SegmentInteractionMode } from '../types/types';
 
 function createHost(
   tracker: ReturnType<typeof createTracker>,

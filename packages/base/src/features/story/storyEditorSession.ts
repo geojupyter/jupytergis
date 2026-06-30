@@ -2,8 +2,8 @@ import type {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { CommandRegistry } from '@lumino/commands';
 import { IStateDB } from '@jupyterlab/statedb';
+import { CommandRegistry } from '@lumino/commands';
 
 import { CommandIDs } from '@/src/constants';
 import type { JupyterGISTracker } from '@/src/types';
