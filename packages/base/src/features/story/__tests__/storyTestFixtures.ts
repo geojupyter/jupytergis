@@ -4,10 +4,31 @@ import { STORY_TYPE } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
 import type { StoryEditorSession } from '../storyEditorSession';
 
+export function createMainViewPanel(
+  mainViewContainer: HTMLElement,
+): InstanceType<typeof JupyterGISPanel> {
+  const panel = Object.create(
+    JupyterGISPanel.prototype,
+  ) as InstanceType<typeof JupyterGISPanel>;
+
+  Object.assign(panel, {
+    jupyterGISMainViewPanel: {
+      node: {
+        querySelector: <T extends Element>(selector: string): T | null =>
+          selector === '.jGIS-Mainview-Container'
+            ? (mainViewContainer as unknown as T)
+            : null,
+      },
+    },
+  });
+
+  return panel;
+}
+
 export function createDialog() {
   return {
     close: jest.fn(),
-    launch: jest.fn().mockResolvedValue({}),
+    launch: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     show: jest.fn(),
     hide: jest.fn(),
     activate: jest.fn(),
@@ -52,22 +73,6 @@ export function createCommands() {
     notifyCommandChanged: jest.fn(),
   } as unknown as import('@lumino/commands').CommandRegistry;
 }
-
-export function createMainViewPanel(
-  mainViewContainer: HTMLElement,
-): InstanceType<typeof JupyterGISPanel> {
-  const panel = new JupyterGISPanel();
-  panel.jupyterGISMainViewPanel = {
-    node: {
-      querySelector: <T extends Element>(selector: string): T | null =>
-        selector === '.jGIS-Mainview-Container'
-          ? (mainViewContainer as T)
-          : null,
-    },
-  } as never;
-  return panel;
-}
-
 export function createTracker(
   model: ReturnType<typeof createModel>,
   extraModels: ReturnType<typeof createModel>[] = [],
