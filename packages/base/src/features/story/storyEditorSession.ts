@@ -41,12 +41,16 @@ interface ISharedEditorContext {
   tracker: JupyterGISTracker;
 }
 
+export const StoryEditorMode = {
+  inactive: 'inactive',
+  editing: 'editing',
+  mapView: 'map-view',
+  segmentPreview: 'segment-preview',
+  storyPreview: 'story-preview',
+} as const;
+
 export type StoryEditorMode =
-  | 'inactive'
-  | 'editing'
-  | 'map-view'
-  | 'segment-preview'
-  | 'story-preview';
+  (typeof StoryEditorMode)[keyof typeof StoryEditorMode];
 
 export class StoryEditorSession implements IStoryMapBarHost {
   private static instance: StoryEditorSession;
@@ -117,23 +121,23 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
   public getMode(model: IJupyterGISModel): StoryEditorMode {
     if (model.isStoryPreviewActive()) {
-      return 'story-preview';
+      return StoryEditorMode.storyPreview;
     }
 
     const interaction = this.getInteraction(model);
     if (interaction?.mode === 'map-view') {
-      return 'map-view';
+      return StoryEditorMode.mapView;
     }
 
     if (interaction?.mode === 'previewing-segment') {
-      return 'segment-preview';
+      return StoryEditorMode.segmentPreview;
     }
 
     if (this.getDialog(model)) {
-      return 'editing';
+      return StoryEditorMode.editing;
     }
 
-    return 'inactive';
+    return StoryEditorMode.inactive;
   }
 
   public hasActiveInteraction(): boolean {

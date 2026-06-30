@@ -39,7 +39,7 @@ import {
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import { StoryEditorWidget } from '../features/story/storyEditorDialog';
-import { StoryEditorSession } from '../features/story/storyEditorSession';
+import { StoryEditorMode, StoryEditorSession } from '../features/story/storyEditorSession';
 import {
   modelHasHiddenPanel,
   toggleModelPanels,
@@ -1835,7 +1835,7 @@ export function addCommands(
       const session = StoryEditorSession.getInstance();
       const mode = session.getMode(current.model);
 
-      if (mode === 'inactive') {
+      if (mode === StoryEditorMode.inactive) {
         await Private.createStoryEditor(
           current.model,
           commands,
@@ -1846,7 +1846,7 @@ export function addCommands(
         return;
       }
 
-      if (mode === 'editing') {
+      if (mode === StoryEditorMode.editing) {
         session.focusDialog();
         return;
       }
