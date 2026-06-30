@@ -9,9 +9,10 @@ import {
   MapViewBarActions,
 } from './components/MapInteractionBarActions';
 import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
-import type { StoryMapInteractionBarPlacement } from './types/types';
-
-type MapBarInteractionMode = 'map-view' | 'previewing-segment';
+import {
+  SegmentInteractionMode,
+  type StoryMapInteractionBarPlacement,
+} from './types/types';
 
 interface IMapBarConfig {
   message: string;
@@ -23,7 +24,7 @@ export interface IStoryMapBarHost {
   getTracker(): JupyterGISTracker | null;
   getInteraction(
     model: IJupyterGISModel,
-  ): { mode: MapBarInteractionMode } | null;
+  ): { mode: SegmentInteractionMode } | null;
   restoreEditorForModel(model: IJupyterGISModel): void;
   applyMapViewForModel(model: IJupyterGISModel): void;
   exitStoryPreviewForModel(model: IJupyterGISModel): void;
@@ -81,6 +82,11 @@ export class StoryMapBarController {
     for (const model of [...this._mapBars.keys()]) {
       this.disposeForModel(model);
     }
+  }
+
+  public reconcileModel(model: IJupyterGISModel): void {
+    this.disposeForModel(model);
+    this.refresh();
   }
 
   private _modelNeedsBar(model: IJupyterGISModel): boolean {
@@ -142,7 +148,7 @@ export class StoryMapBarController {
     }
 
     switch (interaction.mode) {
-      case 'map-view':
+      case SegmentInteractionMode.mapView:
         return {
           message: 'Pan and zoom the map, then apply this view to the segment',
           children: React.createElement(MapViewBarActions, {
@@ -155,7 +161,7 @@ export class StoryMapBarController {
           }),
           placement: 'overlay-bottom',
         };
-      case 'previewing-segment':
+      case SegmentInteractionMode.previewingSegment:
         return {
           message:
             'Previewing this segment on the map with its layer overrides',

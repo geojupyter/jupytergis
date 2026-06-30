@@ -2,6 +2,14 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
+export const SegmentInteractionMode = {
+  mapView: 'map-view',
+  previewingSegment: 'previewing-segment',
+} as const;
+
+export type SegmentInteractionMode =
+  (typeof SegmentInteractionMode)[keyof typeof SegmentInteractionMode];
+
 export type StoryMapInteractionBarPlacement =
   | 'overlay-bottom'
   | 'main-top-left';

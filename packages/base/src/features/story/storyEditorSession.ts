@@ -12,7 +12,10 @@ import {
   StoryMapBarController,
   type IStoryMapBarHost,
 } from './storyMapBarController';
-import type { IOverrideLayerEntry } from './types/types';
+import {
+  SegmentInteractionMode,
+  type IOverrideLayerEntry,
+} from './types/types';
 import { setModelPanelsOpen } from './utils/modelPanelState';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
 import {
@@ -20,10 +23,8 @@ import {
   clearSegmentLayerOverrideEntries,
 } from './utils/storySegmentOverrides';
 
-type ModelEditorInteractionMode = 'map-view' | 'previewing-segment';
-
 interface IModelEditorInteraction {
-  mode: ModelEditorInteractionMode;
+  mode: SegmentInteractionMode;
   segmentId: string;
   overrideEntries: IOverrideLayerEntry[];
   panelsHidden: boolean;
@@ -143,11 +144,11 @@ export class StoryEditorSession implements IStoryMapBarHost {
     }
 
     const interaction = this.getInteraction(model);
-    if (interaction?.mode === 'map-view') {
+    if (interaction?.mode === SegmentInteractionMode.mapView) {
       return StoryEditorMode.mapView;
     }
 
-    if (interaction?.mode === 'previewing-segment') {
+    if (interaction?.mode === SegmentInteractionMode.previewingSegment) {
       return StoryEditorMode.segmentPreview;
     }
 
@@ -183,11 +184,14 @@ export class StoryEditorSession implements IStoryMapBarHost {
   }
 
   public enterMapViewMode(segmentId: string): void {
-    this.enterSegmentInteraction('map-view', segmentId);
+    this.enterSegmentInteraction(SegmentInteractionMode.mapView, segmentId);
   }
 
   public enterPreviewMode(segmentId: string): void {
-    this.enterSegmentInteraction('previewing-segment', segmentId);
+    this.enterSegmentInteraction(
+      SegmentInteractionMode.previewingSegment,
+      segmentId,
+    );
   }
 
   public enterStoryPreviewMode(): void {
@@ -197,11 +201,10 @@ export class StoryEditorSession implements IStoryMapBarHost {
     }
 
     this.clearInteractionForModel(model);
-    this._bars.disposeForModel(model);
     model.setStoryPreviewActive(true);
     this.notifyPreviewChanged();
     this.releaseDialogForModel(model);
-    this._bars.refresh();
+    this._bars.reconcileModel(model);
   }
 
   public applyMapView(): void {
@@ -213,7 +216,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
   public applyMapViewForModel(model: IJupyterGISModel): void {
     const interaction = this.getInteraction(model);
-    if (!interaction || interaction.mode !== 'map-view') {
+    if (!interaction || interaction.mode !== SegmentInteractionMode.mapView) {
       return;
     }
 
@@ -237,8 +240,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
   public restoreEditorForModel(model: IJupyterGISModel): void {
     this.clearInteractionForModel(model, { restorePanels: true });
-    this._bars.disposeForModel(model);
-    this._bars.refresh();
+    this._bars.reconcileModel(model);
     void this.openDialogForModel(model);
   }
 
@@ -312,7 +314,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
   }
 
   private enterSegmentInteraction(
-    mode: ModelEditorInteractionMode,
+    mode: SegmentInteractionMode,
     segmentId: string,
   ): void {
     const model = this.resolveEditingModel();
@@ -337,7 +339,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
     model.centerOnPosition(segmentId);
 
-    if (mode === 'previewing-segment') {
+    if (mode === SegmentInteractionMode.previewingSegment) {
       applySegmentLayerOverrides(model, segmentId, overrideEntries);
     }
 
@@ -355,7 +357,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
       return;
     }
 
-    if (interaction.mode === 'previewing-segment') {
+    if (interaction.mode === SegmentInteractionMode.previewingSegment) {
       clearSegmentLayerOverrideEntries(model, interaction.overrideEntries);
     }
 
@@ -374,8 +376,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
       this.notifyPreviewChanged();
     }
 
-    this._bars.disposeForModel(model);
-    this._bars.refresh();
+    this._bars.reconcileModel(model);
     void this.openDialogForModel(model);
   }
 

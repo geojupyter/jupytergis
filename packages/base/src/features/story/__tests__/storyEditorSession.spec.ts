@@ -321,7 +321,7 @@ describe('StoryEditorSession', () => {
     expect(dialog.close).toHaveBeenCalled();
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Previewing "My Story".',
+        message: 'Previewing "My Story"',
         placement: 'main-top-left',
       }),
     );
@@ -417,7 +417,7 @@ describe('StoryEditorSession', () => {
 
     expect(StoryMapInteractionBarWidget).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        message: 'Previewing "Story A".',
+        message: 'Previewing "Story A"',
       }),
     );
     expect(Widget.attach).toHaveBeenCalledWith(
@@ -471,7 +471,7 @@ describe('StoryEditorSession', () => {
 
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Previewing "Story A".',
+        message: 'Previewing "Story A"',
       }),
     );
     expect(mapBarA.show).toHaveBeenCalled();
@@ -540,7 +540,7 @@ describe('StoryEditorSession', () => {
     session['onTrackerCurrentChanged']();
     expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Previewing "Story A".',
+        message: 'Previewing "Story A"',
       }),
     );
     expect(Widget.attach).toHaveBeenCalledWith(
