@@ -525,7 +525,7 @@ describe('StoryEditorSession', () => {
     );
   });
 
-  it('tracks an open dialog per model', () => {
+  it('closes the previous dialog when another model attaches', () => {
     const dialogA = createDialog();
     const dialogB = createDialog();
     const modelA = createModel({ filePath: 'a.jGIS' });
@@ -534,33 +534,13 @@ describe('StoryEditorSession', () => {
     const tracker = createTracker(modelA, [modelB]);
 
     attachSession(session, dialogA, modelA, commands, tracker);
-    expect(session.getMode(modelA as never)).not.toBe('inactive');
+    expect(session.getMode(modelA as never)).toBe('editing');
     expect(session.getMode(modelB as never)).toBe('inactive');
 
     attachSession(session, dialogB, modelB, commands, tracker);
-    expect(dialogA.hide).toHaveBeenCalled();
-    expect(session.getMode(modelA as never)).not.toBe('inactive');
-    expect(session.getMode(modelB as never)).not.toBe('inactive');
-  });
-
-  it('shows the parked dialog when returning to its tab', () => {
-    const dialogA = createDialog();
-    const dialogB = createDialog();
-    const modelA = createModel({ filePath: 'a.jGIS' });
-    const modelB = createModel({ filePath: 'b.jGIS' });
-    const commands = createCommands();
-    const tracker = createTracker(modelA, [modelB]);
-
-    attachSession(session, dialogA, modelA, commands, tracker);
-    attachSession(session, dialogB, modelB, commands, tracker);
-
-    dialogA.show.mockClear();
-    dialogB.hide.mockClear();
-    tracker.currentWidget = { model: modelA };
-    session['onTrackerCurrentChanged']();
-
-    expect(dialogA.show).toHaveBeenCalled();
-    expect(dialogB.hide).toHaveBeenCalled();
+    expect(dialogA.reject).toHaveBeenCalled();
+    expect(session.getMode(modelA as never)).toBe('inactive');
+    expect(session.getMode(modelB as never)).toBe('editing');
   });
 
   it('hides panels per model when each tab enters map view mode', () => {

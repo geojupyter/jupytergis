@@ -31,7 +31,6 @@ interface IModelEditorInteraction {
 
 interface IModelEditorState {
   dialog: StoryEditorWidget | null;
-  wantsEditor: boolean;
   interaction: IModelEditorInteraction | null;
 }
 
@@ -57,7 +56,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   private readonly _bars: StoryMapBarController;
 
   private readonly onTrackerCurrentChanged = (): void => {
-    this.syncDialogVisibility();
     this._bars.refresh();
   };
 
@@ -87,10 +85,9 @@ export class StoryEditorSession implements IStoryMapBarHost {
       tracker,
     };
 
-    this.parkDialogsExcept(model);
+    this.releaseOtherDialogs(model);
     const editorState = this.getOrCreateEditorState(model);
     editorState.dialog = dialog;
-    editorState.wantsEditor = true;
     this.bindTracker();
   }
 
@@ -98,7 +95,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     const editorState = this._editors.get(model);
     if (editorState) {
       editorState.dialog = null;
-      editorState.wantsEditor = false;
     }
 
     this.closeEditorIfIdle();
@@ -112,7 +108,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
     for (const [, editorState] of this._editors) {
       editorState.dialog = null;
-      editorState.wantsEditor = false;
     }
 
     if (this.trackerHasStoryPreview()) {
@@ -240,7 +235,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
       return;
     }
 
-    this.parkDialogsExcept(model);
     dialog.show();
     dialog.activate();
   }
@@ -275,7 +269,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     if (!editorState) {
       editorState = {
         dialog: null,
-        wantsEditor: false,
         interaction: null,
       };
 
@@ -301,12 +294,14 @@ export class StoryEditorSession implements IStoryMapBarHost {
     segmentId: string,
   ): void {
     const model = this.resolveEditingModel();
+
     if (!model || !this.getDialog(model)) {
       return;
     }
 
     const overrideEntries: IOverrideLayerEntry[] = [];
     const panelsHidden = setModelPanelsOpen(model, false);
+
     if (panelsHidden) {
       this.notifyPanelStateChanged();
     }
@@ -415,16 +410,14 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
     const existingDialog = this.getDialog(model);
     if (existingDialog) {
-      this.parkDialogsExcept(model);
       existingDialog.show();
       existingDialog.activate();
       return;
     }
 
-    this.parkDialogsExcept(model);
+    this.releaseOtherDialogs(model);
 
     const editorState = this.getOrCreateEditorState(model);
-    editorState.wantsEditor = true;
 
     const dialog = new StoryEditorWidget({
       model,
@@ -441,36 +434,11 @@ export class StoryEditorSession implements IStoryMapBarHost {
     }
   }
 
-  private syncDialogVisibility(): void {
-    const currentModel = this.resolveContextModel();
-
-    for (const [model, editorState] of this._editors) {
-      const dialog = editorState.dialog;
-      if (!dialog) {
-        continue;
+  private releaseOtherDialogs(keepModel: IJupyterGISModel): void {
+    for (const [model] of this._editors) {
+      if (model !== keepModel) {
+        this.releaseDialogForModel(model);
       }
-
-      const shouldShow =
-        model === currentModel &&
-        editorState.wantsEditor &&
-        !editorState.interaction &&
-        !model.isStoryPreviewActive();
-
-      if (shouldShow) {
-        dialog.show();
-      } else {
-        dialog.hide();
-      }
-    }
-  }
-
-  private parkDialogsExcept(activeModel: IJupyterGISModel | null): void {
-    for (const [model, editorState] of this._editors) {
-      if (!editorState.dialog || model === activeModel) {
-        continue;
-      }
-
-      editorState.dialog.hide();
     }
   }
 
