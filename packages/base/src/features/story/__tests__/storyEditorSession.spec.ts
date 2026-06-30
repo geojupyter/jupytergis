@@ -583,6 +583,7 @@ describe('StoryEditorSession', () => {
     });
 
     attachSession(session, dialogB, modelB, commands, tracker);
+    tracker.currentWidget = { model: modelB };
     session.enterMapViewMode('segment-b');
     expect(modelB.setUIState).toHaveBeenCalledWith({
       leftPanelOpen: false,
@@ -605,6 +606,7 @@ describe('StoryEditorSession', () => {
       .value as { show: jest.Mock; hide: jest.Mock };
 
     attachSession(session, dialogB, modelB, commands, tracker);
+    tracker.currentWidget = { model: modelB };
     session.enterMapViewMode('segment-b');
 
     tracker.currentWidget = { model: modelA };

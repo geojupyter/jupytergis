@@ -195,7 +195,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
   }
 
   public enterStoryPreviewMode(): void {
-    const model = this.resolveEditingModel();
+    const model = this.dialogOwnerModel();
     if (!model || !this.getDialog(model) || !model.canUseStoryPreview()) {
       return;
     }
@@ -204,11 +204,11 @@ export class StoryEditorSession implements IStoryMapBarHost {
     model.setStoryPreviewActive(true);
     this.notifyPreviewChanged();
     this.releaseDialogForModel(model);
-    this._bars.reconcileModel(model);
+    this._bars.recreateBarForModel(model);
   }
 
   public applyMapView(): void {
-    const model = this.resolveContextModel();
+    const model = this.activeTabModel();
     if (model) {
       this.applyMapViewForModel(model);
     }
@@ -225,7 +225,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
   }
 
   public restoreEditor(): void {
-    const model = this.resolveContextModel();
+    const model = this.activeTabModel();
     if (!model) {
       return;
     }
@@ -240,12 +240,12 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
   public restoreEditorForModel(model: IJupyterGISModel): void {
     this.clearInteractionForModel(model, { restorePanels: true });
-    this._bars.reconcileModel(model);
+    this._bars.recreateBarForModel(model);
     void this.openDialogForModel(model);
   }
 
   public focusDialog(): void {
-    const model = this.resolveContextModel();
+    const model = this.activeTabModel();
     if (model) {
       this.focusDialogForModel(model);
     }
@@ -317,7 +317,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
     mode: SegmentInteractionMode,
     segmentId: string,
   ): void {
-    const model = this.resolveEditingModel();
+    const model = this.dialogOwnerModel();
 
     if (!model || !this.getDialog(model)) {
       return;
@@ -376,7 +376,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
       this.notifyPreviewChanged();
     }
 
-    this._bars.reconcileModel(model);
+    this._bars.recreateBarForModel(model);
     void this.openDialogForModel(model);
   }
 
@@ -391,23 +391,17 @@ export class StoryEditorSession implements IStoryMapBarHost {
     );
   }
 
-  private resolveContextModel(): IJupyterGISModel | null {
+  private activeTabModel(): IJupyterGISModel | null {
     return this._context?.tracker.currentWidget?.model ?? null;
   }
 
-  private resolveEditingModel(): IJupyterGISModel | null {
-    const currentModel = this.resolveContextModel();
-    if (currentModel && this.getDialog(currentModel)) {
-      return currentModel;
+  private dialogOwnerModel(): IJupyterGISModel | null {
+    const model = this.activeTabModel();
+    if (!model || !this.getDialog(model)) {
+      return null;
     }
 
-    for (const [model, editorState] of this._editors) {
-      if (editorState.dialog) {
-        return model;
-      }
-    }
-
-    return currentModel;
+    return model;
   }
 
   private trackerHasStoryPreview(): boolean {

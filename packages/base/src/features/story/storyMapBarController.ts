@@ -84,7 +84,7 @@ export class StoryMapBarController {
     }
   }
 
-  public reconcileModel(model: IJupyterGISModel): void {
+  public recreateBarForModel(model: IJupyterGISModel): void {
     this.disposeForModel(model);
     this.refresh();
   }
