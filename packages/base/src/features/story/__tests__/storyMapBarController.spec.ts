@@ -22,7 +22,6 @@ jest.mock('@/src/workspace/widget', () => ({
 }));
 
 import { STORY_TYPE } from '@/src/types';
-import { JupyterGISPanel } from '@/src/workspace/widget';
 import { Widget } from '@lumino/widgets';
 import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
 import {
@@ -30,58 +29,7 @@ import {
   type IStoryMapBarHost,
 } from '../storyMapBarController';
 import { SegmentInteractionMode } from '../types/types';
-
-function createModel(overrides: Record<string, unknown> = {}) {
-  return {
-    isStoryPreviewActive: jest.fn(() => false),
-    getSelectedStory: jest.fn(() => ({
-      story: { storyType: STORY_TYPE.guided },
-    })),
-    ...overrides,
-  };
-}
-
-function createMainViewPanel(
-  mainViewContainer: HTMLElement,
-): InstanceType<typeof JupyterGISPanel> {
-  const panel = new JupyterGISPanel();
-  panel.jupyterGISMainViewPanel = {
-    node: {
-      querySelector: <T extends Element>(selector: string): T | null =>
-        selector === '.jGIS-Mainview-Container'
-          ? (mainViewContainer as T)
-          : null,
-    },
-  } as never;
-  return panel;
-}
-
-function createTracker(
-  model: ReturnType<typeof createModel>,
-  extraModels: ReturnType<typeof createModel>[] = [],
-) {
-  const parent = document.createElement('div');
-  const widgets = [
-    { model, content: createMainViewPanel(parent) },
-    ...extraModels.map(extraModel => ({
-      model: extraModel,
-      content: createMainViewPanel(document.createElement('div')),
-    })),
-  ];
-
-  return {
-    currentWidget: { model },
-    find: jest.fn((predicate: (widget: (typeof widgets)[number]) => boolean) =>
-      widgets.find(predicate),
-    ),
-    forEach: (fn: (widget: (typeof widgets)[number]) => void) => {
-      for (const widget of widgets) {
-        fn(widget);
-      }
-    },
-    parent,
-  };
-}
+import { createModel, createTracker } from './storyTestFixtures';
 
 function createHost(
   tracker: ReturnType<typeof createTracker>,
@@ -97,6 +45,20 @@ function createHost(
   };
 }
 
+function getAttachedParent(
+  tracker: ReturnType<typeof createTracker>,
+  model: ReturnType<typeof createModel>,
+): HTMLElement {
+  const widget = tracker.find(
+    (entry: { model: typeof model }) => entry.model === model,
+  );
+  return (
+    widget?.content.jupyterGISMainViewPanel?.node.querySelector(
+      '.jGIS-Mainview-Container',
+    ) ?? document.createElement('div')
+  );
+}
+
 describe('StoryMapBarController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -105,6 +67,7 @@ describe('StoryMapBarController', () => {
   it('creates a bar for the current tab in map-view mode', () => {
     const model = createModel();
     const tracker = createTracker(model);
+    const parent = getAttachedParent(tracker, model);
     const host = createHost(tracker, {
       getInteraction: jest.fn(() => ({
         mode: SegmentInteractionMode.mapView,
@@ -122,7 +85,7 @@ describe('StoryMapBarController', () => {
     );
     expect(Widget.attach).toHaveBeenCalledWith(
       expect.objectContaining({ node: expect.any(HTMLElement) }),
-      tracker.parent,
+      parent,
     );
   });
 
@@ -142,7 +105,7 @@ describe('StoryMapBarController', () => {
       .value as { show: jest.Mock; hide: jest.Mock };
     bar.show.mockClear();
 
-    tracker.currentWidget = { model: modelB };
+    tracker.setActiveModel(modelB);
     controller.refresh();
 
     expect(bar.hide).toHaveBeenCalled();
@@ -190,7 +153,28 @@ describe('StoryMapBarController', () => {
     );
   });
 
-  it('recreateBarForModel disposes then refreshes bars for the model', () => {
+  it('uses overlay-bottom placement for non-guided story preview', () => {
+    const model = createModel({
+      isStoryPreviewActive: jest.fn(() => true),
+      getSelectedStory: jest.fn(() => ({
+        story: { storyType: STORY_TYPE.verticalScroll, title: 'Scroll' },
+      })),
+    });
+    const tracker = createTracker(model);
+    const host = createHost(tracker);
+    const controller = new StoryMapBarController(host);
+
+    controller.refresh();
+
+    expect(StoryMapInteractionBarWidget).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Previewing "Scroll"',
+        placement: 'overlay-bottom',
+      }),
+    );
+  });
+
+  it('recreateBarForModel disposes then refreshes bars', () => {
     const model = createModel({
       isStoryPreviewActive: jest.fn(() => true),
     });
@@ -228,6 +212,24 @@ describe('StoryMapBarController', () => {
 
     expect(host.restoreEditorForModel).toHaveBeenCalledWith(model);
     expect(host.applyMapViewForModel).toHaveBeenCalledWith(model);
+  });
+
+  it('routes segment preview back through the host', () => {
+    const model = createModel();
+    const tracker = createTracker(model);
+    const host = createHost(tracker, {
+      getInteraction: jest.fn(() => ({
+        mode: SegmentInteractionMode.previewingSegment,
+      })),
+    });
+    const controller = new StoryMapBarController(host);
+
+    controller.refresh();
+
+    const config = (StoryMapInteractionBarWidget as jest.Mock).mock.calls[0][0];
+    config.children.props.onBack();
+
+    expect(host.restoreEditorForModel).toHaveBeenCalledWith(model);
   });
 
   it('routes story preview back through the host', () => {
