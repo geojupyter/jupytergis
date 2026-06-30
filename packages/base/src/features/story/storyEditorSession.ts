@@ -450,7 +450,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
 
     const dialog = editorState.dialog;
     editorState.dialog = null;
-    dialog.reject();
+    dialog.close();
   }
 
   private notifyPreviewChanged(): void {
