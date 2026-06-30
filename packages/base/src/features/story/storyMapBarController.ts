@@ -89,7 +89,7 @@ export class StoryMapBarController {
     );
   }
 
-  private _ensureBarForModel(model: IJupyterGISModel, retry = 0): void {
+  private _ensureBarForModel(model: IJupyterGISModel): void {
     const config = this._getBarConfigForModel(model);
     if (!config) {
       this.disposeForModel(model);
@@ -102,11 +102,7 @@ export class StoryMapBarController {
 
     const parent = this._resolveMapBarParentForModel(model);
     if (!parent) {
-      if (retry < 10) {
-        requestAnimationFrame(() => {
-          this._ensureBarForModel(model, retry + 1);
-        });
-      }
+      this._ensureBarForModel(model);
       return;
     }
 
@@ -148,8 +144,7 @@ export class StoryMapBarController {
     switch (interaction.mode) {
       case 'map-view':
         return {
-          message:
-            'Pan and zoom the map, then apply this view to the segment.',
+          message: 'Pan and zoom the map, then apply this view to the segment',
           children: React.createElement(MapViewBarActions, {
             onBack: () => {
               this._host.restoreEditorForModel(model);
@@ -163,7 +158,7 @@ export class StoryMapBarController {
       case 'previewing-segment':
         return {
           message:
-            'Previewing this segment on the map with its layer overrides.',
+            'Previewing this segment on the map with its layer overrides',
           children: React.createElement(MapPreviewBarActions, {
             onBack: () => {
               this._host.restoreEditorForModel(model);
@@ -190,10 +185,10 @@ export class StoryMapBarController {
   private _getStoryPreviewBarMessage(model: IJupyterGISModel): string {
     const title = model.getSelectedStory().story?.title?.trim();
     if (title) {
-      return `Previewing "${title}".`;
+      return `Previewing "${title}"`;
     }
 
-    return 'Previewing the story.';
+    return 'Previewing the story';
   }
 
   private _resolveMapBarParentForModel(
