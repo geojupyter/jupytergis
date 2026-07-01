@@ -15,6 +15,8 @@ export interface IStoryEditorWidgetOptions {
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
+  readonly model: IJupyterGISModel;
+
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
       <StoryEditorDialogBody
@@ -31,19 +33,9 @@ export class StoryEditorWidget extends Dialog<boolean> {
       buttons: [],
     });
 
+    this.model = options.model;
     this.id = 'jupytergis::storyEditor';
     this.addClass('jgis-story-editor-dialog');
-  }
-
-  minimize(): void {
-    this.addClass('jgis-story-editor-dialog--minimized');
-    this.hide();
-  }
-
-  restore(): void {
-    this.removeClass('jgis-story-editor-dialog--minimized');
-    this.show();
-    this.activate();
   }
 
   // Prevent Jupyter Dialog from from eating enter key presses
@@ -59,7 +51,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
   }
 
   dispose(): void {
-    StoryEditorSession.getInstance().clear();
+    StoryEditorSession.getInstance().onDialogDisposed(this.model);
     super.dispose();
   }
 }

@@ -517,12 +517,19 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
 }
 
 .jgis-story-map-interaction-bar-root {
-  position: fixed;
+  pointer-events: auto;
+}
+
+.jGIS-Mainview-Container:has(.jgis-story-map-interaction-bar-root) {
+  position: relative;
+}
+
+.jgis-story-map-interaction-bar-root--overlay-bottom {
+  position: absolute;
   left: 50%;
   bottom: 1.25rem;
   transform: translateX(-50%);
-  z-index: 10000;
-  pointer-events: auto;
+  z-index: 50;
 }
 
 .jgis-story-map-interaction-bar-root--main-top-left {
@@ -532,12 +539,6 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   bottom: auto;
   transform: none;
   z-index: 50;
-}
-
-.jGIS-Mainview-Container:has(
-  .jgis-story-map-interaction-bar-root--main-top-left
-) {
-  position: relative;
 }
 
 .jgis-story-map-interaction-bar {

@@ -1,42 +1,72 @@
-import type { IJupyterGISModel } from '@jupytergis/schema';
+import type {
+  IJGISFormSchemaRegistry,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
-import { Widget } from '@lumino/widgets';
-import React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { STORY_TYPE } from '@/src/types';
+import type { JupyterGISTracker } from '@/src/types';
+import { StoryEditorWidget } from './storyEditorDialog';
 import {
-  MapPreviewBarActions,
-  MapViewBarActions,
-} from './components/MapInteractionBarActions';
-import { StoryMapInteractionBarWidget } from './components/StoryMapInteractionBarWidget';
-import type { StoryEditorWidget } from './storyEditorDialog';
-import type {
-  IOverrideLayerEntry,
-  StoryMapInteractionBarPlacement,
+  StoryMapBarController,
+  type IStoryMapBarHost,
+} from './storyMapBarController';
+import {
+  SegmentInteractionMode,
+  type IOverrideLayerEntry,
 } from './types/types';
+import { setModelPanelsOpen } from './utils/modelPanelState';
 import { updateSegmentMapView } from './utils/storySegmentMapView';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from './utils/storySegmentOverrides';
 
-type StoryEditorMapInteractionMode =
-  | 'map-view'
-  | 'previewing-segment'
-  | 'previewing-story';
+interface IModelEditorInteraction {
+  mode: SegmentInteractionMode;
+  segmentId: string;
+  overrideEntries: IOverrideLayerEntry[];
+  panelsHidden: boolean;
+}
 
-export class StoryEditorSession {
+interface IModelEditorState {
+  dialog: StoryEditorWidget | null;
+  interaction: IModelEditorInteraction | null;
+}
+
+interface ISharedEditorContext {
+  commands: CommandRegistry;
+  state: IStateDB;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  tracker: JupyterGISTracker;
+}
+
+export const StoryEditorMode = {
+  inactive: 'inactive',
+  editing: 'editing',
+  mapView: 'map-view',
+  segmentPreview: 'segment-preview',
+  storyPreview: 'story-preview',
+} as const;
+
+export type StoryEditorMode =
+  (typeof StoryEditorMode)[keyof typeof StoryEditorMode];
+
+export class StoryEditorSession implements IStoryMapBarHost {
   private static instance: StoryEditorSession;
 
-  private _dialog: StoryEditorWidget | null = null;
-  private _model: IJupyterGISModel | null = null;
-  private _commands: CommandRegistry | null = null;
-  private _mapViewSegmentId: string | null = null;
-  private _mapInteractionMode: StoryEditorMapInteractionMode | null = null;
-  private _mapBar: StoryMapInteractionBarWidget | null = null;
-  private _overrideEntries: IOverrideLayerEntry[] = [];
-  private _mainViewContainer: HTMLElement | null = null;
+  private _context: ISharedEditorContext | null = null;
+  private readonly _editors = new Map<IJupyterGISModel, IModelEditorState>();
+  private readonly _bars: StoryMapBarController;
+
+  private readonly onTrackerCurrentChanged = (): void => {
+    this._bars.refresh();
+  };
+
+  private constructor() {
+    this._bars = new StoryMapBarController(this);
+  }
 
   public static getInstance(): StoryEditorSession {
     if (!StoryEditorSession.instance) {
@@ -49,232 +79,404 @@ export class StoryEditorSession {
     dialog: StoryEditorWidget,
     model: IJupyterGISModel,
     commands: CommandRegistry,
-    mainViewContainer: HTMLElement | null,
+    state: IStateDB,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    tracker: JupyterGISTracker,
   ): void {
-    this._dialog = dialog;
-    this._model = model;
-    this._commands = commands;
-    this._mainViewContainer = mainViewContainer;
-    this._mapInteractionMode = null;
+    this._context = {
+      commands,
+      state,
+      formSchemaRegistry,
+      tracker,
+    };
+
+    this.releaseOtherDialogs(model);
+    const editorState = this.getOrCreateEditorState(model);
+    editorState.dialog = dialog;
+    this.bindTracker();
   }
 
-  public isActiveFor(model: IJupyterGISModel): boolean {
-    return this._dialog !== null && this._model === model;
+  public async openEditor(
+    model: IJupyterGISModel,
+    commands: CommandRegistry,
+    state: IStateDB,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    tracker: JupyterGISTracker,
+  ): Promise<void> {
+    this._context = {
+      commands,
+      state,
+      formSchemaRegistry,
+      tracker,
+    };
+    this.bindTracker();
+
+    await this.openDialogForModel(model);
   }
 
-  public isMapViewMode(): boolean {
-    return this._mapInteractionMode === 'map-view';
+  public onDialogDisposed(model: IJupyterGISModel): void {
+    const editorState = this._editors.get(model);
+    if (editorState) {
+      editorState.dialog = null;
+    }
+
+    this.closeEditorIfIdle();
   }
 
-  public isPreviewingSegment(): boolean {
-    return this._mapInteractionMode === 'previewing-segment';
+  public closeEditorIfIdle(): void {
+    if (!this.hasActiveInteraction()) {
+      this.clear();
+      return;
+    }
+
+    for (const [, editorState] of this._editors) {
+      editorState.dialog = null;
+    }
+
+    if (this.trackerHasStoryPreview()) {
+      this._bars.refresh();
+    }
   }
 
-  public isPreviewingStory(): boolean {
-    return this._mapInteractionMode === 'previewing-story';
+  public getMode(model: IJupyterGISModel): StoryEditorMode {
+    if (model.isStoryPreviewActive()) {
+      return StoryEditorMode.storyPreview;
+    }
+
+    const interaction = this.getInteraction(model);
+    if (interaction?.mode === SegmentInteractionMode.mapView) {
+      return StoryEditorMode.mapView;
+    }
+
+    if (interaction?.mode === SegmentInteractionMode.previewingSegment) {
+      return StoryEditorMode.segmentPreview;
+    }
+
+    if (this.getDialog(model)) {
+      return StoryEditorMode.editing;
+    }
+
+    return StoryEditorMode.inactive;
   }
 
-  public isMapInteractionMode(): boolean {
-    return this._mapInteractionMode !== null;
+  public hasActiveInteraction(): boolean {
+    if (this.trackerHasStoryPreview()) {
+      return true;
+    }
+
+    for (const editorState of this._editors.values()) {
+      if (editorState.interaction) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public getTracker(): JupyterGISTracker | null {
+    return this._context?.tracker ?? null;
+  }
+
+  public getInteraction(
+    model: IJupyterGISModel,
+  ): IModelEditorInteraction | null {
+    return this._editors.get(model)?.interaction ?? null;
   }
 
   public enterMapViewMode(segmentId: string): void {
-    if (!this._dialog || !this._model) {
-      return;
-    }
-
-    this._mapViewSegmentId = segmentId;
-    this._mapInteractionMode = 'map-view';
-    this._focusSegmentOnMap(segmentId);
-    this._dialog.minimize();
-    this._togglePanels();
-    this._showMapBar(
-      'Pan and zoom the map, then apply this view to the segment.',
-      React.createElement(MapViewBarActions, {
-        onBack: () => {
-          this.restoreEditor();
-        },
-        onApply: () => {
-          this.applyMapView();
-        },
-      }),
-    );
+    this.enterSegmentInteraction(SegmentInteractionMode.mapView, segmentId);
   }
 
   public enterPreviewMode(segmentId: string): void {
-    if (!this._dialog || !this._model) {
-      return;
-    }
-
-    this._mapInteractionMode = 'previewing-segment';
-    this._focusSegmentOnMap(segmentId);
-    applySegmentLayerOverrides(this._model, segmentId, this._overrideEntries);
-    this._dialog.minimize();
-    this._togglePanels();
-    this._showMapBar(
-      'Previewing this segment on the map with its layer overrides.',
-      React.createElement(MapPreviewBarActions, {
-        onBack: () => {
-          this.restoreEditor();
-        },
-      }),
+    this.enterSegmentInteraction(
+      SegmentInteractionMode.previewingSegment,
+      segmentId,
     );
   }
 
   public enterStoryPreviewMode(): void {
-    if (!this._dialog || !this._model || !this._model.canUseStoryPreview()) {
+    const model = this.dialogOwnerModel();
+    if (!model || !this.getDialog(model) || !model.canUseStoryPreview()) {
       return;
     }
 
-    this._clearMapInteractionState();
-    this._mapInteractionMode = 'previewing-story';
-    this._model.setStoryPreviewActive(true);
-    this._dialog.minimize();
-    this._notifyPreviewChanged();
-    this._showMapBar(
-      'Previewing the story.',
-      React.createElement(MapPreviewBarActions, {
-        onBack: () => {
-          this.restoreEditor();
-        },
-      }),
-      this._getStoryPreviewBarPlacement(),
-    );
+    this.clearInteractionForModel(model);
+    model.setStoryPreviewActive(true);
+    this.notifyPreviewChanged();
+    this.releaseDialogForModel(model);
+    this._bars.recreateBarForModel(model);
   }
 
   public applyMapView(): void {
-    if (!this._model || !this._mapViewSegmentId) {
+    const model = this.activeTabModel();
+    if (model) {
+      this.applyMapViewForModel(model);
+    }
+  }
+
+  public applyMapViewForModel(model: IJupyterGISModel): void {
+    const interaction = this.getInteraction(model);
+    if (!interaction || interaction.mode !== SegmentInteractionMode.mapView) {
       return;
     }
 
-    updateSegmentMapView(this._model, this._mapViewSegmentId);
-    this.restoreEditor();
+    updateSegmentMapView(model, interaction.segmentId);
+    this.restoreEditorForModel(model);
   }
 
   public restoreEditor(): void {
-    const previousMode = this._mapInteractionMode;
-    this._exitCurrentMapInteractionMode();
-    this._mapViewSegmentId = null;
-    this._mapInteractionMode = null;
-    if (previousMode === 'map-view' || previousMode === 'previewing-segment') {
-      this._togglePanels();
+    const model = this.activeTabModel();
+    if (!model) {
+      return;
     }
-    this._hideMapBar();
-    this._dialog?.restore();
+
+    if (model.isStoryPreviewActive()) {
+      this.exitStoryPreviewForModel(model);
+      return;
+    }
+
+    this.restoreEditorForModel(model);
+  }
+
+  public restoreEditorForModel(model: IJupyterGISModel): void {
+    this.clearInteractionForModel(model, { restorePanels: true });
+    this._bars.recreateBarForModel(model);
+    void this.openDialogForModel(model);
   }
 
   public focusDialog(): void {
-    this._dialog?.restore();
-    this._dialog?.activate();
+    const model = this.activeTabModel();
+    if (model) {
+      this.focusDialogForModel(model);
+    }
+  }
+
+  public focusDialogForModel(model: IJupyterGISModel): void {
+    const dialog = this.getDialog(model);
+
+    if (!dialog) {
+      void this.openDialogForModel(model);
+      return;
+    }
+
+    dialog.show();
+    dialog.activate();
   }
 
   public clear(): void {
-    if (this._model) {
-      this._exitCurrentMapInteractionMode();
-      if (this._model.isStoryPreviewActive()) {
-        this._model.setStoryPreviewActive(false);
-        this._notifyPreviewChanged();
+    for (const [model] of this._editors) {
+      this.clearInteractionForModel(model, { restorePanels: true });
+    }
+
+    this._context?.tracker.forEach(widget => {
+      const model = widget.model;
+      if (model?.isStoryPreviewActive()) {
+        model.setStoryPreviewActive(false);
+        this.notifyPreviewChanged();
+      }
+    });
+
+    this._bars.disposeAll();
+
+    for (const [, editorState] of this._editors) {
+      if (editorState.dialog) {
+        editorState.dialog.dispose();
+      }
+    }
+    this._editors.clear();
+    this.unbindTracker();
+    this._context = null;
+  }
+
+  private getOrCreateEditorState(model: IJupyterGISModel): IModelEditorState {
+    let editorState = this._editors.get(model);
+    if (!editorState) {
+      editorState = {
+        dialog: null,
+        interaction: null,
+      };
+
+      this._editors.set(model, editorState);
+    }
+
+    return editorState;
+  }
+
+  private getDialog(model: IJupyterGISModel): StoryEditorWidget | null {
+    return this._editors.get(model)?.dialog ?? null;
+  }
+
+  private setInteraction(
+    model: IJupyterGISModel,
+    interaction: IModelEditorInteraction,
+  ): void {
+    this.getOrCreateEditorState(model).interaction = interaction;
+  }
+
+  private enterSegmentInteraction(
+    mode: SegmentInteractionMode,
+    segmentId: string,
+  ): void {
+    const model = this.dialogOwnerModel();
+
+    if (!model || !this.getDialog(model)) {
+      return;
+    }
+
+    const overrideEntries: IOverrideLayerEntry[] = [];
+    const panelsHidden = setModelPanelsOpen(model, false);
+
+    if (panelsHidden) {
+      this.notifyPanelStateChanged();
+    }
+
+    this.setInteraction(model, {
+      mode,
+      segmentId,
+      overrideEntries,
+      panelsHidden,
+    });
+
+    model.centerOnPosition(segmentId);
+
+    if (mode === SegmentInteractionMode.previewingSegment) {
+      applySegmentLayerOverrides(model, segmentId, overrideEntries);
+    }
+
+    this.releaseDialogForModel(model);
+    this._bars.refresh();
+  }
+
+  private clearInteractionForModel(
+    model: IJupyterGISModel,
+    options: { restorePanels?: boolean } = {},
+  ): void {
+    const editorState = this._editors.get(model);
+    const interaction = editorState?.interaction;
+    if (!interaction || !editorState) {
+      return;
+    }
+
+    if (interaction.mode === SegmentInteractionMode.previewingSegment) {
+      clearSegmentLayerOverrideEntries(model, interaction.overrideEntries);
+    }
+
+    if (options.restorePanels && interaction.panelsHidden) {
+      if (setModelPanelsOpen(model, true)) {
+        this.notifyPanelStateChanged();
       }
     }
 
-    this._disposeMapBar();
-
-    this._dialog = null;
-    this._model = null;
-    this._commands = null;
-    this._mapViewSegmentId = null;
-    this._mapInteractionMode = null;
-    this._overrideEntries = [];
-    this._mainViewContainer = null;
+    editorState.interaction = null;
   }
 
-  private _notifyPreviewChanged(): void {
-    this._commands?.notifyCommandChanged(CommandIDs.openStoryEditor);
-  }
-
-  private _exitCurrentMapInteractionMode(): void {
-    if (!this._model) {
-      return;
+  public exitStoryPreviewForModel(model: IJupyterGISModel): void {
+    if (model.isStoryPreviewActive()) {
+      model.setStoryPreviewActive(false);
+      this.notifyPreviewChanged();
     }
 
-    switch (this._mapInteractionMode) {
-      case 'previewing-segment':
-        clearSegmentLayerOverrideEntries(this._model, this._overrideEntries);
-        break;
-      case 'previewing-story':
-        this._model.setStoryPreviewActive(false);
-        this._notifyPreviewChanged();
-        break;
-      case 'map-view':
-      case null:
-        break;
-    }
+    this._bars.recreateBarForModel(model);
+    void this.openDialogForModel(model);
   }
 
-  private _clearMapInteractionState(): void {
-    this._exitCurrentMapInteractionMode();
-    this._mapViewSegmentId = null;
-    this._mapInteractionMode = null;
-    this._hideMapBar();
+  private bindTracker(): void {
+    this.unbindTracker();
+    this._context?.tracker.currentChanged.connect(this.onTrackerCurrentChanged);
   }
 
-  private _focusSegmentOnMap(segmentId: string): void {
-    this._model?.centerOnPosition(segmentId);
+  private unbindTracker(): void {
+    this._context?.tracker.currentChanged.disconnect(
+      this.onTrackerCurrentChanged,
+    );
   }
 
-  private _togglePanels(): void {
-    if (!this._commands) {
-      return;
+  private activeTabModel(): IJupyterGISModel | null {
+    return this._context?.tracker.currentWidget?.model ?? null;
+  }
+
+  private dialogOwnerModel(): IJupyterGISModel | null {
+    const model = this.activeTabModel();
+    if (!model || !this.getDialog(model)) {
+      return null;
     }
 
-    void this._commands.execute(CommandIDs.togglePanel);
+    return model;
   }
 
-  private _showMapBar(
-    message: string,
-    children: React.ReactNode,
-    placement: StoryMapInteractionBarPlacement = 'overlay-bottom',
-  ): void {
-    this._disposeMapBar();
-    this._mapBar = new StoryMapInteractionBarWidget({
-      message,
-      children,
-      placement,
+  private trackerHasStoryPreview(): boolean {
+    if (!this._context?.tracker) {
+      return false;
+    }
+
+    let found = false;
+    this._context.tracker.forEach(widget => {
+      const model = widget.model;
+      if (!found && model?.isStoryPreviewActive()) {
+        found = true;
+      }
     });
-    Widget.attach(this._mapBar, this._resolveMapBarParent(placement));
-    this._mapBar.show();
+
+    return found;
   }
 
-  private _getStoryPreviewBarPlacement(): StoryMapInteractionBarPlacement {
-    const storyType = this._model?.getSelectedStory().story?.storyType;
-    if (storyType === STORY_TYPE.guided) {
-      return 'main-top-left';
-    }
-
-    return 'overlay-bottom';
-  }
-
-  private _resolveMapBarParent(
-    placement: StoryMapInteractionBarPlacement,
-  ): HTMLElement {
-    if (placement === 'main-top-left' && this._mainViewContainer) {
-      return this._mainViewContainer;
-    }
-
-    return document.body;
-  }
-
-  private _hideMapBar(): void {
-    this._mapBar?.hide();
-  }
-
-  private _disposeMapBar(): void {
-    if (!this._mapBar) {
+  private async openDialogForModel(model: IJupyterGISModel): Promise<void> {
+    if (!this._context) {
       return;
     }
 
-    this._mapBar.hide();
-    this._mapBar.dispose();
-    this._mapBar = null;
+    const existingDialog = this.getDialog(model);
+    if (existingDialog) {
+      existingDialog.show();
+      existingDialog.activate();
+      return;
+    }
+
+    this.releaseOtherDialogs(model);
+
+    const editorState = this.getOrCreateEditorState(model);
+
+    const dialog = new StoryEditorWidget({
+      model,
+      commands: this._context.commands,
+      state: this._context.state,
+      formSchemaRegistry: this._context.formSchemaRegistry,
+    });
+    editorState.dialog = dialog;
+
+    try {
+      await dialog.launch();
+    } finally {
+      this.closeEditorIfIdle();
+    }
+  }
+
+  private releaseOtherDialogs(keepModel: IJupyterGISModel): void {
+    for (const [model] of this._editors) {
+      if (model !== keepModel) {
+        this.releaseDialogForModel(model);
+      }
+    }
+  }
+
+  private releaseDialogForModel(model: IJupyterGISModel): void {
+    const editorState = this._editors.get(model);
+    if (!editorState?.dialog) {
+      return;
+    }
+
+    const dialog = editorState.dialog;
+    editorState.dialog = null;
+    dialog.close();
+  }
+
+  private notifyPreviewChanged(): void {
+    this._context?.commands.notifyCommandChanged(CommandIDs.openStoryEditor);
+  }
+
+  private notifyPanelStateChanged(): void {
+    this._context?.commands.notifyCommandChanged(CommandIDs.togglePanel);
+    this._context?.commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
+    this._context?.commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
   }
 }

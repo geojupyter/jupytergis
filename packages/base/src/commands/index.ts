@@ -38,8 +38,14 @@ import {
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
-import { StoryEditorWidget } from '../features/story/storyEditorDialog';
-import { StoryEditorSession } from '../features/story/storyEditorSession';
+import {
+  StoryEditorMode,
+  StoryEditorSession,
+} from '../features/story/storyEditorSession';
+import {
+  modelHasHiddenPanel,
+  toggleModelPanels,
+} from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
@@ -47,7 +53,7 @@ import {
   STORY_TYPE,
   SYMBOLOGY_VALID_LAYER_TYPES,
 } from '../types';
-import { JupyterGISDocumentWidget, JupyterGISPanel } from '../workspace/widget';
+import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -1563,15 +1569,7 @@ export function addCommands(
         return '';
       }
 
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-
-      return show
+      return modelHasHiddenPanel(current.model)
         ? trans.__('Show the side panels.')
         : trans.__('Hide the side panels.');
     },
@@ -1581,37 +1579,14 @@ export function addCommands(
       if (!current) {
         return false;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      return show;
+      return modelHasHiddenPanel(current.model);
     },
     execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      // Show all if any non-disabled panel is hidden; hide all otherwise.
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      const newState: { leftPanelOpen?: boolean; rightPanelOpen?: boolean } =
-        {};
-      if (!leftPanelDisabled) {
-        newState.leftPanelOpen = show;
-      }
-      if (!rightPanelDisabled) {
-        newState.rightPanelOpen = show;
-      }
-      current.model.setUIState(newState);
+      toggleModelPanels(current.model);
       commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
     ...icons.get(CommandIDs.togglePanel),
@@ -1917,22 +1892,25 @@ export function addCommands(
       }
 
       const session = StoryEditorSession.getInstance();
-      if (session.isActiveFor(current.model)) {
-        if (session.isMapInteractionMode()) {
-          session.restoreEditor();
-        } else {
-          session.focusDialog();
-        }
+      const mode = session.getMode(current.model);
+
+      if (mode === StoryEditorMode.inactive) {
+        await Private.createStoryEditor(
+          current.model,
+          commands,
+          formSchemaRegistry,
+          state,
+          tracker,
+        );
         return;
       }
 
-      await Private.createStoryEditor(
-        current.model,
-        commands,
-        formSchemaRegistry,
-        state,
-        tracker,
-      );
+      if (mode === StoryEditorMode.editing) {
+        session.focusDialog();
+        return;
+      }
+
+      session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
   });
@@ -2105,25 +2083,13 @@ namespace Private {
     state: IStateDB,
     tracker: JupyterGISTracker,
   ): Promise<void> {
-    const session = StoryEditorSession.getInstance();
-    const dialog = new StoryEditorWidget({
+    await StoryEditorSession.getInstance().openEditor(
       model,
       commands,
       state,
       formSchemaRegistry,
-    });
-    session.attachDialog(
-      dialog,
-      model,
-      commands,
-      Private.resolveMainViewContainer(tracker, model),
+      tracker,
     );
-
-    try {
-      await dialog.launch();
-    } finally {
-      session.clear();
-    }
   }
 
   export function createLayerBrowser(
@@ -2302,22 +2268,5 @@ namespace Private {
     const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 
     return `${cleanBase} Copy_${nextNumber}`;
-  }
-
-  export function resolveMainViewContainer(
-    tracker: JupyterGISTracker,
-    model: IJupyterGISModel,
-  ): HTMLElement | null {
-    const widget = tracker.find(w => w.model === model);
-    const panel = widget?.content;
-    if (!(panel instanceof JupyterGISPanel)) {
-      return null;
-    }
-
-    return (
-      panel.jupyterGISMainViewPanel?.node.querySelector<HTMLElement>(
-        '.jGIS-Mainview-Container',
-      ) ?? null
-    );
   }
 }
