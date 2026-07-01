@@ -7,9 +7,9 @@ import type { StoryEditorSession } from '../storyEditorSession';
 export function createMainViewPanel(
   mainViewContainer: HTMLElement,
 ): InstanceType<typeof JupyterGISPanel> {
-  const panel = Object.create(
-    JupyterGISPanel.prototype,
-  ) as InstanceType<typeof JupyterGISPanel>;
+  const panel = Object.create(JupyterGISPanel.prototype) as InstanceType<
+    typeof JupyterGISPanel
+  >;
 
   Object.assign(panel, {
     jupyterGISMainViewPanel: {
