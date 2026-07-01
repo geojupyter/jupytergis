@@ -21,10 +21,10 @@ import {
   JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
-import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
