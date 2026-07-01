@@ -5,7 +5,7 @@ import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { StoryMarkdownPreview } from '@/src/features/story/components/ListStoryOverlayMarkdown';
+import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
 import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
@@ -140,7 +140,7 @@ export function SegmentMarkdownEditor({
       >
         <div className="jgis-story-editor-markdown jgis-story-editor-markdown-preview jgis-story-viewer-content">
           {previewMarkdown.trim() ? (
-            <StoryMarkdownPreview
+            <RenderedStoryMarkdown
               rendermime={rendermime}
               source={previewMarkdown}
             />
