@@ -1,7 +1,8 @@
 import type { IJupyterGISDoc, IJupyterGISModel } from '@jupytergis/schema';
 import type { IYText, SourceChange } from '@jupyter/ydoc';
 import { Signal } from '@lumino/signaling';
-import * as Y from 'yjs';
+// import * as Y from 'yjs';
+import { Text, YTextEvent } from 'yjs';
 
 import { debounce } from '@/src/tools';
 
@@ -18,7 +19,7 @@ function storySegmentMarkdownKey(segmentId: string): string {
  * IYText view over a segment markdown field stored on the JupyterGIS Y.Doc.
  */
 export class StorySegmentMarkdownSharedModel implements IYText {
-  readonly ysource: Y.Text;
+  readonly ysource: Text;
   readonly awareness: IJupyterGISDoc['awareness'];
   readonly undoManager: IJupyterGISDoc['undoManager'];
 
@@ -85,7 +86,9 @@ export class StorySegmentMarkdownSharedModel implements IYText {
     if (!this.canUndo()) {
       return false;
     }
+
     this._doc.undo();
+
     return true;
   }
 
@@ -93,7 +96,9 @@ export class StorySegmentMarkdownSharedModel implements IYText {
     if (!this.canRedo()) {
       return false;
     }
+
     this._doc.redo();
+
     return true;
   }
 
@@ -109,21 +114,22 @@ export class StorySegmentMarkdownSharedModel implements IYText {
     this._doc.clearUndoHistory();
   }
 
-  transact(f: () => void, undoable = true, origin?: unknown): void {
-    this._doc.transact(f, undoable, origin);
+  transact(callback: () => void, undoable = true, origin?: unknown): void {
+    this._doc.transact(callback, undoable, origin);
   }
 
   dispose(): void {
     if (this._isDisposed) {
       return;
     }
+
     this._isDisposed = true;
     this.ysource.unobserve(this._onYTextChange);
     this._disposed.emit(undefined);
     Signal.clearData(this);
   }
 
-  private _onYTextChange = (event: Y.YTextEvent): void => {
+  private _onYTextChange = (event: YTextEvent): void => {
     this._changed.emit({
       sourceChange: event.changes.delta as SourceChange['sourceChange'],
     });
@@ -146,6 +152,7 @@ function ensureParameterSync(
     synced = new Set();
     parameterSync.set(model, synced);
   }
+
   if (synced.has(segmentId)) {
     return;
   }

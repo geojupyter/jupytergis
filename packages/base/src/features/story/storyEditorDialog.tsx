@@ -45,9 +45,6 @@ export class StoryEditorWidget extends Dialog<boolean> {
   protected _evtKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       const active = document.activeElement;
-      if (active instanceof HTMLTextAreaElement) {
-        return;
-      }
       if (active?.closest('.cm-editor')) {
         return;
       }
