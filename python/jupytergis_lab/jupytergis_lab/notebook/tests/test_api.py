@@ -243,6 +243,33 @@ class TestGeoJSONGrammarSymbology(TestDocument):
             )
 
 
+class TestQgisUnsupportedFeatures(TestDocument):
+    def test_jgis_document_allows_unsupported_layers(self):
+        assert not self.doc.is_qgis_document
+        layer_id = self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
+        assert self.doc.layers[layer_id]
+
+    @pytest.mark.parametrize("ext", [".qgz", ".qgs", ".QGZ"])
+    def test_qgis_document_is_detected(self, ext):
+        self.doc._path = f"project{ext}"
+        assert self.doc.is_qgis_document
+
+    def test_geozarr_layer_blocked_on_qgis_document(self):
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
+        # Nothing should have been added.
+        assert len(self.doc.layers) == 0
+        assert len(self.doc._sources) == 0
+
+    def test_openeo_layer_blocked_on_qgis_document(self):
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.add_openeo_tile_layer(graph=None)
+        assert len(self.doc.layers) == 0
+        assert len(self.doc._sources) == 0
+
+
 class TestLayerManipulation(TestDocument):
     def test_add_and_remove_layer_and_source(self):
         layer_id = self.doc.add_geotiff_layer(url=TEST_TIF)

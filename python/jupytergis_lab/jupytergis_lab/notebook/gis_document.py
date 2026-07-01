@@ -57,6 +57,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__file__)
 
+# Layer/source types that have no QGIS equivalent and so cannot be round-tripped
+# through the QGIS format. Adding them is blocked while a QGIS file is open,
+# mirroring the features disabled in the UI.
+QGIS_UNSUPPORTED_TYPES = {
+    LayerType.OpenEOTileLayer,
+    LayerType.GeoZarrLayer,
+    LayerType.StorySegmentLayer,
+    SourceType.OpenEOTileSource,
+    SourceType.GeoZarrSource,
+}
+
 
 def reversed_tree(root):
     if isinstance(root, list):
@@ -118,6 +129,8 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
+        self._path = path
+
         super().__init__(
             comm_metadata={
                 "ymodel_name": "@jupytergis:widget",
@@ -166,6 +179,21 @@ class GISDocument(CommWidget):
     def layer_tree(self) -> list[str | dict]:
         """Get the layer tree"""
         return self._layerTree.to_py()
+
+    @property
+    def is_qgis_document(self) -> bool:
+        """Whether the document is backed by a QGIS (`.qgs`/`.qgz`) file."""
+        return str(self._path or "").lower().endswith((".qgs", ".qgz"))
+
+    def _ensure_qgis_supported(self, object_type) -> None:
+        """Raise if ``object_type`` cannot be round-tripped through QGIS while a
+        QGIS file is open. Mirrors the features disabled in the UI.
+        """
+        if self.is_qgis_document and object_type in QGIS_UNSUPPORTED_TYPES:
+            name = getattr(object_type, "value", object_type)
+            raise RuntimeError(
+                f"'{name}' is not possible in QGIS files. Convert it to jGIS first.",
+            )
 
     def sidecar(
         self,
@@ -376,6 +404,7 @@ class GISDocument(CommWidget):
         name: str | None = None,
         opacity: float = 1,
     ):
+        self._ensure_qgis_supported(LayerType.OpenEOTileLayer)
         # Persist the bearer token alongside the server url so a connection
         # opened here from the notebook is reused by the frontend without the
         # user having to sign in a second time from the UI. The bearer is a
@@ -512,6 +541,7 @@ class GISDocument(CommWidget):
         :param wrap_x: Render tiles beyond the tile grid extent, defaults to False
         :param symbology: The symbology configuration to persist with the layer.
         """
+        self._ensure_qgis_supported(LayerType.GeoZarrLayer)
         source = {
             "type": SourceType.GeoZarrSource,
             "name": f"{name} Source",
@@ -1002,12 +1032,14 @@ class GISDocument(CommWidget):
             del self._sources[source_id]
 
     def _add_source(self, new_object, id: str | None = None) -> str:
+        self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
 
     def _add_layer(self, new_object, id: str | None = None) -> str:
+        self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
