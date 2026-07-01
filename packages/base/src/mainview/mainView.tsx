@@ -69,7 +69,7 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
-import { Geometry, Point } from 'ol/geom';
+import { Circle as CircleGeometry, Geometry, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
@@ -3650,7 +3650,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         style: [
           new Style({
             image: new CircleStyle({
-              radius: 30,
+              radius: coords.accuracy ?? 0,
               fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
             }),
           }),
