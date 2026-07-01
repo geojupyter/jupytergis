@@ -9,7 +9,6 @@ import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedS
 import {
   clearLocalCollaborationCursors,
   getStorySegmentMarkdownSharedModel,
-  sanitizeAwarenessStates,
 } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
@@ -71,8 +70,6 @@ export function SegmentMarkdownEditor({
       segmentId,
       seedMarkdownRef.current.markdown,
     );
-    clearLocalCollaborationCursors(sharedModel.awareness);
-    sanitizeAwarenessStates(sharedModel.awareness);
     const codeModel = new CodeEditor.Model({
       sharedModel: sharedModel as import('@jupyter/ydoc').IYText,
       mimeType: 'text/markdown',
