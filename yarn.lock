@@ -1466,6 +1466,7 @@ __metadata:
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/codeeditor": ^4.6
     "@jupyterlab/codemirror": ^4.6
+    "@jupyterlab/completer": ^4.6
     "@jupyterlab/console": ^4.6
     "@jupyterlab/coreutils": ^6.6
     "@jupyterlab/docregistry": ^4.6
