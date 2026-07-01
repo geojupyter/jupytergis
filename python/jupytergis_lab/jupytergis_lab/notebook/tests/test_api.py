@@ -1,6 +1,7 @@
 import pytest
 
 from jupytergis_lab import GISDocument
+from jupytergis_lab.notebook.gis_document import QGIS_UNSUPPORTED_TYPES
 from jupytergis_lab.notebook.symbology import (
     cluster,
     constant,
@@ -262,12 +263,15 @@ class TestQgisUnsupportedFeatures(TestDocument):
         assert len(self.doc.layers) == 0
         assert len(self.doc._sources) == 0
 
-    def test_openeo_layer_blocked_on_qgis_document(self):
+    @pytest.mark.parametrize("object_type", sorted(QGIS_UNSUPPORTED_TYPES, key=str))
+    def test_unsupported_types_are_blocked_on_qgis_document(self, object_type):
         self.doc._path = "project.qgz"
         with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
-            self.doc.add_openeo_tile_layer(graph=None)
-        assert len(self.doc.layers) == 0
-        assert len(self.doc._sources) == 0
+            self.doc._ensure_qgis_supported(object_type)
+
+    def test_unsupported_types_are_allowed_on_jgis_document(self):
+        for object_type in QGIS_UNSUPPORTED_TYPES:
+            self.doc._ensure_qgis_supported(object_type)  # does not raise
 
 
 class TestLayerManipulation(TestDocument):
