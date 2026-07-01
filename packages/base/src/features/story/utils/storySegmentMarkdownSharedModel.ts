@@ -8,21 +8,11 @@ import { debounce } from '@/src/tools';
 
 import { updateSegmentContent } from './storySegmentContent';
 
-const STORY_SEGMENT_MARKDOWN_PREFIX = 'storySegmentMarkdown:';
 const PARAMETER_SYNC_DEBOUNCE_MS = 300;
 
 const awarenessPageExitCleanupRegistered = new WeakSet<
   IJupyterGISDoc['awareness']
 >();
-
-/**
- * Clear this client's CodeMirror cursor/selection from shared awareness.
- */
-export function clearLocalCollaborationCursors(
-  awareness: IJupyterGISDoc['awareness'],
-): void {
-  awareness.setLocalStateField('cursors', []);
-}
 
 function registerAwarenessPageExitCleanup(
   awareness: IJupyterGISDoc['awareness'],
@@ -33,20 +23,11 @@ function registerAwarenessPageExitCleanup(
   awarenessPageExitCleanupRegistered.add(awareness);
 
   const onPageExit = (): void => {
-    clearLocalCollaborationCursors(awareness);
-    removeAwarenessStates(
-      awareness,
-      [awareness.doc.clientID],
-      'window unload',
-    );
+    removeAwarenessStates(awareness, [awareness.doc.clientID], 'window unload');
   };
 
   window.addEventListener('beforeunload', onPageExit);
   window.addEventListener('pagehide', onPageExit);
-}
-
-function storySegmentMarkdownKey(segmentId: string): string {
-  return `${STORY_SEGMENT_MARKDOWN_PREFIX}${segmentId}`;
 }
 
 /**
@@ -64,7 +45,7 @@ export class StorySegmentMarkdownSharedModel implements IYText {
 
   constructor(doc: IJupyterGISDoc, segmentId: string, initialMarkdown = '') {
     this._doc = doc;
-    this.ysource = doc.ydoc.getText(storySegmentMarkdownKey(segmentId));
+    this.ysource = doc.ydoc.getText(segmentId);
     this.awareness = doc.awareness;
     this.undoManager = doc.undoManager;
     doc.undoManager.addToScope(this.ysource);

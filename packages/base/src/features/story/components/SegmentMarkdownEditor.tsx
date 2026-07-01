@@ -6,10 +6,7 @@ import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
-import {
-  clearLocalCollaborationCursors,
-  getStorySegmentMarkdownSharedModel,
-} from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
+import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
   TabsContent,
@@ -89,6 +86,7 @@ export function SegmentMarkdownEditor({
     const refreshPreview = (): void => {
       setPreviewMarkdown(sharedModel.getSource());
     };
+
     sharedModel.changed.connect(refreshPreview);
     refreshPreview();
 
@@ -97,27 +95,11 @@ export function SegmentMarkdownEditor({
     return () => {
       sharedModel.changed.disconnect(refreshPreview);
       editor.dispose();
-      clearLocalCollaborationCursors(sharedModel.awareness);
       editorRef.current = null;
       codeModel.dispose();
       codeModelRef.current = null;
     };
   }, [model, segmentId, editorServices, minHeight]);
-
-  useEffect(() => {
-    if (tab !== 'write') {
-      return;
-    }
-
-    const editor = editorRef.current;
-    if (!editor) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      editor.editor.requestMeasure();
-    });
-  }, [tab]);
 
   return (
     <Tabs
