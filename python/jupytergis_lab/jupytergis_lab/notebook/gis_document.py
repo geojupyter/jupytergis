@@ -404,7 +404,6 @@ class GISDocument(CommWidget):
         name: str | None = None,
         opacity: float = 1,
     ):
-        self._ensure_qgis_supported(LayerType.OpenEOTileLayer)
         # Persist the bearer token alongside the server url so a connection
         # opened here from the notebook is reused by the frontend without the
         # user having to sign in a second time from the UI. The bearer is a
@@ -541,7 +540,6 @@ class GISDocument(CommWidget):
         :param wrap_x: Render tiles beyond the tile grid extent, defaults to False
         :param symbology: The symbology configuration to persist with the layer.
         """
-        self._ensure_qgis_supported(LayerType.GeoZarrLayer)
         source = {
             "type": SourceType.GeoZarrSource,
             "name": f"{name} Source",
