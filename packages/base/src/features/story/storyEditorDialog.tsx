@@ -1,5 +1,6 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Dialog } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -14,6 +15,7 @@ export interface IStoryEditorWidgetOptions {
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
+  rendermime: IRenderMimeRegistry;
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
@@ -27,6 +29,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
         state={options.state}
         formSchemaRegistry={options.formSchemaRegistry}
         editorServices={options.editorServices}
+        rendermime={options.rendermime}
       />
     );
 

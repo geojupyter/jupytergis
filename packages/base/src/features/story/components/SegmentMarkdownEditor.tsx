@@ -1,17 +1,18 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
-import Markdown from 'react-markdown';
 
+import { StoryMarkdownPreview } from '@/src/features/story/components/ListStoryOverlayMarkdown';
+import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
-import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 
 type MarkdownEditorTab = 'write' | 'preview';
 
@@ -19,6 +20,7 @@ export interface ISegmentMarkdownEditorProps {
   model: IJupyterGISModel;
   segmentId: string;
   editorServices: IEditorServices;
+  rendermime: IRenderMimeRegistry;
   initialMarkdown?: string;
   rows?: number;
   tall?: boolean;
@@ -35,6 +37,7 @@ export function SegmentMarkdownEditor({
   model,
   segmentId,
   editorServices,
+  rendermime,
   initialMarkdown = '',
   rows = 6,
   tall = false,
@@ -137,7 +140,11 @@ export function SegmentMarkdownEditor({
       >
         <div className="jgis-story-editor-markdown jgis-story-editor-markdown-preview jgis-story-viewer-content">
           {previewMarkdown.trim() ? (
-            <Markdown>{previewMarkdown}</Markdown>
+            <StoryMarkdownPreview
+              rendermime={rendermime}
+              source={previewMarkdown}
+              layout="editor"
+            />
           ) : (
             <p className="jgis-story-editor-help">Nothing to preview yet.</p>
           )}

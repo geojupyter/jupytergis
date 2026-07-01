@@ -31,8 +31,10 @@ function useStoryRenderMime(): IRenderMimeRegistry | null {
 
 const MARKDOWN_MIME = 'text/markdown';
 
-interface IListStoryOverlayMarkdownProps {
+export interface IStoryMarkdownPreviewProps {
+  rendermime: IRenderMimeRegistry | null | undefined;
   source: string;
+  layout: 'overlay' | 'editor';
   /** Fires after rendermime (or plain fallback) has painted. */
   onRendered?: () => void;
 }
@@ -52,12 +54,13 @@ function disposeRenderer(renderer: Widget): void {
   renderer.dispose();
 }
 
-/** Markdown body for a list-story stage overlay segment. */
-export function ListStoryOverlayMarkdown({
+/** Jupyter rendermime markdown preview (shared by overlay and story editor). */
+export function StoryMarkdownPreview({
+  rendermime,
   source,
+  layout = 'overlay',
   onRendered,
-}: IListStoryOverlayMarkdownProps): JSX.Element | null {
-  const rendermime = useStoryRenderMime();
+}: IStoryMarkdownPreviewProps): JSX.Element | null {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -90,7 +93,7 @@ export function ListStoryOverlayMarkdown({
       try {
         await renderer.renderModel(model);
       } catch (error) {
-        console.error('Failed to render list story overlay markdown', error);
+        console.error('Failed to render story markdown preview', error);
         disposeRenderer(renderer);
         return;
       }
@@ -129,6 +132,10 @@ export function ListStoryOverlayMarkdown({
   }
 
   if (!rendermime) {
+    if (layout === 'editor') {
+      return <pre className="jgis-story-overlay-markdown-plain">{source}</pre>;
+    }
+
     return (
       <div className="jgis-story-stage-overlay-content">
         <div className="specta-article-host-widget specta-cell-content">
@@ -138,11 +145,39 @@ export function ListStoryOverlayMarkdown({
     );
   }
 
+  if (layout === 'editor') {
+    return (
+      <div ref={hostRef} className="jgis-story-editor-markdown-rendermime" />
+    );
+  }
+
   return (
     <div className="jgis-story-stage-overlay-content">
       <div className="specta-article-host-widget specta-cell-content">
         <div ref={hostRef} />
       </div>
     </div>
+  );
+}
+
+interface IListStoryOverlayMarkdownProps {
+  source: string;
+  onRendered?: () => void;
+}
+
+/** Markdown body for a list-story stage overlay segment. */
+export function ListStoryOverlayMarkdown({
+  source,
+  onRendered,
+}: IListStoryOverlayMarkdownProps): JSX.Element | null {
+  const rendermime = useStoryRenderMime();
+
+  return (
+    <StoryMarkdownPreview
+      rendermime={rendermime}
+      source={source}
+      layout="overlay"
+      onRendered={onRendered}
+    />
   );
 }
