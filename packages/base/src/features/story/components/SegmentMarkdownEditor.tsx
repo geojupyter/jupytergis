@@ -25,13 +25,6 @@ export interface ISegmentMarkdownEditorProps {
   tall?: boolean;
 }
 
-function markdownEditorMinHeight(rows: number, tall: boolean): string {
-  if (tall) {
-    return '10rem';
-  }
-  return `${Math.max(rows, 4) * 1.25}rem`;
-}
-
 export function SegmentMarkdownEditor({
   model,
   segmentId,
@@ -52,8 +45,6 @@ export function SegmentMarkdownEditor({
   if (seedMarkdownRef.current.segmentId !== segmentId) {
     seedMarkdownRef.current = { segmentId, markdown: initialMarkdown };
   }
-
-  const minHeight = markdownEditorMinHeight(rows, tall);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -89,8 +80,6 @@ export function SegmentMarkdownEditor({
     sharedModel.changed.connect(refreshPreview);
     refreshPreview();
 
-    host.style.minHeight = minHeight;
-
     return () => {
       sharedModel.changed.disconnect(refreshPreview);
       editor.dispose();
@@ -98,7 +87,7 @@ export function SegmentMarkdownEditor({
       codeModel.dispose();
       codeModelRef.current = null;
     };
-  }, [model, segmentId, editorServices, minHeight]);
+  }, [model, segmentId, editorServices]);
 
   return (
     <Tabs
