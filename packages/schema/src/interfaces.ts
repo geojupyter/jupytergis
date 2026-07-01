@@ -66,7 +66,7 @@ export interface IJGISStoryMaps {
   [k: string]: IJGISStoryMap;
 }
 
-export type JgisCoordinates = { x: number; y: number };
+export type JgisCoordinates = { x: number; y: number, accuracy?: number};
 
 export interface IViewPortState {
   coordinates: JgisCoordinates;

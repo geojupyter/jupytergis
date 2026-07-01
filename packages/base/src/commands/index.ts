@@ -1463,7 +1463,11 @@ export function addCommands(
             pos.coords.longitude,
             pos.coords.latitude,
           ]);
-          viewModel.locationIndicatorToggled.emit({ x: coords[0], y: coords[1] });
+          viewModel.locationIndicatorToggled.emit({
+            x: coords[0],
+            y: coords[1],
+            accuracy: pos.coords.accuracy,
+          });
         },
         err => {
           console.warn(`Geolocation error (${err.code}): ${err.message}`);
