@@ -100,6 +100,21 @@ export function SegmentMarkdownEditor({
     };
   }, [model, segmentId, editorServices, minHeight]);
 
+  useEffect(() => {
+    if (tab !== 'write') {
+      return;
+    }
+
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      editor.editor.requestMeasure();
+    });
+  }, [tab]);
+
   return (
     <Tabs
       value={tab}
@@ -119,6 +134,7 @@ export function SegmentMarkdownEditor({
 
       <TabsContent
         value="write"
+        forceMount
         className="jgis-story-editor-markdown-tab-content"
       >
         <div

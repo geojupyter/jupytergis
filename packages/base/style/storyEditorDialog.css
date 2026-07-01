@@ -601,6 +601,11 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   padding-top: 0;
 }
 
+/* forceMount keeps the CodeMirror host mounted; Radix won't set hidden. */
+.jgis-tabs-content.jgis-story-editor-markdown-tab-content[data-state='inactive'] {
+  display: none;
+}
+
 .jgis-story-editor-markdown {
   padding: 0.5rem;
   border: 1px solid var(--jp-border-color1);
