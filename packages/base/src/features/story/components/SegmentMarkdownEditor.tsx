@@ -1,8 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
-import { CodeEditor } from '@jupyterlab/codeeditor';
-import type { IEditorServices } from '@jupyterlab/codeeditor';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { type IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
 import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';

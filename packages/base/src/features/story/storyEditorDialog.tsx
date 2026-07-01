@@ -1,7 +1,7 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
+import { Dialog } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { Dialog } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
