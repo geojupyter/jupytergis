@@ -143,7 +143,6 @@ export function SegmentMarkdownEditor({
             <StoryMarkdownPreview
               rendermime={rendermime}
               source={previewMarkdown}
-              layout="editor"
             />
           ) : (
             <p className="jgis-story-editor-help">Nothing to preview yet.</p>

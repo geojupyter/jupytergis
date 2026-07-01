@@ -34,7 +34,6 @@ const MARKDOWN_MIME = 'text/markdown';
 export interface IStoryMarkdownPreviewProps {
   rendermime: IRenderMimeRegistry | null | undefined;
   source: string;
-  layout: 'overlay' | 'editor';
   /** Fires after rendermime (or plain fallback) has painted. */
   onRendered?: () => void;
 }
@@ -58,7 +57,6 @@ function disposeRenderer(renderer: Widget): void {
 export function StoryMarkdownPreview({
   rendermime,
   source,
-  layout = 'overlay',
   onRendered,
 }: IStoryMarkdownPreviewProps): JSX.Element | null {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -132,22 +130,12 @@ export function StoryMarkdownPreview({
   }
 
   if (!rendermime) {
-    if (layout === 'editor') {
-      return <pre className="jgis-story-overlay-markdown-plain">{source}</pre>;
-    }
-
     return (
       <div className="jgis-story-stage-overlay-content">
         <div className="specta-article-host-widget specta-cell-content">
           <pre className="jgis-story-overlay-markdown-plain">{source}</pre>
         </div>
       </div>
-    );
-  }
-
-  if (layout === 'editor') {
-    return (
-      <div ref={hostRef} className="jgis-story-editor-markdown-rendermime" />
     );
   }
 
@@ -176,7 +164,6 @@ export function ListStoryOverlayMarkdown({
     <StoryMarkdownPreview
       rendermime={rendermime}
       source={source}
-      layout="overlay"
       onRendered={onRendered}
     />
   );
