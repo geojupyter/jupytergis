@@ -52,7 +52,7 @@ export class YJupyterGISModel extends JupyterYModel {
       return;
     }
     // Dispose the underlying collaborative model so its RTC provider is torn
-    // down. See issue https://github.com/geojupyter/jupytergis/issues/1561
+    // down.
     this.jupyterGISModel?.dispose();
     super.dispose();
   }
