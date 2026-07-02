@@ -20,9 +20,9 @@ license = {file = "LICENSE"}
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-  "jupytergis_core==0.16.0a4",
-  "jupytergis_lab==0.16.0a4",
-  "jupytergis_qgis==0.16.0a4",
+  "jupytergis_core==0.16.0a5",
+  "jupytergis_lab==0.16.0a5",
+  "jupytergis_qgis==0.16.0a5",
   "jupyter-collaboration>=4,<5",
   "jupyter-docprovider>=2,<3",
   "jupyter-server-ydoc>=2,<3",
