@@ -1203,11 +1203,39 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             }),
           );
 
+          const sourceProjection = sourceParameters.projection;
+          if (sourceProjection && !proj4.defs(sourceProjection)) {
+            const proj4Definition = proj4list[sourceProjection];
+            if (!proj4Definition) {
+              this._log(
+                'warning',
+                `Projection code '${sourceProjection}' not found in proj4list`,
+              );
+            } else {
+              try {
+                if (Array.isArray(proj4Definition)) {
+                  proj4.defs([proj4Definition]);
+                } else {
+                  proj4.defs(sourceProjection, proj4Definition);
+                }
+                register(proj4 as any);
+              } catch (error: any) {
+                this._log(
+                  'warning',
+                  `Failed to register projection '${sourceProjection}'. Error: ${error.message}`,
+                );
+              }
+            }
+          } else if (sourceProjection) {
+            register(proj4 as any);
+          }
+
           newSource = new GeoTIFFSource({
             interpolate: sourceParameters.interpolate,
             sources,
             normalize: sourceParameters.normalize,
             wrapX: sourceParameters.wrapX,
+            projection: sourceParameters.projection,
           });
 
           break;
@@ -1784,10 +1812,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const projectionCode = sourceProjection.getCode();
 
-    const isProjectionRegistered = getProjection(projectionCode);
-    if (!isProjectionRegistered) {
+    const hasProj4Definition = Boolean(proj4.defs(projectionCode));
+    if (!hasProj4Definition) {
       // Check if the projection exists in proj4list
-      if (!proj4list[projectionCode]) {
+      const proj4Definition = proj4list[projectionCode];
+      if (!proj4Definition) {
         this._log(
           'warning',
           `Projection code '${projectionCode}' not found in proj4list`,
@@ -1796,8 +1825,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       try {
-        proj4.defs([proj4list[projectionCode]]);
-        register(proj4 as any);
+        if (Array.isArray(proj4Definition)) {
+          proj4.defs([proj4Definition]);
+        } else {
+          proj4.defs(projectionCode, proj4Definition);
+        }
       } catch (error: any) {
         this._log(
           'warning',
@@ -1806,6 +1838,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
     }
+
+    // Always register after ensuring proj4 defs exist so OL transform functions
+    // are available even when the projection object already exists in cache.
+    register(proj4 as any);
   }
 
   /**
