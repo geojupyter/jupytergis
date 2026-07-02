@@ -1203,39 +1203,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             }),
           );
 
-          const sourceProjection = sourceParameters.projection;
-          if (sourceProjection && !proj4.defs(sourceProjection)) {
-            const proj4Definition = proj4list[sourceProjection];
-            if (!proj4Definition) {
-              this._log(
-                'warning',
-                `Projection code '${sourceProjection}' not found in proj4list`,
-              );
-            } else {
-              try {
-                if (Array.isArray(proj4Definition)) {
-                  proj4.defs([proj4Definition]);
-                } else {
-                  proj4.defs(sourceProjection, proj4Definition);
-                }
-                register(proj4 as any);
-              } catch (error: any) {
-                this._log(
-                  'warning',
-                  `Failed to register projection '${sourceProjection}'. Error: ${error.message}`,
-                );
-              }
-            }
-          } else if (sourceProjection) {
-            register(proj4 as any);
-          }
-
           newSource = new GeoTIFFSource({
             interpolate: sourceParameters.interpolate,
             sources,
             normalize: sourceParameters.normalize,
             wrapX: sourceParameters.wrapX,
-            projection: sourceParameters.projection,
+            ...(sourceParameters.projection
+              ? { projection: sourceParameters.projection }
+              : {}),
           });
 
           break;
