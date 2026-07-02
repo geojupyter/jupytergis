@@ -46,6 +46,16 @@ export class YJupyterGISModel extends JupyterYModel {
   get awareness() {
     return this.jupyterGISModel?.sharedModel?.awareness;
   }
+
+  dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
+    // Dispose the underlying collaborative model so its RTC provider is torn
+    // down.
+    this.jupyterGISModel?.dispose();
+    super.dispose();
+  }
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
