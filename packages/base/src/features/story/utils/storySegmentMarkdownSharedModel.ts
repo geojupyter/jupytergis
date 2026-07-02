@@ -184,6 +184,17 @@ function ensureParameterSync(
   });
 }
 
+export function disposeSegmentMarkdown(
+  model: IJupyterGISModel,
+  segmentId: string,
+): void {
+  sharedModels.get(model)?.get(segmentId)?.dispose();
+  sharedModels.get(model)?.delete(segmentId);
+  parameterSync.get(model)?.delete(segmentId);
+
+  model.sharedModel.ydoc.share.delete(segmentId);
+}
+
 export function getStorySegmentMarkdownSharedModel(
   model: IJupyterGISModel,
   segmentId: string,
