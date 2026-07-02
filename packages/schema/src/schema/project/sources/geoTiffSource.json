@@ -44,6 +44,11 @@
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
     },
+    "projection": {
+      "type": "string",
+      "description": "Source CRS (e.g. EPSG:3411). Use when the GeoTIFF omits a standard EPSG code in its metadata.",
+      "default": ""
+    },
     "useProxy": {
       "type": "boolean",
       "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
