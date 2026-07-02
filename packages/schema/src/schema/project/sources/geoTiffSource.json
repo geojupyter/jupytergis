@@ -46,7 +46,7 @@
     },
     "projection": {
       "type": "string",
-      "description": "Source CRS (e.g. EPSG:3411). Use when the GeoTIFF omits a standard EPSG code in its metadata.",
+      "description": "Source CRS. Use when the GeoTIFF omits a standard EPSG code in its metadata.",
       "default": ""
     },
     "useProxy": {
