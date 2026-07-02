@@ -1803,15 +1803,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return newMapLayer;
   }
 
-  addProjection(newMapLayer: Layer) {
-    const sourceProjection = newMapLayer.getSource()?.getProjection();
-    if (!sourceProjection) {
-      this._log('warning', 'Layer source projection is undefined or invalid');
-      return;
-    }
-
-    const projectionCode = sourceProjection.getCode();
-
+  private ensureProjectionRegistered(projectionCode: string): void {
     const hasProj4Definition = Boolean(proj4.defs(projectionCode));
     if (!hasProj4Definition) {
       // Check if the projection exists in proj4list
@@ -1844,6 +1836,41 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     register(proj4 as any);
   }
 
+  private resolveLayerSourceProjection(layer: IJGISLayer): string | undefined {
+    const sourceId = layer.parameters?.source;
+    if (!sourceId) {
+      return;
+    }
+
+    const source = this._model.sharedModel.getLayerSource(sourceId);
+    if (!source) {
+      return;
+    }
+
+    const parameters = source.parameters;
+    return parameters?.projection;
+  }
+
+  addProjection(target: Layer | IJGISLayer): void {
+    if (target instanceof Layer) {
+      const sourceProjection = target.getSource()?.getProjection();
+      if (!sourceProjection) {
+        this._log('warning', 'Layer source projection is undefined or invalid');
+        return;
+      }
+
+      this.ensureProjectionRegistered(sourceProjection.getCode());
+      return;
+    }
+
+    const projectionCode = this.resolveLayerSourceProjection(target);
+    if (!projectionCode) {
+      return;
+    }
+
+    this.ensureProjectionRegistered(projectionCode);
+  }
+
   /**
    * Add a layer to the map.
    *
@@ -1858,6 +1885,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     try {
+      this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
       if (newMapLayer !== undefined) {
         await this._waitForReady();
