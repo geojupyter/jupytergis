@@ -446,6 +446,7 @@ class GISDocument(CommWidget):
         name: str | None = None,
         normalize: bool = True,
         wrapX: bool = False,
+        projection: str | None = None,
         attribution: str = "",
         opacity: float = 1.0,
         symbology: SymbologyInput = None,
@@ -458,6 +459,7 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document, defaults to "GeoTIFF Layer"
         :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
         :param wrapX: Render tiles beyond the tile grid extent, defaults to False
+        :param projection: Source CRS when the GeoTIFF omits a standard EPSG code in its metadata
         :param opacity: The opacity, between 0 and 1, defaults to 1.0
         :param symbology: The symbology configuration to persist with the layer.
         """
@@ -465,14 +467,18 @@ class GISDocument(CommWidget):
         if name is None:
             name = _extract_layer_name(url)
 
+        source_params = {
+            "urls": [{"url": url, "min": min, "max": max}],
+            "normalize": normalize,
+            "wrapX": wrapX,
+        }
+        if projection is not None:
+            source_params["projection"] = projection
+
         source = {
             "type": SourceType.GeoTiffSource,
             "name": f"{name} Source",
-            "parameters": {
-                "urls": [{"url": url, "min": min, "max": max}],
-                "normalize": normalize,
-                "wrapX": wrapX,
-            },
+            "parameters": source_params,
         }
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
