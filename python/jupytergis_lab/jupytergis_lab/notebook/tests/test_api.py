@@ -8,6 +8,7 @@ from jupytergis_lab.notebook.symbology import (
     field,
     heatmap,
     to_symbology_state,
+    vega_expr,
     when,
 )
 
@@ -246,14 +247,14 @@ class TestGeoJSONGrammarSymbology(TestDocument):
 
 class TestQgisUnsupportedFeatures(TestDocument):
     def test_jgis_document_allows_unsupported_layers(self):
-        assert not self.doc.is_qgis_document
+        assert not self.doc._is_qgis_document
         layer_id = self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
         assert self.doc.layers[layer_id]
 
     @pytest.mark.parametrize("ext", [".qgz", ".qgs", ".QGZ"])
     def test_qgis_document_is_detected(self, ext):
         self.doc._path = f"project{ext}"
-        assert self.doc.is_qgis_document
+        assert self.doc._is_qgis_document
 
     def test_geozarr_layer_blocked_on_qgis_document(self):
         self.doc._path = "project.qgz"
@@ -272,6 +273,34 @@ class TestQgisUnsupportedFeatures(TestDocument):
     def test_unsupported_types_are_allowed_on_jgis_document(self):
         for object_type in QGIS_UNSUPPORTED_TYPES:
             self.doc._ensure_qgis_supported(object_type)  # does not raise
+
+    def test_expression_symbology_blocked_on_add_layer(self):
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.add_geojson_layer(
+                data=SAMPLE_GEOJSON,
+                name="Quakes",
+                symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
+            )
+        # Nothing should have been added.
+        assert len(self.doc.layers) == 0
+
+    def test_expression_symbology_blocked_on_apply(self):
+        layer_id = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.apply_symbology(
+                layer_id,
+                [[vega_expr("datum.mag * 2").encoding("radius")]],
+            )
+
+    def test_expression_symbology_allowed_on_jgis_document(self):
+        layer_id = self.doc.add_geojson_layer(
+            data=SAMPLE_GEOJSON,
+            name="Quakes",
+            symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
+        )
+        assert self.doc.layers[layer_id]
 
 
 class TestLayerManipulation(TestDocument):

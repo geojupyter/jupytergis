@@ -181,7 +181,7 @@ class GISDocument(CommWidget):
         return self._layerTree.to_py()
 
     @property
-    def is_qgis_document(self) -> bool:
+    def _is_qgis_document(self) -> bool:
         """Whether the document is backed by a QGIS (`.qgs`/`.qgz`) file."""
         return str(self._path or "").lower().endswith((".qgs", ".qgz"))
 
@@ -189,10 +189,33 @@ class GISDocument(CommWidget):
         """Raise if ``object_type`` cannot be round-tripped through QGIS while a
         QGIS file is open. Mirrors the features disabled in the UI.
         """
-        if self.is_qgis_document and object_type in QGIS_UNSUPPORTED_TYPES:
+        if self._is_qgis_document and object_type in QGIS_UNSUPPORTED_TYPES:
             name = getattr(object_type, "value", object_type)
             raise RuntimeError(
                 f"'{name}' is not possible in QGIS files. Convert it to jGIS first.",
+            )
+
+    def _ensure_symbology_qgis_supported(self, symbology_state) -> None:
+        """Raise if ``symbology_state`` relies on render-time expressions while a
+        QGIS file is open. Expression-based symbology has no QGIS equivalent and
+        cannot be round-tripped, mirroring the feature disabled in the UI.
+        """
+        if not self._is_qgis_document or symbology_state is None:
+            return
+
+        def _has_expression(value) -> bool:
+            if isinstance(value, dict):
+                if value.get("scheme") == "expression":
+                    return True
+                return any(_has_expression(v) for v in value.values())
+            if isinstance(value, (list, tuple)):
+                return any(_has_expression(v) for v in value)
+            return False
+
+        if _has_expression(symbology_state):
+            raise RuntimeError(
+                "Expression-based symbology is not possible in QGIS files. "
+                "Convert it to jGIS first.",
             )
 
     def sidecar(
@@ -1040,6 +1063,9 @@ class GISDocument(CommWidget):
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
+        self._ensure_symbology_qgis_supported(
+            obj_dict.get("parameters", {}).get("symbologyState"),
+        )
         self._layers[_id] = obj_dict
         self._layerTree.append(_id)
         return _id
@@ -1094,6 +1120,8 @@ class GISDocument(CommWidget):
         symbology_state = to_symbology_state(symbology)
         if symbology_state is None:
             raise ValueError("Symbology cannot be None")
+
+        self._ensure_symbology_qgis_supported(symbology_state)
 
         params = layer.setdefault("parameters", {})
         params["symbologyState"] = symbology_state
