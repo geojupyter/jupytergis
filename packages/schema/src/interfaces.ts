@@ -431,6 +431,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     attributes: IDrawDefaultAttribute[],
     emitter?: string,
   ): void;
+  clearDrawDefaultAttributesForLayer(
+    layerId: string,
+    emitter?: string,
+  ): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;

@@ -609,6 +609,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
+    this.clearDrawDefaultAttributesForLayer(
+      layer_id,
+      this.getClientId().toString(),
+    );
 
     if (layer?.type === 'StorySegmentLayer') {
       // remove this layer id from story maps
@@ -730,6 +734,20 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
     current[layerId] = attributes;
     this.syncDrawDefaultAttributes(current, emitter);
+  }
+
+  clearDrawDefaultAttributesForLayer(
+    layerId: string,
+    emitter?: string,
+  ): void {
+    const current = this.localState?.drawDefaultAttributes?.value;
+    if (!current || !(layerId in current)) {
+      return;
+    }
+
+    const next = { ...current };
+    delete next[layerId];
+    this.syncDrawDefaultAttributes(next, emitter);
   }
 
   setUserToFollow(userId?: number): void {
