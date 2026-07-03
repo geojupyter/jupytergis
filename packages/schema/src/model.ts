@@ -607,12 +607,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layer = this._sharedModel.getLayer(layer_id);
     const source_id = layer?.parameters?.source;
 
+    this.clearDrawDefaultAttributesForLayer(layer_id);
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
-    this.clearDrawDefaultAttributesForLayer(
-      layer_id,
-      this.getClientId().toString(),
-    );
 
     if (layer?.type === 'StorySegmentLayer') {
       // remove this layer id from story maps
@@ -721,7 +718,20 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[] {
-    return this.localState?.drawDefaultAttributes?.value?.[layerId] ?? [];
+    const merged = new Map<string, IDrawDefaultAttribute>();
+
+    for (const state of this.sharedModel.awareness.getStates().values()) {
+      const attributes = (state as IJupyterGISClientState | null)
+        ?.drawDefaultAttributes?.value?.[layerId];
+      if (!attributes?.length) {
+        continue;
+      }
+
+      for (const attribute of attributes) {
+        merged.set(attribute.key, attribute);
+      }
+    }
+    return Array.from(merged.values());
   }
 
   setDrawDefaultAttributesForLayer(
@@ -736,10 +746,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.syncDrawDefaultAttributes(current, emitter);
   }
 
-  clearDrawDefaultAttributesForLayer(
-    layerId: string,
-    emitter?: string,
-  ): void {
+  clearDrawDefaultAttributesForLayer(layerId: string, emitter?: string): void {
     const current = this.localState?.drawDefaultAttributes?.value;
     if (!current || !(layerId in current)) {
       return;
@@ -1251,6 +1258,17 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._previousClientStates = new Map(clients);
   };
 
+  private _hasAwarenessFieldChanged(
+    previousValue: unknown,
+    currentValue: unknown,
+  ): boolean {
+    if (previousValue === currentValue) {
+      return false;
+    }
+
+    return JSON.stringify(previousValue) !== JSON.stringify(currentValue);
+  }
+
   private _emitAwarenessFieldDeltas(
     changed: {
       added?: number[];
@@ -1279,7 +1297,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
-        if (previousValue === currentValue) {
+        if (!this._hasAwarenessFieldChanged(previousValue, currentValue)) {
           return;
         }
 

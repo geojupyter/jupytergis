@@ -4,10 +4,7 @@ import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
-import {
-  getSelectedDrawLayerId,
-  useDrawDefaultAttributes,
-} from '../hooks/useDrawDefaultAttributes';
+import { useDrawDefaultAttributes } from '../hooks/useDrawDefaultAttributes';
 
 interface IDrawAttributeDraftRowProps {
   draftKey: string;
@@ -66,12 +63,13 @@ function DrawAttributeDraftRow({
 
 interface IDrawDefaultAttributesDialogProps {
   model: IJupyterGISModel;
+  layerId?: string;
 }
 
 export function DrawDefaultAttributesDialog({
   model,
+  layerId,
 }: IDrawDefaultAttributesDialogProps): JSX.Element {
-  const layerId = getSelectedDrawLayerId(model);
   const {
     attributes,
     draftMode,
@@ -88,7 +86,7 @@ export function DrawDefaultAttributesDialog({
     cancelDraft,
     removeAttribute,
     canAdd,
-  } = useDrawDefaultAttributes(model, layerId);
+  } = useDrawDefaultAttributes(model, layerId, true);
 
   if (!layerId) {
     return (

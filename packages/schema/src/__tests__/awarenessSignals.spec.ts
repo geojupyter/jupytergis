@@ -97,6 +97,35 @@ describe('awareness field signals', () => {
     });
   });
 
+  it('emits drawDefaultAttributesChanged on subsequent updates', () => {
+    const events: any[] = [];
+    model.drawDefaultAttributesChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.setDrawDefaultAttributesForLayer(
+      'layer-a',
+      [{ key: 'species', value: 'oak' }],
+      'test',
+    );
+    model.setDrawDefaultAttributesForLayer(
+      'layer-a',
+      [
+        { key: 'species', value: 'oak' },
+        { key: 'status', value: 'draft' },
+      ],
+      'test',
+    );
+
+    expect(events).toHaveLength(2);
+    expect(events[1].currentValue?.value).toEqual({
+      'layer-a': [
+        { key: 'species', value: 'oak' },
+        { key: 'status', value: 'draft' },
+      ],
+    });
+  });
+
   it('clears draw defaults for a removed layer', () => {
     model.setDrawDefaultAttributesForLayer(
       'layer-a',
@@ -113,6 +142,28 @@ describe('awareness field signals', () => {
 
     expect(model.getDrawDefaultAttributes('layer-a')).toEqual([]);
     expect(model.getDrawDefaultAttributes('layer-b')).toEqual([
+      { key: 'status', value: 'draft' },
+    ]);
+  });
+
+  it('merges draw defaults from all awareness clients for a layer', () => {
+    model.syncDrawDefaultAttributes({
+      'layer-a': [{ key: 'species', value: 'oak' }],
+    });
+
+    const remoteClientId = 4242;
+    const clients = model.sharedModel.awareness.getStates();
+    clients.set(remoteClientId, {
+      ...(clients.get(model.getClientId()) as object),
+      drawDefaultAttributes: {
+        value: {
+          'layer-a': [{ key: 'status', value: 'draft' }],
+        },
+      },
+    } as any);
+
+    expect(model.getDrawDefaultAttributes('layer-a')).toEqual([
+      { key: 'species', value: 'oak' },
       { key: 'status', value: 'draft' },
     ]);
   });
