@@ -826,12 +826,33 @@ class GISDocument(CommWidget):
         max_items: int = 4,
         resolution_scale: float = 2.0,
         resampling: str = "linear",
+        viewport_width: int = 0,
+        viewport_height: int = 0,
+        viewport_resampling: str = "linear",
         opacity: float = 1,
         **kwargs: str | int,
     ):
-        """TODO
+        """Add a raster tile layer which lazily reads into a STAC catalog,
+        turn the tiles into xarrays, and let the user compute the tile images.
 
-        TODO
+        :param stac_url: Root STAC API URL.
+        :param collection_id: STAC collection ID used in the tile URL path.
+        :param assets: Optional STAC asset names passed to stackstac.
+        :param array_to_image: Callable converting a stackstac ``DataArray`` to
+            ``ImageData``.
+        :param name: The layer's name
+        :param max_items: Max number of STAC items to combine per tile. Lower is faster.
+        :param resolution_scale: Multiplier applied to stackstac output resolution.
+            Values greater than ``1`` reduce detail and improve performance.
+        :param resampling: stackstac resampling method, e.g. ``nearest`` or ``bilinear``.
+        :param viewport_width: Optional target viewport width in pixels for post-stack
+            downsampling. ``0`` disables viewport resampling.
+        :param viewport_height: Optional target viewport height in pixels for post-stack
+            downsampling. ``0`` disables viewport resampling.
+        :param viewport_resampling: Interpolation method for viewport downsampling.
+            Typical values are ``linear`` or ``nearest``.
+        :param opacity: The opacity, between 0 and 1
+        :param kwargs: Extra query parameters appended to the tile URL.
         """
         try:
             from jupyter_tiler.titiler import _get_server, add_stac_array
@@ -847,6 +868,12 @@ class GISDocument(CommWidget):
             collection_id=collection_id,
             array_to_image=array_to_image,
             assets=assets,
+            max_items=max_items,
+            resolution_scale=resolution_scale,
+            resampling=resampling,
+            viewport_width=viewport_width,
+            viewport_height=viewport_height,
+            viewport_resampling=viewport_resampling,
             **kwargs,
         )
 
