@@ -77,6 +77,26 @@ describe('awareness field signals', () => {
     });
   });
 
+  it('emits drawDefaultAttributesChanged when draw defaults change', () => {
+    const events: any[] = [];
+    model.drawDefaultAttributesChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.setDrawDefaultAttributesForLayer(
+      'layer-a',
+      [{ key: 'species', value: 'oak' }],
+      'test',
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0].field).toBe('drawDefaultAttributes');
+    expect(events[0].isLocalClient).toBe(true);
+    expect(events[0].currentValue?.value).toEqual({
+      'layer-a': [{ key: 'species', value: 'oak' }],
+    });
+  });
+
   it('emits identifiedFeaturesChanged when identified features change', () => {
     const events: any[] = [];
     model.identifiedFeaturesChanged.connect((_, args) => {
