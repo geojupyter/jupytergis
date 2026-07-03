@@ -32,7 +32,6 @@ import {
   IDrawDefaultAttribute,
   IDrawDefaultAttributesByLayer,
   IDrawDefaultAttributesLayerState,
-  IDrawDefaultAttributesLayerStateInput,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -720,40 +719,28 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[] {
-    const layerStates: IDrawDefaultAttributesLayerState[] = [];
+    const localClientId = this.getClientId();
+    let winner: IDrawDefaultAttributesLayerState | undefined;
 
-    for (const state of this.sharedModel.awareness.getStates().values()) {
-      const layerState = this._normalizeDrawDefaultAttributesLayerState(
-        (state as IJupyterGISClientState | null)?.drawDefaultAttributes?.value?.[
-          layerId
-        ],
-      );
-      if (layerState) {
-        layerStates.push(layerState);
+    for (const [clientId, state] of this.sharedModel.awareness.getStates()) {
+      const layerState = (state as IJupyterGISClientState | null)
+        ?.drawDefaultAttributes?.value?.[layerId];
+
+      if (!layerState) {
+        continue;
+      }
+
+      if (
+        !winner ||
+        layerState.updatedAt > winner.updatedAt ||
+        (layerState.updatedAt === winner.updatedAt &&
+          clientId === localClientId)
+      ) {
+        winner = layerState;
       }
     }
 
-    if (layerStates.length === 0) {
-      return [];
-    }
-
-    const maxUpdatedAt = Math.max(...layerStates.map(layer => layer.updatedAt));
-    const latestStates = layerStates.filter(
-      layer => layer.updatedAt === maxUpdatedAt,
-    );
-
-    if (latestStates.length === 1) {
-      return latestStates[0].attributes;
-    }
-
-    const merged = new Map<string, IDrawDefaultAttribute>();
-    for (const layerState of latestStates) {
-      for (const attribute of layerState.attributes) {
-        merged.set(attribute.key, attribute);
-      }
-    }
-
-    return Array.from(merged.values());
+    return winner?.attributes ?? [];
   }
 
   setDrawDefaultAttributesForLayer(
@@ -764,10 +751,12 @@ export class JupyterGISModel implements IJupyterGISModel {
     const current = {
       ...(this.localState?.drawDefaultAttributes?.value ?? {}),
     };
+
     current[layerId] = {
       updatedAt: Date.now(),
       attributes,
     };
+
     this.syncDrawDefaultAttributes(current, emitter);
   }
 
@@ -782,31 +771,8 @@ export class JupyterGISModel implements IJupyterGISModel {
       updatedAt: Date.now(),
       attributes: [],
     };
+
     this.syncDrawDefaultAttributes(next, emitter);
-  }
-
-  private _normalizeDrawDefaultAttributesLayerState(
-    raw: IDrawDefaultAttributesLayerStateInput | undefined,
-  ): IDrawDefaultAttributesLayerState | undefined {
-    if (!raw) {
-      return undefined;
-    }
-
-    if (Array.isArray(raw)) {
-      return { updatedAt: 0, attributes: raw };
-    }
-
-    if ('revision' in raw && !('updatedAt' in raw)) {
-      const legacy = raw as IDrawDefaultAttributesLayerState & {
-        revision: number;
-      };
-      return {
-        updatedAt: legacy.revision,
-        attributes: legacy.attributes,
-      };
-    }
-
-    return raw;
   }
 
   setUserToFollow(userId?: number): void {
@@ -1310,17 +1276,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._previousClientStates = new Map(clients);
   };
 
-  private _hasAwarenessFieldChanged(
-    previousValue: unknown,
-    currentValue: unknown,
-  ): boolean {
-    if (previousValue === currentValue) {
-      return false;
-    }
-
-    return JSON.stringify(previousValue) !== JSON.stringify(currentValue);
-  }
-
   private _emitAwarenessFieldDeltas(
     changed: {
       added?: number[];
@@ -1349,9 +1304,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
-        if (!this._hasAwarenessFieldChanged(previousValue, currentValue)) {
-          return;
-        }
 
         const payload: IAwarenessFieldChange = {
           clientId,

@@ -183,7 +183,7 @@ describe('awareness field signals', () => {
     ]);
   });
 
-  it('merges draw defaults when clients share the same updatedAt', () => {
+  it('prefers local draw defaults when clients share the same updatedAt', () => {
     model.syncDrawDefaultAttributes({
       'layer-a': {
         updatedAt: 100,
@@ -207,7 +207,6 @@ describe('awareness field signals', () => {
 
     expect(model.getDrawDefaultAttributes('layer-a')).toEqual([
       { key: 'species', value: 'oak' },
-      { key: 'status', value: 'draft' },
     ]);
   });
 

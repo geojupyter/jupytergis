@@ -216,7 +216,7 @@ interface IMainViewProps {
   loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 960px). Injected by MainViewWithObserver. */
   isMobile: boolean;
-  containerRef?: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement>;
 }
 
 interface IStates {
@@ -3091,7 +3091,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     this._storyScrollHandler = handleScroll;
-    const container = this.props.containerRef?.current;
+    const container = this.props.containerRef.current;
     if (container) {
       this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
@@ -4166,7 +4166,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
 // ! TODO make mainview a modern react component instead of a class
 /* thin React wrapper to resize the panels on window resize with the help of ResizeObserver */
-function MainViewWithObserver(props: Omit<IMainViewProps, 'isMobile'>) {
+function MainViewWithObserver(
+  props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
+) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 
