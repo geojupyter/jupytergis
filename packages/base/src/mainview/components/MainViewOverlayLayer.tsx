@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import { VectorDrawControls } from '@/src/mainview/components/VectorDrawControls';
+import { VectorDrawControls } from '@/src/features/labels/components/VectorDrawControls';
 
 export interface IMainViewOverlayLayerProps {
   annotationFloaters: React.ReactNode;

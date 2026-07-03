@@ -11,17 +11,6 @@ import {
 
 type DraftMode = 'add' | 'edit' | null;
 
-export function getSelectedDrawLayerId(
-  model: IJupyterGISModel,
-): string | undefined {
-  const selected = model.selected;
-  if (!selected) {
-    return undefined;
-  }
-
-  return Object.keys(selected)[0];
-}
-
 export function useDrawDefaultAttributes(
   model: IJupyterGISModel,
   layerId: string,

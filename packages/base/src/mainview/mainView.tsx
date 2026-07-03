@@ -158,7 +158,7 @@ import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
-import { applyDrawDefaultAttributesToFeature } from './drawDefaultAttributes';
+import { applyDrawDefaultAttributesToFeature } from '@/src/features/labels/drawDefaultAttributes';
 import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
