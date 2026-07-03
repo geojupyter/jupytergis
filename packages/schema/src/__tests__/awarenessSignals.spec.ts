@@ -92,12 +92,18 @@ describe('awareness field signals', () => {
     expect(events).toHaveLength(1);
     expect(events[0].field).toBe('drawDefaultAttributes');
     expect(events[0].isLocalClient).toBe(true);
-    expect(events[0].currentValue?.value).toEqual({
-      'layer-a': [{ key: 'species', value: 'oak' }],
+    expect(events[0].currentValue?.value['layer-a']).toMatchObject({
+      attributes: [{ key: 'species', value: 'oak' }],
     });
+    expect(events[0].currentValue?.value['layer-a'].updatedAt).toEqual(
+      expect.any(Number),
+    );
   });
 
   it('emits drawDefaultAttributesChanged on subsequent updates', () => {
+    let now = 1_000;
+    const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+
     const events: any[] = [];
     model.drawDefaultAttributesChanged.connect((_, args) => {
       events.push(args);
@@ -108,6 +114,7 @@ describe('awareness field signals', () => {
       [{ key: 'species', value: 'oak' }],
       'test',
     );
+    now = 2_000;
     model.setDrawDefaultAttributesForLayer(
       'layer-a',
       [
@@ -118,12 +125,15 @@ describe('awareness field signals', () => {
     );
 
     expect(events).toHaveLength(2);
-    expect(events[1].currentValue?.value).toEqual({
-      'layer-a': [
+    expect(events[1].currentValue?.value['layer-a']).toEqual({
+      updatedAt: 2_000,
+      attributes: [
         { key: 'species', value: 'oak' },
         { key: 'status', value: 'draft' },
       ],
     });
+
+    dateNowSpy.mockRestore();
   });
 
   it('clears draw defaults for a removed layer', () => {
@@ -146,9 +156,12 @@ describe('awareness field signals', () => {
     ]);
   });
 
-  it('merges draw defaults from all awareness clients for a layer', () => {
+  it('uses the most recently updated draw defaults across awareness clients', () => {
     model.syncDrawDefaultAttributes({
-      'layer-a': [{ key: 'species', value: 'oak' }],
+      'layer-a': {
+        updatedAt: 100,
+        attributes: [{ key: 'species', value: 'oak' }],
+      },
     });
 
     const remoteClientId = 4242;
@@ -157,7 +170,37 @@ describe('awareness field signals', () => {
       ...(clients.get(model.getClientId()) as object),
       drawDefaultAttributes: {
         value: {
-          'layer-a': [{ key: 'status', value: 'draft' }],
+          'layer-a': {
+            updatedAt: 200,
+            attributes: [{ key: 'status', value: 'draft' }],
+          },
+        },
+      },
+    } as any);
+
+    expect(model.getDrawDefaultAttributes('layer-a')).toEqual([
+      { key: 'status', value: 'draft' },
+    ]);
+  });
+
+  it('merges draw defaults when clients share the same updatedAt', () => {
+    model.syncDrawDefaultAttributes({
+      'layer-a': {
+        updatedAt: 100,
+        attributes: [{ key: 'species', value: 'oak' }],
+      },
+    });
+
+    const remoteClientId = 4242;
+    const clients = model.sharedModel.awareness.getStates();
+    clients.set(remoteClientId, {
+      ...(clients.get(model.getClientId()) as object),
+      drawDefaultAttributes: {
+        value: {
+          'layer-a': {
+            updatedAt: 100,
+            attributes: [{ key: 'status', value: 'draft' }],
+          },
         },
       },
     } as any);
@@ -165,6 +208,46 @@ describe('awareness field signals', () => {
     expect(model.getDrawDefaultAttributes('layer-a')).toEqual([
       { key: 'species', value: 'oak' },
       { key: 'status', value: 'draft' },
+    ]);
+  });
+
+  it('applies removals from the latest update', () => {
+    model.syncDrawDefaultAttributes({
+      'layer-a': {
+        updatedAt: 100,
+        attributes: [
+          { key: 'species', value: 'oak' },
+          { key: 'status', value: 'draft' },
+        ],
+      },
+    });
+
+    const remoteClientId = 4242;
+    const clients = model.sharedModel.awareness.getStates();
+    clients.set(remoteClientId, {
+      ...(clients.get(model.getClientId()) as object),
+      drawDefaultAttributes: {
+        value: {
+          'layer-a': {
+            updatedAt: 100,
+            attributes: [
+              { key: 'species', value: 'oak' },
+              { key: 'status', value: 'draft' },
+            ],
+          },
+        },
+      },
+    } as any);
+
+    model.syncDrawDefaultAttributes({
+      'layer-a': {
+        updatedAt: 200,
+        attributes: [{ key: 'species', value: 'oak' }],
+      },
+    });
+
+    expect(model.getDrawDefaultAttributes('layer-a')).toEqual([
+      { key: 'species', value: 'oak' },
     ]);
   });
 

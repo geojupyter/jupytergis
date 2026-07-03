@@ -31,6 +31,8 @@ import {
   IIdentifiedFeatures,
   IDrawDefaultAttribute,
   IDrawDefaultAttributesByLayer,
+  IDrawDefaultAttributesLayerState,
+  IDrawDefaultAttributesLayerStateInput,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -718,19 +720,39 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[] {
-    const merged = new Map<string, IDrawDefaultAttribute>();
+    const layerStates: IDrawDefaultAttributesLayerState[] = [];
 
     for (const state of this.sharedModel.awareness.getStates().values()) {
-      const attributes = (state as IJupyterGISClientState | null)
-        ?.drawDefaultAttributes?.value?.[layerId];
-      if (!attributes?.length) {
-        continue;
+      const layerState = this._normalizeDrawDefaultAttributesLayerState(
+        (state as IJupyterGISClientState | null)?.drawDefaultAttributes?.value?.[
+          layerId
+        ],
+      );
+      if (layerState) {
+        layerStates.push(layerState);
       }
+    }
 
-      for (const attribute of attributes) {
+    if (layerStates.length === 0) {
+      return [];
+    }
+
+    const maxUpdatedAt = Math.max(...layerStates.map(layer => layer.updatedAt));
+    const latestStates = layerStates.filter(
+      layer => layer.updatedAt === maxUpdatedAt,
+    );
+
+    if (latestStates.length === 1) {
+      return latestStates[0].attributes;
+    }
+
+    const merged = new Map<string, IDrawDefaultAttribute>();
+    for (const layerState of latestStates) {
+      for (const attribute of layerState.attributes) {
         merged.set(attribute.key, attribute);
       }
     }
+
     return Array.from(merged.values());
   }
 
@@ -742,7 +764,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     const current = {
       ...(this.localState?.drawDefaultAttributes?.value ?? {}),
     };
-    current[layerId] = attributes;
+    current[layerId] = {
+      updatedAt: Date.now(),
+      attributes,
+    };
     this.syncDrawDefaultAttributes(current, emitter);
   }
 
@@ -753,8 +778,35 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     const next = { ...current };
-    delete next[layerId];
+    next[layerId] = {
+      updatedAt: Date.now(),
+      attributes: [],
+    };
     this.syncDrawDefaultAttributes(next, emitter);
+  }
+
+  private _normalizeDrawDefaultAttributesLayerState(
+    raw: IDrawDefaultAttributesLayerStateInput | undefined,
+  ): IDrawDefaultAttributesLayerState | undefined {
+    if (!raw) {
+      return undefined;
+    }
+
+    if (Array.isArray(raw)) {
+      return { updatedAt: 0, attributes: raw };
+    }
+
+    if ('revision' in raw && !('updatedAt' in raw)) {
+      const legacy = raw as IDrawDefaultAttributesLayerState & {
+        revision: number;
+      };
+      return {
+        updatedAt: legacy.revision,
+        attributes: legacy.attributes,
+      };
+    }
+
+    return raw;
   }
 
   setUserToFollow(userId?: number): void {
