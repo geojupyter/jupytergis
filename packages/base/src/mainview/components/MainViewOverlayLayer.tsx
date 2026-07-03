@@ -69,7 +69,7 @@ export function MainViewOverlayLayer({
             onOpenChange={setAttributesDialogOpen}
           >
             <DialogTrigger asChild>
-              <Button>Edit</Button>
+              <Button disabled={!drawLayerId}>Edit</Button>
             </DialogTrigger>
             <DialogContent
               container={portalContainerRef?.current}
@@ -78,7 +78,7 @@ export function MainViewOverlayLayer({
               <DialogHeader>
                 <DialogTitle>Set up custom attributes</DialogTitle>
               </DialogHeader>
-              {attributesDialogOpen ? (
+              {attributesDialogOpen && drawLayerId ? (
                 <DrawDefaultAttributesDialog
                   model={model}
                   layerId={drawLayerId}

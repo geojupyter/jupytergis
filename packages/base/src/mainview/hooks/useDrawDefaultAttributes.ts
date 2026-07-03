@@ -24,7 +24,7 @@ export function getSelectedDrawLayerId(
 
 export function useDrawDefaultAttributes(
   model: IJupyterGISModel,
-  layerId: string | undefined,
+  layerId: string,
   isActive = true,
 ) {
   const [attributes, setAttributes] = useState<IDrawDefaultAttribute[]>([]);
@@ -35,11 +35,6 @@ export function useDrawDefaultAttributes(
   const [draftError, setDraftError] = useState<string | null>(null);
 
   const refreshAttributes = useCallback(() => {
-    if (!layerId) {
-      setAttributes([]);
-      return;
-    }
-
     setAttributes(model.getDrawDefaultAttributes(layerId));
   }, [layerId, model]);
 
@@ -73,10 +68,6 @@ export function useDrawDefaultAttributes(
   };
 
   const persist = (next: IDrawDefaultAttribute[]): void => {
-    if (!layerId) {
-      return;
-    }
-
     model.setDrawDefaultAttributesForLayer(layerId, next);
   };
 
@@ -151,7 +142,6 @@ export function useDrawDefaultAttributes(
     draftKey,
     draftValue,
     draftError,
-    isDraftOpen: draftMode !== null,
     setDraftKey,
     setDraftValue,
     startAdd,
@@ -159,6 +149,6 @@ export function useDrawDefaultAttributes(
     saveDraft,
     cancelDraft: resetDraft,
     removeAttribute,
-    canAdd: draftMode === null && Boolean(layerId),
+    canAdd: draftMode === null,
   };
 }
