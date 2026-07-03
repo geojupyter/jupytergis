@@ -158,6 +158,7 @@ import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
+import { applyDrawDefaultAttributesToFeature } from './drawDefaultAttributes';
 import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
@@ -3860,7 +3861,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', this._model.getClientId().toString());
     feature.set('_fromDrawTool', true);
-    feature.set('Label', 'New Label');
+
+    const layerId = this._currentDrawLayerID;
+    const defaultAttributes = layerId
+      ? this._model.getDrawDefaultAttributes(layerId)
+      : [];
+    applyDrawDefaultAttributesToFeature(feature, defaultAttributes);
   };
 
   _editVectorLayer = () => {
@@ -4001,6 +4007,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           editingVectorLayer={editingVectorLayer}
           drawGeometryLabel={drawGeometryLabel}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
+          portalContainerRef={this.props.containerRef}
+          model={this._model}
         />
 
         <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
