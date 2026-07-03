@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import { DrawDefaultAttributesDialog } from '@/src/mainview/components/DrawDefaultAttributesDialog';
+import { DrawDefaultAttributesDialog } from '@/src/features/labels/components/DrawDefaultAttributesDialog';
 import { Button } from '@/src/shared/components/Button';
 import {
   Dialog,

@@ -2,9 +2,9 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import { Ban, CirclePlus, Pencil, Save, Trash2 } from 'lucide-react';
 import React from 'react';
 
+import { useDrawDefaultAttributes } from '@/src/features/labels/hooks/useDrawDefaultAttributes';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
-import { useDrawDefaultAttributes } from '../hooks/useDrawDefaultAttributes';
 
 interface IDrawAttributeDraftRowProps {
   draftKey: string;
