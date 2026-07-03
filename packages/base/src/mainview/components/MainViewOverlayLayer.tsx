@@ -1,4 +1,19 @@
-import React from 'react';
+import type { IJupyterGISModel } from '@jupytergis/schema';
+import React, { useState } from 'react';
+
+import { DrawDefaultAttributesDialog } from '@/src/mainview/components/DrawDefaultAttributesDialog';
+import { Button } from '@/src/shared/components/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/src/shared/components/Dialog';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
 
@@ -10,6 +25,8 @@ export interface IMainViewOverlayLayerProps {
   onDrawGeometryTypeChange: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void;
+  portalContainerRef?: React.RefObject<HTMLElement | null>;
+  model: IJupyterGISModel;
 }
 
 export function MainViewOverlayLayer({
@@ -18,28 +35,50 @@ export function MainViewOverlayLayer({
   editingVectorLayer,
   drawGeometryLabel,
   onDrawGeometryTypeChange,
+  portalContainerRef,
+  model,
 }: IMainViewOverlayLayerProps): JSX.Element {
+  const [attributesDialogOpen, setAttributesDialogOpen] = useState(false);
+
   return (
     <>
       {annotationFloaters}
       {featureFloaters}
       {editingVectorLayer ? (
         <div className="jgis-geometry-type-selector-overlay">
-          <select
+          <NativeSelect
             className="geometry-type-selector"
             id="geometry-type-selector"
             value={drawGeometryLabel ?? ''}
             onChange={onDrawGeometryTypeChange}
           >
-            <option value="" disabled hidden>
+            <NativeSelectOption value="" disabled hidden>
               Geometry type
-            </option>
+            </NativeSelectOption>
             {DRAW_GEOMETRIES.map(geometryType => (
-              <option key={geometryType} value={geometryType}>
+              <NativeSelectOption key={geometryType} value={geometryType}>
                 {geometryType}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
+          <Dialog
+            modal={false}
+            open={attributesDialogOpen}
+            onOpenChange={setAttributesDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>Edit</Button>
+            </DialogTrigger>
+            <DialogContent
+              container={portalContainerRef?.current}
+              preventOutsideDismiss
+            >
+              <DialogHeader>
+                <DialogTitle>Set up custom attributes</DialogTitle>
+              </DialogHeader>
+              <DrawDefaultAttributesDialog model={model} />
+            </DialogContent>
+          </Dialog>
         </div>
       ) : null}
     </>
