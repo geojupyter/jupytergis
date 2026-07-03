@@ -141,10 +141,19 @@ export interface IDrawDefaultAttribute {
   value: string;
 }
 
+export interface IDrawDefaultAttributesLayerState {
+  updatedAt: number;
+  attributes: IDrawDefaultAttribute[];
+}
+
 export type IDrawDefaultAttributesByLayer = Record<
   string,
-  IDrawDefaultAttribute[]
+  IDrawDefaultAttributesLayerState
 >;
+
+export type IDrawDefaultAttributesLayerStateInput =
+  | IDrawDefaultAttribute[]
+  | IDrawDefaultAttributesLayerState;
 
 export interface IDrawDefaultAttributesAwarenessState {
   value?: IDrawDefaultAttributesByLayer;
