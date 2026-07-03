@@ -136,6 +136,21 @@ export interface IIdentifiedFeaturesAwarenessState {
   emitter?: string | null;
 }
 
+export interface IDrawDefaultAttribute {
+  key: string;
+  value: string;
+}
+
+export type IDrawDefaultAttributesByLayer = Record<
+  string,
+  IDrawDefaultAttribute[]
+>;
+
+export interface IDrawDefaultAttributesAwarenessState {
+  value?: IDrawDefaultAttributesByLayer;
+  emitter?: string | null;
+}
+
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   lastAddedLayer?: { layerId?: string };
@@ -147,6 +162,7 @@ export interface IJupyterGISClientState {
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
+  drawDefaultAttributes: IDrawDefaultAttributesAwarenessState;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -158,6 +174,7 @@ export const AWARENESS_STATE_FIELDS = {
   pointer: 'pointer',
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
+  drawDefaultAttributes: 'drawDefaultAttributes',
   remoteUser: 'remoteUser',
   isTemporalControllerActive: 'isTemporalControllerActive',
   lastAddedLayer: 'lastAddedLayer',
@@ -304,6 +321,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >;
+  drawDefaultAttributesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['drawDefaultAttributes']>
+  >;
   remoteUserChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -400,6 +421,16 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
   syncIdentifiedFeatures(features: IIdentifiedFeatures, emitter?: string): void;
+  syncDrawDefaultAttributes(
+    attributesByLayer: IDrawDefaultAttributesByLayer,
+    emitter?: string,
+  ): void;
+  getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[];
+  setDrawDefaultAttributesForLayer(
+    layerId: string,
+    attributes: IDrawDefaultAttribute[],
+    emitter?: string,
+  ): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
