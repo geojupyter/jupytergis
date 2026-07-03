@@ -89,7 +89,7 @@ export function DrawDefaultAttributesDialog({
     removeAttribute,
     canAdd,
     canSaveDraft,
-  } = useDrawDefaultAttributes(model, layerId, true);
+  } = useDrawDefaultAttributes(model, layerId);
 
   return (
     <div className="jgis-draw-default-attributes-dialog">
