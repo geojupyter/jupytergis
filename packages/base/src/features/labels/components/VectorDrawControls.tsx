@@ -22,7 +22,7 @@ export interface IVectorDrawControlsProps {
   onDrawGeometryTypeChange: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void;
-  portalContainerRef?: React.RefObject<HTMLElement | null>;
+  portalContainerRef: React.RefObject<HTMLElement | null>;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
@@ -62,7 +62,7 @@ export function VectorDrawControls({
           <Button disabled={!drawLayerId}>Edit</Button>
         </DialogTrigger>
         <DialogContent
-          container={portalContainerRef?.current}
+          container={portalContainerRef.current}
           preventOutsideDismiss
         >
           <DialogHeader>

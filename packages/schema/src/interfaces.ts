@@ -151,10 +151,6 @@ export type IDrawDefaultAttributesByLayer = Record<
   IDrawDefaultAttributesLayerState
 >;
 
-export type IDrawDefaultAttributesLayerStateInput =
-  | IDrawDefaultAttribute[]
-  | IDrawDefaultAttributesLayerState;
-
 export interface IDrawDefaultAttributesAwarenessState {
   value?: IDrawDefaultAttributesByLayer;
   emitter?: string | null;

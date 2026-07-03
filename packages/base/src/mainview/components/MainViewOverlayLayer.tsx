@@ -11,7 +11,7 @@ export interface IMainViewOverlayLayerProps {
   onDrawGeometryTypeChange: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void;
-  portalContainerRef?: React.RefObject<HTMLElement | null>;
+  portalContainerRef: React.RefObject<HTMLElement | null>;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
