@@ -27,6 +27,7 @@ export interface IMainViewOverlayLayerProps {
   ) => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   model: IJupyterGISModel;
+  drawLayerId?: string;
 }
 
 export function MainViewOverlayLayer({
@@ -37,6 +38,7 @@ export function MainViewOverlayLayer({
   onDrawGeometryTypeChange,
   portalContainerRef,
   model,
+  drawLayerId,
 }: IMainViewOverlayLayerProps): JSX.Element {
   const [attributesDialogOpen, setAttributesDialogOpen] = useState(false);
 
@@ -76,7 +78,12 @@ export function MainViewOverlayLayer({
               <DialogHeader>
                 <DialogTitle>Set up custom attributes</DialogTitle>
               </DialogHeader>
-              <DrawDefaultAttributesDialog model={model} />
+              {attributesDialogOpen ? (
+                <DrawDefaultAttributesDialog
+                  model={model}
+                  layerId={drawLayerId}
+                />
+              ) : null}
             </DialogContent>
           </Dialog>
         </div>

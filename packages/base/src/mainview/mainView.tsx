@@ -235,6 +235,7 @@ interface IStates {
   filterStates: IDict<IJGISFilterItem | undefined>;
   editingVectorLayer: boolean;
   drawGeometryLabel: string | undefined;
+  currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
@@ -376,6 +377,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       filterStates: {},
       editingVectorLayer: false,
       drawGeometryLabel: '',
+      currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
       isSpectaPresentation: this._model.isStoryPresentationActive(),
       initialLayersReady: false,
@@ -2399,7 +2401,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._previousDrawLayerID = selectedLayerId;
-    this._currentDrawLayerID = selectedLayerId;
+    this._setCurrentDrawLayerId(selectedLayerId);
     this._editVectorLayer();
   };
 
@@ -3714,8 +3716,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (editingVectorLayer === false && this._draw) {
       this._removeDrawInteraction();
-      this._currentDrawLayerID = undefined;
+      this._setCurrentDrawLayerId(undefined);
     }
+  }
+
+  private _setCurrentDrawLayerId(layerId: string | undefined): void {
+    this._currentDrawLayerID = layerId;
+    this.setState(old =>
+      old.currentDrawLayerId === layerId
+        ? old
+        : { ...old, currentDrawLayerId: layerId },
+    );
   }
 
   private _handleDrawGeometryTypeChange = (
@@ -3758,7 +3769,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const selectedLayerID = Object.keys(selectedLayers)[0];
-    this._currentDrawLayerID = selectedLayerID;
+    this._setCurrentDrawLayerId(selectedLayerID);
 
     const JGISLayer = this._model.getLayer(selectedLayerID);
     this._currentDrawSourceID = (JGISLayer as any)?.parameters?.source;
@@ -3975,6 +3986,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       displayTemporalController,
       drawGeometryLabel,
       editingVectorLayer,
+      currentDrawLayerId,
       filterStates,
       initialLayersReady,
       isSpectaPresentation,
@@ -4006,6 +4018,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           featureFloaters={this._renderFeatureFloaters()}
           editingVectorLayer={editingVectorLayer}
           drawGeometryLabel={drawGeometryLabel}
+          drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
           portalContainerRef={this.props.containerRef}
           model={this._model}
