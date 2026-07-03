@@ -97,6 +97,26 @@ describe('awareness field signals', () => {
     });
   });
 
+  it('clears draw defaults for a removed layer', () => {
+    model.setDrawDefaultAttributesForLayer(
+      'layer-a',
+      [{ key: 'species', value: 'oak' }],
+      'test',
+    );
+    model.setDrawDefaultAttributesForLayer(
+      'layer-b',
+      [{ key: 'status', value: 'draft' }],
+      'test',
+    );
+
+    model.clearDrawDefaultAttributesForLayer('layer-a', 'test');
+
+    expect(model.getDrawDefaultAttributes('layer-a')).toEqual([]);
+    expect(model.getDrawDefaultAttributes('layer-b')).toEqual([
+      { key: 'status', value: 'draft' },
+    ]);
+  });
+
   it('emits identifiedFeaturesChanged when identified features change', () => {
     const events: any[] = [];
     model.identifiedFeaturesChanged.connect((_, args) => {
