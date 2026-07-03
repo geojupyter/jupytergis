@@ -26,16 +26,16 @@ function DrawAttributeDraftRow({
   canSave,
 }: IDrawAttributeDraftRowProps): JSX.Element {
   return (
-    <div className="jgis-identify-row jgis-identify-row-editor">
+    <div className="jgis-property-row jgis-property-row-editor">
       <Input
-        className="jgis-identify-col-key"
+        className="jgis-property-col-key"
         type="text"
         placeholder="key"
         value={draftKey}
         onChange={event => onDraftKeyChange(event.target.value)}
       />
       <Input
-        className="jgis-identify-col-value"
+        className="jgis-property-col-value"
         type="text"
         placeholder="value"
         value={draftValue}
@@ -93,7 +93,7 @@ export function DrawDefaultAttributesDialog({
 
   return (
     <div className="jgis-draw-default-attributes-dialog">
-      <div className="jgis-identify-property-rows jgis-draw-default-attributes-list">
+      <div className="jgis-property-rows jgis-draw-default-attributes-list">
         {attributes.length === 0 && draftMode === null ? (
           <p className="jgis-draw-default-attributes-empty">
             No custom attributes yet. New features will use the default label.
@@ -118,10 +118,10 @@ export function DrawDefaultAttributesDialog({
           return (
             <div
               key={attribute.key}
-              className="jgis-identify-row jgis-draw-default-attributes-saved-row"
+              className="jgis-property-row jgis-draw-default-attributes-saved-row"
             >
-              <span className="jgis-identify-col-key">{attribute.key}</span>
-              <span className="jgis-identify-col-value">{attribute.value}</span>
+              <span className="jgis-property-col-key">{attribute.key}</span>
+              <span className="jgis-property-col-value">{attribute.value}</span>
               <Button
                 type="button"
                 variant="icon"
@@ -160,9 +160,9 @@ export function DrawDefaultAttributesDialog({
       {draftError ? (
         <p className="jgis-draw-default-attributes-error">{draftError}</p>
       ) : null}
-      <div className="jgis-identify-row jgis-identify-row-add">
+      <div className="jgis-property-row jgis-property-row-add">
         <Button
-          className="jgis-identify-add-button"
+          className="jgis-property-add-button"
           type="button"
           variant="outline"
           size="sm"
