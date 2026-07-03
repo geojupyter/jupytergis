@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 import json
 import logging
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urlparse
