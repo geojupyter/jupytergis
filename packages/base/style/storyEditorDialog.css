@@ -517,12 +517,19 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
 }
 
 .jgis-story-map-interaction-bar-root {
-  position: fixed;
+  pointer-events: auto;
+}
+
+.jGIS-Mainview-Container:has(.jgis-story-map-interaction-bar-root) {
+  position: relative;
+}
+
+.jgis-story-map-interaction-bar-root--overlay-bottom {
+  position: absolute;
   left: 50%;
   bottom: 1.25rem;
   transform: translateX(-50%);
-  z-index: 10000;
-  pointer-events: auto;
+  z-index: 50;
 }
 
 .jgis-story-map-interaction-bar-root--main-top-left {
@@ -532,12 +539,6 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   bottom: auto;
   transform: none;
   z-index: 50;
-}
-
-.jGIS-Mainview-Container:has(
-  .jgis-story-map-interaction-bar-root--main-top-left
-) {
-  position: relative;
 }
 
 .jgis-story-map-interaction-bar {
@@ -600,30 +601,41 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   padding-top: 0;
 }
 
+/* forceMount keeps the CodeMirror host mounted
+Radix won't set hidden so do it manually */
+.jgis-tabs-content.jgis-story-editor-markdown-tab-content[data-state='inactive'] {
+  display: none;
+}
+
 .jgis-story-editor-markdown {
-  padding: 0.5rem;
   border: 1px solid var(--jp-border-color1);
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
   background: var(--jp-layout-color1);
 }
 
-.jgis-story-editor-markdown-textarea {
+.jgis-story-editor-markdown-host {
   width: 100%;
   box-sizing: border-box;
-  outline: none;
-  color: inherit;
-  font: inherit;
-  resize: vertical;
+  padding: 0;
 }
 
-.jgis-story-editor-markdown-textarea:focus-visible {
+.jgis-story-editor-markdown-editor {
+  width: 100%;
+}
+
+.jgis-story-editor-markdown-editor .cm-editor {
+  outline: none;
+  background: transparent;
+}
+
+.jgis-story-editor-markdown-editor .cm-editor.cm-focused {
+  outline: none;
+}
+
+.jgis-story-editor-markdown-host:focus-within {
   border-color: var(--jp-brand-color1);
   border-radius: var(--jp-border-radius);
-}
-
-.jgis-story-editor-markdown-textarea--tall {
-  min-height: 10rem;
 }
 
 .jgis-story-editor-markdown-preview {

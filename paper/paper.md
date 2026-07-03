@@ -28,6 +28,7 @@ authors:
     orcid: 0009-0007-2318-0285
     affiliation: 1
   - name: Nakul Verma
+    orcid: 0009-0002-9625-3493
     affiliation: 4
   - name: Anne Fouilloux
     orcid: 0000-0002-1784-2920

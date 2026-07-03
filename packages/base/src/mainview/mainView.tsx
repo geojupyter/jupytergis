@@ -1212,6 +1212,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             sources,
             normalize: sourceParameters.normalize,
             wrapX: sourceParameters.wrapX,
+            ...(sourceParameters.projection
+              ? { projection: sourceParameters.projection }
+              : {}),
           });
 
           break;
@@ -1779,19 +1782,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return newMapLayer;
   }
 
-  addProjection(newMapLayer: Layer) {
-    const sourceProjection = newMapLayer.getSource()?.getProjection();
-    if (!sourceProjection) {
-      this._log('warning', 'Layer source projection is undefined or invalid');
-      return;
-    }
-
-    const projectionCode = sourceProjection.getCode();
-
-    const isProjectionRegistered = getProjection(projectionCode);
-    if (!isProjectionRegistered) {
+  private ensureProjectionRegistered(projectionCode: string): void {
+    const hasProj4Definition = Boolean(proj4.defs(projectionCode));
+    if (!hasProj4Definition) {
       // Check if the projection exists in proj4list
-      if (!proj4list[projectionCode]) {
+      const proj4Definition = proj4list[projectionCode];
+      if (!proj4Definition) {
         this._log(
           'warning',
           `Projection code '${projectionCode}' not found in proj4list`,
@@ -1800,8 +1796,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       try {
-        proj4.defs([proj4list[projectionCode]]);
-        register(proj4 as any);
+        if (Array.isArray(proj4Definition)) {
+          proj4.defs([proj4Definition]);
+        } else {
+          proj4.defs(projectionCode, proj4Definition);
+        }
       } catch (error: any) {
         this._log(
           'warning',
@@ -1810,6 +1809,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
     }
+
+    // Always register after ensuring proj4 defs exist so OL transform functions
+    // are available even when the projection object already exists in cache.
+    register(proj4 as any);
+  }
+
+  private resolveLayerSourceProjection(layer: IJGISLayer): string | undefined {
+    const sourceId = layer.parameters?.source;
+    if (!sourceId) {
+      return;
+    }
+
+    const source = this._model.sharedModel.getLayerSource(sourceId);
+    if (!source) {
+      return;
+    }
+
+    const parameters = source.parameters;
+    return parameters?.projection;
+  }
+
+  addProjection(target: Layer | IJGISLayer): void {
+    if (target instanceof Layer) {
+      const sourceProjection = target.getSource()?.getProjection();
+      if (!sourceProjection) {
+        this._log('warning', 'Layer source projection is undefined or invalid');
+        return;
+      }
+
+      this.ensureProjectionRegistered(sourceProjection.getCode());
+      return;
+    }
+
+    const projectionCode = this.resolveLayerSourceProjection(target);
+    if (!projectionCode) {
+      return;
+    }
+
+    this.ensureProjectionRegistered(projectionCode);
   }
 
   /**
@@ -1826,6 +1864,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     try {
+      this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
       if (newMapLayer !== undefined) {
         await this._waitForReady();

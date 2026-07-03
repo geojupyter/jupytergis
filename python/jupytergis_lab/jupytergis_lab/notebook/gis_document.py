@@ -57,6 +57,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__file__)
 
+# Layer/source types that have no QGIS equivalent and so cannot be round-tripped
+# through the QGIS format. Adding them is blocked while a QGIS file is open,
+# mirroring the features disabled in the UI.
+QGIS_UNSUPPORTED_TYPES = {
+    LayerType.OpenEOTileLayer,
+    LayerType.GeoZarrLayer,
+    LayerType.StorySegmentLayer,
+    SourceType.OpenEOTileSource,
+    SourceType.GeoZarrSource,
+}
+
 
 def reversed_tree(root):
     if isinstance(root, list):
@@ -118,6 +129,8 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
+        self._path = path
+
         super().__init__(
             comm_metadata={
                 "ymodel_name": "@jupytergis:widget",
@@ -166,6 +179,44 @@ class GISDocument(CommWidget):
     def layer_tree(self) -> list[str | dict]:
         """Get the layer tree"""
         return self._layerTree.to_py()
+
+    @property
+    def _is_qgis_document(self) -> bool:
+        """Whether the document is backed by a QGIS (`.qgs`/`.qgz`) file."""
+        return str(self._path or "").lower().endswith((".qgs", ".qgz"))
+
+    def _ensure_qgis_supported(self, object_type) -> None:
+        """Raise if ``object_type`` cannot be round-tripped through QGIS while a
+        QGIS file is open. Mirrors the features disabled in the UI.
+        """
+        if self._is_qgis_document and object_type in QGIS_UNSUPPORTED_TYPES:
+            name = getattr(object_type, "value", object_type)
+            raise RuntimeError(
+                f"'{name}' is not possible in QGIS files. Convert it to jGIS first.",
+            )
+
+    def _ensure_symbology_qgis_supported(self, symbology_state) -> None:
+        """Raise if ``symbology_state`` relies on render-time expressions while a
+        QGIS file is open. Expression-based symbology has no QGIS equivalent and
+        cannot be round-tripped, mirroring the feature disabled in the UI.
+        """
+        if not self._is_qgis_document or symbology_state is None:
+            return
+
+        def _has_expression(value) -> bool:
+            if isinstance(value, dict):
+                if value.get("scheme") == "expression":
+                    return True
+                return any(_has_expression(v) for v in value.values())
+            if isinstance(value, (list, tuple)):
+                return any(_has_expression(v) for v in value)
+            return False
+
+        if _has_expression(symbology_state):
+            raise RuntimeError(
+                "Expression-based symbology is not possible in QGIS files. "
+                "Convert it to jGIS first.",
+            )
 
     def sidecar(
         self,
@@ -446,6 +497,7 @@ class GISDocument(CommWidget):
         name: str | None = None,
         normalize: bool = True,
         wrapX: bool = False,
+        projection: str | None = None,
         attribution: str = "",
         opacity: float = 1.0,
         symbology: SymbologyInput = None,
@@ -458,6 +510,7 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document, defaults to "GeoTIFF Layer"
         :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
         :param wrapX: Render tiles beyond the tile grid extent, defaults to False
+        :param projection: Source CRS when the GeoTIFF omits a standard EPSG code in its metadata
         :param opacity: The opacity, between 0 and 1, defaults to 1.0
         :param symbology: The symbology configuration to persist with the layer.
         """
@@ -465,14 +518,18 @@ class GISDocument(CommWidget):
         if name is None:
             name = _extract_layer_name(url)
 
+        source_params = {
+            "urls": [{"url": url, "min": min, "max": max}],
+            "normalize": normalize,
+            "wrapX": wrapX,
+        }
+        if projection is not None:
+            source_params["projection"] = projection
+
         source = {
             "type": SourceType.GeoTiffSource,
             "name": f"{name} Source",
-            "parameters": {
-                "urls": [{"url": url, "min": min, "max": max}],
-                "normalize": normalize,
-                "wrapX": wrapX,
-            },
+            "parameters": source_params,
         }
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
@@ -1002,14 +1059,19 @@ class GISDocument(CommWidget):
             del self._sources[source_id]
 
     def _add_source(self, new_object, id: str | None = None) -> str:
+        self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
 
     def _add_layer(self, new_object, id: str | None = None) -> str:
+        self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
+        self._ensure_symbology_qgis_supported(
+            obj_dict.get("parameters", {}).get("symbologyState"),
+        )
         self._layers[_id] = obj_dict
         self._layerTree.append(_id)
         return _id
@@ -1064,6 +1126,8 @@ class GISDocument(CommWidget):
         symbology_state = to_symbology_state(symbology)
         if symbology_state is None:
             raise ValueError("Symbology cannot be None")
+
+        self._ensure_symbology_qgis_supported(symbology_state)
 
         params = layer.setdefault("parameters", {})
         params["symbologyState"] = symbology_state

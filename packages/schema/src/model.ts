@@ -481,6 +481,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._pathChanged.emit(path);
   }
 
+  /**
+   * Whether the document is backed by a QGIS file (`.qgs`/`.qgz`).
+   */
+  get isQgisDocument(): boolean {
+    const path = this._filePath?.toLowerCase() ?? '';
+    return path.endsWith('.qgs') || path.endsWith('.qgz');
+  }
+
   getLayers(): IJGISLayers {
     return this.sharedModel.layers;
   }

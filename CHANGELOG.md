@@ -2,6 +2,33 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0a5
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-alpha.4...bc91104a632c2a38d2d462d35696782b1c03e261))
+
+### Enhancements made
+
+- Fix story previews in multiple tabs [#1569](https://github.com/geojupyter/jupytergis/pull/1569) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Disable UI Features for QGIS file editing [#1567](https://github.com/geojupyter/jupytergis/pull/1567) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Add legend for Vega Expression [#1564](https://github.com/geojupyter/jupytergis/pull/1564) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Add projection parameter to tiffs [#1576](https://github.com/geojupyter/jupytergis/pull/1576) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Dispose underlying GIS model to fix multiple cursors [#1575](https://github.com/geojupyter/jupytergis/pull/1575) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Remove video layers [#1563](https://github.com/geojupyter/jupytergis/pull/1563) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-06-26&to=2026-07-02&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-06-26..2026-07-02&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-06-26..2026-07-02&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-06-26..2026-07-02&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-06-26..2026-07-02&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0a4
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-alpha.3...551f2f3bccb0371a7ae67165068578bf1e63261b))
@@ -33,8 +60,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-06-23&to=2026-06-26&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-06-23..2026-06-26&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-06-23..2026-06-26&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-06-23..2026-06-26&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-06-23..2026-06-26&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-06-23..2026-06-26&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-06-23..2026-06-26&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-06-23..2026-06-26&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0a3
 

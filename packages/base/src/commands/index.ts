@@ -10,7 +10,9 @@ import {
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -38,8 +40,14 @@ import {
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
-import { StoryEditorWidget } from '../features/story/storyEditorDialog';
-import { StoryEditorSession } from '../features/story/storyEditorSession';
+import {
+  StoryEditorMode,
+  StoryEditorSession,
+} from '../features/story/storyEditorSession';
+import {
+  modelHasHiddenPanel,
+  toggleModelPanels,
+} from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
@@ -47,9 +55,28 @@ import {
   STORY_TYPE,
   SYMBOLOGY_VALID_LAYER_TYPES,
 } from '../types';
-import { JupyterGISDocumentWidget, JupyterGISPanel } from '../workspace/widget';
+import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
+
+/**
+ * Commands for JupyterGIS-only features that cannot be round-tripped through
+ * the QGIS format. They are disabled while a QGIS document (`.qgs`/`.qgz`) is
+ * open so users don't create work that would be lost on save.
+ */
+const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
+  // OpenEO layers
+  CommandIDs.openNewOpenEODialog,
+  CommandIDs.editOpenEOLayer,
+  // GeoZarr layers
+  CommandIDs.openNewGeoZarrDialog,
+  // Story maps
+  CommandIDs.addStorySegment,
+  CommandIDs.openStoryEditor,
+  CommandIDs.createStorySegmentFromLayer,
+  CommandIDs.storyPrev,
+  CommandIDs.storyNext,
+]);
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -83,6 +110,8 @@ export function addCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
   state: IStateDB,
+  editorServices: IEditorServices,
+  rendermime: IRenderMimeRegistry,
   completionProviderManager: ICompletionProviderManager | undefined,
 ): void {
   const trans = translator.load('jupyterlab');
@@ -90,19 +119,48 @@ export function addCommands(
 
   addLayerCreationCommands({ tracker, commands, trans });
   /**
-   * Wraps a command definition to automatically disable it in Specta mode
+   * Wraps a command definition to automatically disable it when the active
+   * document does not support it: in Specta mode, or for JupyterGIS-only
+   * features (see QGIS_UNSUPPORTED_COMMANDS) while a QGIS document is open.
    */
-  const createSpectaAwareCommand = (
+  const createRestrictedCommand = (
+    id: string,
     command: CommandRegistry.ICommandOptions,
   ): CommandRegistry.ICommandOptions => {
     const originalIsEnabled = command.isEnabled;
+    const originalCaption = command.caption;
+    const originalLabel = command.label;
+
+    // True when the command is unsupported by QGIS and a QGIS file is open.
+    const isQgisRestricted = () => {
+      const currentModel = tracker.currentWidget?.model;
+      return (
+        !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
+      );
+    };
+
+    const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
+      typeof originalLabel === 'function'
+        ? originalLabel(args ?? {})
+        : (originalLabel ?? '');
 
     return {
       ...command,
+      label: (args?: ReadonlyPartialJSONObject) => {
+        const label = resolveLabel(args);
+        if (isQgisRestricted() && label) {
+          return trans.__('%1 (convert to .jGIS to enable)', label);
+        }
+        return label;
+      },
       isEnabled: (args?: ReadonlyPartialJSONObject) => {
-        // First check if we're in Specta mode
-        const currentModel = tracker.currentWidget?.model;
-        if (currentModel?.isSpectaMode()) {
+        // Disable everything in Specta mode.
+        if (tracker.currentWidget?.model?.isSpectaMode()) {
+          return false;
+        }
+        // Disable features unsupported by QGIS while a QGIS file is open,
+        // since they cannot be round-tripped through the QGIS format.
+        if (isQgisRestricted()) {
           return false;
         }
         // Then check the original isEnabled if it exists
@@ -111,6 +169,15 @@ export function addCommands(
         }
         // Default to enabled if no original check
         return true;
+      },
+      caption: (args?: ReadonlyPartialJSONObject) => {
+        // Hint the user how to regain access to the disabled feature.
+        if (isQgisRestricted()) {
+          return trans.__('(convert to .jGIS to enable)');
+        }
+        return typeof originalCaption === 'function'
+          ? originalCaption(args ?? {})
+          : (originalCaption ?? '');
       },
     };
   };
@@ -121,7 +188,7 @@ export function addCommands(
     id: string,
     options: CommandRegistry.ICommandOptions,
   ) => {
-    return originalAddCommand(id, createSpectaAwareCommand(options));
+    return originalAddCommand(id, createRestrictedCommand(id, options));
   };
 
   commands.addCommand(CommandIDs.symbology, {
@@ -1548,15 +1615,7 @@ export function addCommands(
         return '';
       }
 
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-
-      return show
+      return modelHasHiddenPanel(current.model)
         ? trans.__('Show the side panels.')
         : trans.__('Hide the side panels.');
     },
@@ -1566,37 +1625,14 @@ export function addCommands(
       if (!current) {
         return false;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      return show;
+      return modelHasHiddenPanel(current.model);
     },
     execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      // Show all if any non-disabled panel is hidden; hide all otherwise.
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      const newState: { leftPanelOpen?: boolean; rightPanelOpen?: boolean } =
-        {};
-      if (!leftPanelDisabled) {
-        newState.leftPanelOpen = show;
-      }
-      if (!rightPanelDisabled) {
-        newState.rightPanelOpen = show;
-      }
-      current.model.setUIState(newState);
+      toggleModelPanels(current.model);
       commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
     ...icons.get(CommandIDs.togglePanel),
@@ -1902,22 +1938,27 @@ export function addCommands(
       }
 
       const session = StoryEditorSession.getInstance();
-      if (session.isActiveFor(current.model)) {
-        if (session.isMapInteractionMode()) {
-          session.restoreEditor();
-        } else {
-          session.focusDialog();
-        }
+      const mode = session.getMode(current.model);
+
+      if (mode === StoryEditorMode.inactive) {
+        await Private.createStoryEditor(
+          current.model,
+          commands,
+          formSchemaRegistry,
+          state,
+          tracker,
+          editorServices,
+          rendermime,
+        );
         return;
       }
 
-      await Private.createStoryEditor(
-        current.model,
-        commands,
-        formSchemaRegistry,
-        state,
-        tracker,
-      );
+      if (mode === StoryEditorMode.editing) {
+        session.focusDialog();
+        return;
+      }
+
+      session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
   });
@@ -2089,26 +2130,18 @@ namespace Private {
     formSchemaRegistry: IJGISFormSchemaRegistry,
     state: IStateDB,
     tracker: JupyterGISTracker,
+    editorServices: IEditorServices,
+    rendermime: IRenderMimeRegistry,
   ): Promise<void> {
-    const session = StoryEditorSession.getInstance();
-    const dialog = new StoryEditorWidget({
+    await StoryEditorSession.getInstance().openEditor(
       model,
       commands,
       state,
       formSchemaRegistry,
-    });
-    session.attachDialog(
-      dialog,
-      model,
-      commands,
-      Private.resolveMainViewContainer(tracker, model),
+      tracker,
+      editorServices,
+      rendermime,
     );
-
-    try {
-      await dialog.launch();
-    } finally {
-      session.clear();
-    }
   }
 
   export function createLayerBrowser(
@@ -2287,22 +2320,5 @@ namespace Private {
     const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 
     return `${cleanBase} Copy_${nextNumber}`;
-  }
-
-  export function resolveMainViewContainer(
-    tracker: JupyterGISTracker,
-    model: IJupyterGISModel,
-  ): HTMLElement | null {
-    const widget = tracker.find(w => w.model === model);
-    const panel = widget?.content;
-    if (!(panel instanceof JupyterGISPanel)) {
-      return null;
-    }
-
-    return (
-      panel.jupyterGISMainViewPanel?.node.querySelector<HTMLElement>(
-        '.jGIS-Mainview-Container',
-      ) ?? null
-    );
   }
 }
