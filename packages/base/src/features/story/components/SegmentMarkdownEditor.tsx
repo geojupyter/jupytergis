@@ -1,58 +1,93 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Markdown from 'react-markdown';
+import type { IJupyterGISModel } from '@jupytergis/schema';
+import { type IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
+import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import React, { useEffect, useRef, useState } from 'react';
 
+import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
+import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
-import { debounce } from '@/src/tools';
 
 type MarkdownEditorTab = 'write' | 'preview';
 
-const MARKDOWN_EDIT_DEBOUNCE_WAIT = 300;
 export interface ISegmentMarkdownEditorProps {
-  value: string;
-  onChange: (markdown: string) => void;
+  model: IJupyterGISModel;
+  segmentId: string;
+  editorServices: IEditorServices;
+  rendermime: IRenderMimeRegistry;
+  initialMarkdown?: string;
   rows?: number;
   tall?: boolean;
 }
 
 export function SegmentMarkdownEditor({
-  value,
-  onChange,
+  model,
+  segmentId,
+  editorServices,
+  rendermime,
+  initialMarkdown = '',
   rows = 6,
   tall = false,
 }: ISegmentMarkdownEditorProps): JSX.Element {
   const [tab, setTab] = useState<MarkdownEditorTab>('write');
-  const [draft, setDraft] = useState(value);
+  const [previewMarkdown, setPreviewMarkdown] = useState(initialMarkdown);
 
-  const onChangeRef = useRef(onChange);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const editorRef = useRef<CodeMirrorEditor | null>(null);
+  const codeModelRef = useRef<CodeEditor.Model | null>(null);
+  const seedMarkdownRef = useRef({ segmentId, markdown: initialMarkdown });
 
-  onChangeRef.current = onChange;
-  const debouncedOnChange = useMemo(
-    () =>
-      debounce((nextValue: string) => {
-        onChangeRef.current(nextValue);
-      }, MARKDOWN_EDIT_DEBOUNCE_WAIT),
-    [MARKDOWN_EDIT_DEBOUNCE_WAIT],
-  );
+  if (seedMarkdownRef.current.segmentId !== segmentId) {
+    seedMarkdownRef.current = { segmentId, markdown: initialMarkdown };
+  }
 
   useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  const handleDraftChange = (nextValue: string): void => {
-    setDraft(nextValue);
-    debouncedOnChange(nextValue);
-  };
-
-  const handleBlur = (): void => {
-    if (draft !== value) {
-      onChange(draft);
+    const host = hostRef.current;
+    if (!host) {
+      return;
     }
-  };
+
+    const sharedModel = getStorySegmentMarkdownSharedModel(
+      model,
+      segmentId,
+      seedMarkdownRef.current.markdown,
+    );
+    const codeModel = new CodeEditor.Model({
+      sharedModel: sharedModel as import('@jupyter/ydoc').IYText,
+      mimeType: 'text/markdown',
+    });
+    codeModelRef.current = codeModel;
+
+    const editor = editorServices.factoryService.newInlineEditor({
+      host,
+      model: codeModel,
+      config: {
+        lineNumbers: true,
+        lineWrap: true,
+      },
+    }) as CodeMirrorEditor;
+    editorRef.current = editor;
+
+    const refreshPreview = (): void => {
+      setPreviewMarkdown(sharedModel.getSource());
+    };
+
+    sharedModel.changed.connect(refreshPreview);
+    refreshPreview();
+
+    return () => {
+      sharedModel.changed.disconnect(refreshPreview);
+      editor.dispose();
+      editorRef.current = null;
+      codeModel.dispose();
+      codeModelRef.current = null;
+    };
+  }, [model, segmentId, editorServices]);
 
   return (
     <Tabs
@@ -73,18 +108,20 @@ export function SegmentMarkdownEditor({
 
       <TabsContent
         value="write"
+        forceMount
         className="jgis-story-editor-markdown-tab-content"
       >
-        <textarea
-          className={`jgis-story-editor-markdown jgis-story-editor-markdown-textarea${
-            tall ? ' jgis-story-editor-markdown-textarea--tall' : ''
+        <div
+          className={`jgis-story-editor-markdown jgis-story-editor-markdown-host jp-CodeMirrorEditor${
+            tall ? ' jgis-story-editor-markdown-host--tall' : ''
           }`}
-          rows={rows}
-          value={draft}
-          onChange={event => handleDraftChange(event.target.value)}
-          onBlur={handleBlur}
-          aria-label="Markdown source"
-        />
+        >
+          <div
+            ref={hostRef}
+            className="jgis-story-editor-markdown-editor"
+            aria-label="Markdown source"
+          />
+        </div>
       </TabsContent>
 
       <TabsContent
@@ -92,8 +129,11 @@ export function SegmentMarkdownEditor({
         className="jgis-story-editor-markdown-tab-content"
       >
         <div className="jgis-story-editor-markdown jgis-story-editor-markdown-preview jgis-story-viewer-content">
-          {draft.trim() ? (
-            <Markdown>{draft}</Markdown>
+          {previewMarkdown.trim() ? (
+            <RenderedStoryMarkdown
+              rendermime={rendermime}
+              source={previewMarkdown}
+            />
           ) : (
             <p className="jgis-story-editor-help">Nothing to preview yet.</p>
           )}

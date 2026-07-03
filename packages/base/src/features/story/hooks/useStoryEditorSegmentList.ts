@@ -12,6 +12,7 @@ import {
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
 } from '@/src/features/story/utils/storySegmentContent';
+import { disposeSegmentMarkdown } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   type SegmentTransitionPatch,
   updateSegmentTransition as applySegmentTransition,
@@ -155,6 +156,7 @@ export function useStoryEditorSegmentList(
     }
 
     const currentIndex = model.getCurrentSegmentIndex();
+    disposeSegmentMarkdown(model, selectedSegmentId);
     model.removeLayer(selectedSegmentId);
 
     const remainingCount =

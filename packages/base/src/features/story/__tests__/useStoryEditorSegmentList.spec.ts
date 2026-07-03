@@ -8,6 +8,10 @@ jest.mock('@/src/constants', () => ({
   },
 }));
 
+jest.mock('@/src/features/story/utils/storySegmentMarkdownSharedModel', () => ({
+  disposeSegmentMarkdown: jest.fn(),
+}));
+
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
 import { Signal } from '@lumino/signaling';

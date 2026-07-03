@@ -10,7 +10,9 @@ import {
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -108,6 +110,8 @@ export function addCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
   state: IStateDB,
+  editorServices: IEditorServices,
+  rendermime: IRenderMimeRegistry,
   completionProviderManager: ICompletionProviderManager | undefined,
 ): void {
   const trans = translator.load('jupyterlab');
@@ -1901,6 +1905,8 @@ export function addCommands(
           formSchemaRegistry,
           state,
           tracker,
+          editorServices,
+          rendermime,
         );
         return;
       }
@@ -2082,6 +2088,8 @@ namespace Private {
     formSchemaRegistry: IJGISFormSchemaRegistry,
     state: IStateDB,
     tracker: JupyterGISTracker,
+    editorServices: IEditorServices,
+    rendermime: IRenderMimeRegistry,
   ): Promise<void> {
     await StoryEditorSession.getInstance().openEditor(
       model,
@@ -2089,6 +2097,8 @@ namespace Private {
       state,
       formSchemaRegistry,
       tracker,
+      editorServices,
+      rendermime,
     );
   }
 

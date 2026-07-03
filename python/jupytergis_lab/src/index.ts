@@ -21,8 +21,10 @@ import {
   JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
+import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
@@ -37,6 +39,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IJGISLayerBrowserRegistryToken,
     IStateDB,
+    IEditorServices,
+    IRenderMimeRegistry,
   ],
   optional: [IMainMenu, ITranslator, ICompletionProviderManager],
   activate: (
@@ -45,6 +49,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     formSchemaRegistry: IJGISFormSchemaRegistry,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     state: IStateDB,
+    editorServices: IEditorServices,
+    rendermime: IRenderMimeRegistry,
     mainMenu?: IMainMenu,
     translator?: ITranslator,
     completionProviderManager?: ICompletionProviderManager,
@@ -73,6 +79,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       formSchemaRegistry,
       layerBrowserRegistry,
       state,
+      editorServices,
+      rendermime,
       completionProviderManager,
     );
 
