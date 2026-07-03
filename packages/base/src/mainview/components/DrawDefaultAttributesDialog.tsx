@@ -13,6 +13,7 @@ interface IDrawAttributeDraftRowProps {
   onDraftValueChange: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
+  canSave: boolean;
 }
 
 function DrawAttributeDraftRow({
@@ -22,6 +23,7 @@ function DrawAttributeDraftRow({
   onDraftValueChange,
   onSave,
   onCancel,
+  canSave,
 }: IDrawAttributeDraftRowProps): JSX.Element {
   return (
     <div className="jgis-identify-row jgis-identify-row-editor">
@@ -45,6 +47,7 @@ function DrawAttributeDraftRow({
         size="icon-md"
         title="Save"
         onClick={onSave}
+        disabled={!canSave}
       >
         <Save />
       </Button>
@@ -85,6 +88,7 @@ export function DrawDefaultAttributesDialog({
     cancelDraft,
     removeAttribute,
     canAdd,
+    canSaveDraft,
   } = useDrawDefaultAttributes(model, layerId, true);
 
   return (
@@ -106,6 +110,7 @@ export function DrawDefaultAttributesDialog({
                 onDraftValueChange={setDraftValue}
                 onSave={saveDraft}
                 onCancel={cancelDraft}
+                canSave={canSaveDraft}
               />
             );
           }
@@ -148,6 +153,7 @@ export function DrawDefaultAttributesDialog({
             onDraftValueChange={setDraftValue}
             onSave={saveDraft}
             onCancel={cancelDraft}
+            canSave={canSaveDraft}
           />
         ) : null}
       </div>

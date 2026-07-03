@@ -59,6 +59,39 @@ export function useDrawDefaultAttributes(
     };
   }, [model, refreshAttributes]);
 
+  const getKeysForValidation = useCallback((): string[] => {
+    const existingKeys = attributes.map(attribute => attribute.key);
+    const originalKey =
+      draftMode === 'edit' && editingIndex !== null
+        ? attributes[editingIndex]?.key
+        : undefined;
+
+    return originalKey
+      ? existingKeys.filter(key => key !== originalKey)
+      : existingKeys;
+  }, [attributes, draftMode, editingIndex]);
+
+  const getDraftKeyError = useCallback(
+    (key: string, validateEmpty = false): string | null => {
+      if (!key.trim() && !validateEmpty) {
+        return null;
+      }
+
+      const validation = validateDrawAttributeKey(key, getKeysForValidation());
+      return validation.valid ? null : (validation.error ?? 'Invalid key.');
+    },
+    [getKeysForValidation],
+  );
+
+  const handleDraftKeyChange = (value: string): void => {
+    setDraftKey(value);
+    setDraftError(getDraftKeyError(value));
+  };
+
+  const handleDraftValueChange = (value: string): void => {
+    setDraftValue(value);
+  };
+
   const resetDraft = (): void => {
     setDraftMode(null);
     setEditingIndex(null);
@@ -93,19 +126,9 @@ export function useDrawDefaultAttributes(
   };
 
   const saveDraft = (): void => {
-    const existingKeys = attributes.map(attribute => attribute.key);
-    const originalKey =
-      draftMode === 'edit' && editingIndex !== null
-        ? attributes[editingIndex]?.key
-        : undefined;
-
-    const keysForValidation = originalKey
-      ? existingKeys.filter(key => key !== originalKey)
-      : existingKeys;
-
-    const validation = validateDrawAttributeKey(draftKey, keysForValidation);
-    if (!validation.valid) {
-      setDraftError(validation.error ?? 'Invalid key.');
+    const error = getDraftKeyError(draftKey, true);
+    if (error) {
+      setDraftError(error);
       return;
     }
 
@@ -142,8 +165,9 @@ export function useDrawDefaultAttributes(
     draftKey,
     draftValue,
     draftError,
-    setDraftKey,
-    setDraftValue,
+    setDraftKey: handleDraftKeyChange,
+    setDraftValue: handleDraftValueChange,
+    canSaveDraft: !getDraftKeyError(draftKey, true),
     startAdd,
     startEdit,
     saveDraft,
