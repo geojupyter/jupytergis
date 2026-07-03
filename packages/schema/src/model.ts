@@ -29,6 +29,8 @@ import {
   IAwarenessFieldChange,
   IAnnotationModel,
   IIdentifiedFeatures,
+  IDrawDefaultAttribute,
+  IDrawDefaultAttributesByLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -295,6 +297,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   > {
     return this._identifiedFeaturesChanged;
+  }
+
+  get drawDefaultAttributesChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawDefaultAttributes']>
+  > {
+    return this._drawDefaultAttributesChanged;
   }
 
   get remoteUserChanged(): ISignal<
@@ -692,6 +701,35 @@ export class JupyterGISModel implements IJupyterGISModel {
         emitter,
       },
     );
+  }
+
+  syncDrawDefaultAttributes(
+    attributesByLayer: IDrawDefaultAttributesByLayer,
+    emitter?: string,
+  ): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.drawDefaultAttributes,
+      {
+        value: attributesByLayer,
+        emitter,
+      },
+    );
+  }
+
+  getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[] {
+    return this.localState?.drawDefaultAttributes?.value?.[layerId] ?? [];
+  }
+
+  setDrawDefaultAttributesForLayer(
+    layerId: string,
+    attributes: IDrawDefaultAttribute[],
+    emitter?: string,
+  ): void {
+    const current = {
+      ...(this.localState?.drawDefaultAttributes?.value ?? {}),
+    };
+    current[layerId] = attributes;
+    this.syncDrawDefaultAttributes(current, emitter);
   }
 
   setUserToFollow(userId?: number): void {
@@ -1265,6 +1303,13 @@ export class JupyterGISModel implements IJupyterGISModel {
               >,
             );
             break;
+          case AWARENESS_STATE_FIELDS.drawDefaultAttributes:
+            this._drawDefaultAttributesChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['drawDefaultAttributes']
+              >,
+            );
+            break;
           case AWARENESS_STATE_FIELDS.remoteUser:
             this._remoteUserChanged.emit(
               payload as IAwarenessFieldChange<
@@ -1380,6 +1425,10 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _identifiedFeaturesChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
+  >(this);
+  private _drawDefaultAttributesChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawDefaultAttributes']>
   >(this);
   private _remoteUserChanged = new Signal<
     this,
