@@ -63,7 +63,7 @@ function DrawAttributeDraftRow({
 
 interface IDrawDefaultAttributesDialogProps {
   model: IJupyterGISModel;
-  layerId?: string;
+  layerId: string;
 }
 
 export function DrawDefaultAttributesDialog({
@@ -77,7 +77,6 @@ export function DrawDefaultAttributesDialog({
     draftKey,
     draftValue,
     draftError,
-    isDraftOpen,
     setDraftKey,
     setDraftValue,
     startAdd,
@@ -88,18 +87,10 @@ export function DrawDefaultAttributesDialog({
     canAdd,
   } = useDrawDefaultAttributes(model, layerId, true);
 
-  if (!layerId) {
-    return (
-      <p className="jgis-draw-default-attributes-empty">
-        Select a vector layer to configure draw attributes.
-      </p>
-    );
-  }
-
   return (
     <div className="jgis-draw-default-attributes-dialog">
       <div className="jgis-identify-property-rows jgis-draw-default-attributes-list">
-        {attributes.length === 0 && !isDraftOpen ? (
+        {attributes.length === 0 && draftMode === null ? (
           <p className="jgis-draw-default-attributes-empty">
             No custom attributes yet. New features will use the default label.
           </p>
@@ -132,7 +123,7 @@ export function DrawDefaultAttributesDialog({
                 size="icon-md"
                 title="Edit"
                 onClick={() => startEdit(index)}
-                disabled={isDraftOpen}
+                disabled={draftMode !== null}
               >
                 <Pencil />
               </Button>
@@ -142,7 +133,7 @@ export function DrawDefaultAttributesDialog({
                 size="icon-md"
                 title="Remove"
                 onClick={() => removeAttribute(index)}
-                disabled={isDraftOpen}
+                disabled={draftMode !== null}
               >
                 <Trash2 />
               </Button>
