@@ -14,7 +14,6 @@ type DraftMode = 'add' | 'edit' | null;
 export function useDrawDefaultAttributes(
   model: IJupyterGISModel,
   layerId: string,
-  isActive = true,
 ) {
   const [attributes, setAttributes] = useState<IDrawDefaultAttribute[]>([]);
   const [draftMode, setDraftMode] = useState<DraftMode>(null);
@@ -28,19 +27,14 @@ export function useDrawDefaultAttributes(
   }, [layerId, model]);
 
   useEffect(() => {
-    if (!isActive) {
-      return;
-    }
-
     refreshAttributes();
-  }, [isActive, refreshAttributes]);
 
-  useEffect(() => {
     const onDrawDefaultAttributesChanged = (): void => {
       refreshAttributes();
     };
 
     model.drawDefaultAttributesChanged.connect(onDrawDefaultAttributesChanged);
+
     return () => {
       model.drawDefaultAttributesChanged.disconnect(
         onDrawDefaultAttributesChanged,
@@ -89,7 +83,7 @@ export function useDrawDefaultAttributes(
     setDraftError(null);
   };
 
-  const persist = (next: IDrawDefaultAttribute[]): void => {
+  const saveAttributes = (next: IDrawDefaultAttribute[]): void => {
     model.setDrawDefaultAttributesForLayer(layerId, next);
   };
 
@@ -115,21 +109,15 @@ export function useDrawDefaultAttributes(
   };
 
   const saveDraft = (): void => {
-    const error = getDraftKeyError(draftKey, true);
-    if (error) {
-      setDraftError(error);
-      return;
-    }
-
     const entry: IDrawDefaultAttribute = {
       key: normalizeDrawAttributeKey(draftKey),
       value: draftValue,
     };
 
     if (draftMode === 'add') {
-      persist([...attributes, entry]);
+      saveAttributes([...attributes, entry]);
     } else if (draftMode === 'edit' && editingIndex !== null) {
-      persist(
+      saveAttributes(
         attributes.map((attribute, index) =>
           index === editingIndex ? entry : attribute,
         ),
@@ -144,7 +132,7 @@ export function useDrawDefaultAttributes(
       resetDraft();
     }
 
-    persist(attributes.filter((_, attributeIndex) => attributeIndex !== index));
+    saveAttributes(attributes.filter((_, attributeIndex) => attributeIndex !== index));
   };
 
   return {
