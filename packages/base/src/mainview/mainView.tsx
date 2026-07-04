@@ -227,6 +227,7 @@ interface IStates {
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
   scale: number;
+  rotation: number;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
@@ -368,6 +369,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
       scale: 0,
+      rotation: 0,
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
@@ -599,6 +601,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       view.on('change:center', () => {
         this._updateCenter();
         syncViewportThrottled();
+      });
+
+      view.on('change:rotation', () => {
+        this.setState(old => ({
+          ...old,
+          rotation: view.getRotation(),
+        }));
       });
 
       this._Map.on('postrender', () => {
@@ -3742,6 +3751,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }));
   };
 
+  private _handleResetRotation = () => {
+    this._Map.getView().setRotation(0);
+  };
+
   private _getVectorSourceFromLayerID = (
     layerID: string,
   ): VectorSource | undefined => {
@@ -3984,6 +3997,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loading,
       loadingLayer,
       remoteUser,
+      rotation,
       scale,
       segmentTransition,
       viewProjection,
@@ -4009,6 +4023,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           editingVectorLayer={editingVectorLayer}
           drawGeometryLabel={drawGeometryLabel}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
+          rotation={rotation}
+          onResetRotation={this._handleResetRotation}
         />
 
         <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
