@@ -1453,10 +1453,9 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _editingVectorLayer: boolean;
 
-  private _userGpsCoordinatesChanged = new Signal<
+  private _userGpsCoordinatesChanged = new Signal<this, JgisCoordinates | null>(
     this,
-    JgisCoordinates | null
-  >(this);
+  );
 
   static worker: Worker;
 

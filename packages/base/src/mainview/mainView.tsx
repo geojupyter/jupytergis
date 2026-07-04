@@ -70,8 +70,8 @@ import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { circular as circularPolygon } from 'ol/geom/Polygon';
 import { Type } from 'ol/geom/Geometry';
+import { circular as circularPolygon } from 'ol/geom/Polygon';
 import {
   DragAndDrop,
   DragPan,
@@ -130,7 +130,6 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
-import crosshairSvgStr from '../../style/icons/crosshair.svg';
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
@@ -158,6 +157,7 @@ import {
   type PatchGeoJSONFeatureProperties,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import crosshairSvgStr from '../../style/icons/crosshair.svg';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -3710,21 +3710,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           new Style({
             image: new Icon({
               src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                crosshairSvgStr.replace('stroke="currentColor"', 'stroke="blue"'),
+                crosshairSvgStr.replace(
+                  'stroke="currentColor"',
+                  'stroke="blue"',
+                ),
               )}`,
             }),
           }),
-        ]
+        ],
       });
       this._Map.addLayer(this._locationIndicatorLayer);
     } else {
-      const [accuracyStyle] = this._locationIndicatorLayer.getStyle() as Style[];
+      const [accuracyStyle] =
+        this._locationIndicatorLayer.getStyle() as Style[];
       accuracyStyle.setGeometry(accuracyGeometry);
 
-      this._locationIndicatorLayer
-        .getSource()!
-        .getFeatures()[0]
-        .setGeometry(point);
+      const source = this._locationIndicatorLayer.getSource();
+      if (source) {
+        source.getFeatures()[0].setGeometry(point);
+      }
       this._locationIndicatorLayer.changed();
     }
   }

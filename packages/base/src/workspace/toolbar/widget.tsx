@@ -128,7 +128,9 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('separator1', new Separator());
 
-      const geolocationDropdownMenu = new MenuSvg({ commands: options.commands });
+      const geolocationDropdownMenu = new MenuSvg({
+        commands: options.commands,
+      });
       geolocationDropdownMenu.addItem({
         type: 'command',
         command: CommandIDs.getGeolocation,

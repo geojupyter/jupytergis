@@ -20,7 +20,6 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
-
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -1509,7 +1508,9 @@ export function addCommands(
     label: trans.__('Toggle Location Indicator'),
     caption: 'Display a live location indicator based on your GPS position.',
     isToggled: () =>
-      Boolean(tracker.currentWidget?.model.getUIState().locationIndicatorActive),
+      Boolean(
+        tracker.currentWidget?.model.getUIState().locationIndicatorActive,
+      ),
     isEnabled: () => Boolean(tracker.currentWidget),
     execute: () => {
       const viewModel = tracker.currentWidget?.model;
