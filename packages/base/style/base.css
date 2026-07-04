@@ -312,9 +312,27 @@ body[data-notebook='specta']
   cursor: pointer;
 }
 
-.jgis-compass-rose-overlay svg {
+.jgis-compass-rose-n svg {
   width: 48px;
   height: 48px;
+}
+
+.jgis-compass-rose-arrow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 33.33%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Pivot at the squircle's center (150% of this element's own height), not its own center. */
+  transform-origin: 50% 150%;
+}
+
+.jgis-compass-rose-arrow svg {
+  width: 60%;
+  height: auto;
 }
 
 .jgis-geometry-type-selector-overlay {

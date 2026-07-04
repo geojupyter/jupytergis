@@ -1,5 +1,6 @@
 import React from 'react';
 
+import compassRoseArrowSvgStr from '../../../style/icons/compass_rose/arrow.svg';
 import compassRoseNSvgStr from '../../../style/icons/compass_rose/N.svg';
 
 const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
@@ -30,11 +31,17 @@ export function MainViewOverlayLayer({
       {annotationFloaters}
       {featureFloaters}
       {rotation !== 0 ? (
-        <div
-          className="jgis-compass-rose-overlay"
-          onClick={onResetRotation}
-          dangerouslySetInnerHTML={{ __html: compassRoseNSvgStr }}
-        />
+        <div className="jgis-compass-rose-overlay" onClick={onResetRotation}>
+          <div
+            className="jgis-compass-rose-arrow"
+            style={{ transform: `rotate(${rotation}rad)` }}
+            dangerouslySetInnerHTML={{ __html: compassRoseArrowSvgStr }}
+          />
+          <div
+            className="jgis-compass-rose-n"
+            dangerouslySetInnerHTML={{ __html: compassRoseNSvgStr }}
+          />
+        </div>
       ) : null}
       {editingVectorLayer ? (
         <div className="jgis-geometry-type-selector-overlay">
