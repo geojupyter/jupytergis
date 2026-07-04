@@ -123,7 +123,11 @@ export class JupyterGISPanel extends SplitPanel {
           `jupytergis:localUIState:${model.filePath}`,
         );
         if (stored !== undefined) {
-          model.setUIState(stored as any);
+          // locationIndicatorActive tracks a live GPS watch, which can't be
+          // restored across sessions, so never resurrect it from storage.
+          const { locationIndicatorActive: _ignored, ...restorable } =
+            stored as Record<string, unknown>;
+          model.setUIState(restorable);
         }
       }
 
