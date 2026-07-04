@@ -130,6 +130,7 @@ import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
 
+import crosshairSvgStr from '../../style/icons/crosshair.svg';
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
@@ -3698,10 +3699,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
           }),
           new Style({
-            image: new CircleStyle({
-              radius: 8,
-              fill: new Fill({ color: 'blue' }),
-              stroke: new Stroke({ color: 'white', width: 2 }),
+            image: new Icon({
+              src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+                crosshairSvgStr
+                  .replace('stroke="currentColor"', 'stroke="white"')
+                  .replace('stroke-width="2"', 'stroke-width="4"'),
+              )}`,
+            }),
+          }),
+          new Style({
+            image: new Icon({
+              src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+                crosshairSvgStr.replace('stroke="currentColor"', 'stroke="blue"'),
+              )}`,
             }),
           }),
         ]
