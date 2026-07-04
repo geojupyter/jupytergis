@@ -1,7 +1,7 @@
 import React from 'react';
 
-import compassRoseArrowSvgStr from '../../../style/icons/compass_rose/arrow.svg';
 import compassRoseNSvgStr from '../../../style/icons/compass_rose/N.svg';
+import compassRoseArrowSvgStr from '../../../style/icons/compass_rose/arrow.svg';
 
 const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
 
