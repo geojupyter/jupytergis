@@ -69,7 +69,8 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
-import { Circle as CircleGeometry, Geometry, Point } from 'ol/geom';
+import { Geometry, Point } from 'ol/geom';
+import { circular as circularPolygon } from 'ol/geom/Polygon';
 import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
@@ -3680,6 +3681,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const point = new Point([coords.x, coords.y]);
+    const projection = this._Map.getView().getProjection();
+    // Real geometry sized in meters (transformed from EPSG:4326) instead of
+    // an image style, whose radius is always in screen pixels regardless of
+    // zoom/projection.
+    const accuracyGeometry = circularPolygon(
+      toLonLat([coords.x, coords.y], projection),
+      coords.accuracy ?? 0,
+    ).transform('EPSG:4326', projection) as Geometry;
 
     if (!this._locationIndicatorLayer) {
       const feature = new Feature(point);
@@ -3688,10 +3697,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         source,
         style: [
           new Style({
-            image: new CircleStyle({
-              radius: coords.accuracy ?? 0,
-              fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
-            }),
+            geometry: accuracyGeometry,
+            fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
           }),
           new Style({
             image: new CircleStyle({
@@ -3704,10 +3711,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       });
       this._Map.addLayer(this._locationIndicatorLayer);
     } else {
+      const [accuracyStyle] = this._locationIndicatorLayer.getStyle() as Style[];
+      accuracyStyle.setGeometry(accuracyGeometry);
+
       this._locationIndicatorLayer
         .getSource()!
         .getFeatures()[0]
         .setGeometry(point);
+      this._locationIndicatorLayer.changed();
     }
   }
 
