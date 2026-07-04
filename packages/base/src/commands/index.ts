@@ -1499,16 +1499,17 @@ export function addCommands(
         console.warn(`Geolocation error (${err.code}): ${err.message}`);
       };
 
-      navigator.geolocation.getCurrentPosition(success, error, options);
+      window.navigator.geolocation.getCurrentPosition(success, error, options);
     },
   });
 
-  let _watchId: number | null = null;
+  const locationWatchIds = new WeakMap<IJupyterGISModel, number>();
 
   commands.addCommand(CommandIDs.toggleLocationIndicator, {
     label: trans.__('Toggle Location Indicator'),
     caption: 'Display a live location indicator based on your GPS position.',
-    isToggled: () => _watchId !== null,
+    isToggled: () =>
+      Boolean(tracker.currentWidget?.model.getUIState().locationIndicatorActive),
     isEnabled: () => Boolean(tracker.currentWidget),
     execute: () => {
       const viewModel = tracker.currentWidget?.model;
@@ -1516,32 +1517,38 @@ export function addCommands(
         return;
       }
 
-      if (_watchId !== null) {
-        viewModel.locationIndicatorToggled.emit(null);
-        navigator.geolocation.clearWatch(_watchId);
-        _watchId = null;
+      const watchId = locationWatchIds.get(viewModel);
+      if (watchId !== undefined) {
+        viewModel.userGpsCoordinatesChanged.emit(null);
+        window.navigator.geolocation.clearWatch(watchId);
+        locationWatchIds.delete(viewModel);
+        viewModel.setUIState({ locationIndicatorActive: false });
         commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
         return;
       }
 
-      _watchId = navigator.geolocation.watchPosition(
-        pos => {
-          const coords = fromLonLat([
-            pos.coords.longitude,
-            pos.coords.latitude,
-          ]);
-          viewModel.locationIndicatorToggled.emit({
-            x: coords[0],
-            y: coords[1],
-            accuracy: pos.coords.accuracy,
-          });
-        },
-        err => {
-          console.warn(`Geolocation error (${err.code}): ${err.message}`);
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: Infinity },
+      locationWatchIds.set(
+        viewModel,
+        window.navigator.geolocation.watchPosition(
+          pos => {
+            const coords = fromLonLat([
+              pos.coords.longitude,
+              pos.coords.latitude,
+            ]);
+            viewModel.userGpsCoordinatesChanged.emit({
+              x: coords[0],
+              y: coords[1],
+              accuracy: pos.coords.accuracy,
+            });
+          },
+          err => {
+            console.warn(`Geolocation error (${err.code}): ${err.message}`);
+          },
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: Infinity },
+        ),
       );
 
+      viewModel.setUIState({ locationIndicatorActive: true });
       commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
     },
   });

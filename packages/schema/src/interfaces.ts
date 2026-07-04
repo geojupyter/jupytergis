@@ -60,6 +60,7 @@ export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource'
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  locationIndicatorActive?: boolean;
 }
 
 export interface IJGISStoryMaps {
@@ -315,7 +316,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
-  locationIndicatorToggled: Signal<IJupyterGISModel, JgisCoordinates | null>;
+  userGpsCoordinatesChanged: Signal<IJupyterGISModel, JgisCoordinates | null>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;

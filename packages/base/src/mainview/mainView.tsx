@@ -343,7 +343,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
-    this._model.locationIndicatorToggled.connect(
+    this._model.userGpsCoordinatesChanged.connect(
       this._handleLocationIndicatorToggled,
       this,
     );
@@ -3682,9 +3682,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const point = new Point([coords.x, coords.y]);
     const projection = this._Map.getView().getProjection();
-    // Real geometry sized in meters (transformed from EPSG:4326) instead of
-    // an image style, whose radius is always in screen pixels regardless of
-    // zoom/projection.
     const accuracyGeometry = circularPolygon(
       toLonLat([coords.x, coords.y], projection),
       coords.accuracy ?? 0,

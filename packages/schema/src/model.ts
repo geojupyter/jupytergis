@@ -1375,8 +1375,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._geolocationChanged;
   }
 
-  get locationIndicatorToggled() {
-    return this._locationIndicatorToggled;
+  get userGpsCoordinatesChanged() {
+    return this._userGpsCoordinatesChanged;
   }
 
   readonly defaultKernelName: string = '';
@@ -1453,7 +1453,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _editingVectorLayer: boolean;
 
-  private _locationIndicatorToggled = new Signal<this, JgisCoordinates | null>(this);
+  private _userGpsCoordinatesChanged = new Signal<
+    this,
+    JgisCoordinates | null
+  >(this);
 
   static worker: Worker;
 
