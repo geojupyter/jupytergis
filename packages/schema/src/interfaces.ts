@@ -156,6 +156,9 @@ export type IDrawDefaultAttributePresets = Record<
   IDrawDefaultAttribute[]
 >;
 
+export const DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY =
+  'drawDefaultAttributePresets';
+
 export interface IDrawDefaultAttributesAwarenessState {
   value?: IDrawDefaultAttributesByLayer;
   emitter?: string | null;
@@ -450,7 +453,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
-
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
