@@ -6,8 +6,6 @@ import { Button } from '@/src/shared/components/Button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from '@/src/shared/components/Dialog';
 import {
@@ -65,11 +63,12 @@ export function VectorDrawControls({
           container={portalContainerRef.current}
           preventOutsideDismiss
         >
-          <DialogHeader>
-            <DialogTitle>Set up custom attributes</DialogTitle>
-          </DialogHeader>
           {attributesDialogOpen && drawLayerId ? (
-            <DrawDefaultAttributesDialog model={model} layerId={drawLayerId} />
+            <DrawDefaultAttributesDialog
+              model={model}
+              layerId={drawLayerId}
+              portalContainer={portalContainerRef.current}
+            />
           ) : null}
         </DialogContent>
       </Dialog>

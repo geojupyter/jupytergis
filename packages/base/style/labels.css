@@ -28,3 +28,70 @@
   font-size: 0.875rem;
   color: var(--jp-ui-font-color2);
 }
+
+.jgis-draw-default-attributes-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.jgis-draw-default-attributes-header-main {
+  min-width: 0;
+}
+
+.jgis-draw-default-attributes-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.jgis-draw-default-attributes-preset-save-row {
+  margin-top: 0.25rem;
+}
+
+.jgis-draw-default-attributes-preset-name-input {
+  flex: 1 1 auto;
+}
+
+.jgis-draw-default-attributes-presets-popover {
+  width: min(18rem, 90vw);
+  padding: 0.25rem;
+}
+
+.jgis-draw-default-attributes-presets-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jgis-draw-default-attributes-preset-item {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.jgis-draw-default-attributes-preset-item:hover {
+  background: var(--jp-layout-color2);
+}
+
+.jgis-draw-default-attributes-preset-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jgis-draw-default-attributes-preset-count {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--jp-ui-font-color2);
+}
