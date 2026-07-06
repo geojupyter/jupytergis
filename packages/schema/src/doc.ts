@@ -27,8 +27,11 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocChange,
   IAnnotation,
+  IDrawDefaultAttributePresets,
 } from './interfaces';
 import { migrateDocument } from './migrations';
+
+type IMetadataValue = string | IAnnotation | IDrawDefaultAttributePresets;
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
