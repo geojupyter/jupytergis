@@ -4,7 +4,8 @@
  */
 
 import { javascript } from '@codemirror/lang-javascript';
-import { EditorState } from '@codemirror/state';
+import { python } from '@codemirror/lang-python';
+import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, placeholder } from '@codemirror/view';
 import {
   ClassificationMode,
@@ -389,6 +390,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   onChange,
 }) => {
   const { params } = scale;
+  const language = params.language ?? 'vega';
 
   const update = useCallback(
     (patch: Partial<IExpressionScale['params']>) =>
@@ -396,29 +398,42 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     [params, onChange],
   );
 
+  const paramsRef = useRef(params);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const languageComp = useRef(new Compartment()).current;
+  const placeholderComp = useRef(new Compartment()).current;
+
+  const VEGA_PLACEHOLDER = "e.g. datum.value > 10 ? 'red' : 'blue'";
+  const PYTHON_PLACEHOLDER = "e.g. 'red' if datum.value > 10 else 'blue'";
 
   useEffect(() => {
-    if (!editorRef.current) {
-      return;
-    }
+    paramsRef.current = params;
+  }, [params]);
 
-    if (viewRef.current) {
+  useEffect(() => {
+    if (!editorRef.current || viewRef.current) {
       return;
     }
 
     const state = EditorState.create({
       doc: params.expr || '',
       extensions: [
-        javascript(),
+        languageComp.of(language === 'python' ? python() : javascript()),
+        placeholderComp.of(
+          placeholder(
+            language === 'python' ? PYTHON_PLACEHOLDER : VEGA_PLACEHOLDER,
+          ),
+        ),
         jupyterTheme,
         EditorView.lineWrapping,
-        placeholder("e.g. datum.value > 10 ? 'red' : 'blue'"),
         EditorView.updateListener.of(updateView => {
           if (updateView.docChanged) {
             const value = updateView.state.doc.toString();
-            update({ expr: value });
+            onChange({
+              scheme: 'expression',
+              params: { ...paramsRef.current, expr: value },
+            });
           }
         }),
       ],
@@ -440,6 +455,25 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     if (!view) {
       return;
     }
+    view.dispatch({
+      effects: [
+        languageComp.reconfigure(
+          language === 'python' ? python() : javascript(),
+        ),
+        placeholderComp.reconfigure(
+          placeholder(
+            language === 'python' ? PYTHON_PLACEHOLDER : VEGA_PLACEHOLDER,
+          ),
+        ),
+      ],
+    });
+  }, [language]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) {
+      return;
+    }
 
     const current = view.state.doc.toString();
     if (current !== params.expr) {
@@ -453,27 +487,79 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     }
   }, [params.expr]);
 
+  const setLanguage = (lang: 'vega' | 'python') => {
+    if (lang !== language) {
+      update({ language: lang });
+    }
+  };
+
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
-        <label>
-          Vega Expression{' '}
-          <InfoTip text="Use Vega expressions to style features dynamically (e.g. conditional colors based on attributes like datum.population).">
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span
+            role="tablist"
+            aria-label="Expression language"
+            style={{
+              display: 'inline-flex',
+              border: '1px solid var(--jp-border-color1)',
+              borderRadius: 4,
+              overflow: 'hidden',
+            }}
+          >
+            {(['vega', 'python'] as const).map(lang => (
+              <button
+                key={lang}
+                role="tab"
+                aria-selected={language === lang}
+                onClick={() => setLanguage(lang)}
+                style={{
+                  padding: '2px 8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background:
+                    language === lang
+                      ? 'var(--jp-layout-color2)'
+                      : 'transparent',
+                  color: 'var(--jp-ui-font-color1)',
+                  fontWeight: language === lang ? 600 : 400,
+                }}
+              >
+                {lang === 'vega' ? 'Vega' : 'Python'}
+              </button>
+            ))}
+          </span>
+          <InfoTip
+            text={
+              language === 'python'
+                ? 'Write a Python expression; it will be compiled to Vega then to OpenLayers style expressions.'
+                : 'Use Vega expressions to style features dynamically (e.g. conditional colors based on attributes like datum.population).'
+            }
+          >
             <ul style={{ paddingLeft: 16, margin: 0 }}>
               <li>
                 Access fields with <code>datum.fieldName</code>
               </li>
-              <li>
-                Use ternary logic: <code>condition ? a : b</code>
-              </li>
+              {language === 'python' ? (
+                <li>
+                  Use Python conditional syntax:{' '}
+                  <code>a if condition else b</code>
+                </li>
+              ) : (
+                <li>
+                  Use ternary logic: <code>condition ? a : b</code>
+                </li>
+              )}
             </ul>
-            <a
-              href="https://vega.github.io/vega/docs/expressions/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Full Vega Expression Docs
-            </a>
+            {language === 'vega' && (
+              <a
+                href="https://vega.github.io/vega/docs/expressions/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Full Vega Expression Docs
+              </a>
+            )}
           </InfoTip>
         </label>
         <div

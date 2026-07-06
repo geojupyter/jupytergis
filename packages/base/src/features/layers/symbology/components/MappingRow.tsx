@@ -170,6 +170,7 @@ function defaultScaleForScheme(
         params: {
           expr: '',
           fallback: [0, 0, 0, 0] as RGBA,
+          language: 'vega',
         },
       };
   }

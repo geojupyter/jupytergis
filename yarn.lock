@@ -1665,6 +1665,7 @@ __metadata:
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
     prettier: ^3.0.0
+    py2vega-ts: ^0.1.1
     react-draggable: 4.5.0
     rimraf: ^3.0.2
     ts-jest: ^29.4.9
@@ -16148,6 +16149,22 @@ __metadata:
   version: 7.0.1
   resolution: "pure-rand@npm:7.0.1"
   checksum: 4f543b97a487857a791b8e4c139aad54937397dc8177f1353f7da88556bfa40f5c32bfce3856843b1c3fc3a00b8472cceb22957c10b21c14e59e36a02ec9353b
+  languageName: node
+  linkType: hard
+
+"py-ast@npm:^1.0.0":
+  version: 1.9.0
+  resolution: "py-ast@npm:1.9.0"
+  checksum: 81408ccf171aca07b95f13bff582211edea7d79acb8639fa686e591563e2c5bd777221377e931dc4bc2d06ea208a212a7abb55567534ecf1de2218eee09dbbfa
+  languageName: node
+  linkType: hard
+
+"py2vega-ts@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "py2vega-ts@npm:0.1.1"
+  dependencies:
+    py-ast: ^1.0.0
+  checksum: 815ede88317316327e77b4896bca560b78ea4d1dc7382f8ceff9cdab5cd50f239fee53bdb95d936456e59ab8daa9c28d9a712b86872655e9e8a7615b3b450500
   languageName: node
   linkType: hard
 
