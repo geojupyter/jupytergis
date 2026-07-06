@@ -117,7 +117,10 @@ Changes include:
 
 ````{tab} Mamba (recommended)
 ```bash
-mamba install -c conda-forge/label/jupytergis_prerelease -c conda-forge jupytergis==0.16.0a4 qgis
+mamba install \
+  --channel conda-forge/label/jupytergis_prerelease \
+  --channel conda-forge \
+  jupytergis==0.16.0a4 qgis
 jupyter lab  # Start JupyterLab!
 ```
 ````
@@ -133,7 +136,12 @@ jupyter lab  # Start JupyterLab!
 Without a permanent install:
 
 ```bash
-pixi exec -c conda-forge/label/jupytergis_prerelease -c conda-forge --spec jupytergis==0.16.0a4 --spec qgis jupyter lab
+pixi exec \
+  --channel conda-forge/label/jupytergis_prerelease \
+  --channel conda-forge \
+  --spec jupytergis==0.16.0a4 \
+  --spec qgis \
+  jupyter lab
 ```
 
 ````
