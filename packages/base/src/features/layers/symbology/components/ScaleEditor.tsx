@@ -20,7 +20,9 @@ import {
 } from '@jupytergis/schema';
 import { jupyterTheme } from '@jupyterlab/codemirror';
 import { UUID } from '@lumino/coreutils';
+import { py2vega } from 'py2vega-ts';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { vega2ol } from 'vega2ol';
 
 import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
@@ -404,8 +406,25 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   const languageComp = useRef(new Compartment()).current;
   const placeholderComp = useRef(new Compartment()).current;
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
   const VEGA_PLACEHOLDER = "e.g. datum.value > 10 ? 'red' : 'blue'";
   const PYTHON_PLACEHOLDER = "e.g. 'red' if datum.value > 10 else 'blue'";
+
+  const validate = useCallback((expr: string, lang: 'vega' | 'python') => {
+    if (!expr.trim()) {
+      setValidationError(null);
+      return;
+    }
+    try {
+      const vegaExpr = lang === 'python' ? py2vega(expr) : expr;
+      vega2ol(vegaExpr as string);
+      setValidationError(null);
+    } catch (err) {
+      setValidationError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
 
   useEffect(() => {
     paramsRef.current = params;
@@ -434,6 +453,11 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               scheme: 'expression',
               params: { ...paramsRef.current, expr: value },
             });
+
+            clearTimeout(validationTimerRef.current);
+            validationTimerRef.current = setTimeout(() => {
+              validate(value, paramsRef.current.language ?? 'vega');
+            }, 400);
           }
         }),
       ],
@@ -443,6 +467,8 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
       state,
       parent: editorRef.current,
     });
+
+    validate(params.expr || '', language);
 
     return () => {
       viewRef.current?.destroy();
@@ -467,6 +493,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
         ),
       ],
     });
+    validate(params.expr || '', language);
   }, [language]);
 
   useEffect(() => {
@@ -563,15 +590,35 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
           </InfoTip>
         </label>
         <div
-          ref={editorRef}
-          style={{
-            flex: '1 1 auto',
-            height: 80,
-            border: '1px solid var(--jp-border-color2)',
-            borderRadius: 4,
-            overflow: 'auto',
-          }}
-        />
+          style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+        >
+          <div
+            ref={editorRef}
+            style={{
+              flex: '1 1 auto',
+              height: 80,
+              border: `1px solid ${
+                validationError
+                  ? 'var(--jp-error-color1)'
+                  : 'var(--jp-border-color2)'
+              }`,
+              borderRadius: 4,
+              overflow: 'auto',
+            }}
+          />
+          {validationError && (
+            <div
+              role="alert"
+              style={{
+                color: 'var(--jp-error-color1)',
+                fontSize: 'var(--jp-ui-font-size0)',
+                marginTop: 4,
+              }}
+            >
+              {validationError}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="jp-gis-symbology-row">
