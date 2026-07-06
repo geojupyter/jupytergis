@@ -1,7 +1,4 @@
-import {
-  DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY,
-  IDrawDefaultAttributePresets,
-} from '../interfaces';
+import { IDrawDefaultAttributePresets } from '../interfaces';
 import { JupyterGISModel } from '../model';
 
 describe('draw default attribute presets on model', () => {
@@ -34,9 +31,10 @@ describe('draw default attribute presets on model', () => {
     expect(model.getDrawDefaultAttributePresets()).toEqual({
       Trees: [{ key: 'species', value: 'oak' }],
     });
-    expect(
-      model.sharedModel.getMetadata(DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY),
-    ).toEqual({
+    expect(model.sharedModel.getPreset('Trees')).toEqual([
+      { key: 'species', value: 'oak' },
+    ]);
+    expect(model.sharedModel.getPresets()).toEqual({
       Trees: [{ key: 'species', value: 'oak' }],
     } satisfies IDrawDefaultAttributePresets);
   });
