@@ -101,6 +101,10 @@ To use dynamic tiling functionality, you'll need our "tiler" optional dependenci
 For any of the above commands, replace `jupytergis` with `jupytergis[tiler]` (for
 pip/uv) or `jupytergis-tiler` (for conda/mamba/pixi).
 
+:::{note}
+This functionality is available as of version `0.16.0`.
+:::
+
 ## Installing a pre-release
 
 To install a pre-release, replace install commands shown above with these examples.
