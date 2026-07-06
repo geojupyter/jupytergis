@@ -19,7 +19,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     this._annotationModel = props.annotationModel;
     this._jgisModel = props.jgisModel;
 
-    this._annotationModel?.model?.sharedMetadataChanged.connect(updateCallback);
+    this._annotationModel?.model?.sharedAnnotationsChanged.connect(updateCallback);
     this.forceUpdate();
   }
 

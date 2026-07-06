@@ -230,9 +230,11 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getMetadata(key: string): string | IAnnotation | undefined;
-  setMetadata(key: string, value: string | IAnnotation): void;
-  removeMetadata(key: string): void;
+  getAnnotation(id: string): IAnnotation | undefined;
+  setAnnotation(id: string, value: IAnnotation): void;
+  removeAnnotation(id: string): void;
+  getAnnotations(): Record<string, IAnnotation>;
+  getAnnotationIds(): string[];
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
@@ -240,6 +242,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
+  annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -312,6 +315,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
+  sharedAnnotationsChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
@@ -398,8 +402,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   getClientId(): number;
 
-  addMetadata(key: string, value: string): void;
-  removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;

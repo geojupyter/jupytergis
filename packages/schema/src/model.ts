@@ -85,6 +85,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._metadataChangedHandler,
       this,
     );
+    this._sharedModel.annotationsChanged.connect(
+      this._annotationsChangedHandler,
+      this,
+    );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -335,6 +339,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedMetadataChanged;
   }
 
+  get sharedAnnotationsChanged(): ISignal<this, MapChange> {
+    return this._sharedAnnotationsChanged;
+  }
+
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
   }
@@ -355,12 +363,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._sharedMetadataChanged.emit(args);
   }
 
-  addMetadata(key: string, value: string): void {
-    this.sharedModel.setMetadata(key, value);
-  }
-
-  removeMetadata(key: string): void {
-    this.sharedModel.removeMetadata(key);
+  private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedAnnotationsChanged.emit(args);
   }
 
   dispose(): void {
@@ -1386,6 +1390,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
+  private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
