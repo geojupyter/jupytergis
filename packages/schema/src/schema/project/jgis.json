@@ -389,6 +389,34 @@
         "$ref": "#/definitions/jGISAnnotation"
       }
     },
+    "jGISDrawDefaultAttribute": {
+      "title": "IDrawDefaultAttribute",
+      "type": "object",
+      "required": ["key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "jGISDrawDefaultAttributePreset": {
+      "title": "IDrawDefaultAttributePreset",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/jGISDrawDefaultAttribute"
+      }
+    },
+    "jGISDrawDefaultAttributePresets": {
+      "title": "IDrawDefaultAttributePresets",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISDrawDefaultAttributePreset"
+      }
+    },
     "jGISMetadata": {
       "title": "IJGISMetadata",
       "type": "object",
