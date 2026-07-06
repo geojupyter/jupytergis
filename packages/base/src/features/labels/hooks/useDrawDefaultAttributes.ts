@@ -1,5 +1,6 @@
 import type {
   IDrawDefaultAttribute,
+  IDrawDefaultAttributePresets,
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import { useCallback, useEffect, useState } from 'react';
@@ -16,6 +17,7 @@ export function useDrawDefaultAttributes(
   layerId: string,
 ) {
   const [attributes, setAttributes] = useState<IDrawDefaultAttribute[]>([]);
+  const [presets, setPresets] = useState<IDrawDefaultAttributePresets>({});
   const [draftMode, setDraftMode] = useState<DraftMode>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draftKey, setDraftKey] = useState('');
@@ -26,21 +28,32 @@ export function useDrawDefaultAttributes(
     setAttributes(model.getDrawDefaultAttributes(layerId));
   }, [layerId, model]);
 
+  const refreshPresets = useCallback(() => {
+    setPresets(model.getDrawDefaultAttributePresets());
+  }, [model]);
+
   useEffect(() => {
     refreshAttributes();
+    refreshPresets();
 
     const onDrawDefaultAttributesChanged = (): void => {
       refreshAttributes();
     };
 
+    const onMetadataChanged = (): void => {
+      refreshPresets();
+    };
+
     model.drawDefaultAttributesChanged.connect(onDrawDefaultAttributesChanged);
+    model.sharedMetadataChanged.connect(onMetadataChanged);
 
     return () => {
       model.drawDefaultAttributesChanged.disconnect(
         onDrawDefaultAttributesChanged,
       );
+      model.sharedMetadataChanged.disconnect(onMetadataChanged);
     };
-  }, [model, refreshAttributes]);
+  }, [model, refreshAttributes, refreshPresets]);
 
   const getKeysForValidation = useCallback((): string[] => {
     const existingKeys = attributes.map(attribute => attribute.key);
@@ -109,7 +122,7 @@ export function useDrawDefaultAttributes(
   };
 
   const saveDraft = (): void => {
-    const entry: IDrawDefaultAttribute = {
+    const entry = {
       key: normalizeDrawAttributeKey(draftKey),
       value: draftValue,
     };
@@ -132,11 +145,40 @@ export function useDrawDefaultAttributes(
       resetDraft();
     }
 
-    saveAttributes(attributes.filter((_, attributeIndex) => attributeIndex !== index));
+    saveAttributes(
+      attributes.filter((_, attributeIndex) => attributeIndex !== index),
+    );
   };
+
+  const loadPreset = (name: string): void => {
+    const presetAttributes = presets[name];
+    if (!presetAttributes) {
+      return;
+    }
+
+    resetDraft();
+    saveAttributes(
+      presetAttributes.map((attribute: IDrawDefaultAttribute) => ({
+        ...attribute,
+      })),
+    );
+  };
+
+  const savePreset = (name: string): void => {
+    model.setDrawDefaultAttributePreset(
+      name.trim(),
+      attributes.map(attribute => ({ ...attribute })),
+    );
+  };
+
+  const presetNames = Object.keys(presets).sort((left, right) =>
+    left.localeCompare(right),
+  );
 
   return {
     attributes,
+    presets,
+    presetNames,
     draftMode,
     editingIndex,
     draftKey,
@@ -150,6 +192,9 @@ export function useDrawDefaultAttributes(
     saveDraft,
     cancelDraft: resetDraft,
     removeAttribute,
+    loadPreset,
+    savePreset,
     canAdd: draftMode === null,
+    canSavePreset: attributes.length > 0 && draftMode === null,
   };
 }
