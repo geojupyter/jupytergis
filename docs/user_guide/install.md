@@ -1,10 +1,12 @@
 # Installation
 
+:::{important}
 It's always a good idea to use virtual environments.
 Installing into a global environment can get you in trouble later!
 
 These instructions presuppose that you know how to create and activate virtual
 environments with your tool of choice.
+:::
 
 ## Installing the latest stable release
 
