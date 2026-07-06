@@ -23,6 +23,11 @@ import {
 import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
+  DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY,
+  parseDrawDefaultAttributePresets,
+  serializeDrawDefaultAttributePresets,
+} from './drawDefaultAttributePresets';
+import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
   AwarenessFieldKey,
@@ -30,6 +35,7 @@ import {
   IAnnotationModel,
   IIdentifiedFeatures,
   IDrawDefaultAttribute,
+  IDrawDefaultAttributePresets,
   IDrawDefaultAttributesByLayer,
   IDrawDefaultAttributesLayerState,
   IJGISLayerDocChange,
@@ -773,6 +779,31 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
 
     this.syncDrawDefaultAttributes(next, emitter);
+  }
+
+  getDrawDefaultAttributePresets(): IDrawDefaultAttributePresets {
+    const presetsMetadata = this.sharedModel.getMetadata(
+      DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY,
+    );
+
+    return parseDrawDefaultAttributePresets(
+      typeof presetsMetadata === 'string' ? presetsMetadata : undefined,
+    );
+  }
+
+  setDrawDefaultAttributePreset(
+    name: string,
+    attributes: IDrawDefaultAttribute[],
+  ): void {
+    const presets = this.getDrawDefaultAttributePresets();
+    presets[name] = attributes.map(attribute => ({
+      key: attribute.key,
+      value: attribute.value,
+    }));
+    this.addMetadata(
+      DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY,
+      serializeDrawDefaultAttributePresets(presets),
+    );
   }
 
   setUserToFollow(userId?: number): void {
