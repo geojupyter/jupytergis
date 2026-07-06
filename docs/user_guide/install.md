@@ -19,6 +19,7 @@ QGIS is a C++ application and cannot be installed via `pip` or `uv`.
 
 ```bash
 mamba install -c conda-forge jupytergis qgis
+jupyter lab  # Start JupyterLab!
 ```
 ````
 
@@ -33,6 +34,7 @@ You're on your own!
 
 ```bash
 pip install jupytergis
+jupyter lab  # Start JupyterLab!
 ```
 ````
 
@@ -48,7 +50,7 @@ Install into a project:
 
 ```bash
 pixi add jupytergis qgis
-pixi run jupyter lab
+pixi run jupyter lab  # Start JupyterLab!
 ```
 
 Or run directly without a permanent install:
@@ -72,7 +74,7 @@ Install into a project:
 
 ```bash
 uv add jupytergis
-uv run jupyter lab
+uv run jupyter lab  # Start JupyterLab!
 ```
 
 Or run directly without a permanent install:
@@ -90,12 +92,6 @@ docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 
 Docker build source: <https://github.com/geojupyter/jupytergis-docker>
 ````
-
-Once JupyterGIS is installed, start JupyterLab:
-
-```bash
-jupyter lab
-```
 
 
 ## Installing dynamic tiling functionality
