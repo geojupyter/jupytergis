@@ -28,9 +28,7 @@ import {
   AwarenessFieldKey,
   IAwarenessFieldChange,
   IAnnotationModel,
-  IAnnotation,
   IIdentifiedFeatures,
-  DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY,
   IDrawDefaultAttribute,
   IDrawDefaultAttributePresets,
   IDrawDefaultAttributesByLayer,
@@ -355,6 +353,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedAnnotationsChanged;
   }
 
+  get sharedPresetsChanged(): ISignal<this, MapChange> {
+    return this._sharedPresetsChanged;
+  }
+
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
   }
@@ -377,6 +379,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
     this._sharedAnnotationsChanged.emit(args);
+  }
+
+  private _presetsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedPresetsChanged.emit(args);
   }
 
   dispose(): void {
@@ -779,23 +785,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getDrawDefaultAttributePresets(): IDrawDefaultAttributePresets {
-    return (
-      (this.sharedModel.metadata[
-        DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY
-      ] as IDrawDefaultAttributePresets | undefined) ?? {}
-    );
+    return this.sharedModel.getPresets();
   }
 
   setDrawDefaultAttributePreset(
     name: string,
     attributes: IDrawDefaultAttribute[],
   ): void {
-    const presets = this.getDrawDefaultAttributePresets();
-    presets[name] = attributes.map(attribute => ({ ...attribute }));
-    this.sharedModel.setMetadata(
-      DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY,
-      presets,
-    );
+    this.sharedModel.setPreset(name, attributes);
   }
 
   setUserToFollow(userId?: number): void {
@@ -1504,6 +1501,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
+  private _sharedPresetsChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
