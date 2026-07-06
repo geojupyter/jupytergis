@@ -14,8 +14,7 @@ environments with your tool of choice.
 :::{tip}
 Installing with a conda-based tool (`mamba`, `conda`, `micromamba`, or `pixi`) lets you
 install `qgis` alongside JupyterGIS, enabling `.qgz` file support.
-QGIS is a C++ application and only available as a conda-forge package — it cannot be
-installed via `pip` or `uv`.
+QGIS is a C++ application and cannot be installed via `pip` or `uv`.
 :::
 
 ## Mamba / Conda (recommended)
