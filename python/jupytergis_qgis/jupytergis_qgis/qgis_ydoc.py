@@ -23,6 +23,7 @@ class YQGISBase(YBaseDoc):
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
         self._ydoc["metadata"] = self._ymetadata = Map()
+        self._ensure_annotations_map()
         self._source = ""
         self._file_extension = None
 
@@ -83,8 +84,15 @@ class YQGISBase(YBaseDoc):
         self._yoptions.clear()
         self._yoptions.update(virtual_file["options"])
 
+        metadata = dict(virtual_file.get("metadata", {}) or {})
+        annotations_data = metadata.pop("annotations", {})
+        if not isinstance(annotations_data, dict):
+            annotations_data = {}
         self._ymetadata.clear()
-        self._ymetadata.update(virtual_file["metadata"])
+        annotations = self._ensure_annotations_map()
+        annotations.update(annotations_data)
+        for key, value in metadata.items():
+            self._ymetadata[key] = value
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
@@ -106,6 +114,15 @@ class YQGISBase(YBaseDoc):
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
             partial(callback, "meta"),
         )
+
+    def _ensure_annotations_map(self) -> Map:
+        annotations = self._ymetadata.get("annotations")
+        if isinstance(annotations, Map):
+            return annotations
+
+        annotations = Map()
+        self._ymetadata["annotations"] = annotations
+        return annotations
 
     def _load(self, source: str):
         # Lazy import because qgis may not be installed
