@@ -6,7 +6,6 @@ Installing into a global environment can get you in trouble later!
 These instructions presuppose that you know how to create and activate virtual
 environments with your tool of choice.
 
-
 ## Installing the latest stable release
 
 ````{tab} Mamba (recommended)
@@ -93,7 +92,6 @@ docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 Docker build source: <https://github.com/geojupyter/jupytergis-docker>
 ````
 
-
 ## Installing dynamic tiling functionality
 
 To use dynamic tiling functionality, you'll need our "tiler" optional dependencies.
@@ -101,19 +99,17 @@ To use dynamic tiling functionality, you'll need our "tiler" optional dependenci
 For any of the above commands, replace `jupytergis` with `jupytergis[tiler]` (for
 pip/uv) or `jupytergis-tiler` (for conda/mamba/pixi).
 
-
 ## Installing a pre-release
 
 To install a pre-release, replace install commands shown above with these examples.
 Changes include:
 
-* Specify a pre-release version exactly; here's we're using pre-release `0.16.0a4` as an
+- Specify a pre-release version exactly; here's we're using pre-release `0.16.0a4` as an
   example.
-* When installing a Conda package with mamba/conda/pixi, add the pre-release channel as
+- When installing a Conda package with mamba/conda/pixi, add the pre-release channel as
   highest priority channel.
-* When installing a PyPI package with pip/uv, add a flag to allow installing
+- When installing a PyPI package with pip/uv, add a flag to allow installing
   pre-releases.
-
 
 ````{tab} Mamba (recommended)
 ```bash
