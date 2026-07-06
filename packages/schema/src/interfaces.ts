@@ -18,6 +18,8 @@ import { FeatureLike } from 'ol/Feature';
 
 import {
   IJGISContent,
+  IDrawDefaultAttribute,
+  IDrawDefaultAttributePresets,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -58,6 +60,7 @@ import {
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IDrawDefaultAttribute, IDrawDefaultAttributePresets };
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
@@ -136,11 +139,6 @@ export interface IIdentifiedFeaturesAwarenessState {
   emitter?: string | null;
 }
 
-export interface IDrawDefaultAttribute {
-  key: string;
-  value: string;
-}
-
 export interface IDrawDefaultAttributesLayerState {
   updatedAt: number;
   attributes: IDrawDefaultAttribute[];
@@ -150,14 +148,6 @@ export type IDrawDefaultAttributesByLayer = Record<
   string,
   IDrawDefaultAttributesLayerState
 >;
-
-export type IDrawDefaultAttributePresets = Record<
-  string,
-  IDrawDefaultAttribute[]
->;
-
-export const DRAW_DEFAULT_ATTRIBUTE_PRESETS_METADATA_KEY =
-  'drawDefaultAttributePresets';
 
 export interface IDrawDefaultAttributesAwarenessState {
   value?: IDrawDefaultAttributesByLayer;
@@ -268,6 +258,12 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getAnnotations(): Record<string, IAnnotation>;
   getAnnotationIds(): string[];
 
+  getPreset(name: string): IDrawDefaultAttribute[] | undefined;
+  setPreset(name: string, attributes: IDrawDefaultAttribute[]): void;
+  removePreset(name: string): void;
+  getPresets(): IDrawDefaultAttributePresets;
+  getPresetNames(): string[];
+
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
@@ -275,6 +271,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
   annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  presetsChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -352,6 +349,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   sharedAnnotationsChanged: ISignal<IJupyterGISModel, MapChange>;
+  sharedPresetsChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;

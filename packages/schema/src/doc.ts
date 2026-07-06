@@ -27,11 +27,10 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocChange,
   IAnnotation,
+  IDrawDefaultAttribute,
   IDrawDefaultAttributePresets,
 } from './interfaces';
 import { migrateDocument } from './migrations';
-
-type IMetadataValue = string | IAnnotation | IDrawDefaultAttributePresets;
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
@@ -505,6 +504,10 @@ export class JupyterGISDoc
     return this._annotationsChanged;
   }
 
+  get presetsChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._presetsChanged;
+  }
+
   static create(): IJupyterGISDoc {
     return new JupyterGISDoc();
   }
@@ -677,6 +680,7 @@ export class JupyterGISDoc
   private _viewStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _annotationsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+  private _presetsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 
   private _initialSyncReadyPromise: Promise<void>;
   private _initialSyncReadyResolve: () => void;
