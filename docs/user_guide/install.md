@@ -118,12 +118,14 @@ Changes include:
 ````{tab} Mamba (recommended)
 ```bash
 mamba install -c conda-forge/label/jupytergis_prerelease -c conda-forge jupytergis==0.16.0a4 qgis
+jupyter lab  # Start JupyterLab!
 ```
 ````
 
 ````{tab} pip
 ```bash
 pip install --pre jupytergis==0.16.0a4
+jupyter lab  # Start JupyterLab!
 ```
 ````
 
