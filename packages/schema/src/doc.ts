@@ -8,6 +8,7 @@ import {
   IJGISLayerItem,
   IJGISLayerTree,
   IJGISLayers,
+  IJGISMetadata,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -38,7 +39,7 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
   "viewState": {},
 	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}"},
 	"layerTree": [],
-	"metadata": {}
+	"metadata": {"annotations": {}}
 }`;
 
 export class JupyterGISDoc
@@ -444,11 +445,11 @@ export class JupyterGISDoc
     }
   }
 
-  get metadata(): JSONObject {
-    return JSONExt.deepCopy(this._metadata.toJSON());
+  get metadata(): IJGISMetadata {
+    return JSONExt.deepCopy(this._metadata.toJSON()) as IJGISMetadata;
   }
 
-  set metadata(metadata: { [k: string]: string }) {
+  set metadata(metadata: IJGISMetadata) {
     this.transact(() => {
       for (const [key, value] of Object.entries(metadata)) {
         this._metadata.set(key, value);

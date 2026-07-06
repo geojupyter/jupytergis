@@ -27,13 +27,7 @@
       "$ref": "#/definitions/jGISViewState"
     },
     "metadata": {
-      "type": "object",
-      "patternProperties": {
-        "^.*$": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "#/definitions/jGISMetadata"
     }
   },
   "definitions": {
@@ -323,6 +317,84 @@
           "items": {
             "$ref": "#/definitions/jGISFilterItem"
           }
+        }
+      }
+    },
+    "jGISAnnotationContent": {
+      "title": "IJGISAnnotationContent",
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "user": {
+          "type": "object"
+        }
+      }
+    },
+    "jGISAnnotation": {
+      "title": "IJGISAnnotation",
+      "type": "object",
+      "required": [
+        "label",
+        "position",
+        "zoom",
+        "contents",
+        "parent",
+        "open"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "position": {
+          "type": "object",
+          "required": ["x", "y"],
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        },
+        "zoom": {
+          "type": "number"
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/jGISAnnotationContent"
+          }
+        },
+        "parent": {
+          "type": "string"
+        },
+        "open": {
+          "type": "boolean"
+        }
+      }
+    },
+    "jGISAnnotations": {
+      "title": "IJGISAnnotations",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISAnnotation"
+      }
+    },
+    "jGISMetadata": {
+      "title": "IJGISMetadata",
+      "type": "object",
+      "required": ["annotations"],
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "$ref": "#/definitions/jGISAnnotations"
         }
       }
     }

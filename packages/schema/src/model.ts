@@ -408,7 +408,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         pitch: 0,
         projection: DEFAULT_PROJECTION,
       };
-      this.sharedModel.metadata = jsonData.metadata ?? {};
+      this.sharedModel.metadata = jsonData.metadata ?? { annotations: {} };
     });
     this.dirty = true;
   }

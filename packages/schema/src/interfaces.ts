@@ -23,6 +23,7 @@ import {
   IJGISLayerItem,
   IJGISLayers,
   IJGISLayerTree,
+  IJGISMetadata,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -184,7 +185,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
-  metadata: any;
+  metadata: IJGISMetadata;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
