@@ -105,7 +105,15 @@ pip/uv) or `jupytergis-tiler` (for conda/mamba/pixi).
 ## Installing a pre-release
 
 To install a pre-release, replace install commands shown above with these examples.
-Using pre-release `0.16.0a4` as an example:
+Changes include:
+
+* Specify a pre-release version exactly; here's we're using pre-release `0.16.0a4` as an
+  example.
+* When installing a Conda package with mamba/conda/pixi, add the pre-release channel as
+  highest priority channel.
+* When installing a PyPI package with pip/uv, add a flag to allow installing
+  pre-releases.
+
 
 ````{tab} Mamba (recommended)
 ```bash
