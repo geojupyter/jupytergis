@@ -17,8 +17,6 @@ install `qgis` alongside JupyterGIS, enabling `.qgz` file support.
 QGIS is a C++ application and cannot be installed via `pip` or `uv`.
 :::
 
-## Mamba / Conda (recommended)
-
 ```bash
 mamba install -c conda-forge jupytergis qgis
 ```
