@@ -96,3 +96,46 @@ Once JupyterGIS is installed, start JupyterLab:
 ```bash
 jupyter lab
 ```
+
+
+## Installing dynamic tiling functionality
+
+To use dynamic tiling functionality, you'll need our "tiler" optional dependencies.
+
+For any of the above commands, replace `jupytergis` with `jupytergis[tiler]` (for
+pip/uv) or `jupytergis-tiler` (for conda/mamba/pixi).
+
+
+## Installing a pre-release
+
+To install a pre-release, replace install commands shown above with these examples.
+Using pre-release `0.16.0a4` as an example:
+
+````{tab} Mamba (recommended)
+```bash
+mamba install -c conda-forge/label/jupytergis_prerelease -c conda-forge jupytergis==0.16.0a4 qgis
+```
+````
+
+````{tab} pip
+```bash
+pip install --pre jupytergis==0.16.0a4
+```
+````
+
+````{tab} Pixi
+Without a permanent install:
+
+```bash
+pixi exec -c conda-forge/label/jupytergis_prerelease -c conda-forge --spec jupytergis==0.16.0a4 --spec qgis jupyter lab
+```
+
+````
+
+````{tab} uv
+Without a permanent install:
+
+```bash
+uv run --prerelease=allow --with jupytergis==0.16.0a4 jupyter lab
+```
+````
