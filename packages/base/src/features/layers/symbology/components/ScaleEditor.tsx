@@ -532,8 +532,8 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
           <InfoTip
             text={
               language === 'python'
-                ? 'Write a Python expression; it will be compiled to Vega then to OpenLayers style expressions.'
-                : 'Use Vega expressions to style features dynamically (e.g. conditional colors based on attributes like datum.population).'
+                ? `Write a Python expression; ${PYTHON_PLACEHOLDER}`
+                : `Write a Vega expression; ${VEGA_PLACEHOLDER}`
             }
           >
             <ul style={{ paddingLeft: 16, margin: 0 }}>
