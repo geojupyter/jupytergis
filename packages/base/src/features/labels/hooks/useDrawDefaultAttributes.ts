@@ -40,18 +40,18 @@ export function useDrawDefaultAttributes(
       refreshAttributes();
     };
 
-    const onMetadataChanged = (): void => {
+    const onPresetsChanged = (): void => {
       refreshPresets();
     };
 
     model.drawDefaultAttributesChanged.connect(onDrawDefaultAttributesChanged);
-    model.sharedMetadataChanged.connect(onMetadataChanged);
+    model.sharedPresetsChanged.connect(onPresetsChanged);
 
     return () => {
       model.drawDefaultAttributesChanged.disconnect(
         onDrawDefaultAttributesChanged,
       );
-      model.sharedMetadataChanged.disconnect(onMetadataChanged);
+      model.sharedPresetsChanged.disconnect(onPresetsChanged);
     };
   }, [model, refreshAttributes, refreshPresets]);
 
