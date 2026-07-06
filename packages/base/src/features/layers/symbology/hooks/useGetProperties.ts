@@ -112,7 +112,7 @@ export const useGetProperties = ({
       const sourceType = source?.type;
       let result: Record<string, Set<any>> = {};
 
-      if (sourceType === 'GeoJSONSource' || sourceType === 'ShapefileSource') {
+      if (['GeoJSONSource', 'ShapefileSource', 'GeoParquetSource'].includes(sourceType)) {
         result = await getGeoJsonProperties({ source, model, sourceType });
       } else if (sourceType === 'VectorTileSource') {
         const sourceId = layer?.parameters?.source;
