@@ -151,6 +151,11 @@ export type IDrawDefaultAttributesByLayer = Record<
   IDrawDefaultAttributesLayerState
 >;
 
+export type IDrawDefaultAttributePresets = Record<
+  string,
+  IDrawDefaultAttribute[]
+>;
+
 export interface IDrawDefaultAttributesAwarenessState {
   value?: IDrawDefaultAttributesByLayer;
   emitter?: string | null;
@@ -436,9 +441,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     attributes: IDrawDefaultAttribute[],
     emitter?: string,
   ): void;
-  clearDrawDefaultAttributesForLayer(
-    layerId: string,
-    emitter?: string,
+  clearDrawDefaultAttributesForLayer(layerId: string, emitter?: string): void;
+  getDrawDefaultAttributePresets(): IDrawDefaultAttributePresets;
+  setDrawDefaultAttributePreset(
+    name: string,
+    attributes: IDrawDefaultAttribute[],
   ): void;
   setUserToFollow(userId?: number): void;
 

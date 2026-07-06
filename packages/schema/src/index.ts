@@ -1,3 +1,4 @@
+export * from './drawDefaultAttributePresets';
 export * from './interfaces';
 export {
   singleSymbolToGrammar,

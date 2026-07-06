@@ -1,9 +1,23 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
-import { Ban, CirclePlus, Pencil, Save, Trash2 } from 'lucide-react';
-import React from 'react';
+import {
+  Ban,
+  BookmarkPlus,
+  CirclePlus,
+  Pencil,
+  Save,
+  Trash2,
+} from 'lucide-react';
+import React, { useState } from 'react';
 
+import { validatePresetName } from '@/src/features/labels/drawDefaultAttributes';
+import { DrawDefaultAttributesPresetsPopover } from '@/src/features/labels/components/DrawDefaultAttributesPresetsPopover';
 import { useDrawDefaultAttributes } from '@/src/features/labels/hooks/useDrawDefaultAttributes';
 import { Button } from '@/src/shared/components/Button';
+import {
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/src/shared/components/Dialog';
 import { Input } from '@/src/shared/components/Input';
 
 interface IDrawAttributeDraftRowProps {
@@ -67,14 +81,18 @@ function DrawAttributeDraftRow({
 interface IDrawDefaultAttributesDialogProps {
   model: IJupyterGISModel;
   layerId: string;
+  portalContainer?: HTMLElement | null;
 }
 
 export function DrawDefaultAttributesDialog({
   model,
   layerId,
+  portalContainer,
 }: IDrawDefaultAttributesDialogProps): JSX.Element {
   const {
     attributes,
+    presets,
+    presetNames,
     draftMode,
     editingIndex,
     draftKey,
@@ -87,92 +105,202 @@ export function DrawDefaultAttributesDialog({
     saveDraft,
     cancelDraft,
     removeAttribute,
+    loadPreset,
+    savePreset,
     canAdd,
     canSaveDraft,
+    canSavePreset,
   } = useDrawDefaultAttributes(model, layerId);
 
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [presetNameError, setPresetNameError] = useState<string | null>(null);
+
+  const controlsDisabled = draftMode !== null || savingPreset;
+  const isPresetNameValid = validatePresetName(presetName).valid;
+
+  const resetPresetDraft = (): void => {
+    setSavingPreset(false);
+    setPresetName('');
+    setPresetNameError(null);
+  };
+
+  const handlePresetNameChange = (value: string): void => {
+    setPresetName(value);
+    const validation = validatePresetName(value);
+    setPresetNameError(validation.valid ? null : (validation.error ?? null));
+  };
+
+  const handleSavePreset = (): void => {
+    const trimmedName = presetName.trim();
+    if (trimmedName in presets) {
+      const confirmed = window.confirm(
+        `Preset "${trimmedName}" already exists. Overwrite it?`,
+      );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    savePreset(trimmedName);
+    resetPresetDraft();
+  };
+
   return (
-    <div className="jgis-draw-default-attributes-dialog">
-      <div className="jgis-property-rows jgis-draw-default-attributes-list">
-        {attributes.length === 0 && draftMode === null ? (
-          <p className="jgis-draw-default-attributes-empty">
-            No custom attributes yet. New features will use the default label.
+    <>
+      <DialogHeader className="jgis-draw-default-attributes-header">
+        <div className="jgis-draw-default-attributes-header-main">
+          <DialogTitle>Set up custom attributes</DialogTitle>
+          <DialogDescription className="jgis-sr-only">
+            Configure default attributes applied to newly drawn features.
+          </DialogDescription>
+        </div>
+        <DrawDefaultAttributesPresetsPopover
+          presets={presets}
+          presetNames={presetNames}
+          onLoadPreset={loadPreset}
+          portalContainer={portalContainer}
+          disabled={controlsDisabled}
+        />
+      </DialogHeader>
+
+      <div className="jgis-draw-default-attributes-dialog">
+        <div className="jgis-property-rows jgis-draw-default-attributes-list">
+          {attributes.length === 0 && draftMode === null ? (
+            <p className="jgis-draw-default-attributes-empty">
+              No custom attributes yet. New features will use the default label.
+            </p>
+          ) : null}
+          {attributes.map((attribute, index) => {
+            if (draftMode === 'edit' && editingIndex === index) {
+              return (
+                <DrawAttributeDraftRow
+                  key={`edit-${attribute.key}`}
+                  draftKey={draftKey}
+                  draftValue={draftValue}
+                  onDraftKeyChange={setDraftKey}
+                  onDraftValueChange={setDraftValue}
+                  onSave={saveDraft}
+                  onCancel={cancelDraft}
+                  canSave={canSaveDraft}
+                />
+              );
+            }
+
+            return (
+              <div
+                key={attribute.key}
+                className="jgis-property-row jgis-draw-default-attributes-saved-row"
+              >
+                <span className="jgis-property-col-key">{attribute.key}</span>
+                <span className="jgis-property-col-value">
+                  {attribute.value}
+                </span>
+                <Button
+                  type="button"
+                  variant="icon"
+                  size="icon-md"
+                  title="Edit"
+                  onClick={() => startEdit(index)}
+                  disabled={controlsDisabled}
+                >
+                  <Pencil />
+                </Button>
+                <Button
+                  type="button"
+                  variant="icon"
+                  size="icon-md"
+                  title="Remove"
+                  onClick={() => removeAttribute(index)}
+                  disabled={controlsDisabled}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            );
+          })}
+
+          {draftMode === 'add' ? (
+            <DrawAttributeDraftRow
+              draftKey={draftKey}
+              draftValue={draftValue}
+              onDraftKeyChange={setDraftKey}
+              onDraftValueChange={setDraftValue}
+              onSave={saveDraft}
+              onCancel={cancelDraft}
+              canSave={canSaveDraft}
+            />
+          ) : null}
+        </div>
+
+        {draftError ? (
+          <p className="jgis-draw-default-attributes-error">{draftError}</p>
+        ) : null}
+
+        {presetNameError ? (
+          <p className="jgis-draw-default-attributes-error">
+            {presetNameError}
           </p>
         ) : null}
-        {attributes.map((attribute, index) => {
-          if (draftMode === 'edit' && editingIndex === index) {
-            return (
-              <DrawAttributeDraftRow
-                key={`edit-${attribute.key}`}
-                draftKey={draftKey}
-                draftValue={draftValue}
-                onDraftKeyChange={setDraftKey}
-                onDraftValueChange={setDraftValue}
-                onSave={saveDraft}
-                onCancel={cancelDraft}
-                canSave={canSaveDraft}
-              />
-            );
-          }
 
-          return (
-            <div
-              key={attribute.key}
-              className="jgis-property-row jgis-draw-default-attributes-saved-row"
+        {savingPreset ? (
+          <div className="jgis-property-row jgis-property-row-editor jgis-draw-default-attributes-preset-save-row">
+            <Input
+              className="jgis-draw-default-attributes-preset-name-input"
+              type="text"
+              placeholder="Preset name"
+              value={presetName}
+              onChange={event => handlePresetNameChange(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              size="icon-md"
+              title="Save preset"
+              onClick={handleSavePreset}
+              disabled={!isPresetNameValid}
             >
-              <span className="jgis-property-col-key">{attribute.key}</span>
-              <span className="jgis-property-col-value">{attribute.value}</span>
-              <Button
-                type="button"
-                variant="icon"
-                size="icon-md"
-                title="Edit"
-                onClick={() => startEdit(index)}
-                disabled={draftMode !== null}
-              >
-                <Pencil />
-              </Button>
-              <Button
-                type="button"
-                variant="icon"
-                size="icon-md"
-                title="Remove"
-                onClick={() => removeAttribute(index)}
-                disabled={draftMode !== null}
-              >
-                <Trash2 />
-              </Button>
-            </div>
-          );
-        })}
-        {draftMode === 'add' ? (
-          <DrawAttributeDraftRow
-            draftKey={draftKey}
-            draftValue={draftValue}
-            onDraftKeyChange={setDraftKey}
-            onDraftValueChange={setDraftValue}
-            onSave={saveDraft}
-            onCancel={cancelDraft}
-            canSave={canSaveDraft}
-          />
+              <Save />
+            </Button>
+            <Button
+              type="button"
+              variant="icon"
+              size="icon-md"
+              title="Cancel"
+              onClick={resetPresetDraft}
+            >
+              <Ban />
+            </Button>
+          </div>
         ) : null}
+        <div className="jgis-draw-default-attributes-actions">
+          <Button
+            className="jgis-property-add-button"
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={startAdd}
+            disabled={!canAdd}
+          >
+            <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
+            Add Property
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setSavingPreset(true)}
+            disabled={!canSavePreset}
+          >
+            <BookmarkPlus
+              data-icon="inline-start"
+              className="jgis-inline-icon"
+            />
+            Save as preset
+          </Button>
+        </div>
       </div>
-      {draftError ? (
-        <p className="jgis-draw-default-attributes-error">{draftError}</p>
-      ) : null}
-      <div className="jgis-property-row jgis-property-row-add">
-        <Button
-          className="jgis-property-add-button"
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={startAdd}
-          disabled={!canAdd}
-        >
-          <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
-          Add Property
-        </Button>
-      </div>
-    </div>
+    </>
   );
 }

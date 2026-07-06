@@ -49,6 +49,17 @@ export function validateDrawAttributeKey(
   return { valid: true };
 }
 
+export function validatePresetName(name: string): {
+  valid: boolean;
+  error?: string;
+} {
+  if (!name.trim()) {
+    return { valid: false, error: 'Preset name is required.' };
+  }
+
+  return { valid: true };
+}
+
 export function applyDrawDefaultAttributesToFeature(
   feature: { set: (key: string, value: unknown) => void },
   attributes: IDrawDefaultAttribute[],
