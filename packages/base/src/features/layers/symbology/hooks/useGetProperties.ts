@@ -1,6 +1,10 @@
 // import { GeoJSONFeature } from 'geojson';
 
-import { GeoJSONFeature1, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  GeoJSONFeature1,
+  IJupyterGISModel,
+  SourceType,
+} from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 
 import { loadFile } from '@/src/tools';
@@ -19,9 +23,11 @@ interface IUseGetPropertiesResult {
 async function getGeoJsonProperties({
   source,
   model,
+  sourceType,
 }: {
   source: any;
   model: IJupyterGISModel;
+  sourceType: SourceType;
 }): Promise<Record<string, Set<any>>> {
   const result: Record<string, Set<any>> = {};
 
@@ -29,7 +35,7 @@ async function getGeoJsonProperties({
     if (source.parameters.path) {
       return await loadFile({
         filepath: source.parameters.path,
-        type: 'GeoJSONSource',
+        type: sourceType,
         model,
       });
     } else if (source.parameters.data) {
@@ -106,8 +112,12 @@ export const useGetProperties = ({
       const sourceType = source?.type;
       let result: Record<string, Set<any>> = {};
 
-      if (sourceType === 'GeoJSONSource') {
-        result = await getGeoJsonProperties({ source, model });
+      if (
+        ['GeoJSONSource', 'ShapefileSource', 'GeoParquetSource'].includes(
+          sourceType,
+        )
+      ) {
+        result = await getGeoJsonProperties({ source, model, sourceType });
       } else if (sourceType === 'VectorTileSource') {
         const sourceId = layer?.parameters?.source;
         result = getVectorTileProperties({ model, sourceId });
