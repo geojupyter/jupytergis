@@ -1,0 +1,14 @@
+.jgis-separator {
+  flex-shrink: 0;
+  background-color: var(--jp-border-color0);
+}
+
+.jgis-separator[data-orientation='horizontal'] {
+  height: 1px;
+  width: 100%;
+}
+
+.jgis-separator[data-orientation='vertical'] {
+  width: 1px;
+  align-self: stretch;
+}
