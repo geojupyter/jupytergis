@@ -3733,6 +3733,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
     drawGeometryLabel: string,
   ) => {
+    // Clicking the active geometry toggles drawing off.
+    if (this._currentDrawGeometry === drawGeometryLabel) {
+      this._currentDrawGeometry = undefined;
+      this._removeInteractions();
+
+      this.setState(old => ({
+        ...old,
+        drawGeometryLabel: '',
+      }));
+      return;
+    }
+
     this._currentDrawGeometry = drawGeometryLabel as Type;
 
     this._updateInteractions();
@@ -3822,7 +3834,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  _updateInteractions = () => {
+  _removeInteractions = () => {
     if (this._draw) {
       this._removeDrawInteraction();
     }
@@ -3837,6 +3849,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (this._snap) {
       this._removeSnapInteraction();
+    }
+  };
+
+  _updateInteractions = () => {
+    this._removeInteractions();
+
+    if (!this._currentDrawGeometry) {
+      return;
     }
 
     this._draw = new Draw({
@@ -4114,7 +4134,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentDrawSource: IJGISSource | undefined;
   private _currentVectorSource: VectorSource | undefined;
   private _currentDrawSourceID: string | undefined;
-  private _currentDrawGeometry: Type;
+  private _currentDrawGeometry: Type | undefined;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
