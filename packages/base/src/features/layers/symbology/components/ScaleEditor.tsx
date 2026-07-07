@@ -520,6 +520,17 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     }
   };
 
+  const DOCS_LINK = (
+    <a
+      href="https://vega.github.io/vega/docs/expressions/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {' '}
+      Full Vega Expression Docs
+    </a>
+  );
+
   const infoTipContent =
     language === 'python'
       ? {
@@ -535,16 +546,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               are also available
             </>
           ),
-          docsLink: (
-            <a
-              href="https://vega.github.io/vega/docs/expressions/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {' '}
-              Full Vega Expression Docs
-            </a>
-          ),
+          docsLink: DOCS_LINK,
         }
       : {
           text: `Write a Vega expression; ${VEGA_PLACEHOLDER}`,
@@ -554,16 +556,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
             </>
           ),
           extraHint: null,
-          docsLink: (
-            <a
-              href="https://vega.github.io/vega/docs/expressions/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {' '}
-              Full Vega Expression Docs
-            </a>
-          ),
+          docsLink: DOCS_LINK,
         };
 
   return (
