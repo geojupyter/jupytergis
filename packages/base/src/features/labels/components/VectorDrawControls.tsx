@@ -2,6 +2,8 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import { DrawDefaultAttributesDialog } from '@/src/features/labels/components/DrawDefaultAttributesDialog';
+import { Button } from '@/src/shared/components/Button';
+import { ButtonGroup } from '@/src/shared/components/ButtonGroup';
 
 const DRAW_GEOMETRIES = [
   { value: 'Point', label: 'Point' },
@@ -24,23 +26,19 @@ export function VectorDrawControls({
 }: IVectorDrawControlsProps): JSX.Element {
   return (
     <div className="jgis-vector-draw-controls">
-      <div
-        className="jgis-geometry-segmented"
-        role="group"
-        aria-label="Geometry type"
-      >
+      <ButtonGroup aria-label="Geometry type">
         {DRAW_GEOMETRIES.map(({ value, label }) => (
-          <button
+          <Button
             key={value}
             type="button"
-            className="jgis-geometry-segment"
-            data-active={drawGeometryLabel === value}
+            size="sm"
+            variant={drawGeometryLabel === value ? 'secondary' : 'outline'}
             onClick={() => onDrawGeometryTypeChange(value)}
           >
             {label}
-          </button>
+          </Button>
         ))}
-      </div>
+      </ButtonGroup>
       <DrawDefaultAttributesDialog model={model} drawLayerId={drawLayerId} />
     </div>
   );
