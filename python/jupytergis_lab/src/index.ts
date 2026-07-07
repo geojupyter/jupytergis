@@ -86,6 +86,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
+      command: CommandIDs.editLayerProperties,
+      selector: GIS_LAYER_ITEM,
+      rank: 0,
+    });
+
+    app.contextMenu.addItem({
       command: CommandIDs.symbology,
       selector: GIS_LAYER_ITEM,
       rank: 1,
