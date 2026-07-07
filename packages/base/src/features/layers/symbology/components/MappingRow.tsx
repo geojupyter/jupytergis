@@ -353,14 +353,17 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
         ? {
             type: 'fieldEquals',
             field: p.field,
-            value: isNaN(Number(p.fieldValue))
-              ? p.fieldValue
-              : Number(p.fieldValue),
+            value:
+              p.fieldValue === '' || isNaN(Number(p.fieldValue))
+                ? p.fieldValue
+                : Number(p.fieldValue),
           }
         : null;
     case 'fieldCompare': {
       const num = Number(p.fieldValue);
-      return p.field && !isNaN(num)
+      // Avoid committing predicates that are only "valid" due to JS numeric coercion
+      // (e.g. Number('') === 0), which would desync the model from what's shown.
+      return p.field && p.fieldValue !== '' && !isNaN(num)
         ? { type: 'fieldCompare', field: p.field, op: p.compareOp, value: num }
         : null;
     }
