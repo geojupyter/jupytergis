@@ -150,19 +150,12 @@ export function DrawDefaultAttributesDialog({
   return (
     <>
       <DialogHeader className="jgis-draw-default-attributes-header">
-        <div className="jgis-draw-default-attributes-header-main">
-          <DialogTitle>Set up custom attributes</DialogTitle>
-          <DialogDescription className="jgis-sr-only">
-            Configure default attributes applied to newly drawn features.
-          </DialogDescription>
-        </div>
-        <DrawDefaultAttributesPresetsMenu
-          presets={presets}
-          presetNames={presetNames}
-          onLoadPreset={loadPreset}
-          portalContainer={portalContainer}
-          disabled={controlsDisabled}
-        />
+        <DialogTitle className="jgis-draw-default-attributes-header-main">
+          Set up custom attributes
+        </DialogTitle>
+        <DialogDescription className="jgis-sr-only">
+          Configure default attributes applied to newly drawn features.
+        </DialogDescription>
       </DialogHeader>
 
       <div className="jgis-draw-default-attributes-dialog">
@@ -274,31 +267,43 @@ export function DrawDefaultAttributesDialog({
             </Button>
           </div>
         ) : null}
-        <div className="jgis-draw-default-attributes-actions">
-          <Button
-            className="jgis-property-add-button"
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={startAdd}
-            disabled={!canAdd}
-          >
-            <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
-            Add Property
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setSavingPreset(true)}
-            disabled={!canSavePreset}
-          >
-            <BookmarkPlus
-              data-icon="inline-start"
-              className="jgis-inline-icon"
-            />
-            Save as preset
-          </Button>
+        <div className="jgis-draw-default-attributes-row">
+          <div className="jgis-draw-default-attributes-actions">
+            <Button
+              className="jgis-property-add-button"
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={startAdd}
+              disabled={!canAdd}
+            >
+              <CirclePlus
+                data-icon="inline-start"
+                className="jgis-inline-icon"
+              />
+              Add Property
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSavingPreset(true)}
+              disabled={!canSavePreset}
+            >
+              <BookmarkPlus
+                data-icon="inline-start"
+                className="jgis-inline-icon"
+              />
+              Save as preset
+            </Button>
+          </div>
+          <DrawDefaultAttributesPresetsMenu
+            presets={presets}
+            presetNames={presetNames}
+            onLoadPreset={loadPreset}
+            portalContainer={portalContainer}
+            disabled={controlsDisabled}
+          />
         </div>
       </div>
     </>

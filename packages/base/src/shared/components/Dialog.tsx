@@ -3,6 +3,7 @@ import { Dialog as DialogPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 import { cn } from './utils';
+import { Button } from './Button';
 
 function Dialog({
   ...props
@@ -96,12 +97,15 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="jgis-dialog-close"
-          >
-            <XIcon />
-            <span className="jgis-sr-only">Close</span>
+          <DialogPrimitive.Close data-slot="dialog-close" asChild>
+            <Button
+              className="jgis-dialog-close"
+              variant="ghost"
+              size="icon-sm"
+            >
+              <XIcon />
+              <span className="jgis-sr-only">Close</span>
+            </Button>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>

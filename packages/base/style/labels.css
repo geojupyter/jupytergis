@@ -37,12 +37,19 @@
 }
 
 .jgis-draw-default-attributes-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   min-width: 0;
+}
+
+.jgis-draw-default-attributes-row {
+  display: flex;
+  justify-content: space-between;
 }
 
 .jgis-draw-default-attributes-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
