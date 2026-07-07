@@ -326,19 +326,51 @@ body[data-notebook='specta']
   align-items: flex-end;
 }
 
-.jgis-geometry-type-selector-overlay {
+.jgis-vector-draw-controls {
   position: absolute;
   bottom: 20px;
   right: 0;
   display: flex;
-  flex-direction: column;
-  padding: 8px;
+  align-items: center;
+  padding: 6px;
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   gap: 8px;
   z-index: 9999;
+}
+
+.jgis-geometry-segmented {
+  display: inline-flex;
+  padding: 2px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  gap: 2px;
+}
+
+.jgis-geometry-segment {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.jgis-geometry-segment:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.jgis-geometry-segment[data-active='true'] {
+  background-color: white;
+  color: black;
 }
 
 .jGIS-Mainview-Container.jgis-narrow .jgis-panels-wrapper {

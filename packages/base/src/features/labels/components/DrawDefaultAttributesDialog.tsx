@@ -5,6 +5,7 @@ import {
   CirclePlus,
   Pencil,
   Save,
+  SlidersHorizontal,
   Trash2,
 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
@@ -95,7 +96,13 @@ export function DrawDefaultAttributesDialog({
   return (
     <Dialog modal={false} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button disabled={!drawLayerId}>Edit</Button>
+        <Button variant="outline" size="sm" disabled={!drawLayerId}>
+          <SlidersHorizontal
+            data-icon="inline-start"
+            className="jgis-inline-icon"
+          />
+          Edit
+        </Button>
       </DialogTrigger>
       <DialogContent preventOutsideDismiss>
         {open && drawLayerId ? (
