@@ -535,7 +535,16 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               are also available
             </>
           ),
-          docsLink: null,
+          docsLink: (
+            <a
+              href="https://vega.github.io/vega/docs/expressions/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {' '}
+              Full Vega Expression Docs
+            </a>
+          ),
         }
       : {
           text: `Write a Vega expression; ${VEGA_PLACEHOLDER}`,
