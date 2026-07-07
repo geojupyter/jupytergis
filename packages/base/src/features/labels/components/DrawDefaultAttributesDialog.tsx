@@ -83,35 +83,26 @@ function DrawAttributeDraftRow({
 
 interface IDrawDefaultAttributesDialogProps {
   model: IJupyterGISModel;
-  portalContainerRef: React.RefObject<HTMLElement | null>;
   drawLayerId?: string;
 }
 
 export function DrawDefaultAttributesDialog({
   model,
-  portalContainerRef,
   drawLayerId,
 }: IDrawDefaultAttributesDialogProps): JSX.Element {
   const [open, setOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
     <Dialog modal={false} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button disabled={!drawLayerId}>Edit</Button>
       </DialogTrigger>
-      <DialogContent
-        container={portalContainerRef.current}
-        preventOutsideDismiss
-      >
+      <DialogContent preventOutsideDismiss>
         {open && drawLayerId ? (
-          <div ref={contentRef}>
-            <DrawDefaultAttributesDialogContent
-              model={model}
-              layerId={drawLayerId}
-              portalContainerRef={contentRef}
-            />
-          </div>
+          <DrawDefaultAttributesDialogContent
+            model={model}
+            layerId={drawLayerId}
+          />
         ) : null}
       </DialogContent>
     </Dialog>
@@ -121,14 +112,13 @@ export function DrawDefaultAttributesDialog({
 interface IDrawDefaultAttributesDialogContentProps {
   model: IJupyterGISModel;
   layerId: string;
-  portalContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function DrawDefaultAttributesDialogContent({
   model,
   layerId,
-  portalContainerRef,
 }: IDrawDefaultAttributesDialogContentProps): JSX.Element {
+  const contentRef = useRef<HTMLDivElement>(null);
   const {
     attributes,
     presets,
@@ -198,7 +188,7 @@ function DrawDefaultAttributesDialogContent({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="jgis-draw-default-attributes-dialog">
+      <div className="jgis-draw-default-attributes-dialog" ref={contentRef}>
         <div className="jgis-property-rows jgis-draw-default-attributes-list">
           {attributes.length === 0 && draftMode === null ? (
             <p className="jgis-draw-default-attributes-empty">
@@ -341,7 +331,7 @@ function DrawDefaultAttributesDialogContent({
             presets={presets}
             presetNames={presetNames}
             onLoadPreset={loadPreset}
-            portalContainerRef={portalContainerRef}
+            portalContainerRef={contentRef}
             disabled={controlsDisabled}
           />
         </div>

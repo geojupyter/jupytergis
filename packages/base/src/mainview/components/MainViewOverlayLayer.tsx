@@ -11,7 +11,6 @@ export interface IMainViewOverlayLayerProps {
   onDrawGeometryTypeChange: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void;
-  portalContainerRef: React.RefObject<HTMLElement | null>;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
@@ -22,7 +21,6 @@ export function MainViewOverlayLayer({
   editingVectorLayer,
   drawGeometryLabel,
   onDrawGeometryTypeChange,
-  portalContainerRef,
   model,
   drawLayerId,
 }: IMainViewOverlayLayerProps): JSX.Element {
@@ -34,7 +32,6 @@ export function MainViewOverlayLayer({
         <VectorDrawControls
           drawGeometryLabel={drawGeometryLabel}
           onDrawGeometryTypeChange={onDrawGeometryTypeChange}
-          portalContainerRef={portalContainerRef}
           model={model}
           drawLayerId={drawLayerId}
         />
