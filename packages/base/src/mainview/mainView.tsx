@@ -3731,10 +3731,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _handleDrawGeometryTypeChange = (
     /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
-    event: React.ChangeEvent<HTMLSelectElement>,
+    drawGeometryLabel: string,
   ) => {
-    const drawGeometryLabel = event.target.value;
-
     this._currentDrawGeometry = drawGeometryLabel as Type;
 
     this._updateInteractions();

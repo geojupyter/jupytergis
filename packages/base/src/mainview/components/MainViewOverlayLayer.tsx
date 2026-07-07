@@ -8,9 +8,7 @@ export interface IMainViewOverlayLayerProps {
   featureFloaters: React.ReactNode;
   editingVectorLayer: boolean;
   drawGeometryLabel: string | undefined;
-  onDrawGeometryTypeChange: (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => void;
+  onDrawGeometryTypeChange: (geometryType: string) => void;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
