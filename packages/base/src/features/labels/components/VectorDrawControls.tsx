@@ -14,7 +14,6 @@ export interface IVectorDrawControlsProps {
   onDrawGeometryTypeChange: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void;
-  portalContainerRef: React.RefObject<HTMLElement | null>;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
@@ -22,7 +21,6 @@ export interface IVectorDrawControlsProps {
 export function VectorDrawControls({
   drawGeometryLabel,
   onDrawGeometryTypeChange,
-  portalContainerRef,
   model,
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
@@ -43,11 +41,7 @@ export function VectorDrawControls({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <DrawDefaultAttributesDialog
-        model={model}
-        portalContainerRef={portalContainerRef}
-        drawLayerId={drawLayerId}
-      />
+      <DrawDefaultAttributesDialog model={model} drawLayerId={drawLayerId} />
     </div>
   );
 }

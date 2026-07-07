@@ -4020,7 +4020,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           drawGeometryLabel={drawGeometryLabel}
           drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
-          portalContainerRef={this.props.containerRef}
           model={this._model}
         />
 
