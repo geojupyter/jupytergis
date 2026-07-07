@@ -1,13 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useState } from 'react';
+import React from 'react';
 
 import { DrawDefaultAttributesDialog } from '@/src/features/labels/components/DrawDefaultAttributesDialog';
-import { Button } from '@/src/shared/components/Button';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/src/shared/components/Dialog';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -32,8 +26,6 @@ export function VectorDrawControls({
   model,
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
-  const [attributesDialogOpen, setAttributesDialogOpen] = useState(false);
-
   return (
     <div className="jgis-geometry-type-selector-overlay">
       <NativeSelect
@@ -51,27 +43,11 @@ export function VectorDrawControls({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <Dialog
-        modal={false}
-        open={attributesDialogOpen}
-        onOpenChange={setAttributesDialogOpen}
-      >
-        <DialogTrigger asChild>
-          <Button disabled={!drawLayerId}>Edit</Button>
-        </DialogTrigger>
-        <DialogContent
-          container={portalContainerRef.current}
-          preventOutsideDismiss
-        >
-          {attributesDialogOpen && drawLayerId ? (
-            <DrawDefaultAttributesDialog
-              model={model}
-              layerId={drawLayerId}
-              portalContainer={portalContainerRef.current}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <DrawDefaultAttributesDialog
+        model={model}
+        portalContainerRef={portalContainerRef}
+        drawLayerId={drawLayerId}
+      />
     </div>
   );
 }
