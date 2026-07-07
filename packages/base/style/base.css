@@ -43,6 +43,8 @@
 @import url('./shared/combobox.css');
 @import url('./shared/input.css');
 @import url('./shared/nativeSelect.css');
+@import url('./shared/separator.css');
+@import url('./shared/buttonGroup.css');
 
 .jgis-underline-indicator {
   position: relative;
@@ -339,38 +341,6 @@ body[data-notebook='specta']
   font-size: 12px;
   gap: 8px;
   z-index: 9999;
-}
-
-.jgis-geometry-segmented {
-  display: inline-flex;
-  padding: 2px;
-  background-color: rgba(255, 255, 255, 0.12);
-  border-radius: 5px;
-  gap: 2px;
-}
-
-.jgis-geometry-segment {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: inherit;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    background-color 0.12s ease,
-    color 0.12s ease;
-}
-
-.jgis-geometry-segment:hover {
-  background-color: rgba(255, 255, 255, 0.16);
-}
-
-.jgis-geometry-segment[data-active='true'] {
-  background-color: white;
-  color: black;
 }
 
 .jGIS-Mainview-Container.jgis-narrow .jgis-panels-wrapper {
