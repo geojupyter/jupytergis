@@ -520,6 +520,43 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     }
   };
 
+  const infoTipContent =
+    language === 'python'
+      ? {
+          text: `Write a Python expression; ${PYTHON_PLACEHOLDER}`,
+          syntaxHint: (
+            <>
+              Use Python conditional syntax: <code>a if condition else b</code>
+            </>
+          ),
+          extraHint: (
+            <>
+              Transpiled to Vega expressions, so Vega functions and constants
+              are also available
+            </>
+          ),
+          docsLink: null,
+        }
+      : {
+          text: `Write a Vega expression; ${VEGA_PLACEHOLDER}`,
+          syntaxHint: (
+            <>
+              Use ternary logic: <code>condition ? a : b</code>
+            </>
+          ),
+          extraHint: null,
+          docsLink: (
+            <a
+              href="https://vega.github.io/vega/docs/expressions/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {' '}
+              Full Vega Expression Docs
+            </a>
+          ),
+        };
+
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
@@ -556,37 +593,16 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               </button>
             ))}
           </span>
-          <InfoTip
-            text={
-              language === 'python'
-                ? `Write a Python expression; ${PYTHON_PLACEHOLDER}`
-                : `Write a Vega expression; ${VEGA_PLACEHOLDER}`
-            }
-          >
+          <InfoTip text={infoTipContent.text}>
             <ul style={{ paddingLeft: 16, margin: 0 }}>
               <li>
                 Access fields with <code>datum.fieldName</code>
               </li>
-              {language === 'python' ? (
-                <li>
-                  Use Python conditional syntax:{' '}
-                  <code>a if condition else b</code>
-                </li>
-              ) : (
-                <li>
-                  Use ternary logic: <code>condition ? a : b</code>
-                </li>
-              )}
+              <li>{infoTipContent.syntaxHint}</li>
+              {infoTipContent.extraHint && <li>{infoTipContent.extraHint}</li>}
+              <li>Warning: This is a feature preview.</li>
             </ul>
-            {language === 'vega' && (
-              <a
-                href="https://vega.github.io/vega/docs/expressions/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Full Vega Expression Docs
-              </a>
-            )}
+            {infoTipContent.docsLink}
           </InfoTip>
         </label>
         <div
