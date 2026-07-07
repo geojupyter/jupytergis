@@ -15,7 +15,7 @@ interface IDrawDefaultAttributesPresetsMenuProps {
   presets: IDrawDefaultAttributePresets;
   presetNames: string[];
   onLoadPreset: (name: string) => void;
-  portalContainer?: HTMLElement | null;
+  portalContainerRef: React.RefObject<HTMLElement | null>;
   disabled?: boolean;
 }
 
@@ -23,7 +23,7 @@ export function DrawDefaultAttributesPresetsMenu({
   presets,
   presetNames,
   onLoadPreset,
-  portalContainer,
+  portalContainerRef,
   disabled = false,
 }: IDrawDefaultAttributesPresetsMenuProps): JSX.Element | null {
   if (presetNames.length === 0) {
@@ -41,7 +41,7 @@ export function DrawDefaultAttributesPresetsMenu({
       <DropdownMenuContent
         align="end"
         className="jgis-draw-default-attributes-presets-menu"
-        // portalContainer={portalContainer}
+        portalContainer={portalContainerRef.current}
       >
         {presetNames.map(name => {
           const attributeCount = presets[name]?.length ?? 0;

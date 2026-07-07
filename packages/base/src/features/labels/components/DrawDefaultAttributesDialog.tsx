@@ -7,16 +7,19 @@ import {
   Save,
   Trash2,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { validatePresetName } from '@/src/features/labels/drawDefaultAttributes';
 import { DrawDefaultAttributesPresetsMenu } from '@/src/features/labels/components/DrawDefaultAttributesPresetsMenu';
 import { useDrawDefaultAttributes } from '@/src/features/labels/hooks/useDrawDefaultAttributes';
 import { Button } from '@/src/shared/components/Button';
 import {
+  Dialog,
+  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/src/shared/components/Dialog';
 import { Input } from '@/src/shared/components/Input';
 
@@ -80,15 +83,52 @@ function DrawAttributeDraftRow({
 
 interface IDrawDefaultAttributesDialogProps {
   model: IJupyterGISModel;
-  layerId: string;
-  portalContainer?: HTMLElement | null;
+  portalContainerRef: React.RefObject<HTMLElement | null>;
+  drawLayerId?: string;
 }
 
 export function DrawDefaultAttributesDialog({
   model,
-  layerId,
-  portalContainer,
+  portalContainerRef,
+  drawLayerId,
 }: IDrawDefaultAttributesDialogProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Dialog modal={false} open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button disabled={!drawLayerId}>Edit</Button>
+      </DialogTrigger>
+      <DialogContent
+        container={portalContainerRef.current}
+        preventOutsideDismiss
+      >
+        {open && drawLayerId ? (
+          <div ref={contentRef}>
+            <DrawDefaultAttributesDialogContent
+              model={model}
+              layerId={drawLayerId}
+              portalContainerRef={contentRef}
+            />
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface IDrawDefaultAttributesDialogContentProps {
+  model: IJupyterGISModel;
+  layerId: string;
+  portalContainerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function DrawDefaultAttributesDialogContent({
+  model,
+  layerId,
+  portalContainerRef,
+}: IDrawDefaultAttributesDialogContentProps): JSX.Element {
   const {
     attributes,
     presets,
@@ -301,7 +341,7 @@ export function DrawDefaultAttributesDialog({
             presets={presets}
             presetNames={presetNames}
             onLoadPreset={loadPreset}
-            portalContainer={portalContainer}
+            portalContainerRef={portalContainerRef}
             disabled={controlsDisabled}
           />
         </div>
