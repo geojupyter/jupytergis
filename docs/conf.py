@@ -42,6 +42,7 @@ extensions = [
     "sphinx_inline_tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
+    "sphinx_copybutton",
     "myst_parser",
 ]
 
