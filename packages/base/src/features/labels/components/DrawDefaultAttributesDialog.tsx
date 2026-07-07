@@ -96,7 +96,7 @@ export function DrawDefaultAttributesDialog({
   return (
     <Dialog modal={false} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={!drawLayerId}>
+        <Button disabled={!drawLayerId}>
           <SlidersHorizontal
             data-icon="inline-start"
             className="jgis-inline-icon"
