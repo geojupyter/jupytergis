@@ -62,6 +62,7 @@ function SegmentEditor({
   showSegmentAnimation,
   onContentModeChange,
   onContentChange,
+  onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
 }: {
@@ -75,6 +76,7 @@ function SegmentEditor({
   showSegmentAnimation: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
+  onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
 }): JSX.Element {
@@ -100,7 +102,7 @@ function SegmentEditor({
           <TitleInput
             value={displayTitle}
             onChange={title => {
-              onContentChange({ title });
+              onLayerNameChange(title);
             }}
           />
         </div>
@@ -270,6 +272,7 @@ export function StoryEditorDialogBody({
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
+    updateSegmentLayerName,
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
@@ -312,6 +315,9 @@ export function StoryEditorDialogBody({
               }}
               onContentChange={patch => {
                 updateSegmentContent(selectedSegment.id, patch);
+              }}
+              onLayerNameChange={name => {
+                updateSegmentLayerName(selectedSegment.id, name);
               }}
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);

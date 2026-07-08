@@ -11,6 +11,7 @@ import {
   type SegmentContentPatch,
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
+  updateSegmentLayerName as applySegmentLayerName,
 } from '@/src/features/story/utils/storySegmentContent';
 import { disposeSegmentMarkdown } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
@@ -36,6 +37,7 @@ interface IUseStoryEditorSegmentListResult {
     mode: StorySegmentDisplayMode,
   ) => void;
   updateSegmentContent: (segmentId: string, patch: SegmentContentPatch) => void;
+  updateSegmentLayerName: (segmentId: string, name: string) => void;
   updateSegmentTransition: (
     segmentId: string,
     patch: SegmentTransitionPatch,
@@ -222,6 +224,13 @@ export function useStoryEditorSegmentList(
     [model],
   );
 
+  const updateSegmentLayerName = useCallback(
+    (segmentId: string, name: string) => {
+      applySegmentLayerName(model, segmentId, name);
+    },
+    [model],
+  );
+
   const updateSegmentTransition = useCallback(
     (segmentId: string, patch: SegmentTransitionPatch) => {
       applySegmentTransition(model, segmentId, patch);
@@ -243,6 +252,7 @@ export function useStoryEditorSegmentList(
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
+    updateSegmentLayerName,
     updateSegmentTransition,
   };
 }
