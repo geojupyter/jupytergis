@@ -11,6 +11,7 @@ import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLa
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
+import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
@@ -98,7 +99,12 @@ function SegmentEditor({
           <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
-          <h3 className="jgis-story-editor-segment-title">{displayTitle}</h3>
+          <TitleInput
+            value={displayTitle}
+            onChange={title => {
+              onContentChange({ title });
+            }}
+          />
         </div>
         <Button
           type="button"
@@ -149,15 +155,6 @@ function SegmentEditor({
 
           <StoryEditorSection triggerText="Content" defaultOpen>
             <div className="jgis-story-editor-stack">
-              <label className="jgis-story-editor-field">
-                <span>Title</span>
-                <Input
-                  value={contentTitle}
-                  onChange={event => {
-                    onContentChange({ title: event.target.value });
-                  }}
-                />
-              </label>
               <SegmentImageUrlField
                 value={imageUrl}
                 onChange={nextImageUrl => {
