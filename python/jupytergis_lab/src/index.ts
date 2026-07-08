@@ -3,6 +3,8 @@ import {
   GlobalStateDbManager,
   addCommands,
   createDefaultLayerRegistry,
+  rasterSubMenu,
+  vectorSubMenu,
 } from '@jupytergis/base';
 import {
   IJGISFormSchemaRegistry,
@@ -25,6 +27,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
 import { notebookRendererPlugin } from './notebookrenderer';
+import { Menu } from '@lumino/widgets';
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
@@ -58,6 +61,26 @@ const plugin: JupyterFrontEndPlugin<void> = {
         tracker.currentWidget === app.shell.currentWidget
       );
     };
+
+    const newLayerSubMenu = new Menu({ commands: app.commands });
+    newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
+    newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
+
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: rasterSubMenu(app.commands),
+    });
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: vectorSubMenu(app.commands),
+    });
+
+    app.contextMenu.addItem({
+      type: 'submenu',
+      selector: '.jp-gis-layerPanel',
+      rank: 0,
+      submenu: newLayerSubMenu,
+    });
 
     createDefaultLayerRegistry(layerBrowserRegistry);
     const stateDbManager = GlobalStateDbManager.getInstance();
