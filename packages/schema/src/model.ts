@@ -20,10 +20,7 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
-import {
-  IStorySegmentLayer,
-  LayerOverride,
-} from './_interface/project/layers/storySegmentLayer';
+import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
   AWARENESS_FIELD_KEYS,
@@ -916,49 +913,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return viewState?.layerName
       ? `${viewState.layerName} - ${basename}`
       : basename;
-  }
-
-  /**
-   * Adds a story segment from a layer
-   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
-   */
-  createStorySegmentFromLayer(layerId: string) {
-    const layer = this.getLayer(layerId);
-    if (!layer) {
-      return null;
-    }
-
-    const viewState = this.getViewState()[layerId];
-    if (!viewState) {
-      return null;
-    }
-
-    const segment = this.addStorySegment(viewState);
-    if (!segment) {
-      return null;
-    }
-
-    const segmentLayer = this.getLayer(segment.storySegmentId);
-    if (!segmentLayer) {
-      return null;
-    }
-
-    const segmentParams = segmentLayer.parameters as IStorySegmentLayer;
-
-    const layerParams = layer.parameters;
-
-    const override: LayerOverride[number] = {
-      targetLayer: layerId,
-      visible: layer.visible,
-      color: layerParams?.color,
-      opacity: layerParams?.opacity,
-      symbologyState: layerParams?.symbologyState,
-    };
-
-    segmentParams.layerOverride = [override];
-    segmentLayer.parameters = segmentParams;
-
-    return segment;
   }
 
   get segmentAdded(): ISignal<this, IStorySegmentRef> {
