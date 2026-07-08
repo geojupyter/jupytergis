@@ -18,8 +18,8 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "jupytergis_core==0.16.0b1",
-  "jupytergis_lab==0.16.0b1",
+  "jupytergis_core==0.16.0b2",
+  "jupytergis_lab==0.16.0b2",
   "my-jupyter-shared-drive>=0.2.2",
 ]
 dynamic = ["version"]

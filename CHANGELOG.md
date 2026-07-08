@@ -2,11 +2,42 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0b2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-beta.1...5992a11b1fee685e7678572789aa1726e2cbb6b8))
+
+### Enhancements made
+
+- Make grammar symbology "when" conditions apply live [#1587](https://github.com/geojupyter/jupytergis/pull/1587) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Fix saving of the story map in Lite [#1602](https://github.com/geojupyter/jupytergis/pull/1602) ([@martinRenou](https://github.com/martinRenou))
+- Allow title editing for markdown segments [#1600](https://github.com/geojupyter/jupytergis/pull/1600) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Fix context menus when JupyterGIS view is embedded in the Notebook [#1595](https://github.com/geojupyter/jupytergis/pull/1595) ([@martinRenou](https://github.com/martinRenou), [@arjxn-py](https://github.com/arjxn-py))
+
+### Documentation improvements
+
+- Make the OpenEO notebook example not complain [#1597](https://github.com/geojupyter/jupytergis/pull/1597) ([@martinRenou](https://github.com/martinRenou), [@arjxn-py](https://github.com/arjxn-py))
+
+### Other merged PRs
+
+- chore(deps): bump shell-quote from 1.8.3 to 1.9.0 [#1588](https://github.com/geojupyter/jupytergis/pull/1588) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-07-07&to=2026-07-08&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-07-07..2026-07-08&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-07-07..2026-07-08&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-07-07..2026-07-08&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-07-07..2026-07-08&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0b1
 
 No merged PRs
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0b0
 

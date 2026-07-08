@@ -1450,7 +1450,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupytergis/base@^0.16.0-beta.1, @jupytergis/base@workspace:packages/base":
+"@jupytergis/base@^0.16.0-beta.2, @jupytergis/base@workspace:packages/base":
   version: 0.0.0-use.local
   resolution: "@jupytergis/base@workspace:packages/base"
   dependencies:
@@ -1461,7 +1461,7 @@ __metadata:
     "@jupyter/collaboration": ^4
     "@jupyter/react-components": ^0.16.6
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0 || ^4.0.0
-    "@jupytergis/schema": ^0.16.0-beta.1
+    "@jupytergis/schema": ^0.16.0-beta.2
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/codeeditor": ^4.6
@@ -1542,13 +1542,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/jupytergis-core@^0.16.0-beta.1, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
+"@jupytergis/jupytergis-core@^0.16.0-beta.2, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
     "@jupyter/collaborative-drive": ^4.1.2 || ^5.0.0-alpha.0
-    "@jupytergis/base": ^0.16.0-beta.1
-    "@jupytergis/schema": ^0.16.0-beta.1
+    "@jupytergis/base": ^0.16.0-beta.2
+    "@jupytergis/schema": ^0.16.0-beta.2
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/builder": ^4.5
@@ -1590,8 +1590,8 @@ __metadata:
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
     "@jupyter/collaborative-drive": ^4.1.2 || ^5.0.0-alpha.0
-    "@jupytergis/base": ^0.16.0-beta.1
-    "@jupytergis/schema": ^0.16.0-beta.1
+    "@jupytergis/base": ^0.16.0-beta.2
+    "@jupytergis/schema": ^0.16.0-beta.2
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/builder": ^4.5
@@ -1622,9 +1622,9 @@ __metadata:
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
     "@jupyter/collaborative-drive": ^4.1.2 || ^5.0.0-alpha.0
-    "@jupytergis/base": ^0.16.0-beta.1
-    "@jupytergis/jupytergis-core": ^0.16.0-beta.1
-    "@jupytergis/schema": ^0.16.0-beta.1
+    "@jupytergis/base": ^0.16.0-beta.2
+    "@jupytergis/jupytergis-core": ^0.16.0-beta.2
+    "@jupytergis/schema": ^0.16.0-beta.2
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/builder": ^4.5
@@ -1676,7 +1676,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/schema@^0.16.0-beta.1, @jupytergis/schema@workspace:packages/schema":
+"@jupytergis/schema@^0.16.0-beta.2, @jupytergis/schema@workspace:packages/schema":
   version: 0.0.0-use.local
   resolution: "@jupytergis/schema@workspace:packages/schema"
   dependencies:
