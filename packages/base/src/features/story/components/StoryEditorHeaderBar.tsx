@@ -1,8 +1,9 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useState, type RefObject } from 'react';
+import React, { useState, type RefObject } from 'react';
 
+import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
@@ -32,54 +33,6 @@ export interface IStoryEditorHeaderBarProps {
   segmentCount: number;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
   portalContainerRef: RefObject<HTMLElement | null>;
-}
-
-function StoryTitleInput({
-  value,
-  onChange,
-  disabled = false,
-}: {
-  value: string;
-  onChange: (title: string) => void;
-  disabled?: boolean;
-}): JSX.Element {
-  const [draft, setDraft] = useState(value);
-
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  return (
-    <Input
-      className="jgis-story-editor-toolbar-title"
-      value={disabled ? '' : draft}
-      placeholder={disabled ? 'No story' : 'Untitled story'}
-      disabled={disabled}
-      aria-label="Story title"
-      onChange={event => {
-        setDraft(event.target.value);
-      }}
-      onKeyDown={event => {
-        if (disabled) {
-          return;
-        }
-
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          event.currentTarget.blur();
-        } else if (event.key === 'Escape') {
-          event.preventDefault();
-          setDraft(value);
-          event.currentTarget.blur();
-        }
-      }}
-      onBlur={() => {
-        if (!disabled && draft !== value) {
-          onChange(draft);
-        }
-      }}
-    />
-  );
 }
 
 function StorySettingsPopover({
@@ -186,7 +139,7 @@ export function StoryEditorHeaderBar({
 
   return (
     <div className="jgis-story-editor-context-bar">
-      <StoryTitleInput
+      <TitleInput
         value={story?.title ?? ''}
         disabled={!story}
         onChange={title => {
