@@ -412,7 +412,8 @@ export class JupyterGISModel implements IJupyterGISModel {
         pitch: 0,
         projection: DEFAULT_PROJECTION,
       };
-      this.sharedModel.metadata = jsonData.metadata ?? { annotations: {} };
+      this.sharedModel.annotations = jsonData.annotations ?? {};
+      this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
   }
@@ -445,6 +446,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options,
       stories: this.sharedModel.stories,
+      annotations: this.sharedModel.annotations,
       metadata: this.sharedModel.metadata,
     };
   }

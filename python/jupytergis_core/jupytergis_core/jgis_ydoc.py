@@ -19,8 +19,8 @@ class YJGIS(YBaseDoc):
         self._ydoc["viewState"] = self._yviewState = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
+        self._ydoc["annotations"] = self._yannotations = Map()
         self._ydoc["metadata"] = self._ymetadata = Map()
-        self._ymetadata["annotations"] = self._yannotations = Map()
 
     @property
     def version(self) -> str:
@@ -36,6 +36,7 @@ class YJGIS(YBaseDoc):
         stories = self._ystories.to_py()
         viewState = self._yviewState.to_py()
         options = self._yoptions.to_py()
+        annotations = self._yannotations.to_py()
         meta = self._ymetadata.to_py()
         layers_tree = self._ylayerTree.to_py()
         return json.dumps(
@@ -47,6 +48,7 @@ class YJGIS(YBaseDoc):
                 viewState=viewState,
                 options=options,
                 layerTree=layers_tree,
+                annotations=annotations,
                 metadata=meta,
             ),
             sort_keys=True,
@@ -79,10 +81,13 @@ class YJGIS(YBaseDoc):
             self._ylayerTree.clear()
             self._ylayerTree.extend(valueDict.get("layerTree", []))
 
-            metadata = valueDict.get("metadata", {}) or {}
-            annotations_data = metadata.get("annotations", {})
+            annotations_data = valueDict.get("annotations", {}) or {}
             self._yannotations.clear()
             self._yannotations.update(annotations_data)
+
+            metadata = valueDict.get("metadata", {}) or {}
+            self._ymetadata.clear()
+            self._ymetadata.update(metadata)
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
@@ -106,6 +111,9 @@ class YJGIS(YBaseDoc):
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree"),
+        )
+        self._subscriptions[self._yannotations] = self._yannotations.observe_deep(
+            partial(callback, "annotations"),
         )
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
             partial(callback, "meta"),

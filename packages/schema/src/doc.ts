@@ -8,6 +8,7 @@ import {
   IJGISLayerItem,
   IJGISLayerTree,
   IJGISLayers,
+  IJGISAnnotations,
   IJGISMetadata,
   IJGISOptions,
   IJGISSource,
@@ -31,8 +32,6 @@ import { migrateDocument } from './migrations';
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
-const METADATA_ANNOTATIONS_KEY = 'annotations';
-
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
@@ -42,7 +41,8 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
   "viewState": {},
 	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}"},
 	"layerTree": [],
-	"metadata": {"annotations": {}}
+	"annotations": {},
+	"metadata": {}
 }`;
 
 export class JupyterGISDoc
@@ -58,8 +58,8 @@ export class JupyterGISDoc
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
     this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
+    this._annotations = this.ydoc.getMap('annotations');
     this._metadata = this.ydoc.getMap('metadata');
-    this._initAnnotationsMap();
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
@@ -76,6 +76,7 @@ export class JupyterGISDoc
     this._stories.observeDeep(this._storyMapsObserver.bind(this));
     this._viewState.observe(this._viewStateObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
+    this._annotations.observe(this._annotationsObserver);
     this._metadata.observe(this._metaObserver.bind(this));
   }
 
@@ -98,6 +99,7 @@ export class JupyterGISDoc
     const sources = this._sources.toJSON();
     const stories = this._stories.toJSON();
     const viewState = this._viewState.toJSON();
+    const annotations = this._annotations.toJSON();
     const metadata = this._metadata.toJSON();
 
     return JSON.stringify(
@@ -108,6 +110,7 @@ export class JupyterGISDoc
         stories,
         viewState,
         options,
+        annotations,
         metadata,
       },
       null,
@@ -158,10 +161,8 @@ export class JupyterGISDoc
         this._viewState.set(key, val),
       );
 
-      const metadata = (value['metadata'] ?? {
-        annotations: {},
-      }) as IJGISMetadata;
-      this.metadata = metadata;
+      this.annotations = (value['annotations'] ?? {}) as unknown as IJGISAnnotations;
+      this.metadata = (value['metadata'] ?? {}) as IJGISMetadata;
     });
   }
 
@@ -466,17 +467,28 @@ export class JupyterGISDoc
     return Array.from(this._annotations.keys());
   }
 
+  get annotations(): IJGISAnnotations {
+    return JSONExt.deepCopy(this._annotations.toJSON()) as IJGISAnnotations;
+  }
+
+  set annotations(annotations: IJGISAnnotations) {
+    this.transact(() => {
+      this._annotations.clear();
+      for (const [id, value] of Object.entries(annotations)) {
+        this._annotations.set(id, value);
+      }
+    });
+  }
+
   get metadata(): IJGISMetadata {
-    return {
-      annotations: JSONExt.deepCopy(this._annotations.toJSON()),
-    };
+    return JSONExt.deepCopy(this._metadata.toJSON()) as IJGISMetadata;
   }
 
   set metadata(metadata: IJGISMetadata) {
     this.transact(() => {
-      this._annotations.clear();
-      for (const [id, value] of Object.entries(metadata.annotations ?? {})) {
-        this._annotations.set(id, value);
+      this._metadata.clear();
+      for (const [key, value] of Object.entries(metadata ?? {})) {
+        this._metadata.set(key, value);
       }
     });
   }
@@ -618,12 +630,6 @@ export class JupyterGISDoc
         oldValue: event.oldValue,
         newValue: this._metadata.get(key),
       });
-      if (key === METADATA_ANNOTATIONS_KEY) {
-        const annotations = this._metadata.get(METADATA_ANNOTATIONS_KEY);
-        if (annotations instanceof Y.Map) {
-          this._attachAnnotationsMap(annotations);
-        }
-      }
     });
     this._metadataChanged.emit(changes);
   };
@@ -640,33 +646,6 @@ export class JupyterGISDoc
     this._annotationsChanged.emit(changes);
   };
 
-  private _initAnnotationsMap(): void {
-    const existing = this._metadata.get(METADATA_ANNOTATIONS_KEY);
-    if (existing instanceof Y.Map) {
-      this._attachAnnotationsMap(existing);
-      return;
-    }
-
-    const annotations = new Y.Map<any>();
-    this._metadata.set(METADATA_ANNOTATIONS_KEY, annotations);
-    this._attachAnnotationsMap(annotations);
-  }
-
-  private _attachAnnotationsMap(map: Y.Map<any>): void {
-    if (this._observedAnnotationsMap === map) {
-      this._annotations = map;
-      return;
-    }
-
-    if (this._observedAnnotationsMap) {
-      this._observedAnnotationsMap.unobserve(this._annotationsObserver);
-    }
-
-    this._annotations = map;
-    this._observedAnnotationsMap = map;
-    map.observe(this._annotationsObserver);
-  }
-
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
@@ -675,7 +654,6 @@ export class JupyterGISDoc
   private _options: Y.Map<any>;
   private _metadata: Y.Map<any>;
   private _annotations: Y.Map<any>;
-  private _observedAnnotationsMap?: Y.Map<any>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(

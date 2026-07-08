@@ -151,8 +151,8 @@ class GISDocument(CommWidget):
             },
         )
         self.ydoc["layerTree"] = self._layerTree = Array()
+        self.ydoc["annotations"] = self._annotations = Map()
         self.ydoc["metadata"] = self._metadata = Map()
-        self._metadata["annotations"] = Map()
 
         
 
@@ -1117,6 +1117,7 @@ class GISDocument(CommWidget):
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
+            "annotations": self._annotations.to_py(),
             "metadata": self._metadata.to_py(),
         }
 
