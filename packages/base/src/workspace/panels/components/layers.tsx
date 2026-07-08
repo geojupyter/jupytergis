@@ -130,7 +130,6 @@ function createContextMenu(
 
   gisContextMenu.opened.connect(() => buildGroupsMenu(gisContextMenu, model));
 
-
   gisContextMenu.addItem({
     command: CommandIDs.toggleDrawFeatures,
     selector: GIS_LAYER_ITEM,
