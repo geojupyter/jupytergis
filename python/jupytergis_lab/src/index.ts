@@ -25,9 +25,9 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { Menu } from '@lumino/widgets';
 
 import { notebookRendererPlugin } from './notebookrenderer';
-import { Menu } from '@lumino/widgets';
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
