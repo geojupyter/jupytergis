@@ -11,9 +11,9 @@ import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLa
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
-import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
+import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
@@ -35,7 +35,6 @@ import {
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
-import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -82,7 +81,6 @@ function SegmentEditor({
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
-  const contentTitle = segment.activeSlide?.content?.title ?? '';
   const imageUrl = segment.activeSlide?.content?.image ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);

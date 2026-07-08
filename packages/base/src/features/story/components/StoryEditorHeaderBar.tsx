@@ -3,9 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState, type RefObject } from 'react';
 
+import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
-import { TitleInput } from '@/src/features/story/components/TitleInput';
 import {
   formatGradientLabel,
   formatStoryTypeLabel,
