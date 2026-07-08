@@ -26,6 +26,9 @@
     "viewState": {
       "$ref": "#/definitions/jGISViewState"
     },
+    "annotations": {
+      "$ref": "#/definitions/jGISAnnotations"
+    },
     "metadata": {
       "$ref": "#/definitions/jGISMetadata"
     }
@@ -337,14 +340,7 @@
     "jGISAnnotation": {
       "title": "IJGISAnnotation",
       "type": "object",
-      "required": [
-        "label",
-        "position",
-        "zoom",
-        "contents",
-        "parent",
-        "open"
-      ],
+      "required": ["label", "position", "zoom", "contents", "parent", "open"],
       "additionalProperties": false,
       "properties": {
         "label": {
@@ -390,13 +386,8 @@
     "jGISMetadata": {
       "title": "IJGISMetadata",
       "type": "object",
-      "required": ["annotations"],
       "additionalProperties": false,
-      "properties": {
-        "annotations": {
-          "$ref": "#/definitions/jGISAnnotations"
-        }
-      }
+      "properties": {}
     }
   }
 }
