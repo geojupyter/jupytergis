@@ -126,29 +126,7 @@ export class JupyterGISDoc
     // Mirror the Python `YJGIS.set()` migration step so JupyterLite (which has
     // no Python ydoc) loads legacy documents with the same shape as Lab.
     value = migrateDocument(value as Record<string, any>) as JSONObject;
-    // #region agent log
-    fetch('http://127.0.0.1:7811/ingest/52eb7dde-f5b4-4ed7-a5fc-68a2facf9fb4', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '4a9d9b',
-      },
-      body: JSON.stringify({
-        sessionId: '4a9d9b',
-        location: 'doc.ts:setSource',
-        message: 'after migrate',
-        data: {
-          schemaVersion: value['schemaVersion'],
-          metadataKeys: Object.keys((value['metadata'] as object) ?? {}),
-          annotationCount: Object.keys(
-            (value['metadata'] as any)?.annotations ?? {},
-          ).length,
-        },
-        timestamp: Date.now(),
-        hypothesisId: 'H1',
-      }),
-    }).catch(() => {});
-    // #endregion
+
     this.transact(() => {
       const layers = value['layers'] ?? {};
       Object.entries(layers).forEach(([key, val]) =>
@@ -468,32 +446,6 @@ export class JupyterGISDoc
   }
 
   setAnnotation(id: string, value: IAnnotation): void {
-    // #region agent log
-    const synced = this._syncAnnotationsMap();
-    fetch('http://127.0.0.1:7811/ingest/52eb7dde-f5b4-4ed7-a5fc-68a2facf9fb4', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '4a9d9b',
-      },
-      body: JSON.stringify({
-        sessionId: '4a9d9b',
-        runId: 'post-fix',
-        location: 'doc.ts:setAnnotation',
-        message: 'setAnnotation',
-        data: {
-          id,
-          annotationsMapSize: synced.size,
-          metadataAnnotationsIsMap:
-            this._metadata.get(METADATA_ANNOTATIONS_KEY) instanceof Y.Map,
-          sameMapRef: this._metadata.get(METADATA_ANNOTATIONS_KEY) === synced,
-        },
-        timestamp: Date.now(),
-        hypothesisId: 'H1',
-      }),
-    }).catch(() => {});
-    // #endregion
-
     this.transact(() => void this._syncAnnotationsMap().set(id, value));
   }
 
