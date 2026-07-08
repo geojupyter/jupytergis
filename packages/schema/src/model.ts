@@ -443,6 +443,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options,
+      stories: this.sharedModel.stories,
       metadata: this.sharedModel.metadata,
     };
   }
