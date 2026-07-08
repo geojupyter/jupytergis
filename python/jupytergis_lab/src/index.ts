@@ -75,7 +75,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       completionProviderManager,
     );
 
-
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }

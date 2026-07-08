@@ -5,13 +5,13 @@ import {
   IJGISLayerItem,
   IJGISLayerTree,
   IJupyterGISModel,
-  IJupyterGISWidget,
   ISelection,
   ProcessingMerge,
   SelectionType,
 } from '@jupytergis/schema';
-import { DOMUtils, WidgetTracker } from '@jupyterlab/apputils';
+import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import {
   Button,
   ContextMenuSvg,
@@ -21,6 +21,7 @@ import {
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ContextMenu, Menu } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
@@ -36,8 +37,6 @@ import {
 } from '@/src/shared/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/workspace/panels/leftpanel';
 import { LegendItem } from './legendItem';
-import { ContextMenu, Menu } from '@lumino/widgets';
-import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { rasterSubMenu, vectorSubMenu } from '../../menus';
 
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
@@ -57,11 +56,14 @@ interface IBodyProps {
   layerTree: IJGISLayerTree;
 }
 
-function createContextMenu(commands: CommandRegistry, model: IJupyterGISModel, translator?: ITranslator) {
+function createContextMenu(
+  commands: CommandRegistry,
+  model: IJupyterGISModel,
+  translator?: ITranslator,
+) {
   translator = translator ?? nullTranslator;
 
-  const GIS_LAYER_ITEM =
-    '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
+  const GIS_LAYER_ITEM = '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
 
   const gisContextMenu = new ContextMenuSvg({ commands });
 
@@ -126,9 +128,7 @@ function createContextMenu(commands: CommandRegistry, model: IJupyterGISModel, t
     submenu: moveSelectedSubmenu,
   });
 
-  gisContextMenu.opened.connect(() =>
-    buildGroupsMenu(gisContextMenu, model),
-  );
+  gisContextMenu.opened.connect(() => buildGroupsMenu(gisContextMenu, model));
 
   gisContextMenu.addItem({
     command: CommandIDs.zoomToLayer,
@@ -230,14 +230,10 @@ function createContextMenu(commands: CommandRegistry, model: IJupyterGISModel, t
   return gisContextMenu;
 }
 
-
 /**
  * Populate submenu with current group names
  */
-function buildGroupsMenu(
-  contextMenu: ContextMenu,
-  model: IJupyterGISModel,
-) {
+function buildGroupsMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
   const submenu =
     contextMenu.menu.items.find(
       item =>
@@ -458,7 +454,12 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   }, [props.layerTree]);
 
   return (
-    <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver} onContextMenu={_onContextMenu}>
+    <div
+      id="jp-gis-layer-tree"
+      onDrop={_onDrop}
+      onDragOver={_onDragOver}
+      onContextMenu={_onContextMenu}
+    >
       {layerTree.map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent
