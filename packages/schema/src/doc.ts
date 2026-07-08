@@ -59,7 +59,7 @@ export class JupyterGISDoc
     this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
     this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
     this._metadata = this.ydoc.getMap('metadata');
-    this._annotations = this._syncAnnotationsMap();
+    this._initAnnotationsMap();
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
@@ -76,7 +76,6 @@ export class JupyterGISDoc
     this._stories.observeDeep(this._storyMapsObserver.bind(this));
     this._viewState.observe(this._viewStateObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
-    this._bindAnnotationsObserver(this._annotations);
     this._metadata.observe(this._metaObserver.bind(this));
   }
 
@@ -438,52 +437,47 @@ export class JupyterGISDoc
   }
 
   getAnnotation(id: string): IAnnotation | undefined {
-    const annotations = this._syncAnnotationsMap();
-    if (!annotations.has(id)) {
+    if (!this._annotations.has(id)) {
       return;
     }
-    return JSONExt.deepCopy(annotations.get(id)) as IAnnotation;
+    return JSONExt.deepCopy(this._annotations.get(id)) as IAnnotation;
   }
 
   setAnnotation(id: string, value: IAnnotation): void {
-    this.transact(() => void this._syncAnnotationsMap().set(id, value));
+    this.transact(() => void this._annotations.set(id, value));
   }
 
   removeAnnotation(id: string): void {
     this.transact(() => {
-      const annotations = this._syncAnnotationsMap();
-      if (annotations.has(id)) {
-        annotations.delete(id);
+      if (this._annotations.has(id)) {
+        this._annotations.delete(id);
       }
     });
   }
 
   getAnnotations(): Record<string, IAnnotation> {
-    return JSONExt.deepCopy(this._syncAnnotationsMap().toJSON()) as Record<
+    return JSONExt.deepCopy(this._annotations.toJSON()) as Record<
       string,
       IAnnotation
     >;
   }
 
   getAnnotationIds(): string[] {
-    return Array.from(this._syncAnnotationsMap().keys());
+    return Array.from(this._annotations.keys());
   }
 
   get metadata(): IJGISMetadata {
     return {
-      annotations: JSONExt.deepCopy(this._syncAnnotationsMap().toJSON()),
+      annotations: JSONExt.deepCopy(this._annotations.toJSON()),
     };
   }
 
   set metadata(metadata: IJGISMetadata) {
     this.transact(() => {
-      const annotations = this._syncAnnotationsMap();
-      annotations.clear();
+      this._annotations.clear();
       for (const [id, value] of Object.entries(metadata.annotations ?? {})) {
-        annotations.set(id, value);
+        this._annotations.set(id, value);
       }
-      this._metadata.set(METADATA_ANNOTATIONS_KEY, annotations);
-      this._bindAnnotationsObserver(annotations);
     });
   }
 
@@ -625,8 +619,10 @@ export class JupyterGISDoc
         newValue: this._metadata.get(key),
       });
       if (key === METADATA_ANNOTATIONS_KEY) {
-        this._annotations = this._syncAnnotationsMap();
-        this._bindAnnotationsObserver(this._annotations);
+        const annotations = this._metadata.get(METADATA_ANNOTATIONS_KEY);
+        if (annotations instanceof Y.Map) {
+          this._attachAnnotationsMap(annotations);
+        }
       }
     });
     this._metadataChanged.emit(changes);
@@ -644,34 +640,29 @@ export class JupyterGISDoc
     this._annotationsChanged.emit(changes);
   };
 
-  private _syncAnnotationsMap(): Y.Map<any> {
+  private _initAnnotationsMap(): void {
     const existing = this._metadata.get(METADATA_ANNOTATIONS_KEY);
     if (existing instanceof Y.Map) {
-      this._annotations = existing;
-      return existing;
+      this._attachAnnotationsMap(existing);
+      return;
     }
 
     const annotations = new Y.Map<any>();
-    if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
-      for (const [id, value] of Object.entries(
-        existing as Record<string, unknown>,
-      )) {
-        annotations.set(id, value);
-      }
-    }
-
     this._metadata.set(METADATA_ANNOTATIONS_KEY, annotations);
-    this._annotations = annotations;
-    return annotations;
+    this._attachAnnotationsMap(annotations);
   }
 
-  private _bindAnnotationsObserver(map: Y.Map<any>): void {
+  private _attachAnnotationsMap(map: Y.Map<any>): void {
     if (this._observedAnnotationsMap === map) {
+      this._annotations = map;
       return;
     }
+
     if (this._observedAnnotationsMap) {
       this._observedAnnotationsMap.unobserve(this._annotationsObserver);
     }
+
+    this._annotations = map;
     this._observedAnnotationsMap = map;
     map.observe(this._annotationsObserver);
   }

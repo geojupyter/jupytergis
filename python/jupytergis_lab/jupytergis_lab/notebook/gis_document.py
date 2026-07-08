@@ -152,7 +152,9 @@ class GISDocument(CommWidget):
         )
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
-        self._ensure_annotations_map()
+        self._metadata["annotations"] = Map()
+
+        
 
         if latitude is not None:
             self._options["latitude"] = latitude
@@ -170,15 +172,6 @@ class GISDocument(CommWidget):
             self._options["projection"] = projection
 
         self.tile_server = None
-
-    def _ensure_annotations_map(self) -> Map:
-        annotations = self._metadata.get("annotations")
-        if isinstance(annotations, Map):
-            return annotations
-
-        annotations = Map()
-        self._metadata["annotations"] = annotations
-        return annotations
 
     @property
     def layers(self) -> dict:
