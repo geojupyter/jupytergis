@@ -48,6 +48,21 @@ const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
+const LAYER_OPACITY_SLIDER_CLASS = 'jp-gis-layerOpacitySlider';
+
+/**
+ * Layer types whose opacity is applied on the map (via `setOpacity` in the main
+ * view). These get an inline opacity slider in the Layers panel.
+ */
+const OPACITY_SUPPORTED_LAYER_TYPES = new Set<string>([
+  'RasterLayer',
+  'VectorLayer',
+  'VectorTileLayer',
+  'GeoTiffLayer',
+  'GeoZarrLayer',
+  'StacLayer',
+  'OpenEOTileLayer',
+]);
 
 interface IBodyProps {
   model: IJupyterGISModel;
@@ -734,6 +749,14 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [opacity, setOpacity] = useState<number>(
+    layer.parameters?.opacity ?? 1,
+  );
+  // Disabled while the opacity slider is being dragged, otherwise the native
+  // HTML drag of the row hijacks the slider interaction.
+  const [isDraggable, setIsDraggable] = useState(true);
+
+  const supportsOpacity = OPACITY_SUPPORTED_LAYER_TYPES.has(layer.type);
 
   const { symbology } = useGetSymbology({
     layerId,
@@ -802,6 +825,23 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const toggleVisibility = () => {
     layer.visible = !layer.visible;
     gisModel?.sharedModel?.updateLayer(layerId, layer);
+  };
+
+  /**
+   * Keep the local opacity in sync when the layer parameters change elsewhere
+   * (e.g. a collaborator, or a round-trip through the model).
+   */
+  useEffect(() => {
+    setOpacity(layer.parameters?.opacity ?? 1);
+  }, [layer.parameters?.opacity]);
+
+  /**
+   * Update the layer opacity from the inline slider.
+   */
+  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setOpacity(value);
+    gisModel?.sharedModel.updateObjectParameters(layerId, { opacity: value });
   };
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
@@ -887,7 +927,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
                   ${selected ? ' jp-mod-selected' : ''}`}
-      draggable={true}
+      draggable={isDraggable}
       onDragStart={Private.onDragStart}
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
@@ -980,6 +1020,30 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           >
             {name}
           </span>
+        )}
+
+        {supportsOpacity && (
+          <input
+            type="range"
+            className={LAYER_OPACITY_SLIDER_CLASS}
+            min={0.1}
+            max={1}
+            step={0.1}
+            value={opacity}
+            draggable={false}
+            onChange={handleOpacityChange}
+            onClick={e => e.stopPropagation()}
+            onDoubleClick={e => e.stopPropagation()}
+            onPointerDown={e => {
+              e.stopPropagation();
+              setIsDraggable(false);
+            }}
+            onPointerUp={() => setIsDraggable(true)}
+            onPointerCancel={() => setIsDraggable(true)}
+            onBlur={() => setIsDraggable(true)}
+            title={`Opacity: ${Math.round(opacity * 100)}%`}
+            aria-label="Layer opacity"
+          />
         )}
 
         <Button

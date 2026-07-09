@@ -55,6 +55,11 @@ export function removeNestedFormEntry(
 /**
  * Apply base processSchema: array options, opacity field, readOnly handling.
  * Mutates schema, uiSchema, and optionally data (for readOnly removal in update).
+ *
+ * `isRoot` distinguishes the top-level object (a layer/source) from nested
+ * objects reached through recursion. Top-level `opacity` is controlled from the
+ * Layers panel and therefore removed from the form, while a nested `opacity`
+ * (e.g. a story segment override) keeps its slider field.
  */
 export function processBaseSchema(
   data: IDict | undefined,
@@ -62,6 +67,7 @@ export function processBaseSchema(
   uiSchema: UiSchema,
   formContext: 'create' | 'update',
   removeEntry: typeof removeFormEntry,
+  isRoot = true,
 ): void {
   if (!schema['properties']) {
     return;
@@ -107,10 +113,16 @@ export function processBaseSchema(
         (uiSchema[k] as UiSchema) ?? {},
         formContext,
         removeEntry,
+        false,
       );
     }
 
     if (k === 'opacity') {
+      if (isRoot) {
+        // Opacity is controlled from the Layers panel, not the properties form.
+        removeEntry(k, data, schema, uiSchema);
+        continue;
+      }
       (uiSchema[k] as IDict)['ui:field'] = 'opacity';
     }
 

@@ -125,6 +125,70 @@
   flex-grow: 1;
 }
 
+.jp-gis-layerOpacitySlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 48px;
+  min-width: 36px;
+  height: 12px;
+  margin: 0 6px;
+  padding: 0;
+  flex-shrink: 0;
+  align-self: center;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Track */
+.jp-gis-layerOpacitySlider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--jp-border-color1);
+}
+
+.jp-gis-layerOpacitySlider::-moz-range-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--jp-border-color1);
+}
+
+/* Thumb */
+.jp-gis-layerOpacitySlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9px;
+  height: 9px;
+  margin-top: -3px;
+  border: none;
+  border-radius: 50%;
+  background: var(--jp-brand-color1);
+}
+
+.jp-gis-layerOpacitySlider::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: none;
+  border-radius: 50%;
+  background: var(--jp-brand-color1);
+}
+
+.jp-gis-layer.jp-mod-selected
+  .jp-gis-layerOpacitySlider::-webkit-slider-runnable-track {
+  background: var(--jp-ui-inverse-font-color2);
+}
+
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider::-moz-range-track {
+  background: var(--jp-ui-inverse-font-color2);
+}
+
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider::-webkit-slider-thumb {
+  background: var(--jp-ui-inverse-font-color1);
+}
+
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider::-moz-range-thumb {
+  background: var(--jp-ui-inverse-font-color1);
+}
+
 .jp-gis-layerSlideNumber {
   box-sizing: border-box;
   display: inline-flex;
