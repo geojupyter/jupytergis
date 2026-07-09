@@ -459,6 +459,7 @@ def import_project_from_qgis(path: str | Path):
             "projection": project.crs().authid(),
         },
         "metadata": {},
+        "annotations": {},
         **jgis_layer_tree,
     }
 
