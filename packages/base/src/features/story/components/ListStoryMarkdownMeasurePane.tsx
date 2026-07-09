@@ -2,6 +2,47 @@ import React, { useCallback, useLayoutEffect, useRef } from 'react';
 
 import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListStoryOverlayMarkdown';
 
+/**
+ * Invokes callback after all images under root have loaded or errored.
+ * Returns a cancel function
+ */
+function whenImagesSettled(
+  root: HTMLElement,
+  callback: () => void,
+): () => void {
+  const images = Array.from(root.querySelectorAll('img'));
+  if (images.length === 0) {
+    callback();
+    return () => {};
+  }
+
+  let cancelled = false;
+  let pending = images.length;
+
+  const settle = (): void => {
+    if (cancelled) {
+      return;
+    }
+    pending -= 1;
+    if (pending <= 0) {
+      callback();
+    }
+  };
+
+  for (const img of images) {
+    if (img.complete) {
+      settle();
+    } else {
+      img.addEventListener('load', settle, { once: true });
+      img.addEventListener('error', settle, { once: true });
+    }
+  }
+
+  return () => {
+    cancelled = true;
+  };
+}
+
 interface IListStoryMarkdownMeasurePaneProps {
   segmentId: string;
   markdown: string;
@@ -21,6 +62,7 @@ export function ListStoryMarkdownMeasurePane({
   const contentRef = useRef<HTMLDivElement>(null);
   const renderedRef = useRef(false);
   const completedRef = useRef(false);
+  const imageWaitCancelRef = useRef<(() => void) | null>(null);
 
   const completeMeasure = useCallback((): void => {
     if (completedRef.current) {
@@ -41,17 +83,37 @@ export function ListStoryMarkdownMeasurePane({
   const handleRendered = useCallback((): void => {
     renderedRef.current = true;
     reportHeight();
-    completeMeasure();
+
+    const content = contentRef.current;
+    if (!content) {
+      completeMeasure();
+      return;
+    }
+
+    imageWaitCancelRef.current?.();
+    imageWaitCancelRef.current = whenImagesSettled(content, () => {
+      imageWaitCancelRef.current = null;
+      reportHeight();
+      completeMeasure();
+    });
   }, [reportHeight, completeMeasure]);
 
   useLayoutEffect(() => {
     renderedRef.current = false;
     completedRef.current = false;
+    imageWaitCancelRef.current?.();
+    imageWaitCancelRef.current = null;
+
     if (!markdown) {
       renderedRef.current = true;
       reportHeight();
       completeMeasure();
     }
+
+    return () => {
+      imageWaitCancelRef.current?.();
+      imageWaitCancelRef.current = null;
+    };
   }, [segmentId, markdown, reportHeight, completeMeasure]);
 
   useLayoutEffect(() => {
