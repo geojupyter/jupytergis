@@ -152,9 +152,7 @@ class GISDocument(CommWidget):
         )
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["annotations"] = self._annotations = Map()
-        self.ydoc["metadata"] = self._metadata = Map()
-
-        
+        self.ydoc["metadata"] = self._metadata = Map()        
 
         if latitude is not None:
             self._options["latitude"] = latitude

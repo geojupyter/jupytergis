@@ -85,13 +85,11 @@ class YQGISBase(YBaseDoc):
         self._yoptions.clear()
         self._yoptions.update(virtual_file["options"])
 
-        annotations_data = virtual_file.get("annotations", {}) or {}
         self._yannotations.clear()
-        self._yannotations.update(annotations_data)
+        self._yannotations.update(virtual_file["annotations"])
 
-        metadata = virtual_file.get("metadata", {}) or {}
         self._ymetadata.clear()
-        self._ymetadata.update(metadata)
+        self._ymetadata.update(virtual_file["metadata"])
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()

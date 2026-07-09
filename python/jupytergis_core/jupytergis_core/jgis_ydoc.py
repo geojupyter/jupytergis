@@ -81,13 +81,11 @@ class YJGIS(YBaseDoc):
             self._ylayerTree.clear()
             self._ylayerTree.extend(valueDict.get("layerTree", []))
 
-            annotations_data = valueDict.get("annotations", {}) or {}
             self._yannotations.clear()
-            self._yannotations.update(annotations_data)
+            self._yannotations.update(valueDict.get("annotations", {}))
 
-            metadata = valueDict.get("metadata", {}) or {}
             self._ymetadata.clear()
-            self._ymetadata.update(metadata)
+            self._ymetadata.update(valueDict.get("metadata", {}))
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
