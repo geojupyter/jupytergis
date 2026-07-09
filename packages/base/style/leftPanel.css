@@ -70,6 +70,7 @@
   min-width: unset;
   padding: unset;
   margin-right: 4px;
+  flex-shrink: 0;
 }
 
 .jp-gis-layer.jp-mod-selected button:hover .jp-icon-selectable {
@@ -79,6 +80,7 @@
 .jp-gis-layerIcon {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .jp-gis-layerIcon > svg {
@@ -123,6 +125,10 @@
   padding: 3px 0;
   cursor: pointer;
   flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .jp-gis-layerOpacitySlider {
