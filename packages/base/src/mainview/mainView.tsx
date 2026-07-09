@@ -3114,10 +3114,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._restoreMapInteractions();
   };
 
-  private _onAnnotationsChanged = (
-    _: IJupyterGISModel,
-    changes: MapChange,
-  ) => {
+  private _onAnnotationsChanged = (_: IJupyterGISModel, changes: MapChange) => {
     const newState = { ...this.state.annotations };
     changes.forEach((val, key) => {
       const data = this._model.sharedModel.getAnnotation(key);

@@ -116,4 +116,3 @@ class YJGIS(YBaseDoc):
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
             partial(callback, "meta"),
         )
-

@@ -161,7 +161,8 @@ export class JupyterGISDoc
         this._viewState.set(key, val),
       );
 
-      this.annotations = (value['annotations'] ?? {}) as unknown as IJGISAnnotations;
+      this.annotations = (value['annotations'] ??
+        {}) as unknown as IJGISAnnotations;
       this.metadata = (value['metadata'] ?? {}) as IJGISMetadata;
     });
   }
