@@ -23,7 +23,7 @@ describe('draw default attribute presets on model', () => {
     (globalThis as any).document = originalDocument;
   });
 
-  it('stores and reads presets from metadata', () => {
+  it('stores and reads presets at the document top level', () => {
     model.setDrawDefaultAttributePreset('Trees', [
       { key: 'species', value: 'oak' },
     ]);

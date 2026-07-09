@@ -161,6 +161,9 @@ class GISDocument(CommWidget):
         self._metadata: Map = Map()
         self.ydoc["metadata"] = self._metadata
 
+        self._presets: Map = Map()
+        self.ydoc["presets"] = self._presets
+
         # For untitled docs, initialize options right away
         if path is None:
             self.ydoc["options"] = self._options = Map(
@@ -1306,6 +1309,7 @@ class GISDocument(CommWidget):
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
             "annotations": self._annotations.to_py(),
+            "presets": self._presets.to_py(),
             "metadata": self._metadata.to_py(),
         }
 
