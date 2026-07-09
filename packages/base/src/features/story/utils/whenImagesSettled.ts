@@ -6,13 +6,18 @@ export function whenImagesSettled(
   root: HTMLElement,
   callback: () => void,
 ): () => void {
+  let cancelled = false;
+
+  const cancel = (): void => {
+    cancelled = true;
+  };
+
   const images = Array.from(root.querySelectorAll('img'));
   if (images.length === 0) {
     callback();
-    return () => {};
+    return cancel;
   }
 
-  let cancelled = false;
   let pending = images.length;
 
   const settle = (): void => {
@@ -34,7 +39,5 @@ export function whenImagesSettled(
     }
   }
 
-  return () => {
-    cancelled = true;
-  };
+  return cancel;
 }

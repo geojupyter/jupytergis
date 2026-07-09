@@ -16,12 +16,12 @@ import type {
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
 } from '@/src/features/story/utils/storySegmentViewItems';
-import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { whenImagesSettled } from '@/src/features/story/utils/whenImagesSettled';
 
 interface IListStoryStageOverlayProps {
@@ -121,7 +121,7 @@ export function ListStoryStageOverlay({
   const stackRef = useRef<HTMLDivElement>(null);
   const fromMarkdownRenderedRef = useRef(false);
   const imageWaitCancelRef = useRef<(() => void) | null>(null);
-  const measureTransitionRef = useRef<() => void>(() => {});
+  const measureTransitionRef = useRef<(() => void) | null>(null);
   const [stageHeight, setStageHeight] = useState(0);
   const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
@@ -190,7 +190,6 @@ export function ListStoryStageOverlay({
 
   useLayoutEffect(() => {
     const parent = overlayRef.current?.parentElement;
-    console.log('SANITY');
 
     if (!parent) {
       setStageHeight(0);
@@ -214,7 +213,7 @@ export function ListStoryStageOverlay({
 
   const handleFromMarkdownRendered = useCallback((): void => {
     fromMarkdownRenderedRef.current = true;
-    measureTransitionRef.current();
+    measureTransitionRef.current?.();
 
     const stack = stackRef.current;
     const fromPane = stack?.querySelector('[data-pane="from"]');
@@ -225,7 +224,7 @@ export function ListStoryStageOverlay({
     imageWaitCancelRef.current?.();
     imageWaitCancelRef.current = whenImagesSettled(fromPane, () => {
       imageWaitCancelRef.current = null;
-      measureTransitionRef.current();
+      measureTransitionRef.current?.();
     });
   }, []);
 
