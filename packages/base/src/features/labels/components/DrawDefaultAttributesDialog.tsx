@@ -105,7 +105,7 @@ export function DrawDefaultAttributesDialog({
         </Button>
       </DialogTrigger>
       <DialogContent preventOutsideDismiss>
-        {open && drawLayerId ? (
+        {drawLayerId ? (
           <DrawDefaultAttributesDialogContent
             model={model}
             layerId={drawLayerId}
