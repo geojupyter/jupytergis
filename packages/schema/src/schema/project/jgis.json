@@ -29,6 +29,9 @@
     "annotations": {
       "$ref": "#/definitions/jGISAnnotations"
     },
+    "presets": {
+      "$ref": "#/definitions/jGISDrawDefaultAttributePresets"
+    },
     "metadata": {
       "$ref": "#/definitions/jGISMetadata"
     }

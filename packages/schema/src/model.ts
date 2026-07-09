@@ -92,6 +92,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._annotationsChangedHandler,
       this,
     );
+    this._sharedModel.presetsChanged.connect(
+      this._presetsChangedHandler,
+      this,
+    );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -431,6 +435,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         projection: DEFAULT_PROJECTION,
       };
       this.sharedModel.annotations = jsonData.annotations ?? {};
+      this.sharedModel.presets = jsonData.presets ?? {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -465,6 +470,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       options: this.sharedModel.options,
       stories: this.sharedModel.stories,
       annotations: this.sharedModel.annotations,
+      presets: this.sharedModel.presets,
       metadata: this.sharedModel.metadata,
     };
   }

@@ -207,6 +207,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
   annotations: IJGISAnnotations;
+  presets: IDrawDefaultAttributePresets;
   metadata: IJGISMetadata;
 
   readonly editable: boolean;

@@ -1,5 +1,6 @@
 {
   "annotations": {},
+  "presets": {},
   "layerTree": ["layer-id"],
   "layers": {
     "layer-id": {
