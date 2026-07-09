@@ -24,6 +24,7 @@ export function whenImagesSettled(
     if (cancelled) {
       return;
     }
+
     pending -= 1;
     if (pending <= 0) {
       callback();

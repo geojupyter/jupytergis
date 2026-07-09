@@ -279,6 +279,10 @@ export function ListStoryStageOverlay({
     };
   }, [fromIndex, toIndex, fromPaneConfig, toPaneConfig, intraSegmentScroll]);
 
+  useLayoutEffect(() => {
+    measureTransitionRef.current?.();
+  }, [stageHeight]);
+
   const overlaySized = stageHeight > 0;
 
   if (!model || !story || !activeItem || !transition) {
