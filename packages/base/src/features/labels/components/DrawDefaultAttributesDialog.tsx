@@ -94,7 +94,7 @@ export function DrawDefaultAttributesDialog({
   const [open, setOpen] = useState(false);
 
   return (
-    <Dialog modal={false} open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button disabled={!drawLayerId}>
           <SlidersHorizontal
