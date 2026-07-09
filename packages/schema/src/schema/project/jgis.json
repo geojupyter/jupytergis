@@ -386,8 +386,13 @@
     "jGISMetadata": {
       "title": "IJGISMetadata",
       "type": "object",
+      "default": {},
       "additionalProperties": false,
-      "properties": {}
+      "patternProperties": {
+        "^.*$": {
+          "type": "string"
+        }
+      }
     }
   }
 }
