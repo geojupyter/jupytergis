@@ -1,5 +1,11 @@
 import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { ListStoryMapOverlayPanel } from '@/src/features/story/components/ListStoryMapOverlayPanel';
 import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListStoryOverlayMarkdown';
@@ -16,6 +22,47 @@ import {
   getStoryMarkdownFromSlide,
 } from '@/src/features/story/utils/storySegmentViewItems';
 import { getSegmentDisplayMode } from '../utils/listStoryScrollTrack';
+
+/**
+ * Invokes callback after all images under root have loaded or errored.
+ * Returns a cancel function (fix 3 will extract this as a shared helper).
+ */
+function whenImagesSettled(
+  root: HTMLElement,
+  callback: () => void,
+): () => void {
+  const images = Array.from(root.querySelectorAll('img'));
+  if (images.length === 0) {
+    callback();
+    return () => {};
+  }
+
+  let cancelled = false;
+  let pending = images.length;
+
+  const settle = (): void => {
+    if (cancelled) {
+      return;
+    }
+    pending -= 1;
+    if (pending <= 0) {
+      callback();
+    }
+  };
+
+  for (const img of images) {
+    if (img.complete) {
+      settle();
+    } else {
+      img.addEventListener('load', settle, { once: true });
+      img.addEventListener('error', settle, { once: true });
+    }
+  }
+
+  return () => {
+    cancelled = true;
+  };
+}
 
 interface IListStoryStageOverlayProps {
   model: IJupyterGISModel;
@@ -53,6 +100,7 @@ interface ISegmentOverlayPaneProps {
   config: SegmentOverlayPaneConfig;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
+  onMarkdownRendered?: () => void;
 }
 
 function SegmentOverlayPane({
@@ -61,6 +109,7 @@ function SegmentOverlayPane({
   config,
   storyData,
   items,
+  onMarkdownRendered,
 }: ISegmentOverlayPaneProps): React.ReactElement {
   const isMap = config.type === 'map';
 
@@ -81,6 +130,7 @@ function SegmentOverlayPane({
         <ListStoryOverlayMarkdown
           key={`pane-${pane}-seg-${segmentIndex}`}
           source={config.markdown}
+          onRendered={onMarkdownRendered}
         />
       ) : null}
     </div>
@@ -109,6 +159,9 @@ export function ListStoryStageOverlay({
 }: IListStoryStageOverlayProps): JSX.Element | null {
   const overlayRef = useRef<HTMLDivElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
+  const fromMarkdownRenderedRef = useRef(false);
+  const imageWaitCancelRef = useRef<(() => void) | null>(null);
+  const measureTransitionRef = useRef<() => void>(() => {});
   const [stageHeight, setStageHeight] = useState(0);
   const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
@@ -198,11 +251,34 @@ export function ListStoryStageOverlay({
     };
   }, [model, story]);
 
+  const handleFromMarkdownRendered = useCallback((): void => {
+    fromMarkdownRenderedRef.current = true;
+    measureTransitionRef.current();
+
+    const stack = stackRef.current;
+    const fromPane = stack?.querySelector('[data-pane="from"]');
+    if (!(fromPane instanceof HTMLElement)) {
+      return;
+    }
+
+    imageWaitCancelRef.current?.();
+    imageWaitCancelRef.current = whenImagesSettled(fromPane, () => {
+      imageWaitCancelRef.current = null;
+      measureTransitionRef.current();
+    });
+  }, []);
+
   useLayoutEffect(() => {
     const stack = stackRef.current;
     if (!stack) {
       return;
     }
+
+    const fromPaneIsMarkdown =
+      fromPaneConfig.type === 'markdown' && Boolean(fromPaneConfig.markdown);
+    fromMarkdownRenderedRef.current = !fromPaneIsMarkdown;
+    imageWaitCancelRef.current?.();
+    imageWaitCancelRef.current = null;
 
     const measure = (): void => {
       const fromPane = stack.querySelector('[data-pane="from"]');
@@ -221,13 +297,25 @@ export function ListStoryStageOverlay({
       setTransitionTranslatePx(prev => (prev === travel ? prev : travel));
     };
 
+    measureTransitionRef.current = measure;
     measure();
 
-    const ro = new ResizeObserver(measure);
-    ro.observe(stack);
+    const fromPane = stack.querySelector('[data-pane="from"]');
+    if (!(fromPane instanceof HTMLElement)) {
+      return;
+    }
+
+    const ro = new ResizeObserver(() => {
+      if (!fromPaneIsMarkdown || fromMarkdownRenderedRef.current) {
+        measure();
+      }
+    });
+    ro.observe(fromPane);
 
     return () => {
       ro.disconnect();
+      imageWaitCancelRef.current?.();
+      imageWaitCancelRef.current = null;
     };
   }, [fromIndex, toIndex, fromPaneConfig, toPaneConfig, intraSegmentScroll]);
 
@@ -264,6 +352,11 @@ export function ListStoryStageOverlay({
           config={fromPaneConfig}
           storyData={story}
           items={items}
+          onMarkdownRendered={
+            fromPaneConfig.type === 'markdown' && fromPaneConfig.markdown
+              ? handleFromMarkdownRendered
+              : undefined
+          }
         />
         {!intraSegmentScroll ? (
           <>
