@@ -149,6 +149,7 @@ class GISDocument(CommWidget):
         self.ydoc["layers"] = self._layers = Map()
         self.ydoc["sources"] = self._sources = Map()
         self.ydoc["layerTree"] = self._layerTree = Array()
+        self.ydoc["annotations"] = self._annotations = Map()
         self.ydoc["metadata"] = self._metadata = Map()
 
         # For untitled docs, initialize options right away
@@ -1201,6 +1202,7 @@ class GISDocument(CommWidget):
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
+            "annotations": self._annotations.to_py(),
             "metadata": self._metadata.to_py(),
         }
 
