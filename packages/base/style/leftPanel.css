@@ -131,68 +131,53 @@
   white-space: nowrap;
 }
 
+/* Wraps the shared (story-editor) Slider so it fits the layer row. */
 .jp-gis-layerOpacitySlider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 48px;
-  min-width: 36px;
-  height: 12px;
+  width: 92px;
+  min-width: 72px;
   margin: 0 6px;
-  padding: 0;
   flex-shrink: 0;
-  align-self: center;
-  background: transparent;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* Track */
-.jp-gis-layerOpacitySlider::-webkit-slider-runnable-track {
-  height: 3px;
-  border-radius: 2px;
-  background: var(--jp-border-color1);
+/* Percentage readout next to the slider, matching the story editor. */
+.jp-gis-layerOpacitySliderValue {
+  font-size: 0.625rem;
+  line-height: 1;
+  color: var(--jp-ui-font-color2);
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.jp-gis-layerOpacitySlider::-moz-range-track {
-  height: 3px;
-  border-radius: 2px;
-  background: var(--jp-border-color1);
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySliderValue {
+  color: var(--jp-ui-inverse-font-color1);
 }
 
-/* Thumb */
-.jp-gis-layerOpacitySlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 9px;
-  height: 9px;
-  margin-top: -3px;
-  border: none;
-  border-radius: 50%;
-  background: var(--jp-brand-color1);
+/* Use the JupyterLab brand blue for the filled range by default. */
+.jp-gis-layerOpacitySlider .jgis-slider-range {
+  background-color: var(--jp-brand-color1);
 }
 
-.jp-gis-layerOpacitySlider::-moz-range-thumb {
-  width: 9px;
-  height: 9px;
-  border: none;
-  border-radius: 50%;
-  background: var(--jp-brand-color1);
+/* On a selected (blue) row, recolor the slider so it reads against the
+   inverse background instead of showing the green accent range. */
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-track {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-inverse-font-color1),
+    transparent 70%
+  );
 }
 
-.jp-gis-layer.jp-mod-selected
-  .jp-gis-layerOpacitySlider::-webkit-slider-runnable-track {
-  background: var(--jp-ui-inverse-font-color2);
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-range {
+  background-color: var(--jp-ui-inverse-font-color1);
 }
 
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider::-moz-range-track {
-  background: var(--jp-ui-inverse-font-color2);
-}
-
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider::-webkit-slider-thumb {
-  background: var(--jp-ui-inverse-font-color1);
-}
-
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider::-moz-range-thumb {
-  background: var(--jp-ui-inverse-font-color1);
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-thumb {
+  background-color: var(--jp-ui-inverse-font-color1);
+  border-color: var(--jp-ui-inverse-font-color1);
 }
 
 .jp-gis-layerSlideNumber {

@@ -30,6 +30,7 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
+import { Slider } from '@/src/shared/components/Slider';
 import {
   nonVisibilityIcon,
   targetWithCenterIcon,
@@ -837,9 +838,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
   /**
    * Update the layer opacity from the inline slider.
+   *
+   * @param value - the new opacity, in the 0–1 range.
    */
-  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
+  const handleOpacityChange = (value: number) => {
     setOpacity(value);
     gisModel?.sharedModel.updateObjectParameters(layerId, { opacity: value });
   };
@@ -1023,17 +1025,12 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         )}
 
         {supportsOpacity && (
-          <input
-            type="range"
+          <span
             className={LAYER_OPACITY_SLIDER_CLASS}
-            min={0.1}
-            max={1}
-            step={0.1}
-            value={opacity}
-            draggable={false}
-            onChange={handleOpacityChange}
+            title={`Opacity: ${Math.round(opacity * 100)}%`}
             onClick={e => e.stopPropagation()}
             onDoubleClick={e => e.stopPropagation()}
+            // Disable the row drag while adjusting the slider.
             onPointerDown={e => {
               e.stopPropagation();
               setIsDraggable(false);
@@ -1041,9 +1038,19 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             onPointerUp={() => setIsDraggable(true)}
             onPointerCancel={() => setIsDraggable(true)}
             onBlur={() => setIsDraggable(true)}
-            title={`Opacity: ${Math.round(opacity * 100)}%`}
-            aria-label="Layer opacity"
-          />
+          >
+            <Slider
+              min={0}
+              max={100}
+              step={1}
+              value={[Math.round(opacity * 100)]}
+              aria-label="Layer opacity"
+              onValueChange={([value]) => handleOpacityChange(value / 100)}
+            />
+            <span className="jp-gis-layerOpacitySliderValue">
+              {Math.round(opacity * 100)}%
+            </span>
+          </span>
         )}
 
         <Button
