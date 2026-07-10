@@ -11,10 +11,8 @@ import {
   IJGISFormSchemaRegistryToken,
   IJGISLayerBrowserRegistry,
   IJGISLayerBrowserRegistryToken,
-  IJGISLayerItem,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
-  ProcessingMerge,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -27,7 +25,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
-import { ContextMenu, Menu } from '@lumino/widgets';
+import { Menu } from '@lumino/widgets';
 
 import { notebookRendererPlugin } from './notebookrenderer';
 
@@ -64,175 +62,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       );
     };
 
-    const GIS_ITEM = '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
-    const GIS_LAYER_ITEM =
-      '.jp-gis-layerItem:not(.jp-gis-layerGroup):not(.jp-gis-storySegmentLayer)';
-
-    createDefaultLayerRegistry(layerBrowserRegistry);
-    const stateDbManager = GlobalStateDbManager.getInstance();
-    stateDbManager.initialize(state);
-
-    addCommands(
-      app,
-      tracker,
-      translator,
-      formSchemaRegistry,
-      layerBrowserRegistry,
-      state,
-      editorServices,
-      rendermime,
-      completionProviderManager,
-    );
-
-    // LAYERS and LAYER GROUPS context menu
-    app.contextMenu.addItem({
-      command: CommandIDs.editLayerProperties,
-      selector: GIS_LAYER_ITEM,
-      rank: 0,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.symbology,
-      selector: GIS_LAYER_ITEM,
-      rank: 1,
-    });
-
-    // Separator
-    app.contextMenu.addItem({
-      type: 'separator',
-      selector: GIS_ITEM,
-      rank: 1,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.removeSelected,
-      selector: GIS_ITEM,
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.renameSelected,
-      selector: GIS_ITEM,
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.duplicateSelected,
-      selector: GIS_ITEM,
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.zoomToLayer,
-      selector: GIS_ITEM,
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.createStorySegmentFromLayer,
-      selector: GIS_LAYER_ITEM,
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.zoomToLayer,
-      selector: '.jp-gis-layerItem',
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.toggleDrawFeatures,
-      selector: '.jp-gis-layerItem',
-      rank: 2,
-    });
-
-    // Create the Download submenu
-    const downloadSubmenu = new Menu({ commands: app.commands });
-    downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
-    downloadSubmenu.id = 'jp-gis-contextmenu-download';
-
-    downloadSubmenu.addItem({
-      command: CommandIDs.downloadGeoJSON,
-    });
-
-    // Add the Download submenu to the context menu
-    app.contextMenu.addItem({
-      type: 'submenu',
-      selector: GIS_LAYER_ITEM,
-      rank: 2,
-      submenu: downloadSubmenu,
-    });
-
-    // Create the Processing submenu
-    const processingSubmenu = new Menu({ commands: app.commands });
-    processingSubmenu.title.label = translator
-      .load('jupyterlab')
-      .__('Processing');
-    processingSubmenu.id = 'jp-gis-contextmenu-processing';
-
-    // Clip sub-submenu — groups all clipping operations
-    const clipSubmenu = new Menu({ commands: app.commands });
-    clipSubmenu.title.label = translator.load('jupyterlab').__('Clip By');
-    clipSubmenu.id = 'jp-gis-contextmenu-clip';
-
-    for (const processingElement of ProcessingMerge) {
-      if (processingElement.type === 'clip') {
-        clipSubmenu.addItem({
-          command: `jupytergis:${processingElement.name}`,
-        });
-      } else {
-        processingSubmenu.addItem({
-          command: `jupytergis:${processingElement.name}`,
-        });
-      }
-    }
-
-    processingSubmenu.addItem({ type: 'separator' });
-    processingSubmenu.addItem({ type: 'submenu', submenu: clipSubmenu });
-
-    app.contextMenu.addItem({
-      type: 'submenu',
-      selector: GIS_LAYER_ITEM,
-      rank: 2,
-      submenu: processingSubmenu,
-    });
-
-    const moveSelectedSubmenu = new Menu({ commands: app.commands });
-    moveSelectedSubmenu.title.label = translator
-      .load('jupyterlab')
-      .__('Move Selection to Group');
-    moveSelectedSubmenu.id = 'jp-gis-contextmenu-movelayer';
-
-    app.contextMenu.addItem({
-      type: 'submenu',
-      selector: GIS_ITEM,
-      rank: 2,
-      submenu: moveSelectedSubmenu,
-    });
-
-    app.contextMenu.opened.connect(() =>
-      buildGroupsMenu(app.contextMenu, tracker),
-    );
-
-    app.contextMenu.addItem({
-      command: CommandIDs.removeSelected,
-      selector: '.jp-gis-layerGroupHeader',
-      rank: 2,
-    });
-
-    app.contextMenu.addItem({
-      command: CommandIDs.renameSelected,
-      selector: '.jp-gis-layerGroupHeader',
-      rank: 2,
-    });
-
-    // Separator
-    app.contextMenu.addItem({
-      type: 'separator',
-      selector: '.jp-gis-layerPanel',
-      rank: 2,
-    });
-
     const newLayerSubMenu = new Menu({ commands: app.commands });
     newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
     newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
@@ -249,15 +78,25 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerPanel',
-      rank: 3,
+      rank: 0,
       submenu: newLayerSubMenu,
     });
 
-    app.contextMenu.addItem({
-      selector: '.jp-gis-layerPanel',
-      command: CommandIDs.addStorySegment,
-      rank: 4,
-    });
+    createDefaultLayerRegistry(layerBrowserRegistry);
+    const stateDbManager = GlobalStateDbManager.getInstance();
+    stateDbManager.initialize(state);
+
+    addCommands(
+      app,
+      tracker,
+      translator,
+      formSchemaRegistry,
+      layerBrowserRegistry,
+      state,
+      editorServices,
+      rendermime,
+      completionProviderManager,
+    );
 
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
@@ -277,77 +116,6 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
   mainMenu.editMenu.undoers.undo.add({
     id: CommandIDs.undo,
     isEnabled,
-  });
-}
-
-/**
- * Populate submenu with current group names
- */
-function buildGroupsMenu(
-  contextMenu: ContextMenu,
-  tracker: WidgetTracker<IJupyterGISWidget>,
-) {
-  if (!tracker.currentWidget?.model) {
-    return;
-  }
-
-  const model = tracker.currentWidget?.model;
-
-  const submenu =
-    contextMenu.menu.items.find(
-      item =>
-        item.type === 'submenu' &&
-        item.submenu?.id === 'jp-gis-contextmenu-movelayer',
-    )?.submenu ?? null;
-
-  // Bail early if the submenu isn't found
-  if (!submenu) {
-    return;
-  }
-
-  submenu.clearItems();
-
-  // need a list of group name
-  const layerTree = model.getLayerTree();
-  const groupNames = getLayerGroupNames(layerTree);
-
-  function getLayerGroupNames(layerTree: IJGISLayerItem[]): string[] {
-    const result: string[] = [];
-
-    for (const item of layerTree) {
-      // Skip if the item is a layer id
-      if (typeof item === 'string') {
-        continue;
-      }
-
-      // Process group items
-      if (item.layers) {
-        result.push(item.name);
-
-        // Recursively process the layers of the current item
-        const nestedResults = getLayerGroupNames(item.layers);
-        // Append the results of the recursive call to the main result array
-        result.push(...nestedResults);
-      }
-    }
-
-    return result;
-  }
-
-  submenu.addItem({
-    command: CommandIDs.moveSelectedToGroup,
-    args: { label: '' },
-  });
-
-  groupNames.forEach(name => {
-    submenu.addItem({
-      command: CommandIDs.moveSelectedToGroup,
-      args: { label: name },
-    });
-  });
-
-  submenu.addItem({
-    command: CommandIDs.moveSelectedToNewGroup,
   });
 }
 

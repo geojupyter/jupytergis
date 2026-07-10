@@ -4,12 +4,7 @@
  * "when" predicates are shown as chips below the grid.
  */
 
-import {
-  faCheck,
-  faPlus,
-  faTrash,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IColorRampScale,
@@ -21,7 +16,7 @@ import {
   Encoding,
   RGBA,
 } from '@jupytergis/schema';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   ColorRampName,
@@ -324,23 +319,6 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
 // When-clause helpers
 // ---------------------------------------------------------------------------
 
-export function formatPredicate(pred: IPredicate): string {
-  switch (pred.type) {
-    case 'geometryType':
-      return `geom = ${pred.value}`;
-    case 'hasField':
-      return `has: ${pred.field}`;
-    case 'fieldEquals':
-      return `${pred.field} = ${pred.value}`;
-    case 'fieldCompare':
-      return `${pred.field} ${pred.op} ${pred.value}`;
-    case 'between':
-      return `${pred.field} between ${pred.min} and ${pred.max}`;
-    default:
-      throw new Error(`Invalid predicate type ${pred}`);
-  }
-}
-
 type PredicateType = IPredicate['type'];
 
 const COMPARE_OPS: ICompareOp[] = ['>', '<', '>=', '<=', '!='];
@@ -376,14 +354,17 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
         ? {
             type: 'fieldEquals',
             field: p.field,
-            value: isNaN(Number(p.fieldValue))
-              ? p.fieldValue
-              : Number(p.fieldValue),
+            value:
+              p.fieldValue === '' || isNaN(Number(p.fieldValue))
+                ? p.fieldValue
+                : Number(p.fieldValue),
           }
         : null;
     case 'fieldCompare': {
       const num = Number(p.fieldValue);
-      return p.field && !isNaN(num)
+      // Avoid committing predicates that are only "valid" due to JS numeric coercion
+      // (e.g. Number('') === 0), which would desync the model from what's shown.
+      return p.field && p.fieldValue !== '' && !isNaN(num)
         ? { type: 'fieldCompare', field: p.field, op: p.compareOp, value: num }
         : null;
     }
@@ -403,34 +384,132 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
   }
 }
 
+/** Decompose a committed predicate back into the editable draft shape. */
+function predicateToDraft(pred: IPredicate): INewPredicate {
+  switch (pred.type) {
+    case 'geometryType':
+      return { ...EMPTY_NEW, type: 'geometryType', geomValue: pred.value };
+    case 'hasField':
+      return { ...EMPTY_NEW, type: 'hasField', field: pred.field };
+    case 'fieldEquals':
+      return {
+        ...EMPTY_NEW,
+        type: 'fieldEquals',
+        field: pred.field,
+        fieldValue: String(pred.value),
+      };
+    case 'fieldCompare':
+      return {
+        ...EMPTY_NEW,
+        type: 'fieldCompare',
+        field: pred.field,
+        compareOp: pred.op,
+        fieldValue: String(pred.value),
+      };
+    case 'between':
+      return {
+        ...EMPTY_NEW,
+        type: 'between',
+        field: pred.field,
+        betweenMin: String(pred.min),
+        betweenMax: String(pred.max),
+      };
+    default:
+      return { ...EMPTY_NEW };
+  }
+}
+
+/**
+ * Seed a draft when the predicate type changes. Fields default to the first
+ * available field (and numeric bounds to 0) so the predicate stays valid — and
+ * therefore committed live — without requiring a separate confirm step.
+ */
+function defaultDraftForType(
+  type: PredicateType,
+  availableFields: IFieldOption[],
+  prev: INewPredicate,
+): INewPredicate {
+  const firstField = availableFields[0]?.value ?? '';
+  switch (type) {
+    case 'geometryType':
+      return { ...prev, type, geomValue: prev.geomValue || 'Point' };
+    case 'hasField':
+      return { ...prev, type, field: prev.field || firstField };
+    case 'fieldEquals':
+    case 'fieldCompare':
+      return { ...prev, type, field: prev.field || firstField };
+    case 'between':
+      return {
+        ...prev,
+        type,
+        field: prev.field || firstField,
+        betweenMin: prev.betweenMin || '0',
+        betweenMax: prev.betweenMax || '0',
+      };
+    default:
+      return { ...prev, type };
+  }
+}
+
+/** A fresh predicate for a newly-added "when" condition. */
+export function defaultPredicate(): IPredicate {
+  return { type: 'geometryType', value: 'Point' };
+}
+
 interface IFieldOption {
   value: string;
   label: string;
 }
 
-interface IWhenAddFormProps {
+interface IWhenRowProps {
+  predicate: IPredicate;
   availableFields: IFieldOption[];
-  onAdd: (pred: IPredicate) => void;
-  onCancel: () => void;
+  onChange: (pred: IPredicate) => void;
+  onDelete: () => void;
 }
 
-export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
+/**
+ * Inline, always-editable "when" condition. Values are committed live: every
+ * change that yields a valid predicate is propagated through `onChange`, so
+ * there is no confirm/cancel step and nothing to lose by forgetting to click.
+ */
+export const WhenRow: React.FC<IWhenRowProps> = ({
+  predicate,
   availableFields,
-  onAdd,
-  onCancel,
+  onChange,
+  onDelete,
 }) => {
-  const [draft, setDraft] = useState<INewPredicate>({ ...EMPTY_NEW });
+  const [draft, setDraft] = useState<INewPredicate>(() =>
+    predicateToDraft(predicate),
+  );
 
-  const patch = (p: Partial<INewPredicate>) =>
-    setDraft(prev => ({ ...prev, ...p }));
+  // Resync when the predicate is replaced from the outside (e.g. rows reindex
+  // after a sibling condition is removed). In-progress typing is preserved
+  // because the prop only changes once an edit commits a valid predicate.
+  useEffect(() => {
+    if (JSON.stringify(buildPredicate(draft)) !== JSON.stringify(predicate)) {
+      setDraft(predicateToDraft(predicate));
+    }
+  }, [predicate]);
 
-  const built = buildPredicate(draft);
+  const commit = (next: INewPredicate) => {
+    setDraft(next);
+    const built = buildPredicate(next);
+    if (built) {
+      onChange(built);
+    }
+  };
+
+  const patch = (p: Partial<INewPredicate>) => commit({ ...draft, ...p });
+
+  const changeType = (type: PredicateType) =>
+    commit(defaultDraftForType(type, availableFields, draft));
 
   return (
     <span className="jp-gis-grammar-when-form">
       <NativeSelect
         value={draft.type}
-        onChange={e => patch({ type: e.target.value as PredicateType })}
+        onChange={e => changeType(e.target.value as PredicateType)}
       >
         <NativeSelectOption value="geometryType">
           Geometry Type
@@ -528,19 +607,9 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         type="button"
         variant="icon"
         size="icon-md"
-        disabled={!built}
-        onClick={() => built && onAdd(built)}
-        title="Add predicate"
-      >
-        <FontAwesomeIcon icon={faCheck} />
-      </Button>
-      <Button
-        type="button"
-        variant="icon"
-        size="icon-md"
         className="jp-gis-grammar-when-form-cancel"
-        onClick={onCancel}
-        title="Cancel"
+        onClick={onDelete}
+        title="Remove condition"
       >
         <FontAwesomeIcon icon={faXmark} />
       </Button>
@@ -714,7 +783,6 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   onDelete,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const [addingWhen, setAddingWhen] = useState(false);
 
   const handleFieldChange = useCallback(
     (index: number, value: string) => {
@@ -795,10 +863,15 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const addPredicate = useCallback(
-    (pred: IPredicate) => {
-      onChange({ ...row, when: [...(row.when ?? []), pred] });
-      setAddingWhen(false);
+  const addPredicate = useCallback(() => {
+    onChange({ ...row, when: [...(row.when ?? []), defaultPredicate()] });
+  }, [row, onChange]);
+
+  const updatePredicate = useCallback(
+    (index: number, pred: IPredicate) => {
+      const next = [...(row.when ?? [])];
+      next[index] = pred;
+      onChange({ ...row, when: next });
     },
     [row, onChange],
   );
@@ -949,32 +1022,22 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           </Button>
         )}
         {row.when?.map((pred, i) => (
-          <span key={i} className="jp-gis-grammar-when-chip">
-            {formatPredicate(pred)}
-            <Button
-              type="button"
-              onClick={() => removePredicate(i)}
-              title="Remove condition"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-            </Button>
-          </span>
-        ))}
-        {addingWhen ? (
-          <WhenAddForm
+          <WhenRow
+            key={i}
+            predicate={pred}
             availableFields={availableFields}
-            onAdd={addPredicate}
-            onCancel={() => setAddingWhen(false)}
+            onChange={updated => updatePredicate(i, updated)}
+            onDelete={() => removePredicate(i)}
           />
-        ) : (
-          <Button
-            type="button"
-            className="jp-gis-grammar-when-add-btn"
-            onClick={() => setAddingWhen(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-          </Button>
-        )}
+        ))}
+        <Button
+          type="button"
+          className="jp-gis-grammar-when-add-btn"
+          onClick={addPredicate}
+          title="Add condition"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </Button>
       </div>
 
       {/* Inline scale editor */}

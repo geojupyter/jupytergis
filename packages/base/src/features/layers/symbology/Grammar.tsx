@@ -12,7 +12,6 @@ import {
   faGripVertical,
   faPlus,
   faTrash,
-  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -30,8 +29,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
-  WhenAddForm,
-  formatPredicate,
+  WhenRow,
+  defaultPredicate,
 } from '@/src/features/layers/symbology/components/MappingRow';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
@@ -218,7 +217,6 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   onMoveUp,
   onMoveDown,
 }) => {
-  const [addingLayerWhen, setAddingLayerWhen] = useState(false);
   const dragIndexRef = useRef<number | null>(null);
   const dragOverRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -236,10 +234,15 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const addLayerPredicate = useCallback(
-    (pred: IPredicate) => {
-      onChange({ ...layer, when: [...(layer.when ?? []), pred] });
-      setAddingLayerWhen(false);
+  const addLayerPredicate = useCallback(() => {
+    onChange({ ...layer, when: [...(layer.when ?? []), defaultPredicate()] });
+  }, [layer, onChange]);
+
+  const updateLayerPredicate = useCallback(
+    (index: number, pred: IPredicate) => {
+      const next = [...(layer.when ?? [])];
+      next[index] = pred;
+      onChange({ ...layer, when: next });
     },
     [layer, onChange],
   );
@@ -387,32 +390,22 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           </Button>
         )}
         {layer.when?.map((pred, i) => (
-          <span key={i} className="jp-gis-grammar-when-chip">
-            {formatPredicate(pred)}
-            <Button
-              type="button"
-              onClick={() => removeLayerPredicate(i)}
-              title="Remove condition"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-            </Button>
-          </span>
-        ))}
-        {addingLayerWhen ? (
-          <WhenAddForm
+          <WhenRow
+            key={i}
+            predicate={pred}
             availableFields={availableFields}
-            onAdd={addLayerPredicate}
-            onCancel={() => setAddingLayerWhen(false)}
+            onChange={updated => updateLayerPredicate(i, updated)}
+            onDelete={() => removeLayerPredicate(i)}
           />
-        ) : (
-          <Button
-            type="button"
-            className="jp-gis-grammar-when-add-btn"
-            onClick={() => setAddingLayerWhen(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-          </Button>
-        )}
+        ))}
+        <Button
+          type="button"
+          className="jp-gis-grammar-when-add-btn"
+          onClick={addLayerPredicate}
+          title="Add condition"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </Button>
       </div>
 
       {/* Transform params (single transform per layer) */}

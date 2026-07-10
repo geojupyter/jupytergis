@@ -7,6 +7,7 @@
  *  - HeatmapLayer color array → symbologyState.gradient
  *  - WebGlLayer type → GeoTiffLayer
  *  - layer.filters → grammar layer-level when + whenOp (filters removed)
+ *  - flat metadata keys ``annotation_<id>`` → top-level ``annotations``
  */
 
 import {
@@ -15,6 +16,8 @@ import {
   singleSymbolToGrammar,
   SymbologyState,
 } from '../grammar/grammarConversions';
+
+const ANNOTATION_KEY_PATTERN = /^annotation_(.+)$/;
 
 export function migrate(doc: Record<string, any>): Record<string, any> {
   const layers: Record<string, any> = { ...doc.layers };
@@ -122,7 +125,46 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
     layers[id] = { ...layerWithoutFilters, parameters: newParams };
   }
 
-  return { ...doc, layers };
+  return _migrateAnnotations({ ...doc, layers });
+}
+
+function _migrateAnnotations(doc: Record<string, any>): Record<string, any> {
+  const metadata = { ...(doc.metadata ?? {}) };
+  const annotations: Record<string, any> =
+    doc.annotations &&
+    typeof doc.annotations === 'object' &&
+    !Array.isArray(doc.annotations)
+      ? { ...doc.annotations }
+      : {};
+
+  const nested = metadata.annotations;
+  if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+    Object.assign(annotations, nested);
+  }
+
+  for (const [key, value] of Object.entries(metadata)) {
+    const match = ANNOTATION_KEY_PATTERN.exec(key);
+    if (!match) {
+      continue;
+    }
+
+    let annotation = value;
+    if (typeof annotation === 'string') {
+      try {
+        annotation = JSON.parse(annotation);
+      } catch {
+        continue;
+      }
+    }
+
+    annotations[match[1]] = annotation;
+  }
+
+  return {
+    ...doc,
+    annotations,
+    metadata: {},
+  };
 }
 
 /** Build a SymbologyState from a flat OL color dict. */

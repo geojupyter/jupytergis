@@ -18,6 +18,7 @@ import {
   IOpenEOTemplate,
   IOpenEOTemplateParams,
   OPENEO_TEMPLATES,
+  normalizeSpatialExtent,
 } from './templates';
 import {
   IValidationError,
@@ -496,24 +497,15 @@ const Form: React.FC<IFormProps> = ({
     setServerMode('select');
   };
 
-  const updateBbox = (key: keyof IBodyState['params']['bbox'], v: string) => {
-    const num = parseFloat(v);
-    guardReseed(() =>
-      update({
-        params: {
-          ...state.params,
-          bbox: { ...state.params.bbox, [key]: isNaN(num) ? 0 : num },
-        },
-        editedGraph: null,
-      }),
-    );
-  };
-
   // Memoize the graph so its identity only changes when the contents
   // actually change. Otherwise every render produces a new object,
   // re-firing validation and reassigning ModelBuilder.value mid-edit.
   const effectiveGraph = React.useMemo(() => {
-    return state.editedGraph ?? template.buildGraph(state.params);
+    const graph = state.editedGraph ?? template.buildGraph(state.params);
+    // An empty `spatial_extent: {}` (e.g. from a graph authored before we
+    // sent a real extent) is invalid per the openEO schema; normalize it to
+    // `null` so validation doesn't block an otherwise-valid graph.
+    return normalizeSpatialExtent(graph);
   }, [state.editedGraph, state.templateId, state.params]);
   const effectiveGraphJson = React.useMemo(
     () => JSON.stringify(effectiveGraph, null, 2),
@@ -1062,7 +1054,7 @@ const Form: React.FC<IFormProps> = ({
             </section>
 
             <section className="jp-openeo-section">
-              <h4>Region &amp; time</h4>
+              <h4>Collection &amp; time</h4>
               <label className="jp-openeo-field">
                 <span>Collection</span>
                 <input
@@ -1079,44 +1071,6 @@ const Form: React.FC<IFormProps> = ({
                   }}
                 />
               </label>
-              <div className="jp-openeo-bbox-grid">
-                <label>
-                  <span>West</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.west}
-                    onChange={e => updateBbox('west', e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>East</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.east}
-                    onChange={e => updateBbox('east', e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>South</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.south}
-                    onChange={e => updateBbox('south', e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>North</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.north}
-                    onChange={e => updateBbox('north', e.target.value)}
-                  />
-                </label>
-              </div>
               <label className="jp-openeo-field">
                 <span>Start date</span>
                 <input

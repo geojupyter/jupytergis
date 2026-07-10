@@ -5,10 +5,15 @@ Converts legacy representations to Grammar symbologyState in one pass:
   - parameters.symbologyState with old render types → Grammar
   - HeatmapLayer color array → symbologyState.gradient
   - WebGlLayer type → GeoTiffLayer
+  - flat metadata keys ``annotation_<id>`` → top-level ``annotations``
 """
 
+import json
+import re
 import uuid
 from typing import Any
+
+_ANNOTATION_KEY_PATTERN = re.compile(r"^annotation_(.+)$")
 
 _DEFAULT_STROKE_WIDTH = 1.25
 _DEFAULT_FILL = [255, 255, 255, 0.4]
@@ -56,7 +61,42 @@ def migrate(doc: dict[str, Any]) -> dict[str, Any]:
         layer["parameters"] = params
         layers[layer_id] = layer
 
-    return {**doc, "layers": layers}
+    return _migrate_annotations({**doc, "layers": layers})
+
+
+def _migrate_annotations(doc: dict[str, Any]) -> dict[str, Any]:
+    metadata = dict(doc.get("metadata") or {})
+    existing_annotations = doc.get("annotations")
+    annotations: dict[str, Any] = (
+        dict(existing_annotations)
+        if isinstance(existing_annotations, dict)
+        and not isinstance(existing_annotations, list)
+        else {}
+    )
+
+    nested = metadata.get("annotations")
+    if isinstance(nested, dict) and not isinstance(nested, list):
+        annotations.update(nested)
+
+    for key, value in metadata.items():
+        match = _ANNOTATION_KEY_PATTERN.match(key)
+        if not match:
+            continue
+
+        annotation: Any = value
+        if isinstance(annotation, str):
+            try:
+                annotation = json.loads(annotation)
+            except json.JSONDecodeError:
+                continue
+
+        annotations[match.group(1)] = annotation
+
+    return {
+        **doc,
+        "annotations": annotations,
+        "metadata": {},
+    }
 
 
 def _color_to_grammar(color: dict[str, Any]) -> dict[str, Any]:

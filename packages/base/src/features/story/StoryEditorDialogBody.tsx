@@ -13,6 +13,7 @@ import { SegmentModePicker } from '@/src/features/story/components/SegmentModePi
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
+import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
@@ -34,7 +35,6 @@ import {
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
-import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -62,6 +62,7 @@ function SegmentEditor({
   showSegmentAnimation,
   onContentModeChange,
   onContentChange,
+  onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
 }: {
@@ -75,13 +76,13 @@ function SegmentEditor({
   showSegmentAnimation: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
+  onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
-  const contentTitle = segment.activeSlide?.content?.title ?? '';
   const imageUrl = segment.activeSlide?.content?.image ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
@@ -98,7 +99,12 @@ function SegmentEditor({
           <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
-          <h3 className="jgis-story-editor-segment-title">{displayTitle}</h3>
+          <TitleInput
+            value={displayTitle}
+            onChange={title => {
+              onLayerNameChange(title);
+            }}
+          />
         </div>
         <Button
           type="button"
@@ -149,15 +155,6 @@ function SegmentEditor({
 
           <StoryEditorSection triggerText="Content" defaultOpen>
             <div className="jgis-story-editor-stack">
-              <label className="jgis-story-editor-field">
-                <span>Title</span>
-                <Input
-                  value={contentTitle}
-                  onChange={event => {
-                    onContentChange({ title: event.target.value });
-                  }}
-                />
-              </label>
               <SegmentImageUrlField
                 value={imageUrl}
                 onChange={nextImageUrl => {
@@ -275,6 +272,7 @@ export function StoryEditorDialogBody({
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
+    updateSegmentLayerName,
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
@@ -317,6 +315,9 @@ export function StoryEditorDialogBody({
               }}
               onContentChange={patch => {
                 updateSegmentContent(selectedSegment.id, patch);
+              }}
+              onLayerNameChange={name => {
+                updateSegmentLayerName(selectedSegment.id, name);
               }}
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);
