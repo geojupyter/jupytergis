@@ -6,12 +6,16 @@ import {
 
 describe('drawDefaultAttributes', () => {
   describe('isReservedDrawAttributeKey', () => {
-    it.each(['_id', '_createdAt', '_creatorClientId', '_fromDrawTool', 'geometry', '_geometry'])(
-      'reserves %s',
-      key => {
-        expect(isReservedDrawAttributeKey(key)).toBe(true);
-      },
-    );
+    it.each([
+      '_id',
+      '_createdAt',
+      '_creatorClientId',
+      '_fromDrawTool',
+      'geometry',
+      '_geometry',
+    ])('reserves %s', key => {
+      expect(isReservedDrawAttributeKey(key)).toBe(true);
+    });
 
     it('allows user-defined keys', () => {
       expect(isReservedDrawAttributeKey('Label')).toBe(false);
