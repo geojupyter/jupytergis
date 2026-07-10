@@ -1297,7 +1297,11 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
     def __init__(self):
         self._factories: dict[str, type[BaseModel]] = {}
 
-    def register_factory(self, shape_type: str, cls: type[BaseModel]) -> None:
+    def register_factory(
+        self,
+        shape_type: LayerType | SourceType,
+        cls: type[BaseModel],
+    ) -> None:
         if shape_type not in self._factories:
             self._factories[shape_type] = cls
 
