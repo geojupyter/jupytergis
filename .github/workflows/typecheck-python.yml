@@ -1,4 +1,4 @@
-name: 'Typecheck Python (layer gallery script only)'
+name: 'Typecheck Python'
 
 on:
   push:
