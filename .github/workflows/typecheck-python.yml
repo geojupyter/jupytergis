@@ -26,10 +26,9 @@ jobs:
         with:
           enable-cache: true
 
-      - name: 'Install dependencies'
-        working-directory: './scripts/layer_gallery'
-        run: 'uv sync'
+      - name: 'Run mypy for jupytergis packages'
+        run: 'uv run --group test mypy'
 
-      - name: 'Run mypy'
+      - name: 'Run mypy for layer_gallery'
         working-directory: './scripts/layer_gallery'
-        run: 'uv run mypy'
+        run: 'uv run --group test mypy'
