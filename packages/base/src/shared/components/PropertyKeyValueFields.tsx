@@ -9,6 +9,7 @@ export interface IPropertyKeyValueFieldsProps {
   onPropertyValueChange: (value: string) => void;
   keyPlaceholder?: string;
   valuePlaceholder?: string;
+  onEnter?: () => void;
 }
 
 export function PropertyKeyValueFields({
@@ -18,6 +19,7 @@ export function PropertyKeyValueFields({
   onPropertyValueChange,
   keyPlaceholder = 'key',
   valuePlaceholder = 'value',
+  onEnter,
 }: IPropertyKeyValueFieldsProps): JSX.Element {
   return (
     <>
@@ -27,6 +29,7 @@ export function PropertyKeyValueFields({
         placeholder={keyPlaceholder}
         value={propertyKey}
         onChange={event => onPropertyKeyChange(event.target.value)}
+        onEnter={onEnter ? () => onEnter() : undefined}
       />
       <Input
         className="jgis-property-col-value"
@@ -34,6 +37,7 @@ export function PropertyKeyValueFields({
         placeholder={valuePlaceholder}
         value={propertyValue}
         onChange={event => onPropertyValueChange(event.target.value)}
+        onEnter={onEnter ? () => onEnter() : undefined}
       />
     </>
   );
