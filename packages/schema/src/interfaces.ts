@@ -18,8 +18,8 @@ import { FeatureLike } from 'ol/Feature';
 
 import {
   IJGISContent,
-  IDrawDefaultAttribute,
-  IDrawDefaultAttributePresets,
+  IDrawCustomProperty,
+  IDrawCustomPropertyPresets,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -60,7 +60,7 @@ import {
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
-export type { IDrawDefaultAttribute, IDrawDefaultAttributePresets };
+export type { IDrawCustomProperty, IDrawCustomPropertyPresets };
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
@@ -139,18 +139,18 @@ export interface IIdentifiedFeaturesAwarenessState {
   emitter?: string | null;
 }
 
-export interface IDrawDefaultAttributesLayerState {
+export interface IDrawCustomPropertiesLayerState {
   updatedAt: number;
-  attributes: IDrawDefaultAttribute[];
+  properties: IDrawCustomProperty[];
 }
 
-export type IDrawDefaultAttributesByLayer = Record<
+export type IDrawCustomPropertiesByLayer = Record<
   string,
-  IDrawDefaultAttributesLayerState
+  IDrawCustomPropertiesLayerState
 >;
 
-export interface IDrawDefaultAttributesAwarenessState {
-  value?: IDrawDefaultAttributesByLayer;
+export interface IDrawCustomPropertiesAwarenessState {
+  value?: IDrawCustomPropertiesByLayer;
   emitter?: string | null;
 }
 
@@ -165,7 +165,7 @@ export interface IJupyterGISClientState {
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
-  drawDefaultAttributes: IDrawDefaultAttributesAwarenessState;
+  drawCustomProperties: IDrawCustomPropertiesAwarenessState;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -177,7 +177,7 @@ export const AWARENESS_STATE_FIELDS = {
   pointer: 'pointer',
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
-  drawDefaultAttributes: 'drawDefaultAttributes',
+  drawCustomProperties: 'drawCustomProperties',
   remoteUser: 'remoteUser',
   isTemporalControllerActive: 'isTemporalControllerActive',
   lastAddedLayer: 'lastAddedLayer',
@@ -207,7 +207,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
   annotations: IJGISAnnotations;
-  presets: IDrawDefaultAttributePresets;
+  presets: IDrawCustomPropertyPresets;
   metadata: IJGISMetadata;
 
   readonly editable: boolean;
@@ -259,10 +259,10 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getAnnotations(): Record<string, IAnnotation>;
   getAnnotationIds(): string[];
 
-  getPreset(name: string): IDrawDefaultAttribute[] | undefined;
-  setPreset(name: string, attributes: IDrawDefaultAttribute[]): void;
+  getPreset(name: string): IDrawCustomProperty[] | undefined;
+  setPreset(name: string, properties: IDrawCustomProperty[]): void;
   removePreset(name: string): void;
-  getPresets(): IDrawDefaultAttributePresets;
+  getPresets(): IDrawCustomPropertyPresets;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
@@ -331,9 +331,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >;
-  drawDefaultAttributesChanged: ISignal<
+  drawCustomPropertiesChanged: ISignal<
     IJupyterGISModel,
-    IAwarenessFieldChange<IJupyterGISClientState['drawDefaultAttributes']>
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomProperties']>
   >;
   remoteUserChanged: ISignal<
     IJupyterGISModel,
@@ -432,21 +432,21 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
   syncIdentifiedFeatures(features: IIdentifiedFeatures, emitter?: string): void;
-  syncDrawDefaultAttributes(
-    attributesByLayer: IDrawDefaultAttributesByLayer,
+  syncDrawCustomProperties(
+    propertiesByLayer: IDrawCustomPropertiesByLayer,
     emitter?: string,
   ): void;
-  getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[];
-  setDrawDefaultAttributesForLayer(
+  getDrawCustomProperties(layerId: string): IDrawCustomProperty[];
+  setDrawCustomPropertiesForLayer(
     layerId: string,
-    attributes: IDrawDefaultAttribute[],
+    properties: IDrawCustomProperty[],
     emitter?: string,
   ): void;
-  clearDrawDefaultAttributesForLayer(layerId: string, emitter?: string): void;
-  getDrawDefaultAttributePresets(): IDrawDefaultAttributePresets;
-  setDrawDefaultAttributePreset(
+  clearDrawCustomPropertiesForLayer(layerId: string, emitter?: string): void;
+  getDrawCustomPropertyPresets(): IDrawCustomPropertyPresets;
+  setDrawCustomPropertyPreset(
     name: string,
-    attributes: IDrawDefaultAttribute[],
+    properties: IDrawCustomProperty[],
   ): void;
   setUserToFollow(userId?: number): void;
 

@@ -1,6 +1,6 @@
-import type { IDrawDefaultAttribute } from '@jupytergis/schema';
+import type { IDrawCustomProperty } from '@jupytergis/schema';
 
-const RESERVED_DRAW_ATTRIBUTE_KEYS = new Set([
+const RESERVED_DRAW_CUSTOM_PROPERTY_KEYS = new Set([
   '_id',
   '_createdAt',
   '_creatorClientId',
@@ -9,25 +9,27 @@ const RESERVED_DRAW_ATTRIBUTE_KEYS = new Set([
   '_geometry',
 ]);
 
-export function normalizeDrawAttributeKey(key: string): string {
+export function normalizeDrawCustomPropertyKey(key: string): string {
   return key.trim();
 }
 
-export function isReservedDrawAttributeKey(key: string): boolean {
-  return RESERVED_DRAW_ATTRIBUTE_KEYS.has(normalizeDrawAttributeKey(key));
+export function isReservedDrawCustomPropertyKey(key: string): boolean {
+  return RESERVED_DRAW_CUSTOM_PROPERTY_KEYS.has(
+    normalizeDrawCustomPropertyKey(key),
+  );
 }
 
-export function validateDrawAttributeKey(
+export function validateDrawCustomPropertyKey(
   key: string,
   existingKeys: string[] = [],
 ): { valid: boolean; error?: string } {
-  const normalized = normalizeDrawAttributeKey(key);
+  const normalized = normalizeDrawCustomPropertyKey(key);
 
   if (!normalized) {
     return { valid: false, error: 'Key is required.' };
   }
 
-  if (isReservedDrawAttributeKey(normalized)) {
+  if (isReservedDrawCustomPropertyKey(normalized)) {
     return {
       valid: false,
       error: `"${normalized}" is a reserved property name.`,
@@ -55,11 +57,11 @@ export function validatePresetName(name: string): {
   return { valid: true };
 }
 
-export function applyDrawDefaultAttributesToFeature(
+export function applyDrawCustomPropertiesToFeature(
   feature: { set: (key: string, value: unknown) => void },
-  attributes: IDrawDefaultAttribute[],
+  properties: IDrawCustomProperty[],
 ): void {
-  for (const attribute of attributes) {
-    feature.set(attribute.key, attribute.value);
+  for (const property of properties) {
+    feature.set(property.key, property.value);
   }
 }

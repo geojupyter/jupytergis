@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import { DrawDefaultAttributesDialog } from '@/src/features/labels/components/DrawDefaultAttributesDialog';
+import { DrawCustomPropertiesDialog } from '@/src/features/labels/components/DrawCustomPropertiesDialog';
 import { Button } from '@/src/shared/components/Button';
 import { ButtonGroup } from '@/src/shared/components/ButtonGroup';
 
@@ -40,7 +40,7 @@ export function VectorDrawControls({
         ))}
       </ButtonGroup>
       {drawLayerId ? (
-        <DrawDefaultAttributesDialog model={model} drawLayerId={drawLayerId} />
+        <DrawCustomPropertiesDialog model={model} drawLayerId={drawLayerId} />
       ) : null}
     </div>
   );

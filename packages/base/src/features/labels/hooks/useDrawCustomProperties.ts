@@ -1,71 +1,71 @@
 import type {
-  IDrawDefaultAttribute,
-  IDrawDefaultAttributePresets,
+  IDrawCustomProperty,
+  IDrawCustomPropertyPresets,
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
-  normalizeDrawAttributeKey,
-  validateDrawAttributeKey,
-} from '../drawDefaultAttributes';
+  normalizeDrawCustomPropertyKey,
+  validateDrawCustomPropertyKey,
+} from '../drawCustomProperties';
 
 type DraftMode = 'add' | 'edit' | null;
 
-export function useDrawDefaultAttributes(
+export function useDrawCustomProperties(
   model: IJupyterGISModel,
   layerId: string,
 ) {
-  const [attributes, setAttributes] = useState<IDrawDefaultAttribute[]>([]);
-  const [presets, setPresets] = useState<IDrawDefaultAttributePresets>({});
+  const [properties, setProperties] = useState<IDrawCustomProperty[]>([]);
+  const [presets, setPresets] = useState<IDrawCustomPropertyPresets>({});
   const [draftMode, setDraftMode] = useState<DraftMode>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draftKey, setDraftKey] = useState('');
   const [draftValue, setDraftValue] = useState('');
   const [draftError, setDraftError] = useState<string | null>(null);
 
-  const refreshAttributes = useCallback(() => {
-    setAttributes(model.getDrawDefaultAttributes(layerId));
+  const refreshProperties = useCallback(() => {
+    setProperties(model.getDrawCustomProperties(layerId));
   }, [layerId, model]);
 
   const refreshPresets = useCallback(() => {
-    setPresets(model.getDrawDefaultAttributePresets());
+    setPresets(model.getDrawCustomPropertyPresets());
   }, [model]);
 
   useEffect(() => {
-    refreshAttributes();
+    refreshProperties();
     refreshPresets();
 
-    const onDrawDefaultAttributesChanged = (): void => {
-      refreshAttributes();
+    const onDrawCustomPropertiesChanged = (): void => {
+      refreshProperties();
     };
 
     const onPresetsChanged = (): void => {
       refreshPresets();
     };
 
-    model.drawDefaultAttributesChanged.connect(onDrawDefaultAttributesChanged);
+    model.drawCustomPropertiesChanged.connect(onDrawCustomPropertiesChanged);
     model.sharedPresetsChanged.connect(onPresetsChanged);
 
     return () => {
-      model.drawDefaultAttributesChanged.disconnect(
-        onDrawDefaultAttributesChanged,
+      model.drawCustomPropertiesChanged.disconnect(
+        onDrawCustomPropertiesChanged,
       );
       model.sharedPresetsChanged.disconnect(onPresetsChanged);
     };
-  }, [model, refreshAttributes, refreshPresets]);
+  }, [model, refreshProperties, refreshPresets]);
 
   const getKeysForValidation = useCallback((): string[] => {
-    const existingKeys = attributes.map(attribute => attribute.key);
+    const existingKeys = properties.map(property => property.key);
     const originalKey =
       draftMode === 'edit' && editingIndex !== null
-        ? attributes[editingIndex]?.key
+        ? properties[editingIndex]?.key
         : undefined;
 
     return originalKey
       ? existingKeys.filter(key => key !== originalKey)
       : existingKeys;
-  }, [attributes, draftMode, editingIndex]);
+  }, [properties, draftMode, editingIndex]);
 
   const getDraftKeyError = useCallback(
     (key: string, validateEmpty = false): string | null => {
@@ -73,7 +73,10 @@ export function useDrawDefaultAttributes(
         return null;
       }
 
-      const validation = validateDrawAttributeKey(key, getKeysForValidation());
+      const validation = validateDrawCustomPropertyKey(
+        key,
+        getKeysForValidation(),
+      );
       return validation.valid ? null : (validation.error ?? 'Invalid key.');
     },
     [getKeysForValidation],
@@ -96,8 +99,8 @@ export function useDrawDefaultAttributes(
     setDraftError(null);
   };
 
-  const saveAttributes = (next: IDrawDefaultAttribute[]): void => {
-    model.setDrawDefaultAttributesForLayer(layerId, next);
+  const saveProperties = (next: IDrawCustomProperty[]): void => {
+    model.setDrawCustomPropertiesForLayer(layerId, next);
   };
 
   const startAdd = (): void => {
@@ -109,30 +112,30 @@ export function useDrawDefaultAttributes(
   };
 
   const startEdit = (index: number): void => {
-    const attribute = attributes[index];
-    if (!attribute) {
+    const property = properties[index];
+    if (!property) {
       return;
     }
 
     setDraftMode('edit');
     setEditingIndex(index);
-    setDraftKey(attribute.key);
-    setDraftValue(attribute.value);
+    setDraftKey(property.key);
+    setDraftValue(property.value);
     setDraftError(null);
   };
 
   const saveDraft = (): void => {
     const entry = {
-      key: normalizeDrawAttributeKey(draftKey),
+      key: normalizeDrawCustomPropertyKey(draftKey),
       value: draftValue,
     };
 
     if (draftMode === 'add') {
-      saveAttributes([...attributes, entry]);
+      saveProperties([...properties, entry]);
     } else if (draftMode === 'edit' && editingIndex !== null) {
-      saveAttributes(
-        attributes.map((attribute, index) =>
-          index === editingIndex ? entry : attribute,
+      saveProperties(
+        properties.map((property, index) =>
+          index === editingIndex ? entry : property,
         ),
       );
     }
@@ -140,34 +143,34 @@ export function useDrawDefaultAttributes(
     resetDraft();
   };
 
-  const removeAttribute = (index: number): void => {
+  const removeProperty = (index: number): void => {
     if (editingIndex === index) {
       resetDraft();
     }
 
-    saveAttributes(
-      attributes.filter((_, attributeIndex) => attributeIndex !== index),
+    saveProperties(
+      properties.filter((_, propertyIndex) => propertyIndex !== index),
     );
   };
 
   const loadPreset = (name: string): void => {
-    const presetAttributes = presets[name];
-    if (!presetAttributes) {
+    const presetProperties = presets[name];
+    if (!presetProperties) {
       return;
     }
 
     resetDraft();
-    saveAttributes(
-      presetAttributes.map((attribute: IDrawDefaultAttribute) => ({
-        ...attribute,
+    saveProperties(
+      presetProperties.map((property: IDrawCustomProperty) => ({
+        ...property,
       })),
     );
   };
 
   const savePreset = (name: string): void => {
-    model.setDrawDefaultAttributePreset(
+    model.setDrawCustomPropertyPreset(
       name.trim(),
-      attributes.map(attribute => ({ ...attribute })),
+      properties.map(property => ({ ...property })),
     );
   };
 
@@ -176,7 +179,7 @@ export function useDrawDefaultAttributes(
   );
 
   return {
-    attributes,
+    properties,
     presets,
     presetNames,
     draftMode,
@@ -191,10 +194,10 @@ export function useDrawDefaultAttributes(
     startEdit,
     saveDraft,
     cancelDraft: resetDraft,
-    removeAttribute,
+    removeProperty,
     loadPreset,
     savePreset,
     canAdd: draftMode === null,
-    canSavePreset: attributes.length > 0 && draftMode === null,
+    canSavePreset: properties.length > 0 && draftMode === null,
   };
 }

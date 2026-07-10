@@ -27,8 +27,8 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocChange,
   IAnnotation,
-  IDrawDefaultAttribute,
-  IDrawDefaultAttributePresets,
+  IDrawCustomProperty,
+  IDrawCustomPropertyPresets,
 } from './interfaces';
 import { migrateDocument } from './migrations';
 
@@ -498,16 +498,16 @@ export class JupyterGISDoc
     });
   }
 
-  getPreset(name: string): IDrawDefaultAttribute[] | undefined {
+  getPreset(name: string): IDrawCustomProperty[] | undefined {
     if (!this._presets.has(name)) {
       return;
     }
 
-    return JSONExt.deepCopy(this._presets.get(name)) as IDrawDefaultAttribute[];
+    return JSONExt.deepCopy(this._presets.get(name)) as IDrawCustomProperty[];
   }
 
-  setPreset(name: string, attributes: IDrawDefaultAttribute[]): void {
-    this.transact(() => void this._presets.set(name, attributes));
+  setPreset(name: string, properties: IDrawCustomProperty[]): void {
+    this.transact(() => void this._presets.set(name, properties));
   }
 
   removePreset(name: string): void {
@@ -518,17 +518,17 @@ export class JupyterGISDoc
     });
   }
 
-  getPresets(): IDrawDefaultAttributePresets {
+  getPresets(): IDrawCustomPropertyPresets {
     return JSONExt.deepCopy(
       this._presets.toJSON(),
-    ) as IDrawDefaultAttributePresets;
+    ) as IDrawCustomPropertyPresets;
   }
 
-  get presets(): IDrawDefaultAttributePresets {
+  get presets(): IDrawCustomPropertyPresets {
     return this.getPresets();
   }
 
-  set presets(presets: IDrawDefaultAttributePresets) {
+  set presets(presets: IDrawCustomPropertyPresets) {
     this.transact(() => {
       for (const [name, value] of Object.entries(presets)) {
         this._presets.set(name, value);
