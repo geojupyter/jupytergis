@@ -190,7 +190,7 @@ function DrawDefaultAttributesDialogContent({
         <div className="jgis-property-rows jgis-draw-default-attributes-list">
           {attributes.length === 0 && draftMode === null ? (
             <p className="jgis-draw-default-attributes-empty">
-              No custom attributes yet. New features will use the default label.
+              No custom attributes yet.
             </p>
           ) : null}
           {attributes.map((attribute, index) => {

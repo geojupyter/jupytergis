@@ -9,11 +9,6 @@ const RESERVED_DRAW_ATTRIBUTE_KEYS = new Set([
   '_geometry',
 ]);
 
-export const DRAW_DEFAULT_ATTRIBUTE_FALLBACK = {
-  key: 'Label',
-  value: 'New Label',
-} as const;
-
 export function normalizeDrawAttributeKey(key: string): string {
   return key.trim();
 }
@@ -64,14 +59,6 @@ export function applyDrawDefaultAttributesToFeature(
   feature: { set: (key: string, value: unknown) => void },
   attributes: IDrawDefaultAttribute[],
 ): void {
-  if (attributes.length === 0) {
-    feature.set(
-      DRAW_DEFAULT_ATTRIBUTE_FALLBACK.key,
-      DRAW_DEFAULT_ATTRIBUTE_FALLBACK.value,
-    );
-    return;
-  }
-
   for (const attribute of attributes) {
     feature.set(attribute.key, attribute.value);
   }
