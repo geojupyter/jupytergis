@@ -1665,12 +1665,12 @@ __metadata:
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
     prettier: ^3.0.0
-    py2vega-ts: ^0.1.1
+    py2vega-ts: ^0.1.2
     react-draggable: 4.5.0
     rimraf: ^3.0.2
     ts-jest: ^29.4.9
     typescript: ^5
-    vega2ol: ^1.1.3
+    vega2ol: ^1.1.5
     webpack: ^5.76.3
     zarrita: ^0.7.3
   languageName: unknown
@@ -16159,12 +16159,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"py2vega-ts@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "py2vega-ts@npm:0.1.1"
+"py2vega-ts@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "py2vega-ts@npm:0.1.2"
   dependencies:
     py-ast: ^1.0.0
-  checksum: 815ede88317316327e77b4896bca560b78ea4d1dc7382f8ceff9cdab5cd50f239fee53bdb95d936456e59ab8daa9c28d9a712b86872655e9e8a7615b3b450500
+  checksum: ee7a1b5297de9967ae6aee3e9d994c0572b13336fcd2e319b4a3ca4a27c639ae2e894634b08bc117a558f3064888c93d427f42740ea13c8559fb43c07b96b22b
   languageName: node
   linkType: hard
 
@@ -19059,12 +19059,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vega2ol@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "vega2ol@npm:1.1.3"
+"vega2ol@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "vega2ol@npm:1.1.5"
   dependencies:
     vega-expression: ^6.1.0
-  checksum: 51a1f579e139f4ba4b7f8dcc7278e62cc7eb673149a5304f9304769fd7f728e0d39d7ff2c87132df8133749bc06825f438a80be757c2616e543ebfa870ead4b0
+  checksum: bcc6ece2e0a02202d2cb6cd4fbddd02f7303177ad03f4abd38049a67daeb635ece48f5f3d4d557f377c4075a4ce3b5b5d52b32899289589a447329d4c3c0416f
   languageName: node
   linkType: hard
 
