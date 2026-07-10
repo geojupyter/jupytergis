@@ -236,9 +236,9 @@ export function addCommands(
     ...icons.get(CommandIDs.symbology),
   });
 
-  commands.addCommand(CommandIDs.editLayerProperties, {
-    label: trans.__('Edit Layer Properties'),
-    caption: 'Edit the properties of the currently selected layer.',
+  commands.addCommand(CommandIDs.showLayerPropertiesDialog, {
+    label: trans.__('Layer Properties'),
+    caption: 'Show the properties of the currently selected layer.',
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const selected = model?.localState?.selected?.value;
@@ -261,6 +261,9 @@ export function addCommands(
       const current = tracker.currentWidget;
 
       if (!current) {
+        console.error(
+          'Cannot show layer properties: no active JupyterGIS document.',
+        );
         return;
       }
 
@@ -270,7 +273,7 @@ export function addCommands(
       });
       await dialog.launch();
     },
-    ...icons.get(CommandIDs.editLayerProperties),
+    ...icons.get(CommandIDs.showLayerPropertiesDialog),
   });
 
   commands.addCommand(CommandIDs.redo, {

@@ -69,7 +69,7 @@ function createContextMenu(
 
   // LAYERS and LAYER GROUPS context menu
   gisContextMenu.addItem({
-    command: CommandIDs.editLayerProperties,
+    command: CommandIDs.showLayerPropertiesDialog,
     selector: GIS_LAYER_ITEM,
     rank: 0,
   });

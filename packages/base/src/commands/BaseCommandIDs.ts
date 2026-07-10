@@ -34,7 +34,8 @@ export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
 
 // Layer and group actions
-export const editLayerProperties = 'jupytergis:editLayerProperties';
+export const showLayerPropertiesDialog =
+  'jupytergis:showLayerPropertiesDialog';
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
 export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
