@@ -168,11 +168,20 @@ export class JupyterGISDoc
         this._viewState.set(key, val),
       );
 
-      this.annotations = (value['annotations'] ??
-        {}) as unknown as IJGISAnnotations;
-      this.presets = (value['presets'] ??
-        {}) as unknown as IDrawDefaultAttributePresets;
-      this.metadata = (value['metadata'] ?? {}) as IJGISMetadata;
+      const annotations = value['annotations'] ?? {};
+      Object.entries(annotations).forEach(([key, val]) =>
+        this._annotations.set(key, val),
+      );
+
+      const presets = value['presets'] ?? {};
+      Object.entries(presets).forEach(([key, val]) =>
+        this._presets.set(key, val),
+      );
+
+      const metadata = value['metadata'] ?? {};
+      Object.entries(metadata).forEach(([key, val]) =>
+        this._metadata.set(key, val),
+      );
     });
   }
 
@@ -483,7 +492,6 @@ export class JupyterGISDoc
 
   set annotations(annotations: IJGISAnnotations) {
     this.transact(() => {
-      this._annotations.clear();
       for (const [id, value] of Object.entries(annotations)) {
         this._annotations.set(id, value);
       }
@@ -494,9 +502,8 @@ export class JupyterGISDoc
     if (!this._presets.has(name)) {
       return;
     }
-    return JSONExt.deepCopy(
-      this._presets.get(name),
-    ) as IDrawDefaultAttribute[];
+
+    return JSONExt.deepCopy(this._presets.get(name)) as IDrawDefaultAttribute[];
   }
 
   setPreset(name: string, attributes: IDrawDefaultAttribute[]): void {
@@ -512,11 +519,9 @@ export class JupyterGISDoc
   }
 
   getPresets(): IDrawDefaultAttributePresets {
-    return JSONExt.deepCopy(this._presets.toJSON()) as IDrawDefaultAttributePresets;
-  }
-
-  getPresetNames(): string[] {
-    return Array.from(this._presets.keys());
+    return JSONExt.deepCopy(
+      this._presets.toJSON(),
+    ) as IDrawDefaultAttributePresets;
   }
 
   get presets(): IDrawDefaultAttributePresets {
@@ -525,7 +530,6 @@ export class JupyterGISDoc
 
   set presets(presets: IDrawDefaultAttributePresets) {
     this.transact(() => {
-      this._presets.clear();
       for (const [name, value] of Object.entries(presets)) {
         this._presets.set(name, value);
       }
@@ -538,7 +542,6 @@ export class JupyterGISDoc
 
   set metadata(metadata: IJGISMetadata) {
     this.transact(() => {
-      this._metadata.clear();
       for (const [key, value] of Object.entries(metadata ?? {})) {
         this._metadata.set(key, value);
       }

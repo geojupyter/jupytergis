@@ -263,7 +263,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   setPreset(name: string, attributes: IDrawDefaultAttribute[]): void;
   removePreset(name: string): void;
   getPresets(): IDrawDefaultAttributePresets;
-  getPresetNames(): string[];
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
