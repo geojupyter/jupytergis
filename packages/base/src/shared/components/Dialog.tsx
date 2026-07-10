@@ -47,52 +47,17 @@ function DialogContent({
   children,
   showCloseButton = true,
   container,
-  preventOutsideDismiss = false,
-  onPointerDownOutside,
-  onInteractOutside,
-  onFocusOutside,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
   container?: HTMLElement | null;
-  preventOutsideDismiss?: boolean;
 }) {
-  const handlePointerDownOutside: React.ComponentProps<
-    typeof DialogPrimitive.Content
-  >['onPointerDownOutside'] = event => {
-    if (preventOutsideDismiss) {
-      event.preventDefault();
-    }
-    onPointerDownOutside?.(event);
-  };
-
-  const handleInteractOutside: React.ComponentProps<
-    typeof DialogPrimitive.Content
-  >['onInteractOutside'] = event => {
-    if (preventOutsideDismiss) {
-      event.preventDefault();
-    }
-    onInteractOutside?.(event);
-  };
-
-  const handleFocusOutside: React.ComponentProps<
-    typeof DialogPrimitive.Content
-  >['onFocusOutside'] = event => {
-    if (preventOutsideDismiss) {
-      event.preventDefault();
-    }
-    onFocusOutside?.(event);
-  };
-
   return (
     <DialogPortal data-slot="dialog-portal" container={container ?? undefined}>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn('jgis-dialog-content', className)}
-        onPointerDownOutside={handlePointerDownOutside}
-        onInteractOutside={handleInteractOutside}
-        onFocusOutside={handleFocusOutside}
         {...props}
       >
         {children}
