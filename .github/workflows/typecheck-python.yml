@@ -21,13 +21,47 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: 'Install Conda environment with Micromamba'
+        uses: 'mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476' # v3.0.0
+        with:
+          cache-environment: true
+          environment-name: 'gis'
+          create-args: >-
+            python=${{ matrix.python-version }}
+            pip
+            qgis
+
+      - name: 'Setup pip cache'
+        uses: 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae' # v5
+        with:
+          path: '~/.cache/pip'
+          key: 'pip-${{ matrix.python-version }}-${{ hashFiles("package.json") }}'
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: 'Install test dependencies'
+        shell: 'bash -l {0}'
+        run: 'pip install --group test'
+
+      - name: 'Build the extensions'
+        shell: 'bash -l {0}'
+        run: |
+          set -eux
+          jlpm install
+          jlpm build
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+
+      # NOTE: Requires JavaScript build to generate Python types!
+      - name: 'Run mypy for jupytergis packages'
+        shell: 'bash -l {0}'
+        run: 'mypy'
+
       - name: 'Install the latest version of uv'
         uses: 'astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b' # v8.1.0
         with:
           enable-cache: true
-
-      - name: 'Run mypy for jupytergis packages'
-        run: 'uv run --group test mypy'
 
       - name: 'Run mypy for layer_gallery'
         working-directory: './scripts/layer_gallery'
