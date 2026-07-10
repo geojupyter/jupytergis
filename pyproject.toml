@@ -21,6 +21,7 @@ test = [
 ]
 typecheck = [
     "mypy",
+    "types-geopandas",
     "types-requests",
 ]
 build = [
