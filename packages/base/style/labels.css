@@ -1,75 +1,75 @@
-.jgis-draw-default-attributes-dialog {
+.jgis-draw-custom-properties-dialog {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.jgis-draw-default-attributes-list {
+.jgis-draw-custom-properties-list {
   max-height: 16rem;
   overflow-y: auto;
 }
 
-.jgis-draw-default-attributes-saved-row .jgis-property-col-key,
-.jgis-draw-default-attributes-saved-row .jgis-property-col-value {
+.jgis-draw-custom-properties-saved-row .jgis-property-col-key,
+.jgis-draw-custom-properties-saved-row .jgis-property-col-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.jgis-draw-default-attributes-error {
+.jgis-draw-custom-properties-error {
   margin: 0;
   font-size: 0.875rem;
   color: var(--jp-error-color1);
 }
 
-.jgis-draw-default-attributes-empty {
+.jgis-draw-custom-properties-empty {
   margin: 0;
   padding: 0.25rem 0.375rem;
   font-size: 0.875rem;
   color: var(--jp-ui-font-color2);
 }
 
-.jgis-draw-default-attributes-header {
+.jgis-draw-custom-properties-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.jgis-draw-default-attributes-header-main {
+.jgis-draw-custom-properties-header-main {
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-width: 0;
 }
 
-.jgis-draw-default-attributes-row {
+.jgis-draw-custom-properties-row {
   display: flex;
   justify-content: space-between;
 }
 
-.jgis-draw-default-attributes-actions {
+.jgis-draw-custom-properties-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.jgis-draw-default-attributes-preset-save-row {
+.jgis-draw-custom-properties-preset-save-row {
   margin-top: 0.25rem;
 }
 
-.jgis-draw-default-attributes-preset-name-input {
+.jgis-draw-custom-properties-preset-name-input {
   flex: 1 1 auto;
 }
 
-.jgis-draw-default-attributes-presets-menu {
+.jgis-draw-custom-properties-presets-menu {
   width: min(18rem, 90vw);
 }
 
-.jgis-draw-default-attributes-preset-item {
+.jgis-draw-custom-properties-preset-item {
   justify-content: space-between;
 }
 
-.jgis-draw-default-attributes-preset-name {
+.jgis-draw-custom-properties-preset-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 
-import { DrawDefaultAttributesPresetsMenu } from '@/src/features/labels/components/DrawDefaultAttributesPresetsMenu';
-import { validatePresetName } from '@/src/features/labels/drawDefaultAttributes';
-import { useDrawDefaultAttributes } from '@/src/features/labels/hooks/useDrawDefaultAttributes';
+import { DrawCustomPropertiesPresetsMenu } from '@/src/features/labels/components/DrawCustomPropertiesPresetsMenu';
+import { validatePresetName } from '@/src/features/labels/drawCustomProperties';
+import { useDrawCustomProperties } from '@/src/features/labels/hooks/useDrawCustomProperties';
 import { Button } from '@/src/shared/components/Button';
 import {
   Dialog,
@@ -25,7 +25,7 @@ import {
 import { Input } from '@/src/shared/components/Input';
 import { PropertyKeyValueFields } from '@/src/shared/components/PropertyKeyValueFields';
 
-interface IDrawAttributeDraftRowProps {
+interface IDrawCustomPropertyDraftRowProps {
   draftKey: string;
   draftValue: string;
   onDraftKeyChange: (value: string) => void;
@@ -35,7 +35,7 @@ interface IDrawAttributeDraftRowProps {
   canSave: boolean;
 }
 
-function DrawAttributeDraftRow({
+function DrawCustomPropertyDraftRow({
   draftKey,
   draftValue,
   onDraftKeyChange,
@@ -43,7 +43,7 @@ function DrawAttributeDraftRow({
   onSave,
   onCancel,
   canSave,
-}: IDrawAttributeDraftRowProps): JSX.Element {
+}: IDrawCustomPropertyDraftRowProps): JSX.Element {
   return (
     <div className="jgis-property-row jgis-property-row-editor">
       <PropertyKeyValueFields
@@ -75,15 +75,15 @@ function DrawAttributeDraftRow({
   );
 }
 
-interface IDrawDefaultAttributesDialogProps {
+interface IDrawCustomPropertiesDialogProps {
   model: IJupyterGISModel;
   drawLayerId: string;
 }
 
-export function DrawDefaultAttributesDialog({
+export function DrawCustomPropertiesDialog({
   model,
   drawLayerId,
-}: IDrawDefaultAttributesDialogProps): JSX.Element {
+}: IDrawCustomPropertiesDialogProps): JSX.Element {
   const [open, setOpen] = useState(false);
 
   return (
@@ -98,7 +98,7 @@ export function DrawDefaultAttributesDialog({
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DrawDefaultAttributesDialogContent
+        <DrawCustomPropertiesDialogContent
           model={model}
           layerId={drawLayerId}
         />
@@ -107,18 +107,18 @@ export function DrawDefaultAttributesDialog({
   );
 }
 
-interface IDrawDefaultAttributesDialogContentProps {
+interface IDrawCustomPropertiesDialogContentProps {
   model: IJupyterGISModel;
   layerId: string;
 }
 
-function DrawDefaultAttributesDialogContent({
+function DrawCustomPropertiesDialogContent({
   model,
   layerId,
-}: IDrawDefaultAttributesDialogContentProps): JSX.Element {
+}: IDrawCustomPropertiesDialogContentProps): JSX.Element {
   const contentRef = useRef<HTMLDivElement>(null);
   const {
-    attributes,
+    properties,
     presets,
     presetNames,
     draftMode,
@@ -132,13 +132,13 @@ function DrawDefaultAttributesDialogContent({
     startEdit,
     saveDraft,
     cancelDraft,
-    removeAttribute,
+    removeProperty,
     loadPreset,
     savePreset,
     canAdd,
     canSaveDraft,
     canSavePreset,
-  } = useDrawDefaultAttributes(model, layerId);
+  } = useDrawCustomProperties(model, layerId);
 
   const [savingPreset, setSavingPreset] = useState(false);
   const [presetName, setPresetName] = useState('');
@@ -177,27 +177,27 @@ function DrawDefaultAttributesDialogContent({
 
   return (
     <>
-      <DialogHeader className="jgis-draw-default-attributes-header">
-        <DialogTitle className="jgis-draw-default-attributes-header-main">
-          Set up custom attributes
+      <DialogHeader className="jgis-draw-custom-properties-header">
+        <DialogTitle className="jgis-draw-custom-properties-header-main">
+          Set up custom properties
         </DialogTitle>
         <DialogDescription className="jgis-sr-only">
-          Configure default attributes applied to newly drawn features.
+          Configure custom properties applied to newly drawn features.
         </DialogDescription>
       </DialogHeader>
 
-      <div className="jgis-draw-default-attributes-dialog" ref={contentRef}>
-        <div className="jgis-property-rows jgis-draw-default-attributes-list">
-          {attributes.length === 0 && draftMode === null ? (
-            <p className="jgis-draw-default-attributes-empty">
-              No custom attributes yet.
+      <div className="jgis-draw-custom-properties-dialog" ref={contentRef}>
+        <div className="jgis-property-rows jgis-draw-custom-properties-list">
+          {properties.length === 0 && draftMode === null ? (
+            <p className="jgis-draw-custom-properties-empty">
+              No custom properties yet.
             </p>
           ) : null}
-          {attributes.map((attribute, index) => {
+          {properties.map((property, index) => {
             if (draftMode === 'edit' && editingIndex === index) {
               return (
-                <DrawAttributeDraftRow
-                  key={`edit-${attribute.key}`}
+                <DrawCustomPropertyDraftRow
+                  key={`edit-${property.key}`}
                   draftKey={draftKey}
                   draftValue={draftValue}
                   onDraftKeyChange={setDraftKey}
@@ -211,12 +211,12 @@ function DrawDefaultAttributesDialogContent({
 
             return (
               <div
-                key={attribute.key}
-                className="jgis-property-row jgis-draw-default-attributes-saved-row"
+                key={property.key}
+                className="jgis-property-row jgis-draw-custom-properties-saved-row"
               >
-                <span className="jgis-property-col-key">{attribute.key}</span>
+                <span className="jgis-property-col-key">{property.key}</span>
                 <span className="jgis-property-col-value">
-                  {attribute.value}
+                  {property.value}
                 </span>
                 <Button
                   type="button"
@@ -233,7 +233,7 @@ function DrawDefaultAttributesDialogContent({
                   variant="icon"
                   size="icon-md"
                   title="Remove"
-                  onClick={() => removeAttribute(index)}
+                  onClick={() => removeProperty(index)}
                   disabled={controlsDisabled}
                 >
                   <Trash2 />
@@ -243,7 +243,7 @@ function DrawDefaultAttributesDialogContent({
           })}
 
           {draftMode === 'add' ? (
-            <DrawAttributeDraftRow
+            <DrawCustomPropertyDraftRow
               draftKey={draftKey}
               draftValue={draftValue}
               onDraftKeyChange={setDraftKey}
@@ -256,19 +256,17 @@ function DrawDefaultAttributesDialogContent({
         </div>
 
         {draftError ? (
-          <p className="jgis-draw-default-attributes-error">{draftError}</p>
+          <p className="jgis-draw-custom-properties-error">{draftError}</p>
         ) : null}
 
         {presetNameError ? (
-          <p className="jgis-draw-default-attributes-error">
-            {presetNameError}
-          </p>
+          <p className="jgis-draw-custom-properties-error">{presetNameError}</p>
         ) : null}
 
         {savingPreset ? (
-          <div className="jgis-property-row jgis-property-row-editor jgis-draw-default-attributes-preset-save-row">
+          <div className="jgis-property-row jgis-property-row-editor jgis-draw-custom-properties-preset-save-row">
             <Input
-              className="jgis-draw-default-attributes-preset-name-input"
+              className="jgis-draw-custom-properties-preset-name-input"
               type="text"
               placeholder="Preset name"
               value={presetName}
@@ -295,8 +293,8 @@ function DrawDefaultAttributesDialogContent({
             </Button>
           </div>
         ) : null}
-        <div className="jgis-draw-default-attributes-row">
-          <div className="jgis-draw-default-attributes-actions">
+        <div className="jgis-draw-custom-properties-row">
+          <div className="jgis-draw-custom-properties-actions">
             <Button
               className="jgis-property-add-button"
               type="button"
@@ -325,7 +323,7 @@ function DrawDefaultAttributesDialogContent({
               Save as preset
             </Button>
           </div>
-          <DrawDefaultAttributesPresetsMenu
+          <DrawCustomPropertiesPresetsMenu
             presets={presets}
             presetNames={presetNames}
             onLoadPreset={loadPreset}

@@ -1,4 +1,4 @@
-import type { IDrawDefaultAttributePresets } from '@jupytergis/schema';
+import type { IDrawCustomPropertyPresets } from '@jupytergis/schema';
 import { ChevronDown } from 'lucide-react';
 import React from 'react';
 
@@ -11,21 +11,21 @@ import {
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
 
-interface IDrawDefaultAttributesPresetsMenuProps {
-  presets: IDrawDefaultAttributePresets;
+interface IDrawCustomPropertiesPresetsMenuProps {
+  presets: IDrawCustomPropertyPresets;
   presetNames: string[];
   onLoadPreset: (name: string) => void;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   disabled?: boolean;
 }
 
-export function DrawDefaultAttributesPresetsMenu({
+export function DrawCustomPropertiesPresetsMenu({
   presets,
   presetNames,
   onLoadPreset,
   portalContainerRef,
   disabled = false,
-}: IDrawDefaultAttributesPresetsMenuProps): JSX.Element | null {
+}: IDrawCustomPropertiesPresetsMenuProps): JSX.Element | null {
   if (presetNames.length === 0) {
     return null;
   }
@@ -40,24 +40,24 @@ export function DrawDefaultAttributesPresetsMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="jgis-draw-default-attributes-presets-menu"
+        className="jgis-draw-custom-properties-presets-menu"
         portalContainer={portalContainerRef.current}
       >
         {presetNames.map(name => {
-          const attributeCount = presets[name]?.length ?? 0;
+          const propertyCount = presets[name]?.length ?? 0;
 
           return (
             <DropdownMenuItem
               key={name}
-              className="jgis-draw-default-attributes-preset-item"
+              className="jgis-draw-custom-properties-preset-item"
               onSelect={() => onLoadPreset(name)}
             >
-              <span className="jgis-draw-default-attributes-preset-name">
+              <span className="jgis-draw-custom-properties-preset-name">
                 {name}
               </span>
               <DropdownMenuShortcut>
-                {attributeCount}{' '}
-                {attributeCount === 1 ? 'attribute' : 'attributes'}
+                {propertyCount}{' '}
+                {propertyCount === 1 ? 'property' : 'properties'}
               </DropdownMenuShortcut>
             </DropdownMenuItem>
           );
