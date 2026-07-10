@@ -1,8 +1,8 @@
 import { Slot } from 'radix-ui';
 import * as React from 'react';
 
-import { cn } from './utils';
 import { Separator } from './Separator';
+import { cn } from './utils';
 
 function ButtonGroup({
   className,
