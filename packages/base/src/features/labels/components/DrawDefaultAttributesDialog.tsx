@@ -77,7 +77,7 @@ function DrawAttributeDraftRow({
 
 interface IDrawDefaultAttributesDialogProps {
   model: IJupyterGISModel;
-  drawLayerId?: string;
+  drawLayerId: string;
 }
 
 export function DrawDefaultAttributesDialog({
@@ -89,7 +89,7 @@ export function DrawDefaultAttributesDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button disabled={!drawLayerId}>
+        <Button>
           <SlidersHorizontal
             data-icon="inline-start"
             className="jgis-inline-icon"
@@ -97,13 +97,11 @@ export function DrawDefaultAttributesDialog({
           Edit
         </Button>
       </DialogTrigger>
-      <DialogContent preventOutsideDismiss>
-        {drawLayerId ? (
-          <DrawDefaultAttributesDialogContent
-            model={model}
-            layerId={drawLayerId}
-          />
-        ) : null}
+      <DialogContent>
+        <DrawDefaultAttributesDialogContent
+          model={model}
+          layerId={drawLayerId}
+        />
       </DialogContent>
     </Dialog>
   );
