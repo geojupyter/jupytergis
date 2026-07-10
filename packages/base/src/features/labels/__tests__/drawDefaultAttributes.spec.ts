@@ -53,7 +53,7 @@ describe('drawDefaultAttributes', () => {
   });
 
   describe('applyDrawDefaultAttributesToFeature', () => {
-    it('applies fallback when no defaults are configured', () => {
+    it('does nothing when no defaults are configured', () => {
       const properties: Record<string, unknown> = {};
       const feature = {
         set: (key: string, value: unknown) => {
@@ -63,7 +63,7 @@ describe('drawDefaultAttributes', () => {
 
       applyDrawDefaultAttributesToFeature(feature, []);
 
-      expect(properties).toEqual({ Label: 'New Label' });
+      expect(properties).toEqual({});
     });
 
     it('applies configured defaults to the feature', () => {
