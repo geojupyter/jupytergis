@@ -183,7 +183,7 @@ describe('awareness field signals', () => {
     ]);
   });
 
-  it('prefers local draw defaults when clients share the same updatedAt', () => {
+  it('prefers the higher client id when draw defaults share the same updatedAt', () => {
     model.syncDrawDefaultAttributes({
       'layer-a': {
         updatedAt: 100,
@@ -191,10 +191,11 @@ describe('awareness field signals', () => {
       },
     });
 
-    const remoteClientId = 4242;
+    const localClientId = model.getClientId();
+    const remoteClientId = localClientId + 1;
     const clients = model.sharedModel.awareness.getStates();
     clients.set(remoteClientId, {
-      ...(clients.get(model.getClientId()) as object),
+      ...(clients.get(localClientId) as object),
       drawDefaultAttributes: {
         value: {
           'layer-a': {
@@ -206,7 +207,7 @@ describe('awareness field signals', () => {
     } as any);
 
     expect(model.getDrawDefaultAttributes('layer-a')).toEqual([
-      { key: 'species', value: 'oak' },
+      { key: 'status', value: 'draft' },
     ]);
   });
 
