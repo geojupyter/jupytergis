@@ -9,44 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
-import { Input } from '@/src/shared/components/Input';
+import { PropertyKeyValueFields } from '@/src/shared/components/PropertyKeyValueFields';
 import {
   IAttributeEditorActions,
   IAttributeEditorState,
 } from '../types/editorTypes';
-
-interface IAttributeFieldsProps {
-  editorState: IAttributeEditorState;
-  editorActions: IAttributeEditorActions;
-}
-
-export const AttributeFields: React.FC<IAttributeFieldsProps> = ({
-  editorState,
-  editorActions,
-}) => {
-  return (
-    <>
-      <Input
-        className="jgis-property-col-key"
-        type="text"
-        placeholder="key"
-        value={editorState.newAttributeKey}
-        onChange={event =>
-          editorActions.onNewAttributeKeyChange(event.target.value)
-        }
-      />
-      <Input
-        className="jgis-property-col-value"
-        type="text"
-        placeholder="value"
-        value={editorState.newAttributeValue}
-        onChange={event =>
-          editorActions.onNewAttributeValueChange(event.target.value)
-        }
-      />
-    </>
-  );
-};
 
 interface IAttributeActionMenuProps {
   feature: IIdentifiedFeature;
@@ -153,11 +120,13 @@ export const AttributeRowEditor: React.FC<IAttributeRowEditorProps> = ({
 }) => {
   return (
     <div className="jgis-property-row jgis-property-row-editor">
-      <AttributeFields
-        editorState={editorState}
-        editorActions={editorActions}
+      <PropertyKeyValueFields
+        propertyKey={editorState.newPropertyKey}
+        propertyValue={editorState.newPropertyValue}
+        onPropertyKeyChange={editorActions.onNewPropertyKeyChange}
+        onPropertyValueChange={editorActions.onNewPropertyValueChange}
       />
-      <AttributeActionMenu
+      <PropertyActionMenu
         feature={feature}
         rowIndex={rowIndex}
         editorState={editorState}
