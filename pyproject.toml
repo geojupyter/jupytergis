@@ -179,3 +179,7 @@ packages = [
 # explicit_package_bases = true
 python_version = "3.12"
 # strict = true
+
+[[tool.mypy.overrides]]
+module = ["sidecar.*"]
+ignore_missing_imports = true
