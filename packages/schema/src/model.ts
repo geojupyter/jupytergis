@@ -92,10 +92,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._annotationsChangedHandler,
       this,
     );
-    this._sharedModel.presetsChanged.connect(
-      this._presetsChangedHandler,
-      this,
-    );
+    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -1330,6 +1327,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
+
+        if (previousValue === currentValue) {
+          return;
+        }
 
         const payload: IAwarenessFieldChange = {
           clientId,
