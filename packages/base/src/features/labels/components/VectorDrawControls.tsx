@@ -39,7 +39,9 @@ export function VectorDrawControls({
           </Button>
         ))}
       </ButtonGroup>
-      <DrawDefaultAttributesDialog model={model} drawLayerId={drawLayerId} />
+      {drawLayerId ? (
+        <DrawDefaultAttributesDialog model={model} drawLayerId={drawLayerId} />
+      ) : null}
     </div>
   );
 }
