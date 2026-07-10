@@ -15,6 +15,7 @@ test = [
     "dirty-equals",
     "numpy",
     "rioxarray",
+    "mypy",
 ]
 build = [
     "build",
@@ -153,3 +154,21 @@ ignore = [
     "TRY400",  # error-instead-of-exception
     "UP045",   # non-pep604-annotation-optional
 ]
+
+[tool.mypy]
+mypy_path = [
+    "python/jupytergis",
+    "python/jupytergis_core",
+    "python/jupytergis_lab",
+    "python/jupytergis_lite",
+    "python/jupytergis_qgis",
+]
+packages = [
+    "jupytergis",
+    "jupytergis_core",
+    "jupytergis_lab",
+    "jupytergis_qgis",
+]
+# explicit_package_bases = true
+python_version = "3.12"
+# strict = true
