@@ -44,6 +44,12 @@ function DrawCustomPropertyDraftRow({
   onCancel,
   canSave,
 }: IDrawCustomPropertyDraftRowProps): JSX.Element {
+  const handleEnter = (): void => {
+    if (canSave) {
+      onSave();
+    }
+  };
+
   return (
     <div className="jgis-property-row jgis-property-row-editor">
       <PropertyKeyValueFields
@@ -51,6 +57,7 @@ function DrawCustomPropertyDraftRow({
         propertyValue={draftValue}
         onPropertyKeyChange={onDraftKeyChange}
         onPropertyValueChange={onDraftValueChange}
+        onEnter={handleEnter}
       />
       <Button
         type="button"
@@ -159,8 +166,12 @@ function DrawCustomPropertiesDialogContent({
     setPresetNameError(validation.valid ? null : (validation.error ?? null));
   };
 
-  const handleSavePreset = (): void => {
-    const trimmedName = presetName.trim();
+  const handleSavePreset = (name: string = presetName): void => {
+    const trimmedName = name.trim();
+    if (!validatePresetName(trimmedName).valid) {
+      return;
+    }
+
     if (trimmedName in presets) {
       const confirmed = window.confirm(
         `Preset "${trimmedName}" already exists. Overwrite it?`,
@@ -271,13 +282,18 @@ function DrawCustomPropertiesDialogContent({
               placeholder="Preset name"
               value={presetName}
               onChange={event => handlePresetNameChange(event.target.value)}
+              onEnter={value => {
+                if (validatePresetName(value).valid) {
+                  handleSavePreset(value);
+                }
+              }}
             />
             <Button
               type="button"
               variant="icon"
               size="icon-md"
               title="Save preset"
-              onClick={handleSavePreset}
+              onClick={() => handleSavePreset()}
               disabled={!isPresetNameValid}
             >
               <Save />
