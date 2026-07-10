@@ -33,9 +33,7 @@ export const FileSelectorWidget: React.FC<any> = props => {
       // Only the creation flow provides `dialogOptions`.
       const isCreationDialog = Boolean(formOptions.dialogOptions);
 
-      const dialogElement = document.querySelector(
-        'dialog[aria-modal="true"]',
-      ) as HTMLDialogElement | null;
+      const dialogElement = document.querySelector('dialog[aria-modal="true"]');
       const dialogInstance = dialogElement
         ? (Dialog.tracker.find(dialog => dialog.node === dialogElement) ?? null)
         : null;
@@ -126,9 +124,8 @@ export const FileSelectorWidget: React.FC<any> = props => {
 
   // Lazy import avoids a circular dependency with the dialog module.
   const reopenPropertiesDialog = async () => {
-    const { ObjectPropertiesWidget } = await import(
-      '@/src/features/objectproperties/objectPropertiesDialog'
-    );
+    const { ObjectPropertiesWidget } =
+      await import('@/src/features/objectproperties/objectPropertiesDialog');
     await new ObjectPropertiesWidget({
       model: formOptions.model,
       formSchemaRegistry: formOptions.formSchemaRegistry,
