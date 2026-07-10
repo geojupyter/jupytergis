@@ -10,8 +10,8 @@ import {
 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 
-import { validatePresetName } from '@/src/features/labels/drawDefaultAttributes';
 import { DrawDefaultAttributesPresetsMenu } from '@/src/features/labels/components/DrawDefaultAttributesPresetsMenu';
+import { validatePresetName } from '@/src/features/labels/drawDefaultAttributes';
 import { useDrawDefaultAttributes } from '@/src/features/labels/hooks/useDrawDefaultAttributes';
 import { Button } from '@/src/shared/components/Button';
 import {

@@ -137,6 +137,7 @@ import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
+import { applyDrawDefaultAttributesToFeature } from '@/src/features/labels/drawDefaultAttributes';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -158,7 +159,6 @@ import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
-import { applyDrawDefaultAttributesToFeature } from '@/src/features/labels/drawDefaultAttributes';
 import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
