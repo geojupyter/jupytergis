@@ -133,7 +133,7 @@
 
 /* sizing */
 .jgis-button[data-size='sm'] {
-  height: 2.25rem;
+  /* height: 2.25rem; */
   border-radius: var(--jp-border-radius, 0.375rem);
   padding-left: 0.75rem;
   padding-right: 0.75rem;
