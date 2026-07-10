@@ -39,7 +39,7 @@
 
 .jgis-dropdown-menu-content {
   max-height: var(--radix-dropdown-menu-content-available-height);
-  width: var(--radix-dropdown-menu-trigger-width);
+  width: fit-content;
   overflow-x: hidden;
   overflow-y: auto;
 }
