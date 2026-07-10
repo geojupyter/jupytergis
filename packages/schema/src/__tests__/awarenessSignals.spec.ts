@@ -269,6 +269,28 @@ describe('awareness field signals', () => {
     ]);
   });
 
+  it('does not emit unrelated awareness field signals on updates', () => {
+    model.syncIdentifiedFeatures(
+      [{ feature: { name: 'Feature 1' }, floaterOpen: false }],
+      'test',
+    );
+
+    const identifiedEvents: any[] = [];
+    const drawDefaultEvents: any[] = [];
+    model.identifiedFeaturesChanged.connect((_, args) => {
+      identifiedEvents.push(args);
+    });
+    model.drawDefaultAttributesChanged.connect((_, args) => {
+      drawDefaultEvents.push(args);
+    });
+
+    model.syncPointer({ coordinates: { x: 1, y: 2 } }, 'test');
+    model.syncPointer({ coordinates: { x: 3, y: 4 } }, 'test');
+
+    expect(identifiedEvents).toHaveLength(0);
+    expect(drawDefaultEvents).toHaveLength(0);
+  });
+
   it('emits remoteUserChanged when follow target changes', () => {
     const events: any[] = [];
     model.remoteUserChanged.connect((_, args) => {
