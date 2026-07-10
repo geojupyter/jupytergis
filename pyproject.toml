@@ -10,12 +10,18 @@ dynamic = ["version"]
 requires-python = ">=3.12"
 
 [dependency-groups]
+dev = [
+    "jupyterlab>=4.5.1",
+]
 test = [
     "pytest",
     "dirty-equals",
     "numpy",
     "rioxarray",
+]
+typecheck = [
     "mypy",
+    "types-requests",
 ]
 build = [
     "build",

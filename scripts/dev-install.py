@@ -16,7 +16,7 @@ def install_dev():
         "jupytergis_qgis",
     ]
 
-    execute("python -m pip install --group build")
+    execute("python -m pip install --group build --group test --group typecheck")
     execute("jlpm install --immutable")  # Use lockfile for safety!
     execute("jlpm build")
 
