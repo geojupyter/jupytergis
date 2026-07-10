@@ -731,8 +731,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getDrawDefaultAttributes(layerId: string): IDrawDefaultAttribute[] {
-    const localClientId = this.getClientId();
     let winner: IDrawDefaultAttributesLayerState | undefined;
+    let winnerClientId: number | undefined;
 
     for (const [clientId, state] of this.sharedModel.awareness.getStates()) {
       const layerState = (state as IJupyterGISClientState | null)
@@ -746,9 +746,10 @@ export class JupyterGISModel implements IJupyterGISModel {
         !winner ||
         layerState.updatedAt > winner.updatedAt ||
         (layerState.updatedAt === winner.updatedAt &&
-          clientId === localClientId)
+          clientId > (winnerClientId ?? -1))
       ) {
         winner = layerState;
+        winnerClientId = clientId;
       }
     }
 
