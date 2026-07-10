@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from '@/src/shared/components/Dialog';
 import { Input } from '@/src/shared/components/Input';
+import { PropertyKeyValueFields } from '@/src/shared/components/PropertyKeyValueFields';
 
 interface IDrawAttributeDraftRowProps {
   draftKey: string;
@@ -45,19 +46,11 @@ function DrawAttributeDraftRow({
 }: IDrawAttributeDraftRowProps): JSX.Element {
   return (
     <div className="jgis-property-row jgis-property-row-editor">
-      <Input
-        className="jgis-property-col-key"
-        type="text"
-        placeholder="key"
-        value={draftKey}
-        onChange={event => onDraftKeyChange(event.target.value)}
-      />
-      <Input
-        className="jgis-property-col-value"
-        type="text"
-        placeholder="value"
-        value={draftValue}
-        onChange={event => onDraftValueChange(event.target.value)}
+      <PropertyKeyValueFields
+        propertyKey={draftKey}
+        propertyValue={draftValue}
+        onPropertyKeyChange={onDraftKeyChange}
+        onPropertyValueChange={onDraftValueChange}
       />
       <Button
         type="button"
