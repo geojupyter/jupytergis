@@ -164,6 +164,7 @@ function _migrateAnnotations(doc: Record<string, any>): Record<string, any> {
     ...doc,
     annotations,
     metadata: {},
+    presets: {},
   };
 }
 
