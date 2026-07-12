@@ -1,11 +1,7 @@
-import {
-  Dialog,
-  Notification,
-  ReactWidget,
-  showDialog,
-} from '@jupyterlab/apputils';
+import { Dialog, Notification, ReactWidget } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
 import {
   connect as openEOConnect,
@@ -1403,14 +1399,14 @@ export async function showAddOpenEOLayerDialog(
     },
   );
 
-  const resultPromise = showDialog<IOpenEODialogResult | null>({
+  const resultPromise = new EditorAwareDialog<IOpenEODialogResult | null>({
     title: options.title ?? 'Add OpenEO Layer',
     body,
     buttons: [
       Dialog.cancelButton(),
       Dialog.okButton({ label: options.okLabel ?? 'Add Layer' }),
     ],
-  });
+  }).launch();
   // Apply the initial disabled state once the dialog mounts.
   window.setTimeout(applyOk, 0);
   const result = await resultPromise;
