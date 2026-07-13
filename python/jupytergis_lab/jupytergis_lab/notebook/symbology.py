@@ -791,7 +791,7 @@ def _constant_color_scale(
 
 def _constant_num_scale(value: float) -> schema_symbology.IConstantNumScale:
     return schema_symbology.IConstantNumScale(
-        params=schema_symbology.Params4(value=value),
+        params=schema_symbology.IConstantNumScaleParams(value=value),
     )
 
 

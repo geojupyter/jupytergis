@@ -317,6 +317,16 @@
         }
       }
     },
+    "IConstantNumScaleParams": {
+      "type": "object",
+      "title": "IConstantNumParams",
+      "description": "Constant numeric payload.",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "number" }
+      }
+    },
     "IConstantNumScale": {
       "type": "object",
       "title": "IConstantNumScale",
@@ -325,16 +335,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "constant_num" },
-        "params": {
-          "type": "object",
-          "title": "IConstantNumParams",
-          "description": "Constant numeric payload.",
-          "required": ["value"],
-          "additionalProperties": false,
-          "properties": {
-            "value": { "type": "number" }
-          }
-        }
+        "params": { "$ref": "#/definitions/IConstantNumScaleParams" }
       }
     },
     "IIdentityScale": {
