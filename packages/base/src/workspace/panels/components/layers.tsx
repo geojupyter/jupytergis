@@ -69,6 +69,12 @@ function createContextMenu(
 
   // LAYERS and LAYER GROUPS context menu
   gisContextMenu.addItem({
+    command: CommandIDs.showLayerPropertiesDialog,
+    selector: GIS_LAYER_ITEM,
+    rank: 0,
+  });
+
+  gisContextMenu.addItem({
     command: CommandIDs.symbology,
     selector: GIS_LAYER_ITEM,
     rank: 1,
