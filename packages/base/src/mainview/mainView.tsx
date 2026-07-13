@@ -137,7 +137,7 @@ import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
-import { applyDrawCustomPropertiesToFeature } from '@/src/features/labels/drawCustomProperties';
+import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -3892,10 +3892,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     feature.set('_fromDrawTool', true);
 
     const layerId = this._currentDrawLayerID;
-    const customProperties = layerId
-      ? this._model.getDrawCustomProperties(layerId)
+    const customAttributes = layerId
+      ? this._model.getDrawCustomAttributes(layerId)
       : [];
-    applyDrawCustomPropertiesToFeature(feature, customProperties);
+    applyDrawCustomAttributesToFeature(feature, customAttributes);
   };
 
   _editVectorLayer = () => {

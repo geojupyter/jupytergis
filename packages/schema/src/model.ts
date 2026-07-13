@@ -29,10 +29,10 @@ import {
   IAwarenessFieldChange,
   IAnnotationModel,
   IIdentifiedFeatures,
-  IDrawCustomProperty,
-  IDrawCustomPropertyPresets,
-  IDrawCustomPropertiesByLayer,
-  IDrawCustomPropertiesLayerState,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
+  IDrawCustomAttributesByLayer,
+  IDrawCustomAttributesLayerState,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -302,11 +302,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._identifiedFeaturesChanged;
   }
 
-  get drawCustomPropertiesChanged(): ISignal<
+  get drawCustomAttributesChanged(): ISignal<
     this,
-    IAwarenessFieldChange<IJupyterGISClientState['drawCustomProperties']>
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   > {
-    return this._drawCustomPropertiesChanged;
+    return this._drawCustomAttributesChanged;
   }
 
   get remoteUserChanged(): ISignal<
@@ -620,7 +620,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layer = this._sharedModel.getLayer(layer_id);
     const source_id = layer?.parameters?.source;
 
-    this.clearDrawCustomPropertiesForLayer(layer_id);
+    this.clearDrawCustomAttributesForLayer(layer_id);
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
 
@@ -717,26 +717,26 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
-  syncDrawCustomProperties(
-    propertiesByLayer: IDrawCustomPropertiesByLayer,
+  syncDrawCustomAttributes(
+    attributesByLayer: IDrawCustomAttributesByLayer,
     emitter?: string,
   ): void {
     this.sharedModel.awareness.setLocalStateField(
-      AWARENESS_STATE_FIELDS.drawCustomProperties,
+      AWARENESS_STATE_FIELDS.drawCustomAttributes,
       {
-        value: propertiesByLayer,
+        value: attributesByLayer,
         emitter,
       },
     );
   }
 
-  getDrawCustomProperties(layerId: string): IDrawCustomProperty[] {
-    let winner: IDrawCustomPropertiesLayerState | undefined;
+  getDrawCustomAttributes(layerId: string): IDrawCustomAttribute[] {
+    let winner: IDrawCustomAttributesLayerState | undefined;
     let winnerClientId: number | undefined;
 
     for (const [clientId, state] of this.sharedModel.awareness.getStates()) {
       const layerState = (state as IJupyterGISClientState | null)
-        ?.drawCustomProperties?.value?.[layerId];
+        ?.drawCustomAttributes?.value?.[layerId];
 
       if (!layerState) {
         continue;
@@ -753,28 +753,28 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     }
 
-    return winner?.properties ?? [];
+    return winner?.attributes ?? [];
   }
 
-  setDrawCustomPropertiesForLayer(
+  setDrawCustomAttributesForLayer(
     layerId: string,
-    properties: IDrawCustomProperty[],
+    attributes: IDrawCustomAttribute[],
     emitter?: string,
   ): void {
     const current = {
-      ...(this.localState?.drawCustomProperties?.value ?? {}),
+      ...(this.localState?.drawCustomAttributes?.value ?? {}),
     };
 
     current[layerId] = {
       updatedAt: Date.now(),
-      properties,
+      attributes,
     };
 
-    this.syncDrawCustomProperties(current, emitter);
+    this.syncDrawCustomAttributes(current, emitter);
   }
 
-  clearDrawCustomPropertiesForLayer(layerId: string, emitter?: string): void {
-    const current = this.localState?.drawCustomProperties?.value;
+  clearDrawCustomAttributesForLayer(layerId: string, emitter?: string): void {
+    const current = this.localState?.drawCustomAttributes?.value;
     if (!current || !(layerId in current)) {
       return;
     }
@@ -782,21 +782,21 @@ export class JupyterGISModel implements IJupyterGISModel {
     const next = { ...current };
     next[layerId] = {
       updatedAt: Date.now(),
-      properties: [],
+      attributes: [],
     };
 
-    this.syncDrawCustomProperties(next, emitter);
+    this.syncDrawCustomAttributes(next, emitter);
   }
 
-  getDrawCustomPropertyPresets(): IDrawCustomPropertyPresets {
+  getDrawCustomAttributePresets(): IDrawCustomAttributePresets {
     return this.sharedModel.getPresets();
   }
 
-  setDrawCustomPropertyPreset(
+  setDrawCustomAttributePreset(
     name: string,
-    properties: IDrawCustomProperty[],
+    attributes: IDrawCustomAttribute[],
   ): void {
-    this.sharedModel.setPreset(name, properties);
+    this.sharedModel.setPreset(name, attributes);
   }
 
   setUserToFollow(userId?: number): void {
@@ -1371,10 +1371,10 @@ export class JupyterGISModel implements IJupyterGISModel {
               >,
             );
             break;
-          case AWARENESS_STATE_FIELDS.drawCustomProperties:
-            this._drawCustomPropertiesChanged.emit(
+          case AWARENESS_STATE_FIELDS.drawCustomAttributes:
+            this._drawCustomAttributesChanged.emit(
               payload as IAwarenessFieldChange<
-                IJupyterGISClientState['drawCustomProperties']
+                IJupyterGISClientState['drawCustomAttributes']
               >,
             );
             break;
@@ -1494,9 +1494,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >(this);
-  private _drawCustomPropertiesChanged = new Signal<
+  private _drawCustomAttributesChanged = new Signal<
     this,
-    IAwarenessFieldChange<IJupyterGISClientState['drawCustomProperties']>
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   >(this);
   private _remoteUserChanged = new Signal<
     this,

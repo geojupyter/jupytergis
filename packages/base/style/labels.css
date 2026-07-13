@@ -1,75 +1,75 @@
-.jgis-draw-custom-properties-dialog {
+.jgis-draw-custom-attributes-dialog {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.jgis-draw-custom-properties-list {
+.jgis-draw-custom-attributes-list {
   max-height: 16rem;
   overflow-y: auto;
 }
 
-.jgis-draw-custom-properties-saved-row .jgis-property-col-key,
-.jgis-draw-custom-properties-saved-row .jgis-property-col-value {
+.jgis-draw-custom-attributes-saved-row .jgis-property-col-key,
+.jgis-draw-custom-attributes-saved-row .jgis-property-col-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.jgis-draw-custom-properties-error {
+.jgis-draw-custom-attributes-error {
   margin: 0;
   font-size: 0.875rem;
   color: var(--jp-error-color1);
 }
 
-.jgis-draw-custom-properties-empty {
+.jgis-draw-custom-attributes-empty {
   margin: 0;
   padding: 0.25rem 0.375rem;
   font-size: 0.875rem;
   color: var(--jp-ui-font-color2);
 }
 
-.jgis-draw-custom-properties-header {
+.jgis-draw-custom-attributes-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.jgis-draw-custom-properties-header-main {
+.jgis-draw-custom-attributes-header-main {
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-width: 0;
 }
 
-.jgis-draw-custom-properties-row {
+.jgis-draw-custom-attributes-row {
   display: flex;
   justify-content: space-between;
 }
 
-.jgis-draw-custom-properties-actions {
+.jgis-draw-custom-attributes-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.jgis-draw-custom-properties-preset-save-row {
+.jgis-draw-custom-attributes-preset-save-row {
   margin-top: 0.25rem;
 }
 
-.jgis-draw-custom-properties-preset-name-input {
+.jgis-draw-custom-attributes-preset-name-input {
   flex: 1 1 auto;
 }
 
-.jgis-draw-custom-properties-presets-menu {
+.jgis-draw-custom-attributes-presets-menu {
   width: min(18rem, 90vw);
 }
 
-.jgis-draw-custom-properties-preset-item {
+.jgis-draw-custom-attributes-preset-item {
   justify-content: space-between;
 }
 
-.jgis-draw-custom-properties-preset-name {
+.jgis-draw-custom-attributes-preset-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

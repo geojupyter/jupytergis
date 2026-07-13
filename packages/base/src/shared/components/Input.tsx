@@ -16,8 +16,17 @@ const SKIP_ENTER_COMMIT_TYPES = new Set([
   'submit',
 ]);
 
-function Input({ className, type, onKeyDown, onChange, onEnter, ...props }: InputProps) {
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
+function Input({
+  className,
+  type,
+  onKeyDown,
+  onChange,
+  onEnter,
+  ...props
+}: InputProps) {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ): void => {
     onKeyDown?.(event);
 
     if (
