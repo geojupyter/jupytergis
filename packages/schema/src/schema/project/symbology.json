@@ -251,6 +251,42 @@
         }
       }
     },
+    "IScalarScaleParams": {
+      "type": "object",
+      "title": "IScalarScaleParams",
+      "description": "Parameters controlling scalar interpolation and fallback behavior.",
+      "required": ["domain", "range", "mode", "nStops", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "range": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "fallback": { "type": "number" },
+        "scalarStops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "IScalarStop",
+            "description": "Explicit input stop to output value mapping.",
+            "required": ["stop", "output"],
+            "additionalProperties": false,
+            "properties": {
+              "stop": { "type": "number" },
+              "output": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
     "IScalarScale": {
       "type": "object",
       "title": "IScalarScale",
@@ -259,42 +295,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "scalar" },
-        "params": {
-          "type": "object",
-          "title": "IScalarScaleParams",
-          "description": "Parameters controlling scalar interpolation and fallback behavior.",
-          "required": ["domain", "range", "mode", "nStops", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "domain": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "range": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "fallback": { "type": "number" },
-            "scalarStops": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "title": "IScalarStop",
-                "description": "Explicit input stop to output value mapping.",
-                "required": ["stop", "output"],
-                "additionalProperties": false,
-                "properties": {
-                  "stop": { "type": "number" },
-                  "output": { "type": "number" }
-                }
-              }
-            }
-          }
-        }
+        "params": { "$ref": "#/definitions/IScalarScaleParams" }
       }
     },
     "IConstantRGBAScaleParams": {

@@ -885,7 +885,7 @@ def _scalar_scale(
     fallback: float,
     scalar_stops: Sequence[ScalarStop] | None = None,
 ) -> schema_symbology.IScalarScale:
-    params = schema_symbology.Params2(
+    params = schema_symbology.IScalarScaleParams(
         domain=list(domain),
         range=list(output_range),
         fallback=fallback,
