@@ -297,6 +297,16 @@
         }
       }
     },
+    "IConstantRGBAScaleParams": {
+      "type": "object",
+      "title": "IConstantRGBAParams",
+      "description": "Constant RGBA payload.",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "$ref": "#/definitions/RGBA" }
+      }
+    },
     "IConstantRGBAScale": {
       "type": "object",
       "title": "IConstantRGBAScale",
@@ -305,16 +315,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "constant_rgba" },
-        "params": {
-          "type": "object",
-          "title": "IConstantRGBAParams",
-          "description": "Constant RGBA payload.",
-          "required": ["value"],
-          "additionalProperties": false,
-          "properties": {
-            "value": { "$ref": "#/definitions/RGBA" }
-          }
-        }
+        "params": { "$ref": "#/definitions/IConstantRGBAScaleParams" }
       }
     },
     "IConstantNumScaleParams": {

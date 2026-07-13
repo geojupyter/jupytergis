@@ -783,7 +783,7 @@ def _constant_color_scale(
     value: RGBA | Sequence[float] | str,
 ) -> schema_symbology.IConstantRGBAScale:
     return schema_symbology.IConstantRGBAScale(
-        params=schema_symbology.Params3(
+        params=schema_symbology.IConstantRGBAScaleParams(
             value=schema_symbology.RGBA(root=coerce_rgba(value)),
         ),
     )
