@@ -1156,6 +1156,7 @@ def _constant_rule(
     when: WhenInput = None,
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
+    scale: schema_symbology.IConstantRGBAScale | schema_symbology.IConstantNumScale
     if isinstance(value, (int, float)):
         scale = _constant_num_scale(float(value))
     else:
@@ -1189,9 +1190,11 @@ def _single_layer(*rules: schema_symbology.IEncodingRule) -> GrammarSymbology:
 
 def _resolve_ENCODINGs(
     target: VisualEncodings,
-) -> list[schema_symbology.Encoding]:
-    requested = [target] if isinstance(target, str) else list(target)
-    channels: list[schema_symbology.Encoding] = []
+) -> list[schema_symbology.Encoding | VisualEncodings]:
+    # NOTE: VisualEncoding is technically a str, but Mypy doesn't know that because we
+    #       defined it in the functional Enum style.
+    requested = [target] if isinstance(target, str | VisualEncoding) else list(target)
+    channels: list[schema_symbology.Encoding | VisualEncodings] = []
     for item in requested:
         # Check if it's a shorthand
         if item in ENCODING_SHORTCUTS:
@@ -1204,7 +1207,7 @@ def _resolve_ENCODINGs(
                 f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]}",
             )
 
-    deduped: list[schema_symbology.Encoding] = []
+    deduped: list[schema_symbology.Encoding | VisualEncodings] = []
     for channel in channels:
         if channel not in deduped:
             deduped.append(channel)
