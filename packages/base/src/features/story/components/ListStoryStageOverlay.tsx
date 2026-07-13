@@ -16,6 +16,7 @@ import type {
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
+import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
@@ -156,6 +157,20 @@ export function ListStoryStageOverlay({
   }, [segmentTransition, activeItem]);
 
   const intraSegmentScroll = isIntraSegmentScroll(transition);
+  const markdownSegmentGap = story?.markdownSegmentGap === true;
+
+  const handoffGapHeight = useMemo((): number => {
+    if (!transition || intraSegmentScroll || stageHeight <= 0) {
+      return 0;
+    }
+
+    return getHandoffGapHeight(
+      transition.fromMode,
+      transition.toMode,
+      stageHeight,
+      markdownSegmentGap,
+    );
+  }, [transition, intraSegmentScroll, stageHeight, markdownSegmentGap]);
 
   const { fromIndex, toIndex, fromPaneConfig, toPaneConfig } = useMemo(() => {
     if (!model || !transition) {
@@ -277,7 +292,14 @@ export function ListStoryStageOverlay({
       imageWaitCancelRef.current?.();
       imageWaitCancelRef.current = null;
     };
-  }, [fromIndex, toIndex, fromPaneConfig, toPaneConfig, intraSegmentScroll]);
+  }, [
+    fromIndex,
+    toIndex,
+    fromPaneConfig,
+    toPaneConfig,
+    intraSegmentScroll,
+    handoffGapHeight,
+  ]);
 
   useLayoutEffect(() => {
     measureTransitionRef.current?.();
@@ -324,7 +346,9 @@ export function ListStoryStageOverlay({
         />
         {!intraSegmentScroll ? (
           <>
-            <div className="jgis-story-segment-transition-gap" aria-hidden />
+            {handoffGapHeight > 0 ? (
+              <div className="jgis-story-segment-transition-gap" aria-hidden />
+            ) : null}
             <SegmentOverlayPane
               pane="to"
               segmentIndex={toIndex}
