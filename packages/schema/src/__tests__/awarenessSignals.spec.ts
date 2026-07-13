@@ -77,45 +77,45 @@ describe('awareness field signals', () => {
     });
   });
 
-  it('emits drawCustomPropertiesChanged when draw custom properties change', () => {
+  it('emits drawCustomAttributesChanged when draw custom attributes change', () => {
     const events: any[] = [];
-    model.drawCustomPropertiesChanged.connect((_, args) => {
+    model.drawCustomAttributesChanged.connect((_, args) => {
       events.push(args);
     });
 
-    model.setDrawCustomPropertiesForLayer(
+    model.setDrawCustomAttributesForLayer(
       'layer-a',
       [{ key: 'species', value: 'oak' }],
       'test',
     );
 
     expect(events).toHaveLength(1);
-    expect(events[0].field).toBe('drawCustomProperties');
+    expect(events[0].field).toBe('drawCustomAttributes');
     expect(events[0].isLocalClient).toBe(true);
     expect(events[0].currentValue?.value['layer-a']).toMatchObject({
-      properties: [{ key: 'species', value: 'oak' }],
+      attributes: [{ key: 'species', value: 'oak' }],
     });
     expect(events[0].currentValue?.value['layer-a'].updatedAt).toEqual(
       expect.any(Number),
     );
   });
 
-  it('emits drawCustomPropertiesChanged on subsequent updates', () => {
+  it('emits drawCustomAttributesChanged on subsequent updates', () => {
     let now = 1_000;
     const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
 
     const events: any[] = [];
-    model.drawCustomPropertiesChanged.connect((_, args) => {
+    model.drawCustomAttributesChanged.connect((_, args) => {
       events.push(args);
     });
 
-    model.setDrawCustomPropertiesForLayer(
+    model.setDrawCustomAttributesForLayer(
       'layer-a',
       [{ key: 'species', value: 'oak' }],
       'test',
     );
     now = 2_000;
-    model.setDrawCustomPropertiesForLayer(
+    model.setDrawCustomAttributesForLayer(
       'layer-a',
       [
         { key: 'species', value: 'oak' },
@@ -127,7 +127,7 @@ describe('awareness field signals', () => {
     expect(events).toHaveLength(2);
     expect(events[1].currentValue?.value['layer-a']).toEqual({
       updatedAt: 2_000,
-      properties: [
+      attributes: [
         { key: 'species', value: 'oak' },
         { key: 'status', value: 'draft' },
       ],
@@ -136,31 +136,31 @@ describe('awareness field signals', () => {
     dateNowSpy.mockRestore();
   });
 
-  it('clears draw custom properties for a removed layer', () => {
-    model.setDrawCustomPropertiesForLayer(
+  it('clears draw custom attributes for a removed layer', () => {
+    model.setDrawCustomAttributesForLayer(
       'layer-a',
       [{ key: 'species', value: 'oak' }],
       'test',
     );
-    model.setDrawCustomPropertiesForLayer(
+    model.setDrawCustomAttributesForLayer(
       'layer-b',
       [{ key: 'status', value: 'draft' }],
       'test',
     );
 
-    model.clearDrawCustomPropertiesForLayer('layer-a', 'test');
+    model.clearDrawCustomAttributesForLayer('layer-a', 'test');
 
-    expect(model.getDrawCustomProperties('layer-a')).toEqual([]);
-    expect(model.getDrawCustomProperties('layer-b')).toEqual([
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([]);
+    expect(model.getDrawCustomAttributes('layer-b')).toEqual([
       { key: 'status', value: 'draft' },
     ]);
   });
 
-  it('uses the most recently updated draw custom properties across awareness clients', () => {
-    model.syncDrawCustomProperties({
+  it('uses the most recently updated draw custom attributes across awareness clients', () => {
+    model.syncDrawCustomAttributes({
       'layer-a': {
         updatedAt: 100,
-        properties: [{ key: 'species', value: 'oak' }],
+        attributes: [{ key: 'species', value: 'oak' }],
       },
     });
 
@@ -168,26 +168,26 @@ describe('awareness field signals', () => {
     const clients = model.sharedModel.awareness.getStates();
     clients.set(remoteClientId, {
       ...(clients.get(model.getClientId()) as object),
-      drawCustomProperties: {
+      drawCustomAttributes: {
         value: {
           'layer-a': {
             updatedAt: 200,
-            properties: [{ key: 'status', value: 'draft' }],
+            attributes: [{ key: 'status', value: 'draft' }],
           },
         },
       },
     } as any);
 
-    expect(model.getDrawCustomProperties('layer-a')).toEqual([
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([
       { key: 'status', value: 'draft' },
     ]);
   });
 
-  it('prefers the higher client id when draw custom properties share the same updatedAt', () => {
-    model.syncDrawCustomProperties({
+  it('prefers the higher client id when draw custom attributes share the same updatedAt', () => {
+    model.syncDrawCustomAttributes({
       'layer-a': {
         updatedAt: 100,
-        properties: [{ key: 'species', value: 'oak' }],
+        attributes: [{ key: 'species', value: 'oak' }],
       },
     });
 
@@ -196,26 +196,26 @@ describe('awareness field signals', () => {
     const clients = model.sharedModel.awareness.getStates();
     clients.set(remoteClientId, {
       ...(clients.get(localClientId) as object),
-      drawCustomProperties: {
+      drawCustomAttributes: {
         value: {
           'layer-a': {
             updatedAt: 100,
-            properties: [{ key: 'status', value: 'draft' }],
+            attributes: [{ key: 'status', value: 'draft' }],
           },
         },
       },
     } as any);
 
-    expect(model.getDrawCustomProperties('layer-a')).toEqual([
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([
       { key: 'status', value: 'draft' },
     ]);
   });
 
   it('applies removals from the latest update', () => {
-    model.syncDrawCustomProperties({
+    model.syncDrawCustomAttributes({
       'layer-a': {
         updatedAt: 100,
-        properties: [
+        attributes: [
           { key: 'species', value: 'oak' },
           { key: 'status', value: 'draft' },
         ],
@@ -226,11 +226,11 @@ describe('awareness field signals', () => {
     const clients = model.sharedModel.awareness.getStates();
     clients.set(remoteClientId, {
       ...(clients.get(model.getClientId()) as object),
-      drawCustomProperties: {
+      drawCustomAttributes: {
         value: {
           'layer-a': {
             updatedAt: 100,
-            properties: [
+            attributes: [
               { key: 'species', value: 'oak' },
               { key: 'status', value: 'draft' },
             ],
@@ -239,14 +239,14 @@ describe('awareness field signals', () => {
       },
     } as any);
 
-    model.syncDrawCustomProperties({
+    model.syncDrawCustomAttributes({
       'layer-a': {
         updatedAt: 200,
-        properties: [{ key: 'species', value: 'oak' }],
+        attributes: [{ key: 'species', value: 'oak' }],
       },
     });
 
-    expect(model.getDrawCustomProperties('layer-a')).toEqual([
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([
       { key: 'species', value: 'oak' },
     ]);
   });
@@ -281,7 +281,7 @@ describe('awareness field signals', () => {
     model.identifiedFeaturesChanged.connect((_, args) => {
       identifiedEvents.push(args);
     });
-    model.drawCustomPropertiesChanged.connect((_, args) => {
+    model.drawCustomAttributesChanged.connect((_, args) => {
       drawCustomEvents.push(args);
     });
 

@@ -30,7 +30,7 @@
       "$ref": "#/definitions/jGISAnnotations"
     },
     "presets": {
-      "$ref": "#/definitions/jGISDrawCustomPropertyPresets"
+      "$ref": "#/definitions/jGISDrawCustomAttributePresets"
     },
     "metadata": {
       "$ref": "#/definitions/jGISMetadata"
@@ -392,8 +392,8 @@
         "$ref": "#/definitions/jGISAnnotation"
       }
     },
-    "jGISDrawCustomProperty": {
-      "title": "IDrawCustomProperty",
+    "jGISDrawCustomAttribute": {
+      "title": "IDrawCustomAttribute",
       "type": "object",
       "required": ["key", "value"],
       "additionalProperties": false,
@@ -406,18 +406,18 @@
         }
       }
     },
-    "jGISDrawCustomPropertyPreset": {
-      "title": "IDrawCustomPropertyPreset",
+    "jGISDrawCustomAttributePreset": {
+      "title": "IDrawCustomAttributePreset",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/jGISDrawCustomProperty"
+        "$ref": "#/definitions/jGISDrawCustomAttribute"
       }
     },
-    "jGISDrawCustomPropertyPresets": {
-      "title": "IDrawCustomPropertyPresets",
+    "jGISDrawCustomAttributePresets": {
+      "title": "IDrawCustomAttributePresets",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/jGISDrawCustomPropertyPreset"
+        "$ref": "#/definitions/jGISDrawCustomAttributePreset"
       }
     },
     "jGISMetadata": {

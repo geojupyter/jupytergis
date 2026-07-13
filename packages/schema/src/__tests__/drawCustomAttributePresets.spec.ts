@@ -1,7 +1,7 @@
-import { IDrawCustomPropertyPresets } from '../interfaces';
+import { IDrawCustomAttributePresets } from '../interfaces';
 import { JupyterGISModel } from '../model';
 
-describe('draw custom property presets on model', () => {
+describe('draw custom attribute presets on model', () => {
   let model: JupyterGISModel;
   const originalDocument = (globalThis as any).document;
 
@@ -24,11 +24,11 @@ describe('draw custom property presets on model', () => {
   });
 
   it('stores and reads presets at the document top level', () => {
-    model.setDrawCustomPropertyPreset('Trees', [
+    model.setDrawCustomAttributePreset('Trees', [
       { key: 'species', value: 'oak' },
     ]);
 
-    expect(model.getDrawCustomPropertyPresets()).toEqual({
+    expect(model.getDrawCustomAttributePresets()).toEqual({
       Trees: [{ key: 'species', value: 'oak' }],
     });
     expect(model.sharedModel.getPreset('Trees')).toEqual([
@@ -36,18 +36,18 @@ describe('draw custom property presets on model', () => {
     ]);
     expect(model.sharedModel.getPresets()).toEqual({
       Trees: [{ key: 'species', value: 'oak' }],
-    } satisfies IDrawCustomPropertyPresets);
+    } satisfies IDrawCustomAttributePresets);
   });
 
   it('overwrites an existing preset with the same name', () => {
-    model.setDrawCustomPropertyPreset('Trees', [
+    model.setDrawCustomAttributePreset('Trees', [
       { key: 'species', value: 'oak' },
     ]);
-    model.setDrawCustomPropertyPreset('Trees', [
+    model.setDrawCustomAttributePreset('Trees', [
       { key: 'species', value: 'pine' },
     ]);
 
-    expect(model.getDrawCustomPropertyPresets()).toEqual({
+    expect(model.getDrawCustomAttributePresets()).toEqual({
       Trees: [{ key: 'species', value: 'pine' }],
     });
   });
