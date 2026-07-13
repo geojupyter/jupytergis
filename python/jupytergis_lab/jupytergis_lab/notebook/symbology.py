@@ -718,7 +718,7 @@ class GrammarSymbology(BaseModel):
     layers: list[schema_symbology.IGrammarLayer]
 
     def _with_layers(self, *layers: schema_symbology.IGrammarLayer) -> Self:
-        return GrammarSymbology(layers=[*self.layers, *layers])
+        return type(self)(layers=[*self.layers, *layers])
 
     def with_layer(
         self,
