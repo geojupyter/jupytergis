@@ -7,6 +7,8 @@ import type {
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 
+import { getHandoffGapHeight } from './getHandoffGapHeight';
+
 const MARKDOWN_LINE_HEIGHT_PX = 28;
 const MARKDOWN_CONTENT_PADDING_PX = 32;
 const MIN_MARKDOWN_VIEWPORT_RATIO = 0.5;
@@ -18,6 +20,8 @@ interface IBuildListStoryScrollTrackInput {
   /** Map stage height (`.jGIS-Mainview-Container`); defaults to viewportHeight. */
   mapViewportHeight?: number;
   heightsById?: Readonly<Record<string, number>>;
+  /** Gap between consecutive markdown segments; map-adjacent gaps are always kept. */
+  markdownSegmentGap?: boolean;
 }
 
 export function estimateMarkdownHeight(
@@ -77,6 +81,7 @@ export function buildListStoryScrollTrack({
   viewportHeight,
   mapViewportHeight,
   heightsById = {},
+  markdownSegmentGap = false,
 }: IBuildListStoryScrollTrackInput): IListStoryScrollTrackLayout | null {
   if (!items.length || viewportHeight <= 0) {
     return null;
@@ -87,19 +92,29 @@ export function buildListStoryScrollTrack({
     segmentHeightForItem(item, viewportHeight, mapHeight, heightsById),
   );
 
-  const handoffGap = mapHeight;
+  const modes: StorySegmentDisplayMode[] = items.map(item =>
+    getSegmentDisplayMode(item.activeSlide),
+  );
 
   let offset = 0;
   const segments: IListStoryScrollTrackSegment[] = items.map((item, i) => {
     const start = offset;
     const height = heights[i].height;
-    const gapAfter = i < items.length - 1 ? handoffGap : 0;
+    const gapAfter =
+      i < items.length - 1
+        ? getHandoffGapHeight(
+            modes[i],
+            modes[i + 1],
+            mapHeight,
+            markdownSegmentGap,
+          )
+        : 0;
     const end = start + height + gapAfter;
     offset = end;
     return {
       id: item.id,
       index: item.index,
-      contentMode: getSegmentDisplayMode(item.activeSlide),
+      contentMode: modes[i],
       height,
       measured: heights[i].measured,
       start,
