@@ -6,7 +6,6 @@ import type {
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
-
 import { getHandoffGapHeight } from './getHandoffGapHeight';
 
 const MARKDOWN_LINE_HEIGHT_PX = 28;

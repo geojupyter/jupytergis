@@ -127,6 +127,7 @@ function buildOverlayStack({
       transition.fromIndex,
       markdownSegmentGap,
     );
+
     if (lookaheadIndex !== null) {
       const lookaheadItem = items.find(item => item.index === lookaheadIndex);
       panes.push({
@@ -136,6 +137,7 @@ function buildOverlayStack({
         config: buildPaneConfig(lookaheadItem, 'markdown'),
       });
     }
+
     return { panes, includeGap: false };
   }
 
@@ -155,6 +157,7 @@ function buildOverlayStack({
     transition.toIndex,
     markdownSegmentGap,
   );
+
   if (lookaheadIndex !== null) {
     const lookaheadItem = items.find(item => item.index === lookaheadIndex);
     panes.push({
@@ -402,11 +405,9 @@ export function ListStoryStageOverlay({
       const fromReady =
         !fromPaneIsMarkdown ||
         markdownRenderedRef.current.has(fromStackPane.segmentIndex);
+
       if (fromReady && rawTravel > 0) {
-        stableTravelRef.current = Math.max(
-          stableTravelRef.current,
-          rawTravel,
-        );
+        stableTravelRef.current = Math.max(stableTravelRef.current, rawTravel);
       }
       const travel = stableTravelRef.current;
 
