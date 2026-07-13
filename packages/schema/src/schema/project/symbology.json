@@ -168,6 +168,40 @@
         { "$ref": "#/definitions/IClusterTransform" }
       ]
     },
+    "IColorRampScaleParams": {
+      "type": "object",
+      "title": "IColorRampScaleParams",
+      "description": "Parameters controlling color-ramp classification and fallback behavior.",
+      "required": ["name", "nShades", "mode", "reverse", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "domain": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "nShades": { "type": "number" },
+        "mode": { "$ref": "#/definitions/ClassificationMode" },
+        "reverse": { "type": "boolean" },
+        "fallback": { "$ref": "#/definitions/RGBA" },
+        "colorStops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "IColorStop",
+            "description": "Explicit stop-to-color mapping entry.",
+            "required": ["stop", "color"],
+            "additionalProperties": false,
+            "properties": {
+              "stop": { "type": "number" },
+              "color": { "$ref": "#/definitions/RGBA" }
+            }
+          }
+        }
+      }
+    },
     "IColorRampScale": {
       "type": "object",
       "title": "IColorRampScale",
@@ -176,40 +210,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "colorRamp" },
-        "params": {
-          "type": "object",
-          "title": "IColorRampScaleParams",
-          "description": "Parameters controlling color-ramp classification and fallback behavior.",
-          "required": ["name", "nShades", "mode", "reverse", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "name": { "type": "string" },
-            "domain": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "nShades": { "type": "number" },
-            "mode": { "$ref": "#/definitions/ClassificationMode" },
-            "reverse": { "type": "boolean" },
-            "fallback": { "$ref": "#/definitions/RGBA" },
-            "colorStops": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "title": "IColorStop",
-                "description": "Explicit stop-to-color mapping entry.",
-                "required": ["stop", "color"],
-                "additionalProperties": false,
-                "properties": {
-                  "stop": { "type": "number" },
-                  "color": { "$ref": "#/definitions/RGBA" }
-                }
-              }
-            }
-          }
-        }
+        "params": { "$ref": "#/definitions/IColorRampScaleParams" }
       }
     },
     "ICategoricalColorStop": {
