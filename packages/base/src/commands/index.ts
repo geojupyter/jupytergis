@@ -34,6 +34,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -73,7 +74,6 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
-  CommandIDs.createStorySegmentFromLayer,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
@@ -234,6 +234,46 @@ export function addCommands(
     execute: Private.createSymbologyDialog(tracker, state),
 
     ...icons.get(CommandIDs.symbology),
+  });
+
+  commands.addCommand(CommandIDs.showLayerPropertiesDialog, {
+    label: trans.__('Layer Properties'),
+    caption: 'Show the properties of the currently selected layer.',
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      const selectedIds = Object.keys(selected);
+
+      // Only a single object can be edited at a time.
+      if (selectedIds.length !== 1) {
+        return false;
+      }
+
+      const id = selectedIds[0];
+      return Boolean(model.getLayer(id) || model.getSource(id));
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        console.error(
+          'Cannot show layer properties: no active JupyterGIS document.',
+        );
+        return;
+      }
+
+      const dialog = new ObjectPropertiesWidget({
+        model: current.model,
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.showLayerPropertiesDialog),
   });
 
   commands.addCommand(CommandIDs.redo, {
@@ -1919,48 +1959,6 @@ export function addCommands(
       session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
-  });
-
-  commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
-    label: trans.__('Create Story Segment for Layer'),
-
-    isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const selected = model?.localState?.selected?.value;
-
-      if (!model || !selected) {
-        return false;
-      }
-
-      if (Object.keys(selected).length !== 1) {
-        return false;
-      }
-
-      const layerId = Object.keys(selected)[0];
-
-      return !!model.getLayer(layerId);
-    },
-
-    execute: () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-
-      const model = current.model;
-      const selected = model?.localState?.selected?.value;
-      if (!selected) {
-        return;
-      }
-
-      const layerId = Object.keys(selected)[0];
-
-      const result = model.createStorySegmentFromLayer(layerId);
-
-      if (result) {
-        model.centerOnPosition(layerId);
-      }
-    },
   });
 
   /* Enabled during story presentation (Specta or lab preview). */

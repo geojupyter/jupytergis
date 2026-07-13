@@ -158,9 +158,10 @@ jobs:
           micromamba-version: '1.5.5-0'
           environment-name: gis
           create-args: >-
-            python=3.12
+            python=3.13
             pip
             qgis
+            xeus-python>=0.19
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5

@@ -15,6 +15,7 @@ def test_qgis_loader():
     source_id1 = IsStr()
     source_id2 = IsStr()
     source_id3 = IsStr()
+    assert jgis.get("annotations") == {}
     assert jgis == IsPartialDict(
         options={
             "bearing": 0.0,

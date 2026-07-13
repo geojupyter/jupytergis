@@ -34,6 +34,7 @@ export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
 
 // Layer and group actions
+export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
 export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
@@ -70,7 +71,5 @@ export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const openStoryEditor = 'jupytergis:openStoryEditor';
-export const createStorySegmentFromLayer =
-  'jupytergis:createStorySegmentFromLayer';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';

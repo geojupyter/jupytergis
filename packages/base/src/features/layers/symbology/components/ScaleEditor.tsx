@@ -4,7 +4,8 @@
  */
 
 import { javascript } from '@codemirror/lang-javascript';
-import { EditorState } from '@codemirror/state';
+import { python } from '@codemirror/lang-python';
+import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, placeholder } from '@codemirror/view';
 import {
   ClassificationMode,
@@ -19,7 +20,9 @@ import {
 } from '@jupytergis/schema';
 import { jupyterTheme } from '@jupyterlab/codemirror';
 import { UUID } from '@lumino/coreutils';
+import { py2vega } from 'py2vega-ts';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { vega2ol } from 'vega2ol';
 
 import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
@@ -389,6 +392,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   onChange,
 }) => {
   const { params } = scale;
+  const language = params.language ?? 'vega';
 
   const update = useCallback(
     (patch: Partial<IExpressionScale['params']>) =>
@@ -396,29 +400,64 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     [params, onChange],
   );
 
+  const paramsRef = useRef(params);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const languageComp = useRef(new Compartment()).current;
+  const placeholderComp = useRef(new Compartment()).current;
 
-  useEffect(() => {
-    if (!editorRef.current) {
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const VEGA_PLACEHOLDER = "e.g. datum.value > 10 ? 'red' : 'blue'";
+  const PYTHON_PLACEHOLDER = "e.g. 'red' if datum.value > 10 else 'blue'";
+
+  const validate = useCallback((expr: string, lang: 'vega' | 'python') => {
+    if (!expr.trim()) {
+      setValidationError(null);
       return;
     }
+    try {
+      const vegaExpr = lang === 'python' ? py2vega(expr) : expr;
+      vega2ol(vegaExpr as string);
+      setValidationError(null);
+    } catch (err) {
+      setValidationError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
 
-    if (viewRef.current) {
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
+
+  useEffect(() => {
+    if (!editorRef.current || viewRef.current) {
       return;
     }
 
     const state = EditorState.create({
       doc: params.expr || '',
       extensions: [
-        javascript(),
+        languageComp.of(language === 'python' ? python() : javascript()),
+        placeholderComp.of(
+          placeholder(
+            language === 'python' ? PYTHON_PLACEHOLDER : VEGA_PLACEHOLDER,
+          ),
+        ),
         jupyterTheme,
         EditorView.lineWrapping,
-        placeholder("e.g. datum.value > 10 ? 'red' : 'blue'"),
         EditorView.updateListener.of(updateView => {
           if (updateView.docChanged) {
             const value = updateView.state.doc.toString();
-            update({ expr: value });
+            onChange({
+              scheme: 'expression',
+              params: { ...paramsRef.current, expr: value },
+            });
+
+            clearTimeout(validationTimerRef.current);
+            validationTimerRef.current = setTimeout(() => {
+              validate(value, paramsRef.current.language ?? 'vega');
+            }, 400);
           }
         }),
       ],
@@ -429,11 +468,33 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
       parent: editorRef.current,
     });
 
+    validate(params.expr || '', language);
+
     return () => {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) {
+      return;
+    }
+    view.dispatch({
+      effects: [
+        languageComp.reconfigure(
+          language === 'python' ? python() : javascript(),
+        ),
+        placeholderComp.reconfigure(
+          placeholder(
+            language === 'python' ? PYTHON_PLACEHOLDER : VEGA_PLACEHOLDER,
+          ),
+        ),
+      ],
+    });
+    validate(params.expr || '', language);
+  }, [language]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -453,39 +514,129 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
     }
   }, [params.expr]);
 
+  const setLanguage = (lang: 'vega' | 'python') => {
+    if (lang !== language) {
+      update({ language: lang });
+    }
+  };
+
+  const DOCS_LINK = (
+    <a
+      href="https://vega.github.io/vega/docs/expressions/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {' '}
+      Full Vega Expression Docs
+    </a>
+  );
+
+  const infoTipContent =
+    language === 'python'
+      ? {
+          text: `Write a Python expression; ${PYTHON_PLACEHOLDER}`,
+          syntaxHint: (
+            <>
+              Use Python conditional syntax: <code>a if condition else b</code>
+            </>
+          ),
+          extraHint: (
+            <>
+              Transpiled to Vega expressions, so Vega functions and constants
+              are also available
+            </>
+          ),
+          docsLink: DOCS_LINK,
+        }
+      : {
+          text: `Write a Vega expression; ${VEGA_PLACEHOLDER}`,
+          syntaxHint: (
+            <>
+              Use ternary logic: <code>condition ? a : b</code>
+            </>
+          ),
+          extraHint: null,
+          docsLink: DOCS_LINK,
+        };
+
   return (
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
-        <label>
-          Vega Expression{' '}
-          <InfoTip text="Use Vega expressions to style features dynamically (e.g. conditional colors based on attributes like datum.population).">
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span
+            role="tablist"
+            aria-label="Expression language"
+            style={{
+              display: 'inline-flex',
+              border: '1px solid var(--jp-border-color1)',
+              borderRadius: 4,
+              overflow: 'hidden',
+            }}
+          >
+            {(['vega', 'python'] as const).map(lang => (
+              <button
+                key={lang}
+                role="tab"
+                aria-selected={language === lang}
+                onClick={() => setLanguage(lang)}
+                style={{
+                  padding: '2px 8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background:
+                    language === lang
+                      ? 'var(--jp-layout-color2)'
+                      : 'transparent',
+                  color: 'var(--jp-ui-font-color1)',
+                  fontWeight: language === lang ? 600 : 400,
+                }}
+              >
+                {lang === 'vega' ? 'Vega' : 'Python'}
+              </button>
+            ))}
+          </span>
+          <InfoTip text={infoTipContent.text}>
             <ul style={{ paddingLeft: 16, margin: 0 }}>
               <li>
                 Access fields with <code>datum.fieldName</code>
               </li>
-              <li>
-                Use ternary logic: <code>condition ? a : b</code>
-              </li>
+              <li>{infoTipContent.syntaxHint}</li>
+              {infoTipContent.extraHint && <li>{infoTipContent.extraHint}</li>}
+              <li>Warning: This is a feature preview.</li>
             </ul>
-            <a
-              href="https://vega.github.io/vega/docs/expressions/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Full Vega Expression Docs
-            </a>
+            {infoTipContent.docsLink}
           </InfoTip>
         </label>
         <div
-          ref={editorRef}
-          style={{
-            flex: '1 1 auto',
-            height: 80,
-            border: '1px solid var(--jp-border-color2)',
-            borderRadius: 4,
-            overflow: 'auto',
-          }}
-        />
+          style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+        >
+          <div
+            ref={editorRef}
+            style={{
+              flex: '1 1 auto',
+              height: 80,
+              border: `1px solid ${
+                validationError
+                  ? 'var(--jp-error-color1)'
+                  : 'var(--jp-border-color2)'
+              }`,
+              borderRadius: 4,
+              overflow: 'auto',
+            }}
+          />
+          {validationError && (
+            <div
+              role="alert"
+              style={{
+                color: 'var(--jp-error-color1)',
+                fontSize: 'var(--jp-ui-font-size0)',
+                marginTop: 4,
+              }}
+            >
+              {validationError}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="jp-gis-symbology-row">
