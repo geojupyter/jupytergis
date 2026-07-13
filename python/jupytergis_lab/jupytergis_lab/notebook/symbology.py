@@ -830,7 +830,10 @@ def expression(
         fallback_value = coerce_rgba(fallback)
 
     return schema_symbology.IExpressionScale(
-        params=schema_symbology.Params5(expr=expr, fallback=fallback_value),
+        params=schema_symbology.IExpressionScaleParams(
+            expr=expr,
+            fallback=fallback_value,
+        ),
     )
 
 

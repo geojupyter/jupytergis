@@ -347,6 +347,25 @@
         "scheme": { "const": "identity" }
       }
     },
+    "IExpressionScaleParams": {
+      "type": "object",
+      "title": "IExpressionScaleParams",
+      "description": "Expression source and fallback output value.",
+      "required": ["expr", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "expr": { "type": "string" },
+        "fallback": {
+          "oneOf": [{ "type": "number" }, { "$ref": "#/definitions/RGBA" }]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["vega", "python"],
+          "default": "vega",
+          "description": "Expression language. 'vega' for TS/JS expressions, 'python' for Python expressions compiled via py2vega."
+        }
+      }
+    },
     "IExpressionScale": {
       "type": "object",
       "title": "IExpressionScale",
@@ -355,25 +374,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "expression" },
-        "params": {
-          "type": "object",
-          "title": "IExpressionScaleParams",
-          "description": "Expression source and fallback output value.",
-          "required": ["expr", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "expr": { "type": "string" },
-            "fallback": {
-              "oneOf": [{ "type": "number" }, { "$ref": "#/definitions/RGBA" }]
-            },
-            "language": {
-              "type": "string",
-              "enum": ["vega", "python"],
-              "default": "vega",
-              "description": "Expression language. 'vega' for TS/JS expressions, 'python' for Python expressions compiled via py2vega."
-            }
-          }
-        }
+        "params": { "$ref": "#/definitions/IExpressionScaleParams" }
       }
     },
     "IScale": {
