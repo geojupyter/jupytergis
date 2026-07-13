@@ -1501,8 +1501,6 @@ export function addCommands(
     },
   });
 
-  const locationWatchIds = new WeakMap<IJupyterGISModel, number>();
-
   commands.addCommand(CommandIDs.toggleLocationIndicator, {
     label: trans.__('Toggle Location Indicator'),
     caption: 'Display a live location indicator based on your GPS position.',
@@ -1517,38 +1515,10 @@ export function addCommands(
         return;
       }
 
-      const watchId = locationWatchIds.get(viewModel);
-      if (watchId !== undefined) {
-        viewModel.userGpsCoordinatesChanged.emit(null);
-        window.navigator.geolocation.clearWatch(watchId);
-        locationWatchIds.delete(viewModel);
-        viewModel.setUIState({ locationIndicatorActive: false });
-        commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
-        return;
-      }
-
-      locationWatchIds.set(
-        viewModel,
-        window.navigator.geolocation.watchPosition(
-          pos => {
-            const coords = fromLonLat([
-              pos.coords.longitude,
-              pos.coords.latitude,
-            ]);
-            viewModel.userGpsCoordinatesChanged.emit({
-              x: coords[0],
-              y: coords[1],
-              accuracy: pos.coords.accuracy,
-            });
-          },
-          err => {
-            console.warn(`Geolocation error (${err.code}): ${err.message}`);
-          },
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: Infinity },
-        ),
-      );
-
-      viewModel.setUIState({ locationIndicatorActive: true });
+      viewModel.setUIState({
+        locationIndicatorActive:
+          !viewModel.getUIState().locationIndicatorActive,
+      });
       commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
     },
   });

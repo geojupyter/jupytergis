@@ -16,6 +16,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISUIState,
   IIdentifiedFeature,
   IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
@@ -56,6 +57,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
+  Geolocation,
   MapBrowserEvent,
   Map as OlMap,
   VectorTile,
@@ -63,6 +65,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import type { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -71,7 +74,6 @@ import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
-import { circular as circularPolygon } from 'ol/geom/Polygon';
 import {
   DragAndDrop,
   DragPan,
@@ -344,7 +346,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
-    this._model.userGpsCoordinatesChanged.connect(
+    this._model.uiStateChanged.connect(
       this._handleLocationIndicatorToggled,
       this,
     );
@@ -491,6 +493,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
+
+    this._model.uiStateChanged.disconnect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
+    this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
   }
@@ -3653,23 +3661,51 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _handleLocationIndicatorToggled(
-    _sender: any,
-    coords: JgisCoordinates | null,
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
   ): void {
-    if (!coords) {
-      if (this._locationIndicatorLayer) {
-        this._Map.removeLayer(this._locationIndicatorLayer);
-        this._locationIndicatorLayer = null;
-      }
+    const active = Boolean(uiState.locationIndicatorActive);
+    if (active && !this._geolocation) {
+      this._startLocationIndicator();
+    } else if (!active && this._geolocation) {
+      this._stopLocationIndicator();
+    }
+  }
+
+  private _startLocationIndicator(): void {
+    this._geolocation = new Geolocation({
+      tracking: true,
+      trackingOptions: {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: Infinity,
+      },
+      projection: this._Map.getView().getProjection(),
+    });
+    this._geolocation.on('change', this._updateLocationIndicator);
+    this._geolocation.on('error', (err: GeolocationError) => {
+      console.warn(`Geolocation error (${err.code}): ${err.message}`);
+      this._model.setUIState({ locationIndicatorActive: false });
+    });
+  }
+
+  private _stopLocationIndicator(): void {
+    this._geolocation?.dispose();
+    this._geolocation = null;
+    if (this._locationIndicatorLayer) {
+      this._Map.removeLayer(this._locationIndicatorLayer);
+      this._locationIndicatorLayer = null;
+    }
+  }
+
+  private _updateLocationIndicator = (): void => {
+    const position = this._geolocation?.getPosition();
+    if (!position) {
       return;
     }
 
-    const point = new Point([coords.x, coords.y]);
-    const projection = this._Map.getView().getProjection();
-    const accuracyGeometry = circularPolygon(
-      toLonLat([coords.x, coords.y], projection),
-      coords.accuracy ?? 0,
-    ).transform('EPSG:4326', projection) as Geometry;
+    const point = new Point(position);
+    const accuracyGeometry = this._geolocation?.getAccuracyGeometry() ?? null;
 
     if (!this._locationIndicatorLayer) {
       const feature = new Feature(point);
@@ -3678,7 +3714,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         source,
         style: [
           new Style({
-            geometry: accuracyGeometry,
+            geometry: accuracyGeometry ?? undefined,
             fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
           }),
           new Style({
@@ -3714,7 +3750,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       this._locationIndicatorLayer.changed();
     }
-  }
+  };
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
@@ -4142,6 +4178,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
   private _locationIndicatorLayer: VectorLayer<VectorSource> | null = null;
+  private _geolocation: Geolocation | null = null;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;

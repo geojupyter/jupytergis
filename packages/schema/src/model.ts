@@ -1336,10 +1336,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._geolocationChanged;
   }
 
-  get userGpsCoordinatesChanged() {
-    return this._userGpsCoordinatesChanged;
-  }
-
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -1414,10 +1410,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
 
   private _editingVectorLayer: boolean;
-
-  private _userGpsCoordinatesChanged = new Signal<this, JgisCoordinates | null>(
-    this,
-  );
 
   static worker: Worker;
 

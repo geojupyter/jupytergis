@@ -69,7 +69,7 @@ export interface IJGISStoryMaps {
   [k: string]: IJGISStoryMap;
 }
 
-export type JgisCoordinates = { x: number; y: number; accuracy?: number };
+export type JgisCoordinates = { x: number; y: number };
 
 export interface IViewPortState {
   coordinates: JgisCoordinates;
@@ -323,7 +323,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
-  userGpsCoordinatesChanged: Signal<IJupyterGISModel, JgisCoordinates | null>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
