@@ -8,6 +8,7 @@ import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
+  formatMarkdownSegmentGapLabel,
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
 import Badge from '@/src/shared/components/Badge';
@@ -167,6 +168,11 @@ export function StoryEditorHeaderBar({
         {story ? (
           <span className="jgis-story-editor-context-meta">
             {formatGradientLabel(story.showGradient)}
+          </span>
+        ) : null}
+        {story?.storyType === STORY_TYPE.verticalScroll ? (
+          <span className="jgis-story-editor-context-meta">
+            {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
           </span>
         ) : null}
         {story && canPreview ? (
