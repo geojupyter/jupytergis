@@ -25,6 +25,7 @@ import {
   UNormChannel,
 } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
+import { py2vega } from 'py2vega-ts';
 import { vega2ol } from 'vega2ol';
 
 import {
@@ -387,9 +388,23 @@ function compileMapping(
         ? compileCategorical(field, scale, featureValues)
         : scale.params.fallback;
     case 'expression':
-      return scale.params.expr
-        ? vega2ol(scale.params.expr)
-        : scale.params.fallback;
+      if (!scale.params.expr) {
+        return scale.params.fallback;
+      }
+      try {
+        const vegaExpr =
+          scale.params.language === 'python'
+            ? py2vega(scale.params.expr)
+            : scale.params.expr;
+        const olExpr = vega2ol(vegaExpr as string);
+        return olExpr ?? scale.params.fallback;
+      } catch (err) {
+        console.debug(
+          `grammarToOLStyle: failed to compile ${scale.params.language ?? 'vega'} expression`,
+          err,
+        );
+        return scale.params.fallback;
+      }
     case 'constant_rgba':
     case 'constant_num':
       return scale.params.value as ExpressionValue;

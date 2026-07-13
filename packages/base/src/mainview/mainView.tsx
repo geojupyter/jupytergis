@@ -317,8 +317,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
-    this._model.sharedMetadataChanged.connect(
-      this._onSharedMetadataChanged,
+    this._model.sharedAnnotationsChanged.connect(
+      this._onAnnotationsChanged,
       this,
     );
 
@@ -396,6 +396,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   async componentDidMount(): Promise<void> {
+    this.setState({
+      annotations: this._model.sharedModel.getAnnotations(),
+    });
+
     if (this._loggerRegistry) {
       const logger = this._loggerRegistry.getLogger(this._model.filePath);
       logger.level = 'debug';
@@ -3116,34 +3120,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._restoreMapInteractions();
   };
 
-  private _onSharedMetadataChanged = (
-    _: IJupyterGISModel,
-    changes: MapChange,
-  ) => {
+  private _onAnnotationsChanged = (_: IJupyterGISModel, changes: MapChange) => {
     const newState = { ...this.state.annotations };
     changes.forEach((val, key) => {
-      if (!key.startsWith('annotation')) {
-        return;
-      }
-      const data = this._model.sharedModel.getMetadata(key);
+      const data = this._model.sharedModel.getAnnotation(key);
 
       if (data && (val.action === 'add' || val.action === 'update')) {
-        let jsonData: IAnnotation;
-        if (typeof data === 'string') {
-          try {
-            jsonData = JSON.parse(data);
-          } catch (e) {
-            this._log(
-              'warning',
-              `Failed to parse annotation data for ${key}: ${e}`,
-            );
-            return;
-          }
-        } else {
-          jsonData = data;
-        }
-
-        newState[key] = jsonData;
+        newState[key] = data;
       } else if (val.action === 'delete') {
         delete newState[key];
       }

@@ -74,3 +74,20 @@ export function updateSegmentContent(
 
   return true;
 }
+
+export function updateSegmentLayerName(
+  model: IJupyterGISModel,
+  segmentId: string,
+  name: string,
+): boolean {
+  const layer = model.getLayer(segmentId);
+
+  if (!layer || layer.type !== 'StorySegmentLayer') {
+    return false;
+  }
+
+  const nextName = name.trim();
+  model.sharedModel.updateLayer(segmentId, { ...layer, name: nextName });
+
+  return true;
+}

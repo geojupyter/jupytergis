@@ -365,6 +365,12 @@
             "expr": { "type": "string" },
             "fallback": {
               "oneOf": [{ "type": "number" }, { "$ref": "#/definitions/RGBA" }]
+            },
+            "language": {
+              "type": "string",
+              "enum": ["vega", "python"],
+              "default": "vega",
+              "description": "Expression language. 'vega' for TS/JS expressions, 'python' for Python expressions compiled via py2vega."
             }
           }
         }

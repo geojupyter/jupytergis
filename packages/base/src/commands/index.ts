@@ -72,7 +72,6 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
-  CommandIDs.createStorySegmentFromLayer,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
@@ -1969,48 +1968,6 @@ export function addCommands(
       session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
-  });
-
-  commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
-    label: trans.__('Create Story Segment for Layer'),
-
-    isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const selected = model?.localState?.selected?.value;
-
-      if (!model || !selected) {
-        return false;
-      }
-
-      if (Object.keys(selected).length !== 1) {
-        return false;
-      }
-
-      const layerId = Object.keys(selected)[0];
-
-      return !!model.getLayer(layerId);
-    },
-
-    execute: () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-
-      const model = current.model;
-      const selected = model?.localState?.selected?.value;
-      if (!selected) {
-        return;
-      }
-
-      const layerId = Object.keys(selected)[0];
-
-      const result = model.createStorySegmentFromLayer(layerId);
-
-      if (result) {
-        model.centerOnPosition(layerId);
-      }
-    },
   });
 
   /* Enabled during story presentation (Specta or lab preview). */

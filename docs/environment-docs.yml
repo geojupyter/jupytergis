@@ -17,8 +17,9 @@ dependencies:
   - sphinx-autodoc-typehints
   - sphinx-exercise
   - sphinx-togglebutton
+  - sphinx-copybutton
   - sphinxcontrib-mermaid
   - sphinxcontrib-bibtex
   - myst-parser
-  - specta
+  - specta=0.4
   - pip

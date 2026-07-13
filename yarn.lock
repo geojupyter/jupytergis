@@ -1450,7 +1450,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupytergis/base@^0.16.0-alpha.5, @jupytergis/base@workspace:packages/base":
+"@jupytergis/base@^0.16.0-beta.3, @jupytergis/base@workspace:packages/base":
   version: 0.0.0-use.local
   resolution: "@jupytergis/base@workspace:packages/base"
   dependencies:
@@ -1461,7 +1461,7 @@ __metadata:
     "@jupyter/collaboration": ^4
     "@jupyter/react-components": ^0.16.6
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0 || ^4.0.0
-    "@jupytergis/schema": ^0.16.0-alpha.5
+    "@jupytergis/schema": ^0.16.0-beta.3
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/codeeditor": ^4.6
@@ -1542,13 +1542,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/jupytergis-core@^0.16.0-alpha.5, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
+"@jupytergis/jupytergis-core@^0.16.0-beta.3, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
     "@jupyter/collaborative-drive": ^4.1.2 || ^5.0.0-alpha.0
-    "@jupytergis/base": ^0.16.0-alpha.5
-    "@jupytergis/schema": ^0.16.0-alpha.5
+    "@jupytergis/base": ^0.16.0-beta.3
+    "@jupytergis/schema": ^0.16.0-beta.3
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/builder": ^4.5
@@ -1590,8 +1590,8 @@ __metadata:
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
     "@jupyter/collaborative-drive": ^4.1.2 || ^5.0.0-alpha.0
-    "@jupytergis/base": ^0.16.0-alpha.5
-    "@jupytergis/schema": ^0.16.0-alpha.5
+    "@jupytergis/base": ^0.16.0-beta.3
+    "@jupytergis/schema": ^0.16.0-beta.3
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/builder": ^4.5
@@ -1622,9 +1622,9 @@ __metadata:
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
     "@jupyter/collaborative-drive": ^4.1.2 || ^5.0.0-alpha.0
-    "@jupytergis/base": ^0.16.0-alpha.5
-    "@jupytergis/jupytergis-core": ^0.16.0-alpha.5
-    "@jupytergis/schema": ^0.16.0-alpha.5
+    "@jupytergis/base": ^0.16.0-beta.3
+    "@jupytergis/jupytergis-core": ^0.16.0-beta.3
+    "@jupytergis/schema": ^0.16.0-beta.3
     "@jupyterlab/application": ^4.6
     "@jupyterlab/apputils": ^4.6
     "@jupyterlab/builder": ^4.5
@@ -1665,17 +1665,18 @@ __metadata:
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
     prettier: ^3.0.0
+    py2vega-ts: ^0.1.2
     react-draggable: 4.5.0
     rimraf: ^3.0.2
     ts-jest: ^29.4.9
     typescript: ^5
-    vega2ol: ^1.1.1
+    vega2ol: ^1.1.5
     webpack: ^5.76.3
     zarrita: ^0.7.3
   languageName: unknown
   linkType: soft
 
-"@jupytergis/schema@^0.16.0-alpha.5, @jupytergis/schema@workspace:packages/schema":
+"@jupytergis/schema@^0.16.0-beta.3, @jupytergis/schema@workspace:packages/schema":
   version: 0.0.0-use.local
   resolution: "@jupytergis/schema@workspace:packages/schema"
   dependencies:
@@ -16151,6 +16152,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"py-ast@npm:^1.0.0":
+  version: 1.9.0
+  resolution: "py-ast@npm:1.9.0"
+  checksum: 81408ccf171aca07b95f13bff582211edea7d79acb8639fa686e591563e2c5bd777221377e931dc4bc2d06ea208a212a7abb55567534ecf1de2218eee09dbbfa
+  languageName: node
+  linkType: hard
+
+"py2vega-ts@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "py2vega-ts@npm:0.1.2"
+  dependencies:
+    py-ast: ^1.0.0
+  checksum: ee7a1b5297de9967ae6aee3e9d994c0572b13336fcd2e319b4a3ca4a27c639ae2e894634b08bc117a558f3064888c93d427f42740ea13c8559fb43c07b96b22b
+  languageName: node
+  linkType: hard
+
 "querystringify@npm:^2.1.1":
   version: 2.2.0
   resolution: "querystringify@npm:2.2.0"
@@ -17243,9 +17260,9 @@ __metadata:
   linkType: hard
 
 "shell-quote@npm:^1.6.1":
-  version: 1.8.3
-  resolution: "shell-quote@npm:1.8.3"
-  checksum: 550dd84e677f8915eb013d43689c80bb114860649ec5298eb978f40b8f3d4bc4ccb072b82c094eb3548dc587144bb3965a8676f0d685c1cf4c40b5dc27166242
+  version: 1.9.0
+  resolution: "shell-quote@npm:1.9.0"
+  checksum: 2ec85fb903121c684c3536d051e377e98746cf88525e08c298baaa7b42c168de75c3201cef00db66556e89e340a8cf26bd4c18e7a3fd78799449a21cac43da2e
   languageName: node
   linkType: hard
 
@@ -19042,12 +19059,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vega2ol@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "vega2ol@npm:1.1.1"
+"vega2ol@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "vega2ol@npm:1.1.5"
   dependencies:
     vega-expression: ^6.1.0
-  checksum: 83656e196deccac1f20f190e344eadc25362f1407147905e4f1ca377f9471a465355416c6bc5ed5cd620d0bb098613e0ac00b8203f190be9f77fca518f0dcac4
+  checksum: bcc6ece2e0a02202d2cb6cd4fbddd02f7303177ad03f4abd38049a67daeb635ece48f5f3d4d557f377c4075a4ce3b5b5d52b32899289589a447329d4c3c0416f
   languageName: node
   linkType: hard
 

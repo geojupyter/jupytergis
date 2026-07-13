@@ -44,13 +44,10 @@ export class StoryEditorWidget extends Dialog<boolean> {
     this.addClass('jgis-story-editor-dialog');
   }
 
-  // Prevent Jupyter Dialog from from eating enter key presses
+  // Prevent Jupyter Dialog from from eating key presses
   protected _evtKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      const active = document.activeElement;
-      if (active?.closest('.cm-editor')) {
-        return;
-      }
+    if (event.key === 'Enter' || event.key === 'Escape') {
+      return;
     }
 
     super._evtKeydown(event);
