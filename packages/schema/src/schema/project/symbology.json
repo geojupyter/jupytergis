@@ -212,6 +212,35 @@
         }
       }
     },
+    "ICategoricalScaleParams": {
+      "type": "object",
+      "title": "ICategoricalScaleParams",
+      "description": "Parameters controlling category-to-color mapping.",
+      "required": ["colorRamp", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "colorRamp": { "type": "string" },
+        "nShades": { "type": "number" },
+        "reverse": { "type": "boolean" },
+        "fallback": { "$ref": "#/definitions/RGBA" },
+        "colorStops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "ICategoricalColorStop",
+            "description": "Discrete value-to-color mapping entry.",
+            "required": ["stop", "color"],
+            "additionalProperties": false,
+            "properties": {
+              "stop": {
+                "oneOf": [{ "type": "string" }, { "type": "number" }]
+              },
+              "color": { "$ref": "#/definitions/RGBA" }
+            }
+          }
+        }
+      }
+    },
     "ICategoricalScale": {
       "type": "object",
       "title": "ICategoricalScale",
@@ -220,35 +249,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "categorical" },
-        "params": {
-          "type": "object",
-          "title": "ICategoricalScaleParams",
-          "description": "Parameters controlling category-to-color mapping.",
-          "required": ["colorRamp", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "colorRamp": { "type": "string" },
-            "nShades": { "type": "number" },
-            "reverse": { "type": "boolean" },
-            "fallback": { "$ref": "#/definitions/RGBA" },
-            "colorStops": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "title": "ICategoricalColorStop",
-                "description": "Discrete value-to-color mapping entry.",
-                "required": ["stop", "color"],
-                "additionalProperties": false,
-                "properties": {
-                  "stop": {
-                    "oneOf": [{ "type": "string" }, { "type": "number" }]
-                  },
-                  "color": { "$ref": "#/definitions/RGBA" }
-                }
-              }
-            }
-          }
-        }
+        "params": { "$ref": "#/definitions/ICategoricalScaleParams" }
       }
     },
     "IScalarScaleParams": {

@@ -869,7 +869,7 @@ def _categorical_scale(
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
 ) -> schema_symbology.ICategoricalScale:
     return schema_symbology.ICategoricalScale(
-        params=schema_symbology.Params1(
+        params=schema_symbology.ICategoricalScaleParams(
             colorRamp=name,
             nShades=n_shades,
             reverse=reverse,
