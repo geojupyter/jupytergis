@@ -1328,9 +1328,9 @@ def to_symbology_state(
         )
 
     if isinstance(symbology, dict):
-        layers = symbology.get("layers")
-        if layers is None:
-            raise ValueError("symbology dict must contain a 'layers' key")
-        return {"layers": layers}
+        try:
+            return {"layers": symbology["layers"]}
+        except KeyError as e:
+            raise ValueError("symbology dict must contain a 'layers' key") from e
 
     raise TypeError(f"Unsupported symbology value: {type(symbology)!r}")
