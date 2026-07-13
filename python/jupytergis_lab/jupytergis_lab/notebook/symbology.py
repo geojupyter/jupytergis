@@ -845,7 +845,7 @@ def _colormap_scale(
     mode="equal interval",
     reverse: bool = False,
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
-    color_stops: Sequence[schema_symbology.ColorStop] | None = None,
+    color_stops: Sequence[schema_symbology.IColorStop] | None = None,
 ) -> schema_symbology.IColorRampScale:
     params = schema_symbology.IColorRampScaleParams(
         name=name,

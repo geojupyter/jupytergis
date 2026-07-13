@@ -168,6 +168,17 @@
         { "$ref": "#/definitions/IClusterTransform" }
       ]
     },
+    "IColorStop": {
+      "type": "object",
+      "title": "IColorStop",
+      "description": "Explicit stop-to-color mapping entry.",
+      "required": ["stop", "color"],
+      "additionalProperties": false,
+      "properties": {
+        "stop": { "type": "number" },
+        "color": { "$ref": "#/definitions/RGBA" }
+      }
+    },
     "IColorRampScaleParams": {
       "type": "object",
       "title": "IColorRampScaleParams",
@@ -188,17 +199,7 @@
         "fallback": { "$ref": "#/definitions/RGBA" },
         "colorStops": {
           "type": "array",
-          "items": {
-            "type": "object",
-            "title": "IColorStop",
-            "description": "Explicit stop-to-color mapping entry.",
-            "required": ["stop", "color"],
-            "additionalProperties": false,
-            "properties": {
-              "stop": { "type": "number" },
-              "color": { "$ref": "#/definitions/RGBA" }
-            }
-          }
+          "items": { "$ref": "#/definitions/IColorStop" }
         }
       }
     },
