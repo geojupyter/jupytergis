@@ -824,11 +824,11 @@ def expression(
         ``float`` for numeric channels or an RGBA/color value for color channels.
     :returns: An expression scale object that can be passed to :func:`mapping`.
     """
-    fallback_value: float | list[float]
+    fallback_value: float | schema_symbology.RGBA
     if isinstance(fallback, (int, float)):
         fallback_value = float(fallback)
     else:
-        fallback_value = coerce_rgba(fallback)
+        fallback_value = schema_symbology.RGBA(coerce_rgba(fallback))
 
     return schema_symbology.IExpressionScale(
         params=schema_symbology.Params5(expr=expr, fallback=fallback_value),
