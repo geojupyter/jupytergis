@@ -95,6 +95,17 @@ function StorySettingsPopover({
                 }}
               />
             </label>
+            {story.storyType === STORY_TYPE.verticalScroll ? (
+              <label className="jgis-story-editor-toggle-row">
+                <span>Gap between markdown segments</span>
+                <Switch
+                  checked={story.markdownSegmentGap === true}
+                  onCheckedChange={checked => {
+                    onUpdateStory({ markdownSegmentGap: checked });
+                  }}
+                />
+              </label>
+            ) : null}
             <label className="jgis-story-editor-field">
               <span>Background color</span>
               <Input
