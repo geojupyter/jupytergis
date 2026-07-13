@@ -26,7 +26,7 @@ typecheck = [
 ]
 build = [
     "build",
-    "datamodel-code-generator>=0.23.0",
+    "datamodel-code-generator>=0.52.1",
     "hatchling>=1.5.0,<2",
     "jupyterlab>=4.5.1",
     "uv",  # Only used for the layer gallery build,
