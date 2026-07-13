@@ -179,7 +179,13 @@ packages = [
 # explicit_package_bases = true
 python_version = "3.12"
 # strict = true
+# check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["sidecar.*"]
+module = [
+    "osgeo.*",
+    "qgis.*",
+    "sidecar.*",
+    "py2vega.*",  # See: https://github.com/QuantStack/py2vega/issues/50
+]
 ignore_missing_imports = true
