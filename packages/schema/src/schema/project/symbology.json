@@ -212,6 +212,19 @@
         }
       }
     },
+    "ICategoricalColorStop": {
+      "type": "object",
+      "title": "ICategoricalColorStop",
+      "description": "Discrete value-to-color mapping entry.",
+      "required": ["stop", "color"],
+      "additionalProperties": false,
+      "properties": {
+        "stop": {
+          "oneOf": [{ "type": "string" }, { "type": "number" }]
+        },
+        "color": { "$ref": "#/definitions/RGBA" }
+      }
+    },
     "ICategoricalScaleParams": {
       "type": "object",
       "title": "ICategoricalScaleParams",
@@ -225,19 +238,7 @@
         "fallback": { "$ref": "#/definitions/RGBA" },
         "colorStops": {
           "type": "array",
-          "items": {
-            "type": "object",
-            "title": "ICategoricalColorStop",
-            "description": "Discrete value-to-color mapping entry.",
-            "required": ["stop", "color"],
-            "additionalProperties": false,
-            "properties": {
-              "stop": {
-                "oneOf": [{ "type": "string" }, { "type": "number" }]
-              },
-              "color": { "$ref": "#/definitions/RGBA" }
-            }
-          }
+          "items": { "$ref": "#/definitions/ICategoricalColorStop" }
         }
       }
     },
