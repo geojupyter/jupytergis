@@ -2,6 +2,41 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0b3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-beta.2...d8f5ec3c341ffbda202d03e59c39abfab03a44f5))
+
+### Enhancements made
+
+- Make annotations a top level attribute of the document schema [#1604](https://github.com/geojupyter/jupytergis/pull/1604) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Remeasure markdown panes after images load [#1610](https://github.com/geojupyter/jupytergis/pull/1610) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Fix filters ui-test for live-apply "when" clause [#1605](https://github.com/geojupyter/jupytergis/pull/1605) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- stop empty `spatial_extent` from blocking graph editing [#1603](https://github.com/geojupyter/jupytergis/pull/1603) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Add logic to await for the JGIS document to be ready. [#1528](https://github.com/geojupyter/jupytergis/pull/1528) ([@HaudinFlorence](https://github.com/HaudinFlorence), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Update releaser [#1613](https://github.com/geojupyter/jupytergis/pull/1613) ([@martinRenou](https://github.com/martinRenou))
+- Add xeus-python dependency in bot run [#1611](https://github.com/geojupyter/jupytergis/pull/1611) ([@martinRenou](https://github.com/martinRenou))
+
+### Documentation improvements
+
+- Update jupyter-tiler ndsi example so we lazily visualize the bigger dataset instead [#1606](https://github.com/geojupyter/jupytergis/pull/1606) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-07-08&to=2026-07-10&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-07-08..2026-07-10&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-07-08..2026-07-10&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-07-08..2026-07-10&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-07-08..2026-07-10&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-07-08..2026-07-10&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0b2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-beta.1...5992a11b1fee685e7678572789aa1726e2cbb6b8))
@@ -32,8 +67,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-07-07&to=2026-07-08&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-07-07..2026-07-08&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-07-07..2026-07-08&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-07-07..2026-07-08&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-07-07..2026-07-08&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0b1
 

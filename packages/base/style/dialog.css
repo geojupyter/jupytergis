@@ -11,3 +11,12 @@
 .jp-root .form-group:has(.jGIS-hidden-field) {
   display: none !important;
 }
+
+.jp-gis-object-properties-dialog .jp-Dialog-content {
+  min-width: min(600px, 90vw);
+  max-height: 80vh;
+}
+
+.jp-gis-object-properties-dialog .jp-Dialog-body {
+  overflow: auto;
+}
