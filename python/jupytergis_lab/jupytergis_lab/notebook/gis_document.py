@@ -375,7 +375,7 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
     ):
         """Add a Vector Tile Layer to the document.
 
@@ -431,7 +431,7 @@ class GISDocument(CommWidget):
         data: dict | None = None,
         name: str | None = None,
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
     ):
         """Add a GeoJSON Layer to the document.
 
@@ -582,7 +582,7 @@ class GISDocument(CommWidget):
         projection: str | None = None,
         attribution: str = "",
         opacity: float = 1.0,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
     ):
         """Add a GeoTIFF layer.
 
@@ -642,7 +642,7 @@ class GISDocument(CommWidget):
         opacity: float = 1.0,
         gamma: float = 1,
         wrap_x: bool = False,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
     ):
         """Add a Zarr layer
 
@@ -730,7 +730,7 @@ class GISDocument(CommWidget):
         path: str,
         name: str | None = None,
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
     ):
         """Add a GeoParquet Layer to the document.
 
@@ -777,7 +777,7 @@ class GISDocument(CommWidget):
         name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
     ):
         """Add a GeoPackage Vector Layer to the document.
 
@@ -1221,7 +1221,7 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_symbology(self, layer_id: str, symbology: SymbologyInput):
+    def apply_symbology(self, layer_id: str, symbology: SymbologyInput | None):
         layer = self._layers.get(layer_id)
 
         if layer is None:

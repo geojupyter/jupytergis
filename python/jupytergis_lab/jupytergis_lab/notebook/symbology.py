@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Literal, Self
+from typing import Any, Literal, Self, TypeGuard
 from uuid import uuid4
 
 from jupytergis_core.colors import RGBA, coerce_rgba
@@ -336,6 +336,7 @@ class Mapping:
     """Final mapping produced by ``...encoding(...)`` chains."""
 
     __slots__ = ("_rule",)
+    _rule: schema_symbology.IEncodingRule
 
     def __init__(self, rule: schema_symbology.IEncodingRule):
         self._rule = rule
@@ -1248,12 +1249,19 @@ SymbologyInput = (
     | list[Symbology | Layer | list[Mapping] | tuple[Mapping, ...]]
     | BaseModel
     | dict[str, Any]
-    | None
 )
 
 
-def to_symbology_state(
+def _symbology_input_is_list_of_mappings(
     symbology: SymbologyInput,
+) -> TypeGuard[list[Mapping]]:
+    if not isinstance(symbology, list):
+        return False
+    return all(isinstance(item, Mapping) for item in symbology)
+
+
+def to_symbology_state(
+    symbology: SymbologyInput | None,
 ) -> dict[str, Any] | None:
     """Serialize a symbology value to a plain dict suitable for storage.
 
@@ -1289,7 +1297,7 @@ def to_symbology_state(
             return None
 
         # Single-layer shorthand: a top-level list of Mapping values.
-        if all(isinstance(item, Mapping) for item in symbology):
+        if _symbology_input_is_list_of_mappings(symbology):
             return GrammarSymbology(
                 layers=[grammar_layer(*[mapping._rule for mapping in symbology])],
             ).model_dump(
