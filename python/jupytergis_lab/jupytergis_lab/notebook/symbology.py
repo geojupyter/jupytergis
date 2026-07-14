@@ -102,9 +102,6 @@ class Predicate:
         return token
 
 
-WhenInput = Predicate | Sequence[Predicate] | None
-
-
 def _as_predicate(predicate: schema_symbology.IPredicate) -> Predicate:
     return Predicate._from_internal(predicate)
 
@@ -400,7 +397,7 @@ class MappingChain:
             raise TypeError(f"{next_scale} is already set for this mapping chain")
         raise TypeError("Scales cannot be mixed in a single field(...) chain")
 
-    def when(self, *when: WhenInput) -> "MappingChain":
+    def when(self, *when: Predicate) -> "MappingChain":
         """Attach guard predicate(s) to this mapping chain."""
         return self._copy(when=_normalize_when(when))
 
@@ -563,7 +560,7 @@ class Layer:
         self._when: list[schema_symbology.IPredicate] | None = None
         self._when_op: Literal["all", "any"] | None = None
 
-    def when(self, *when: WhenInput) -> "Layer":
+    def when(self, *when: Predicate) -> "Layer":
         """Attach layer-level predicates.
 
         :param when: Predicate or predicates created with helpers such as
@@ -611,7 +608,7 @@ class WhenBuilder:
     def __init__(
         self,
         *,
-        when: WhenInput,
+        when: Predicate | Sequence[Predicate] | None,
         when_op: WhenOpInput = None,
     ):
         self._when = _normalize_when(when)
@@ -684,7 +681,7 @@ def python_expr(code: str) -> ExpressionPredicate:
     return ExpressionPredicate(code, "py")
 
 
-def when(*when: WhenInput) -> WhenBuilder:
+def when(*when: Predicate) -> WhenBuilder:
     """Create a when-first builder for readable guarded mapping chains.
 
     Examples::
@@ -742,7 +739,7 @@ def _coerce_condition_number(value: object) -> float:
 
 
 def _normalize_when(
-    when: WhenInput | schema_symbology.IPredicate | Sequence[Any],
+    when: Predicate | Sequence[Predicate] | schema_symbology.IPredicate | None,
 ) -> list[schema_symbology.IPredicate] | None:
     if when is None:
         return None
@@ -1153,7 +1150,7 @@ def _constant_rule(
     *,
     target: VisualEncodings,
     value: RGBA | Sequence[float] | str | float,
-    when: WhenInput = None,
+    when: Predicate | Sequence[Predicate] | None = None,
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
     scale: schema_symbology.IConstantRGBAScale | schema_symbology.IConstantNumScale
@@ -1173,7 +1170,7 @@ def _mapped_rule(
     scale: Any,
     value: str,
     target: VisualEncodings,
-    when: WhenInput = None,
+    when: Predicate | Sequence[Predicate] | None = None,
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
     return encoding_rule(
