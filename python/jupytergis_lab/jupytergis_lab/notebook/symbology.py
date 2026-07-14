@@ -560,8 +560,8 @@ class Layer:
     ):
         self.mappings = [_coerce_mapping(mapping) for mapping in (mappings or [])]
         self.preprocess = list(preprocess) if preprocess is not None else None
-        self._when = None
-        self._when_op = None
+        self._when: list[schema_symbology.IPredicate] | None = None
+        self._when_op: Literal["all", "any"] | None = None
 
     def when(self, *when: WhenInput) -> "Layer":
         """Attach layer-level predicates.
