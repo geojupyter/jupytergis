@@ -4,8 +4,8 @@ import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
-import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import { handleStorySegmentMarkdownPaste } from '@/src/features/story/utils/storySegmentMarkdownPaste';
+import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
   TabsContent,

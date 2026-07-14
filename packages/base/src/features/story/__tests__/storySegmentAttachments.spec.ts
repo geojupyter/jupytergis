@@ -46,9 +46,9 @@ describe('storySegmentAttachments', () => {
   });
 
   it('formats attachment markdown links', () => {
-    expect(
-      formatSegmentAttachmentMarkdown('plot.png', 'uuid.png'),
-    ).toBe('![plot.png](attachment:uuid.png)');
+    expect(formatSegmentAttachmentMarkdown('plot.png', 'uuid.png')).toBe(
+      '![plot.png](attachment:uuid.png)',
+    );
   });
 
   it('generates attachment uris with preserved extensions', () => {

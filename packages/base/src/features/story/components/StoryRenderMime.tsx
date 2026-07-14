@@ -57,9 +57,9 @@ export function useStoryRenderMime(
   model: IJupyterGISModel,
   segmentId: string,
 ): IRenderMimeRegistry {
-  const base = useContext(StoryRenderMimeContext);
+  const context = useContext(StoryRenderMimeContext);
 
-  if (!base) {
+  if (!context) {
     throw new Error(
       'useStoryRenderMime must be used within StoryRenderMimeProvider.',
     );
@@ -74,11 +74,11 @@ export function useStoryRenderMime(
       values: getSegmentAttachments(model, segmentId),
     });
 
-    return base.clone({
+    return context.clone({
       resolver: new AttachmentsResolver({
-        parent: base.resolver ?? undefined,
+        parent: context.resolver ?? undefined,
         model: attachmentsModel,
       }),
     });
-  }, [base, model, segmentId, attachmentsKey]);
+  }, [context, model, segmentId, attachmentsKey]);
 }
