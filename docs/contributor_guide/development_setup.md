@@ -1,7 +1,7 @@
 # Development setup
 
-:::{hint} Do I need a development environment?
-:class: dropdown
+:::{admonition} Do I need a development environment?
+:class: hint, dropdown
 
 You only need to set up a development environment if you plan to **change
 JupyterGIS itself** — fixing a bug, adding a feature, or editing these docs
@@ -31,8 +31,8 @@ cd jupytergis
 
 ### Create a virtual environment
 
-:::{hint} What is a virtual environment, and why use one?
-:class: dropdown
+:::{admonition} What is a virtual environment, and why use one?
+:class: hint, dropdown
 
 A virtual environment is an isolated space for this project's dependencies, so
 the versions JupyterGIS needs (Python, Node.js, QGIS) don't clash with other
