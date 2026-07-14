@@ -3665,9 +3665,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     uiState: IJGISUIState,
   ): void {
     const active = Boolean(uiState.locationIndicatorActive);
-    if (active && !this._geolocation) {
+    // uiStateChanged fires on any UI-state change (e.g. panel toggles), so
+    // gate on an actual change to the indicator flag before doing any work.
+    if (active === this._locationIndicatorActive) {
+      return;
+    }
+    this._locationIndicatorActive = active;
+    if (active) {
       this._startLocationIndicator();
-    } else if (!active && this._geolocation) {
+    } else {
       this._stopLocationIndicator();
     }
   }
@@ -4179,6 +4185,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _model: IJupyterGISModel;
   private _locationIndicatorLayer: VectorLayer<VectorSource> | null = null;
   private _geolocation: Geolocation | null = null;
+  private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
