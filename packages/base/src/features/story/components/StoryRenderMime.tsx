@@ -1,9 +1,12 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
+import { AttachmentsModel, AttachmentsResolver } from '@jupyterlab/attachments';
 import {
   RenderMimeRegistry,
   type IRenderMimeRegistry,
 } from '@jupyterlab/rendermime';
 import React, { createContext, useContext, useMemo } from 'react';
+
+import { getSegmentAttachments } from '@/src/features/story/utils/storySegmentAttachments';
 
 const StoryRenderMimeContext = createContext<IRenderMimeRegistry | null>(null);
 
@@ -50,14 +53,32 @@ export function StoryRenderMimeProvider({
   );
 }
 
-export function useStoryRenderMime(): IRenderMimeRegistry {
-  const rendermime = useContext(StoryRenderMimeContext);
+export function useStoryRenderMime(
+  model: IJupyterGISModel,
+  segmentId: string,
+): IRenderMimeRegistry {
+  const base = useContext(StoryRenderMimeContext);
 
-  if (!rendermime) {
+  if (!base) {
     throw new Error(
       'useStoryRenderMime must be used within StoryRenderMimeProvider.',
     );
   }
 
-  return rendermime;
+  const attachmentsKey = JSON.stringify(
+    getSegmentAttachments(model, segmentId),
+  );
+
+  return useMemo(() => {
+    const attachmentsModel = new AttachmentsModel({
+      values: getSegmentAttachments(model, segmentId),
+    });
+
+    return base.clone({
+      resolver: new AttachmentsResolver({
+        parent: base.resolver ?? undefined,
+        model: attachmentsModel,
+      }),
+    });
+  }, [base, model, segmentId, attachmentsKey]);
 }
