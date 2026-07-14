@@ -11,11 +11,11 @@ import { MainViewModel } from '@/src/mainview/mainviewmodel';
 
 export interface IOptions {
   mainViewModel: MainViewModel;
+  rendermime: IRenderMimeRegistry;
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
-  rendermime?: IRenderMimeRegistry | null;
 }
 
 export class JupyterGISMainViewPanel extends ReactWidget {
@@ -27,12 +27,13 @@ export class JupyterGISMainViewPanel extends ReactWidget {
     this._state = options.state;
     this.addClass('jp-jupytergis-panel');
     this._options = options;
+    this._rendermime = options.rendermime;
   }
 
   render(): JSX.Element {
     return (
       <StoryRenderMimeProvider
-        rendermime={this._options.rendermime!}
+        rendermime={this._rendermime}
         model={this._options.mainViewModel.jGISModel}
       >
         <MainViewWithObserver
@@ -48,4 +49,5 @@ export class JupyterGISMainViewPanel extends ReactWidget {
 
   private _state?: IStateDB;
   private _options: IOptions;
+  private _rendermime: IRenderMimeRegistry;
 }

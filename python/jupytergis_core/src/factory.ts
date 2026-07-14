@@ -26,7 +26,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   manager?: ServiceManager.IManager;
   contentFactory?: ConsolePanel.IContentFactory;
   mimeTypeService?: IEditorMimeTypeService;
-  rendermime?: IRenderMimeRegistry;
+  rendermime: IRenderMimeRegistry;
   consoleTracker?: IConsoleTracker;
   backendCheck?: () => boolean;
   drive?: Contents.IDrive | null;

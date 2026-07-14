@@ -9,6 +9,7 @@ import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -100,6 +101,7 @@ export namespace JupyterGISOutputWidget {
 export class JupyterGISPanel extends SplitPanel {
   constructor({
     model,
+    rendermime,
     consoleTracker,
     state,
     commandRegistry,
@@ -111,7 +113,8 @@ export class JupyterGISPanel extends SplitPanel {
     super({ orientation: 'vertical', spacing: 0 });
 
     this._state = state;
-    this._consoleOption = { commandRegistry, ...consoleOption };
+    this._rendermime = rendermime;
+    this._consoleOption = { commandRegistry, rendermime, ...consoleOption };
     this._consoleTracker = consoleTracker;
 
     const readyPromise = model.sharedModel.initialSyncReady;
@@ -154,7 +157,7 @@ export class JupyterGISPanel extends SplitPanel {
       formSchemaRegistry: formSchemaRegistry,
       annotationModel: annotationModel,
       loggerRegistry: loggerRegistry,
-      rendermime: this._consoleOption.rendermime ?? null,
+      rendermime: this._rendermime,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
@@ -282,6 +285,7 @@ export class JupyterGISPanel extends SplitPanel {
   private _mainViewModel: MainViewModel;
   private _view: ObservableMap<JSONValue>;
   private _jupyterGISMainViewPanel: JupyterGISMainViewPanel;
+  private _rendermime: IRenderMimeRegistry;
   private _consoleView?: ConsoleView;
   private _consoleOpened = false;
   private _consoleOption: Partial<ConsoleView.IOptions>;
@@ -292,6 +296,7 @@ export namespace JupyterGISPanel {
   export interface IOptions extends Partial<ConsoleView.IOptions> {
     model: IJupyterGISModel;
     commandRegistry: CommandRegistry;
+    rendermime: IRenderMimeRegistry;
     state?: IStateDB;
     consoleTracker?: IConsoleTracker;
     formSchemaRegistry?: IJGISFormSchemaRegistry;
