@@ -1,5 +1,3 @@
-import type { IStorySegmentLayer } from '@jupytergis/schema';
-
 import type {
   IListStoryScrollTrackLayout,
   IListStoryScrollTrackSegment,
@@ -128,7 +126,7 @@ export function buildListStoryScrollTrack({
 }
 
 export function getSegmentDisplayMode(
-  activeSlide: IStorySegmentLayer['parameters'] | undefined,
+  activeSlide: IStorySegmentViewItem['activeSlide'],
 ): StorySegmentDisplayMode {
   if (activeSlide?.content?.contentMode === 'markdown') {
     return 'markdown';
