@@ -6,6 +6,8 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
+import { StoryRenderMimeProvider } from '@/src/features/story/components/StoryRenderMime';
+
 import { StoryEditorDialogBody } from './StoryEditorDialogBody';
 import { StoryEditorSession } from './storyEditorSession';
 
@@ -23,14 +25,18 @@ export class StoryEditorWidget extends Dialog<boolean> {
 
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
-      <StoryEditorDialogBody
-        model={options.model}
-        commands={options.commands}
-        state={options.state}
-        formSchemaRegistry={options.formSchemaRegistry}
-        editorServices={options.editorServices}
+      <StoryRenderMimeProvider
         rendermime={options.rendermime}
-      />
+        model={options.model}
+      >
+        <StoryEditorDialogBody
+          model={options.model}
+          commands={options.commands}
+          state={options.state}
+          formSchemaRegistry={options.formSchemaRegistry}
+          editorServices={options.editorServices}
+        />
+      </StoryRenderMimeProvider>
     );
 
     super({
