@@ -12,6 +12,7 @@ function createStoryRenderMimeRegistry(
   model: IJupyterGISModel,
 ): IRenderMimeRegistry {
   const { filePath, contentsManager } = model;
+
   if (!filePath || !contentsManager) {
     throw new Error(
       'Story markdown requires model.filePath and model.contentsManager.',
@@ -51,6 +52,7 @@ export function StoryRenderMimeProvider({
 
 export function useStoryRenderMime(): IRenderMimeRegistry {
   const rendermime = useContext(StoryRenderMimeContext);
+
   if (!rendermime) {
     throw new Error(
       'useStoryRenderMime must be used within StoryRenderMimeProvider.',

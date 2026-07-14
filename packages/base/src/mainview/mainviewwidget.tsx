@@ -24,10 +24,12 @@ export class JupyterGISMainViewPanel extends ReactWidget {
    */
   constructor(options: IOptions) {
     super();
+
     this._state = options.state;
-    this.addClass('jp-jupytergis-panel');
     this._options = options;
     this._rendermime = options.rendermime;
+
+    this.addClass('jp-jupytergis-panel');
   }
 
   render(): JSX.Element {

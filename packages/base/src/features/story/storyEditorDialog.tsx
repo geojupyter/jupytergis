@@ -7,7 +7,6 @@ import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
 import { StoryRenderMimeProvider } from '@/src/features/story/components/StoryRenderMime';
-
 import { StoryEditorDialogBody } from './StoryEditorDialogBody';
 import { StoryEditorSession } from './storyEditorSession';
 

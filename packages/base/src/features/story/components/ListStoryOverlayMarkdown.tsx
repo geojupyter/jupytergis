@@ -12,7 +12,5 @@ export function ListStoryOverlayMarkdown({
   source,
   onRendered,
 }: IListStoryOverlayMarkdownProps): JSX.Element | null {
-  return (
-    <RenderedStoryMarkdown source={source} onRendered={onRendered} />
-  );
+  return <RenderedStoryMarkdown source={source} onRendered={onRendered} />;
 }
