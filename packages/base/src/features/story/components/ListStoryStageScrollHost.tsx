@@ -79,7 +79,7 @@ export function ListStoryStageScrollHost({
     <div
       ref={scrollContainerRef}
       id="jgis-story-segment-panel"
-      className="jgis-story-stage-scroll-host jgis-story-viewer-panel-specta-mod-vertical-scroll"
+      className="jgis-story-stage-scroll-host"
       aria-hidden
       data-testid="jgis-story-stage-scroll-host"
     >
