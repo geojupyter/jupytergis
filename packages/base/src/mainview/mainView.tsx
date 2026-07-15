@@ -4024,6 +4024,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               segmentTransition={segmentTransition}
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}
+              storyScrollContainerRef={this.storyScrollContainerRef}
               panels={
                 showSidePanels ? (
                   <MainViewSidePanels
@@ -4078,6 +4079,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
+  private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;

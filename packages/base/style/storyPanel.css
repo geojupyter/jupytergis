@@ -350,6 +350,18 @@
   cursor: pointer;
 }
 
+.jgis-story-stage-scroll-host {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--jgis-story-title-bar-height);
+  overflow-y: auto;
+  z-index: 1;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .jgis-story-stage-overlay {
   position: absolute;
   inset: 0;

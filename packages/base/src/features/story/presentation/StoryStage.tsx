@@ -1,6 +1,7 @@
 import React, { RefObject } from 'react';
 
 import { ListStoryStageOverlay } from '@/src/features/story/components/ListStoryStageOverlay';
+import { ListStoryStageScrollHost } from '@/src/features/story/components/ListStoryStageScrollHost';
 import { ListStoryTitleBar } from '@/src/features/story/components/ListStoryTitleBar';
 import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import { isVerticalScrollPresentation } from '@/src/features/story/presentation/getStoryPresentationMode';
@@ -17,9 +18,12 @@ export function StoryStage({
   segmentTransition,
   stageRef,
   controlsToolbarRef,
+  storyScrollContainerRef,
   panels,
 }: IStoryStageProps): JSX.Element {
   const verticalScroll = isVerticalScrollPresentation(presentationMode);
+  const showDesktopScrollHost =
+    verticalScroll && !isMobile && storyScrollContainerRef;
 
   return (
     <div
@@ -39,6 +43,11 @@ export function StoryStage({
               model={model}
               segmentTransition={segmentTransition}
             />
+            {showDesktopScrollHost ? (
+              <ListStoryStageScrollHost
+                scrollContainerRef={storyScrollContainerRef}
+              />
+            ) : null}
           </>
         ) : null}
         <div className="jgis-panels-wrapper">{panels}</div>

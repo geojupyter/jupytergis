@@ -13,5 +13,6 @@ export interface IStoryStageProps {
   segmentTransition: IListStorySegmentTransition | null;
   stageRef: RefObject<HTMLDivElement>;
   controlsToolbarRef: RefObject<HTMLDivElement>;
+  storyScrollContainerRef?: RefObject<HTMLDivElement>;
   panels: ReactNode;
 }
