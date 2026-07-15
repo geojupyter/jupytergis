@@ -3,6 +3,7 @@ import { AttachmentsModel, AttachmentsResolver } from '@jupyterlab/attachments';
 import {
   RenderMimeRegistry,
   type IRenderMimeRegistry,
+  type IUrlResolverFactory,
 } from '@jupyterlab/rendermime';
 import React, { createContext, useContext, useMemo } from 'react';
 
@@ -10,9 +11,21 @@ import { getSegmentAttachments } from '@/src/features/story/utils/storySegmentAt
 
 const StoryRenderMimeContext = createContext<IRenderMimeRegistry | null>(null);
 
+function getUrlResolverFactory(
+  urlResolverFactory?: IUrlResolverFactory,
+): IUrlResolverFactory {
+  return (
+    urlResolverFactory ?? {
+      createResolver: (options: RenderMimeRegistry.IUrlResolverOptions) =>
+        new RenderMimeRegistry.UrlResolver(options),
+    }
+  );
+}
+
 function createStoryRenderMimeRegistry(
   rendermime: IRenderMimeRegistry,
   model: IJupyterGISModel,
+  urlResolverFactory?: IUrlResolverFactory,
 ): IRenderMimeRegistry {
   const { filePath, contentsManager } = model;
 
@@ -22,7 +35,7 @@ function createStoryRenderMimeRegistry(
     );
   }
 
-  const resolver = new RenderMimeRegistry.UrlResolver({
+  const resolver = getUrlResolverFactory(urlResolverFactory).createResolver({
     path: filePath,
     contents: contentsManager,
   });
@@ -33,17 +46,25 @@ function createStoryRenderMimeRegistry(
 interface IStoryRenderMimeProviderProps {
   rendermime: IRenderMimeRegistry;
   model: IJupyterGISModel;
+  urlResolverFactory?: IUrlResolverFactory;
   children: React.ReactNode;
 }
 
 export function StoryRenderMimeProvider({
   rendermime,
   model,
+  urlResolverFactory,
   children,
 }: IStoryRenderMimeProviderProps): JSX.Element {
   const scopedRendermime = useMemo(
-    () => createStoryRenderMimeRegistry(rendermime, model),
-    [rendermime, model, model.filePath, model.contentsManager],
+    () => createStoryRenderMimeRegistry(rendermime, model, urlResolverFactory),
+    [
+      rendermime,
+      model,
+      model.filePath,
+      model.contentsManager,
+      urlResolverFactory,
+    ],
   );
 
   return (
