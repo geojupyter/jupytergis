@@ -36,7 +36,7 @@ cd jupytergis
 
 A virtual environment is an isolated space for this project's dependencies, so
 the versions JupyterGIS needs (Python, Node.js, QGIS) don't clash with other
-projects on your machine — and vice versa. The Micromamba option below sets one
+projects on your machine — and vice versa. The instructions below set one
 up for you.
 :::
 
