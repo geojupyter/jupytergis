@@ -24,6 +24,7 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, IDefaultDrive } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -100,6 +101,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       formSchemaRegistry,
       state,
       annotationModel,
+      rendermime,
     } = options;
     const content = new JupyterGISPanel({
       model,
@@ -107,6 +109,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       formSchemaRegistry,
       state,
       annotationModel,
+      rendermime,
     });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
@@ -131,6 +134,7 @@ export class YJupyterGISLuminoWidget extends Panel {
 interface IOptions {
   commands: CommandRegistry;
   model: JupyterGISModel;
+  rendermime: IRenderMimeRegistry;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -141,7 +145,7 @@ interface IOptions {
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
-  requires: [IJGISFormSchemaRegistryToken],
+  requires: [IJGISFormSchemaRegistryToken, IRenderMimeRegistry],
   optional: [
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
@@ -154,6 +158,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     formSchemaRegistry: IJGISFormSchemaRegistry,
+    rendermime: IRenderMimeRegistry,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
@@ -253,7 +258,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           commands: app.commands,
           model: yModel.jupyterGISModel,
           externalCommands: externalCommandRegistry,
-
+          rendermime,
           tracker: jgisTracker,
           annotationModel,
           state,

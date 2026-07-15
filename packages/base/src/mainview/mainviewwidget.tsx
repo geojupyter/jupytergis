@@ -5,17 +5,17 @@ import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
-import { StoryRenderMimeProvider } from '@/src/features/story/components/ListStoryOverlayMarkdown';
+import { StoryRenderMimeProvider } from '@/src/features/story/components/StoryRenderMime';
 import { MainViewWithObserver } from '@/src/mainview/mainView';
 import { MainViewModel } from '@/src/mainview/mainviewmodel';
 
 export interface IOptions {
   mainViewModel: MainViewModel;
+  rendermime: IRenderMimeRegistry;
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
-  rendermime?: IRenderMimeRegistry | null;
 }
 
 export class JupyterGISMainViewPanel extends ReactWidget {
@@ -24,14 +24,20 @@ export class JupyterGISMainViewPanel extends ReactWidget {
    */
   constructor(options: IOptions) {
     super();
+
     this._state = options.state;
-    this.addClass('jp-jupytergis-panel');
     this._options = options;
+    this._rendermime = options.rendermime;
+
+    this.addClass('jp-jupytergis-panel');
   }
 
   render(): JSX.Element {
     return (
-      <StoryRenderMimeProvider rendermime={this._options.rendermime}>
+      <StoryRenderMimeProvider
+        rendermime={this._rendermime}
+        model={this._options.mainViewModel.jGISModel}
+      >
         <MainViewWithObserver
           state={this._state}
           viewModel={this._options.mainViewModel}
@@ -45,4 +51,5 @@ export class JupyterGISMainViewPanel extends ReactWidget {
 
   private _state?: IStateDB;
   private _options: IOptions;
+  private _rendermime: IRenderMimeRegistry;
 }

@@ -1,13 +1,14 @@
-import { MimeModel, type IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { MimeModel } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 import React, { useLayoutEffect, useRef } from 'react';
+
+import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
 const MARKDOWN_MIME = 'text/markdown';
 
 export interface IRenderedStoryMarkdownProps {
-  rendermime: IRenderMimeRegistry | null | undefined;
   source: string;
-  /** Fires after rendermime (or plain fallback) has painted. */
+  /** Fires after rendermime has painted. */
   onRendered?: () => void;
 }
 
@@ -28,15 +29,15 @@ function disposeRenderer(renderer: Widget): void {
 
 /** Jupyter rendermime markdown output (shared by overlay and story editor). */
 export function RenderedStoryMarkdown({
-  rendermime,
   source,
   onRendered,
 }: IRenderedStoryMarkdownProps): JSX.Element | null {
+  const rendermime = useStoryRenderMime();
   const hostRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
-    if (!rendermime || !host || !source) {
+    if (!host || !source) {
       return;
     }
 
@@ -90,26 +91,8 @@ export function RenderedStoryMarkdown({
     };
   }, [rendermime, source, onRendered]);
 
-  useLayoutEffect(() => {
-    if (rendermime || !source) {
-      return;
-    }
-
-    onRendered?.();
-  }, [rendermime, source, onRendered]);
-
   if (!source) {
     return null;
-  }
-
-  if (!rendermime) {
-    return (
-      <div className="jgis-story-stage-overlay-content">
-        <div className="specta-article-host-widget specta-cell-content">
-          <pre className="jgis-story-overlay-markdown-plain">{source}</pre>
-        </div>
-      </div>
-    );
   }
 
   return (

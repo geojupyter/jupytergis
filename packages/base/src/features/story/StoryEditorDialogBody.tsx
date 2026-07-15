@@ -1,6 +1,5 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
@@ -48,7 +47,6 @@ export interface IStoryEditorDialogBodyProps {
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
-  rendermime: IRenderMimeRegistry;
 }
 
 function SegmentEditor({
@@ -56,7 +54,6 @@ function SegmentEditor({
   state,
   segment,
   editorServices,
-  rendermime,
   portalContainerRef,
   canRemoveSegment,
   showSegmentAnimation,
@@ -70,7 +67,6 @@ function SegmentEditor({
   state: IStateDB;
   segment: IStorySegmentViewItem;
   editorServices: IEditorServices;
-  rendermime: IRenderMimeRegistry;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
   showSegmentAnimation: boolean;
@@ -165,7 +161,6 @@ function SegmentEditor({
                 model={model}
                 segmentId={segment.id}
                 editorServices={editorServices}
-                rendermime={rendermime}
                 initialMarkdown={markdown}
                 rows={4}
               />
@@ -233,7 +228,6 @@ function SegmentEditor({
             model={model}
             segmentId={segment.id}
             editorServices={editorServices}
-            rendermime={rendermime}
             initialMarkdown={markdown}
             tall
             rows={10}
@@ -257,7 +251,6 @@ export function StoryEditorDialogBody({
   commands,
   state,
   editorServices,
-  rendermime,
 }: IStoryEditorDialogBodyProps): JSX.Element {
   const {
     story,
@@ -306,7 +299,6 @@ export function StoryEditorDialogBody({
               state={state}
               segment={selectedSegment}
               editorServices={editorServices}
-              rendermime={rendermime}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
               showSegmentAnimation={showSegmentAnimation}
