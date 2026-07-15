@@ -27,9 +27,8 @@ export function StoryStage({
   panels,
 }: IStoryStageProps): JSX.Element {
   const verticalScroll = isVerticalScrollPresentation(presentationMode);
-  const showDesktopScrollHost =
+  const showVerticalScrollHost =
     verticalScroll &&
-    !isMobile &&
     storyScrollContainerRef &&
     initialLayersReady !== undefined &&
     isSpecta !== undefined &&
@@ -55,10 +54,11 @@ export function StoryStage({
               model={model}
               segmentTransition={segmentTransition}
             />
-            {showDesktopScrollHost ? (
+            {showVerticalScrollHost ? (
               <ListStoryStageScrollHost
                 model={model}
                 isSpecta={isSpecta}
+                isMobile={isMobile}
                 initialLayersReady={initialLayersReady}
                 scrollContainerRef={storyScrollContainerRef}
                 addLayer={addLayer}

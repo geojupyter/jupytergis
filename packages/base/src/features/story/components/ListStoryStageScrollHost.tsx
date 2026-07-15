@@ -1,5 +1,10 @@
 import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import React, { type RefObject, useLayoutEffect, useMemo, useRef } from 'react';
+import React, {
+  type RefObject,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { ListStoryVirtualScrollTrack } from '@/src/features/story/components/ListStoryVirtualScrollTrack';
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
@@ -9,11 +14,13 @@ import type {
   IOverrideLayerEntry,
   IListStorySegmentTransition,
 } from '@/src/features/story/types/types';
+import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
 interface IListStoryStageScrollHostProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
+  isMobile: boolean;
   initialLayersReady: boolean;
   scrollContainerRef: RefObject<HTMLDivElement>;
   addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
@@ -24,11 +31,12 @@ interface IListStoryStageScrollHostProps {
 }
 
 /**
- * Desktop vertical-scroll scrollport on the map stage.
+ * Vertical-scroll scrollport on the map stage (desktop + mobile).
  */
 export function ListStoryStageScrollHost({
   model,
   isSpecta,
+  isMobile,
   initialLayersReady,
   scrollContainerRef,
   addLayer,
@@ -47,6 +55,11 @@ export function ListStoryStageScrollHost({
   const segmentViewItems = useMemo(
     () => buildStorySegmentViewItems(model, storyData),
     [model, storyData],
+  );
+
+  const presentationStyle = useMemo(
+    () => (isMobile ? getSpectaPresentationStyle(storyData) : undefined),
+    [isMobile, storyData],
   );
 
   const { scrollTrackLayout, bindScrollTrackElement } =
@@ -80,8 +93,13 @@ export function ListStoryStageScrollHost({
     <div
       ref={scrollContainerRef}
       id="jgis-story-segment-panel"
-      className="jgis-story-stage-scroll-host"
-      aria-hidden
+      className={
+        isMobile
+          ? 'jgis-story-viewer-panel-specta-mod-vertical-scroll jgis-story-mobile-list-scroll'
+          : 'jgis-story-stage-scroll-host'
+      }
+      style={presentationStyle}
+      aria-hidden={isMobile ? undefined : true}
       data-testid="jgis-story-stage-scroll-host"
     >
       <ListStoryVirtualScrollTrack scrollTrackLayout={scrollTrackLayout} />

@@ -3999,9 +3999,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       Boolean(this._formSchemaRegistry) &&
       Boolean(this._annotationModel);
     const spectaMobileTouch = isSpectaPresentation && isMobile;
-    const isDesktopVerticalScroll =
+    const isVerticalScrollSpecta =
       isSpectaPresentation &&
-      !isMobile &&
       isVerticalScrollPresentation(storyPresentationMode);
 
     return (
@@ -4054,7 +4053,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                       this._patchGeoJSONFeatureProperties
                     }
                   />
-                ) : isDesktopVerticalScroll ? null : (
+                ) : isVerticalScrollSpecta ? null : (
                   <MainViewSpectaPanel
                     model={this._model}
                     isSpecta={isSpectaPresentation}
