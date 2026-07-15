@@ -4002,6 +4002,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const isVerticalScrollSpecta =
       isSpectaPresentation &&
       isVerticalScrollPresentation(storyPresentationMode);
+    const showColumnSpectaPanel =
+      isSpectaPresentation && !isVerticalScrollSpecta;
 
     return (
       <>
@@ -4040,20 +4042,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               removeLayer={this._removeLayerForPanels}
               onSegmentTransitionChange={this._handleSegmentTransitionChange}
               panels={
-                showSidePanels ? (
-                  <MainViewSidePanels
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    settings={jgisSettings}
-                    showMergedMobilePanel={showMergedMobilePanel}
-                    state={this._state}
-                    formSchemaRegistry={this._formSchemaRegistry}
-                    annotationModel={this._annotationModel}
-                    patchGeoJSONFeatureProperties={
-                      this._patchGeoJSONFeatureProperties
-                    }
-                  />
-                ) : isVerticalScrollSpecta ? null : (
+                showColumnSpectaPanel ? (
                   <MainViewSpectaPanel
                     model={this._model}
                     isSpecta={isSpectaPresentation}
@@ -4068,9 +4057,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                       this._handleSegmentTransitionChange
                     }
                   />
-                )
+                ) : null
               }
             />
+            {showSidePanels ? (
+              <div className="jgis-panels-wrapper">
+                <MainViewSidePanels
+                  model={this._model}
+                  commands={this._mainViewModel.commands}
+                  settings={jgisSettings}
+                  showMergedMobilePanel={showMergedMobilePanel}
+                  state={this._state}
+                  formSchemaRegistry={this._formSchemaRegistry}
+                  annotationModel={this._annotationModel}
+                  patchGeoJSONFeatureProperties={
+                    this._patchGeoJSONFeatureProperties
+                  }
+                />
+              </div>
+            ) : null}
           </MainViewMapSurface>
           {!isSpectaPresentation ? (
             <StatusBar
