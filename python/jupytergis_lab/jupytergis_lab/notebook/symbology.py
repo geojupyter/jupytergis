@@ -66,7 +66,6 @@ for channel_value in _ENCODING_VALUES:
     _ENCODING_MEMBERS[member_name] = channel_value
 
 VisualEncoding = Enum("VisualEncoding", _ENCODING_MEMBERS, type=str)
-VisualEncodings = VisualEncoding | str | Sequence[VisualEncoding | str]
 
 
 class ClassificationMode(Enum):
@@ -234,7 +233,7 @@ class FieldPredicate:
 
     def encoding(
         self,
-        *targets: VisualEncodings,
+        *targets: VisualEncoding | str,
     ) -> "Mapping":
         """Map this symbolizer to visual encoding."""
         return self._as_source().encoding(*targets)
@@ -510,7 +509,7 @@ class MappingChain:
 
     def encoding(
         self,
-        *targets: VisualEncodings,
+        *targets: VisualEncoding | str,
     ) -> Mapping:
         """Finalize the chain and encode to output channel(s)."""
         if self._kind == "field":
@@ -1148,7 +1147,7 @@ def symbology_state(
 
 def _constant_rule(
     *,
-    target: VisualEncodings,
+    target: VisualEncoding | str,
     value: RGBA | Sequence[float] | str | float,
     when: Predicate | Sequence[Predicate] | None = None,
     when_op: WhenOpInput = "all",
@@ -1169,7 +1168,7 @@ def _mapped_rule(
     *,
     scale: Any,
     value: str,
-    target: VisualEncodings,
+    target: VisualEncoding | str,
     when: Predicate | Sequence[Predicate] | None = None,
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
@@ -1186,12 +1185,12 @@ def _single_layer(*rules: schema_symbology.IEncodingRule) -> GrammarSymbology:
 
 
 def _resolve_ENCODINGs(
-    target: VisualEncodings,
-) -> list[schema_symbology.Encoding | VisualEncodings]:
+    target: VisualEncoding | str | Sequence[VisualEncoding | str],
+) -> list[schema_symbology.Encoding | VisualEncoding | str]:
     # NOTE: VisualEncoding is technically a str, but Mypy doesn't know that because we
     #       defined it in the functional Enum style.
-    requested = [target] if isinstance(target, str | VisualEncoding) else list(target)
-    channels: list[schema_symbology.Encoding | VisualEncodings] = []
+    requested = [target] if isinstance(target, (str, VisualEncoding)) else list(target)
+    channels: list[schema_symbology.Encoding | VisualEncoding | str] = []
     for item in requested:
         # Check if it's a shorthand
         if item in ENCODING_SHORTCUTS:
@@ -1204,7 +1203,7 @@ def _resolve_ENCODINGs(
                 f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]}",
             )
 
-    deduped: list[schema_symbology.Encoding | VisualEncodings] = []
+    deduped: list[schema_symbology.Encoding | VisualEncoding | str] = []
     for channel in channels:
         if channel not in deduped:
             deduped.append(channel)
