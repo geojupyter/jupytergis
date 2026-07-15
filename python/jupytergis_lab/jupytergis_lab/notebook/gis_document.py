@@ -151,6 +151,11 @@ class GISDocument(CommWidget):
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["annotations"] = self._annotations = Map()
         self.ydoc["metadata"] = self._metadata = Map()
+        # Transient signal channel (not serialized to the .jGIS file): used to
+        # ask the frontend to zoom to a layer (see ``zoom_to`` on the
+        # ``add_*_layer`` methods). Mirrors ``ydoc.getMap('zoomRequest')`` on
+        # the frontend.
+        self.ydoc["zoomRequest"] = self._zoom_request = Map()
 
         # For untitled docs, initialize options right away
         if path is None:
@@ -318,6 +323,7 @@ class GISDocument(CommWidget):
         attribution: str = "",
         opacity: float = 1,
         url_parameters: dict[str, Any] | None = None,
+        zoom_to: bool = False,
     ):
         """Add a Raster Layer to the document.
 
@@ -326,6 +332,7 @@ class GISDocument(CommWidget):
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         :param url_parameters: Extra URL parameters for tile requests.
+        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
         self._assert_is_ready()
         # Extract name from URL if not provided
@@ -356,7 +363,10 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity, "color": {}},
         }
 
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(
+            OBJECT_FACTORY.create_layer(layer, self),
+            zoom_to=zoom_to,
+        )
 
     def add_vectortile_layer(
         self,
@@ -1153,7 +1163,12 @@ class GISDocument(CommWidget):
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object, id: str | None = None) -> str:
+    def _add_layer(
+        self,
+        new_object,
+        id: str | None = None,
+        zoom_to: bool = False,
+    ) -> str:
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
@@ -1162,7 +1177,19 @@ class GISDocument(CommWidget):
         )
         self._layers[_id] = obj_dict
         self._layerTree.append(_id)
+        if zoom_to:
+            self._request_zoom_to_layer(_id)
         return _id
+
+    def _request_zoom_to_layer(self, layer_id: str) -> None:
+        """Ask the frontend to zoom to the extent of ``layer_id``.
+
+        This writes to a transient shared-doc map that the frontend observes;
+        it is not persisted to the ``.jGIS`` file. The ``ts`` field changes on
+        every call so repeated requests (even for the same layer) are noticed.
+        """
+        self._zoom_request["layerId"] = layer_id
+        self._zoom_request["ts"] = str(uuid4())
 
     @classmethod
     def _make_comm(cls, *, path: str | None) -> dict:

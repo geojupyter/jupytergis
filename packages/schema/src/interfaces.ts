@@ -245,6 +245,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
   annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  zoomRequestChanged: ISignal<IJupyterGISDoc, string>;
+  requestZoomToLayer(layerId: string): void;
   initialSyncReady: Promise<void>;
 }
 
