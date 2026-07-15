@@ -23,8 +23,8 @@ contact:
   - name: "The GeoJupyter Community Chat"
     website: "https://jupyter.zulipchat.com"
 
-version: "0.16.0b3"
-date-released: "2026-07-10"
+version: "0.16.0b4"
+date-released: "2026-07-15"
 
 # TODO: More comprehensive authors list. Initialized from the JOSS paper.
 authors:
