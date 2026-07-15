@@ -783,7 +783,7 @@ def _constant_color_scale(
     value: RGBA | Sequence[float] | str,
 ) -> schema_symbology.IConstantRGBAScale:
     return schema_symbology.IConstantRGBAScale(
-        params=schema_symbology.Params3(
+        params=schema_symbology.IConstantRGBAScaleParams(
             value=schema_symbology.RGBA(root=coerce_rgba(value)),
         ),
     )
@@ -791,7 +791,7 @@ def _constant_color_scale(
 
 def _constant_num_scale(value: float) -> schema_symbology.IConstantNumScale:
     return schema_symbology.IConstantNumScale(
-        params=schema_symbology.Params4(value=value),
+        params=schema_symbology.IConstantNumScaleParams(value=value),
     )
 
 
@@ -830,7 +830,10 @@ def expression(
         fallback_value = coerce_rgba(fallback)
 
     return schema_symbology.IExpressionScale(
-        params=schema_symbology.Params5(expr=expr, fallback=fallback_value),
+        params=schema_symbology.IExpressionScaleParams(
+            expr=expr,
+            fallback=fallback_value,
+        ),
     )
 
 
@@ -842,9 +845,9 @@ def _colormap_scale(
     mode="equal interval",
     reverse: bool = False,
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
-    color_stops: Sequence[schema_symbology.ColorStop] | None = None,
+    color_stops: Sequence[schema_symbology.IColorStop] | None = None,
 ) -> schema_symbology.IColorRampScale:
-    params = schema_symbology.Params(
+    params = schema_symbology.IColorRampScaleParams(
         name=name,
         domain=list(domain) if domain is not None else None,
         nShades=n_shades,
@@ -866,7 +869,7 @@ def _categorical_scale(
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
 ) -> schema_symbology.ICategoricalScale:
     return schema_symbology.ICategoricalScale(
-        params=schema_symbology.Params1(
+        params=schema_symbology.ICategoricalScaleParams(
             colorRamp=name,
             nShades=n_shades,
             reverse=reverse,
@@ -882,7 +885,7 @@ def _scalar_scale(
     fallback: float,
     scalar_stops: Sequence[ScalarStop] | None = None,
 ) -> schema_symbology.IScalarScale:
-    params = schema_symbology.Params2(
+    params = schema_symbology.IScalarScaleParams(
         domain=list(domain),
         range=list(output_range),
         fallback=fallback,

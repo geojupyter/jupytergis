@@ -168,6 +168,41 @@
         { "$ref": "#/definitions/IClusterTransform" }
       ]
     },
+    "IColorStop": {
+      "type": "object",
+      "title": "IColorStop",
+      "description": "Explicit stop-to-color mapping entry.",
+      "required": ["stop", "color"],
+      "additionalProperties": false,
+      "properties": {
+        "stop": { "type": "number" },
+        "color": { "$ref": "#/definitions/RGBA" }
+      }
+    },
+    "IColorRampScaleParams": {
+      "type": "object",
+      "title": "IColorRampScaleParams",
+      "description": "Parameters controlling color-ramp classification and fallback behavior.",
+      "required": ["name", "nShades", "mode", "reverse", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "domain": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "nShades": { "type": "number" },
+        "mode": { "$ref": "#/definitions/ClassificationMode" },
+        "reverse": { "type": "boolean" },
+        "fallback": { "$ref": "#/definitions/RGBA" },
+        "colorStops": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/IColorStop" }
+        }
+      }
+    },
     "IColorRampScale": {
       "type": "object",
       "title": "IColorRampScale",
@@ -176,39 +211,36 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "colorRamp" },
-        "params": {
-          "type": "object",
-          "title": "IColorRampScaleParams",
-          "description": "Parameters controlling color-ramp classification and fallback behavior.",
-          "required": ["name", "nShades", "mode", "reverse", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "name": { "type": "string" },
-            "domain": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "nShades": { "type": "number" },
-            "mode": { "$ref": "#/definitions/ClassificationMode" },
-            "reverse": { "type": "boolean" },
-            "fallback": { "$ref": "#/definitions/RGBA" },
-            "colorStops": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "title": "IColorStop",
-                "description": "Explicit stop-to-color mapping entry.",
-                "required": ["stop", "color"],
-                "additionalProperties": false,
-                "properties": {
-                  "stop": { "type": "number" },
-                  "color": { "$ref": "#/definitions/RGBA" }
-                }
-              }
-            }
-          }
+        "params": { "$ref": "#/definitions/IColorRampScaleParams" }
+      }
+    },
+    "ICategoricalColorStop": {
+      "type": "object",
+      "title": "ICategoricalColorStop",
+      "description": "Discrete value-to-color mapping entry.",
+      "required": ["stop", "color"],
+      "additionalProperties": false,
+      "properties": {
+        "stop": {
+          "oneOf": [{ "type": "string" }, { "type": "number" }]
+        },
+        "color": { "$ref": "#/definitions/RGBA" }
+      }
+    },
+    "ICategoricalScaleParams": {
+      "type": "object",
+      "title": "ICategoricalScaleParams",
+      "description": "Parameters controlling category-to-color mapping.",
+      "required": ["colorRamp", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "colorRamp": { "type": "string" },
+        "nShades": { "type": "number" },
+        "reverse": { "type": "boolean" },
+        "fallback": { "$ref": "#/definitions/RGBA" },
+        "colorStops": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ICategoricalColorStop" }
         }
       }
     },
@@ -220,32 +252,40 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "categorical" },
-        "params": {
-          "type": "object",
-          "title": "ICategoricalScaleParams",
-          "description": "Parameters controlling category-to-color mapping.",
-          "required": ["colorRamp", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "colorRamp": { "type": "string" },
-            "nShades": { "type": "number" },
-            "reverse": { "type": "boolean" },
-            "fallback": { "$ref": "#/definitions/RGBA" },
-            "colorStops": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "title": "ICategoricalColorStop",
-                "description": "Discrete value-to-color mapping entry.",
-                "required": ["stop", "color"],
-                "additionalProperties": false,
-                "properties": {
-                  "stop": {
-                    "oneOf": [{ "type": "string" }, { "type": "number" }]
-                  },
-                  "color": { "$ref": "#/definitions/RGBA" }
-                }
-              }
+        "params": { "$ref": "#/definitions/ICategoricalScaleParams" }
+      }
+    },
+    "IScalarScaleParams": {
+      "type": "object",
+      "title": "IScalarScaleParams",
+      "description": "Parameters controlling scalar interpolation and fallback behavior.",
+      "required": ["domain", "range", "mode", "nStops", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "range": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "fallback": { "type": "number" },
+        "scalarStops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "IScalarStop",
+            "description": "Explicit input stop to output value mapping.",
+            "required": ["stop", "output"],
+            "additionalProperties": false,
+            "properties": {
+              "stop": { "type": "number" },
+              "output": { "type": "number" }
             }
           }
         }
@@ -259,42 +299,17 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "scalar" },
-        "params": {
-          "type": "object",
-          "title": "IScalarScaleParams",
-          "description": "Parameters controlling scalar interpolation and fallback behavior.",
-          "required": ["domain", "range", "mode", "nStops", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "domain": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "range": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "fallback": { "type": "number" },
-            "scalarStops": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "title": "IScalarStop",
-                "description": "Explicit input stop to output value mapping.",
-                "required": ["stop", "output"],
-                "additionalProperties": false,
-                "properties": {
-                  "stop": { "type": "number" },
-                  "output": { "type": "number" }
-                }
-              }
-            }
-          }
-        }
+        "params": { "$ref": "#/definitions/IScalarScaleParams" }
+      }
+    },
+    "IConstantRGBAScaleParams": {
+      "type": "object",
+      "title": "IConstantRGBAParams",
+      "description": "Constant RGBA payload.",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "$ref": "#/definitions/RGBA" }
       }
     },
     "IConstantRGBAScale": {
@@ -305,16 +320,17 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "constant_rgba" },
-        "params": {
-          "type": "object",
-          "title": "IConstantRGBAParams",
-          "description": "Constant RGBA payload.",
-          "required": ["value"],
-          "additionalProperties": false,
-          "properties": {
-            "value": { "$ref": "#/definitions/RGBA" }
-          }
-        }
+        "params": { "$ref": "#/definitions/IConstantRGBAScaleParams" }
+      }
+    },
+    "IConstantNumScaleParams": {
+      "type": "object",
+      "title": "IConstantNumParams",
+      "description": "Constant numeric payload.",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "number" }
       }
     },
     "IConstantNumScale": {
@@ -325,16 +341,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "constant_num" },
-        "params": {
-          "type": "object",
-          "title": "IConstantNumParams",
-          "description": "Constant numeric payload.",
-          "required": ["value"],
-          "additionalProperties": false,
-          "properties": {
-            "value": { "type": "number" }
-          }
-        }
+        "params": { "$ref": "#/definitions/IConstantNumScaleParams" }
       }
     },
     "IIdentityScale": {
@@ -347,6 +354,25 @@
         "scheme": { "const": "identity" }
       }
     },
+    "IExpressionScaleParams": {
+      "type": "object",
+      "title": "IExpressionScaleParams",
+      "description": "Expression source and fallback output value.",
+      "required": ["expr", "fallback"],
+      "additionalProperties": false,
+      "properties": {
+        "expr": { "type": "string" },
+        "fallback": {
+          "oneOf": [{ "type": "number" }, { "$ref": "#/definitions/RGBA" }]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["vega", "python"],
+          "default": "vega",
+          "description": "Expression language. 'vega' for TS/JS expressions, 'python' for Python expressions compiled via py2vega."
+        }
+      }
+    },
     "IExpressionScale": {
       "type": "object",
       "title": "IExpressionScale",
@@ -355,25 +381,7 @@
       "additionalProperties": false,
       "properties": {
         "scheme": { "const": "expression" },
-        "params": {
-          "type": "object",
-          "title": "IExpressionScaleParams",
-          "description": "Expression source and fallback output value.",
-          "required": ["expr", "fallback"],
-          "additionalProperties": false,
-          "properties": {
-            "expr": { "type": "string" },
-            "fallback": {
-              "oneOf": [{ "type": "number" }, { "$ref": "#/definitions/RGBA" }]
-            },
-            "language": {
-              "type": "string",
-              "enum": ["vega", "python"],
-              "default": "vega",
-              "description": "Expression language. 'vega' for TS/JS expressions, 'python' for Python expressions compiled via py2vega."
-            }
-          }
-        }
+        "params": { "$ref": "#/definitions/IExpressionScaleParams" }
       }
     },
     "IScale": {
