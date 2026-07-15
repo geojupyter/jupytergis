@@ -180,7 +180,7 @@ import type { IListStorySegmentTransition } from '../features/story/types/types'
 import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
-} from '@/src/features/story/presentation';
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 
 type OlLayerTypes =
   | TileLayer
