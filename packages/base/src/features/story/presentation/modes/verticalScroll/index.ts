@@ -1,5 +1,2 @@
-/**
- * Vertical-scroll presentation chrome.
- * ListStoryVirtualScrollTrack / SpectaMobileListModeContent migrate here.
- */
-export {};
+export { VerticalScrollPresentationDesktop } from './VerticalScrollPresentationDesktop';
+export { VerticalScrollPresentationMobile } from './VerticalScrollPresentationMobile';

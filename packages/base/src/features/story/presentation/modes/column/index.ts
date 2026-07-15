@@ -1,5 +1,2 @@
-/**
- * Column presentation chrome (guided).
- * SpectaDesktopView / SpectaMobileView single branches migrate here.
- */
-export {};
+export { ColumnPresentationDesktop } from './ColumnPresentationDesktop';
+export { ColumnPresentationMobile } from './ColumnPresentationMobile';

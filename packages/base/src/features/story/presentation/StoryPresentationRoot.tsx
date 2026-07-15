@@ -1,19 +1,17 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 
-import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import { SpectaDesktopView } from '@/src/features/story/components/SpectaDesktopView';
-import { SpectaMobileView } from '@/src/features/story/components/SpectaMobileView';
 import { useStoryMap } from '@/src/features/story/hooks/useStoryMap';
 import { getStoryPresentationMode } from '@/src/features/story/presentation/getStoryPresentationMode';
+import {
+  StoryPresentationDesktopChrome,
+  StoryPresentationMobileChrome,
+} from '@/src/features/story/presentation/StoryPresentationChrome';
 import type { IStoryPresentationRootProps } from '@/src/features/story/presentation/types';
-import type {
-  IOverrideLayerEntry,
-  IListStorySegmentTransition,
-} from '@/src/features/story/types/types';
+import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 
 /**
  * Single entry for story presentation chrome.
- * Resolves layout mode once and passes it to desktop/mobile shells.
+ * Resolves layout mode once and delegates to column / vertical-scroll shells.
  */
 export function StoryPresentationRoot({
   model,
@@ -69,45 +67,33 @@ export function StoryPresentationRoot({
     return () => el.removeEventListener('animationend', handleAnimationEnd);
   }, [currentIndex, onSegmentTransitionEnd]);
 
+  const chromeProps = {
+    model,
+    isSpecta,
+    presentationMode,
+    segmentContainerRef,
+    storyData,
+    currentIndex,
+    setIndex,
+    activeSlide,
+    layerName,
+    handlePrev,
+    handleNext,
+    hasPrev,
+    hasNext,
+    showGradient,
+    onSegmentTransitionChange,
+  };
+
   if (isMobile) {
-    return (
-      <SpectaMobileView
-        model={model}
-        presentationMode={presentationMode}
-        segmentContainerRef={segmentContainerRef}
-        storyData={storyData}
-        currentIndex={currentIndex}
-        setIndex={setIndex}
-        activeSlide={activeSlide}
-        layerName={layerName}
-        handlePrev={handlePrev}
-        handleNext={handleNext}
-        hasPrev={hasPrev}
-        hasNext={hasNext}
-        onSegmentTransitionChange={onSegmentTransitionChange}
-      />
-    );
+    return <StoryPresentationMobileChrome {...chromeProps} />;
   }
 
   return (
-    <SpectaDesktopView
-      model={model}
-      isSpecta={isSpecta}
-      presentationMode={presentationMode}
+    <StoryPresentationDesktopChrome
+      {...chromeProps}
       containerRef={containerRef}
       storyViewerPanelRef={storyViewerPanelRef}
-      segmentContainerRef={segmentContainerRef}
-      storyData={storyData}
-      currentIndex={currentIndex}
-      activeSlide={activeSlide}
-      layerName={layerName}
-      handlePrev={handlePrev}
-      handleNext={handleNext}
-      hasPrev={hasPrev}
-      hasNext={hasNext}
-      showGradient={showGradient}
-      setIndex={setIndex}
-      onSegmentTransitionChange={onSegmentTransitionChange}
     />
   );
 }
