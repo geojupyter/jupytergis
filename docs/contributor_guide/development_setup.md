@@ -6,7 +6,7 @@
 You only need to set up a development environment if you plan to **change
 JupyterGIS itself** — fixing a bug, adding a feature, or editing these docs
 locally. If you just want to _use_ JupyterGIS, you can skip everything below
-and install the released package by following the {doc}`../getting_started/index`.
+and install the released package by following the {doc}`user install instructions </user_guide/install>`.
 :::
 
 ## Development install
