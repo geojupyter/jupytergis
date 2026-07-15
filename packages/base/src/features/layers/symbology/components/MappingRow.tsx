@@ -1083,7 +1083,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             </p>
           )}
           {row.scale.scheme === 'expression' && (
-            <ExpressionEditor scale={row.scale} onChange={handleScaleChange} />
+            <ExpressionEditor
+              scale={row.scale}
+              onChange={handleScaleChange}
+              fields={availableFields.map(f => f.value)}
+            />
           )}
         </div>
       )}

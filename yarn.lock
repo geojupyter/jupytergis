@@ -1670,7 +1670,7 @@ __metadata:
     rimraf: ^3.0.2
     ts-jest: ^29.4.9
     typescript: ^5
-    vega2ol: ^1.1.5
+    vega2ol: ^1.2.0
     webpack: ^5.76.3
     zarrita: ^0.7.3
   languageName: unknown
@@ -19059,12 +19059,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vega2ol@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "vega2ol@npm:1.1.5"
+"vega2ol@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "vega2ol@npm:1.2.0"
   dependencies:
     vega-expression: ^6.1.0
-  checksum: bcc6ece2e0a02202d2cb6cd4fbddd02f7303177ad03f4abd38049a67daeb635ece48f5f3d4d557f377c4075a4ce3b5b5d52b32899289589a447329d4c3c0416f
+  checksum: 1444c972fd8c3824ae66a21f855258fa057edfca9c021694a65b525a611fdef73946e76beeba73151ad61ff364355d2c1c30a744412d3991390a69d9c8d9f332
   languageName: node
   linkType: hard
 
