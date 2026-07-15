@@ -14,6 +14,7 @@ import type { StoryPresentationMode } from './types';
 export interface IStoryPresentationChromeProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
+  presentationMode: StoryPresentationMode;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -32,12 +33,9 @@ export interface IStoryPresentationChromeProps {
 
 export interface IStoryPresentationDesktopChromeProps
   extends IStoryPresentationChromeProps {
-  presentationMode: StoryPresentationMode;
   containerRef: RefObject<HTMLDivElement>;
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
 }
 
 export interface IStoryPresentationMobileChromeProps
-  extends IStoryPresentationChromeProps {
-  presentationMode: StoryPresentationMode;
-}
+  extends IStoryPresentationChromeProps {}
