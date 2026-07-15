@@ -38,7 +38,7 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { IRenderMimeRegistry, IUrlResolverFactory } from '@jupyterlab/rendermime';
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -70,6 +70,7 @@ const activate = async (
   palette: ICommandPalette | null,
   collaborativeContentProvider: ICollaborativeContentProvider | null,
   loggerRegistry: ILoggerRegistry | null,
+  urlResolverFactory: IUrlResolverFactory | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -171,6 +172,7 @@ const activate = async (
     manager: app.serviceManager,
     contentFactory,
     rendermime,
+    urlResolverFactory: urlResolverFactory ?? undefined,
     mimeTypeService: editorServices.mimeTypeService,
     formSchemaRegistry: formSchemaRegistry,
     consoleTracker,
@@ -398,6 +400,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     ICollaborativeContentProvider,
     ILoggerRegistry,
+    IUrlResolverFactory,
   ],
   autoStart: true,
   activate,

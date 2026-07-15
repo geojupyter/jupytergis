@@ -12,7 +12,10 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -112,7 +115,8 @@ export function addCommands(
   state: IStateDB,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
-  completionProviderManager: ICompletionProviderManager | undefined,
+  urlResolverFactory?: IUrlResolverFactory,
+  completionProviderManager?: ICompletionProviderManager,
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
@@ -1947,6 +1951,7 @@ export function addCommands(
           tracker,
           editorServices,
           rendermime,
+          urlResolverFactory,
         );
         return;
       }
@@ -2088,6 +2093,7 @@ namespace Private {
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
   ): Promise<void> {
     await StoryEditorSession.getInstance().openEditor(
       model,
@@ -2097,6 +2103,7 @@ namespace Private {
       tracker,
       editorServices,
       rendermime,
+      urlResolverFactory,
     );
   }
 

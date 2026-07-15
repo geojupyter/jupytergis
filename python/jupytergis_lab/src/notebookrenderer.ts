@@ -24,7 +24,7 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { IRenderMimeRegistry, IUrlResolverFactory } from '@jupyterlab/rendermime';
 import { Contents, IDefaultDrive } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -102,6 +102,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       state,
       annotationModel,
       rendermime,
+      urlResolverFactory,
     } = options;
     const content = new JupyterGISPanel({
       model,
@@ -110,6 +111,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       state,
       annotationModel,
       rendermime,
+      urlResolverFactory,
     });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
@@ -135,6 +137,7 @@ interface IOptions {
   commands: CommandRegistry;
   model: JupyterGISModel;
   rendermime: IRenderMimeRegistry;
+  urlResolverFactory?: IUrlResolverFactory;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -154,6 +157,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IStateDB,
     IAnnotationToken,
     ISettingRegistry,
+    IUrlResolverFactory,
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -166,6 +170,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
     settingRegistry?: ISettingRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -259,6 +264,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           model: yModel.jupyterGISModel,
           externalCommands: externalCommandRegistry,
           rendermime,
+          urlResolverFactory,
           tracker: jgisTracker,
           annotationModel,
           state,

@@ -10,7 +10,10 @@ import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
@@ -102,6 +105,7 @@ export class JupyterGISPanel extends SplitPanel {
   constructor({
     model,
     rendermime,
+    urlResolverFactory,
     consoleTracker,
     state,
     commandRegistry,
@@ -114,6 +118,7 @@ export class JupyterGISPanel extends SplitPanel {
 
     this._state = state;
     this._rendermime = rendermime;
+    this._urlResolverFactory = urlResolverFactory;
     this._consoleOption = { commandRegistry, rendermime, ...consoleOption };
     this._consoleTracker = consoleTracker;
 
@@ -158,6 +163,7 @@ export class JupyterGISPanel extends SplitPanel {
       annotationModel: annotationModel,
       loggerRegistry: loggerRegistry,
       rendermime: this._rendermime,
+      urlResolverFactory: this._urlResolverFactory,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
@@ -286,6 +292,7 @@ export class JupyterGISPanel extends SplitPanel {
   private _view: ObservableMap<JSONValue>;
   private _jupyterGISMainViewPanel: JupyterGISMainViewPanel;
   private _rendermime: IRenderMimeRegistry;
+  private _urlResolverFactory?: IUrlResolverFactory;
   private _consoleView?: ConsoleView;
   private _consoleOpened = false;
   private _consoleOption: Partial<ConsoleView.IOptions>;
@@ -297,6 +304,7 @@ export namespace JupyterGISPanel {
     model: IJupyterGISModel;
     commandRegistry: CommandRegistry;
     rendermime: IRenderMimeRegistry;
+    urlResolverFactory?: IUrlResolverFactory;
     state?: IStateDB;
     consoleTracker?: IConsoleTracker;
     formSchemaRegistry?: IJGISFormSchemaRegistry;

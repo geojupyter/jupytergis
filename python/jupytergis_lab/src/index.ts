@@ -22,7 +22,7 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { IRenderMimeRegistry, IUrlResolverFactory } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { Menu } from '@lumino/widgets';
@@ -40,7 +40,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     IRenderMimeRegistry,
   ],
-  optional: [IMainMenu, ITranslator, ICompletionProviderManager],
+  optional: [IMainMenu, ITranslator, ICompletionProviderManager, IUrlResolverFactory],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<IJupyterGISWidget>,
@@ -52,6 +52,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     mainMenu?: IMainMenu,
     translator?: ITranslator,
     completionProviderManager?: ICompletionProviderManager,
+    urlResolverFactory?: IUrlResolverFactory,
   ): void => {
     console.debug('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
@@ -95,6 +96,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       state,
       editorServices,
       rendermime,
+      urlResolverFactory,
       completionProviderManager,
     );
 
