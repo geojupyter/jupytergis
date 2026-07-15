@@ -4,6 +4,7 @@ import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
+import { handleStorySegmentMarkdownPaste } from '@/src/features/story/utils/storySegmentMarkdownPaste';
 import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
@@ -70,6 +71,18 @@ export function SegmentMarkdownEditor({
     }) as CodeMirrorEditor;
     editorRef.current = editor;
 
+    const onPaste = (event: ClipboardEvent): void => {
+      handleStorySegmentMarkdownPaste(event, {
+        model,
+        segmentId,
+        insertMarkdown: markdown => {
+          editor.replaceSelection(markdown);
+        },
+      });
+    };
+
+    host.addEventListener('paste', onPaste);
+
     const refreshPreview = (): void => {
       setPreviewMarkdown(sharedModel.getSource());
     };
@@ -78,6 +91,7 @@ export function SegmentMarkdownEditor({
     refreshPreview();
 
     return () => {
+      host.removeEventListener('paste', onPaste);
       sharedModel.changed.disconnect(refreshPreview);
       editor.dispose();
       editorRef.current = null;
@@ -127,7 +141,11 @@ export function SegmentMarkdownEditor({
       >
         <div className="jgis-story-editor-markdown jgis-story-editor-markdown-preview jgis-story-viewer-content">
           {previewMarkdown.trim() ? (
-            <RenderedStoryMarkdown source={previewMarkdown} />
+            <RenderedStoryMarkdown
+              model={model}
+              segmentId={segmentId}
+              source={previewMarkdown}
+            />
           ) : (
             <p className="jgis-story-editor-help">Nothing to preview yet.</p>
           )}

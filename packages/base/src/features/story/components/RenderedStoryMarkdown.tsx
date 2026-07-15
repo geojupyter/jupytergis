@@ -1,3 +1,4 @@
+import type { IJupyterGISModel } from '@jupytergis/schema';
 import { MimeModel } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 import React, { useLayoutEffect, useRef } from 'react';
@@ -7,6 +8,8 @@ import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderM
 const MARKDOWN_MIME = 'text/markdown';
 
 export interface IRenderedStoryMarkdownProps {
+  model: IJupyterGISModel;
+  segmentId: string;
   source: string;
   /** Fires after rendermime has painted. */
   onRendered?: () => void;
@@ -29,10 +32,12 @@ function disposeRenderer(renderer: Widget): void {
 
 /** Jupyter rendermime markdown output (shared by overlay and story editor). */
 export function RenderedStoryMarkdown({
+  model,
+  segmentId,
   source,
   onRendered,
 }: IRenderedStoryMarkdownProps): JSX.Element | null {
-  const rendermime = useStoryRenderMime();
+  const rendermime = useStoryRenderMime(model, segmentId);
   const hostRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -43,7 +48,7 @@ export function RenderedStoryMarkdown({
 
     const registry = rendermime.clone();
     const renderer = registry.createRenderer(MARKDOWN_MIME);
-    const model = new MimeModel({
+    const mimeModel = new MimeModel({
       data: { [MARKDOWN_MIME]: source },
       trusted: false,
     });
@@ -63,7 +68,7 @@ export function RenderedStoryMarkdown({
       }
 
       try {
-        await renderer.renderModel(model);
+        await renderer.renderModel(mimeModel);
       } catch (error) {
         console.error('Failed to render story markdown', error);
         disposeRenderer(renderer);

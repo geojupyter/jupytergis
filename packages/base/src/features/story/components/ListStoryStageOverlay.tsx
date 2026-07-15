@@ -35,7 +35,7 @@ interface IListStoryStageOverlayProps {
 }
 
 type SegmentOverlayPaneConfig =
-  | { type: 'markdown'; markdown: string }
+  | { type: 'markdown'; markdown: string; segmentId: string }
   | { type: 'map'; segmentIndex: number };
 
 type OverlayPaneRole = 'from' | 'to' | 'lookahead';
@@ -43,6 +43,7 @@ type OverlayPaneRole = 'from' | 'to' | 'lookahead';
 const EMPTY_MARKDOWN_PANE: SegmentOverlayPaneConfig = {
   type: 'markdown',
   markdown: '',
+  segmentId: '',
 };
 
 interface IOverlayStackPane {
@@ -70,6 +71,7 @@ function buildPaneConfig(
   return {
     type: 'markdown',
     markdown: getStoryMarkdownFromSlide(item.activeSlide),
+    segmentId: item.id,
   };
 }
 
@@ -175,6 +177,7 @@ interface ISegmentOverlayPaneProps {
   pane: OverlayPaneRole;
   segmentIndex: number;
   config: SegmentOverlayPaneConfig;
+  model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
   onMarkdownRendered?: () => void;
@@ -184,6 +187,7 @@ function SegmentOverlayPane({
   pane,
   segmentIndex,
   config,
+  model,
   storyData,
   items,
   onMarkdownRendered,
@@ -206,7 +210,9 @@ function SegmentOverlayPane({
         />
       ) : config.markdown ? (
         <ListStoryOverlayMarkdown
-          key={`seg-${segmentIndex}`}
+          key={`pane-${pane}-seg-${segmentIndex}`}
+          model={model}
+          segmentId={config.segmentId}
           source={config.markdown}
           onRendered={onMarkdownRendered}
         />
@@ -508,6 +514,7 @@ export function ListStoryStageOverlay({
     >
       <div ref={stackRef} className="jgis-story-segment-transition-stack">
         <SegmentOverlayPane
+          model={model}
           pane="from"
           segmentIndex={fromStackPane.segmentIndex}
           config={fromStackPane.config}
@@ -528,6 +535,7 @@ export function ListStoryStageOverlay({
               <div className="jgis-story-segment-transition-gap" aria-hidden />
             ) : null}
             <SegmentOverlayPane
+              model={model}
               pane="to"
               segmentIndex={toStackPane.segmentIndex}
               config={toStackPane.config}
@@ -546,6 +554,7 @@ export function ListStoryStageOverlay({
         ) : null}
         {lookaheadStackPane ? (
           <SegmentOverlayPane
+            model={model}
             pane="lookahead"
             segmentIndex={lookaheadStackPane.segmentIndex}
             config={lookaheadStackPane.config}

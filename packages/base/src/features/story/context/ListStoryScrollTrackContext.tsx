@@ -297,6 +297,7 @@ export function ListStoryScrollTrackProvider({
         <div className="jgis-story-markdown-measure-host" aria-hidden>
           <ListStoryMarkdownMeasurePane
             key={segmentBeingMeasured.id}
+            model={model}
             segmentId={segmentBeingMeasured.id}
             markdown={segmentBeingMeasured.markdown}
             onHeight={reportHeight}
