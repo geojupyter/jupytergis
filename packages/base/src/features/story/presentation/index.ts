@@ -11,6 +11,7 @@ export type {
 
 export {
   getStoryPresentationMode,
+  isColumnPresentation,
   isVerticalScrollPresentation,
 } from './getStoryPresentationMode';
 

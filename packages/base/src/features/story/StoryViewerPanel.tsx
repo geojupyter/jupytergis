@@ -1,7 +1,12 @@
 import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
-import { STORY_TYPE } from '@/src/types';
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
 import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
@@ -62,21 +67,18 @@ export type StoryNavPlacement =
 function getStoryNavPlacement(
   isSpecta: boolean,
   hasImage: boolean,
-  storyType: IJGISStoryMap['storyType'],
+  presentationMode: StoryPresentationMode,
   isMobile: boolean,
 ): StoryNavPlacement | null {
-  if (storyType === STORY_TYPE.verticalScroll) {
+  if (isVerticalScrollPresentation(presentationMode)) {
     return null;
   }
 
-  if (storyType === STORY_TYPE.guided) {
-    if (isSpecta) {
-      return isMobile ? null : 'subtitle-specta';
-    }
-    return hasImage ? 'over-image' : 'below-title';
+  if (isSpecta) {
+    return isMobile ? null : 'subtitle-specta';
   }
 
-  return null;
+  return hasImage ? 'over-image' : 'below-title';
 }
 
 /**
@@ -105,11 +107,11 @@ function StoryViewerPanel({
   }
 
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-  const storyType = storyData.storyType ?? STORY_TYPE.guided;
+  const presentationMode = getStoryPresentationMode(storyData.storyType);
   const navPlacement = getStoryNavPlacement(
     isSpecta,
     hasImage,
-    storyType,
+    presentationMode,
     isMobile,
   );
 
@@ -139,9 +141,7 @@ function StoryViewerPanel({
   return (
     <div
       className={
-        storyData.storyType !== STORY_TYPE.verticalScroll
-          ? 'jgis-story-viewer-panel'
-          : ''
+        isColumnPresentation(presentationMode) ? 'jgis-story-viewer-panel' : ''
       }
     >
       <div

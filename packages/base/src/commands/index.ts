@@ -52,11 +52,14 @@ import {
   modelHasHiddenPanel,
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '../features/story/presentation/getStoryPresentationMode';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
   JupyterGISTracker,
-  STORY_TYPE,
   SYMBOLOGY_VALID_LAYER_TYPES,
 } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
@@ -1987,7 +1990,11 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(
+            model.getSelectedStory().story?.storyType,
+          ),
+        )
       ) {
         return false;
       }
@@ -2024,7 +2031,11 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(
+            model.getSelectedStory().story?.storyType,
+          ),
+        )
       ) {
         return false;
       }

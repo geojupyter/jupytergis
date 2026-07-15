@@ -26,6 +26,10 @@ import {
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
 import { Switch } from '@/src/shared/components/Switch';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorHeaderBarProps {
@@ -96,7 +100,9 @@ function StorySettingsPopover({
                 }}
               />
             </label>
-            {story.storyType === STORY_TYPE.verticalScroll ? (
+            {isVerticalScrollPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
               <label className="jgis-story-editor-toggle-row">
                 <span>Gap between markdown segments</span>
                 <Switch
@@ -170,7 +176,8 @@ export function StoryEditorHeaderBar({
             {formatGradientLabel(story.showGradient)}
           </span>
         ) : null}
-        {story?.storyType === STORY_TYPE.verticalScroll ? (
+        {story &&
+        isVerticalScrollPresentation(getStoryPresentationMode(story.storyType)) ? (
           <span className="jgis-story-editor-context-meta">
             {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
           </span>

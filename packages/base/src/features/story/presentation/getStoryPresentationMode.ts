@@ -21,3 +21,7 @@ export function isVerticalScrollPresentation(
 ): boolean {
   return mode === 'verticalScroll';
 }
+
+export function isColumnPresentation(mode: StoryPresentationMode): boolean {
+  return mode === 'column';
+}
