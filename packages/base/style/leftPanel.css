@@ -133,27 +133,12 @@
 
 /* Wraps the shared (story-editor) Slider so it fits the layer row. */
 .jp-gis-layerOpacitySlider {
-  width: 92px;
-  min-width: 72px;
+  width: 72px;
+  min-width: 56px;
   margin: 0 6px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-}
-
-/* Percentage readout next to the slider, matching the story editor. */
-.jp-gis-layerOpacitySliderValue {
-  font-size: 0.625rem;
-  line-height: 1;
-  color: var(--jp-ui-font-color2);
-  flex-shrink: 0;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySliderValue {
-  color: var(--jp-ui-inverse-font-color1);
 }
 
 /* Use the JupyterLab brand blue for the filled range by default. */

@@ -30,7 +30,7 @@ interface ILeftPanelProps {
 
 const MIN_PANEL_WIDTH = 200;
 const MAX_PANEL_WIDTH = 600;
-const DEFAULT_PANEL_WIDTH = 250;
+const DEFAULT_PANEL_WIDTH = 320;
 
 export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   const nodeRef = React.useRef<HTMLDivElement>(null);

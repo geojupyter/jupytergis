@@ -1053,9 +1053,6 @@ const LayerComponent: React.FC<ILayerProps> = props => {
               aria-label="Layer opacity"
               onValueChange={([value]) => handleOpacityChange(value / 100)}
             />
-            <span className="jp-gis-layerOpacitySliderValue">
-              {Math.round(opacity * 100)}%
-            </span>
           </span>
         )}
 
