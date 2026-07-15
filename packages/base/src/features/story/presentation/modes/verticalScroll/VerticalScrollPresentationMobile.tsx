@@ -39,6 +39,7 @@ export function VerticalScrollPresentationMobile({
   useListStoryScroll({
     enabled: Boolean(onSegmentTransitionChange),
     scrollContainerRef,
+    scrollerReady: true,
     storyData,
     scrollTrackLayout,
     items: segmentViewItems,

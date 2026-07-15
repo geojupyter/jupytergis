@@ -31,6 +31,8 @@ function isSameSegmentTransition(
 interface IUseListStoryScrollParams {
   enabled: boolean;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
+  /** Re-run scroll listener when the scroller DOM node mounts. */
+  scrollerReady: boolean;
   storyData: IJGISStoryMap | null;
   scrollTrackLayout: IListStoryScrollTrackLayout | null;
   items: IStorySegmentViewItem[];
@@ -44,6 +46,7 @@ interface IUseListStoryScrollParams {
 export function useListStoryScroll({
   enabled,
   scrollContainerRef,
+  scrollerReady,
   storyData,
   scrollTrackLayout,
   items,
@@ -165,5 +168,5 @@ export function useListStoryScroll({
         rafIdRef.current = null;
       }
     };
-  }, [enabled, scrollContainerRef, scheduleCompute, clearSegmentTransition]);
+  }, [enabled, scrollContainerRef, scheduleCompute, clearSegmentTransition, scrollerReady]);
 }

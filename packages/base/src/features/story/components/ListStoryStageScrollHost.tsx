@@ -58,11 +58,12 @@ export function ListStoryStageScrollHost({
     return () => {
       bindScrollTrackElement(null);
     };
-  }, [bindScrollTrackElement, scrollContainerRef]);
+  }, [bindScrollTrackElement, scrollContainerRef, initialLayersReady]);
 
   useListStoryScroll({
     enabled: Boolean(onSegmentTransitionChange),
     scrollContainerRef,
+    scrollerReady: initialLayersReady,
     storyData,
     scrollTrackLayout,
     items: segmentViewItems,
