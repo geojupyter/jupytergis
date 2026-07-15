@@ -69,10 +69,6 @@ function getStoryNavPlacement(
     return null;
   }
 
-  if (storyType === STORY_TYPE.unguided) {
-    return isSpecta && !isMobile ? 'subtitle-specta' : null;
-  }
-
   if (storyType === STORY_TYPE.guided) {
     if (isSpecta) {
       return isMobile ? null : 'subtitle-specta';

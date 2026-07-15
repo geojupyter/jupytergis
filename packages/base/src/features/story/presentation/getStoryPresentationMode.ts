@@ -5,7 +5,6 @@ import { STORY_TYPE } from '@/src/types';
 
 /**
  * Resolve presentation layout from story type.
- * Unguided is treated as column until removed from schema/UI.
  */
 export function getStoryPresentationMode(
   storyType: IJGISStoryMap['storyType'] | undefined,
