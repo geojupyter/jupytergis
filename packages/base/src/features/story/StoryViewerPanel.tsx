@@ -21,11 +21,11 @@ export interface IStoryViewerPanelSegmentNav {
   hasNext: boolean;
 }
 
-/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
+/** Props: story state and callbacks come from useStoryMap in the presentation root. */
 interface IStoryViewerPanelProps {
   isSpecta: boolean;
   isMobile?: boolean;
-  /** Ref for the segment container (SpectaPanel uses it for animationend). */
+  /** Ref for the segment container (presentation root uses it for animationend). */
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;

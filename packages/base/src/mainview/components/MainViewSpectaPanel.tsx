@@ -1,7 +1,7 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
-import { SpectaPanel } from '@/src/features/story/SpectaPanel';
+import { StoryPresentationRoot } from '@/src/features/story/presentation/StoryPresentationRoot';
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
@@ -37,7 +37,7 @@ export function MainViewSpectaPanel({
   }
 
   return (
-    <SpectaPanel
+    <StoryPresentationRoot
       model={model}
       isSpecta={isSpecta}
       isMobile={isMobile}
