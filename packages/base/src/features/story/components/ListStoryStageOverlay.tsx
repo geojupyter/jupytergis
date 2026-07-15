@@ -514,9 +514,10 @@ export function ListStoryStageOverlay({
     >
       <div ref={stackRef} className="jgis-story-segment-transition-stack">
         <SegmentOverlayPane
+          model={model}
           pane="from"
-          segmentIndex={fromIndex}
-          config={fromPaneConfig}
+          segmentIndex={fromStackPane.segmentIndex}
+          config={fromStackPane.config}
           storyData={story}
           items={items}
           onMarkdownRendered={
@@ -534,9 +535,10 @@ export function ListStoryStageOverlay({
               <div className="jgis-story-segment-transition-gap" aria-hidden />
             ) : null}
             <SegmentOverlayPane
+              model={model}
               pane="to"
-              segmentIndex={toIndex}
-              config={toPaneConfig}
+              segmentIndex={toStackPane.segmentIndex}
+              config={toStackPane.config}
               storyData={story}
               items={items}
               onMarkdownRendered={
@@ -552,6 +554,7 @@ export function ListStoryStageOverlay({
         ) : null}
         {lookaheadStackPane ? (
           <SegmentOverlayPane
+            model={model}
             pane="lookahead"
             segmentIndex={lookaheadStackPane.segmentIndex}
             config={lookaheadStackPane.config}
