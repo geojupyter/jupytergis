@@ -38,7 +38,10 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import { IRenderMimeRegistry, IUrlResolverFactory } from '@jupyterlab/rendermime';
+import {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';

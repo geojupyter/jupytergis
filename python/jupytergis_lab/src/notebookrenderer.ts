@@ -24,7 +24,10 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { IRenderMimeRegistry, IUrlResolverFactory } from '@jupyterlab/rendermime';
+import {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { Contents, IDefaultDrive } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';

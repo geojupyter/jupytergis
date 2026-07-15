@@ -14,7 +14,10 @@ import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
-import { IRenderMimeRegistry, IUrlResolverFactory } from '@jupyterlab/rendermime';
+import {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';

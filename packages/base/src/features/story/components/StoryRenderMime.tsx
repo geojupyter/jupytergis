@@ -16,9 +16,8 @@ function getUrlResolverFactory(
 ): IUrlResolverFactory {
   return (
     urlResolverFactory ?? {
-      createResolver: (
-        options: RenderMimeRegistry.IUrlResolverOptions,
-      ) => new RenderMimeRegistry.UrlResolver(options),
+      createResolver: (options: RenderMimeRegistry.IUrlResolverOptions) =>
+        new RenderMimeRegistry.UrlResolver(options),
     }
   );
 }
@@ -58,9 +57,14 @@ export function StoryRenderMimeProvider({
   children,
 }: IStoryRenderMimeProviderProps): JSX.Element {
   const scopedRendermime = useMemo(
-    () =>
-      createStoryRenderMimeRegistry(rendermime, model, urlResolverFactory),
-    [rendermime, model, model.filePath, model.contentsManager, urlResolverFactory],
+    () => createStoryRenderMimeRegistry(rendermime, model, urlResolverFactory),
+    [
+      rendermime,
+      model,
+      model.filePath,
+      model.contentsManager,
+      urlResolverFactory,
+    ],
   );
 
   return (
