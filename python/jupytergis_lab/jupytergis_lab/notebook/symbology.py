@@ -86,7 +86,7 @@ class Predicate:
 
     __slots__ = ("_internal",)
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create an empty predicate token.
 
         End users typically do not instantiate this directly.
@@ -114,7 +114,7 @@ class ScalarStop:
 
     __slots__ = ("output", "stop")
 
-    def __init__(self, stop: float, output: float):
+    def __init__(self, stop: float, output: float) -> None:
         self.stop = float(stop)
         self.output = float(output)
 
@@ -146,7 +146,7 @@ class FieldPredicate:
     predicate objects, for example ``field("magnitude") > 3``.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         """Create a field predicate wrapper.
 
         :param name: Feature field name used to build predicates.
@@ -311,7 +311,7 @@ def field(name: str) -> FieldPredicate:
 class ExpressionPredicate:
     """Create an expression-based mapping source."""
 
-    def __init__(self, code: str, expr_type: Literal["vega", "py"]):
+    def __init__(self, code: str, expr_type: Literal["vega", "py"]) -> None:
         self.code = code
         self.expr_type = expr_type
 
@@ -334,7 +334,7 @@ class Mapping:
     __slots__ = ("_rule",)
     _rule: schema_symbology.IEncodingRule
 
-    def __init__(self, rule: schema_symbology.IEncodingRule):
+    def __init__(self, rule: schema_symbology.IEncodingRule) -> None:
         self._rule = rule
 
 
@@ -364,7 +364,7 @@ class MappingChain:
         scale_kind: ScaleKind | None = None,
         when: list[schema_symbology.IPredicate] | None = None,
         when_op: WhenOpInput = None,
-    ):
+    ) -> None:
         self._kind = kind
         self._value = value
         self._scale = scale
@@ -553,7 +553,7 @@ class Layer:
         mappings: Sequence[Mapping] | None = None,
         *,
         preprocess: Sequence[schema_symbology.ITransform] | None = None,
-    ):
+    ) -> None:
         self.mappings = [_coerce_mapping(mapping) for mapping in (mappings or [])]
         self.preprocess = list(preprocess) if preprocess is not None else None
         self._when: list[schema_symbology.IPredicate] | None = None
@@ -609,7 +609,7 @@ class WhenBuilder:
         *,
         when: Predicate | Sequence[Predicate] | None,
         when_op: WhenOpInput = None,
-    ):
+    ) -> None:
         self._when = _normalize_when(when)
         self._when_op = when_op
 
