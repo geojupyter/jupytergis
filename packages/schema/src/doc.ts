@@ -60,10 +60,6 @@ export class JupyterGISDoc
     this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
     this._annotations = this.ydoc.getMap('annotations');
     this._metadata = this.ydoc.getMap('metadata');
-    // Transient signal channel (NOT serialized to the .jGIS file): used to
-    // request one-off, ephemeral actions from the frontend (e.g. the Python
-    // API asking the map to zoom to a layer via `zoom_to=True`).
-    this._zoomRequest = this.ydoc.getMap<Y.Map<any>>('zoomRequest');
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
@@ -82,7 +78,6 @@ export class JupyterGISDoc
     this._options.observe(this._optionsObserver.bind(this));
     this._annotations.observe(this._annotationsObserver);
     this._metadata.observe(this._metaObserver.bind(this));
-    this._zoomRequest.observe(this._zoomRequestObserver.bind(this));
   }
 
   get initialSyncReady(): Promise<void> {
@@ -299,26 +294,6 @@ export class JupyterGISDoc
 
   get viewStateChanged(): ISignal<IJupyterGISDoc, MapChange> {
     return this._viewStateChanged;
-  }
-
-  /**
-   * Emitted with a layer id when a transient "zoom to layer" request is made
-   * (e.g. from the Python API). Not persisted to the document.
-   */
-  get zoomRequestChanged(): ISignal<IJupyterGISDoc, string> {
-    return this._zoomRequestChanged;
-  }
-
-  /**
-   * Request that the frontend zoom to the extent of the given layer. This is a
-   * transient signal; it is intentionally not serialized to the `.jGIS` file.
-   */
-  requestZoomToLayer(layerId: string): void {
-    this.transact(() => {
-      this._zoomRequest.set('layerId', layerId);
-      // Bump a counter so repeated requests for the same layer still fire.
-      this._zoomRequest.set('ts', Date.now());
-    });
   }
 
   get optionsChanged(): ISignal<IJupyterGISDoc, MapChange> {
@@ -635,13 +610,6 @@ export class JupyterGISDoc
     this._viewStateChanged.emit(changes);
   };
 
-  private _zoomRequestObserver = (): void => {
-    const layerId = this._zoomRequest.get('layerId');
-    if (typeof layerId === 'string' && layerId) {
-      this._zoomRequestChanged.emit(layerId);
-    }
-  };
-
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
     const changes = new Map();
     event.changes.keys.forEach((event, key) => {
@@ -687,7 +655,6 @@ export class JupyterGISDoc
   private _options: Y.Map<any>;
   private _metadata: Y.Map<any>;
   private _annotations: Y.Map<any>;
-  private _zoomRequest: Y.Map<any>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
@@ -705,7 +672,6 @@ export class JupyterGISDoc
     IJGISStoryMapDocChange
   >(this);
   private _viewStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
-  private _zoomRequestChanged = new Signal<IJupyterGISDoc, string>(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _annotationsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 

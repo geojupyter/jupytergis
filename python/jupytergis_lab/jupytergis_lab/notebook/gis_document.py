@@ -151,11 +151,6 @@ class GISDocument(CommWidget):
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["annotations"] = self._annotations = Map()
         self.ydoc["metadata"] = self._metadata = Map()
-        # Transient signal channel (not serialized to the .jGIS file): used to
-        # ask the frontend to zoom to a layer (see ``zoom_to`` on the
-        # ``add_*_layer`` methods). Mirrors ``ydoc.getMap('zoomRequest')`` on
-        # the frontend.
-        self.ydoc["zoomRequest"] = self._zoom_request = Map()
 
         # For untitled docs, initialize options right away
         if path is None:
@@ -1184,12 +1179,12 @@ class GISDocument(CommWidget):
     def _request_zoom_to_layer(self, layer_id: str) -> None:
         """Ask the frontend to zoom to the extent of ``layer_id``.
 
-        This writes to a transient shared-doc map that the frontend observes;
-        it is not persisted to the ``.jGIS`` file. The ``ts`` field changes on
-        every call so repeated requests (even for the same layer) are noticed.
+        This sends a one-off custom message over the widget comm channel; it is
+        an ephemeral action and is never persisted to the ``.jGIS`` file. The
+        frontend listens for ``zoom-to`` messages on the comm and re-centers the
+        map accordingly.
         """
-        self._zoom_request["layerId"] = layer_id
-        self._zoom_request["ts"] = str(uuid4())
+        self._comm.send(data={"type": "zoom-to", "layerId": layer_id})
 
     @classmethod
     def _make_comm(cls, *, path: str | None) -> dict:

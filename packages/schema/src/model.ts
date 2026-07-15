@@ -89,7 +89,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._annotationsChangedHandler,
       this,
     );
-    this._sharedModel.zoomRequestChanged.connect(this._onZoomRequest, this);
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -359,10 +358,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   centerOnPosition(id: string) {
     this._zoomToPositionSignal.emit(id);
   }
-
-  private _onZoomRequest = (_: IJupyterGISDoc, layerId: string): void => {
-    this.centerOnPosition(layerId);
-  };
 
   private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
     this._sharedMetadataChanged.emit(args);
