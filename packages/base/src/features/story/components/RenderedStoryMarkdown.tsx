@@ -7,12 +7,20 @@ import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderM
 
 const MARKDOWN_MIME = 'text/markdown';
 
+export type StoryRenderedMarkdownVariant = 'overlay' | 'column';
+
+const ROOT_CLASS: Record<StoryRenderedMarkdownVariant, string> = {
+  overlay: 'jgis-story-stage-overlay-content',
+  column: 'jgis-story-viewer-content',
+};
+
 export interface IRenderedStoryMarkdownProps {
   model: IJupyterGISModel;
   segmentId: string;
   source: string;
   /** Fires after rendermime has painted. */
   onRendered?: () => void;
+  variant?: StoryRenderedMarkdownVariant;
 }
 
 function disposeRenderer(renderer: Widget): void {
@@ -36,6 +44,7 @@ export function RenderedStoryMarkdown({
   segmentId,
   source,
   onRendered,
+  variant = 'overlay',
 }: IRenderedStoryMarkdownProps): JSX.Element | null {
   const rendermime = useStoryRenderMime(model, segmentId);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -101,7 +110,9 @@ export function RenderedStoryMarkdown({
   }
 
   return (
-    <div className="jgis-story-stage-overlay-content">
+    <div
+      className={`jgis-story-rendered-markdown ${ROOT_CLASS[variant]}`}
+    >
       <div className="specta-article-host-widget specta-cell-content">
         <div ref={hostRef} />
       </div>
