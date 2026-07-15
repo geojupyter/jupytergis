@@ -7,13 +7,15 @@ import React, { RefObject } from 'react';
 
 import { SpectaMobileListModeContent } from '@/src/features/story/components/SpectaMobileListModeContent';
 import { SpectaMobileSingleModeContent } from '@/src/features/story/components/SpectaMobileSingleModeContent';
+import { isVerticalScrollPresentation } from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
-import { STORY_TYPE } from '@/src/types';
 
 type StoryMobileViewMode = 'single' | 'list';
 
 interface ISpectaMobileViewProps {
   model: IJupyterGISModel;
+  presentationMode: StoryPresentationMode;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -31,6 +33,7 @@ interface ISpectaMobileViewProps {
 
 export function SpectaMobileView({
   model,
+  presentationMode,
   segmentContainerRef,
   storyData,
   currentIndex,
@@ -43,8 +46,11 @@ export function SpectaMobileView({
   hasNext,
   onSegmentTransitionChange,
 }: ISpectaMobileViewProps): JSX.Element {
-  const viewMode: StoryMobileViewMode =
-    storyData?.storyType === STORY_TYPE.verticalScroll ? 'list' : 'single';
+  const viewMode: StoryMobileViewMode = isVerticalScrollPresentation(
+    presentationMode,
+  )
+    ? 'list'
+    : 'single';
 
   const renderModeContent: Record<StoryMobileViewMode, () => JSX.Element> = {
     single: () => (

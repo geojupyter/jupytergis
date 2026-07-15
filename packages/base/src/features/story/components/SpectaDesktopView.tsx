@@ -17,9 +17,10 @@ import { useListStoryScrollTrackContext } from '@/src/features/story/context/Lis
 import { useListStoryScroll } from '@/src/features/story/hooks/useListStoryScroll';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
+import { isVerticalScrollPresentation } from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
-import { STORY_TYPE } from '@/src/types';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 type StoryDesktopViewMode = 'single' | 'verticalScroll';
@@ -27,6 +28,7 @@ type StoryDesktopViewMode = 'single' | 'verticalScroll';
 interface ISpectaDesktopViewProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
+  presentationMode: StoryPresentationMode;
   containerRef: RefObject<HTMLDivElement>;
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   segmentContainerRef: RefObject<HTMLDivElement>;
@@ -48,6 +50,7 @@ interface ISpectaDesktopViewProps {
 export function SpectaDesktopView({
   model,
   isSpecta,
+  presentationMode,
   containerRef,
   storyViewerPanelRef,
   segmentContainerRef,
@@ -63,8 +66,7 @@ export function SpectaDesktopView({
   setIndex,
   onSegmentTransitionChange,
 }: ISpectaDesktopViewProps): JSX.Element {
-  const isVerticalScrollView =
-    storyData?.storyType === STORY_TYPE.verticalScroll;
+  const isVerticalScrollView = isVerticalScrollPresentation(presentationMode);
   const viewMode: StoryDesktopViewMode = isVerticalScrollView
     ? 'verticalScroll'
     : 'single';
@@ -161,7 +163,7 @@ export function SpectaDesktopView({
   return (
     <>
       <div
-        className="jgis-specta-right-panel-container-mod jgis-right-panel-container"
+        className={`jgis-specta-right-panel-container-mod jgis-right-panel-container jgis-story-chrome--${presentationMode}`}
         style={showGradient ? undefined : { width: '25%', borderRadius: 0 }}
       >
         <div

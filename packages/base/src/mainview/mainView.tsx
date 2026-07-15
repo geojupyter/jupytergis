@@ -177,7 +177,10 @@ import {
 } from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
-import { STORY_TYPE } from '../types';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation';
 
 type OlLayerTypes =
   | TileLayer
@@ -3026,7 +3029,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       accumulatedDeltaY = 0;
 
       // Don't want to handle next/prev logic in list mode
-      if (storyType === STORY_TYPE.verticalScroll) {
+      if (isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
         scrollContainer.scrollBy({ top: deltaY });
         return;
       }
@@ -3980,9 +3983,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     } = this.state;
     const { isMobile } = this.props;
     const selectedStory = this._model.getSelectedStory().story;
-    const isListStory =
-      isSpectaPresentation &&
-      selectedStory?.storyType === STORY_TYPE.verticalScroll;
+    const storyPresentationMode = isSpectaPresentation
+      ? getStoryPresentationMode(selectedStory?.storyType)
+      : 'column';
     const showSidePanels = !isSpectaPresentation;
     const showMergedMobilePanel =
       isMobile &&
@@ -4016,7 +4019,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           >
             <MainViewStoryStage
               model={this._model}
-              isListStory={isListStory}
+              presentationMode={storyPresentationMode}
               isMobile={isMobile}
               segmentTransition={segmentTransition}
               stageRef={this.divRef}
