@@ -3,7 +3,6 @@ import React from 'react';
 import { isVerticalScrollPresentation } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { ColumnPresentationDesktop } from '@/src/features/story/presentation/modes/column/ColumnPresentationDesktop';
 import { ColumnPresentationMobile } from '@/src/features/story/presentation/modes/column/ColumnPresentationMobile';
-import { VerticalScrollPresentationDesktop } from '@/src/features/story/presentation/modes/verticalScroll/VerticalScrollPresentationDesktop';
 import { VerticalScrollPresentationMobile } from '@/src/features/story/presentation/modes/verticalScroll/VerticalScrollPresentationMobile';
 import type {
   IStoryPresentationDesktopChromeProps,
@@ -12,9 +11,9 @@ import type {
 
 export function StoryPresentationDesktopChrome(
   props: IStoryPresentationDesktopChromeProps,
-): JSX.Element {
+): JSX.Element | null {
   if (isVerticalScrollPresentation(props.presentationMode)) {
-    return <VerticalScrollPresentationDesktop {...props} />;
+    return null;
   }
 
   return <ColumnPresentationDesktop {...props} />;

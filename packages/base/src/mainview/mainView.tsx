@@ -2990,6 +2990,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     let scrollContainer: HTMLDivElement | null = null;
 
     const resolveStoryScrollContainer = (): HTMLDivElement | null => {
+      const fromStageHost = this.storyScrollContainerRef.current;
+
+      if (fromStageHost && document.contains(fromStageHost)) {
+        return fromStageHost;
+      }
+
       const fromPanel =
         this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
 
@@ -3993,6 +3999,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       Boolean(this._formSchemaRegistry) &&
       Boolean(this._annotationModel);
     const spectaMobileTouch = isSpectaPresentation && isMobile;
+    const isDesktopVerticalScroll =
+      isSpectaPresentation &&
+      !isMobile &&
+      isVerticalScrollPresentation(storyPresentationMode);
 
     return (
       <>
@@ -4025,6 +4035,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}
               storyScrollContainerRef={this.storyScrollContainerRef}
+              initialLayersReady={initialLayersReady}
+              isSpecta={isSpectaPresentation}
+              addLayer={this._addLayerForPanels}
+              removeLayer={this._removeLayerForPanels}
+              onSegmentTransitionChange={this._handleSegmentTransitionChange}
               panels={
                 showSidePanels ? (
                   <MainViewSidePanels
@@ -4039,7 +4054,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                       this._patchGeoJSONFeatureProperties
                     }
                   />
-                ) : (
+                ) : isDesktopVerticalScroll ? null : (
                   <MainViewSpectaPanel
                     model={this._model}
                     isSpecta={isSpectaPresentation}
