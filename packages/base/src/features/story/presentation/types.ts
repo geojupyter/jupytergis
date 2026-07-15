@@ -1,7 +1,8 @@
-import type { ReactNode, RefObject } from 'react';
+import type { RefObject } from 'react';
 
 import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 
+import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
 export type StoryPresentationMode = 'column' | 'verticalScroll';
@@ -21,5 +22,8 @@ export interface IStoryStageProps {
   onSegmentTransitionChange?: (
     payload: IListStorySegmentTransition | null,
   ) => void;
-  panels: ReactNode;
+  /** Column-story specta panel (desktop container + imperative handle). */
+  columnPanelContainerRef?: RefObject<HTMLDivElement>;
+  storyViewerPanelRef?: RefObject<IStoryViewerPanelHandle>;
+  onSegmentTransitionEnd?: () => void;
 }

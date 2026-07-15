@@ -148,7 +148,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
-import { MainViewSpectaPanel } from './components/MainViewSpectaPanel';
 import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import {
@@ -3999,11 +3998,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       Boolean(this._formSchemaRegistry) &&
       Boolean(this._annotationModel);
     const spectaMobileTouch = isSpectaPresentation && isMobile;
-    const isVerticalScrollSpecta =
-      isSpectaPresentation &&
-      isVerticalScrollPresentation(storyPresentationMode);
-    const showColumnSpectaPanel =
-      isSpectaPresentation && !isVerticalScrollSpecta;
 
     return (
       <>
@@ -4041,24 +4035,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               addLayer={this._addLayerForPanels}
               removeLayer={this._removeLayerForPanels}
               onSegmentTransitionChange={this._handleSegmentTransitionChange}
-              panels={
-                showColumnSpectaPanel ? (
-                  <MainViewSpectaPanel
-                    model={this._model}
-                    isSpecta={isSpectaPresentation}
-                    isMobile={isMobile}
-                    initialLayersReady={initialLayersReady}
-                    containerRef={this.spectaContainerRef}
-                    storyViewerPanelRef={this.storyViewerPanelRef}
-                    addLayer={this._addLayerForPanels}
-                    removeLayer={this._removeLayerForPanels}
-                    onSegmentTransitionEnd={this._clearStoryScrollGuard}
-                    onSegmentTransitionChange={
-                      this._handleSegmentTransitionChange
-                    }
-                  />
-                ) : null
-              }
+              columnPanelContainerRef={this.spectaContainerRef}
+              storyViewerPanelRef={this.storyViewerPanelRef}
+              onSegmentTransitionEnd={this._clearStoryScrollGuard}
             />
             {showSidePanels ? (
               <div className="jgis-panels-wrapper">

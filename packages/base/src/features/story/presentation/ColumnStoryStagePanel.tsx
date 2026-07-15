@@ -1,21 +1,16 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import React, { RefObject, useEffect, useMemo, useRef } from 'react';
+import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import React, { type RefObject, useEffect, useRef } from 'react';
 
 import { useStoryMap } from '@/src/features/story/hooks/useStoryMap';
-import { getStoryPresentationMode } from '@/src/features/story/presentation/getStoryPresentationMode';
 import {
   StoryPresentationDesktopChrome,
   StoryPresentationMobileChrome,
 } from '@/src/features/story/presentation/StoryPresentationChrome';
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import type {
-  IOverrideLayerEntry,
-  IListStorySegmentTransition,
-} from '@/src/features/story/types/types';
+import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 
-export interface IMainViewSpectaPanelProps {
+export interface IColumnStoryStagePanelProps {
   model: IJupyterGISModel;
-  isSpecta: boolean;
   isMobile: boolean;
   initialLayersReady: boolean;
   containerRef: RefObject<HTMLDivElement>;
@@ -23,14 +18,11 @@ export interface IMainViewSpectaPanelProps {
   addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer: (id: string) => void;
   onSegmentTransitionEnd: () => void;
-  onSegmentTransitionChange: (
-    payload: IListStorySegmentTransition | null,
-  ) => void;
 }
 
-export function MainViewSpectaPanel({
+/** Column-story side panel chrome on the map stage. */
+export function ColumnStoryStagePanel({
   model,
-  isSpecta,
   isMobile,
   initialLayersReady,
   containerRef,
@@ -38,8 +30,7 @@ export function MainViewSpectaPanel({
   addLayer,
   removeLayer,
   onSegmentTransitionEnd,
-  onSegmentTransitionChange,
-}: IMainViewSpectaPanelProps): JSX.Element | null {
+}: IColumnStoryStagePanelProps): JSX.Element | null {
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
   const segmentContainerRef = useRef<HTMLDivElement>(null);
   const {
@@ -58,13 +49,8 @@ export function MainViewSpectaPanel({
     overrideLayerEntriesRef,
     removeLayer,
     addLayer,
-    isSpecta,
+    isSpecta: true,
   });
-
-  const presentationMode = useMemo(
-    () => getStoryPresentationMode(storyData?.storyType),
-    [storyData?.storyType],
-  );
 
   useEffect(() => {
     const el = segmentContainerRef.current;
@@ -89,8 +75,8 @@ export function MainViewSpectaPanel({
 
   const chromeProps = {
     model,
-    isSpecta,
-    presentationMode,
+    isSpecta: true,
+    presentationMode: 'column' as const,
     segmentContainerRef,
     storyData,
     currentIndex,
@@ -102,7 +88,6 @@ export function MainViewSpectaPanel({
     hasPrev,
     hasNext,
     showGradient,
-    onSegmentTransitionChange,
   };
 
   if (isMobile) {

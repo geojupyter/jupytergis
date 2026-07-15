@@ -4,12 +4,15 @@ import { ListStoryStageOverlay } from '@/src/features/story/components/ListStory
 import { ListStoryStageScrollHost } from '@/src/features/story/components/ListStoryStageScrollHost';
 import { ListStoryTitleBar } from '@/src/features/story/components/ListStoryTitleBar';
 import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListStoryScrollTrackContext';
-import { isVerticalScrollPresentation } from '@/src/features/story/presentation/getStoryPresentationMode';
+import { ColumnStoryStagePanel } from '@/src/features/story/presentation/ColumnStoryStagePanel';
+import {
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IStoryStageProps } from '@/src/features/story/presentation/types';
 
 /**
  * Map stage shell for story presentation.
- * Vertical-scroll mode mounts overlay + title bar, column mode leaves the map bare.
  */
 export function StoryStage({
   model,
@@ -24,7 +27,9 @@ export function StoryStage({
   addLayer,
   removeLayer,
   onSegmentTransitionChange,
-  panels,
+  columnPanelContainerRef,
+  storyViewerPanelRef,
+  onSegmentTransitionEnd,
 }: IStoryStageProps): JSX.Element {
   const verticalScroll = isVerticalScrollPresentation(presentationMode);
   const showVerticalScrollHost =
@@ -35,6 +40,15 @@ export function StoryStage({
     addLayer &&
     removeLayer &&
     onSegmentTransitionChange;
+  const showColumnPanel =
+    Boolean(isSpecta) &&
+    isColumnPresentation(presentationMode) &&
+    initialLayersReady !== undefined &&
+    columnPanelContainerRef &&
+    storyViewerPanelRef &&
+    onSegmentTransitionEnd &&
+    addLayer &&
+    removeLayer;
 
   return (
     <div
@@ -68,7 +82,20 @@ export function StoryStage({
             ) : null}
           </>
         ) : null}
-        <div className="jgis-panels-wrapper">{panels}</div>
+        {showColumnPanel ? (
+          <div className="jgis-panels-wrapper">
+            <ColumnStoryStagePanel
+              model={model}
+              isMobile={isMobile}
+              initialLayersReady={initialLayersReady}
+              containerRef={columnPanelContainerRef}
+              storyViewerPanelRef={storyViewerPanelRef}
+              addLayer={addLayer}
+              removeLayer={removeLayer}
+              onSegmentTransitionEnd={onSegmentTransitionEnd}
+            />
+          </div>
+        ) : null}
         <div ref={controlsToolbarRef} className="jgis-controls-toolbar" />
       </ListStoryScrollTrackProvider>
     </div>
