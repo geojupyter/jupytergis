@@ -51,20 +51,6 @@ const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
 const LAYER_OPACITY_SLIDER_CLASS = 'jp-gis-layerOpacitySlider';
 
-/**
- * Layer types whose opacity is applied on the map (via `setOpacity` in the main
- * view). These get an inline opacity slider in the Layers panel.
- */
-const OPACITY_SUPPORTED_LAYER_TYPES = new Set<string>([
-  'RasterLayer',
-  'VectorLayer',
-  'VectorTileLayer',
-  'GeoTiffLayer',
-  'GeoZarrLayer',
-  'StacLayer',
-  'OpenEOTileLayer',
-]);
-
 interface IBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
@@ -763,8 +749,6 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   // HTML drag of the row hijacks the slider interaction.
   const [isDraggable, setIsDraggable] = useState(true);
 
-  const supportsOpacity = OPACITY_SUPPORTED_LAYER_TYPES.has(layer.type);
-
   const { symbology } = useGetSymbology({
     layerId,
     model: gisModel as IJupyterGISModel,
@@ -773,6 +757,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const hasSupportedSymbology = symbology?.symbologyState !== undefined;
 
   const isStorySegmentLayer = layer.type === 'StorySegmentLayer';
+
+  // Every layer type applies opacity on the map except story segments, which
+  // have no associated OpenLayers layer.
+  const supportsOpacity = !isStorySegmentLayer;
 
   const name = layer.name;
 
