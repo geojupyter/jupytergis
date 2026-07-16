@@ -76,7 +76,7 @@ def qgis_layer_to_jgis(
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
     settings: QgsSettings | None,
-) -> str:
+) -> str | None:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
     if layer is None:
@@ -87,8 +87,8 @@ def qgis_layer_to_jgis(
     layer_type = None
     source_type = None
 
-    layer_parameters = {}
-    source_parameters = {}
+    layer_parameters: dict[str, dict[str, Any]] = {}
+    source_parameters: dict[str, list[dict[str, Any]] | str | int | bool] = {}
 
     if isinstance(layer, QgsRasterLayer):
         # QGIS treats tif layers as raster layer
