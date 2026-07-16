@@ -1,54 +1,29 @@
-import React, { RefObject } from 'react';
+import React from 'react';
 
 import { ListStoryStageOverlay } from '@/src/features/story/components/ListStoryStageOverlay';
 import { ListStoryStageScrollHost } from '@/src/features/story/components/ListStoryStageScrollHost';
 import { ListStoryTitleBar } from '@/src/features/story/components/ListStoryTitleBar';
 import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import { ColumnStoryStagePanel } from '@/src/features/story/presentation/ColumnStoryStagePanel';
-import {
-  isColumnPresentation,
-  isVerticalScrollPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IStoryStageProps } from '@/src/features/story/presentation/types';
 
 /**
  * Map stage shell for story presentation.
  */
-export function StoryStage({
-  model,
-  presentationMode,
-  isMobile,
-  segmentTransition,
-  stageRef,
-  controlsToolbarRef,
-  storyScrollContainerRef,
-  initialLayersReady,
-  isSpecta,
-  addLayer,
-  removeLayer,
-  onSegmentTransitionChange,
-  columnPanelContainerRef,
-  storyViewerPanelRef,
-  onSegmentTransitionEnd,
-}: IStoryStageProps): JSX.Element {
-  const verticalScroll = isVerticalScrollPresentation(presentationMode);
-  const showVerticalScrollHost =
-    verticalScroll &&
-    storyScrollContainerRef &&
-    initialLayersReady !== undefined &&
-    isSpecta !== undefined &&
-    addLayer &&
-    removeLayer &&
-    onSegmentTransitionChange;
-  const showColumnPanel =
-    Boolean(isSpecta) &&
-    isColumnPresentation(presentationMode) &&
-    initialLayersReady !== undefined &&
-    columnPanelContainerRef &&
-    storyViewerPanelRef &&
-    onSegmentTransitionEnd &&
-    addLayer &&
-    removeLayer;
+export function StoryStage(props: IStoryStageProps): JSX.Element {
+  const {
+    model,
+    presentationMode,
+    isMobile,
+    segmentTransition,
+    stageRef,
+    controlsToolbarRef,
+    initialLayersReady,
+    addLayer,
+    removeLayer,
+  } = props;
+
+  const verticalScroll = presentationMode === 'verticalScroll';
 
   return (
     <div
@@ -68,31 +43,29 @@ export function StoryStage({
               model={model}
               segmentTransition={segmentTransition}
             />
-            {showVerticalScrollHost ? (
-              <ListStoryStageScrollHost
-                model={model}
-                isSpecta={isSpecta}
-                isMobile={isMobile}
-                initialLayersReady={initialLayersReady}
-                scrollContainerRef={storyScrollContainerRef}
-                addLayer={addLayer}
-                removeLayer={removeLayer}
-                onSegmentTransitionChange={onSegmentTransitionChange}
-              />
-            ) : null}
+            <ListStoryStageScrollHost
+              model={model}
+              isSpecta={props.isSpecta}
+              isMobile={isMobile}
+              initialLayersReady={initialLayersReady}
+              scrollContainerRef={props.storyScrollContainerRef}
+              addLayer={addLayer}
+              removeLayer={removeLayer}
+              onSegmentTransitionChange={props.onSegmentTransitionChange}
+            />
           </>
         ) : null}
-        {showColumnPanel ? (
+        {presentationMode === 'column' && props.isSpecta ? (
           <div className="jgis-panels-wrapper">
             <ColumnStoryStagePanel
               model={model}
               isMobile={isMobile}
               initialLayersReady={initialLayersReady}
-              containerRef={columnPanelContainerRef}
-              storyViewerPanelRef={storyViewerPanelRef}
+              containerRef={props.columnPanelContainerRef}
+              storyViewerPanelRef={props.storyViewerPanelRef}
               addLayer={addLayer}
               removeLayer={removeLayer}
-              onSegmentTransitionEnd={onSegmentTransitionEnd}
+              onSegmentTransitionEnd={props.onSegmentTransitionEnd}
             />
           </div>
         ) : null}

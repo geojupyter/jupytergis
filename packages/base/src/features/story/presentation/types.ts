@@ -7,23 +7,33 @@ import type { IListStorySegmentTransition } from '@/src/features/story/types/typ
 
 export type StoryPresentationMode = 'column' | 'verticalScroll';
 
-export interface IStoryStageProps {
+interface IStoryStageBaseProps {
   model: IJupyterGISModel;
-  presentationMode: StoryPresentationMode;
   isMobile: boolean;
   segmentTransition: IListStorySegmentTransition | null;
   stageRef: RefObject<HTMLDivElement>;
   controlsToolbarRef: RefObject<HTMLDivElement>;
-  storyScrollContainerRef?: RefObject<HTMLDivElement>;
-  initialLayersReady?: boolean;
-  isSpecta?: boolean;
-  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer?: (id: string) => void;
-  onSegmentTransitionChange?: (
+  initialLayersReady: boolean;
+  isSpecta: boolean;
+  addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  removeLayer: (id: string) => void;
+}
+
+export interface IVerticalScrollStoryStageProps extends IStoryStageBaseProps {
+  presentationMode: 'verticalScroll';
+  storyScrollContainerRef: RefObject<HTMLDivElement>;
+  onSegmentTransitionChange: (
     payload: IListStorySegmentTransition | null,
   ) => void;
-  /** Column-story specta panel (desktop container + imperative handle). */
-  columnPanelContainerRef?: RefObject<HTMLDivElement>;
-  storyViewerPanelRef?: RefObject<IStoryViewerPanelHandle>;
-  onSegmentTransitionEnd?: () => void;
 }
+
+export interface IColumnStoryStageProps extends IStoryStageBaseProps {
+  presentationMode: 'column';
+  columnPanelContainerRef: RefObject<HTMLDivElement>;
+  storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
+  onSegmentTransitionEnd: () => void;
+}
+
+export type IStoryStageProps =
+  | IVerticalScrollStoryStageProps
+  | IColumnStoryStageProps;

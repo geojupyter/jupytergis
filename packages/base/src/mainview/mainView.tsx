@@ -147,8 +147,8 @@ import { ClientPointer } from './CollaboratorPointers';
 import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
+import { MainViewStoryPresentationStage } from './components/MainViewStoryPresentationStage';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
-import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import {
   createGeoJSONFeaturePatcher,
@@ -4014,21 +4014,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             onTouchStart={this._handleSpectaTouchStart}
             onTouchEnd={this._handleSpectaTouchEnd}
           >
-            <MainViewStoryStage
+            <MainViewStoryPresentationStage
               model={this._model}
-              presentationMode={storyPresentationMode}
+              storyPresentationMode={storyPresentationMode}
               isMobile={isMobile}
               segmentTransition={segmentTransition}
+              initialLayersReady={initialLayersReady}
+              isSpectaPresentation={isSpectaPresentation}
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}
               storyScrollContainerRef={this.storyScrollContainerRef}
-              initialLayersReady={initialLayersReady}
-              isSpecta={isSpectaPresentation}
+              columnPanelContainerRef={this.spectaContainerRef}
+              storyViewerPanelRef={this.storyViewerPanelRef}
               addLayer={this._addLayerForPanels}
               removeLayer={this._removeLayerForPanels}
               onSegmentTransitionChange={this._handleSegmentTransitionChange}
-              columnPanelContainerRef={this.spectaContainerRef}
-              storyViewerPanelRef={this.storyViewerPanelRef}
               onSegmentTransitionEnd={this._clearStoryScrollGuard}
             />
             {showSidePanels ? (
