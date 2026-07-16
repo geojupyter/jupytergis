@@ -2161,20 +2161,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
-   * Replace the highlight layer contents with the given geometries.
-   * Clears the source first so that stale highlights are always removed,
-   * including when the selection becomes empty (geometries = []).
-   */
-  private _setHighlightGeometries(geometries: Geometry[]): void {
-    this._ensureHighlightLayer();
-    const source = this._highlightLayerRef.current?.getSource();
-    source?.clear();
-    for (const geom of geometries) {
-      source?.addFeature(new Feature({ geometry: geom }));
-    }
-  }
-
-  /**
    * Replace the highlight layer contents with pre-styled features.
    * Each feature carries its own highlight style via feature.setStyle().
    */
