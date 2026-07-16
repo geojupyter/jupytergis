@@ -6,7 +6,6 @@ import type {
 } from '@jupytergis/schema';
 import type { RefObject } from 'react';
 
-
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
@@ -35,7 +34,7 @@ export interface IStoryPresentationDesktopChromeProps extends IStoryPresentation
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
 }
 
-export type IStoryPresentationMobileChromeProps = IStoryPresentationChromeProps
+export type IStoryPresentationMobileChromeProps = IStoryPresentationChromeProps;
 
 interface IStoryStageBaseProps {
   model: IJupyterGISModel;
