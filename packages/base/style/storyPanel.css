@@ -231,20 +231,25 @@
 }
 
 .jgis-story-title-bar--mobile {
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
   padding: 0.5rem 0;
   overflow: visible;
 }
 
+.jgis-story-title-bar--mobile > * {
+  grid-area: 1 / 1;
+}
+
 .jgis-story-title-bar--mobile .jgis-story-title-bar-menu-btn {
+  justify-self: start;
   position: relative;
   z-index: 1;
 }
 
 .jgis-story-title-bar-active-segment {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, 0);
+  justify-self: center;
   max-width: calc(100% - 4rem);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -271,12 +276,12 @@
 @keyframes jgis-story-title-bar-active-segment-enter {
   from {
     opacity: 0;
-    transform: translate(-50%, var(--jgis-story-title-bar-slide-offset));
+    transform: translateY(var(--jgis-story-title-bar-slide-offset));
   }
 
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
