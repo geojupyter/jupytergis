@@ -190,10 +190,8 @@
 }
 
 .jgis-story-viewer-panel-specta-mod {
-  display: flex;
   height: 100%;
   width: 45%;
-  align-items: center;
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-font-color1));

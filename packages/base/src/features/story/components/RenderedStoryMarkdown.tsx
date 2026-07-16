@@ -110,12 +110,11 @@ export function RenderedStoryMarkdown({
   }
 
   return (
-    <div
-      className={`jgis-story-rendered-markdown ${ROOT_CLASS[variant]}`}
-    >
-      <div className="specta-article-host-widget specta-cell-content">
-        <div ref={hostRef} />
-      </div>
+    <div className={`jgis-story-rendered-markdown ${ROOT_CLASS[variant]}`}>
+      <div
+        ref={hostRef}
+        className="specta-article-host-widget specta-cell-content"
+      ></div>
     </div>
   );
 }

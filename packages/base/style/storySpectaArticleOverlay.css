@@ -10,6 +10,13 @@
   line-height: 1.6;
 }
 
+.jgis-story-chrome--column
+  .jgis-story-rendered-markdown
+  .specta-article-host-widget.specta-cell-content {
+  margin: 0;
+  padding-bottom: 0;
+}
+
 .jgis-story-rendered-markdown .specta-article-host-widget h1 {
   font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   letter-spacing: -0.014em;
