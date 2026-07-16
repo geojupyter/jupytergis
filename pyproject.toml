@@ -190,3 +190,9 @@ module = [
     "py2vega.*",  # See: https://github.com/QuantStack/py2vega/issues/50
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "webcolors.*",  # This library is typed but deliberately refuses to include a py.typed marker (https://github.com/ubernostrum/webcolors/issues/19)
+]
+follow_untyped_imports = true
