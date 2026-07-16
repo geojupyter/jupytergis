@@ -2,9 +2,9 @@ import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { type RefObject } from 'react';
 
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
+import { StoryStage } from '@/src/features/story/presentation/StoryStage';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
-import { MainViewStoryStage } from './MainViewStoryStage';
 
 export interface IMainViewStoryPresentationStageProps {
   model: IJupyterGISModel;
@@ -45,7 +45,7 @@ export function MainViewStoryPresentationStage({
 }: IMainViewStoryPresentationStageProps): JSX.Element {
   if (storyPresentationMode === 'verticalScroll') {
     return (
-      <MainViewStoryStage
+      <StoryStage
         model={model}
         presentationMode="verticalScroll"
         isMobile={isMobile}
@@ -63,7 +63,7 @@ export function MainViewStoryPresentationStage({
   }
 
   return (
-    <MainViewStoryStage
+    <StoryStage
       model={model}
       presentationMode="column"
       isMobile={isMobile}
