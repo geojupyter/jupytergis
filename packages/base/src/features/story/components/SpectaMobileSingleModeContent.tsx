@@ -1,4 +1,8 @@
-import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import React, { RefObject, useEffect, useState } from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
@@ -21,6 +25,7 @@ const SNAP_FIRST_DEFAULT = 0.7;
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 export interface ISpectaMobileSingleModeContentProps {
+  model: IJupyterGISModel;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -59,6 +64,7 @@ function getFirstSnapFromSegmentHeader(
 }
 
 export function SpectaMobileSingleModeContent({
+  model,
   segmentContainerRef,
   storyData,
   currentIndex,
@@ -166,6 +172,7 @@ export function SpectaMobileSingleModeContent({
         <DrawerContent style={presentationStyle}>
           <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
+              model={model}
               isSpecta={true}
               isMobile={true}
               segmentContainerRef={segmentContainerRef}

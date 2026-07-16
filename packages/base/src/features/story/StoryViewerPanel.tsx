@@ -1,4 +1,4 @@
-import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
+import { IJGISStoryMap, IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
 import {
@@ -23,6 +23,7 @@ export interface IStoryViewerPanelSegmentNav {
 
 /** Props: story state and callbacks come from useStoryMap in the presentation root. */
 interface IStoryViewerPanelProps {
+  model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
   /** Ref for the segment container (presentation root uses it for animationend). */
@@ -86,6 +87,7 @@ function getStoryNavPlacement(
  * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
  */
 function StoryViewerPanel({
+  model,
   isSpecta,
   isMobile = false,
   segmentContainerRef,
@@ -106,6 +108,7 @@ function StoryViewerPanel({
     );
   }
 
+  const segmentId = storyData.storySegments?.[currentIndex] ?? '';
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
   const presentationMode = getStoryPresentationMode(storyData.storyType);
   const navPlacement = getStoryNavPlacement(
@@ -175,6 +178,8 @@ function StoryViewerPanel({
         </div>
         <div id="jgis-story-segment-content">
           <RenderedStoryMarkdown
+            model={model}
+            segmentId={segmentId}
             source={activeSlide?.content?.markdown ?? ''}
             variant="column"
           />

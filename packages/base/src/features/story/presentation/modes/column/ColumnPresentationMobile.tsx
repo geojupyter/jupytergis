@@ -7,6 +7,7 @@ import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/p
  * Guided column chrome on mobile: bottom drawer with segment content.
  */
 export function ColumnPresentationMobile({
+  model,
   segmentContainerRef,
   storyData,
   currentIndex,
@@ -19,6 +20,7 @@ export function ColumnPresentationMobile({
 }: IStoryPresentationMobileChromeProps): JSX.Element {
   return (
     <SpectaMobileSingleModeContent
+      model={model}
       segmentContainerRef={segmentContainerRef}
       storyData={storyData}
       currentIndex={currentIndex}

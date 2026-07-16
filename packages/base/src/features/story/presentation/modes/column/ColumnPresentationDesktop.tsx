@@ -76,6 +76,7 @@ export function ColumnPresentationDesktop({
             style={showGradient ? undefined : { width: 'unset' }}
           >
             <SpectaSingleModeContent
+              model={model}
               isSpecta={isSpecta}
               segmentContainerRef={segmentContainerRef}
               storyData={storyData}

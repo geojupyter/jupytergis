@@ -204,6 +204,7 @@ function SegmentOverlayPane({
     >
       {isMap ? (
         <ListStoryMapOverlayPanel
+          model={model}
           storyData={storyData}
           segmentIndex={config.segmentIndex}
           items={items}
