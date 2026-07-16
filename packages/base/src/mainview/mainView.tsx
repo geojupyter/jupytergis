@@ -1544,6 +1544,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     this._ready = true;
+
+    // If a "zoom to layer" request arrived before its layer was on the map,
+    // retry now that layers have been (re)built.
+    if (
+      this._pendingZoomLayerId &&
+      this.getLayer(this._pendingZoomLayerId) !== undefined
+    ) {
+      const pendingId = this._pendingZoomLayerId;
+      this._pendingZoomLayerId = null;
+      this._onZoomToPosition(this._model, pendingId);
+    }
   }
 
   /**
@@ -3299,6 +3310,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         return;
       }
+
+      // Generic layer whose OpenLayers layer hasn't been created yet (e.g. a
+      // layer just added via the Python API with zoom_to=True). Remember the
+      // request and retry once the layer has been added to the map.
+      if (jgisLayer) {
+        this._pendingZoomLayerId = id;
+        return;
+      }
     }
 
     const extent = this._computeExtent(layer, source);
@@ -4080,6 +4099,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
+  private _pendingZoomLayerId: string | null = null;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;

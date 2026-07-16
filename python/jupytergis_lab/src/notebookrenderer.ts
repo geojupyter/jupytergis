@@ -33,6 +33,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
+import { JSONObject } from '@lumino/coreutils';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 import {
@@ -49,6 +50,17 @@ export class YJupyterGISModel extends JupyterYModel {
 
   get awareness() {
     return this.jupyterGISModel?.sharedModel?.awareness;
+  }
+
+  /**
+   * Handle a custom (non Y-protocol) message received over the widget comm.
+   * Currently used by the Python API to request one-off map actions such as
+   * zooming to a freshly added layer (`zoom_to=True`).
+   */
+  protected _onCustomMessage(_: unknown, data: JSONObject): void {
+    if (data?.type === 'zoom-to' && typeof data.layerId === 'string') {
+      this.jupyterGISModel?.centerOnPosition(data.layerId);
+    }
   }
 
   dispose(): void {
@@ -252,6 +264,11 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
         this.jupyterGISModel.filePath = localPath;
+
+        // Listen for one-off custom messages sent by the Python API over the
+        // widget comm (e.g. `zoom_to=True` -> `{ type: 'zoom-to', layerId }`).
+        // These are ephemeral actions, deliberately kept out of the shared doc.
+        this.messageReceived.connect(this._onCustomMessage, this);
 
         this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
         this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
