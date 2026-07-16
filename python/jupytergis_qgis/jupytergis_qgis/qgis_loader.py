@@ -334,7 +334,7 @@ def qgis_layer_tree_to_jgis(
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
     settings: QgsSettings | None = None,
-) -> list[dict[str, Any]] | None:
+) -> dict[str, list | dict]:
     if layer_tree is None:
         layer_tree = []
         layers = {}
