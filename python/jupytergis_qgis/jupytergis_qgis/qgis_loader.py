@@ -745,7 +745,7 @@ def export_project_to_qgis(
 
     qgis_settings = QgsSettings()
 
-    logs = {"warnings": [], "errors": []}
+    logs: dict[str, list[str]] = {"warnings": [], "errors": []}
 
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],
