@@ -84,10 +84,6 @@ function getStoryNavPlacement(
   return hasImage ? 'over-image' : 'below-title';
 }
 
-/**
- * Story viewer (presentational). Receives story state and callbacks from parent.
- * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
- */
 function StoryViewerPanel({
   model,
   isSpecta,

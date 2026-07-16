@@ -40,23 +40,6 @@
   border-radius: var(--jp-border-radius);
 }
 
-.jgis-story-viewer-image-title {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  margin-top: 0;
-  margin-bottom: 0;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-  background-color: rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
 .jgis-story-viewer-nav-container {
   position: absolute;
   bottom: 0;
@@ -98,17 +81,6 @@
   padding-top: 1rem;
 }
 
-.jgis-story-viewer-nav-container-specta-mobile {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  padding: 0 1rem;
-}
-
-.jgis-story-viewer-nav-container-specta-mobile .jgis-story-navbar {
-  justify-content: space-between;
-}
-
 .jgis-story-navbar.jgis-story-navbar-specta-mod {
   position: fixed;
   top: 50%;
@@ -139,17 +111,6 @@
   padding-left: 1rem;
 }
 
-.jgis-story-viewer-specta-right-panel-mod {
-  scale: 1.5;
-  top: 3.5rem !important;
-  right: 5.5rem !important;
-  font-size: var(--jp-ui-font-size2);
-}
-
-.jgis-panel-tab-content-mod {
-  background-color: plum;
-}
-
 .jgis-right-panel-container.jgis-specta-right-panel-container-mod {
   width: 55%;
   height: 100%;
@@ -167,7 +128,6 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  overflow: auto;
   background: linear-gradient(
     to left,
     var(--jgis-specta-panel-color, var(--jp-layout-color0)) 49%,
@@ -439,7 +399,7 @@
   width: 25%;
   max-height: 100%;
   overflow: auto;
-  padding: 0.75rem;
+  padding: 1.25rem;
   box-sizing: border-box;
   border-radius: 8px;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));

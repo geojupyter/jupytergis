@@ -15,7 +15,7 @@
   line-height: 1.6;
 }
 
-.jgis-story-chrome--column
+#jgis-story-segment-content
   .jgis-story-rendered-markdown
   .specta-article-host-widget.specta-cell-content {
   margin: 0;
@@ -127,13 +127,4 @@
 .jgis-story-rendered-markdown .specta-article-host-widget .jp-MarkdownOutput {
   padding-left: 0 !important;
   padding-right: 0 !important;
-}
-
-.jgis-story-overlay-markdown-plain {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: var(--jp-content-font-family, var(--jp-ui-font-family1));
-  font-size: 1rem;
-  line-height: 1.6;
 }
