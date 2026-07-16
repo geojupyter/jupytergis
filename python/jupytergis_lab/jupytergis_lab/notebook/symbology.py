@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Literal, Self, TypeGuard
 from uuid import uuid4
 
@@ -45,27 +45,41 @@ ENCODING_SHORTCUTS: dict[str, list[schema_symbology.Encoding]] = {
 }
 
 
-def _enum_member_name(value: str) -> str:
-    name = value.replace("-", "_").replace(" ", "_").replace("/", "_")
-    if not name:
-        name = "value"
-    if name[0].isdigit():
-        name = f"n_{name}"
-    return name.lower()
+class VisualEncoding(StrEnum):
+    """All encoding channel names.
 
+    Developer note: Much of this information is repeated from information in the schema
+    and downstream-generated types, but this is necessary to give the type checker the
+    information it needs. The synchronization of this information is validated by unit
+    tests.
+    """
 
-_ENCODING_VALUES = [*ENCODING_SHORTCUTS.keys(), *_SCHEMA_ENCODING_VALUES]
-_ENCODING_MEMBERS: dict[str, str] = {}
-for encoding_value in _ENCODING_VALUES:
-    member_name = _enum_member_name(encoding_value)
-    base_name = member_name
-    suffix = 1
-    while member_name in _ENCODING_MEMBERS:
-        suffix += 1
-        member_name = f"{base_name}_{suffix}"
-    _ENCODING_MEMBERS[member_name] = encoding_value
+    # Shortcuts — source of truth: ENCODING_SHORTCUTS
+    fill = "fill"
+    stroke = "stroke"
+    radius = "radius"
+    circle_fill = "circle-fill"
+    circle_stroke = "circle-stroke"
+    pixel_rgba = "pixel-rgba"
 
-VisualEncoding = Enum("VisualEncoding", _ENCODING_MEMBERS, type=str)
+    # Schema channels — source of truth: the auto-generated *Channel enums
+    circle_fill_color = "circle-fill-color"
+    circle_radius = "circle-radius"
+    circle_stroke_color = "circle-stroke-color"
+    circle_stroke_width = "circle-stroke-width"
+    fill_alpha = "fill-alpha"
+    fill_blue = "fill-blue"
+    fill_color = "fill-color"
+    fill_green = "fill-green"
+    fill_red = "fill-red"
+    pixel_alpha = "pixel-alpha"
+    pixel_blue = "pixel-blue"
+    pixel_color = "pixel-color"
+    pixel_green = "pixel-green"
+    pixel_red = "pixel-red"
+    pixel_rgb = "pixel-rgb"
+    stroke_color = "stroke-color"
+    stroke_width = "stroke-width"
 
 
 class ClassificationMode(Enum):
@@ -1192,7 +1206,7 @@ def _resolve_ENCODINGs(
 ) -> list[schema_symbology.Encoding | VisualEncoding | str]:
     # NOTE: VisualEncoding is technically a str, but Mypy doesn't know that because we
     #       defined it in the functional Enum style.
-    requested = [target] if isinstance(target, (str, VisualEncoding)) else list(target)
+    requested = [target] if isinstance(target, str) else list(target)
     encodings: list[schema_symbology.Encoding | VisualEncoding | str] = []
     for item in requested:
         # Check if it's a shorthand
