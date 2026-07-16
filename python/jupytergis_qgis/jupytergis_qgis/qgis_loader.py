@@ -473,7 +473,7 @@ def jgis_layer_to_qgis(
 ) -> list[QgsMapLayer]:
     # The function that build the URI from the source parameters.
     def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
-        layer_config = {}
+        layer_config: dict[str, str] = {}
         zmax = parameters.get("maxZoom")
         zmin = parameters.get("minZoom", 0)
 
@@ -495,9 +495,9 @@ def jgis_layer_to_qgis(
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
 
-        layer_config["zmin"] = str(round(zmin))
+        layer_config["zmin"] = str(round(float(zmin)))
         if zmax:
-            layer_config["zmax"] = str(round(zmax))
+            layer_config["zmax"] = str(round(float(zmax)))
         uri = QgsDataSourceUri()
         for key, val in layer_config.items():
             uri.setParam(key, val)
