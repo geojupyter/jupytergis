@@ -24,7 +24,7 @@ def isURL(path: str) -> bool:
     return path.startswith("http://") or path.startswith("https://")
 
 
-def download_file(url: str, ext: str) -> str:
+def download_file(url: str, ext: str) -> Path:
     filename = Path(f"downloaded_{uuid.uuid4().hex[:8]}.{ext}")
 
     req = Request(url, headers={"User-Agent": "python-urllib"})
