@@ -2,10 +2,8 @@ import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { type RefObject, useEffect, useRef } from 'react';
 
 import { useStoryMap } from '@/src/features/story/hooks/useStoryMap';
-import {
-  StoryPresentationDesktopChrome,
-  StoryPresentationMobileChrome,
-} from '@/src/features/story/presentation/StoryPresentationChrome';
+import { ColumnPresentationDesktop } from '@/src/features/story/presentation/modes/column/ColumnPresentationDesktop';
+import { ColumnPresentationMobile } from '@/src/features/story/presentation/modes/column/ColumnPresentationMobile';
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 
@@ -91,11 +89,11 @@ export function ColumnStoryStagePanel({
   };
 
   if (isMobile) {
-    return <StoryPresentationMobileChrome {...chromeProps} />;
+    return <ColumnPresentationMobile {...chromeProps} />;
   }
 
   return (
-    <StoryPresentationDesktopChrome
+    <ColumnPresentationDesktop
       {...chromeProps}
       containerRef={containerRef}
       storyViewerPanelRef={storyViewerPanelRef}

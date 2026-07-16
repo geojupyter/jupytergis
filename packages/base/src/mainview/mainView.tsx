@@ -3002,14 +3002,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return fromPanel;
       }
 
-      const mobileScroll = document.querySelector(
-        '.jgis-story-mobile-list-scroll',
-      );
-
-      if (mobileScroll instanceof HTMLDivElement) {
-        return mobileScroll;
-      }
-
       return null;
     };
 

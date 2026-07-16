@@ -6,7 +6,6 @@ import type {
 import type { RefObject } from 'react';
 
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
 import type { StoryPresentationMode } from './types';
 
@@ -26,9 +25,6 @@ export interface IStoryPresentationChromeProps {
   hasPrev: boolean;
   hasNext: boolean;
   showGradient: boolean;
-  onSegmentTransitionChange?: (
-    payload: IListStorySegmentTransition | null,
-  ) => void;
 }
 
 export interface IStoryPresentationDesktopChromeProps
