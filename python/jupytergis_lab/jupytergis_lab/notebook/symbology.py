@@ -35,7 +35,8 @@ _SCHEMA_ENCODING_VALUES = tuple(
     ),
 )
 
-ENCODING_SHORTCUTS: dict[str, list[schema_symbology.Encoding]] = {
+# TODO: This dict doesn't validate that the values are real encodings.
+ENCODING_SHORTCUTS: dict[str, list[str]] = {
     "fill": ["fill-color", "circle-fill-color"],
     "stroke": ["stroke-color", "circle-stroke-color"],
     "radius": ["circle-radius"],
