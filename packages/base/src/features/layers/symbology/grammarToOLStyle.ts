@@ -140,7 +140,12 @@ export function grammarToOLStyle(
           } else {
             // Compile per-encoding so sub-encodings (pixel-red/green/blue) can each
             // extract the correct component from a colorRamp or other color scale.
-            const expr = compileMapping(field, mapping, featureValues, encoding);
+            const expr = compileMapping(
+              field,
+              mapping,
+              featureValues,
+              encoding,
+            );
             const entries = accumulator.get(encoding) ?? [];
             entries.push({ guard, expr });
             accumulator.set(encoding, entries);

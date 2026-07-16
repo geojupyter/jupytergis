@@ -501,7 +501,9 @@ describe('grammarToOLStyle — identity scale', () => {
       makeState({
         id: '1',
         fields: ['color'],
-        mappings: [{ scale: { scheme: 'identity' }, encodings: ['fill-color'] }],
+        mappings: [
+          { scale: { scheme: 'identity' }, encodings: ['fill-color'] },
+        ],
       }),
     ) as any;
     expect(style['fill-color'][0]).toBe('coalesce');
@@ -529,7 +531,9 @@ describe('grammarToOLStyle — identity scale', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        mappings: [{ scale: { scheme: 'identity' }, encodings: ['fill-color'] }],
+        mappings: [
+          { scale: { scheme: 'identity' }, encodings: ['fill-color'] },
+        ],
       }),
     );
     expect(style['fill-color']).toBe('rgba(0,0,0,0)');
