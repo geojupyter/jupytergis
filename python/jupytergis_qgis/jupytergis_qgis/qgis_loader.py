@@ -334,7 +334,10 @@ def qgis_layer_tree_to_jgis(
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
     settings: QgsSettings | None = None,
-) -> dict[str, list | dict]:
+) -> dict[
+    str,
+    list[dict[str, list | str | bool]] | dict[str, dict[str, Any]] | None,
+]:
     if layer_tree is None:
         layer_tree = []
         layers = {}
@@ -343,7 +346,7 @@ def qgis_layer_tree_to_jgis(
     children = node.children()
     for child in children:
         if isinstance(child, QgsLayerTreeGroup):
-            _layer_tree = []
+            _layer_tree: list[dict[str, list | str | bool]] = []
             group = {
                 "layers": _layer_tree,
                 "name": child.name(),
@@ -352,6 +355,11 @@ def qgis_layer_tree_to_jgis(
             layer_tree.append(group)
             qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources, settings)
         elif isinstance(child, QgsLayerTreeLayer):
+            if layers is None:
+                raise RuntimeError("layers cannot be None. This is a bug.")
+            if sources is None:
+                raise RuntimeError("sources cannot be None. This is a bug.")
+
             layer_id = qgis_layer_to_jgis(child, layers, sources, settings)
             if layer_id is not None:
                 layer_tree.append(layer_id)
