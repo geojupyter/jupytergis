@@ -18,7 +18,7 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { terminalToolbarIcon } from '@/src/shared/icons';
+import { helpIcon, terminalToolbarIcon } from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
@@ -72,7 +72,11 @@ export class ToolbarWidget extends ReactiveToolbar {
     super();
 
     this._model = options.model;
+
     this.node.classList.add('jGIS-toolbar-widget', 'data-jgis-keybinding');
+
+    // TODO Listen to file path changed
+    this.node.dataset['gisfilepath'] = this._model.filePath;
 
     // Listen for settings changes
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
@@ -205,6 +209,16 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
+
+      this.addItem('separator3', new Separator());
+
+      const launchTourButton = new CommandToolbarButton({
+        id: CommandIDs.launchFeatureTour,
+        commands: options.commands,
+        label: '',
+        icon: helpIcon,
+      });
+      this.addItem('Launch feature tour', launchTourButton);
 
       const spacer = ReactiveToolbar.createSpacerItem();
       spacer.node.tabIndex = -1;

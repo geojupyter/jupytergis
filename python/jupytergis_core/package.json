@@ -68,6 +68,7 @@
     "@jupyterlab/translation": "^4.6",
     "@jupyterlab/ui-components": "^4.6",
     "@lumino/commands": "^2.0.0",
+    "jupyterlab-tour": "^4.0.1",
     "util": "^0.12.5"
   },
   "devDependencies": {
