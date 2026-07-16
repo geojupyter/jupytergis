@@ -5,15 +5,15 @@ import type {
 } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '@/src/features/story/utils/storySegmentOverrides';
-import {
-  getStoryPresentationMode,
-  isColumnPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;

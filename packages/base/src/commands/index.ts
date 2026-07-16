@@ -45,6 +45,10 @@ import {
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '../features/story/presentation/getStoryPresentationMode';
+import {
   StoryEditorMode,
   StoryEditorSession,
 } from '../features/story/storyEditorSession';
@@ -52,16 +56,9 @@ import {
   modelHasHiddenPanel,
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
-import {
-  getStoryPresentationMode,
-  isVerticalScrollPresentation,
-} from '../features/story/presentation/getStoryPresentationMode';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import {
-  JupyterGISTracker,
-  SYMBOLOGY_VALID_LAYER_TYPES,
-} from '../types';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -1991,9 +1988,7 @@ export function addCommands(
 
       if (
         isVerticalScrollPresentation(
-          getStoryPresentationMode(
-            model.getSelectedStory().story?.storyType,
-          ),
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
         )
       ) {
         return false;
@@ -2032,9 +2027,7 @@ export function addCommands(
 
       if (
         isVerticalScrollPresentation(
-          getStoryPresentationMode(
-            model.getSelectedStory().story?.storyType,
-          ),
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
         )
       ) {
         return false;

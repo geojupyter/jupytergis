@@ -119,9 +119,7 @@
   margin-bottom: 0.4em;
 }
 
-.jgis-story-rendered-markdown
-  .specta-article-host-widget
-  .jp-MarkdownOutput {
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-MarkdownOutput {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }

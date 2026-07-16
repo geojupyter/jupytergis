@@ -62,7 +62,9 @@ export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
 ): CSSProperties {
   const style = getSpectaPresentationCssVars(story);
-  const column = isColumnPresentation(getStoryPresentationMode(story?.storyType));
+  const column = isColumnPresentation(
+    getStoryPresentationMode(story?.storyType),
+  );
   const bgColor = story?.presentationBgColor;
 
   if (column && bgColor) {

@@ -4,6 +4,10 @@ import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState, type RefObject } from 'react';
 
 import { TitleInput } from '@/src/features/story/components/TitleInput';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
@@ -26,10 +30,6 @@ import {
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
 import { Switch } from '@/src/shared/components/Switch';
-import {
-  getStoryPresentationMode,
-  isVerticalScrollPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorHeaderBarProps {
@@ -177,7 +177,9 @@ export function StoryEditorHeaderBar({
           </span>
         ) : null}
         {story &&
-        isVerticalScrollPresentation(getStoryPresentationMode(story.storyType)) ? (
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(story.storyType),
+        ) ? (
           <span className="jgis-story-editor-context-meta">
             {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
           </span>

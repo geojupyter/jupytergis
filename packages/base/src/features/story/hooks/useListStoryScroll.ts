@@ -168,5 +168,11 @@ export function useListStoryScroll({
         rafIdRef.current = null;
       }
     };
-  }, [enabled, scrollContainerRef, scheduleCompute, clearSegmentTransition, scrollerReady]);
+  }, [
+    enabled,
+    scrollContainerRef,
+    scheduleCompute,
+    clearSegmentTransition,
+    scrollerReady,
+  ]);
 }

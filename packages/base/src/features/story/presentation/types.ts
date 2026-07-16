@@ -1,11 +1,11 @@
-import type { RefObject } from 'react';
-
 import type {
   IJGISLayer,
   IJGISStoryMap,
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
+import type { RefObject } from 'react';
+
 
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
@@ -30,14 +30,12 @@ export interface IStoryPresentationChromeProps {
   showGradient: boolean;
 }
 
-export interface IStoryPresentationDesktopChromeProps
-  extends IStoryPresentationChromeProps {
+export interface IStoryPresentationDesktopChromeProps extends IStoryPresentationChromeProps {
   containerRef: RefObject<HTMLDivElement>;
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
 }
 
-export interface IStoryPresentationMobileChromeProps
-  extends IStoryPresentationChromeProps {}
+export type IStoryPresentationMobileChromeProps = IStoryPresentationChromeProps
 
 interface IStoryStageBaseProps {
   model: IJupyterGISModel;
