@@ -209,8 +209,8 @@
 }
 .jgis-story-viewer-panel-specta-mod-vertical-scroll,
 .jgis-specta-right-panel-container-mod:has(
-    .jgis-story-viewer-panel-specta-mod-vertical-scroll
-  ) {
+  .jgis-story-viewer-panel-specta-mod-vertical-scroll
+) {
   pointer-events: none;
 }
 
