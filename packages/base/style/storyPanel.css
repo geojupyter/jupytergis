@@ -1,7 +1,5 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
-  overflow: auto;
-  position: relative;
 }
 
 .jgis-story-segment-container {
@@ -198,6 +196,9 @@
   background-color: var(--jgis-specta-panel-color, var(--jp-layout-color0));
   overflow-y: auto;
   max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
 }
 
 .jgis-mainview-stage {

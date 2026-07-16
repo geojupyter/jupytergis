@@ -5,15 +5,14 @@
   --jp-code-font-family:
     'Source Code Pro', Menlo, Monaco, 'Courier New', Courier, monospace;
   --jp-code-font-size: 14px;
+  /* So .jp-RenderedHTMLCommon { color: var(--jp-content-font-color1) } uses specta text. */
+  --jp-content-font-color1: var(
+    --jgis-specta-text-color,
+    var(--jp-content-font-color1)
+  );
   font-family: var(--jp-content-font-family);
   font-size: 1rem;
   line-height: 1.6;
-}
-
-.jgis-story-rendered-markdown
-  .specta-article-host-widget
-  .jp-RenderedHTMLCommon {
-  color: var(--jgis-specta-text-color, var(--jp-content-font-color1));
 }
 
 .jgis-story-chrome--column
