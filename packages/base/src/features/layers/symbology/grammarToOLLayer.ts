@@ -41,7 +41,7 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
 /**
  * Compile a Grammar symbology state into a single OL layer.
  *
- * isRaster=true: each grammar layer → WebGLTile (pixel-color channel → color
+ * isRaster=true: each grammar layer → WebGLTile (pixel-color encoding → color
  *   style), $band-N fields → ['band', N] expressions.
  * isRaster=false (default): non-KDE → VectorImageLayer, KDE → HeatmapLayer.
  *
@@ -126,7 +126,7 @@ function compileGrammarLayer(
 
 /**
  * Compile a single Grammar layer to an OL WebGLTile layer.
- * The pixel-color channel of the compiled style becomes the WebGL tile
+ * The pixel-color encoding of the compiled style becomes the WebGL tile
  * `color` expression.  $band-N fields compile to ['band', N] in the style
  * compiler; normalized GeoTIFF bands cover [0, 1] so featureValues [0, 1]
  * produces sensible colorRamp stops by default.
@@ -194,10 +194,10 @@ function compileKDELayer(
 function extractGradient(rules: IEncodingRule[]): string[] | undefined {
   for (const rule of rules) {
     for (const mapping of rule.mappings) {
-      const isPixelChannel = (mapping.channels as string[]).some(
+      const isPixelEncoding = (mapping.encodings as string[]).some(
         ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
-      if (!isPixelChannel || mapping.scale.scheme !== 'colorRamp') {
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorRamp') {
         continue;
       }
 

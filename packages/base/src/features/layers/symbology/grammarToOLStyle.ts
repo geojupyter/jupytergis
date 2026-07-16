@@ -5,10 +5,10 @@
  * FlatStyle object ready to be applied to a VectorLayer or VectorTileLayer.
  *
  * Compilation steps:
- *   1. Expand rules into per-channel entries (guard + expression).
- *   2. Build a case expression per channel (conditional entries first,
+ *   1. Expand rules into per-encoding entries (guard + expression).
+ *   2. Build a case expression per encoding (conditional entries first,
  *      last unconditional entry as the else branch).
- *   3. Assemble sub-channels (fill-red/green/blue/alpha) into a composite
+ *   3. Assemble sub-encodings (fill-red/green/blue/alpha) into a composite
  *      fill-color ['array', r, g, b, a] expression.
  */
 
@@ -21,8 +21,8 @@ import {
   IPredicate,
   Encoding,
   RGBA,
-  UInt8Channel,
-  UNormChannel,
+  UInt8Encoding,
+  UNormEncoding,
 } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import { py2vega } from 'py2vega-ts';
@@ -67,7 +67,7 @@ function fieldAlwaysPresent(field: string): boolean {
 // Types used internally during compilation
 // ---------------------------------------------------------------------------
 
-interface IChannelEntry {
+interface IEncodingEntry {
   guard?: ExpressionValue; // undefined = unconditional
   expr: ExpressionValue;
 }
@@ -78,7 +78,7 @@ interface IChannelEntry {
 
 /**
  * Compile a Grammar symbology state to an OL FlatStyle object.
- * Sub-channels (fill-red/green/blue/alpha) are assembled into fill-color.
+ * Sub-encodings (fill-red/green/blue/alpha) are assembled into fill-color.
  *
  * @param featureValues  Feature attribute values for the rule field(s).
  *   Required for categorical and colorRamp scales so the compiler can
@@ -89,10 +89,10 @@ export function grammarToOLStyle(
   state: IGrammarSymbologyState,
   featureValues: unknown[] = [],
 ): Record<string, ExpressionValue> {
-  // Accumulate per-channel entries from all layers and their rules.
+  // Accumulate per-encoding entries from all layers and their rules.
   // Layers with a kde/cluster preprocess are handled at the renderer level;
   // this compiler only produces the flat-style for the vector portion.
-  const accumulator = new Map<Encoding, IChannelEntry[]>();
+  const accumulator = new Map<Encoding, IEncodingEntry[]>();
 
   // Guard: state.layers may be absent on legacy Grammar states that predate
   // the layers nesting (e.g. stored as { rules: [...] } without a layers wrapper).
@@ -111,7 +111,7 @@ export function grammarToOLStyle(
 
     for (const rule of layer.rules) {
       // For now use the first field; multi-field assembly is handled via
-      // sub-channel mappings (pixel-red/green/blue) or expression scales.
+      // sub-encoding mappings (pixel-red/green/blue) or expression scales.
       const field = rule.fields?.[0];
       const ruleGuard =
         rule.when && rule.when.length > 0
@@ -123,9 +123,9 @@ export function grammarToOLStyle(
           : (layerGuard ?? ruleGuard);
 
       for (const mapping of rule.mappings) {
-        for (const channel of mapping.channels) {
-          if (channel === 'pixel-rgb') {
-            // Virtual channel: fan out to pixel-red/green/blue so assembleStyle
+        for (const encoding of mapping.encodings) {
+          if (encoding === 'pixel-rgb') {
+            // Virtual encoding: fan out to pixel-red/green/blue so assembleStyle
             // can compose them into ['color', r, g, b, a] with a separate alpha.
             for (const sub of [
               'pixel-red',
@@ -138,26 +138,31 @@ export function grammarToOLStyle(
               accumulator.set(sub, entries);
             }
           } else {
-            // Compile per-channel so sub-channels (pixel-red/green/blue) can each
+            // Compile per-encoding so sub-encodings (pixel-red/green/blue) can each
             // extract the correct component from a colorRamp or other color scale.
-            const expr = compileMapping(field, mapping, featureValues, channel);
-            const entries = accumulator.get(channel) ?? [];
+            const expr = compileMapping(
+              field,
+              mapping,
+              featureValues,
+              encoding,
+            );
+            const entries = accumulator.get(encoding) ?? [];
             entries.push({ guard, expr });
-            accumulator.set(channel, entries);
+            accumulator.set(encoding, entries);
           }
         }
       }
     }
   }
 
-  // Build per-channel OL expressions.
-  const channelExprs = new Map<Encoding, ExpressionValue>();
-  for (const [channel, entries] of accumulator) {
-    channelExprs.set(channel, buildChannelExpr(entries, channel));
+  // Build per-encoding OL expressions.
+  const encodingExprs = new Map<Encoding, ExpressionValue>();
+  for (const [encoding, entries] of accumulator) {
+    encodingExprs.set(encoding, buildEncodingExpr(entries, encoding));
   }
 
-  // Assemble into the final style object, handling sub-channel composition.
-  return assembleStyle(channelExprs);
+  // Assemble into the final style object, handling sub-encoding composition.
+  return assembleStyle(encodingExprs);
 }
 
 // ---------------------------------------------------------------------------
@@ -197,17 +202,17 @@ export function extractEncodingFieldValues(
 }
 
 // ---------------------------------------------------------------------------
-// Channel expression builder
+// Encoding expression builder
 // ---------------------------------------------------------------------------
 
 /**
- * Merge a list of ChannelEntries into a single OL expression.
+ * Merge a list of EncodingEntries into a single OL expression.
  * Conditional entries form case branches; the last unconditional entry wins
  * as the else branch (transparent/zero if none).
  */
-function buildChannelExpr(
-  entries: IChannelEntry[],
-  channel: Encoding,
+function buildEncodingExpr(
+  entries: IEncodingEntry[],
+  encoding: Encoding,
 ): ExpressionValue {
   const conditional = entries.filter(e => e.guard !== undefined);
   const unconditional = entries.filter(e => e.guard === undefined);
@@ -215,7 +220,7 @@ function buildChannelExpr(
   const elseExpr: ExpressionValue =
     unconditional.length > 0
       ? unconditional[unconditional.length - 1].expr
-      : channelZero(channel);
+      : encodingZero(encoding);
 
   if (conditional.length === 0) {
     return elseExpr;
@@ -229,39 +234,39 @@ function buildChannelExpr(
   return caseExpr;
 }
 
-/** Typed zero for channels with no unconditional rule. */
-function channelZero(channel: Encoding): ExpressionValue {
-  const rgbaChannels = new Set<Encoding>([
+/** Typed zero for encodings with no unconditional rule. */
+function encodingZero(encoding: Encoding): ExpressionValue {
+  const rgbaEncodings = new Set<Encoding>([
     'fill-color',
     'stroke-color',
     'circle-fill-color',
     'circle-stroke-color',
     'pixel-color',
   ]);
-  return rgbaChannels.has(channel) ? 'rgba(0,0,0,0)' : 0;
+  return rgbaEncodings.has(encoding) ? 'rgba(0,0,0,0)' : 0;
 }
 
 // ---------------------------------------------------------------------------
-// Sub-channel assembly
+// Sub-encoding assembly
 // ---------------------------------------------------------------------------
 
-const FILL_SUB: UInt8Channel[] = ['fill-red', 'fill-green', 'fill-blue'];
-const FILL_ALPHA_SUB: UNormChannel[] = ['fill-alpha'];
-const PIXEL_SUB: UInt8Channel[] = ['pixel-red', 'pixel-green', 'pixel-blue'];
-const PIXEL_ALPHA_SUB: UNormChannel[] = ['pixel-alpha'];
+const FILL_SUB: UInt8Encoding[] = ['fill-red', 'fill-green', 'fill-blue'];
+const FILL_ALPHA_SUB: UNormEncoding[] = ['fill-alpha'];
+const PIXEL_SUB: UInt8Encoding[] = ['pixel-red', 'pixel-green', 'pixel-blue'];
+const PIXEL_ALPHA_SUB: UNormEncoding[] = ['pixel-alpha'];
 
 /**
  * Assemble the final style object.
- * Sub-channels (fill-red/green/blue/alpha, pixel-red/green/blue/alpha) are
- * combined into a ['color', r, g, b, a] expression on the parent channel.
- * Virtual channels (pixel-rgb) are already fanned out before this runs.
+ * Sub-encodings (fill-red/green/blue/alpha, pixel-red/green/blue/alpha) are
+ * combined into a ['color', r, g, b, a] expression on the parent encoding.
+ * Virtual encodings (pixel-rgb) are already fanned out before this runs.
  */
 function assembleStyle(
-  channelExprs: Map<Encoding, ExpressionValue>,
+  encodingExprs: Map<Encoding, ExpressionValue>,
 ): Record<string, ExpressionValue> {
   const style: Record<string, ExpressionValue> = {};
 
-  // Collect named channels directly.
+  // Collect named encodings directly.
   const skip = new Set<Encoding>([
     ...FILL_SUB,
     ...FILL_ALPHA_SUB,
@@ -269,39 +274,39 @@ function assembleStyle(
     ...PIXEL_ALPHA_SUB,
   ]);
 
-  for (const [channel, expr] of channelExprs) {
-    if (!skip.has(channel)) {
-      style[channel] = expr;
+  for (const [encoding, expr] of encodingExprs) {
+    if (!skip.has(encoding)) {
+      style[encoding] = expr;
     }
   }
 
-  // Assemble fill-color from sub-channels if any fill-* sub-channel is present.
+  // Assemble fill-color from sub-encodings if any fill-* sub-encoding is present.
   // ['color', r, g, b, a] is the OL operator that produces ColorType (r/g/b 0-255, a 0-1).
   if (
-    FILL_SUB.some(c => channelExprs.has(c)) ||
-    FILL_ALPHA_SUB.some(c => channelExprs.has(c))
+    FILL_SUB.some(c => encodingExprs.has(c)) ||
+    FILL_ALPHA_SUB.some(c => encodingExprs.has(c))
   ) {
-    const r = channelExprs.get('fill-red') ?? 0;
-    const g = channelExprs.get('fill-green') ?? 0;
-    const b = channelExprs.get('fill-blue') ?? 0;
-    const a = channelExprs.get('fill-alpha') ?? 1;
+    const r = encodingExprs.get('fill-red') ?? 0;
+    const g = encodingExprs.get('fill-green') ?? 0;
+    const b = encodingExprs.get('fill-blue') ?? 0;
+    const a = encodingExprs.get('fill-alpha') ?? 1;
     style['fill-color'] = ['color', r, g, b, a] as ExpressionValue;
   }
 
-  // Assemble pixel-color from sub-channels when pixel-R/G/B are present.
+  // Assemble pixel-color from sub-encodings when pixel-R/G/B are present.
   // pixel-alpha alone does NOT overwrite a direct pixel-color mapping.
-  if (PIXEL_SUB.some(c => channelExprs.has(c))) {
-    const r = channelExprs.get('pixel-red') ?? 0;
-    const g = channelExprs.get('pixel-green') ?? 0;
-    const b = channelExprs.get('pixel-blue') ?? 0;
-    const a = channelExprs.get('pixel-alpha') ?? 1;
+  if (PIXEL_SUB.some(c => encodingExprs.has(c))) {
+    const r = encodingExprs.get('pixel-red') ?? 0;
+    const g = encodingExprs.get('pixel-green') ?? 0;
+    const b = encodingExprs.get('pixel-blue') ?? 0;
+    const a = encodingExprs.get('pixel-alpha') ?? 1;
     style['pixel-color'] = ['color', r, g, b, a] as ExpressionValue;
   } else if (
-    PIXEL_ALPHA_SUB.some(c => channelExprs.has(c)) &&
-    !channelExprs.has('pixel-color')
+    PIXEL_ALPHA_SUB.some(c => encodingExprs.has(c)) &&
+    !encodingExprs.has('pixel-color')
   ) {
     // Alpha-only with no direct pixel-color: compose with black.
-    const a = channelExprs.get('pixel-alpha') ?? 1;
+    const a = encodingExprs.get('pixel-alpha') ?? 1;
     style['pixel-color'] = ['color', 0, 0, 0, a] as ExpressionValue;
   }
 
@@ -349,11 +354,11 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
 // ---------------------------------------------------------------------------
 
 /**
- * Return the RGBA array index for a sub-channel, or undefined for full-color
- * channels.  Used to decompose a colorRamp into a single numeric component.
+ * Return the RGBA array index for a sub-encoding, or undefined for full-color
+ * encodings.  Used to decompose a colorRamp into a single numeric component.
  */
-function colorComponentIndex(channel: Encoding): number | undefined {
-  switch (channel) {
+function colorComponentIndex(encoding: Encoding): number | undefined {
+  switch (encoding) {
     case 'fill-red':
     case 'pixel-red':
       return 0;
@@ -375,13 +380,13 @@ function compileMapping(
   field: string | undefined,
   mapping: IMapping,
   featureValues: unknown[],
-  channel: Encoding,
+  encoding: Encoding,
 ): ExpressionValue {
   const { scale } = mapping;
   switch (scale.scheme) {
     case 'colorRamp':
       return field
-        ? compileColorRamp(field, scale, featureValues, channel)
+        ? compileColorRamp(field, scale, featureValues, encoding)
         : scale.params.fallback;
     case 'categorical':
       return field
@@ -412,12 +417,12 @@ function compileMapping(
       return field ? compileScalar(field, scale) : scale.params.fallback;
     case 'identity': {
       if (!field) {
-        return channelZero(mapping.channels[0]);
+        return encodingZero(mapping.encodings[0]);
       }
       // Wrap with coalesce so OL's expression type system infers the correct
       // output type (color vs number). Bare ['get', field] has type 'any'
-      // which OL rejects for typed channels like fill-color.
-      const isColorChannel = (mapping.channels as string[]).some(ch =>
+      // which OL rejects for typed encodings like fill-color.
+      const isColorEncoding = (mapping.encodings as string[]).some(ch =>
         [
           'fill-color',
           'stroke-color',
@@ -426,7 +431,7 @@ function compileMapping(
           'pixel-color',
         ].includes(ch),
       );
-      const typedFallback: ExpressionValue = isColorChannel
+      const typedFallback: ExpressionValue = isColorEncoding
         ? ([0, 0, 0, 0] as ExpressionValue)
         : 0;
       if (fieldAlwaysPresent(field)) {
@@ -455,7 +460,7 @@ function compileColorRamp(
   field: string,
   scale: IColorRampScale,
   featureValues: unknown[],
-  channel?: Encoding,
+  encoding?: Encoding,
 ): ExpressionValue {
   const stops = resolveColorStops(scale, featureValues);
 
@@ -463,12 +468,12 @@ function compileColorRamp(
   // the source is not yet loaded and no explicit domain/colorStops are set.
   if (stops.length < 2) {
     const componentIdx =
-      channel !== undefined ? colorComponentIndex(channel) : undefined;
+      encoding !== undefined ? colorComponentIndex(encoding) : undefined;
     return componentIdx !== undefined ? 0 : scale.params.fallback;
   }
 
   const componentIdx =
-    channel !== undefined ? colorComponentIndex(channel) : undefined;
+    encoding !== undefined ? colorComponentIndex(encoding) : undefined;
 
   const interpolateExpr: ExpressionValue[] = [
     'interpolate',
@@ -477,7 +482,7 @@ function compileColorRamp(
   ];
 
   if (componentIdx !== undefined) {
-    // Sub-channel scalar interpolation for one color component (R=0,G=1,B=2,A=3).
+    // Sub-encoding scalar interpolation for one color component (R=0,G=1,B=2,A=3).
     // colormap stops carry [r, g, b, a] with r/g/b in 0-255 and a in 0-1.
     // Values are passed as-is since assembleStyle uses ['color', r, g, b, a]
     // which takes r/g/b in 0-255.
@@ -490,7 +495,7 @@ function compileColorRamp(
     return ['case', ['has', field], interpolateExpr, 0];
   }
 
-  // Full color channel: emit the usual RGBA interpolation.
+  // Full color encoding: emit the usual RGBA interpolation.
   for (const { stop, color } of stops) {
     interpolateExpr.push(stop, color as ExpressionValue);
   }
@@ -594,7 +599,7 @@ function compileCategorical(
 }
 
 /**
- * scalar: numeric field → numeric output (radius, width, sub-channel value).
+ * scalar: numeric field → numeric output (radius, width, sub-encoding value).
  *
  * Output:
  *   ['case', ['has', field],

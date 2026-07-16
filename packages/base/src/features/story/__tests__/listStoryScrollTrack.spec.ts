@@ -129,4 +129,51 @@ describe('buildListStoryScrollTrack', () => {
       contentMode: 'markdown',
     });
   });
+
+  it('omits gap between markdown segments when markdownSegmentGap is false', () => {
+    const layout = buildListStoryScrollTrack({
+      items: [
+        storyItem('a', 0, 'markdown', 'one'),
+        storyItem('b', 1, 'markdown', 'two'),
+      ],
+      viewportHeight: 400,
+      heightsById: { a: 120, b: 180 },
+      markdownSegmentGap: false,
+    });
+
+    expect(layout.segments[0]).toMatchObject({
+      start: 0,
+      height: 120,
+      end: 120,
+    });
+    expect(layout.segments[1]).toMatchObject({
+      start: 120,
+      height: 180,
+      end: 300,
+    });
+  });
+
+  it('inserts gap between markdown segments when markdownSegmentGap is true', () => {
+    const layout = buildListStoryScrollTrack({
+      items: [
+        storyItem('a', 0, 'markdown', 'one'),
+        storyItem('b', 1, 'markdown', 'two'),
+      ],
+      viewportHeight: 400,
+      mapViewportHeight: 350,
+      heightsById: { a: 120, b: 180 },
+      markdownSegmentGap: true,
+    });
+
+    expect(layout.segments[0]).toMatchObject({
+      start: 0,
+      height: 120,
+      end: 120 + 350,
+    });
+    expect(layout.segments[1]).toMatchObject({
+      start: 470,
+      height: 180,
+      end: 650,
+    });
+  });
 });

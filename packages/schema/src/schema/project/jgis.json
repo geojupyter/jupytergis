@@ -175,6 +175,12 @@
           "description": "Toggle the gradient background in presentation mode.",
           "default": true
         },
+        "markdownSegmentGap": {
+          "type": "boolean",
+          "title": "Gap between markdown segments",
+          "description": "Inserts a full-stage gap between consecutive markdown segments in vertical scroll stories.",
+          "default": false
+        },
         "presentationBgColor": {
           "type": "string",
           "title": "Presentation Background Color",

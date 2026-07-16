@@ -24,11 +24,16 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
+import {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { Contents, IDefaultDrive } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
+import { JSONObject } from '@lumino/coreutils';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 import {
@@ -45,6 +50,17 @@ export class YJupyterGISModel extends JupyterYModel {
 
   get awareness() {
     return this.jupyterGISModel?.sharedModel?.awareness;
+  }
+
+  /**
+   * Handle a custom (non Y-protocol) message received over the widget comm.
+   * Currently used by the Python API to request one-off map actions such as
+   * zooming to a freshly added layer (`zoom_to=True`).
+   */
+  protected _onCustomMessage(_: unknown, data: JSONObject): void {
+    if (data?.type === 'zoom-to' && typeof data.layerId === 'string') {
+      this.jupyterGISModel?.centerOnPosition(data.layerId);
+    }
   }
 
   dispose(): void {
@@ -100,6 +116,8 @@ export class YJupyterGISLuminoWidget extends Panel {
       formSchemaRegistry,
       state,
       annotationModel,
+      rendermime,
+      urlResolverFactory,
     } = options;
     const content = new JupyterGISPanel({
       model,
@@ -107,6 +125,8 @@ export class YJupyterGISLuminoWidget extends Panel {
       formSchemaRegistry,
       state,
       annotationModel,
+      rendermime,
+      urlResolverFactory,
     });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
@@ -131,6 +151,8 @@ export class YJupyterGISLuminoWidget extends Panel {
 interface IOptions {
   commands: CommandRegistry;
   model: JupyterGISModel;
+  rendermime: IRenderMimeRegistry;
+  urlResolverFactory?: IUrlResolverFactory;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -141,7 +163,7 @@ interface IOptions {
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
-  requires: [IJGISFormSchemaRegistryToken],
+  requires: [IJGISFormSchemaRegistryToken, IRenderMimeRegistry],
   optional: [
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
@@ -150,10 +172,12 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IStateDB,
     IAnnotationToken,
     ISettingRegistry,
+    IUrlResolverFactory,
   ],
   activate: (
     app: JupyterFrontEnd,
     formSchemaRegistry: IJGISFormSchemaRegistry,
+    rendermime: IRenderMimeRegistry,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
@@ -161,6 +185,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
     settingRegistry?: ISettingRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -240,6 +265,11 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
         this.jupyterGISModel.filePath = localPath;
 
+        // Listen for one-off custom messages sent by the Python API over the
+        // widget comm (e.g. `zoom_to=True` -> `{ type: 'zoom-to', layerId }`).
+        // These are ephemeral actions, deliberately kept out of the shared doc.
+        this.messageReceived.connect(this._onCustomMessage, this);
+
         this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
         this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
       }
@@ -253,7 +283,8 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           commands: app.commands,
           model: yModel.jupyterGISModel,
           externalCommands: externalCommandRegistry,
-
+          rendermime,
+          urlResolverFactory,
           tracker: jgisTracker,
           annotationModel,
           state,

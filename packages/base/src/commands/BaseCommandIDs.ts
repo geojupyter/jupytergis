@@ -34,6 +34,7 @@ export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
 
 // Layer and group actions
+export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
 export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
@@ -63,7 +64,6 @@ export const showLayersTab = 'jupytergis:showLayersTab';
 export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
 
 // Right panel tabs
-export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 

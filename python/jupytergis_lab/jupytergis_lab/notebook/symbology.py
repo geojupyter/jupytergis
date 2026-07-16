@@ -6,11 +6,11 @@ from uuid import uuid4
 from jupytergis_core.colors import RGBA, coerce_rgba
 from jupytergis_core.schema.interfaces.project import symbology as schema_symbology
 from jupytergis_core.schema.interfaces.project.symbology import (
-    PosFloatChannel,
-    RGBAChannel,
-    UInt8Channel,
-    UNormChannel,
-    VirtualChannel,
+    PosFloatEncoding,
+    RGBAEncoding,
+    UInt8Encoding,
+    UNormEncoding,
+    VirtualEncoding,
 )
 from py2vega import Variable, py2vega
 from pydantic import BaseModel, ConfigDict
@@ -18,17 +18,17 @@ from pydantic import BaseModel, ConfigDict
 WhenOpInput = Literal["all", "any"] | None
 ScaleKind = Literal["identity", "colormap", "categorical", "scalar"]
 
-# Extract all valid channel names from auto-generated schema enums
-_SCHEMA_CHANNEL_VALUES = tuple(
+# Extract all valid encoding names from auto-generated schema enums
+_SCHEMA_ENCODING_VALUES = tuple(
     sorted(
         {
             ch.value
             for enum_class in [
-                RGBAChannel,
-                UInt8Channel,
-                UNormChannel,
-                VirtualChannel,
-                PosFloatChannel,
+                RGBAEncoding,
+                UInt8Encoding,
+                UNormEncoding,
+                VirtualEncoding,
+                PosFloatEncoding,
             ]
             for ch in enum_class
         },
@@ -54,16 +54,16 @@ def _enum_member_name(value: str) -> str:
     return name.lower()
 
 
-_ENCODING_VALUES = [*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]
+_ENCODING_VALUES = [*ENCODING_SHORTCUTS.keys(), *_SCHEMA_ENCODING_VALUES]
 _ENCODING_MEMBERS: dict[str, str] = {}
-for channel_value in _ENCODING_VALUES:
-    member_name = _enum_member_name(channel_value)
+for encoding_value in _ENCODING_VALUES:
+    member_name = _enum_member_name(encoding_value)
     base_name = member_name
     suffix = 1
     while member_name in _ENCODING_MEMBERS:
         suffix += 1
         member_name = f"{base_name}_{suffix}"
-    _ENCODING_MEMBERS[member_name] = channel_value
+    _ENCODING_MEMBERS[member_name] = encoding_value
 
 VisualEncoding = Enum("VisualEncoding", _ENCODING_MEMBERS, type=str)
 
@@ -511,7 +511,7 @@ class MappingChain:
         self,
         *targets: VisualEncoding | str,
     ) -> Mapping:
-        """Finalize the chain and encode to output channel(s)."""
+        """Finalize the chain and encode to one or more output encodings."""
         if self._kind == "field":
             assert isinstance(self._value, str)
             fields = [self._value]
@@ -535,7 +535,7 @@ class MappingChain:
             selected_when_op = "all"
 
         rule = encoding_rule(
-            mapping(scale=scale, channels=_resolve_ENCODINGs(targets)),
+            mapping(scale=scale, encodings=_resolve_ENCODINGs(targets)),
             fields=fields,
             when=selected_when,
             when_op=selected_when_op,
@@ -766,21 +766,21 @@ def _normalize_when(
     return normalized
 
 
-def _coerce_style_channel(channel: Any) -> schema_symbology.Encoding:
-    if isinstance(channel, schema_symbology.Encoding):
-        return channel
-    return schema_symbology.Encoding(root=channel)
+def _coerce_style_encoding(encoding: Any) -> schema_symbology.Encoding:
+    if isinstance(encoding, schema_symbology.Encoding):
+        return encoding
+    return schema_symbology.Encoding(root=encoding)
 
 
-def _normalize_channels(channels: Sequence[Any]) -> list[schema_symbology.Encoding]:
-    return [_coerce_style_channel(channel) for channel in channels]
+def _normalize_encodings(encodings: Sequence[Any]) -> list[schema_symbology.Encoding]:
+    return [_coerce_style_encoding(encoding) for encoding in encodings]
 
 
 def _constant_color_scale(
     value: RGBA | Sequence[float] | str,
 ) -> schema_symbology.IConstantRGBAScale:
     return schema_symbology.IConstantRGBAScale(
-        params=schema_symbology.Params3(
+        params=schema_symbology.IConstantRGBAScaleParams(
             value=schema_symbology.RGBA(root=coerce_rgba(value)),
         ),
     )
@@ -788,7 +788,7 @@ def _constant_color_scale(
 
 def _constant_num_scale(value: float) -> schema_symbology.IConstantNumScale:
     return schema_symbology.IConstantNumScale(
-        params=schema_symbology.Params4(value=value),
+        params=schema_symbology.IConstantNumScaleParams(value=value),
     )
 
 
@@ -817,7 +817,7 @@ def expression(
 
     :param expr: Expression string in the layer expression language.
     :param fallback: Value used when the expression cannot be evaluated. Pass a
-        ``float`` for numeric channels or an RGBA/color value for color channels.
+        ``float`` for numeric encodings or an RGBA/color value for color encodings.
     :returns: An expression scale object that can be passed to :func:`mapping`.
     """
     fallback_value: float | schema_symbology.RGBA
@@ -827,7 +827,10 @@ def expression(
         fallback_value = schema_symbology.RGBA(coerce_rgba(fallback))
 
     return schema_symbology.IExpressionScale(
-        params=schema_symbology.Params5(expr=expr, fallback=fallback_value),
+        params=schema_symbology.IExpressionScaleParams(
+            expr=expr,
+            fallback=fallback_value,
+        ),
     )
 
 
@@ -839,9 +842,9 @@ def _colormap_scale(
     mode="equal interval",
     reverse: bool = False,
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
-    color_stops: Sequence[schema_symbology.ColorStop] | None = None,
+    color_stops: Sequence[schema_symbology.IColorStop] | None = None,
 ) -> schema_symbology.IColorRampScale:
-    params = schema_symbology.Params(
+    params = schema_symbology.IColorRampScaleParams(
         name=name,
         domain=list(domain) if domain is not None else None,
         nShades=n_shades,
@@ -863,7 +866,7 @@ def _categorical_scale(
     fallback: RGBA | Sequence[float] | str = (0.0, 0.0, 0.0, 1.0),
 ) -> schema_symbology.ICategoricalScale:
     return schema_symbology.ICategoricalScale(
-        params=schema_symbology.Params1(
+        params=schema_symbology.ICategoricalScaleParams(
             colorRamp=name,
             nShades=n_shades,
             reverse=reverse,
@@ -879,7 +882,7 @@ def _scalar_scale(
     fallback: float,
     scalar_stops: Sequence[ScalarStop] | None = None,
 ) -> schema_symbology.IScalarScale:
-    params = schema_symbology.Params2(
+    params = schema_symbology.IScalarScaleParams(
         domain=list(domain),
         range=list(output_range),
         fallback=fallback,
@@ -892,18 +895,18 @@ def _scalar_scale(
 
 def mapping(
     scale: Any,
-    channels: Sequence[Any],
+    encodings: Sequence[Any],
 ) -> schema_symbology.IMapping:
-    """Bind a scale to one or more style channels.
+    """Bind a scale to one or more style encodings.
 
     :param scale: A scale object (e.g. from ``expression``, ``colormap``,
         or the private ``_*_scale`` helpers).
-    :param channels: Style channel names to drive with the scale.
+    :param encodings: Style encoding names to drive with the scale.
     :returns: A mapping object that can be passed to ``encoding_rule``.
     """
     return schema_symbology.IMapping(
         scale=scale,
-        channels=_normalize_channels(channels),
+        encodings=_normalize_encodings(encodings),
     )
 
 
@@ -914,7 +917,7 @@ def encoding_rule(
     when_op: Literal["all", "any"] | None = None,
     id: str | None = None,
 ) -> schema_symbology.IEncodingRule:
-    """Create an encoding rule that groups one or more channel mappings.
+    """Create an encoding rule that groups one or more encoding mappings.
 
     :param mappings: One or more ``mapping`` objects to include in this rule.
     :param fields: Feature field names that the rule depends on. Used for
@@ -1158,7 +1161,7 @@ def _constant_rule(
     else:
         scale = _constant_color_scale(value)
     return encoding_rule(
-        mapping(scale=scale, channels=_resolve_ENCODINGs(target)),
+        mapping(scale=scale, encodings=_resolve_ENCODINGs(target)),
         when=_normalize_when(when),
         when_op=when_op,
     )
@@ -1173,7 +1176,7 @@ def _mapped_rule(
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
     return encoding_rule(
-        mapping(scale=scale, channels=_resolve_ENCODINGs(target)),
+        mapping(scale=scale, encodings=_resolve_ENCODINGs(target)),
         fields=[value],
         when=_normalize_when(when),
         when_op=when_op,
@@ -1190,23 +1193,23 @@ def _resolve_ENCODINGs(
     # NOTE: VisualEncoding is technically a str, but Mypy doesn't know that because we
     #       defined it in the functional Enum style.
     requested = [target] if isinstance(target, (str, VisualEncoding)) else list(target)
-    channels: list[schema_symbology.Encoding | VisualEncoding | str] = []
+    encodings: list[schema_symbology.Encoding | VisualEncoding | str] = []
     for item in requested:
         # Check if it's a shorthand
         if item in ENCODING_SHORTCUTS:
-            channels.extend(ENCODING_SHORTCUTS[item])
-        # Otherwise check if it's a valid schema channel
-        elif item in _SCHEMA_CHANNEL_VALUES:
-            channels.append(item)
+            encodings.extend(ENCODING_SHORTCUTS[item])
+        # Otherwise check if it's a valid schema encoding
+        elif item in _SCHEMA_ENCODING_VALUES:
+            encodings.append(item)
         else:
             raise ValueError(
-                f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]}",
+                f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_ENCODING_VALUES]}",
             )
 
     deduped: list[schema_symbology.Encoding | VisualEncoding | str] = []
-    for channel in channels:
-        if channel not in deduped:
-            deduped.append(channel)
+    for encoding in encodings:
+        if encoding not in deduped:
+            deduped.append(encoding)
     return deduped
 
 
