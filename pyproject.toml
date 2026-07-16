@@ -108,6 +108,7 @@ ignore = [
     "FBT001",  # boolean-type-hint-positional-argument
     "FBT002",  # boolean-default-value-positional-argument
     "FBT003",  # boolean-positional-value-in-call
+    "FIX001",  # line-contains-fixme
     "FIX002",  # line-contains-todo
     "FURB116", # f-string-number-format
     "G004",    # logging-f-string
@@ -152,6 +153,7 @@ ignore = [
     "S608",    # hardcoded-sql-expression
     "SLF001",  # private-member-access
     "T201",    # print
+    "TD001",   # invalid-todo-tag
     "TD002",   # missing-todo-author
     "TD003",   # missing-todo-link
     "TD004",   # missing-todo-colon
