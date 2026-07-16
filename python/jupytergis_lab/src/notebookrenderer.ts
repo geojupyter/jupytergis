@@ -52,12 +52,6 @@ export class YJupyterGISModel extends JupyterYModel {
    * Handle a custom (non Y-protocol) message received over the widget comm.
    * Currently used by the Python API to request one-off map actions such as
    * zooming to a freshly added layer (`zoom_to=True`).
-   *
-   * NOTE: this must be a prototype method, not an arrow class-field. The base
-   * `JupyterYModel` constructor calls `initialize()` (where we connect this to
-   * `messageReceived`) during `super()`, i.e. before subclass field
-   * initializers run — so an arrow field would still be `undefined` at connect
-   * time and the signal slot would silently never fire.
    */
   protected _onCustomMessage(_: unknown, data: JSONObject): void {
     if (data?.type === 'zoom-to' && typeof data.layerId === 'string') {
