@@ -158,6 +158,32 @@ button.jp-mod-styled.jp-mod-reject {
   left: 0;
 }
 
+/* Right-edge drag handle used to widen the left panel (see leftpanel.tsx). */
+.jgis-left-panel-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  z-index: 41;
+}
+
+.jgis-left-panel-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 120ms ease-in-out;
+}
+
+.jgis-left-panel-resize-handle:hover::after {
+  background: var(--jp-brand-color1);
+}
+
 /* Mobile bottom sheet — merged panel only */
 .jGIS-Mainview-Container.jgis-narrow .jgis-merged-panel-container {
   position: fixed;

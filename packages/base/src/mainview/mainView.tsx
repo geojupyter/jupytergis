@@ -1644,7 +1644,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         layerParameters = layer.parameters as IHillshadeLayer;
 
         newMapLayer = new RasterLayer({
-          opacity: 0.3,
+          opacity: layerParameters.opacity ?? 0.3,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: {
@@ -2017,7 +2017,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     switch (layer.type) {
       case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
       }
       case 'VectorLayer': {
@@ -2029,7 +2029,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
+        mapLayer.setOpacity(layerParams.opacity ?? 1);
 
         (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -2040,7 +2040,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorTileLayer': {
         const layerParams = layer.parameters as IVectorTileLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
+        mapLayer.setOpacity(layerParams.opacity ?? 1);
 
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -2050,9 +2050,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'HillshadeLayer': {
         // TODO figure out color here
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 0.3);
         break;
       }
       case 'ImageLayer': {
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
       }
       case 'GeoTiffLayer': {
@@ -2099,7 +2101,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'StacLayer':
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
     }
   }
