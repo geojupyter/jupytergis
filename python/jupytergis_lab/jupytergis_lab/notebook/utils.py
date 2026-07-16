@@ -34,7 +34,7 @@ def download_file(url: str, ext: str) -> Path:
     return filename
 
 
-def get_gpkg_layers(gpkg_path: str, data_type: str) -> list[str]:
+def get_gpkg_layers(gpkg_path: Path, data_type: str) -> list[str]:
     if isURL(gpkg_path):
         gpkg_path = download_file(gpkg_path, "gpkg")
 

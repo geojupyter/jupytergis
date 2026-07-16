@@ -816,7 +816,7 @@ class GISDocument(CommWidget):
 
     def add_geopackage_vector_layer(
         self,
-        path: str,
+        path: str | Path,
         table_names: list[str] | str | None = None,
         name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
@@ -840,7 +840,7 @@ class GISDocument(CommWidget):
             table_names = [part.strip() for part in table_names.split(",")]
 
         if table_names is None:
-            table_names = get_gpkg_layers(path, "features")
+            table_names = get_gpkg_layers(Path(path), "features")
         elif isinstance(table_names, str):
             table_names = [table_names]
         # Extract name from path if not provided
@@ -899,7 +899,7 @@ class GISDocument(CommWidget):
 
     def add_geopackage_raster_layer(
         self,
-        path: str,
+        path: str | Path,
         table_names: list[str] | str | None = None,
         name: str | None = None,
         attribution: str = "",
@@ -921,7 +921,7 @@ class GISDocument(CommWidget):
             table_names = [part.strip() for part in table_names.split(",")]
 
         if not table_names:
-            table_names = get_gpkg_layers(path, "tiles")
+            table_names = get_gpkg_layers(Path(path), "tiles")
         # Extract name from path if not provided
         if name is None:
             name = _extract_layer_name(path)
