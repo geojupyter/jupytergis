@@ -305,7 +305,7 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
-        virtual_file = self.to_py()
+        virtual_file = self._to_dict()
         virtual_file["layerTree"] = reversed_tree(virtual_file["layerTree"])
         del virtual_file["metadata"]
 
@@ -1281,7 +1281,7 @@ class GISDocument(CommWidget):
             create_ydoc=path is None,
         )
 
-    def to_py(self) -> dict:
+    def _to_dict(self) -> dict:
         """Get the document structure as a Python dictionary."""
         return {
             "layers": self._layers.to_py(),
