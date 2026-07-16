@@ -722,7 +722,7 @@ def jgis_layer_group_to_qgis(
 def export_project_to_qgis(
     path: str | Path,
     virtual_file: dict[str, Any],
-) -> dict[str, list[str]]:
+) -> dict[str, list[str]] | None:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return None
 

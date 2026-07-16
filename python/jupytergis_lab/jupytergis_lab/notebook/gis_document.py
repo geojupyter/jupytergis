@@ -307,7 +307,7 @@ class GISDocument(CommWidget):
         with sidecar:
             display(self)
 
-    def export_to_qgis(self, path: str | Path) -> dict[str, list[str]]:
+    def export_to_qgis(self, path: str | Path) -> dict[str, list[str]] | None:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
