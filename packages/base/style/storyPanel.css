@@ -256,7 +256,6 @@
   pointer-events: none;
   opacity: 1;
   font-weight: bold;
-  margin-top: 3px;
 }
 
 .jgis-story-title-bar-active-segment[data-slide-direction] {

@@ -10,6 +10,12 @@
   line-height: 1.6;
 }
 
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .jp-RenderedHTMLCommon {
+  color: var(--jgis-specta-text-color, var(--jp-content-font-color1));
+}
+
 .jgis-story-chrome--column
   .jgis-story-rendered-markdown
   .specta-article-host-widget.specta-cell-content {
