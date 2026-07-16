@@ -7,7 +7,7 @@ import { ColumnPresentationMobile } from '@/src/features/story/presentation/mode
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 
-export interface IColumnStoryStagePanelProps {
+export interface IColumnStoryPanelProps {
   model: IJupyterGISModel;
   isMobile: boolean;
   initialLayersReady: boolean;
@@ -19,7 +19,7 @@ export interface IColumnStoryStagePanelProps {
 }
 
 /** Column-story side panel chrome on the map stage. */
-export function ColumnStoryStagePanel({
+export function ColumnStoryPanel({
   model,
   isMobile,
   initialLayersReady,
@@ -28,7 +28,7 @@ export function ColumnStoryStagePanel({
   addLayer,
   removeLayer,
   onSegmentTransitionEnd,
-}: IColumnStoryStagePanelProps): JSX.Element | null {
+}: IColumnStoryPanelProps): JSX.Element | null {
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
   const segmentContainerRef = useRef<HTMLDivElement>(null);
   const {

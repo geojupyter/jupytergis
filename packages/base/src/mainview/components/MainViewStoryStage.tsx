@@ -6,7 +6,7 @@ import { StoryStage } from '@/src/features/story/presentation/StoryStage';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
-export interface IMainViewStoryPresentationStageProps {
+export interface IMainViewStoryStageProps {
   model: IJupyterGISModel;
   storyPresentationMode: StoryPresentationMode;
   isMobile: boolean;
@@ -26,7 +26,8 @@ export interface IMainViewStoryPresentationStageProps {
   onSegmentTransitionEnd: () => void;
 }
 
-export function MainViewStoryPresentationStage({
+/** Bridges mainView props onto the column / vertical-scroll StoryStage variants. */
+export function MainViewStoryStage({
   model,
   storyPresentationMode,
   isMobile,
@@ -42,7 +43,7 @@ export function MainViewStoryPresentationStage({
   removeLayer,
   onSegmentTransitionChange,
   onSegmentTransitionEnd,
-}: IMainViewStoryPresentationStageProps): JSX.Element {
+}: IMainViewStoryStageProps): JSX.Element {
   if (storyPresentationMode === 'verticalScroll') {
     return (
       <StoryStage

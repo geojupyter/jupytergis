@@ -147,7 +147,7 @@ import { ClientPointer } from './CollaboratorPointers';
 import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
-import { MainViewStoryPresentationStage } from './components/MainViewStoryPresentationStage';
+import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
 import { PositionedFloater } from './components/PositionedFloater';
 import {
@@ -4014,7 +4014,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             onTouchStart={this._handleSpectaTouchStart}
             onTouchEnd={this._handleSpectaTouchEnd}
           >
-            <MainViewStoryPresentationStage
+            <MainViewStoryStage
               model={this._model}
               storyPresentationMode={storyPresentationMode}
               isMobile={isMobile}

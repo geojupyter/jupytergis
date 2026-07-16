@@ -4,7 +4,7 @@ import { ListStoryStageOverlay } from '@/src/features/story/components/ListStory
 import { ListStoryStageScrollHost } from '@/src/features/story/components/ListStoryStageScrollHost';
 import { ListStoryTitleBar } from '@/src/features/story/components/ListStoryTitleBar';
 import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListStoryScrollTrackContext';
-import { ColumnStoryStagePanel } from '@/src/features/story/presentation/ColumnStoryStagePanel';
+import { ColumnStoryPanel } from '@/src/features/story/presentation/ColumnStoryPanel';
 import type { IStoryStageProps } from '@/src/features/story/presentation/types';
 
 /**
@@ -57,7 +57,7 @@ export function StoryStage(props: IStoryStageProps): JSX.Element {
         ) : null}
         {presentationMode === 'column' && props.isSpecta ? (
           <div className="jgis-panels-wrapper">
-            <ColumnStoryStagePanel
+            <ColumnStoryPanel
               model={model}
               isMobile={isMobile}
               initialLayersReady={initialLayersReady}
