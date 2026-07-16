@@ -7,9 +7,6 @@ import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListS
 import { ColumnStoryPanel } from '@/src/features/story/presentation/ColumnStoryPanel';
 import type { IStoryStageProps } from '@/src/features/story/presentation/types';
 
-/**
- * Map stage shell for story presentation.
- */
 export function StoryStage(props: IStoryStageProps): JSX.Element {
   const {
     model,
