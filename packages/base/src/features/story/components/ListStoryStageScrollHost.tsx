@@ -95,7 +95,7 @@ export function ListStoryStageScrollHost({
       id="jgis-story-segment-panel"
       className={
         isMobile
-          ? 'jgis-story-viewer-panel-specta-mod-vertical-scroll jgis-story-mobile-list-scroll'
+          ? 'jgis-story-mobile-list-scroll'
           : 'jgis-story-stage-scroll-host'
       }
       style={presentationStyle}
