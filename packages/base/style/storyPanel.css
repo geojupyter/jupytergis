@@ -461,6 +461,7 @@
 .jgis-story-mobile-list-scroll {
   position: fixed;
   inset: 0;
+  z-index: 6;
   top: var(--jgis-story-title-bar-height);
   width: 100%;
   overflow-y: auto;
