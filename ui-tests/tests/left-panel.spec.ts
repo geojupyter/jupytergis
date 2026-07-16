@@ -113,16 +113,19 @@ test.describe('#layerPanel', () => {
       const opacitySlider = layerTree.locator('.jp-gis-layerOpacitySlider');
       await expect(opacitySlider).toHaveCount(1);
 
-      // Defaults to fully opaque.
-      await expect(opacitySlider).toHaveValue('1');
+      const thumb = opacitySlider.locator('.jgis-slider-thumb');
+
+      // Defaults to fully opaque (100%).
+      await expect(thumb).toHaveAttribute('aria-valuenow', '100');
 
       // Adjusting the slider updates its value without changing selection.
-      await opacitySlider.fill('0.5');
-      await expect(opacitySlider).toHaveValue('0.5');
+      await thumb.focus();
+      await thumb.press('Home');
+      await expect(thumb).toHaveAttribute('aria-valuenow', '0');
 
       // Restore.
-      await opacitySlider.fill('1');
-      await expect(opacitySlider).toHaveValue('1');
+      await thumb.press('End');
+      await expect(thumb).toHaveAttribute('aria-valuenow', '100');
     });
 
     test('should hide the last layer', async ({ page }) => {
