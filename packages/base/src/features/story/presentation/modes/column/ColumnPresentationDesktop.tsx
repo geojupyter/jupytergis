@@ -2,12 +2,13 @@ import React, { useImperativeHandle, useMemo } from 'react';
 
 import { SpectaSingleModeContent } from '@/src/features/story/components/SpectaSingleModeContent';
 import { useStoryScrollState } from '@/src/features/story/hooks/useStoryScrollState';
-import type { IStoryPresentationDesktopChromeProps } from '@/src/features/story/presentation/sharedChromeProps';
+import type { IStoryPresentationDesktopChromeProps } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import SpectaPresentationProgressBar from '@/src/workspace/statusbar/SpectaPresentationProgressBar';
 
 /**
- * Guided column chrome: side panel with segment nav and scroll sentinels.
+ * Guided column chrome
+ * side panel with segment nav and scroll sentinels.
  */
 export function ColumnPresentationDesktop({
   model,

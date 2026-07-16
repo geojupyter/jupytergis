@@ -1,4 +1,8 @@
-import { IJGISStoryMap, IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
 import {
@@ -21,12 +25,10 @@ export interface IStoryViewerPanelSegmentNav {
   hasNext: boolean;
 }
 
-/** Props: story state and callbacks come from useStoryMap in the presentation root. */
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
-  /** Ref for the segment container (presentation root uses it for animationend). */
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;

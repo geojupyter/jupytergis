@@ -1,11 +1,43 @@
 import type { RefObject } from 'react';
 
-import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import type {
+  IJGISLayer,
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
 export type StoryPresentationMode = 'column' | 'verticalScroll';
+
+/** Story map state shared by column and vertical-scroll chrome. */
+export interface IStoryPresentationChromeProps {
+  model: IJupyterGISModel;
+  isSpecta: boolean;
+  presentationMode: StoryPresentationMode;
+  segmentContainerRef: RefObject<HTMLDivElement>;
+  storyData: IJGISStoryMap | null;
+  currentIndex: number;
+  setIndex: (index: number) => void;
+  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  layerName: string;
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+  showGradient: boolean;
+}
+
+export interface IStoryPresentationDesktopChromeProps
+  extends IStoryPresentationChromeProps {
+  containerRef: RefObject<HTMLDivElement>;
+  storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
+}
+
+export interface IStoryPresentationMobileChromeProps
+  extends IStoryPresentationChromeProps {}
 
 interface IStoryStageBaseProps {
   model: IJupyterGISModel;

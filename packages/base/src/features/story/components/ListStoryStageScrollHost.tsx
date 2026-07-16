@@ -1,10 +1,5 @@
 import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import React, {
-  type RefObject,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { type RefObject, useLayoutEffect, useMemo, useRef } from 'react';
 
 import { ListStoryVirtualScrollTrack } from '@/src/features/story/components/ListStoryVirtualScrollTrack';
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
@@ -31,7 +26,7 @@ interface IListStoryStageScrollHostProps {
 }
 
 /**
- * Vertical-scroll scrollport on the map stage (desktop + mobile).
+ * Vertical-scroll scrollport on the map stage
  */
 export function ListStoryStageScrollHost({
   model,

@@ -18,7 +18,6 @@ export interface IColumnStoryPanelProps {
   onSegmentTransitionEnd: () => void;
 }
 
-/** Column-story side panel chrome on the map stage. */
 export function ColumnStoryPanel({
   model,
   isMobile,
@@ -62,6 +61,7 @@ export function ColumnStoryPanel({
         onSegmentTransitionEnd();
       }
     };
+
     el.addEventListener('animationend', handleAnimationEnd);
 
     return () => el.removeEventListener('animationend', handleAnimationEnd);
@@ -71,7 +71,7 @@ export function ColumnStoryPanel({
     return null;
   }
 
-  const chromeProps = {
+  const props = {
     model,
     isSpecta: true,
     presentationMode: 'column' as const,
@@ -89,12 +89,12 @@ export function ColumnStoryPanel({
   };
 
   if (isMobile) {
-    return <ColumnPresentationMobile {...chromeProps} />;
+    return <ColumnPresentationMobile {...props} />;
   }
 
   return (
     <ColumnPresentationDesktop
-      {...chromeProps}
+      {...props}
       containerRef={containerRef}
       storyViewerPanelRef={storyViewerPanelRef}
     />
