@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import unquote
 from uuid import uuid4
 
@@ -472,16 +472,16 @@ def jgis_layer_to_qgis(
     logs: dict[str, list[str]],
 ) -> list[QgsMapLayer]:
     # The function that build the URI from the source parameters.
-    def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
+    def build_uri(parameters: dict[str, object], source_type: str) -> str | None:
         layer_config: dict[str, str] = {}
-        zmax = parameters.get("maxZoom")
-        zmin = parameters.get("minZoom", 0)
+        zmax = cast("str | int | float", parameters.get("maxZoom"))
+        zmin = cast("str | int | float", parameters.get("minZoom", 0))
 
         if source_type in ["RasterSource", "VectorTileSource"]:
-            url = parameters.get("url")
+            url = cast("str | None", parameters.get("url"))
             if url is None:
                 return None
-            urlParameters = parameters.get("urlParameters")
+            urlParameters = cast("dict[str, str]", parameters.get("urlParameters"))
             if urlParameters:
                 for k, v in urlParameters.items():
                     url = url.replace(f"{{{k}}}", v)
@@ -489,7 +489,7 @@ def jgis_layer_to_qgis(
             layer_config["type"] = "xyz"
 
         if source_type == "GeoJSONSource":
-            path = parameters.get("path")
+            path = cast("str", parameters.get("path"))
             return path
 
         if source_type == "RasterSource":
