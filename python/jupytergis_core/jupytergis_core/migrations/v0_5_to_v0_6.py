@@ -149,19 +149,19 @@ def _single_symbol(
         "mappings": [
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
-                "channels": ["fill-color", "circle-fill-color"],
+                "encodings": ["fill-color", "circle-fill-color"],
             },
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
+                "encodings": ["stroke-color", "circle-stroke-color"],
             },
             {
                 "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-                "channels": ["stroke-width", "circle-stroke-width"],
+                "encodings": ["stroke-width", "circle-stroke-width"],
             },
             {
                 "scale": {"scheme": "constant_num", "params": {"value": radius}},
-                "channels": ["circle-radius"],
+                "encodings": ["circle-radius"],
             },
         ],
     }
@@ -195,30 +195,30 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
 
     color_ramp_scale = {"scheme": "colorRamp", "params": color_ramp_params}
 
-    fill_channels = (
+    fill_encodings = (
         ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]
         if state.get("strokeFollowsFill")
         else ["fill-color", "circle-fill-color"]
     )
 
     mappings: list[dict[str, Any]] = [
-        {"scale": color_ramp_scale, "channels": fill_channels},
+        {"scale": color_ramp_scale, "encodings": fill_encodings},
     ]
     if not state.get("strokeFollowsFill"):
         mappings.append(
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
+                "encodings": ["stroke-color", "circle-stroke-color"],
             },
         )
     mappings += [
         {
             "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
+            "encodings": ["stroke-width", "circle-stroke-width"],
         },
         {
             "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
+            "encodings": ["circle-radius"],
         },
     ]
 
@@ -253,30 +253,30 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
 
     categorical_scale = {"scheme": "categorical", "params": categorical_params}
 
-    fill_channels = (
+    fill_encodings = (
         ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]
         if state.get("strokeFollowsFill")
         else ["fill-color", "circle-fill-color"]
     )
 
     mappings: list[dict[str, Any]] = [
-        {"scale": categorical_scale, "channels": fill_channels},
+        {"scale": categorical_scale, "encodings": fill_encodings},
     ]
     if not state.get("strokeFollowsFill"):
         mappings.append(
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
+                "encodings": ["stroke-color", "circle-stroke-color"],
             },
         )
     mappings += [
         {
             "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
+            "encodings": ["stroke-width", "circle-stroke-width"],
         },
         {
             "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
+            "encodings": ["circle-radius"],
         },
     ]
 

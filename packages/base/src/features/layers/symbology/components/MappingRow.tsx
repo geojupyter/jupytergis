@@ -1,6 +1,6 @@
 /**
- * A single grammar mapping row: field → scale → channels (fan-out tree).
- * The scale preview spans all channel rows. Additional channels branch below.
+ * A single grammar mapping row: field → scale → encodings (fan-out tree).
+ * The scale preview spans all encoding rows. Additional encodings branch below.
  * "when" predicates are shown as chips below the grid.
  */
 
@@ -38,78 +38,78 @@ import {
 } from './ScaleEditor';
 
 // ---------------------------------------------------------------------------
-// Channel taxonomy
+// Encoding taxonomy
 // ---------------------------------------------------------------------------
 
-const RGBA_CHANNELS: Encoding[] = [
+const RGBA_ENCODINGS: Encoding[] = [
   'fill-color',
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
 ];
-const POSFLOAT_CHANNELS: Encoding[] = [
+const POSFLOAT_ENCODINGS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
 ];
-const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
+const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
 
-// Channels relevant for raster/KDE layers.
+// Encodings relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
-// pixel-rgb:   virtual channel — RGB only; pair with pixel-alpha for separate alpha.
-// pixel-alpha: alpha sub-channel (0-1 scalar).
-const PIXEL_RGBA_CHANNELS: Encoding[] = [
+// pixel-rgb:   virtual encoding — RGB only; pair with pixel-alpha for separate alpha.
+// pixel-alpha: alpha sub-encoding (0-1 scalar).
+const PIXEL_RGBA_ENCODINGS: Encoding[] = [
   'pixel-color',
   'pixel-rgb',
   'pixel-red',
   'pixel-green',
   'pixel-blue',
 ];
-const PIXEL_FLOAT_CHANNELS: Encoding[] = [
+const PIXEL_FLOAT_ENCODINGS: Encoding[] = [
   'pixel-red',
   'pixel-green',
   'pixel-blue',
   'pixel-alpha',
 ];
-const ALL_PIXEL_CHANNELS = Array.from(
-  new Set([...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS]),
+const ALL_PIXEL_ENCODINGS = Array.from(
+  new Set([...PIXEL_RGBA_ENCODINGS, ...PIXEL_FLOAT_ENCODINGS]),
 );
 
-/** Display labels for channels that need a friendlier name. */
-const CHANNEL_LABELS: Partial<Record<Encoding, string>> = {
+/** Display labels for encodings that need a friendlier name. */
+const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
 };
 
-function compatibleChannels(scale: IScale, isRaster = false): Encoding[] {
+function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
   if (isRaster) {
     switch (scale.scheme) {
       case 'colorRamp':
       case 'categorical':
       case 'constant_rgba':
-        return PIXEL_RGBA_CHANNELS;
+        return PIXEL_RGBA_ENCODINGS;
       case 'scalar':
       case 'constant_num':
-        return PIXEL_FLOAT_CHANNELS;
+        return PIXEL_FLOAT_ENCODINGS;
       default:
-        return ALL_PIXEL_CHANNELS;
+        return ALL_PIXEL_ENCODINGS;
     }
   }
   switch (scale.scheme) {
     case 'colorRamp':
     case 'categorical':
     case 'constant_rgba':
-      return RGBA_CHANNELS;
+      return RGBA_ENCODINGS;
     case 'scalar':
     case 'constant_num':
-      return POSFLOAT_CHANNELS;
+      return POSFLOAT_ENCODINGS;
     default:
-      return ALL_CHANNELS;
+      return ALL_ENCODINGS;
   }
 }
 
 function defaultScaleForScheme(
   scheme: IScale['scheme'],
-  _currentChannels: Encoding[],
+  _currentEncodings: Encoding[],
 ): IScale {
   switch (scheme) {
     case 'constant_rgba':
@@ -736,7 +736,7 @@ export interface IGrammarRow {
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
-  channels: Encoding[];
+  encodings: Encoding[];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
 }
@@ -745,7 +745,7 @@ export interface IGrammarRow {
  * How many input fields a scale accepts.
  *   0    — constants (no field selector shown)
  *   1    — all single-field scales
- *  'any' — multi-field (expression scale, sub-channel assembly)
+ *  'any' — multi-field (expression scale, sub-encoding assembly)
  */
 export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
   switch (scheme) {
@@ -809,9 +809,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
-      const newScale = defaultScaleForScheme(scheme, row.channels);
-      const compat = compatibleChannels(newScale, isRaster);
-      const filtered = row.channels.filter(ch => compat.includes(ch));
+      const newScale = defaultScaleForScheme(scheme, row.encodings);
+      const compat = compatibleEncodings(newScale, isRaster);
+      const filtered = row.encodings.filter(ch => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
       // Trim fields list to match new count constraint
       const trimmedFields =
@@ -823,7 +823,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       onChange({
         ...row,
         scale: newScale,
-        channels: filtered.length > 0 ? filtered : [compat[0]],
+        encodings: filtered.length > 0 ? filtered : [compat[0]],
         fields: trimmedFields,
       });
     },
@@ -835,20 +835,20 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const handleChannelChange = useCallback(
+  const handleEncodingChange = useCallback(
     (index: number, ch: Encoding) => {
-      const next = [...row.channels];
+      const next = [...row.encodings];
       next[index] = ch;
-      onChange({ ...row, channels: next });
+      onChange({ ...row, encodings: next });
     },
     [row, onChange],
   );
 
-  const removeChannel = useCallback(
+  const removeEncoding = useCallback(
     (ch: Encoding) => {
-      const next = row.channels.filter(c => c !== ch);
+      const next = row.encodings.filter(c => c !== ch);
       if (next.length > 0) {
-        onChange({ ...row, channels: next });
+        onChange({ ...row, encodings: next });
       } else {
         onDelete();
       }
@@ -856,9 +856,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange, onDelete],
   );
 
-  const addChannel = useCallback(
+  const addEncoding = useCallback(
     (ch: Encoding) => {
-      onChange({ ...row, channels: [...row.channels, ch] });
+      onChange({ ...row, encodings: [...row.encodings, ch] });
     },
     [row, onChange],
   );
@@ -884,8 +884,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const compat = compatibleChannels(row.scale, isRaster);
-  const availableToAdd = compat.filter(ch => !row.channels.includes(ch));
+  const compat = compatibleEncodings(row.scale, isRaster);
+  const availableToAdd = compat.filter(ch => !row.encodings.includes(ch));
 
   return (
     <div className="jp-gis-grammar-rule">
@@ -944,18 +944,18 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
         {/* --- Output section --- */}
         <div className="jp-gis-grammar-section jp-gis-grammar-output-section">
-          {row.channels.map((ch, i) => (
-            <div key={`${ch}-${i}`} className="jp-gis-grammar-channel-row">
-              <div className="jp-gis-grammar-channel-select">
+          {row.encodings.map((ch, i) => (
+            <div key={`${ch}-${i}`} className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value={ch}
                   onChange={e =>
-                    handleChannelChange(i, e.target.value as Encoding)
+                    handleEncodingChange(i, e.target.value as Encoding)
                   }
                 >
                   {compat.map(c => (
                     <NativeSelectOption key={c} value={c}>
-                      {CHANNEL_LABELS[c] ?? c}
+                      {ENCODING_LABELS[c] ?? c}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -965,11 +965,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 variant="ghost"
                 size="icon-md"
                 className="jp-mod-styled"
-                onClick={() => removeChannel(ch)}
+                onClick={() => removeEncoding(ch)}
                 title={
-                  row.channels.length === 1
+                  row.encodings.length === 1
                     ? 'Remove mapping'
-                    : 'Remove channel'
+                    : 'Remove encoding'
                 }
               >
                 <FontAwesomeIcon icon={faTrash} />
@@ -977,24 +977,24 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             </div>
           ))}
 
-          {/* Add channel row */}
+          {/* Add encoding row */}
           {availableToAdd.length > 0 && (
-            <div className="jp-gis-grammar-channel-row">
-              <div className="jp-gis-grammar-channel-select">
+            <div className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value=""
                   onChange={e => {
                     if (e.target.value) {
-                      addChannel(e.target.value as Encoding);
+                      addEncoding(e.target.value as Encoding);
                     }
                   }}
                 >
                   <NativeSelectOption value="">
-                    (add channel)
+                    (add encoding)
                   </NativeSelectOption>
                   {availableToAdd.map(ch => (
                     <NativeSelectOption key={ch} value={ch}>
-                      {CHANNEL_LABELS[ch] ?? ch}
+                      {ENCODING_LABELS[ch] ?? ch}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
