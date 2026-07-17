@@ -60,13 +60,13 @@ jobs:
           restore-keys: |
             yarn-
 
-      - name: 'Autogenerate Python types'
+      - name: 'Autogenerate types from schema'
         shell: 'bash -l {0}'
         run: |
           set -eux
           jlpm install --immutable
           cd packages/schema
-          jlpm run build:schema:py
+          jlpm run build:schema
 
       # NOTE: Requires JavaScript build to generate Python types!
       - name: 'Run mypy for jupytergis packages'
