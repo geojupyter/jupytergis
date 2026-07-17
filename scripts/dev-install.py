@@ -22,7 +22,7 @@ def install_dev():
 
     for py_package in python_packages:
         execute(f"pip uninstall {py_package} -y")
-        execute("jlpm clean:all", cwd=root_path / "python" / py_package)
+        execute("jlpm clean:all", cwd=root_path / python_package_prefix / py_package)
 
         install_cmd = f"pip install -e {python_package_prefix}/{py_package}"
         if py_package == "jupytergis_lab":
