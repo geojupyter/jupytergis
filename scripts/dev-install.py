@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 
-def execute(cmd: str, cwd=None):
+def execute(cmd: str, *, cwd=None):
     subprocess.run(cmd.split(" "), check=True, cwd=cwd)
 
 
