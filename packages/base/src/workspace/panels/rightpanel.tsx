@@ -13,7 +13,6 @@ import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
-import { ObjectPropertiesReact } from '../../features/objectproperties';
 import {
   TabsRoot,
   TabsContent,
@@ -38,9 +37,6 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   const { patchGeoJSONFeatureProperties } = props;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    if (!props.settings.objectPropertiesDisabled) {
-      return 'objectProperties';
-    }
     if (!props.settings.annotationsDisabled) {
       return 'annotations';
     }
@@ -54,13 +50,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
 
-  const [selectedObjectProperties, setSelectedObjectProperties] =
-    React.useState(undefined);
-
   const tabInfo = [
-    !props.settings.objectPropertiesDisabled
-      ? { name: 'objectProperties', title: 'Object Properties' }
-      : false,
     !props.settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -70,9 +60,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   ].filter(Boolean) as { name: string; title: string }[];
 
   const allRightTabsDisabled =
-    props.settings.objectPropertiesDisabled &&
-    props.settings.annotationsDisabled &&
-    props.settings.identifyDisabled;
+    props.settings.annotationsDisabled && props.settings.identifyDisabled;
 
   const [rightPanelOpen] = useUIState('rightPanelOpen', props.model);
 
@@ -110,20 +98,6 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
               </TabsTrigger>
             ))}
           </TabsList>
-
-          {!props.settings.objectPropertiesDisabled && (
-            <TabsContent
-              value="objectProperties"
-              className="jgis-panel-tab-content"
-            >
-              <ObjectPropertiesReact
-                setSelectedObject={setSelectedObjectProperties}
-                selectedObject={selectedObjectProperties}
-                formSchemaRegistry={props.formSchemaRegistry}
-                model={props.model}
-              />
-            </TabsContent>
-          )}
 
           {!props.settings.annotationsDisabled && (
             <TabsContent value="annotations" className="jgis-panel-tab-content">

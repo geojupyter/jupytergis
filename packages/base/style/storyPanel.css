@@ -207,6 +207,12 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+.jgis-story-viewer-panel-specta-mod-vertical-scroll,
+.jgis-specta-right-panel-container-mod:has(
+  .jgis-story-viewer-panel-specta-mod-vertical-scroll
+) {
+  pointer-events: none;
+}
 
 .jgis-mainview-stage {
   --jgis-story-title-bar-height: 2.5rem;

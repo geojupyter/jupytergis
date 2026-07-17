@@ -598,7 +598,6 @@ export interface IJupyterGISSettings {
   stacBrowserDisabled?: boolean;
 
   // Right panel tabs
-  objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
 

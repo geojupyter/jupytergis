@@ -12,7 +12,10 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -111,7 +114,8 @@ export function addCommands(
   state: IStateDB,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
-  completionProviderManager: ICompletionProviderManager | undefined,
+  urlResolverFactory?: IUrlResolverFactory,
+  completionProviderManager?: ICompletionProviderManager,
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
@@ -1716,36 +1720,6 @@ export function addCommands(
   });
 
   // Right panel tabs
-  commands.addCommand(CommandIDs.showObjectPropertiesTab, {
-    label: trans.__('Show Object Properties Tab'),
-    caption:
-      'Show the object properties tab in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () =>
-      tracker.currentWidget
-        ? !tracker.currentWidget.model.jgisSettings.objectPropertiesDisabled
-        : false,
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-      const settings = await current.model.getSettings();
-      const currentValue =
-        settings?.composite?.objectPropertiesDisabled ??
-        current.model.jgisSettings.objectPropertiesDisabled ??
-        false;
-      await settings?.set('objectPropertiesDisabled', !currentValue);
-      commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
-    },
-  });
-
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
     caption: 'Show the annotations tab in the current JupyterGIS document.',
@@ -1967,6 +1941,7 @@ export function addCommands(
           tracker,
           editorServices,
           rendermime,
+          urlResolverFactory,
         );
         return;
       }
@@ -2108,6 +2083,7 @@ namespace Private {
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
   ): Promise<void> {
     await StoryEditorSession.getInstance().openEditor(
       model,
@@ -2117,6 +2093,7 @@ namespace Private {
       tracker,
       editorServices,
       rendermime,
+      urlResolverFactory,
     );
   }
 

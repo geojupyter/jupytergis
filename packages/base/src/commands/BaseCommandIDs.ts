@@ -65,7 +65,6 @@ export const showLayersTab = 'jupytergis:showLayersTab';
 export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
 
 // Right panel tabs
-export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 

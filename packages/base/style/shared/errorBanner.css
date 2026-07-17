@@ -1,0 +1,78 @@
+.jgis-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--jp-ui-font-color1);
+}
+
+.jgis-error-banner-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.jgis-error-banner-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.jgis-error-banner-message {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.jgis-error-banner-dismiss {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.jgis-error-banner-dismiss:hover,
+.jgis-error-banner-dismiss:focus-visible {
+  opacity: 1;
+}
+
+.jgis-error-banner-dismiss svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.jgis-error-banner[data-variant='info'] {
+  border-color: color-mix(in srgb, var(--jp-info-color1) 40%, transparent);
+  background-color: color-mix(in srgb, var(--jp-info-color1) 12%, transparent);
+}
+
+.jgis-error-banner[data-variant='info'] .jgis-error-banner-icon {
+  color: var(--jp-info-color1);
+}
+
+.jgis-error-banner[data-variant='warning'] {
+  border-color: color-mix(in srgb, var(--jp-warn-color1) 40%, transparent);
+  background-color: color-mix(in srgb, var(--jp-warn-color1) 12%, transparent);
+}
+
+.jgis-error-banner[data-variant='warning'] .jgis-error-banner-icon {
+  color: var(--jp-warn-color1);
+}
+
+.jgis-error-banner[data-variant='error'] {
+  border-color: color-mix(in srgb, var(--jp-error-color1) 40%, transparent);
+  background-color: color-mix(in srgb, var(--jp-error-color1) 12%, transparent);
+}
+
+.jgis-error-banner[data-variant='error'] .jgis-error-banner-icon {
+  color: var(--jp-error-color1);
+}

@@ -2,11 +2,19 @@
  * Inline scale editor for one IMapping.
  * Renders a different UI for each scale scheme.
  */
-
+import {
+  autocompletion,
+  acceptCompletion,
+  completionKeymap,
+  Completion,
+  CompletionContext,
+  CompletionResult,
+} from '@codemirror/autocomplete';
+import { indentWithTab } from '@codemirror/commands';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
-import { Compartment, EditorState } from '@codemirror/state';
-import { EditorView, placeholder } from '@codemirror/view';
+import { Compartment, EditorState, Prec } from '@codemirror/state';
+import { EditorView, placeholder, keymap } from '@codemirror/view';
 import {
   ClassificationMode,
   ICategoricalScale,
@@ -22,7 +30,7 @@ import { jupyterTheme } from '@jupyterlab/codemirror';
 import { UUID } from '@lumino/coreutils';
 import { py2vega } from 'py2vega-ts';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { vega2ol } from 'vega2ol';
+import { vega2ol, FUNCTION_MAPPING, CONSTANTS_MAPPING } from 'vega2ol';
 
 import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
@@ -384,11 +392,55 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
 
 interface IExpressionEditorProps {
   scale: IExpressionScale;
+  fields: string[];
   onChange: (scale: IScale) => void;
 }
 
+function vegaExprCompletion(fieldsRef: React.MutableRefObject<string[]>) {
+  // 'indexof' is excluded: it's handled as a special-case pattern
+  const functionNames = Object.keys(FUNCTION_MAPPING).filter(
+    name => name !== 'indexof',
+  );
+
+  const constantNames = Object.keys(CONSTANTS_MAPPING);
+
+  return (context: CompletionContext): CompletionResult | null => {
+    const datumMatch = context.matchBefore(/datum\.\w*/);
+    if (datumMatch) {
+      return {
+        from: datumMatch.from + 6,
+        options: fieldsRef.current.map(
+          (f): Completion => ({ label: f, type: 'property' }),
+        ),
+        validFor: /^\w*$/,
+      };
+    }
+
+    const word = context.matchBefore(/\w+/);
+    if (!word || (word.from === word.to && !context.explicit)) {
+      return null;
+    }
+
+    const options: Completion[] = [
+      {
+        label: 'datum',
+        type: 'variable',
+        detail: 'current data object',
+      },
+      ...functionNames.map(
+        (name): Completion => ({ label: name, type: 'function' }),
+      ),
+      ...constantNames.map(
+        (name): Completion => ({ label: name, type: 'constant' }),
+      ),
+    ];
+
+    return { from: word.from, options, validFor: /^\w*$/ };
+  };
+}
 export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   scale,
+  fields,
   onChange,
 }) => {
   const { params } = scale;
@@ -401,6 +453,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   );
 
   const paramsRef = useRef(params);
+  const fielsdRef = useRef(fields);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const languageComp = useRef(new Compartment()).current;
@@ -428,7 +481,8 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
 
   useEffect(() => {
     paramsRef.current = params;
-  }, [params]);
+    fielsdRef.current = fields;
+  }, [params, fields]);
 
   useEffect(() => {
     if (!editorRef.current || viewRef.current) {
@@ -446,6 +500,14 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
         ),
         jupyterTheme,
         EditorView.lineWrapping,
+        autocompletion({
+          override: [vegaExprCompletion(fielsdRef)],
+          activateOnTyping: true,
+        }),
+        Prec.highest(
+          keymap.of([{ key: 'Tab', run: acceptCompletion }, indentWithTab]),
+        ),
+        keymap.of(completionKeymap),
         EditorView.updateListener.of(updateView => {
           if (updateView.docChanged) {
             const value = updateView.state.doc.toString();

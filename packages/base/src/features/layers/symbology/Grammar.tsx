@@ -2,7 +2,7 @@
  * Grammar symbology panel.
  *
  * Shows encoding rules grouped by layer. Each layer has optional render-side
- * transforms (KDE, cluster) followed by (field → scale → channels) mapping rows.
+ * transforms (KDE, cluster) followed by (field → scale → encodings) mapping rows.
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
@@ -48,7 +48,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 
-const DEFAULT_CHANNELS: Encoding[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_ENCODINGS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
 // Scale schemes that cannot be round-tripped through the QGIS format, and are
@@ -296,9 +296,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultChannels: Encoding[] = isRaster
+    const defaultEncodings: Encoding[] = isRaster
       ? ['pixel-color']
-      : DEFAULT_CHANNELS;
+      : DEFAULT_ENCODINGS;
     onChange({
       ...layer,
       rows: [
@@ -306,7 +306,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {
           id: UUID.uuid4(),
           scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
-          channels: [...defaultChannels],
+          encodings: [...defaultEncodings],
         },
       ],
     });
@@ -599,7 +599,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
-            channels: [...(mapping.channels as Encoding[])],
+            encodings: [...(mapping.encodings as Encoding[])],
             ...(rule.when ? { when: rule.when } : {}),
             ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
           })),
@@ -615,7 +615,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
     const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
       const rules: IEncodingRule[] = uiLayer.rows
-        .filter(row => row.channels.length > 0)
+        .filter(row => row.encodings.length > 0)
         .map(row => ({
           id: row.id,
           ...(row.fields?.length ? { fields: row.fields } : {}),
@@ -624,7 +624,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           mappings: [
             {
               scale: row.scale,
-              channels: row.channels as [Encoding, ...Encoding[]],
+              encodings: row.encodings as [Encoding, ...Encoding[]],
             },
           ],
         }));
