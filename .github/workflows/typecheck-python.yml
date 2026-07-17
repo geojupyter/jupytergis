@@ -39,10 +39,6 @@ jobs:
           restore-keys: |
             pip-
 
-      - name: 'Install typechecking dependencies'
-        shell: 'bash -l {0}'
-        run: 'pip install --group build --group typecheck'
-
       - name: 'Get yarn cache directory path'
         id: 'yarn-cache-dir-path'
         shell: 'bash -l {0}'
@@ -60,13 +56,9 @@ jobs:
           restore-keys: |
             yarn-
 
-      - name: 'Autogenerate types from schema'
+      - name: 'Install'
         shell: 'bash -l {0}'
-        run: |
-          set -eux
-          jlpm install --immutable
-          cd packages/schema
-          jlpm run build:schema
+        run: 'python scripts/dev-install.py'
 
       # NOTE: Requires JavaScript build to generate Python types!
       - name: 'Run mypy for jupytergis packages'
