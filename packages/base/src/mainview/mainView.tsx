@@ -3674,8 +3674,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     uiState: IJGISUIState,
   ): void {
     const active = Boolean(uiState.locationIndicatorActive);
-    // uiStateChanged fires on any UI-state change (e.g. panel toggles), so
-    // gate on an actual change to the indicator flag before doing any work.
     if (active === this._locationIndicatorActive) {
       return;
     }
