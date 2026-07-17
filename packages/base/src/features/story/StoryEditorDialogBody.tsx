@@ -14,6 +14,10 @@ import { StoryEditorSection } from '@/src/features/story/components/StoryEditorS
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
   IStorySegmentViewItem,
@@ -39,7 +43,6 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
-import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -270,7 +273,9 @@ export function StoryEditorDialogBody({
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
-  const showSegmentAnimation = story?.storyType !== STORY_TYPE.verticalScroll;
+  const showSegmentAnimation = !isVerticalScrollPresentation(
+    getStoryPresentationMode(story?.storyType),
+  );
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">

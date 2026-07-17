@@ -133,6 +133,10 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -148,7 +152,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
-import { MainViewSpectaPanel } from './components/MainViewSpectaPanel';
 import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import {
@@ -177,7 +180,6 @@ import {
 } from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
-import { STORY_TYPE } from '../types';
 
 type OlLayerTypes =
   | TileLayer
@@ -2987,19 +2989,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     let scrollContainer: HTMLDivElement | null = null;
 
     const resolveStoryScrollContainer = (): HTMLDivElement | null => {
+      const fromStageHost = this.storyScrollContainerRef.current;
+
+      if (fromStageHost && document.contains(fromStageHost)) {
+        return fromStageHost;
+      }
+
       const fromPanel =
         this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
 
       if (fromPanel && document.contains(fromPanel)) {
         return fromPanel;
-      }
-
-      const mobileScroll = document.querySelector(
-        '.jgis-story-mobile-list-scroll',
-      );
-
-      if (mobileScroll instanceof HTMLDivElement) {
-        return mobileScroll;
       }
 
       return null;
@@ -3026,7 +3026,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       accumulatedDeltaY = 0;
 
       // Don't want to handle next/prev logic in list mode
-      if (storyType === STORY_TYPE.verticalScroll) {
+      if (isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
         scrollContainer.scrollBy({ top: deltaY });
         return;
       }
@@ -3980,9 +3980,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     } = this.state;
     const { isMobile } = this.props;
     const selectedStory = this._model.getSelectedStory().story;
-    const isListStory =
-      isSpectaPresentation &&
-      selectedStory?.storyType === STORY_TYPE.verticalScroll;
+    const storyPresentationMode = isSpectaPresentation
+      ? getStoryPresentationMode(selectedStory?.storyType)
+      : 'column';
     const showSidePanels = !isSpectaPresentation;
     const showMergedMobilePanel =
       isMobile &&
@@ -4016,43 +4016,37 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           >
             <MainViewStoryStage
               model={this._model}
-              isListStory={isListStory}
+              storyPresentationMode={storyPresentationMode}
               isMobile={isMobile}
               segmentTransition={segmentTransition}
+              initialLayersReady={initialLayersReady}
+              isSpectaPresentation={isSpectaPresentation}
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}
-              panels={
-                showSidePanels ? (
-                  <MainViewSidePanels
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    settings={jgisSettings}
-                    showMergedMobilePanel={showMergedMobilePanel}
-                    state={this._state}
-                    formSchemaRegistry={this._formSchemaRegistry}
-                    annotationModel={this._annotationModel}
-                    patchGeoJSONFeatureProperties={
-                      this._patchGeoJSONFeatureProperties
-                    }
-                  />
-                ) : (
-                  <MainViewSpectaPanel
-                    model={this._model}
-                    isSpecta={isSpectaPresentation}
-                    isMobile={isMobile}
-                    initialLayersReady={initialLayersReady}
-                    containerRef={this.spectaContainerRef}
-                    storyViewerPanelRef={this.storyViewerPanelRef}
-                    addLayer={this._addLayerForPanels}
-                    removeLayer={this._removeLayerForPanels}
-                    onSegmentTransitionEnd={this._clearStoryScrollGuard}
-                    onSegmentTransitionChange={
-                      this._handleSegmentTransitionChange
-                    }
-                  />
-                )
-              }
+              storyScrollContainerRef={this.storyScrollContainerRef}
+              columnPanelContainerRef={this.spectaContainerRef}
+              storyViewerPanelRef={this.storyViewerPanelRef}
+              addLayer={this._addLayerForPanels}
+              removeLayer={this._removeLayerForPanels}
+              onSegmentTransitionChange={this._handleSegmentTransitionChange}
+              onSegmentTransitionEnd={this._clearStoryScrollGuard}
             />
+            {showSidePanels ? (
+              <div className="jgis-panels-wrapper">
+                <MainViewSidePanels
+                  model={this._model}
+                  commands={this._mainViewModel.commands}
+                  settings={jgisSettings}
+                  showMergedMobilePanel={showMergedMobilePanel}
+                  state={this._state}
+                  formSchemaRegistry={this._formSchemaRegistry}
+                  annotationModel={this._annotationModel}
+                  patchGeoJSONFeatureProperties={
+                    this._patchGeoJSONFeatureProperties
+                  }
+                />
+              </div>
+            ) : null}
           </MainViewMapSurface>
           {!isSpectaPresentation ? (
             <StatusBar
@@ -4075,6 +4069,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
+  private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;

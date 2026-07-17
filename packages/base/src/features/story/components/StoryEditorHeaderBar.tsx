@@ -4,6 +4,10 @@ import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState, type RefObject } from 'react';
 
 import { TitleInput } from '@/src/features/story/components/TitleInput';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
@@ -96,7 +100,9 @@ function StorySettingsPopover({
                 }}
               />
             </label>
-            {story.storyType === STORY_TYPE.verticalScroll ? (
+            {isVerticalScrollPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
               <label className="jgis-story-editor-toggle-row">
                 <span>Gap between markdown segments</span>
                 <Switch
@@ -170,7 +176,10 @@ export function StoryEditorHeaderBar({
             {formatGradientLabel(story.showGradient)}
           </span>
         ) : null}
-        {story?.storyType === STORY_TYPE.verticalScroll ? (
+        {story &&
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(story.storyType),
+        ) ? (
           <span className="jgis-story-editor-context-meta">
             {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
           </span>
