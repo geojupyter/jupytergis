@@ -39,6 +39,10 @@ jobs:
           restore-keys: |
             pip-
 
+      - name: 'Install build dependencies'
+        shell: 'bash -l {0}'
+        run: 'pip install --group build'
+
       - name: 'Get yarn cache directory path'
         id: 'yarn-cache-dir-path'
         shell: 'bash -l {0}'
