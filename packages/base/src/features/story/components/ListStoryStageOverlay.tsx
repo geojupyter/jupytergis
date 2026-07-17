@@ -181,6 +181,7 @@ interface ISegmentOverlayPaneProps {
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
   onMarkdownRendered?: (segmentIndex: number) => void;
+  onPaneUnmount?: (segmentIndex: number) => void;
 }
 
 function segmentConfigsEqual(
@@ -223,8 +224,15 @@ const SegmentOverlayPane = React.memo(function SegmentOverlayPane({
   storyData,
   items,
   onMarkdownRendered,
+  onPaneUnmount,
 }: ISegmentOverlayPaneProps): React.ReactElement {
   const isMap = config.type === 'map';
+
+  React.useLayoutEffect(() => {
+    return () => {
+      onPaneUnmount?.(segmentIndex);
+    };
+  }, [segmentIndex, onPaneUnmount]);
 
   return (
     <div
@@ -287,6 +295,9 @@ export function ListStoryStageOverlay({
   const measuredTransitionKeyRef = useRef('');
   const measureTransitionKeyRef = useRef('');
   const stableTravelRef = useRef(0);
+  const clearMarkdownRendered = useCallback((segmentIndex: number): void => {
+    markdownRenderedRef.current.delete(segmentIndex);
+  }, []);
   const [stageHeight, setStageHeight] = useState(0);
   const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
@@ -656,6 +667,7 @@ export function ListStoryStageOverlay({
               storyData={story}
               items={items}
               onMarkdownRendered={handleMarkdownRendered}
+              onPaneUnmount={clearMarkdownRendered}
             />,
           );
           return nodes;

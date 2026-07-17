@@ -204,6 +204,16 @@ export function ListStoryScrollTrackProvider({
           return prev;
         }
 
+        // Ignore transient shrinks (empty remount / pre-image layout). Markdown
+        // height should only grow until the story is rebuilt.
+        const previousHeight = prev[segmentId];
+        if (
+          previousHeight !== undefined &&
+          measuredHeightPx < previousHeight
+        ) {
+          return prev;
+        }
+
         const scroller = scrollerRef.current;
         const oldLayout =
           enabled && viewportHeight > 0
