@@ -7,47 +7,47 @@ import {
 import React, { useState } from 'react';
 
 import {
-  IPropertyEditorActions,
-  IPropertyEditorState,
-  PatchGeoJSONFeatureProperties,
+  IAttributeEditorActions,
+  IAttributeEditorState,
+  PatchGeoJSONFeatureAttributes,
 } from '../types/editorTypes';
 
-export function useIdentifyPropertyEditor(props: {
+export function useIdentifyAttributeEditor(props: {
   model: IJupyterGISModel;
-  patchGeoJSONFeatureProperties?: PatchGeoJSONFeatureProperties;
+  patchGeoJSONFeatureAttributes?: PatchGeoJSONFeatureAttributes;
   setFeatures: React.Dispatch<React.SetStateAction<IIdentifiedFeatureEntry[]>>;
 }): {
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
 } {
-  const { model, patchGeoJSONFeatureProperties, setFeatures } = props;
+  const { model, patchGeoJSONFeatureAttributes, setFeatures } = props;
 
   const [editingFeatureIndex, setEditingFeatureIndex] = useState<number | null>(
     null,
   );
   const [editorMode, setEditorMode] = useState<'add' | 'edit' | null>(null);
-  const [editingPropertyKey, setEditingPropertyKey] = useState<string | null>(
-    null,
-  );
-  const [newPropertyKey, setNewPropertyKey] = useState('');
-  const [newPropertyValue, setNewPropertyValue] = useState('');
-  const [isSavingProperty, setIsSavingProperty] = useState(false);
+  const [editingAttributeKey, setEditingAttributeKey] = useState<
+    string | null
+  >(null);
+  const [newAttributeKey, setNewAttributeKey] = useState('');
+  const [newAttributeValue, setNewAttributeValue] = useState('');
+  const [isSavingAttribute, setIsSavingAttribute] = useState(false);
 
-  const resetAddPropertyEditor = () => {
+  const resetAddAttributeEditor = () => {
     setEditingFeatureIndex(null);
     setEditorMode(null);
-    setEditingPropertyKey(null);
-    setNewPropertyKey('');
-    setNewPropertyValue('');
-    setIsSavingProperty(false);
+    setEditingAttributeKey(null);
+    setNewAttributeKey('');
+    setNewAttributeValue('');
+    setIsSavingAttribute(false);
   };
 
-  const startAddProperty = (featureIndex: number) => {
+  const startAddAttribute = (featureIndex: number) => {
     setEditingFeatureIndex(featureIndex);
     setEditorMode('add');
-    setEditingPropertyKey(null);
-    setNewPropertyKey('');
-    setNewPropertyValue('');
+    setEditingAttributeKey(null);
+    setNewAttributeKey('');
+    setNewAttributeValue('');
   };
 
   const getSelectedSourceId = (): string | undefined => {
@@ -60,7 +60,7 @@ export function useIdentifyPropertyEditor(props: {
     return selectedLayer?.parameters?.source;
   };
 
-  const handleAddProperty = async (
+  const handleAddAttribute = async (
     feature: IIdentifiedFeature,
     featureIndex: number,
   ) => {
@@ -71,30 +71,30 @@ export function useIdentifyPropertyEditor(props: {
     }
 
     const sourceId = getSelectedSourceId();
-    const key = newPropertyKey.trim();
+    const key = newAttributeKey.trim();
     const previousKey =
-      editorMode === 'edit' ? editingPropertyKey?.trim() : undefined;
+      editorMode === 'edit' ? editingAttributeKey?.trim() : undefined;
 
     if (
       !sourceId ||
-      !patchGeoJSONFeatureProperties ||
+      !patchGeoJSONFeatureAttributes ||
       !key ||
-      isSavingProperty
+      isSavingAttribute
     ) {
       return;
     }
 
-    setIsSavingProperty(true);
-    const propertyUpdates: IDict<any> = { [key]: newPropertyValue };
+    setIsSavingAttribute(true);
+    const attributeUpdates: IDict<any> = { [key]: newAttributeValue };
 
     if (previousKey && previousKey !== key) {
-      propertyUpdates[previousKey] = undefined;
+      attributeUpdates[previousKey] = undefined;
     }
 
-    const success = await patchGeoJSONFeatureProperties(
+    const success = await patchGeoJSONFeatureAttributes(
       sourceId,
       { featureId },
-      propertyUpdates,
+      attributeUpdates,
     );
 
     if (success) {
@@ -111,7 +111,7 @@ export function useIdentifyPropertyEditor(props: {
             delete updatedTargetFeature[previousKey];
           }
 
-          updatedTargetFeature[key] = newPropertyValue;
+          updatedTargetFeature[key] = newAttributeValue;
           updatedFeatures[featureIndex] = {
             ...targetFeatureEntry,
             feature: updatedTargetFeature,
@@ -126,17 +126,17 @@ export function useIdentifyPropertyEditor(props: {
         return updatedFeatures;
       });
 
-      resetAddPropertyEditor();
+      resetAddAttributeEditor();
       return;
     }
 
-    setIsSavingProperty(false);
+    setIsSavingAttribute(false);
   };
 
-  const handleDeleteProperty = async (
+  const handleDeleteAttribute = async (
     feature: IIdentifiedFeature,
     featureIndex: number,
-    propertyKey: string,
+    attributeKey: string,
   ) => {
     const featureId = feature._id;
 
@@ -145,9 +145,9 @@ export function useIdentifyPropertyEditor(props: {
     }
 
     if (
-      !patchGeoJSONFeatureProperties ||
-      !propertyKey.trim() ||
-      isSavingProperty
+      !patchGeoJSONFeatureAttributes ||
+      !attributeKey.trim() ||
+      isSavingAttribute
     ) {
       return;
     }
@@ -157,11 +157,11 @@ export function useIdentifyPropertyEditor(props: {
       return;
     }
 
-    setIsSavingProperty(true);
-    const success = await patchGeoJSONFeatureProperties(
+    setIsSavingAttribute(true);
+    const success = await patchGeoJSONFeatureAttributes(
       sourceId,
       { featureId },
-      { [propertyKey]: undefined },
+      { [attributeKey]: undefined },
     );
 
     if (success) {
@@ -174,7 +174,7 @@ export function useIdentifyPropertyEditor(props: {
             ...targetFeatureEntry.feature,
           };
 
-          delete updatedTargetFeature[propertyKey];
+          delete updatedTargetFeature[attributeKey];
 
           updatedFeatures[featureIndex] = {
             ...targetFeatureEntry,
@@ -190,36 +190,36 @@ export function useIdentifyPropertyEditor(props: {
         return updatedFeatures;
       });
 
-      resetAddPropertyEditor();
+      resetAddAttributeEditor();
       return;
     }
 
-    setIsSavingProperty(false);
+    setIsSavingAttribute(false);
   };
 
-  const editorState: IPropertyEditorState = {
+  const editorState: IAttributeEditorState = {
     editingFeatureIndex,
     editorMode,
-    editingPropertyKey,
-    newPropertyKey,
-    newPropertyValue,
-    isSavingProperty,
+    editingAttributeKey,
+    newAttributeKey,
+    newAttributeValue,
+    isSavingAttribute,
   };
 
-  const editorActions: IPropertyEditorActions = {
-    onEditProperty: (index, propertyKey, value) => {
+  const editorActions: IAttributeEditorActions = {
+    onEditAttribute: (index, attributeKey, value) => {
       setEditingFeatureIndex(index);
       setEditorMode('edit');
-      setEditingPropertyKey(propertyKey);
-      setNewPropertyKey(propertyKey);
-      setNewPropertyValue(String(value ?? ''));
+      setEditingAttributeKey(attributeKey);
+      setNewAttributeKey(attributeKey);
+      setNewAttributeValue(String(value ?? ''));
     },
-    onDeleteProperty: handleDeleteProperty,
-    onStartAddProperty: startAddProperty,
-    onSaveProperty: handleAddProperty,
-    onCancelProperty: resetAddPropertyEditor,
-    onNewPropertyKeyChange: setNewPropertyKey,
-    onNewPropertyValueChange: setNewPropertyValue,
+    onDeleteAttribute: handleDeleteAttribute,
+    onStartAddAttribute: startAddAttribute,
+    onSaveAttribute: handleAddAttribute,
+    onCancelAttribute: resetAddAttributeEditor,
+    onNewAttributeKeyChange: setNewAttributeKey,
+    onNewAttributeValueChange: setNewAttributeValue,
   };
 
   return { editorState, editorActions };

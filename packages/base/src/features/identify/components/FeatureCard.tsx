@@ -7,11 +7,11 @@ import {
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
 import { FeatureCardHeader } from './FeatureCardHeader';
-import { FeaturePropertyList } from './FeaturePropertyList';
-import { AddPropertyEditor } from './PropertyEditors';
+import { FeatureAttributeList } from './FeatureAttributeList';
+import { AddAttributeEditor } from './AttributeEditors';
 import {
-  IPropertyEditorActions,
-  IPropertyEditorState,
+  IAttributeEditorActions,
+  IAttributeEditorState,
 } from '../types/editorTypes';
 
 interface IFeatureCardProps {
@@ -20,8 +20,8 @@ interface IFeatureCardProps {
   featureTitle: string;
   isVisible: boolean;
   isFloaterOpen: boolean;
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
   onToggleVisibility: (rowIndex: number, isOpen: boolean) => void;
   onToggleFloater: () => void;
   onHighlightFeature: (feature: any) => void;
@@ -39,16 +39,16 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
   onToggleFloater,
   onHighlightFeature,
 }) => {
-  const cardEditorState: IPropertyEditorState =
+  const cardEditorState: IAttributeEditorState =
     editorState.editingFeatureIndex === rowIndex
       ? editorState
       : {
           editingFeatureIndex: null,
           editorMode: null,
-          editingPropertyKey: null,
-          newPropertyKey: '',
-          newPropertyValue: '',
-          isSavingProperty: false,
+          editingAttributeKey: null,
+          newAttributeKey: '',
+          newAttributeValue: '',
+          isSavingAttribute: false,
         };
 
   return (
@@ -70,14 +70,14 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="jgis-identify-content">
-            <FeaturePropertyList
+            <FeatureAttributeList
               feature={feature}
               rowIndex={rowIndex}
               editorState={cardEditorState}
               editorActions={editorActions}
             />
             {feature._fromDrawTool === true && (
-              <AddPropertyEditor
+              <AddAttributeEditor
                 feature={feature}
                 rowIndex={rowIndex}
                 editorState={cardEditorState}
