@@ -48,6 +48,8 @@ export function RenderedStoryMarkdown({
 }: IRenderedStoryMarkdownProps): JSX.Element | null {
   const rendermime = useStoryRenderMime(model, segmentId);
   const hostRef = useRef<HTMLDivElement>(null);
+  const onRenderedRef = useRef(onRendered);
+  onRenderedRef.current = onRendered;
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -92,7 +94,7 @@ export function RenderedStoryMarkdown({
       renderer.addClass('jp-MarkdownOutput');
       requestAnimationFrame(() => {
         if (!cancelled && !renderer.isDisposed) {
-          onRendered?.();
+          onRenderedRef.current?.();
         }
       });
     };
@@ -103,7 +105,7 @@ export function RenderedStoryMarkdown({
       cancelled = true;
       disposeRenderer(renderer);
     };
-  }, [rendermime, source, onRendered]);
+  }, [rendermime, source]);
 
   if (!source) {
     return null;
