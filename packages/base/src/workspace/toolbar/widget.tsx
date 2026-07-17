@@ -112,6 +112,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
         noFocusOnClick: false,
+        tooltip: 'Add Layer',
         onClick: () => {
           if (!options.commands) {
             return;
