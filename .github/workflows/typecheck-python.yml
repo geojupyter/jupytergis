@@ -84,4 +84,4 @@ jobs:
 
       - name: 'Run mypy for layer_gallery'
         working-directory: './scripts/layer_gallery'
-        run: 'uv run --group test mypy'
+        run: 'uv run --group dev mypy'
