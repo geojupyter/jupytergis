@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { MimeModel } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { memo, useLayoutEffect, useRef } from 'react';
 
 import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
@@ -38,8 +38,20 @@ function disposeRenderer(renderer: Widget): void {
   renderer.dispose();
 }
 
+function renderedStoryMarkdownPropsAreEqual(
+  prev: IRenderedStoryMarkdownProps,
+  next: IRenderedStoryMarkdownProps,
+): boolean {
+  return (
+    prev.model === next.model &&
+    prev.segmentId === next.segmentId &&
+    prev.source === next.source &&
+    prev.variant === next.variant
+  );
+}
+
 /** Jupyter rendermime markdown output (shared by overlay and story editor). */
-export function RenderedStoryMarkdown({
+export const RenderedStoryMarkdown = memo(function RenderedStoryMarkdown({
   model,
   segmentId,
   source,
@@ -119,4 +131,4 @@ export function RenderedStoryMarkdown({
       ></div>
     </div>
   );
-}
+}, renderedStoryMarkdownPropsAreEqual);

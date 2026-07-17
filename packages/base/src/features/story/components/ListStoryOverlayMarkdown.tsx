@@ -1,5 +1,5 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
-import React from 'react';
+import React, { memo } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
 
@@ -10,8 +10,19 @@ interface IListStoryOverlayMarkdownProps {
   onRendered?: () => void;
 }
 
+function listStoryOverlayMarkdownPropsAreEqual(
+  prev: IListStoryOverlayMarkdownProps,
+  next: IListStoryOverlayMarkdownProps,
+): boolean {
+  return (
+    prev.model === next.model &&
+    prev.segmentId === next.segmentId &&
+    prev.source === next.source
+  );
+}
+
 /** Markdown body for a list-story stage overlay segment. */
-export function ListStoryOverlayMarkdown({
+export const ListStoryOverlayMarkdown = memo(function ListStoryOverlayMarkdown({
   model,
   segmentId,
   source,
@@ -25,4 +36,4 @@ export function ListStoryOverlayMarkdown({
       onRendered={onRendered}
     />
   );
-}
+}, listStoryOverlayMarkdownPropsAreEqual);

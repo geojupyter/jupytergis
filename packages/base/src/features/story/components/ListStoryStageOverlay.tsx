@@ -180,10 +180,42 @@ interface ISegmentOverlayPaneProps {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
-  onMarkdownRendered?: () => void;
+  onMarkdownRendered?: (segmentIndex: number) => void;
 }
 
-function SegmentOverlayPane({
+function segmentConfigsEqual(
+  prev: SegmentOverlayPaneConfig,
+  next: SegmentOverlayPaneConfig,
+): boolean {
+  if (prev.type !== next.type) {
+    return false;
+  }
+  if (prev.type === 'map' && next.type === 'map') {
+    return prev.segmentIndex === next.segmentIndex;
+  }
+  if (prev.type === 'markdown' && next.type === 'markdown') {
+    return (
+      prev.segmentId === next.segmentId && prev.markdown === next.markdown
+    );
+  }
+  return false;
+}
+
+function segmentOverlayPanePropsAreEqual(
+  prev: ISegmentOverlayPaneProps,
+  next: ISegmentOverlayPaneProps,
+): boolean {
+  return (
+    prev.pane === next.pane &&
+    prev.segmentIndex === next.segmentIndex &&
+    prev.model === next.model &&
+    prev.storyData === next.storyData &&
+    prev.items === next.items &&
+    segmentConfigsEqual(prev.config, next.config)
+  );
+}
+
+const SegmentOverlayPane = React.memo(function SegmentOverlayPane({
   pane,
   segmentIndex,
   config,
@@ -214,12 +246,18 @@ function SegmentOverlayPane({
           model={model}
           segmentId={config.segmentId}
           source={config.markdown}
-          onRendered={onMarkdownRendered}
+          onRendered={
+            onMarkdownRendered
+              ? () => {
+                  onMarkdownRendered(segmentIndex);
+                }
+              : undefined
+          }
         />
       ) : null}
     </div>
   );
-}
+}, segmentOverlayPanePropsAreEqual);
 
 function buildFallbackTransition(
   activeItem: IStorySegmentViewItem,
@@ -617,14 +655,7 @@ export function ListStoryStageOverlay({
               config={stackPane.config}
               storyData={story}
               items={items}
-              onMarkdownRendered={
-                stackPane.config.type === 'markdown' &&
-                stackPane.config.markdown
-                  ? () => {
-                      handleMarkdownRendered(stackPane.segmentIndex);
-                    }
-                  : undefined
-              }
+              onMarkdownRendered={handleMarkdownRendered}
             />,
           );
           return nodes;
