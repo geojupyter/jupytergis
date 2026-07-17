@@ -154,6 +154,10 @@ export class ToolbarWidget extends ReactiveToolbar {
         },
       });
 
+      geolocationDropdownMenu.aboutToClose.connect(() => {
+        geolocationDropdownButton.pressed = false;
+      });
+
       this.addItem('Geolocation', geolocationDropdownButton);
       geolocationDropdownButton.node.dataset.testid = 'geolocation-button';
 
