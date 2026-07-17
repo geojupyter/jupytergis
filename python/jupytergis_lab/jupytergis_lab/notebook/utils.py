@@ -34,9 +34,12 @@ def download_file(url: str, ext: str) -> Path:
     return filename
 
 
-def get_gpkg_layers(gpkg_path: Path, data_type: str) -> list[str]:
-    if isURL(gpkg_path):
-        gpkg_path = download_file(gpkg_path, "gpkg")
+def get_gpkg_layers(gpkg_path: str | Path, data_type: str) -> list[str]:
+    if isinstance(gpkg_path, str):
+        if isURL(gpkg_path):
+            gpkg_path = download_file(gpkg_path, "gpkg")
+        else:
+            gpkg_path = Path(gpkg_path)
 
     conn = sqlite3.connect(gpkg_path)
     cursor = conn.cursor()
