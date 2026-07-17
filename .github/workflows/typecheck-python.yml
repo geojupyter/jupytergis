@@ -42,7 +42,7 @@ jobs:
 
       - name: 'Install typechecking dependencies'
         shell: 'bash -l {0}'
-        run: 'pip install --group dev --group typecheck'
+        run: 'pip install --group build --group typecheck'
 
       - name: 'Build the extensions'
         shell: 'bash -l {0}'
