@@ -9,9 +9,3 @@ export function formatStoryTypeLabel(storyType: string | undefined): string {
 export function formatGradientLabel(showGradient: boolean | undefined): string {
   return showGradient !== false ? 'Gradient on' : 'Solid background';
 }
-
-export function formatMarkdownSegmentGapLabel(
-  markdownSegmentGap: boolean | undefined,
-): string {
-  return markdownSegmentGap === true ? 'Markdown gap on' : 'Markdown gap off';
-}

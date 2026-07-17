@@ -11,6 +11,7 @@ import type { ILayerProps } from '@/src/features/layers/forms/layer/layerform';
 import {
   GeoJSONSourcePropertiesForm,
   GeoTiffSourcePropertiesForm,
+  OpenEOSourcePropertiesForm,
   PathBasedSourcePropertiesForm,
   TileSourcePropertiesForm,
   WmsTileSourceForm,
@@ -75,6 +76,9 @@ export function getSourceTypeForm(
       break;
     case 'GeoPackageRasterSource':
       SourceForm = GeoPackagePropertiesForm;
+      break;
+    case 'OpenEOTileSource':
+      SourceForm = OpenEOSourcePropertiesForm;
       break;
     case 'GeoParquetSource':
       SourceForm = PathBasedSourcePropertiesForm;

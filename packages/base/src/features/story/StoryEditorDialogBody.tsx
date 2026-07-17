@@ -1,5 +1,6 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
@@ -12,12 +13,7 @@ import { SegmentModePicker } from '@/src/features/story/components/SegmentModePi
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
-import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
-import {
-  getStoryPresentationMode,
-  isVerticalScrollPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
   IStorySegmentViewItem,
@@ -38,11 +34,13 @@ import {
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
+import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
+import { STORY_TYPE } from '@/src/types';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -50,6 +48,7 @@ export interface IStoryEditorDialogBodyProps {
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
+  rendermime: IRenderMimeRegistry;
 }
 
 function SegmentEditor({
@@ -57,12 +56,12 @@ function SegmentEditor({
   state,
   segment,
   editorServices,
+  rendermime,
   portalContainerRef,
   canRemoveSegment,
   showSegmentAnimation,
   onContentModeChange,
   onContentChange,
-  onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
 }: {
@@ -70,18 +69,19 @@ function SegmentEditor({
   state: IStateDB;
   segment: IStorySegmentViewItem;
   editorServices: IEditorServices;
+  rendermime: IRenderMimeRegistry;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
   showSegmentAnimation: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
-  onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
+  const contentTitle = segment.activeSlide?.content?.title ?? '';
   const imageUrl = segment.activeSlide?.content?.image ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
@@ -98,12 +98,7 @@ function SegmentEditor({
           <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
-          <TitleInput
-            value={displayTitle}
-            onChange={title => {
-              onLayerNameChange(title);
-            }}
-          />
+          <h3 className="jgis-story-editor-segment-title">{displayTitle}</h3>
         </div>
         <Button
           type="button"
@@ -154,6 +149,15 @@ function SegmentEditor({
 
           <StoryEditorSection triggerText="Content" defaultOpen>
             <div className="jgis-story-editor-stack">
+              <label className="jgis-story-editor-field">
+                <span>Title</span>
+                <Input
+                  value={contentTitle}
+                  onChange={event => {
+                    onContentChange({ title: event.target.value });
+                  }}
+                />
+              </label>
               <SegmentImageUrlField
                 value={imageUrl}
                 onChange={nextImageUrl => {
@@ -164,6 +168,7 @@ function SegmentEditor({
                 model={model}
                 segmentId={segment.id}
                 editorServices={editorServices}
+                rendermime={rendermime}
                 initialMarkdown={markdown}
                 rows={4}
               />
@@ -231,6 +236,7 @@ function SegmentEditor({
             model={model}
             segmentId={segment.id}
             editorServices={editorServices}
+            rendermime={rendermime}
             initialMarkdown={markdown}
             tall
             rows={10}
@@ -254,6 +260,7 @@ export function StoryEditorDialogBody({
   commands,
   state,
   editorServices,
+  rendermime,
 }: IStoryEditorDialogBodyProps): JSX.Element {
   const {
     story,
@@ -268,14 +275,11 @@ export function StoryEditorDialogBody({
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
-    updateSegmentLayerName,
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
-  const showSegmentAnimation = !isVerticalScrollPresentation(
-    getStoryPresentationMode(story?.storyType),
-  );
+  const showSegmentAnimation = story?.storyType !== STORY_TYPE.verticalScroll;
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
@@ -304,6 +308,7 @@ export function StoryEditorDialogBody({
               state={state}
               segment={selectedSegment}
               editorServices={editorServices}
+              rendermime={rendermime}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
               showSegmentAnimation={showSegmentAnimation}
@@ -312,9 +317,6 @@ export function StoryEditorDialogBody({
               }}
               onContentChange={patch => {
                 updateSegmentContent(selectedSegment.id, patch);
-              }}
-              onLayerNameChange={name => {
-                updateSegmentLayerName(selectedSegment.id, name);
               }}
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);

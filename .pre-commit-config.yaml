@@ -27,7 +27,7 @@ repos:
 
   # Autoformat & lint: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.15.9
     hooks:
       - id: ruff
         args: ['--fix', '--show-fixes', '--exit-non-zero-on-fix']
@@ -47,6 +47,6 @@ repos:
 
   # Strip output cells from notebooks
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.9.1
+    rev: 0.5.0
     hooks:
       - id: nbstripout

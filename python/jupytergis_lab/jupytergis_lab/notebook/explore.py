@@ -63,7 +63,9 @@ def explore(
     for basemap_obj in _basemaps[basemap]:
         doc.add_raster_layer(basemap_obj.url, name=basemap_obj.name)
 
-    _add_layer(doc=doc, data=data, name=layer_name, zoom_to=True)
+    _add_layer(doc=doc, data=data, name=layer_name)
+
+    # TODO: Zoom to layer. Currently not exposed in Python API.
 
     doc.sidecar(title="JupyterGIS explorer")
 
@@ -79,7 +81,6 @@ def _add_layer(
     doc: GISDocument,
     data: Any,
     name: str,
-    zoom_to: bool = False,
 ) -> str:
     """Add a layer to the document, autodetecting its type.
 
@@ -88,7 +89,6 @@ def _add_layer(
     :param doc: A GISDocument to add the layer to.
     :param data: A data object. Valid data objects include geopandas GeoDataFrames and paths to GeoJSON files.
     :param name: The name that will be used for the layer.
-    :param zoom_to: When True, zoom the map to the layer once it is added.
 
     :return: A layer ID string.
 
@@ -109,7 +109,7 @@ def _add_layer(
         ext = data.suffix.lower()
 
         if ext in [".geojson", ".json"]:
-            return doc.add_geojson_layer(path=data, name=name, zoom_to=zoom_to)
+            return doc.add_geojson_layer(path=data, name=name)
         if ext in [".tif", ".tiff"]:
             raise NotImplementedError("GeoTIFFs not yet supported.")
         raise ValueError(f"Unsupported file type: {data}")
@@ -118,11 +118,7 @@ def _add_layer(
         from geopandas import GeoDataFrame
 
         if isinstance(data, GeoDataFrame):
-            return doc.add_geojson_layer(
-                data=data.to_geo_dict(),
-                name=name,
-                zoom_to=zoom_to,
-            )
+            return doc.add_geojson_layer(data=data.to_geo_dict(), name=name)
     except ImportError:
         pass
 

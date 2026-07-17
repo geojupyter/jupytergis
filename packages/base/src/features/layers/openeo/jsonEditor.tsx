@@ -5,8 +5,6 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import * as React from 'react';
 
-import { ErrorBanner } from '@/src/shared/components/ErrorBanner';
-
 export interface IJsonEditorProps {
   /** Stable serialized initial value. Changes reset the editor. */
   value: string;
@@ -81,11 +79,7 @@ export const JsonEditor: React.FC<IJsonEditorProps> = ({
     <div className="jp-openeo-json-editor">
       <div ref={hostRef} className="jp-openeo-json-editor-host" />
       {parseError && (
-        <ErrorBanner
-          variant="error"
-          message={parseError}
-          className="jp-openeo-json-editor-error"
-        />
+        <div className="jp-openeo-json-editor-error">{parseError}</div>
       )}
     </div>
   );

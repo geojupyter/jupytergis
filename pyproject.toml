@@ -21,7 +21,7 @@ build = [
     "datamodel-code-generator>=0.23.0",
     "hatchling>=1.5.0,<2",
     "jupyterlab>=4.5.1",
-    "uv",  # Only used for the layer gallery build,
+    "uv",  # Only used for the layer gallery build
 ]
 
 
@@ -118,7 +118,6 @@ ignore = [
     "PLR0915", # too-many-statements
     "PLR2004", # magic-value-comparison
     "PLW1508", # invalid-envvar-default
-    "PLW0603", # use global variables freely
     "PLW2901", # redefined-loop-name
     "PT006",   # pytest-parametrize-names-wrong-type
     "PTH103",  # os-makedirs

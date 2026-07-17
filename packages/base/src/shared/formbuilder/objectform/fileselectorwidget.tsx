@@ -30,20 +30,20 @@ export const FileSelectorWidget: React.FC<any> = props => {
 
   const handleBrowseServerFiles = async () => {
     try {
-      // Only the creation flow provides `dialogOptions`.
-      const isCreationDialog = Boolean(formOptions.dialogOptions);
+      const dialogElement = document.querySelector(
+        'dialog[aria-modal="true"]',
+      ) as HTMLDialogElement;
+      if (dialogElement) {
+        const dialogInstance = Dialog.tracker.find(
+          dialog => dialog.node === dialogElement,
+        );
 
-      const dialogElement = document.querySelector('dialog[aria-modal="true"]');
-      const dialogInstance = dialogElement
-        ? (Dialog.tracker.find(dialog => dialog.node === dialogElement) ?? null)
-        : null;
-
-      // Editing an existing object inside the Layer Properties dialog.
-      const isEditDialog = !isCreationDialog && dialogInstance !== null;
-
-      // JupyterLab serializes dialogs, so close the open one before the file
-      // browser can appear; reopen it afterwards.
-      dialogInstance?.resolve(0);
+        if (dialogInstance) {
+          dialogInstance.resolve(0);
+        }
+      } else {
+        console.warn('No open dialog found.');
+      }
 
       const output = await FileDialog.getOpenFiles({
         title: `Select ${formOptions.sourceType.split('Source')[0]} File`,
@@ -70,7 +70,7 @@ export const FileSelectorWidget: React.FC<any> = props => {
           formOptions.dialogOptions.layerData.name = fileName;
         }
 
-        if (isCreationDialog) {
+        if (dialogElement) {
           if (formOptions.sourceType === 'GeoTiffSource') {
             formOptions.dialogOptions.sourceData = {
               ...formOptions.sourceData,
@@ -94,42 +94,18 @@ export const FileSelectorWidget: React.FC<any> = props => {
             ...formOptions.dialogOptions,
           });
           await formDialog.launch();
-        } else if (isEditDialog) {
-          // Widget is unmounted, so persist directly then reopen the dialog.
-          const newParameters =
-            formOptions.sourceType === 'GeoTiffSource'
-              ? {
-                  urls: (formOptions.sourceData?.urls ?? []).map(
-                    (urlObject: any) => ({ ...urlObject, url: relativePath }),
-                  ),
-                }
-              : { path: relativePath };
-          formOptions.syncData?.(newParameters);
-
-          await reopenPropertiesDialog();
         }
-      } else if (isCreationDialog) {
-        const formDialog = new LayerCreationFormDialog({
-          ...formOptions.dialogOptions,
-        });
-        await formDialog.launch();
-      } else if (isEditDialog) {
-        // Cancelled: reopen the properties dialog unchanged.
-        await reopenPropertiesDialog();
+      } else {
+        if (dialogElement) {
+          const formDialog = new LayerCreationFormDialog({
+            ...formOptions.dialogOptions,
+          });
+          await formDialog.launch();
+        }
       }
     } catch (e) {
       console.error('Error handling file dialog:', e);
     }
-  };
-
-  // Lazy import avoids a circular dependency with the dialog module.
-  const reopenPropertiesDialog = async () => {
-    const { ObjectPropertiesWidget } =
-      await import('@/src/features/objectproperties/objectPropertiesDialog');
-    await new ObjectPropertiesWidget({
-      model: formOptions.model,
-      formSchemaRegistry: formOptions.formSchemaRegistry,
-    }).launch();
   };
 
   const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {

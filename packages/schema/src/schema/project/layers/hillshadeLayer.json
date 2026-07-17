@@ -13,14 +13,6 @@
       "type": "string",
       "description": "The color of the the shadows",
       "default": "#473B24"
-    },
-    "opacity": {
-      "type": "number",
-      "description": "The opacity of the source",
-      "default": 0.3,
-      "multipleOf": 0.1,
-      "minimum": 0,
-      "maximum": 1
     }
   }
 }

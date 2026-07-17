@@ -11,5 +11,5 @@ module.exports = {
     '^.+\\.(tsx?|js)$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
   },
   // Transform ESM-only packages that have no CommonJS build
-  transformIgnorePatterns: ['/node_modules/(?!(py2vega-ts|vega2ol|vega-.*|d3-.*|@jupyter/ydoc|ol)/)'],
+  transformIgnorePatterns: ['/node_modules/(?!(vega2ol|vega-.*|d3-.*|@jupyter/ydoc|ol)/)'],
 };

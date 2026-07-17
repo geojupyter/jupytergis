@@ -8,8 +8,27 @@ import {
 import { showAddOpenEOLayerDialog } from './addLayerDialog';
 
 /**
+ * Find the id of the OpenEO layer that references the given source.
+ */
+export function findOpenEOLayerIdForSource(
+  model: IJupyterGISModel,
+  sourceId: string,
+): string | undefined {
+  const layers = model.sharedModel.layers ?? {};
+  for (const [id, layer] of Object.entries(layers)) {
+    if (
+      layer?.type === 'OpenEOTileLayer' &&
+      (layer.parameters?.source as string | undefined) === sourceId
+    ) {
+      return id;
+    }
+  }
+  return undefined;
+}
+
+/**
  * Open the process-graph editor for an existing OpenEO layer and persist
- * the result.
+ * the result. Shared by the command and the Source Properties button.
  *
  * @param model - the active document model
  * @param layerId - the OpenEO layer to edit

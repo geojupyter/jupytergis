@@ -36,7 +36,6 @@
 @import url('./shared/popover.css');
 @import url('./shared/hoverCard.css');
 @import url('./shared/infoTip.css');
-@import url('./shared/errorBanner.css');
 @import url('./shared/command.css');
 @import url('./shared/combobox.css');
 @import url('./shared/input.css');
@@ -156,32 +155,6 @@ button.jp-mod-styled.jp-mod-reject {
 .jgis-left-panel-container {
   width: 250px;
   left: 0;
-}
-
-/* Right-edge drag handle used to widen the left panel (see leftpanel.tsx). */
-.jgis-left-panel-resize-handle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 6px;
-  cursor: ew-resize;
-  z-index: 41;
-}
-
-.jgis-left-panel-resize-handle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 2px;
-  background: transparent;
-  transition: background 120ms ease-in-out;
-}
-
-.jgis-left-panel-resize-handle:hover::after {
-  background: var(--jp-brand-color1);
 }
 
 /* Mobile bottom sheet — merged panel only */
@@ -322,44 +295,6 @@ body[data-notebook='specta']
   top: unset;
   bottom: 0.125rem;
   align-items: flex-end;
-}
-
-.jgis-compass-rose-overlay {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 144px;
-  height: 144px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgb(211 211 211 / 50%);
-  border-radius: 30%;
-  z-index: 999;
-  cursor: pointer;
-}
-
-.jgis-compass-rose-n svg {
-  width: 48px;
-  height: 48px;
-}
-
-.jgis-compass-rose-arrow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 33.33%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Pivot at the squircle's center (150% of this element's own height), not its own center. */
-  transform-origin: 50% 150%;
-}
-
-.jgis-compass-rose-arrow svg {
-  width: 60%;
-  height: auto;
 }
 
 .jgis-geometry-type-selector-overlay {

@@ -14,10 +14,7 @@ import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
-import {
-  IRenderMimeRegistry,
-  IUrlResolverFactory,
-} from '@jupyterlab/rendermime';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -29,8 +26,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   manager?: ServiceManager.IManager;
   contentFactory?: ConsolePanel.IContentFactory;
   mimeTypeService?: IEditorMimeTypeService;
-  rendermime: IRenderMimeRegistry;
-  urlResolverFactory?: IUrlResolverFactory;
+  rendermime?: IRenderMimeRegistry;
   consoleTracker?: IConsoleTracker;
   backendCheck?: () => boolean;
   drive?: Contents.IDrive | null;
@@ -83,7 +79,6 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       contentFactory: this.options.contentFactory,
       mimeTypeService: this.options.mimeTypeService,
       rendermime: this.options.rendermime,
-      urlResolverFactory: this.options.urlResolverFactory,
       consoleTracker: this.options.consoleTracker,
       commandRegistry: this.options.commands,
       state: this.options.state,

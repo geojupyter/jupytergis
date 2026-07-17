@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
+import React, { RefObject, useEffect, useState } from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
-import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -19,6 +19,18 @@ const SNAP_FIRST_MAX = 0.95;
 const SNAP_FIRST_DEFAULT = 0.7;
 /** Offset (px) for segment header height: margins from p and h1 in story content */
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
+
+export interface ISpectaMobileSingleModeContentProps {
+  segmentContainerRef: RefObject<HTMLDivElement>;
+  storyData: IJGISStoryMap | null;
+  currentIndex: number;
+  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  layerName: string;
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
 
 /**
  * Compute the first snap point so that vaul's --snap-point-height (the
@@ -46,12 +58,7 @@ function getFirstSnapFromSegmentHeader(
   return clamped;
 }
 
-/**
- * Guided column chrome on mobile
- * bottom drawer with segment content.
- */
-export function ColumnPresentationMobile({
-  model,
+export function SpectaMobileSingleModeContent({
   segmentContainerRef,
   storyData,
   currentIndex,
@@ -61,7 +68,7 @@ export function ColumnPresentationMobile({
   handleNext,
   hasPrev,
   hasNext,
-}: IStoryPresentationMobileChromeProps): JSX.Element {
+}: ISpectaMobileSingleModeContentProps): JSX.Element {
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [snapPoints, setSnapPoints] = useState<number[]>([
     SNAP_FIRST_DEFAULT,
@@ -159,7 +166,6 @@ export function ColumnPresentationMobile({
         <DrawerContent style={presentationStyle}>
           <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
-              model={model}
               isSpecta={true}
               isMobile={true}
               segmentContainerRef={segmentContainerRef}

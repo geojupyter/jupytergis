@@ -5,15 +5,12 @@ import type {
 } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  getStoryPresentationMode,
-  isColumnPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '@/src/features/story/utils/storySegmentOverrides';
+import { STORY_TYPE } from '@/src/types';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
@@ -69,9 +66,7 @@ export function useStoryMap({
   const currentSegmentContentMode = activeSlide?.content?.contentMode;
 
   const showGradient = storyData?.showGradient ?? true;
-  const isColumnStory = isColumnPresentation(
-    getStoryPresentationMode(storyData?.storyType),
-  );
+  const isGuidedStory = storyData?.storyType === STORY_TYPE.guided;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 
@@ -191,14 +186,14 @@ export function useStoryMap({
       return;
     }
     clearOverrideLayers();
-    if (isColumnStory) {
+    if (isGuidedStory) {
       setSelectedLayerByIndex(currentIndex);
     }
     overrideSymbology(currentIndex);
   }, [
     storyData,
     currentIndex,
-    isColumnStory,
+    isGuidedStory,
     setSelectedLayerByIndex,
     clearOverrideLayers,
     overrideSymbology,
@@ -206,10 +201,10 @@ export function useStoryMap({
 
   // Set selected layer on initial render and when story data changes
   useEffect(() => {
-    if (isColumnStory && storyData?.storySegments && currentIndex >= 0) {
+    if (isGuidedStory && storyData?.storySegments && currentIndex >= 0) {
       setSelectedLayerByIndex(currentIndex);
     }
-  }, [storyData, currentIndex, isColumnStory, setSelectedLayerByIndex]);
+  }, [storyData, currentIndex, isGuidedStory, setSelectedLayerByIndex]);
 
   return {
     storyData,

@@ -529,7 +529,7 @@ gallery: GallerySpecification = {
                                     "mappings": [
                                         {
                                             "scale": {"scheme": "identity"},
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "stroke-color",
                                                 "circle-fill-color",
@@ -541,7 +541,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.25},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -551,7 +551,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },
@@ -588,7 +588,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [0, 0, 0, 0]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "circle-fill-color",
                                             ],
@@ -598,7 +598,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [255, 255, 255, 1]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-color",
                                                 "circle-stroke-color",
                                             ],
@@ -608,7 +608,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.0},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -618,7 +618,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },
@@ -653,7 +653,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [0, 0, 0, 0]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "circle-fill-color",
                                             ],
@@ -663,7 +663,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [255, 255, 255, 1]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-color",
                                                 "circle-stroke-color",
                                             ],
@@ -673,7 +673,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.0},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -683,7 +683,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },
@@ -718,7 +718,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [0, 0, 0, 0]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "circle-fill-color",
                                             ],
@@ -728,7 +728,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [255, 255, 255, 1]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-color",
                                                 "circle-stroke-color",
                                             ],
@@ -738,7 +738,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.0},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -748,7 +748,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },
@@ -783,7 +783,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [0, 0, 0, 0]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "circle-fill-color",
                                             ],
@@ -793,7 +793,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [255, 255, 255, 1]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-color",
                                                 "circle-stroke-color",
                                             ],
@@ -803,7 +803,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.0},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -813,7 +813,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },
@@ -848,7 +848,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [0, 0, 0, 0]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "circle-fill-color",
                                             ],
@@ -858,7 +858,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [255, 255, 255, 1]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-color",
                                                 "circle-stroke-color",
                                             ],
@@ -868,7 +868,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.0},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -878,7 +878,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },
@@ -913,7 +913,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [0, 0, 0, 0]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "fill-color",
                                                 "circle-fill-color",
                                             ],
@@ -923,7 +923,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_rgba",
                                                 "params": {"value": [255, 255, 255, 1]},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-color",
                                                 "circle-stroke-color",
                                             ],
@@ -933,7 +933,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 1.0},
                                             },
-                                            "encodings": [
+                                            "channels": [
                                                 "stroke-width",
                                                 "circle-stroke-width",
                                             ],
@@ -943,7 +943,7 @@ gallery: GallerySpecification = {
                                                 "scheme": "constant_num",
                                                 "params": {"value": 5},
                                             },
-                                            "encodings": ["circle-radius"],
+                                            "channels": ["circle-radius"],
                                         },
                                     ],
                                 },

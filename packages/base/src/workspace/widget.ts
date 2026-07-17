@@ -10,10 +10,6 @@ import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
-import type {
-  IRenderMimeRegistry,
-  IUrlResolverFactory,
-} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
@@ -104,8 +100,6 @@ export namespace JupyterGISOutputWidget {
 export class JupyterGISPanel extends SplitPanel {
   constructor({
     model,
-    rendermime,
-    urlResolverFactory,
     consoleTracker,
     state,
     commandRegistry,
@@ -117,9 +111,7 @@ export class JupyterGISPanel extends SplitPanel {
     super({ orientation: 'vertical', spacing: 0 });
 
     this._state = state;
-    this._rendermime = rendermime;
-    this._urlResolverFactory = urlResolverFactory;
-    this._consoleOption = { commandRegistry, rendermime, ...consoleOption };
+    this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
 
     const readyPromise = model.sharedModel.initialSyncReady;
@@ -162,8 +154,7 @@ export class JupyterGISPanel extends SplitPanel {
       formSchemaRegistry: formSchemaRegistry,
       annotationModel: annotationModel,
       loggerRegistry: loggerRegistry,
-      rendermime: this._rendermime,
-      urlResolverFactory: this._urlResolverFactory,
+      rendermime: this._consoleOption.rendermime ?? null,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
@@ -291,8 +282,6 @@ export class JupyterGISPanel extends SplitPanel {
   private _mainViewModel: MainViewModel;
   private _view: ObservableMap<JSONValue>;
   private _jupyterGISMainViewPanel: JupyterGISMainViewPanel;
-  private _rendermime: IRenderMimeRegistry;
-  private _urlResolverFactory?: IUrlResolverFactory;
   private _consoleView?: ConsoleView;
   private _consoleOpened = false;
   private _consoleOption: Partial<ConsoleView.IOptions>;
@@ -303,8 +292,6 @@ export namespace JupyterGISPanel {
   export interface IOptions extends Partial<ConsoleView.IOptions> {
     model: IJupyterGISModel;
     commandRegistry: CommandRegistry;
-    rendermime: IRenderMimeRegistry;
-    urlResolverFactory?: IUrlResolverFactory;
     state?: IStateDB;
     consoleTracker?: IConsoleTracker;
     formSchemaRegistry?: IJGISFormSchemaRegistry;

@@ -70,7 +70,6 @@ const iconObject = {
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-scroll jgis-icon-adjust' },
-  [CommandIDs.showLayerPropertiesDialog]: { iconClass: 'fa fa-sliders' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
   [CommandIDs.togglePanel]: { icon: columns2Icon },

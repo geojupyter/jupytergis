@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-import types
-import warnings
 import xml.etree.ElementTree as ET
-from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
-from IPython import get_ipython
 from IPython.display import display
 from jupytergis_core.schema import (
     IGeoJSONSource,
@@ -61,9 +56,6 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__file__)
-
-# Make sure to warn only once for kernels that don't support await comm messages
-AWAIT_WARN_DONE = False
 
 # Layer/source types that have no QGIS equivalent and so cannot be round-tripped
 # through the QGIS format. Adding them is blocked while a QGIS file is open,
@@ -148,85 +140,35 @@ class GISDocument(CommWidget):
 
         self.ydoc["layers"] = self._layers = Map()
         self.ydoc["sources"] = self._sources = Map()
+        self.ydoc["options"] = self._options = Map(
+            {
+                "latitude": 0,
+                "longitude": 0,
+                "zoom": 0,
+                "bearing": 0,
+                "pitch": 0,
+                "projection": "EPSG:3857",
+            },
+        )
         self.ydoc["layerTree"] = self._layerTree = Array()
-        self.ydoc["annotations"] = self._annotations = Map()
         self.ydoc["metadata"] = self._metadata = Map()
 
-        # For untitled docs, initialize options right away
-        if path is None:
-            self.ydoc["options"] = self._options = Map(
-                {
-                    "latitude": latitude or 0,
-                    "longitude": longitude or 0,
-                    "zoom": zoom or 0,
-                    "bearing": bearing or 0,
-                    "pitch": pitch or 0,
-                    "projection": projection or "EPSG:3857",
-                },
-            )
-        else:
-            self.ydoc["options"] = self._options = Map()
+        if latitude is not None:
+            self._options["latitude"] = latitude
+        if longitude is not None:
+            self._options["longitude"] = longitude
+        if extent is not None:
+            self._options["extent"] = extent
+        if zoom is not None:
+            self._options["zoom"] = zoom
+        if bearing is not None:
+            self._options["bearing"] = bearing
+        if pitch is not None:
+            self._options["pitch"] = pitch
+        if projection is not None:
+            self._options["projection"] = projection
 
         self.tile_server = None
-        self._ready_future = asyncio.Future()
-        self._is_ready = False
-
-        # TODO Change this when ipykernel supports awaiting incomming
-        # comm messages without being blocked by the execution request
-        is_xeus_python = get_ipython().__class__.__name__ == "XPythonShell"
-        self.supports_top_level_await = (
-            is_xeus_python and version("xeus_python_shell") >= "0.8.0"
-        )
-
-        global AWAIT_WARN_DONE
-        if not self.supports_top_level_await and not AWAIT_WARN_DONE:
-            warnings.warn(
-                "The JupyterGIS Python API is better experienced in the xeus-python kernel which supports awaiting comm messages",
-                stacklevel=2,
-            )
-            AWAIT_WARN_DONE = True
-
-        def handle_doc_ready(self, *args, **kwargs):
-            if not self._ready_future.done():
-                self._ready_future.set_result(None)
-                self._is_ready = True
-
-            self._options.unobserve(self._options_subscription)
-
-            if latitude is not None:
-                self._options["latitude"] = latitude
-            if longitude is not None:
-                self._options["longitude"] = longitude
-            if extent is not None:
-                self._options["extent"] = extent
-            if zoom is not None:
-                self._options["zoom"] = zoom
-            if bearing is not None:
-                self._options["bearing"] = bearing
-            if pitch is not None:
-                self._options["pitch"] = pitch
-            if projection is not None:
-                self._options["projection"] = projection
-
-        self._handle_doc_ready = types.MethodType(handle_doc_ready, self)
-
-        # Listening to options change (assuming that when we receive the options it means the doc is synced)
-        self._options_subscription = self._options.observe(self._handle_doc_ready)
-
-        # If it's an untitled doc, trigger doc ready
-        if path is None:
-            self._handle_doc_ready()
-
-    async def ready(self):
-        if not self.supports_top_level_await:
-            return None
-        return await self._ready_future
-
-    def _assert_is_ready(self):
-        if not self._is_ready:
-            raise RuntimeError(
-                "Document is not loaded yet. Please execute `await doc.ready()` or wait a bit more before making modifications on the document.",
-            )
 
     @property
     def layers(self) -> dict:
@@ -305,7 +247,7 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
-        virtual_file = self._to_dict()
+        virtual_file = self.to_py()
         virtual_file["layerTree"] = reversed_tree(virtual_file["layerTree"])
         del virtual_file["metadata"]
 
@@ -318,7 +260,6 @@ class GISDocument(CommWidget):
         attribution: str = "",
         opacity: float = 1,
         url_parameters: dict[str, Any] | None = None,
-        zoom_to: bool = False,
     ):
         """Add a Raster Layer to the document.
 
@@ -327,9 +268,7 @@ class GISDocument(CommWidget):
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         :param url_parameters: Extra URL parameters for tile requests.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
         # Extract name from URL if not provided
         if name is None:
             name = _extract_layer_name(url)
@@ -358,10 +297,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity, "color": {}},
         }
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_vectortile_layer(
         self,
@@ -372,7 +308,6 @@ class GISDocument(CommWidget):
         max_zoom: int = 24,
         opacity: float = 1,
         symbology: SymbologyInput = None,
-        zoom_to: bool = False,
     ):
         """Add a Vector Tile Layer to the document.
 
@@ -381,10 +316,7 @@ class GISDocument(CommWidget):
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         :param symbology: The symbology configuration to persist with the layer.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         # Extract name from URL if not provided
         if name is None:
             name = _extract_layer_name(url)
@@ -420,10 +352,7 @@ class GISDocument(CommWidget):
         if symbology_state is not None:
             layer["parameters"]["symbologyState"] = symbology_state
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geojson_layer(
         self,
@@ -432,7 +361,6 @@ class GISDocument(CommWidget):
         name: str | None = None,
         opacity: float = 1,
         symbology: SymbologyInput = None,
-        zoom_to: bool = False,
     ):
         """Add a GeoJSON Layer to the document.
 
@@ -441,13 +369,7 @@ class GISDocument(CommWidget):
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
         :param symbology: The symbology configuration to persist with the layer.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
-        if isinstance(path, Path):
-            path = str(path)
-
         if isinstance(path, Path) and data is not None:
             raise ValueError("Cannot create a GeoJSON layer without data")
 
@@ -497,25 +419,18 @@ class GISDocument(CommWidget):
         if symbology_state is not None:
             layer["parameters"]["symbologyState"] = symbology_state
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_openeo_tile_layer(
         self,
         graph,
         name: str | None = None,
         opacity: float = 1,
-        zoom_to: bool = False,
     ):
         # Persist the bearer token alongside the server url so a connection
         # opened here from the notebook is reused by the frontend without the
         # user having to sign in a second time from the UI. The bearer is a
         # session identifier, not long-lived credentials.
-
-        self._assert_is_ready()
-
         source = {
             "type": SourceType.OpenEOTileSource,
             "name": f"{name} Source" if name is not None else "OpenEO Tiles Source",
@@ -535,10 +450,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_image_layer(
         self,
@@ -546,7 +458,6 @@ class GISDocument(CommWidget):
         coordinates: [],
         name: str | None = None,
         opacity: float = 1,
-        zoom_to: bool = False,
     ):
         """Add a Image Layer to the document.
 
@@ -554,10 +465,7 @@ class GISDocument(CommWidget):
         :param url: The image url.
         :param coordinates: Corners of image specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         if url is None or coordinates is None:
             raise ValueError("URL and Coordinates are required")
         # Extract name from URL if not provided
@@ -579,10 +487,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geotiff_layer(
         self,
@@ -596,7 +501,6 @@ class GISDocument(CommWidget):
         attribution: str = "",
         opacity: float = 1.0,
         symbology: SymbologyInput = None,
-        zoom_to: bool = False,
     ):
         """Add a GeoTIFF layer.
 
@@ -609,10 +513,7 @@ class GISDocument(CommWidget):
         :param projection: Source CRS when the GeoTIFF omits a standard EPSG code in its metadata
         :param opacity: The opacity, between 0 and 1, defaults to 1.0
         :param symbology: The symbology configuration to persist with the layer.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         # Extract name from URL if not provided
         if name is None:
             name = _extract_layer_name(url)
@@ -646,10 +547,7 @@ class GISDocument(CommWidget):
         if symbology_state is not None:
             layer["parameters"]["symbologyState"] = symbology_state
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geoZarr_layer(
         self,
@@ -660,7 +558,6 @@ class GISDocument(CommWidget):
         gamma: float = 1,
         wrap_x: bool = False,
         symbology: SymbologyInput = None,
-        zoom_to: bool = False,
     ):
         """Add a Zarr layer
 
@@ -671,7 +568,6 @@ class GISDocument(CommWidget):
         :param gamma: Gamma correction applied to all bands (default 1).
         :param wrap_x: Render tiles beyond the tile grid extent, defaults to False
         :param symbology: The symbology configuration to persist with the layer.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
         source = {
             "type": SourceType.GeoZarrSource,
@@ -700,10 +596,7 @@ class GISDocument(CommWidget):
         if symbology_state is not None:
             layer["parameters"]["symbologyState"] = symbology_state
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_hillshade_layer(
         self,
@@ -711,17 +604,13 @@ class GISDocument(CommWidget):
         name: str | None = None,
         urlParameters: dict | None = None,
         attribution: str = "",
-        zoom_to: bool = False,
     ):
         """Add a hillshade layer
 
         :param url: URL of the hillshade layer
         :param name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
         :param attribution: The attribution.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         if urlParameters is None:
             urlParameters = {}
         # Extract name from URL if not provided
@@ -746,10 +635,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id},
         }
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geoparquet_layer(
         self,
@@ -757,7 +643,6 @@ class GISDocument(CommWidget):
         name: str | None = None,
         opacity: float = 1,
         symbology: SymbologyInput = None,
-        zoom_to: bool = False,
     ):
         """Add a GeoParquet Layer to the document.
 
@@ -765,10 +650,7 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document.
         :param opacity: The opacity, between 0 and 1.
         :param symbology: The symbology configuration to persist with the layer.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         # Extract name from path if not provided
         if name is None:
             name = _extract_layer_name(path)
@@ -795,10 +677,7 @@ class GISDocument(CommWidget):
         if symbology_state is not None:
             layer["parameters"]["symbologyState"] = symbology_state
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geopackage_vector_layer(
         self,
@@ -808,7 +687,6 @@ class GISDocument(CommWidget):
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
         symbology: SymbologyInput = None,
-        zoom_to: bool = False,
     ):
         """Add a GeoPackage Vector Layer to the document.
 
@@ -818,13 +696,7 @@ class GISDocument(CommWidget):
         :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
         :param symbology: The symbology configuration to persist with the layers.
-        :param zoom_to: When True, zoom the map to the last added layer.
         """
-        self._assert_is_ready()
-
-        if isinstance(table_names, str):
-            table_names = [part.strip() for part in table_names.split(",")]
-
         if table_names is None:
             table_names = get_gpkg_layers(path, "features")
         elif isinstance(table_names, str):
@@ -842,7 +714,7 @@ class GISDocument(CommWidget):
 
         symbology_state = to_symbology_state(symbology)
 
-        for index, table_name in enumerate(table_names):
+        for table_name in table_names:
             source = {
                 "type": SourceType.GeoPackageVectorSource,
                 "name": f"{name} {table_name} Source",
@@ -873,11 +745,7 @@ class GISDocument(CommWidget):
 
             layer_id = str(uuid4()) + "/" + str(table_name)
             layer_ids.append(
-                self._add_layer(
-                    OBJECT_FACTORY.create_layer(layer, self),
-                    layer_id,
-                    zoom_to=zoom_to and index == len(table_names) - 1,
-                ),
+                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id),
             )
 
         return layer_ids
@@ -889,7 +757,6 @@ class GISDocument(CommWidget):
         name: str | None = None,
         attribution: str = "",
         opacity: float = 1,
-        zoom_to: bool = False,
     ):
         """Add a GeoPackage Raster Layer to the document.
 
@@ -898,10 +765,7 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
-        :param zoom_to: When True, zoom the map to the last added layer.
         """
-        self._assert_is_ready()
-
         if isinstance(table_names, str):
             table_names = [part.strip() for part in table_names.split(",")]
 
@@ -913,7 +777,7 @@ class GISDocument(CommWidget):
 
         layer_ids = []
 
-        for index, table_name in enumerate(table_names):
+        for table_name in table_names:
             source = {
                 "type": SourceType.GeoPackageRasterSource,
                 "name": f"{name} {table_name} Source",
@@ -937,11 +801,7 @@ class GISDocument(CommWidget):
 
             layer_id = str(uuid4()) + "/" + str(table_name)
             layer_ids.append(
-                self._add_layer(
-                    OBJECT_FACTORY.create_layer(layer, self),
-                    layer_id,
-                    zoom_to=zoom_to and index == len(table_names) - 1,
-                ),
+                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id),
             )
 
         return layer_ids
@@ -956,7 +816,6 @@ class GISDocument(CommWidget):
         opacity: float = 1,
         tile_dim_scale: int = 1,
         algorithm: BaseAlgorithm | None = None,
-        zoom_to: bool = False,
         **params,
     ):
         """Add an Xarray DataArray as a layer on the map.
@@ -972,10 +831,7 @@ class GISDocument(CommWidget):
         :param algorithm: A TiTiler algorithm class.
             See the `TiTiler algorithm docs <https://developmentseed.org/titiler/examples/notebooks/Working_with_Algorithm>`_
             for details.
-        :param zoom_to: When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         try:
             from jupyter_tiler.titiler import _get_server, add_data_array
         except ImportError as e:
@@ -1012,10 +868,7 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {"source": source_id, "opacity": opacity},
         }
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def get_wms_available_layers(
         self,
@@ -1119,7 +972,6 @@ class GISDocument(CommWidget):
         attribution: str = "",
         opacity: float = 1,
         interpolate: bool = False,
-        zoom_to: bool = False,
     ) -> str:
         """Add a WMS tile layer to the document.
 
@@ -1136,11 +988,7 @@ class GISDocument(CommWidget):
             Layer opacity in [0, 1].
         interpolate:
             Whether to interpolate between grid cells when overzooming.
-        zoom_to:
-            When True, zoom the map to the layer once it is added.
         """
-        self._assert_is_ready()
-
         if not url or not isinstance(url, str):
             raise ValueError("url must be a non-empty string")
         if not layer_name or not isinstance(layer_name, str):
@@ -1180,10 +1028,7 @@ class GISDocument(CommWidget):
             },
         }
 
-        return self._add_layer(
-            OBJECT_FACTORY.create_layer(layer, self),
-            zoom_to=zoom_to,
-        )
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def remove_layer(self, layer_id: str):
         """Remove a layer from the GIS document.
@@ -1220,12 +1065,7 @@ class GISDocument(CommWidget):
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(
-        self,
-        new_object,
-        id: str | None = None,
-        zoom_to: bool = False,
-    ) -> str:
+    def _add_layer(self, new_object, id: str | None = None) -> str:
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
@@ -1234,21 +1074,7 @@ class GISDocument(CommWidget):
         )
         self._layers[_id] = obj_dict
         self._layerTree.append(_id)
-        if zoom_to:
-            self.zoom_to_layer(_id)
         return _id
-
-    def zoom_to_layer(self, layer_id: str) -> None:
-        """Zoom the map to the extent of ``layer_id``.
-
-        This sends a one-off custom message over the widget comm channel; it is
-        an ephemeral action and is never persisted to the ``.jGIS`` file. The
-        frontend listens for ``zoom-to`` messages on the comm and re-centers the
-        map accordingly.
-
-        :param layer_id: The ID of the layer to zoom to.
-        """
-        self._comm.send(data={"type": "zoom-to", "layerId": layer_id})
 
     @classmethod
     def _make_comm(cls, *, path: str | None) -> dict:
@@ -1281,14 +1107,13 @@ class GISDocument(CommWidget):
             create_ydoc=path is None,
         )
 
-    def _to_dict(self) -> dict:
+    def to_py(self) -> dict:
         """Get the document structure as a Python dictionary."""
         return {
             "layers": self._layers.to_py(),
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
-            "annotations": self._annotations.to_py(),
             "metadata": self._metadata.to_py(),
         }
 

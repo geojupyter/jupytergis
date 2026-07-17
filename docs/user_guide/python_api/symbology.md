@@ -182,7 +182,7 @@ doc
 
 ## Additional symbology recipes
 
-Constant numeric encoding mapping:
+Constant numeric channel mapping:
 
 ```python
 from jupytergis import constant

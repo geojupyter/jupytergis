@@ -18,7 +18,7 @@
                   "id": "ne-rule-1",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "stroke-color"
                       ],
                       "scale": {
@@ -39,7 +39,7 @@
                   "id": "ne-rule-2",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "stroke-width"
                       ],
                       "scale": {
@@ -76,7 +76,7 @@
                   "id": "macrostrat-rule-0",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "fill-color",
                         "stroke-color",
                         "circle-fill-color",
@@ -167,7 +167,7 @@
                   "id": "macrostrat-rule-1",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "stroke-width",
                         "circle-stroke-width"
                       ],
@@ -187,7 +187,7 @@
                   "id": "macrostrat-rule-2",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "circle-radius"
                       ],
                       "scale": {
@@ -214,7 +214,7 @@
                   "id": "6af3d6f9-d108-4eab-91d9-71f93225978f",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "stroke-color"
                       ],
                       "scale": {

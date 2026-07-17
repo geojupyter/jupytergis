@@ -64,6 +64,7 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
 
 export const STORY_TYPE = {
   guided: 'guided',
+  unguided: 'unguided',
   verticalScroll: 'Vertical Scroll',
 } as const satisfies Record<string, StoryType>;
 

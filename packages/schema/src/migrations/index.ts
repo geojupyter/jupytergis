@@ -19,34 +19,6 @@ const STEPS: IMigrationStep[] = [
   { from: '0.5.0', to: '0.6.0', migrate: migrateV0_5ToV0_6 },
 ];
 
-/** Legacy story type removed from schema; migrate to guided on load. */
-function normalizeStoryMaps(
-  doc: Record<string, unknown>,
-): Record<string, unknown> {
-  const stories = doc.stories;
-  if (!stories || typeof stories !== 'object') {
-    return doc;
-  }
-
-  let changed = false;
-  const nextStories: Record<string, unknown> = {};
-
-  for (const [id, story] of Object.entries(stories)) {
-    if (
-      story &&
-      typeof story === 'object' &&
-      (story as { storyType?: string }).storyType === 'unguided'
-    ) {
-      nextStories[id] = { ...story, storyType: 'guided' };
-      changed = true;
-    } else {
-      nextStories[id] = story;
-    }
-  }
-
-  return changed ? { ...doc, stories: nextStories } : doc;
-}
-
 /**
  * Apply all necessary migration steps to bring *doc* up to *toVersion*.
  *
@@ -82,7 +54,7 @@ export function migrateDocument(
     }
   }
 
-  return normalizeStoryMaps(result);
+  return result;
 }
 
 /** Simple semver comparison: returns negative, 0, or positive. */

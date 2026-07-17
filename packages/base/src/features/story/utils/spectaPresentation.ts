@@ -1,12 +1,8 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import type { CSSProperties } from 'react';
 
-import {
-  getStoryPresentationMode,
-  isColumnPresentation,
-  isVerticalScrollPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { getCssVarAsColor } from '@/src/tools';
+import { STORY_TYPE } from '@/src/types';
 
 /** Jupyter theme vars used when presentation colors are unset (see storyPanel.css). */
 const JP_THEME_BG_VAR = '--jp-layout-color0';
@@ -27,8 +23,7 @@ export function resolveStoryPresentationColorForInput(
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
 ): CSSProperties {
-  const presentationMode = getStoryPresentationMode(story?.storyType);
-  const verticalScroll = isVerticalScrollPresentation(presentationMode);
+  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
   const style: CSSProperties = {};
@@ -38,7 +33,7 @@ export function getSpectaPresentationCssVars(
     style.color = textColor;
   }
 
-  if (verticalScroll) {
+  if (isListMode) {
     (style as Record<string, string>)['--jgis-specta-panel-color'] =
       'transparent';
     if (bgColor) {
@@ -62,12 +57,10 @@ export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
 ): CSSProperties {
   const style = getSpectaPresentationCssVars(story);
-  const column = isColumnPresentation(
-    getStoryPresentationMode(story?.storyType),
-  );
+  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
   const bgColor = story?.presentationBgColor;
 
-  if (column && bgColor) {
+  if (!isListMode && bgColor) {
     style.backgroundColor = bgColor;
   }
 

@@ -40,17 +40,6 @@
           "type": "string",
           "description": "Markdown string representing the content of the story stop",
           "default": ""
-        },
-        "attachments": {
-          "type": "object",
-          "description": "Embedded markdown attachments keyed by filename (nbformat attachments)",
-          "default": {},
-          "additionalProperties": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          }
         }
       },
       "required": ["contentMode"],

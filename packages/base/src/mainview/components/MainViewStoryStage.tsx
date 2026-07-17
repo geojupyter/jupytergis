@@ -1,83 +1,53 @@
-import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import React, { type RefObject } from 'react';
+import { IJupyterGISModel } from '@jupytergis/schema';
+import React, { RefObject } from 'react';
 
-import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import { StoryStage } from '@/src/features/story/presentation/StoryStage';
-import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
+import { ListStoryStageOverlay } from '@/src/features/story/components/ListStoryStageOverlay';
+import { ListStoryTitleBar } from '@/src/features/story/components/ListStoryTitleBar';
+import { ListStoryScrollTrackProvider } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
 export interface IMainViewStoryStageProps {
   model: IJupyterGISModel;
-  storyPresentationMode: StoryPresentationMode;
+  isListStory: boolean;
   isMobile: boolean;
   segmentTransition: IListStorySegmentTransition | null;
-  initialLayersReady: boolean;
-  isSpectaPresentation: boolean;
   stageRef: RefObject<HTMLDivElement>;
   controlsToolbarRef: RefObject<HTMLDivElement>;
-  storyScrollContainerRef: RefObject<HTMLDivElement>;
-  columnPanelContainerRef: RefObject<HTMLDivElement>;
-  storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
-  addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer: (id: string) => void;
-  onSegmentTransitionChange: (
-    payload: IListStorySegmentTransition | null,
-  ) => void;
-  onSegmentTransitionEnd: () => void;
+  panels: React.ReactNode;
 }
 
-/** Bridges mainView props onto the column / vertical-scroll StoryStage variants. */
 export function MainViewStoryStage({
   model,
-  storyPresentationMode,
+  isListStory,
   isMobile,
   segmentTransition,
-  initialLayersReady,
-  isSpectaPresentation,
   stageRef,
   controlsToolbarRef,
-  storyScrollContainerRef,
-  columnPanelContainerRef,
-  storyViewerPanelRef,
-  addLayer,
-  removeLayer,
-  onSegmentTransitionChange,
-  onSegmentTransitionEnd,
+  panels,
 }: IMainViewStoryStageProps): JSX.Element {
-  if (storyPresentationMode === 'verticalScroll') {
-    return (
-      <StoryStage
-        model={model}
-        presentationMode="verticalScroll"
-        isMobile={isMobile}
-        segmentTransition={segmentTransition}
-        stageRef={stageRef}
-        controlsToolbarRef={controlsToolbarRef}
-        initialLayersReady={initialLayersReady}
-        isSpecta={isSpectaPresentation}
-        addLayer={addLayer}
-        removeLayer={removeLayer}
-        storyScrollContainerRef={storyScrollContainerRef}
-        onSegmentTransitionChange={onSegmentTransitionChange}
-      />
-    );
-  }
-
   return (
-    <StoryStage
-      model={model}
-      presentationMode="column"
-      isMobile={isMobile}
-      segmentTransition={segmentTransition}
-      stageRef={stageRef}
-      controlsToolbarRef={controlsToolbarRef}
-      initialLayersReady={initialLayersReady}
-      isSpecta={isSpectaPresentation}
-      addLayer={addLayer}
-      removeLayer={removeLayer}
-      columnPanelContainerRef={columnPanelContainerRef}
-      storyViewerPanelRef={storyViewerPanelRef}
-      onSegmentTransitionEnd={onSegmentTransitionEnd}
-    />
+    <div
+      ref={stageRef}
+      className="jgis-mainview-stage"
+      style={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+      }}
+    >
+      <ListStoryScrollTrackProvider model={model} enabled={isListStory}>
+        {isListStory ? (
+          <>
+            <ListStoryTitleBar model={model} isMobile={isMobile} />
+            <ListStoryStageOverlay
+              model={model}
+              segmentTransition={segmentTransition}
+            />
+          </>
+        ) : null}
+        <div className="jgis-panels-wrapper">{panels}</div>
+        <div ref={controlsToolbarRef} className="jgis-controls-toolbar"></div>
+      </ListStoryScrollTrackProvider>
+    </div>
   );
 }

@@ -76,19 +76,19 @@ export function singleSymbolToGrammar(
     mappings: [
       {
         scale: { scheme: 'constant_rgba', params: { value: fill } },
-        encodings: ['fill-color', 'circle-fill-color'],
+        channels: ['fill-color', 'circle-fill-color'],
       },
       {
         scale: { scheme: 'constant_rgba', params: { value: stroke } },
-        encodings: ['stroke-color', 'circle-stroke-color'],
+        channels: ['stroke-color', 'circle-stroke-color'],
       },
       {
         scale: { scheme: 'constant_num', params: { value: strokeWidth } },
-        encodings: ['stroke-width', 'circle-stroke-width'],
+        channels: ['stroke-width', 'circle-stroke-width'],
       },
       {
         scale: { scheme: 'constant_num', params: { value: radius } },
-        encodings: ['circle-radius'],
+        channels: ['circle-radius'],
       },
     ],
   };
@@ -133,29 +133,29 @@ export function graduatedToGrammar(
     },
   };
 
-  const fillEncodings: IMapping['encodings'] = state.strokeFollowsFill
+  const fillChannels: IMapping['channels'] = state.strokeFollowsFill
     ? ['fill-color', 'stroke-color', 'circle-fill-color', 'circle-stroke-color']
     : ['fill-color', 'circle-fill-color'];
 
   const mappings: IMapping[] = [
-    { scale: colorRampScale, encodings: fillEncodings },
+    { scale: colorRampScale, channels: fillChannels },
   ];
 
   if (!state.strokeFollowsFill) {
     mappings.push({
       scale: { scheme: 'constant_rgba', params: { value: stroke } },
-      encodings: ['stroke-color', 'circle-stroke-color'],
+      channels: ['stroke-color', 'circle-stroke-color'],
     });
   }
 
   mappings.push(
     {
       scale: { scheme: 'constant_num', params: { value: strokeWidth } },
-      encodings: ['stroke-width', 'circle-stroke-width'],
+      channels: ['stroke-width', 'circle-stroke-width'],
     },
     {
       scale: { scheme: 'constant_num', params: { value: radius } },
-      encodings: ['circle-radius'],
+      channels: ['circle-radius'],
     },
   );
 
@@ -199,29 +199,29 @@ export function categorizedToGrammar(
     },
   };
 
-  const fillEncodings: IMapping['encodings'] = state.strokeFollowsFill
+  const fillChannels: IMapping['channels'] = state.strokeFollowsFill
     ? ['fill-color', 'stroke-color', 'circle-fill-color', 'circle-stroke-color']
     : ['fill-color', 'circle-fill-color'];
 
   const mappings: IMapping[] = [
-    { scale: categoricalScale, encodings: fillEncodings },
+    { scale: categoricalScale, channels: fillChannels },
   ];
 
   if (!state.strokeFollowsFill) {
     mappings.push({
       scale: { scheme: 'constant_rgba', params: { value: stroke } },
-      encodings: ['stroke-color', 'circle-stroke-color'],
+      channels: ['stroke-color', 'circle-stroke-color'],
     });
   }
 
   mappings.push(
     {
       scale: { scheme: 'constant_num', params: { value: strokeWidth } },
-      encodings: ['stroke-width', 'circle-stroke-width'],
+      channels: ['stroke-width', 'circle-stroke-width'],
     },
     {
       scale: { scheme: 'constant_num', params: { value: radius } },
-      encodings: ['circle-radius'],
+      channels: ['circle-radius'],
     },
   );
 

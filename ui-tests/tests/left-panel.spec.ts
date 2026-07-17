@@ -106,28 +106,6 @@ test.describe('#layerPanel', () => {
       await expect(showLayerButton).toHaveCount(0);
     });
 
-    test('should have an inline opacity slider', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-
-      // The top-level raster layer exposes an opacity slider.
-      const opacitySlider = layerTree.locator('.jp-gis-layerOpacitySlider');
-      await expect(opacitySlider).toHaveCount(1);
-
-      const thumb = opacitySlider.locator('.jgis-slider-thumb');
-
-      // Defaults to fully opaque (100%).
-      await expect(thumb).toHaveAttribute('aria-valuenow', '100');
-
-      // Adjusting the slider updates its value without changing selection.
-      await thumb.focus();
-      await thumb.press('Home');
-      await expect(thumb).toHaveAttribute('aria-valuenow', '0');
-
-      // Restore.
-      await thumb.press('End');
-      await expect(thumb).toHaveAttribute('aria-valuenow', '100');
-    });
-
     test('should hide the last layer', async ({ page }) => {
       const layerTree = await openLayerTree(page);
 

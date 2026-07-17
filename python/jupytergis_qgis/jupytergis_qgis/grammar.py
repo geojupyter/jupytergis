@@ -45,15 +45,15 @@ _OL_CANVAS_STROKE = [0.0, 0.0, 0.0, 1.0]
 # Number of gradient stops sampled for an exported heatmap colour ramp.
 _HEATMAP_RAMP_STOPS = 9
 
-# Encoding groups (see packages/schema/src/_interface/project/symbology.d.ts).
-_FILL_ENCODINGS = {"fill-color", "circle-fill-color"}
-_STROKE_COLOR_ENCODINGS = {"stroke-color", "circle-stroke-color"}
-_STROKE_WIDTH_ENCODINGS = {"stroke-width", "circle-stroke-width"}
-_RADIUS_ENCODINGS = {"circle-radius"}
-_PIXEL_COLOR_ENCODINGS = {"pixel-color", "pixel-rgb"}
-_PIXEL_ALPHA_ENCODINGS = {"pixel-alpha"}
-# Multiband RGB sub-encoding -> color index (red=0, green=1, blue=2).
-_PIXEL_BAND_ENCODINGS = {"pixel-red": 0, "pixel-green": 1, "pixel-blue": 2}
+# Channel groups (see packages/schema/src/_interface/project/symbology.d.ts).
+_FILL_CHANNELS = {"fill-color", "circle-fill-color"}
+_STROKE_COLOR_CHANNELS = {"stroke-color", "circle-stroke-color"}
+_STROKE_WIDTH_CHANNELS = {"stroke-width", "circle-stroke-width"}
+_RADIUS_CHANNELS = {"circle-radius"}
+_PIXEL_COLOR_CHANNELS = {"pixel-color", "pixel-rgb"}
+_PIXEL_ALPHA_CHANNELS = {"pixel-alpha"}
+# Multiband RGB sub-channel -> color index (red=0, green=1, blue=2).
+_PIXEL_BAND_CHANNELS = {"pixel-red": 0, "pixel-green": 1, "pixel-blue": 2}
 
 
 # ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ def _single_band_pseudocolor_grammar(band: int, color_stops: list) -> dict[str, 
         "mappings": [
             {
                 "scale": {"scheme": "colorRamp", "params": params},
-                "encodings": ["pixel-color"],
+                "channels": ["pixel-color"],
             },
         ],
     }
@@ -236,7 +236,7 @@ def multiband_raster_to_grammar(
     the transparency round-trips back to a QGIS alpha band on re-export.
     """
     ranges = ranges or {}
-    index_to_encoding = {0: "pixel-red", 1: "pixel-green", 2: "pixel-blue"}
+    index_to_channel = {0: "pixel-red", 1: "pixel-green", 2: "pixel-blue"}
     rules = []
     for index in sorted(bands):
         band = bands[index]
@@ -259,7 +259,7 @@ def multiband_raster_to_grammar(
                 "id": _new_id(),
                 "fields": [f"$band-{int(band)}"],
                 "mappings": [
-                    {"scale": scale, "encodings": [index_to_encoding[index]]},
+                    {"scale": scale, "channels": [index_to_channel[index]]},
                 ],
             },
         )
@@ -271,7 +271,7 @@ def multiband_raster_to_grammar(
                 "mappings": [
                     {
                         "scale": {"scheme": "identity", "params": {}},
-                        "encodings": ["pixel-alpha"],
+                        "channels": ["pixel-alpha"],
                     },
                 ],
             },
@@ -307,7 +307,7 @@ def kde_grammar(
         "mappings": [
             {
                 "scale": {"scheme": "colorRamp", "params": params},
-                "encodings": ["pixel-rgb"],
+                "channels": ["pixel-rgb"],
             },
         ],
     }
@@ -504,7 +504,7 @@ def grammar_layer_geometry_hint(grammar_layer: dict[str, Any]) -> str | None:
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
             if (
-                "circle-radius" in mapping.get("encodings", [])
+                "circle-radius" in mapping.get("channels", [])
                 and mapping.get("scale", {}).get("scheme") == "scalar"
             ):
                 return "circle"
@@ -515,8 +515,8 @@ def grammar_layer_alpha_factor(grammar_layer: dict[str, Any]) -> float:
     """Constant pixel-alpha/fill-alpha for a grammar layer, applied as layer opacity."""
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
-            encodings = set(mapping.get("encodings", []))
-            if encodings & {"pixel-alpha", "fill-alpha"}:
+            channels = set(mapping.get("channels", []))
+            if channels & {"pixel-alpha", "fill-alpha"}:
                 scale = mapping.get("scale", {})
                 if scale.get("scheme") == "constant_num":
                     return scale.get("params", {}).get("value", 1.0)
@@ -598,7 +598,7 @@ def _cluster_renderer(preprocess, inner_renderer):
 
 
 def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
-    """Extract constant per-encoding colors from grammar (for vector tile export)."""
+    """Extract constant per-channel colors from grammar (for vector tile export)."""
     colors: dict[str, list] = {}
     for grammar_layer in symbology_state.get("layers") or []:
         for rule in grammar_layer.get("rules", []):
@@ -607,8 +607,8 @@ def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
                 if scale.get("scheme") != "constant_rgba":
                     continue
                 value = scale.get("params", {}).get("value")
-                for encoding in mapping.get("encodings", []):
-                    colors.setdefault(encoding, value)
+                for channel in mapping.get("channels", []):
+                    colors.setdefault(channel, value)
     return colors
 
 
@@ -619,8 +619,8 @@ _VT_WHEN_GEOM = {
     "LineString": _VT_GEOM_LINE,
     "Polygon": _VT_GEOM_POLYGON,
 }
-# Ungated encoding -> (geometry, slot), preserving the historic flat-colour mapping.
-_VT_ENCODING_TARGET = {
+# Ungated channel -> (geometry, slot), preserving the historic flat-colour mapping.
+_VT_CHANNEL_TARGET = {
     "fill-color": (_VT_GEOM_POLYGON, "fill"),
     "stroke-color": (_VT_GEOM_LINE, "stroke"),
     "circle-fill-color": (_VT_GEOM_POINT, "fill"),
@@ -654,14 +654,14 @@ def _vt_layer_widths(
             value = scale.get("params", {}).get("value")
             if value is None:
                 continue
-            encodings = set(mapping.get("encodings", []))
-            if "stroke-width" in encodings:
+            channels = set(mapping.get("channels", []))
+            if "stroke-width" in channels:
                 geoms = (
                     (gate,) if gate is not None else (_VT_GEOM_LINE, _VT_GEOM_POLYGON)
                 )
                 for geom in geoms:
                     widths.setdefault(geom, float(value))
-            if "circle-stroke-width" in encodings:
+            if "circle-stroke-width" in channels:
                 geoms = (gate,) if gate is not None else (_VT_GEOM_POINT,)
                 for geom in geoms:
                     widths.setdefault(geom, float(value))
@@ -811,10 +811,10 @@ def grammar_to_vector_tile_styles(
             if gate is not None:
                 fill_scale = stroke_scale = None
                 for mapping in rule.get("mappings", []):
-                    encodings = set(mapping.get("encodings", []))
-                    if encodings & _FILL_ENCODINGS:
+                    channels = set(mapping.get("channels", []))
+                    if channels & _FILL_CHANNELS:
                         fill_scale = mapping.get("scale", {})
-                    if encodings & _STROKE_COLOR_ENCODINGS:
+                    if channels & _STROKE_COLOR_CHANNELS:
                         stroke_scale = mapping.get("scale", {})
                 layer_specs.extend(
                     _emit_vt_specs(
@@ -827,11 +827,11 @@ def grammar_to_vector_tile_styles(
                     ),
                 )
             else:
-                # Ungated: each encoding maps to its own geometry/slot.
+                # Ungated: each channel maps to its own geometry/slot.
                 for mapping in rule.get("mappings", []):
                     scale = mapping.get("scale", {})
-                    for encoding in mapping.get("encodings", []):
-                        target = _VT_ENCODING_TARGET.get(encoding)
+                    for channel in mapping.get("channels", []):
+                        target = _VT_CHANNEL_TARGET.get(channel)
                         if not target:
                             continue
                         geom, slot = target
@@ -850,8 +850,8 @@ def grammar_to_vector_tile_styles(
     return specs
 
 
-# Import: vector-tile geometry (int) -> grammar encoding for a colour slot.
-_VT_IMPORT_ENCODINGS = {
+# Import: vector-tile geometry (int) -> grammar channel for a colour slot.
+_VT_IMPORT_CHANNELS = {
     (_VT_GEOM_POLYGON, "fill"): "fill-color",
     (_VT_GEOM_POLYGON, "stroke"): "stroke-color",
     (_VT_GEOM_LINE, "stroke"): "stroke-color",
@@ -895,10 +895,10 @@ def _vt_instr_to_scale(instr: tuple) -> tuple[dict | None, str | None]:
 
 def _vt_width_mapping(geom: int, width: float) -> dict[str, Any]:
     """A constant stroke-width mapping for a geometry's import."""
-    encoding = "circle-stroke-width" if geom == _VT_GEOM_POINT else "stroke-width"
+    channel = "circle-stroke-width" if geom == _VT_GEOM_POINT else "stroke-width"
     return {
         "scale": {"scheme": "constant_num", "params": {"value": width}},
-        "encodings": [encoding],
+        "channels": [channel],
     }
 
 
@@ -931,12 +931,12 @@ def vector_tile_grammar(
         and all(instr == data_driven[0][2] for _, _, instr in data_driven)
     ):
         scale, field = _vt_instr_to_scale(data_driven[0][2])
-        encodings = []
+        channels = []
         for geom, slot, _ in data_driven:
-            encoding = _VT_IMPORT_ENCODINGS.get((geom, slot))
-            if encoding and encoding not in encodings:
-                encodings.append(encoding)
-        mappings: list[dict[str, Any]] = [{"scale": scale, "encodings": encodings}]
+            channel = _VT_IMPORT_CHANNELS.get((geom, slot))
+            if channel and channel not in channels:
+                channels.append(channel)
+        mappings: list[dict[str, Any]] = [{"scale": scale, "channels": channels}]
         for geom, width in geom_widths.items():
             mapping = _vt_width_mapping(geom, width)
             if mapping not in mappings:
@@ -951,15 +951,15 @@ def vector_tile_grammar(
         mappings = []
         field = None
         for slot, instr in slots.items():
-            encoding = _VT_IMPORT_ENCODINGS.get((geom, slot))
-            if encoding is None:
+            channel = _VT_IMPORT_CHANNELS.get((geom, slot))
+            if channel is None:
                 continue
             scale, scale_field = _vt_instr_to_scale(instr)
             if scale is None:
                 continue
             if scale_field:
                 field = scale_field
-            mappings.append({"scale": scale, "encodings": [encoding]})
+            mappings.append({"scale": scale, "channels": [channel]})
         if geom in geom_widths:
             mappings.append(_vt_width_mapping(geom, geom_widths[geom]))
         if not mappings:
@@ -1073,23 +1073,23 @@ def grammar_to_raster_renderer(
         for rule in grammar_layer.get("rules", []):
             rule_band = _parse_band(rule.get("fields") or [])
             for mapping in rule.get("mappings", []):
-                encodings = set(mapping.get("encodings", []))
+                channels = set(mapping.get("channels", []))
                 scale = mapping.get("scale", {})
                 if (
-                    encodings & _PIXEL_COLOR_ENCODINGS
+                    channels & _PIXEL_COLOR_CHANNELS
                     and scale.get("scheme") == "colorRamp"
                 ):
                     color_params = scale.get("params", {})
                     if rule_band is not None:
                         band = rule_band
-                elif encodings & _PIXEL_ALPHA_ENCODINGS:
+                elif channels & _PIXEL_ALPHA_CHANNELS:
                     alpha_present = True
                     if rule_band is not None:
                         alpha_band = rule_band
                 else:
-                    for encoding in encodings & _PIXEL_BAND_ENCODINGS.keys():
+                    for channel in channels & _PIXEL_BAND_CHANNELS.keys():
                         if rule_band is not None:
-                            multiband[_PIXEL_BAND_ENCODINGS[encoding]] = (
+                            multiband[_PIXEL_BAND_CHANNELS[channel]] = (
                                 rule_band,
                                 scale,
                             )

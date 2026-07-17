@@ -3,10 +3,7 @@ import type {
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
-import type {
-  IRenderMimeRegistry,
-  IUrlResolverFactory,
-} from '@jupyterlab/rendermime';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 
@@ -47,7 +44,6 @@ interface ISharedEditorContext {
   tracker: JupyterGISTracker;
   editorServices: IEditorServices;
   rendermime: IRenderMimeRegistry;
-  urlResolverFactory?: IUrlResolverFactory;
 }
 
 export const StoryEditorMode = {
@@ -92,7 +88,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
-    urlResolverFactory?: IUrlResolverFactory,
   ): void {
     this._context = {
       commands,
@@ -101,7 +96,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
       tracker,
       editorServices,
       rendermime,
-      urlResolverFactory,
     };
 
     this.releaseOtherDialogs(model);
@@ -118,7 +112,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
-    urlResolverFactory?: IUrlResolverFactory,
   ): Promise<void> {
     this._context = {
       commands,
@@ -127,7 +120,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
       tracker,
       editorServices,
       rendermime,
-      urlResolverFactory,
     };
     this.bindTracker();
 
@@ -463,7 +455,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
       formSchemaRegistry: this._context.formSchemaRegistry,
       editorServices: this._context.editorServices,
       rendermime: this._context.rendermime,
-      urlResolverFactory: this._context.urlResolverFactory,
     });
     editorState.dialog = dialog;
 

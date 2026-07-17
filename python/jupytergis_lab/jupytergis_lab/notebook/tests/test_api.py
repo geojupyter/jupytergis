@@ -54,28 +54,24 @@ class TestDocument:
 
 class TestTiffLayer(TestDocument):
     def test_sourcelayer(self):
-        self.doc._is_ready = True
         tif_layer = self.doc.add_geotiff_layer(url=TEST_TIF)
         assert self.doc.layers[tif_layer]
 
 
 class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
-        self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
         assert all(name in self.doc.layers for name in gpkg_layers)
 
 
 class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):
-        self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
         assert all(name in self.doc.layers for name in gpkg_layers)
 
 
 class TestGeoParquetLayer(TestDocument):
     def test_sourcelayer(self):
-        self.doc._is_ready = True
         geoparquet_layer = self.doc.add_geoparquet_layer(
             TEST_GEOPARQUET,
         )
@@ -224,7 +220,6 @@ class TestGrammarSymbologyBuilders:
 
 class TestGeoJSONGrammarSymbology(TestDocument):
     def test_add_geojson_layer_persists_fill_symbology_as_layers_only(self):
-        self.doc._is_ready = True
         layer_id = self.doc.add_geojson_layer(
             data=SAMPLE_GEOJSON,
             name="Quakes",
@@ -280,7 +275,6 @@ class TestQgisUnsupportedFeatures(TestDocument):
             self.doc._ensure_qgis_supported(object_type)  # does not raise
 
     def test_expression_symbology_blocked_on_add_layer(self):
-        self.doc._is_ready = True
         self.doc._path = "project.qgz"
         with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
             self.doc.add_geojson_layer(
@@ -292,7 +286,6 @@ class TestQgisUnsupportedFeatures(TestDocument):
         assert len(self.doc.layers) == 0
 
     def test_expression_symbology_blocked_on_apply(self):
-        self.doc._is_ready = True
         layer_id = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
         self.doc._path = "project.qgz"
         with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
@@ -302,7 +295,6 @@ class TestQgisUnsupportedFeatures(TestDocument):
             )
 
     def test_expression_symbology_allowed_on_jgis_document(self):
-        self.doc._is_ready = True
         layer_id = self.doc.add_geojson_layer(
             data=SAMPLE_GEOJSON,
             name="Quakes",
@@ -313,7 +305,6 @@ class TestQgisUnsupportedFeatures(TestDocument):
 
 class TestLayerManipulation(TestDocument):
     def test_add_and_remove_layer_and_source(self):
-        self.doc._is_ready = True
         layer_id = self.doc.add_geotiff_layer(url=TEST_TIF)
         assert len(self.doc.layers) == 1
 

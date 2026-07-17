@@ -23,8 +23,6 @@ import {
   IJGISLayerItem,
   IJGISLayers,
   IJGISLayerTree,
-  IJGISAnnotations,
-  IJGISMetadata,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -186,8 +184,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
-  annotations: IJGISAnnotations;
-  metadata: IJGISMetadata;
+  metadata: any;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -232,11 +229,9 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getAnnotation(id: string): IAnnotation | undefined;
-  setAnnotation(id: string, value: IAnnotation): void;
-  removeAnnotation(id: string): void;
-  getAnnotations(): Record<string, IAnnotation>;
-  getAnnotationIds(): string[];
+  getMetadata(key: string): string | IAnnotation | undefined;
+  setMetadata(key: string, value: string | IAnnotation): void;
+  removeMetadata(key: string): void;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
@@ -244,7 +239,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
-  annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -317,7 +311,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
-  sharedAnnotationsChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
@@ -404,6 +397,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   getClientId(): number;
 
+  addMetadata(key: string, value: string): void;
+  removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
@@ -428,6 +423,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
   addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null;
+  createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
   segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
   isStoryPreviewActive(): boolean;
@@ -597,6 +593,7 @@ export interface IJupyterGISSettings {
   stacBrowserDisabled?: boolean;
 
   // Right panel tabs
+  objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
 

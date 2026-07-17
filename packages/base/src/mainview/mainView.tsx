@@ -133,10 +133,6 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
-import {
-  getStoryPresentationMode,
-  isVerticalScrollPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -152,6 +148,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
+import { MainViewSpectaPanel } from './components/MainViewSpectaPanel';
 import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import {
@@ -180,6 +177,7 @@ import {
 } from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
+import { STORY_TYPE } from '../types';
 
 type OlLayerTypes =
   | TileLayer
@@ -229,7 +227,6 @@ interface IStates {
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
   scale: number;
-  rotation: number;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
@@ -318,8 +315,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
-    this._model.sharedAnnotationsChanged.connect(
-      this._onAnnotationsChanged,
+    this._model.sharedMetadataChanged.connect(
+      this._onSharedMetadataChanged,
       this,
     );
 
@@ -371,7 +368,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
       scale: 0,
-      rotation: 0,
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
@@ -394,10 +390,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   async componentDidMount(): Promise<void> {
-    this.setState({
-      annotations: this._model.sharedModel.getAnnotations(),
-    });
-
     if (this._loggerRegistry) {
       const logger = this._loggerRegistry.getLogger(this._model.filePath);
       logger.level = 'debug';
@@ -607,13 +599,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       view.on('change:center', () => {
         this._updateCenter();
         syncViewportThrottled();
-      });
-
-      view.on('change:rotation', () => {
-        this.setState(old => ({
-          ...old,
-          rotation: view.getRotation(),
-        }));
       });
 
       this._Map.on('postrender', () => {
@@ -1555,17 +1540,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     this._ready = true;
-
-    // If a "zoom to layer" request arrived before its layer was on the map,
-    // retry now that layers have been (re)built.
-    if (
-      this._pendingZoomLayerId &&
-      this.getLayer(this._pendingZoomLayerId) !== undefined
-    ) {
-      const pendingId = this._pendingZoomLayerId;
-      this._pendingZoomLayerId = null;
-      this._onZoomToPosition(this._model, pendingId);
-    }
   }
 
   /**
@@ -1666,7 +1640,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         layerParameters = layer.parameters as IHillshadeLayer;
 
         newMapLayer = new RasterLayer({
-          opacity: layerParameters.opacity ?? 0.3,
+          opacity: 0.3,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: {
@@ -2039,7 +2013,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     switch (layer.type) {
       case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
+        mapLayer.setOpacity(layer.parameters?.opacity || 1);
         break;
       }
       case 'VectorLayer': {
@@ -2051,7 +2025,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
-        mapLayer.setOpacity(layerParams.opacity ?? 1);
+        mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -2062,7 +2036,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorTileLayer': {
         const layerParams = layer.parameters as IVectorTileLayer;
 
-        mapLayer.setOpacity(layerParams.opacity ?? 1);
+        mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -2072,11 +2046,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'HillshadeLayer': {
         // TODO figure out color here
-        mapLayer.setOpacity(layer.parameters?.opacity ?? 0.3);
         break;
       }
       case 'ImageLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
       }
       case 'GeoTiffLayer': {
@@ -2123,7 +2095,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
       case 'StacLayer':
-        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
+        mapLayer.setOpacity(layer.parameters?.opacity || 1);
         break;
     }
   }
@@ -2182,6 +2154,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _ensureHighlightLayer(): void {
     ensureHighlightLayer(this._Map, this._highlightLayerRef);
+  }
+
+  /**
+   * Replace the highlight layer contents with the given geometries.
+   * Clears the source first so that stale highlights are always removed,
+   * including when the selection becomes empty (geometries = []).
+   */
+  private _setHighlightGeometries(geometries: Geometry[]): void {
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
+    source?.clear();
+    for (const geom of geometries) {
+      source?.addFeature(new Feature({ geometry: geom }));
+    }
   }
 
   /**
@@ -2998,17 +2984,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     let scrollContainer: HTMLDivElement | null = null;
 
     const resolveStoryScrollContainer = (): HTMLDivElement | null => {
-      const fromStageHost = this.storyScrollContainerRef.current;
-
-      if (fromStageHost && document.contains(fromStageHost)) {
-        return fromStageHost;
-      }
-
       const fromPanel =
         this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
 
       if (fromPanel && document.contains(fromPanel)) {
         return fromPanel;
+      }
+
+      const mobileScroll = document.querySelector(
+        '.jgis-story-mobile-list-scroll',
+      );
+
+      if (mobileScroll instanceof HTMLDivElement) {
+        return mobileScroll;
       }
 
       return null;
@@ -3035,7 +3023,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       accumulatedDeltaY = 0;
 
       // Don't want to handle next/prev logic in list mode
-      if (isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
+      if (storyType === STORY_TYPE.verticalScroll) {
         scrollContainer.scrollBy({ top: deltaY });
         return;
       }
@@ -3122,13 +3110,34 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._restoreMapInteractions();
   };
 
-  private _onAnnotationsChanged = (_: IJupyterGISModel, changes: MapChange) => {
+  private _onSharedMetadataChanged = (
+    _: IJupyterGISModel,
+    changes: MapChange,
+  ) => {
     const newState = { ...this.state.annotations };
     changes.forEach((val, key) => {
-      const data = this._model.sharedModel.getAnnotation(key);
+      if (!key.startsWith('annotation')) {
+        return;
+      }
+      const data = this._model.sharedModel.getMetadata(key);
 
       if (data && (val.action === 'add' || val.action === 'update')) {
-        newState[key] = data;
+        let jsonData: IAnnotation;
+        if (typeof data === 'string') {
+          try {
+            jsonData = JSON.parse(data);
+          } catch (e) {
+            this._log(
+              'warning',
+              `Failed to parse annotation data for ${key}: ${e}`,
+            );
+            return;
+          }
+        } else {
+          jsonData = data;
+        }
+
+        newState[key] = jsonData;
       } else if (val.action === 'delete') {
         delete newState[key];
       }
@@ -3303,14 +3312,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           layerParams.transition.type,
         );
 
-        return;
-      }
-
-      // Generic layer whose OpenLayers layer hasn't been created yet (e.g. a
-      // layer just added via the Python API with zoom_to=True). Remember the
-      // request and retry once the layer has been added to the map.
-      if (jgisLayer) {
-        this._pendingZoomLayerId = id;
         return;
       }
     }
@@ -3741,10 +3742,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }));
   };
 
-  private _handleResetRotation = () => {
-    this._Map.getView().setRotation(0);
-  };
-
   private _getVectorSourceFromLayerID = (
     layerID: string,
   ): VectorSource | undefined => {
@@ -3987,16 +3984,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loading,
       loadingLayer,
       remoteUser,
-      rotation,
       scale,
       segmentTransition,
       viewProjection,
     } = this.state;
     const { isMobile } = this.props;
     const selectedStory = this._model.getSelectedStory().story;
-    const storyPresentationMode = isSpectaPresentation
-      ? getStoryPresentationMode(selectedStory?.storyType)
-      : 'column';
+    const isListStory =
+      isSpectaPresentation &&
+      selectedStory?.storyType === STORY_TYPE.verticalScroll;
     const showSidePanels = !isSpectaPresentation;
     const showMergedMobilePanel =
       isMobile &&
@@ -4013,8 +4009,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           editingVectorLayer={editingVectorLayer}
           drawGeometryLabel={drawGeometryLabel}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
-          rotation={rotation}
-          onResetRotation={this._handleResetRotation}
         />
 
         <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
@@ -4032,37 +4026,43 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           >
             <MainViewStoryStage
               model={this._model}
-              storyPresentationMode={storyPresentationMode}
+              isListStory={isListStory}
               isMobile={isMobile}
               segmentTransition={segmentTransition}
-              initialLayersReady={initialLayersReady}
-              isSpectaPresentation={isSpectaPresentation}
               stageRef={this.divRef}
               controlsToolbarRef={this.controlsToolbarRef}
-              storyScrollContainerRef={this.storyScrollContainerRef}
-              columnPanelContainerRef={this.spectaContainerRef}
-              storyViewerPanelRef={this.storyViewerPanelRef}
-              addLayer={this._addLayerForPanels}
-              removeLayer={this._removeLayerForPanels}
-              onSegmentTransitionChange={this._handleSegmentTransitionChange}
-              onSegmentTransitionEnd={this._clearStoryScrollGuard}
+              panels={
+                showSidePanels ? (
+                  <MainViewSidePanels
+                    model={this._model}
+                    commands={this._mainViewModel.commands}
+                    settings={jgisSettings}
+                    showMergedMobilePanel={showMergedMobilePanel}
+                    state={this._state}
+                    formSchemaRegistry={this._formSchemaRegistry}
+                    annotationModel={this._annotationModel}
+                    patchGeoJSONFeatureProperties={
+                      this._patchGeoJSONFeatureProperties
+                    }
+                  />
+                ) : (
+                  <MainViewSpectaPanel
+                    model={this._model}
+                    isSpecta={isSpectaPresentation}
+                    isMobile={isMobile}
+                    initialLayersReady={initialLayersReady}
+                    containerRef={this.spectaContainerRef}
+                    storyViewerPanelRef={this.storyViewerPanelRef}
+                    addLayer={this._addLayerForPanels}
+                    removeLayer={this._removeLayerForPanels}
+                    onSegmentTransitionEnd={this._clearStoryScrollGuard}
+                    onSegmentTransitionChange={
+                      this._handleSegmentTransitionChange
+                    }
+                  />
+                )
+              }
             />
-            {showSidePanels ? (
-              <div className="jgis-panels-wrapper">
-                <MainViewSidePanels
-                  model={this._model}
-                  commands={this._mainViewModel.commands}
-                  settings={jgisSettings}
-                  showMergedMobilePanel={showMergedMobilePanel}
-                  state={this._state}
-                  formSchemaRegistry={this._formSchemaRegistry}
-                  annotationModel={this._annotationModel}
-                  patchGeoJSONFeatureProperties={
-                    this._patchGeoJSONFeatureProperties
-                  }
-                />
-              </div>
-            ) : null}
           </MainViewMapSurface>
           {!isSpectaPresentation ? (
             <StatusBar
@@ -4085,7 +4085,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
-  private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
@@ -4096,7 +4095,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
-  private _pendingZoomLayerId: string | null = null;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;

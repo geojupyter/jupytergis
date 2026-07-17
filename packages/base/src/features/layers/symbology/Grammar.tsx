@@ -2,7 +2,7 @@
  * Grammar symbology panel.
  *
  * Shows encoding rules grouped by layer. Each layer has optional render-side
- * transforms (KDE, cluster) followed by (field → scale → encodings) mapping rows.
+ * transforms (KDE, cluster) followed by (field → scale → channels) mapping rows.
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
@@ -12,6 +12,7 @@ import {
   faGripVertical,
   faPlus,
   faTrash,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -29,8 +30,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
-  WhenRow,
-  defaultPredicate,
+  WhenAddForm,
+  formatPredicate,
 } from '@/src/features/layers/symbology/components/MappingRow';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
@@ -48,7 +49,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 
-const DEFAULT_ENCODINGS: Encoding[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_CHANNELS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
 // Scale schemes that cannot be round-tripped through the QGIS format, and are
@@ -217,6 +218,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   onMoveUp,
   onMoveDown,
 }) => {
+  const [addingLayerWhen, setAddingLayerWhen] = useState(false);
   const dragIndexRef = useRef<number | null>(null);
   const dragOverRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -234,15 +236,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const addLayerPredicate = useCallback(() => {
-    onChange({ ...layer, when: [...(layer.when ?? []), defaultPredicate()] });
-  }, [layer, onChange]);
-
-  const updateLayerPredicate = useCallback(
-    (index: number, pred: IPredicate) => {
-      const next = [...(layer.when ?? [])];
-      next[index] = pred;
-      onChange({ ...layer, when: next });
+  const addLayerPredicate = useCallback(
+    (pred: IPredicate) => {
+      onChange({ ...layer, when: [...(layer.when ?? []), pred] });
+      setAddingLayerWhen(false);
     },
     [layer, onChange],
   );
@@ -296,9 +293,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultEncodings: Encoding[] = isRaster
+    const defaultChannels: Encoding[] = isRaster
       ? ['pixel-color']
-      : DEFAULT_ENCODINGS;
+      : DEFAULT_CHANNELS;
     onChange({
       ...layer,
       rows: [
@@ -306,7 +303,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {
           id: UUID.uuid4(),
           scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
-          encodings: [...defaultEncodings],
+          channels: [...defaultChannels],
         },
       ],
     });
@@ -390,22 +387,32 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           </Button>
         )}
         {layer.when?.map((pred, i) => (
-          <WhenRow
-            key={i}
-            predicate={pred}
-            availableFields={availableFields}
-            onChange={updated => updateLayerPredicate(i, updated)}
-            onDelete={() => removeLayerPredicate(i)}
-          />
+          <span key={i} className="jp-gis-grammar-when-chip">
+            {formatPredicate(pred)}
+            <Button
+              type="button"
+              onClick={() => removeLayerPredicate(i)}
+              title="Remove condition"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </Button>
+          </span>
         ))}
-        <Button
-          type="button"
-          className="jp-gis-grammar-when-add-btn"
-          onClick={addLayerPredicate}
-          title="Add condition"
-        >
-          <FontAwesomeIcon icon={faPlus} />
-        </Button>
+        {addingLayerWhen ? (
+          <WhenAddForm
+            availableFields={availableFields}
+            onAdd={addLayerPredicate}
+            onCancel={() => setAddingLayerWhen(false)}
+          />
+        ) : (
+          <Button
+            type="button"
+            className="jp-gis-grammar-when-add-btn"
+            onClick={() => setAddingLayerWhen(true)}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+          </Button>
+        )}
       </div>
 
       {/* Transform params (single transform per layer) */}
@@ -599,7 +606,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
-            encodings: [...(mapping.encodings as Encoding[])],
+            channels: [...(mapping.channels as Encoding[])],
             ...(rule.when ? { when: rule.when } : {}),
             ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
           })),
@@ -615,7 +622,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
     const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
       const rules: IEncodingRule[] = uiLayer.rows
-        .filter(row => row.encodings.length > 0)
+        .filter(row => row.channels.length > 0)
         .map(row => ({
           id: row.id,
           ...(row.fields?.length ? { fields: row.fields } : {}),
@@ -624,7 +631,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           mappings: [
             {
               scale: row.scale,
-              encodings: row.encodings as [Encoding, ...Encoding[]],
+              channels: row.channels as [Encoding, ...Encoding[]],
             },
           ],
         }));

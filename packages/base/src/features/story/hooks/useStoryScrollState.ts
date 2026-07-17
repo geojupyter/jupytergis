@@ -4,7 +4,7 @@ import { RefObject, useEffect, useRef } from 'react';
  * Specta story column scroll container + optional sentinel tracking.
  * - `scrollContainerRef`: list + single attach here (`#jgis-story-segment-panel`).
  * - With `sentinelsEnabled: false` (list mode), only the ref is used.
- * - `getAtTop` / `getAtBottom`: guided wheel edges (column mode).
+ * - `getAtTop` / `getAtBottom`: guided/unguided wheel edges (single mode).
  */
 interface IUseStoryScrollStateParams {
   currentIndex: number;

@@ -4,10 +4,10 @@
  *
  * Tests here cover Grammar-only features:
  *   - when-predicate guards
- *   - fan-out (one mapping → multiple encodings)
- *   - sub-encoding assembly (fill-red/green/blue/alpha → fill-color array)
+ *   - fan-out (one mapping → multiple channels)
+ *   - sub-channel assembly (fill-red/green/blue/alpha → fill-color array)
  *   - constant and identity scales
- *   - multiple rules on the same encoding (last unconditional wins)
+ *   - multiple rules on the same channel (last unconditional wins)
  */
 
 jest.mock('ol/expr/expression', () => ({}));
@@ -40,7 +40,7 @@ function makeState(
 // ---------------------------------------------------------------------------
 
 describe('grammarToOLStyle — constant scale', () => {
-  it('outputs the literal RGBA value on the target encoding', () => {
+  it('outputs the literal RGBA value on the target channel', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
@@ -50,7 +50,7 @@ describe('grammarToOLStyle — constant scale', () => {
               scheme: 'constant_rgba',
               params: { value: [255, 0, 0, 1] },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -58,14 +58,14 @@ describe('grammarToOLStyle — constant scale', () => {
     expect(style['fill-color']).toEqual([255, 0, 0, 1]);
   });
 
-  it('outputs a literal number on a numeric encoding', () => {
+  it('outputs a literal number on a numeric channel', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
         mappings: [
           {
             scale: { scheme: 'constant_num', params: { value: 3 } },
-            encodings: ['stroke-width'],
+            channels: ['stroke-width'],
           },
         ],
       }),
@@ -75,11 +75,11 @@ describe('grammarToOLStyle — constant scale', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Fan-out — one mapping targeting multiple encodings
+// Fan-out — one mapping targeting multiple channels
 // ---------------------------------------------------------------------------
 
 describe('grammarToOLStyle — fan-out', () => {
-  it('writes the same expression to all listed encodings', () => {
+  it('writes the same expression to all listed channels', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
@@ -89,7 +89,7 @@ describe('grammarToOLStyle — fan-out', () => {
               scheme: 'constant_rgba',
               params: { value: [0, 128, 255, 1] },
             },
-            encodings: ['fill-color', 'stroke-color', 'circle-fill-color'],
+            channels: ['fill-color', 'stroke-color', 'circle-fill-color'],
           },
         ],
       }),
@@ -109,11 +109,11 @@ describe('grammarToOLStyle — fan-out', () => {
               scheme: 'constant_rgba',
               params: { value: [255, 0, 0, 1] },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
           {
             scale: { scheme: 'constant_num', params: { value: 2 } },
-            encodings: ['stroke-width', 'circle-stroke-width'],
+            channels: ['stroke-width', 'circle-stroke-width'],
           },
         ],
       }),
@@ -125,10 +125,10 @@ describe('grammarToOLStyle — fan-out', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Sub-encoding assembly
+// Sub-channel assembly
 // ---------------------------------------------------------------------------
 
-describe('grammarToOLStyle — sub-encoding assembly', () => {
+describe('grammarToOLStyle — sub-channel assembly', () => {
   it('assembles fill-red/green/blue/alpha into fill-color array expression', () => {
     const style = grammarToOLStyle(
       makeState({
@@ -136,35 +136,35 @@ describe('grammarToOLStyle — sub-encoding assembly', () => {
         mappings: [
           {
             scale: { scheme: 'constant_num', params: { value: 255 } },
-            encodings: ['fill-red'],
+            channels: ['fill-red'],
           },
           {
             scale: { scheme: 'constant_num', params: { value: 0 } },
-            encodings: ['fill-green', 'fill-blue'],
+            channels: ['fill-green', 'fill-blue'],
           },
           {
             scale: { scheme: 'constant_num', params: { value: 1 } },
-            encodings: ['fill-alpha'],
+            channels: ['fill-alpha'],
           },
         ],
       }),
     );
     expect(style['fill-color']).toEqual(['color', 255, 0, 0, 1]);
-    // Sub-encodings should not appear as top-level keys
+    // Sub-channels should not appear as top-level keys
     expect(style['fill-red']).toBeUndefined();
     expect(style['fill-green']).toBeUndefined();
     expect(style['fill-blue']).toBeUndefined();
     expect(style['fill-alpha']).toBeUndefined();
   });
 
-  it('defaults missing sub-encodings to 0 (and alpha to 1)', () => {
+  it('defaults missing sub-channels to 0 (and alpha to 1)', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
         mappings: [
           {
             scale: { scheme: 'constant_num', params: { value: 128 } },
-            encodings: ['fill-red'],
+            channels: ['fill-red'],
           },
         ],
       }),
@@ -190,7 +190,7 @@ describe('grammarToOLStyle — when predicates', () => {
               scheme: 'constant_rgba',
               params: { value: [255, 0, 0, 1] },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -208,7 +208,7 @@ describe('grammarToOLStyle — when predicates', () => {
         mappings: [
           {
             scale: { scheme: 'constant_rgba', params: { value: [0, 0, 0, 1] } },
-            encodings: ['stroke-color'],
+            channels: ['stroke-color'],
           },
         ],
       }),
@@ -230,7 +230,7 @@ describe('grammarToOLStyle — when predicates', () => {
               scheme: 'constant_rgba',
               params: { value: [255, 0, 0, 1] },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -250,7 +250,7 @@ describe('grammarToOLStyle — when predicates', () => {
                 scheme: 'constant_rgba',
                 params: { value: [255, 0, 0, 1] },
               },
-              encodings: ['fill-color'],
+              channels: ['fill-color'],
             },
           ],
         },
@@ -262,7 +262,7 @@ describe('grammarToOLStyle — when predicates', () => {
                 scheme: 'constant_rgba',
                 params: { value: [0, 255, 0, 1] },
               },
-              encodings: ['fill-color'],
+              channels: ['fill-color'],
             },
           ],
         },
@@ -280,7 +280,7 @@ describe('grammarToOLStyle — when predicates', () => {
 // ---------------------------------------------------------------------------
 
 describe('grammarToOLStyle — colorRamp scale', () => {
-  it('emits encodingZero when no field and no stops', () => {
+  it('emits channelZero when no field and no stops', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
@@ -296,7 +296,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
                 fallback: [0, 0, 0, 0],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -322,7 +322,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
                 fallback: [0, 0, 0, 0],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -357,7 +357,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
                 colorStops: stops,
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -387,7 +387,7 @@ describe('grammarToOLStyle — categorical scale', () => {
               scheme: 'categorical',
               params: { colorRamp: 'viridis', fallback: [0, 0, 0, 0] },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -419,7 +419,7 @@ describe('grammarToOLStyle — categorical scale', () => {
                 ],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -454,7 +454,7 @@ describe('grammarToOLStyle — scalar scale', () => {
                 fallback: 5,
               },
             },
-            encodings: ['stroke-width'],
+            channels: ['stroke-width'],
           },
         ],
       }),
@@ -479,7 +479,7 @@ describe('grammarToOLStyle — scalar scale', () => {
                 fallback: 1,
               },
             },
-            encodings: ['circle-radius'],
+            channels: ['circle-radius'],
           },
         ],
       }),
@@ -496,14 +496,12 @@ describe('grammarToOLStyle — scalar scale', () => {
 // ---------------------------------------------------------------------------
 
 describe('grammarToOLStyle — identity scale', () => {
-  it('emits coalesce(get(field), fallback) for a color encoding', () => {
+  it('emits coalesce(get(field), fallback) for a color channel', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
         fields: ['color'],
-        mappings: [
-          { scale: { scheme: 'identity' }, encodings: ['fill-color'] },
-        ],
+        mappings: [{ scale: { scheme: 'identity' }, channels: ['fill-color'] }],
       }),
     ) as any;
     expect(style['fill-color'][0]).toBe('coalesce');
@@ -512,13 +510,13 @@ describe('grammarToOLStyle — identity scale', () => {
     expect(style['fill-color'][2]).toEqual([0, 0, 0, 0]);
   });
 
-  it('emits coalesce(get(field), 0) for a numeric encoding', () => {
+  it('emits coalesce(get(field), 0) for a numeric channel', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
         fields: ['width'],
         mappings: [
-          { scale: { scheme: 'identity' }, encodings: ['stroke-width'] },
+          { scale: { scheme: 'identity' }, channels: ['stroke-width'] },
         ],
       }),
     ) as any;
@@ -527,13 +525,11 @@ describe('grammarToOLStyle — identity scale', () => {
     expect(style['stroke-width'][2]).toBe(0);
   });
 
-  it('emits encodingZero when no field is set', () => {
+  it('emits channelZero when no field is set', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
-        mappings: [
-          { scale: { scheme: 'identity' }, encodings: ['fill-color'] },
-        ],
+        mappings: [{ scale: { scheme: 'identity' }, channels: ['fill-color'] }],
       }),
     );
     expect(style['fill-color']).toBe('rgba(0,0,0,0)');
@@ -574,7 +570,7 @@ describe('grammarToOLStyle — OL runtime parsing', () => {
                 fallback: [0, 0, 0, 0] as [number, number, number, number],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -602,7 +598,7 @@ describe('grammarToOLStyle — OL runtime parsing', () => {
                 fallback: [0, 0, 0, 0] as [number, number, number, number],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -692,7 +688,7 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
                 ],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -737,7 +733,7 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
                 fallback: [0, 0, 0, 0] as [number, number, number, number],
               },
             },
-            encodings: ['fill-color'],
+            channels: ['fill-color'],
           },
         ],
       }),
@@ -774,7 +770,7 @@ describe('extractEncodingFieldValues', () => {
           scheme: 'categorical',
           params: { colorRamp: 'schemeCategory10', fallback: [0, 0, 0, 0] },
         },
-        encodings: ['fill-color'],
+        channels: ['fill-color'],
       },
     ],
   });
@@ -809,7 +805,7 @@ describe('extractEncodingFieldValues', () => {
               fallback: [0, 0, 0, 0],
             },
           },
-          encodings: ['fill-color'],
+          channels: ['fill-color'],
         },
       ],
     });

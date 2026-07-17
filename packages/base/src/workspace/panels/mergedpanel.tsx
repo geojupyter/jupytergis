@@ -15,6 +15,7 @@ import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
+import { ObjectPropertiesReact } from '../../features/objectproperties';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
 
 export interface IMergedPanelProps {
@@ -102,11 +103,18 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
   };
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    if (!props.settings.leftPanelDisabled && !props.settings.layersDisabled) {
+    const { leftPanelDisabled, rightPanelDisabled } = props.settings;
+    if (!leftPanelDisabled && !props.settings.layersDisabled) {
       return 'layers';
+    }
+    if (!rightPanelDisabled && !props.settings.objectPropertiesDisabled) {
+      return 'objectProperties';
     }
     return '';
   });
+
+  const [selectedObjectProperties, setSelectedObjectProperties] =
+    React.useState(undefined);
 
   const { layerTree } = useLayerTree(props.model);
 
@@ -135,6 +143,19 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       title: 'Stac Browser',
       enabled: !leftPanelDisabled && !props.settings.stacBrowserDisabled,
       content: <StacPanel model={props.model} />,
+    },
+    {
+      name: 'objectProperties',
+      title: 'Object Properties',
+      enabled: !rightPanelDisabled && !props.settings.objectPropertiesDisabled,
+      content: (
+        <ObjectPropertiesReact
+          setSelectedObject={setSelectedObjectProperties}
+          selectedObject={selectedObjectProperties}
+          formSchemaRegistry={props.formSchemaRegistry}
+          model={props.model}
+        />
+      ),
     },
     {
       name: 'annotations',
