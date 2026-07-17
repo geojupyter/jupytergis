@@ -45,6 +45,10 @@ import {
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '../features/story/presentation/getStoryPresentationMode';
+import {
   StoryEditorMode,
   StoryEditorSession,
 } from '../features/story/storyEditorSession';
@@ -54,11 +58,7 @@ import {
 } from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import {
-  JupyterGISTracker,
-  STORY_TYPE,
-  SYMBOLOGY_VALID_LAYER_TYPES,
-} from '../types';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -1957,7 +1957,9 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -1994,7 +1996,9 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }

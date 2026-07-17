@@ -263,10 +263,18 @@ export function ListStoryScrollTrackProvider({
       );
 
       if (scroller && segment !== undefined) {
-        scroller.scrollTo({
-          top: segment.start,
-          behavior: options?.behavior ?? 'smooth',
-        });
+        const isHidden = getComputedStyle(scroller).visibility === 'hidden';
+        const behavior = options?.behavior ?? (isHidden ? 'auto' : 'smooth');
+
+        if (isHidden && behavior === 'auto') {
+          scroller.scrollTop = segment.start;
+        } else {
+          scroller.scrollTo({
+            top: segment.start,
+            behavior,
+          });
+        }
+
         return;
       }
 
