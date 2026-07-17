@@ -1,7 +1,5 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
-  overflow: auto;
-  position: relative;
 }
 
 .jgis-story-segment-container {
@@ -40,23 +38,6 @@
   object-fit: contain;
   display: block;
   border-radius: var(--jp-border-radius);
-}
-
-.jgis-story-viewer-image-title {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  margin-top: 0;
-  margin-bottom: 0;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-  background-color: rgba(0, 0, 0, 0.3);
-  text-align: center;
 }
 
 .jgis-story-viewer-nav-container {
@@ -100,17 +81,6 @@
   padding-top: 1rem;
 }
 
-.jgis-story-viewer-nav-container-specta-mobile {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  padding: 0 1rem;
-}
-
-.jgis-story-viewer-nav-container-specta-mobile .jgis-story-navbar {
-  justify-content: space-between;
-}
-
 .jgis-story-navbar.jgis-story-navbar-specta-mod {
   position: fixed;
   top: 50%;
@@ -141,17 +111,6 @@
   padding-left: 1rem;
 }
 
-.jgis-story-viewer-specta-right-panel-mod {
-  scale: 1.5;
-  top: 3.5rem !important;
-  right: 5.5rem !important;
-  font-size: var(--jp-ui-font-size2);
-}
-
-.jgis-panel-tab-content-mod {
-  background-color: plum;
-}
-
 .jgis-right-panel-container.jgis-specta-right-panel-container-mod {
   width: 55%;
   height: 100%;
@@ -169,7 +128,6 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  overflow: auto;
   background: linear-gradient(
     to left,
     var(--jgis-specta-panel-color, var(--jp-layout-color0)) 49%,
@@ -190,28 +148,17 @@
 }
 
 .jgis-story-viewer-panel-specta-mod {
-  display: flex;
   height: 100%;
   width: 45%;
-  align-items: center;
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-font-color1));
   background-color: var(--jgis-specta-panel-color, var(--jp-layout-color0));
   overflow-y: auto;
   max-height: 100%;
-}
-
-.jgis-story-viewer-panel-specta-mod.jgis-story-viewer-panel-specta-mod-vertical-scroll {
-  align-items: flex-start;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-.jgis-story-viewer-panel-specta-mod-vertical-scroll,
-.jgis-specta-right-panel-container-mod:has(
-  .jgis-story-viewer-panel-specta-mod-vertical-scroll
-) {
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
 }
 
 .jgis-mainview-stage {
@@ -243,20 +190,25 @@
 }
 
 .jgis-story-title-bar--mobile {
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
   padding: 0.5rem 0;
   overflow: visible;
 }
 
+.jgis-story-title-bar--mobile > * {
+  grid-area: 1 / 1;
+}
+
 .jgis-story-title-bar--mobile .jgis-story-title-bar-menu-btn {
+  justify-self: start;
   position: relative;
   z-index: 1;
 }
 
 .jgis-story-title-bar-active-segment {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, 0);
+  justify-self: center;
   max-width: calc(100% - 4rem);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -265,7 +217,6 @@
   pointer-events: none;
   opacity: 1;
   font-weight: bold;
-  margin-top: 3px;
 }
 
 .jgis-story-title-bar-active-segment[data-slide-direction] {
@@ -283,12 +234,12 @@
 @keyframes jgis-story-title-bar-active-segment-enter {
   from {
     opacity: 0;
-    transform: translate(-50%, var(--jgis-story-title-bar-slide-offset));
+    transform: translateY(var(--jgis-story-title-bar-slide-offset));
   }
 
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
@@ -348,6 +299,19 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
+}
+
+.jgis-story-stage-scroll-host {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--jgis-story-title-bar-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 1;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .jgis-story-stage-overlay {
@@ -435,7 +399,7 @@
   width: 25%;
   max-height: 100%;
   overflow: auto;
-  padding: 0.75rem;
+  padding: 1.25rem;
   box-sizing: border-box;
   border-radius: 8px;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
@@ -497,6 +461,7 @@
 .jgis-story-mobile-list-scroll {
   position: fixed;
   inset: 0;
+  z-index: 6;
   top: var(--jgis-story-title-bar-height);
   width: 100%;
   overflow-y: auto;
