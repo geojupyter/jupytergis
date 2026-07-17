@@ -64,7 +64,7 @@ import {
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import TileState from 'ol/TileState';
-import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
+import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
@@ -508,6 +508,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!this._model.isSpectaMode()) {
       controls.push(new FullScreen({ target: controlsToolbar }));
     }
+
+    controls.push(new Rotate({ target: controlsToolbar, autoHide: true }));
 
     if (this._model.jgisSettings.zoomButtonsEnabled) {
       this._zoomControl = new Zoom({ target: controlsToolbar });
