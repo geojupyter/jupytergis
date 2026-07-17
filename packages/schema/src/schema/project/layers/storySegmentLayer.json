@@ -53,12 +53,7 @@
           }
         }
       },
-      "required": ["contentMode"],
-      "default": {
-        "contentMode": "map",
-        "title": "",
-        "image": ""
-      }
+      "required": ["contentMode"]
     },
     "transition": {
       "type": "object",
