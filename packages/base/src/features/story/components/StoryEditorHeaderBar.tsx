@@ -1,12 +1,18 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useState, type RefObject } from 'react';
+import React, { useState, type RefObject } from 'react';
 
+import { TitleInput } from '@/src/features/story/components/TitleInput';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
+  formatMarkdownSegmentGapLabel,
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
 import Badge from '@/src/shared/components/Badge';
@@ -32,54 +38,6 @@ export interface IStoryEditorHeaderBarProps {
   segmentCount: number;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
   portalContainerRef: RefObject<HTMLElement | null>;
-}
-
-function StoryTitleInput({
-  value,
-  onChange,
-  disabled = false,
-}: {
-  value: string;
-  onChange: (title: string) => void;
-  disabled?: boolean;
-}): JSX.Element {
-  const [draft, setDraft] = useState(value);
-
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  return (
-    <Input
-      className="jgis-story-editor-toolbar-title"
-      value={disabled ? '' : draft}
-      placeholder={disabled ? 'No story' : 'Untitled story'}
-      disabled={disabled}
-      aria-label="Story title"
-      onChange={event => {
-        setDraft(event.target.value);
-      }}
-      onKeyDown={event => {
-        if (disabled) {
-          return;
-        }
-
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          event.currentTarget.blur();
-        } else if (event.key === 'Escape') {
-          event.preventDefault();
-          setDraft(value);
-          event.currentTarget.blur();
-        }
-      }}
-      onBlur={() => {
-        if (!disabled && draft !== value) {
-          onChange(draft);
-        }
-      }}
-    />
-  );
 }
 
 function StorySettingsPopover({
@@ -142,6 +100,19 @@ function StorySettingsPopover({
                 }}
               />
             </label>
+            {isVerticalScrollPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
+              <label className="jgis-story-editor-toggle-row">
+                <span>Gap between markdown segments</span>
+                <Switch
+                  checked={story.markdownSegmentGap === true}
+                  onCheckedChange={checked => {
+                    onUpdateStory({ markdownSegmentGap: checked });
+                  }}
+                />
+              </label>
+            ) : null}
             <label className="jgis-story-editor-field">
               <span>Background color</span>
               <Input
@@ -186,7 +157,7 @@ export function StoryEditorHeaderBar({
 
   return (
     <div className="jgis-story-editor-context-bar">
-      <StoryTitleInput
+      <TitleInput
         value={story?.title ?? ''}
         disabled={!story}
         onChange={title => {
@@ -203,6 +174,14 @@ export function StoryEditorHeaderBar({
         {story ? (
           <span className="jgis-story-editor-context-meta">
             {formatGradientLabel(story.showGradient)}
+          </span>
+        ) : null}
+        {story &&
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(story.storyType),
+        ) ? (
+          <span className="jgis-story-editor-context-meta">
+            {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
           </span>
         ) : null}
         {story && canPreview ? (

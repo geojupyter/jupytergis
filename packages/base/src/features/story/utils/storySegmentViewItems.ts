@@ -33,11 +33,6 @@ export function buildStorySegmentViewItems(
 export function getStorySegmentDisplayTitle(
   item: IStorySegmentViewItem,
 ): string {
-  const contentTitle = item.activeSlide?.content?.title;
-  if (typeof contentTitle === 'string' && contentTitle.trim() !== '') {
-    return contentTitle;
-  }
-
   return item.layerName;
 }
 

@@ -20,7 +20,7 @@
                   "id": "29006c09-5ad9-4c3a-8130-9b5970d7a447",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "stroke-width"
                       ],
                       "scale": {
@@ -59,7 +59,7 @@
                   "id": "349c3f32-12c1-4826-bdce-c8a4afb11fde",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "stroke-color"
                       ],
                       "scale": {

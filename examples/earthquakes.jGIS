@@ -31,7 +31,7 @@
                   "id": "e4d14881-dd9d-46cd-8ff3-715951cbd4c5",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "stroke-width",
                         "circle-stroke-width"
                       ],
@@ -51,7 +51,7 @@
                   "id": "36737177-80f9-469f-af38-453fe39008a5",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "circle-radius"
                       ],
                       "scale": {
@@ -87,7 +87,7 @@
                   "id": "905092db-86dc-4792-91a7-8051aa515092",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "fill-color",
                         "circle-fill-color"
                       ],
@@ -125,7 +125,7 @@
                   "id": "d01b7a04-0191-4667-ad4f-0802d8ce7a08",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "pixel-rgb"
                       ],
                       "scale": {
@@ -150,7 +150,7 @@
                   "id": "5ad03fb3-ec3e-4227-a22d-f2b19dd6513c",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "pixel-alpha"
                       ],
                       "scale": {

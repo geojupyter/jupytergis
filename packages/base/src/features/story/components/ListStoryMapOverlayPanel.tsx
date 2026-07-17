@@ -1,10 +1,11 @@
-import { IJGISStoryMap } from '@jupytergis/schema';
+import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
 import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 
 interface IListStoryMapOverlayPanelProps {
+  model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   segmentIndex: number;
   items: IStorySegmentViewItem[];
@@ -12,6 +13,7 @@ interface IListStoryMapOverlayPanelProps {
 
 /** Map segment chrome on the list-story stage overlay (not in the scroll column). */
 export function ListStoryMapOverlayPanel({
+  model,
   storyData,
   segmentIndex,
   items,
@@ -24,6 +26,7 @@ export function ListStoryMapOverlayPanel({
   return (
     <div className="jgis-story-map-overlay-content">
       <StoryViewerPanel
+        model={model}
         isSpecta
         disableSegmentAnimation
         storyData={storyData}

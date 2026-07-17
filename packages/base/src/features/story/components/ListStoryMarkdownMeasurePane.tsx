@@ -1,8 +1,11 @@
+import type { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 
 import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListStoryOverlayMarkdown';
+import { whenImagesSettled } from '@/src/features/story/utils/whenImagesSettled';
 
 interface IListStoryMarkdownMeasurePaneProps {
+  model: IJupyterGISModel;
   segmentId: string;
   markdown: string;
   onHeight: (segmentId: string, height: number) => void;
@@ -13,6 +16,7 @@ interface IListStoryMarkdownMeasurePaneProps {
  * Single off-screen pane matching overlay markdown layout for height measurement.
  */
 export function ListStoryMarkdownMeasurePane({
+  model,
   segmentId,
   markdown,
   onHeight,
@@ -21,6 +25,7 @@ export function ListStoryMarkdownMeasurePane({
   const contentRef = useRef<HTMLDivElement>(null);
   const renderedRef = useRef(false);
   const completedRef = useRef(false);
+  const imageWaitCancelRef = useRef<(() => void) | null>(null);
 
   const completeMeasure = useCallback((): void => {
     if (completedRef.current) {
@@ -41,17 +46,37 @@ export function ListStoryMarkdownMeasurePane({
   const handleRendered = useCallback((): void => {
     renderedRef.current = true;
     reportHeight();
-    completeMeasure();
+
+    const content = contentRef.current;
+    if (!content) {
+      completeMeasure();
+      return;
+    }
+
+    imageWaitCancelRef.current?.();
+    imageWaitCancelRef.current = whenImagesSettled(content, () => {
+      imageWaitCancelRef.current = null;
+      reportHeight();
+      completeMeasure();
+    });
   }, [reportHeight, completeMeasure]);
 
   useLayoutEffect(() => {
     renderedRef.current = false;
     completedRef.current = false;
+    imageWaitCancelRef.current?.();
+    imageWaitCancelRef.current = null;
+
     if (!markdown) {
       renderedRef.current = true;
       reportHeight();
       completeMeasure();
     }
+
+    return () => {
+      imageWaitCancelRef.current?.();
+      imageWaitCancelRef.current = null;
+    };
   }, [segmentId, markdown, reportHeight, completeMeasure]);
 
   useLayoutEffect(() => {
@@ -80,6 +105,8 @@ export function ListStoryMarkdownMeasurePane({
       <div ref={contentRef}>
         {markdown ? (
           <ListStoryOverlayMarkdown
+            model={model}
+            segmentId={segmentId}
             source={markdown}
             onRendered={handleRendered}
           />

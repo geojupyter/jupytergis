@@ -70,6 +70,7 @@
   min-width: unset;
   padding: unset;
   margin-right: 4px;
+  flex-shrink: 0;
 }
 
 .jp-gis-layer.jp-mod-selected button:hover .jp-icon-selectable {
@@ -79,6 +80,7 @@
 .jp-gis-layerIcon {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .jp-gis-layerIcon > svg {
@@ -123,6 +125,44 @@
   padding: 3px 0;
   cursor: pointer;
   flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Wraps the shared (story-editor) Slider so it fits the layer row. */
+.jp-gis-layerOpacitySlider {
+  width: 72px;
+  min-width: 56px;
+  margin: 0 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Use the JupyterLab brand blue for the filled range by default. */
+.jp-gis-layerOpacitySlider .jgis-slider-range {
+  background-color: var(--jp-brand-color1);
+}
+
+/* On a selected (blue) row, recolor the slider so it reads against the
+   inverse background instead of showing the green accent range. */
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-track {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-inverse-font-color1),
+    transparent 70%
+  );
+}
+
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-range {
+  background-color: var(--jp-ui-inverse-font-color1);
+}
+
+.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-thumb {
+  background-color: var(--jp-ui-inverse-font-color1);
+  border-color: var(--jp-ui-inverse-font-color1);
 }
 
 .jp-gis-layerSlideNumber {

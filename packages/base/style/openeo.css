@@ -713,28 +713,6 @@
   color: var(--jp-ui-font-color1);
 }
 
-.jp-openeo-bbox-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.jp-openeo-bbox-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.jp-openeo-bbox-grid span {
-  font-size: var(--jp-ui-font-size0);
-  color: var(--jp-ui-font-color2);
-}
-
-.jp-openeo-bbox-grid input {
-  padding: 3px 6px;
-}
-
 /* Right pane toolbar */
 .jp-openeo-toolbar {
   display: flex;

@@ -28,9 +28,40 @@ interface ILeftPanelProps {
   settings: IJupyterGISSettings;
 }
 
+const MIN_PANEL_WIDTH = 200;
+const MAX_PANEL_WIDTH = 600;
+const DEFAULT_PANEL_WIDTH = 320;
+
 export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   const nodeRef = React.useRef<HTMLDivElement>(null);
   const [leftPanelOpen] = useUIState('leftPanelOpen', props.model);
+  const [panelWidth, setPanelWidth] = React.useState(DEFAULT_PANEL_WIDTH);
+
+  /**
+   * Start a drag from the panel's right edge to resize its width.
+   */
+  const handleResizeStart = (event: React.PointerEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const startX = event.clientX;
+    const startWidth = nodeRef.current?.offsetWidth ?? panelWidth;
+
+    const handleMove = (moveEvent: PointerEvent) => {
+      const width = Math.min(
+        MAX_PANEL_WIDTH,
+        Math.max(MIN_PANEL_WIDTH, startWidth + moveEvent.clientX - startX),
+      );
+      setPanelWidth(width);
+    };
+
+    const handleUp = () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+  };
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     if (!props.settings.layersDisabled) {
@@ -82,6 +113,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
         ref={nodeRef}
         className="jgis-left-panel-container"
         style={{
+          width: panelWidth,
           display:
             props.settings.leftPanelDisabled ||
             allLeftTabsDisabled ||
@@ -94,6 +126,11 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
           tabs={tabs}
           curTab={curTab}
           onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+        />
+        <div
+          className="jgis-left-panel-resize-handle"
+          onPointerDown={handleResizeStart}
+          title="Drag to resize"
         />
       </div>
     </Draggable>

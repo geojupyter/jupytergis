@@ -1,11 +1,15 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
+import { StoryRenderMimeProvider } from '@/src/features/story/components/StoryRenderMime';
 import { StoryEditorDialogBody } from './StoryEditorDialogBody';
 import { StoryEditorSession } from './storyEditorSession';
 
@@ -16,6 +20,7 @@ export interface IStoryEditorWidgetOptions {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
   rendermime: IRenderMimeRegistry;
+  urlResolverFactory?: IUrlResolverFactory;
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
@@ -23,14 +28,19 @@ export class StoryEditorWidget extends Dialog<boolean> {
 
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
-      <StoryEditorDialogBody
-        model={options.model}
-        commands={options.commands}
-        state={options.state}
-        formSchemaRegistry={options.formSchemaRegistry}
-        editorServices={options.editorServices}
+      <StoryRenderMimeProvider
         rendermime={options.rendermime}
-      />
+        model={options.model}
+        urlResolverFactory={options.urlResolverFactory}
+      >
+        <StoryEditorDialogBody
+          model={options.model}
+          commands={options.commands}
+          state={options.state}
+          formSchemaRegistry={options.formSchemaRegistry}
+          editorServices={options.editorServices}
+        />
+      </StoryRenderMimeProvider>
     );
 
     super({
@@ -44,13 +54,10 @@ export class StoryEditorWidget extends Dialog<boolean> {
     this.addClass('jgis-story-editor-dialog');
   }
 
-  // Prevent Jupyter Dialog from from eating enter key presses
+  // Prevent Jupyter Dialog from from eating key presses
   protected _evtKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      const active = document.activeElement;
-      if (active?.closest('.cm-editor')) {
-        return;
-      }
+    if (event.key === 'Enter' || event.key === 'Escape') {
+      return;
     }
 
     super._evtKeydown(event);
