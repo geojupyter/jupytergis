@@ -53,6 +53,22 @@
   gap: 0.5rem;
 }
 
+.jgis-draw-custom-attributes-preset-save-collapse {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    max-height 0.2s ease-out,
+    opacity 0.2s ease-out;
+}
+
+.jgis-draw-custom-attributes-preset-save-collapse--open {
+  max-height: 6rem;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .jgis-draw-custom-attributes-preset-save-row {
   margin-top: 0.25rem;
 }
