@@ -123,6 +123,10 @@ export class ToolbarWidget extends ReactiveToolbar {
         },
       });
 
+      NewSubMenu.aboutToClose.connect(() => {
+        NewEntryButton.pressed = false;
+      });
+
       this.addItem('New', NewEntryButton);
       NewEntryButton.node.dataset.testid = 'new-entry-button';
 
