@@ -270,11 +270,17 @@ function DrawCustomAttributesDialogContent({
           <p className="jgis-draw-custom-attributes-error">{draftError}</p>
         ) : null}
 
-        {presetNameError ? (
-          <p className="jgis-draw-custom-attributes-error">{presetNameError}</p>
-        ) : null}
+        <div
+          className={`jgis-draw-custom-attributes-preset-save-collapse${
+            savingPreset
+              ? ' jgis-draw-custom-attributes-preset-save-collapse--open'
+              : ''
+          }`}
+        >
+          {presetNameError ? (
+            <p className="jgis-draw-custom-attributes-error">{presetNameError}</p>
+          ) : null}
 
-        {savingPreset ? (
           <div className="jgis-property-row jgis-property-row-editor jgis-draw-custom-attributes-preset-save-row">
             <Input
               className="jgis-draw-custom-attributes-preset-name-input"
@@ -308,7 +314,7 @@ function DrawCustomAttributesDialogContent({
               <Ban />
             </Button>
           </div>
-        ) : null}
+        </div>
         <div className="jgis-draw-custom-attributes-row">
           <div className="jgis-draw-custom-attributes-actions">
             <Button
