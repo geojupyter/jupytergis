@@ -44,14 +44,34 @@ jobs:
         shell: 'bash -l {0}'
         run: 'pip install --group build --group typecheck'
 
+      - name: 'Get yarn cache directory path'
+        id: 'yarn-cache-dir-path'
+        shell: 'bash -l {0}'
+        run: |
+          set -e
+          CACHE_DIR="$(jlpm config get cacheFolder)"
+          echo "dir=${CACHE_DIR}" >> $GITHUB_OUTPUT
+
+      - name: 'Setup yarn cache'
+        uses: 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae' # v5
+        id: 'yarn-cache' # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: '${{ steps.yarn-cache-dir-path.outputs.dir }}'
+          key: "yarn-${{ hashFiles('yarn.lock') }}"
+          restore-keys: |
+            yarn-
+
       - name: 'Build the extensions'
         shell: 'bash -l {0}'
         run: |
           set -eux
           jlpm install
           jlpm build
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+          jupyter labextension list
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK" \
+            || { echo "::error::jupytergis-core extension failed to install"; exit 1; }
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK" \
+            || { echo "::error::jupytergis-lab extension failed to install"; exit 1; }
 
       # NOTE: Requires JavaScript build to generate Python types!
       - name: 'Run mypy for jupytergis packages'
