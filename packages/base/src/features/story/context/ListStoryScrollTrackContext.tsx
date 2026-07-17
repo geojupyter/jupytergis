@@ -86,6 +86,8 @@ export function ListStoryScrollTrackProvider({
   const mapViewportHeightOption =
     mapViewportHeight > 0 ? mapViewportHeight : undefined;
 
+  const markdownSegmentGap = storyData?.markdownSegmentGap === true;
+
   const buildScrollTrackLayout = useCallback(
     (
       nextHeightsById: Readonly<Record<string, number>>,
@@ -95,8 +97,9 @@ export function ListStoryScrollTrackProvider({
         viewportHeight,
         mapViewportHeight: mapViewportHeightOption,
         heightsById: nextHeightsById,
+        markdownSegmentGap,
       }),
-    [items, viewportHeight, mapViewportHeightOption],
+    [items, viewportHeight, mapViewportHeightOption, markdownSegmentGap],
   );
 
   const syncScrollerMetrics = useCallback((scroller: HTMLDivElement): void => {
@@ -207,6 +210,7 @@ export function ListStoryScrollTrackProvider({
                 viewportHeight,
                 mapViewportHeight: mapViewportHeight || undefined,
                 heightsById: prev,
+                markdownSegmentGap,
               })
             : null;
 
@@ -230,7 +234,7 @@ export function ListStoryScrollTrackProvider({
         return next;
       });
     },
-    [enabled, items, mapViewportHeight, viewportHeight],
+    [enabled, items, mapViewportHeight, viewportHeight, markdownSegmentGap],
   );
 
   const { segmentBeingMeasured, reportHeight, completeMeasure } =
@@ -259,10 +263,18 @@ export function ListStoryScrollTrackProvider({
       );
 
       if (scroller && segment !== undefined) {
-        scroller.scrollTo({
-          top: segment.start,
-          behavior: options?.behavior ?? 'smooth',
-        });
+        const isHidden = getComputedStyle(scroller).visibility === 'hidden';
+        const behavior = options?.behavior ?? (isHidden ? 'auto' : 'smooth');
+
+        if (isHidden && behavior === 'auto') {
+          scroller.scrollTop = segment.start;
+        } else {
+          scroller.scrollTo({
+            top: segment.start,
+            behavior,
+          });
+        }
+
         return;
       }
 
@@ -293,6 +305,7 @@ export function ListStoryScrollTrackProvider({
         <div className="jgis-story-markdown-measure-host" aria-hidden>
           <ListStoryMarkdownMeasurePane
             key={segmentBeingMeasured.id}
+            model={model}
             segmentId={segmentBeingMeasured.id}
             markdown={segmentBeingMeasured.markdown}
             onHeight={reportHeight}

@@ -5,7 +5,7 @@ import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
 type SegmentContent = NonNullable<IStorySegmentLayer['content']>;
 
 export type SegmentContentPatch = Partial<
-  Pick<SegmentContent, 'title' | 'markdown' | 'image'>
+  Pick<SegmentContent, 'title' | 'markdown' | 'image' | 'attachments'>
 >;
 
 const EMPTY_SEGMENT_CONTENT: SegmentContent = { contentMode: 'map' };
@@ -20,6 +20,7 @@ export function normalizeSegmentContentForMode(
     return {
       contentMode: 'markdown',
       markdown: value.markdown ?? '',
+      attachments: value.attachments,
     };
   }
 
@@ -28,6 +29,7 @@ export function normalizeSegmentContentForMode(
     title: value.title ?? '',
     image: value.image ?? '',
     markdown: value.markdown ?? '',
+    attachments: value.attachments,
   };
 }
 

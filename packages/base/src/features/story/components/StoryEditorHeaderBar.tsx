@@ -4,10 +4,15 @@ import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState, type RefObject } from 'react';
 
 import { TitleInput } from '@/src/features/story/components/TitleInput';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
+  formatMarkdownSegmentGapLabel,
   formatStoryTypeLabel,
 } from '@/src/features/story/utils/storyEditorLabels';
 import Badge from '@/src/shared/components/Badge';
@@ -95,6 +100,19 @@ function StorySettingsPopover({
                 }}
               />
             </label>
+            {isVerticalScrollPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
+              <label className="jgis-story-editor-toggle-row">
+                <span>Gap between markdown segments</span>
+                <Switch
+                  checked={story.markdownSegmentGap === true}
+                  onCheckedChange={checked => {
+                    onUpdateStory({ markdownSegmentGap: checked });
+                  }}
+                />
+              </label>
+            ) : null}
             <label className="jgis-story-editor-field">
               <span>Background color</span>
               <Input
@@ -156,6 +174,14 @@ export function StoryEditorHeaderBar({
         {story ? (
           <span className="jgis-story-editor-context-meta">
             {formatGradientLabel(story.showGradient)}
+          </span>
+        ) : null}
+        {story &&
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(story.storyType),
+        ) ? (
+          <span className="jgis-story-editor-context-meta">
+            {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
           </span>
         ) : null}
         {story && canPreview ? (

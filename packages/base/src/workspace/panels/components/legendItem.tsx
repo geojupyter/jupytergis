@@ -25,8 +25,8 @@ import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSym
 type GradientEntry = {
   type: 'gradient';
   field?: string;
-  /** Human-readable output channel label, e.g. "Fill color" */
-  channel?: string;
+  /** Human-readable output encoding label, e.g. "Fill color" */
+  encoding?: string;
   /** Human-readable filter from the rule's when clause */
   when?: string;
   /** CSS colour strings ordered from min to max */
@@ -56,7 +56,7 @@ type GradientEntry = {
 type CategoricalEntry = {
   type: 'categorical';
   field?: string;
-  channel?: string;
+  encoding?: string;
   when?: string;
   stops: { label: string; color: string }[];
 };
@@ -72,7 +72,7 @@ type SwatchEntry = {
 type SizeEntry = {
   type: 'size';
   field?: string;
-  channel?: string;
+  encoding?: string;
   when?: string;
   minSize: number;
   maxSize: number;
@@ -82,7 +82,7 @@ type SizeEntry = {
 type StrokeWidthEntry = {
   type: 'stroke-width';
   field?: string;
-  channel?: string;
+  encoding?: string;
   when?: string;
   minWidth: number;
   maxWidth: number;
@@ -92,7 +92,7 @@ type StrokeWidthEntry = {
 type ExpressionEntry = {
   type: 'expression';
   field?: string;
-  channel?: string;
+  encoding?: string;
   when?: string;
   expr: string;
 };
@@ -175,18 +175,18 @@ function interpolateScalar(
 }
 
 // ---------------------------------------------------------------------------
-// Channel label helpers
+// Encoding label helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Derive a single human-readable label for a set of output channels.
- * Multiple channels often cover the same logical property for different
+ * Derive a single human-readable label for a set of output encodings.
+ * Multiple encodings often cover the same logical property for different
  * geometry types (e.g. fill-color + circle-fill-color → "Fill color").
  */
-function deriveChannelLabel(channels: string[]): string {
-  const set = new Set(channels);
+function deriveEncodingLabel(encodings: string[]): string {
+  const set = new Set(encodings);
 
-  // Colour channels — combine geometry variants where both are present.
+  // Colour encodings — combine geometry variants where both are present.
   const hasFillPoly = set.has('fill-color');
   const hasFillCircle = set.has('circle-fill-color');
   const hasStrokeColorLine = set.has('stroke-color');
@@ -210,7 +210,7 @@ function deriveChannelLabel(channels: string[]): string {
     return hasStrokeColorLine ? 'Stroke color (line)' : 'Stroke color (circle)';
   }
 
-  // Width channels.
+  // Width encodings.
   const hasWidthLine = set.has('stroke-width');
   const hasWidthCircle = set.has('circle-stroke-width');
   if (hasWidthLine && hasWidthCircle) {
@@ -227,7 +227,7 @@ function deriveChannelLabel(channels: string[]): string {
     return 'Radius';
   }
 
-  // Pixel channels (raster / KDE).
+  // Pixel encodings (raster / KDE).
   if (set.has('pixel-color')) {
     return 'pixel-rgba';
   }
@@ -247,7 +247,7 @@ function deriveChannelLabel(channels: string[]): string {
     return 'pixel-alpha';
   }
 
-  return channels[0] ?? '';
+  return encodings[0] ?? '';
 }
 
 /** Format a single predicate into a short human-readable string. */
@@ -280,7 +280,7 @@ function formatWhen(when: IPredicate[] | undefined): string | undefined {
 // Grammar → LegendEntry[]
 // ---------------------------------------------------------------------------
 
-const COLOR_CHANNELS = new Set([
+const COLOR_ENCODINGS = new Set([
   'fill-color',
   'circle-fill-color',
   'stroke-color',
@@ -293,8 +293,8 @@ const COLOR_CHANNELS = new Set([
   'pixel-alpha',
 ]);
 
-const SIZE_CHANNELS = new Set(['circle-radius']);
-const STROKE_WIDTH_CHANNELS = new Set(['stroke-width', 'circle-stroke-width']);
+const SIZE_ENCODINGS = new Set(['circle-radius']);
+const STROKE_WIDTH_ENCODINGS = new Set(['stroke-width', 'circle-stroke-width']);
 
 function kdeToLegendEntries(
   grammarLayer: IGrammarLayer,
@@ -309,10 +309,10 @@ function kdeToLegendEntries(
 
   for (const rule of grammarLayer.rules) {
     for (const mapping of rule.mappings) {
-      const isPixelChannel = (mapping.channels as string[]).some(
+      const isPixelEncoding = (mapping.encodings as string[]).some(
         ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
-      if (!isPixelChannel || mapping.scale.scheme !== 'colorRamp') {
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorRamp') {
         continue;
       }
       const p = mapping.scale.params;
@@ -321,7 +321,7 @@ function kdeToLegendEntries(
         entries.push({
           type: 'gradient',
           field: densityLabel,
-          channel: 'Heatmap color',
+          encoding: 'Heatmap color',
           colors: colorStrs,
           stops: p.colorStops.map((s, i) => ({
             value: s.stop,
@@ -336,7 +336,7 @@ function kdeToLegendEntries(
         entries.push({
           type: 'gradient',
           field: densityLabel,
-          channel: 'Heatmap color',
+          encoding: 'Heatmap color',
           colors: ramp,
           stops: [
             { value: 0, color: ramp[0] },
@@ -353,7 +353,7 @@ function kdeToLegendEntries(
     entries.push({
       type: 'gradient',
       field: densityLabel,
-      channel: 'Heatmap color',
+      encoding: 'Heatmap color',
       colors,
       stops: [
         { value: 0, color: colors[0] },
@@ -384,7 +384,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
       .flatMap(r => r.mappings)
       .find(
         m =>
-          (m.channels as string[]).includes('pixel-alpha') &&
+          (m.encodings as string[]).includes('pixel-alpha') &&
           m.scale.scheme === 'scalar' &&
           (m.scale.params?.scalarStops?.length ?? 0) >= 2,
       );
@@ -398,25 +398,25 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
       const whenLbl = formatWhen(allWhen.length > 0 ? allWhen : undefined);
 
       for (const mapping of rule.mappings) {
-        const { scale, channels } = mapping;
+        const { scale, encodings } = mapping;
 
-        // Determine which logical channel family this mapping targets.
-        const isColor = channels.some(ch => COLOR_CHANNELS.has(ch as string));
-        const isSize = channels.some(ch => SIZE_CHANNELS.has(ch as string));
-        const isStrokeWidth = channels.some(ch =>
-          STROKE_WIDTH_CHANNELS.has(ch as string),
+        // Determine which logical encoding family this mapping targets.
+        const isColor = encodings.some(ch => COLOR_ENCODINGS.has(ch as string));
+        const isSize = encodings.some(ch => SIZE_ENCODINGS.has(ch as string));
+        const isStrokeWidth = encodings.some(ch =>
+          STROKE_WIDTH_ENCODINGS.has(ch as string),
         );
 
         // Skip the alpha mapping itself — it's shown implicitly via withAlpha.
-        if ((channels as string[]).includes('pixel-alpha')) {
+        if ((encodings as string[]).includes('pixel-alpha')) {
           continue;
         }
 
-        const channelLbl = deriveChannelLabel(channels as string[]);
-        const isPixelChannel = (channels as string[]).some(
+        const encodingLbl = deriveEncodingLabel(encodings as string[]);
+        const isPixelEncoding = (encodings as string[]).some(
           ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
         );
-        const withAlpha = isPixelChannel && layerAlphaScalarStops.length >= 2;
+        const withAlpha = isPixelEncoding && layerAlphaScalarStops.length >= 2;
 
         if (isColor) {
           switch (scale.scheme) {
@@ -450,7 +450,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                 entries.push({
                   type: 'gradient',
                   field,
-                  channel: channelLbl,
+                  encoding: encodingLbl,
                   when: whenLbl,
                   colors: colorStrs,
                   stops: displayStops.map((s, i) => ({
@@ -465,7 +465,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                 const preview: GradientEntry = {
                   type: 'gradient',
                   field,
-                  channel: channelLbl,
+                  encoding: encodingLbl,
                   when: whenLbl,
                   colors,
                   withAlpha,
@@ -490,7 +490,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                 entries.push({
                   type: 'categorical',
                   field,
-                  channel: channelLbl,
+                  encoding: encodingLbl,
                   when: whenLbl,
                   stops: p.colorStops.map(s => ({
                     label: String(s.stop),
@@ -505,20 +505,20 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
               const color = rgbaToString(scale.params.value);
               entries.push({
                 type: 'swatch',
-                label: channelLbl,
+                label: encodingLbl,
                 color,
                 when: whenLbl,
               });
               break;
             }
             case 'identity': {
-              // Field value is used as-is for the channel color.
+              // Field value is used as-is for the encoding color.
               // No fixed range to display — show a rainbow swatch indicating
-              // the channel is data-driven.
+              // the encoding is data-driven.
               entries.push({
                 type: 'swatch',
                 field,
-                label: channelLbl,
+                label: encodingLbl,
                 color:
                   'linear-gradient(to right,#f66,#fa0,#ff0,#6c6,#08f,#94f)',
                 when: whenLbl,
@@ -530,13 +530,13 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
               entries.push({
                 type: 'expression',
                 field,
-                channel: channelLbl,
+                encoding: encodingLbl,
                 when: whenLbl,
                 expr: p.expr,
               });
               break;
             }
-            // constant_num on color channel: skip.
+            // constant_num on color encoding: skip.
             default:
               break;
           }
@@ -545,7 +545,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
           entries.push({
             type: 'size',
             field,
-            channel: channelLbl,
+            encoding: encodingLbl,
             when: whenLbl,
             minSize: p.range[0],
             maxSize: p.range[1],
@@ -556,7 +556,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
           entries.push({
             type: 'stroke-width',
             field,
-            channel: channelLbl,
+            encoding: encodingLbl,
             when: whenLbl,
             minWidth: p.range[0],
             maxWidth: p.range[1],
@@ -578,15 +578,15 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
  * Shared header shown above every data-driven legend entry.
  *
  *   best_age_top          ← input field (bold)
- *   → Stroke width        ← output channel (muted)
+ *   → Stroke width        ← output encoding (muted)
  *   if: Polygon           ← when clause (muted, only when present)
  */
 const EntryHeader: React.FC<{
   field?: string;
-  channel?: string;
+  encoding?: string;
   when?: string;
-}> = ({ field, channel, when }) => {
-  if (!field && !channel && !when) {
+}> = ({ field, encoding, when }) => {
+  if (!field && !encoding && !when) {
     return null;
   }
   return (
@@ -601,7 +601,7 @@ const EntryHeader: React.FC<{
       }}
     >
       {field && <span style={{ fontWeight: 'bold' }}>{field}</span>}
-      {channel && <span style={{ opacity: 0.7 }}>→ {channel}</span>}
+      {encoding && <span style={{ opacity: 0.7 }}>→ {encoding}</span>}
       {when && <span style={{ opacity: 0.6 }}>· if: {when}</span>}
     </div>
   );
@@ -639,7 +639,7 @@ const ColorSwatch: React.FC<{ color: string; size?: number }> = ({
 
 const GradientLegend: React.FC<GradientEntry> = ({
   field,
-  channel,
+  encoding,
   when,
   colors,
   stops,
@@ -691,7 +691,7 @@ const GradientLegend: React.FC<GradientEntry> = ({
 
   return (
     <div style={{ padding: '6px 6px 10px' }}>
-      <EntryHeader field={field} channel={channel} when={when} />
+      <EntryHeader field={field} encoding={encoding} when={when} />
       <div ref={barRef} style={{ marginBottom: 4 }}>
         <div style={{ position: 'relative', height: 12 }}>
           {withAlpha && <div style={CHECKERBOARD} />}
@@ -763,12 +763,12 @@ const GradientLegend: React.FC<GradientEntry> = ({
 
 const CategoricalLegend: React.FC<CategoricalEntry> = ({
   field,
-  channel,
+  encoding,
   when,
   stops,
 }) => (
   <div style={{ padding: 6 }}>
-    <EntryHeader field={field} channel={channel} when={when} />
+    <EntryHeader field={field} encoding={encoding} when={when} />
     <div
       style={{
         display: 'grid',
@@ -798,21 +798,21 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
 
 const SwatchLegend: React.FC<SwatchEntry> = ({ field, label, color, when }) => (
   <div style={{ padding: '4px 6px' }}>
-    <EntryHeader field={field} channel={label} when={when} />
+    <EntryHeader field={field} encoding={label} when={when} />
     <ColorSwatch color={color} />
   </div>
 );
 
 const SizeLegend: React.FC<SizeEntry> = ({
   field,
-  channel,
+  encoding,
   when,
   minSize,
   maxSize,
   domain,
 }) => (
   <div style={{ padding: 6 }}>
-    <EntryHeader field={field} channel={channel} when={when} />
+    <EntryHeader field={field} encoding={encoding} when={when} />
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div
         style={{
@@ -862,14 +862,14 @@ const SizeLegend: React.FC<SizeEntry> = ({
 
 const StrokeWidthLegend: React.FC<StrokeWidthEntry> = ({
   field,
-  channel,
+  encoding,
   when,
   minWidth,
   maxWidth,
   domain,
 }) => (
   <div style={{ padding: 6 }}>
-    <EntryHeader field={field} channel={channel} when={when} />
+    <EntryHeader field={field} encoding={encoding} when={when} />
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       {[
         { w: minWidth, v: domain[0] },
@@ -903,7 +903,7 @@ const StrokeWidthLegend: React.FC<StrokeWidthEntry> = ({
 
 const ExpressionLegend: React.FC<ExpressionEntry> = ({
   field,
-  channel,
+  encoding,
   when,
   expr,
 }) => {
@@ -948,7 +948,7 @@ const ExpressionLegend: React.FC<ExpressionEntry> = ({
 
   return (
     <div style={{ padding: 6 }}>
-      <EntryHeader field={field} channel={channel} when={when} />
+      <EntryHeader field={field} encoding={encoding} when={when} />
 
       <div
         ref={editorRef}

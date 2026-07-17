@@ -12,7 +12,10 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -42,6 +45,10 @@ import {
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
 import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '../features/story/presentation/getStoryPresentationMode';
+import {
   StoryEditorMode,
   StoryEditorSession,
 } from '../features/story/storyEditorSession';
@@ -51,11 +58,7 @@ import {
 } from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import {
-  JupyterGISTracker,
-  STORY_TYPE,
-  SYMBOLOGY_VALID_LAYER_TYPES,
-} from '../types';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -112,7 +115,8 @@ export function addCommands(
   state: IStateDB,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
-  completionProviderManager: ICompletionProviderManager | undefined,
+  urlResolverFactory?: IUrlResolverFactory,
+  completionProviderManager?: ICompletionProviderManager,
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
@@ -267,8 +271,22 @@ export function addCommands(
         return;
       }
 
+      const model = current.model;
+
+      // OpenEO layers are edited through the process-graph editor, which is a
+      // dialog itself. Opening the Layer Properties dialog first would block
+      // it (a dialog cannot open while another is open), so go straight to the
+      // process-graph editor instead. See #1653.
+      const selected = model.localState?.selected?.value ?? {};
+      const selectedId = Object.keys(selected)[0];
+      const layer = selectedId ? model.getLayer(selectedId) : undefined;
+      if (selectedId && layer?.type === 'OpenEOTileLayer') {
+        await editOpenEOLayer(model, selectedId);
+        return;
+      }
+
       const dialog = new ObjectPropertiesWidget({
-        model: current.model,
+        model,
         formSchemaRegistry,
       });
       await dialog.launch();
@@ -1696,36 +1714,6 @@ export function addCommands(
   });
 
   // Right panel tabs
-  commands.addCommand(CommandIDs.showObjectPropertiesTab, {
-    label: trans.__('Show Object Properties Tab'),
-    caption:
-      'Show the object properties tab in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () =>
-      tracker.currentWidget
-        ? !tracker.currentWidget.model.jgisSettings.objectPropertiesDisabled
-        : false,
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-      const settings = await current.model.getSettings();
-      const currentValue =
-        settings?.composite?.objectPropertiesDisabled ??
-        current.model.jgisSettings.objectPropertiesDisabled ??
-        false;
-      await settings?.set('objectPropertiesDisabled', !currentValue);
-      commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
-    },
-  });
-
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
     caption: 'Show the annotations tab in the current JupyterGIS document.',
@@ -1947,6 +1935,7 @@ export function addCommands(
           tracker,
           editorServices,
           rendermime,
+          urlResolverFactory,
         );
         return;
       }
@@ -1982,7 +1971,9 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -2019,7 +2010,9 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -2088,6 +2081,7 @@ namespace Private {
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
   ): Promise<void> {
     await StoryEditorSession.getInstance().openEditor(
       model,
@@ -2097,6 +2091,7 @@ namespace Private {
       tracker,
       editorServices,
       rendermime,
+      urlResolverFactory,
     );
   }
 
