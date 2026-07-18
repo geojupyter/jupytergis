@@ -26,9 +26,9 @@ export function useIdentifyAttributeEditor(props: {
     null,
   );
   const [editorMode, setEditorMode] = useState<'add' | 'edit' | null>(null);
-  const [editingAttributeKey, setEditingAttributeKey] = useState<
-    string | null
-  >(null);
+  const [editingAttributeKey, setEditingAttributeKey] = useState<string | null>(
+    null,
+  );
   const [newAttributeKey, setNewAttributeKey] = useState('');
   const [newAttributeValue, setNewAttributeValue] = useState('');
   const [isSavingAttribute, setIsSavingAttribute] = useState(false);

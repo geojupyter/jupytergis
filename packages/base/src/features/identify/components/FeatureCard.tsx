@@ -6,9 +6,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
-import { FeatureCardHeader } from './FeatureCardHeader';
-import { FeatureAttributeList } from './FeatureAttributeList';
 import { AddAttributeEditor } from './AttributeEditors';
+import { FeatureAttributeList } from './FeatureAttributeList';
+import { FeatureCardHeader } from './FeatureCardHeader';
 import {
   IAttributeEditorActions,
   IAttributeEditorState,

@@ -1,8 +1,8 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
-import { FeatureRow } from './FeatureRow';
 import { AttributeRowEditor } from './AttributeEditors';
+import { FeatureRow } from './FeatureRow';
 import {
   IAttributeEditorActions,
   IAttributeEditorState,

@@ -153,7 +153,10 @@ export const AttributeRowEditor: React.FC<IAttributeRowEditorProps> = ({
 }) => {
   return (
     <div className="jgis-identify-row jgis-identify-row-editor">
-      <AttributeFields editorState={editorState} editorActions={editorActions} />
+      <AttributeFields
+        editorState={editorState}
+        editorActions={editorActions}
+      />
       <AttributeActionMenu
         feature={feature}
         rowIndex={rowIndex}
