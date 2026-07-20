@@ -177,12 +177,6 @@ class GISDocument(CommWidget):
             self.ydoc["options"] = self._options = Map()
 
         self.tile_server: TiTilerServer | None = None
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
         self._ready_future: asyncio.Future = asyncio.Future()
         self._is_ready: bool = False
 
