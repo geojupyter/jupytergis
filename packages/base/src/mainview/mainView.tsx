@@ -159,7 +159,7 @@ import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import {
   createGeoJSONFeaturePatcher,
-  type PatchGeoJSONFeatureProperties,
+  type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
 import crosshairSvgStr from '../../style/icons/crosshair.svg';
@@ -290,7 +290,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
     this._model = this._mainViewModel.jGISModel;
-    this._patchGeoJSONFeatureProperties = createGeoJSONFeaturePatcher({
+    this._patchGeoJSONFeatureAttributes = createGeoJSONFeaturePatcher({
       model: this._model,
       persistAndRefreshSource: this.persistAndRefreshSource,
     });
@@ -3539,10 +3539,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
-              this._featurePropertyCache.set(fid, props);
+              this._featureAttributeCache.set(fid, props);
             }
-          } else if (fid !== null && this._featurePropertyCache.has(fid)) {
-            props = this._featurePropertyCache.get(fid);
+          } else if (fid !== null && this._featureAttributeCache.has(fid)) {
+            props = this._featureAttributeCache.get(fid);
           }
 
           if (geom) {
@@ -4153,8 +4153,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   state={this._state}
                   formSchemaRegistry={this._formSchemaRegistry}
                   annotationModel={this._annotationModel}
-                  patchGeoJSONFeatureProperties={
-                    this._patchGeoJSONFeatureProperties
+                  patchGeoJSONFeatureAttributes={
+                    this._patchGeoJSONFeatureAttributes
                   }
                 />
               </div>
@@ -4218,7 +4218,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
     this.addLayer(id, layer, index);
   private _removeLayerForPanels = (id: string) => this.removeLayer(id);
-  private _patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
+  private _patchGeoJSONFeatureAttributes: PatchGeoJSONFeatureAttributes;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -4243,7 +4243,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       .log({ type: 'text', level, data: message });
   }
 
-  private _featurePropertyCache: Map<string | number, any> = new Map();
+  private _featureAttributeCache: Map<string | number, any> = new Map();
   private _contextMenuAttached = false;
   private _spectaModeSetupDone = false;
   private _spectaRemovedInteractions: Interaction[] = [];

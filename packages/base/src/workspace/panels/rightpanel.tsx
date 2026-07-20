@@ -26,15 +26,15 @@ interface IRightPanelProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   settings: IJupyterGISSettings;
-  patchGeoJSONFeatureProperties?: (
+  patchGeoJSONFeatureAttributes?: (
     sourceId: string,
     target: { featureId: string },
-    propertyUpdates: IDict<any>,
+    attributeUpdates: IDict<any>,
   ) => Promise<boolean>;
 }
 
 const RightPanelComponent: React.FC<IRightPanelProps> = props => {
-  const { patchGeoJSONFeatureProperties } = props;
+  const { patchGeoJSONFeatureAttributes } = props;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
     if (!props.settings.annotationsDisabled) {
@@ -115,7 +115,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
             >
               <IdentifyPanelComponent
                 model={props.model}
-                patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
+                patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
               ></IdentifyPanelComponent>
             </TabsContent>
           )}

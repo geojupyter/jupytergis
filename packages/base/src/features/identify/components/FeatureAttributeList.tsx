@@ -1,21 +1,21 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
+import { AttributeRowEditor } from './AttributeEditors';
 import { FeatureRow } from './FeatureRow';
-import { PropertyRowEditor } from './PropertyEditors';
 import {
-  IPropertyEditorActions,
-  IPropertyEditorState,
+  IAttributeEditorActions,
+  IAttributeEditorState,
 } from '../types/editorTypes';
 
-interface IFeaturePropertyListProps {
+interface IFeatureAttributeListProps {
   feature: IIdentifiedFeature;
   rowIndex: number;
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
 }
 
-export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
+export const FeatureAttributeList: React.FC<IFeatureAttributeListProps> = ({
   feature,
   rowIndex,
   editorState,
@@ -32,11 +32,11 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
           const isEditingThisRow =
             editorState.editingFeatureIndex === rowIndex &&
             editorState.editorMode === 'edit' &&
-            editorState.editingPropertyKey === key;
+            editorState.editingAttributeKey === key;
 
           if (isEditingThisRow) {
             return (
-              <PropertyRowEditor
+              <AttributeRowEditor
                 key={key}
                 feature={feature}
                 rowIndex={rowIndex}
@@ -51,25 +51,25 @@ export const FeaturePropertyList: React.FC<IFeaturePropertyListProps> = ({
               key={key}
               feature={feature}
               rowIndex={rowIndex}
-              propertyKey={key}
+              attributeKey={key}
               value={value}
               showActions={isFeatureEditable && !key.startsWith('_')}
-              onEditProperty={(propertyKey, propertyValue) =>
-                editorActions.onEditProperty(
+              onEditAttribute={(attributeKey, attributeValue) =>
+                editorActions.onEditAttribute(
                   rowIndex,
-                  propertyKey,
-                  propertyValue,
+                  attributeKey,
+                  attributeValue,
                 )
               }
-              onDeleteProperty={(
+              onDeleteAttribute={(
                 targetFeature,
                 targetRowIndex,
-                targetPropertyKey,
+                targetAttributeKey,
               ) =>
-                editorActions.onDeleteProperty(
+                editorActions.onDeleteAttribute(
                   targetFeature,
                   targetRowIndex,
-                  targetPropertyKey,
+                  targetAttributeKey,
                 )
               }
             />

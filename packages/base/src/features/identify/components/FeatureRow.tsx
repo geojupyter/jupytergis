@@ -2,37 +2,37 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
 
-import { PropertyActionsMenu } from './PropertyEditors';
+import { AttributeActionsMenu } from './AttributeEditors';
 
 interface IFeatureRowProps {
   feature: IIdentifiedFeature;
   rowIndex: number;
-  propertyKey: string;
+  attributeKey: string;
   value: unknown;
   showActions: boolean;
-  onEditProperty: (propertyKey: string, value: unknown) => void;
-  onDeleteProperty: (
+  onEditAttribute: (attributeKey: string, value: unknown) => void;
+  onDeleteAttribute: (
     feature: IIdentifiedFeature,
     rowIndex: number,
-    propertyKey: string,
+    attributeKey: string,
   ) => void;
 }
 
 export const FeatureRow: React.FC<IFeatureRowProps> = ({
   feature,
   rowIndex,
-  propertyKey,
+  attributeKey,
   value,
   showActions,
-  onEditProperty,
-  onDeleteProperty,
+  onEditAttribute,
+  onDeleteAttribute,
 }) => {
   return (
     <div className="jgis-identify-row">
-      <strong className="jgis-identify-col-key">{propertyKey}</strong>
+      <strong className="jgis-identify-col-key">{attributeKey}</strong>
       <span className="jgis-identify-col-value">{String(value)}</span>
       {showActions && (
-        <PropertyActionsMenu
+        <AttributeActionsMenu
           onContentClick={event => event.stopPropagation()}
           items={[
             {
@@ -41,7 +41,7 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
                 <Pencil data-icon="inline-start" className="jgis-inline-icon" />
               ),
               onSelect: () => {
-                onEditProperty(propertyKey, value);
+                onEditAttribute(attributeKey, value);
               },
             },
             {
@@ -51,7 +51,7 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
               ),
               variant: 'destructive',
               onSelect: () => {
-                onDeleteProperty(feature, rowIndex, propertyKey);
+                onDeleteAttribute(feature, rowIndex, attributeKey);
               },
             },
           ]}
