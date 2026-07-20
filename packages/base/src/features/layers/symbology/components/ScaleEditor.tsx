@@ -45,6 +45,7 @@ import {
   IComputedStop,
 } from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
+import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { InfoTip } from '@/src/shared/components/InfoTip';
 
 function stopsToRows(
@@ -670,7 +671,12 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
           </InfoTip>
         </label>
         <div
-          style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            flex: '1 1 auto',
+          }}
         >
           <div
             ref={editorRef}
@@ -686,18 +692,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               overflow: 'auto',
             }}
           />
-          {validationError && (
-            <div
-              role="alert"
-              style={{
-                color: 'var(--jp-error-color1)',
-                fontSize: 'var(--jp-ui-font-size0)',
-                marginTop: 4,
-              }}
-            >
-              {validationError}
-            </div>
-          )}
+          {validationError && <ErrorTip text={validationError} />}
         </div>
       </div>
 
