@@ -57,9 +57,18 @@ test.describe('#errorTip', () => {
 
     // Hovering the tip reveals the validation message.
     await errorTip.hover();
-    await expect(
-      page.locator('[data-slot="hover-card-content"]'),
-    ).toBeVisible();
+    const hoverCard = page.locator('[data-slot="hover-card-content"]');
+    await expect(hoverCard).toBeVisible();
+
+    // Expand "More Info" and verify the docs link.
+    await hoverCard.getByText('More Info').click();
+    const docsLink = hoverCard.getByRole('link', {
+      name: 'Expression syntax reference',
+    });
+    await expect(docsLink).toHaveAttribute(
+      'href',
+      'https://vega.github.io/vega/docs/expressions/',
+    );
 
     await dialog.getByText('Cancel').click();
   });
