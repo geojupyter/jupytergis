@@ -9,7 +9,7 @@ The JupyterLite preview is intended as a demo and exploration environment, not a
 - **Real-time collaboration:** There is no server to sync changes between people, so shared sessions, live cursors, annotations, and comments are not available.
 - **QGIS import & export:** Reading and writing `.qgs`/`.qgz` project files requires a server-side component and is disabled in the browser.
 - **Server-side processing for raster data:** Dynamic raster tiling via Jupyter-Tiler is unavailable.
-- **Saving your work:** Projects are saved to temporarily in the broswer tab rather than to disk. Files will be deleted when you close the tab. Download anything you want to keep.
+- **Saving your work:** Projects are saved temporarily in the browser tab rather than to disk. Files will be deleted when you close the tab. Download anything you want to keep.
 - **Loading large or remote datasets:** External data sources may fail to load if the server hosting them does not allow cross-origin (CORS) requests, and very large datasets can be slow or exhaust the browser's memory.
 - **The Python API:** Python runs in a limited in-browser environment (Pyodide), so many scientific packages are unavailable or must be installed differently. API methods that need a server — such as TiTiler tile serving and QGIS import/export — will not work.
 
