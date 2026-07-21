@@ -1,5 +1,8 @@
-import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
-import { LayerType } from '@jupytergis/schema';
+import {
+  IJGISFormSchemaRegistry,
+  IJupyterGISModel,
+  LayerType,
+} from '@jupytergis/schema';
 
 import { editOpenEOLayer } from '@/src/features/layers/openeo';
 import { ObjectPropertiesWidget } from '@/src/features/objectproperties/objectPropertiesDialog';
