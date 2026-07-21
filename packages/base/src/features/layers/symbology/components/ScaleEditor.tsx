@@ -692,7 +692,17 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               overflow: 'auto',
             }}
           />
-          {validationError && <ErrorTip text={validationError} />}
+          {validationError && (
+            <ErrorTip text={validationError}>
+              <a
+                href="https://vega.github.io/vega/docs/expressions/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Expression syntax reference
+              </a>
+            </ErrorTip>
+          )}
         </div>
       </div>
 
