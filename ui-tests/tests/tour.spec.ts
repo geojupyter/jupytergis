@@ -7,15 +7,16 @@ import {
 import { Locator } from '@playwright/test';
 import path from 'path';
 
-const FILENAME = 'empty-france.jGIS';
+// A document with layers, so the "Edit a layer" step has a layer item to
+// highlight.
+const FILENAME = 'france-hiking.jGIS';
 
 const EXPECTED_TITLES = [
   'Welcome to the JupyterGIS Feature Tour',
   'Add a basemap',
   'Add layers',
   'Layers panel',
-  'Edit layer properties',
-  'Edit symbology',
+  'Edit a layer',
   'Create a story map',
 ];
 

@@ -100,20 +100,12 @@ function createJupyterGISTour(translator: ITranslator): ITourDefinition {
         placement: 'right',
       },
       {
-        target: '.jp-gis-layerPanel',
-        title: trans.__('Edit layer properties'),
+        target: '.jp-gis-layerItem:not(.jp-gis-layerGroup)',
+        title: trans.__('Edit a layer'),
         content: trans.__(
-          'Right-click a layer and choose "Edit" to open its properties. There you can edit the layer and its source through schema-driven forms.',
+          'Right-click a layer to reach its actions: choose "Edit" to change its properties and source through schema-driven forms, or "Edit Symbology" to configure the colors, ramps, and rules used to render it.',
         ),
-        placement: 'right',
-      },
-      {
-        target: '.jp-gis-layerPanel',
-        title: trans.__('Edit symbology'),
-        content: trans.__(
-          'Right-click a layer and choose "Edit Symbology" to configure the colors, ramps, and rules used to render it.',
-        ),
-        placement: 'right',
+        placement: 'top',
       },
       {
         target: '[data-testid="open-story-editor-button"]',
