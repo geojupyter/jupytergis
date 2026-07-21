@@ -67,8 +67,11 @@ jobs:
           set -eux
           jlpm install
           jlpm dev
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+          jupyter labextension list
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK" \
+            || { echo "::error::jupytergis-core extension failed to install"; exit 1; }
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK" \
+            || { echo "::error::jupytergis-lab extension failed to install"; exit 1; }
 
       - name: Package the extension
         shell: bash -l {0}

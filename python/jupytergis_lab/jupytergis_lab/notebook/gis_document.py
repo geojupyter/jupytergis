@@ -8,7 +8,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from importlib.metadata import version
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -146,11 +146,20 @@ class GISDocument(CommWidget):
             },
         )
 
-        self.ydoc["layers"] = self._layers = Map()
-        self.ydoc["sources"] = self._sources = Map()
-        self.ydoc["layerTree"] = self._layerTree = Array()
-        self.ydoc["annotations"] = self._annotations = Map()
-        self.ydoc["metadata"] = self._metadata = Map()
+        self._layers: Map = Map()
+        self.ydoc["layers"] = self._layers
+
+        self._sources: Map = Map()
+        self.ydoc["sources"] = self._sources
+
+        self._layerTree: Array = Array()
+        self.ydoc["layerTree"] = self._layerTree
+
+        self._annotations: Map = Map()
+        self.ydoc["annotations"] = self._annotations
+
+        self._metadata: Map = Map()
+        self.ydoc["metadata"] = self._metadata
 
         # For untitled docs, initialize options right away
         if path is None:
@@ -167,9 +176,9 @@ class GISDocument(CommWidget):
         else:
             self.ydoc["options"] = self._options = Map()
 
-        self.tile_server = None
-        self._ready_future = asyncio.Future()
-        self._is_ready = False
+        self.tile_server: TiTilerServer | None = None
+        self._ready_future: asyncio.Future = asyncio.Future()
+        self._is_ready: bool = False
 
         # TODO Change this when ipykernel supports awaiting incomming
         # comm messages without being blocked by the execution request
@@ -229,12 +238,12 @@ class GISDocument(CommWidget):
             )
 
     @property
-    def layers(self) -> dict:
+    def layers(self) -> dict[str, Any] | None:
         """Get the layer list"""
         return self._layers.to_py()
 
     @property
-    def layer_tree(self) -> list[str | dict]:
+    def layer_tree(self) -> list[Any] | None:
         """Get the layer tree"""
         return self._layerTree.to_py()
 
@@ -298,7 +307,7 @@ class GISDocument(CommWidget):
         with sidecar:
             display(self)
 
-    def export_to_qgis(self, path: str | Path) -> bool:
+    def export_to_qgis(self, path: str | Path) -> dict[str, list[str]] | None:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
@@ -371,7 +380,7 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
         """Add a Vector Tile Layer to the document.
@@ -406,19 +415,20 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        layer_params: dict[str, Any] = {
+            "source": source_id,
+            "opacity": opacity,
+        }
         layer = {
             "type": LayerType.VectorTileLayer,
             "name": name,
             "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-            },
+            "parameters": layer_params,
         }
 
         symbology_state = to_symbology_state(symbology)
         if symbology_state is not None:
-            layer["parameters"]["symbologyState"] = symbology_state
+            layer_params["symbologyState"] = symbology_state
 
         return self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
@@ -431,7 +441,7 @@ class GISDocument(CommWidget):
         data: dict | None = None,
         name: str | None = None,
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
         """Add a GeoJSON Layer to the document.
@@ -454,7 +464,7 @@ class GISDocument(CommWidget):
         if path is not None and data is not None:
             raise ValueError("Cannot set GeoJSON layer data and path at the same time")
 
-        parameters = {}
+        parameters: dict[str, Any] = {}
 
         if path is not None:
             if path.startswith("http://") or path.startswith("https://"):
@@ -483,19 +493,20 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        layer_params: dict[str, Any] = {
+            "source": source_id,
+            "opacity": opacity,
+        }
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
             "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-            },
+            "parameters": layer_params,
         }
 
         symbology_state = to_symbology_state(symbology)
         if symbology_state is not None:
-            layer["parameters"]["symbologyState"] = symbology_state
+            layer_params["symbologyState"] = symbology_state
 
         return self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
@@ -543,7 +554,7 @@ class GISDocument(CommWidget):
     def add_image_layer(
         self,
         url: str,
-        coordinates: [],
+        coordinates: list,
         name: str | None = None,
         opacity: float = 1,
         zoom_to: bool = False,
@@ -587,15 +598,15 @@ class GISDocument(CommWidget):
     def add_geotiff_layer(
         self,
         url: str,
-        min: int = None,
-        max: int = None,
+        min: int | None = None,
+        max: int | None = None,
         name: str | None = None,
         normalize: bool = True,
         wrapX: bool = False,
         projection: str | None = None,
         attribution: str = "",
         opacity: float = 1.0,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
         """Add a GeoTIFF layer.
@@ -632,19 +643,20 @@ class GISDocument(CommWidget):
         }
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        layer_params: dict[str, Any] = {
+            "source": source_id,
+            "opacity": opacity,
+        }
         layer = {
             "type": LayerType.GeoTiffLayer,
             "name": name,
             "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-            },
+            "parameters": layer_params,
         }
 
         symbology_state = to_symbology_state(symbology)
         if symbology_state is not None:
-            layer["parameters"]["symbologyState"] = symbology_state
+            layer_params["symbologyState"] = symbology_state
 
         return self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
@@ -659,7 +671,7 @@ class GISDocument(CommWidget):
         opacity: float = 1.0,
         gamma: float = 1,
         wrap_x: bool = False,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
         """Add a Zarr layer
@@ -685,20 +697,21 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        layer_params: dict[str, Any] = {
+            "source": source_id,
+            "opacity": opacity,
+            "gamma": gamma,
+        }
         layer = {
             "type": LayerType.GeoZarrLayer,
             "name": name,
             "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-                "gamma": gamma,
-            },
+            "parameters": layer_params,
         }
 
         symbology_state = to_symbology_state(symbology)
         if symbology_state is not None:
-            layer["parameters"]["symbologyState"] = symbology_state
+            layer_params["symbologyState"] = symbology_state
 
         return self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
@@ -756,7 +769,7 @@ class GISDocument(CommWidget):
         path: str,
         name: str | None = None,
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
         """Add a GeoParquet Layer to the document.
@@ -781,19 +794,22 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        layer_params: dict[str, Any] = {
+            "source": source_id,
+            "opacity": opacity,
+        }
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
             "visible": True,
-            "parameters": {
-                "source": source_id,
-                "opacity": opacity,
-            },
+            "parameters": layer_params,
         }
 
         symbology_state = to_symbology_state(symbology)
-        if symbology_state is not None:
-            layer["parameters"]["symbologyState"] = symbology_state
+        if symbology_state is None:
+            symbology_state = {}
+
+        layer_params["symbologyState"] = symbology_state
 
         return self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
@@ -802,12 +818,12 @@ class GISDocument(CommWidget):
 
     def add_geopackage_vector_layer(
         self,
-        path: str,
+        path: str | Path,
         table_names: list[str] | str | None = None,
         name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
-        symbology: SymbologyInput = None,
+        symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
         """Add a GeoPackage Vector Layer to the document.
@@ -857,19 +873,20 @@ class GISDocument(CommWidget):
 
             self._add_source(OBJECT_FACTORY.create_source(source, self), source_id)
 
+            layer_params: dict[str, Any] = {
+                "source": source_id,
+                "type": type,
+                "opacity": opacity,
+            }
             layer = {
                 "type": LayerType.VectorLayer,
                 "name": f"{name} {table_name} Layer",
                 "visible": True,
-                "parameters": {
-                    "source": source_id,
-                    "type": type,
-                    "opacity": opacity,
-                },
+                "parameters": layer_params,
             }
 
             if symbology_state is not None:
-                layer["parameters"]["symbologyState"] = symbology_state
+                layer_params["symbologyState"] = symbology_state
 
             layer_id = str(uuid4()) + "/" + str(table_name)
             layer_ids.append(
@@ -884,7 +901,7 @@ class GISDocument(CommWidget):
 
     def add_geopackage_raster_layer(
         self,
-        path: str,
+        path: str | Path,
         table_names: list[str] | str | None = None,
         name: str | None = None,
         attribution: str = "",
@@ -1292,7 +1309,7 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_symbology(self, layer_id: str, symbology: SymbologyInput):
+    def apply_symbology(self, layer_id: str, symbology: SymbologyInput | None):
         layer = self._layers.get(layer_id)
 
         if layer is None:
@@ -1370,7 +1387,7 @@ class JGISSource(BaseModel):
 
 
 class SingletonMeta(type):
-    _instances = {}
+    _instances: dict[type, object] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
@@ -1380,10 +1397,14 @@ class SingletonMeta(type):
 
 
 class ObjectFactoryManager(metaclass=SingletonMeta):
-    def __init__(self):
-        self._factories: dict[str, type[BaseModel]] = {}
+    def __init__(self) -> None:
+        self._factories: dict[LayerType | SourceType, type[BaseModel]] = {}
 
-    def register_factory(self, shape_type: str, cls: type[BaseModel]) -> None:
+    def register_factory(
+        self,
+        shape_type: LayerType | SourceType,
+        cls: type[BaseModel],
+    ) -> None:
         if shape_type not in self._factories:
             self._factories[shape_type] = cls
 
@@ -1393,8 +1414,8 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         parent: GISDocument | None = None,
     ) -> JGISLayer | None:
         object_type = data.get("type")
-        name: str = data.get("name")
-        visible: str = data.get("visible", True)
+        name = cast("str", data.get("name"))
+        visible = cast("str | Literal[True]", data.get("visible", True))
         filters = data.get("filters")
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
@@ -1419,7 +1440,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         parent: GISDocument | None = None,
     ) -> JGISSource | None:
         object_type = data.get("type")
-        name: str = data.get("name")
+        name = cast("str", data.get("name"))
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             params = data["parameters"]

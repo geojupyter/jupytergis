@@ -15,7 +15,8 @@ cluster have no data-defined equivalent and keep their dedicated renderers in
 from __future__ import annotations
 
 import json
-from typing import Any
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from jupytergis_core.color_ramps import sample_colors
 from qgis.core import (  # type: ignore[import-untyped]
@@ -25,13 +26,16 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsExpressionNodeCondition,
     QgsExpressionNodeFunction,
     QgsExpressionNodeLiteral,
+    QgsFeatureRenderer,
     QgsFillSymbol,
     QgsHeatmapRenderer,
     QgsLineSymbol,
     QgsMarkerSymbol,
     QgsPointClusterRenderer,
     QgsProperty,
+    QgsPropertyCollection,
     QgsSingleSymbolRenderer,
+    QgsSymbol,
     QgsSymbolLayer,
 )
 
@@ -62,6 +66,9 @@ from .grammar import (
     cluster_grammar,
     kde_grammar,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # ---------------------------------------------------------------------------
 # Colour-expression encoding (export)
@@ -168,7 +175,7 @@ def _guarded_color_expr(
 # ---------------------------------------------------------------------------
 # Geometry-aware colour / width / radius slots (shared by export + import)
 # ---------------------------------------------------------------------------
-def _color_slots(geometry: str):
+def _color_slots(geometry: str) -> list[tuple[set[str], QgsSymbolLayer, bool]]:
     """(grammar encoding set, QGIS property, is_primary) per colour slot.
 
     A line has one colour (its stroke) and accepts either fill or stroke encodings
@@ -188,7 +195,7 @@ def _color_slots(geometry: str):
     ]
 
 
-def _find_mapping(rules: list[dict], encoding_set: set[str]):
+def _find_mapping(rules: list[dict], encoding_set: set[str]) -> tuple[Any, Any]:
     """The first ``(scale, field)`` whose mapping touches ``encoding_set``."""
     for rule in rules:
         field = (rule.get("fields") or [None])[0]
@@ -198,7 +205,7 @@ def _find_mapping(rules: list[dict], encoding_set: set[str]):
     return None, None
 
 
-def _color_instruction(scale: dict, field: str | None):
+def _color_instruction(scale: dict, field: str | None) -> tuple[str, Any] | None:
     """A colour as ``('const', rgba)`` / ``('field', name)`` / ``('expr', str)``.
 
     ``None`` means the scale cannot be encoded (caller warns + uses a default).
@@ -247,7 +254,7 @@ def _num_instruction(scale: dict, field: str | None, is_radius: bool):
     return None
 
 
-def _instr_color_expr(instr) -> str:
+def _instr_color_expr(instr: tuple[Any, Any]) -> str:
     """A colour instruction rendered as an expression (for guard nesting)."""
     kind, value = instr
     if kind == "const":
@@ -257,7 +264,7 @@ def _instr_color_expr(instr) -> str:
     return value
 
 
-def _default_primary_color(geometry: str) -> list:
+def _default_primary_color(geometry: str) -> list[float]:
     # A polygon with no fill renders transparent (a stroke-only layer keeps no
     # fill); a point defaults to the OL fill; a line falls back to canvas black.
     if geometry == "fill":
@@ -271,7 +278,10 @@ def _default_primary_color(geometry: str) -> list:
 _RAMP_META_KEY = "jgis/colorRamps"
 
 
-def _ramp_meta(grammar_layer: dict[str, Any], geometry_type: str) -> dict:
+def _ramp_meta(
+    grammar_layer: dict[str, Any],
+    geometry_type: str,
+) -> dict[str, dict[str, str | bool]]:
     """Per-slot ramp identity (name + reverse) that a data-defined CASE can't carry.
 
     Export bakes a colorRamp / categorical scale into concrete colours (a vector
@@ -466,7 +476,7 @@ def grammar_layer_to_renderer(
 # ---------------------------------------------------------------------------
 # Colour-expression decoding (import)
 # ---------------------------------------------------------------------------
-def _color_rgba_args(node) -> list[float] | None:
+def _color_rgba_args(node: QgsExpressionNodeFunction | None) -> list[float] | None:
     """The grammar [r,g,b,a] (a 0-1) of a ``color_rgba(...)`` call node, or None."""
     if not isinstance(node, QgsExpressionNodeFunction):
         return None
@@ -480,7 +490,16 @@ def _color_rgba_args(node) -> list[float] | None:
     return [float(r), float(g), float(b), float(a) / 255]
 
 
-def _parse_color_expr(expr: str):
+def _parse_color_expr(
+    expr: str,
+) -> (
+    tuple[
+        str,
+        str | list[float] | None,
+        list[dict[str, Any | list[float]]] | list[tuple[str, str, list[float] | None]],
+    ]
+    | None
+):
     """Classify a data-defined colour ``CASE`` expression.
 
     Returns one of:
@@ -519,7 +538,7 @@ def _parse_color_expr(expr: str):
             ]
             return "colorRamp", field, stops
 
-    guards = []
+    guards: list[tuple[str, str, list[float] | None]] = []
     for when_node, _, rgba in branches:
         when, when_op = _expr_to_when(when_node.dump())
         if when and rgba is not None:
@@ -529,7 +548,16 @@ def _parse_color_expr(expr: str):
     return None
 
 
-def _color_scale_from_property(ddp, prop_key, const_rgba, ramp=None):
+def _color_scale_from_property(
+    ddp: QgsPropertyCollection | None,
+    prop_key: QgsSymbolLayer.Property,
+    const_rgba: list[float],
+    ramp: dict[str, str | bool] | None = None,
+) -> tuple[
+    dict[str, str | dict[str, Any]],
+    str | list[float] | None,
+    list[dict[str, Any | list[float]]] | list[tuple[str, str, list[float] | None]],
+]:
     """Read a colour slot back into ``(scale, field, guards)``.
 
     The inverse of the export colour slot: a field reference -> identity, a
@@ -592,7 +620,12 @@ def _color_scale_from_property(ddp, prop_key, const_rgba, ramp=None):
     return {"scheme": "constant_rgba", "params": {"value": const_rgba}}, None, []
 
 
-def _num_scale_from_property(ddp, prop_key, const_value, scalar_from_property):
+def _num_scale_from_property(
+    ddp: QgsPropertyCollection | None,
+    prop_key: QgsSymbolLayer.Property,
+    const_value: float,
+    scalar_from_property: Callable[[QgsProperty], tuple[str, list[float], list[float]]],
+) -> tuple[dict[str, str | dict[str, str | int | float | list[float]]], str | None]:
     """Read a width/radius slot back into ``(scale, field)``."""
     if ddp is not None:
         prop = ddp.property(prop_key)
@@ -619,7 +652,10 @@ def _num_scale_from_property(ddp, prop_key, const_value, scalar_from_property):
     return {"scheme": "constant_num", "params": {"value": const_value}}, None
 
 
-def dd_symbol_to_grammar(symbol, ramp_meta=None):
+def dd_symbol_to_grammar(
+    symbol: QgsSymbol | None,
+    ramp_meta: dict | None = None,
+) -> dict[str, list[dict[str, Any]]]:
     """Convert a data-defined single symbol back into a Grammar symbologyState.
 
     The exact inverse of :func:`grammar_layer_to_dd_symbol`: each slot (primary
@@ -741,7 +777,10 @@ def dd_symbol_to_grammar(symbol, ramp_meta=None):
     return {"layers": [{"id": _new_id(), "rules": rules}]}
 
 
-def _vector_renderer_to_grammar(renderer, ramp_meta=None):
+def _vector_renderer_to_grammar(
+    renderer: QgsFeatureRenderer,
+    ramp_meta: dict | None = None,
+) -> dict[str, list[dict[str, Any]]]:
     """Convert a QGIS vector renderer to a Grammar symbologyState dict.
 
     Heatmap and cluster renderers keep their dedicated translations; every other

@@ -31,7 +31,7 @@ class ProxyConfig:
     rate_limit_requests: int
     rate_limit_window: int
     cors_origin: str
-    exempt_domains: set[str]
+    exempt_domains: str | set[str]
 
 
 def load_config() -> ProxyConfig:
@@ -76,7 +76,7 @@ class ProxyHandler(APIHandler):
     def initialize(self) -> None:
         """Initialize the handler with configuration and HTTP client."""
         self.proxy_config = load_config()
-        self._request_timestamps = []
+        self._request_timestamps: list[float] = []
         self.http_client = AsyncHTTPClient(
             defaults={
                 "connect_timeout": self.proxy_config.default_timeout,
