@@ -17,6 +17,11 @@ const EXPECTED_TITLES = [
   'Add layers',
   'Layers panel',
   'Edit a layer',
+  'Identify features',
+  'Draw on the map',
+  'Annotate and collaborate',
+  'Explore data over time',
+  'Automate with Python',
   'Create a story map',
 ];
 

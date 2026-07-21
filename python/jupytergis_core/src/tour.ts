@@ -108,6 +108,46 @@ function createJupyterGISTour(translator: ITranslator): ITourDefinition {
         placement: 'top',
       },
       {
+        target: '[data-testid="identify-button"]',
+        title: trans.__('Identify features'),
+        content: trans.__(
+          'Enable Identify, then click a feature on the map to inspect its attributes in the Identified Features panel.',
+        ),
+        placement: 'bottom',
+      },
+      {
+        target: '[data-testid="toggle-draw-features-button"]',
+        title: trans.__('Draw on the map'),
+        content: trans.__(
+          'Draw points, lines, and polygons directly on the map to create or refine vector features.',
+        ),
+        placement: 'bottom',
+      },
+      {
+        target: '[data-testid="add-marker-controller-button"]',
+        title: trans.__('Annotate and collaborate'),
+        content: trans.__(
+          'Drop markers and leave annotations to highlight places, and discuss them with collaborators editing the same map with you in real time.',
+        ),
+        placement: 'bottom',
+      },
+      {
+        target: '[data-testid="temporal-controller-button"]',
+        title: trans.__('Explore data over time'),
+        content: trans.__(
+          'Use the temporal controller to animate time-aware layers and step through a time dimension.',
+        ),
+        placement: 'bottom',
+      },
+      {
+        target: '[data-testid="toggle-console-button"]',
+        title: trans.__('Automate with Python'),
+        content: trans.__(
+          'Open a Python console to drive the map programmatically with the JupyterGIS API — add layers, change symbology, and more from code.',
+        ),
+        placement: 'bottom',
+      },
+      {
         target: '[data-testid="open-story-editor-button"]',
         title: trans.__('Create a story map'),
         content: trans.__(
