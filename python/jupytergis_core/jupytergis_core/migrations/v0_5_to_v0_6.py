@@ -11,7 +11,7 @@ Converts legacy representations to Grammar symbologyState in one pass:
 import json
 import re
 import uuid
-from typing import Any
+from typing import Any, cast
 
 _ANNOTATION_KEY_PATTERN = re.compile(r"^annotation_(.+)$")
 
@@ -124,12 +124,16 @@ def _to_grammar(state: dict[str, Any]) -> dict[str, Any] | None:
         return _single_symbol(
             fill=state.get("fillColor") or _DEFAULT_FILL,
             stroke=state.get("strokeColor") or _DEFAULT_STROKE,
-            stroke_width=state.get("strokeWidth")
-            if state.get("strokeWidth") is not None
-            else _DEFAULT_STROKE_WIDTH,
-            radius=state.get("radius")
-            if state.get("radius") is not None
-            else _DEFAULT_RADIUS,
+            stroke_width=(
+                cast("float", state.get("strokeWidth"))
+                if state.get("strokeWidth") is not None
+                else _DEFAULT_STROKE_WIDTH
+            ),
+            radius=(
+                cast("float", state.get("radius"))
+                if state.get("radius") is not None
+                else _DEFAULT_RADIUS
+            ),
         )
     if render_type == "Graduated":
         return _graduated(state)

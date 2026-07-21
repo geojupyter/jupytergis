@@ -40,7 +40,7 @@ requires-python = ">=3.12"
 
 [project.optional-dependencies]
 tiler = [
-  "jupyter-tiler>=0.8.0",
+  "jupyter-tiler>=0.8.1",
 ]
 
 [tool.hatch.version]

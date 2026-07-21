@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import re
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from jupytergis_core.color_ramps import sample_colors
 from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
@@ -32,6 +32,9 @@ from qgis.core import (  # type: ignore[import-untyped]
 )
 from qgis.PyQt import sip
 from qgis.PyQt.QtCore import Qt
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 # Grammar defaults, mirroring packages/schema/src/grammar/grammarConversions.ts
 # and python/jupytergis_core/.../migrations/v0_5_to_v0_6.py so import output stays
@@ -363,7 +366,7 @@ def _predicate_to_expr(predicate: dict[str, Any]) -> str | None:
     if kind == "hasField":
         return f'"{field}" IS NOT NULL'
     if kind == "geometryType":
-        qgis_geom = _GEOMETRY_TYPE_MAP.get(predicate.get("value"))
+        qgis_geom = _GEOMETRY_TYPE_MAP.get(cast("str", predicate.get("value")))
         if qgis_geom:
             return f"geometry_type($geometry) = '{qgis_geom}'"
     return None
@@ -720,7 +723,7 @@ def _scale_classes(
     field: str | None,
     logs: dict[str, list[str]],
     layer_id: str,
-) -> list[tuple[str | None, list]] | None:
+) -> Sequence[tuple[str | None, list]] | None:
     """Classes ``[(filter | None, rgba)]`` for a colour scale, or None.
 
     A constant colour is a single class with no filter; colorRamp / categorical
@@ -771,6 +774,9 @@ def _emit_vt_specs(
     for candidate in (fill_classes, stroke_classes):
         if candidate and (driver is None or len(candidate) > len(driver)):
             driver = candidate
+
+    if not driver:
+        raise RuntimeError("driver is None. This is a bug.")
 
     specs = []
     for index, (filter_expr, _) in enumerate(driver):
@@ -1135,7 +1141,7 @@ def grammar_to_raster_renderer(
 
     shader = QgsColorRampShader()
     shader.setColorRampType(QgsColorRampShader.Interpolated)
-    items = []
+    items: list[QgsColorRampShader.ColorRampItem] = []
 
     if color_stops and len(color_stops) >= 2:
         items.extend(
@@ -1615,7 +1621,7 @@ def _vt_reconstruct(styles) -> tuple:
         # Order by lower bound (open first class sorts first); each class's stop is
         # its lower bound, so the ramp spans the recovered class breaks.
         ranges.sort(key=lambda item: (item[0] is not None, item[0]))
-        stops = []
+        stops: list[dict[str, float | list]] = []
         for lo, hi, color in ranges:
             value = lo if lo is not None else hi
             if value is not None and (not stops or stops[-1]["stop"] != float(value)):

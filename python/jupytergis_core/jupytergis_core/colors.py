@@ -47,8 +47,7 @@ def rgb_to_hex(rgb_str: str) -> str:
 def coerce_rgba(value: RGBA | Sequence[float] | str) -> list[float]:
     """Try to parse a color ('#ffffff', 'white', [255, 255, 255]) into RGBA list."""
     if isinstance(value, str):
-        color = None
-
+        color: webcolors.HTML5SimpleColor | webcolors.IntegerRGB
         try:
             hex_color = webcolors.normalize_hex(value)
             color = webcolors.hex_to_rgb(hex_color)
