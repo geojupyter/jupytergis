@@ -393,12 +393,7 @@
       "title": "IJGISMetadata",
       "type": "object",
       "default": {},
-      "additionalProperties": false,
-      "patternProperties": {
-        "^.*$": {
-          "type": "string"
-        }
-      }
+      "additionalProperties": { "type": "string" }
     }
   }
 }

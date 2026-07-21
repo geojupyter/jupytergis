@@ -32,4 +32,9 @@ class YDocConnector(Widget):
             "format": self._format,
             "contentType": self._contentType,
         }
-        super().__init__(name="@jupytergis:widget", open_comm=True, comm_data=comm_data)
+        # FIXME: This looks like a bug. The superclass doesn't have any of these args.
+        super().__init__(  # type: ignore[call-arg]
+            name="@jupytergis:widget",
+            open_comm=True,
+            comm_data=comm_data,
+        )
