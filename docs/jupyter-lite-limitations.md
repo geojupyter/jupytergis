@@ -11,6 +11,7 @@ The JupyterLite preview is intended as a demo and exploration environment, not a
 - **Server-side processing for raster data:** Dynamic raster tiling via Jupyter-Tiler is unavailable.
 - **Saving your work:** Projects are saved temporarily in the browser tab rather than to disk. Files will be deleted when you close the tab. Download anything you want to keep.
 - **Loading large or remote datasets:** External data sources may fail to load if the server hosting them does not allow cross-origin (CORS) requests, and very large datasets can be slow or exhaust the browser's memory.
-- **The Python API:** Python runs in a limited in-browser environment (Pyodide), so many scientific packages are unavailable or must be installed differently. API methods that need a server — such as TiTiler tile serving and QGIS import/export — will not work.
+- **The Python API:** Python runs in a limited in-browser environment (Pyodide), so many scientific packages are unavailable or must be installed differently. API methods that need a server, such as tile serving through Jupyter-Tiler and QGIS import/export, will not work.
+- **STAC Catalog:** The STAC browser pane is visible and you can enter search parameters, but searches will not return any results in the JupyterLite preview.
 
 For the full experience, see the [install guide](user_guide/install.md).
