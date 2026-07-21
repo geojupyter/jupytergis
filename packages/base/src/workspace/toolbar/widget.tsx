@@ -75,9 +75,6 @@ export class ToolbarWidget extends ReactiveToolbar {
 
     this.node.classList.add('jGIS-toolbar-widget', 'data-jgis-keybinding');
 
-    // TODO Listen to file path changed
-    this.node.dataset['gisfilepath'] = this._model.filePath;
-
     // Listen for settings changes
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
 
@@ -219,6 +216,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         icon: helpIcon,
       });
       this.addItem('Launch feature tour', launchTourButton);
+      launchTourButton.node.dataset.testid = 'launch-tour-button';
 
       const spacer = ReactiveToolbar.createSpacerItem();
       spacer.node.tabIndex = -1;

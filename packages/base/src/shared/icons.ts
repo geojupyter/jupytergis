@@ -13,6 +13,7 @@ import columns2SvgStr from '../../style/icons/columns_2.svg';
 import geoJsonSvgStr from '../../style/icons/geojson.svg';
 import geolocationSvgStr from '../../style/icons/geolocation.svg';
 import geoPackageSvgStr from '../../style/icons/geopackage.svg';
+import helpSvgStr from '../../style/icons/help.svg';
 import infoSvgStr from '../../style/icons/info-solid.svg';
 import logoSvgStr from '../../style/icons/logo.svg';
 import logoMiniSvgStr from '../../style/icons/logo_mini.svg';
@@ -28,7 +29,6 @@ import targetWithoutCenterSvgStr from '../../style/icons/target_without_center.s
 import terminalToolbarSvgStr from '../../style/icons/terminal_toolbar.svg';
 import vectorSquareSvgStr from '../../style/icons/vector_square.svg';
 import visibilitySvgStr from '../../style/icons/visibility.svg';
-import helpSvgStr from '../../style/icons/help.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
