@@ -23,7 +23,7 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
-import { targetWithCenterIcon } from '@/src/shared/icons';
+
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -1559,7 +1559,75 @@ export function addCommands(
 
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
-    icon: targetWithCenterIcon,
+  });
+
+  let _watchId: number | null = null;
+
+  commands.addCommand(CommandIDs.toggleLocationIndicator, {
+    label: trans.__('Toggle Location Indicator'),
+    caption: 'Display a live location indicator based on your GPS position.',
+    isToggled: () => _watchId !== null,
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
+      if (_watchId !== null) {
+        viewModel.locationIndicatorToggled.emit(null);
+        navigator.geolocation.clearWatch(_watchId);
+        _watchId = null;
+        commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+        return;
+      }
+
+      _watchId = navigator.geolocation.watchPosition(
+        pos => {
+          const coords = fromLonLat([
+            pos.coords.longitude,
+            pos.coords.latitude,
+          ]);
+          viewModel.locationIndicatorToggled.emit({ x: coords[0], y: coords[1] });
+        },
+        err => {
+          console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: Infinity },
+      );
+
+      commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+    },
+  });
+
+  let _orientationHandler: ((e: DeviceOrientationEvent) => void) | null = null;
+
+  commands.addCommand(CommandIDs.orientMap, {
+    label: trans.__('Orient Map'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => _orientationHandler !== null,
+    execute: () => {
+      if (_orientationHandler !== null) {
+        window.removeEventListener('deviceorientation', _orientationHandler);
+        _orientationHandler = null;
+        commands.notifyCommandChanged(CommandIDs.orientMap);
+        return;
+      }
+
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
+      _orientationHandler = (mag: DeviceOrientationEvent) => {
+        if (mag.alpha === null) {
+          return;
+        }
+        viewModel.mapRotationChanged.emit((-mag.alpha * Math.PI) / 180);
+      };
+      window.addEventListener('deviceorientation', _orientationHandler);
+      commands.notifyCommandChanged(CommandIDs.orientMap);
+    },
   });
 
   // Panel visibility commands

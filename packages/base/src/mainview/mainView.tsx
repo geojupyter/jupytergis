@@ -344,6 +344,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
+    this._model.locationIndicatorToggled.connect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
+    this._model.mapRotationChanged.connect(this._handleMapRotationChanged, this);
 
     // Keep draw editing UI/interactions in sync with the shared editing mode.
     this._model.editingVectorLayerChanged.connect(
@@ -3640,6 +3645,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
   }
 
+  private _handleMapRotationChanged(_sender: any, rotation: number): void {
+    this._Map.getView().setRotation(rotation);
+  }
+
   private _handleGeolocationChanged(
     sender: any,
     newPosition: JgisCoordinates,
@@ -3652,6 +3661,50 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       throw new Error(
         'Could not move to geolocation, because current zoom is not defined.',
       );
+    }
+  }
+
+  private _handleLocationIndicatorToggled(
+    _sender: any,
+    coords: JgisCoordinates | null,
+  ): void {
+    if (!coords) {
+      if (this._locationIndicatorLayer) {
+        this._Map.removeLayer(this._locationIndicatorLayer);
+        this._locationIndicatorLayer = null;
+      }
+      return;
+    }
+
+    const point = new Point([coords.x, coords.y]);
+
+    if (!this._locationIndicatorLayer) {
+      const feature = new Feature(point);
+      const source = new VectorSource({ features: [feature] });
+      this._locationIndicatorLayer = new VectorLayer({
+        source,
+        style: [
+          new Style({
+            image: new CircleStyle({
+              radius: 30,
+              fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+            }),
+          }),
+          new Style({
+            image: new CircleStyle({
+              radius: 8,
+              fill: new Fill({ color: 'blue' }),
+              stroke: new Stroke({ color: 'white', width: 2 }),
+            }),
+          }),
+        ]
+      });
+      this._Map.addLayer(this._locationIndicatorLayer);
+    } else {
+      this._locationIndicatorLayer
+        .getSource()!
+        .getFeatures()[0]
+        .setGeometry(point);
     }
   }
 
@@ -4075,6 +4128,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
+  private _locationIndicatorLayer: VectorLayer<VectorSource> | null = null;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;

@@ -10,9 +10,11 @@ export const symbology = 'jupytergis:symbology';
 export const identify = 'jupytergis:identify';
 export const temporalController = 'jupytergis:temporalController';
 export const addMarker = 'jupytergis:addMarker';
+export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
+export const orientMap = 'jupytergis:orientMap';
 
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';

@@ -1335,6 +1335,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._geolocationChanged;
   }
 
+  get locationIndicatorToggled() {
+    return this._locationIndicatorToggled;
+  }
+
+  get mapRotationChanged() {
+    return this._mapRotationChanged;
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -1409,6 +1417,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
 
   private _editingVectorLayer: boolean;
+
+  private _locationIndicatorToggled = new Signal<this, JgisCoordinates | null>(this);
+  private _mapRotationChanged = new Signal<this, number>(this);
 
   static worker: Worker;
 
