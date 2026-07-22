@@ -32,6 +32,14 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       return <div></div>;
     }
 
+    if (annotationIds.length === 0) {
+      return (
+        <div style={{ textAlign: 'center' }}>
+          <p>No annotations yet. Right Click on the Map to add one</p>
+        </div>
+      );
+    }
+
     const annotations = annotationIds.map((id: string) => {
       return (
         <div className="jgis-annotation-panel">
