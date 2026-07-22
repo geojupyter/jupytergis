@@ -704,6 +704,65 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
+    
+      // Geolocation stuff
+      this._geolocation = new Geolocation({
+        tracking: true,
+        trackingOptions: {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: Infinity,
+        },
+        projection: this._Map.getView().getProjection(),
+      });
+      this._geolocation.on('error', (err: GeolocationError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        this._model.setUIState({ locationIndicatorActive: false });
+      });
+
+      // initialize the features and layer
+      // ...matt...
+      this._geolocationAccuracyFeature = new Feature();
+      this._geolocation.on('change:accuracyGeometry', () => {
+        this._geolocationAccuracyFeature.setGeometry(
+          this._geolocation.getAccuracyGeometry() ?? undefined
+        );
+      });
+
+      this._geolocationPositionFeature = new Feature();
+      this._geolocationPositionFeature.setStyle([
+        new Style({
+          image: new Icon({
+            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+              crosshairSvgStr
+                .replace('stroke="currentColor"', 'stroke="white"')
+                .replace('stroke-width="2"', 'stroke-width="4"'),
+            )}`,
+          }),
+        }),
+        new Style({
+          image: new Icon({
+            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+              crosshairSvgStr.replace(
+                'stroke="currentColor"',
+                'stroke="blue"',
+              ),
+            )}`,
+          }),
+        }),
+      ]);
+
+      this._geolocation.on('change:position', () => {
+        const coordinates = this._geolocation.getPosition();
+        this._geolocationPositionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
+      });
+
+      this._geolocationSource = new VectorSource({});
+      new VectorLayer({
+        map: this._Map,
+        source: this._geolocationSource,
+      });
+
     }
   }
 
@@ -3686,84 +3745,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _startLocationIndicator(): void {
-    this._geolocation = new Geolocation({
-      tracking: true,
-      trackingOptions: {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: Infinity,
-      },
-      projection: this._Map.getView().getProjection(),
-    });
-    this._geolocation.on('change', this._updateLocationIndicator);
-    this._geolocation.on('error', (err: GeolocationError) => {
-      console.warn(`Geolocation error (${err.code}): ${err.message}`);
-      this._model.setUIState({ locationIndicatorActive: false });
-    });
+    this._geolocation.setTracking(true);
+    this._geolocationSource.clear();
+    this._geolocationSource.addFeatures([
+      this._geolocationPositionFeature,
+      this._geolocationAccuracyFeature,
+    ]);
   }
 
   private _stopLocationIndicator(): void {
-    this._geolocation?.dispose();
-    this._geolocation = null;
-    if (this._locationIndicatorLayer) {
-      this._Map.removeLayer(this._locationIndicatorLayer);
-      this._locationIndicatorLayer = null;
-    }
+    this._geolocation.setTracking(false);
+    this._geolocationSource.clear();
   }
-
-  private _updateLocationIndicator = (): void => {
-    const position = this._geolocation?.getPosition();
-    if (!position) {
-      return;
-    }
-
-    const point = new Point(position);
-    const accuracyGeometry = this._geolocation?.getAccuracyGeometry() ?? null;
-
-    if (!this._locationIndicatorLayer) {
-      const feature = new Feature(point);
-      const source = new VectorSource({ features: [feature] });
-      this._locationIndicatorLayer = new VectorLayer({
-        source,
-        style: [
-          new Style({
-            geometry: accuracyGeometry ?? undefined,
-            fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
-          }),
-          new Style({
-            image: new Icon({
-              src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                crosshairSvgStr
-                  .replace('stroke="currentColor"', 'stroke="white"')
-                  .replace('stroke-width="2"', 'stroke-width="4"'),
-              )}`,
-            }),
-          }),
-          new Style({
-            image: new Icon({
-              src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                crosshairSvgStr.replace(
-                  'stroke="currentColor"',
-                  'stroke="blue"',
-                ),
-              )}`,
-            }),
-          }),
-        ],
-      });
-      this._Map.addLayer(this._locationIndicatorLayer);
-    } else {
-      const [accuracyStyle] =
-        this._locationIndicatorLayer.getStyle() as Style[];
-      accuracyStyle.setGeometry(accuracyGeometry);
-
-      const source = this._locationIndicatorLayer.getSource();
-      if (source) {
-        source.getFeatures()[0].setGeometry(point);
-      }
-      this._locationIndicatorLayer.changed();
-    }
-  };
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
@@ -4185,8 +4178,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
-  private _locationIndicatorLayer: VectorLayer<VectorSource> | null = null;
-  private _geolocation: Geolocation | null = null;
+  private _geolocation: Geolocation;
+  private _geolocationSource: VectorSource;
+  private _geolocationPositionFeature: Feature;
+  private _geolocationAccuracyFeature: Feature;
   private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
