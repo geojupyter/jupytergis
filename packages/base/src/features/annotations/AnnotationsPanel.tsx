@@ -35,7 +35,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     if (annotationIds.length === 0) {
       return (
         <div style={{ textAlign: 'center' }}>
-          <p>No annotations yet. Right Click on the Map to add one</p>
+          <p>No annotations yet. Right-click on the map to add one.</p>
         </div>
       );
     }
