@@ -1629,7 +1629,7 @@ __metadata:
     rimraf: ^3.0.2
     typescript: ^5
     yjs: ^13.5.0
-    yjs-widgets: ^0.5.2
+    yjs-widgets: ^0.6.0
   languageName: unknown
   linkType: soft
 
@@ -20122,9 +20122,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yjs-widgets@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "yjs-widgets@npm:0.5.2"
+"yjs-widgets@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "yjs-widgets@npm:0.6.0"
   dependencies:
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0 || ^4.0.0
     "@jupyterlab/application": ^4.6
@@ -20141,7 +20141,7 @@ __metadata:
     webpack: ^5.77.0
     webpack-cli: ^5.0.1
     y-protocols: ^1.0.6
-  checksum: 37154ac8eef8b9ae5a97a5a8cd4bb09cbd21fde57ac2017478aa48eedef51942b18d6c7d380e1da0524aa3607a2212200a44bf54c8f4ceee0768c6702c5b71e5
+  checksum: a8679cf1e2629f2910938e37cea07cd2585f20e661e0b4efc004ba86737f35f28290d20ed04f6cd9a20b623b0124ebd6ba96c9801ab4bcad9e547ebf11f71065
   languageName: node
   linkType: hard
 

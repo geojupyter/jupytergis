@@ -11,16 +11,16 @@ import {
 } from '@/src/shared/components/DropdownMenu';
 import { Input } from '@/src/shared/components/Input';
 import {
-  IPropertyEditorActions,
-  IPropertyEditorState,
+  IAttributeEditorActions,
+  IAttributeEditorState,
 } from '../types/editorTypes';
 
-interface IPropertyFieldsProps {
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+interface IAttributeFieldsProps {
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
 }
 
-export const PropertyFields: React.FC<IPropertyFieldsProps> = ({
+export const AttributeFields: React.FC<IAttributeFieldsProps> = ({
   editorState,
   editorActions,
 }) => {
@@ -30,32 +30,32 @@ export const PropertyFields: React.FC<IPropertyFieldsProps> = ({
         className="jgis-identify-col-key"
         type="text"
         placeholder="key"
-        value={editorState.newPropertyKey}
+        value={editorState.newAttributeKey}
         onChange={event =>
-          editorActions.onNewPropertyKeyChange(event.target.value)
+          editorActions.onNewAttributeKeyChange(event.target.value)
         }
       />
       <Input
         className="jgis-identify-col-value"
         type="text"
         placeholder="value"
-        value={editorState.newPropertyValue}
+        value={editorState.newAttributeValue}
         onChange={event =>
-          editorActions.onNewPropertyValueChange(event.target.value)
+          editorActions.onNewAttributeValueChange(event.target.value)
         }
       />
     </>
   );
 };
 
-interface IPropertyActionMenuProps {
+interface IAttributeActionMenuProps {
   feature: IIdentifiedFeature;
   rowIndex: number;
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
 }
 
-interface IPropertyActionsMenuItem {
+interface IAttributeActionsMenuItem {
   label: string;
   icon: React.ReactNode;
   onSelect: () => void;
@@ -63,15 +63,15 @@ interface IPropertyActionsMenuItem {
   variant?: 'default' | 'destructive';
 }
 
-interface IPropertyActionsMenuProps {
+interface IAttributeActionsMenuProps {
   title?: string;
   side?: 'top' | 'right' | 'bottom' | 'left';
   onContentClick?: (event: React.MouseEvent) => void;
-  items: IPropertyActionsMenuItem[];
+  items: IAttributeActionsMenuItem[];
 }
 
-export const PropertyActionsMenu: React.FC<IPropertyActionsMenuProps> = ({
-  title = 'Property actions',
+export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
+  title = 'Attribute actions',
   side = 'left',
   onContentClick,
   items,
@@ -106,22 +106,23 @@ export const PropertyActionsMenu: React.FC<IPropertyActionsMenuProps> = ({
   );
 };
 
-export const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
+export const AttributeActionMenu: React.FC<IAttributeActionMenuProps> = ({
   feature,
   rowIndex,
   editorState,
   editorActions,
 }) => {
   return (
-    <PropertyActionsMenu
+    <AttributeActionsMenu
       items={[
         {
           label: 'Save',
           icon: <Save data-icon="inline-start" className="jgis-inline-icon" />,
           disabled:
-            !editorState.newPropertyKey.trim() || editorState.isSavingProperty,
+            !editorState.newAttributeKey.trim() ||
+            editorState.isSavingAttribute,
           onSelect: () => {
-            editorActions.onSaveProperty(feature, rowIndex);
+            editorActions.onSaveAttribute(feature, rowIndex);
           },
         },
         {
@@ -129,7 +130,7 @@ export const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
           icon: <Ban data-icon="inline-start" className="jgis-inline-icon" />,
           variant: 'destructive',
           onSelect: () => {
-            editorActions.onCancelProperty();
+            editorActions.onCancelAttribute();
           },
         },
       ]}
@@ -137,14 +138,14 @@ export const PropertyActionMenu: React.FC<IPropertyActionMenuProps> = ({
   );
 };
 
-interface IPropertyRowEditorProps {
+interface IAttributeRowEditorProps {
   feature: IIdentifiedFeature;
   rowIndex: number;
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
 }
 
-export const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
+export const AttributeRowEditor: React.FC<IAttributeRowEditorProps> = ({
   feature,
   rowIndex,
   editorState,
@@ -152,8 +153,11 @@ export const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
 }) => {
   return (
     <div className="jgis-identify-row jgis-identify-row-editor">
-      <PropertyFields editorState={editorState} editorActions={editorActions} />
-      <PropertyActionMenu
+      <AttributeFields
+        editorState={editorState}
+        editorActions={editorActions}
+      />
+      <AttributeActionMenu
         feature={feature}
         rowIndex={rowIndex}
         editorState={editorState}
@@ -163,14 +167,14 @@ export const PropertyRowEditor: React.FC<IPropertyRowEditorProps> = ({
   );
 };
 
-interface IAddPropertyEditorProps {
+interface IAddAttributeEditorProps {
   feature: IIdentifiedFeature;
   rowIndex: number;
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
 }
 
-export const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
+export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
   feature,
   rowIndex,
   editorState,
@@ -178,7 +182,7 @@ export const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
 }) => {
   if (editorState.editorMode === 'add') {
     return (
-      <PropertyRowEditor
+      <AttributeRowEditor
         feature={feature}
         rowIndex={rowIndex}
         editorState={editorState}
@@ -191,12 +195,12 @@ export const AddPropertyEditor: React.FC<IAddPropertyEditorProps> = ({
     <div className="jgis-identify-row jgis-identify-row-add">
       <Button
         className="jgis-identify-add-button"
-        onClick={() => editorActions.onStartAddProperty(rowIndex)}
+        onClick={() => editorActions.onStartAddAttribute(rowIndex)}
         variant="outline"
         size="sm"
       >
         <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
-        Add Property
+        Add Attribute
       </Button>
     </div>
   );

@@ -8,18 +8,18 @@ import { User } from '@jupyterlab/services';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { FeatureCard } from './components/FeatureCard';
-import { useIdentifyPropertyEditor } from './hooks/useIdentifyPropertyEditor';
-import { PatchGeoJSONFeatureProperties } from './types/editorTypes';
+import { useIdentifyAttributeEditor } from './hooks/useIdentifyAttributeEditor';
+import { PatchGeoJSONFeatureAttributes } from './types/editorTypes';
 import { getFeatureIdentifier } from './utils/getFeatureIdentifier';
 
 interface IIdentifyComponentProps {
   model: IJupyterGISModel;
-  patchGeoJSONFeatureProperties?: PatchGeoJSONFeatureProperties;
+  patchGeoJSONFeatureAttributes?: PatchGeoJSONFeatureAttributes;
 }
 
 export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   model,
-  patchGeoJSONFeatureProperties,
+  patchGeoJSONFeatureAttributes,
 }) => {
   const [features, setFeatures] = useState<IIdentifiedFeatureEntry[]>([]);
   const [visibleRows, setVisibleRows] = useState<IDict<any>>({
@@ -28,9 +28,9 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
 
   const featuresRef = useRef(features);
-  const { editorState, editorActions } = useIdentifyPropertyEditor({
+  const { editorState, editorActions } = useIdentifyAttributeEditor({
     model,
-    patchGeoJSONFeatureProperties,
+    patchGeoJSONFeatureAttributes,
     setFeatures,
   });
 

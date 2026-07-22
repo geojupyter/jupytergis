@@ -14,7 +14,7 @@
       "type": "string",
       "enum": ["equal interval", "quantile", "jenks", "pretty", "logarithmic"]
     },
-    "RGBAChannel": {
+    "RGBAEncoding": {
       "type": "string",
       "enum": [
         "fill-color",
@@ -24,7 +24,7 @@
         "pixel-color"
       ]
     },
-    "UInt8Channel": {
+    "UInt8Encoding": {
       "type": "string",
       "enum": [
         "fill-red",
@@ -35,27 +35,27 @@
         "pixel-blue"
       ]
     },
-    "UNormChannel": {
+    "UNormEncoding": {
       "type": "string",
       "enum": ["fill-alpha", "pixel-alpha"]
     },
-    "VirtualChannel": {
+    "VirtualEncoding": {
       "type": "string",
       "enum": ["pixel-rgb"]
     },
-    "PosFloatChannel": {
+    "PosFloatEncoding": {
       "type": "string",
       "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
     },
     "Encoding": {
       "title": "Encoding",
-      "description": "Any supported output style channel for vector or raster symbology.",
+      "description": "Any supported output style encoding for vector or raster symbology.",
       "anyOf": [
-        { "$ref": "#/definitions/RGBAChannel" },
-        { "$ref": "#/definitions/UInt8Channel" },
-        { "$ref": "#/definitions/UNormChannel" },
-        { "$ref": "#/definitions/VirtualChannel" },
-        { "$ref": "#/definitions/PosFloatChannel" }
+        { "$ref": "#/definitions/RGBAEncoding" },
+        { "$ref": "#/definitions/UInt8Encoding" },
+        { "$ref": "#/definitions/UNormEncoding" },
+        { "$ref": "#/definitions/VirtualEncoding" },
+        { "$ref": "#/definitions/PosFloatEncoding" }
       ]
     },
     "ICompareOp": {
@@ -294,7 +294,7 @@
     "IScalarScale": {
       "type": "object",
       "title": "IScalarScale",
-      "description": "Maps a numeric field to a numeric output (radius, width, sub-channel value).",
+      "description": "Maps a numeric field to a numeric output (radius, width, sub-encoding value).",
       "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
@@ -400,14 +400,14 @@
     "IMapping": {
       "type": "object",
       "title": "IMapping",
-      "description": "A (scale, channels) pair: one scale drives one or more output channels.",
-      "required": ["scale", "channels"],
+      "description": "A (scale, encodings) pair: one scale drives one or more output encodings.",
+      "required": ["scale", "encodings"],
       "additionalProperties": false,
       "properties": {
         "scale": { "$ref": "#/definitions/IScale" },
-        "channels": {
+        "encodings": {
           "type": "array",
-          "description": "Target output channel names.",
+          "description": "Target output encoding names.",
           "items": { "$ref": "#/definitions/Encoding" },
           "minItems": 1
         }
@@ -416,7 +416,7 @@
     "IEncodingRule": {
       "type": "object",
       "title": "IEncodingRule",
-      "description": "Maps optional input fields to one or more (scale, channels) pairs.",
+      "description": "Maps optional input fields to one or more (scale, encodings) pairs.",
       "required": ["id", "mappings"],
       "additionalProperties": false,
       "properties": {
@@ -428,7 +428,7 @@
         },
         "mappings": {
           "type": "array",
-          "description": "(scale, channels) pairs sharing these input fields.",
+          "description": "(scale, encodings) pairs sharing these input fields.",
           "items": { "$ref": "#/definitions/IMapping" },
           "minItems": 1
         },

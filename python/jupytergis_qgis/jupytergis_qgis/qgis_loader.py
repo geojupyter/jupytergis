@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import unquote
 from uuid import uuid4
 
@@ -76,7 +76,7 @@ def qgis_layer_to_jgis(
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
     settings: QgsSettings | None,
-) -> str:
+) -> str | None:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
     if layer is None:
@@ -87,8 +87,8 @@ def qgis_layer_to_jgis(
     layer_type = None
     source_type = None
 
-    layer_parameters = {}
-    source_parameters = {}
+    layer_parameters: dict[str, dict[str, Any]] = {}
+    source_parameters: dict[str, list[dict[str, Any]] | str | int | bool] = {}
 
     if isinstance(layer, QgsRasterLayer):
         # QGIS treats tif layers as raster layer
@@ -334,7 +334,10 @@ def qgis_layer_tree_to_jgis(
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
     settings: QgsSettings | None = None,
-) -> list[dict[str, Any]] | None:
+) -> dict[
+    str,
+    list[dict[str, list | str | bool]] | dict[str, dict[str, Any]] | None,
+]:
     if layer_tree is None:
         layer_tree = []
         layers = {}
@@ -343,7 +346,7 @@ def qgis_layer_tree_to_jgis(
     children = node.children()
     for child in children:
         if isinstance(child, QgsLayerTreeGroup):
-            _layer_tree = []
+            _layer_tree: list[dict[str, list | str | bool]] = []
             group = {
                 "layers": _layer_tree,
                 "name": child.name(),
@@ -352,6 +355,11 @@ def qgis_layer_tree_to_jgis(
             layer_tree.append(group)
             qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources, settings)
         elif isinstance(child, QgsLayerTreeLayer):
+            if layers is None:
+                raise RuntimeError("layers cannot be None. This is a bug.")
+            if sources is None:
+                raise RuntimeError("sources cannot be None. This is a bug.")
+
             layer_id = qgis_layer_to_jgis(child, layers, sources, settings)
             if layer_id is not None:
                 layer_tree.append(layer_id)
@@ -472,16 +480,16 @@ def jgis_layer_to_qgis(
     logs: dict[str, list[str]],
 ) -> list[QgsMapLayer]:
     # The function that build the URI from the source parameters.
-    def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
-        layer_config = {}
-        zmax = parameters.get("maxZoom")
-        zmin = parameters.get("minZoom", 0)
+    def build_uri(parameters: dict[str, object], source_type: str) -> str | None:
+        layer_config: dict[str, str] = {}
+        zmax = cast("str | int | float", parameters.get("maxZoom"))
+        zmin = cast("str | int | float", parameters.get("minZoom", 0))
 
         if source_type in ["RasterSource", "VectorTileSource"]:
-            url = parameters.get("url")
+            url = cast("str | None", parameters.get("url"))
             if url is None:
                 return None
-            urlParameters = parameters.get("urlParameters")
+            urlParameters = cast("dict[str, str]", parameters.get("urlParameters"))
             if urlParameters:
                 for k, v in urlParameters.items():
                     url = url.replace(f"{{{k}}}", v)
@@ -489,15 +497,15 @@ def jgis_layer_to_qgis(
             layer_config["type"] = "xyz"
 
         if source_type == "GeoJSONSource":
-            path = parameters.get("path")
+            path = cast("str", parameters.get("path"))
             return path
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
 
-        layer_config["zmin"] = str(round(zmin))
+        layer_config["zmin"] = str(round(float(zmin)))
         if zmax:
-            layer_config["zmax"] = str(round(zmax))
+            layer_config["zmax"] = str(round(float(zmax)))
         uri = QgsDataSourceUri()
         for key, val in layer_config.items():
             uri.setParam(key, val)
@@ -722,7 +730,7 @@ def jgis_layer_group_to_qgis(
 def export_project_to_qgis(
     path: str | Path,
     virtual_file: dict[str, Any],
-) -> dict[str, list[str]]:
+) -> dict[str, list[str]] | None:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return None
 
@@ -745,7 +753,7 @@ def export_project_to_qgis(
 
     qgis_settings = QgsSettings()
 
-    logs = {"warnings": [], "errors": []}
+    logs: dict[str, list[str]] = {"warnings": [], "errors": []}
 
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],

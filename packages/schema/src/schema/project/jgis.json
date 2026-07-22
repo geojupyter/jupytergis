@@ -158,7 +158,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": ["guided", "unguided", "Vertical Scroll"],
+          "enum": ["guided", "Vertical Scroll"],
           "description": "The type of story map"
         },
         "storySegments": {
@@ -393,12 +393,7 @@
       "title": "IJGISMetadata",
       "type": "object",
       "default": {},
-      "additionalProperties": false,
-      "patternProperties": {
-        "^.*$": {
-          "type": "string"
-        }
-      }
+      "additionalProperties": { "type": "string" }
     }
   }
 }

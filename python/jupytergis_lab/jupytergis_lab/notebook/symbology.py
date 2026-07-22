@@ -1,16 +1,16 @@
 from collections.abc import Sequence
-from enum import Enum
-from typing import Any, Literal, Self
+from enum import Enum, StrEnum
+from typing import Any, Literal, Self, TypeGuard
 from uuid import uuid4
 
 from jupytergis_core.colors import RGBA, coerce_rgba
 from jupytergis_core.schema.interfaces.project import symbology as schema_symbology
 from jupytergis_core.schema.interfaces.project.symbology import (
-    PosFloatChannel,
-    RGBAChannel,
-    UInt8Channel,
-    UNormChannel,
-    VirtualChannel,
+    PosFloatEncoding,
+    RGBAEncoding,
+    UInt8Encoding,
+    UNormEncoding,
+    VirtualEncoding,
 )
 from py2vega import Variable, py2vega
 from pydantic import BaseModel, ConfigDict
@@ -18,24 +18,25 @@ from pydantic import BaseModel, ConfigDict
 WhenOpInput = Literal["all", "any"] | None
 ScaleKind = Literal["identity", "colormap", "categorical", "scalar"]
 
-# Extract all valid channel names from auto-generated schema enums
-_SCHEMA_CHANNEL_VALUES = tuple(
+# Extract all valid encoding names from auto-generated schema enums
+_SCHEMA_ENCODING_VALUES = tuple(
     sorted(
         {
             ch.value
             for enum_class in [
-                RGBAChannel,
-                UInt8Channel,
-                UNormChannel,
-                VirtualChannel,
-                PosFloatChannel,
+                RGBAEncoding,
+                UInt8Encoding,
+                UNormEncoding,
+                VirtualEncoding,
+                PosFloatEncoding,
             ]
             for ch in enum_class
         },
     ),
 )
 
-ENCODING_SHORTCUTS: dict[str, list[schema_symbology.Encoding]] = {
+# TODO: This dict doesn't validate that the values are real encodings.
+ENCODING_SHORTCUTS: dict[str, list[str]] = {
     "fill": ["fill-color", "circle-fill-color"],
     "stroke": ["stroke-color", "circle-stroke-color"],
     "radius": ["circle-radius"],
@@ -45,28 +46,41 @@ ENCODING_SHORTCUTS: dict[str, list[schema_symbology.Encoding]] = {
 }
 
 
-def _enum_member_name(value: str) -> str:
-    name = value.replace("-", "_").replace(" ", "_").replace("/", "_")
-    if not name:
-        name = "value"
-    if name[0].isdigit():
-        name = f"n_{name}"
-    return name.lower()
+class VisualEncoding(StrEnum):
+    """All encoding channel names.
 
+    Developer note: Much of this information is repeated from information in the schema
+    and downstream-generated types, but this is necessary to give the type checker the
+    information it needs. The synchronization of this information is validated by unit
+    tests.
+    """
 
-_ENCODING_VALUES = [*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]
-_ENCODING_MEMBERS: dict[str, str] = {}
-for channel_value in _ENCODING_VALUES:
-    member_name = _enum_member_name(channel_value)
-    base_name = member_name
-    suffix = 1
-    while member_name in _ENCODING_MEMBERS:
-        suffix += 1
-        member_name = f"{base_name}_{suffix}"
-    _ENCODING_MEMBERS[member_name] = channel_value
+    # Shortcuts — source of truth: ENCODING_SHORTCUTS
+    fill = "fill"
+    stroke = "stroke"
+    radius = "radius"
+    circle_fill = "circle-fill"
+    circle_stroke = "circle-stroke"
+    pixel_rgba = "pixel-rgba"
 
-VisualEncoding = Enum("VisualEncoding", _ENCODING_MEMBERS, type=str)
-VisualEncodings = VisualEncoding | str | Sequence[VisualEncoding | str]
+    # Schema channels — source of truth: the auto-generated *Channel enums
+    circle_fill_color = "circle-fill-color"
+    circle_radius = "circle-radius"
+    circle_stroke_color = "circle-stroke-color"
+    circle_stroke_width = "circle-stroke-width"
+    fill_alpha = "fill-alpha"
+    fill_blue = "fill-blue"
+    fill_color = "fill-color"
+    fill_green = "fill-green"
+    fill_red = "fill-red"
+    pixel_alpha = "pixel-alpha"
+    pixel_blue = "pixel-blue"
+    pixel_color = "pixel-color"
+    pixel_green = "pixel-green"
+    pixel_red = "pixel-red"
+    pixel_rgb = "pixel-rgb"
+    stroke_color = "stroke-color"
+    stroke_width = "stroke-width"
 
 
 class ClassificationMode(Enum):
@@ -87,7 +101,7 @@ class Predicate:
 
     __slots__ = ("_internal",)
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create an empty predicate token.
 
         End users typically do not instantiate this directly.
@@ -100,9 +114,6 @@ class Predicate:
         token = cls()
         token._internal = predicate
         return token
-
-
-WhenInput = Predicate | Sequence[Predicate] | None
 
 
 def _as_predicate(predicate: schema_symbology.IPredicate) -> Predicate:
@@ -118,7 +129,7 @@ class ScalarStop:
 
     __slots__ = ("output", "stop")
 
-    def __init__(self, stop: float, output: float):
+    def __init__(self, stop: float, output: float) -> None:
         self.stop = float(stop)
         self.output = float(output)
 
@@ -150,7 +161,7 @@ class FieldPredicate:
     predicate objects, for example ``field("magnitude") > 3``.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         """Create a field predicate wrapper.
 
         :param name: Feature field name used to build predicates.
@@ -164,7 +175,7 @@ class FieldPredicate:
         """
         return hash(self.name)
 
-    def __eq__(self, other: object) -> Predicate:
+    def __eq__(self, other: object) -> Predicate:  # type: ignore[override]
         """Build a field-equality predicate.
 
         :param other: Expected value (string or number).
@@ -176,7 +187,7 @@ class FieldPredicate:
             )
         return field_equals(self.name, other)
 
-    def __ne__(self, other: object) -> Predicate:
+    def __ne__(self, other: object) -> Predicate:  # type: ignore[override]
         """Build a numeric not-equal predicate.
 
         :param other: Numeric threshold.
@@ -237,7 +248,7 @@ class FieldPredicate:
 
     def encoding(
         self,
-        *targets: VisualEncodings,
+        *targets: VisualEncoding | str,
     ) -> "Mapping":
         """Map this symbolizer to visual encoding."""
         return self._as_source().encoding(*targets)
@@ -315,7 +326,7 @@ def field(name: str) -> FieldPredicate:
 class ExpressionPredicate:
     """Create an expression-based mapping source."""
 
-    def __init__(self, code: str, expr_type: Literal["vega", "py"]):
+    def __init__(self, code: str, expr_type: Literal["vega", "py"]) -> None:
         self.code = code
         self.expr_type = expr_type
 
@@ -336,8 +347,9 @@ class Mapping:
     """Final mapping produced by ``...encoding(...)`` chains."""
 
     __slots__ = ("_rule",)
+    _rule: schema_symbology.IEncodingRule
 
-    def __init__(self, rule: schema_symbology.IEncodingRule):
+    def __init__(self, rule: schema_symbology.IEncodingRule) -> None:
         self._rule = rule
 
 
@@ -367,7 +379,7 @@ class MappingChain:
         scale_kind: ScaleKind | None = None,
         when: list[schema_symbology.IPredicate] | None = None,
         when_op: WhenOpInput = None,
-    ):
+    ) -> None:
         self._kind = kind
         self._value = value
         self._scale = scale
@@ -399,7 +411,7 @@ class MappingChain:
             raise TypeError(f"{next_scale} is already set for this mapping chain")
         raise TypeError("Scales cannot be mixed in a single field(...) chain")
 
-    def when(self, *when: WhenInput) -> "MappingChain":
+    def when(self, *when: Predicate) -> "MappingChain":
         """Attach guard predicate(s) to this mapping chain."""
         return self._copy(when=_normalize_when(when))
 
@@ -512,9 +524,9 @@ class MappingChain:
 
     def encoding(
         self,
-        *targets: VisualEncodings,
+        *targets: VisualEncoding | str,
     ) -> Mapping:
-        """Finalize the chain and encode to output channel(s)."""
+        """Finalize the chain and encode to one or more output encodings."""
         if self._kind == "field":
             assert isinstance(self._value, str)
             fields = [self._value]
@@ -538,7 +550,7 @@ class MappingChain:
             selected_when_op = "all"
 
         rule = encoding_rule(
-            mapping(scale=scale, channels=_resolve_ENCODINGs(targets)),
+            mapping(scale=scale, encodings=_resolve_ENCODINGs(targets)),
             fields=fields,
             when=selected_when,
             when_op=selected_when_op,
@@ -556,13 +568,13 @@ class Layer:
         mappings: Sequence[Mapping] | None = None,
         *,
         preprocess: Sequence[schema_symbology.ITransform] | None = None,
-    ):
+    ) -> None:
         self.mappings = [_coerce_mapping(mapping) for mapping in (mappings or [])]
         self.preprocess = list(preprocess) if preprocess is not None else None
-        self._when = None
-        self._when_op = None
+        self._when: list[schema_symbology.IPredicate] | None = None
+        self._when_op: Literal["all", "any"] | None = None
 
-    def when(self, *when: WhenInput) -> "Layer":
+    def when(self, *when: Predicate) -> "Layer":
         """Attach layer-level predicates.
 
         :param when: Predicate or predicates created with helpers such as
@@ -610,9 +622,9 @@ class WhenBuilder:
     def __init__(
         self,
         *,
-        when: WhenInput,
+        when: Predicate | Sequence[Predicate] | None,
         when_op: WhenOpInput = None,
-    ):
+    ) -> None:
         self._when = _normalize_when(when)
         self._when_op = when_op
 
@@ -683,7 +695,7 @@ def python_expr(code: str) -> ExpressionPredicate:
     return ExpressionPredicate(code, "py")
 
 
-def when(*when: WhenInput) -> WhenBuilder:
+def when(*when: Predicate) -> WhenBuilder:
     """Create a when-first builder for readable guarded mapping chains.
 
     Examples::
@@ -717,7 +729,7 @@ class GrammarSymbology(BaseModel):
     layers: list[schema_symbology.IGrammarLayer]
 
     def _with_layers(self, *layers: schema_symbology.IGrammarLayer) -> Self:
-        return GrammarSymbology(layers=[*self.layers, *layers])
+        return type(self)(layers=[*self.layers, *layers])
 
     def with_layer(
         self,
@@ -741,7 +753,7 @@ def _coerce_condition_number(value: object) -> float:
 
 
 def _normalize_when(
-    when: WhenInput | schema_symbology.IPredicate | Sequence[Any],
+    when: Predicate | Sequence[Predicate] | schema_symbology.IPredicate | None,
 ) -> list[schema_symbology.IPredicate] | None:
     if when is None:
         return None
@@ -769,14 +781,14 @@ def _normalize_when(
     return normalized
 
 
-def _coerce_style_channel(channel: Any) -> schema_symbology.Encoding:
-    if isinstance(channel, schema_symbology.Encoding):
-        return channel
-    return schema_symbology.Encoding(root=channel)
+def _coerce_style_encoding(encoding: Any) -> schema_symbology.Encoding:
+    if isinstance(encoding, schema_symbology.Encoding):
+        return encoding
+    return schema_symbology.Encoding(root=encoding)
 
 
-def _normalize_channels(channels: Sequence[Any]) -> list[schema_symbology.Encoding]:
-    return [_coerce_style_channel(channel) for channel in channels]
+def _normalize_encodings(encodings: Sequence[Any]) -> list[schema_symbology.Encoding]:
+    return [_coerce_style_encoding(encoding) for encoding in encodings]
 
 
 def _constant_color_scale(
@@ -820,14 +832,14 @@ def expression(
 
     :param expr: Expression string in the layer expression language.
     :param fallback: Value used when the expression cannot be evaluated. Pass a
-        ``float`` for numeric channels or an RGBA/color value for color channels.
+        ``float`` for numeric encodings or an RGBA/color value for color encodings.
     :returns: An expression scale object that can be passed to :func:`mapping`.
     """
-    fallback_value: float | list[float]
+    fallback_value: float | schema_symbology.RGBA
     if isinstance(fallback, (int, float)):
         fallback_value = float(fallback)
     else:
-        fallback_value = coerce_rgba(fallback)
+        fallback_value = schema_symbology.RGBA(coerce_rgba(fallback))
 
     return schema_symbology.IExpressionScale(
         params=schema_symbology.IExpressionScaleParams(
@@ -898,18 +910,18 @@ def _scalar_scale(
 
 def mapping(
     scale: Any,
-    channels: Sequence[Any],
+    encodings: Sequence[Any],
 ) -> schema_symbology.IMapping:
-    """Bind a scale to one or more style channels.
+    """Bind a scale to one or more style encodings.
 
     :param scale: A scale object (e.g. from ``expression``, ``colormap``,
         or the private ``_*_scale`` helpers).
-    :param channels: Style channel names to drive with the scale.
+    :param encodings: Style encoding names to drive with the scale.
     :returns: A mapping object that can be passed to ``encoding_rule``.
     """
     return schema_symbology.IMapping(
         scale=scale,
-        channels=_normalize_channels(channels),
+        encodings=_normalize_encodings(encodings),
     )
 
 
@@ -920,7 +932,7 @@ def encoding_rule(
     when_op: Literal["all", "any"] | None = None,
     id: str | None = None,
 ) -> schema_symbology.IEncodingRule:
-    """Create an encoding rule that groups one or more channel mappings.
+    """Create an encoding rule that groups one or more encoding mappings.
 
     :param mappings: One or more ``mapping`` objects to include in this rule.
     :param fields: Feature field names that the rule depends on. Used for
@@ -1153,17 +1165,18 @@ def symbology_state(
 
 def _constant_rule(
     *,
-    target: VisualEncodings,
+    target: VisualEncoding | str,
     value: RGBA | Sequence[float] | str | float,
-    when: WhenInput = None,
+    when: Predicate | Sequence[Predicate] | None = None,
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
+    scale: schema_symbology.IConstantRGBAScale | schema_symbology.IConstantNumScale
     if isinstance(value, (int, float)):
         scale = _constant_num_scale(float(value))
     else:
         scale = _constant_color_scale(value)
     return encoding_rule(
-        mapping(scale=scale, channels=_resolve_ENCODINGs(target)),
+        mapping(scale=scale, encodings=_resolve_ENCODINGs(target)),
         when=_normalize_when(when),
         when_op=when_op,
     )
@@ -1173,12 +1186,12 @@ def _mapped_rule(
     *,
     scale: Any,
     value: str,
-    target: VisualEncodings,
-    when: WhenInput = None,
+    target: VisualEncoding | str,
+    when: Predicate | Sequence[Predicate] | None = None,
     when_op: WhenOpInput = "all",
 ) -> schema_symbology.IEncodingRule:
     return encoding_rule(
-        mapping(scale=scale, channels=_resolve_ENCODINGs(target)),
+        mapping(scale=scale, encodings=_resolve_ENCODINGs(target)),
         fields=[value],
         when=_normalize_when(when),
         when_op=when_op,
@@ -1190,26 +1203,28 @@ def _single_layer(*rules: schema_symbology.IEncodingRule) -> GrammarSymbology:
 
 
 def _resolve_ENCODINGs(
-    target: VisualEncodings,
-) -> list[schema_symbology.Encoding]:
+    target: VisualEncoding | str | Sequence[VisualEncoding | str],
+) -> list[schema_symbology.Encoding | VisualEncoding | str]:
+    # NOTE: VisualEncoding is technically a str, but Mypy doesn't know that because we
+    #       defined it in the functional Enum style.
     requested = [target] if isinstance(target, str) else list(target)
-    channels: list[schema_symbology.Encoding] = []
+    encodings: list[schema_symbology.Encoding | VisualEncoding | str] = []
     for item in requested:
         # Check if it's a shorthand
         if item in ENCODING_SHORTCUTS:
-            channels.extend(ENCODING_SHORTCUTS[item])
-        # Otherwise check if it's a valid schema channel
-        elif item in _SCHEMA_CHANNEL_VALUES:
-            channels.append(item)
+            encodings.extend(ENCODING_SHORTCUTS[item])
+        # Otherwise check if it's a valid schema encoding
+        elif item in _SCHEMA_ENCODING_VALUES:
+            encodings.append(item)
         else:
             raise ValueError(
-                f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_CHANNEL_VALUES]}",
+                f"Unsupported target: {item!r}.\nSupported targets are: {[*ENCODING_SHORTCUTS.keys(), *_SCHEMA_ENCODING_VALUES]}",
             )
 
-    deduped: list[schema_symbology.Encoding] = []
-    for channel in channels:
-        if channel not in deduped:
-            deduped.append(channel)
+    deduped: list[schema_symbology.Encoding | VisualEncoding | str] = []
+    for encoding in encodings:
+        if encoding not in deduped:
+            deduped.append(encoding)
     return deduped
 
 
@@ -1251,12 +1266,19 @@ SymbologyInput = (
     | list[Symbology | Layer | list[Mapping] | tuple[Mapping, ...]]
     | BaseModel
     | dict[str, Any]
-    | None
 )
 
 
-def to_symbology_state(
+def _symbology_input_is_list_of_mappings(
     symbology: SymbologyInput,
+) -> TypeGuard[list[Mapping]]:
+    if not isinstance(symbology, list):
+        return False
+    return all(isinstance(item, Mapping) for item in symbology)
+
+
+def to_symbology_state(
+    symbology: SymbologyInput | None,
 ) -> dict[str, Any] | None:
     """Serialize a symbology value to a plain dict suitable for storage.
 
@@ -1292,7 +1314,7 @@ def to_symbology_state(
             return None
 
         # Single-layer shorthand: a top-level list of Mapping values.
-        if all(isinstance(item, Mapping) for item in symbology):
+        if _symbology_input_is_list_of_mappings(symbology):
             return GrammarSymbology(
                 layers=[grammar_layer(*[mapping._rule for mapping in symbology])],
             ).model_dump(
@@ -1331,9 +1353,9 @@ def to_symbology_state(
         )
 
     if isinstance(symbology, dict):
-        layers = symbology.get("layers")
-        if layers is None:
-            raise ValueError("symbology dict must contain a 'layers' key")
-        return {"layers": layers}
+        try:
+            return {"layers": symbology["layers"]}
+        except KeyError as e:
+            raise ValueError("symbology dict must contain a 'layers' key") from e
 
     raise TypeError(f"Unsupported symbology value: {type(symbology)!r}")

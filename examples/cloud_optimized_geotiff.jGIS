@@ -30,7 +30,7 @@
                   "id": "510c202d-6a51-4588-a1b1-28e17ed1a3a4",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "pixel-rgb"
                       ],
                       "scale": {
@@ -154,7 +154,7 @@
                   "id": "b7db8010-4d20-401f-82da-e3f22c79a548",
                   "mappings": [
                     {
-                      "channels": [
+                      "encodings": [
                         "pixel-alpha"
                       ],
                       "scale": {

@@ -447,18 +447,18 @@ select option {
   gap: 3px;
 }
 
-.jp-gis-grammar-channel-row {
+.jp-gis-grammar-encoding-row {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.jp-gis-grammar-channel-select {
+.jp-gis-grammar-encoding-select {
   min-width: 0;
 }
 
-.jp-gis-grammar-channel-select .jgis-combobox-button,
-.jp-gis-grammar-channel-select .jgis-native-select {
+.jp-gis-grammar-encoding-select .jgis-combobox-button,
+.jp-gis-grammar-encoding-select .jgis-native-select {
   width: 100%;
   box-sizing: border-box;
 }
@@ -535,7 +535,7 @@ select option {
   cursor: not-allowed;
 }
 
-/* Preview button spans all channel rows — stretches vertically */
+/* Preview button spans all encoding rows — stretches vertically */
 .jp-gis-grammar-preview-btn {
   background: none;
   border: 1px solid transparent;

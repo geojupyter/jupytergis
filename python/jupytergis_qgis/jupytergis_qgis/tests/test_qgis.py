@@ -127,10 +127,10 @@ def _grammar(rules):
     return {"layers": [{"id": "layer-0", "rules": rules}]}
 
 
-def _constant_rgba(value, channels):
+def _constant_rgba(value, encodings):
     return {
         "scale": {"scheme": "constant_rgba", "params": {"value": value}},
-        "channels": channels,
+        "encodings": encodings,
     }
 
 
@@ -156,12 +156,12 @@ def _make_gray_tif(path):
     ds = None
 
 
-def _fill_mapping(symbology_state, channel="fill-color"):
-    """Return (scheme, fields, params) of the mapping driving ``channel``."""
+def _fill_mapping(symbology_state, encoding="fill-color"):
+    """Return (scheme, fields, params) of the mapping driving ``encoding``."""
     for grammar_layer in symbology_state.get("layers", []):
         for rule in grammar_layer.get("rules", []):
             for mapping in rule.get("mappings", []):
-                if channel in mapping.get("channels", []):
+                if encoding in mapping.get("encodings", []):
                     scale = mapping["scale"]
                     return scale["scheme"], rule.get("fields"), scale.get("params", {})
     return None, None, None
@@ -210,7 +210,7 @@ def test_qgis_saver():
                                 "fallback": [0.0, 0.0, 0.0, 0.0],
                             },
                         },
-                        "channels": ["fill-color", "circle-fill-color"],
+                        "encodings": ["fill-color", "circle-fill-color"],
                     },
                 ],
             },
@@ -238,7 +238,7 @@ def test_qgis_saver():
                                 ],
                             },
                         },
-                        "channels": ["stroke-color"],
+                        "encodings": ["stroke-color"],
                     },
                 ],
             },
@@ -444,7 +444,7 @@ def test_qgis_saver():
     # Categorized line -> categorical scale on stroke-color keyed on the field.
     scheme, fields, _ = _fill_mapping(
         imported_layers[layer_ids[6]]["parameters"]["symbologyState"],
-        channel="stroke-color",
+        encoding="stroke-color",
     )
     assert scheme == "categorical"
     assert fields == ["min_label"]
@@ -561,7 +561,7 @@ def test_qgis_multilayer_kde_roundtrip():
                                         "fallback": [0, 0, 0, 0],
                                     },
                                 },
-                                "channels": ["pixel-rgb"],
+                                "encodings": ["pixel-rgb"],
                             },
                         ],
                     },
@@ -625,7 +625,7 @@ def test_qgis_multilayer_kde_roundtrip():
         m["scale"]["params"]
         for r in grammar_layer["rules"]
         for m in r["mappings"]
-        if "pixel-rgb" in m["channels"]
+        if "pixel-rgb" in m["encodings"]
     )
     assert ramp["name"] == "viridis"
 
@@ -672,7 +672,7 @@ def test_qgis_scalar_size_and_heatmap_alpha():
                                         "fallback": 0.0,
                                     },
                                 },
-                                "channels": ["circle-radius"],
+                                "encodings": ["circle-radius"],
                             },
                         ],
                     },
@@ -702,7 +702,7 @@ def test_qgis_scalar_size_and_heatmap_alpha():
                                         "fallback": [0, 0, 0, 0],
                                     },
                                 },
-                                "channels": ["pixel-rgb"],
+                                "encodings": ["pixel-rgb"],
                             },
                         ],
                     },
@@ -714,7 +714,7 @@ def test_qgis_scalar_size_and_heatmap_alpha():
                                     "scheme": "constant_num",
                                     "params": {"value": 0.9},
                                 },
-                                "channels": ["pixel-alpha"],
+                                "encodings": ["pixel-alpha"],
                             },
                         ],
                     },
@@ -974,7 +974,7 @@ def test_vector_tile_colorramp_to_class_styles():
                         "fields": ["best_age_top"],
                         "mappings": [
                             {
-                                "channels": ["fill-color", "stroke-color"],
+                                "encodings": ["fill-color", "stroke-color"],
                                 "scale": {
                                     "scheme": "colorRamp",
                                     "params": {
@@ -1034,12 +1034,12 @@ def test_vector_tile_colorramp_to_class_styles():
     assert logs["warnings"] == []
 
 
-def _channel_band_sig(grammar):
-    """Map each pixel channel to its (band-field, scale-scheme), ignoring ids."""
+def _encoding_band_sig(grammar):
+    """Map each pixel encoding to its (band-field, scale-scheme), ignoring ids."""
     sig = {}
     for rule in grammar["layers"][0]["rules"]:
         mapping = rule["mappings"][0]
-        sig[mapping["channels"][0]] = (rule["fields"][0], mapping["scale"]["scheme"])
+        sig[mapping["encodings"][0]] = (rule["fields"][0], mapping["scale"]["scheme"])
     return sig
 
 
@@ -1089,7 +1089,7 @@ def test_multiband_raster_roundtrip():
         ranges = {0: (ce.minimumValue(), ce.maximumValue())}
         grammar_out = multiband_raster_to_grammar(bands, ranges)
 
-        assert _channel_band_sig(grammar_out) == _channel_band_sig(grammar_in)
+        assert _encoding_band_sig(grammar_out) == _encoding_band_sig(grammar_in)
     finally:
         if os.path.exists(tif):
             os.remove(tif)
@@ -1140,7 +1140,7 @@ def test_multiband_alpha_band_roundtrip():
             bands,
             alpha_band=renderer.alphaBand(),
         )
-        assert _channel_band_sig(grammar_out)["pixel-alpha"] == ("$band-4", "identity")
+        assert _encoding_band_sig(grammar_out)["pixel-alpha"] == ("$band-4", "identity")
     finally:
         if os.path.exists(tif):
             os.remove(tif)
@@ -1178,7 +1178,7 @@ def test_single_band_gray_import_has_min_max():
 
         grammar = grayscale_raster_to_grammar(renderer.grayBand())
         mapping = grammar["layers"][0]["rules"][0]["mappings"][0]
-        assert mapping["channels"] == ["pixel-color"]
+        assert mapping["encodings"] == ["pixel-color"]
         assert mapping["scale"]["scheme"] == "colorRamp"
         # Stops/domain are normalized [0, 1] (JupyterGIS renders normalized bands);
         # raw [vmin, vmax] stops would collapse the data to one colour ("1 pixel").
@@ -1232,7 +1232,7 @@ def test_raster_colorramp_value_space_roundtrip():
                                             ],
                                         },
                                     },
-                                    "channels": ["pixel-color"],
+                                    "encodings": ["pixel-color"],
                                 },
                             ],
                         },
@@ -1293,7 +1293,7 @@ def test_raster_flat_color_to_grammar_migrates_legacy_ramp():
     rule = grammar["layers"][0]["rules"][0]
     assert rule["fields"] == ["$band-1"]
     mapping = rule["mappings"][0]
-    assert mapping["channels"] == ["pixel-color"]
+    assert mapping["encodings"] == ["pixel-color"]
     assert mapping["scale"]["scheme"] == "colorRamp"
     stops = mapping["scale"]["params"]["colorStops"]
     # Stops (already normalized [0, 1]) pass straight through, transparent 0 kept.
@@ -1322,7 +1322,7 @@ def _roundtrip_layer(grammar_layer, geometry_type):
         logs,
         "L",
     )
-    # Vector layers are now a single symbol with data-defined channels (cluster
+    # Vector layers are now a single symbol with data-defined encodings (cluster
     # layers wrap it in a point-cluster renderer).
     assert isinstance(
         renderer,
@@ -1332,11 +1332,11 @@ def _roundtrip_layer(grammar_layer, geometry_type):
     return state["layers"][0], logs
 
 
-def _mapping_for_channel(grammar_layer, channel):
-    """(scheme, params, fields, when) of the mapping driving ``channel``."""
+def _mapping_for_encoding(grammar_layer, encoding):
+    """(scheme, params, fields, when) of the mapping driving ``encoding``."""
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
-            if channel in mapping.get("channels", []):
+            if encoding in mapping.get("encodings", []):
                 scale = mapping["scale"]
                 return (
                     scale["scheme"],
@@ -1375,14 +1375,14 @@ def test_graduated_roundtrip():
                                 ],
                             },
                         },
-                        "channels": ["fill-color", "circle-fill-color"],
+                        "encodings": ["fill-color", "circle-fill-color"],
                     },
                 ],
             },
         ],
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "fill")
-    scheme, params, fields, _ = _mapping_for_channel(out, "fill-color")
+    scheme, params, fields, _ = _mapping_for_encoding(out, "fill-color")
     assert scheme == "colorRamp"
     assert fields == ["pop"]
     assert [s["stop"] for s in params["colorStops"]] == [0.0, 5.0, 10.0]
@@ -1410,14 +1410,14 @@ def test_categorized_roundtrip_rule_based():
                                 ],
                             },
                         },
-                        "channels": ["fill-color", "circle-fill-color"],
+                        "encodings": ["fill-color", "circle-fill-color"],
                     },
                 ],
             },
         ],
     )["layers"][0]
     out, _ = _roundtrip_layer(layer, "fill")
-    scheme, params, fields, _ = _mapping_for_channel(out, "fill-color")
+    scheme, params, fields, _ = _mapping_for_encoding(out, "fill-color")
     assert scheme == "categorical"
     assert fields == ["continent"]
     stops = {
@@ -1452,7 +1452,7 @@ def test_line_categorical_stroke_color_roundtrip():
                                 ],
                             },
                         },
-                        "channels": ["stroke-color"],
+                        "encodings": ["stroke-color"],
                     },
                 ],
             },
@@ -1471,14 +1471,14 @@ def test_line_categorical_stroke_color_roundtrip():
                                 "fallback": 1.0,
                             },
                         },
-                        "channels": ["stroke-width"],
+                        "encodings": ["stroke-width"],
                     },
                 ],
             },
         ],
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "line")
-    scheme, params, fields, _ = _mapping_for_channel(out, "stroke-color")
+    scheme, params, fields, _ = _mapping_for_encoding(out, "stroke-color")
     assert scheme == "categorical"
     assert fields == ["type"]
     stops = {
@@ -1486,9 +1486,9 @@ def test_line_categorical_stroke_color_roundtrip():
     }
     assert stops == {"Road": [227, 26, 28], "Track": [255, 127, 0]}
     # A line has no fill, so the colour must not land on fill-color.
-    assert _mapping_for_channel(out, "fill-color")[0] is None
+    assert _mapping_for_encoding(out, "fill-color")[0] is None
     # The data-driven width survives as a scalar on its own field.
-    w_scheme, w_params, w_fields, _ = _mapping_for_channel(out, "stroke-width")
+    w_scheme, w_params, w_fields, _ = _mapping_for_encoding(out, "stroke-width")
     assert w_scheme == "scalar"
     assert w_fields == ["length_km"]
     assert w_params["domain"] == [0.0, 100.0]
@@ -1520,14 +1520,14 @@ def test_scalar_size_roundtrip():
                                 "fallback": 0.0,
                             },
                         },
-                        "channels": ["circle-radius"],
+                        "encodings": ["circle-radius"],
                     },
                 ],
             },
         ],
     }
     out, logs = _roundtrip_layer(layer, "circle")
-    scheme, params, fields, _ = _mapping_for_channel(out, "circle-radius")
+    scheme, params, fields, _ = _mapping_for_encoding(out, "circle-radius")
     assert scheme == "scalar"
     assert fields == ["mag"]
     assert params["domain"] == [3.0, 9.0]
@@ -1548,13 +1548,13 @@ def test_identity_stroke_roundtrip():
                 "id": "r-stroke",
                 "fields": ["colour"],
                 "mappings": [
-                    {"scale": {"scheme": "identity"}, "channels": ["stroke-color"]},
+                    {"scale": {"scheme": "identity"}, "encodings": ["stroke-color"]},
                 ],
             },
         ],
     }
     out, logs = _roundtrip_layer(layer, "fill")
-    scheme, _, fields, _ = _mapping_for_channel(out, "stroke-color")
+    scheme, _, fields, _ = _mapping_for_encoding(out, "stroke-color")
     assert scheme == "identity"
     assert fields == ["colour"]
     assert logs["warnings"] == []
@@ -1585,11 +1585,11 @@ def test_rule_when_roundtrip():
         {"type": "fieldCompare", "field": "mag", "op": ">", "value": 5.0},
     ]
     # The guarded rule keeps its constant fill colour.
-    fill = next(m for m in guarded[0]["mappings"] if "fill-color" in m["channels"])
+    fill = next(m for m in guarded[0]["mappings"] if "fill-color" in m["encodings"])
     assert [round(c) for c in fill["scale"]["params"]["value"][:3]] == [255, 0, 0]
 
 
-def test_line_colorramp_mixed_channels_roundtrip():
+def test_line_colorramp_mixed_encodings_roundtrip():
     """A line coloured by a colorRamp tagged on BOTH stroke-color and
     circle-fill-color (as the frontend emits) must export the ramp on the line's
     stroke — not get mis-filed as a fill scale and lost, which rendered black.
@@ -1601,7 +1601,7 @@ def test_line_colorramp_mixed_channels_roundtrip():
                 "fields": ["length_km"],
                 "mappings": [
                     {
-                        "channels": ["stroke-color", "circle-fill-color"],
+                        "encodings": ["stroke-color", "circle-fill-color"],
                         "scale": {
                             "scheme": "colorRamp",
                             "params": {
@@ -1622,11 +1622,11 @@ def test_line_colorramp_mixed_channels_roundtrip():
         ],
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "line")
-    scheme, _params, fields, _when = _mapping_for_channel(out, "stroke-color")
+    scheme, _params, fields, _when = _mapping_for_encoding(out, "stroke-color")
     assert scheme == "colorRamp"
     assert fields == ["length_km"]
     # The line has no fill, so the ramp must NOT have landed on fill-color.
-    assert _mapping_for_channel(out, "fill-color")[0] is None
+    assert _mapping_for_encoding(out, "fill-color")[0] is None
     assert logs["warnings"] == []
 
 
@@ -1659,7 +1659,7 @@ def test_roads_when_colorramp_and_constant_roundtrip(tmp_path):
                 "fields": ["length_km"],
                 "mappings": [
                     {
-                        "channels": ["stroke-color", "circle-fill-color"],
+                        "encodings": ["stroke-color", "circle-fill-color"],
                         "scale": {
                             "scheme": "colorRamp",
                             "params": {
@@ -1689,7 +1689,7 @@ def test_roads_when_colorramp_and_constant_roundtrip(tmp_path):
                 "id": "r",
                 "mappings": [
                     {
-                        "channels": ["stroke-color"],
+                        "encodings": ["stroke-color"],
                         "scale": {
                             "scheme": "constant_rgba",
                             "params": {"value": [0, 255, 0, 1.0]},
@@ -1742,14 +1742,14 @@ def test_roads_when_colorramp_and_constant_roundtrip(tmp_path):
     assert set(by_continent) == {"Asia", "Africa"}
 
     # Asia: data-driven colorRamp on the line's stroke-color, keyed on length_km.
-    scheme, _params, fields, _when = _mapping_for_channel(
+    scheme, _params, fields, _when = _mapping_for_encoding(
         by_continent["Asia"],
         "stroke-color",
     )
     assert scheme == "colorRamp"
     assert fields == ["length_km"]
     # Africa: constant green stroke colour preserved.
-    a_scheme, a_params, _f, _w = _mapping_for_channel(
+    a_scheme, a_params, _f, _w = _mapping_for_encoding(
         by_continent["Africa"],
         "stroke-color",
     )
@@ -1784,7 +1784,7 @@ def test_polygon_categorical_outline_roundtrip():
                                 ],
                             },
                         },
-                        "channels": ["stroke-color"],
+                        "encodings": ["stroke-color"],
                     },
                 ],
             },
@@ -1796,7 +1796,7 @@ def test_polygon_categorical_outline_roundtrip():
                             "scheme": "constant_rgba",
                             "params": {"value": [200, 200, 200, 1.0]},
                         },
-                        "channels": ["fill-color", "circle-fill-color"],
+                        "encodings": ["fill-color", "circle-fill-color"],
                     },
                 ],
             },
@@ -1804,7 +1804,7 @@ def test_polygon_categorical_outline_roundtrip():
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "fill")
     # Outline: categorical stroke colour preserved (was dropped before the rewrite).
-    scheme, params, fields, _ = _mapping_for_channel(out, "stroke-color")
+    scheme, params, fields, _ = _mapping_for_encoding(out, "stroke-color")
     assert scheme == "categorical"
     assert fields == ["continent"]
     stops = {
@@ -1812,7 +1812,7 @@ def test_polygon_categorical_outline_roundtrip():
     }
     assert stops == {"Asia": [255, 0, 0], "Europe": [0, 0, 255]}
     # Fill stays an independent plain constant grey.
-    f_scheme, f_params, _f, _w = _mapping_for_channel(out, "fill-color")
+    f_scheme, f_params, _f, _w = _mapping_for_encoding(out, "fill-color")
     assert f_scheme == "constant_rgba"
     assert [round(c) for c in f_params["value"][:3]] == [200, 200, 200]
     assert logs["warnings"] == []
@@ -1844,7 +1844,7 @@ def test_line_color_via_circle_fill_only_roundtrip():
                                 ],
                             },
                         },
-                        "channels": ["circle-fill-color"],
+                        "encodings": ["circle-fill-color"],
                     },
                 ],
             },
@@ -1852,11 +1852,11 @@ def test_line_color_via_circle_fill_only_roundtrip():
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "line")
     # The sole colour mapping lands on the line's stroke, not dropped to black.
-    scheme, _params, fields, _ = _mapping_for_channel(out, "stroke-color")
+    scheme, _params, fields, _ = _mapping_for_encoding(out, "stroke-color")
     assert scheme == "categorical"
     assert fields == ["type"]
     # A line has no fill, so the colour must NOT have landed on fill-color.
-    assert _mapping_for_channel(out, "fill-color")[0] is None
+    assert _mapping_for_encoding(out, "fill-color")[0] is None
     assert logs["warnings"] == []
 
 
@@ -1943,7 +1943,7 @@ def test_colorramp_name_survives_reopen(tmp_path):
                                                         ],
                                                     },
                                                 },
-                                                "channels": [
+                                                "encodings": [
                                                     "fill-color",
                                                     "circle-fill-color",
                                                 ],
@@ -1974,7 +1974,7 @@ def test_colorramp_name_survives_reopen(tmp_path):
     reimported = import_project_from_qgis(str(out))
     layer = next(iter(reimported["layers"].values()))
     state = layer["parameters"]["symbologyState"]
-    scheme, params, fields, _ = _mapping_for_channel(state["layers"][0], "fill-color")
+    scheme, params, fields, _ = _mapping_for_encoding(state["layers"][0], "fill-color")
     assert scheme == "colorRamp"
     assert fields == ["pop"]
     # The picker's ramp name + direction are restored, not defaulted to viridis.
@@ -1998,7 +1998,7 @@ def test_heatmap_ramp_only_first_stop_transparent():
                 "fields": ["$density"],
                 "mappings": [
                     {
-                        "channels": ["pixel-rgb"],
+                        "encodings": ["pixel-rgb"],
                         "scale": {
                             "scheme": "colorRamp",
                             "params": {"name": "viridis", "reverse": False},
@@ -2029,7 +2029,7 @@ def _vector_tile_ramp_jgis(lid, sid, line_stroke_rgba, stroke_width):
                         "fields": ["best_age_top"],
                         "mappings": [
                             {
-                                "channels": ["fill-color", "stroke-color"],
+                                "encodings": ["fill-color", "stroke-color"],
                                 "scale": {
                                     "scheme": "colorRamp",
                                     "params": {
@@ -2057,7 +2057,7 @@ def _vector_tile_ramp_jgis(lid, sid, line_stroke_rgba, stroke_width):
                         "id": "r-width",
                         "mappings": [
                             {
-                                "channels": ["stroke-width"],
+                                "encodings": ["stroke-width"],
                                 "scale": {
                                     "scheme": "constant_num",
                                     "params": {"value": stroke_width},
@@ -2140,7 +2140,7 @@ def test_vector_tile_colorramp_width_alpha_roundtrip():
         for gl in state["layers"]
         if gl.get("when", [{}])[0].get("value") == "Polygon"
     )
-    scheme, params, fields, _ = _mapping_for_channel(polygon, "fill-color")
+    scheme, params, fields, _ = _mapping_for_encoding(polygon, "fill-color")
     assert scheme == "colorRamp"
     assert fields == ["best_age_top"]
     stops = params["colorStops"]
@@ -2149,7 +2149,7 @@ def test_vector_tile_colorramp_width_alpha_roundtrip():
     assert stops[0]["color"][:3] == [68, 1, 84]
     assert [s["stop"] for s in stops] == [1.0, 100.0, 3600.0]
     # The constant polygon stroke width round-trips.
-    width_scheme, width_params, _, _ = _mapping_for_channel(polygon, "stroke-width")
+    width_scheme, width_params, _, _ = _mapping_for_encoding(polygon, "stroke-width")
     assert width_scheme == "constant_num"
     assert width_params["value"] == 1.25
 
@@ -2158,7 +2158,7 @@ def test_vector_tile_colorramp_width_alpha_roundtrip():
         for gl in state["layers"]
         if gl.get("when", [{}])[0].get("value") == "LineString"
     )
-    _, line_params, _, _ = _mapping_for_channel(line, "stroke-color")
+    _, line_params, _, _ = _mapping_for_encoding(line, "stroke-color")
     # Alpha survives (8-bit colour precision -> ~0.72).
     assert abs(line_params["value"][3] - 0.72) < 0.01
 
@@ -2197,7 +2197,7 @@ def test_vector_tile_identical_geometry_rules_collapse():
                         "fields": ["Layer"],
                         "mappings": [
                             {
-                                "channels": [
+                                "encodings": [
                                     "fill-color",
                                     "stroke-color",
                                     "circle-fill-color",
@@ -2250,6 +2250,6 @@ def test_vector_tile_identical_geometry_rules_collapse():
     # One ungated layer, not three geometryType-gated rules.
     assert len(layers) == 1
     assert not layers[0].get("when")
-    scheme, _, fields, _ = _mapping_for_channel(layers[0], "fill-color")
+    scheme, _, fields, _ = _mapping_for_encoding(layers[0], "fill-color")
     assert scheme == "categorical"
     assert fields == ["Layer"]
