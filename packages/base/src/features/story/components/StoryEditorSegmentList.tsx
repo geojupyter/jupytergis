@@ -6,6 +6,10 @@ import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getStorySegmentDisplayTitle } from '@/src/features/story/utils/storySegmentViewItems';
 import { Button } from '@/src/shared/components/Button';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 export interface IStoryEditorSegmentListProps {
   segments: IStorySegmentViewItem[];
@@ -16,13 +20,19 @@ export interface IStoryEditorSegmentListProps {
   onReorderSegments: (fromIndex: number, toIndex: number) => void;
 }
 
+function formatSegmentOptionLabel(segment: IStorySegmentViewItem): string {
+  const title = getStorySegmentDisplayTitle(segment);
+  const mode =
+    getSegmentDisplayMode(segment.activeSlide) === 'map' ? 'Map' : 'Text';
+  return `${segment.index + 1}. ${title} · ${mode}`;
+}
+
 function SegmentListItem({
   segment,
   selected,
   onSelect,
   index,
   canReorder,
-  isMobile,
   onDragStart,
 }: {
   segment: IStorySegmentViewItem;
@@ -30,7 +40,6 @@ function SegmentListItem({
   onSelect: () => void;
   index: number;
   canReorder: boolean;
-  isMobile: boolean;
   onDragStart: (index: number, event: React.DragEvent) => void;
 }): JSX.Element {
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
@@ -38,7 +47,7 @@ function SegmentListItem({
 
   return (
     <div className="jgis-story-editor-segment-row">
-      {canReorder && !isMobile ? (
+      {canReorder ? (
         <div
           className="jgis-story-editor-segment-drag-handle"
           draggable
@@ -59,19 +68,61 @@ function SegmentListItem({
         aria-current={selected ? 'true' : undefined}
       >
         <span className="jgis-story-editor-segment-item-index">
-          {segment.index + 1}
-          {isMobile ? null : '.'}
+          {segment.index + 1}.
         </span>
-        {!isMobile ? (
-          <>
-            <span className="jgis-story-editor-segment-item-title">{title}</span>
-            <span className="jgis-story-editor-segment-item-type">
-              {segmentMode === 'map' ? 'Map' : 'Text'}
-            </span>
-          </>
-        ) : null}
+        <span className="jgis-story-editor-segment-item-title">{title}</span>
+        <span className="jgis-story-editor-segment-item-type">
+          {segmentMode === 'map' ? 'Map' : 'Text'}
+        </span>
       </button>
     </div>
+  );
+}
+
+function MobileSegmentPicker({
+  segments,
+  selectedSegmentId,
+  onSelectSegment,
+  onAddSegment,
+}: {
+  segments: IStorySegmentViewItem[];
+  selectedSegmentId: string | null;
+  onSelectSegment: (segmentId: string) => void;
+  onAddSegment: () => void;
+}): JSX.Element {
+  return (
+    <aside className="jgis-story-editor-segment-list jgis-story-editor-segment-list--mobile">
+      {segments.length === 0 ? (
+        <p className="jgis-story-editor-segment-list-empty jgis-story-editor-help">
+          No segments yet. Add one from the current map view.
+        </p>
+      ) : (
+        <NativeSelect
+          className="jgis-story-editor-segment-picker"
+          aria-label="Segment"
+          value={selectedSegmentId ?? ''}
+          onChange={event => {
+            if (event.target.value) {
+              onSelectSegment(event.target.value);
+            }
+          }}
+        >
+          {segments.map(segment => (
+            <NativeSelectOption key={segment.id} value={segment.id}>
+              {formatSegmentOptionLabel(segment)}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      )}
+      <Button
+        variant="outline"
+        className="jgis-story-editor-add-segment"
+        onClick={onAddSegment}
+        aria-label="Add segment"
+      >
+        <FontAwesomeIcon icon={faPlus} />
+      </Button>
+    </aside>
   );
 }
 
@@ -149,6 +200,17 @@ export function StoryEditorSegmentList({
     clearDragState();
   }, [clearDragState, onReorderSegments]);
 
+  if (isMobile) {
+    return (
+      <MobileSegmentPicker
+        segments={segments}
+        selectedSegmentId={selectedSegmentId}
+        onSelectSegment={onSelectSegment}
+        onAddSegment={onAddSegment}
+      />
+    );
+  }
+
   return (
     <aside className="jgis-story-editor-segment-list">
       <div className="jgis-story-editor-segment-list-header jgis-story-editor-eyebrow">
@@ -188,7 +250,6 @@ export function StoryEditorSegmentList({
                 onSelect={() => onSelectSegment(segment.id)}
                 index={index}
                 canReorder={canReorder}
-                isMobile={isMobile}
                 onDragStart={handleDragStart}
               />
             </div>

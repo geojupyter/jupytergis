@@ -406,6 +406,38 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   width: calc(100% - 1rem);
 }
 
+.jgis-story-editor-segment-list--mobile {
+  flex: none;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: none;
+  min-width: 0;
+  max-height: none;
+  padding: 0.5rem;
+  border-right: none;
+  border-bottom: 1px solid var(--jp-border-color1);
+}
+
+.jgis-story-editor-segment-list--mobile .jgis-story-editor-segment-picker {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.jgis-story-editor-segment-list--mobile .jgis-story-editor-add-segment {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 2.25rem;
+  margin: 0;
+  justify-content: center;
+}
+
+.jgis-story-editor-segment-list--mobile
+  .jgis-story-editor-segment-list-empty {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
 .jgis-story-editor-workspace {
   flex: 1;
   min-width: 0;
@@ -832,71 +864,14 @@ Radix won't set hidden so do it manually */
     flex-direction: column;
   }
 
-  /* Number chips scroll; add sits on its own row below */
-  .jgis-story-editor-segment-list {
+  /* Segment list chrome when the dialog is narrow */
+  .jgis-story-editor-segment-list:not(.jgis-story-editor-segment-list--mobile) {
     flex: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.375rem;
     max-width: none;
     min-width: 0;
     max-height: none;
-    padding: 0.5rem;
     border-right: none;
     border-bottom: 1px solid var(--jp-border-color1);
-  }
-
-  .jgis-story-editor-segment-list-header {
-    display: none;
-  }
-
-  .jgis-story-editor-segment-list-items {
-    flex: none;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.375rem;
-    min-width: 0;
-    max-width: 100%;
-    padding: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .jgis-story-editor-segment-drag-wrapper {
-    flex: 0 0 auto;
-  }
-
-  .jgis-story-editor-segment-row {
-    gap: 0;
-  }
-
-  .jgis-story-editor-segment-item,
-  button.jgis-story-editor-segment-item.jp-mod-styled {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    width: 1.5rem;
-    min-width: 1.5rem;
-    height: 1.5rem;
-    padding: 0;
-    border-radius: var(--jp-border-radius);
-  }
-
-  .jgis-story-editor-segment-item-index {
-    font-size: 0.8125rem;
-    font-variant-numeric: tabular-nums;
-    color: inherit;
-  }
-
-  .jgis-story-editor-add-segment {
-    flex: none;
-    width: 100%;
-    margin: 0;
   }
 
   .jgis-story-editor-workspace {
