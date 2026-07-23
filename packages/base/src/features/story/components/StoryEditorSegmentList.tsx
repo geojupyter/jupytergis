@@ -10,6 +10,7 @@ import { Button } from '@/src/shared/components/Button';
 export interface IStoryEditorSegmentListProps {
   segments: IStorySegmentViewItem[];
   selectedSegmentId: string | null;
+  isMobile: boolean;
   onSelectSegment: (segmentId: string) => void;
   onAddSegment: () => void;
   onReorderSegments: (fromIndex: number, toIndex: number) => void;
@@ -21,6 +22,7 @@ function SegmentListItem({
   onSelect,
   index,
   canReorder,
+  isMobile,
   onDragStart,
 }: {
   segment: IStorySegmentViewItem;
@@ -28,6 +30,7 @@ function SegmentListItem({
   onSelect: () => void;
   index: number;
   canReorder: boolean;
+  isMobile: boolean;
   onDragStart: (index: number, event: React.DragEvent) => void;
 }): JSX.Element {
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
@@ -35,7 +38,7 @@ function SegmentListItem({
 
   return (
     <div className="jgis-story-editor-segment-row">
-      {canReorder && (
+      {canReorder && !isMobile ? (
         <div
           className="jgis-story-editor-segment-drag-handle"
           draggable
@@ -46,7 +49,7 @@ function SegmentListItem({
         >
           <FontAwesomeIcon icon={faGripVertical} />
         </div>
-      )}
+      ) : null}
       <button
         type="button"
         className={`jgis-story-editor-segment-item${
@@ -56,12 +59,17 @@ function SegmentListItem({
         aria-current={selected ? 'true' : undefined}
       >
         <span className="jgis-story-editor-segment-item-index">
-          {segment.index + 1}.
+          {segment.index + 1}
+          {isMobile ? null : '.'}
         </span>
-        <span className="jgis-story-editor-segment-item-title">{title}</span>
-        <span className="jgis-story-editor-segment-item-type">
-          {segmentMode === 'map' ? 'Map' : 'Text'}
-        </span>
+        {!isMobile ? (
+          <>
+            <span className="jgis-story-editor-segment-item-title">{title}</span>
+            <span className="jgis-story-editor-segment-item-type">
+              {segmentMode === 'map' ? 'Map' : 'Text'}
+            </span>
+          </>
+        ) : null}
       </button>
     </div>
   );
@@ -70,6 +78,7 @@ function SegmentListItem({
 export function StoryEditorSegmentList({
   segments,
   selectedSegmentId,
+  isMobile,
   onSelectSegment,
   onAddSegment,
   onReorderSegments,
@@ -179,6 +188,7 @@ export function StoryEditorSegmentList({
                 onSelect={() => onSelectSegment(segment.id)}
                 index={index}
                 canReorder={canReorder}
+                isMobile={isMobile}
                 onDragStart={handleDragStart}
               />
             </div>
