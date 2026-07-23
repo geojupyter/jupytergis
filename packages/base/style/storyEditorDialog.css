@@ -136,6 +136,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .jgis-story-editor-section-body[data-state='open'] {
@@ -148,11 +150,15 @@
   gap: 0.5rem;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 0.25rem;
   border-radius: var(--jp-border-radius);
   border: 1px solid var(--jp-border-color1);
   background: var(--jp-layout-color1);
+  overflow: hidden;
 }
 
 .jgis-story-editor-toolbar {
@@ -523,7 +529,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   display: block;
   width: auto;
   height: auto;
-  max-width: min(100%, 16rem);
+  max-width: 100%;
   object-fit: contain;
 }
 
