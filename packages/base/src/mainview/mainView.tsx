@@ -133,11 +133,11 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
+import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
 import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
-import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
