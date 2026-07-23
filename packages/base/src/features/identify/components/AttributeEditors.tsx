@@ -121,12 +121,12 @@ export const AttributeRowEditor: React.FC<IAttributeRowEditorProps> = ({
   return (
     <div className="jgis-property-row jgis-property-row-editor">
       <PropertyKeyValueFields
-        propertyKey={editorState.newPropertyKey}
-        propertyValue={editorState.newPropertyValue}
-        onPropertyKeyChange={editorActions.onNewPropertyKeyChange}
-        onPropertyValueChange={editorActions.onNewPropertyValueChange}
+        propertyKey={editorState.newAttributeKey}
+        propertyValue={editorState.newAttributeValue}
+        onPropertyKeyChange={editorActions.onNewAttributeKeyChange}
+        onPropertyValueChange={editorActions.onNewAttributeValueChange}
       />
-      <PropertyActionMenu
+      <AttributeActionMenu
         feature={feature}
         rowIndex={rowIndex}
         editorState={editorState}
@@ -164,7 +164,7 @@ export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
     <div className="jgis-property-row jgis-property-row-add">
       <Button
         className="jgis-property-add-button"
-        onClick={() => editorActions.onStartAddProperty(rowIndex)}
+        onClick={() => editorActions.onStartAddAttribute(rowIndex)}
         variant="outline"
         size="sm"
       >
