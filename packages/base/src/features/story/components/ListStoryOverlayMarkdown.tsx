@@ -22,12 +22,12 @@ function listStoryOverlayMarkdownPropsAreEqual(
 }
 
 /** Markdown body for a list-story stage overlay segment. */
-export const ListStoryOverlayMarkdown = memo(function ListStoryOverlayMarkdown({
+export const ListStoryOverlayMarkdown = memo(({
   model,
   segmentId,
   source,
   onRendered,
-}: IListStoryOverlayMarkdownProps): JSX.Element | null {
+}: IListStoryOverlayMarkdownProps): JSX.Element | null => {
   return (
     <RenderedStoryMarkdown
       model={model}

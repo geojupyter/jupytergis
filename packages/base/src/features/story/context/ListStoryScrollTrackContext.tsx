@@ -207,10 +207,7 @@ export function ListStoryScrollTrackProvider({
         // Ignore transient shrinks (empty remount / pre-image layout). Markdown
         // height should only grow until the story is rebuilt.
         const previousHeight = prev[segmentId];
-        if (
-          previousHeight !== undefined &&
-          measuredHeightPx < previousHeight
-        ) {
+        if (previousHeight !== undefined && measuredHeightPx < previousHeight) {
           return prev;
         }
 

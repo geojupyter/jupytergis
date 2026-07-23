@@ -51,13 +51,13 @@ function renderedStoryMarkdownPropsAreEqual(
 }
 
 /** Jupyter rendermime markdown output (shared by overlay and story editor). */
-export const RenderedStoryMarkdown = memo(function RenderedStoryMarkdown({
+export const RenderedStoryMarkdown = memo(({
   model,
   segmentId,
   source,
   onRendered,
   variant = 'overlay',
-}: IRenderedStoryMarkdownProps): JSX.Element | null {
+}: IRenderedStoryMarkdownProps): JSX.Element | null => {
   const rendermime = useStoryRenderMime(model, segmentId);
   const hostRef = useRef<HTMLDivElement>(null);
   const onRenderedRef = useRef(onRendered);
