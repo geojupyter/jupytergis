@@ -49,6 +49,9 @@ export const removeConsole = 'jupytergis:removeConsole';
 export const executeConsole = 'jupytergis:executeConsole';
 export const selectCompleter = 'jupytergis:selectConsoleCompleter';
 
+// Tour command
+export const launchFeatureTour = 'jupytergis:launchFeatureTour';
+
 // Map Commands
 export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
