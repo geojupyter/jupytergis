@@ -10,18 +10,27 @@ dynamic = ["version"]
 requires-python = ">=3.12"
 
 [dependency-groups]
+dev = [
+    "jupyterlab>=4.5.1",
+]
 test = [
     "pytest",
     "dirty-equals",
     "numpy",
     "rioxarray",
 ]
+typecheck = [
+    "mypy",
+    "PyQt5-stubs",
+    "types-geopandas",
+    "types-requests",
+]
 build = [
     "build",
-    "datamodel-code-generator>=0.23.0",
+    "datamodel-code-generator>=0.52.1",
     "hatchling>=1.5.0,<2",
     "jupyterlab>=4.5.1",
-    "uv",  # Only used for the layer gallery build
+    "uv",  # Only used for the layer gallery build,
 ]
 
 
@@ -99,6 +108,7 @@ ignore = [
     "FBT001",  # boolean-type-hint-positional-argument
     "FBT002",  # boolean-default-value-positional-argument
     "FBT003",  # boolean-positional-value-in-call
+    "FIX001",  # line-contains-fixme
     "FIX002",  # line-contains-todo
     "FURB116", # f-string-number-format
     "G004",    # logging-f-string
@@ -118,6 +128,7 @@ ignore = [
     "PLR0915", # too-many-statements
     "PLR2004", # magic-value-comparison
     "PLW1508", # invalid-envvar-default
+    "PLW0603", # use global variables freely
     "PLW2901", # redefined-loop-name
     "PT006",   # pytest-parametrize-names-wrong-type
     "PTH103",  # os-makedirs
@@ -142,6 +153,7 @@ ignore = [
     "S608",    # hardcoded-sql-expression
     "SLF001",  # private-member-access
     "T201",    # print
+    "TD001",   # invalid-todo-tag
     "TD002",   # missing-todo-author
     "TD003",   # missing-todo-link
     "TD004",   # missing-todo-colon
@@ -152,3 +164,37 @@ ignore = [
     "TRY400",  # error-instead-of-exception
     "UP045",   # non-pep604-annotation-optional
 ]
+
+[tool.mypy]
+mypy_path = [
+    "python/jupytergis",
+    "python/jupytergis_core",
+    "python/jupytergis_lab",
+    "python/jupytergis_lite",
+    "python/jupytergis_qgis",
+]
+packages = [
+    "jupytergis",
+    "jupytergis_core",
+    "jupytergis_lab",
+    "jupytergis_qgis",
+]
+# explicit_package_bases = true
+python_version = "3.12"
+# strict = true
+# check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "osgeo.*",
+    "qgis.*",
+    "sidecar.*",
+    "py2vega.*",  # See: https://github.com/QuantStack/py2vega/issues/50
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "webcolors.*",  # This library is typed but deliberately refuses to include a py.typed marker (https://github.com/ubernostrum/webcolors/issues/19)
+]
+follow_untyped_imports = true

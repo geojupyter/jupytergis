@@ -10,7 +10,12 @@ import {
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -23,20 +28,58 @@ import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
+import {
+  editOpenEOLayer,
+  showAddOpenEOLayerDialog,
+} from '../features/layers/openeo';
+import {
+  getLatestOpenEOConnection,
+  listOpenEOConnections,
+} from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
-import { getSingleSelectedLayer } from '../features/processing/index';
+import {
+  getSingleSelectedLayer,
+  selectedLayerIsOfType,
+} from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '../features/story/presentation/getStoryPresentationMode';
+import {
+  StoryEditorMode,
+  StoryEditorSession,
+} from '../features/story/storyEditorSession';
+import {
+  modelHasHiddenPanel,
+  toggleModelPanels,
+} from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import {
-  JupyterGISTracker,
-  STORY_TYPE,
-  SYMBOLOGY_VALID_LAYER_TYPES,
-} from '../types';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
+
+/**
+ * Commands for JupyterGIS-only features that cannot be round-tripped through
+ * the QGIS format. They are disabled while a QGIS document (`.qgs`/`.qgz`) is
+ * open so users don't create work that would be lost on save.
+ */
+const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
+  // OpenEO layers
+  CommandIDs.openNewOpenEODialog,
+  CommandIDs.editOpenEOLayer,
+  // GeoZarr layers
+  CommandIDs.openNewGeoZarrDialog,
+  // Story maps
+  CommandIDs.addStorySegment,
+  CommandIDs.openStoryEditor,
+  CommandIDs.storyPrev,
+  CommandIDs.storyNext,
+]);
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -70,26 +113,58 @@ export function addCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
   state: IStateDB,
-  completionProviderManager: ICompletionProviderManager | undefined,
+  editorServices: IEditorServices,
+  rendermime: IRenderMimeRegistry,
+  urlResolverFactory?: IUrlResolverFactory,
+  completionProviderManager?: ICompletionProviderManager,
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
   addLayerCreationCommands({ tracker, commands, trans });
   /**
-   * Wraps a command definition to automatically disable it in Specta mode
+   * Wraps a command definition to automatically disable it when the active
+   * document does not support it: in Specta mode, or for JupyterGIS-only
+   * features (see QGIS_UNSUPPORTED_COMMANDS) while a QGIS document is open.
    */
-  const createSpectaAwareCommand = (
+  const createRestrictedCommand = (
+    id: string,
     command: CommandRegistry.ICommandOptions,
   ): CommandRegistry.ICommandOptions => {
     const originalIsEnabled = command.isEnabled;
+    const originalCaption = command.caption;
+    const originalLabel = command.label;
+
+    // True when the command is unsupported by QGIS and a QGIS file is open.
+    const isQgisRestricted = () => {
+      const currentModel = tracker.currentWidget?.model;
+      return (
+        !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
+      );
+    };
+
+    const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
+      typeof originalLabel === 'function'
+        ? originalLabel(args ?? {})
+        : (originalLabel ?? '');
 
     return {
       ...command,
+      label: (args?: ReadonlyPartialJSONObject) => {
+        const label = resolveLabel(args);
+        if (isQgisRestricted() && label) {
+          return trans.__('%1 (convert to .jGIS to enable)', label);
+        }
+        return label;
+      },
       isEnabled: (args?: ReadonlyPartialJSONObject) => {
-        // First check if we're in Specta mode
-        const currentModel = tracker.currentWidget?.model;
-        if (currentModel?.isSpectaMode()) {
+        // Disable everything in Specta mode.
+        if (tracker.currentWidget?.model?.isSpectaMode()) {
+          return false;
+        }
+        // Disable features unsupported by QGIS while a QGIS file is open,
+        // since they cannot be round-tripped through the QGIS format.
+        if (isQgisRestricted()) {
           return false;
         }
         // Then check the original isEnabled if it exists
@@ -98,6 +173,15 @@ export function addCommands(
         }
         // Default to enabled if no original check
         return true;
+      },
+      caption: (args?: ReadonlyPartialJSONObject) => {
+        // Hint the user how to regain access to the disabled feature.
+        if (isQgisRestricted()) {
+          return trans.__('(convert to .jGIS to enable)');
+        }
+        return typeof originalCaption === 'function'
+          ? originalCaption(args ?? {})
+          : (originalCaption ?? '');
       },
     };
   };
@@ -108,7 +192,7 @@ export function addCommands(
     id: string,
     options: CommandRegistry.ICommandOptions,
   ) => {
-    return originalAddCommand(id, createSpectaAwareCommand(options));
+    return originalAddCommand(id, createRestrictedCommand(id, options));
   };
 
   commands.addCommand(CommandIDs.symbology, {
@@ -154,6 +238,60 @@ export function addCommands(
     execute: Private.createSymbologyDialog(tracker, state),
 
     ...icons.get(CommandIDs.symbology),
+  });
+
+  commands.addCommand(CommandIDs.showLayerPropertiesDialog, {
+    label: trans.__('Layer Properties'),
+    caption: 'Show the properties of the currently selected layer.',
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      const selectedIds = Object.keys(selected);
+
+      // Only a single object can be edited at a time.
+      if (selectedIds.length !== 1) {
+        return false;
+      }
+
+      const id = selectedIds[0];
+      return Boolean(model.getLayer(id) || model.getSource(id));
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        console.error(
+          'Cannot show layer properties: no active JupyterGIS document.',
+        );
+        return;
+      }
+
+      const model = current.model;
+
+      // OpenEO layers are edited through the process-graph editor, which is a
+      // dialog itself. Opening the Layer Properties dialog first would block
+      // it (a dialog cannot open while another is open), so go straight to the
+      // process-graph editor instead. See #1653.
+      const selected = model.localState?.selected?.value ?? {};
+      const selectedId = Object.keys(selected)[0];
+      const layer = selectedId ? model.getLayer(selectedId) : undefined;
+      if (selectedId && layer?.type === 'OpenEOTileLayer') {
+        await editOpenEOLayer(model, selectedId);
+        return;
+      }
+
+      const dialog = new ObjectPropertiesWidget({
+        model,
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.showLayerPropertiesDialog),
   });
 
   commands.addCommand(CommandIDs.redo, {
@@ -260,6 +398,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'GeoTiffLayer',
+        'GeoZarrLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
 
@@ -283,6 +422,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'GeoTiffLayer',
+        'GeoZarrLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
@@ -587,6 +727,91 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewHillshadeDialog),
   });
 
+  commands.addCommand(CommandIDs.openNewOpenEODialog, {
+    label: trans.__('OpenEO Layer'),
+    caption:
+      'Open a dialog to add an OpenEO process-graph tile layer to the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      // Seed the dialog from the global pool of live OpenEO connections
+      // (shared across all documents): pre-fill with the most recently
+      // used server and offer the rest in the picker. The user
+      // picks/connects inside the dialog itself, so we don't
+      // pre-authenticate here.
+      const result = await showAddOpenEOLayerDialog({
+        connectionInfo: getLatestOpenEOConnection(),
+        knownServers: listOpenEOConnections(),
+      });
+      if (!result) {
+        return;
+      }
+      const model = current.model;
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+      // Persist the bearer alongside the server url so the layer can
+      // re-establish its connection after a reload (or when the document
+      // is reopened) without forcing the user to sign in again.
+      model.sharedModel.addSource(sourceId, {
+        name: `${result.layerName} Source`,
+        type: 'OpenEOTileSource',
+        parameters: {
+          serverUrl: result.serverUrl,
+          authBearer: result.authBearer,
+          processGraph: result.processGraph,
+        },
+      });
+      model.addLayer(layerId, {
+        name: result.layerName,
+        type: 'OpenEOTileLayer',
+        visible: true,
+        parameters: { opacity: 0.9, source: sourceId },
+      });
+    },
+    ...icons.get(CommandIDs.openNewOpenEODialog),
+  });
+
+  commands.addCommand(CommandIDs.editOpenEOLayer, {
+    label: trans.__('Edit OpenEO Layer…'),
+    caption: 'Edit the process graph of the selected OpenEO layer.',
+    isVisible: () => selectedLayerIsOfType(['OpenEOTileLayer'], tracker),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const model = current.model;
+      const localState = model.sharedModel.awareness.getLocalState();
+      const selected = (localState?.['selected']?.value ?? {}) as Record<
+        string,
+        any
+      >;
+      const layerId = Object.keys(selected)[0];
+      if (!layerId) {
+        return;
+      }
+      await editOpenEOLayer(model, layerId);
+    },
+  });
+
   commands.addCommand(CommandIDs.openNewImageDialog, {
     label: trans.__('Image'),
     caption:
@@ -625,47 +850,6 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewImageDialog),
   });
 
-  commands.addCommand(CommandIDs.openNewVideoDialog, {
-    label: trans.__('Video'),
-    caption:
-      'Open a dialog to create a new video layer and source in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Video Layer',
-      createLayer: true,
-      createSource: true,
-      sourceData: {
-        name: 'Custom Video Source',
-        urls: [
-          'https://static-assets.mapbox.com/mapbox-gl-js/drone.mp4',
-          'https://static-assets.mapbox.com/mapbox-gl-js/drone.webm',
-        ],
-        coordinates: [
-          [-122.51596391201019, 37.56238816766053],
-          [-122.51467645168304, 37.56410183312965],
-          [-122.51309394836426, 37.563391708549425],
-          [-122.51423120498657, 37.56161849366671],
-        ],
-      },
-      layerData: { name: 'Custom Video Layer' },
-      sourceType: 'VideoSource',
-      layerType: 'RasterLayer',
-    }),
-    ...icons.get(CommandIDs.openNewVideoDialog),
-  });
-
   commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
     label: trans.__('GeoTiff'),
     caption:
@@ -696,6 +880,40 @@ export function addCommands(
       layerType: 'GeoTiffLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoTiffDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewGeoZarrDialog, {
+    label: trans.__('GeoZarr'),
+    caption:
+      'Open a dialog to create a new GeoZarr layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoZarr Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: {
+        name: 'Custom GeoZarr Source',
+        url: '',
+        bands: [],
+        wrapX: false,
+      },
+      layerData: { name: 'Custom GeoZarr Layer' },
+      sourceType: 'GeoZarrSource',
+      layerType: 'GeoZarrLayer',
+    }),
+    ...icons.get(CommandIDs.openNewGeoZarrDialog),
   });
 
   commands.addCommand(CommandIDs.openNewShapefileDialog, {
@@ -1407,47 +1625,33 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.togglePanel, {
     label: trans.__('Toggle Panel'),
-    caption: 'Toggle the panel in the current JupyterGIS document.',
-    iconClass: 'fa fa-layer-group',
+    caption: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return '';
+      }
+
+      return modelHasHiddenPanel(current.model)
+        ? trans.__('Show the side panels.')
+        : trans.__('Hide the side panels.');
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return false;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      return !show;
+      return modelHasHiddenPanel(current.model);
     },
     execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-      const { leftPanelDisabled, rightPanelDisabled } =
-        current.model.jgisSettings;
-      const { leftPanelOpen = true, rightPanelOpen = true } =
-        current.model.getUIState();
-      // Show all if any non-disabled panel is hidden; hide all otherwise.
-      const show =
-        (!leftPanelDisabled && !leftPanelOpen) ||
-        (!rightPanelDisabled && !rightPanelOpen);
-      const newState: { leftPanelOpen?: boolean; rightPanelOpen?: boolean } =
-        {};
-      if (!leftPanelDisabled) {
-        newState.leftPanelOpen = show;
-      }
-      if (!rightPanelDisabled) {
-        newState.rightPanelOpen = show;
-      }
-      current.model.setUIState(newState);
+      toggleModelPanels(current.model);
       commands.notifyCommandChanged(CommandIDs.togglePanel);
     },
+    ...icons.get(CommandIDs.togglePanel),
   });
 
   // Left panel tabs
@@ -1510,36 +1714,6 @@ export function addCommands(
   });
 
   // Right panel tabs
-  commands.addCommand(CommandIDs.showObjectPropertiesTab, {
-    label: trans.__('Show Object Properties Tab'),
-    caption:
-      'Show the object properties tab in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () =>
-      tracker.currentWidget
-        ? !tracker.currentWidget.model.jgisSettings.objectPropertiesDisabled
-        : false,
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-      const settings = await current.model.getSettings();
-      const currentValue =
-        settings?.composite?.objectPropertiesDisabled ??
-        current.model.jgisSettings.objectPropertiesDisabled ??
-        false;
-      await settings?.set('objectPropertiesDisabled', !currentValue);
-      commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
-    },
-  });
-
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
     caption: 'Show the annotations tab in the current JupyterGIS document.',
@@ -1720,98 +1894,63 @@ export function addCommands(
       }
 
       current.model.addStorySegment();
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
     ...icons.get(CommandIDs.addStorySegment),
   });
 
-  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
-    label: trans.__('Toggle Story Presentation Mode'),
+  commands.addCommand(CommandIDs.openStoryEditor, {
+    label: trans.__('Open Story Editor'),
+    caption: 'Open the story editor for the current JupyterGIS document.',
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return !current.model.jgisSettings.storyMapsDisabled;
+    },
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return false;
       }
 
-      const { storyMapPresentationMode } = current.model.getOptions();
-
-      return storyMapPresentationMode ?? false;
+      return current.model.isStoryPreviewActive();
     },
-    isEnabled: () => {
-      const storySegments =
-        tracker.currentWidget?.model.getSelectedStory().story?.storySegments;
-
-      if (
-        tracker.currentWidget?.model.jgisSettings.storyMapsDisabled ||
-        !storySegments ||
-        storySegments.length < 1
-      ) {
-        return false;
-      }
-
-      return true;
-    },
-    execute: args => {
+    execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
 
-      const currentOptions = current.model.getOptions();
+      const session = StoryEditorSession.getInstance();
+      const mode = session.getMode(current.model);
 
-      current.model.setOptions({
-        ...currentOptions,
-        storyMapPresentationMode: !currentOptions.storyMapPresentationMode,
-      });
-
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
-    },
-    ...icons.get(CommandIDs.toggleStoryPresentationMode),
-  });
-
-  commands.addCommand(CommandIDs.createStorySegmentFromLayer, {
-    label: trans.__('Create Story Segment for Layer'),
-
-    isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const selected = model?.localState?.selected?.value;
-
-      if (!model || !selected) {
-        return false;
-      }
-
-      if (Object.keys(selected).length !== 1) {
-        return false;
-      }
-
-      const layerId = Object.keys(selected)[0];
-
-      return !!model.getLayer(layerId);
-    },
-
-    execute: () => {
-      const current = tracker.currentWidget;
-      if (!current) {
+      if (mode === StoryEditorMode.inactive) {
+        await Private.createStoryEditor(
+          current.model,
+          commands,
+          formSchemaRegistry,
+          state,
+          tracker,
+          editorServices,
+          rendermime,
+          urlResolverFactory,
+        );
         return;
       }
 
-      const model = current.model;
-      const selected = model?.localState?.selected?.value;
-      if (!selected) {
+      if (mode === StoryEditorMode.editing) {
+        session.focusDialog();
         return;
       }
 
-      const layerId = Object.keys(selected)[0];
-
-      const result = model.createStorySegmentFromLayer(layerId);
-
-      if (result) {
-        model.centerOnPosition(layerId);
-      }
+      session.restoreEditor();
     },
+    ...icons.get(CommandIDs.openStoryEditor),
   });
 
-  /* Needs to be enabled in Specta mode, so add without Specta-aware wrapper */
+  /* Enabled during story presentation (Specta or lab preview). */
   originalAddCommand(CommandIDs.storyPrev, {
     label: trans.__('Previous Story Segment'),
     isEnabled: () => {
@@ -1827,12 +1966,14 @@ export function addCommands(
         return false;
       }
 
-      if (!model.isSpectaMode()) {
+      if (!model.isStoryPresentationActive()) {
         return false;
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -1864,13 +2005,14 @@ export function addCommands(
         return false;
       }
 
-      const isSpecta = model.isSpectaMode();
-      if (!isSpecta) {
+      if (!model.isStoryPresentationActive()) {
         return false;
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -1888,6 +2030,12 @@ export function addCommands(
       model.setCurrentSegmentIndex(current + 1);
     },
   });
+
+  const notifyStoryPresentationCommandsChanged = () => {
+    commands.notifyCommandChanged(CommandIDs.openStoryEditor);
+    commands.notifyCommandChanged(CommandIDs.storyPrev);
+    commands.notifyCommandChanged(CommandIDs.storyNext);
+  };
 
   const notifyCommandsChanged = () => {
     for (const command of Object.values(CommandIDs)) {
@@ -1907,9 +2055,15 @@ export function addCommands(
 
     const model = tracker.currentWidget?.model;
     model?.selectedChanged.connect(notifyCommandsChanged);
+    model?.storyPreviewActiveChanged.connect(
+      notifyStoryPresentationCommandsChanged,
+    );
 
     cleanup = () => {
       model?.selectedChanged.disconnect(notifyCommandsChanged);
+      model?.storyPreviewActiveChanged.disconnect(
+        notifyStoryPresentationCommandsChanged,
+      );
     };
 
     notifyCommandsChanged();
@@ -1919,6 +2073,28 @@ export function addCommands(
 }
 
 namespace Private {
+  export async function createStoryEditor(
+    model: IJupyterGISModel,
+    commands: CommandRegistry,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    state: IStateDB,
+    tracker: JupyterGISTracker,
+    editorServices: IEditorServices,
+    rendermime: IRenderMimeRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
+  ): Promise<void> {
+    await StoryEditorSession.getInstance().openEditor(
+      model,
+      commands,
+      state,
+      formSchemaRegistry,
+      tracker,
+      editorServices,
+      rendermime,
+      urlResolverFactory,
+    );
+  }
+
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,

@@ -17,15 +17,9 @@ dependencies:
   - sphinx-autodoc-typehints
   - sphinx-exercise
   - sphinx-togglebutton
+  - sphinx-copybutton
   - sphinxcontrib-mermaid
   - sphinxcontrib-bibtex
   - myst-parser
-  - xeus-python # TODO: Do we need this?
-  - specta
+  - specta=0.4
   - pip
-  - pip:
-      # Install JupyterGIS so we can autodoc.
-      # IMPORTANT: You must do `jlpm build` at the root of the repo before this can work.
-      # See: https://github.com/geojupyter/jupytergis/issues/585
-      - ../python/jupytergis_core
-      - ../python/jupytergis_lab[tiler]

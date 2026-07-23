@@ -6,5 +6,5 @@
 install
 how-tos/index
 tutorials/index
-python_api
+python_api/index
 ```

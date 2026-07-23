@@ -5,6 +5,7 @@ import * as BaseCommandIDs from './commands/BaseCommandIDs';
 import {
   bookOpenIcon,
   clockIcon,
+  columns2Icon,
   geoJSONIcon,
   geoPackageIcon,
   infoIcon,
@@ -34,7 +35,6 @@ const iconObject = {
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
   ImageSource: { iconClass: 'fa fa-image' },
-  VideoSource: { iconClass: 'fa fa-video' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
   RasterLayer: { icon: rasterIcon },
@@ -45,7 +45,6 @@ const iconObject = {
   GeoTiffLayer: { iconClass: 'fa fa-image' },
   StacLayer: { icon: rasterIcon },
   ImageLayer: { iconClass: 'fa fa-image' },
-  VideoLayer: { iconClass: 'fa fa-video' },
   StorySegmentLayer: { iconClass: 'fa fa-link' },
 
   [CommandIDs.redo]: { icon: redoIcon },
@@ -57,23 +56,24 @@ const iconObject = {
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },
-  [CommandIDs.openNewVideoDialog]: { iconClass: 'fa fa-video' },
   [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },
   [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
   [CommandIDs.openNewShapefileDialog]: { iconClass: 'fa fa-file' },
   [CommandIDs.openNewGeoTiffDialog]: { iconClass: 'fa fa-image' },
+  [CommandIDs.openNewGeoZarrDialog]: { iconClass: 'fa fa-image' },
   [CommandIDs.openNewGeoParquetDialog]: { iconClass: 'fa fa-file' },
+  [CommandIDs.openNewOpenEODialog]: { icon: rasterIcon },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
-  [CommandIDs.toggleStoryPresentationMode]: {
-    iconClass: 'fa fa-book jgis-icon-adjust',
-  },
+  [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-scroll jgis-icon-adjust' },
+  [CommandIDs.showLayerPropertiesDialog]: { iconClass: 'fa fa-sliders' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.togglePanel]: { icon: columns2Icon },
 };
 
 /**

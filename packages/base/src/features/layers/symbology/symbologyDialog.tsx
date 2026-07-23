@@ -1,10 +1,10 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { Dialog } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
+import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { SymbologyTab, SymbologyValue } from '@/src/types';
 import Grammar from './Grammar';
 
@@ -40,19 +40,27 @@ export interface IStopRow {
   output: SymbologyValue;
 }
 
-const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
+export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
+  layerId,
   isStorySegmentOverride,
   segmentId,
 }) => {
-  const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
+  const [selectedLayer, setSelectedLayer] = useState<string | null>(
+    layerId ?? null,
+  );
   const [componentToRender, setComponentToRender] =
     useState<JSX.Element | null>(null);
 
   let LayerSymbology: React.JSX.Element;
 
   useEffect(() => {
+    if (layerId) {
+      setSelectedLayer(layerId);
+      return;
+    }
+
     const handleSelectedChanged = () => {
       if (!model.localState?.selected?.value) {
         return;
@@ -71,7 +79,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
     return () => {
       model.selectedChanged.disconnect(handleSelectedChanged);
     };
-  }, []);
+  }, [layerId, model]);
 
   useEffect(() => {
     if (!selectedLayer) {
@@ -89,6 +97,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       case 'VectorLayer':
       case 'VectorTileLayer':
       case 'GeoTiffLayer':
+      case 'GeoZarrLayer':
         LayerSymbology = (
           <Grammar
             model={model}
@@ -108,7 +117,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   return <>{componentToRender}</>;
 };
 
-export class SymbologyWidget extends Dialog<boolean> {
+export class SymbologyWidget extends EditorAwareDialog<boolean> {
   private okSignal: Signal<SymbologyWidget, null>;
 
   constructor(options: ISymbologyWidgetOptions) {

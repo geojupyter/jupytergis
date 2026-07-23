@@ -6,6 +6,7 @@ from .interfaces.project.layers.vectorTileLayer import IVectorTileLayer  # noqa
 from .interfaces.project.layers.hillshadeLayer import IHillshadeLayer  # noqa
 from .interfaces.project.layers.imageLayer import IImageLayer  # noqa
 from .interfaces.project.layers.geoTiffLayer import IGeoTiffLayer  # noqa
+from .interfaces.project.layers.geoZarrLayer import IGeoZarrLayer  # noqa
 from .interfaces.project.layers.storySegmentLayer import IStorySegmentLayer  # noqa
 from .interfaces.project.layers.openeoTileLayer import IOpenEOTileLayer  # noqa
 
@@ -13,9 +14,9 @@ from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # no
 from .interfaces.project.sources.markerSource import IMarkerSource  # noqa
 from .interfaces.project.sources.rasterSource import IRasterSource  # noqa
 from .interfaces.project.sources.geoJsonSource import IGeoJSONSource  # noqa
-from .interfaces.project.sources.videoSource import IVideoSource  # noqa
 from .interfaces.project.sources.imageSource import IImageSource  # noqa
 from .interfaces.project.sources.geoTiffSource import IGeoTiffSource  # noqa
+from .interfaces.project.sources.geoZarrSource import IGeoZarrSource  # noqa
 from .interfaces.project.sources.rasterDemSource import IRasterDemSource  # noqa
 from .interfaces.project.sources.geoPackageVectorSource import IGeoPackageVectorSource  # noqa
 from .interfaces.project.sources.geoPackageRasterSource import IGeoPackageRasterSource  # noqa

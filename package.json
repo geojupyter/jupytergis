@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-root",
-  "version": "0.16.0-alpha.0",
+  "version": "0.16.0-beta.5",
   "private": true,
   "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {
@@ -53,11 +53,11 @@
   },
   "packageManager": "yarn@3.5.0",
   "resolutions": {
-    "@jupyterlab/apputils": "^4.0.0",
+    "@jupyterlab/apputils": "^4.6",
     "@lumino/coreutils": "^2.0.0",
-    "@jupyterlab/notebook": "^4.0.0",
-    "@jupyterlab/rendermime": "^4.0.0",
-    "@jupyterlab/services": " ^7.0.0",
+    "@jupyterlab/notebook": "^4.6",
+    "@jupyterlab/rendermime": "^4.6",
+    "@jupyterlab/services": " ^7.6",
     "webpack": ">=5.76.3 <5.107.0"
   },
   "devDependencies": {
@@ -74,10 +74,13 @@
     "lerna": "^8.1.9",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.0.0",
+    "py2vega-ts": "^0.1.2",
     "react-draggable": "4.5.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.4.9",
     "typescript": "^5",
-    "webpack": "^5.76.3"
+    "vega2ol": "^1.2.0",
+    "webpack": "^5.76.3",
+    "zarrita": "^0.7.3"
   }
 }

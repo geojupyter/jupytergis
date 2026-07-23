@@ -1,0 +1,102 @@
+{
+  "layerTree": [
+    "142e1fb3-7e69-4603-85b1-eb67f66194b6",
+    "ec25a87a-5d13-4fbc-9769-727729109de8",
+    "7244da37-e27c-4069-b49f-94f47d4f2c1e"
+  ],
+  "layers": {
+    "142e1fb3-7e69-4603-85b1-eb67f66194b6": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "6d6763c6-3221-430f-87d6-7191ea3f70b8"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "7244da37-e27c-4069-b49f-94f47d4f2c1e": {
+      "name": "Sentinel-2 L2A (Hvolsv\u00f6llur)",
+      "parameters": {
+        "gamma": 1.0,
+        "opacity": 1.0,
+        "source": "f5a71fe1-eaff-4e68-a6e0-777d7aff33d7"
+      },
+      "type": "GeoZarrLayer",
+      "visible": true
+    },
+    "ec25a87a-5d13-4fbc-9769-727729109de8": {
+      "name": "Sentinel-2 L2A (Krasnokuts'k)",
+      "parameters": {
+        "gamma": 1.0,
+        "opacity": 1.0,
+        "source": "16950cf4-2d61-42d8-b065-8d03200214f1"
+      },
+      "type": "GeoZarrLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -2474200.6634822264,
+      9094797.208492137,
+      -1968035.4764185,
+      9380380.052229002
+    ],
+    "latitude": 63.55475231783237,
+    "longitude": -19.952643100704634,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 8.544160986142069
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "16950cf4-2d61-42d8-b065-8d03200214f1": {
+      "name": "Custom GeoZarr Source",
+      "parameters": {
+        "bands": [
+          "b04",
+          "b03",
+          "b02"
+        ],
+        "httpHeaders": "",
+        "url": "https://s3.explorer.eopf.copernicus.eu/esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2C_MSIL2A_20260120T084301_N0511_R064_T36UXA_20260120T122910.zarr/measurements/reflectance",
+        "useProxy": false,
+        "wrapX": true
+      },
+      "type": "GeoZarrSource"
+    },
+    "6d6763c6-3221-430f-87d6-7191ea3f70b8": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "httpHeaders": "",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {},
+        "useProxy": false
+      },
+      "type": "RasterSource"
+    },
+    "f5a71fe1-eaff-4e68-a6e0-777d7aff33d7": {
+      "name": "Custom GeoZarr Source",
+      "parameters": {
+        "bands": [
+          "b04",
+          "b03",
+          "b02"
+        ],
+        "httpHeaders": "",
+        "url": "https://s3.explorer.eopf.copernicus.eu/esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2B_MSIL2A_20260120T125339_N0511_R138_T27VWL_20260120T131151.zarr/measurements/reflectance",
+        "useProxy": false,
+        "wrapX": true
+      },
+      "type": "GeoZarrSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

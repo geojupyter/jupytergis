@@ -1,5 +1,4 @@
-import { galata, test } from '@jupyterlab/galata';
-import { expect } from '@playwright/test';
+import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
 const FILENAME = 'panel-test.jGIS';
@@ -43,15 +42,14 @@ test.describe('#mobilePanel', () => {
     await expect(page.locator('.jgis-right-panel-container')).not.toBeVisible();
   });
 
-  test('merged panel is not shown on desktop viewport', async ({ page }) => {
+  test('merged panel is shown on desktop viewport when the screen is small', async ({
+    page,
+  }) => {
     page.setViewportSize(DESKTOP_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
-    await expect(
-      page.locator('.jgis-merged-panel-container'),
-    ).not.toBeVisible();
-    await expect(page.locator('.jgis-left-panel-container')).toBeVisible();
+    await expect(page.locator('.jgis-merged-panel-container')).toBeVisible();
   });
 
   test('pill indicator is visible on mobile', async ({ page }) => {

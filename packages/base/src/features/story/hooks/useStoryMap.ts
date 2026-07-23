@@ -2,19 +2,18 @@ import type {
   IJGISLayer,
   IJGISStoryMap,
   IJupyterGISModel,
-  IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { STORY_TYPE } from '@/src/types';
-
-/** Entry for a layer affected by layer override
- * remove if we added a layer or restore if we modified an existing layer.
- **/
-export interface IOverrideLayerEntry {
-  layerId: string;
-  action: 'remove' | 'restore';
-}
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
+import {
+  applySegmentLayerOverrides,
+  clearSegmentLayerOverrideEntries,
+} from '@/src/features/story/utils/storySegmentOverrides';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
@@ -28,8 +27,6 @@ export function useStoryMap({
   model,
   overrideLayerEntriesRef,
   removeLayer,
-  addLayer,
-  isSpecta,
 }: IUseStoryMapParams) {
   const [currentIndex, setCurrentIndex] = useState(
     () => model.getCurrentSegmentIndex() ?? 0,
@@ -72,7 +69,9 @@ export function useStoryMap({
   const currentSegmentContentMode = activeSlide?.content?.contentMode;
 
   const showGradient = storyData?.showGradient ?? true;
-  const isGuidedStory = storyData?.storyType === STORY_TYPE.guided;
+  const isColumnStory = isColumnPresentation(
+    getStoryPresentationMode(storyData?.storyType),
+  );
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 
@@ -81,17 +80,7 @@ export function useStoryMap({
     if (!entries) {
       return;
     }
-    entries.forEach(({ layerId, action }) => {
-      if (action === 'remove') {
-        removeLayer?.(layerId);
-      } else {
-        const layerOrSource = model.getLayerOrSource(layerId);
-        if (layerOrSource) {
-          model.triggerLayerUpdate(layerId, layerOrSource);
-        }
-      }
-    });
-    entries.length = 0;
+    clearSegmentLayerOverrideEntries(model, entries, removeLayer);
   }, [model, overrideLayerEntriesRef, removeLayer]);
 
   const setIndex = useCallback(
@@ -129,82 +118,18 @@ export function useStoryMap({
 
   const overrideSymbology = useCallback(
     (index: number) => {
-      if (index < 0 || !storySegments[index]) {
+      const segmentId = storyData?.storySegments?.[index];
+      if (index < 0 || !segmentId) {
         return;
       }
 
-      const segment = storySegments[index];
-      const layerOverrides: IStorySegmentLayer['layerOverride'] = (
-        segment.parameters as IStorySegmentLayer['parameters']
-      )?.layerOverride;
-
-      if (!Array.isArray(layerOverrides)) {
-        return;
-      }
-
-      layerOverrides.forEach(override => {
-        const {
-          color,
-          opacity,
-          sourceProperties,
-          symbologyState,
-          targetLayer: targetLayerId,
-          visible,
-        } = override;
-
-        if (!targetLayerId) {
-          return;
-        }
-
-        overrideLayerEntriesRef.current?.push({
-          layerId: targetLayerId,
-          action: 'restore',
-        });
-
-        const targetLayer = model.getLayer(targetLayerId);
-
-        if (targetLayer?.parameters) {
-          if (symbologyState !== undefined) {
-            targetLayer.parameters.symbologyState = symbologyState;
-          }
-          if (color !== undefined) {
-            targetLayer.parameters.color = color;
-          }
-          if (opacity !== undefined) {
-            targetLayer.parameters.opacity = opacity;
-          }
-          if (visible !== undefined) {
-            targetLayer.visible = visible;
-          }
-          if (
-            sourceProperties !== undefined &&
-            Object.keys(sourceProperties).length > 0
-          ) {
-            const sourceId = targetLayer.parameters?.source;
-            if (sourceId) {
-              const source = model.getSource(sourceId);
-              if (!source) {
-                return;
-              }
-              if (source?.parameters) {
-                source.parameters = {
-                  ...source.parameters,
-                  ...sourceProperties,
-                };
-              }
-
-              overrideLayerEntriesRef.current?.push({
-                layerId: sourceId,
-                action: 'restore',
-              });
-
-              model.triggerLayerUpdate(sourceId, source);
-            }
-          }
-        }
-      });
+      applySegmentLayerOverrides(
+        model,
+        segmentId,
+        overrideLayerEntriesRef.current ?? [],
+      );
     },
-    [addLayer, model, storySegments, overrideLayerEntriesRef],
+    [model, storyData?.storySegments, overrideLayerEntriesRef],
   );
 
   useEffect(() => {
@@ -266,14 +191,14 @@ export function useStoryMap({
       return;
     }
     clearOverrideLayers();
-    if (isGuidedStory) {
+    if (isColumnStory) {
       setSelectedLayerByIndex(currentIndex);
     }
     overrideSymbology(currentIndex);
   }, [
     storyData,
     currentIndex,
-    isGuidedStory,
+    isColumnStory,
     setSelectedLayerByIndex,
     clearOverrideLayers,
     overrideSymbology,
@@ -281,10 +206,10 @@ export function useStoryMap({
 
   // Set selected layer on initial render and when story data changes
   useEffect(() => {
-    if (isGuidedStory && storyData?.storySegments && currentIndex >= 0) {
+    if (isColumnStory && storyData?.storySegments && currentIndex >= 0) {
       setSelectedLayerByIndex(currentIndex);
     }
-  }, [storyData, currentIndex, isGuidedStory, setSelectedLayerByIndex]);
+  }, [storyData, currentIndex, isColumnStory, setSelectedLayerByIndex]);
 
   return {
     storyData,

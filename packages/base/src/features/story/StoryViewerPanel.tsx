@@ -1,8 +1,17 @@
-import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
-import { STORY_TYPE } from '@/src/types';
-import StoryContentSection from './components/StoryContentSection';
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
+import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
 import StorySubtitleSection from './components/StorySubtitleSection';
@@ -16,11 +25,10 @@ export interface IStoryViewerPanelSegmentNav {
   hasNext: boolean;
 }
 
-/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
+  model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
-  /** Ref for the segment container (SpectaPanel uses it for animationend). */
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -62,32 +70,22 @@ export type StoryNavPlacement =
 function getStoryNavPlacement(
   isSpecta: boolean,
   hasImage: boolean,
-  storyType: IJGISStoryMap['storyType'],
+  presentationMode: StoryPresentationMode,
   isMobile: boolean,
 ): StoryNavPlacement | null {
-  if (storyType === STORY_TYPE.verticalScroll) {
+  if (isVerticalScrollPresentation(presentationMode)) {
     return null;
   }
 
-  if (storyType === STORY_TYPE.unguided) {
-    return isSpecta && !isMobile ? 'subtitle-specta' : null;
+  if (isSpecta) {
+    return isMobile ? null : 'subtitle-specta';
   }
 
-  if (storyType === STORY_TYPE.guided) {
-    if (isSpecta) {
-      return isMobile ? null : 'subtitle-specta';
-    }
-    return hasImage ? 'over-image' : 'below-title';
-  }
-
-  return null;
+  return hasImage ? 'over-image' : 'below-title';
 }
 
-/**
- * Story viewer (presentational). Receives story state and callbacks from parent.
- * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
- */
 function StoryViewerPanel({
+  model,
   isSpecta,
   isMobile = false,
   segmentContainerRef,
@@ -108,12 +106,13 @@ function StoryViewerPanel({
     );
   }
 
+  const segmentId = storyData.storySegments?.[currentIndex] ?? '';
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-  const storyType = storyData.storyType ?? STORY_TYPE.guided;
+  const presentationMode = getStoryPresentationMode(storyData.storyType);
   const navPlacement = getStoryNavPlacement(
     isSpecta,
     hasImage,
-    storyType,
+    presentationMode,
     isMobile,
   );
 
@@ -143,9 +142,7 @@ function StoryViewerPanel({
   return (
     <div
       className={
-        storyData.storyType !== STORY_TYPE.verticalScroll
-          ? 'jgis-story-viewer-panel'
-          : ''
+        isColumnPresentation(presentationMode) ? 'jgis-story-viewer-panel' : ''
       }
     >
       <div
@@ -178,8 +175,11 @@ function StoryViewerPanel({
           />
         </div>
         <div id="jgis-story-segment-content">
-          <StoryContentSection
-            markdown={activeSlide?.content?.markdown ?? ''}
+          <RenderedStoryMarkdown
+            model={model}
+            segmentId={segmentId}
+            source={activeSlide?.content?.markdown ?? ''}
+            variant="column"
           />
         </div>
       </div>

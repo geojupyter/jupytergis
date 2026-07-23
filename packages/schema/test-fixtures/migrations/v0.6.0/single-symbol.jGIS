@@ -1,4 +1,5 @@
 {
+  "annotations": {},
   "layerTree": ["layer-id"],
   "layers": {
     "layer-id": {
@@ -16,19 +17,19 @@
                   "mappings": [
                     {
                       "scale": { "scheme": "constant_rgba", "params": { "value": [255, 0, 0, 1] } },
-                      "channels": ["fill-color", "circle-fill-color"]
+                      "encodings": ["fill-color", "circle-fill-color"]
                     },
                     {
                       "scale": { "scheme": "constant_rgba", "params": { "value": [0, 0, 0, 1] } },
-                      "channels": ["stroke-color", "circle-stroke-color"]
+                      "encodings": ["stroke-color", "circle-stroke-color"]
                     },
                     {
                       "scale": { "scheme": "constant_num", "params": { "value": 2 } },
-                      "channels": ["stroke-width", "circle-stroke-width"]
+                      "encodings": ["stroke-width", "circle-stroke-width"]
                     },
                     {
                       "scale": { "scheme": "constant_num", "params": { "value": 5 } },
-                      "channels": ["circle-radius"]
+                      "encodings": ["circle-radius"]
                     }
                   ]
                 }

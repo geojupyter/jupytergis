@@ -23,6 +23,8 @@ import {
   IJGISLayerItem,
   IJGISLayers,
   IJGISLayerTree,
+  IJGISAnnotations,
+  IJGISMetadata,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -35,6 +37,7 @@ import {
   IGeoJSONSource,
   IGeoParquetSource,
   IGeoTiffSource,
+  IGeoZarrSource,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -50,8 +53,8 @@ import {
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
-  IVideoSource,
   IGeoTiffLayer,
+  IGeoZarrLayer,
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
@@ -183,12 +186,13 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
-  metadata: any;
+  annotations: IJGISAnnotations;
+  metadata: IJGISMetadata;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
 
-  getSource(): JSONObject;
+  getSource(): string;
   setSource(value: JSONObject | string): void;
 
   layerExists(id: string): boolean;
@@ -228,9 +232,11 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getMetadata(key: string): string | IAnnotation | undefined;
-  setMetadata(key: string, value: string | IAnnotation): void;
-  removeMetadata(key: string): void;
+  getAnnotation(id: string): IAnnotation | undefined;
+  setAnnotation(id: string, value: IAnnotation): void;
+  removeAnnotation(id: string): void;
+  getAnnotations(): Record<string, IAnnotation>;
+  getAnnotationIds(): string[];
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
@@ -238,6 +244,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
+  annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -310,6 +317,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
+  sharedAnnotationsChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
@@ -321,6 +329,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
+
+  /**
+   * Whether the document is backed by a QGIS file (`.qgs`/`.qgz`).
+   */
+  readonly isQgisDocument: boolean;
 
   pathChanged: ISignal<IJupyterGISModel, string>;
 
@@ -391,8 +404,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   getClientId(): number;
 
-  addMetadata(key: string, value: string): void;
-  removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
@@ -417,9 +428,13 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
   addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null;
-  createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
   segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
+  isStoryPreviewActive(): boolean;
+  isStoryPresentationActive(): boolean;
+  canUseStoryPreview(): boolean;
+  setStoryPreviewActive(active: boolean): void;
+  storyPreviewActiveChanged: ISignal<IJupyterGISModel, boolean>;
 
   setUIState(value: Partial<IJGISUIState>): void;
   getUIState(): IJGISUIState;
@@ -508,19 +523,20 @@ export type ILayerGalleryEntry = {
     | IVectorLayer
     | IVectorTileLayer
     | IGeoTiffLayer
+    | IGeoZarrLayer
     | IOpenEOTileLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
     | IGeoParquetSource
     | IGeoTiffSource
+    | IGeoZarrSource
     | IImageSource
     | IMarkerSource
     | IRasterDemSource
     | IRasterSource
     | IShapefileSource
     | IVectorTileSource
-    | IVideoSource
     | IOpenEOTileSource;
   provider: string;
   description: string;
@@ -581,7 +597,6 @@ export interface IJupyterGISSettings {
   stacBrowserDisabled?: boolean;
 
   // Right panel tabs
-  objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
 

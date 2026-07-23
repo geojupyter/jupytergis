@@ -1,7 +1,6 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJupyterGISModel,
   IJupyterGISSettings,
 } from '@jupytergis/schema';
@@ -9,7 +8,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
-import type { PatchGeoJSONFeatureProperties } from '@/src/mainview/geoJsonFeaturePatch';
+import type { PatchGeoJSONFeatureAttributes } from '@/src/mainview/geoJsonFeaturePatch';
 import { LeftPanel, MergedPanel, RightPanel } from '@/src/workspace/panels';
 
 export interface IMainViewSidePanelsProps {
@@ -20,9 +19,7 @@ export interface IMainViewSidePanelsProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
-  addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
-  removeLayer: (id: string) => void;
-  patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
+  patchGeoJSONFeatureAttributes: PatchGeoJSONFeatureAttributes;
 }
 
 export function MainViewSidePanels({
@@ -33,9 +30,7 @@ export function MainViewSidePanels({
   state,
   formSchemaRegistry,
   annotationModel,
-  addLayer,
-  removeLayer,
-  patchGeoJSONFeatureProperties,
+  patchGeoJSONFeatureAttributes,
 }: IMainViewSidePanelsProps): JSX.Element {
   if (showMergedMobilePanel) {
     return (
@@ -46,8 +41,6 @@ export function MainViewSidePanels({
         settings={settings}
         formSchemaRegistry={formSchemaRegistry!}
         annotationModel={annotationModel!}
-        addLayer={addLayer}
-        removeLayer={removeLayer}
       />
     );
   }
@@ -68,10 +61,8 @@ export function MainViewSidePanels({
           commands={commands}
           formSchemaRegistry={formSchemaRegistry}
           annotationModel={annotationModel}
-          addLayer={addLayer}
-          removeLayer={removeLayer}
           settings={settings}
-          patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
+          patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
         />
       ) : null}
     </>

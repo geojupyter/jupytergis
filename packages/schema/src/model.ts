@@ -20,10 +20,7 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
-import {
-  IStorySegmentLayer,
-  LayerOverride,
-} from './_interface/project/layers/storySegmentLayer';
+import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
 import {
   AWARENESS_FIELD_KEYS,
@@ -65,7 +62,6 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   rightPanelDisabled: false,
   layersDisabled: false,
   stacBrowserDisabled: false,
-  objectPropertiesDisabled: false,
   annotationsDisabled: false,
   identifyDisabled: false,
   storyMapsDisabled: false,
@@ -86,6 +82,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
     this._sharedModel.metadataChanged.connect(
       this._metadataChangedHandler,
+      this,
+    );
+    this._sharedModel.annotationsChanged.connect(
+      this._annotationsChangedHandler,
       this,
     );
     this.annotationModel = annotationModel;
@@ -338,6 +338,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedMetadataChanged;
   }
 
+  get sharedAnnotationsChanged(): ISignal<this, MapChange> {
+    return this._sharedAnnotationsChanged;
+  }
+
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
   }
@@ -358,15 +362,12 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._sharedMetadataChanged.emit(args);
   }
 
-  addMetadata(key: string, value: string): void {
-    this.sharedModel.setMetadata(key, value);
-  }
-
-  removeMetadata(key: string): void {
-    this.sharedModel.removeMetadata(key);
+  private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedAnnotationsChanged.emit(args);
   }
 
   dispose(): void {
+    this._storyPreviewActive = false;
     if (this._isDisposed) {
       return;
     }
@@ -410,6 +411,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         pitch: 0,
         projection: DEFAULT_PROJECTION,
       };
+      this.sharedModel.annotations = jsonData.annotations ?? {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -442,6 +444,8 @@ export class JupyterGISModel implements IJupyterGISModel {
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options,
+      stories: this.sharedModel.stories,
+      annotations: this.sharedModel.annotations,
       metadata: this.sharedModel.metadata,
     };
   }
@@ -478,6 +482,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   set filePath(path: string) {
     this._filePath = path;
     this._pathChanged.emit(path);
+  }
+
+  /**
+   * Whether the document is backed by a QGIS file (`.qgs`/`.qgz`).
+   */
+  get isQgisDocument(): boolean {
+    const path = this._filePath?.toLowerCase() ?? '';
+    return path.endsWith('.qgs') || path.endsWith('.qgz');
   }
 
   getLayers(): IJGISLayers {
@@ -733,6 +745,59 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Whether the in-lab story presentation preview is active (session-only).
+   */
+  isStoryPreviewActive(): boolean {
+    return this._storyPreviewActive;
+  }
+
+  /**
+   * Whether the story viewer presentation UI should be shown (Specta or
+   * in-lab preview).
+   */
+  isStoryPresentationActive(): boolean {
+    return this.isSpectaMode() || this._storyPreviewActive;
+  }
+
+  /**
+   * Whether the current story supports presentation preview.
+   */
+  canUseStoryPreview(): boolean {
+    const storySegments = this.getSelectedStory().story?.storySegments;
+    return (
+      !this.jgisSettings.storyMapsDisabled &&
+      !!storySegments &&
+      storySegments.length >= 1 &&
+      this._isStoryTypeSupportedForPresentation(
+        this.getSelectedStory().story?.storyType,
+      )
+    );
+  }
+
+  setStoryPreviewActive(active: boolean): void {
+    if (active && !this.canUseStoryPreview()) {
+      return;
+    }
+
+    if (this._storyPreviewActive === active) {
+      return;
+    }
+
+    this._storyPreviewActive = active;
+    this._storyPreviewActiveChanged.emit(active);
+  }
+
+  get storyPreviewActiveChanged(): ISignal<this, boolean> {
+    return this._storyPreviewActiveChanged;
+  }
+
+  private _isStoryTypeSupportedForPresentation(
+    storyType: IJGISStoryMap['storyType'] | undefined,
+  ): boolean {
+    return storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
+  }
+
+  /**
    * Placeholder in case we eventually want to support multiple stories
    * @returns First/only story
    */
@@ -790,6 +855,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       extent,
       zoom,
       transition: { type: 'linear', time: 1 },
+      layerOverride: [],
       content: {
         contentMode: 'map',
         title: '',
@@ -853,49 +919,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return viewState?.layerName
       ? `${viewState.layerName} - ${basename}`
       : basename;
-  }
-
-  /**
-   * Adds a story segment from a layer
-   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
-   */
-  createStorySegmentFromLayer(layerId: string) {
-    const layer = this.getLayer(layerId);
-    if (!layer) {
-      return null;
-    }
-
-    const viewState = this.getViewState()[layerId];
-    if (!viewState) {
-      return null;
-    }
-
-    const segment = this.addStorySegment(viewState);
-    if (!segment) {
-      return null;
-    }
-
-    const segmentLayer = this.getLayer(segment.storySegmentId);
-    if (!segmentLayer) {
-      return null;
-    }
-
-    const segmentParams = segmentLayer.parameters as IStorySegmentLayer;
-
-    const layerParams = layer.parameters;
-
-    const override: LayerOverride[number] = {
-      targetLayer: layerId,
-      visible: layer.visible,
-      color: layerParams?.color,
-      opacity: layerParams?.opacity,
-      symbologyState: layerParams?.symbologyState,
-    };
-
-    segmentParams.layerOverride = [override];
-    segmentLayer.parameters = segmentParams;
-
-    return segment;
   }
 
   get segmentAdded(): ISignal<this, IStorySegmentRef> {
@@ -1368,6 +1391,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
+  private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
@@ -1393,6 +1417,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
+  private _storyPreviewActive = false;
+  private _storyPreviewActiveChanged = new Signal<this, boolean>(this);
   stories: Map<string, IJGISStoryMap> = new Map();
 
   private _localUIState: Partial<IJGISUIState> = {};

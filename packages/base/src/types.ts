@@ -59,11 +59,11 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'VectorLayer',
   'VectorTileLayer',
   'GeoTiffLayer',
+  'GeoZarrLayer',
 ];
 
 export const STORY_TYPE = {
   guided: 'guided',
-  unguided: 'unguided',
   verticalScroll: 'Vertical Scroll',
 } as const satisfies Record<string, StoryType>;
 

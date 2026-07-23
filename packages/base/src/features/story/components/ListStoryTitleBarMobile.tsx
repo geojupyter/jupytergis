@@ -92,7 +92,7 @@ export function ListStoryTitleBarMobile({
               <button
                 key={item.id}
                 type="button"
-                className="jgis-story-title-bar-label jgis-story-title-bar-segment-menu-item"
+                className="jgis-underline-indicator jgis-story-title-bar-label jgis-story-title-bar-segment-menu-item"
                 data-state={isActive ? 'active' : 'inactive'}
                 aria-current={isActive ? 'true' : undefined}
                 onClick={() => handleMenuSegmentClick(item.index)}
@@ -105,7 +105,7 @@ export function ListStoryTitleBarMobile({
       </Popover>
       <span
         key={activeSegment?.id}
-        className="jgis-story-title-bar-active-segment"
+        className="jgis-underline-indicator jgis-story-title-bar-active-segment"
         data-state="active"
         data-slide-direction={slideDirectionRef.current}
       >

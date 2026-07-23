@@ -20,7 +20,7 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@95d85449e4f3f352e261221f6529f8ed307f5728
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@b48fcdb87e70c45789abd80d4042b06641e47b46
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,8 +38,9 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.12
-            jupyterlab
+            python=3.13
+            pip
+            xeus-python>=0.19
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -81,9 +82,9 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: |
           jlpm install
-          jlpm playwright install
+          jlpm playwright install chromium --only-shell
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@95d85449e4f3f352e261221f6529f8ed307f5728
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@b48fcdb87e70c45789abd80d4042b06641e47b46
         with:
           npm_client: jlpm
           browser: chromium

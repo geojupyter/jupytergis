@@ -67,8 +67,11 @@ jobs:
           set -eux
           jlpm install
           jlpm dev
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+          jupyter labextension list
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK" \
+            || { echo "::error::jupytergis-core extension failed to install"; exit 1; }
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK" \
+            || { echo "::error::jupytergis-lab extension failed to install"; exit 1; }
 
       - name: Package the extension
         shell: bash -l {0}
@@ -158,9 +161,10 @@ jobs:
           micromamba-version: '1.5.5-0'
           environment-name: gis
           create-args: >-
-            python=3.12
+            python=3.13
             pip
             qgis
+            xeus-python>=0.19
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5

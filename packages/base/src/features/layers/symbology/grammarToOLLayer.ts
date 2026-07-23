@@ -41,7 +41,7 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
 /**
  * Compile a Grammar symbology state into a single OL layer.
  *
- * isRaster=true: each grammar layer → WebGLTile (pixel-color channel → color
+ * isRaster=true: each grammar layer → WebGLTile (pixel-color encoding → color
  *   style), $band-N fields → ['band', N] expressions.
  * isRaster=false (default): non-KDE → VectorImageLayer, KDE → HeatmapLayer.
  *
@@ -126,7 +126,7 @@ function compileGrammarLayer(
 
 /**
  * Compile a single Grammar layer to an OL WebGLTile layer.
- * The pixel-color channel of the compiled style becomes the WebGL tile
+ * The pixel-color encoding of the compiled style becomes the WebGL tile
  * `color` expression.  $band-N fields compile to ['band', N] in the style
  * compiler; normalized GeoTIFF bands cover [0, 1] so featureValues [0, 1]
  * produces sensible colorRamp stops by default.
@@ -194,11 +194,28 @@ function compileKDELayer(
 function extractGradient(rules: IEncodingRule[]): string[] | undefined {
   for (const rule of rules) {
     for (const mapping of rule.mappings) {
-      const isPixelChannel = (mapping.channels as string[]).some(
+      const isPixelEncoding = (mapping.encodings as string[]).some(
         ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
-      if (!isPixelChannel || mapping.scale.scheme !== 'colorRamp') {
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorRamp') {
         continue;
+      }
+
+      // Prefer explicit colorStops when present (e.g. a heatmap round-tripped
+      // through QGIS, which stores the gradient as stops rather than a named
+      // ramp). Without this the unknown name falls through to DEFAULT_GRADIENT
+      // (a blue→red ramp), so a viridis heatmap would render with a red core.
+      const colorStops = (mapping.scale.params as any).colorStops as
+        | { stop: number; color: [number, number, number, number] }[]
+        | undefined;
+      if (Array.isArray(colorStops) && colorStops.length > 0) {
+        const stops = [...colorStops].sort((a, b) => a.stop - b.stop);
+        const gradient = stops.map(({ color: [r, g, b, a = 1] }) => {
+          return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
+        });
+        return mapping.scale.params.reverse
+          ? [...gradient].reverse()
+          : gradient;
       }
 
       const colorMap = getColorMap(mapping.scale.params.name as any);

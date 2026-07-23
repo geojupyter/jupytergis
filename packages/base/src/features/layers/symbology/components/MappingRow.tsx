@@ -1,15 +1,10 @@
 /**
- * A single grammar mapping row: field → scale → channels (fan-out tree).
- * The scale preview spans all channel rows. Additional channels branch below.
+ * A single grammar mapping row: field → scale → encodings (fan-out tree).
+ * The scale preview spans all encoding rows. Additional encodings branch below.
  * "when" predicates are shown as chips below the grid.
  */
 
-import {
-  faCheck,
-  faPlus,
-  faTrash,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IColorRampScale,
@@ -18,10 +13,10 @@ import {
   IConstantRGBAScale,
   IPredicate,
   IScale,
-  StyleChannel,
+  Encoding,
   RGBA,
 } from '@jupytergis/schema';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   ColorRampName,
@@ -39,74 +34,82 @@ import {
   ColorRampEditor,
   ConstantEditor,
   ScalarEditor,
+  ExpressionEditor,
 } from './ScaleEditor';
 
 // ---------------------------------------------------------------------------
-// Channel taxonomy
+// Encoding taxonomy
 // ---------------------------------------------------------------------------
 
-const RGBA_CHANNELS: StyleChannel[] = [
+const RGBA_ENCODINGS: Encoding[] = [
   'fill-color',
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
 ];
-const POSFLOAT_CHANNELS: StyleChannel[] = [
+const POSFLOAT_ENCODINGS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
 ];
-const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
+const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
 
-// Channels relevant for raster/KDE layers.
+// Encodings relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
-// pixel-rgb:   virtual channel — RGB only; pair with pixel-alpha for separate alpha.
-// pixel-alpha: alpha sub-channel (0-1 scalar).
-const PIXEL_RGBA_CHANNELS: StyleChannel[] = [
+// pixel-rgb:   virtual encoding — RGB only; pair with pixel-alpha for separate alpha.
+// pixel-alpha: alpha sub-encoding (0-1 scalar).
+const PIXEL_RGBA_ENCODINGS: Encoding[] = [
   'pixel-color',
   'pixel-rgb',
   'pixel-red',
   'pixel-green',
   'pixel-blue',
 ];
-const PIXEL_FLOAT_CHANNELS: StyleChannel[] = ['pixel-alpha'];
-const ALL_PIXEL_CHANNELS = [...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS];
+const PIXEL_FLOAT_ENCODINGS: Encoding[] = [
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+  'pixel-alpha',
+];
+const ALL_PIXEL_ENCODINGS = Array.from(
+  new Set([...PIXEL_RGBA_ENCODINGS, ...PIXEL_FLOAT_ENCODINGS]),
+);
 
-/** Display labels for channels that need a friendlier name. */
-const CHANNEL_LABELS: Partial<Record<StyleChannel, string>> = {
+/** Display labels for encodings that need a friendlier name. */
+const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
 };
 
-function compatibleChannels(scale: IScale, isRaster = false): StyleChannel[] {
+function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
   if (isRaster) {
     switch (scale.scheme) {
       case 'colorRamp':
       case 'categorical':
       case 'constant_rgba':
-        return PIXEL_RGBA_CHANNELS;
+        return PIXEL_RGBA_ENCODINGS;
       case 'scalar':
       case 'constant_num':
-        return PIXEL_FLOAT_CHANNELS;
+        return PIXEL_FLOAT_ENCODINGS;
       default:
-        return ALL_PIXEL_CHANNELS;
+        return ALL_PIXEL_ENCODINGS;
     }
   }
   switch (scale.scheme) {
     case 'colorRamp':
     case 'categorical':
     case 'constant_rgba':
-      return RGBA_CHANNELS;
+      return RGBA_ENCODINGS;
     case 'scalar':
     case 'constant_num':
-      return POSFLOAT_CHANNELS;
+      return POSFLOAT_ENCODINGS;
     default:
-      return ALL_CHANNELS;
+      return ALL_ENCODINGS;
   }
 }
 
 function defaultScaleForScheme(
   scheme: IScale['scheme'],
-  _currentChannels: StyleChannel[],
+  _currentEncodings: Encoding[],
 ): IScale {
   switch (scheme) {
     case 'constant_rgba':
@@ -145,8 +148,6 @@ function defaultScaleForScheme(
         params: {
           domain: [0, 100],
           range: [1, 20],
-          mode: 'equal interval',
-          nStops: 5,
           fallback: 1,
         },
       };
@@ -157,6 +158,16 @@ function defaultScaleForScheme(
         scheme: 'constant_num',
         params: { value: 1 },
       } as IConstantNumScale;
+
+    case 'expression':
+      return {
+        scheme: 'expression',
+        params: {
+          expr: '',
+          fallback: [0, 0, 0, 0] as RGBA,
+          language: 'vega',
+        },
+      };
   }
 }
 
@@ -171,11 +182,11 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
-  { value: 'colorRamp', label: 'colorRamp' },
+  { value: 'colorRamp', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
-  { value: 'expression', label: 'expression (coming soon)', disabled: true },
+  { value: 'expression', label: 'expression' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -308,21 +319,6 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
 // When-clause helpers
 // ---------------------------------------------------------------------------
 
-export function formatPredicate(pred: IPredicate): string {
-  switch (pred.type) {
-    case 'geometryType':
-      return `geom = ${pred.value}`;
-    case 'hasField':
-      return `has: ${pred.field}`;
-    case 'fieldEquals':
-      return `${pred.field} = ${pred.value}`;
-    case 'fieldCompare':
-      return `${pred.field} ${pred.op} ${pred.value}`;
-    case 'between':
-      return `${pred.field} between ${pred.min} and ${pred.max}`;
-  }
-}
-
 type PredicateType = IPredicate['type'];
 
 const COMPARE_OPS: ICompareOp[] = ['>', '<', '>=', '<=', '!='];
@@ -358,14 +354,17 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
         ? {
             type: 'fieldEquals',
             field: p.field,
-            value: isNaN(Number(p.fieldValue))
-              ? p.fieldValue
-              : Number(p.fieldValue),
+            value:
+              p.fieldValue === '' || isNaN(Number(p.fieldValue))
+                ? p.fieldValue
+                : Number(p.fieldValue),
           }
         : null;
     case 'fieldCompare': {
       const num = Number(p.fieldValue);
-      return p.field && !isNaN(num)
+      // Avoid committing predicates that are only "valid" due to JS numeric coercion
+      // (e.g. Number('') === 0), which would desync the model from what's shown.
+      return p.field && p.fieldValue !== '' && !isNaN(num)
         ? { type: 'fieldCompare', field: p.field, op: p.compareOp, value: num }
         : null;
     }
@@ -380,32 +379,137 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
         ? { type: 'between', field: p.field, min, max }
         : null;
     }
+    default:
+      throw new Error(`Invalid predicate type ${p.type}`);
   }
 }
 
-interface IWhenAddFormProps {
-  availableFields: string[];
-  onAdd: (pred: IPredicate) => void;
-  onCancel: () => void;
+/** Decompose a committed predicate back into the editable draft shape. */
+function predicateToDraft(pred: IPredicate): INewPredicate {
+  switch (pred.type) {
+    case 'geometryType':
+      return { ...EMPTY_NEW, type: 'geometryType', geomValue: pred.value };
+    case 'hasField':
+      return { ...EMPTY_NEW, type: 'hasField', field: pred.field };
+    case 'fieldEquals':
+      return {
+        ...EMPTY_NEW,
+        type: 'fieldEquals',
+        field: pred.field,
+        fieldValue: String(pred.value),
+      };
+    case 'fieldCompare':
+      return {
+        ...EMPTY_NEW,
+        type: 'fieldCompare',
+        field: pred.field,
+        compareOp: pred.op,
+        fieldValue: String(pred.value),
+      };
+    case 'between':
+      return {
+        ...EMPTY_NEW,
+        type: 'between',
+        field: pred.field,
+        betweenMin: String(pred.min),
+        betweenMax: String(pred.max),
+      };
+    default:
+      return { ...EMPTY_NEW };
+  }
 }
 
-export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
+/**
+ * Seed a draft when the predicate type changes. Fields default to the first
+ * available field (and numeric bounds to 0) so the predicate stays valid — and
+ * therefore committed live — without requiring a separate confirm step.
+ */
+function defaultDraftForType(
+  type: PredicateType,
+  availableFields: IFieldOption[],
+  prev: INewPredicate,
+): INewPredicate {
+  const firstField = availableFields[0]?.value ?? '';
+  switch (type) {
+    case 'geometryType':
+      return { ...prev, type, geomValue: prev.geomValue || 'Point' };
+    case 'hasField':
+      return { ...prev, type, field: prev.field || firstField };
+    case 'fieldEquals':
+    case 'fieldCompare':
+      return { ...prev, type, field: prev.field || firstField };
+    case 'between':
+      return {
+        ...prev,
+        type,
+        field: prev.field || firstField,
+        betweenMin: prev.betweenMin || '0',
+        betweenMax: prev.betweenMax || '0',
+      };
+    default:
+      return { ...prev, type };
+  }
+}
+
+/** A fresh predicate for a newly-added "when" condition. */
+export function defaultPredicate(): IPredicate {
+  return { type: 'geometryType', value: 'Point' };
+}
+
+interface IFieldOption {
+  value: string;
+  label: string;
+}
+
+interface IWhenRowProps {
+  predicate: IPredicate;
+  availableFields: IFieldOption[];
+  onChange: (pred: IPredicate) => void;
+  onDelete: () => void;
+}
+
+/**
+ * Inline, always-editable "when" condition. Values are committed live: every
+ * change that yields a valid predicate is propagated through `onChange`, so
+ * there is no confirm/cancel step and nothing to lose by forgetting to click.
+ */
+export const WhenRow: React.FC<IWhenRowProps> = ({
+  predicate,
   availableFields,
-  onAdd,
-  onCancel,
+  onChange,
+  onDelete,
 }) => {
-  const [draft, setDraft] = useState<INewPredicate>({ ...EMPTY_NEW });
+  const [draft, setDraft] = useState<INewPredicate>(() =>
+    predicateToDraft(predicate),
+  );
 
-  const patch = (p: Partial<INewPredicate>) =>
-    setDraft(prev => ({ ...prev, ...p }));
+  // Resync when the predicate is replaced from the outside (e.g. rows reindex
+  // after a sibling condition is removed). In-progress typing is preserved
+  // because the prop only changes once an edit commits a valid predicate.
+  useEffect(() => {
+    if (JSON.stringify(buildPredicate(draft)) !== JSON.stringify(predicate)) {
+      setDraft(predicateToDraft(predicate));
+    }
+  }, [predicate]);
 
-  const built = buildPredicate(draft);
+  const commit = (next: INewPredicate) => {
+    setDraft(next);
+    const built = buildPredicate(next);
+    if (built) {
+      onChange(built);
+    }
+  };
+
+  const patch = (p: Partial<INewPredicate>) => commit({ ...draft, ...p });
+
+  const changeType = (type: PredicateType) =>
+    commit(defaultDraftForType(type, availableFields, draft));
 
   return (
     <span className="jp-gis-grammar-when-form">
       <NativeSelect
         value={draft.type}
-        onChange={e => patch({ type: e.target.value as PredicateType })}
+        onChange={e => changeType(e.target.value as PredicateType)}
       >
         <NativeSelectOption value="geometryType">
           Geometry Type
@@ -445,8 +549,8 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         >
           <NativeSelectOption value="">(field)</NativeSelectOption>
           {availableFields.map(field => (
-            <NativeSelectOption key={field} value={field}>
-              {field}
+            <NativeSelectOption key={field.value} value={field.value}>
+              {field.label}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -503,19 +607,9 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
         type="button"
         variant="icon"
         size="icon-md"
-        disabled={!built}
-        onClick={() => built && onAdd(built)}
-        title="Add predicate"
-      >
-        <FontAwesomeIcon icon={faCheck} />
-      </Button>
-      <Button
-        type="button"
-        variant="icon"
-        size="icon-md"
         className="jp-gis-grammar-when-form-cancel"
-        onClick={onCancel}
-        title="Cancel"
+        onClick={onDelete}
+        title="Remove condition"
       >
         <FontAwesomeIcon icon={faXmark} />
       </Button>
@@ -530,7 +624,7 @@ export const WhenAddForm: React.FC<IWhenAddFormProps> = ({
 interface IFieldSelectorProps {
   fieldCount: 0 | 1 | 'any';
   fields: string[];
-  availableFields: string[];
+  availableFields: IFieldOption[];
   onFieldChange: (index: number, value: string) => void;
   onAddField: (value: string) => void;
 }
@@ -576,8 +670,8 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
         >
           <NativeSelectOption value="">(none)</NativeSelectOption>
           {availableFields.map(f => (
-            <NativeSelectOption key={f} value={f}>
-              {f}
+            <NativeSelectOption key={f.value} value={f.value}>
+              {f.label}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -621,10 +715,10 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
         >
           <NativeSelectOption value="">+field</NativeSelectOption>
           {availableFields
-            .filter(f => !fields.includes(f))
+            .filter(f => !fields.includes(f.value))
             .map(f => (
-              <NativeSelectOption key={f} value={f}>
-                {f}
+              <NativeSelectOption key={f.value} value={f.value}>
+                {f.label}
               </NativeSelectOption>
             ))}
         </NativeSelect>
@@ -642,7 +736,7 @@ export interface IGrammarRow {
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
-  channels: StyleChannel[];
+  encodings: Encoding[];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
 }
@@ -651,7 +745,7 @@ export interface IGrammarRow {
  * How many input fields a scale accepts.
  *   0    — constants (no field selector shown)
  *   1    — all single-field scales
- *  'any' — multi-field (expression scale, sub-channel assembly)
+ *  'any' — multi-field (expression scale, sub-encoding assembly)
  */
 export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
   switch (scheme) {
@@ -667,9 +761,10 @@ export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
 
 interface IMappingRowProps {
   row: IGrammarRow;
-  availableFields: string[];
+  availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
+  disabledSchemes?: IScale['scheme'][];
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -683,11 +778,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   availableFields,
   featureValues,
   isRaster = false,
+  disabledSchemes = [],
   onChange,
   onDelete,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const [addingWhen, setAddingWhen] = useState(false);
 
   const handleFieldChange = useCallback(
     (index: number, value: string) => {
@@ -714,9 +809,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
-      const newScale = defaultScaleForScheme(scheme, row.channels);
-      const compat = compatibleChannels(newScale, isRaster);
-      const filtered = row.channels.filter(ch => compat.includes(ch));
+      const newScale = defaultScaleForScheme(scheme, row.encodings);
+      const compat = compatibleEncodings(newScale, isRaster);
+      const filtered = row.encodings.filter(ch => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
       // Trim fields list to match new count constraint
       const trimmedFields =
@@ -728,7 +823,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       onChange({
         ...row,
         scale: newScale,
-        channels: filtered.length > 0 ? filtered : [compat[0]],
+        encodings: filtered.length > 0 ? filtered : [compat[0]],
         fields: trimmedFields,
       });
     },
@@ -740,20 +835,20 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const handleChannelChange = useCallback(
-    (index: number, ch: StyleChannel) => {
-      const next = [...row.channels];
+  const handleEncodingChange = useCallback(
+    (index: number, ch: Encoding) => {
+      const next = [...row.encodings];
       next[index] = ch;
-      onChange({ ...row, channels: next });
+      onChange({ ...row, encodings: next });
     },
     [row, onChange],
   );
 
-  const removeChannel = useCallback(
-    (ch: StyleChannel) => {
-      const next = row.channels.filter(c => c !== ch);
+  const removeEncoding = useCallback(
+    (ch: Encoding) => {
+      const next = row.encodings.filter(c => c !== ch);
       if (next.length > 0) {
-        onChange({ ...row, channels: next });
+        onChange({ ...row, encodings: next });
       } else {
         onDelete();
       }
@@ -761,17 +856,22 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange, onDelete],
   );
 
-  const addChannel = useCallback(
-    (ch: StyleChannel) => {
-      onChange({ ...row, channels: [...row.channels, ch] });
+  const addEncoding = useCallback(
+    (ch: Encoding) => {
+      onChange({ ...row, encodings: [...row.encodings, ch] });
     },
     [row, onChange],
   );
 
-  const addPredicate = useCallback(
-    (pred: IPredicate) => {
-      onChange({ ...row, when: [...(row.when ?? []), pred] });
-      setAddingWhen(false);
+  const addPredicate = useCallback(() => {
+    onChange({ ...row, when: [...(row.when ?? []), defaultPredicate()] });
+  }, [row, onChange]);
+
+  const updatePredicate = useCallback(
+    (index: number, pred: IPredicate) => {
+      const next = [...(row.when ?? [])];
+      next[index] = pred;
+      onChange({ ...row, when: next });
     },
     [row, onChange],
   );
@@ -784,8 +884,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const compat = compatibleChannels(row.scale, isRaster);
-  const availableToAdd = compat.filter(ch => !row.channels.includes(ch));
+  const compat = compatibleEncodings(row.scale, isRaster);
+  const availableToAdd = compat.filter(ch => !row.encodings.includes(ch));
 
   return (
     <div className="jp-gis-grammar-rule">
@@ -815,13 +915,14 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               handleSchemeChange(e.target.value as IScale['scheme'])
             }
           >
-            {SCHEME_OPTIONS.filter(({ disabled }) => !disabled).map(
-              ({ value, label }) => (
-                <NativeSelectOption key={value} value={value}>
-                  {label}
-                </NativeSelectOption>
-              ),
-            )}
+            {SCHEME_OPTIONS.filter(
+              ({ value, disabled }) =>
+                !disabled && !disabledSchemes.includes(value),
+            ).map(({ value, label }) => (
+              <NativeSelectOption key={value} value={value}>
+                {label}
+              </NativeSelectOption>
+            ))}
           </NativeSelect>
           <button
             type="button"
@@ -843,18 +944,18 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
         {/* --- Output section --- */}
         <div className="jp-gis-grammar-section jp-gis-grammar-output-section">
-          {row.channels.map((ch, i) => (
-            <div key={`${ch}-${i}`} className="jp-gis-grammar-channel-row">
-              <div className="jp-gis-grammar-channel-select">
+          {row.encodings.map((ch, i) => (
+            <div key={`${ch}-${i}`} className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value={ch}
                   onChange={e =>
-                    handleChannelChange(i, e.target.value as StyleChannel)
+                    handleEncodingChange(i, e.target.value as Encoding)
                   }
                 >
                   {compat.map(c => (
                     <NativeSelectOption key={c} value={c}>
-                      {CHANNEL_LABELS[c] ?? c}
+                      {ENCODING_LABELS[c] ?? c}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -864,11 +965,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 variant="ghost"
                 size="icon-md"
                 className="jp-mod-styled"
-                onClick={() => removeChannel(ch)}
+                onClick={() => removeEncoding(ch)}
                 title={
-                  row.channels.length === 1
+                  row.encodings.length === 1
                     ? 'Remove mapping'
-                    : 'Remove channel'
+                    : 'Remove encoding'
                 }
               >
                 <FontAwesomeIcon icon={faTrash} />
@@ -876,24 +977,24 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             </div>
           ))}
 
-          {/* Add channel row */}
+          {/* Add encoding row */}
           {availableToAdd.length > 0 && (
-            <div className="jp-gis-grammar-channel-row">
-              <div className="jp-gis-grammar-channel-select">
+            <div className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value=""
                   onChange={e => {
                     if (e.target.value) {
-                      addChannel(e.target.value as StyleChannel);
+                      addEncoding(e.target.value as Encoding);
                     }
                   }}
                 >
                   <NativeSelectOption value="">
-                    (add channel)
+                    (add encoding)
                   </NativeSelectOption>
                   {availableToAdd.map(ch => (
                     <NativeSelectOption key={ch} value={ch}>
-                      {CHANNEL_LABELS[ch] ?? ch}
+                      {ENCODING_LABELS[ch] ?? ch}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -921,32 +1022,22 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           </Button>
         )}
         {row.when?.map((pred, i) => (
-          <span key={i} className="jp-gis-grammar-when-chip">
-            {formatPredicate(pred)}
-            <Button
-              type="button"
-              onClick={() => removePredicate(i)}
-              title="Remove condition"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-            </Button>
-          </span>
-        ))}
-        {addingWhen ? (
-          <WhenAddForm
+          <WhenRow
+            key={i}
+            predicate={pred}
             availableFields={availableFields}
-            onAdd={addPredicate}
-            onCancel={() => setAddingWhen(false)}
+            onChange={updated => updatePredicate(i, updated)}
+            onDelete={() => removePredicate(i)}
           />
-        ) : (
-          <Button
-            type="button"
-            className="jp-gis-grammar-when-add-btn"
-            onClick={() => setAddingWhen(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-          </Button>
-        )}
+        ))}
+        <Button
+          type="button"
+          className="jp-gis-grammar-when-add-btn"
+          onClick={addPredicate}
+          title="Add condition"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </Button>
       </div>
 
       {/* Inline scale editor */}
@@ -980,8 +1071,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               onChange={handleScaleChange}
             />
           )}
-          {(row.scale.scheme === 'identity' ||
-            row.scale.scheme === 'expression') && (
+          {row.scale.scheme === 'identity' && (
             <p
               style={{
                 margin: 0,
@@ -989,8 +1079,15 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 fontSize: 'var(--jp-ui-font-size1)',
               }}
             >
-              No configuration for {row.scale.scheme} scale.
+              No configuration for identity scale.
             </p>
+          )}
+          {row.scale.scheme === 'expression' && (
+            <ExpressionEditor
+              scale={row.scale}
+              onChange={handleScaleChange}
+              fields={availableFields.map(f => f.value)}
+            />
           )}
         </div>
       )}

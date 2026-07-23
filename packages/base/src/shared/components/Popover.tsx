@@ -3,23 +3,34 @@ import * as React from 'react';
 
 import { cn } from './utils';
 
-const Popover: React.FC<React.ComponentProps<typeof PopoverPrimitive.Root>> = ({
+function Popover({
+  modal = false,
   ...props
-}) => {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
-};
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" modal={modal} {...props} />;
+}
 
-const PopoverTrigger: React.FC<
-  React.ComponentProps<typeof PopoverPrimitive.Trigger>
-> = ({ ...props }) => {
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
-};
+}
 
-const PopoverContent: React.FC<
-  React.ComponentProps<typeof PopoverPrimitive.Content>
-> = ({ className, align = 'center', sideOffset = 4, ...props }) => {
+interface IPopoverContentProps extends React.ComponentProps<
+  typeof PopoverPrimitive.Content
+> {
+  portalContainer?: HTMLElement | null;
+}
+
+function PopoverContent({
+  className,
+  align = 'center',
+  sideOffset = 4,
+  portalContainer,
+  ...props
+}: IPopoverContentProps) {
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={portalContainer ?? undefined}>
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}
@@ -29,12 +40,53 @@ const PopoverContent: React.FC<
       />
     </PopoverPrimitive.Portal>
   );
-};
+}
 
-const PopoverAnchor: React.FC<
-  React.ComponentProps<typeof PopoverPrimitive.Anchor>
-> = ({ ...props }) => {
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
   return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
-};
+}
 
-export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };
+function PopoverHeader({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="popover-header"
+      className={cn('jgis-popover-header', className)}
+      {...props}
+    />
+  );
+}
+
+function PopoverTitle({ className, ...props }: React.ComponentProps<'h2'>) {
+  return (
+    <h2
+      data-slot="popover-title"
+      className={cn('jgis-popover-title', className)}
+      {...props}
+    />
+  );
+}
+
+function PopoverDescription({
+  className,
+  ...props
+}: React.ComponentProps<'p'>) {
+  return (
+    <p
+      data-slot="popover-description"
+      className={cn('jgis-popover-description', className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+};

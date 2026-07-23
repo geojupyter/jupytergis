@@ -1,4 +1,4 @@
-"""Shared color ramp utilities using branca.
+"""Shared color map utilities using branca.
 
 Maps the frontend colorRamp names (from colorRampUtils.ts) to branca
 LinearColormaps so that both the QGIS exporter and the notebook API can
@@ -58,7 +58,7 @@ def get_color_ramp(
     Parameters
     ----------
     name : str
-        A color ramp name as used by the frontend (e.g. ``"viridis"``,
+        A color map name as used by the frontend (e.g. ``"viridis"``,
         ``"YiGnBu"``, ``"schemeSet1"``).
     reverse : bool
         If ``True``, reverse the color order.

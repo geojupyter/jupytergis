@@ -19,6 +19,10 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import LAYER_GALLERY from '@/_generated/layer_gallery.json';
+import {
+  connect as openEOConnect,
+  IOpenEOConnectionInfo,
+} from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
 import { getGdal } from './gdal';
 
@@ -870,6 +874,10 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoZarrSource': {
+        return null;
+      }
+
       case 'GeoPackageVectorSource': {
         const projection = model.sharedModel.options.projection;
         if (!projection) {
@@ -1249,13 +1257,82 @@ export const objectEntries = Object.entries as <
   obj: T,
 ) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
 
+export interface IFileFormat {
+  id: string;
+  title?: string;
+  gis_data_types?: string[];
+  parameters?: Record<string, any>;
+  [key: string]: any;
+}
+
+export interface IBackendCatalog {
+  collections: any[];
+  processes: any[];
+  outputFormats: IFileFormat[];
+}
+
+const _openEOCatalogCache = new Map<string, Promise<IBackendCatalog>>();
+
+function normalizeOpenEOUrl(url: string): string {
+  return url.replace(/\/+$/, '').toLowerCase();
+}
+
 /**
- * Extract the layerOverride array index from an RJSF idSchema (e.g. from $id like "root_layerOverride_0_sourceProperties").
+ * Fetch (and cache) an OpenEO backend's process + collection catalog. Used
+ * to give the ModelBuilder port labels and type-aware validation.
+ *
+ * Connection (and sign-in) is delegated to the shared `connect` helper in
+ * OpenEOTileLayer, which also populates `connectionInfo.authBearer` once the
+ * user has authenticated.
  */
-export function extractLayerOverrideIndex(idSchema: {
-  $id?: string;
-}): number | undefined {
-  const id = idSchema?.$id ?? '';
-  const match = id.match(/layerOverride_(\d+)/);
-  return match ? parseInt(match[1], 10) : undefined;
+export async function fetchBackendCatalog(
+  connectionInfo: IOpenEOConnectionInfo,
+): Promise<IBackendCatalog> {
+  const key = normalizeOpenEOUrl(connectionInfo.url ?? '');
+  const existing = _openEOCatalogCache.get(key);
+  if (existing) {
+    return existing;
+  }
+  const promise = (async (): Promise<IBackendCatalog> => {
+    const connection = await openEOConnect(connectionInfo);
+    const [cols, procs, formats] = await Promise.all([
+      connection.listCollections(),
+      connection.listProcesses(),
+      // Older clients / backends may not expose listFileTypes — degrade
+      // gracefully rather than failing the whole catalog fetch.
+      (async () => {
+        try {
+          if (typeof (connection as any).listFileTypes === 'function') {
+            return await (connection as any).listFileTypes();
+          }
+        } catch {
+          /* ignore */
+        }
+        return null;
+      })(),
+    ]);
+    // openeo-js-client wraps the /file_formats response in a FileTypes
+    // class — the raw map lives at getOutputTypes() / .data.output, not
+    // at .output directly.
+    const outputRaw: Record<string, any> =
+      (typeof formats?.getOutputTypes === 'function'
+        ? formats.getOutputTypes()
+        : formats?.data?.output) ?? {};
+    const outputFormats: IFileFormat[] = Object.keys(outputRaw).map(id => ({
+      id,
+      ...(outputRaw[id] ?? {}),
+    }));
+    return {
+      collections: (cols as any)?.collections ?? [],
+      processes: (procs as any)?.processes ?? [],
+      outputFormats,
+    };
+  })();
+  _openEOCatalogCache.set(key, promise);
+  try {
+    return await promise;
+  } catch (err) {
+    _openEOCatalogCache.delete(key);
+    throw err;
+  }
 }

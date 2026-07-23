@@ -22,6 +22,7 @@ class YQGISBase(YBaseDoc):
         self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
+        self._ydoc["annotations"] = self._yannotations = Map()
         self._ydoc["metadata"] = self._ymetadata = Map()
         self._source = ""
         self._file_extension = None
@@ -56,6 +57,7 @@ class YQGISBase(YBaseDoc):
             "sources": self._ysources.to_py(),
             "layerTree": reversed_tree(self._ylayerTree.to_py()),
             "options": self._yoptions.to_py(),
+            "annotations": self._yannotations.to_py(),
             "metadata": self._ymetadata.to_py(),
         }
         source = self._save(virtual_file)
@@ -83,6 +85,9 @@ class YQGISBase(YBaseDoc):
         self._yoptions.clear()
         self._yoptions.update(virtual_file["options"])
 
+        self._yannotations.clear()
+        self._yannotations.update(virtual_file["annotations"])
+
         self._ymetadata.clear()
         self._ymetadata.update(virtual_file["metadata"])
 
@@ -102,6 +107,9 @@ class YQGISBase(YBaseDoc):
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree"),
+        )
+        self._subscriptions[self._yannotations] = self._yannotations.observe_deep(
+            partial(callback, "annotations"),
         )
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
             partial(callback, "meta"),

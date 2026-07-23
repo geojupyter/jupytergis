@@ -2,6 +2,23 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
+export const SegmentInteractionMode = {
+  mapView: 'map-view',
+  previewingSegment: 'previewing-segment',
+} as const;
+
+export type SegmentInteractionMode =
+  (typeof SegmentInteractionMode)[keyof typeof SegmentInteractionMode];
+
+export type StoryMapInteractionBarPlacement =
+  | 'overlay-bottom'
+  | 'main-top-left';
+
+export interface IOverrideLayerEntry {
+  layerId: string;
+  action: 'remove' | 'restore';
+}
+
 /** Active handoff between two segments while scrolling the virtual track. */
 export interface IListStorySegmentTransition {
   /** 0–1 across the handoff span (outgoing segment + gap + incoming segment). */
