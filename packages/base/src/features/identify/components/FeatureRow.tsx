@@ -28,9 +28,9 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
   onDeleteAttribute,
 }) => {
   return (
-    <div className="jgis-property-row">
-      <strong className="jgis-property-col-key">{attributeKey}</strong>
-      <span className="jgis-property-col-value">{String(value)}</span>
+    <div className="jgis-attribute-row">
+      <strong className="jgis-attribute-col-key">{attributeKey}</strong>
+      <span className="jgis-attribute-col-value">{String(value)}</span>
       {showActions && (
         <AttributeActionsMenu
           onContentClick={event => event.stopPropagation()}
