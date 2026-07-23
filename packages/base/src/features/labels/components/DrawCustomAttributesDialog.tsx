@@ -278,7 +278,9 @@ function DrawCustomAttributesDialogContent({
           }`}
         >
           {presetNameError ? (
-            <p className="jgis-draw-custom-attributes-error">{presetNameError}</p>
+            <p className="jgis-draw-custom-attributes-error">
+              {presetNameError}
+            </p>
           ) : null}
 
           <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
