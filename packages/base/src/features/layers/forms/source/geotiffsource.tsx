@@ -57,7 +57,7 @@ export function GeoTiffSourcePropertiesForm(
 
       if (urls && urls.length > 0) {
         for (let i = 0; i < urls.length; i++) {
-          const { url } = urls[i];
+          const { url, min, max } = urls[i];
 
           if (isSubmit) {
             const mimeType = getMimeType(url);
@@ -73,10 +73,32 @@ export function GeoTiffSourcePropertiesForm(
                 `URL at index ${i} is required and must be a valid string.`,
               );
             }
+            if (min === undefined || typeof min !== 'number') {
+              errors.push(
+                `Min value at index ${i} is required and must be a number.`,
+              );
+              valid = false;
+            }
+
+            if (max === undefined || typeof max !== 'number') {
+              errors.push(
+                `Max value at index ${i} is required and must be a number.`,
+              );
+              valid = false;
+            }
+
+            if (
+              typeof min === 'number' &&
+              typeof max === 'number' &&
+              max <= min
+            ) {
+              errors.push(`Max value at index ${i} must be greater than Min.`);
+              valid = false;
+            }
           }
         }
       } else {
-        errors.push('At least one valid URL is required.');
+        errors.push('At least one valid URL with min/max values is required.');
         valid = false;
       }
 

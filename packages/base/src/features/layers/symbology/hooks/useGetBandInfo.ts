@@ -64,8 +64,6 @@ const useGetBandInfo = (
 
       const sourceInfo = source?.parameters?.urls[0];
 
-      const symbology = layer?.parameters?.symbologyState;
-
       if (!sourceInfo?.url) {
         setError('No source URL found.');
         setLoading(false);
@@ -105,8 +103,8 @@ const useGetBandInfo = (
           band: i + 1,
           name: `Band ${i + 1}`,
           stats: {
-            minimum: symbology.min ?? 0,
-            maximum: symbology.max ?? 100,
+            minimum: sourceInfo.min ?? 0,
+            maximum: sourceInfo.max ?? 100,
           },
         });
       }

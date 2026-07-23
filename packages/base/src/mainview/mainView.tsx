@@ -1181,6 +1181,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
                   url: sourceInfo.url,
                 };
               } else if (isDataUrl) {
@@ -1188,6 +1190,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 const blob = await (await fetch(sourceInfo.url!)).blob();
                 return {
                   ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
                   url: URL.createObjectURL(blob),
                 };
               } else {
@@ -1198,6 +1202,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 });
                 return {
                   ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
                   geotiff,
                   url: URL.createObjectURL(geotiff.file),
                 };
