@@ -36,6 +36,7 @@ export interface IStoryEditorHeaderBarProps {
   model: IJupyterGISModel;
   story: IJGISStoryMap | null;
   segmentCount: number;
+  isMobile: boolean;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
   portalContainerRef: RefObject<HTMLElement | null>;
 }
@@ -150,6 +151,7 @@ export function StoryEditorHeaderBar({
   model,
   story,
   segmentCount,
+  isMobile,
   onUpdateStory,
   portalContainerRef,
 }: IStoryEditorHeaderBarProps): JSX.Element {
@@ -165,24 +167,28 @@ export function StoryEditorHeaderBar({
         }}
       />
       <div className="jgis-story-editor-context-meta-group">
-        <Badge variant="secondary">
+        <Badge variant="secondary" className="jgis-story-editor-context-badge">
           {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
         </Badge>
-        <span className="jgis-story-editor-context-meta">
-          {segmentCount} segment{segmentCount === 1 ? '' : 's'}
-        </span>
-        {story ? (
-          <span className="jgis-story-editor-context-meta">
-            {formatGradientLabel(story.showGradient)}
-          </span>
-        ) : null}
-        {story &&
-        isVerticalScrollPresentation(
-          getStoryPresentationMode(story.storyType),
-        ) ? (
-          <span className="jgis-story-editor-context-meta">
-            {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
-          </span>
+        {!isMobile ? (
+          <>
+            <span className="jgis-story-editor-context-meta">
+              {segmentCount} segment{segmentCount === 1 ? '' : 's'}
+            </span>
+            {story ? (
+              <span className="jgis-story-editor-context-meta">
+                {formatGradientLabel(story.showGradient)}
+              </span>
+            ) : null}
+            {story &&
+            isVerticalScrollPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
+              <span className="jgis-story-editor-context-meta">
+                {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
+              </span>
+            ) : null}
+          </>
         ) : null}
         {story && canPreview ? (
           <Button
@@ -193,7 +199,7 @@ export function StoryEditorHeaderBar({
               StoryEditorSession.getInstance().enterStoryPreviewMode();
             }}
           >
-            Preview story
+            {isMobile ? 'Preview' : 'Preview story'}
           </Button>
         ) : null}
         {story && (
