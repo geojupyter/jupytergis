@@ -27,6 +27,8 @@ interface IListStoryScrollTrackContextValue {
     index: number,
     options?: { behavior?: ScrollBehavior },
   ) => void;
+  /** Report a measured markdown height from the live overlay (or measure pane). */
+  reportSegmentHeight: (segmentId: string, height: number) => void;
 }
 
 const ListStoryScrollTrackContext =
@@ -202,6 +204,13 @@ export function ListStoryScrollTrackProvider({
           return prev;
         }
 
+        // Ignore transient shrinks (empty remount / pre-image layout). Markdown
+        // height should only grow until the story is rebuilt.
+        const previousHeight = prev[segmentId];
+        if (previousHeight !== undefined && measuredHeightPx < previousHeight) {
+          return prev;
+        }
+
         const scroller = scrollerRef.current;
         const oldLayout =
           enabled && viewportHeight > 0
@@ -220,9 +229,13 @@ export function ListStoryScrollTrackProvider({
           const oldSegment = oldLayout.segments.find(s => s.id === segmentId);
           if (oldSegment && !oldSegment.measured) {
             const scrollCompensation = measuredHeightPx - oldSegment.height;
+            // Only shift scroll when the user is already past this segment so
+            // later content stays put. Inside the segment, leave scrollTop so
+            // progress recalculates against the new height so there's no
+            // visual jump.
             if (
               scrollCompensation !== 0 &&
-              scroller.scrollTop > oldSegment.start
+              scroller.scrollTop >= oldSegment.end
             ) {
               requestAnimationFrame(() => {
                 scroller.scrollTop += scrollCompensation;
@@ -289,12 +302,14 @@ export function ListStoryScrollTrackProvider({
       scrollTop,
       bindScrollTrackElement,
       scrollToSegmentIndex,
+      reportSegmentHeight: handleMeasuredHeight,
     }),
     [
       scrollTrackLayout,
       scrollTop,
       bindScrollTrackElement,
       scrollToSegmentIndex,
+      handleMeasuredHeight,
     ],
   );
 

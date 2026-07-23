@@ -180,47 +180,90 @@ interface ISegmentOverlayPaneProps {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
-  onMarkdownRendered?: () => void;
+  onMarkdownRendered: (segmentIndex: number) => void;
+  onPaneUnmount: (segmentIndex: number) => void;
 }
 
-function SegmentOverlayPane({
-  pane,
-  segmentIndex,
-  config,
-  model,
-  storyData,
-  items,
-  onMarkdownRendered,
-}: ISegmentOverlayPaneProps): React.ReactElement {
-  const isMap = config.type === 'map';
+function segmentConfigsEqual(
+  prev: SegmentOverlayPaneConfig,
+  next: SegmentOverlayPaneConfig,
+): boolean {
+  if (prev.type !== next.type) {
+    return false;
+  }
 
+  if (prev.type === 'map' && next.type === 'map') {
+    return prev.segmentIndex === next.segmentIndex;
+  }
+
+  if (prev.type === 'markdown' && next.type === 'markdown') {
+    return prev.segmentId === next.segmentId && prev.markdown === next.markdown;
+  }
+
+  return false;
+}
+
+function segmentOverlayPanePropsAreEqual(
+  prev: ISegmentOverlayPaneProps,
+  next: ISegmentOverlayPaneProps,
+): boolean {
   return (
-    <div
-      data-pane={pane}
-      data-segment-index={segmentIndex}
-      className={`jgis-story-segment-overlay-pane jgis-story-${
-        isMap ? 'map' : 'markdown'
-      }-scroll-pane`}
-    >
-      {isMap ? (
-        <ListStoryMapOverlayPanel
-          model={model}
-          storyData={storyData}
-          segmentIndex={config.segmentIndex}
-          items={items}
-        />
-      ) : config.markdown ? (
-        <ListStoryOverlayMarkdown
-          key={`pane-${pane}-seg-${segmentIndex}`}
-          model={model}
-          segmentId={config.segmentId}
-          source={config.markdown}
-          onRendered={onMarkdownRendered}
-        />
-      ) : null}
-    </div>
+    prev.pane === next.pane &&
+    prev.segmentIndex === next.segmentIndex &&
+    prev.model === next.model &&
+    prev.storyData === next.storyData &&
+    prev.items === next.items &&
+    segmentConfigsEqual(prev.config, next.config)
   );
 }
+
+const SegmentOverlayPane = React.memo(
+  ({
+    pane,
+    segmentIndex,
+    config,
+    model,
+    storyData,
+    items,
+    onMarkdownRendered,
+    onPaneUnmount,
+  }: ISegmentOverlayPaneProps): React.ReactElement => {
+    const isMap = config.type === 'map';
+
+    useLayoutEffect(() => {
+      return () => {
+        onPaneUnmount(segmentIndex);
+      };
+    }, [segmentIndex, onPaneUnmount]);
+
+    return (
+      <div
+        data-pane={pane}
+        data-segment-index={segmentIndex}
+        className={`jgis-story-segment-overlay-pane jgis-story-${
+          isMap ? 'map' : 'markdown'
+        }-scroll-pane`}
+      >
+        {isMap ? (
+          <ListStoryMapOverlayPanel
+            model={model}
+            storyData={storyData}
+            segmentIndex={config.segmentIndex}
+            items={items}
+          />
+        ) : config.markdown ? (
+          <ListStoryOverlayMarkdown
+            model={model}
+            segmentId={config.segmentId}
+            source={config.markdown}
+            onRendered={() => onMarkdownRendered(segmentIndex)}
+          />
+        ) : null}
+      </div>
+    );
+  },
+  segmentOverlayPanePropsAreEqual,
+);
 
 function buildFallbackTransition(
   activeItem: IStorySegmentViewItem,
@@ -250,10 +293,14 @@ export function ListStoryStageOverlay({
   const measuredTransitionKeyRef = useRef('');
   const measureTransitionKeyRef = useRef('');
   const stableTravelRef = useRef(0);
+  const clearMarkdownRendered = useCallback((segmentIndex: number): void => {
+    markdownRenderedRef.current.delete(segmentIndex);
+  }, []);
   const [stageHeight, setStageHeight] = useState(0);
   const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
-  const { scrollTrackLayout } = useListStoryScrollTrackContext();
+  const { scrollTrackLayout, reportSegmentHeight } =
+    useListStoryScrollTrackContext();
 
   const story = model?.getSelectedStory().story ?? null;
   const items = useMemo(
@@ -358,26 +405,99 @@ export function ListStoryStageOverlay({
     (segmentIndex: number): void => {
       markdownRenderedRef.current.add(segmentIndex);
 
-      if (segmentIndex !== fromIndex) {
-        return;
-      }
-
-      measureTransitionRef.current?.();
-
       const stack = stackRef.current;
-      const fromPane = stack?.querySelector('[data-pane="from"]');
-      if (!(fromPane instanceof HTMLElement)) {
-        return;
+      const paneEl = stack?.querySelector(
+        `[data-segment-index="${segmentIndex}"]`,
+      );
+
+      if (paneEl instanceof HTMLElement) {
+        const stackPane = overlayStack.panes.find(
+          p => p.segmentIndex === segmentIndex,
+        );
+
+        const segmentId =
+          stackPane?.config.type === 'markdown'
+            ? stackPane.config.segmentId
+            : undefined;
+
+        const reportPaneHeight = (): void => {
+          if (segmentId) {
+            reportSegmentHeight(segmentId, paneEl.offsetHeight);
+          }
+        };
+
+        reportPaneHeight();
+
+        imageWaitCancelRef.current?.();
+        imageWaitCancelRef.current = whenImagesSettled(paneEl, () => {
+          imageWaitCancelRef.current = null;
+          reportPaneHeight();
+          measureTransitionRef.current?.();
+        });
       }
 
-      imageWaitCancelRef.current?.();
-      imageWaitCancelRef.current = whenImagesSettled(fromPane, () => {
-        imageWaitCancelRef.current = null;
+      if (segmentIndex === fromIndex) {
         measureTransitionRef.current?.();
-      });
+      }
     },
-    [fromIndex],
+    [fromIndex, overlayStack.panes, reportSegmentHeight],
   );
+
+  useLayoutEffect(() => {
+    const stack = stackRef.current;
+    if (!stack) {
+      return;
+    }
+
+    const reportVisibleMarkdownHeights = (): void => {
+      for (const stackPane of overlayStack.panes) {
+        if (
+          stackPane.config.type !== 'markdown' ||
+          !stackPane.config.segmentId
+        ) {
+          continue;
+        }
+
+        if (!markdownRenderedRef.current.has(stackPane.segmentIndex)) {
+          continue;
+        }
+
+        const paneEl = stack.querySelector(
+          `[data-segment-index="${stackPane.segmentIndex}"]`,
+        );
+
+        if (!(paneEl instanceof HTMLElement) || paneEl.offsetHeight <= 0) {
+          continue;
+        }
+
+        reportSegmentHeight(stackPane.config.segmentId, paneEl.offsetHeight);
+      }
+    };
+
+    reportVisibleMarkdownHeights();
+
+    const ro = new ResizeObserver(() => {
+      reportVisibleMarkdownHeights();
+    });
+
+    for (const stackPane of overlayStack.panes) {
+      if (stackPane.config.type !== 'markdown') {
+        continue;
+      }
+
+      const paneEl = stack.querySelector(
+        `[data-segment-index="${stackPane.segmentIndex}"]`,
+      );
+
+      if (paneEl instanceof HTMLElement) {
+        ro.observe(paneEl);
+      }
+    }
+
+    return () => {
+      ro.disconnect();
+    };
+  }, [overlayStack.panes, reportSegmentHeight]);
 
   useLayoutEffect(() => {
     const stack = stackRef.current;
@@ -469,22 +589,41 @@ export function ListStoryStageOverlay({
   const currentTransitionKey = intraSegmentScroll
     ? `intra:${fromIndex}`
     : `handoff:${fromIndex}:${toIndex}:${transition?.fromMode ?? ''}:${transition?.toMode ?? ''}`;
+
   const scrollFromHeight = getScrollTrackSegmentHeight(
     scrollTrackLayout,
     fromIndex,
   );
+  const fromTrackSegment = scrollTrackLayout?.segments.find(
+    segment => segment.index === fromIndex,
+  );
+
   const isMdToMdNoGap =
     !intraSegmentScroll &&
     handoffGapHeight === 0 &&
     transition?.fromMode === 'markdown' &&
     transition?.toMode === 'markdown';
+
   const translateIsCurrent =
     measuredTransitionKeyRef.current === currentTransitionKey &&
     transitionTranslatePx > 0;
-  const effectiveTranslatePx = translateIsCurrent
-    ? transitionTranslatePx
-    : isMdToMdNoGap && scrollFromHeight
+
+  // Pixel travel for progress 0->1 (`--jgis-transition-translate`).
+  //
+  // Md->md with no gap: scroll progress is computed from the virtual track, so
+  // prefer the track's from-segment height once measured. Until then, use the
+  // live DOM measure if ready, else use the track estimate.
+  //
+  // All other transitions: use the live DOM measure when it matches this
+  // transition, gap handoffs fall back to stageHeight, otherwise 0.
+  const effectiveTranslatePx = isMdToMdNoGap
+    ? fromTrackSegment?.measured && scrollFromHeight
       ? scrollFromHeight
+      : translateIsCurrent
+        ? transitionTranslatePx
+        : (scrollFromHeight ?? 0)
+    : translateIsCurrent
+      ? transitionTranslatePx
       : handoffGapHeight > 0
         ? stageHeight
         : 0;
@@ -514,63 +653,33 @@ export function ListStoryStageOverlay({
       }
     >
       <div ref={stackRef} className="jgis-story-segment-transition-stack">
-        <SegmentOverlayPane
-          model={model}
-          pane="from"
-          segmentIndex={fromStackPane.segmentIndex}
-          config={fromStackPane.config}
-          storyData={story}
-          items={items}
-          onMarkdownRendered={
-            fromStackPane.config.type === 'markdown' &&
-            fromStackPane.config.markdown
-              ? () => {
-                  handleMarkdownRendered(fromStackPane.segmentIndex);
-                }
-              : undefined
+        {overlayStack.panes.flatMap((stackPane, paneOrder) => {
+          const nodes: React.ReactNode[] = [];
+
+          if (paneOrder === 1 && overlayStack.includeGap) {
+            nodes.push(
+              <div
+                key="handoff-gap"
+                className="jgis-story-segment-transition-gap"
+                aria-hidden
+              />,
+            );
           }
-        />
-        {toStackPane ? (
-          <>
-            {overlayStack.includeGap ? (
-              <div className="jgis-story-segment-transition-gap" aria-hidden />
-            ) : null}
+          nodes.push(
             <SegmentOverlayPane
+              key={stackPane.segmentIndex}
               model={model}
-              pane="to"
-              segmentIndex={toStackPane.segmentIndex}
-              config={toStackPane.config}
+              pane={stackPane.role}
+              segmentIndex={stackPane.segmentIndex}
+              config={stackPane.config}
               storyData={story}
               items={items}
-              onMarkdownRendered={
-                toStackPane.config.type === 'markdown' &&
-                toStackPane.config.markdown
-                  ? () => {
-                      handleMarkdownRendered(toStackPane.segmentIndex);
-                    }
-                  : undefined
-              }
-            />
-          </>
-        ) : null}
-        {lookaheadStackPane ? (
-          <SegmentOverlayPane
-            model={model}
-            pane="lookahead"
-            segmentIndex={lookaheadStackPane.segmentIndex}
-            config={lookaheadStackPane.config}
-            storyData={story}
-            items={items}
-            onMarkdownRendered={
-              lookaheadStackPane.config.type === 'markdown' &&
-              lookaheadStackPane.config.markdown
-                ? () => {
-                    handleMarkdownRendered(lookaheadStackPane.segmentIndex);
-                  }
-                : undefined
-            }
-          />
-        ) : null}
+              onMarkdownRendered={handleMarkdownRendered}
+              onPaneUnmount={clearMarkdownRendered}
+            />,
+          );
+          return nodes;
+        })}
       </div>
     </div>
   );

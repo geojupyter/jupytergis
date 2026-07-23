@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { MimeModel } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { memo, useLayoutEffect, useRef } from 'react';
 
 import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
@@ -38,83 +38,100 @@ function disposeRenderer(renderer: Widget): void {
   renderer.dispose();
 }
 
-/** Jupyter rendermime markdown output (shared by overlay and story editor). */
-export function RenderedStoryMarkdown({
-  model,
-  segmentId,
-  source,
-  onRendered,
-  variant = 'overlay',
-}: IRenderedStoryMarkdownProps): JSX.Element | null {
-  const rendermime = useStoryRenderMime(model, segmentId);
-  const hostRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const host = hostRef.current;
-    if (!host || !source) {
-      return;
-    }
-
-    const registry = rendermime.clone();
-    const renderer = registry.createRenderer(MARKDOWN_MIME);
-    const mimeModel = new MimeModel({
-      data: { [MARKDOWN_MIME]: source },
-      trusted: false,
-    });
-
-    let cancelled = false;
-
-    const run = async (): Promise<void> => {
-      if (cancelled) {
-        return;
-      }
-
-      Widget.attach(renderer, host);
-
-      if (cancelled) {
-        disposeRenderer(renderer);
-        return;
-      }
-
-      try {
-        await renderer.renderModel(mimeModel);
-      } catch (error) {
-        console.error('Failed to render story markdown', error);
-        disposeRenderer(renderer);
-        return;
-      }
-
-      if (cancelled || renderer.isDisposed) {
-        disposeRenderer(renderer);
-        return;
-      }
-
-      renderer.addClass('jp-MarkdownOutput');
-      requestAnimationFrame(() => {
-        if (!cancelled && !renderer.isDisposed) {
-          onRendered?.();
-        }
-      });
-    };
-
-    void run();
-
-    return () => {
-      cancelled = true;
-      disposeRenderer(renderer);
-    };
-  }, [rendermime, source, onRendered]);
-
-  if (!source) {
-    return null;
-  }
-
+function renderedStoryMarkdownPropsAreEqual(
+  prev: IRenderedStoryMarkdownProps,
+  next: IRenderedStoryMarkdownProps,
+): boolean {
   return (
-    <div className={`jgis-story-rendered-markdown ${ROOT_CLASS[variant]}`}>
-      <div
-        ref={hostRef}
-        className="specta-article-host-widget specta-cell-content"
-      ></div>
-    </div>
+    prev.model === next.model &&
+    prev.segmentId === next.segmentId &&
+    prev.source === next.source &&
+    prev.variant === next.variant
   );
 }
+
+/** Jupyter rendermime markdown output (shared by overlay and story editor). */
+export const RenderedStoryMarkdown = memo(
+  ({
+    model,
+    segmentId,
+    source,
+    onRendered,
+    variant = 'overlay',
+  }: IRenderedStoryMarkdownProps): JSX.Element | null => {
+    const rendermime = useStoryRenderMime(model, segmentId);
+    const hostRef = useRef<HTMLDivElement>(null);
+    const onRenderedRef = useRef(onRendered);
+    onRenderedRef.current = onRendered;
+
+    useLayoutEffect(() => {
+      const host = hostRef.current;
+      if (!host || !source) {
+        return;
+      }
+
+      const registry = rendermime.clone();
+      const renderer = registry.createRenderer(MARKDOWN_MIME);
+      const mimeModel = new MimeModel({
+        data: { [MARKDOWN_MIME]: source },
+        trusted: false,
+      });
+
+      let cancelled = false;
+
+      const run = async (): Promise<void> => {
+        if (cancelled) {
+          return;
+        }
+
+        Widget.attach(renderer, host);
+
+        if (cancelled) {
+          disposeRenderer(renderer);
+          return;
+        }
+
+        try {
+          await renderer.renderModel(mimeModel);
+        } catch (error) {
+          console.error('Failed to render story markdown', error);
+          disposeRenderer(renderer);
+          return;
+        }
+
+        if (cancelled || renderer.isDisposed) {
+          disposeRenderer(renderer);
+          return;
+        }
+
+        renderer.addClass('jp-MarkdownOutput');
+        requestAnimationFrame(() => {
+          if (!cancelled && !renderer.isDisposed) {
+            onRenderedRef.current?.();
+          }
+        });
+      };
+
+      void run();
+
+      return () => {
+        cancelled = true;
+        disposeRenderer(renderer);
+      };
+    }, [rendermime, source]);
+
+    if (!source) {
+      return null;
+    }
+
+    return (
+      <div className={`jgis-story-rendered-markdown ${ROOT_CLASS[variant]}`}>
+        <div
+          ref={hostRef}
+          className="specta-article-host-widget specta-cell-content"
+        ></div>
+      </div>
+    );
+  },
+  renderedStoryMarkdownPropsAreEqual,
+);
