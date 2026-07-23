@@ -53,11 +53,14 @@ from jupytergis_lab.notebook.symbology import (
 from jupytergis_lab.notebook.utils import get_gpkg_layers
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from jupyter_tiler.titiler import (
         BaseAlgorithm,
         DataArray,
         TiTilerServer,
     )
+    from rio_tiler.models import ImageData
 
 
 logger = logging.getLogger(__file__)
@@ -1033,6 +1036,88 @@ class GISDocument(CommWidget):
             OBJECT_FACTORY.create_layer(layer, self),
             zoom_to=zoom_to,
         )
+
+    async def add_stac_array_layer(
+        self,
+        stac_url: str,
+        collection_id: str,
+        assets: list[str],
+        array_to_image: Callable[[DataArray], ImageData] | None = None,
+        name: str = "STAC Array layer",
+        *,
+        max_items: int = 4,
+        resolution_scale: float = 2.0,
+        resampling: str = "linear",
+        viewport_width: int = 0,
+        viewport_height: int = 0,
+        viewport_resampling: str = "linear",
+        opacity: float = 1,
+        **kwargs: str | int,
+    ):
+        """Add a raster tile layer which lazily reads into a STAC catalog,
+        turn the tiles into xarrays, and let the user compute the tile images.
+
+        :param stac_url: Root STAC API URL.
+        :param collection_id: STAC collection ID used in the tile URL path.
+        :param assets: Optional STAC asset names passed to stackstac.
+        :param array_to_image: Callable converting a stackstac ``DataArray`` to
+            ``ImageData``.
+        :param name: The layer's name
+        :param max_items: Max number of STAC items to combine per tile. Lower is faster.
+        :param resolution_scale: Multiplier applied to stackstac output resolution.
+            Values greater than ``1`` reduce detail and improve performance.
+        :param resampling: stackstac resampling method, e.g. ``nearest`` or ``bilinear``.
+        :param viewport_width: Optional target viewport width in pixels for post-stack
+            downsampling. ``0`` disables viewport resampling.
+        :param viewport_height: Optional target viewport height in pixels for post-stack
+            downsampling. ``0`` disables viewport resampling.
+        :param viewport_resampling: Interpolation method for viewport downsampling.
+            Typical values are ``linear`` or ``nearest``.
+        :param opacity: The opacity, between 0 and 1
+        :param kwargs: Extra query parameters appended to the tile URL.
+        """
+        try:
+            from jupyter_tiler.titiler import _get_server, add_stac_array
+        except ImportError as e:
+            raise RuntimeError(
+                "This method requires 'jupyter-tiler'."
+                " To resolve, `pip install jupytergis[tiler]`.",
+            ) from e
+
+        self.tile_server = _get_server()
+        url = await add_stac_array(
+            stac_url,
+            collection_id=collection_id,
+            array_to_image=array_to_image,
+            assets=assets,
+            max_items=max_items,
+            resolution_scale=resolution_scale,
+            resampling=resampling,
+            viewport_width=viewport_width,
+            viewport_height=viewport_height,
+            viewport_resampling=viewport_resampling,
+            **kwargs,
+        )
+
+        source_id = str(uuid4())
+        source = {
+            "type": SourceType.RasterSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": 0,
+                "maxZoom": 24,
+            },
+        }
+        self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def get_wms_available_layers(
         self,
