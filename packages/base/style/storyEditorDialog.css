@@ -432,8 +432,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   justify-content: center;
 }
 
-.jgis-story-editor-segment-list--mobile
-  .jgis-story-editor-segment-list-empty {
+.jgis-story-editor-segment-list--mobile .jgis-story-editor-segment-list-empty {
   flex: 1 1 auto;
   margin: 0;
 }
@@ -555,6 +554,38 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   display: flex;
   gap: 0.375rem;
   flex-shrink: 0;
+}
+
+.jgis-narrow .jgis-story-map-interaction-bar-root--overlay-bottom {
+  left: 0.75rem;
+  right: 0.75rem;
+  width: auto;
+  transform: none;
+}
+
+.jgis-narrow .jgis-story-map-interaction-bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.jgis-narrow .jgis-story-map-interaction-bar-message {
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.jgis-narrow .jgis-story-map-interaction-bar-actions {
+  width: 100%;
+  flex-wrap: nowrap;
+  flex-shrink: 1;
+}
+
+.jgis-narrow .jgis-story-map-interaction-bar-actions > .jgis-button,
+.jgis-narrow .jgis-story-map-interaction-bar-actions > button {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .jgis-story-editor-segment-image-card-media {
