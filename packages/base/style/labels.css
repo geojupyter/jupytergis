@@ -9,8 +9,8 @@
   overflow-y: auto;
 }
 
-.jgis-draw-custom-attributes-saved-row .jgis-property-col-key,
-.jgis-draw-custom-attributes-saved-row .jgis-property-col-value {
+.jgis-draw-custom-attributes-saved-row .jgis-attribute-col-key,
+.jgis-draw-custom-attributes-saved-row .jgis-attribute-col-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

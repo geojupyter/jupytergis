@@ -48,7 +48,7 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          className="jgis-property-col-actions"
+          className="jgis-attribute-col-actions"
           title={title}
           variant="icon"
           size="icon-md"
@@ -119,7 +119,7 @@ export const AttributeRowEditor: React.FC<IAttributeRowEditorProps> = ({
   editorActions,
 }) => {
   return (
-    <div className="jgis-property-row jgis-property-row-editor">
+    <div className="jgis-attribute-row jgis-attribute-row-editor">
       <PropertyKeyValueFields
         propertyKey={editorState.newAttributeKey}
         propertyValue={editorState.newAttributeValue}
@@ -161,9 +161,9 @@ export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
   }
 
   return (
-    <div className="jgis-property-row jgis-property-row-add">
+    <div className="jgis-attribute-row jgis-attribute-row-add">
       <Button
-        className="jgis-property-add-button"
+        className="jgis-attribute-add-button"
         onClick={() => editorActions.onStartAddAttribute(rowIndex)}
         variant="outline"
         size="sm"

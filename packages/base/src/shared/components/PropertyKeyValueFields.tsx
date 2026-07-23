@@ -24,7 +24,7 @@ export function PropertyKeyValueFields({
   return (
     <>
       <Input
-        className="jgis-property-col-key"
+        className="jgis-attribute-col-key"
         type="text"
         placeholder={keyPlaceholder}
         value={propertyKey}
@@ -32,7 +32,7 @@ export function PropertyKeyValueFields({
         onEnter={onEnter ? () => onEnter() : undefined}
       />
       <Input
-        className="jgis-property-col-value"
+        className="jgis-attribute-col-value"
         type="text"
         placeholder={valuePlaceholder}
         value={propertyValue}

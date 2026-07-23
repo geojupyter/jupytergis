@@ -1,38 +1,38 @@
-.jgis-property-row {
+.jgis-attribute-row {
   display: flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.375rem;
 }
 
-.jgis-property-rows > .jgis-property-row:nth-child(odd) {
+.jgis-attribute-rows > .jgis-attribute-row:nth-child(odd) {
   background-color: var(--jp-layout-color1);
 }
 
-.jgis-property-rows > .jgis-property-row:nth-child(even) {
+.jgis-attribute-rows > .jgis-attribute-row:nth-child(even) {
   background-color: var(--jp-layout-color0);
 }
 
-.jgis-property-rows > .jgis-property-row:first-child {
+.jgis-attribute-rows > .jgis-attribute-row:first-child {
   border-top-left-radius: var(--jp-border-radius);
   border-top-right-radius: var(--jp-border-radius);
 }
 
-.jgis-property-rows > .jgis-property-row:last-child {
+.jgis-attribute-rows > .jgis-attribute-row:last-child {
   border-bottom-left-radius: var(--jp-border-radius);
   border-bottom-right-radius: var(--jp-border-radius);
 }
 
-.jgis-property-row-add {
+.jgis-attribute-row-add {
   justify-content: flex-end;
   padding-right: 0;
 }
 
-.jgis-property-row-editor {
+.jgis-attribute-row-editor {
   align-items: center;
 }
 
-.jgis-property-col-key {
+.jgis-attribute-col-key {
   flex: 0 0 clamp(7rem, 30%, 12rem);
   min-width: 0;
   max-width: clamp(7rem, 30%, 12rem);
@@ -41,19 +41,19 @@
   white-space: nowrap;
 }
 
-.jgis-property-col-value {
+.jgis-attribute-col-value {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 
-.jgis-property-col-actions {
+.jgis-attribute-col-actions {
   display: inline-flex;
   flex: 0 0 auto;
   align-self: center;
 }
 
-.jgis-property-add-button {
+.jgis-attribute-add-button {
   justify-content: center;
 }

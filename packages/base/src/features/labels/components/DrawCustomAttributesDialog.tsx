@@ -51,7 +51,7 @@ function DrawCustomAttributeDraftRow({
   };
 
   return (
-    <div className="jgis-property-row jgis-property-row-editor">
+    <div className="jgis-attribute-row jgis-attribute-row-editor">
       <PropertyKeyValueFields
         propertyKey={draftKey}
         propertyValue={draftValue}
@@ -198,7 +198,7 @@ function DrawCustomAttributesDialogContent({
       </DialogHeader>
 
       <div className="jgis-draw-custom-attributes-dialog" ref={contentRef}>
-        <div className="jgis-property-rows jgis-draw-custom-attributes-list">
+        <div className="jgis-attribute-rows jgis-draw-custom-attributes-list">
           {attributes.length === 0 && draftMode === null ? (
             <p className="jgis-draw-custom-attributes-empty">
               No custom attributes yet.
@@ -223,10 +223,10 @@ function DrawCustomAttributesDialogContent({
             return (
               <div
                 key={attribute.key}
-                className="jgis-property-row jgis-draw-custom-attributes-saved-row"
+                className="jgis-attribute-row jgis-draw-custom-attributes-saved-row"
               >
-                <span className="jgis-property-col-key">{attribute.key}</span>
-                <span className="jgis-property-col-value">
+                <span className="jgis-attribute-col-key">{attribute.key}</span>
+                <span className="jgis-attribute-col-value">
                   {attribute.value}
                 </span>
                 <Button
@@ -281,7 +281,7 @@ function DrawCustomAttributesDialogContent({
             <p className="jgis-draw-custom-attributes-error">{presetNameError}</p>
           ) : null}
 
-          <div className="jgis-property-row jgis-property-row-editor jgis-draw-custom-attributes-preset-save-row">
+          <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
             <Input
               className="jgis-draw-custom-attributes-preset-name-input"
               type="text"
@@ -318,7 +318,7 @@ function DrawCustomAttributesDialogContent({
         <div className="jgis-draw-custom-attributes-row">
           <div className="jgis-draw-custom-attributes-actions">
             <Button
-              className="jgis-property-add-button"
+              className="jgis-attribute-add-button"
               type="button"
               variant="outline"
               size="sm"
