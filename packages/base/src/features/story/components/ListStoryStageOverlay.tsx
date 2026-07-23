@@ -217,50 +217,53 @@ function segmentOverlayPanePropsAreEqual(
   );
 }
 
-const SegmentOverlayPane = React.memo(({
-  pane,
-  segmentIndex,
-  config,
-  model,
-  storyData,
-  items,
-  onMarkdownRendered,
-  onPaneUnmount,
-}: ISegmentOverlayPaneProps): React.ReactElement => {
-  const isMap = config.type === 'map';
+const SegmentOverlayPane = React.memo(
+  ({
+    pane,
+    segmentIndex,
+    config,
+    model,
+    storyData,
+    items,
+    onMarkdownRendered,
+    onPaneUnmount,
+  }: ISegmentOverlayPaneProps): React.ReactElement => {
+    const isMap = config.type === 'map';
 
-  useLayoutEffect(() => {
-    return () => {
-      onPaneUnmount(segmentIndex);
-    };
-  }, [segmentIndex, onPaneUnmount]);
+    useLayoutEffect(() => {
+      return () => {
+        onPaneUnmount(segmentIndex);
+      };
+    }, [segmentIndex, onPaneUnmount]);
 
-  return (
-    <div
-      data-pane={pane}
-      data-segment-index={segmentIndex}
-      className={`jgis-story-segment-overlay-pane jgis-story-${
-        isMap ? 'map' : 'markdown'
-      }-scroll-pane`}
-    >
-      {isMap ? (
-        <ListStoryMapOverlayPanel
-          model={model}
-          storyData={storyData}
-          segmentIndex={config.segmentIndex}
-          items={items}
-        />
-      ) : config.markdown ? (
-        <ListStoryOverlayMarkdown
-          model={model}
-          segmentId={config.segmentId}
-          source={config.markdown}
-          onRendered={() => onMarkdownRendered(segmentIndex)}
-        />
-      ) : null}
-    </div>
-  );
-}, segmentOverlayPanePropsAreEqual);
+    return (
+      <div
+        data-pane={pane}
+        data-segment-index={segmentIndex}
+        className={`jgis-story-segment-overlay-pane jgis-story-${
+          isMap ? 'map' : 'markdown'
+        }-scroll-pane`}
+      >
+        {isMap ? (
+          <ListStoryMapOverlayPanel
+            model={model}
+            storyData={storyData}
+            segmentIndex={config.segmentIndex}
+            items={items}
+          />
+        ) : config.markdown ? (
+          <ListStoryOverlayMarkdown
+            model={model}
+            segmentId={config.segmentId}
+            source={config.markdown}
+            onRendered={() => onMarkdownRendered(segmentIndex)}
+          />
+        ) : null}
+      </div>
+    );
+  },
+  segmentOverlayPanePropsAreEqual,
+);
 
 function buildFallbackTransition(
   activeItem: IStorySegmentViewItem,
