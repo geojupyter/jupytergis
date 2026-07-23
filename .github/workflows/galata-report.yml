@@ -10,7 +10,13 @@ name: Galata Diff Report
 # ever executing untrusted PR code.
 
 on:
-  workflow_run:
+  # `workflow_run` is required, not incidental: the `Build` run itself has a
+  # read-only token on fork PRs and cannot comment, so posting the report has to
+  # happen in this separate base-repo-context workflow. It never checks out or
+  # executes PR code — it only reads the produced artifacts as data, and all
+  # untrusted values are sanitized before use — so the usual `workflow_run`
+  # escalation risks do not apply here.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: [Build]
     types: [completed]
 
@@ -167,13 +173,15 @@ jobs:
                 + `No visual snapshot differences in the [latest run](${runUrl}).`;
             } else {
               const entries = JSON.parse(fs.readFileSync('collected/manifest.json', 'utf8'));
+              const esc = s => String(s).replace(/[&<>"]/g,
+                c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
               const cell = (slug, kind, ok) =>
                 ok ? `<img src="${baseUrl}/${slug}/${kind}.png" width="240">` : '—';
               const blocks = entries.map(e => {
                 const row = `| ${cell(e.slug, 'expected', e.has.expected)} `
                   + `| ${cell(e.slug, 'actual', e.has.actual)} `
                   + `| ${cell(e.slug, 'diff', e.has.diff)} |`;
-                return `<details open>\n<summary><b>${e.name}</b></summary>\n\n`
+                return `<details open>\n<summary><b>${esc(e.name)}</b></summary>\n\n`
                   + `| Expected | Actual | Diff |\n|---|---|---|\n${row}\n\n</details>`;
               }).join('\n\n');
               body = `${marker}\n### 🖼️ Galata snapshot diffs (${count})\n\n`

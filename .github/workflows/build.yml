@@ -7,6 +7,12 @@ on:
     branches: '*'
   workflow_dispatch:
 
+# Least-privilege default: every job here only builds, tests, and moves
+# artifacts. The `Galata Diff Report` workflow (triggered via `workflow_run`)
+# holds the write permissions needed to comment and push diffs.
+permissions:
+  contents: read
+
 jobs:
   pr-context:
     # Persist the PR number so the `Galata Diff Report` workflow (triggered via
