@@ -8,6 +8,7 @@
 from jupytergis import GISDocument, constant
 
 doc = GISDocument()
+await doc.ready()
 doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
 doc.add_geojson_layer(
@@ -23,6 +24,7 @@ doc.add_geojson_layer(
 from jupytergis import GISDocument, field, ClassificationMode
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="data/eq.geojson",
     symbology=[
@@ -43,6 +45,7 @@ doc
 from jupytergis import GISDocument, constant, field, when
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="data/eq.geojson",
     symbology=[
@@ -62,6 +65,7 @@ doc
 from jupytergis import GISDocument, constant, field, vega_expr
 
 doc = GISDocument()
+await doc.ready()
 
 doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
@@ -86,6 +90,7 @@ doc
 from jupytergis import GISDocument, constant, python_expr
 
 doc = GISDocument()
+await doc.ready()
 
 doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
@@ -109,6 +114,7 @@ doc
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
     symbology=[field("type").categorical(colormap="schemeDark2").encoding("stroke")],
@@ -123,6 +129,7 @@ doc
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geotiff_layer(
     url="https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif",
     min=2000,
@@ -139,6 +146,7 @@ doc
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
     min=0,
@@ -153,6 +161,7 @@ doc.add_geotiff_layer(
 from jupytergis import GISDocument, constant, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
     min=0,
@@ -172,6 +181,7 @@ doc.add_geotiff_layer(
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
     symbology=[field("type").categorical(colormap="schemeDark2").encoding("stroke")],

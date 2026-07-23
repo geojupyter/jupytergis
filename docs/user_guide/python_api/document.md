@@ -17,6 +17,7 @@ doc = GISDocument(
     zoom=5,
     projection="EPSG:3857",
 )
+await doc.ready()
 
 doc
 ```
@@ -31,6 +32,7 @@ The Python runtime then acts as a collaborator on the document (in the live coll
 from jupytergis import GISDocument
 
 doc = GISDocument("mydocument.jGIS")
+await doc.ready()
 
 doc
 ```
@@ -43,6 +45,7 @@ If this document doesn't exist, it will be created on disk.
 from jupytergis import GISDocument, constant
 
 doc = GISDocument()
+await doc.ready()
 
 doc.add_raster_layer(
     url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -71,6 +74,7 @@ latitude = 48.853757
 longitude = 2.358213
 
 doc = GISDocument(zoom=12, latitude=latitude, longitude=longitude)
+await doc.ready()
 
 geojson = {
     "type": "FeatureCollection",
@@ -103,6 +107,7 @@ doc
 from jupytergis import GISDocument
 
 doc = GISDocument(zoom=5, latitude=46.431742, longitude=1.792230)
+await doc.ready()
 
 doc.add_image_layer(
     name="GeoJupyter logo",
@@ -124,6 +129,7 @@ doc
 from jupytergis import GISDocument, constant
 
 doc = GISDocument(zoom=8, latitude=41.928500, longitude=-87.828527)
+await doc.ready()
 
 doc.add_vectortile_layer(
     name="Buildings",
@@ -140,6 +146,7 @@ doc
 from jupytergis import GISDocument
 
 doc = GISDocument(zoom=8, latitude=41.928500, longitude=-87.828527)
+await doc.ready()
 
 # Utility function to find available layers
 layers = doc.get_wms_available_layers("https://ows.terrestris.de/osm/service")
@@ -174,6 +181,7 @@ doc.add_openeo_tile_layer(
 from jupytergis import GISDocument, constant
 
 doc = GISDocument(zoom=2, latitude=58.118086, longitude=-98.799263)
+await doc.ready()
 
 doc.add_geoparquet_layer(
     path="https://raw.githubusercontent.com/opengeospatial/geoparquet/main/examples/example.parquet",
@@ -193,6 +201,7 @@ doc
 from jupytergis import GISDocument, constant
 
 doc = GISDocument(zoom=4, latitude=45.895322, longitude=2.267552)
+await doc.ready()
 
 doc.add_geopackage_vector_layer(
     path="https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg",
