@@ -678,13 +678,123 @@ Radix won't set hidden so do it manually */
   color: var(--jp-brand-color1);
 }
 
+.jgis-story-editor-segment-layer-grid--mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: visible;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-row {
+  grid-template-columns: minmax(0, 1fr) 1rem 1.75rem;
+  grid-template-areas:
+    'name override reset'
+    'opacity opacity visibility'
+    'symbology symbology symbology';
+  gap: 0.5rem 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: var(--jp-border-radius);
+  background-color: var(--jp-layout-color1);
+  min-width: 0;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-name-text {
+  grid-area: name;
+  max-width: 100%;
+  min-width: 0;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-visibility {
+  grid-area: visibility;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-opacity {
+  grid-area: opacity;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-symbology {
+  grid-area: symbology;
+  justify-content: stretch;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-override {
+  grid-area: override;
+  width: 1rem;
+  justify-self: center;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-reset {
+  grid-area: reset;
+  width: 1.75rem;
+  justify-self: end;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-list
+  > .jgis-story-editor-segment-layer-row:nth-child(odd),
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-list
+  > .jgis-story-editor-segment-layer-row:nth-child(even) {
+  background-color: var(--jp-layout-color1);
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-opacity
+  .jgis-slider,
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-opacity
+  [data-slot='slider'] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-opacity-value {
+  flex: 0 0 auto;
+  min-width: 2.25rem;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-symbology
+  > .jgis-button,
+.jgis-story-editor-segment-layer-grid--mobile
+  .jgis-story-editor-segment-layer-symbology
+  > button {
+  width: 100%;
+}
+
 .jgis-story-editor-sheet-container {
   padding: 0 0.5rem;
 }
 
 .jgis-story-editor-sheet-footer {
+  box-sizing: border-box;
   align-self: center;
-  width: 20rem;
+  width: 100%;
+  max-width: 20rem;
 }
 
 @media (max-width: 960px) {
@@ -838,15 +948,5 @@ Radix won't set hidden so do it manually */
   .jgis-story-editor-row > .jgis-button,
   .jgis-story-editor-row > button {
     width: 100%;
-  }
-
-  .jgis-story-editor-segment-layer-grid {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .jgis-story-editor-segment-layer-header,
-  .jgis-story-editor-segment-layer-row {
-    min-width: 28rem;
   }
 }
