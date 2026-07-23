@@ -179,6 +179,7 @@ function SegmentEditor({
               model={model}
               state={state}
               segmentId={segment.id}
+              isMobile={isMobile}
               portalContainerRef={portalContainerRef}
             />
           </StoryEditorSection>
