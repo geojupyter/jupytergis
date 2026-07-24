@@ -707,7 +707,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     
       // Geolocation stuff
       this._geolocation = new Geolocation({
-        tracking: true,
+        tracking: false,
         trackingOptions: {
           enableHighAccuracy: true,
           timeout: 5000,
@@ -725,7 +725,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._geolocationAccuracyFeature = new Feature();
       this._geolocation.on('change:accuracyGeometry', () => {
         this._geolocationAccuracyFeature.setGeometry(
-          this._geolocation.getAccuracyGeometry() ?? undefined
+          this._geolocation?.getAccuracyGeometry() ?? undefined
         );
       });
 
@@ -753,7 +753,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ]);
 
       this._geolocation.on('change:position', () => {
-        const coordinates = this._geolocation.getPosition();
+        const coordinates = this._geolocation?.getPosition();
         this._geolocationPositionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
       });
 
@@ -3745,6 +3745,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _startLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      return;
+    }
     this._geolocation.setTracking(true);
     this._geolocationSource.clear();
     this._geolocationSource.addFeatures([
@@ -3754,6 +3757,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _stopLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      return;
+    }
     this._geolocation.setTracking(false);
     this._geolocationSource.clear();
   }
@@ -4178,8 +4184,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
-  private _geolocation: Geolocation;
-  private _geolocationSource: VectorSource;
+  private _geolocation?: Geolocation;
+  private _geolocationSource?: VectorSource;
   private _geolocationPositionFeature: Feature;
   private _geolocationAccuracyFeature: Feature;
   private _locationIndicatorActive = false;
