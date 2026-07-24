@@ -1,3 +1,4 @@
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
@@ -162,7 +163,6 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -732,23 +732,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       });
 
       /**
-       * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a 
+       * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
        * contrasting white stroke and the OL API does not support that in a single icon.
        */
       const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
       const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-        `<svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="24" 
-          height="24" 
+        `<svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
           viewBox="0 0 ${iconWidth} ${iconHeight}"
         >
-          <path 
-            d="${iconPath}" 
-            fill="blue" 
-            stroke="white" 
-            stroke-width="40" 
-            paint-order="stroke" 
+          <path
+            d="${iconPath}"
+            fill="blue"
+            stroke="white"
+            stroke-width="40"
+            paint-order="stroke"
             stroke-linejoin="round"
           />
         </svg>`,
