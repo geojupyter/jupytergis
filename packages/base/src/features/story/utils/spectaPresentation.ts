@@ -32,12 +32,13 @@ export function resolveStoryPresentationColorForInput(
  */
 export function resolveOverlayContentWidthForInput(
   width: string | undefined,
-): string {
+): string | undefined {
   if (width?.trim()) {
     return width.trim();
   }
 
-  return OVERLAY_CONTENT_WIDTH_FALLBACK;
+  // Return undefined so placeholder works
+  return undefined;
 }
 
 /** CSS variables (+ optional text color) for specta theming */
@@ -63,9 +64,8 @@ export function getSpectaPresentationCssVars(
       (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
     }
     if (overlayContentWidth) {
-      (style as Record<string, string>)[
-        '--jgis-story-overlay-content-width'
-      ] = overlayContentWidth;
+      (style as Record<string, string>)['--jgis-story-overlay-content-width'] =
+        overlayContentWidth;
     }
     return style;
   }

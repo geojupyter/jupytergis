@@ -9,7 +9,10 @@ import {
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
-import { resolveOverlayContentWidthForInput, resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
+import {
+  resolveOverlayContentWidthForInput,
+  resolveStoryPresentationColorForInput,
+} from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
   formatMarkdownSegmentGapLabel,
