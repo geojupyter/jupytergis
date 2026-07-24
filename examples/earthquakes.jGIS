@@ -1,5 +1,4 @@
 {
-  "annotations": {},
   "layerTree": [
     "8de7c2c0-6024-4716-b542-031a89fb87f9",
     "ccf98385-bbe3-425b-9dde-fa64d31c196a"
@@ -32,7 +31,7 @@
                   "id": "e4d14881-dd9d-46cd-8ff3-715951cbd4c5",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "stroke-width",
                         "circle-stroke-width"
                       ],
@@ -52,7 +51,7 @@
                   "id": "36737177-80f9-469f-af38-453fe39008a5",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "circle-radius"
                       ],
                       "scale": {
@@ -88,7 +87,7 @@
                   "id": "905092db-86dc-4792-91a7-8051aa515092",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "fill-color",
                         "circle-fill-color"
                       ],
@@ -126,7 +125,7 @@
                   "id": "d01b7a04-0191-4667-ad4f-0802d8ce7a08",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "pixel-rgb"
                       ],
                       "scale": {
@@ -151,7 +150,7 @@
                   "id": "5ad03fb3-ec3e-4227-a22d-f2b19dd6513c",
                   "mappings": [
                     {
-                      "encodings": [
+                      "channels": [
                         "pixel-alpha"
                       ],
                       "scale": {
@@ -184,16 +183,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -13184790.003627166,
-      4029321.359205949,
-      -13183790.915240608,
-      4029861.0329881627
+      -16659136.445223518,
+      1519959.7173831644,
+      -5774027.4626841275,
+      7304317.147718105
     ],
-    "latitude": 34.00587703834529,
-    "longitude": -118.43649629980648,
+    "latitude": 36.80627587618541,
+    "longitude": -100.76027004815924,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 18.372548808238697
+    "zoom": 4.57383422658683
   },
   "schemaVersion": "0.6.0",
   "sources": {
