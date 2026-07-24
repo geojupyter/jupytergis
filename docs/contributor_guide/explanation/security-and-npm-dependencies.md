@@ -82,7 +82,7 @@ No known method.
 ### JupyterGIS' chosen package manager is `pnpm`
 
 The traditional package manager for JupyterLab extension development is `jlpm`, which is
-an old version of Y (3.x) that's vendored with JupyterLab.
+an old version of Yarn (3.x) that's vendored with JupyterLab.
 Using such an old version of Yarn presents several security risks as described above.
 
 Instead, JupyterGIS uses [`pnpm`](https://pnpm.io) as its JavaScript package manager.
