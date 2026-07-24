@@ -13,7 +13,29 @@ const JP_THEME_BG_VAR = '--jp-layout-color0';
 const JP_THEME_TEXT_VAR = '--jp-ui-font-color1';
 
 /** CSS fallback when overlay width is unset (see storyPanel.css). */
-const OVERLAY_CONTENT_WIDTH_FALLBACK = '100%';
+export const OVERLAY_CONTENT_WIDTH_FALLBACK = '100%';
+
+export const OVERLAY_CONTENT_WIDTH_UNITS = [
+  'ch',
+  '%',
+  'rem',
+  'px',
+  'em',
+  'vw',
+] as const;
+
+export type OverlayContentWidthUnit =
+  (typeof OVERLAY_CONTENT_WIDTH_UNITS)[number];
+
+export const OVERLAY_CONTENT_WIDTH_PRESETS = [
+  { id: 'narrow', label: 'Narrow', value: '50ch' },
+  { id: 'comfort', label: 'Comfort', value: '75ch' },
+  { id: 'wide', label: 'Wide', value: '100ch' },
+  { id: 'full', label: 'Full', value: '100%' },
+] as const;
+
+export type OverlayContentWidthPresetId =
+  (typeof OVERLAY_CONTENT_WIDTH_PRESETS)[number]['id'];
 
 export function resolveStoryPresentationColorForInput(
   color: string | undefined,
@@ -26,19 +48,46 @@ export function resolveStoryPresentationColorForInput(
   return getCssVarValue(kind === 'bg' ? JP_THEME_BG_VAR : JP_THEME_TEXT_VAR);
 }
 
-/**
- * Value for the story-settings width field. Uses the story override when set;
- * otherwise the same CSS fallback as storyPanel.css.
- */
-export function resolveOverlayContentWidthForInput(
+export function resolveOverlayContentWidthValue(
   width: string | undefined,
-): string | undefined {
-  if (width?.trim()) {
-    return width.trim();
+): string {
+  const trimmed = width?.trim();
+
+  return trimmed || OVERLAY_CONTENT_WIDTH_FALLBACK;
+}
+
+export function matchOverlayContentWidthPreset(
+  width: string | undefined,
+): OverlayContentWidthPresetId | null {
+  const value = resolveOverlayContentWidthValue(width);
+  const preset = OVERLAY_CONTENT_WIDTH_PRESETS.find(
+    candidate => candidate.value === value,
+  );
+
+  return preset?.id ?? null;
+}
+
+export function parseOverlayContentWidth(width: string | undefined): {
+  amount: string;
+  unit: OverlayContentWidthUnit;
+} {
+  const value = resolveOverlayContentWidthValue(width);
+  const match = /^(\d*\.?\d+)\s*(ch|%|rem|px|em|vw)$/i.exec(value);
+  if (!match) {
+    return { amount: '100', unit: '%' };
   }
 
-  // Return undefined so placeholder works
-  return undefined;
+  return {
+    amount: match[1],
+    unit: match[2].toLowerCase() as OverlayContentWidthUnit,
+  };
+}
+
+export function formatOverlayContentWidth(
+  amount: string,
+  unit: OverlayContentWidthUnit,
+): string {
+  return `${amount.trim()}${unit}`;
 }
 
 /** CSS variables (+ optional text color) for specta theming */

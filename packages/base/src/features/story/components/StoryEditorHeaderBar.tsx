@@ -10,8 +10,13 @@ import {
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import {
-  resolveOverlayContentWidthForInput,
+  formatOverlayContentWidth,
+  matchOverlayContentWidthPreset,
+  OVERLAY_CONTENT_WIDTH_PRESETS,
+  OVERLAY_CONTENT_WIDTH_UNITS,
+  parseOverlayContentWidth,
   resolveStoryPresentationColorForInput,
+  type OverlayContentWidthUnit,
 } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
@@ -41,6 +46,102 @@ export interface IStoryEditorHeaderBarProps {
   segmentCount: number;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
   portalContainerRef: RefObject<HTMLElement | null>;
+}
+
+function OverlayContentWidthField({
+  value,
+  onChange,
+}: {
+  value: string | undefined;
+  onChange: (width: string) => void;
+}): JSX.Element {
+  const matchedPreset = matchOverlayContentWidthPreset(value);
+  const [isCustom, setIsCustom] = useState(matchedPreset === null);
+  const parsed = parseOverlayContentWidth(value);
+  const selectedPresetId = isCustom ? null : matchedPreset;
+
+  return (
+    <div className="jgis-story-editor-field">
+      <span>Overlay content width</span>
+      <div
+        className="jgis-story-editor-width-presets"
+        role="group"
+        aria-label="Overlay content width presets"
+      >
+        {OVERLAY_CONTENT_WIDTH_PRESETS.map(preset => (
+          <Button
+            key={preset.id}
+            type="button"
+            variant="outline"
+            size="sm"
+            className={`jgis-story-editor-width-preset${
+              selectedPresetId === preset.id
+                ? ' jgis-story-editor-width-preset--selected'
+                : ''
+            }`}
+            aria-pressed={selectedPresetId === preset.id}
+            title={preset.value}
+            onClick={() => {
+              setIsCustom(false);
+              onChange(preset.value);
+            }}
+          >
+            {preset.label}
+          </Button>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className={`jgis-story-editor-width-preset${
+            isCustom ? ' jgis-story-editor-width-preset--selected' : ''
+          }`}
+          aria-pressed={isCustom}
+          onClick={() => {
+            setIsCustom(true);
+          }}
+        >
+          Custom
+        </Button>
+      </div>
+      {isCustom ? (
+        <div className="jgis-story-editor-width-custom">
+          <Input
+            type="number"
+            min={0}
+            aria-label="Width amount"
+            value={parsed.amount}
+            onChange={event => {
+              const amount = event.target.value;
+              if (!amount.trim()) {
+                return;
+              }
+
+              onChange(formatOverlayContentWidth(amount, parsed.unit));
+            }}
+          />
+          <NativeSelect
+            aria-label="Width unit"
+            value={parsed.unit}
+            onChange={event => {
+              onChange(
+                formatOverlayContentWidth(
+                  parsed.amount,
+                  event.target.value as OverlayContentWidthUnit,
+                ),
+              );
+            }}
+          >
+            {OVERLAY_CONTENT_WIDTH_UNITS.map(unit => (
+              <NativeSelectOption key={unit} value={unit}>
+                {unit}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function StorySettingsPopover({
@@ -116,21 +217,12 @@ function StorySettingsPopover({
                     }}
                   />
                 </label>
-                <label className="jgis-story-editor-field">
-                  <span>Overlay content width</span>
-                  <Input
-                    type="text"
-                    placeholder="100%"
-                    value={resolveOverlayContentWidthForInput(
-                      story.overlayContentWidth,
-                    )}
-                    onChange={event => {
-                      onUpdateStory({
-                        overlayContentWidth: event.target.value.trim(),
-                      });
-                    }}
-                  />
-                </label>
+                <OverlayContentWidthField
+                  value={story.overlayContentWidth}
+                  onChange={overlayContentWidth => {
+                    onUpdateStory({ overlayContentWidth });
+                  }}
+                />
               </>
             ) : null}
             <label className="jgis-story-editor-field">
