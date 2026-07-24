@@ -9,6 +9,19 @@ import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import { version } from '@/package.json';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/src/shared/components/Command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/src/shared/components/Popover';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -23,6 +36,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   scale,
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
+  const [projectionOpen, setProjectionOpen] = useState(false);
 
   useEffect(() => {
     const handlePointerChanged = () => {
@@ -64,10 +78,45 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         <FontAwesomeIcon icon={faRuler} />{' '}
         <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
-      <div className="jgis-status-bar-item">
-        <FontAwesomeIcon icon={faGlobe} />{' '}
-        <span>{projection?.code ?? null}</span>
-      </div>
+      <Popover open={projectionOpen} onOpenChange={setProjectionOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="jgis-status-bar-item jgis-status-bar-projection-trigger"
+            aria-label="Change projection"
+          >
+            <FontAwesomeIcon icon={faGlobe} />{' '}
+            <span>{projection?.code ?? null}</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="jgis-status-bar-select-popover"
+          side="top"
+          align="start"
+          sideOffset={4}
+        >
+            <Command>
+              <CommandInput placeholder="Search..." />
+              <CommandList>
+                <CommandEmpty>No option found.</CommandEmpty>
+                <CommandGroup>
+                  {[
+                    { value: 'hi', label: 'hi' },
+                    { value: 'hello', label: 'hello' },
+                  ].map(item => (
+                    <CommandItem
+                      key={item.value}
+                      value={item.label}
+                      onSelect={() => setProjectionOpen(false)}
+                    >
+                      {item.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       <div className="jgis-status-bar-item">Units: {projection?.units}</div>
     </div>
   );
