@@ -6,14 +6,13 @@ import {
   isColumnPresentation,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
-import { getCssVarAsColor } from '@/src/tools';
+import { getCssVarValue } from '@/src/tools';
 
 /** Jupyter theme vars used when presentation colors are unset (see storyPanel.css). */
 const JP_THEME_BG_VAR = '--jp-layout-color0';
 const JP_THEME_TEXT_VAR = '--jp-ui-font-color1';
 
-/** Keep in sync with `.jgis-story-stage-overlay-content` fallback in storyPanel.css. */
-const OVERLAY_CONTENT_WIDTH_VAR = '--jgis-story-overlay-content-width';
+/** CSS fallback when overlay width is unset (see storyPanel.css). */
 const OVERLAY_CONTENT_WIDTH_FALLBACK = '100%';
 
 export function resolveStoryPresentationColorForInput(
@@ -24,12 +23,12 @@ export function resolveStoryPresentationColorForInput(
     return color;
   }
 
-  return getCssVarAsColor(kind === 'bg' ? JP_THEME_BG_VAR : JP_THEME_TEXT_VAR);
+  return getCssVarValue(kind === 'bg' ? JP_THEME_BG_VAR : JP_THEME_TEXT_VAR);
 }
 
 /**
  * Value for the story-settings width field. Uses the story override when set;
- * otherwise the CSS custom property / stylesheet fallback.
+ * otherwise the same CSS fallback as storyPanel.css.
  */
 export function resolveOverlayContentWidthForInput(
   width: string | undefined,
@@ -38,9 +37,7 @@ export function resolveOverlayContentWidthForInput(
     return width.trim();
   }
 
-  return (
-    getCssVarAsColor(OVERLAY_CONTENT_WIDTH_VAR) || OVERLAY_CONTENT_WIDTH_FALLBACK
-  );
+  return OVERLAY_CONTENT_WIDTH_FALLBACK;
 }
 
 /** CSS variables (+ optional text color) for specta theming */
@@ -66,8 +63,9 @@ export function getSpectaPresentationCssVars(
       (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
     }
     if (overlayContentWidth) {
-      (style as Record<string, string>)[OVERLAY_CONTENT_WIDTH_VAR] =
-        overlayContentWidth;
+      (style as Record<string, string>)[
+        '--jgis-story-overlay-content-width'
+      ] = overlayContentWidth;
     }
     return style;
   }
