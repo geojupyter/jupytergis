@@ -12,6 +12,10 @@ import { getCssVarAsColor } from '@/src/tools';
 const JP_THEME_BG_VAR = '--jp-layout-color0';
 const JP_THEME_TEXT_VAR = '--jp-ui-font-color1';
 
+/** Keep in sync with `.jgis-story-stage-overlay-content` fallback in storyPanel.css. */
+const OVERLAY_CONTENT_WIDTH_VAR = '--jgis-story-overlay-content-width';
+const OVERLAY_CONTENT_WIDTH_FALLBACK = '100%';
+
 export function resolveStoryPresentationColorForInput(
   color: string | undefined,
   kind: 'bg' | 'text',
@@ -23,6 +27,22 @@ export function resolveStoryPresentationColorForInput(
   return getCssVarAsColor(kind === 'bg' ? JP_THEME_BG_VAR : JP_THEME_TEXT_VAR);
 }
 
+/**
+ * Value for the story-settings width field. Uses the story override when set;
+ * otherwise the CSS custom property / stylesheet fallback.
+ */
+export function resolveOverlayContentWidthForInput(
+  width: string | undefined,
+): string {
+  if (width?.trim()) {
+    return width.trim();
+  }
+
+  return (
+    getCssVarAsColor(OVERLAY_CONTENT_WIDTH_VAR) || OVERLAY_CONTENT_WIDTH_FALLBACK
+  );
+}
+
 /** CSS variables (+ optional text color) for specta theming */
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
@@ -31,6 +51,7 @@ export function getSpectaPresentationCssVars(
   const verticalScroll = isVerticalScrollPresentation(presentationMode);
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
+  const overlayContentWidth = story?.overlayContentWidth?.trim();
   const style: CSSProperties = {};
 
   if (textColor) {
@@ -43,6 +64,10 @@ export function getSpectaPresentationCssVars(
       'transparent';
     if (bgColor) {
       (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
+    }
+    if (overlayContentWidth) {
+      (style as Record<string, string>)[OVERLAY_CONTENT_WIDTH_VAR] =
+        overlayContentWidth;
     }
     return style;
   }
