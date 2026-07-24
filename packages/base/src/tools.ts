@@ -84,8 +84,8 @@ export function nearest(n: number, tol: number): number {
   }
 }
 
-/** Read a CSS variable from the document root and return the value. */
-export function getCssVarAsColor(cssVar: string): string {
+/** Read a CSS custom property from the document root. */
+export function getCssVarValue(cssVar: string): string {
   if (typeof document === 'undefined') {
     return '';
   }
