@@ -190,6 +190,11 @@
           "type": "string",
           "title": "Presentation Text Color",
           "description": "The text color of the story map"
+        },
+        "overlayContentWidth": {
+          "type": "string",
+          "title": "Overlay content width",
+          "description": "CSS width for vertical-scroll markdown overlay content."
         }
       }
     },

@@ -14,6 +14,7 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import { useQueuedMarkdownHeightMeasure } from '@/src/features/story/hooks/useQueuedMarkdownHeightMeasure';
 import type { IListStoryScrollTrackLayout } from '@/src/features/story/types/types';
 import { buildListStoryScrollTrack } from '@/src/features/story/utils/listStoryScrollTrack';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   buildStorySegmentViewItems,
   getListStoryMarkdownSegmentsFromItems,
@@ -89,6 +90,16 @@ export function ListStoryScrollTrackProvider({
     mapViewportHeight > 0 ? mapViewportHeight : undefined;
 
   const markdownSegmentGap = storyData?.markdownSegmentGap === true;
+
+  const measurePresentationStyle = useMemo(
+    () => getSpectaPresentationCssVars(storyData),
+    [
+      storyData?.storyType,
+      storyData?.presentationBgColor,
+      storyData?.presentationTextColor,
+      storyData?.overlayContentWidth,
+    ],
+  );
 
   const buildScrollTrackLayout = useCallback(
     (
@@ -317,7 +328,11 @@ export function ListStoryScrollTrackProvider({
     <ListStoryScrollTrackContext.Provider value={value}>
       {children}
       {enabled && segmentBeingMeasured ? (
-        <div className="jgis-story-markdown-measure-host" aria-hidden>
+        <div
+          className="jgis-story-markdown-measure-host"
+          style={measurePresentationStyle}
+          aria-hidden
+        >
           <ListStoryMarkdownMeasurePane
             key={segmentBeingMeasured.id}
             model={model}
