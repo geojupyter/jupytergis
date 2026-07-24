@@ -13,7 +13,7 @@
   font-family: var(--jp-content-font-family);
   font-size: 1rem;
   line-height: 1.6;
-  max-width: 60rem;
+  max-width: 100ch;
   margin: 0 auto;
 }
 
