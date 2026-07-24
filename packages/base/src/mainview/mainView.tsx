@@ -16,6 +16,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISUIState,
   IIdentifiedFeature,
   IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
@@ -56,6 +57,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
+  Geolocation,
   MapBrowserEvent,
   Map as OlMap,
   VectorTile,
@@ -63,6 +65,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import type { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -159,6 +162,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import crosshairsSvgStr from '../../style/icons/crosshairs.svg';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -344,6 +348,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
+    this._model.uiStateChanged.connect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
 
     // Keep draw editing UI/interactions in sync with the shared editing mode.
     this._model.editingVectorLayerChanged.connect(
@@ -487,6 +495,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
+
+    this._model.uiStateChanged.disconnect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
+    this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
   }
@@ -690,6 +704,70 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
+
+      this._geolocation = new Geolocation({
+        tracking: false,
+        trackingOptions: {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: Infinity,
+        },
+        projection: this._Map.getView().getProjection(),
+      });
+      this._geolocation.on('error', (err: GeolocationError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        this._model.setUIState({ locationIndicatorActive: false });
+      });
+
+      this._geolocationAccuracyFeature = new Feature();
+      this._geolocationAccuracyFeature.setStyle(
+        new Style({
+          fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+        }),
+      );
+      this._geolocation.on('change:accuracyGeometry', () => {
+        this._geolocationAccuracyFeature.setGeometry(
+          this._geolocation?.getAccuracyGeometry() ?? undefined,
+        );
+      });
+
+      const crosshairsIcon = (fill: string): string =>
+        `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+          crosshairsSvgStr
+            .replace(
+              'viewBox="0 0 512 512"',
+              'width="24" height="24" viewBox="0 0 512 512"',
+            )
+            .replace('fill="#616161"', `fill="${fill}"`),
+        )}`;
+
+      this._geolocationPositionFeature = new Feature();
+      this._geolocationPositionFeature.setStyle([
+        new Style({
+          image: new Icon({
+            scale: 1.15,
+            src: crosshairsIcon('white'),
+          }),
+        }),
+        new Style({
+          image: new Icon({
+            src: crosshairsIcon('blue'),
+          }),
+        }),
+      ]);
+
+      this._geolocation.on('change:position', () => {
+        const coordinates = this._geolocation?.getPosition();
+        this._geolocationPositionFeature.setGeometry(
+          coordinates ? new Point(coordinates) : undefined,
+        );
+      });
+
+      this._geolocationSource = new VectorSource({});
+      new VectorLayer({
+        map: this._Map,
+        source: this._geolocationSource,
+      });
     }
   }
 
@@ -2645,6 +2723,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           },
         }));
         view = new View({ projection: newProjection });
+        this._geolocation?.setProjection(newProjection);
       } else {
         this._log('warning', `Invalid projection: ${projection}`);
         return;
@@ -3655,6 +3734,42 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private _handleLocationIndicatorToggled(
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void {
+    const active = Boolean(uiState.locationIndicatorActive);
+    if (active === this._locationIndicatorActive) {
+      return;
+    }
+    this._locationIndicatorActive = active;
+    if (active) {
+      this._startLocationIndicator();
+    } else {
+      this._stopLocationIndicator();
+    }
+  }
+
+  private _startLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      return;
+    }
+    this._geolocation.setTracking(true);
+    this._geolocationSource.clear();
+    this._geolocationSource.addFeatures([
+      this._geolocationAccuracyFeature,
+      this._geolocationPositionFeature,
+    ]);
+  }
+
+  private _stopLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      return;
+    }
+    this._geolocation.setTracking(false);
+    this._geolocationSource.clear();
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -4075,6 +4190,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
+  private _geolocation?: Geolocation;
+  private _geolocationSource?: VectorSource;
+  private _geolocationPositionFeature: Feature;
+  private _geolocationAccuracyFeature: Feature;
+  private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;

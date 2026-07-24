@@ -62,6 +62,7 @@ export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource'
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  locationIndicatorActive?: boolean;
 }
 
 export interface IJGISStoryMaps {

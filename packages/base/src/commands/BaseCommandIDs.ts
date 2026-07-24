@@ -13,6 +13,7 @@ export const addMarker = 'jupytergis:addMarker';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
+export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
