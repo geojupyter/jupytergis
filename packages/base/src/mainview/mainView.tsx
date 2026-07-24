@@ -705,7 +705,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
       }));
     
-      // Geolocation stuff
       this._geolocation = new Geolocation({
         tracking: false,
         trackingOptions: {
@@ -720,8 +719,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this._model.setUIState({ locationIndicatorActive: false });
       });
 
-      // initialize the features and layer
-      // ...matt...
       this._geolocationAccuracyFeature = new Feature();
       this._geolocationAccuracyFeature.setStyle(
         new Style({
@@ -3756,8 +3753,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
     this._geolocation.setTracking(true);
     this._geolocationSource.clear();
-    // Add the accuracy circle first so it renders beneath the position
-    // crosshair, matching the original stacking order.
     this._geolocationSource.addFeatures([
       this._geolocationAccuracyFeature,
       this._geolocationPositionFeature,
