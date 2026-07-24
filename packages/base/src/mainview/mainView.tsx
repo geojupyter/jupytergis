@@ -162,7 +162,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import crosshairSvgStr from '../../style/icons/crosshair.svg';
+import crosshairsSvgStr from '../../style/icons/crosshairs.svg';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -731,22 +731,27 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         );
       });
 
+      const crosshairsIcon = (fill: string): string =>
+        `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+          crosshairsSvgStr
+            .replace(
+              'viewBox="0 0 512 512"',
+              'width="24" height="24" viewBox="0 0 512 512"',
+            )
+            .replace('fill="#616161"', `fill="${fill}"`),
+        )}`;
+
       this._geolocationPositionFeature = new Feature();
       this._geolocationPositionFeature.setStyle([
         new Style({
           image: new Icon({
-            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-              crosshairSvgStr
-                .replace('stroke="currentColor"', 'stroke="white"')
-                .replace('stroke-width="2"', 'stroke-width="4"'),
-            )}`,
+            scale: 1.15,
+            src: crosshairsIcon('white'),
           }),
         }),
         new Style({
           image: new Icon({
-            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-              crosshairSvgStr.replace('stroke="currentColor"', 'stroke="blue"'),
-            )}`,
+            src: crosshairsIcon('blue'),
           }),
         }),
       ]);
