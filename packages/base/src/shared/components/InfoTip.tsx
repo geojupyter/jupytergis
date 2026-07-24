@@ -1,67 +1,16 @@
-import { ChevronRightIcon, Info } from 'lucide-react';
-import React, { ReactNode } from 'react';
+import { Info } from 'lucide-react';
+import React from 'react';
 
-import { Button } from './Button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from './Collapsible';
-import { HoverCardTrigger, HoverCardContent, HoverCard } from './HoverCard';
-import { cn } from './utils';
+import { HoverTip, IHoverTipProps } from './HoverTip';
 
-interface IInfoTipProps extends Omit<
-  React.ComponentProps<typeof HoverCardContent>,
-  'children'
-> {
-  text: string;
-  openDelay?: number;
-  closeDelay?: number;
-  children?: ReactNode;
-}
+type IInfoTipProps = Omit<IHoverTipProps, 'icon' | 'triggerLabel'>;
 
-export function InfoTip({
-  children,
-  text,
-  openDelay = 100,
-  closeDelay = 100,
-  className,
-  portalContainerRef,
-  ...contentProps
-}: IInfoTipProps) {
+export function InfoTip(props: IInfoTipProps) {
   return (
-    <HoverCard openDelay={openDelay} closeDelay={closeDelay}>
-      <HoverCardTrigger aria-label="More information">
-        <Info data-size="md" />
-      </HoverCardTrigger>
-      <HoverCardContent
-        portalContainerRef={portalContainerRef}
-        className={cn('jgis-info-tip-content', className)}
-        {...contentProps}
-      >
-        {text}
-        {children && (
-          <Collapsible asChild>
-            <div className="jgis-info-tip-collapsible">
-              <CollapsibleTrigger asChild>
-                <div className="jgis-info-tip-collapsible-trigger">
-                  <Button
-                    size="icon-sm"
-                    variant="icon"
-                    className="jgis-rotate-90 jgis-bg-transparent"
-                  >
-                    <ChevronRightIcon data-icon="inline-start" />
-                  </Button>
-                  <span className="jgis-info-tip-more-info">More Info</span>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="jgis-info-tip-collapsible-content">
-                {children}
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
-        )}
-      </HoverCardContent>
-    </HoverCard>
+    <HoverTip
+      icon={<Info data-size="md" />}
+      triggerLabel="More information"
+      {...props}
+    />
   );
 }
