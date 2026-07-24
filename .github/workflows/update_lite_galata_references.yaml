@@ -20,7 +20,7 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@b48fcdb87e70c45789abd80d4042b06641e47b46
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@94b14ddfbdd1ed651e9f9343ae2409ab5c73a6a8 # v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -49,7 +49,7 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm exec playwright install chromium
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@b48fcdb87e70c45789abd80d4042b06641e47b46
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@94b14ddfbdd1ed651e9f9343ae2409ab5c73a6a8 # v1
         with:
           npm_client: pnpm
           browser: chromium
