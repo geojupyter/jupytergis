@@ -6,7 +6,8 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import proj4list from 'proj4-list';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { version } from '@/package.json';
 import {
@@ -37,6 +38,11 @@ const StatusBar: React.FC<IStatusBarProps> = ({
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
   const [projectionOpen, setProjectionOpen] = useState(false);
+
+  const projectionOptions = useMemo(
+    () => Object.keys(proj4list).map(code => ({ value: code, label: code })),
+    [],
+  );
 
   useEffect(() => {
     const handlePointerChanged = () => {
@@ -100,10 +106,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
               <CommandList>
                 <CommandEmpty>No option found.</CommandEmpty>
                 <CommandGroup>
-                  {[
-                    { value: 'hi', label: 'hi' },
-                    { value: 'hello', label: 'hello' },
-                  ].map(item => (
+                  {projectionOptions.map(item => (
                     <CommandItem
                       key={item.value}
                       value={item.label}
