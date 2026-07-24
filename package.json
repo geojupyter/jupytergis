@@ -46,12 +46,6 @@
     "build:lab": "lerna run"
   },
   "packageManager": "pnpm@11.17.0",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.17.0"
-    }
-  },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/webpack-env": "^1.18.5",
