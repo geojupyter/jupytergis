@@ -723,6 +723,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       // initialize the features and layer
       // ...matt...
       this._geolocationAccuracyFeature = new Feature();
+      this._geolocationAccuracyFeature.setStyle(
+        new Style({
+          fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+        }),
+      );
       this._geolocation.on('change:accuracyGeometry', () => {
         this._geolocationAccuracyFeature.setGeometry(
           this._geolocation?.getAccuracyGeometry() ?? undefined
@@ -2718,9 +2723,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           },
         }));
         view = new View({ projection: newProjection });
-        // Keep the geolocation in the same projection as the view, otherwise
-        // reported positions would be transformed into a stale CRS and the
-        // location indicator would be placed incorrectly.
         this._geolocation?.setProjection(newProjection);
       } else {
         this._log('warning', `Invalid projection: ${projection}`);
@@ -3754,9 +3756,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
     this._geolocation.setTracking(true);
     this._geolocationSource.clear();
+    // Add the accuracy circle first so it renders beneath the position
+    // crosshair, matching the original stacking order.
     this._geolocationSource.addFeatures([
-      this._geolocationPositionFeature,
       this._geolocationAccuracyFeature,
+      this._geolocationPositionFeature,
     ]);
   }
 
