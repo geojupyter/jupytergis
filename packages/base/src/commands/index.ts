@@ -23,6 +23,8 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
+import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
+import { targetWithCenterIcon } from '@/src/shared/icons';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -36,7 +38,6 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
-import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -272,23 +273,15 @@ export function addCommands(
 
       const model = current.model;
 
-      // OpenEO layers are edited through the process-graph editor, which is a
-      // dialog itself. Opening the Layer Properties dialog first would block
-      // it (a dialog cannot open while another is open), so go straight to the
-      // process-graph editor instead. See #1653.
+      // Each layer type declares how it is edited (see `getLayerEditHandler`).
+      // Most types open the Layer Properties dialog, but some (e.g. OpenEO)
+      // open a dedicated editor instead.
       const selected = model.localState?.selected?.value ?? {};
       const selectedId = Object.keys(selected)[0];
       const layer = selectedId ? model.getLayer(selectedId) : undefined;
-      if (selectedId && layer?.type === 'OpenEOTileLayer') {
-        await editOpenEOLayer(model, selectedId);
-        return;
-      }
 
-      const dialog = new ObjectPropertiesWidget({
-        model,
-        formSchemaRegistry,
-      });
-      await dialog.launch();
+      const editHandler = getLayerEditHandler(layer?.type);
+      await editHandler({ model, selectedId, formSchemaRegistry });
     },
     ...icons.get(CommandIDs.showLayerPropertiesDialog),
   });
