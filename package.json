@@ -45,10 +45,11 @@
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
     "build:lab": "lerna run"
   },
+  "packageManager": "pnpm@11.17.0",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "^11.14.0"
+      "version": "^11.17.0"
     }
   },
   "devDependencies": {
