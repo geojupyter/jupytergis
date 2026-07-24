@@ -27,6 +27,8 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocChange,
   IAnnotation,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
 } from './interfaces';
 import { migrateDocument } from './migrations';
 
@@ -42,6 +44,7 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}"},
 	"layerTree": [],
 	"annotations": {},
+	"presets": {},
 	"metadata": {}
 }`;
 
@@ -59,6 +62,7 @@ export class JupyterGISDoc
     this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
     this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
     this._annotations = this.ydoc.getMap('annotations');
+    this._presets = this.ydoc.getMap('presets');
     this._metadata = this.ydoc.getMap('metadata');
 
     this.undoManager.addToScope(this._layers);
@@ -77,6 +81,7 @@ export class JupyterGISDoc
     this._viewState.observe(this._viewStateObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._annotations.observe(this._annotationsObserver);
+    this._presets.observe(this._presetsObserver);
     this._metadata.observe(this._metaObserver.bind(this));
   }
 
@@ -100,6 +105,7 @@ export class JupyterGISDoc
     const stories = this._stories.toJSON();
     const viewState = this._viewState.toJSON();
     const annotations = this._annotations.toJSON();
+    const presets = this._presets.toJSON();
     const metadata = this._metadata.toJSON();
 
     return JSON.stringify(
@@ -111,6 +117,7 @@ export class JupyterGISDoc
         viewState,
         options,
         annotations,
+        presets,
         metadata,
       },
       null,
@@ -161,9 +168,20 @@ export class JupyterGISDoc
         this._viewState.set(key, val),
       );
 
-      this.annotations = (value['annotations'] ??
-        {}) as unknown as IJGISAnnotations;
-      this.metadata = (value['metadata'] ?? {}) as IJGISMetadata;
+      const annotations = value['annotations'] ?? {};
+      Object.entries(annotations).forEach(([key, val]) =>
+        this._annotations.set(key, val),
+      );
+
+      const presets = value['presets'] ?? {};
+      Object.entries(presets).forEach(([key, val]) =>
+        this._presets.set(key, val),
+      );
+
+      const metadata = value['metadata'] ?? {};
+      Object.entries(metadata).forEach(([key, val]) =>
+        this._metadata.set(key, val),
+      );
     });
   }
 
@@ -474,9 +492,46 @@ export class JupyterGISDoc
 
   set annotations(annotations: IJGISAnnotations) {
     this.transact(() => {
-      this._annotations.clear();
       for (const [id, value] of Object.entries(annotations)) {
         this._annotations.set(id, value);
+      }
+    });
+  }
+
+  getPreset(name: string): IDrawCustomAttribute[] | undefined {
+    if (!this._presets.has(name)) {
+      return;
+    }
+
+    return JSONExt.deepCopy(this._presets.get(name)) as IDrawCustomAttribute[];
+  }
+
+  setPreset(name: string, attributes: IDrawCustomAttribute[]): void {
+    this.transact(() => void this._presets.set(name, attributes));
+  }
+
+  removePreset(name: string): void {
+    this.transact(() => {
+      if (this._presets.has(name)) {
+        this._presets.delete(name);
+      }
+    });
+  }
+
+  getPresets(): IDrawCustomAttributePresets {
+    return JSONExt.deepCopy(
+      this._presets.toJSON(),
+    ) as IDrawCustomAttributePresets;
+  }
+
+  get presets(): IDrawCustomAttributePresets {
+    return this.getPresets();
+  }
+
+  set presets(presets: IDrawCustomAttributePresets) {
+    this.transact(() => {
+      for (const [name, value] of Object.entries(presets)) {
+        this._presets.set(name, value);
       }
     });
   }
@@ -487,7 +542,6 @@ export class JupyterGISDoc
 
   set metadata(metadata: IJGISMetadata) {
     this.transact(() => {
-      this._metadata.clear();
       for (const [key, value] of Object.entries(metadata ?? {})) {
         this._metadata.set(key, value);
       }
@@ -500,6 +554,10 @@ export class JupyterGISDoc
 
   get annotationsChanged(): ISignal<IJupyterGISDoc, MapChange> {
     return this._annotationsChanged;
+  }
+
+  get presetsChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._presetsChanged;
   }
 
   static create(): IJupyterGISDoc {
@@ -647,6 +705,18 @@ export class JupyterGISDoc
     this._annotationsChanged.emit(changes);
   };
 
+  private _presetsObserver = (event: Y.YMapEvent<any>): void => {
+    const changes = new Map();
+    event.changes.keys.forEach((change, key) => {
+      changes.set(key, {
+        action: change.action,
+        oldValue: change.oldValue,
+        newValue: this._presets.get(key),
+      });
+    });
+    this._presetsChanged.emit(changes);
+  };
+
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
@@ -655,6 +725,7 @@ export class JupyterGISDoc
   private _options: Y.Map<any>;
   private _metadata: Y.Map<any>;
   private _annotations: Y.Map<any>;
+  private _presets: Y.Map<any>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
@@ -674,6 +745,7 @@ export class JupyterGISDoc
   private _viewStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _annotationsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+  private _presetsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 
   private _initialSyncReadyPromise: Promise<void>;
   private _initialSyncReadyResolve: () => void;

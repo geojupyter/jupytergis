@@ -1,0 +1,92 @@
+.jgis-draw-custom-attributes-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jgis-draw-custom-attributes-list {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.jgis-draw-custom-attributes-saved-row .jgis-attribute-col-key,
+.jgis-draw-custom-attributes-saved-row .jgis-attribute-col-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jgis-draw-custom-attributes-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--jp-error-color1);
+}
+
+.jgis-draw-custom-attributes-empty {
+  margin: 0;
+  padding: 0.25rem 0.375rem;
+  font-size: 0.875rem;
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-draw-custom-attributes-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.jgis-draw-custom-attributes-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 0;
+}
+
+.jgis-draw-custom-attributes-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.jgis-draw-custom-attributes-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.jgis-draw-custom-attributes-preset-save-collapse {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    max-height 0.2s ease-out,
+    opacity 0.2s ease-out;
+}
+
+.jgis-draw-custom-attributes-preset-save-collapse--open {
+  max-height: 6rem;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.jgis-draw-custom-attributes-preset-save-row {
+  margin-top: 0.25rem;
+}
+
+.jgis-draw-custom-attributes-preset-name-input {
+  flex: 1 1 auto;
+}
+
+.jgis-draw-custom-attributes-presets-menu {
+  width: min(18rem, 90vw);
+}
+
+.jgis-draw-custom-attributes-preset-item {
+  justify-content: space-between;
+}
+
+.jgis-draw-custom-attributes-preset-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

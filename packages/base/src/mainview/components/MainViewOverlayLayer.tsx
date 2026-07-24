@@ -1,15 +1,16 @@
+import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
+import { VectorDrawControls } from '@/src/features/labels/components/VectorDrawControls';
 
 export interface IMainViewOverlayLayerProps {
   annotationFloaters: React.ReactNode;
   featureFloaters: React.ReactNode;
   editingVectorLayer: boolean;
   drawGeometryLabel: string | undefined;
-  onDrawGeometryTypeChange: (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => void;
+  onDrawGeometryTypeChange: (geometryType: string) => void;
+  model: IJupyterGISModel;
+  drawLayerId?: string;
 }
 
 export function MainViewOverlayLayer({
@@ -18,29 +19,20 @@ export function MainViewOverlayLayer({
   editingVectorLayer,
   drawGeometryLabel,
   onDrawGeometryTypeChange,
+  model,
+  drawLayerId,
 }: IMainViewOverlayLayerProps): JSX.Element {
   return (
     <>
       {annotationFloaters}
       {featureFloaters}
       {editingVectorLayer ? (
-        <div className="jgis-geometry-type-selector-overlay">
-          <select
-            className="geometry-type-selector"
-            id="geometry-type-selector"
-            value={drawGeometryLabel ?? ''}
-            onChange={onDrawGeometryTypeChange}
-          >
-            <option value="" disabled hidden>
-              Geometry type
-            </option>
-            {DRAW_GEOMETRIES.map(geometryType => (
-              <option key={geometryType} value={geometryType}>
-                {geometryType}
-              </option>
-            ))}
-          </select>
-        </div>
+        <VectorDrawControls
+          drawGeometryLabel={drawGeometryLabel}
+          onDrawGeometryTypeChange={onDrawGeometryTypeChange}
+          model={model}
+          drawLayerId={drawLayerId}
+        />
       ) : null}
     </>
   );

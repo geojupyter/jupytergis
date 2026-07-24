@@ -96,6 +96,7 @@ def _migrate_annotations(doc: dict[str, Any]) -> dict[str, Any]:
         **doc,
         "annotations": annotations,
         "metadata": {},
+        "presets": {},
     }
 
 

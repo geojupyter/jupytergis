@@ -1,0 +1,115 @@
+.jgis-button-group {
+  display: flex;
+  width: fit-content;
+  align-items: stretch;
+}
+
+.jgis-button-group > *:focus-visible {
+  position: relative;
+  z-index: 10;
+}
+
+.jgis-button-group:has(> [data-slot='button-group']) {
+  gap: 0.5rem;
+}
+
+.jgis-button-group > [data-slot='select-trigger']:not([class*='w-']) {
+  width: fit-content;
+}
+
+.jgis-button-group > input {
+  flex: 1 1 0%;
+}
+
+.jgis-button-group:has(select[aria-hidden='true']:last-child)
+  > [data-slot='select-trigger']:last-of-type {
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.jgis-button-group[data-orientation='horizontal'] > *:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+}
+
+.jgis-button-group[data-orientation='horizontal'] > *:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.jgis-button-group[data-orientation='horizontal'] > *:first-child {
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+.jgis-button-group[data-orientation='horizontal'] > *:last-child {
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.jgis-button-group[data-orientation='vertical'] {
+  flex-direction: column;
+}
+
+.jgis-button-group[data-orientation='vertical'] > *:not(:first-child) {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+}
+
+.jgis-button-group[data-orientation='vertical'] > *:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.jgis-button-group[data-orientation='vertical'] > *:first-child {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.jgis-button-group[data-orientation='vertical'] > *:last-child {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.jgis-button-group-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--jp-border-radius);
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-layout-color2);
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+
+.jgis-button-group-text svg {
+  pointer-events: none;
+}
+
+.jgis-button-group-text svg:not([class*='size-']) {
+  width: 1rem;
+  height: 1rem;
+}
+
+.jgis-button-group-separator {
+  position: relative;
+  align-self: stretch;
+  background-color: var(--jp-border-color0);
+}
+
+.jgis-button-group-separator[data-orientation='horizontal'] {
+  margin-left: 1px;
+  margin-right: 1px;
+  width: auto;
+}
+
+.jgis-button-group-separator[data-orientation='vertical'] {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  height: auto;
+}

@@ -18,6 +18,8 @@ import { FeatureLike } from 'ol/Feature';
 
 import {
   IJGISContent,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -58,6 +60,7 @@ import {
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
@@ -136,6 +139,21 @@ export interface IIdentifiedFeaturesAwarenessState {
   emitter?: string | null;
 }
 
+export interface IDrawCustomAttributesLayerState {
+  updatedAt: number;
+  attributes: IDrawCustomAttribute[];
+}
+
+export type IDrawCustomAttributesByLayer = Record<
+  string,
+  IDrawCustomAttributesLayerState
+>;
+
+export interface IDrawCustomAttributesAwarenessState {
+  value?: IDrawCustomAttributesByLayer;
+  emitter?: string | null;
+}
+
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   lastAddedLayer?: { layerId?: string };
@@ -147,6 +165,7 @@ export interface IJupyterGISClientState {
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
+  drawCustomAttributes: IDrawCustomAttributesAwarenessState;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -158,6 +177,7 @@ export const AWARENESS_STATE_FIELDS = {
   pointer: 'pointer',
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
+  drawCustomAttributes: 'drawCustomAttributes',
   remoteUser: 'remoteUser',
   isTemporalControllerActive: 'isTemporalControllerActive',
   lastAddedLayer: 'lastAddedLayer',
@@ -187,6 +207,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
   annotations: IJGISAnnotations;
+  presets: IDrawCustomAttributePresets;
   metadata: IJGISMetadata;
 
   readonly editable: boolean;
@@ -238,6 +259,11 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getAnnotations(): Record<string, IAnnotation>;
   getAnnotationIds(): string[];
 
+  getPreset(name: string): IDrawCustomAttribute[] | undefined;
+  setPreset(name: string, attributes: IDrawCustomAttribute[]): void;
+  removePreset(name: string): void;
+  getPresets(): IDrawCustomAttributePresets;
+
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
@@ -245,6 +271,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
   annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  presetsChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -304,6 +331,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >;
+  drawCustomAttributesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >;
   remoteUserChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -318,6 +349,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   sharedAnnotationsChanged: ISignal<IJupyterGISModel, MapChange>;
+  sharedPresetsChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
@@ -400,10 +432,25 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
   syncIdentifiedFeatures(features: IIdentifiedFeatures, emitter?: string): void;
+  syncDrawCustomAttributes(
+    attributesByLayer: IDrawCustomAttributesByLayer,
+    emitter?: string,
+  ): void;
+  getDrawCustomAttributes(layerId: string): IDrawCustomAttribute[];
+  setDrawCustomAttributesForLayer(
+    layerId: string,
+    attributes: IDrawCustomAttribute[],
+    emitter?: string,
+  ): void;
+  clearDrawCustomAttributesForLayer(layerId: string, emitter?: string): void;
+  getDrawCustomAttributePresets(): IDrawCustomAttributePresets;
+  setDrawCustomAttributePreset(
+    name: string,
+    attributes: IDrawCustomAttribute[],
+  ): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
-
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;

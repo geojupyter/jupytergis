@@ -24,7 +24,7 @@ export const FeatureAttributeList: React.FC<IFeatureAttributeListProps> = ({
   const isFeatureEditable = feature?._fromDrawTool === true;
 
   return (
-    <div className="jgis-identify-property-rows">
+    <div className="jgis-attribute-rows">
       {Object.entries(feature)
         .filter(([_, value]) => typeof value !== 'object' || value === null)
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
