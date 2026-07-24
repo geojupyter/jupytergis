@@ -13,6 +13,8 @@
   font-family: var(--jp-content-font-family);
   font-size: 1rem;
   line-height: 1.6;
+  max-width: 60rem;
+  margin: 0 auto;
 }
 
 #jgis-story-segment-content
