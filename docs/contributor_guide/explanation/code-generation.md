@@ -9,7 +9,7 @@ There are 3 code generation targets: the schema registry, TypeScript types, and 
 types.
 
 Code generation tasks are defined in `packages/schema/package.json`.
-You can run all code generation tasks with `jlpm run build:schema`, or run them
+You can run all code generation tasks with `pnpm run build:schema`, or run them
 individually using the commands in the diagram below.
 
 ```mermaid
@@ -28,9 +28,9 @@ flowchart TD
     tmp-schema[("Temporary schema<br/>(rewritten $ref paths)")]
     py-types[("Python type definitions")]
 
-    package-manifest -->|jlpm run| npm-script-schema-registry
-    package-manifest -->|jlpm run| npm-script-schema-js
-    package-manifest -->|jlpm run| npm-script-schema-py
+    package-manifest -->|pnpm run| npm-script-schema-registry
+    package-manifest -->|pnpm run| npm-script-schema-js
+    package-manifest -->|pnpm run| npm-script-schema-py
 
     npm-script-schema-registry -->|scripts/dereference-and-combine-schemas-for-registry.js| combined-schema
     -->|read| schema-registry
