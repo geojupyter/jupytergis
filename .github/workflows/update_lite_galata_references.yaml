@@ -20,9 +20,14 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@b48fcdb87e70c45789abd80d4042b06641e47b46
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@94b14ddfbdd1ed651e9f9343ae2409ab5c73a6a8 # v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          cache: true
 
       - name: Download extension package
         uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151  # v21
@@ -41,12 +46,12 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: |
             pip install jupyterlab
-            jlpm install
-            jlpm playwright install chromium
+            pnpm install --frozen-lockfile
+            pnpm exec playwright install chromium
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@b48fcdb87e70c45789abd80d4042b06641e47b46
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@94b14ddfbdd1ed651e9f9343ae2409ab5c73a6a8 # v1
         with:
-          npm_client: jlpm
+          npm_client: pnpm
           browser: chromium
           github_token: ${{ secrets.GITHUB_TOKEN }}
           start_server_script: 'null'

@@ -14,9 +14,9 @@ and install the released package by following the {doc}`user install instruction
 :::{note}
 You will need [`Node.js`](https://nodejs.org/) to build the extension package.
 
-The `jlpm` command is JupyterLab's pinned version of
-[`yarn`](https://yarnpkg.com) that is installed with JupyterLab. You may use
-[`yarn`](https://yarnpkg.com) or [`npm`](https://www.npmjs.com) in lieu of `jlpm` below.
+This project uses [`pnpm`](https://pnpm.io) (version 11) as its JavaScript package
+manager.
+You can either install it following the official instructions, or via micromamba below.
 :::
 
 ### Clone the source
@@ -49,7 +49,7 @@ It is recommended for setting up the JupyterGIS development environment. If you 
 ```bash
 # Create a virtual environment
 
-micromamba create --name jupytergis_dev -c conda-forge pip "python=3.13.*" "nodejs=24" qgis
+micromamba create --name jupytergis_dev -c conda-forge pip "python=3.13.*" "nodejs=24" pnpm qgis
 
 # Activate it
 micromamba activate jupytergis_dev
@@ -57,8 +57,8 @@ micromamba activate jupytergis_dev
 
 ````{tab} Plain python
 ```{note}
-You may need to install some non-Python dependencies (e.g. QGIS,
-Node.js) separately when using this method.
+You will need to install some non-Python dependencies (e.g. QGIS,
+Node.js, pnpm) separately when using this method.
 ```
 
 ```bash
@@ -79,11 +79,11 @@ source .venv/bin/activate
 python scripts/dev-install.py
 
 # Rebuild extension Typescript source after making changes
-jlpm run build
+pnpm run build
 ```
 
 :::{note}
-By default, the `jlpm run build` command generates the source maps for this extension to make it easier to debug using the browser dev tools.
+By default, the `pnpm run build` command generates the source maps for this extension to make it easier to debug using the browser dev tools.
 To also generate source maps for the JupyterLab core extensions, you can run the following command:
 
 ```bash
@@ -98,7 +98,7 @@ You can watch the source directory and run JupyterLab at the same time in differ
 
 ```bash
 # Watch the source directory in one terminal, automatically rebuilding when needed
-jlpm run watch
+pnpm run watch
 
 # Run JupyterLab in another terminal
 jupyter lab
@@ -107,7 +107,7 @@ jupyter lab
 With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
 
 :::{note}
-`jlpm run watch` will sit and wait for a change once started. Edit a file to trigger a build.
+`pnpm run watch` will sit and wait for a change once started. Edit a file to trigger a build.
 :::
 
 ## Development uninstall

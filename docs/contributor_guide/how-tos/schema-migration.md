@@ -100,7 +100,7 @@ that exists in both the `from` and `to` directories.
 4. Verify both test suites pass:
    ```bash
    pytest python/jupytergis_core/jupytergis_core/tests/test_migrations.py -v
-   jlpm lerna run test --scope @jupytergis/base
+   pnpm exec lerna run test --scope @jupytergis/base
    ```
 
 ## Rules

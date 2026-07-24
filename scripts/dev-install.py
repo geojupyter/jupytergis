@@ -17,12 +17,15 @@ def install_dev():
     ]
 
     execute("python -m pip install --group build --group test --group typecheck")
-    execute("jlpm install --immutable")  # Use lockfile for safety!
-    execute("jlpm build")
+    execute("pnpm install --frozen-lockfile")  # Use lockfile for safety!
+    execute("pnpm run build")
 
     for py_package in python_packages:
         execute(f"pip uninstall {py_package} -y")
-        execute("jlpm clean:all", cwd=root_path / python_package_prefix / py_package)
+        execute(
+            "pnpm run clean:all",
+            cwd=root_path / python_package_prefix / py_package,
+        )
 
         install_cmd = f"pip install -e {python_package_prefix}/{py_package}"
         if py_package == "jupytergis_lab":

@@ -1,0 +1,32 @@
+packages:
+  - 'packages/*'
+  - 'python/jupytergis_core'
+  - 'python/jupytergis_lab'
+  - 'python/jupytergis_qgis'
+
+# Dependency build/lifecycle scripts are denied by default.
+# These dependencies have lifecycle scripts, but we don't need them.
+# Explicitly setting allowBuilds to false for each suppresses warnings.
+allowBuilds:
+  '@fortawesome/fontawesome-free': false
+  '@parcel/watcher': false
+  better-sqlite3: false
+  core-js: false
+  core-js-pure: false
+  es5-ext: false
+  nx: false
+  unrs-resolver: false
+
+minimumReleaseAge: 10080  # 1 week
+
+nodeLinker: hoisted
+
+linkWorkspacePackages: true
+
+overrides:
+  '@jupyterlab/apputils': '^4.6'
+  '@lumino/coreutils': '^2.0.0'
+  '@jupyterlab/notebook': '^4.6'
+  '@jupyterlab/rendermime': '^4.6'
+  '@jupyterlab/services': '^7.6'
+  webpack: '>=5.76.3 <5.107.0'

@@ -24,12 +24,6 @@
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
-  "workspaces": [
-    "packages/*",
-    "python/jupytergis_core",
-    "python/jupytergis_lab",
-    "python/jupytergis_qgis"
-  ],
   "scripts": {
     "build": "lerna run build",
     "build:prod": "lerna run build:prod --skip-nx-cache",
@@ -42,8 +36,8 @@
     "eslint:check": "eslint . --ext .ts,.tsx",
     "prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
     "prettier:check": "prettier --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
-    "lint:check": "jlpm run prettier:check && jlpm run eslint:check",
-    "lint": "jlpm run prettier && jlpm run eslint",
+    "lint:check": "pnpm run prettier:check && pnpm run eslint:check",
+    "lint": "pnpm run prettier && pnpm run eslint",
     "test": "lerna run test",
     "dev": "python scripts/dev-install.py",
     "build:packages": "python scripts/build_packages.py",
@@ -51,14 +45,11 @@
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
     "build:lab": "lerna run"
   },
-  "packageManager": "yarn@3.5.0",
-  "resolutions": {
-    "@jupyterlab/apputils": "^4.6",
-    "@lumino/coreutils": "^2.0.0",
-    "@jupyterlab/notebook": "^4.6",
-    "@jupyterlab/rendermime": "^4.6",
-    "@jupyterlab/services": " ^7.6",
-    "webpack": ">=5.76.3 <5.107.0"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.14.0"
+    }
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -71,9 +62,10 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.0.1",
     "jest": "^30.3.0",
-    "lerna": "^8.1.9",
+    "jest-environment-jsdom": "^30.4.1",
+    "lerna": "^9.0.7",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.0.0",
+    "prettier": "~3.8.0",
     "py2vega-ts": "^0.1.2",
     "react-draggable": "4.5.0",
     "rimraf": "^3.0.2",

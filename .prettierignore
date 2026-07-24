@@ -5,6 +5,6 @@ node_modules
 **/lib
 **/*.d.ts
 **/*.js
-yarn.lock
+pnpm-lock.yaml
 *.jGIS
 playwright.config.js

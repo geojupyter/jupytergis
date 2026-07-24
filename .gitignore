@@ -136,7 +136,10 @@ examples/Untitled*.ipynb
 # Hatchling
 jupytergis/_version.py
 
+# JS stuff
 .yarn
+yarn.lock
+.pnpm-store/
 
 python/jupytergis_qgis/jupytergis_qgis/labextension/
 python/jupytergis_lab/jupytergis_lab/labextension/
