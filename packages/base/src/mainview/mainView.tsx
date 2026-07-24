@@ -731,6 +731,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         );
       });
 
+      /**
+       * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a 
+       * contrasting white stroke and the OL API does not support that in a single icon.
+       */
       const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
       const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
         `<svg 
