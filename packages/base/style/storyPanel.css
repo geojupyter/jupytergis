@@ -357,7 +357,6 @@
 }
 
 .jgis-story-stage-overlay-content {
-  /* width: var(--jgis-story-overlay-content-width, 100%); */
   box-sizing: border-box;
   background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
   margin: 0 auto;
@@ -377,7 +376,6 @@
   box-sizing: border-box;
   width: var(--jgis-story-overlay-content-width, 100%);
   margin: 0 auto;
-  /* background-color: transparent; */
 }
 
 .jgis-story-segment-transition-stack .jgis-story-map-scroll-pane {
