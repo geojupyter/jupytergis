@@ -46,8 +46,10 @@
     "build:lab": "lerna run"
   },
   "devEngines": {
-    "name": "pnpm",
-    "version": "^11.14.0"
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.14.0"
+    }
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
