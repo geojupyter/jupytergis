@@ -2718,6 +2718,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           },
         }));
         view = new View({ projection: newProjection });
+        // Keep the geolocation in the same projection as the view, otherwise
+        // reported positions would be transformed into a stale CRS and the
+        // location indicator would be placed incorrectly.
+        this._geolocation?.setProjection(newProjection);
       } else {
         this._log('warning', `Invalid projection: ${projection}`);
         return;
