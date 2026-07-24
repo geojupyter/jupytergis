@@ -110,7 +110,13 @@ const StatusBar: React.FC<IStatusBarProps> = ({
                     <CommandItem
                       key={item.value}
                       value={item.label}
-                      onSelect={() => setProjectionOpen(false)}
+                      onSelect={() => {
+                        jgisModel.setOptions({
+                          ...jgisModel.getOptions(),
+                          projection: item.value,
+                        });
+                        setProjectionOpen(false);
+                      }}
                     >
                       {item.label}
                     </CommandItem>
