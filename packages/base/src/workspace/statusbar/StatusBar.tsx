@@ -101,31 +101,31 @@ const StatusBar: React.FC<IStatusBarProps> = ({
           align="start"
           sideOffset={4}
         >
-            <Command>
-              <CommandInput placeholder="Search..." />
-              <CommandList>
-                <CommandEmpty>No option found.</CommandEmpty>
-                <CommandGroup>
-                  {projectionOptions.map(item => (
-                    <CommandItem
-                      key={item.value}
-                      value={item.label}
-                      onSelect={() => {
-                        jgisModel.setOptions({
-                          ...jgisModel.getOptions(),
-                          projection: item.value,
-                        });
-                        setProjectionOpen(false);
-                      }}
-                    >
-                      {item.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+          <Command>
+            <CommandInput placeholder="Search..." />
+            <CommandList>
+              <CommandEmpty>No option found.</CommandEmpty>
+              <CommandGroup>
+                {projectionOptions.map(item => (
+                  <CommandItem
+                    key={item.value}
+                    value={item.label}
+                    onSelect={() => {
+                      jgisModel.setOptions({
+                        ...jgisModel.getOptions(),
+                        projection: item.value,
+                      });
+                      setProjectionOpen(false);
+                    }}
+                  >
+                    {item.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
       <div className="jgis-status-bar-item">Units: {projection?.units}</div>
     </div>
   );
