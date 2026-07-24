@@ -14,10 +14,6 @@ import { StoryEditorSection } from '@/src/features/story/components/StoryEditorS
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
-import {
-  getStoryPresentationMode,
-  isVerticalScrollPresentation,
-} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
   IStorySegmentViewItem,
