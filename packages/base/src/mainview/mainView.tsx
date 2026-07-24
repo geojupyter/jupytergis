@@ -731,30 +731,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         );
       });
 
-      const crosshairsIcon = (fill: string): string =>
-        `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-          crosshairsSvgStr
-            .replace(
-              'viewBox="0 0 512 512"',
-              'width="24" height="24" viewBox="0 0 512 512"',
-            )
-            .replace('fill="#616161"', `fill="${fill}"`),
-        )}`;
+      const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+        crosshairsSvgStr
+          .replace(
+            'viewBox="0 0 512 512"',
+            'width="24" height="24" viewBox="0 0 512 512"',
+          )
+          .replace(
+            'fill="#616161"',
+            'fill="blue" stroke="white" stroke-width="40" paint-order="stroke" stroke-linejoin="round"',
+          ),
+      )}`;
 
       this._geolocationPositionFeature = new Feature();
-      this._geolocationPositionFeature.setStyle([
+      this._geolocationPositionFeature.setStyle(
         new Style({
-          image: new Icon({
-            scale: 1.15,
-            src: crosshairsIcon('white'),
-          }),
+          image: new Icon({ src: crosshairsSrc }),
         }),
-        new Style({
-          image: new Icon({
-            src: crosshairsIcon('blue'),
-          }),
-        }),
-      ]);
+      );
 
       this._geolocation.on('change:position', () => {
         const coordinates = this._geolocation?.getPosition();
