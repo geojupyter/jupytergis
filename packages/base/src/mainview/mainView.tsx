@@ -162,7 +162,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import crosshairsSvgStr from '../../style/icons/crosshairs.svg';
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -731,16 +731,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         );
       });
 
+      const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
       const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-        crosshairsSvgStr
-          .replace(
-            'viewBox="0 0 512 512"',
-            'width="24" height="24" viewBox="0 0 512 512"',
-          )
-          .replace(
-            'fill="#616161"',
-            'fill="blue" stroke="white" stroke-width="40" paint-order="stroke" stroke-linejoin="round"',
-          ),
+        `<svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 ${iconWidth} ${iconHeight}"
+        >
+          <path 
+            d="${iconPath}" 
+            fill="blue" 
+            stroke="white" 
+            stroke-width="40" 
+            paint-order="stroke" 
+            stroke-linejoin="round"
+          />
+        </svg>`,
       )}`;
 
       this._geolocationPositionFeature = new Feature();
