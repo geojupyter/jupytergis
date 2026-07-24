@@ -228,6 +228,36 @@
   border-top: 1px solid var(--jp-border-color2);
 }
 
+.jgis-story-editor-width-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.jgis-story-editor-width-presets .jgis-button.jgis-story-editor-width-preset {
+  height: 1.5rem;
+  padding: 0.2rem 0.2rem;
+  font-size: 0.75rem;
+  border-radius: 6px;
+}
+
+.jgis-story-editor-width-presets
+  .jgis-button.jgis-story-editor-width-preset--selected {
+  border-color: var(--jp-brand-color1);
+  background: color-mix(
+    in srgb,
+    var(--jp-brand-color1) 8%,
+    var(--jp-layout-color1)
+  );
+}
+
+.jgis-story-editor-width-custom {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+
 .jgis-story-editor-toggle-row {
   display: flex;
   align-items: center;
