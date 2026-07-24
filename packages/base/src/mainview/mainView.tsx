@@ -704,7 +704,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
-    
+
       this._geolocation = new Geolocation({
         tracking: false,
         trackingOptions: {
@@ -727,7 +727,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
       this._geolocation.on('change:accuracyGeometry', () => {
         this._geolocationAccuracyFeature.setGeometry(
-          this._geolocation?.getAccuracyGeometry() ?? undefined
+          this._geolocation?.getAccuracyGeometry() ?? undefined,
         );
       });
 
@@ -745,10 +745,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         new Style({
           image: new Icon({
             src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-              crosshairSvgStr.replace(
-                'stroke="currentColor"',
-                'stroke="blue"',
-              ),
+              crosshairSvgStr.replace('stroke="currentColor"', 'stroke="blue"'),
             )}`,
           }),
         }),
@@ -756,7 +753,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this._geolocation.on('change:position', () => {
         const coordinates = this._geolocation?.getPosition();
-        this._geolocationPositionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
+        this._geolocationPositionFeature.setGeometry(
+          coordinates ? new Point(coordinates) : undefined,
+        );
       });
 
       this._geolocationSource = new VectorSource({});
@@ -764,7 +763,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         map: this._Map,
         source: this._geolocationSource,
       });
-
     }
   }
 
