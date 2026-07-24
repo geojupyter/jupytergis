@@ -59,7 +59,6 @@ function SegmentEditor({
   editorServices,
   portalContainerRef,
   canRemoveSegment,
-  showSegmentAnimation,
   onContentModeChange,
   onContentChange,
   onLayerNameChange,
@@ -72,7 +71,6 @@ function SegmentEditor({
   editorServices: IEditorServices;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
-  showSegmentAnimation: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onLayerNameChange: (name: string) => void;
@@ -183,47 +181,44 @@ function SegmentEditor({
             />
           </StoryEditorSection>
 
-          {showSegmentAnimation ? (
-            <StoryEditorSection
-              triggerText="Animation to this segment"
-              open={animationOpen}
-              onOpenChange={setAnimationOpen}
-            >
-              <div className="jgis-story-editor-row">
-                <NativeSelect
-                  size="sm"
-                  value={transitionType}
-                  onChange={event => {
-                    onTransitionChange({
-                      type: event.target
-                        .value as SegmentTransitionPatch['type'],
-                    });
-                  }}
-                >
-                  <NativeSelectOption value="immediate">
-                    Instant
-                  </NativeSelectOption>
-                  <NativeSelectOption value="smooth">
-                    Smooth pan
-                  </NativeSelectOption>
-                  <NativeSelectOption value="linear">Linear</NativeSelectOption>
-                </NativeSelect>
-                <Slider
-                  min={MIN_SEGMENT_TRANSITION_TIME}
-                  max={MAX_SEGMENT_TRANSITION_TIME}
-                  step={SEGMENT_TRANSITION_TIME_STEP}
-                  value={[transitionTime]}
-                  disabled={isImmediateTransition}
-                  aria-label="Transition duration"
-                  style={{ maxWidth: '10rem' }}
-                  onValueChange={([time]) => {
-                    onTransitionChange({ time });
-                  }}
-                />
-                <span>{formatSegmentTransitionTime(transitionTime)}</span>
-              </div>
-            </StoryEditorSection>
-          ) : null}
+          <StoryEditorSection
+            triggerText="Animation to this segment"
+            open={animationOpen}
+            onOpenChange={setAnimationOpen}
+          >
+            <div className="jgis-story-editor-row">
+              <NativeSelect
+                size="sm"
+                value={transitionType}
+                onChange={event => {
+                  onTransitionChange({
+                    type: event.target.value as SegmentTransitionPatch['type'],
+                  });
+                }}
+              >
+                <NativeSelectOption value="immediate">
+                  Instant
+                </NativeSelectOption>
+                <NativeSelectOption value="smooth">
+                  Smooth pan
+                </NativeSelectOption>
+                <NativeSelectOption value="linear">Linear</NativeSelectOption>
+              </NativeSelect>
+              <Slider
+                min={MIN_SEGMENT_TRANSITION_TIME}
+                max={MAX_SEGMENT_TRANSITION_TIME}
+                step={SEGMENT_TRANSITION_TIME_STEP}
+                value={[transitionTime]}
+                disabled={isImmediateTransition}
+                aria-label="Transition duration"
+                style={{ maxWidth: '10rem' }}
+                onValueChange={([time]) => {
+                  onTransitionChange({ time });
+                }}
+              />
+              <span>{formatSegmentTransitionTime(transitionTime)}</span>
+            </div>
+          </StoryEditorSection>
         </>
       ) : (
         <StoryEditorSection triggerText="Content" defaultOpen>
@@ -273,9 +268,6 @@ export function StoryEditorDialogBody({
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
-  const showSegmentAnimation = !isVerticalScrollPresentation(
-    getStoryPresentationMode(story?.storyType),
-  );
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
@@ -306,7 +298,6 @@ export function StoryEditorDialogBody({
               editorServices={editorServices}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
-              showSegmentAnimation={showSegmentAnimation}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}
