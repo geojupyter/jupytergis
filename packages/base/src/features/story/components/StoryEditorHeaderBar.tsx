@@ -9,7 +9,7 @@ import {
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
-import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
+import { resolveOverlayContentWidthForInput, resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
 import {
   formatGradientLabel,
   formatMarkdownSegmentGapLabel,
@@ -103,15 +103,32 @@ function StorySettingsPopover({
             {isVerticalScrollPresentation(
               getStoryPresentationMode(story.storyType),
             ) ? (
-              <label className="jgis-story-editor-toggle-row">
-                <span>Gap between markdown segments</span>
-                <Switch
-                  checked={story.markdownSegmentGap === true}
-                  onCheckedChange={checked => {
-                    onUpdateStory({ markdownSegmentGap: checked });
-                  }}
-                />
-              </label>
+              <>
+                <label className="jgis-story-editor-toggle-row">
+                  <span>Gap between markdown segments</span>
+                  <Switch
+                    checked={story.markdownSegmentGap === true}
+                    onCheckedChange={checked => {
+                      onUpdateStory({ markdownSegmentGap: checked });
+                    }}
+                  />
+                </label>
+                <label className="jgis-story-editor-field">
+                  <span>Overlay content width</span>
+                  <Input
+                    type="text"
+                    placeholder="100%"
+                    value={resolveOverlayContentWidthForInput(
+                      story.overlayContentWidth,
+                    )}
+                    onChange={event => {
+                      onUpdateStory({
+                        overlayContentWidth: event.target.value.trim(),
+                      });
+                    }}
+                  />
+                </label>
+              </>
             ) : null}
             <label className="jgis-story-editor-field">
               <span>Background color</span>
