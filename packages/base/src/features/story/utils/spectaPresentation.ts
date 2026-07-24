@@ -32,7 +32,7 @@ export const OVERLAY_CONTENT_WIDTH_PRESETS = [
   { id: 'full', label: 'Full', value: '100%' },
 ] as const;
 
-export type OverlayContentWidthPresetId =
+type OverlayContentWidthPresetId =
   (typeof OVERLAY_CONTENT_WIDTH_PRESETS)[number]['id'];
 
 export function resolveStoryPresentationColorForInput(
@@ -50,9 +50,7 @@ export function resolveStoryPresentationColorForInput(
   );
 }
 
-export function resolveOverlayContentWidthValue(
-  width: string | undefined,
-): string {
+function resolveOverlayContentWidthValue(width: string | undefined): string {
   const trimmed = width?.trim();
 
   return trimmed || OVERLAY_CONTENT_WIDTH_FALLBACK;
@@ -111,13 +109,16 @@ export function getSpectaPresentationCssVars(
   if (verticalScroll) {
     (style as Record<string, string>)['--jgis-specta-panel-color'] =
       'transparent';
+
     if (bgColor) {
       (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
     }
+
     if (overlayContentWidth) {
       (style as Record<string, string>)['--jgis-story-overlay-content-width'] =
         overlayContentWidth;
     }
+
     return style;
   }
 
