@@ -26,9 +26,9 @@ want to run them locally.
 **From the `ui-tests` directory:**
 
 ```bash
-jlpm install                      # Install ui testing dependencies
-jlpm playwright install chromium  # Install testing browser
-jlpm run test                     # Run tests
+pnpm install                          # Install ui testing dependencies
+pnpm exec playwright install chromium # Install testing browser
+pnpm run test                         # Run tests
 ```
 
 ### Using a system-installed Chromium
@@ -39,11 +39,11 @@ If you see errors like `error while loading shared libraries: libnspr4.so`, you 
 use a system-installed Chromium instead:
 
 ```bash
-PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium jlpm run test
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium pnpm run test
 ```
 
 This also works when updating snapshots:
 
 ```bash
-PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium jlpm playwright test tests/showcase.spec.ts --update-snapshots
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium pnpm exec playwright test tests/showcase.spec.ts --update-snapshots
 ```
