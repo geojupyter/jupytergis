@@ -44,7 +44,15 @@ function DrawCustomAttributeDraftRow({
   onCancel,
   canSave,
 }: IDrawCustomAttributeDraftRowProps): JSX.Element {
-  const handleEnter = (): void => {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ): void => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.blur();
     if (canSave) {
       onSave();
     }
@@ -57,7 +65,7 @@ function DrawCustomAttributeDraftRow({
         propertyValue={draftValue}
         onPropertyKeyChange={onDraftKeyChange}
         onPropertyValueChange={onDraftValueChange}
-        onEnter={handleEnter}
+        onKeyDown={handleKeyDown}
       />
       <Button
         type="button"
@@ -290,9 +298,15 @@ function DrawCustomAttributesDialogContent({
               placeholder="Preset name"
               value={presetName}
               onChange={event => handlePresetNameChange(event.target.value)}
-              onEnter={value => {
-                if (validatePresetName(value).valid) {
-                  handleSavePreset(value);
+              onKeyDown={event => {
+                if (event.key !== 'Enter') {
+                  return;
+                }
+
+                event.preventDefault();
+                event.currentTarget.blur();
+                if (validatePresetName(event.currentTarget.value).valid) {
+                  handleSavePreset(event.currentTarget.value);
                 }
               }}
             />

@@ -9,7 +9,7 @@ export interface IPropertyKeyValueFieldsProps {
   onPropertyValueChange: (value: string) => void;
   keyPlaceholder?: string;
   valuePlaceholder?: string;
-  onEnter?: () => void;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export function PropertyKeyValueFields({
@@ -19,7 +19,7 @@ export function PropertyKeyValueFields({
   onPropertyValueChange,
   keyPlaceholder = 'key',
   valuePlaceholder = 'value',
-  onEnter,
+  onKeyDown,
 }: IPropertyKeyValueFieldsProps): JSX.Element {
   return (
     <>
@@ -29,7 +29,7 @@ export function PropertyKeyValueFields({
         placeholder={keyPlaceholder}
         value={propertyKey}
         onChange={event => onPropertyKeyChange(event.target.value)}
-        onEnter={onEnter ? () => onEnter() : undefined}
+        onKeyDown={onKeyDown}
       />
       <Input
         className="jgis-attribute-col-value"
@@ -37,7 +37,7 @@ export function PropertyKeyValueFields({
         placeholder={valuePlaceholder}
         value={propertyValue}
         onChange={event => onPropertyValueChange(event.target.value)}
-        onEnter={onEnter ? () => onEnter() : undefined}
+        onKeyDown={onKeyDown}
       />
     </>
   );
