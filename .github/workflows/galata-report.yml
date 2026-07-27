@@ -42,7 +42,6 @@ jobs:
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # Only the test reports and the PR number; skip the heavy build/lite artifacts.
           pattern: '{pr-number,jupytergis-playwright-tests,jupytergis-lite-playwright-tests}'
           path: artifacts
 
@@ -50,13 +49,14 @@ jobs:
         id: pr
         run: |
           set -euo pipefail
-          if [[ -f artifacts/pr-number/pr_number.txt ]]; then
-            num=$(tr -dc '0-9' < artifacts/pr-number/pr_number.txt)
-            echo "number=${num}" >> "$GITHUB_OUTPUT"
-          else
-            echo "No pr-number artifact found; nothing to do."
-            echo "number=" >> "$GITHUB_OUTPUT"
+          # No PR number means the triggering Build can't be mapped to a PR, so
+          # there's nowhere to post the report; fail loudly rather than no-op.
+          if [[ ! -f artifacts/pr-number/pr_number.txt ]]; then
+            echo "::error::No pr-number artifact found in the triggering run." >&2
+            exit 1
           fi
+          num=$(tr -dc '0-9' < artifacts/pr-number/pr_number.txt)
+          echo "number=${num}" >> "$GITHUB_OUTPUT"
 
       - name: Collect snapshot diffs
         id: collect
@@ -64,29 +64,36 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import glob, os, re, json, shutil
+          import glob
+          import json
+          import os
+          import re
+          import shutil
+          from pathlib import Path
 
-          os.makedirs("collected", exist_ok=True)
+          # This runs on a fresh runner, so "collected" should never already
+          # exist; if it does, some state leaked in and we'd rather fail than
+          # silently merge into it (exist_ok defaults to False).
+          collected = Path("collected")
+          collected.mkdir()
           entries = []
-          # Playwright writes "<name>-diff.png" (plus -actual/-expected) into
-          # test-results/ when a toMatchSnapshot assertion fails.
+          # Playwright writes "<name>-diff.png" alongside "<name>-actual.png" and
+          # "<name>-expected.png" into test-results/ when a snapshot assertion
+          # fails. A diff is only ever produced by comparing an actual against an
+          # expected, so whenever a "-diff.png" exists the other two do as well.
           for diff in glob.glob("artifacts/**/test-results/**/*-diff.png", recursive=True):
-              d = os.path.dirname(diff)
-              base = os.path.basename(diff)[: -len("-diff.png")]
-              slug = re.sub(r"[^a-zA-Z0-9._-]", "_", os.path.join(d, base))
-              out = os.path.join("collected", slug)
-              os.makedirs(out, exist_ok=True)
-              shutil.copy(diff, os.path.join(out, "diff.png"))
-              has = {"diff": True}
+              diff_path = Path(diff)
+              d = diff_path.parent
+              base = diff_path.name.removesuffix("-diff.png")
+              slug = re.sub(r"[^a-zA-Z0-9._-]", "_", str(d / base))
+              out = collected / slug
+              out.mkdir()
+              shutil.copy(diff_path, out / "diff.png")
               for kind in ("actual", "expected"):
-                  p = os.path.join(d, f"{base}-{kind}.png")
-                  if os.path.exists(p):
-                      shutil.copy(p, os.path.join(out, f"{kind}.png"))
-                      has[kind] = True
-              entries.append({"name": base, "slug": slug, "has": has})
+                  shutil.copy(d / f"{base}-{kind}.png", out / f"{kind}.png")
+              entries.append({"name": base, "dir": str(d), "slug": slug})
 
-          with open("collected/manifest.json", "w") as f:
-              json.dump(entries, f, indent=2)
+          (collected / "manifest.json").write_text(json.dumps(entries, indent=2))
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"count={len(entries)}\n")
           print(f"Collected {len(entries)} snapshot diff(s).")
@@ -106,34 +113,35 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           dest="pr-${PR}/run-${RUN_ID}"
-          tmp="$(mktemp -d)"
+          repo_dir="$(mktemp -d)"
           url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
 
           # Clone the orphan branch if it exists; otherwise create it empty.
-          if git clone --quiet --depth 1 --branch galata-diffs "$url" "$tmp" 2>/dev/null; then
+          if git clone --quiet --depth 1 --branch galata-diffs "$url" "$repo_dir" 2>/dev/null; then
             :
           else
-            git clone --quiet --depth 1 "$url" "$tmp"
-            git -C "$tmp" checkout --orphan galata-diffs
-            git -C "$tmp" rm -rfq . || true
+            git clone --quiet --depth 1 "$url" "$repo_dir"
+            git -C "$repo_dir" checkout --orphan galata-diffs
+            git -C "$repo_dir" rm -rfq . || true
           fi
 
-          rm -rf "${tmp:?}/${dest}"
-          mkdir -p "$tmp/$dest"
-          cp -r collected/. "$tmp/$dest/"
+          rm -rf "${repo_dir}/${dest}"
+          mkdir -p "$repo_dir/$dest"
+          cp -r collected/. "$repo_dir/$dest/"
 
-          git -C "$tmp" add -A
-          if git -C "$tmp" diff --cached --quiet; then
+          git -C "$repo_dir" add -A
+          if git -C "$repo_dir" diff --cached --quiet; then
             echo "No changes to publish."
           else
-            git -C "$tmp" commit --quiet -m "Galata diffs for PR #${PR} (run ${RUN_ID})"
+            git -C "$repo_dir" commit --quiet -m "Galata diffs for PR #${PR} (run ${RUN_ID})"
             for i in 1 2 3 4 5; do
-              if git -C "$tmp" push --quiet origin galata-diffs; then
+              if git -C "$repo_dir" push --quiet origin galata-diffs; then
                 break
               fi
               echo "push failed (attempt $i), rebasing and retrying..."
-              git -C "$tmp" pull --quiet --rebase origin galata-diffs || true
-              sleep $(( (RANDOM % 5) + 1 ))
+              git -C "$repo_dir" pull --quiet --rebase origin galata-diffs || true
+              # Linear backoff so concurrent runners don't retry in lockstep.
+              sleep "$i"
             done
           fi
 
@@ -173,15 +181,18 @@ jobs:
                 + `No visual snapshot differences in the [latest run](${runUrl}).`;
             } else {
               const entries = JSON.parse(fs.readFileSync('collected/manifest.json', 'utf8'));
-              const esc = s => String(s).replace(/[&<>"]/g,
-                c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-              const cell = (slug, kind, ok) =>
-                ok ? `<img src="${baseUrl}/${slug}/${kind}.png" width="240">` : '—';
+              const esc = s => String(s).replace(/[&<>"']/g,
+                c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+              const cell = (slug, kind) =>
+                `<img src="${baseUrl}/${slug}/${kind}.png" width="240">`;
               const blocks = entries.map(e => {
-                const row = `| ${cell(e.slug, 'expected', e.has.expected)} `
-                  + `| ${cell(e.slug, 'actual', e.has.actual)} `
-                  + `| ${cell(e.slug, 'diff', e.has.diff)} |`;
-                return `<details open>\n<summary><b>${esc(e.name)}</b></summary>\n\n`
+                const row = `| ${cell(e.slug, 'expected')} `
+                  + `| ${cell(e.slug, 'actual')} `
+                  + `| ${cell(e.slug, 'diff')} |`;
+                // Collapsed by default so a run with many diffs stays scannable;
+                // the reader expands the ones they care about.
+                return `<details>\n<summary><b>${esc(e.name)}</b></summary>\n\n`
+                  + `<sub>${esc(e.dir)}</sub>\n\n`
                   + `| Expected | Actual | Diff |\n|---|---|---|\n${row}\n\n</details>`;
               }).join('\n\n');
               body = `${marker}\n### 🖼️ Galata snapshot diffs (${count})\n\n`

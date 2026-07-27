@@ -7,17 +7,13 @@ on:
     branches: '*'
   workflow_dispatch:
 
-# Least-privilege default: every job here only builds, tests, and moves
-# artifacts. The `Galata Diff Report` workflow (triggered via `workflow_run`)
-# holds the write permissions needed to comment and push diffs.
 permissions:
   contents: read
 
 jobs:
   pr-context:
-    # Persist the PR number so the `Galata Diff Report` workflow (triggered via
-    # `workflow_run`) can find the PR to comment on. `workflow_run` cannot read
-    # the PR number for cross-fork PRs, so we pass it through an artifact.
+    # Persist the PR number as an artifact so the `Galata Diff Report` workflow
+    # (triggered via `workflow_run`) can find the PR to comment on.
     name: Save PR context
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
