@@ -1,4 +1,4 @@
-# Explanations
+# Explanation
 
 ```{toctree}
 :maxdepth: 1
