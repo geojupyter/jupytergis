@@ -492,6 +492,7 @@ export class JupyterGISDoc
 
   set annotations(annotations: IJGISAnnotations) {
     this.transact(() => {
+      this._annotations.clear();
       for (const [id, value] of Object.entries(annotations)) {
         this._annotations.set(id, value);
       }
@@ -542,6 +543,7 @@ export class JupyterGISDoc
 
   set metadata(metadata: IJGISMetadata) {
     this.transact(() => {
+      this._metadata.clear();
       for (const [key, value] of Object.entries(metadata ?? {})) {
         this._metadata.set(key, value);
       }
