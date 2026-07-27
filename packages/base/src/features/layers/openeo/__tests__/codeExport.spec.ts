@@ -120,11 +120,26 @@ describe('exportProcessGraphCode — R', () => {
     expect(code).toContain('first1 = p$first(data = data)');
   });
 
-  it('never appends the JupyterGIS snippet for R', () => {
+  it('appends the JupyterGIS snippet when requested', () => {
     const code = exportProcessGraphCode(graphOf('ndvi'), 'r', {
       serverUrl: SERVER,
       includeJupyterGIS: true,
+      layerName: 'My NDVI',
+    });
+    expect(code).toContain('library(jupytergis)');
+    expect(code).toContain('doc = GISDocument$new()');
+    // The R graph carries no connection, so it must be passed explicitly.
+    expect(code).toContain(
+      'doc$add_openeo_tile_layer(saveresult1, connection = connection, name = "My NDVI")',
+    );
+    expect(code).toContain('\ndoc\n');
+  });
+
+  it('omits the JupyterGIS snippet by default and hints at compute_result()', () => {
+    const code = exportProcessGraphCode(graphOf('ndvi'), 'r', {
+      serverUrl: SERVER,
     });
     expect(code).not.toContain('GISDocument');
+    expect(code).toContain('# result = compute_result(graph = saveresult1)');
   });
 });

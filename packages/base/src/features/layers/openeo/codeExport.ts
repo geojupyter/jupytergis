@@ -30,7 +30,8 @@ export interface ICodeExportOptions {
   serverUrl?: string;
   /**
    * Append a JupyterGIS snippet that adds the resulting graph as a layer.
-   * Python only (JupyterGIS has no R API); ignored for R.
+   * Supported for both Python (`jupytergis`) and R (the `jupytergis` R
+   * package, https://github.com/geojupyter/r-jupytergis).
    */
   includeJupyterGIS?: boolean;
   /** Layer name used in the JupyterGIS snippet. */
@@ -448,7 +449,7 @@ class CodeGenerator {
     if (this.lang === 'python') {
       return this.assemblePython(body, resultVar, serverUrl, options);
     }
-    return this.assembleR(body, resultVar, serverUrl);
+    return this.assembleR(body, resultVar, serverUrl, options);
   }
 
   private assemblePython(
@@ -492,6 +493,7 @@ class CodeGenerator {
     body: string[],
     resultVar: string | undefined,
     serverUrl: string,
+    options: ICodeExportOptions,
   ): string {
     const lines: string[] = [
       'library(openeo)',
@@ -502,7 +504,19 @@ class CodeGenerator {
       '',
       ...body,
     ];
-    if (resultVar) {
+    if (options.includeJupyterGIS && resultVar) {
+      const name = options.layerName || 'OpenEO Layer';
+      // The R process graph, unlike the Python one, does not carry its
+      // connection, so pass it explicitly to add_openeo_tile_layer.
+      lines.push(
+        '',
+        'library(jupytergis)',
+        '',
+        'doc = GISDocument$new()',
+        `doc$add_openeo_tile_layer(${resultVar}, connection = connection, name = ${JSON.stringify(name)})`,
+        'doc',
+      );
+    } else if (resultVar) {
       lines.push('', `# result = compute_result(graph = ${resultVar})`);
     }
     return lines.join('\n') + '\n';

@@ -35,7 +35,7 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
       exportProcessGraphCode(graph, lang, {
         serverUrl,
         layerName,
-        includeJupyterGIS: lang === 'python' && includeJupyterGIS,
+        includeJupyterGIS,
       }),
     [graph, lang, serverUrl, layerName, includeJupyterGIS],
   );
@@ -82,16 +82,14 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
             </button>
           ))}
         </div>
-        {lang === 'python' && (
-          <label className="jp-openeo-code-export-toggle">
-            <input
-              type="checkbox"
-              checked={includeJupyterGIS}
-              onChange={e => setIncludeJupyterGIS(e.target.checked)}
-            />
-            <span>Add to a JupyterGIS document</span>
-          </label>
-        )}
+        <label className="jp-openeo-code-export-toggle">
+          <input
+            type="checkbox"
+            checked={includeJupyterGIS}
+            onChange={e => setIncludeJupyterGIS(e.target.checked)}
+          />
+          <span>Add to a JupyterGIS document</span>
+        </label>
         <div className="jp-openeo-toolbar-spacer" />
         <button
           type="button"
