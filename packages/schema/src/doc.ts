@@ -531,6 +531,7 @@ export class JupyterGISDoc
 
   set presets(presets: IDrawCustomAttributePresets) {
     this.transact(() => {
+      this._presets.clear();
       for (const [name, value] of Object.entries(presets)) {
         this._presets.set(name, value);
       }
