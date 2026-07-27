@@ -64,12 +64,12 @@ skip-if-exists = ["jupytergis_qgis/labextension/static/style.js"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
 build_cmd = "build:prod"
-npm = ["jlpm"]
+npm = ["pnpm"]
 
 [tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
 build_cmd = "install:extension"
 build_dir = "jupytergis_qgis/labextension"
-npm = ["jlpm"]
+npm = ["pnpm"]
 source_dir = "src"
 
 [tool.jupyter-releaser.options]
@@ -78,10 +78,10 @@ version_cmd = "hatch version"
 [tool.jupyter-releaser.hooks]
 before-build-npm = [
   "python -m pip install 'jupyterlab>=4.5.1'",
-  "jlpm",
-  "jlpm build:prod",
+  "pnpm install",
+  "pnpm run build:prod",
 ]
-before-build-python = ["jlpm clean:all"]
+before-build-python = ["pnpm run clean:all"]
 
 [tool.check-wheel-contents]
 ignore = ["W002"]

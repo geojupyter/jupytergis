@@ -48,10 +48,10 @@ npm config set ignore-scripts true
 yarn config set ignore-scripts true --global
 ```
 
-#### PNPM prevention
+#### pnpm prevention
 
-PNPM is safer by default!
-Lifecycle scripts are disabled by default in PNPM.
+pnpm is safer by default!
+Lifecycle scripts are disabled by default in pnpm.
 
 ### Installation of freshly-released packages
 
@@ -75,26 +75,24 @@ No known method.
 
 [Yarn 4.10 introduced a feature that can prevent installation of freshly-released packages](https://medium.com/@roman_fedyskyi/yarn-4-10-adds-a-release-age-gate-for-safer-dependency-management-765c2d18149a).
 
-#### PNPM prevention
+#### pnpm prevention
 
-[PNPM 10.16.0 introduced a feature that can prevent installation of freshly-released packages](https://pnpm.io/settings#minimumreleaseage)
+[pnpm 10.16.0 introduced a feature that can prevent installation of freshly-released packages](https://pnpm.io/settings#minimumreleaseage)
 
-### On JupyterGIS and `jlpm`
+### JupyterGIS' chosen package manager is `pnpm`
 
-The package management tool we use, `jlpm`, is actually a specific (old) version of
-Yarn that's packages with JupyterLab.
-In this version, we can prevent running lifecycle scripts (see `.yarnrc.yml` in the root
-of the JupyterGIS repo), but **we can't add a dependency age "cooldown"**.
+The traditional package manager for JupyterLab extension development is `jlpm`, which is
+an old version of Yarn (3.x) that's vendored with JupyterLab.
+Using such an old version of Yarn presents several security risks as described above.
 
-We can (should?) migrate JupyterGIS to use `pnpm` as a preventative measure.
-
-See:
-
-- [A discussion about the current practice of vendoring an old version of Yarn in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues/17913)
+Instead, JupyterGIS uses [`pnpm`](https://pnpm.io) as its JavaScript package manager.
+`pnpm` does **not** run the lifecycle scripts of third-party dependencies by default.
+It also lets us add a dependency age "cooldown" (see the `minimumReleaseAge` section
+above; configured in `pnpm-workspace.yaml`).
 
 ## Zulip discussions
 
 - [Nx has been compromised](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/Nx.20has.20been.20compromised/with/536440000)
 - [Several more npm packages compromised](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/Several.20more.20npm.20packages.20compromised/with/538474626)
 - [A 3rd NPM attack in 3 weeks](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/A.203rd.20NPM.20attack.20in.203.20weeks/with/542327672)
-- [NPM attach #4 (Shai Hulud returns)](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/NPM.20attack.20.234.20.28Shai.20Hulud.20returns.29/with/559102856)
+- [NPM attack #4 (Shai Hulud returns)](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/NPM.20attack.20.234.20.28Shai.20Hulud.20returns.29/with/559102856)
