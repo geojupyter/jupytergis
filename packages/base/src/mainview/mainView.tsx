@@ -708,7 +708,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
       }));
 
-
       this._geolocation = new Geolocation({
         tracking: false,
         trackingOptions: {
