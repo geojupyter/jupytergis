@@ -8,6 +8,7 @@ import {
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
+import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import {
@@ -507,7 +508,9 @@ const Form: React.FC<IFormProps> = ({
     () => JSON.stringify(effectiveGraph, null, 2),
     [effectiveGraph],
   );
-  const [viewMode, setViewMode] = React.useState<'graph' | 'json'>('graph');
+  const [viewMode, setViewMode] = React.useState<'graph' | 'json' | 'code'>(
+    'graph',
+  );
   const [editMode, setEditMode] = React.useState(false);
   // Local JSON buffer so the user can type freely; on valid parse, push
   // back to state.editedGraph. Reseeded whenever effectiveGraph changes
@@ -1127,19 +1130,28 @@ const Form: React.FC<IFormProps> = ({
             >
               JSON
             </button>
+            <button
+              type="button"
+              className={viewMode === 'code' ? 'jp-mod-selected' : ''}
+              onClick={() => setViewMode('code')}
+            >
+              Code
+            </button>
           </div>
-          <button
-            type="button"
-            className={
-              'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
-              (editMode ? ' jp-mod-selected' : '')
-            }
-            onClick={() => setEditMode(v => !v)}
-            title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
-            aria-label="Toggle edit mode"
-          >
-            ✎
-          </button>
+          {viewMode !== 'code' && (
+            <button
+              type="button"
+              className={
+                'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
+                (editMode ? ' jp-mod-selected' : '')
+              }
+              onClick={() => setEditMode(v => !v)}
+              title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
+              aria-label="Toggle edit mode"
+            >
+              ✎
+            </button>
+          )}
           {editMode && viewMode === 'graph' && (
             <>
               <button
@@ -1247,7 +1259,13 @@ const Form: React.FC<IFormProps> = ({
               Drop to add node to graph
             </div>
           )}
-          {viewMode === 'json' ? (
+          {viewMode === 'code' ? (
+            <CodeExportPanel
+              graph={effectiveGraph}
+              serverUrl={connectionInfo?.url}
+              layerName={state.layerName}
+            />
+          ) : viewMode === 'json' ? (
             editMode ? (
               <JsonEditor
                 value={jsonText}
