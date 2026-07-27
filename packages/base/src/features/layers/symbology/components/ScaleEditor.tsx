@@ -32,7 +32,10 @@ import { py2vega } from 'py2vega-ts';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { vega2ol, FUNCTION_MAPPING, CONSTANTS_MAPPING } from 'vega2ol';
 
-import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
+import {
+  COLOR_RAMP_DEFAULTS,
+  ColorRampName,
+} from '@/src/features/layers/symbology/colorRampUtils';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import ColorRampSelector from '@/src/features/layers/symbology/components/color_ramp/ColorRampSelector';
 import RgbaColorPicker, {
@@ -167,10 +170,16 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
     const values = Array.from(featureValues[field] ?? []).filter(
       (v): v is number => Number.isFinite(v),
     );
+
+    const minRequired = COLOR_RAMP_DEFAULTS[params.name as ColorRampName];
+    const nClasses = minRequired
+      ? Math.max(params.nShades ?? minRequired, minRequired)
+      : params.nShades;
+
     const computed: IComputedStop[] = computeGraduatedColorStops(
       {
         renderType: 'Graduated',
-        nClasses: params.nShades,
+        nClasses,
         mode: params.mode as any,
         colorRamp: params.name,
         reverseRamp: params.reverse,
@@ -209,7 +218,13 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
         <label>Color map</label>
         <ColorRampSelector
           selectedRamp={params.name as ColorRampName}
-          setSelected={name => update({ name })}
+          setSelected={name => {
+            const min = COLOR_RAMP_DEFAULTS[name];
+            update({
+              name,
+              nShades: min ?? 9,
+            });
+          }}
           reverse={params.reverse}
           setReverse={v =>
             update({ reverse: typeof v === 'function' ? v(params.reverse) : v })
