@@ -708,6 +708,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
       }));
 
+
       this._geolocation = new Geolocation({
         tracking: false,
         trackingOptions: {
@@ -729,7 +730,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }),
       );
       this._geolocation.on('change:accuracyGeometry', () => {
-        this._geolocationAccuracyFeature.setGeometry(
+        this._geolocationAccuracyFeature?.setGeometry(
           this._geolocation?.getAccuracyGeometry() ?? undefined,
         );
       });
@@ -766,7 +767,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this._geolocation.on('change:position', () => {
         const coordinates = this._geolocation?.getPosition();
-        this._geolocationPositionFeature.setGeometry(
+        this._geolocationPositionFeature?.setGeometry(
           coordinates ? new Point(coordinates) : undefined,
         );
       });
@@ -3759,7 +3760,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _startLocationIndicator(): void {
-    if (!this._geolocation || !this._geolocationSource) {
+    if (
+      !this._geolocation ||
+      !this._geolocationSource ||
+      !this._geolocationAccuracyFeature ||
+      !this._geolocationPositionFeature
+    ) {
       return;
     }
     this._geolocation.setTracking(true);
@@ -4235,8 +4241,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _model: IJupyterGISModel;
   private _geolocation?: Geolocation;
   private _geolocationSource?: VectorSource;
-  private _geolocationPositionFeature: Feature;
-  private _geolocationAccuracyFeature: Feature;
+  private _geolocationPositionFeature?: Feature;
+  private _geolocationAccuracyFeature?: Feature;
   private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
