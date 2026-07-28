@@ -68,8 +68,12 @@ describe('exportProcessGraphCode — Python', () => {
     const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
       serverUrl: SERVER,
     });
-    expect(code).toContain('nir = process("array_element", data=data, index=0)');
-    expect(code).toContain('red = process("array_element", data=data, index=1)');
+    expect(code).toContain(
+      'nir = process("array_element", data=data, index=0)',
+    );
+    expect(code).toContain(
+      'red = process("array_element", data=data, index=1)',
+    );
     expect(code).toContain('diff = process("subtract", x=nir, y=red)');
     expect(code).toMatch(/ndvi = process\("divide", x=diff, y=sum\)/);
     expect(code).toMatch(/return ndvi/);

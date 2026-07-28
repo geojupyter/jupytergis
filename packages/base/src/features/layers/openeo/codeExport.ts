@@ -41,23 +41,78 @@ export interface ICodeExportOptions {
 // Reserved identifiers we must not use as variable names. Beyond each
 // language's keywords, these are names the generated code itself relies on.
 const PY_RESERVED = new Set([
-  'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def',
-  'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if',
-  'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise',
-  'return', 'try', 'while', 'with', 'yield', 'None', 'True', 'False',
-  'openeo', 'connection', 'process', 'result',
+  'and',
+  'as',
+  'assert',
+  'async',
+  'await',
+  'break',
+  'class',
+  'continue',
+  'def',
+  'del',
+  'elif',
+  'else',
+  'except',
+  'finally',
+  'for',
+  'from',
+  'global',
+  'if',
+  'import',
+  'in',
+  'is',
+  'lambda',
+  'nonlocal',
+  'not',
+  'or',
+  'pass',
+  'raise',
+  'return',
+  'try',
+  'while',
+  'with',
+  'yield',
+  'None',
+  'True',
+  'False',
+  'openeo',
+  'connection',
+  'process',
+  'result',
 ]);
 
 const R_RESERVED = new Set([
-  'if', 'else', 'repeat', 'while', 'function', 'for', 'in', 'next', 'break',
-  'TRUE', 'FALSE', 'NULL', 'Inf', 'NaN', 'NA',
-  'openeo', 'connect', 'connection', 'compute_result', 'result', 'p',
+  'if',
+  'else',
+  'repeat',
+  'while',
+  'function',
+  'for',
+  'in',
+  'next',
+  'break',
+  'TRUE',
+  'FALSE',
+  'NULL',
+  'Inf',
+  'NaN',
+  'NA',
+  'openeo',
+  'connect',
+  'connection',
+  'compute_result',
+  'result',
+  'p',
 ]);
 
 // Preferred ordering for callback parameters so signatures read naturally.
 const PARAM_ORDER = ['data', 'x', 'y', 'value', 'label', 'context'];
 
-function isRef(v: any, key: 'from_node' | 'from_parameter'): v is Record<string, any> {
+function isRef(
+  v: any,
+  key: 'from_node' | 'from_parameter',
+): v is Record<string, any> {
   return (
     v !== null &&
     typeof v === 'object' &&
@@ -81,11 +136,7 @@ function isPlainObject(v: any): v is Record<string, any> {
 }
 
 /** Sanitise a node/parameter id into a valid identifier, tracking uniqueness. */
-function makeVar(
-  id: string,
-  reserved: Set<string>,
-  used: Set<string>,
-): string {
+function makeVar(id: string, reserved: Set<string>, used: Set<string>): string {
   let base = id.replace(/[^a-zA-Z0-9_]/g, '_');
   if (!base || /^[0-9]/.test(base)) {
     base = `v_${base}`;
@@ -152,9 +203,7 @@ function siblingDeps(node: IFlatNode): string[] {
 }
 
 /** The id of the node this node reads its primary data input from, if any. */
-function receiverArg(
-  node: IFlatNode,
-): { key: string; nodeId: string } | null {
+function receiverArg(node: IFlatNode): { key: string; nodeId: string } | null {
   const args = node.arguments ?? {};
   if (isRef(args.data, 'from_node')) {
     return { key: 'data', nodeId: args.data.from_node };
@@ -402,7 +451,9 @@ class CodeGenerator {
     if (hasCallback || node.process_id === 'save_result') {
       // Native datacube method; the receiver is passed implicitly as `self`.
       const rest = this.renderArgs(args, scope, lines, new Set([recv.key]));
-      lines.push(`${variable} = ${recvVar}.${node.process_id}(${rest.join(', ')})`);
+      lines.push(
+        `${variable} = ${recvVar}.${node.process_id}(${rest.join(', ')})`,
+      );
     } else {
       // Generic call; pass all arguments (including the data reference).
       const rest = this.renderArgs(args, scope, lines, new Set());
