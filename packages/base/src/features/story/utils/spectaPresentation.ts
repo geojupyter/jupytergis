@@ -115,6 +115,11 @@ export function getSpectaPresentationCssVars(
     style.color = textColor;
   }
 
+  if (story?.mapOverlayOpacity !== undefined) {
+    (style as Record<string, string>)['--jgis-story-map-overlay-opacity'] =
+      String(resolveStoryOpacity(story.mapOverlayOpacity));
+  }
+
   if (verticalScroll) {
     (style as Record<string, string>)['--jgis-specta-panel-color'] =
       'transparent';
@@ -132,11 +137,6 @@ export function getSpectaPresentationCssVars(
       (style as Record<string, string>)[
         '--jgis-story-markdown-segment-opacity'
       ] = String(resolveStoryOpacity(story.markdownSegmentOpacity));
-    }
-
-    if (story?.mapOverlayOpacity !== undefined) {
-      (style as Record<string, string>)['--jgis-story-map-overlay-opacity'] =
-        String(resolveStoryOpacity(story.mapOverlayOpacity));
     }
 
     return style;

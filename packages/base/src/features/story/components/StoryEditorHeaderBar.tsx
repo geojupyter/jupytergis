@@ -6,6 +6,7 @@ import React, { useEffect, useState, type RefObject } from 'react';
 import { TitleInput } from '@/src/features/story/components/TitleInput';
 import {
   getStoryPresentationMode,
+  isColumnPresentation,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
@@ -272,15 +273,19 @@ function StorySettingsPopover({
           </label>
           <div className="jgis-story-editor-settings-section">
             <div className="jgis-story-editor-eyebrow">Presentation</div>
-            <label className="jgis-story-editor-toggle-row">
-              <span>Use gradient background</span>
-              <Switch
-                checked={story.showGradient !== false}
-                onCheckedChange={checked => {
-                  onUpdateStory({ showGradient: checked });
-                }}
-              />
-            </label>
+            {isColumnPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
+              <label className="jgis-story-editor-toggle-row">
+                <span>Use gradient background</span>
+                <Switch
+                  checked={story.showGradient !== false}
+                  onCheckedChange={checked => {
+                    onUpdateStory({ showGradient: checked });
+                  }}
+                />
+              </label>
+            ) : null}
             {isVerticalScrollPresentation(
               getStoryPresentationMode(story.storyType),
             ) ? (
