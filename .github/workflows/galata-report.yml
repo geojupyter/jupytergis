@@ -1,0 +1,223 @@
+name: Galata Diff Report
+
+# When the `Build` workflow finishes, collect any Galata (Playwright) visual
+# snapshot diffs it produced and post/update a comment on the PR so reviewers can
+# see the pixel differences inline instead of downloading the artifact zip.
+#
+# This runs via `workflow_run` (not `pull_request`) on purpose: fork PRs run
+# `Build` with a read-only token and cannot comment. `workflow_run` runs in the
+# base-repo context with a read-write token, so it can comment safely without
+# ever executing untrusted PR code.
+
+on:
+  # `workflow_run` is required, not incidental: the `Build` run itself has a
+  # read-only token on fork PRs and cannot comment, so posting the report has to
+  # happen in this separate base-repo-context workflow. It never checks out or
+  # executes PR code — it only reads the produced artifacts as data, and all
+  # untrusted values are sanitized before use — so the usual `workflow_run`
+  # escalation risks do not apply here.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows: [Build]
+    types: [completed]
+
+permissions:
+  contents: write # push diff images to the `galata-diffs` branch
+  pull-requests: write # post/update the sticky comment
+  actions: read # download artifacts from the triggering run
+
+# Serialize pushes to the shared `galata-diffs` branch to avoid races.
+concurrency:
+  group: galata-diffs
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: Post snapshot diffs
+    runs-on: ubuntu-latest
+    # Only react to PR builds (ignore pushes to main, etc.).
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download artifacts from the triggering run
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: '{pr-number,jupytergis-playwright-tests,jupytergis-lite-playwright-tests}'
+          path: /tmp/artifacts
+
+      - name: Resolve PR number
+        id: pr
+        run: |
+          set -euo pipefail
+          # No PR number means the triggering Build can't be mapped to a PR, so
+          # there's nowhere to post the report.
+          if [[ ! -f /tmp/artifacts/pr-number/pr_number.txt ]]; then
+            echo "::error::No pr-number artifact found in the triggering run." >&2
+            exit 1
+          fi
+          num=$(tr -dc '0-9' < /tmp/artifacts/pr-number/pr_number.txt)
+          echo "number=${num}" >> "$GITHUB_OUTPUT"
+
+      - name: Collect snapshot diffs
+        id: collect
+        if: steps.pr.outputs.number != ''
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob
+          import json
+          import os
+          import re
+          import shutil
+          from pathlib import Path
+
+          # This runs on a fresh runner, so "collected" should never already
+          # exist; if it does, some state leaked in and we'd rather fail than
+          # silently merge into it (exist_ok defaults to False).
+          collected = Path("collected")
+          collected.mkdir()
+          entries = []
+          # Playwright writes "<name>-diff.<ext>" alongside "<name>-actual.<ext>"
+          # and "<name>-expected.<ext>" into test-results/ when a snapshot
+          # assertion fails. <ext> is the screenshot format: most specs use png,
+          # but the showcase specs screenshot as jpeg, so we have to match both.
+          # A diff is only ever produced by comparing an actual against an
+          # expected, so whenever a "-diff" image exists the other two exist with
+          # the same extension.
+          diffs = []
+          for ext in ("png", "jpg", "jpeg"):
+              diffs += glob.glob(
+                  f"/tmp/artifacts/**/test-results/**/*-diff.{ext}", recursive=True
+              )
+          for diff in diffs:
+              diff_path = Path(diff)
+              d = diff_path.parent
+              ext = diff_path.suffix  # includes the leading dot, e.g. ".jpg"
+              base = diff_path.name.removesuffix(f"-diff{ext}")
+              slug = re.sub(r"[^a-zA-Z0-9._-]", "_", str(d / base))
+              out = collected / slug
+              out.mkdir()
+              shutil.copy(diff_path, out / f"diff{ext}")
+              for kind in ("actual", "expected"):
+                  shutil.copy(d / f"{base}-{kind}{ext}", out / f"{kind}{ext}")
+              entries.append({"name": base, "dir": str(d), "slug": slug, "ext": ext})
+
+          (collected / "manifest.json").write_text(json.dumps(entries, indent=2))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"count={len(entries)}\n")
+          print(f"Collected {len(entries)} snapshot diff(s).")
+          PY
+
+      - name: Publish diffs to the galata-diffs branch
+        id: publish
+        if: steps.collect.outputs.count != '' && steps.collect.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ steps.pr.outputs.number }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          dest="pr-${PR}/run-${RUN_ID}"
+          repo_dir="$(mktemp -d)"
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+
+          # Clone the orphan branch if it exists; otherwise create it empty.
+          if git clone --quiet --depth 1 --branch galata-diffs "$url" "$repo_dir" 2>/dev/null; then
+            :
+          else
+            git clone --quiet --depth 1 "$url" "$repo_dir"
+            git -C "$repo_dir" checkout --orphan galata-diffs
+            git -C "$repo_dir" rm -rfq . || true
+          fi
+
+          rm -rf "${repo_dir}/${dest}"
+          mkdir -p "$repo_dir/$dest"
+          cp -r collected/. "$repo_dir/$dest/"
+
+          git -C "$repo_dir" add -A
+          if git -C "$repo_dir" diff --cached --quiet; then
+            echo "No changes to publish."
+          else
+            git -C "$repo_dir" commit --quiet -m "Galata diffs for PR #${PR} (run ${RUN_ID})"
+            for i in 1 2 3 4 5; do
+              if git -C "$repo_dir" push --quiet origin galata-diffs; then
+                break
+              fi
+              echo "push failed (attempt $i), rebasing and retrying..."
+              git -C "$repo_dir" pull --quiet --rebase origin galata-diffs || true
+              # Linear backoff so concurrent runners don't retry in lockstep.
+              sleep "$i"
+            done
+          fi
+
+          echo "base_url=https://raw.githubusercontent.com/${REPO}/galata-diffs/${dest}" >> "$GITHUB_OUTPUT"
+
+      - name: Post or update PR comment
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          BASE_URL: ${{ steps.publish.outputs.base_url }}
+          COUNT: ${{ steps.collect.outputs.count }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- galata-diff-report -->';
+            const prNumber = Number(process.env.PR_NUMBER);
+            const count = Number(process.env.COUNT || '0');
+            const baseUrl = process.env.BASE_URL || '';
+            const { owner, repo } = context.repo;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${process.env.RUN_ID}`;
+
+            // Find an existing report comment to update (sticky comment).
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNumber, per_page: 100,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+
+            let body;
+            if (!count) {
+              if (!existing) {
+                core.info('No diffs and no prior report comment; staying silent.');
+                return;
+              }
+              body = `${marker}\n### ✅ Galata snapshots match\n\n`
+                + `No visual snapshot differences in the [latest run](${runUrl}).`;
+            } else {
+              const entries = JSON.parse(fs.readFileSync('collected/manifest.json', 'utf8'));
+              const esc = s => String(s).replace(/[&<>"']/g,
+                c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+              // `ext` includes the leading dot (".png"/".jpg"); older manifests
+              // without it are all-png, so fall back to ".png".
+              const cell = (slug, kind, ext) =>
+                `<img src="${baseUrl}/${slug}/${kind}${ext}" width="240">`;
+              const blocks = entries.map(e => {
+                const ext = e.ext || '.png';
+                const row = `| ${cell(e.slug, 'expected', ext)} `
+                  + `| ${cell(e.slug, 'actual', ext)} `
+                  + `| ${cell(e.slug, 'diff', ext)} |`;
+                // Collapsed by default so a run with many diffs stays scannable;
+                // the reader expands the ones they care about.
+                return `<details>\n<summary><b>${esc(e.name)}</b></summary>\n\n`
+                  + `<sub>${esc(e.dir)}</sub>\n\n`
+                  + `| Expected | Actual | Diff |\n|---|---|---|\n${row}\n\n</details>`;
+              }).join('\n\n');
+              body = `${marker}\n### 🖼️ Galata snapshot diffs (${count})\n\n`
+                + `These UI snapshots changed in [this run](${runUrl}). `
+                + `If the changes are intended, comment `
+                + '`please update snapshots`'
+                + ` to regenerate the references.\n\n${blocks}\n\n`
+                + `<sub>📦 Full Playwright report: download the `
+                + `\`jupytergis-playwright-tests\` artifact from the [run](${runUrl}).</sub>`;
+            }
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+            }
