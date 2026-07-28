@@ -16,7 +16,6 @@
   min-width: 160px;
 }
 
-/* The whole projection status-bar item acts as the dropdown trigger. */
 .jgis-status-bar-projection-trigger {
   display: flex;
   align-items: center;
@@ -37,7 +36,6 @@
   opacity: 0.7;
 }
 
-/* Compact panel that opens upward and stays above the map/controls. */
 .jgis-popover-content.jgis-status-bar-select-popover {
   width: auto;
   min-width: 140px;

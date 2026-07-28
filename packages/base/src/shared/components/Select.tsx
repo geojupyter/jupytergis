@@ -33,11 +33,6 @@ interface ISelectProps {
   onOpenChange?: (open: boolean) => void;
   showSearch?: boolean;
   searchPlaceholder?: string;
-  /**
-   * Custom trigger element. When provided it replaces the default button;
-   * `PopoverTrigger asChild` merges the trigger behavior onto it, so it must
-   * be a single element that forwards props and a ref (e.g. a `<button>`).
-   */
   trigger?: React.ReactNode;
 }
 
