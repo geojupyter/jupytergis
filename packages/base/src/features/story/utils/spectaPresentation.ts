@@ -90,6 +90,16 @@ export function formatOverlayContentWidth(
   return `${amount.trim()}${unit}`;
 }
 
+export function resolveMarkdownSegmentOpacity(
+  opacity: number | undefined,
+): number {
+  if (opacity === undefined || !Number.isFinite(opacity)) {
+    return 1;
+  }
+
+  return Math.min(1, Math.max(0, opacity));
+}
+
 /** CSS variables (+ optional text color) for specta theming */
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
@@ -99,6 +109,9 @@ export function getSpectaPresentationCssVars(
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
   const overlayContentWidth = story?.overlayContentWidth?.trim();
+  const markdownSegmentOpacity = String(
+    resolveMarkdownSegmentOpacity(story?.markdownSegmentOpacity),
+  );
   const style: CSSProperties = {};
 
   if (textColor) {
@@ -117,6 +130,12 @@ export function getSpectaPresentationCssVars(
     if (overlayContentWidth) {
       (style as Record<string, string>)['--jgis-story-overlay-content-width'] =
         overlayContentWidth;
+    }
+
+    if (story?.markdownSegmentOpacity !== undefined) {
+      (style as Record<string, string>)[
+        '--jgis-story-markdown-segment-opacity'
+      ] = markdownSegmentOpacity;
     }
 
     return style;

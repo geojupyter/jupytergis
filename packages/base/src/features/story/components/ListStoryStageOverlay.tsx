@@ -315,6 +315,7 @@ export function ListStoryStageOverlay({
       story?.presentationBgColor,
       story?.presentationTextColor,
       story?.overlayContentWidth,
+      story?.markdownSegmentOpacity,
     ],
   );
 
