@@ -99,6 +99,7 @@ export function ListStoryScrollTrackProvider({
       storyData?.presentationTextColor,
       storyData?.overlayContentWidth,
       storyData?.markdownSegmentOpacity,
+      storyData?.mapOverlayOpacity,
     ],
   );
 

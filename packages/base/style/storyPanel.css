@@ -409,7 +409,13 @@
   padding: 1.25rem;
   box-sizing: border-box;
   border-radius: 8px;
-  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+  /* Background-only opacity so text stays fully opaque. */
+  background-color: color-mix(
+    in srgb,
+    var(--jgis-specta-bg-color, var(--jp-layout-color0))
+      calc(var(--jgis-story-map-overlay-opacity, 1) * 100%),
+    transparent
+  );
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.06),
     0 4px 12px rgba(0, 0, 0, 0.1),
@@ -489,7 +495,8 @@
   width: fit-content;
   background-color: color-mix(
     in srgb,
-    var(--jgis-specta-bg-color, var(--jp-layout-color0)) 90%,
+    var(--jgis-specta-bg-color, var(--jp-layout-color0))
+      calc(var(--jgis-story-map-overlay-opacity, 1) * 90%),
     transparent
   );
 }
