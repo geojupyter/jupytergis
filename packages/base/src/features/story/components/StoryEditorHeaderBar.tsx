@@ -294,6 +294,12 @@ function StorySettingsPopover({
                     }}
                   />
                 </label>
+                <OverlayContentWidthField
+                  value={story.overlayContentWidth}
+                  onChange={overlayContentWidth => {
+                    onUpdateStory({ overlayContentWidth });
+                  }}
+                />
                 <StoryOpacityField
                   label="Markdown segment opacity"
                   value={story.markdownSegmentOpacity}
@@ -301,21 +307,15 @@ function StorySettingsPopover({
                     onUpdateStory({ markdownSegmentOpacity });
                   }}
                 />
-                <StoryOpacityField
-                  label="Map overlay opacity"
-                  value={story.mapOverlayOpacity}
-                  onChange={mapOverlayOpacity => {
-                    onUpdateStory({ mapOverlayOpacity });
-                  }}
-                />
-                <OverlayContentWidthField
-                  value={story.overlayContentWidth}
-                  onChange={overlayContentWidth => {
-                    onUpdateStory({ overlayContentWidth });
-                  }}
-                />
               </>
             ) : null}
+            <StoryOpacityField
+              label="Map overlay opacity"
+              value={story.mapOverlayOpacity}
+              onChange={mapOverlayOpacity => {
+                onUpdateStory({ mapOverlayOpacity });
+              }}
+            />
             <label className="jgis-story-editor-field">
               <span>Background color</span>
               <Input
