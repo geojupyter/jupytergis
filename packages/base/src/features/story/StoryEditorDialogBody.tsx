@@ -207,19 +207,21 @@ function SegmentEditor({
                 </NativeSelectOption>
                 <NativeSelectOption value="linear">Linear</NativeSelectOption>
               </NativeSelect>
-              <Slider
-                min={MIN_SEGMENT_TRANSITION_TIME}
-                max={MAX_SEGMENT_TRANSITION_TIME}
-                step={SEGMENT_TRANSITION_TIME_STEP}
-                value={[transitionTime]}
-                disabled={isImmediateTransition}
-                aria-label="Transition duration"
-                style={{ maxWidth: '10rem' }}
-                onValueChange={([time]) => {
-                  onTransitionChange({ time });
-                }}
-              />
-              <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              <div className="jgis-story-editor-slider">
+                <Slider
+                  min={MIN_SEGMENT_TRANSITION_TIME}
+                  max={MAX_SEGMENT_TRANSITION_TIME}
+                  step={SEGMENT_TRANSITION_TIME_STEP}
+                  value={[transitionTime]}
+                  disabled={isImmediateTransition}
+                  aria-label="Transition duration"
+                  style={{ maxWidth: '10rem' }}
+                  onValueChange={([time]) => {
+                    onTransitionChange({ time });
+                  }}
+                />
+                <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              </div>
             </div>
           </StoryEditorSection>
         </>

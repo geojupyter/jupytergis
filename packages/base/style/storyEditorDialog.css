@@ -61,6 +61,13 @@
   font-size: 0.8rem;
 }
 
+.jgis-story-editor-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 0;
+}
+
 .jgis-story-editor-actions {
   display: flex;
   flex-wrap: wrap;
