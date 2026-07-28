@@ -15,7 +15,7 @@ import {
   OVERLAY_CONTENT_WIDTH_PRESETS,
   OVERLAY_CONTENT_WIDTH_UNITS,
   parseOverlayContentWidth,
-  resolveMarkdownSegmentOpacity,
+  resolveStoryOpacity,
   resolveStoryPresentationColorForInput,
   type OverlayContentWidthUnit,
 } from '@/src/features/story/utils/spectaPresentation';
@@ -196,25 +196,27 @@ function OverlayContentWidthField({
   );
 }
 
-function MarkdownSegmentOpacityField({
+function StoryOpacityField({
+  label,
   value,
   onChange,
 }: {
+  label: string;
   value: number | undefined;
   onChange: (opacity: number) => void;
 }): JSX.Element {
-  const opacityPercent = Math.round(resolveMarkdownSegmentOpacity(value) * 100);
+  const opacityPercent = Math.round(resolveStoryOpacity(value) * 100);
 
   return (
     <div className="jgis-story-editor-field">
-      <span>Markdown segment opacity</span>
+      <span>{label}</span>
       <div className="jgis-story-editor-opacity-row">
         <Slider
           min={0}
           max={100}
           step={1}
           value={[opacityPercent]}
-          aria-label="Markdown segment opacity"
+          aria-label={label}
           onValueChange={([next]) => {
             onChange(next / 100);
           }}
@@ -300,10 +302,18 @@ function StorySettingsPopover({
                     }}
                   />
                 </label>
-                <MarkdownSegmentOpacityField
+                <StoryOpacityField
+                  label="Markdown segment opacity"
                   value={story.markdownSegmentOpacity}
                   onChange={markdownSegmentOpacity => {
                     onUpdateStory({ markdownSegmentOpacity });
+                  }}
+                />
+                <StoryOpacityField
+                  label="Map overlay opacity"
+                  value={story.mapOverlayOpacity}
+                  onChange={mapOverlayOpacity => {
+                    onUpdateStory({ mapOverlayOpacity });
                   }}
                 />
                 <OverlayContentWidthField

@@ -90,9 +90,8 @@ export function formatOverlayContentWidth(
   return `${amount.trim()}${unit}`;
 }
 
-export function resolveMarkdownSegmentOpacity(
-  opacity: number | undefined,
-): number {
+/** Clamp story overlay opacity to the schema range [0, 1]. */
+export function resolveStoryOpacity(opacity: number | undefined): number {
   if (opacity === undefined || !Number.isFinite(opacity)) {
     return 1;
   }
@@ -109,9 +108,6 @@ export function getSpectaPresentationCssVars(
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
   const overlayContentWidth = story?.overlayContentWidth?.trim();
-  const markdownSegmentOpacity = String(
-    resolveMarkdownSegmentOpacity(story?.markdownSegmentOpacity),
-  );
   const style: CSSProperties = {};
 
   if (textColor) {
@@ -135,7 +131,12 @@ export function getSpectaPresentationCssVars(
     if (story?.markdownSegmentOpacity !== undefined) {
       (style as Record<string, string>)[
         '--jgis-story-markdown-segment-opacity'
-      ] = markdownSegmentOpacity;
+      ] = String(resolveStoryOpacity(story.markdownSegmentOpacity));
+    }
+
+    if (story?.mapOverlayOpacity !== undefined) {
+      (style as Record<string, string>)['--jgis-story-map-overlay-opacity'] =
+        String(resolveStoryOpacity(story.mapOverlayOpacity));
     }
 
     return style;

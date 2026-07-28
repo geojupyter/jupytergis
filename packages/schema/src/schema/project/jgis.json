@@ -192,6 +192,14 @@
           "maximum": 1,
           "default": 1
         },
+        "mapOverlayOpacity": {
+          "type": "number",
+          "title": "Map overlay opacity",
+          "description": "Opacity of map-segment side panel backgrounds in vertical scroll stories (0–1). Text stays fully opaque.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
         "presentationBgColor": {
           "type": "string",
           "title": "Presentation Background Color",
