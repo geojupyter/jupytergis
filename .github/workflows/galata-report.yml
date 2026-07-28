@@ -43,19 +43,19 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: '{pr-number,jupytergis-playwright-tests,jupytergis-lite-playwright-tests}'
-          path: artifacts
+          path: /tmp/artifacts
 
       - name: Resolve PR number
         id: pr
         run: |
           set -euo pipefail
           # No PR number means the triggering Build can't be mapped to a PR, so
-          # there's nowhere to post the report; fail loudly rather than no-op.
-          if [[ ! -f artifacts/pr-number/pr_number.txt ]]; then
+          # there's nowhere to post the report.
+          if [[ ! -f /tmp/artifacts/pr-number/pr_number.txt ]]; then
             echo "::error::No pr-number artifact found in the triggering run." >&2
             exit 1
           fi
-          num=$(tr -dc '0-9' < artifacts/pr-number/pr_number.txt)
+          num=$(tr -dc '0-9' < /tmp/artifacts/pr-number/pr_number.txt)
           echo "number=${num}" >> "$GITHUB_OUTPUT"
 
       - name: Collect snapshot diffs
@@ -81,7 +81,7 @@ jobs:
           # "<name>-expected.png" into test-results/ when a snapshot assertion
           # fails. A diff is only ever produced by comparing an actual against an
           # expected, so whenever a "-diff.png" exists the other two do as well.
-          for diff in glob.glob("artifacts/**/test-results/**/*-diff.png", recursive=True):
+          for diff in glob.glob("/tmp/artifacts/**/test-results/**/*-diff.png", recursive=True):
               diff_path = Path(diff)
               d = diff_path.parent
               base = diff_path.name.removesuffix("-diff.png")
