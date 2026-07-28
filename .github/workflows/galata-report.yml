@@ -77,21 +77,30 @@ jobs:
           collected = Path("collected")
           collected.mkdir()
           entries = []
-          # Playwright writes "<name>-diff.png" alongside "<name>-actual.png" and
-          # "<name>-expected.png" into test-results/ when a snapshot assertion
-          # fails. A diff is only ever produced by comparing an actual against an
-          # expected, so whenever a "-diff.png" exists the other two do as well.
-          for diff in glob.glob("/tmp/artifacts/**/test-results/**/*-diff.png", recursive=True):
+          # Playwright writes "<name>-diff.<ext>" alongside "<name>-actual.<ext>"
+          # and "<name>-expected.<ext>" into test-results/ when a snapshot
+          # assertion fails. <ext> is the screenshot format: most specs use png,
+          # but the showcase specs screenshot as jpeg, so we have to match both.
+          # A diff is only ever produced by comparing an actual against an
+          # expected, so whenever a "-diff" image exists the other two exist with
+          # the same extension.
+          diffs = []
+          for ext in ("png", "jpg", "jpeg"):
+              diffs += glob.glob(
+                  f"/tmp/artifacts/**/test-results/**/*-diff.{ext}", recursive=True
+              )
+          for diff in diffs:
               diff_path = Path(diff)
               d = diff_path.parent
-              base = diff_path.name.removesuffix("-diff.png")
+              ext = diff_path.suffix  # includes the leading dot, e.g. ".jpg"
+              base = diff_path.name.removesuffix(f"-diff{ext}")
               slug = re.sub(r"[^a-zA-Z0-9._-]", "_", str(d / base))
               out = collected / slug
               out.mkdir()
-              shutil.copy(diff_path, out / "diff.png")
+              shutil.copy(diff_path, out / f"diff{ext}")
               for kind in ("actual", "expected"):
-                  shutil.copy(d / f"{base}-{kind}.png", out / f"{kind}.png")
-              entries.append({"name": base, "dir": str(d), "slug": slug})
+                  shutil.copy(d / f"{base}-{kind}{ext}", out / f"{kind}{ext}")
+              entries.append({"name": base, "dir": str(d), "slug": slug, "ext": ext})
 
           (collected / "manifest.json").write_text(json.dumps(entries, indent=2))
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
@@ -183,12 +192,15 @@ jobs:
               const entries = JSON.parse(fs.readFileSync('collected/manifest.json', 'utf8'));
               const esc = s => String(s).replace(/[&<>"']/g,
                 c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-              const cell = (slug, kind) =>
-                `<img src="${baseUrl}/${slug}/${kind}.png" width="240">`;
+              // `ext` includes the leading dot (".png"/".jpg"); older manifests
+              // without it are all-png, so fall back to ".png".
+              const cell = (slug, kind, ext) =>
+                `<img src="${baseUrl}/${slug}/${kind}${ext}" width="240">`;
               const blocks = entries.map(e => {
-                const row = `| ${cell(e.slug, 'expected')} `
-                  + `| ${cell(e.slug, 'actual')} `
-                  + `| ${cell(e.slug, 'diff')} |`;
+                const ext = e.ext || '.png';
+                const row = `| ${cell(e.slug, 'expected', ext)} `
+                  + `| ${cell(e.slug, 'actual', ext)} `
+                  + `| ${cell(e.slug, 'diff', ext)} |`;
                 // Collapsed by default so a run with many diffs stays scannable;
                 // the reader expands the ones they care about.
                 return `<details>\n<summary><b>${esc(e.name)}</b></summary>\n\n`
