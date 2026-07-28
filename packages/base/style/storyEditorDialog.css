@@ -85,6 +85,12 @@
   line-height: 1.4;
 }
 
+.jgis-story-editor-field-error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--jp-error-color1);
+}
+
 .jgis-story-editor-field {
   display: flex;
   flex-direction: column;
