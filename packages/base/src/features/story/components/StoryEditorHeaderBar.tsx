@@ -1,7 +1,7 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useState, type RefObject } from 'react';
+import React, { useEffect, useState, type RefObject } from 'react';
 
 import { TitleInput } from '@/src/features/story/components/TitleInput';
 import {
@@ -48,6 +48,32 @@ export interface IStoryEditorHeaderBarProps {
   portalContainerRef: RefObject<HTMLElement | null>;
 }
 
+/**
+ * CSS length amount accepts digits with at most one decimal point.
+ * Allows intermediate edit states ("", ".", "1.") that type="number"
+ * mishandles in Firefox when the input is controlled.
+ */
+const CSS_AMOUNT_FRAGMENT = /^\d*\.?\d*$/;
+const CSS_AMOUNT_COMPLETE = /^\d*\.?\d+$/;
+
+function sanitizeCssAmountInput(raw: string): string {
+  if (CSS_AMOUNT_FRAGMENT.test(raw)) {
+    return raw;
+  }
+
+  let result = '';
+  let hasDot = false;
+  for (const char of raw) {
+    if (char >= '0' && char <= '9') {
+      result += char;
+    } else if (char === '.' && !hasDot) {
+      result += '.';
+      hasDot = true;
+    }
+  }
+  return result;
+}
+
 function OverlayContentWidthField({
   value,
   onChange,
@@ -58,7 +84,14 @@ function OverlayContentWidthField({
   const matchedPreset = matchOverlayContentWidthPreset(value);
   const [isCustom, setIsCustom] = useState(matchedPreset === null);
   const parsed = parseOverlayContentWidth(value);
+  const [amount, setAmount] = useState(parsed.amount);
+  const [amountError, setAmountError] = useState<string | null>(null);
   const selectedPresetId = isCustom ? null : matchedPreset;
+
+  useEffect(() => {
+    setAmount(parsed.amount);
+    setAmountError(null);
+  }, [parsed.amount]);
 
   return (
     <div className="jgis-story-editor-field">
@@ -105,40 +138,49 @@ function OverlayContentWidthField({
         </Button>
       </div>
       {isCustom ? (
-        <div className="jgis-story-editor-width-custom">
-          <Input
-            type="number"
-            min={0}
-            aria-label="Width amount"
-            value={parsed.amount}
-            onChange={event => {
-              const amount = event.target.value;
-              if (!amount.trim()) {
-                return;
-              }
+        <>
+          <div className="jgis-story-editor-width-custom">
+            <Input
+              aria-label="Width amount"
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={event => {
+                const next = sanitizeCssAmountInput(event.target.value);
+                setAmount(next);
 
-              onChange(formatOverlayContentWidth(amount, parsed.unit));
-            }}
-          />
-          <NativeSelect
-            aria-label="Width unit"
-            value={parsed.unit}
-            onChange={event => {
-              onChange(
-                formatOverlayContentWidth(
-                  parsed.amount,
-                  event.target.value as OverlayContentWidthUnit,
-                ),
-              );
-            }}
-          >
-            {OVERLAY_CONTENT_WIDTH_UNITS.map(unit => (
-              <NativeSelectOption key={unit} value={unit}>
-                {unit}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
+                if (!CSS_AMOUNT_COMPLETE.test(next)) {
+                  setAmountError('Enter a valid width');
+                  return;
+                }
+
+                setAmountError(null);
+                onChange(formatOverlayContentWidth(next, parsed.unit));
+              }}
+            />
+            <NativeSelect
+              aria-label="Width unit"
+              value={parsed.unit}
+              onChange={event => {
+                onChange(
+                  formatOverlayContentWidth(
+                    amount.trim() || parsed.amount,
+                    event.target.value as OverlayContentWidthUnit,
+                  ),
+                );
+              }}
+            >
+              {OVERLAY_CONTENT_WIDTH_UNITS.map(unit => (
+                <NativeSelectOption key={unit} value={unit}>
+                  {unit}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          {amountError ? (
+            <p className="jgis-story-editor-field-error">{amountError}</p>
+          ) : null}
+        </>
       ) : null}
     </div>
   );
