@@ -358,7 +358,13 @@
 
 .jgis-story-stage-overlay-content {
   box-sizing: border-box;
-  background-color: var(--jgis-specta-bg-color, var(--jp-layout-color0));
+  /* Background-only opacity so text stays fully opaque. */
+  background-color: color-mix(
+    in srgb,
+    var(--jgis-specta-bg-color, var(--jp-layout-color0))
+      calc(var(--jgis-story-markdown-segment-opacity, 1) * 100%),
+    transparent
+  );
   margin: 0 auto;
   padding: 1rem;
 }
