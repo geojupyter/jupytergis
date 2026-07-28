@@ -133,6 +133,7 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
+import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
 import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
@@ -215,7 +216,7 @@ interface IMainViewProps {
   loggerRegistry?: ILoggerRegistry;
   /** True when viewport matches (max-width: 960px). Injected by MainViewWithObserver. */
   isMobile: boolean;
-  containerRef?: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement>;
 }
 
 interface IStates {
@@ -234,6 +235,7 @@ interface IStates {
   filterStates: IDict<IJGISFilterItem | undefined>;
   editingVectorLayer: boolean;
   drawGeometryLabel: string | undefined;
+  currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
@@ -375,6 +377,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       filterStates: {},
       editingVectorLayer: false,
       drawGeometryLabel: '',
+      currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
       isSpectaPresentation: this._model.isStoryPresentationActive(),
       initialLayersReady: false,
@@ -2398,7 +2401,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._previousDrawLayerID = selectedLayerId;
-    this._currentDrawLayerID = selectedLayerId;
+    this._setCurrentDrawLayerId(selectedLayerId);
     this._editVectorLayer();
   };
 
@@ -3088,7 +3091,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     this._storyScrollHandler = handleScroll;
-    const container = this.props.containerRef?.current;
+    const container = this.props.containerRef.current;
     if (container) {
       this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
@@ -3713,15 +3716,34 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (editingVectorLayer === false && this._draw) {
       this._removeDrawInteraction();
-      this._currentDrawLayerID = undefined;
+      this._setCurrentDrawLayerId(undefined);
     }
+  }
+
+  private _setCurrentDrawLayerId(layerId: string | undefined): void {
+    this._currentDrawLayerID = layerId;
+    this.setState(old =>
+      old.currentDrawLayerId === layerId
+        ? old
+        : { ...old, currentDrawLayerId: layerId },
+    );
   }
 
   private _handleDrawGeometryTypeChange = (
     /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
-    event: React.ChangeEvent<HTMLSelectElement>,
+    drawGeometryLabel: string,
   ) => {
-    const drawGeometryLabel = event.target.value;
+    // Clicking the active geometry toggles drawing off.
+    if (this._currentDrawGeometry === drawGeometryLabel) {
+      this._currentDrawGeometry = undefined;
+      this._removeInteractions();
+
+      this.setState(old => ({
+        ...old,
+        drawGeometryLabel: '',
+      }));
+      return;
+    }
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
 
@@ -3757,7 +3779,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const selectedLayerID = Object.keys(selectedLayers)[0];
-    this._currentDrawLayerID = selectedLayerID;
+    this._setCurrentDrawLayerId(selectedLayerID);
 
     const JGISLayer = this._model.getLayer(selectedLayerID);
     this._currentDrawSourceID = (JGISLayer as any)?.parameters?.source;
@@ -3812,7 +3834,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  _updateInteractions = () => {
+  _removeInteractions = () => {
     if (this._draw) {
       this._removeDrawInteraction();
     }
@@ -3827,6 +3849,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (this._snap) {
       this._removeSnapInteraction();
+    }
+  };
+
+  _updateInteractions = () => {
+    this._removeInteractions();
+
+    if (!this._currentDrawGeometry) {
+      return;
     }
 
     this._draw = new Draw({
@@ -3860,7 +3890,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', this._model.getClientId().toString());
     feature.set('_fromDrawTool', true);
-    feature.set('Label', 'New Label');
+
+    const layerId = this._currentDrawLayerID;
+    const customAttributes = layerId
+      ? this._model.getDrawCustomAttributes(layerId)
+      : [];
+    applyDrawCustomAttributesToFeature(feature, customAttributes);
   };
 
   _editVectorLayer = () => {
@@ -3969,6 +4004,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       displayTemporalController,
       drawGeometryLabel,
       editingVectorLayer,
+      currentDrawLayerId,
       filterStates,
       initialLayersReady,
       isSpectaPresentation,
@@ -4000,7 +4036,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           featureFloaters={this._renderFeatureFloaters()}
           editingVectorLayer={editingVectorLayer}
           drawGeometryLabel={drawGeometryLabel}
+          drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
+          model={this._model}
         />
 
         <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
@@ -4096,7 +4134,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentDrawSource: IJGISSource | undefined;
   private _currentVectorSource: VectorSource | undefined;
   private _currentDrawSourceID: string | undefined;
-  private _currentDrawGeometry: Type;
+  private _currentDrawGeometry: Type | undefined;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
@@ -4145,7 +4183,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
 // ! TODO make mainview a modern react component instead of a class
 /* thin React wrapper to resize the panels on window resize with the help of ResizeObserver */
-function MainViewWithObserver(props: Omit<IMainViewProps, 'isMobile'>) {
+function MainViewWithObserver(
+  props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
+) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 

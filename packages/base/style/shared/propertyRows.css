@@ -1,0 +1,59 @@
+.jgis-attribute-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.375rem;
+}
+
+.jgis-attribute-rows > .jgis-attribute-row:nth-child(odd) {
+  background-color: var(--jp-layout-color1);
+}
+
+.jgis-attribute-rows > .jgis-attribute-row:nth-child(even) {
+  background-color: var(--jp-layout-color0);
+}
+
+.jgis-attribute-rows > .jgis-attribute-row:first-child {
+  border-top-left-radius: var(--jp-border-radius);
+  border-top-right-radius: var(--jp-border-radius);
+}
+
+.jgis-attribute-rows > .jgis-attribute-row:last-child {
+  border-bottom-left-radius: var(--jp-border-radius);
+  border-bottom-right-radius: var(--jp-border-radius);
+}
+
+.jgis-attribute-row-add {
+  justify-content: flex-end;
+  padding-right: 0;
+}
+
+.jgis-attribute-row-editor {
+  align-items: center;
+}
+
+.jgis-attribute-col-key {
+  flex: 0 0 clamp(7rem, 30%, 12rem);
+  min-width: 0;
+  max-width: clamp(7rem, 30%, 12rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jgis-attribute-col-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.jgis-attribute-col-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.jgis-attribute-add-button {
+  justify-content: center;
+}

@@ -29,6 +29,10 @@ import {
   IAwarenessFieldChange,
   IAnnotationModel,
   IIdentifiedFeatures,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
+  IDrawCustomAttributesByLayer,
+  IDrawCustomAttributesLayerState,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -88,6 +92,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._annotationsChangedHandler,
       this,
     );
+    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -297,6 +302,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._identifiedFeaturesChanged;
   }
 
+  get drawCustomAttributesChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  > {
+    return this._drawCustomAttributesChanged;
+  }
+
   get remoteUserChanged(): ISignal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -342,6 +354,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedAnnotationsChanged;
   }
 
+  get sharedPresetsChanged(): ISignal<this, MapChange> {
+    return this._sharedPresetsChanged;
+  }
+
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
   }
@@ -364,6 +380,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
     this._sharedAnnotationsChanged.emit(args);
+  }
+
+  private _presetsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedPresetsChanged.emit(args);
   }
 
   dispose(): void {
@@ -412,6 +432,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         projection: DEFAULT_PROJECTION,
       };
       this.sharedModel.annotations = jsonData.annotations ?? {};
+      this.sharedModel.presets = jsonData.presets ?? {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -446,6 +467,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       options: this.sharedModel.options,
       stories: this.sharedModel.stories,
       annotations: this.sharedModel.annotations,
+      presets: this.sharedModel.presets,
       metadata: this.sharedModel.metadata,
     };
   }
@@ -598,6 +620,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layer = this._sharedModel.getLayer(layer_id);
     const source_id = layer?.parameters?.source;
 
+    this.clearDrawCustomAttributesForLayer(layer_id);
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
 
@@ -692,6 +715,88 @@ export class JupyterGISModel implements IJupyterGISModel {
         emitter,
       },
     );
+  }
+
+  syncDrawCustomAttributes(
+    attributesByLayer: IDrawCustomAttributesByLayer,
+    emitter?: string,
+  ): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.drawCustomAttributes,
+      {
+        value: attributesByLayer,
+        emitter,
+      },
+    );
+  }
+
+  getDrawCustomAttributes(layerId: string): IDrawCustomAttribute[] {
+    let winner: IDrawCustomAttributesLayerState | undefined;
+    let winnerClientId: number | undefined;
+
+    for (const [clientId, state] of this.sharedModel.awareness.getStates()) {
+      const layerState = (state as IJupyterGISClientState | null)
+        ?.drawCustomAttributes?.value?.[layerId];
+
+      if (!layerState) {
+        continue;
+      }
+
+      if (
+        !winner ||
+        layerState.updatedAt > winner.updatedAt ||
+        (layerState.updatedAt === winner.updatedAt &&
+          clientId > (winnerClientId ?? -1))
+      ) {
+        winner = layerState;
+        winnerClientId = clientId;
+      }
+    }
+
+    return winner?.attributes ?? [];
+  }
+
+  setDrawCustomAttributesForLayer(
+    layerId: string,
+    attributes: IDrawCustomAttribute[],
+    emitter?: string,
+  ): void {
+    const current = {
+      ...(this.localState?.drawCustomAttributes?.value ?? {}),
+    };
+
+    current[layerId] = {
+      updatedAt: Date.now(),
+      attributes,
+    };
+
+    this.syncDrawCustomAttributes(current, emitter);
+  }
+
+  clearDrawCustomAttributesForLayer(layerId: string, emitter?: string): void {
+    const current = this.localState?.drawCustomAttributes?.value;
+    if (!current || !(layerId in current)) {
+      return;
+    }
+
+    const next = { ...current };
+    next[layerId] = {
+      updatedAt: Date.now(),
+      attributes: [],
+    };
+
+    this.syncDrawCustomAttributes(next, emitter);
+  }
+
+  getDrawCustomAttributePresets(): IDrawCustomAttributePresets {
+    return this.sharedModel.getPresets();
+  }
+
+  setDrawCustomAttributePreset(
+    name: string,
+    attributes: IDrawCustomAttribute[],
+  ): void {
+    this.sharedModel.setPreset(name, attributes);
   }
 
   setUserToFollow(userId?: number): void {
@@ -1223,6 +1328,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
+
         if (previousValue === currentValue) {
           return;
         }
@@ -1262,6 +1368,13 @@ export class JupyterGISModel implements IJupyterGISModel {
             this._identifiedFeaturesChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['identifiedFeatures']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.drawCustomAttributes:
+            this._drawCustomAttributesChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['drawCustomAttributes']
               >,
             );
             break;
@@ -1381,6 +1494,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >(this);
+  private _drawCustomAttributesChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >(this);
   private _remoteUserChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -1392,6 +1509,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
+  private _sharedPresetsChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);

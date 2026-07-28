@@ -29,6 +29,9 @@
     "annotations": {
       "$ref": "#/definitions/jGISAnnotations"
     },
+    "presets": {
+      "$ref": "#/definitions/jGISDrawCustomAttributePresets"
+    },
     "metadata": {
       "$ref": "#/definitions/jGISMetadata"
     }
@@ -387,6 +390,34 @@
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/jGISAnnotation"
+      }
+    },
+    "jGISDrawCustomAttribute": {
+      "title": "IDrawCustomAttribute",
+      "type": "object",
+      "required": ["key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "jGISDrawCustomAttributePreset": {
+      "title": "IDrawCustomAttributePreset",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/jGISDrawCustomAttribute"
+      }
+    },
+    "jGISDrawCustomAttributePresets": {
+      "title": "IDrawCustomAttributePresets",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISDrawCustomAttributePreset"
       }
     },
     "jGISMetadata": {
