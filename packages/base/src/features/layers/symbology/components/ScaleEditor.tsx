@@ -222,7 +222,7 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
             const min = COLOR_RAMP_DEFAULTS[name];
             update({
               name,
-              nShades: min ?? 9,
+              nShades: Math.max(params.nShades ?? 9, min ?? 0),
             });
           }}
           reverse={params.reverse}
