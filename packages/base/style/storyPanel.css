@@ -130,20 +130,37 @@
   align-items: center;
   background: linear-gradient(
     to left,
-    var(--jgis-specta-panel-color, var(--jp-layout-color0)) 49%,
     color-mix(
         in srgb,
-        var(--jgis-specta-panel-color, var(--jp-layout-color0)) 60%,
+        var(--jgis-specta-panel-color, var(--jp-layout-color0))
+          calc(var(--jgis-story-map-overlay-opacity, 1) * 100%),
+        transparent
+      )
+      49%,
+    color-mix(
+        in srgb,
+        var(--jgis-specta-panel-color, var(--jp-layout-color0))
+          calc(var(--jgis-story-map-overlay-opacity, 1) * 60%),
         transparent
       )
       65%,
     color-mix(
         in srgb,
-        var(--jgis-specta-panel-color, var(--jp-layout-color0)) 50%,
+        var(--jgis-specta-panel-color, var(--jp-layout-color0))
+          calc(var(--jgis-story-map-overlay-opacity, 1) * 50%),
         transparent
       )
       70%,
     transparent 100%
+  );
+}
+
+.jgis-specta-story-panel-container--solid {
+  background: color-mix(
+    in srgb,
+    var(--jgis-specta-panel-color, var(--jp-layout-color0))
+      calc(var(--jgis-story-map-overlay-opacity, 1) * 100%),
+    transparent
   );
 }
 
@@ -153,7 +170,7 @@
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-font-color1));
-  background-color: var(--jgis-specta-panel-color, var(--jp-layout-color0));
+  background-color: transparent;
   overflow-y: auto;
   max-height: 100%;
   display: flex;
