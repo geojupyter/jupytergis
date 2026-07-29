@@ -131,7 +131,9 @@ export class JupyterGISPanel extends SplitPanel {
           `jupytergis:localUIState:${model.filePath}`,
         );
         if (stored !== undefined) {
-          model.setUIState(stored as any);
+          const { locationIndicatorActive: _, ...restorable } =
+            stored as Record<string, unknown>;
+          model.setUIState(restorable);
         }
       }
 
