@@ -20,11 +20,7 @@ import {
   resolveStoryPresentationColorForInput,
   type OverlayContentWidthUnit,
 } from '@/src/features/story/utils/spectaPresentation';
-import {
-  formatGradientLabel,
-  formatMarkdownSegmentGapLabel,
-  formatStoryTypeLabel,
-} from '@/src/features/story/utils/storyEditorLabels';
+import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
 import Badge from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
@@ -273,9 +269,7 @@ function StorySettingsPopover({
           </label>
           <div className="jgis-story-editor-settings-section">
             <div className="jgis-story-editor-eyebrow">Presentation</div>
-            {isColumnPresentation(
-              getStoryPresentationMode(story.storyType),
-            ) ? (
+            {isColumnPresentation(getStoryPresentationMode(story.storyType)) ? (
               <label className="jgis-story-editor-toggle-row">
                 <span>Use gradient background</span>
                 <Switch
@@ -379,19 +373,6 @@ export function StoryEditorHeaderBar({
         <span className="jgis-story-editor-context-meta">
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>
-        {story ? (
-          <span className="jgis-story-editor-context-meta">
-            {formatGradientLabel(story.showGradient)}
-          </span>
-        ) : null}
-        {story &&
-        isVerticalScrollPresentation(
-          getStoryPresentationMode(story.storyType),
-        ) ? (
-          <span className="jgis-story-editor-context-meta">
-            {formatMarkdownSegmentGapLabel(story.markdownSegmentGap)}
-          </span>
-        ) : null}
         {story && canPreview ? (
           <Button
             type="button"
