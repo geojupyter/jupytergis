@@ -1,8 +1,9 @@
-import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from './utils';
+import * as React from 'react';
+
 import { Button } from './Button';
 import { Input } from './Input';
+import { cn } from './utils';
 
 function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
@@ -15,26 +16,19 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-const inputGroupAddonVariants = cva(
-  'jgis-input-group-addon',
-  {
-    variants: {
-      align: {
-        'inline-start':
-          'jgis-input-group-addon--inline-start',
-        'inline-end':
-          'jgis-input-group-addon--inline-end',
-        'block-start':
-          'jgis-input-group-addon--block-start',
-        'block-end':
-          'jgis-input-group-addon--block-end',
-      },
-    },
-    defaultVariants: {
-      align: 'inline-start',
+const inputGroupAddonVariants = cva('jgis-input-group-addon', {
+  variants: {
+    align: {
+      'inline-start': 'jgis-input-group-addon--inline-start',
+      'inline-end': 'jgis-input-group-addon--inline-end',
+      'block-start': 'jgis-input-group-addon--block-start',
+      'block-end': 'jgis-input-group-addon--block-end',
     },
   },
-);
+  defaultVariants: {
+    align: 'inline-start',
+  },
+});
 
 function InputGroupAddon({
   className,
@@ -58,23 +52,19 @@ function InputGroupAddon({
   );
 }
 
-const inputGroupButtonVariants = cva(
-  'jgis-input-group-button',
-  {
-    variants: {
-      size: {
-        xs: 'jgis-input-group-button--xs',
-        sm: '',
-        'icon-xs':
-          'jgis-input-group-button--icon-xs',
-        'icon-sm': 'jgis-input-group-button--icon-sm',
-      },
-    },
-    defaultVariants: {
-      size: 'xs',
+const inputGroupButtonVariants = cva('jgis-input-group-button', {
+  variants: {
+    size: {
+      xs: 'jgis-input-group-button--xs',
+      sm: '',
+      'icon-xs': 'jgis-input-group-button--icon-xs',
+      'icon-sm': 'jgis-input-group-button--icon-sm',
     },
   },
-);
+  defaultVariants: {
+    size: 'xs',
+  },
+});
 
 function InputGroupButton({
   className,
@@ -96,15 +86,7 @@ function InputGroupButton({
 }
 
 function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
-  return (
-    <span
-      className={cn(
-        'jgis-input-group-text',
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <span className={cn('jgis-input-group-text', className)} {...props} />;
 }
 
 function InputGroupInput({
@@ -114,10 +96,7 @@ function InputGroupInput({
   return (
     <Input
       data-slot="input-group-control"
-      className={cn(
-        'jgis-input-group-control',
-        className,
-      )}
+      className={cn('jgis-input-group-control', className)}
       {...props}
     />
   );
