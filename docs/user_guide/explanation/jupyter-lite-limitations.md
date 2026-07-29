@@ -2,7 +2,7 @@
 
 The **Try with JupyterLite** button launches JupyterGIS through a WASM build entirely inside your web browser, with no server running behind it. Normally JupyterGIS relies on a server (either on your own computer or in the cloud) to run Python, talk to other collaborators, and process data. JupyterLite removes that server and does everything locally in the browser tab instead. This makes it wonderfully easy to try with zero setup. The trade-off is that any feature which depends on a server will either be unavailable or behave unexpectedly.
 
-The JupyterLite preview is intended as a demo and exploration environment, not a full replacement for a proper JupyterGIS installation. To install the full extension locally in JupyterLab, or in a JupyterHub environment, see the [install guide](user_guide/install.md).
+The JupyterLite preview is intended as a demo and exploration environment, not a full replacement for a proper JupyterGIS installation. To install the full extension locally in JupyterLab, or in a JupyterHub environment, see the [install guide](../install.md).
 
 ## What won't work (or won't work as expected)
 
@@ -14,4 +14,4 @@ The JupyterLite preview is intended as a demo and exploration environment, not a
 - **The Python API:** Python runs in a limited in-browser environment (Pyodide), so many scientific packages are unavailable or must be installed differently. API methods that need a server, such as tile serving through Jupyter-Tiler and QGIS import/export, will not work.
 - **STAC Catalog:** The STAC browser pane is visible and you can enter search parameters, but searches will not return any results in the JupyterLite preview.
 
-For the full experience, see the [install guide](user_guide/install.md).
+For the full experience, see the [install guide](../install.md).
