@@ -730,8 +730,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
       this._geolocation.on('change:accuracyGeometry', () => {
         if (
-          this._geolocationAccuracyFeature === undefined
-          || this._geolocation === undefined
+          this._geolocationAccuracyFeature === undefined ||
+          this._geolocation === undefined
         ) {
           throw new Error('State incorrectly initialized. This is a bug.');
         }
