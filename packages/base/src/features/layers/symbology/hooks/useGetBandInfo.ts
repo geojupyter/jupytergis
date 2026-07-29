@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
@@ -94,17 +95,75 @@ const useGetBandInfo = (
         tiff = await fromBlob(preloadedFile.file);
       }
 
-      const image = await tiff.getImage();
+      const imageCount = await tiff.getImageCount();
+      const image =
+        imageCount > 1
+          ? await tiff.getImage(imageCount - 1)
+          : await tiff.getImage();
+
       const numberOfBands = image.getSamplesPerPixel();
 
       const bandsArr: IBandRow[] = [];
+
       for (let i = 0; i < numberOfBands; i++) {
+        // Get min/max from metadata
+        const metadata = image.getGDALMetadata?.();
+
+        let min = Infinity;
+        let max = -Infinity;
+
+        if (metadata) {
+          const m1 = parseFloat(metadata['STATISTICS_MINIMUM']);
+          const m2 = parseFloat(metadata['STATISTICS_MAXIMUM']);
+
+          if (!isNaN(m1) && !isNaN(m2)) {
+            min = m1;
+            max = m2;
+          }
+          console.log('metadata min/max', min, max);
+        }
+
+        // fallback to sampling
+        if (min === Infinity || max === -Infinity) {
+          const raster = await image.readRasters({
+            samples: [i],
+            width: 64,
+            height: 64,
+            resampleMethod: 'nearest',
+          });
+
+          if (!Array.isArray(raster)) {
+            throw new Error('Expected raster to be an array of TypedArrays');
+          }
+
+          const bandData = raster[0];
+
+          min = Infinity;
+          max = -Infinity;
+
+          for (let j = 0; j < bandData.length; j++) {
+            const val = bandData[j];
+            if (val < min) {
+              min = val;
+            }
+            if (val > max) {
+              max = val;
+            }
+          }
+        }
+
+        // fallback
+        if (min === Infinity || max === -Infinity) {
+          min = 0;
+          max = 100;
+        }
+
         bandsArr.push({
           band: i + 1,
           name: `Band ${i + 1}`,
           stats: {
-            minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100,
+            minimum: min,
+            maximum: max,
           },
         });
       }
