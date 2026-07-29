@@ -369,6 +369,7 @@ export function StoryEditorHeaderBar({
   return (
     <div className="jgis-story-editor-context-bar">
       <TitleInput
+        className="jgis-story-editor-header-title"
         value={story?.title ?? ''}
         disabled={!story}
         onChange={title => {
