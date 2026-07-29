@@ -19,8 +19,8 @@ import type {
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
 import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
 import {
-  getScrollTrackSegmentHeight,
   getSegmentDisplayMode,
+  getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
@@ -289,15 +289,10 @@ export function ListStoryStageOverlay({
   const stackRef = useRef<HTMLDivElement>(null);
   const markdownRenderedRef = useRef<Set<number>>(new Set());
   const imageWaitCancelRef = useRef<(() => void) | null>(null);
-  const measureTransitionRef = useRef<(() => void) | null>(null);
-  const measuredTransitionKeyRef = useRef('');
-  const measureTransitionKeyRef = useRef('');
-  const stableTravelRef = useRef(0);
   const clearMarkdownRendered = useCallback((segmentIndex: number): void => {
     markdownRenderedRef.current.delete(segmentIndex);
   }, []);
   const [stageHeight, setStageHeight] = useState(0);
-  const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
   const { scrollTrackLayout, reportSegmentHeight } =
     useListStoryScrollTrackContext();
@@ -368,15 +363,13 @@ export function ListStoryStageOverlay({
   ]);
 
   const fromStackPane = overlayStack.panes.find(pane => pane.role === 'from');
-  const toStackPane = overlayStack.panes.find(pane => pane.role === 'to');
-  const lookaheadStackPane = overlayStack.panes.find(
-    pane => pane.role === 'lookahead',
-  );
 
   const overlayHeight = Math.max(stageHeight, 0);
   const transitionProgress = transition?.progress ?? 0;
-  const fromIndex = fromStackPane?.segmentIndex ?? currentIndex;
-  const toIndex = toStackPane?.segmentIndex ?? fromIndex;
+  const transitionTranslatePx = getTransitionTranslatePx(
+    transition,
+    scrollTrackLayout,
+  );
 
   useLayoutEffect(() => {
     const parent = overlayRef.current?.parentElement;
@@ -432,15 +425,10 @@ export function ListStoryStageOverlay({
         imageWaitCancelRef.current = whenImagesSettled(paneEl, () => {
           imageWaitCancelRef.current = null;
           reportPaneHeight();
-          measureTransitionRef.current?.();
         });
       }
-
-      if (segmentIndex === fromIndex) {
-        measureTransitionRef.current?.();
-      }
     },
-    [fromIndex, overlayStack.panes, reportSegmentHeight],
+    [overlayStack.panes, reportSegmentHeight],
   );
 
   useLayoutEffect(() => {
@@ -496,137 +484,12 @@ export function ListStoryStageOverlay({
 
     return () => {
       ro.disconnect();
-    };
-  }, [overlayStack.panes, reportSegmentHeight]);
-
-  useLayoutEffect(() => {
-    const stack = stackRef.current;
-    if (!stack || !transition || !fromStackPane) {
-      return;
-    }
-
-    const fromPaneIsMarkdown =
-      fromStackPane.config.type === 'markdown' &&
-      Boolean(fromStackPane.config.markdown);
-
-    const transitionKey = intraSegmentScroll
-      ? `intra:${fromIndex}`
-      : `handoff:${fromIndex}:${toIndex}:${transition.fromMode}:${transition.toMode}`;
-
-    if (measureTransitionKeyRef.current !== transitionKey) {
-      measureTransitionKeyRef.current = transitionKey;
-      measuredTransitionKeyRef.current = '';
-      stableTravelRef.current = 0;
-      setTransitionTranslatePx(0);
-    }
-
-    const measure = (): void => {
-      const fromPane = stack.querySelector('[data-pane="from"]');
-
-      if (!(fromPane instanceof HTMLElement)) {
-        return;
-      }
-
-      const gapHeight = overlayStack.includeGap ? handoffGapHeight : 0;
-      const rawTravel = fromPane.offsetHeight + gapHeight;
-      const fromReady =
-        !fromPaneIsMarkdown ||
-        markdownRenderedRef.current.has(fromStackPane.segmentIndex);
-
-      if (fromReady && rawTravel > 0) {
-        stableTravelRef.current = Math.max(stableTravelRef.current, rawTravel);
-      }
-      const travel = stableTravelRef.current;
-
-      if (!fromReady) {
-        return;
-      }
-
-      measuredTransitionKeyRef.current = transitionKey;
-      setTransitionTranslatePx(prev => (prev === travel ? prev : travel));
-    };
-
-    measureTransitionRef.current = measure;
-    measure();
-
-    const fromPane = stack.querySelector('[data-pane="from"]');
-    if (!(fromPane instanceof HTMLElement)) {
-      return;
-    }
-
-    const ro = new ResizeObserver(() => {
-      if (
-        !fromPaneIsMarkdown ||
-        markdownRenderedRef.current.has(fromStackPane.segmentIndex)
-      ) {
-        measure();
-      }
-    });
-    ro.observe(fromPane);
-
-    return () => {
-      ro.disconnect();
       imageWaitCancelRef.current?.();
       imageWaitCancelRef.current = null;
     };
-  }, [
-    transition,
-    fromStackPane,
-    toStackPane,
-    lookaheadStackPane,
-    overlayStack.includeGap,
-    intraSegmentScroll,
-    fromIndex,
-    toIndex,
-    handoffGapHeight,
-  ]);
-
-  useLayoutEffect(() => {
-    measureTransitionRef.current?.();
-  }, [stageHeight]);
+  }, [overlayStack.panes, reportSegmentHeight]);
 
   const overlaySized = stageHeight > 0;
-  const currentTransitionKey = intraSegmentScroll
-    ? `intra:${fromIndex}`
-    : `handoff:${fromIndex}:${toIndex}:${transition?.fromMode ?? ''}:${transition?.toMode ?? ''}`;
-
-  const scrollFromHeight = getScrollTrackSegmentHeight(
-    scrollTrackLayout,
-    fromIndex,
-  );
-  const fromTrackSegment = scrollTrackLayout?.segments.find(
-    segment => segment.index === fromIndex,
-  );
-
-  const isMdToMdNoGap =
-    !intraSegmentScroll &&
-    handoffGapHeight === 0 &&
-    transition?.fromMode === 'markdown' &&
-    transition?.toMode === 'markdown';
-
-  const translateIsCurrent =
-    measuredTransitionKeyRef.current === currentTransitionKey &&
-    transitionTranslatePx > 0;
-
-  // Pixel travel for progress 0->1 (`--jgis-transition-translate`).
-  //
-  // Md->md with no gap: scroll progress is computed from the virtual track, so
-  // prefer the track's from-segment height once measured. Until then, use the
-  // live DOM measure if ready, else use the track estimate.
-  //
-  // All other transitions: use the live DOM measure when it matches this
-  // transition, gap handoffs fall back to stageHeight, otherwise 0.
-  const effectiveTranslatePx = isMdToMdNoGap
-    ? fromTrackSegment?.measured && scrollFromHeight
-      ? scrollFromHeight
-      : translateIsCurrent
-        ? transitionTranslatePx
-        : (scrollFromHeight ?? 0)
-    : translateIsCurrent
-      ? transitionTranslatePx
-      : handoffGapHeight > 0
-        ? stageHeight
-        : 0;
 
   if (!model || !story || !activeItem || !transition || !fromStackPane) {
     return null;
@@ -646,7 +509,7 @@ export function ListStoryStageOverlay({
             ? {
                 height: overlayHeight,
                 '--jgis-handoff-gap-height': `${stageHeight}px`,
-                '--jgis-transition-translate': `${effectiveTranslatePx}px`,
+                '--jgis-transition-translate': `${transitionTranslatePx}px`,
               }
             : {}),
         } as React.CSSProperties
