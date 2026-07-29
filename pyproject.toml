@@ -55,8 +55,8 @@ python_packages = [
 before-bump-version = ["python -m pip install hatch 'jupyterlab>=4.0.0'"]
 before-build-npm = [
     "python -m pip install --group build",
-    "jlpm",
-    "jlpm build:prod",
+    "pnpm install",
+    "pnpm run build:prod",
 ]
 
 [tool.check-wheel-contents]

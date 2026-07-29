@@ -99,7 +99,7 @@ def bump():
     root_json = json.loads(package_json.read_text(encoding="utf-8"))
     root_json["version"] = js_version
     package_json.write_text(json.dumps(root_json), encoding="utf-8")
-    run(["jlpm", "install"], check=True)
+    run(["pnpm", "install"], check=True)
     run(
         [
             "node",
@@ -116,7 +116,7 @@ def bump():
     # update CITATION.cff metadata
     bump_citation_cff(py_version)
     # bump the JS version with lerna
-    run(f"jlpm run bump:js:version {js_version}", shell=True, check=True)
+    run(f"pnpm run bump:js:version {js_version}", shell=True, check=True)
 
 
 if __name__ == "__main__":

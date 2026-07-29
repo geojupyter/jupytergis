@@ -46,11 +46,6 @@ extensions = [
     "myst_parser",
 ]
 
-suppress_warnings = [
-    "sphinx_autodoc_typehints.guarded_import",
-    "sphinx_autodoc_typehints.forward_reference",
-]
-
 myst_enable_extensions = [
     "colon_fence",
 ]
