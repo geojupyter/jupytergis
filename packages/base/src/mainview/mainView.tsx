@@ -729,8 +729,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }),
       );
       this._geolocation.on('change:accuracyGeometry', () => {
-        this._geolocationAccuracyFeature?.setGeometry(
-          this._geolocation?.getAccuracyGeometry() ?? undefined,
+        if (
+          this._geolocationAccuracyFeature === undefined
+          || this._geolocation === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        this._geolocationAccuracyFeature.setGeometry(
+          this._geolocation.getAccuracyGeometry() ?? undefined,
         );
       });
 
@@ -765,8 +772,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
 
       this._geolocation.on('change:position', () => {
-        const coordinates = this._geolocation?.getPosition();
-        this._geolocationPositionFeature?.setGeometry(
+        if (
+          this._geolocation === undefined ||
+          this._geolocationPositionFeature === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        const coordinates = this._geolocation.getPosition();
+        this._geolocationPositionFeature.setGeometry(
           coordinates ? new Point(coordinates) : undefined,
         );
       });
@@ -3765,7 +3779,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !this._geolocationAccuracyFeature ||
       !this._geolocationPositionFeature
     ) {
-      return;
+      throw new Error('State incorrectly initialized. This is a bug.');
     }
     this._geolocation.setTracking(true);
     this._geolocationSource.clear();
@@ -3777,7 +3791,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _stopLocationIndicator(): void {
     if (!this._geolocation || !this._geolocationSource) {
-      return;
+      throw new Error('State incorrectly initialized. This is a bug.');
     }
     this._geolocation.setTracking(false);
     this._geolocationSource.clear();
