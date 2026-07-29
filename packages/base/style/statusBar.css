@@ -33,9 +33,11 @@
 
 .jgis-status-bar-projection-trigger:hover {
   opacity: 0.7;
+}
+
 .jgis-status-bar-projection-trigger:hover {
   background-color: var(--jp-layout-color2);
-  }
+}
 
 .jgis-popover-content.jgis-status-bar-select-popover {
   width: auto;
