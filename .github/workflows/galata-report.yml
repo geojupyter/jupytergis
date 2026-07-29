@@ -3,11 +3,11 @@ name: Galata Diff Report
 # After `Build` finishes, collect its Galata (Playwright) snapshot diffs and post
 # them as a PR comment so reviewers see the pixels inline.
 #
-# Diffs are pushed to a separate public repo (geojupyter/jupytergis-galata-diffs)
-# to keep this repo's history clean; the comment embeds them via raw URLs.
-#
-# Needs a secret GALATA_DIFFS_TOKEN with contents:write on the diffs repo
-# (GITHUB_TOKEN can't push to another repo).
+# Diffs are pushed to an orphan `galata-diffs` branch in this same repo (kept out
+# of the default branch's history); the comment embeds them via raw URLs. Pushing
+# to our own repo works with the built-in GITHUB_TOKEN, so no extra repo or PAT is
+# needed, and fork PRs are still covered because these jobs run in base-repo
+# context (workflow_run / pull_request_target).
 
 on:
   # Runs in base-repo context so it can comment on fork PRs, which Build can't.
@@ -17,19 +17,19 @@ on:
   # Drop a PR's diffs once it closes. Only reads the PR number, never PR code.
   pull_request_target: # zizmor: ignore[dangerous-triggers]
     types: [closed]
-  # Weekly squash so overwritten blobs can be garbage-collected.
+  # Weekly re-orphan so blobs from overwritten/deleted diffs stop bloating clones.
   schedule:
     - cron: '0 3 * * 0' # 03:00 UTC every Sunday
 
 permissions: {}
 
-# Serialize every push to the diffs repo.
+# Serialize every push to the diffs branch.
 concurrency:
   group: galata-diffs
   cancel-in-progress: false
 
 env:
-  DIFFS_REPO: geojupyter/jupytergis-galata-diffs
+  DIFFS_BRANCH: galata-diffs
 
 jobs:
   report:
@@ -38,7 +38,8 @@ jobs:
     if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request'
     permissions:
       actions: read # download build artifacts from the triggering run
-      pull-requests: write # post the sticky comment (diffs go to a separate repo via GALATA_DIFFS_TOKEN)
+      contents: write # push diffs to the galata-diffs branch
+      pull-requests: write # post the sticky comment
     steps:
       - name: Download artifacts from the triggering run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -119,32 +120,30 @@ jobs:
           print(f"Collected {len(entries)} diff(s); skipped {skipped} non-final.")
           PY
 
-      - name: Publish diffs to the diffs repo
+      - name: Publish diffs to the galata-diffs branch
         id: publish
         if: steps.collect.outputs.count != '' && steps.collect.outputs.count != '0'
         env:
-          GH_TOKEN: ${{ secrets.GALATA_DIFFS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           PR: ${{ steps.pr.outputs.number }}
           RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
-          if [[ -z "${GH_TOKEN:-}" ]]; then
-            echo "::error::GALATA_DIFFS_TOKEN is not set; cannot publish diffs." >&2
-            exit 1
-          fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           dest="pr-${PR}"
           repo_dir="$(mktemp -d)"
-          url="https://x-access-token:${GH_TOKEN}@github.com/${DIFFS_REPO}.git"
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
 
-          # Clone the diffs repo, or start a fresh main if it's still empty.
-          if ! git clone --quiet --depth 1 "$url" "$repo_dir" 2>/dev/null; then
+          # Fetch just the diffs branch (never the huge default branch); start a
+          # fresh orphan if it doesn't exist yet.
+          if ! git clone --quiet --depth 1 --branch "$DIFFS_BRANCH" "$url" "$repo_dir" 2>/dev/null; then
             git init --quiet "$repo_dir"
             git -C "$repo_dir" remote add origin "$url"
+            git -C "$repo_dir" checkout --quiet --orphan "$DIFFS_BRANCH"
           fi
-          git -C "$repo_dir" checkout --quiet -B main
 
           # One folder per PR, overwritten each run.
           rm -rf "${repo_dir:?}/${dest:?}"
@@ -157,16 +156,16 @@ jobs:
           else
             git -C "$repo_dir" commit --quiet -m "Galata diffs for PR #${PR} (run ${RUN_ID})"
             for i in 1 2 3 4 5; do
-              if git -C "$repo_dir" push --quiet origin HEAD:main; then
+              if git -C "$repo_dir" push --quiet origin "HEAD:${DIFFS_BRANCH}"; then
                 break
               fi
               echo "push failed (attempt $i), rebasing and retrying..."
-              git -C "$repo_dir" pull --quiet --rebase origin main || true
+              git -C "$repo_dir" pull --quiet --rebase origin "$DIFFS_BRANCH" || true
               sleep "$i" # linear backoff
             done
           fi
 
-          echo "base_url=https://raw.githubusercontent.com/${DIFFS_REPO}/main/${dest}" >> "$GITHUB_OUTPUT"
+          echo "base_url=https://raw.githubusercontent.com/${REPO}/${DIFFS_BRANCH}/${dest}" >> "$GITHUB_OUTPUT"
 
       - name: Post or update PR comment
         if: steps.pr.outputs.number != ''
@@ -237,27 +236,25 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request_target'
     permissions:
+      contents: write # push the folder removal to the galata-diffs branch
       pull-requests: write # remove the sticky comment
     steps:
-      - name: Delete the PR's diff folder from the diffs repo
+      - name: Delete the PR's diff folder from the diffs branch
         env:
-          GH_TOKEN: ${{ secrets.GALATA_DIFFS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           PR: ${{ github.event.number }}
         run: |
           set -euo pipefail
-          if [[ -z "${GH_TOKEN:-}" ]]; then
-            echo "GALATA_DIFFS_TOKEN not set; skipping cleanup." >&2
-            exit 0
-          fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           dest="pr-${PR}"
           repo_dir="$(mktemp -d)"
-          url="https://x-access-token:${GH_TOKEN}@github.com/${DIFFS_REPO}.git"
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
 
-          if ! git clone --quiet --depth 1 "$url" "$repo_dir" 2>/dev/null; then
-            echo "Diffs repo is empty; nothing to clean."
+          if ! git clone --quiet --depth 1 --branch "$DIFFS_BRANCH" "$url" "$repo_dir" 2>/dev/null; then
+            echo "No ${DIFFS_BRANCH} branch yet; nothing to clean."
             exit 0
           fi
           if [[ ! -d "${repo_dir}/${dest}" ]]; then
@@ -269,11 +266,11 @@ jobs:
           git -C "$repo_dir" add -A
           git -C "$repo_dir" commit --quiet -m "Remove diffs for closed PR #${PR}"
           for i in 1 2 3 4 5; do
-            if git -C "$repo_dir" push --quiet origin HEAD:main; then
+            if git -C "$repo_dir" push --quiet origin "HEAD:${DIFFS_BRANCH}"; then
               break
             fi
             echo "push failed (attempt $i), rebasing and retrying..."
-            git -C "$repo_dir" pull --quiet --rebase origin main || true
+            git -C "$repo_dir" pull --quiet --rebase origin "$DIFFS_BRANCH" || true
             sleep "$i"
           done
 
@@ -296,23 +293,22 @@ jobs:
     name: Squash diffs history
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
+    permissions:
+      contents: write # force-push the squashed galata-diffs branch
     steps:
-      - name: Re-orphan the diffs repo to reclaim space
+      - name: Re-orphan the diffs branch to reclaim space
         env:
-          GH_TOKEN: ${{ secrets.GALATA_DIFFS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          if [[ -z "${GH_TOKEN:-}" ]]; then
-            echo "GALATA_DIFFS_TOKEN not set; skipping." >&2
-            exit 0
-          fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           repo_dir="$(mktemp -d)"
-          url="https://x-access-token:${GH_TOKEN}@github.com/${DIFFS_REPO}.git"
-          if ! git clone --quiet --depth 1 "$url" "$repo_dir" 2>/dev/null; then
-            echo "Diffs repo is empty; nothing to squash."
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          if ! git clone --quiet --depth 1 --branch "$DIFFS_BRANCH" "$url" "$repo_dir" 2>/dev/null; then
+            echo "No ${DIFFS_BRANCH} branch; nothing to squash."
             exit 0
           fi
 
@@ -320,8 +316,8 @@ jobs:
           git -C "$repo_dir" checkout --quiet --orphan squashed
           git -C "$repo_dir" add -A
           if git -C "$repo_dir" diff --cached --quiet; then
-            echo "Diffs repo has no content; nothing to squash."
+            echo "Diffs branch has no content; nothing to squash."
             exit 0
           fi
           git -C "$repo_dir" commit --quiet -m "Squash galata diffs history ($(date -u +%Y-%m-%d))"
-          git -C "$repo_dir" push --quiet --force origin squashed:main
+          git -C "$repo_dir" push --quiet --force origin "squashed:${DIFFS_BRANCH}"
