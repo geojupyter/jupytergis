@@ -21,10 +21,7 @@ on:
   schedule:
     - cron: '0 3 * * 0' # 03:00 UTC every Sunday
 
-permissions:
-  contents: read # diffs go to a separate repo via GALATA_DIFFS_TOKEN
-  pull-requests: write # the sticky comment
-  actions: read # download build artifacts
+permissions: {}
 
 # Serialize every push to the diffs repo.
 concurrency:
@@ -39,6 +36,9 @@ jobs:
     name: Post snapshot diffs
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request'
+    permissions:
+      actions: read # download build artifacts from the triggering run
+      pull-requests: write # post the sticky comment (diffs go to a separate repo via GALATA_DIFFS_TOKEN)
     steps:
       - name: Download artifacts from the triggering run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -236,6 +236,8 @@ jobs:
     name: Remove diffs for closed PR
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request_target'
+    permissions:
+      pull-requests: write # remove the sticky comment
     steps:
       - name: Delete the PR's diff folder from the diffs repo
         env:
