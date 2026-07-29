@@ -19,6 +19,8 @@ class YJGIS(YBaseDoc):
         self._ydoc["viewState"] = self._yviewState = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
+        self._ydoc["annotations"] = self._yannotations = Map()
+        self._ydoc["presets"] = self._ypresets = Map()
         self._ydoc["metadata"] = self._ymetadata = Map()
 
     @property
@@ -35,6 +37,8 @@ class YJGIS(YBaseDoc):
         stories = self._ystories.to_py()
         viewState = self._yviewState.to_py()
         options = self._yoptions.to_py()
+        annotations = self._yannotations.to_py()
+        presets = self._ypresets.to_py()
         meta = self._ymetadata.to_py()
         layers_tree = self._ylayerTree.to_py()
         return json.dumps(
@@ -46,6 +50,8 @@ class YJGIS(YBaseDoc):
                 viewState=viewState,
                 options=options,
                 layerTree=layers_tree,
+                annotations=annotations,
+                presets=presets,
                 metadata=meta,
             ),
             sort_keys=True,
@@ -78,6 +84,12 @@ class YJGIS(YBaseDoc):
             self._ylayerTree.clear()
             self._ylayerTree.extend(valueDict.get("layerTree", []))
 
+            self._yannotations.clear()
+            self._yannotations.update(valueDict.get("annotations", {}))
+
+            self._ypresets.clear()
+            self._ypresets.update(valueDict.get("presets", {}))
+
             self._ymetadata.clear()
             self._ymetadata.update(valueDict.get("metadata", {}))
 
@@ -103,6 +115,12 @@ class YJGIS(YBaseDoc):
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree"),
+        )
+        self._subscriptions[self._yannotations] = self._yannotations.observe_deep(
+            partial(callback, "annotations"),
+        )
+        self._subscriptions[self._ypresets] = self._ypresets.observe_deep(
+            partial(callback, "presets"),
         )
         self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
             partial(callback, "meta"),

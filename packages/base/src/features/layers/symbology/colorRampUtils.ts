@@ -182,7 +182,7 @@ export const useColorMapList = (setColorMaps: (maps: IColorMap[]) => void) => {
 
 /**
  * Get a color map by name.
- * Caches the full list on first call for efficiency, since generating color ramps is expensive.
+ * Caches the full list on first call for efficiency, since generating color maps is expensive.
  */
 let colorMapCache: IColorMap[] | null = null;
 
@@ -242,7 +242,7 @@ export function colorToRgba(color: unknown): RgbaColor {
 }
 
 /**
- * Draw a color ramp to a canvas.
+ * Draw a color map to a canvas.
  */
 export const drawColorRamp = (
   canvas: HTMLCanvasElement,

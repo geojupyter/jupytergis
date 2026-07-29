@@ -26,14 +26,14 @@
     "viewState": {
       "$ref": "#/definitions/jGISViewState"
     },
+    "annotations": {
+      "$ref": "#/definitions/jGISAnnotations"
+    },
+    "presets": {
+      "$ref": "#/definitions/jGISDrawCustomAttributePresets"
+    },
     "metadata": {
-      "type": "object",
-      "patternProperties": {
-        "^.*$": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "#/definitions/jGISMetadata"
     }
   },
   "definitions": {
@@ -45,10 +45,11 @@
         "VectorTileLayer",
         "HillshadeLayer",
         "GeoTiffLayer",
+        "GeoZarrLayer",
         "ImageLayer",
-        "HeatmapLayer",
         "StacLayer",
-        "StorySegmentLayer"
+        "StorySegmentLayer",
+        "OpenEOTileLayer"
       ]
     },
     "sourceType": {
@@ -59,14 +60,15 @@
         "VectorTileSource",
         "GeoJSONSource",
         "RasterDemSource",
-        "VideoSource",
         "ImageSource",
         "ShapefileSource",
         "GeoTiffSource",
+        "GeoZarrSource",
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
-        "MarkerSource"
+        "MarkerSource",
+        "OpenEOTileSource"
       ]
     },
     "jGISLayer": {
@@ -159,7 +161,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": ["guided", "unguided"],
+          "enum": ["guided", "Vertical Scroll"],
           "description": "The type of story map"
         },
         "storySegments": {
@@ -175,6 +177,12 @@
           "title": "Use gradient background",
           "description": "Toggle the gradient background in presentation mode.",
           "default": true
+        },
+        "markdownSegmentGap": {
+          "type": "boolean",
+          "title": "Gap between markdown segments",
+          "description": "Inserts a full-stage gap between consecutive markdown segments in vertical scroll stories.",
+          "default": false
         },
         "presentationBgColor": {
           "type": "string",
@@ -275,11 +283,6 @@
         "useExtent": {
           "type": "boolean",
           "default": false
-        },
-        "storyMapPresentationMode": {
-          "type": "boolean",
-          "title": "Whether presentation mode is active",
-          "default": false
         }
       }
     },
@@ -328,6 +331,100 @@
           }
         }
       }
+    },
+    "jGISAnnotationContent": {
+      "title": "IJGISAnnotationContent",
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "user": {
+          "type": "object"
+        }
+      }
+    },
+    "jGISAnnotation": {
+      "title": "IJGISAnnotation",
+      "type": "object",
+      "required": ["label", "position", "zoom", "contents", "parent", "open"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "position": {
+          "type": "object",
+          "required": ["x", "y"],
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        },
+        "zoom": {
+          "type": "number"
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/jGISAnnotationContent"
+          }
+        },
+        "parent": {
+          "type": "string"
+        },
+        "open": {
+          "type": "boolean"
+        }
+      }
+    },
+    "jGISAnnotations": {
+      "title": "IJGISAnnotations",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISAnnotation"
+      }
+    },
+    "jGISDrawCustomAttribute": {
+      "title": "IDrawCustomAttribute",
+      "type": "object",
+      "required": ["key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "jGISDrawCustomAttributePreset": {
+      "title": "IDrawCustomAttributePreset",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/jGISDrawCustomAttribute"
+      }
+    },
+    "jGISDrawCustomAttributePresets": {
+      "title": "IDrawCustomAttributePresets",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISDrawCustomAttributePreset"
+      }
+    },
+    "jGISMetadata": {
+      "title": "IJGISMetadata",
+      "type": "object",
+      "default": {},
+      "additionalProperties": { "type": "string" }
     }
   }
 }

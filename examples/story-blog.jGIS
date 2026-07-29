@@ -1,0 +1,341 @@
+{
+  "layerTree": [
+    "12f9c3c9-b1aa-4e7c-84f9-6fbaf61db22c",
+    "8591b32f-11c0-4d70-a997-e94d258bb100",
+    "5f790e80-230b-4c00-8426-b3a9385937a5",
+    "e4171d0b-7022-425b-a3d1-bf4ea090c6c2",
+    "5d10a9ba-eeef-486d-9761-33ff1ba4106e",
+    "bcd22241-e404-44b4-873b-81e6a4ccad84",
+    "5862186d-0cae-4cee-be39-18951e31030f",
+    "aabaa10b-4a6f-4a24-9ead-6f17bb7f2f7d",
+    "93080edc-815f-4364-a874-90fd53a60c35",
+    "871a2fb7-7cd7-455d-9297-bfbe4667f134",
+    "c4d4cbea-9c06-4ef3-9f98-efc47e153996",
+    "943ae805-e9a6-48da-bdf5-89b16de25e3a"
+  ],
+  "layers": {
+    "12f9c3c9-b1aa-4e7c-84f9-6fbaf61db22c": {
+      "name": "Intro",
+      "parameters": {
+        "content": {
+          "contentMode": "markdown",
+          "markdown": "# Statue\n\n*From [Wikipedia](https://en.wikipedia.org/wiki/Statue)*\n\nA statue is a free-standing sculpture in which the realistic, full-length figures of persons or animals are carved or cast in a durable material such as wood, metal, glass, marble, or stone. Typical statues are life-sized or close to life-size. A sculpture that represents persons or animals in full figure, but that is small enough to lift and carry is a statuette or figurine, whilst those that are more than twice life-size are regarded as colossal statues.\n\nStatues have been produced in many cultures from prehistory to the present; the oldest-known statue dating to about 30,000 years ago. Statues represent many different people and animals, real and mythical. Many statues are placed in public places as public art. The world's tallest statue, Statue of Unity, is 182 metres (597 ft) tall and is located near the Narmada dam in Gujarat, India.\n\n## Historical periods\n\n### Prehistoric\n\nUrfa Man is a 1.80 metres (5 ft 11 in) sandstone figure developed c. 9,000 BC and now housed at \u015eanl\u0131urfa Museum.\n\nThe Venus of Berekhat Ram, an anthropomorphic pebble found on the Golan Heights and dated to at least 230,000 years before present, is claimed to be the oldest known statuette. However, researchers are divided as to whether its shape is derived from natural erosion or was carved by an early human. The Venus of Tan-Tan, a similar object of similar age found in Morocco, has also been claimed to be a statuette.\n\nThe L\u00f6wenmensch figurine and the Venus of Hohle Fels, both from Germany, are the oldest confirmed statuettes in the world, dating to 35,000\u201340,000 years ago.\n\nThe oldest known life-sized statue is Urfa Man found in Turkey which is dated to around 9,000 BC.\n\n### Antiquity\n\n#### Religion\n\nThroughout history, statues have been associated with cult images in many religious traditions, from Ancient Egypt, Ancient India, Ancient Greece, and Ancient Rome to the present. Egyptian statues showing kings as sphinxes have existed since the Old Kingdom, the oldest being for Djedefre (c. 2500 BC). The oldest statue of a striding pharaoh dates from the reign of Senwosret I (c. 1950 BC) and is in the Egyptian Museum, Cairo. The Middle Kingdom of Egypt (starting around 2000 BC) witnessed the growth of block statues which then became the most popular form until the Ptolemaic period (c. 300 BC).\n\nThe focal point of the cella or main interior space of a Roman or Greek temple was a statue of the deity it was dedicated to. In major temples these could be several times life-size. Other statues of deities might have subordinate positions along the side walls.\n\nThe oldest statue of a deity in Rome was the bronze statue of Ceres in 485 BC. The oldest statue in Rome is now the statue of Diana on the Aventine.\n\n#### Politics\n\nFor a successful Greek or Roman politician or businessman (who donated considerable sums to public projects for the honour), having a public statue, preferably in the local forum or the grounds of a temple was an important confirmation of status, and these sites filled up with statues on plinths (mostly smaller than those of their 19th century equivalents). Fragments in Rome of a bronze colossus of Constantine and the marble colossus of Constantine show the enormous scale of some imperial statues; other examples are recorded, notably one of Nero.\n\nThe wonders of the world include several statues from antiquity, with the Colossus of Rhodes and the Statue of Zeus at Olympia among the Seven Wonders of the Ancient World.\n\n### Middle Ages\n\nWhile sculpture generally flourished in European Medieval art, the single statue was not one of the most common types, except for figures of the Virgin Mary, usually with Child, and the corpus or body of Christ on crucifixes. Both of these appeared in all size up to life-size, and by the late Middle Ages many churches, even in villages, had a crucifixion group around a rood cross. The Gero Cross in Cologne is both one of the earliest and finest large figures of the crucified Christ. As yet, full-size standing statues of saints and rulers were uncommon, but tomb effigies, generally lying down, were very common for the wealthy from about the 14th century, having spread downwards from royal tombs in the centuries before.\n\nWhile Byzantine art flourished in various forms, sculpture and statue making witnessed a general decline; although statues of emperors continued to appear. An example was the statue of Justinian (6th century) which stood in the square across from the Hagia Sophia until the fall of Constantinople in the 15th century. Part of the decline in statue making in the Byzantine period can be attributed to the mistrust the Church placed in the art form, given that it viewed sculpture in general as a method for making and worshiping idols. While making statues was not subject to a general ban, it was hardly encouraged in this period. Justinian was one of the last Emperors to have a full-size statue made, and secular statues of any size became virtually non-existent after iconoclasm; and the artistic skill for making statues was lost in the process."
+        },
+        "extent": [
+          -4808313.151057229,
+          -2629388.442605665,
+          -4798407.401803886,
+          -2618172.169956577
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 14.080181481426658
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "5862186d-0cae-4cee-be39-18951e31030f": {
+      "name": "The Redeemer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "a7e1fc1e-1ab9-461f-89cb-2010c790062f",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "5d10a9ba-eeef-486d-9761-33ff1ba4106e": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "32431800-9aad-4702-926b-52fcdce5530e"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "5f790e80-230b-4c00-8426-b3a9385937a5": {
+      "name": "Cristo Redentor",
+      "parameters": {
+        "content": {
+          "contentMode": "map",
+          "image": "https://images.pexels.com/photos/2771080/pexels-photo-2771080.jpeg",
+          "markdown": "**Christ the Redeemer** (Portuguese: *Cristo Redentor*, standard Brazilian Portuguese: [\u02c8k\u027eistu \u0281ed\u1ebd\u02c8to\u0281]) is an Art Deco statue of Jesus in Rio de Janeiro, Brazil, created by French-Polish sculptor Paul Landowski and built by Brazilian engineer Heitor da Silva Costa, in collaboration with French engineer Albert Caquot.",
+          "title": "The Redeemer"
+        },
+        "extent": [
+          -4814802.663104911,
+          -2630126.461218188,
+          -4804544.428248574,
+          -2622570.615984798
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 14.080181481426658
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "8591b32f-11c0-4d70-a997-e94d258bb100": {
+      "name": "La Libert\u00e9 \u00e9clairant le monde",
+      "parameters": {
+        "content": {
+          "contentMode": "map",
+          "image": "https://images.pexels.com/photos/356844/pexels-photo-356844.jpeg",
+          "markdown": "**The Statue of Liberty** (Liberty Enlightening the World; French: *La Libert\u00e9 \u00e9clairant le monde*) is a colossal neoclassical sculpture of a robed and crowned female on Liberty Island in New York Harbor, within New York City.",
+          "title": "The Statue of Liberty"
+        },
+        "extent": [
+          -8244347.787989774,
+          4964878.911422763,
+          -8240146.493537257,
+          4967973.433151666
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.368058180489786
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "871a2fb7-7cd7-455d-9297-bfbe4667f134": {
+      "name": "David di Michelangelo",
+      "parameters": {
+        "content": {
+          "contentMode": "map",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/%27David%27_by_Michelangelo_Fir_JBU004.jpg/960px-%27David%27_by_Michelangelo_Fir_JBU004.jpg",
+          "markdown": "**David** is a masterpiece of Renaissance sculpture created by Michelangelo between 1501 and 1504. The 5.17-metre marble statue depicts the biblical David before his battle with Goliath and has stood in the Galleria dell'Accademia in Florence since 1873.",
+          "title": "David"
+        },
+        "extent": [
+          1250080.959592592,
+          5437028.604308756,
+          1255589.190947415,
+          5442013.017728101
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.230368389488868
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "93080edc-815f-4364-a874-90fd53a60c35": {
+      "name": "The Thinker",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "19ef5002-5670-4c17-b53f-44a48b739158",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "943ae805-e9a6-48da-bdf5-89b16de25e3a": {
+      "name": "Colors",
+      "parameters": {
+        "content": {
+          "contentMode": "markdown",
+          "markdown": "## Colors\n\nAncient statues often show the bare surface of the material of which they are made. For example, many people associate Greek classical art with white marble sculpture, but there is evidence that many statues were painted in bright colors. Most of the color has weathered off over time; small remnants were removed during cleaning; in some cases small traces remained that could be identified. A travelling exhibition of 20 coloured replicas of Greek and Roman works, alongside 35 original statues and reliefs, was held in Europe and the United States in 2008: Gods in Color: Painted Sculpture of Classical Antiquity.\n\nDetails such as whether the paint was applied in one or two coats, how finely the pigments were ground or exactly which binding medium would have been used in each case\u2014all elements that would affect the appearance of a finished piece\u2014are not known. Gisela Richter goes so far as to say of classical Greek sculpture, \"All stone sculpture, whether limestone or marble, was painted, either wholly or in part.\"\n\nMedieval statues were also usually painted, with some still retaining their original pigments. The coloring of statues ceased during the Renaissance, since excavated classical sculptures, which had lost their coloring, became regarded as the best models.\n\n## Closing\n\nStatues remain among the most visible forms of public and religious art worldwide. From prehistoric figurines and temple cult images to Renaissance masters and abstract modern works, they continue to mark sacred spaces, commemorate people and events, and shape how communities see themselves in shared places\u2014whether carved in marble, cast in bronze, or built at colossal scale beside rivers and on city skylines."
+        },
+        "extent": [
+          -8244347.787989774,
+          4964878.911422763,
+          -8240146.493537257,
+          4967973.433151666
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.368058180489786
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "aabaa10b-4a6f-4a24-9ead-6f17bb7f2f7d": {
+      "name": "Statue of Liberty",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "660bb0bb-e0ce-4692-a7c7-119829d6e0d1",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "bcd22241-e404-44b4-873b-81e6a4ccad84": {
+      "name": "Le Penseur",
+      "parameters": {
+        "content": {
+          "contentMode": "map",
+          "image": "https://images.pexels.com/photos/6486115/pexels-photo-6486115.jpeg",
+          "markdown": "**LA PENS** (Portuguese: *Cristo Redentor*, standard Brazilian Portuguese: ) is an Art Deco statue of Jesus in Rio de Janeiro, Brazil, created by French-Polish sculptor Paul Landowski and built by Brazilian engineer Heitor da Silva Costa, in collaboration with French engineer Albert Caquot.",
+          "title": "The Thinker"
+        },
+        "extent": [
+          255360.959592592,
+          6248688.604308756,
+          261009.190947415,
+          6252093.017728101
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.230368389488868
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "c4d4cbea-9c06-4ef3-9f98-efc47e153996": {
+      "name": "Modern Era",
+      "parameters": {
+        "content": {
+          "contentMode": "markdown",
+          "markdown": "## Modern era\n\nThe chancel of Grace Evangelical Lutheran Church in Milwaukee, Wisconsin contains a prominent statue of Jesus (2022).\n\nStarting with the work of Maillol around 1900, the human figures embodied in statues began to move away from the various schools of realism that had been followed for thousands of years. The Futurist and Cubist schools took this metamorphism even further until statues, often still nominally representing humans, had lost all but the most rudimentary relationship to the human form. By the 1920s and 1930s statues began to appear that were completely abstract in design and execution.\n\nThe notion that the position of the hooves of horses in equestrian statues indicated the rider's cause of death has been disproved.\n\nThey are commonly present in religious spaces. Statues are a feature of the churches of certain Western Christian denominations, particularly those of the Roman Catholic and Evangelical Lutheran traditions. The temples of Indic religions, including those of Hinduism, Buddhism and Jainism often contain statues as a focal point of worship (cf. murti)."
+        },
+        "extent": [
+          -8244347.787989774,
+          4964878.911422763,
+          -8240146.493537257,
+          4967973.433151666
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.368058180489786
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "e4171d0b-7022-425b-a3d1-bf4ea090c6c2": {
+      "name": "Historical Periods",
+      "parameters": {
+        "content": {
+          "contentMode": "markdown",
+          "markdown": "## Historical periods (continued)\n\n### Renaissance\n\nMichelangelo's David, 1504, is housed at the Accademia Gallery in Florence, Italy.\n\nItalian Renaissance sculpture rightly regarded the standing statue as the key form of Roman art, and there was a great revival of statues of both religious and secular figures, to which most of the leading figures contributed, led by Donatello and Michelangelo. The equestrian statue, a great technical challenge, was mastered again, and gradually statue groups.\n\nThese trends intensified in Baroque art, when every ruler wanted to have statues made of themself, and Catholic churches filled with crowds of statues of saints, although after the Protestant Reformation religious sculpture largely disappeared from Reformed and Anglican churches, though the Evangelical Lutheran churches retained them. In England, churches instead were filled with increasing elaborate tomb monuments, for which the ultimate models were continental extravagances such as the Papal tombs in Rome, those of the Doges of Venice, or the French royal family.\n\nIn the late 18th and 19th century there was a growth in public open air statues of public figures on plinths. As well as monarchs, politicians, generals, landowners, and eventually artists and writers were commemorated. World War I saw the war memorial, previously uncommon, become very widespread, and these were often statues of generic soldiers."
+        },
+        "extent": [
+          -4808313.151057229,
+          -2629388.442605665,
+          -4798407.401803886,
+          -2618172.169956577
+        ],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 14.080181481426658
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      1252018.046267381,
+      5429976.656369547,
+      1255222.8918759273,
+      5432669.082116469
+    ],
+    "latitude": 43.77911345173413,
+    "longitude": 11.261464278521506,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 15.689645426857403
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "19ef5002-5670-4c17-b53f-44a48b739158": {
+      "name": "Marker",
+      "parameters": {
+        "color": "",
+        "feature": {
+          "coords": [
+            257771.740387152,
+            6250219.77589449
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    },
+    "32431800-9aad-4702-926b-52fcdce5530e": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "660bb0bb-e0ce-4692-a7c7-119829d6e0d1": {
+      "name": "Marker",
+      "parameters": {
+        "feature": {
+          "coords": [
+            -8242685.709008398,
+            4966710.369862526
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    },
+    "a7e1fc1e-1ab9-461f-89cb-2010c790062f": {
+      "name": "Marker",
+      "parameters": {
+        "feature": {
+          "coords": [
+            -4810184.197896464,
+            -2626176.8148461888
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    }
+  },
+  "stories": {
+    "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
+      "showGradient": false,
+      "storySegments": [
+        "12f9c3c9-b1aa-4e7c-84f9-6fbaf61db22c",
+        "8591b32f-11c0-4d70-a997-e94d258bb100",
+        "5f790e80-230b-4c00-8426-b3a9385937a5",
+        "e4171d0b-7022-425b-a3d1-bf4ea090c6c2",
+        "bcd22241-e404-44b4-873b-81e6a4ccad84",
+        "871a2fb7-7cd7-455d-9297-bfbe4667f134",
+        "c4d4cbea-9c06-4ef3-9f98-efc47e153996",
+        "943ae805-e9a6-48da-bdf5-89b16de25e3a"
+      ],
+      "storyType": "Vertical Scroll",
+      "title": "Famous Statues"
+    }
+  },
+  "viewState": {}
+}

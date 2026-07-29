@@ -2,13 +2,13 @@ import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { ReactElement, useEffect, useMemo, useState } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
-import { WmsTileSourceUrlInput } from '@/src/formbuilder/objectform/components/WmsTileSourceUrlInput';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
+import { WmsTileSourceUrlInput } from '@/src/shared/formbuilder/objectform/components/WmsTileSourceUrlInput';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { GlobalStateDbManager } from '@/src/shared/store';
 import { deepCopy } from '@/src/tools';
 import { IWmsLayerInfo } from '@/src/types';

@@ -1,20 +1,27 @@
+import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IJGISLayerGroup,
+  IJGISLayerItem,
   IJGISLayerTree,
   IJupyterGISModel,
   ISelection,
+  ProcessingMerge,
   SelectionType,
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import {
   Button,
+  ContextMenuSvg,
   LabIcon,
   caretDownIcon,
   caretRightIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ContextMenu, Menu } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
@@ -23,6 +30,7 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
+import { Slider } from '@/src/shared/components/Slider';
 import {
   nonVisibilityIcon,
   targetWithCenterIcon,
@@ -30,6 +38,7 @@ import {
 } from '@/src/shared/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/workspace/panels/leftpanel';
 import { LegendItem } from './legendItem';
+import { rasterSubMenu, vectorSubMenu } from '../../menus';
 
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
@@ -40,6 +49,7 @@ const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
+const LAYER_OPACITY_SLIDER_CLASS = 'jp-gis-layerOpacitySlider';
 
 interface IBodyProps {
   model: IJupyterGISModel;
@@ -48,8 +58,247 @@ interface IBodyProps {
   layerTree: IJGISLayerTree;
 }
 
+function createContextMenu(
+  commands: CommandRegistry,
+  model: IJupyterGISModel,
+  translator?: ITranslator,
+) {
+  translator = translator ?? nullTranslator;
+
+  const GIS_LAYER_ITEM = '.jp-gis-layerItem:not(.jp-gis-layerGroup)';
+
+  const gisContextMenu = new ContextMenuSvg({ commands });
+
+  // LAYERS and LAYER GROUPS context menu
+  gisContextMenu.addItem({
+    command: CommandIDs.showLayerPropertiesDialog,
+    selector: GIS_LAYER_ITEM,
+    rank: 0,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.symbology,
+    selector: GIS_LAYER_ITEM,
+    rank: 1,
+  });
+
+  // Separator
+  gisContextMenu.addItem({
+    type: 'separator',
+    selector: GIS_LAYER_ITEM,
+    rank: 1.5,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.removeSelected,
+    selector: GIS_LAYER_ITEM,
+    rank: 3,
+  });
+  gisContextMenu.addItem({
+    command: CommandIDs.removeSelected,
+    selector: '.jp-gis-layerGroupHeader',
+    rank: 3,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.renameSelected,
+    selector: GIS_LAYER_ITEM,
+    rank: 4,
+  });
+  gisContextMenu.addItem({
+    command: CommandIDs.renameSelected,
+    selector: '.jp-gis-layerGroupHeader',
+    rank: 4,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.duplicateSelected,
+    selector: GIS_LAYER_ITEM,
+    rank: 5,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.zoomToLayer,
+    selector: GIS_LAYER_ITEM,
+    rank: 6,
+  });
+
+  const moveSelectedSubmenu = new Menu({ commands });
+  moveSelectedSubmenu.title.label = translator
+    .load('jupyterlab')
+    .__('Move Selection to Group');
+  moveSelectedSubmenu.id = 'jp-gis-contextmenu-movelayer';
+
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 7,
+    submenu: moveSelectedSubmenu,
+  });
+
+  gisContextMenu.opened.connect(() => buildGroupsMenu(gisContextMenu, model));
+
+  gisContextMenu.addItem({
+    command: CommandIDs.toggleDrawFeatures,
+    selector: GIS_LAYER_ITEM,
+    rank: 8,
+  });
+
+  // Separator
+  gisContextMenu.addItem({
+    type: 'separator',
+    selector: GIS_LAYER_ITEM,
+    rank: 8.5,
+  });
+
+  // Create the Download submenu
+  const downloadSubmenu = new Menu({ commands: commands });
+  downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
+  downloadSubmenu.id = 'jp-gis-contextmenu-download';
+
+  downloadSubmenu.addItem({
+    command: CommandIDs.downloadGeoJSON,
+  });
+
+  // Add the Download submenu to the context menu
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 9,
+    submenu: downloadSubmenu,
+  });
+
+  // Create the Processing submenu
+  const processingSubmenu = new Menu({ commands });
+  processingSubmenu.title.label = translator
+    .load('jupyterlab')
+    .__('Processing');
+  processingSubmenu.id = 'jp-gis-contextmenu-processing';
+
+  // Clip sub-submenu — groups all clipping operations
+  const clipSubmenu = new Menu({ commands });
+  clipSubmenu.title.label = translator.load('jupyterlab').__('Clip By');
+  clipSubmenu.id = 'jp-gis-contextmenu-clip';
+
+  for (const processingElement of ProcessingMerge) {
+    if (processingElement.type === 'clip') {
+      clipSubmenu.addItem({
+        command: `jupytergis:${processingElement.name}`,
+      });
+    } else {
+      processingSubmenu.addItem({
+        command: `jupytergis:${processingElement.name}`,
+      });
+    }
+  }
+
+  processingSubmenu.addItem({ type: 'separator' });
+  processingSubmenu.addItem({ type: 'submenu', submenu: clipSubmenu });
+
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 10,
+    submenu: processingSubmenu,
+  });
+
+  const newLayerSubMenu = new Menu({ commands });
+  newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
+  newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
+
+  newLayerSubMenu.addItem({
+    type: 'submenu',
+    submenu: rasterSubMenu(commands),
+  });
+  newLayerSubMenu.addItem({
+    type: 'submenu',
+    submenu: vectorSubMenu(commands),
+  });
+
+  // Separator
+  gisContextMenu.addItem({
+    type: 'separator',
+    selector: GIS_LAYER_ITEM,
+    rank: 10.5,
+  });
+
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 11,
+    submenu: newLayerSubMenu,
+  });
+
+  return gisContextMenu;
+}
+
+/**
+ * Populate submenu with current group names
+ */
+function buildGroupsMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
+  const submenu =
+    contextMenu.menu.items.find(
+      item =>
+        item.type === 'submenu' &&
+        item.submenu?.id === 'jp-gis-contextmenu-movelayer',
+    )?.submenu ?? null;
+
+  // Bail early if the submenu isn't found
+  if (!submenu) {
+    return;
+  }
+
+  submenu.clearItems();
+
+  // need a list of group name
+  const layerTree = model.getLayerTree();
+  const groupNames = getLayerGroupNames(layerTree);
+
+  function getLayerGroupNames(layerTree: IJGISLayerItem[]): string[] {
+    const result: string[] = [];
+
+    for (const item of layerTree) {
+      // Skip if the item is a layer id
+      if (typeof item === 'string') {
+        continue;
+      }
+
+      // Process group items
+      if (item.layers) {
+        result.push(item.name);
+
+        // Recursively process the layers of the current item
+        const nestedResults = getLayerGroupNames(item.layers);
+        // Append the results of the recursive call to the main result array
+        result.push(...nestedResults);
+      }
+    }
+
+    return result;
+  }
+
+  submenu.addItem({
+    command: CommandIDs.moveSelectedToGroup,
+    args: { label: '' },
+  });
+
+  groupNames.forEach(name => {
+    submenu.addItem({
+      command: CommandIDs.moveSelectedToGroup,
+      args: { label: name },
+    });
+  });
+
+  submenu.addItem({
+    command: CommandIDs.moveSelectedToNewGroup,
+  });
+}
+
 export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
+  const commands = props.commands;
+
+  const layerContextMenu = createContextMenu(commands, model);
 
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
     props.layerTree || [],
@@ -57,9 +306,16 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
 
   const notifyCommands = () => {
     // Notify commands that need updating
-    props.commands.notifyCommandChanged(CommandIDs.identify);
-    props.commands.notifyCommandChanged(CommandIDs.temporalController);
-    props.commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+    commands.notifyCommandChanged(CommandIDs.identify);
+    commands.notifyCommandChanged(CommandIDs.temporalController);
+    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+  };
+
+  const _onContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    layerContextMenu.open(e.nativeEvent);
   };
 
   const _onDragOver = (e: React.DragEvent) => {
@@ -200,7 +456,12 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   }, [props.layerTree]);
 
   return (
-    <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
+    <div
+      id="jp-gis-layer-tree"
+      onDrop={_onDrop}
+      onDragOver={_onDragOver}
+      onContextMenu={_onContextMenu}
+    >
       {layerTree.map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent
@@ -318,6 +579,24 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
     onClick({ type: 'group', item: name, event });
   };
 
+  const handleGroupMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onClick({
+      type: 'group',
+      item: name,
+      event: e as unknown as ReactMouseEvent<HTMLElement>,
+    });
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left,
+        clientY: rect.bottom,
+      }),
+    );
+  };
+
   const handleExpand = async () => {
     state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
@@ -389,6 +668,14 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
             {name}
           </span>
         )}
+        <Button
+          className="jp-gis-layer-more-btn"
+          minimal
+          onClick={handleGroupMoreClick}
+          title="More options"
+        >
+          <FontAwesomeIcon icon={faEllipsisVertical} />
+        </Button>
       </div>
       {open && (
         <div>
@@ -452,9 +739,15 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
   );
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [opacity, setOpacity] = useState<number>(
+    layer.parameters?.opacity ?? 1,
+  );
+  // Disabled while the opacity slider is being dragged, otherwise the native
+  // HTML drag of the row hijacks the slider interaction.
+  const [isDraggable, setIsDraggable] = useState(true);
 
   const { symbology } = useGetSymbology({
     layerId,
@@ -464,6 +757,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const hasSupportedSymbology = symbology?.symbologyState !== undefined;
 
   const isStorySegmentLayer = layer.type === 'StorySegmentLayer';
+
+  // Every layer type applies opacity on the map except story segments, which
+  // have no associated OpenLayers layer.
+  const supportsOpacity = !isStorySegmentLayer;
 
   const name = layer.name;
 
@@ -525,12 +822,48 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     gisModel?.sharedModel?.updateLayer(layerId, layer);
   };
 
+  /**
+   * Keep the local opacity in sync when the layer parameters change elsewhere
+   * (e.g. a collaborator, or a round-trip through the model).
+   */
+  useEffect(() => {
+    setOpacity(layer.parameters?.opacity ?? 1);
+  }, [layer.parameters?.opacity]);
+
+  /**
+   * Update the layer opacity from the inline slider.
+   *
+   * @param value - the new opacity, in the 0–1 range.
+   */
+  const handleOpacityChange = (value: number) => {
+    setOpacity(value);
+    gisModel?.sharedModel.updateObjectParameters(layerId, { opacity: value });
+  };
+
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
     onClick({
       type: 'layer',
       item: layerId,
       event,
     });
+  };
+
+  const handleLayerMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onClick({
+      type: 'layer',
+      item: layerId,
+      event: e as unknown as ReactMouseEvent<HTMLElement>,
+    });
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left,
+        clientY: rect.bottom,
+      }),
+    );
   };
 
   const handleRenameSave = () => {
@@ -589,9 +922,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
-                  ${isStorySegmentLayer ? 'jp-gis-storySegmentLayer' : ''}
                   ${selected ? ' jp-mod-selected' : ''}`}
-      draggable={true}
+      draggable={isDraggable}
       onDragStart={Private.onDragStart}
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
@@ -604,22 +936,31 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         onContextMenu={setSelection}
         style={{ display: 'flex' }}
       >
-        {/* Expand/collapse legend button (only if symbology is supported) */}
-        {hasSupportedSymbology && (
-          <Button
-            minimal
-            onClick={e => {
-              e.stopPropagation();
-              setExpanded(v => !v);
-            }}
-            title={expanded ? 'Hide legend' : 'Show legend'}
-          >
-            <LabIcon.resolveReact
-              icon={expanded ? caretDownIcon : caretRightIcon}
-              tag="span"
-            />
-          </Button>
-        )}
+        {/* Expand/collapse legend button — always rendered to preserve alignment */}
+        <Button
+          minimal
+          onClick={
+            hasSupportedSymbology
+              ? e => {
+                  e.stopPropagation();
+                  setExpanded(v => !v);
+                }
+              : undefined
+          }
+          title={
+            hasSupportedSymbology
+              ? expanded
+                ? 'Hide legend'
+                : 'Show legend'
+              : undefined
+          }
+          style={{ visibility: hasSupportedSymbology ? 'visible' : 'hidden' }}
+        >
+          <LabIcon.resolveReact
+            icon={expanded ? caretDownIcon : caretRightIcon}
+            tag="span"
+          />
+        </Button>
 
         {/* Visibility toggle for normal layers, Slide number for story segments */}
         {isStorySegmentLayer ? (
@@ -677,6 +1018,32 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </span>
         )}
 
+        {supportsOpacity && (
+          <span
+            className={LAYER_OPACITY_SLIDER_CLASS}
+            title={`Opacity: ${Math.round(opacity * 100)}%`}
+            onClick={e => e.stopPropagation()}
+            onDoubleClick={e => e.stopPropagation()}
+            // Disable the row drag while adjusting the slider.
+            onPointerDown={e => {
+              e.stopPropagation();
+              setIsDraggable(false);
+            }}
+            onPointerUp={() => setIsDraggable(true)}
+            onPointerCancel={() => setIsDraggable(true)}
+            onBlur={() => setIsDraggable(true)}
+          >
+            <Slider
+              min={0}
+              max={100}
+              step={1}
+              value={[Math.round(opacity * 100)]}
+              aria-label="Layer opacity"
+              onValueChange={([value]) => handleOpacityChange(value / 100)}
+            />
+          </span>
+        )}
+
         <Button
           title={'Move map to the extent of the layer'}
           onClick={moveToExtent}
@@ -688,11 +1055,23 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             tag="span"
           />
         </Button>
+        <Button
+          className="jp-gis-layer-more-btn"
+          minimal
+          onClick={handleLayerMoreClick}
+          title="More options"
+        >
+          <FontAwesomeIcon icon={faEllipsisVertical} />
+        </Button>
       </div>
 
       {/* Show legend only if supported symbology */}
       {expanded && gisModel && hasSupportedSymbology && (
-        <div style={{ marginTop: 6, width: '100%' }}>
+        <div
+          style={{ marginTop: 6, width: '100%' }}
+          onClick={setSelection}
+          onContextMenu={setSelection}
+        >
           <LegendItem layerId={layerId} model={gisModel} />
         </div>
       )}

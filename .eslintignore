@@ -7,3 +7,4 @@ tests
 ui-tests
 **/build/
 examples/
+docs/_build/

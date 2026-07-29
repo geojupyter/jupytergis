@@ -4,7 +4,7 @@ import {
   IAnnotationModel,
   IDict,
   IGeoTiffSource,
-  IHeatmapLayer,
+  IGeoZarrSource,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -33,6 +33,7 @@ import {
   IVectorTileSource,
   IGeoParquetSource,
   IGeoTiffLayer,
+  IGeoZarrLayer,
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
@@ -41,6 +42,9 @@ import {
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
   IViewState,
+  IOpenEOTileSource,
+  IOpenEOTileLayer,
+  IGrammarSymbologyState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -60,7 +64,7 @@ import {
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import TileState from 'ol/TileState';
-import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
+import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
@@ -81,16 +85,16 @@ import {
   Select,
 } from 'ol/interaction';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
+import type Interaction from 'ol/interaction/Interaction';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import {
-  Heatmap as HeatmapLayer,
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
   VectorImage as VectorImageLayer,
   VectorTile as VectorTileLayer,
-  WebGLTile as GeoTiffLayer,
+  WebGLTile as RasterLayer,
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
@@ -112,9 +116,10 @@ import {
   XYZ as XYZSource,
   Tile as TileSource,
 } from 'ol/source';
+import GeoZarr from 'ol/source/GeoZarr';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
+import { Fill, Icon, Stroke, Style } from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
@@ -128,8 +133,11 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
-import { LoadingOverlay } from '@/src/shared/components/loading';
-import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
+import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -140,34 +148,49 @@ import {
   throttle,
 } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
-import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import { FollowIndicator } from './FollowIndicator';
+import { ClientPointer } from './CollaboratorPointers';
 import TemporalSlider from './TemporalSlider';
+import { MainViewMapSurface } from './components/MainViewMapSurface';
+import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
+import { MainViewSidePanels } from './components/MainViewSidePanels';
+import { MainViewStoryStage } from './components/MainViewStoryStage';
+import { PositionedFloater } from './components/PositionedFloater';
 import {
   createGeoJSONFeaturePatcher,
-  type PatchGeoJSONFeatureProperties,
+  type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
+import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
-  DEFAULT_FLAT_STYLE,
-  buildTransparentFallbackFilter,
-  buildVectorFlatStyle,
-} from '../features/layers/symbology/styleBuilder';
-import { SpectaPanel } from '../features/story/SpectaPanel';
+  OpenEOTileLayer,
+  OpenEOTileSource,
+  openEOEvents,
+} from '../features/layers/openeo/OpenEOTileLayer';
+import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
+import {
+  extractEncodingFieldValues,
+  grammarToOLStyle,
+} from '../features/layers/symbology/grammarToOLStyle';
+import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
+import {
+  buildZarrColorStyle,
+  getBandInfoFromZarr,
+  getDefaultRGBBands,
+  IZarrBandInfo,
+} from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import { LeftPanel, MergedPanel, RightPanel } from '../workspace/panels';
+import type { IListStorySegmentTransition } from '../features/story/types/types';
 
 type OlLayerTypes =
   | TileLayer
   | VectorLayer
   | VectorImageLayer
   | VectorTileLayer
-  | GeoTiffLayer
-  | HeatmapLayer
+  | RasterLayer
   | StacLayer
-  | ImageLayer<any>;
-
-const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
+  | ImageLayer<any>
+  | LayerGroup;
 
 const drawInteractionStyle = new Style({
   fill: new Fill({
@@ -191,8 +214,9 @@ interface IMainViewProps {
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
   loggerRegistry?: ILoggerRegistry;
-  /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
+  /** True when viewport matches (max-width: 960px). Injected by MainViewWithObserver. */
   isMobile: boolean;
+  containerRef: React.RefObject<HTMLDivElement>;
 }
 
 interface IStates {
@@ -211,10 +235,13 @@ interface IStates {
   filterStates: IDict<IJGISFilterItem | undefined>;
   editingVectorLayer: boolean;
   drawGeometryLabel: string | undefined;
+  currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
   isSpectaPresentation: boolean;
   initialLayersReady: boolean;
   identifyFeatureFloatersVersion: number;
+  /** List story segment handoff for the map stage overlay; null when off. */
+  segmentTransition: IListStorySegmentTransition | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -261,7 +288,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
     this._model = this._mainViewModel.jGISModel;
-    this._patchGeoJSONFeatureProperties = createGeoJSONFeaturePatcher({
+    this._patchGeoJSONFeatureAttributes = createGeoJSONFeaturePatcher({
       model: this._model,
       persistAndRefreshSource: this.persistAndRefreshSource,
     });
@@ -292,8 +319,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
-    this._model.sharedMetadataChanged.connect(
-      this._onSharedMetadataChanged,
+    this._model.sharedAnnotationsChanged.connect(
+      this._onAnnotationsChanged,
       this,
     );
 
@@ -305,6 +332,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.storyPreviewActiveChanged.connect(
+      this._onStoryPreviewActiveChanged,
+      this,
+    );
+
+    // After a user signs in to an OpenEO server, rebuild any of this
+    // document's OpenEO tile sources whose serverUrl matches — they
+    // would have failed to construct on document load when CONNECTIONS
+    // was still empty.
+    openEOEvents.connected.connect(this._onOpenEOConnected, this);
     this._model.geolocationChanged.connect(
       this._handleGeolocationChanged,
       this,
@@ -340,10 +377,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       filterStates: {},
       editingVectorLayer: false,
       drawGeometryLabel: '',
+      currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
-      isSpectaPresentation: this._model.isSpectaMode(),
+      isSpectaPresentation: this._model.isStoryPresentationActive(),
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
+      segmentTransition: null,
     };
 
     this._sources = [];
@@ -356,6 +395,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   async componentDidMount(): Promise<void> {
+    this.setState({
+      annotations: this._model.sharedModel.getAnnotations(),
+    });
+
     if (this._loggerRegistry) {
       const logger = this._loggerRegistry.getLogger(this._model.filePath);
       logger.level = 'debug';
@@ -376,19 +419,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
     this._mainViewModel.initSignal();
+    if (this.state.isSpectaPresentation && !this._spectaModeSetupDone) {
+      this._setupSpectaMode();
+      this._spectaModeSetupDone = true;
+    }
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
   }
 
   componentDidUpdate(prevProps: IMainViewProps, prevState: IStates): void {
-    // Run setup when isSpectaPresentation changes from false/undefined to true
-    if (
-      this.state.isSpectaPresentation &&
-      !this._isSpectaPresentationInitialized
-    ) {
+    const enteredPresentation =
+      !prevState.isSpectaPresentation && this.state.isSpectaPresentation;
+    const exitedPresentation =
+      prevState.isSpectaPresentation && !this.state.isSpectaPresentation;
+
+    if (enteredPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
-      this._isSpectaPresentationInitialized = true;
+      this._spectaModeSetupDone = true;
+    }
+
+    if (exitedPresentation && this._spectaModeSetupDone) {
+      this._teardownSpectaMode();
+      this._spectaModeSetupDone = false;
     }
   }
 
@@ -420,6 +473,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     remoteUserSignals.forEach(signal =>
       signal.disconnect(this._handleRemoteUserChanged, this),
     );
+    openEOEvents.connected.disconnect(this._onOpenEOConnected, this);
     this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
     this._model.selectedChanged.disconnect(
       this._handleTemporalControllerActiveChanged,
@@ -430,7 +484,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleIdentifiedFeaturesChanged,
       this,
     );
-
+    this._model.storyPreviewActiveChanged.disconnect(
+      this._onStoryPreviewActiveChanged,
+      this,
+    );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
@@ -448,20 +505,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       layer => layer.type !== 'StorySegmentLayer',
     ).length;
 
-    const scaleLine = new ScaleLine({
-      target: this.controlsToolbarRef.current || undefined,
-    });
+    const controlsToolbar = this.controlsToolbarRef.current || undefined;
+    const controls: Control[] = [new ScaleLine({ target: controlsToolbar })];
 
-    const fullScreen = new FullScreen({
-      target: this.controlsToolbarRef.current || undefined,
-    });
+    if (!this._model.isSpectaMode()) {
+      controls.push(new FullScreen({ target: controlsToolbar }));
+    }
 
-    const controls: Control[] = [scaleLine, fullScreen];
+    controls.push(new Rotate({ target: controlsToolbar, autoHide: true }));
 
     if (this._model.jgisSettings.zoomButtonsEnabled) {
-      this._zoomControl = new Zoom({
-        target: this.controlsToolbarRef.current || undefined,
-      });
+      this._zoomControl = new Zoom({ target: controlsToolbar });
       controls.push(this._zoomControl);
     }
 
@@ -659,51 +713,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   createSelectInteraction = () => {
-    const pointStyle = new Style({
-      image: new Circle({
-        radius: 5,
-        fill: new Fill({
-          color: '#C52707',
-        }),
-        stroke: new Stroke({
-          color: '#171717',
-          width: 2,
-        }),
-      }),
-    });
-
-    const lineStyle = new Style({
-      stroke: new Stroke({
-        color: '#171717',
-        width: 2,
-      }),
-    });
-
-    const polygonStyle = new Style({
-      fill: new Fill({ color: '#C5270780' }),
-      stroke: new Stroke({
-        color: '#171717',
-        width: 2,
-      }),
-    });
-
-    const styleFunction = (feature: FeatureLike) => {
-      const geometryType = feature.getGeometry()?.getType();
-      switch (geometryType) {
-        case 'Point':
-        case 'MultiPoint':
-          return pointStyle;
-        case 'LineString':
-        case 'MultiLineString':
-          return lineStyle;
-        case 'Polygon':
-        case 'MultiPolygon':
-          return polygonStyle;
-      }
-    };
-
     const selectInteraction = new Select({
-      hitTolerance: 5,
+      hitTolerance: 3,
       multi: true,
       layers: layer => {
         const localState = this._model?.sharedModel.awareness.getLocalState();
@@ -713,28 +724,94 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return false;
         }
         const selectedLayerId = Object.keys(selectedLayers)[0];
-
-        return layer === this.getLayer(selectedLayerId);
+        const expected = this.getLayer(selectedLayerId);
+        if (layer === expected) {
+          return true;
+        }
+        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
+        // OL Select flattens groups, so we receive leaf layers, not the group.
+        if (expected instanceof LayerGroup) {
+          return expected.getLayers().getArray().includes(layer);
+        }
+        return false;
       },
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.currentMode === 'identifying';
       },
-      style: styleFunction,
+      // Use the layer's own style so selected features keep their original
+      // appearance.  Visual highlight feedback comes from _highlightLayer.
+      style: null,
     });
 
     selectInteraction.on('select', event => {
       const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
+      const highlightFeatures: Feature[] = [];
+
+      // Look up the selected layer's style function for adaptive highlights.
+      const localState = this._model?.sharedModel.awareness.getLocalState();
+      const selectedLayers = localState?.selected?.value;
+      const selectedLayerId = selectedLayers
+        ? Object.keys(selectedLayers)[0]
+        : undefined;
+      const mapLayer = selectedLayerId
+        ? this.getLayer(selectedLayerId)
+        : undefined;
+
+      // For LayerGroup (multi-layer grammar), collect style functions from
+      // all sub-layers so we can match the right one per feature.
+      const styleFnCandidates: ReturnType<VectorLayer['getStyleFunction']>[] =
+        [];
+      if (mapLayer instanceof LayerGroup) {
+        for (const sub of mapLayer.getLayers().getArray()) {
+          if ('getStyleFunction' in sub) {
+            styleFnCandidates.push((sub as VectorLayer).getStyleFunction());
+          }
+        }
+      } else if (mapLayer && 'getStyleFunction' in mapLayer) {
+        styleFnCandidates.push((mapLayer as VectorLayer).getStyleFunction());
+      }
+      const resolution = this._Map.getView().getResolution() ?? 1;
+
       selectInteraction.getFeatures().forEach(feature => {
         identifiedFeatures.push({
           feature: feature.getProperties(),
           floaterOpen: false,
         });
+        const geom = feature.getGeometry();
+        if (geom) {
+          const hlFeature = new Feature({ geometry: geom });
+          // Try each style function candidate; use the first that resolves
+          // a non-empty style array (important for LayerGroup sub-layers
+          // where only one sub-layer's style applies to this feature).
+          for (const fn of styleFnCandidates) {
+            if (!fn) {
+              continue;
+            }
+            const resolved = fn(feature, resolution);
+            const styles = Array.isArray(resolved)
+              ? resolved
+              : resolved
+                ? [resolved]
+                : [];
+            if (styles.length > 0) {
+              const gType = geom.getType();
+              hlFeature.setStyle(
+                styles.map(s => this._buildHighlightStyle(s, gType)),
+              );
+              break;
+            }
+          }
+          highlightFeatures.push(hlFeature);
+        }
       });
 
       this._model.syncIdentifiedFeatures(
         identifiedFeatures,
         this._mainViewModel.id,
       );
+
+      // Sync _highlightLayer with the current selection (clears on deselect).
+      this._setHighlightFeatures(highlightFeatures);
     });
 
     this._Map.addInteraction(selectInteraction);
@@ -981,6 +1058,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
+        case 'OpenEOTileSource': {
+          const sourceParameters = source.parameters as IOpenEOTileSource;
+
+          newSource = new OpenEOTileSource({
+            serverUrl: sourceParameters.serverUrl ?? '',
+            authBearer: sourceParameters.authBearer,
+            processGraph: sourceParameters.processGraph,
+          });
+
+          break;
+        }
+
         case 'GeoJSONSource': {
           const data =
             source.parameters?.data ||
@@ -1079,12 +1168,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
-        case 'VideoSource': {
-          this._log('warning', 'Video Tiles not supported with Open Layers');
-
-          break;
-        }
-
         case 'GeoTiffSource': {
           const sourceParameters = source.parameters as IGeoTiffSource;
 
@@ -1096,6 +1179,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               const isRemote =
                 sourceInfo.url?.startsWith('http://') ||
                 sourceInfo.url?.startsWith('https://');
+              const isDataUrl = sourceInfo.url?.startsWith('data:');
 
               if (isRemote) {
                 return {
@@ -1103,6 +1187,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   min: sourceInfo.min,
                   max: sourceInfo.max,
                   url: sourceInfo.url,
+                };
+              } else if (isDataUrl) {
+                // Inline base64 GeoTIFF embedded in the .jGIS doc.
+                const blob = await (await fetch(sourceInfo.url!)).blob();
+                return {
+                  ...addNoData(sourceInfo),
+                  min: sourceInfo.min,
+                  max: sourceInfo.max,
+                  url: URL.createObjectURL(blob),
                 };
               } else {
                 const geotiff = await loadFile({
@@ -1125,6 +1218,53 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             interpolate: sourceParameters.interpolate,
             sources,
             normalize: sourceParameters.normalize,
+            wrapX: sourceParameters.wrapX,
+            ...(sourceParameters.projection
+              ? { projection: sourceParameters.projection }
+              : {}),
+          });
+
+          break;
+        }
+
+        case 'GeoZarrSource': {
+          const sourceParameters = source.parameters as IGeoZarrSource;
+
+          let bands: string[] = sourceParameters.bands || [];
+
+          if (bands.length === 0) {
+            let bandInfo: IZarrBandInfo[] = [];
+
+            try {
+              bandInfo = await getBandInfoFromZarr(sourceParameters.url);
+            } catch (err) {
+              console.warn('Failed to auto-detect Zarr bands:', err);
+            }
+
+            if (bandInfo.length > 0) {
+              bands = getDefaultRGBBands(bandInfo);
+
+              // Persist to model for future loads
+              const updatedSource: IJGISSource = {
+                ...source,
+                parameters: {
+                  ...sourceParameters,
+                  bands,
+                },
+              };
+
+              this._model.sharedModel.updateSource(id, updatedSource);
+            } else {
+              console.warn('No bands detected from Zarr store');
+              bands = sourceParameters.bands?.length
+                ? sourceParameters.bands
+                : ['b04', 'b03', 'b02'];
+            }
+          }
+
+          newSource = new GeoZarr({
+            url: sourceParameters.url,
+            bands,
             wrapX: sourceParameters.wrapX,
           });
 
@@ -1411,6 +1551,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     this._ready = true;
+
+    // If a "zoom to layer" request arrived before its layer was on the map,
+    // retry now that layers have been (re)built.
+    if (
+      this._pendingZoomLayerId &&
+      this.getLayer(this._pendingZoomLayerId) !== undefined
+    ) {
+      const pendingId = this._pendingZoomLayerId;
+      this._pendingZoomLayerId = null;
+      this._onZoomToPosition(this._model, pendingId);
+    }
   }
 
   /**
@@ -1423,7 +1574,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer,
-  ): Promise<Layer | StacLayer | undefined> {
+  ): Promise<Layer | LayerGroup | StacLayer | undefined> {
     this.setState(old => ({ ...old, loadingLayer: true }));
     this._loadingLayers.add(id);
 
@@ -1445,6 +1596,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (!this._sources[sourceId]) {
         await this.addSource(sourceId, source);
       }
+      // Updates GeoZarr layer again after getting bands, styles info from zarr store.
+      source = this._model.sharedModel.getLayerSource(sourceId);
     }
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
@@ -1464,12 +1617,32 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newMapLayer = new VectorImageLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer),
-        });
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          const olSource = this._sources[
+            layerParameters.source
+          ] as VectorSource;
+          const grammarState =
+            layerParameters.symbologyState as IGrammarSymbologyState;
+          const rows =
+            olSource instanceof VectorSource
+              ? olSource.getFeatures().map(f => (f as Feature).getProperties())
+              : [];
+          const featureValues = extractEncodingFieldValues(grammarState, rows);
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            olSource,
+            layerParameters.opacity,
+            layer.visible,
+            featureValues,
+          ) as OlLayerTypes;
+        } else {
+          newMapLayer = new VectorImageLayer({
+            opacity: layerParameters.opacity,
+            visible: layer.visible,
+            source: this._sources[layerParameters.source],
+            style: this.vectorLayerStyleRuleBuilder(layer),
+          });
+        }
 
         break;
       }
@@ -1488,8 +1661,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'HillshadeLayer': {
         layerParameters = layer.parameters as IHillshadeLayer;
 
-        newMapLayer = new GeoTiffLayer({
-          opacity: 0.3,
+        newMapLayer = new RasterLayer({
+          opacity: layerParameters.opacity ?? 0.3,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: {
@@ -1510,39 +1683,78 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+      case 'OpenEOTileLayer': {
+        layerParameters = layer.parameters as IOpenEOTileLayer;
+
+        newMapLayer = new OpenEOTileLayer({
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          source: this._sources[layerParameters.source],
+        });
+        break;
+      }
       case 'GeoTiffLayer': {
         layerParameters = layer.parameters as IGeoTiffLayer;
+        const geoTiffSource = this._sources[layerParameters.source];
 
-        // This is to handle python sending a None for the color
-        const layerOptions: any = {
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-        };
-
-        if (layerParameters.color) {
-          layerOptions['style'] = {
-            color: layerParameters.color,
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            geoTiffSource,
+            layerParameters.opacity ?? 1,
+            layer.visible ?? true,
+            [],
+            true,
+          ) as OlLayerTypes;
+        } else {
+          // This is to handle python sending a None for the color
+          const layerOptions: any = {
+            opacity: layerParameters.opacity,
+            visible: layer.visible,
+            source: geoTiffSource,
           };
+
+          if (layerParameters.color) {
+            layerOptions['style'] = {
+              color: layerParameters.color,
+            };
+          }
+
+          newMapLayer = new RasterLayer(layerOptions);
+        }
+        break;
+      }
+      case 'GeoZarrLayer': {
+        layerParameters = layer.parameters as IGeoZarrLayer;
+        const geoZarrSource = this._sources[layerParameters.source];
+
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            geoZarrSource,
+            layerParameters.opacity ?? 1,
+            layer.visible ?? true,
+            [],
+            true,
+          ) as OlLayerTypes;
+        } else {
+          const bands = source?.parameters?.bands || [];
+          const defaultColor = buildZarrColorStyle(bands);
+
+          newMapLayer = new RasterLayer({
+            opacity: layerParameters.opacity ?? 1,
+            visible: layer.visible,
+            source: geoZarrSource,
+            style: {
+              gamma: layerParameters.gamma ?? 1,
+              color: layerParameters.color ?? defaultColor,
+            },
+          });
         }
 
-        newMapLayer = new GeoTiffLayer(layerOptions);
         break;
       }
-      case 'HeatmapLayer': {
-        layerParameters = layer.parameters as IHeatmapLayer;
 
-        newMapLayer = new HeatmapLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          blur: layerParameters.blur ?? 15,
-          radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.symbologyState?.gradient,
-        });
-
-        break;
-      }
       case 'StacLayer': {
         layerParameters = layer.parameters as IStacLayer;
 
@@ -1588,19 +1800,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return newMapLayer;
   }
 
-  addProjection(newMapLayer: Layer) {
-    const sourceProjection = newMapLayer.getSource()?.getProjection();
-    if (!sourceProjection) {
-      this._log('warning', 'Layer source projection is undefined or invalid');
-      return;
-    }
-
-    const projectionCode = sourceProjection.getCode();
-
-    const isProjectionRegistered = getProjection(projectionCode);
-    if (!isProjectionRegistered) {
+  private ensureProjectionRegistered(projectionCode: string): void {
+    const hasProj4Definition = Boolean(proj4.defs(projectionCode));
+    if (!hasProj4Definition) {
       // Check if the projection exists in proj4list
-      if (!proj4list[projectionCode]) {
+      const proj4Definition = proj4list[projectionCode];
+      if (!proj4Definition) {
         this._log(
           'warning',
           `Projection code '${projectionCode}' not found in proj4list`,
@@ -1609,8 +1814,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       try {
-        proj4.defs([proj4list[projectionCode]]);
-        register(proj4 as any);
+        if (Array.isArray(proj4Definition)) {
+          proj4.defs([proj4Definition]);
+        } else {
+          proj4.defs(projectionCode, proj4Definition);
+        }
       } catch (error: any) {
         this._log(
           'warning',
@@ -1619,6 +1827,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
     }
+
+    // Always register after ensuring proj4 defs exist so OL transform functions
+    // are available even when the projection object already exists in cache.
+    register(proj4 as any);
+  }
+
+  private resolveLayerSourceProjection(layer: IJGISLayer): string | undefined {
+    const sourceId = layer.parameters?.source;
+    if (!sourceId) {
+      return;
+    }
+
+    const source = this._model.sharedModel.getLayerSource(sourceId);
+    if (!source) {
+      return;
+    }
+
+    const parameters = source.parameters;
+    return parameters?.projection;
+  }
+
+  addProjection(target: Layer | IJGISLayer): void {
+    if (target instanceof Layer) {
+      const sourceProjection = target.getSource()?.getProjection();
+      if (!sourceProjection) {
+        this._log('warning', 'Layer source projection is undefined or invalid');
+        return;
+      }
+
+      this.ensureProjectionRegistered(sourceProjection.getCode());
+      return;
+    }
+
+    const projectionCode = this.resolveLayerSourceProjection(target);
+    if (!projectionCode) {
+      return;
+    }
+
+    this.ensureProjectionRegistered(projectionCode);
   }
 
   /**
@@ -1635,6 +1882,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     try {
+      this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
       if (newMapLayer !== undefined) {
         await this._waitForReady();
@@ -1643,12 +1891,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
-        // const newLayerExtent = newMapLayer.getExtent();
-        // const shouldZoom = Boolean(
-        //   this.state.initialLayersReady && newLayerExtent,
-        // );
-        const shouldZoom = Boolean(this.state.initialLayersReady);
-        this._trackLayerViewState(id, newMapLayer as Layer, shouldZoom);
+        this._trackLayerViewState(id, newMapLayer);
 
         // doing +1 instead of calling method again
         if (
@@ -1659,10 +1902,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
       }
 
-      this._model.syncSelected(
-        { [id]: { type: 'layer' } },
-        this._model.getClientId().toString(),
-      );
+      if (layer.type !== 'StorySegmentLayer') {
+        this._model.syncSelected(
+          { [id]: { type: 'layer' } },
+          this._model.getClientId().toString(),
+        );
+      }
     } catch (error: any) {
       if (
         this.state.loadingErrors.find(
@@ -1688,29 +1933,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
     const layerParams = layer.parameters as IVectorLayer | undefined;
-    if (!layerParams) {
-      return;
+    const ss = layerParams?.symbologyState;
+    if (!ss || Object.keys(ss).length === 0) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
-    // Extract feature values for the symbology attribute field if the source
-    // is already loaded (VectorSource/GeoJSON). For tile sources pass an empty
-    // array – the comment on buildVectorFlatStyle says this is acceptable.
-    const field = layerParams.symbologyState?.value;
-    const source = this._sources[layerParams.source];
-    const featureValues: unknown[] =
-      field && source instanceof VectorSource
-        ? source.getFeatures().map(f => (f as Feature).get(field))
-        : [];
+    const flatStyle = grammarToOLStyle(
+      layerParams.symbologyState as IGrammarSymbologyState,
+      [],
+    );
 
-    const layerStyle: Rule = {
-      style:
-        buildVectorFlatStyle(layerParams.symbologyState, featureValues) ??
-        DEFAULT_FLAT_STYLE,
-    };
+    const layerStyle: Rule = { style: flatStyle };
 
-    // User-applied attribute filters.
     if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
       const buildCondition = (filter: IJGISFilterItem): any[] => {
         const base = [filter.operator, ['get', filter.feature]];
@@ -1719,8 +1956,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           : [...base, filter.value];
       };
 
-      // 'Any' and 'All' operators require more than one argument
-      // So if there's only one filter, skip that part to avoid error
       layerStyle.filter =
         layer.filters.appliedFilters.length === 1
           ? buildCondition(layer.filters.appliedFilters[0])
@@ -1728,20 +1963,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               layer.filters.logicalOp,
               ...layer.filters.appliedFilters.map(buildCondition),
             ];
-    }
-
-    // When `fallbackColor` alpha is 0, exclude features that would render with
-    // the fallback color. This was previously done by introspecting the
-    // generated OL expressions; now the filter is derived directly from
-    // symbologyState (see styleBuilder.buildTransparentFallbackFilter).
-    const transparentFilter = buildTransparentFallbackFilter(
-      layerParams.symbologyState,
-      featureValues,
-    );
-    if (transparentFilter) {
-      layerStyle.filter = layerStyle.filter
-        ? ['all', layerStyle.filter, transparentFilter]
-        : transparentFilter;
     }
 
     return [layerStyle];
@@ -1814,13 +2035,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     switch (layer.type) {
       case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
       }
       case 'VectorLayer': {
         const layerParams = layer.parameters as IVectorLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
+        if (Array.isArray(layerParams.symbologyState?.layers)) {
+          // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
+          this.replaceLayer(id, layer);
+          break;
+        }
+
+        mapLayer.setOpacity(layerParams.opacity ?? 1);
 
         (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -1831,7 +2058,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'VectorTileLayer': {
         const layerParams = layer.parameters as IVectorTileLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
+        mapLayer.setOpacity(layerParams.opacity ?? 1);
 
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -1841,110 +2068,61 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'HillshadeLayer': {
         // TODO figure out color here
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 0.3);
         break;
       }
       case 'ImageLayer': {
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
       }
       case 'GeoTiffLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity);
-
-        if (layer?.parameters?.color) {
-          (mapLayer as GeoTiffLayer).setStyle({
-            color: layer.parameters.color,
-          });
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
+          this.replaceLayer(id, layer);
+        } else {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+          if (layer?.parameters?.color) {
+            (mapLayer as RasterLayer).setStyle({
+              color: layer.parameters.color,
+            });
+          }
         }
         break;
       }
-      case 'HeatmapLayer': {
-        const layerParams = layer.parameters as IHeatmapLayer;
-        const heatmap = mapLayer as HeatmapLayer;
+      case 'GeoZarrLayer': {
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
+          this.replaceLayer(id, layer);
+          break;
+        }
 
-        heatmap.setOpacity(layerParams.opacity ?? 1);
-        heatmap.setBlur(layerParams.blur ?? 15);
-        heatmap.setRadius(layerParams.radius ?? 8);
-        heatmap.setGradient(
-          layerParams.symbologyState?.gradient ?? [
-            '#00f',
-            '#0ff',
-            '#0f0',
-            '#ff0',
-            '#f00',
-          ],
-        );
+        if (layer?.parameters?.opacity !== undefined) {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+        }
 
-        this.handleTemporalController(id, layer);
+        const source = this._model.getSource(layer?.parameters?.source);
+        const bands = (source?.parameters as any)?.bands || [];
+
+        const style: any = {
+          color: layer.parameters?.color ?? buildZarrColorStyle(bands),
+          gamma: layer.parameters?.gamma ?? 1,
+        };
+
+        (mapLayer as RasterLayer).setStyle(style);
+
+        break;
+      }
+      case 'OpenEOTileLayer': {
+        const layerParams = layer.parameters as IOpenEOTileLayer;
+        const openeoLayer = mapLayer as OpenEOTileLayer;
+
+        openeoLayer.setOpacity(layerParams.opacity ?? 1);
 
         break;
       }
       case 'StacLayer':
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.parameters?.opacity ?? 1);
         break;
     }
   }
-
-  /**
-   * Heatmap layers don't work with style based filtering.
-   * This modifies the features in the underlying source
-   * to work with the temporal controller
-   */
-  handleTemporalController = (id: string, layer: IJGISLayer) => {
-    const selectedLayer = this._model?.localState?.selected?.value;
-
-    // Temporal Controller shouldn't be active if more than one layer is selected
-    if (!selectedLayer || Object.keys(selectedLayer).length !== 1) {
-      return;
-    }
-
-    const selectedLayerId = Object.keys(selectedLayer)[0];
-
-    // Don't do anything to unselected layers
-    if (selectedLayerId !== id) {
-      return;
-    }
-
-    const layerParams = layer.parameters as IHeatmapLayer;
-
-    const source: VectorSource = this._sources[layerParams.source];
-
-    if (layer.filters?.appliedFilters.length) {
-      // Heatmaps don't work with existing filter system so this should be fine
-      const activeFilter = layer.filters.appliedFilters[0];
-
-      // Save original features on first filter application
-      if (!Object.keys(this._originalFeatures).includes(id)) {
-        this._originalFeatures[id] = source.getFeatures() ?? [];
-      }
-
-      // clear current features
-      source.clear();
-
-      const startTime = activeFilter.betweenMin ?? 0;
-      const endTime = activeFilter.betweenMax ?? 1000;
-
-      const filteredFeatures = (this._originalFeatures[id] ?? []).filter(
-        feature => {
-          const featureTime = feature.get(activeFilter.feature);
-          return featureTime >= startTime && featureTime <= endTime;
-        },
-      );
-
-      // set state for restoration
-      this.setState(old => ({
-        ...old,
-        filterStates: {
-          ...this.state.filterStates,
-          [selectedLayerId]: activeFilter,
-        },
-      }));
-
-      source.addFeatures(filteredFeatures);
-    } else {
-      // Restore original features when no filters are applied
-      source.addFeatures(this._originalFeatures[id] ?? []);
-      delete this._originalFeatures[id];
-    }
-  };
 
   private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
@@ -1992,62 +2170,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
     });
 
-    if (!this._highlightLayer) {
-      this._highlightLayer = new VectorLayer({
-        source: new VectorSource(),
-        style: feature => {
-          const geomType = feature.getGeometry()?.getType();
-          switch (geomType) {
-            case 'Point':
-            case 'MultiPoint':
-              return new Style({
-                image: new Circle({
-                  radius: 6,
-                  fill: new Fill({
-                    color: 'rgba(255, 255, 0, 0.8)',
-                  }),
-                  stroke: new Stroke({
-                    color: '#ff0',
-                    width: 2,
-                  }),
-                }),
-              });
-            case 'LineString':
-            case 'MultiLineString':
-              return new Style({
-                stroke: new Stroke({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                  width: 3,
-                }),
-              });
-            case 'Polygon':
-            case 'MultiPolygon':
-              return new Style({
-                stroke: new Stroke({
-                  color: '#f00',
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: 'rgba(255, 255, 0, 0.8)',
-                }),
-              });
-            default:
-              return new Style({
-                stroke: new Stroke({
-                  color: '#000',
-                  width: 2,
-                }),
-              });
-          }
-        },
-        zIndex: 999,
-      });
-      this._Map.addLayer(this._highlightLayer);
-    }
-
-    const source = this._highlightLayer.getSource();
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     source?.addFeature(olFeature);
+  }
+
+  private _ensureHighlightLayer(): void {
+    ensureHighlightLayer(this._Map, this._highlightLayerRef);
+  }
+
+  /**
+   * Replace the highlight layer contents with pre-styled features.
+   * Each feature carries its own highlight style via feature.setStyle().
+   */
+  private _setHighlightFeatures(features: Feature[]): void {
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
+    source?.clear();
+    for (const f of features) {
+      source?.addFeature(f);
+    }
+  }
+
+  private _buildHighlightStyle(original: Style, geomType?: string): Style {
+    return buildHighlightStyle(original, geomType);
   }
 
   /**
@@ -2100,33 +2247,27 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return zoom ?? view.getZoom() ?? 0;
   }
 
-  private _getLayerCreatorId(layerId: string): number | undefined {
-    const states = this._model.sharedModel.awareness.getStates();
-
-    for (const [clientId, state] of states.entries()) {
-      if (state?.lastAddedLayer?.layerId === layerId) {
-        return clientId;
-      }
-    }
-
-    return undefined;
-  }
-
   /**
    * Track layer's extent and zoom in model's view state
    */
   private _trackLayerViewState(
     layerId: string,
-    olLayer: Layer,
-    shouldZoom = false,
+    olLayer: Layer | LayerGroup,
   ): void {
-    const source = olLayer.getSource();
+    const effectiveLayer =
+      olLayer instanceof LayerGroup
+        ? (olLayer.getLayers().getArray()[0] as Layer | undefined)
+        : olLayer;
+    if (!effectiveLayer) {
+      return;
+    }
+    const source = effectiveLayer.getSource();
     const sourceId = source?.get?.('id');
 
     let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
 
     if (!extent) {
-      extent = this._computeExtent(olLayer, source);
+      extent = this._computeExtent(effectiveLayer, source);
     }
 
     if (extent) {
@@ -2138,15 +2279,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       const view: IViewState[string] = { extent, zoom };
       this._model.updateLayerViewState(layerId, view);
-
-      if (shouldZoom) {
-        const creatorId = this._getLayerCreatorId(layerId);
-        const currentClientId = this._model.getClientId();
-
-        if (creatorId === currentClientId) {
-          this._model.centerOnPosition(layerId);
-        }
-      }
     }
   }
 
@@ -2269,7 +2401,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._previousDrawLayerID = selectedLayerId;
-    this._currentDrawLayerID = selectedLayerId;
+    this._setCurrentDrawLayerId(selectedLayerId);
     this._editVectorLayer();
   };
 
@@ -2320,7 +2452,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !!selectedLayers &&
       Object.keys(selectedLayers).length === 1 &&
       !this._model.getSource(selectedLayerId!) &&
-      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
+      layerType === 'VectorLayer';
     const displayTemporalController =
       isTemporalControllerActive && isSelectionValid;
 
@@ -2439,24 +2571,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState(old => ({ ...old, clientPointers }));
   }
 
+  private _onStoryPreviewActiveChanged = (): void => {
+    this.setState({
+      isSpectaPresentation: this._model.isStoryPresentationActive(),
+    });
+  };
+
   private _onSharedOptionsChanged(): void {
     if (!this._Map) {
       return;
     }
 
-    // ! would prefer a model ready signal or something, this feels hacky
-    const enableSpectaPresentation = this._model.isSpectaMode();
-
-    // Handle initialization based on specta presentation state
-    if (!this._isSpectaPresentationInitialized) {
-      if (enableSpectaPresentation) {
-        // _setupSpectaMode will be called in componentDidUpdate when state changes
-        this.setState(old => ({ ...old, isSpectaPresentation: true }));
-      } else {
-        // Add context menu when not in specta mode
-        this.addContextMenu();
-        this._isSpectaPresentationInitialized = true;
-      }
+    if (!this._contextMenuAttached && !this._model.isSpectaMode()) {
+      this.addContextMenu();
+      this._contextMenuAttached = true;
     }
 
     if (!this._isPositionInitialized) {
@@ -2679,6 +2807,44 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
   }
 
+  /**
+   * Rebuild every OpenEO tile source in this document whose `serverUrl`
+   * matches the freshly-signed-in server. Called when the shared
+   * `openEOEvents.connected` signal fires (i.e. right after `connect()`
+   * caches a new live connection). Without this, layers created before
+   * the user signed in stay broken because their constructor already
+   * threw on the empty cache.
+   */
+  private _onOpenEOConnected(
+    _: unknown,
+    { serverUrl }: { serverUrl: string },
+  ): void {
+    if (!this._ready) {
+      return;
+    }
+    const sources = this._model.sharedModel.sources ?? {};
+    for (const [sourceId, source] of Object.entries(sources)) {
+      if (source?.type !== 'OpenEOTileSource') {
+        continue;
+      }
+      const sourceServerUrl = (source.parameters as any)?.serverUrl as
+        | string
+        | undefined;
+      if (!sourceServerUrl) {
+        continue;
+      }
+      // Match the normalization `connect()` does so a saved `localhost:8080`
+      // matches the live connection at `https://localhost:8080`.
+      const normalize = (u: string) =>
+        u.match(/^https?:\/\//i) ? u : `https://${u}`;
+      if (normalize(sourceServerUrl) === normalize(serverUrl)) {
+        // updateSource removes the OL source and reconstructs it; the new
+        // OpenEOTileSource finds the cached connection and renders.
+        void this.updateSource(sourceId, source);
+      }
+    }
+  }
+
   private _onSourcesChange(
     _: IJupyterGISDoc,
     change: IJGISSourceDocChange,
@@ -2725,8 +2891,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _clearHighlightWhenIdentifyDisabled(): void {
-    if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
-      this._highlightLayer.getSource()?.clear();
+    if (
+      this._model.currentMode !== 'identifying' &&
+      this._highlightLayerRef.current
+    ) {
+      this._highlightLayerRef.current?.getSource()?.clear();
     }
   }
 
@@ -2743,6 +2912,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Updates specta state and presentation colors when story data becomes available.
    */
   private _setupSpectaMode = (): void => {
+    this._cleanupStoryScrollListener();
     this._removeAllInteractions();
     this._setupStoryScrollListener();
 
@@ -2753,6 +2923,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _removeAllInteractions = (): void => {
+    if (!this._Map) {
+      return;
+    }
+
     // Remove all default interactions
     const interactions = this._Map.getInteractions();
     const interactionArray = interactions.getArray();
@@ -2772,16 +2946,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       Select,
     ];
 
-    this._zoomControl && this._Map.removeControl(this._zoomControl);
+    this._spectaRemovedInteractions = [];
 
     interactionsToRemove.forEach(InteractionClass => {
       const interaction = interactionArray.find(
         interaction => interaction instanceof InteractionClass,
       );
       if (interaction) {
+        this._spectaRemovedInteractions.push(interaction);
         this._Map.removeInteraction(interaction);
       }
     });
+
+    if (this._zoomControl) {
+      this._spectaZoomControlWasRemoved = true;
+      this._Map.removeControl(this._zoomControl);
+    } else {
+      this._spectaZoomControlWasRemoved = false;
+    }
+  };
+
+  private _restoreMapInteractions = (): void => {
+    if (!this._Map) {
+      return;
+    }
+
+    for (const interaction of this._spectaRemovedInteractions) {
+      this._Map.addInteraction(interaction);
+    }
+    this._spectaRemovedInteractions = [];
+
+    if (this._spectaZoomControlWasRemoved && this._zoomControl) {
+      this._Map.addControl(this._zoomControl);
+      this._spectaZoomControlWasRemoved = false;
+    }
   };
 
   private _setupStoryScrollListener = (): void => {
@@ -2793,20 +2991,54 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._clearStoryScrollGuard = clearGuard;
 
     let accumulatedDeltaY = 0;
-    let scrollContainer: HTMLDivElement | null =
-      this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+    let scrollContainer: HTMLDivElement | null = null;
+
+    const resolveStoryScrollContainer = (): HTMLDivElement | null => {
+      const fromStageHost = this.storyScrollContainerRef.current;
+
+      if (fromStageHost && document.contains(fromStageHost)) {
+        return fromStageHost;
+      }
+
+      const fromPanel =
+        this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+
+      if (fromPanel && document.contains(fromPanel)) {
+        return fromPanel;
+      }
+
+      return null;
+    };
+
+    scrollContainer = resolveStoryScrollContainer();
 
     const processStoryScrollFrame = (): void => {
       this._pendingStoryScrollRafId = null;
 
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer = resolveStoryScrollContainer();
+      }
+
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !scrollContainer) {
+      const storyType = this._model.getSelectedStory().story?.storyType;
+
+      if (!scrollContainer) {
         accumulatedDeltaY = 0;
         return;
       }
 
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
+
+      // Don't want to handle next/prev logic in list mode
+      if (isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
+        scrollContainer.scrollBy({ top: deltaY });
+        return;
+      }
+
+      if (!currentPanelHandle) {
+        return;
+      }
 
       const isScrollingUp = deltaY < 0;
       const isScrollingDown = deltaY > 0;
@@ -2836,11 +3068,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     const handleScroll = (event: Event) => {
+      const wheelEvent = event as WheelEvent;
+
       event.preventDefault();
 
       if (!scrollContainer || !document.contains(scrollContainer)) {
-        scrollContainer =
-          this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+        scrollContainer = resolveStoryScrollContainer();
       }
       if (!scrollContainer) {
         return;
@@ -2849,7 +3082,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       // frames on slow hardware). We accumulate deltaY and run flush once per
       // frame via rAF—the frame boundary batches events without adding delay.
       // So one scroll means one segment/scroll decision.
-      accumulatedDeltaY += (event as WheelEvent).deltaY;
+      accumulatedDeltaY += wheelEvent.deltaY;
       if (this._pendingStoryScrollRafId === null) {
         this._pendingStoryScrollRafId = requestAnimationFrame(
           processStoryScrollFrame,
@@ -2858,8 +3091,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     };
 
     this._storyScrollHandler = handleScroll;
-    const container = document.querySelector('.jGIS-Mainview-Container');
+    const container = this.props.containerRef.current;
     if (container) {
+      this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
     }
   };
@@ -2869,45 +3103,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       cancelAnimationFrame(this._pendingStoryScrollRafId);
       this._pendingStoryScrollRafId = null;
     }
-    if (this._storyScrollHandler) {
-      const containerElement = document.querySelector(
-        '.jGIS-Mainview-Container',
+    if (this._storyScrollHandler && this._storyScrollContainerEl) {
+      this._storyScrollContainerEl.removeEventListener(
+        'wheel',
+        this._storyScrollHandler,
       );
-      if (containerElement) {
-        containerElement.removeEventListener('wheel', this._storyScrollHandler);
-      }
       this._storyScrollHandler = null;
+      this._storyScrollContainerEl = null;
     }
   };
 
-  private _onSharedMetadataChanged = (
-    _: IJupyterGISModel,
-    changes: MapChange,
-  ) => {
+  private _teardownSpectaMode = (): void => {
+    this._cleanupStoryScrollListener();
+    this._restoreMapInteractions();
+  };
+
+  private _onAnnotationsChanged = (_: IJupyterGISModel, changes: MapChange) => {
     const newState = { ...this.state.annotations };
     changes.forEach((val, key) => {
-      if (!key.startsWith('annotation')) {
-        return;
-      }
-      const data = this._model.sharedModel.getMetadata(key);
+      const data = this._model.sharedModel.getAnnotation(key);
 
       if (data && (val.action === 'add' || val.action === 'update')) {
-        let jsonData: IAnnotation;
-        if (typeof data === 'string') {
-          try {
-            jsonData = JSON.parse(data);
-          } catch (e) {
-            this._log(
-              'warning',
-              `Failed to parse annotation data for ${key}: ${e}`,
-            );
-            return;
-          }
-        } else {
-          jsonData = data;
-        }
-
-        newState[key] = jsonData;
+        newState[key] = data;
       } else if (val.action === 'delete') {
         delete newState[key];
       }
@@ -3084,6 +3301,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         return;
       }
+
+      // Generic layer whose OpenLayers layer hasn't been created yet (e.g. a
+      // layer just added via the Python API with zoom_to=True). Remember the
+      // request and retry once the layer has been added to the map.
+      if (jgisLayer) {
+        this._pendingZoomLayerId = id;
+        return;
+      }
     }
 
     const extent = this._computeExtent(layer, source);
@@ -3231,7 +3456,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const layerParams: IVectorLayer = {
       opacity: 1.0,
       source: sourceId,
-      symbologyState: { renderType: 'Single Symbol' },
+      symbologyState: { layers: [] },
     };
 
     const sourceModel: IJGISSource = {
@@ -3274,6 +3499,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
+      case 'VectorLayer':
+        // Handled by selectInteraction (createSelectInteraction).
+        break;
+
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: IIdentifiedFeatureEntry[] = [];
@@ -3299,10 +3528,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
-              this._featurePropertyCache.set(fid, props);
+              this._featureAttributeCache.set(fid, props);
             }
-          } else if (fid !== null && this._featurePropertyCache.has(fid)) {
-            props = this._featurePropertyCache.get(fid);
+          } else if (fid !== null && this._featureAttributeCache.has(fid)) {
+            props = this._featureAttributeCache.get(fid);
           }
 
           if (geom) {
@@ -3343,8 +3572,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         break;
       }
 
-      case 'GeoTiffLayer': {
-        const layer = this.getLayer(layerId) as GeoTiffLayer;
+      case 'GeoTiffLayer':
+      case 'GeoZarrLayer': {
+        const layer = this.getLayer(layerId) as RasterLayer;
         const data = layer.getData(e.pixel);
 
         // TODO: Handle dataviews?
@@ -3440,6 +3670,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _handleSegmentTransitionChange = (
+    payload: IListStorySegmentTransition | null,
+  ): void => {
+    this.setState({ segmentTransition: payload });
+  };
+
   private _handleSpectaTouchStart = (e: React.TouchEvent): void => {
     if (e.touches.length > 0) {
       this._spectaTouchStartX = e.touches[0].clientX;
@@ -3480,15 +3716,34 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (editingVectorLayer === false && this._draw) {
       this._removeDrawInteraction();
-      this._currentDrawLayerID = undefined;
+      this._setCurrentDrawLayerId(undefined);
     }
+  }
+
+  private _setCurrentDrawLayerId(layerId: string | undefined): void {
+    this._currentDrawLayerID = layerId;
+    this.setState(old =>
+      old.currentDrawLayerId === layerId
+        ? old
+        : { ...old, currentDrawLayerId: layerId },
+    );
   }
 
   private _handleDrawGeometryTypeChange = (
     /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
-    event: React.ChangeEvent<HTMLSelectElement>,
+    drawGeometryLabel: string,
   ) => {
-    const drawGeometryLabel = event.target.value;
+    // Clicking the active geometry toggles drawing off.
+    if (this._currentDrawGeometry === drawGeometryLabel) {
+      this._currentDrawGeometry = undefined;
+      this._removeInteractions();
+
+      this.setState(old => ({
+        ...old,
+        drawGeometryLabel: '',
+      }));
+      return;
+    }
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
 
@@ -3524,7 +3779,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const selectedLayerID = Object.keys(selectedLayers)[0];
-    this._currentDrawLayerID = selectedLayerID;
+    this._setCurrentDrawLayerId(selectedLayerID);
 
     const JGISLayer = this._model.getLayer(selectedLayerID);
     this._currentDrawSourceID = (JGISLayer as any)?.parameters?.source;
@@ -3579,7 +3834,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  _updateInteractions = () => {
+  _removeInteractions = () => {
     if (this._draw) {
       this._removeDrawInteraction();
     }
@@ -3594,6 +3849,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (this._snap) {
       this._removeSnapInteraction();
+    }
+  };
+
+  _updateInteractions = () => {
+    this._removeInteractions();
+
+    if (!this._currentDrawGeometry) {
+      return;
     }
 
     this._draw = new Draw({
@@ -3627,7 +3890,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', this._model.getClientId().toString());
     feature.set('_fromDrawTool', true);
-    feature.set('Label', 'New Label');
+
+    const layerId = this._currentDrawLayerID;
+    const customAttributes = layerId
+      ? this._model.getDrawCustomAttributes(layerId)
+      : [];
+    applyDrawCustomAttributesToFeature(feature, customAttributes);
   };
 
   _editVectorLayer = () => {
@@ -3680,189 +3948,154 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.updateSource(id, source);
   };
 
+  private _renderAnnotationFloaters(): React.ReactNode {
+    const annotationModel = this._model.annotationModel;
+    if (!annotationModel) {
+      return null;
+    }
+
+    return Object.entries(this.state.annotations).map(([key, annotation]) => {
+      const screenPosition = this._computeAnnotationPosition(annotation);
+      if (!screenPosition) {
+        return null;
+      }
+
+      return (
+        <PositionedFloater
+          key={key}
+          id={key}
+          className="jGIS-Popup-Wrapper"
+          left={screenPosition.x}
+          top={screenPosition.y}
+        >
+          <AnnotationFloater itemId={key} annotationModel={annotationModel} />
+        </PositionedFloater>
+      );
+    });
+  }
+
+  private _renderFeatureFloaters(): React.ReactNode {
+    return this._getVisibleDrawIdentifiedFeatures().map(
+      ([floaterKey, feature]) => {
+        const screenPosition = this._computeFeatureFloaterPosition(feature);
+        if (!screenPosition) {
+          return null;
+        }
+
+        const id = `feature-floater-${floaterKey}`;
+        return (
+          <PositionedFloater
+            key={id}
+            id={id}
+            className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
+            left={screenPosition.x}
+            top={screenPosition.y}
+          >
+            <FeatureFloater feature={feature} />
+          </PositionedFloater>
+        );
+      },
+    );
+  }
+
   render(): JSX.Element {
+    const {
+      clientPointers,
+      displayTemporalController,
+      drawGeometryLabel,
+      editingVectorLayer,
+      currentDrawLayerId,
+      filterStates,
+      initialLayersReady,
+      isSpectaPresentation,
+      jgisSettings,
+      loading,
+      loadingLayer,
+      remoteUser,
+      scale,
+      segmentTransition,
+      viewProjection,
+    } = this.state;
+    const { isMobile } = this.props;
+    const selectedStory = this._model.getSelectedStory().story;
+    const storyPresentationMode = isSpectaPresentation
+      ? getStoryPresentationMode(selectedStory?.storyType)
+      : 'column';
+    const showSidePanels = !isSpectaPresentation;
+    const showMergedMobilePanel =
+      isMobile &&
+      Boolean(this._state) &&
+      Boolean(this._formSchemaRegistry) &&
+      Boolean(this._annotationModel);
+    const spectaMobileTouch = isSpectaPresentation && isMobile;
+
     return (
       <>
-        {Object.entries(this.state.annotations).map(([key, annotation]) => {
-          if (!this._model.annotationModel) {
-            return null;
-          }
-          const screenPosition = this._computeAnnotationPosition(annotation);
-          return (
-            screenPosition && (
-              <div
-                key={key}
-                id={key}
-                style={{
-                  left: screenPosition.x,
-                  top: screenPosition.y,
-                }}
-                className={'jGIS-Popup-Wrapper'}
-              >
-                <AnnotationFloater
-                  itemId={key}
-                  annotationModel={this._model.annotationModel}
+        <MainViewOverlayLayer
+          annotationFloaters={this._renderAnnotationFloaters()}
+          featureFloaters={this._renderFeatureFloaters()}
+          editingVectorLayer={editingVectorLayer}
+          drawGeometryLabel={drawGeometryLabel}
+          drawLayerId={currentDrawLayerId}
+          onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
+          model={this._model}
+        />
+
+        <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
+          {displayTemporalController ? (
+            <TemporalSlider model={this._model} filterStates={filterStates} />
+          ) : null}
+          <MainViewMapSurface
+            mainViewRef={this.mainViewRef}
+            loading={loading}
+            remoteUser={remoteUser}
+            clientPointers={clientPointers}
+            spectaMobileTouch={spectaMobileTouch}
+            onTouchStart={this._handleSpectaTouchStart}
+            onTouchEnd={this._handleSpectaTouchEnd}
+          >
+            <MainViewStoryStage
+              model={this._model}
+              storyPresentationMode={storyPresentationMode}
+              isMobile={isMobile}
+              segmentTransition={segmentTransition}
+              initialLayersReady={initialLayersReady}
+              isSpectaPresentation={isSpectaPresentation}
+              stageRef={this.divRef}
+              controlsToolbarRef={this.controlsToolbarRef}
+              storyScrollContainerRef={this.storyScrollContainerRef}
+              columnPanelContainerRef={this.spectaContainerRef}
+              storyViewerPanelRef={this.storyViewerPanelRef}
+              addLayer={this._addLayerForPanels}
+              removeLayer={this._removeLayerForPanels}
+              onSegmentTransitionChange={this._handleSegmentTransitionChange}
+              onSegmentTransitionEnd={this._clearStoryScrollGuard}
+            />
+            {showSidePanels ? (
+              <div className="jgis-panels-wrapper">
+                <MainViewSidePanels
+                  model={this._model}
+                  commands={this._mainViewModel.commands}
+                  settings={jgisSettings}
+                  showMergedMobilePanel={showMergedMobilePanel}
+                  state={this._state}
+                  formSchemaRegistry={this._formSchemaRegistry}
+                  annotationModel={this._annotationModel}
+                  patchGeoJSONFeatureAttributes={
+                    this._patchGeoJSONFeatureAttributes
+                  }
                 />
               </div>
-            )
-          );
-        })}
-        {this._getVisibleDrawIdentifiedFeatures().map(
-          ([floaterKey, feature]) => {
-            const screenPosition = this._computeFeatureFloaterPosition(feature);
-            if (!screenPosition) {
-              return null;
-            }
-
-            return (
-              <div
-                key={`feature-floater-${floaterKey}`}
-                id={`feature-floater-${floaterKey}`}
-                style={{
-                  left: screenPosition.x,
-                  top: screenPosition.y,
-                }}
-                className="jGIS-Popup-Wrapper jGIS-FeatureFloater-Wrapper"
-              >
-                <FeatureFloater feature={feature} />
-              </div>
-            );
-          },
-        )}
-
-        {this.state.editingVectorLayer && (
-          <div className="jgis-geometry-type-selector-overlay">
-            <select
-              className="geometry-type-selector"
-              id="geometry-type-selector"
-              value={this.state.drawGeometryLabel ?? ''}
-              onChange={this._handleDrawGeometryTypeChange}
-            >
-              <option value="" disabled hidden>
-                Geometry type
-              </option>
-              {DRAW_GEOMETRIES.map(geometryType => (
-                <option key={geometryType} value={geometryType}>
-                  {geometryType}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div className="jGIS-Mainview-Container">
-          {this.state.displayTemporalController && (
-            <TemporalSlider
-              model={this._model}
-              filterStates={this.state.filterStates}
-            />
-          )}
-          <div
-            ref={this.mainViewRef}
-            className="jGIS-Mainview data-jgis-keybinding"
-            tabIndex={0}
-            style={{
-              border: this.state.remoteUser
-                ? `solid 3px ${this.state.remoteUser.color}`
-                : 'unset',
-            }}
-            onTouchStart={
-              this.state.isSpectaPresentation && this.props.isMobile
-                ? this._handleSpectaTouchStart
-                : undefined
-            }
-            onTouchEnd={
-              this.state.isSpectaPresentation && this.props.isMobile
-                ? this._handleSpectaTouchEnd
-                : undefined
-            }
-          >
-            <LoadingOverlay loading={this.state.loading} />
-            <FollowIndicator remoteUser={this.state.remoteUser} />
-            <CollaboratorPointers clients={this.state.clientPointers} />
-
-            <div
-              ref={this.divRef}
-              style={{
-                width: '100%',
-                height: '100%',
-              }}
-            >
-              <div className="jgis-panels-wrapper">
-                {!this.state.isSpectaPresentation ? (
-                  <>
-                    {this.props.isMobile &&
-                    this._state &&
-                    this._formSchemaRegistry &&
-                    this._annotationModel ? (
-                      <MergedPanel
-                        model={this._model}
-                        commands={this._mainViewModel.commands}
-                        state={this._state}
-                        settings={this.state.jgisSettings}
-                        formSchemaRegistry={this._formSchemaRegistry}
-                        annotationModel={this._annotationModel}
-                        addLayer={this.addLayer.bind(this)}
-                        removeLayer={this.removeLayer.bind(this)}
-                      />
-                    ) : (
-                      <>
-                        {this._state && (
-                          <LeftPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            state={this._state}
-                            settings={this.state.jgisSettings}
-                          />
-                        )}
-                        {this._formSchemaRegistry && this._annotationModel && (
-                          <RightPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            formSchemaRegistry={this._formSchemaRegistry}
-                            annotationModel={this._annotationModel}
-                            addLayer={this.addLayer.bind(this)}
-                            removeLayer={this.removeLayer.bind(this)}
-                            settings={this.state.jgisSettings}
-                            patchGeoJSONFeatureProperties={
-                              this._patchGeoJSONFeatureProperties
-                            }
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  this.state.initialLayersReady && (
-                    <SpectaPanel
-                      model={this._model}
-                      isSpecta={this.state.isSpectaPresentation}
-                      isMobile={this.props.isMobile}
-                      onSegmentTransitionEnd={() =>
-                        this._clearStoryScrollGuard()
-                      }
-                      containerRef={this.spectaContainerRef}
-                      storyViewerPanelRef={this.storyViewerPanelRef}
-                      addLayer={this.addLayer.bind(this)}
-                      removeLayer={this.removeLayer.bind(this)}
-                    />
-                  )
-                )}
-              </div>
-              <div
-                ref={this.controlsToolbarRef}
-                className="jgis-controls-toolbar"
-              ></div>
-            </div>
-          </div>
-          {!this.state.isSpectaPresentation && (
+            ) : null}
+          </MainViewMapSurface>
+          {!isSpectaPresentation ? (
             <StatusBar
               jgisModel={this._model}
-              loading={this.state.loadingLayer}
-              projection={this.state.viewProjection}
-              scale={this.state.scale}
+              loading={loadingLayer}
+              projection={viewProjection}
+              scale={scale}
             />
-          )}
+          ) : null}
         </div>
       </>
     );
@@ -3876,6 +4109,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
+  private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
@@ -3886,8 +4120,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
+  private _pendingZoomLayerId: string | null = null;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
-  private _highlightLayer: VectorLayer<VectorSource>;
+  private _highlightLayerRef: {
+    current: VectorImageLayer<VectorSource> | null;
+  } = { current: null };
   private _draw: Draw;
   private _snap: Snap;
   private _modify: Modify;
@@ -3897,13 +4134,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentDrawSource: IJGISSource | undefined;
   private _currentVectorSource: VectorSource | undefined;
   private _currentDrawSourceID: string | undefined;
-  private _currentDrawGeometry: Type;
+  private _currentDrawGeometry: Type | undefined;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
-  private _patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
+  private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
+    this.addLayer(id, layer, index);
+  private _removeLayerForPanels = (id: string) => this.removeLayer(id);
+  private _patchGeoJSONFeatureAttributes: PatchGeoJSONFeatureAttributes;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -3928,9 +4168,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       .log({ type: 'text', level, data: message });
   }
 
-  private _featurePropertyCache: Map<string | number, any> = new Map();
-  private _isSpectaPresentationInitialized = false;
+  private _featureAttributeCache: Map<string | number, any> = new Map();
+  private _contextMenuAttached = false;
+  private _spectaModeSetupDone = false;
+  private _spectaRemovedInteractions: Interaction[] = [];
+  private _spectaZoomControlWasRemoved = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _storyScrollContainerEl: HTMLDivElement | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
@@ -3938,10 +4182,39 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 }
 
 // ! TODO make mainview a modern react component instead of a class
-/** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
-function MainViewWithMediaQuery(props: Omit<IMainViewProps, 'isMobile'>) {
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  return <MainView {...props} isMobile={isMobile} />;
+/* thin React wrapper to resize the panels on window resize with the help of ResizeObserver */
+function MainViewWithObserver(
+  props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
+) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const update = (width: number) => {
+      const narrow = width < 960;
+      setIsMobile(narrow);
+      container.classList.toggle('jgis-narrow', narrow);
+    };
+
+    // Initial sync
+    update(container.clientWidth);
+
+    const observer = new ResizeObserver(([entry]) => {
+      update(entry.contentRect.width);
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
+  );
 }
 
-export { MainViewWithMediaQuery };
+export { MainViewWithObserver };

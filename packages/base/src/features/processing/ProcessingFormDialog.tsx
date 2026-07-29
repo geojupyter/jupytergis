@@ -5,8 +5,10 @@ import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
 import type { IBaseFormProps } from '@/src/types';
+import { ClipRasterByExtentForm } from './forms/clipRasterByExtentForm';
 import { DissolveForm } from './forms/dissolveProcessForm';
 import { DefaultProcessingForm } from './forms/processingForm';
+import { RasterizeForm } from './forms/rasterizeForm';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
@@ -51,6 +53,12 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
     case 'Dissolve':
       FormComponent = DissolveForm;
       break;
+    case 'Rasterize':
+      FormComponent = RasterizeForm;
+      break;
+    case 'ClipRasterByExtent':
+      FormComponent = ClipRasterByExtentForm;
+      break;
     default:
       FormComponent = DefaultProcessingForm;
   }
@@ -82,6 +90,10 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       label: layers[layerId].name,
     }));
 
+    const vectorLayerOptions = Object.keys(layers)
+      .filter(layerId => layers[layerId].type === 'VectorLayer')
+      .map(layerId => ({ value: layerId, label: layers[layerId].name }));
+
     // Modify schema to include layer options and layer name field
     if (options.schema) {
       if (options.schema.properties?.inputLayer) {
@@ -93,12 +105,28 @@ export class ProcessingFormDialog extends Dialog<IDict> {
         );
       }
 
-      // Ensure outputLayerName field exists in schema
-      if (!options.schema.properties?.outputLayerName) {
+      if (options.schema.properties?.clipLayer) {
+        const selectedInputLayer = options.sourceData?.inputLayer;
+        const clipLayerOptions = selectedInputLayer
+          ? vectorLayerOptions.filter(o => o.value !== selectedInputLayer)
+          : vectorLayerOptions;
+        options.schema.properties.clipLayer.enum = clipLayerOptions.map(
+          option => option.value,
+        );
+        options.schema.properties.clipLayer.enumNames = clipLayerOptions.map(
+          option => option.label,
+        );
+      }
+
+      // Ensure outputLayerName field exists in schema. Skip if the schema
+      // already produces a file output (e.g. raster outputs use outputFileName).
+      if (
+        !options.schema.properties?.outputLayerName &&
+        !options.schema.properties?.outputFileName
+      ) {
         options.schema.properties.outputLayerName = {
           type: 'string',
-          title: 'outputLayerName',
-          // default: ''
+          title: 'Output Layer Name',
         };
       }
     }
@@ -113,20 +141,12 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       Signal<Dialog<IDict>, boolean>
     >();
 
-    // Custom syncData function to update layer name in the model
     const syncData = (props: IDict) => {
-      if (
-        props.outputLayerName &&
-        props.inputLayer &&
-        layers[props.inputLayer]
-      ) {
-        layers[props.inputLayer].name = props.outputLayerName;
-      }
       options.syncData(props);
     };
 
     const body = (
-      <div style={{ overflow: 'hidden' }}>
+      <div style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <ProcessingFormWrapper
           {...options}
           filePath={filePath}

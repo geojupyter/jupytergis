@@ -10,6 +10,11 @@
 import fs from 'fs';
 import path from 'path';
 
+// Stub UUID so grammar migration fixtures contain deterministic rule ids.
+jest.mock('@lumino/coreutils', () => ({
+  UUID: { uuid4: () => 'test-uuid' },
+}));
+
 import { migrateDocument } from '../../../schema/src/migrations';
 
 const FIXTURES_ROOT = path.resolve(
@@ -50,7 +55,8 @@ describe('document migrations', () => {
             const expected = JSON.parse(
               fs.readFileSync(path.join(FIXTURES_ROOT, toV, name), 'utf8'),
             );
-            expect(migrateDocument(doc)).toEqual(expected);
+            const toVersion = toV.replace(/^v/, ''); // "v0.6.0" → "0.6.0"
+            expect(migrateDocument(doc, toVersion)).toEqual(expected);
           });
         }
       }

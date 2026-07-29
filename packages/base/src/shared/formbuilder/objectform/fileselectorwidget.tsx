@@ -1,0 +1,176 @@
+import { Dialog } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
+import { FileDialog } from '@jupyterlab/filebrowser';
+import React, { useState, useEffect, useRef } from 'react';
+
+import { LayerCreationFormDialog } from '@/src/features/layers/layerCreationFormDialog';
+
+export const FileSelectorWidget: React.FC<any> = props => {
+  const { options } = props;
+  const { docManager, formOptions } = options;
+
+  const [serverFilePath, setServerFilePath] = useState('');
+  const [urlPath, setUrlPath] = useState('');
+  const isTypingURL = useRef(false); // Tracks whether the user is manually typing a URL
+
+  useEffect(() => {
+    if (!isTypingURL.current && props.value) {
+      if (
+        props.value.startsWith('http://') ||
+        props.value.startsWith('https://')
+      ) {
+        setUrlPath(props.value);
+        setServerFilePath('');
+      } else {
+        setServerFilePath(props.value);
+        setUrlPath('');
+      }
+    }
+  }, [props.value]);
+
+  const handleBrowseServerFiles = async () => {
+    try {
+      // Only the creation flow provides `dialogOptions`.
+      const isCreationDialog = Boolean(formOptions.dialogOptions);
+
+      const dialogElement = document.querySelector('dialog[aria-modal="true"]');
+      const dialogInstance = dialogElement
+        ? (Dialog.tracker.find(dialog => dialog.node === dialogElement) ?? null)
+        : null;
+
+      // Editing an existing object inside the Layer Properties dialog.
+      const isEditDialog = !isCreationDialog && dialogInstance !== null;
+
+      // JupyterLab serializes dialogs, so close the open one before the file
+      // browser can appear; reopen it afterwards.
+      dialogInstance?.resolve(0);
+
+      const output = await FileDialog.getOpenFiles({
+        title: `Select ${formOptions.sourceType.split('Source')[0]} File`,
+        manager: docManager,
+      });
+
+      if (output.value && output.value.length > 0) {
+        const selectedFilePath = output.value[0].path;
+
+        const relativePath = PathExt.relative(
+          PathExt.dirname(formOptions.filePath),
+          selectedFilePath,
+        );
+
+        setServerFilePath(relativePath);
+        setUrlPath('');
+        props.onChange(relativePath);
+        const fileName =
+          relativePath
+            .split('/')
+            .pop()
+            ?.replace(/\.[^.]+$/, '') ?? '';
+        if (fileName && formOptions.dialogOptions?.layerData) {
+          formOptions.dialogOptions.layerData.name = fileName;
+        }
+
+        if (isCreationDialog) {
+          if (formOptions.sourceType === 'GeoTiffSource') {
+            formOptions.dialogOptions.sourceData = {
+              ...formOptions.sourceData,
+              urls: formOptions.dialogOptions.sourceData.urls.map(
+                (urlObject: any) => {
+                  return {
+                    ...urlObject,
+                    url: relativePath,
+                  };
+                },
+              ),
+            };
+          } else {
+            formOptions.dialogOptions.sourceData = {
+              ...formOptions.sourceData,
+              path: relativePath,
+            };
+          }
+
+          const formDialog = new LayerCreationFormDialog({
+            ...formOptions.dialogOptions,
+          });
+          await formDialog.launch();
+        } else if (isEditDialog) {
+          // Widget is unmounted, so persist directly then reopen the dialog.
+          const newParameters =
+            formOptions.sourceType === 'GeoTiffSource'
+              ? {
+                  urls: (formOptions.sourceData?.urls ?? []).map(
+                    (urlObject: any) => ({ ...urlObject, url: relativePath }),
+                  ),
+                }
+              : { path: relativePath };
+          formOptions.syncData?.(newParameters);
+
+          await reopenPropertiesDialog();
+        }
+      } else if (isCreationDialog) {
+        const formDialog = new LayerCreationFormDialog({
+          ...formOptions.dialogOptions,
+        });
+        await formDialog.launch();
+      } else if (isEditDialog) {
+        // Cancelled: reopen the properties dialog unchanged.
+        await reopenPropertiesDialog();
+      }
+    } catch (e) {
+      console.error('Error handling file dialog:', e);
+    }
+  };
+
+  // Lazy import avoids a circular dependency with the dialog module.
+  const reopenPropertiesDialog = async () => {
+    const { ObjectPropertiesWidget } =
+      await import('@/src/features/objectproperties/objectPropertiesDialog');
+    await new ObjectPropertiesWidget({
+      model: formOptions.model,
+      formSchemaRegistry: formOptions.formSchemaRegistry,
+    }).launch();
+  };
+
+  const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const url = event.target.value.trim();
+    isTypingURL.current = true;
+    setUrlPath(url);
+    setServerFilePath('');
+    props.onChange(url);
+  };
+
+  const handleURLBlur = () => {
+    isTypingURL.current = false;
+  };
+
+  return (
+    <div>
+      <div className="file-container">
+        <button
+          type="button"
+          className="jp-mod-styled"
+          onClick={handleBrowseServerFiles}
+        >
+          Browse Server Files
+        </button>
+        <p>{serverFilePath || ''}</p>
+      </div>
+
+      <div>
+        <h3 className="jp-FormGroup-fieldLabel jp-FormGroup-contentItem">
+          Or enter external URL
+        </h3>
+        <input
+          type="text"
+          id="root_path"
+          className="jp-mod-styled"
+          onChange={handleURLChange}
+          onBlur={handleURLBlur}
+          value={urlPath || ''}
+          style={{ width: '100%' }}
+        />
+      </div>
+    </div>
+  );
+};

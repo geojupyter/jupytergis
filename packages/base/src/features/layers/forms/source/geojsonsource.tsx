@@ -5,13 +5,13 @@ import { UiSchema } from '@rjsf/utils';
 import { Ajv, type ValidateFunction } from 'ajv';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
-import { FileSelectorWidget } from '@/src/formbuilder/objectform/fileselectorwidget';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
+import { FileSelectorWidget } from '@/src/shared/formbuilder/objectform/fileselectorwidget';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, loadFile } from '@/src/tools';
 import type { ISourceFormProps } from './sourceform';
 

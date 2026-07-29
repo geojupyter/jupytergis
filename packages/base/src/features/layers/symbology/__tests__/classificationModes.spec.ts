@@ -1,9 +1,6 @@
 // geotiff pulls in quick-lru (ESM-only); mock it since GeoTIFF classification
 // is not under test here.
 jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
-// SingleBandPseudoColor imports OpenLayers (ESM); only its TypeScript type is
-// used in classificationModes so mock the whole module to avoid pulling in OL.
-jest.mock('../tiff_layer/types/SingleBandPseudoColor', () => ({}));
 
 import { VectorClassifications } from '../classificationModes';
 

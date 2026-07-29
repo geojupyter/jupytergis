@@ -25,7 +25,7 @@ JupyterGIS is a monorepo containing TypeScript and Python packages.
 
 TypeScript packages live in the `packages/` directory.
 
-If you change anything about TypeScript packages, you'll need to rebuild with `jlpm run
+If you change anything about TypeScript packages, you'll need to rebuild with `pnpm run
 build`.
 
 ### `@jupytergis/base`

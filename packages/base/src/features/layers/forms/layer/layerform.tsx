@@ -7,12 +7,12 @@ import { Signal } from '@lumino/signaling';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { IBaseFormProps } from '@/src/types';
 
@@ -44,7 +44,6 @@ export function LayerPropertiesForm(
     model,
     filePath,
     formContext,
-    sourceType,
     dialogOptions,
     formErrorSignal,
   } = props;
@@ -80,15 +79,12 @@ export function LayerPropertiesForm(
       removeFormEntry,
     );
 
-    if (schema.properties?.source) {
-      const availableSources = model.getSourcesByType(sourceType);
-      (schema.properties.source as IDict).enumNames =
-        Object.values(availableSources);
-      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+    if (formContext === 'update') {
+      removeFormEntry('source', formData, schema, builtUiSchema);
     }
 
     return builtUiSchema;
-  }, [schema, formData, formContext, model, sourceType]);
+  }, [schema, formData, formContext]);
 
   if (!hasSchema) {
     return null;

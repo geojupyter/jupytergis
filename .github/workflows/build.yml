@@ -7,13 +7,33 @@ on:
     branches: '*'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  pr-context:
+    # Persist the PR number as an artifact so the `Galata Diff Report` workflow
+    # (triggered via `workflow_run`) can find the PR to comment on.
+    name: Save PR context
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Save PR number
+        run: echo "${{ github.event.number }}" > pr_number.txt
+
+      - name: Upload PR number
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: pr-number
+          path: pr_number.txt
+          if-no-files-found: error
+
   build:
     name: Build artifacts
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.14']
+        python-version: ['3.12', '3.13']
 
     steps:
       - name: Checkout
@@ -21,13 +41,20 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          cache: true
+
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
+          cache-environment: true
           environment-name: gis
           create-args: >-
             python=${{ matrix.python-version }}
             pip
+            qgis
 
       - name: Setup pip cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -42,37 +69,23 @@ jobs:
         shell: bash -l {0}
         run: pip install --group build
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        shell: bash -l {0}
-        run: |
-          set -e
-          CACHE_DIR="$(jlpm config get cacheFolder)"
-          echo "dir=${CACHE_DIR}" >> $GITHUB_OUTPUT
-
-      - name: Setup yarn cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            yarn-
-
       - name: Build the extension
         shell: bash -l {0}
         run: |
           set -eux
-          jlpm install
-          jlpm dev
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
-          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+          pnpm install --frozen-lockfile
+          pnpm run dev
+          jupyter labextension list
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK" \
+            || { echo "::error::jupytergis-core extension failed to install"; exit 1; }
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK" \
+            || { echo "::error::jupytergis-lab extension failed to install"; exit 1; }
 
       - name: Package the extension
         shell: bash -l {0}
         run: |
           set -eux
-          jlpm build:packages
+          pnpm run build:packages
 
       - name: Upload extension packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -96,17 +109,21 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          cache: true
+
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-name: gis
           create-args: >-
             python=3.12
-            yarn=3
 
       - name: Install dependencies
         shell: bash -l {0}
-        run: yarn install
+        run: pnpm install --frozen-lockfile
 
       - name: Validate example .jGIS files against schema
         shell: bash -l {0}
@@ -150,14 +167,34 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          cache: true
+
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           micromamba-version: '1.5.5-0'
           environment-name: gis
           create-args: >-
-            python=3.12
+            python=3.13
+            pip
             qgis
+            xeus-python>=0.19
+
+      - name: Setup pip cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+            pip-
+
+      - name: Install Python test dependencies # Needed for notebook tests!
+        shell: bash -l {0}
+        run: pip install --group test
 
       - name: Download extension package
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -169,19 +206,41 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+
+          # Add `[tiler]` extra to the jupytergis_lab wheel
+          args=()
+          for whl in jupytergis*.whl; do
+              if [[ "$whl" == *_lab*.whl ]]; then
+                  args+=("${whl}[tiler]")
+              else
+                  args+=("$whl")
+              fi
+          done
+
+          python -m pip install "${args[@]}"
 
       - name: Install
         shell: bash -l {0}
         working-directory: ui-tests
-        run: |
-          jlpm install
-          jlpm playwright install chromium
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: pnpm install --frozen-lockfile
+
+      - name: Set up browser cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ${{ github.workspace }}/pw-browsers
+          key: ${{ runner.os }}-${{ hashFiles('ui-tests/pnpm-lock.yaml') }}
+
+      - name: Install browser
+        shell: bash -l {0}
+        working-directory: ui-tests
+        run: pnpm exec playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
         working-directory: ui-tests
-        run: jlpm run test
+        run: pnpm run test
 
       - name: Upload Playwright Test report
         id: upload-galata-artifact
@@ -214,6 +273,7 @@ jobs:
             pip
             jupyterlite-core
             jupyterlite-xeus
+            micromamba
             jupyter_server
             specta
 
@@ -280,29 +340,34 @@ jobs:
           name: lite-artifacts
           path: dist
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          cache: true
+
       - name: Install dependencies
         shell: bash -l {0}
         working-directory: ui-tests
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: jlpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Set up browser cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: |
             ${{ github.workspace }}/pw-browsers
-          key: ${{ runner.os }}-${{ hashFiles('ui-tests/yarn.lock') }}
+          key: ${{ runner.os }}-${{ hashFiles('ui-tests/pnpm-lock.yaml') }}
 
       - name: Install browser
         shell: bash -l {0}
-        run: npx playwright install chromium
+        run: pnpm exec playwright install chromium
         working-directory: ui-tests
 
       - name: Execute integration tests
         shell: bash -l {0}
         working-directory: ui-tests
-        run: jlpm run test:lite
+        run: pnpm run test:lite
 
       - name: Upload Playwright Test report
         id: upload-galata-artifact

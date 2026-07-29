@@ -6,7 +6,7 @@ const baseConfig = require("@jupyterlab/galata/lib/playwright-config");
 module.exports = {
   ...baseConfig,
   webServer: {
-    command: "jlpm start",
+    command: "pnpm run start",
     url: "http://localhost:8888/lab",
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
@@ -15,6 +15,11 @@ module.exports = {
   use: {
     ...baseConfig.use,
     trace: "on-first-retry",
+    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
+      launchOptions: {
+        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+      },
+    }),
   },
   expect: {
     toMatchSnapshot: {

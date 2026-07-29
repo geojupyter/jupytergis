@@ -112,6 +112,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
         noFocusOnClick: false,
+        tooltip: 'Add Layer',
         onClick: () => {
           if (!options.commands) {
             return;
@@ -121,6 +122,10 @@ export class ToolbarWidget extends ReactiveToolbar {
 
           NewSubMenu.open(bbox.x, bbox.bottom);
         },
+      });
+
+      NewSubMenu.aboutToClose.connect(() => {
+        NewEntryButton.pressed = false;
       });
 
       this.addItem('New', NewEntryButton);
@@ -175,17 +180,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       toggleDrawFeaturesButton.node.dataset.testid =
         'toggle-draw-features-button';
 
-      const storyModePresentationToggleButton = new CommandToolbarButton({
-        id: CommandIDs.toggleStoryPresentationMode,
+      const openStoryEditorButton = new CommandToolbarButton({
+        id: CommandIDs.openStoryEditor,
         label: '',
         commands: options.commands,
       });
 
-      this.addItem(
-        'toggleStoryPresentationMode',
-        storyModePresentationToggleButton,
-      );
-      identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
+      this.addItem('openStoryEditor', openStoryEditorButton);
+      openStoryEditorButton.node.dataset.testid = 'open-story-editor-button';
 
       this._togglePanelButton = new CommandToolbarButton({
         id: CommandIDs.togglePanel,

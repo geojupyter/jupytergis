@@ -21,7 +21,6 @@
           "mode": "equal interval",
           "nClasses": 9.0,
           "radius": 5.0,
-          "renderType": "Graduated",
           "reverseRamp": false,
           "strokeColor": [
             51.0,
@@ -31,7 +30,6 @@
           ],
           "strokeFollowsFill": false,
           "strokeWidth": 1.25,
-          "value": "POP_RANK",
           "vmax": 18.0,
           "vmin": 1.0
         }
@@ -57,9 +55,7 @@
         },
         "opacity": 1.0,
         "source": "5970d6c9-26be-4cc6-84c9-16593dd3edfe",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -85,16 +81,14 @@
     "5970d6c9-26be-4cc6-84c9-16593dd3edfe": {
       "name": "France",
       "parameters": {
-        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json",
-        "valid": false
+        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json"
       },
       "type": "GeoJSONSource"
     },
     "b4287bea-e217-443c-b527-58f7559c824c": {
       "name": "World",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
-        "valid": false
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       },
       "type": "GeoJSONSource"
     }

@@ -1,0 +1,1098 @@
+/**
+ * A single grammar mapping row: field → scale → encodings (fan-out tree).
+ * The scale preview spans all encoding rows. Additional encodings branch below.
+ * "when" predicates are shown as chips below the grid.
+ */
+
+import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  IColorRampScale,
+  ICompareOp,
+  IConstantNumScale,
+  IConstantRGBAScale,
+  IPredicate,
+  IScale,
+  Encoding,
+  RGBA,
+} from '@jupytergis/schema';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+import {
+  ColorRampName,
+  drawColorRamp,
+  getColorMap,
+} from '@/src/features/layers/symbology/colorRampUtils';
+import { Button } from '@/src/shared/components/Button';
+import { Input } from '@/src/shared/components/Input';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
+import {
+  CategoricalEditor,
+  ColorRampEditor,
+  ConstantEditor,
+  ScalarEditor,
+  ExpressionEditor,
+} from './ScaleEditor';
+
+// ---------------------------------------------------------------------------
+// Encoding taxonomy
+// ---------------------------------------------------------------------------
+
+const RGBA_ENCODINGS: Encoding[] = [
+  'fill-color',
+  'stroke-color',
+  'circle-fill-color',
+  'circle-stroke-color',
+];
+const POSFLOAT_ENCODINGS: Encoding[] = [
+  'stroke-width',
+  'circle-stroke-width',
+  'circle-radius',
+];
+const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
+
+// Encodings relevant for raster/KDE layers.
+// pixel-color: full RGBA including alpha (label: "pixel-rgba").
+// pixel-rgb:   virtual encoding — RGB only; pair with pixel-alpha for separate alpha.
+// pixel-alpha: alpha sub-encoding (0-1 scalar).
+const PIXEL_RGBA_ENCODINGS: Encoding[] = [
+  'pixel-color',
+  'pixel-rgb',
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+];
+const PIXEL_FLOAT_ENCODINGS: Encoding[] = [
+  'pixel-red',
+  'pixel-green',
+  'pixel-blue',
+  'pixel-alpha',
+];
+const ALL_PIXEL_ENCODINGS = Array.from(
+  new Set([...PIXEL_RGBA_ENCODINGS, ...PIXEL_FLOAT_ENCODINGS]),
+);
+
+/** Display labels for encodings that need a friendlier name. */
+const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
+  'pixel-color': 'pixel-rgba',
+};
+
+function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
+  if (isRaster) {
+    switch (scale.scheme) {
+      case 'colorRamp':
+      case 'categorical':
+      case 'constant_rgba':
+        return PIXEL_RGBA_ENCODINGS;
+      case 'scalar':
+      case 'constant_num':
+        return PIXEL_FLOAT_ENCODINGS;
+      default:
+        return ALL_PIXEL_ENCODINGS;
+    }
+  }
+  switch (scale.scheme) {
+    case 'colorRamp':
+    case 'categorical':
+    case 'constant_rgba':
+      return RGBA_ENCODINGS;
+    case 'scalar':
+    case 'constant_num':
+      return POSFLOAT_ENCODINGS;
+    default:
+      return ALL_ENCODINGS;
+  }
+}
+
+function defaultScaleForScheme(
+  scheme: IScale['scheme'],
+  _currentEncodings: Encoding[],
+): IScale {
+  switch (scheme) {
+    case 'constant_rgba':
+      return {
+        scheme: 'constant_rgba',
+        params: { value: [128, 128, 128, 1] as RGBA },
+      } as IConstantRGBAScale;
+    case 'constant_num':
+      return {
+        scheme: 'constant_num',
+        params: { value: 1 },
+      } as IConstantNumScale;
+    case 'colorRamp':
+      return {
+        scheme: 'colorRamp',
+        params: {
+          name: 'viridis',
+          nShades: 9,
+          mode: 'equal interval',
+          reverse: false,
+          fallback: [0, 0, 0, 0] as RGBA,
+        },
+      } as IColorRampScale;
+    case 'categorical':
+      return {
+        scheme: 'categorical',
+        params: {
+          colorRamp: 'schemeCategory10',
+          reverse: false,
+          fallback: [0, 0, 0, 0] as RGBA,
+        },
+      };
+    case 'scalar':
+      return {
+        scheme: 'scalar',
+        params: {
+          domain: [0, 100],
+          range: [1, 20],
+          fallback: 1,
+        },
+      };
+    case 'identity':
+      return { scheme: 'identity' };
+    default:
+      return {
+        scheme: 'constant_num',
+        params: { value: 1 },
+      } as IConstantNumScale;
+
+    case 'expression':
+      return {
+        scheme: 'expression',
+        params: {
+          expr: '',
+          fallback: [0, 0, 0, 0] as RGBA,
+          language: 'vega',
+        },
+      };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Scheme selector options
+// ---------------------------------------------------------------------------
+
+const SCHEME_OPTIONS: {
+  value: IScale['scheme'];
+  label: string;
+  disabled?: boolean;
+}[] = [
+  { value: 'constant_rgba', label: 'const (color)' },
+  { value: 'constant_num', label: 'const (num)' },
+  { value: 'colorRamp', label: 'color map' },
+  { value: 'categorical', label: 'categorical' },
+  { value: 'scalar', label: 'scalar' },
+  { value: 'identity', label: 'identity' },
+  { value: 'expression', label: 'expression' },
+];
+
+// ---------------------------------------------------------------------------
+// Scale preview
+// ---------------------------------------------------------------------------
+
+const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
+  name,
+  reverse,
+}) => {
+  const ref = useRef<HTMLCanvasElement>(null);
+  React.useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) {
+      return;
+    }
+    const colorMap = getColorMap(name as ColorRampName);
+    if (!colorMap) {
+      return;
+    }
+    const map = reverse
+      ? { ...colorMap, colors: [...colorMap.colors].reverse() }
+      : colorMap;
+    drawColorRamp(canvas, map);
+  }, [name, reverse]);
+  return (
+    <canvas
+      ref={ref}
+      width={160}
+      height={14}
+      style={{
+        borderRadius: 2,
+        flex: '0 0 80px',
+        height: 14,
+        display: 'block',
+      }}
+    />
+  );
+};
+
+const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
+  switch (scale.scheme) {
+    case 'constant_rgba': {
+      const [r, g, b, a] = scale.params.value;
+      return (
+        <span className="jp-gis-scale-preview">
+          <span
+            className="jp-gis-scale-swatch"
+            style={{ background: `rgba(${r},${g},${b},${a})` }}
+          />
+          <span className="jp-gis-scale-meta">
+            {r}, {g}, {b}, {a}
+          </span>
+        </span>
+      );
+    }
+    case 'constant_num':
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">= {scale.params.value}</span>
+        </span>
+      );
+    case 'colorRamp': {
+      const { name, reverse, domain } = scale.params;
+      return (
+        <span className="jp-gis-scale-preview">
+          <ColorRampPreview name={name} reverse={reverse} />
+          <span className="jp-gis-scale-meta">
+            {name}
+            {domain ? ` [${domain[0]}–${domain[1]}]` : ''}
+          </span>
+        </span>
+      );
+    }
+    case 'categorical': {
+      const { colorRamp, colorStops } = scale.params;
+      if (colorStops?.length) {
+        return (
+          <span className="jp-gis-scale-preview">
+            {colorStops.slice(0, 8).map((s, i) => {
+              const [r, g, b, aa] = s.color;
+              return (
+                <span
+                  key={i}
+                  className="jp-gis-scale-dot"
+                  style={{ background: `rgba(${r},${g},${b},${aa})` }}
+                />
+              );
+            })}
+            <span className="jp-gis-scale-meta">{colorRamp}</span>
+          </span>
+        );
+      }
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">
+            {colorRamp ?? 'categorical'}
+          </span>
+        </span>
+      );
+    }
+    case 'scalar': {
+      const { domain, range } = scale.params;
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">
+            [{domain[0]}, {domain[1]}] → [{range[0]}, {range[1]}]
+          </span>
+        </span>
+      );
+    }
+    case 'identity':
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">∘ identity</span>
+        </span>
+      );
+    case 'expression':
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">expression</span>
+        </span>
+      );
+    default:
+      return null;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// When-clause helpers
+// ---------------------------------------------------------------------------
+
+type PredicateType = IPredicate['type'];
+
+const COMPARE_OPS: ICompareOp[] = ['>', '<', '>=', '<=', '!='];
+
+interface INewPredicate {
+  type: PredicateType;
+  geomValue: 'Point' | 'LineString' | 'Polygon';
+  field: string;
+  fieldValue: string;
+  compareOp: ICompareOp;
+  betweenMin: string;
+  betweenMax: string;
+}
+
+const EMPTY_NEW: INewPredicate = {
+  type: 'geometryType',
+  geomValue: 'Point',
+  field: '',
+  fieldValue: '',
+  compareOp: '>',
+  betweenMin: '',
+  betweenMax: '',
+};
+
+function buildPredicate(p: INewPredicate): IPredicate | null {
+  switch (p.type) {
+    case 'geometryType':
+      return { type: 'geometryType', value: p.geomValue };
+    case 'hasField':
+      return p.field ? { type: 'hasField', field: p.field } : null;
+    case 'fieldEquals':
+      return p.field
+        ? {
+            type: 'fieldEquals',
+            field: p.field,
+            value:
+              p.fieldValue === '' || isNaN(Number(p.fieldValue))
+                ? p.fieldValue
+                : Number(p.fieldValue),
+          }
+        : null;
+    case 'fieldCompare': {
+      const num = Number(p.fieldValue);
+      // Avoid committing predicates that are only "valid" due to JS numeric coercion
+      // (e.g. Number('') === 0), which would desync the model from what's shown.
+      return p.field && p.fieldValue !== '' && !isNaN(num)
+        ? { type: 'fieldCompare', field: p.field, op: p.compareOp, value: num }
+        : null;
+    }
+    case 'between': {
+      const min = Number(p.betweenMin);
+      const max = Number(p.betweenMax);
+      return p.field &&
+        !isNaN(min) &&
+        !isNaN(max) &&
+        p.betweenMin !== '' &&
+        p.betweenMax !== ''
+        ? { type: 'between', field: p.field, min, max }
+        : null;
+    }
+    default:
+      throw new Error(`Invalid predicate type ${p.type}`);
+  }
+}
+
+/** Decompose a committed predicate back into the editable draft shape. */
+function predicateToDraft(pred: IPredicate): INewPredicate {
+  switch (pred.type) {
+    case 'geometryType':
+      return { ...EMPTY_NEW, type: 'geometryType', geomValue: pred.value };
+    case 'hasField':
+      return { ...EMPTY_NEW, type: 'hasField', field: pred.field };
+    case 'fieldEquals':
+      return {
+        ...EMPTY_NEW,
+        type: 'fieldEquals',
+        field: pred.field,
+        fieldValue: String(pred.value),
+      };
+    case 'fieldCompare':
+      return {
+        ...EMPTY_NEW,
+        type: 'fieldCompare',
+        field: pred.field,
+        compareOp: pred.op,
+        fieldValue: String(pred.value),
+      };
+    case 'between':
+      return {
+        ...EMPTY_NEW,
+        type: 'between',
+        field: pred.field,
+        betweenMin: String(pred.min),
+        betweenMax: String(pred.max),
+      };
+    default:
+      return { ...EMPTY_NEW };
+  }
+}
+
+/**
+ * Seed a draft when the predicate type changes. Fields default to the first
+ * available field (and numeric bounds to 0) so the predicate stays valid — and
+ * therefore committed live — without requiring a separate confirm step.
+ */
+function defaultDraftForType(
+  type: PredicateType,
+  availableFields: IFieldOption[],
+  prev: INewPredicate,
+): INewPredicate {
+  const firstField = availableFields[0]?.value ?? '';
+  switch (type) {
+    case 'geometryType':
+      return { ...prev, type, geomValue: prev.geomValue || 'Point' };
+    case 'hasField':
+      return { ...prev, type, field: prev.field || firstField };
+    case 'fieldEquals':
+    case 'fieldCompare':
+      return { ...prev, type, field: prev.field || firstField };
+    case 'between':
+      return {
+        ...prev,
+        type,
+        field: prev.field || firstField,
+        betweenMin: prev.betweenMin || '0',
+        betweenMax: prev.betweenMax || '0',
+      };
+    default:
+      return { ...prev, type };
+  }
+}
+
+/** A fresh predicate for a newly-added "when" condition. */
+export function defaultPredicate(): IPredicate {
+  return { type: 'geometryType', value: 'Point' };
+}
+
+interface IFieldOption {
+  value: string;
+  label: string;
+}
+
+interface IWhenRowProps {
+  predicate: IPredicate;
+  availableFields: IFieldOption[];
+  onChange: (pred: IPredicate) => void;
+  onDelete: () => void;
+}
+
+/**
+ * Inline, always-editable "when" condition. Values are committed live: every
+ * change that yields a valid predicate is propagated through `onChange`, so
+ * there is no confirm/cancel step and nothing to lose by forgetting to click.
+ */
+export const WhenRow: React.FC<IWhenRowProps> = ({
+  predicate,
+  availableFields,
+  onChange,
+  onDelete,
+}) => {
+  const [draft, setDraft] = useState<INewPredicate>(() =>
+    predicateToDraft(predicate),
+  );
+
+  // Resync when the predicate is replaced from the outside (e.g. rows reindex
+  // after a sibling condition is removed). In-progress typing is preserved
+  // because the prop only changes once an edit commits a valid predicate.
+  useEffect(() => {
+    if (JSON.stringify(buildPredicate(draft)) !== JSON.stringify(predicate)) {
+      setDraft(predicateToDraft(predicate));
+    }
+  }, [predicate]);
+
+  const commit = (next: INewPredicate) => {
+    setDraft(next);
+    const built = buildPredicate(next);
+    if (built) {
+      onChange(built);
+    }
+  };
+
+  const patch = (p: Partial<INewPredicate>) => commit({ ...draft, ...p });
+
+  const changeType = (type: PredicateType) =>
+    commit(defaultDraftForType(type, availableFields, draft));
+
+  return (
+    <span className="jp-gis-grammar-when-form">
+      <NativeSelect
+        value={draft.type}
+        onChange={e => changeType(e.target.value as PredicateType)}
+      >
+        <NativeSelectOption value="geometryType">
+          Geometry Type
+        </NativeSelectOption>
+        <NativeSelectOption value="hasField">Has Field</NativeSelectOption>
+        <NativeSelectOption value="fieldEquals">
+          Field Equals
+        </NativeSelectOption>
+        <NativeSelectOption value="fieldCompare">
+          Field Compare
+        </NativeSelectOption>
+        <NativeSelectOption value="between">Between</NativeSelectOption>
+      </NativeSelect>
+
+      {draft.type === 'geometryType' && (
+        <NativeSelect
+          value={draft.geomValue}
+          onChange={e =>
+            patch({
+              geomValue: e.target.value as INewPredicate['geomValue'],
+            })
+          }
+        >
+          <NativeSelectOption value="Point">Point</NativeSelectOption>
+          <NativeSelectOption value="LineString">LineString</NativeSelectOption>
+          <NativeSelectOption value="Polygon">Polygon</NativeSelectOption>
+        </NativeSelect>
+      )}
+
+      {(draft.type === 'hasField' ||
+        draft.type === 'fieldEquals' ||
+        draft.type === 'fieldCompare' ||
+        draft.type === 'between') && (
+        <NativeSelect
+          value={draft.field}
+          onChange={e => patch({ field: e.target.value })}
+        >
+          <NativeSelectOption value="">(field)</NativeSelectOption>
+          {availableFields.map(field => (
+            <NativeSelectOption key={field.value} value={field.value}>
+              {field.label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      )}
+
+      {draft.type === 'fieldCompare' && (
+        <NativeSelect
+          value={draft.compareOp}
+          onChange={e => patch({ compareOp: e.target.value as ICompareOp })}
+        >
+          {COMPARE_OPS.map(op => (
+            <NativeSelectOption key={op} value={op}>
+              {op}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      )}
+
+      {(draft.type === 'fieldEquals' || draft.type === 'fieldCompare') && (
+        <Input
+          style={{ flex: '0 0 80px', minWidth: 0 }}
+          type={draft.type === 'fieldCompare' ? 'number' : 'text'}
+          placeholder="value"
+          value={draft.fieldValue}
+          onChange={e => patch({ fieldValue: e.target.value })}
+        />
+      )}
+
+      {draft.type === 'between' && (
+        <>
+          <Input
+            style={{ flex: '0 0 60px', minWidth: 0 }}
+            type="number"
+            placeholder="min"
+            value={draft.betweenMin}
+            onChange={e => patch({ betweenMin: e.target.value })}
+          />
+          <span
+            style={{ flex: '0 0 auto', fontSize: 'var(--jp-ui-font-size0)' }}
+          >
+            –
+          </span>
+          <Input
+            style={{ flex: '0 0 60px', minWidth: 0 }}
+            type="number"
+            placeholder="max"
+            value={draft.betweenMax}
+            onChange={e => patch({ betweenMax: e.target.value })}
+          />
+        </>
+      )}
+
+      <Button
+        type="button"
+        variant="icon"
+        size="icon-md"
+        className="jp-gis-grammar-when-form-cancel"
+        onClick={onDelete}
+        title="Remove condition"
+      >
+        <FontAwesomeIcon icon={faXmark} />
+      </Button>
+    </span>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Field selector
+// ---------------------------------------------------------------------------
+
+interface IFieldSelectorProps {
+  fieldCount: 0 | 1 | 'any';
+  fields: string[];
+  availableFields: IFieldOption[];
+  onFieldChange: (index: number, value: string) => void;
+  onAddField: (value: string) => void;
+}
+
+/**
+ * Renders the field input area in column 1 of the grid.
+ *   0   → "(const)" label, no selection
+ *   1   → single dropdown
+ *  'any'→ chips for each selected field + add dropdown
+ */
+const FieldSelector: React.FC<IFieldSelectorProps> = ({
+  fieldCount,
+  fields,
+  availableFields,
+  onFieldChange,
+  onAddField,
+}) => {
+  if (fieldCount === 0) {
+    return (
+      <span
+        style={{
+          gridRow: 1,
+          gridColumn: 1,
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: 'var(--jp-ui-font-size1)',
+          color: 'var(--jp-ui-font-color2)',
+          paddingLeft: 4,
+        }}
+      >
+        (const)
+      </span>
+    );
+  }
+
+  if (fieldCount === 1) {
+    const selectedField = fields[0] ?? '';
+    return (
+      <div style={{ gridRow: 1, gridColumn: 1 }}>
+        <NativeSelect
+          value={selectedField}
+          onChange={e => onFieldChange(0, e.target.value)}
+        >
+          <NativeSelectOption value="">(none)</NativeSelectOption>
+          {availableFields.map(f => (
+            <NativeSelectOption key={f.value} value={f.value}>
+              {f.label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+    );
+  }
+
+  // 'any' — multi-field chips + add
+  return (
+    <div
+      style={{
+        gridRow: 1,
+        gridColumn: 1,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2,
+        alignItems: 'center',
+      }}
+    >
+      {fields.map((f, i) => (
+        <span key={i} className="jp-gis-grammar-when-chip">
+          {f}
+          <Button
+            type="button"
+            className="jp-gis-grammar-when-cancel"
+            onClick={() => onFieldChange(i, '')}
+            title="Remove field"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+          </Button>
+        </span>
+      ))}
+      <div style={{ minWidth: 60, flex: '0 0 auto' }}>
+        <NativeSelect
+          value=""
+          onChange={e => {
+            if (e.target.value) {
+              onAddField(e.target.value);
+            }
+          }}
+        >
+          <NativeSelectOption value="">+field</NativeSelectOption>
+          {availableFields
+            .filter(f => !fields.includes(f.value))
+            .map(f => (
+              <NativeSelectOption key={f.value} value={f.value}>
+                {f.label}
+              </NativeSelectOption>
+            ))}
+        </NativeSelect>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Row data
+// ---------------------------------------------------------------------------
+
+export interface IGrammarRow {
+  id: string;
+  /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
+  fields?: string[];
+  scale: IScale;
+  encodings: Encoding[];
+  when?: IPredicate[];
+  whenOp?: 'all' | 'any';
+}
+
+/**
+ * How many input fields a scale accepts.
+ *   0    — constants (no field selector shown)
+ *   1    — all single-field scales
+ *  'any' — multi-field (expression scale, sub-encoding assembly)
+ */
+export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
+  switch (scheme) {
+    case 'constant_rgba':
+    case 'constant_num':
+      return 0;
+    case 'expression':
+      return 'any';
+    default:
+      return 1;
+  }
+}
+
+interface IMappingRowProps {
+  row: IGrammarRow;
+  availableFields: IFieldOption[];
+  featureValues: Record<string, Set<any>>;
+  isRaster?: boolean;
+  disabledSchemes?: IScale['scheme'][];
+  onChange: (row: IGrammarRow) => void;
+  onDelete: () => void;
+}
+
+// ---------------------------------------------------------------------------
+// MappingRow
+// ---------------------------------------------------------------------------
+
+const MappingRow: React.FC<IMappingRowProps> = ({
+  row,
+  availableFields,
+  featureValues,
+  isRaster = false,
+  disabledSchemes = [],
+  onChange,
+  onDelete,
+}) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const handleFieldChange = useCallback(
+    (index: number, value: string) => {
+      const next = [...(row.fields ?? [])];
+      if (value) {
+        next[index] = value;
+      } else {
+        next.splice(index, 1);
+      }
+      onChange({ ...row, fields: next.length > 0 ? next : undefined });
+    },
+    [row, onChange],
+  );
+
+  const addField = useCallback(
+    (value: string) => {
+      if (!value) {
+        return;
+      }
+      onChange({ ...row, fields: [...(row.fields ?? []), value] });
+    },
+    [row, onChange],
+  );
+
+  const handleSchemeChange = useCallback(
+    (scheme: IScale['scheme']) => {
+      const newScale = defaultScaleForScheme(scheme, row.encodings);
+      const compat = compatibleEncodings(newScale, isRaster);
+      const filtered = row.encodings.filter(ch => compat.includes(ch));
+      const newFieldCount = fieldCountForScale(scheme);
+      // Trim fields list to match new count constraint
+      const trimmedFields =
+        newFieldCount === 0
+          ? undefined
+          : newFieldCount === 1
+            ? row.fields?.slice(0, 1)
+            : row.fields;
+      onChange({
+        ...row,
+        scale: newScale,
+        encodings: filtered.length > 0 ? filtered : [compat[0]],
+        fields: trimmedFields,
+      });
+    },
+    [row, onChange],
+  );
+
+  const handleScaleChange = useCallback(
+    (scale: IScale) => onChange({ ...row, scale }),
+    [row, onChange],
+  );
+
+  const handleEncodingChange = useCallback(
+    (index: number, ch: Encoding) => {
+      const next = [...row.encodings];
+      next[index] = ch;
+      onChange({ ...row, encodings: next });
+    },
+    [row, onChange],
+  );
+
+  const removeEncoding = useCallback(
+    (ch: Encoding) => {
+      const next = row.encodings.filter(c => c !== ch);
+      if (next.length > 0) {
+        onChange({ ...row, encodings: next });
+      } else {
+        onDelete();
+      }
+    },
+    [row, onChange, onDelete],
+  );
+
+  const addEncoding = useCallback(
+    (ch: Encoding) => {
+      onChange({ ...row, encodings: [...row.encodings, ch] });
+    },
+    [row, onChange],
+  );
+
+  const addPredicate = useCallback(() => {
+    onChange({ ...row, when: [...(row.when ?? []), defaultPredicate()] });
+  }, [row, onChange]);
+
+  const updatePredicate = useCallback(
+    (index: number, pred: IPredicate) => {
+      const next = [...(row.when ?? [])];
+      next[index] = pred;
+      onChange({ ...row, when: next });
+    },
+    [row, onChange],
+  );
+
+  const removePredicate = useCallback(
+    (index: number) => {
+      const next = (row.when ?? []).filter((_, i) => i !== index);
+      onChange({ ...row, when: next.length > 0 ? next : undefined });
+    },
+    [row, onChange],
+  );
+
+  const compat = compatibleEncodings(row.scale, isRaster);
+  const availableToAdd = compat.filter(ch => !row.encodings.includes(ch));
+
+  return (
+    <div className="jp-gis-grammar-rule">
+      {/* Desktop: 7-col grid; Mobile: stacked top-to-bottom via sections */}
+      <div className="jp-gis-grammar-rule-grid">
+        {/* --- Input section --- */}
+        <div className="jp-gis-grammar-section jp-gis-grammar-input-section">
+          <FieldSelector
+            fieldCount={fieldCountForScale(row.scale.scheme)}
+            fields={row.fields ?? []}
+            availableFields={availableFields}
+            onFieldChange={handleFieldChange}
+            onAddField={addField}
+          />
+        </div>
+
+        {/* Arrow: input → scale */}
+        <span className="jp-gis-grammar-arrow jp-gis-grammar-arrow-input">
+          →
+        </span>
+
+        {/* --- Scale section --- */}
+        <div className="jp-gis-grammar-section jp-gis-grammar-scale-section">
+          <NativeSelect
+            value={row.scale.scheme}
+            onChange={e =>
+              handleSchemeChange(e.target.value as IScale['scheme'])
+            }
+          >
+            {SCHEME_OPTIONS.filter(
+              ({ value, disabled }) =>
+                !disabled && !disabledSchemes.includes(value),
+            ).map(({ value, label }) => (
+              <NativeSelectOption key={value} value={value}>
+                {label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          <button
+            type="button"
+            className="jp-gis-grammar-preview-btn"
+            onClick={() => setExpanded(v => !v)}
+            title={expanded ? 'Collapse editor' : 'Edit scale'}
+          >
+            <ScalePreview scale={row.scale} />
+            <span className="jp-gis-grammar-preview-chevron" aria-hidden="true">
+              {expanded ? '▾' : '▸'}
+            </span>
+          </button>
+        </div>
+
+        {/* Arrow: scale → output */}
+        <span className="jp-gis-grammar-arrow jp-gis-grammar-arrow-output">
+          →
+        </span>
+
+        {/* --- Output section --- */}
+        <div className="jp-gis-grammar-section jp-gis-grammar-output-section">
+          {row.encodings.map((ch, i) => (
+            <div key={`${ch}-${i}`} className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
+                <NativeSelect
+                  value={ch}
+                  onChange={e =>
+                    handleEncodingChange(i, e.target.value as Encoding)
+                  }
+                >
+                  {compat.map(c => (
+                    <NativeSelectOption key={c} value={c}>
+                      {ENCODING_LABELS[c] ?? c}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-md"
+                className="jp-mod-styled"
+                onClick={() => removeEncoding(ch)}
+                title={
+                  row.encodings.length === 1
+                    ? 'Remove mapping'
+                    : 'Remove encoding'
+                }
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </Button>
+            </div>
+          ))}
+
+          {/* Add encoding row */}
+          {availableToAdd.length > 0 && (
+            <div className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
+                <NativeSelect
+                  value=""
+                  onChange={e => {
+                    if (e.target.value) {
+                      addEncoding(e.target.value as Encoding);
+                    }
+                  }}
+                >
+                  <NativeSelectOption value="">
+                    (add encoding)
+                  </NativeSelectOption>
+                  {availableToAdd.map(ch => (
+                    <NativeSelectOption key={ch} value={ch}>
+                      {ENCODING_LABELS[ch] ?? ch}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* When clause */}
+      <div className="jp-gis-grammar-when-row">
+        <span className="jp-gis-grammar-when-label">when</span>
+        {(row.when?.length ?? 0) > 1 && (
+          <Button
+            type="button"
+            className="jp-gis-grammar-when-op"
+            onClick={() =>
+              onChange({
+                ...row,
+                whenOp: (row.whenOp ?? 'all') === 'all' ? 'any' : 'all',
+              })
+            }
+          >
+            {row.whenOp ?? 'all'}
+          </Button>
+        )}
+        {row.when?.map((pred, i) => (
+          <WhenRow
+            key={i}
+            predicate={pred}
+            availableFields={availableFields}
+            onChange={updated => updatePredicate(i, updated)}
+            onDelete={() => removePredicate(i)}
+          />
+        ))}
+        <Button
+          type="button"
+          className="jp-gis-grammar-when-add-btn"
+          onClick={addPredicate}
+          title="Add condition"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </Button>
+      </div>
+
+      {/* Inline scale editor */}
+      {expanded && (
+        <div className="jp-gis-grammar-rule-editor">
+          {(row.scale.scheme === 'constant_rgba' ||
+            row.scale.scheme === 'constant_num') && (
+            <ConstantEditor scale={row.scale} onChange={handleScaleChange} />
+          )}
+          {row.scale.scheme === 'colorRamp' && (
+            <ColorRampEditor
+              scale={row.scale}
+              field={row.fields?.[0]}
+              featureValues={featureValues}
+              onChange={handleScaleChange}
+            />
+          )}
+          {row.scale.scheme === 'categorical' && (
+            <CategoricalEditor
+              scale={row.scale}
+              field={row.fields?.[0]}
+              featureValues={featureValues}
+              onChange={handleScaleChange}
+            />
+          )}
+          {row.scale.scheme === 'scalar' && (
+            <ScalarEditor
+              scale={row.scale}
+              field={row.fields?.[0]}
+              featureValues={featureValues}
+              onChange={handleScaleChange}
+            />
+          )}
+          {row.scale.scheme === 'identity' && (
+            <p
+              style={{
+                margin: 0,
+                color: 'var(--jp-ui-font-color2)',
+                fontSize: 'var(--jp-ui-font-size1)',
+              }}
+            >
+              No configuration for identity scale.
+            </p>
+          )}
+          {row.scale.scheme === 'expression' && (
+            <ExpressionEditor
+              scale={row.scale}
+              onChange={handleScaleChange}
+              fields={availableFields.map(f => f.value)}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MappingRow;

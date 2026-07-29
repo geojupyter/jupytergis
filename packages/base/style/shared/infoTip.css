@@ -1,0 +1,76 @@
+.jgis-info-tip-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.jgis-info-tip-content a {
+  text-decoration: revert;
+  color: var(--jp-content-link-color);
+}
+
+.jgis-info-tip-collapsible {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.5rem;
+}
+
+.jgis-info-tip-collapsible-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  cursor: pointer;
+}
+
+.jgis-info-tip-more-info {
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 500;
+  color: var(--jp-ui-font-color2);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+
+[data-slot='collapsible-trigger']:hover .jgis-info-tip-more-info {
+  color: var(--jp-ui-font-color1);
+}
+
+.jgis-info-tip-collapsible-content {
+  overflow: hidden;
+}
+
+.jgis-info-tip-collapsible-content[data-state='open'] {
+  animation: jgis-info-tip-collapsible-down 200ms ease-out;
+}
+
+.jgis-info-tip-collapsible-content[data-state='closed'] {
+  animation: jgis-info-tip-collapsible-up 200ms ease-out;
+}
+
+@keyframes jgis-info-tip-collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+    transform: translateY(-0.375rem);
+  }
+
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes jgis-info-tip-collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    height: 0;
+    opacity: 0;
+    transform: translateY(-0.375rem);
+  }
+}

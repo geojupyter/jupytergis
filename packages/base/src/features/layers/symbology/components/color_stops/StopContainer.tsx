@@ -55,10 +55,7 @@ const StopContainer: React.FC<IStopContainerProps> = ({
         ))}
       </div>
       <div className="jp-gis-symbology-button-container">
-        <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={addStopRow}
-        >
+        <Button className="jp-gis-grammar-action-btn" onClick={addStopRow}>
           Add Stop
         </Button>
       </div>

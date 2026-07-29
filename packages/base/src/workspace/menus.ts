@@ -73,7 +73,17 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewGeoZarrDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.newGeoPackageRasterEntry,
+  });
+
+  subMenu.addItem({
+    type: 'command',
+    command: CommandIDs.openNewOpenEODialog,
   });
 
   return subMenu;

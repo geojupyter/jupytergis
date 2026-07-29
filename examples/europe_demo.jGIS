@@ -107,8 +107,7 @@
           "interpolation": "linear",
           "mode": "equal interval",
           "nClasses": "9",
-          "redBand": 1.0,
-          "renderType": "Singleband Pseudocolor"
+          "redBand": 1.0
         }
       },
       "type": "GeoTiffLayer",

@@ -1,5 +1,13 @@
 import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
-import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
+import {
+  CommandIDs,
+  checkServerAvailability,
+  isJupyterLite,
+  logoIcon,
+  logoMiniIcon,
+  resetServerAvailabilityCache,
+  setServerProcessingEnabled,
+} from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -21,6 +29,7 @@ import {
   ICommandPalette,
   IThemeManager,
   WidgetTracker,
+  showErrorMessage,
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
@@ -29,7 +38,10 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -61,6 +73,7 @@ const activate = async (
   palette: ICommandPalette | null,
   collaborativeContentProvider: ICollaborativeContentProvider | null,
   loggerRegistry: ILoggerRegistry | null,
+  urlResolverFactory: IUrlResolverFactory | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -68,7 +81,85 @@ const activate = async (
   }
 
   try {
-    await settingRegistry.load(SETTINGS_ID);
+    const setting = await settingRegistry.load(SETTINGS_ID);
+
+    // null  → auto-detect (probe the server endpoint, enable if reachable)
+    // true  → user explicitly enabled
+    // false → user explicitly disabled
+    const getExplicitSetting = (): boolean | null => {
+      const v = setting.composite['useServerGdalProcessing'];
+      if (v === true || v === false) {
+        return v;
+      }
+      return null;
+    };
+
+    // On initial load: silently apply without any dialogs.
+    // Respects an explicit user choice; falls back to auto-detect when null.
+    const applyInitialServerGdalSetting = async () => {
+      if (isJupyterLite()) {
+        setServerProcessingEnabled(false);
+        return;
+      }
+
+      const explicit = getExplicitSetting();
+      if (explicit === false) {
+        setServerProcessingEnabled(false);
+        return;
+      }
+      if (explicit === true) {
+        // User previously enabled it — verify the endpoint is still reachable.
+        resetServerAvailabilityCache();
+        setServerProcessingEnabled(await checkServerAvailability());
+        return;
+      }
+      // null: auto-detect silently.
+      resetServerAvailabilityCache();
+      setServerProcessingEnabled(await checkServerAvailability());
+    };
+
+    // On explicit user change: honour the new value but validate and revert
+    // with an error dialog when the environment does not support the feature.
+    const applyUserChangedServerGdalSetting = async () => {
+      const requested = setting.composite['useServerGdalProcessing'];
+
+      if (requested === false || requested === null) {
+        setServerProcessingEnabled(false);
+        return;
+      }
+
+      if (isJupyterLite()) {
+        setServerProcessingEnabled(false);
+        await showErrorMessage(
+          'Server-side GDAL is not available',
+          'Server-side GDAL processing requires a Jupyter Server and cannot be ' +
+            'used in JupyterLite. Reverting the setting to disabled.',
+        );
+        await setting.set('useServerGdalProcessing', false);
+        return;
+      }
+
+      resetServerAvailabilityCache();
+      const available = await checkServerAvailability();
+      if (!available) {
+        setServerProcessingEnabled(false);
+        await showErrorMessage(
+          'Server-side GDAL is not available',
+          'The Jupyter Server does not expose a GDAL endpoint. Install GDAL ' +
+            'in your environment (e.g. conda install -c conda-forge gdal) and ' +
+            'restart JupyterLab. Reverting the setting to disabled.',
+        );
+        await setting.set('useServerGdalProcessing', false);
+        return;
+      }
+
+      setServerProcessingEnabled(true);
+    };
+
+    await applyInitialServerGdalSetting();
+    setting.changed.connect(() => {
+      void applyUserChangedServerGdalSetting();
+    });
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
@@ -84,6 +175,7 @@ const activate = async (
     manager: app.serviceManager,
     contentFactory,
     rendermime,
+    urlResolverFactory: urlResolverFactory ?? undefined,
     mimeTypeService: editorServices.mimeTypeService,
     formSchemaRegistry: formSchemaRegistry,
     consoleTracker,
@@ -248,6 +340,11 @@ const activate = async (
       category: 'JupyterGIS',
     });
 
+    palette.addItem({
+      command: CommandIDs.openNewOpenEODialog,
+      category: 'JupyterGIS',
+    });
+
     // Panel toggles
     palette.addItem({
       command: CommandIDs.togglePanel,
@@ -306,6 +403,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     ICollaborativeContentProvider,
     ILoggerRegistry,
+    IUrlResolverFactory,
   ],
   autoStart: true,
   activate,

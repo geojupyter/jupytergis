@@ -2,12 +2,12 @@ import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { useMemo } from 'react';
 
-import { SchemaForm } from '@/src/formbuilder/objectform/SchemaForm';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
-} from '@/src/formbuilder/objectform/schemaUtils';
-import { useSchemaFormState } from '@/src/formbuilder/objectform/useSchemaFormState';
+} from '@/src/shared/formbuilder/objectform/schemaUtils';
+import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
 import type { ILayerProps } from './layerform';
 
@@ -21,7 +21,6 @@ export function HillshadeLayerPropertiesForm(
     model,
     filePath,
     formContext,
-    sourceType,
     dialogOptions,
     formErrorSignal,
   } = props;
@@ -58,17 +57,14 @@ export function HillshadeLayerPropertiesForm(
       removeFormEntry,
     );
 
-    if (schema.properties?.source) {
-      const availableSources = model.getSourcesByType(sourceType);
-      (schema.properties.source as IDict).enumNames =
-        Object.values(availableSources);
-      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+    if (formContext === 'update') {
+      removeFormEntry('source', formData, schema, builtUiSchema);
     }
 
     builtUiSchema.shadowColor = { 'ui:widget': 'color' };
 
     return builtUiSchema;
-  }, [schema, formData, formContext, model, sourceType]);
+  }, [schema, formData, formContext]);
 
   if (!hasSchema) {
     return null;

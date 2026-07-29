@@ -3,6 +3,7 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISWidget,
+  type StoryType,
 } from '@jupytergis/schema';
 import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
@@ -28,12 +29,7 @@ export type SizeValue = number;
 
 export type SymbologyValue = SizeValue | ColorValue | InternalRgbArray;
 
-export type VectorRenderType =
-  | 'Single Symbol'
-  | 'Canonical'
-  | 'Graduated'
-  | 'Categorized'
-  | 'Heatmap';
+export type VectorRenderType = 'Heatmap' | 'Grammar';
 
 /**
  * Add jupytergisMaps object to the global variables.
@@ -63,8 +59,13 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'VectorLayer',
   'VectorTileLayer',
   'GeoTiffLayer',
-  'HeatmapLayer',
+  'GeoZarrLayer',
 ];
+
+export const STORY_TYPE = {
+  guided: 'guided',
+  verticalScroll: 'Vertical Scroll',
+} as const satisfies Record<string, StoryType>;
 
 export interface IWmsLayerInfo {
   name: string;

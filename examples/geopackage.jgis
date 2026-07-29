@@ -31,9 +31,7 @@
         },
         "opacity": 1.0,
         "source": "41ba7c89-0986-4d8f-a3a2-72847069de89/Countries",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -60,9 +58,7 @@
         },
         "opacity": 1.0,
         "source": "c0e58d6d-7dc7-4878-9aa4-b241f8172262/Parks",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -89,9 +85,7 @@
         },
         "opacity": 1.0,
         "source": "0033b340-eb92-4610-9510-377e43cd6438/Pizza",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -118,9 +112,7 @@
         },
         "opacity": 1.0,
         "source": "8f10ffc3-7461-4ea7-bce8-fb29e2671289/Rivers + Lake Centrelines",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -160,9 +152,7 @@
         },
         "opacity": 1.0,
         "source": "9acdf695-c781-4b68-b415-eff3f66fa7eb/PointsOfInterest",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true
@@ -189,9 +179,7 @@
         },
         "opacity": 1.0,
         "source": "9a0fd43f-5025-49a0-ab69-90b9f074424c/Lakes",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true

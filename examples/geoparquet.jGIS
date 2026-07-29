@@ -31,9 +31,7 @@
         },
         "opacity": 1.0,
         "source": "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        }
+        "symbologyState": {}
       },
       "type": "VectorLayer",
       "visible": true

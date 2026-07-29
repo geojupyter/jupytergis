@@ -3,30 +3,41 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { RefObject, useEffect, useState } from 'react';
+import React, { RefObject } from 'react';
 
-import StoryContentSection from './components/StoryContentSection';
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
+import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
+import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
-/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
+export interface IStoryViewerPanelSegmentNav {
+  handlePrev: () => void;
+  handleNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
-  /** Ref for the segment container (SpectaPanel uses it for animationend). */
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   activeSlide: IStorySegmentLayer['parameters'] | undefined;
   layerName: string;
-  handlePrev: () => void;
-  handleNext: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
-  setIndex: (index: number) => void;
+  /** Omit for list-story overlay; required when segment nav is shown. */
+  segmentNav?: IStoryViewerPanelSegmentNav;
+  /** Disable fade animation for list stories. */
+  disableSegmentAnimation?: boolean;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -59,22 +70,20 @@ export type StoryNavPlacement =
 function getStoryNavPlacement(
   isSpecta: boolean,
   hasImage: boolean,
-  storyType: string,
+  presentationMode: StoryPresentationMode,
   isMobile: boolean,
 ): StoryNavPlacement | null {
+  if (isVerticalScrollPresentation(presentationMode)) {
+    return null;
+  }
+
   if (isSpecta) {
     return isMobile ? null : 'subtitle-specta';
   }
-  if (storyType !== 'guided') {
-    return null;
-  }
+
   return hasImage ? 'over-image' : 'below-title';
 }
 
-/**
- * Story viewer (presentational). Receives story state and callbacks from parent.
- * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
- */
 function StoryViewerPanel({
   model,
   isSpecta,
@@ -84,91 +93,10 @@ function StoryViewerPanel({
   currentIndex,
   activeSlide,
   layerName,
-  handlePrev,
-  handleNext,
-  hasPrev,
-  hasNext,
-  setIndex,
+  segmentNav,
+  disableSegmentAnimation = false,
 }: IStoryViewerPanelProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  // Prefetch image when slide changes
-  useEffect(() => {
-    const imageUrl = activeSlide?.content?.image;
-
-    if (!imageUrl) {
-      setImageLoaded(false);
-      return;
-    }
-
-    // Reset state
-    setImageLoaded(false);
-
-    // Preload the image
-    const img = new Image();
-
-    img.onload = () => {
-      setImageLoaded(true);
-    };
-
-    img.onerror = () => {
-      setImageLoaded(false);
-    };
-
-    img.src = imageUrl;
-
-    // Cleanup: abort loading if component unmounts or slide changes
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [activeSlide?.content?.image]);
-
-  // ! TODO come back for this
-  // Listen for layer selection changes in unguided mode
-  useEffect(() => {
-    // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
-    const handleSelectedStorySegmentChanged = () => {
-      // This is just to update the displayed content
-      // So bail early if we don't need to do that
-      if (!storyData || storyData.storyType !== 'unguided') {
-        return;
-      }
-
-      const selected = model.localState?.selected?.value;
-      if (!selected) {
-        return;
-      }
-
-      const selectedLayers = Object.keys(selected);
-
-      // Ensure only one layer is selected
-      if (selectedLayers.length !== 1) {
-        return;
-      }
-
-      const selectedLayerId = selectedLayers[0];
-      const selectedLayer = model.getLayer(selectedLayerId);
-      if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
-        return;
-      }
-
-      const index = storyData.storySegments?.indexOf(selectedLayerId);
-      if (index === undefined || index === -1) {
-        return;
-      }
-
-      setIndex(index);
-    };
-
-    // ! TODO really only want to connect this un unguided mode
-    model.selectedChanged.connect(handleSelectedStorySegmentChanged);
-    handleSelectedStorySegmentChanged();
-
-    return () => {
-      model.selectedChanged.disconnect(handleSelectedStorySegmentChanged);
-    };
-  }, [model, storyData, setIndex]);
+  const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
@@ -178,39 +106,50 @@ function StoryViewerPanel({
     );
   }
 
-  const storyNavBarProps = {
-    onPrev: handlePrev,
-    onNext: handleNext,
-    hasPrev,
-    hasNext,
-  };
-
+  const segmentId = storyData.storySegments?.[currentIndex] ?? '';
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-  const storyType = storyData.storyType ?? 'guided';
+  const presentationMode = getStoryPresentationMode(storyData.storyType);
   const navPlacement = getStoryNavPlacement(
     isSpecta,
     hasImage,
-    storyType,
+    presentationMode,
     isMobile,
   );
 
   const navSlot =
-    navPlacement !== null ? (
-      <StoryNavBar placement={navPlacement} {...storyNavBarProps} />
+    navPlacement !== null && segmentNav ? (
+      <StoryNavBar
+        placement={navPlacement}
+        onPrev={segmentNav.handlePrev}
+        onNext={segmentNav.handleNext}
+        hasPrev={segmentNav.hasPrev}
+        hasNext={segmentNav.hasNext}
+      />
     ) : null;
 
-  // Get transition time from current segment, default to 0.3s
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
+  const segmentAnimationEnabled = !disableSegmentAnimation;
+  const segmentContainerKey = segmentAnimationEnabled
+    ? currentIndex
+    : undefined;
+  const segmentContainerClassName = segmentAnimationEnabled
+    ? 'jgis-story-segment-container'
+    : 'jgis-story-segment-container jgis-story-segment-container--no-segment-animation';
+  const segmentContainerStyle = segmentAnimationEnabled
+    ? { animationDuration: `${transitionTime}s` }
+    : undefined;
 
   return (
-    <div className="jgis-story-viewer-panel">
+    <div
+      className={
+        isColumnPresentation(presentationMode) ? 'jgis-story-viewer-panel' : ''
+      }
+    >
       <div
         ref={segmentContainerRef}
-        key={currentIndex}
-        className="jgis-story-segment-container"
-        style={{
-          animationDuration: `${transitionTime}s`,
-        }}
+        key={segmentContainerKey}
+        className={segmentContainerClassName}
+        style={segmentContainerStyle}
       >
         <div id="jgis-story-segment-header">
           <h1 className="jgis-story-viewer-title">
@@ -236,15 +175,16 @@ function StoryViewerPanel({
           />
         </div>
         <div id="jgis-story-segment-content">
-          <StoryContentSection
-            markdown={activeSlide?.content?.markdown ?? ''}
+          <RenderedStoryMarkdown
+            model={model}
+            segmentId={segmentId}
+            source={activeSlide?.content?.markdown ?? ''}
+            variant="column"
           />
         </div>
       </div>
     </div>
   );
 }
-
-StoryViewerPanel.displayName = 'StoryViewerPanel';
 
 export default StoryViewerPanel;

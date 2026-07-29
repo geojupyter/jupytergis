@@ -1,4 +1,5 @@
 export * from './features/annotations';
+export * from './features/processing/serverProcessing';
 export * from './commands/index';
 export * from './constants';
 export * from './features/layers/layerCreationFormDialog';
@@ -8,7 +9,6 @@ export * from './workspace/menus';
 export * from './workspace/panels';
 export * from './shared/store';
 export * from './features/stac-browser';
-export * from './features/objectproperties';
 export * from './workspace/toolbar';
 export * from './tools';
 export * from './types';
