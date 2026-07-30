@@ -27,9 +27,13 @@ import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import {
-  createIssLayer,
-  findIssTrackerSourceId,
-} from '../features/layers/iss';
+  createLiveApiLayer,
+  findLiveApiSourceIdByName,
+} from '../features/layers/live-api/createLiveApiLayer';
+import {
+  ISS_LIVE_API_PRESET,
+  ISS_TRACKER_NAME,
+} from '../features/layers/live-api/liveApiTypes';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
@@ -1825,7 +1829,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.addIssTracker, {
     label: trans.__('Add ISS Tracker'),
     caption: trans.__(
-      'Add a live GeoJSON point for the International Space Station',
+      'Add a live API point for the International Space Station',
     ),
     isEnabled: () => Boolean(tracker.currentWidget),
     execute: async () => {
@@ -1848,17 +1852,15 @@ export function addCommands(
         return;
       }
 
-      let sourceId = findIssTrackerSourceId(model);
+      let sourceId = findLiveApiSourceIdByName(model, ISS_TRACKER_NAME);
       if (!sourceId) {
-        try {
-          sourceId = await createIssLayer(model);
-        } catch (error) {
-          console.error('Failed to create ISS tracker layer', error);
-          return;
-        }
+        sourceId = createLiveApiLayer(model, {
+          name: ISS_TRACKER_NAME,
+          parameters: ISS_LIVE_API_PRESET,
+        });
       }
 
-      viewModel.issTracker.start(sourceId);
+      viewModel.liveApiPoller.syncFromModel();
     },
     ...icons.get(CommandIDs.addIssTracker),
   });

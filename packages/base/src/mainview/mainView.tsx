@@ -426,6 +426,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handlePointerChanged();
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
+    this._mainViewModel.liveApiPoller.setFeatureApplier(
+      (sourceId, longitude, latitude, properties) => {
+        this._applyLiveApiPosition(sourceId, longitude, latitude, properties);
+      },
+    );
     this._mainViewModel.initSignal();
     if (this.state.isSpectaPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
@@ -1197,6 +1202,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
+        case 'LiveApiSource': {
+          // Geometry is filled by the live API poller; start empty.
+          newSource = new VectorSource({ features: [] });
+          break;
+        }
+
         case 'ShapefileSource': {
           const parameters = source.parameters as IShapefileSource;
 
@@ -1529,6 +1540,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._sources[id] = newSource;
 
     this._trackSourceExtZoom(id, newSource);
+
+    if (source.type === 'LiveApiSource') {
+      this._mainViewModel.liveApiPoller.pollNow(id);
+    }
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -1571,6 +1586,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.addSource(id, source);
     // change source of target layer
     mapLayer.setSource(this._sources[id]);
+  }
+
+  /**
+   * Update (or create) the point feature for a LiveApiSource from lon/lat.
+   */
+  private _applyLiveApiPosition(
+    sourceId: string,
+    longitude: number,
+    latitude: number,
+    properties: Record<string, unknown>,
+  ): void {
+    const olSource = this._sources[sourceId];
+    if (!(olSource instanceof VectorSource)) {
+      return;
+    }
+
+    const projection = this._Map.getView().getProjection();
+    const coordinates = fromLonLat([longitude, latitude], projection);
+    const existing = olSource.getFeatures()[0];
+
+    if (existing) {
+      const geometry = existing.getGeometry();
+      if (geometry instanceof Point) {
+        geometry.setCoordinates(coordinates);
+      } else {
+        existing.setGeometry(new Point(coordinates));
+      }
+      for (const [key, value] of Object.entries(properties)) {
+        existing.set(key, value);
+      }
+
+      return;
+    }
+
+    const feature = new Feature({
+      geometry: new Point(coordinates),
+      ...properties,
+    });
+    olSource.addFeature(feature);
   }
 
   /**

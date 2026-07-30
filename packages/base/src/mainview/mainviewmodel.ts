@@ -9,14 +9,14 @@ import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 
-import { IssTracker } from '../features/layers/iss';
+import { LiveApiPollerManager } from '../features/layers/live-api/liveApiPollerManager';
 
 export class MainViewModel implements IDisposable {
   constructor(options: MainViewModel.IOptions) {
     this._jGISModel = options.jGISModel;
     this._viewSetting = options.viewSetting;
     this._commands = options.commands;
-    this._issTracker = new IssTracker(options.jGISModel);
+    this._liveApiPoller = new LiveApiPollerManager(options.jGISModel);
   }
 
   get isDisposed(): boolean {
@@ -39,8 +39,8 @@ export class MainViewModel implements IDisposable {
     return this._commands;
   }
 
-  get issTracker(): IssTracker {
-    return this._issTracker;
+  get liveApiPoller(): LiveApiPollerManager {
+    return this._liveApiPoller;
   }
 
   dispose(): void {
@@ -51,7 +51,7 @@ export class MainViewModel implements IDisposable {
       this._onsharedLayersChanged,
       this,
     );
-    this._issTracker.dispose();
+    this._liveApiPoller.dispose();
     this._isDisposed = true;
   }
 
@@ -60,8 +60,8 @@ export class MainViewModel implements IDisposable {
       this._onsharedLayersChanged,
       this,
     );
-    this._issTracker.connect();
-    this._issTracker.syncFromModel();
+    this._liveApiPoller.connect();
+    this._liveApiPoller.syncFromModel();
   }
 
   addAnnotation(value: IAnnotation): void {
@@ -80,7 +80,7 @@ export class MainViewModel implements IDisposable {
   private _jGISModel: IJupyterGISModel;
   private _viewSetting: ObservableMap<JSONValue>;
   private _commands: CommandRegistry;
-  private _issTracker: IssTracker;
+  private _liveApiPoller: LiveApiPollerManager;
   private _id: string;
   private _isDisposed = false;
 }
