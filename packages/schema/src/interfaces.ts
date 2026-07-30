@@ -65,6 +65,7 @@ export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  locationIndicatorActive?: boolean;
 }
 
 export interface IJGISStoryMaps {
