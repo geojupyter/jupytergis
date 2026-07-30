@@ -4,7 +4,10 @@
 // - Auto-provide `process` and `Buffer` globals
 // - Emit .wasm files as separate assets so `import wasmURL` yields the correct URL
 
-const webpack = require('webpack');
+// @jupyter/builder bundles labextensions with rspack, so the ProvidePlugin
+// must come from @rspack/core rather than webpack (the webpack instance is
+// incompatible with the rspack compiler this config is merged into).
+const rspack = require('@rspack/core');
 const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
@@ -59,7 +62,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.ProvidePlugin({
+    new rspack.ProvidePlugin({
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer']
     }),
