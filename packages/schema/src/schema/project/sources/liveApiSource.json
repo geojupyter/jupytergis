@@ -22,10 +22,22 @@
       "description": "Center the map on the point after every successful poll",
       "default": false
     },
+    "showTrail": {
+      "type": "boolean",
+      "title": "Show Trail",
+      "description": "Draw a line through recent positions from this API",
+      "default": false
+    },
+    "trailLength": {
+      "type": "number",
+      "title": "Trail Length",
+      "description": "Maximum number of positions kept in the trail",
+      "default": 50,
+      "minimum": 2
+    },
     "useProxy": {
       "type": "boolean",
       "title": "Use Proxy",
-
       "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
       "default": false
     },

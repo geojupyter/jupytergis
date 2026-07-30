@@ -55,6 +55,8 @@ export function createLiveApiLayer(
     pollIntervalMs:
       options.parameters.pollIntervalMs ?? DEFAULT_LIVE_API_POLL_MS,
     autoTrack: options.parameters.autoTrack ?? false,
+    showTrail: options.parameters.showTrail ?? false,
+    trailLength: options.parameters.trailLength ?? 50,
     useProxy: options.parameters.useProxy ?? false,
     httpHeaders: options.parameters.httpHeaders,
   };
