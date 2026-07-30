@@ -21,6 +21,16 @@ module.exports = {
     }
   },
   module: {
+    parser: {
+      javascript: {
+        // geoparquet's barrel re-exports `asyncBufferFromFile` from hyparquet,
+        // which only exists in hyparquet's Node entry — not the browser export
+        // condition rspack resolves. base never uses it, so downgrade rspack's
+        // strict ESM "export not found" check from error to warning (webpack's
+        // old, lenient behavior) instead of failing the browser bundle.
+        exportsPresence: 'warn'
+      }
+    },
     rules: [
       {
         test: /\.wasm$/,
