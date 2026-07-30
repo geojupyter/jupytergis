@@ -85,13 +85,16 @@ function OverlayContentWidthField({
   const [isCustom, setIsCustom] = useState(matchedPreset === null);
   const parsed = parseOverlayContentWidth(value);
   const [amount, setAmount] = useState(parsed.amount);
-  const [amountError, setAmountError] = useState<string | null>(null);
+  const [unit, setUnit] = useState(parsed.unit);
+  const [widthError, setWidthError] = useState<string | null>(null);
   const selectedPresetId = isCustom ? null : matchedPreset;
 
   useEffect(() => {
-    setAmount(parsed.amount);
-    setAmountError(null);
-  }, [parsed.amount]);
+    const next = parseOverlayContentWidth(value);
+    setAmount(next.amount);
+    setUnit(next.unit);
+    setWidthError(null);
+  }, [value]);
 
   return (
     <div className="jgis-story-editor-field">
@@ -146,46 +149,50 @@ function OverlayContentWidthField({
               inputMode="decimal"
               value={amount}
               onChange={event => {
-                const next = sanitizeCssAmountInput(event.target.value);
-                setAmount(next);
+                const nextAmount = sanitizeCssAmountInput(event.target.value);
+                setAmount(nextAmount);
 
-                if (!CSS_AMOUNT_COMPLETE.test(next)) {
-                  setAmountError('Enter a valid width');
+                if (!CSS_AMOUNT_COMPLETE.test(nextAmount)) {
+                  setWidthError('Enter a valid width');
                   return;
                 }
 
-                setAmountError(null);
-                onChange(formatOverlayContentWidth(next, parsed.unit));
+                setWidthError(null);
+                onChange(formatOverlayContentWidth(nextAmount, unit));
               }}
             />
             <NativeSelect
               aria-label="Width unit"
-              value={parsed.unit}
+              value={unit}
               onChange={event => {
-                onChange(
-                  formatOverlayContentWidth(
-                    amount.trim() || parsed.amount,
-                    event.target.value as OverlayContentWidthUnit,
-                  ),
-                );
+                const nextUnit = event.target.value as OverlayContentWidthUnit;
+                setUnit(nextUnit);
+
+                if (!CSS_AMOUNT_COMPLETE.test(amount.trim())) {
+                  setWidthError('Enter a valid width');
+                  return;
+                }
+
+                setWidthError(null);
+                onChange(formatOverlayContentWidth(amount.trim(), nextUnit));
               }}
             >
-              {OVERLAY_CONTENT_WIDTH_UNITS.map(unit => (
-                <NativeSelectOption key={unit} value={unit}>
-                  {unit}
+              {OVERLAY_CONTENT_WIDTH_UNITS.map(unitOption => (
+                <NativeSelectOption key={unitOption} value={unitOption}>
+                  {unitOption}
                 </NativeSelectOption>
               ))}
             </NativeSelect>
           </div>
-          {amountError ? (
-            <p className="jgis-story-editor-field-error">{amountError}</p>
+          {widthError ? (
+            <p className="jgis-story-editor-field-error">{widthError}</p>
           ) : null}
         </>
       ) : null}
     </div>
   );
 }
-
+//sdsds
 function StorySettingsPopover({
   story,
   onUpdateStory,
