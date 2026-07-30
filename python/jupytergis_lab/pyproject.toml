@@ -2,7 +2,7 @@
 build-backend = "hatchling.build"
 requires = [
   "hatchling>=1.5.0",
-  "jupyterlab>=4.5.1",
+  "jupyterlab>=4.5.1,<4.6",
   "hatch-nodejs-version>=0.3.2",
 ]
 
@@ -85,7 +85,7 @@ version_cmd = "hatch version"
 
 [tool.jupyter-releaser.hooks]
 before-build-npm = [
-  "python -m pip install 'jupyterlab>=4.5.1'",
+  "python -m pip install 'jupyterlab>=4.5.1,<4.6'",
   "pnpm install",
   "pnpm run build:prod",
 ]

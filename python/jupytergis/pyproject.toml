@@ -27,7 +27,7 @@ dependencies = [
   "jupyter-docprovider>=2,<3",
   "jupyter-server-ydoc>=2,<3",
   "jupyter-collaboration-ui>=2,<3",
-  "jupyterlab>=4.5.1",
+  "jupyterlab>=4.5.1,<4.6",
 ]
 
 [project.optional-dependencies]
