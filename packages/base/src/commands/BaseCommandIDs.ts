@@ -25,6 +25,7 @@ export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';
 export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
+export const openNewLiveApiDialog = 'jupytergis:openNewLiveApiDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';

@@ -23,6 +23,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewLiveApiDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.openNewShapefileDialog,
   });
 
