@@ -12,6 +12,7 @@ from .interfaces.project.layers.openeoTileLayer import IOpenEOTileLayer  # noqa
 
 from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # noqa
 from .interfaces.project.sources.markerSource import IMarkerSource  # noqa
+from .interfaces.project.sources.liveApiSource import ILiveApiSource  # noqa
 from .interfaces.project.sources.rasterSource import IRasterSource  # noqa
 from .interfaces.project.sources.geoJsonSource import IGeoJSONSource  # noqa
 from .interfaces.project.sources.imageSource import IImageSource  # noqa

@@ -44,6 +44,7 @@ import {
   IImageLayer,
   IImageSource,
   IMarkerSource,
+  ILiveApiSource,
   IRasterDemSource,
   IRasterLayer,
   IRasterSource,
@@ -60,6 +61,7 @@ import {
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { ILiveApiSource } from './_interface/project/sources/liveApiSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
 export interface IJGISUIState {
@@ -581,6 +583,7 @@ export type ILayerGalleryEntry = {
     | IGeoZarrSource
     | IImageSource
     | IMarkerSource
+    | ILiveApiSource
     | IRasterDemSource
     | IRasterSource
     | IShapefileSource

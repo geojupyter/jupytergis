@@ -37,6 +37,7 @@ const SOURCE_SCHEMAS = {
   GeoZarrSource: 'sources/geoZarrSource.json',
   GeoParquetSource: 'sources/geoParquetSource.json',
   MarkerSource: 'sources/markerSource.json',
+  LiveApiSource: 'sources/liveApiSource.json',
 };
 
 function findJgisFiles(dir, files = []) {
