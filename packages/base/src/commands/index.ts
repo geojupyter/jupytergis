@@ -24,7 +24,6 @@ import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
-import { targetWithCenterIcon } from '@/src/shared/icons';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -1549,9 +1548,30 @@ export function addCommands(
         console.warn(`Geolocation error (${err.code}): ${err.message}`);
       };
 
-      navigator.geolocation.getCurrentPosition(success, error, options);
+      window.navigator.geolocation.getCurrentPosition(success, error, options);
     },
-    icon: targetWithCenterIcon,
+  });
+
+  commands.addCommand(CommandIDs.toggleLocationIndicator, {
+    label: trans.__('Toggle Location Indicator'),
+    caption: 'Display a live location indicator based on your GPS position.',
+    isToggled: () =>
+      Boolean(
+        tracker.currentWidget?.model.getUIState().locationIndicatorActive,
+      ),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
+      viewModel.setUIState({
+        locationIndicatorActive:
+          !viewModel.getUIState().locationIndicatorActive,
+      });
+      commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+    },
   });
 
   // Panel visibility commands

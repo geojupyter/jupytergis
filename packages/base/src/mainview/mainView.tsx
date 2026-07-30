@@ -1,3 +1,4 @@
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
@@ -16,6 +17,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISUIState,
   IIdentifiedFeature,
   IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
@@ -56,6 +58,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
+  Geolocation,
   MapBrowserEvent,
   Map as OlMap,
   VectorTile,
@@ -63,6 +66,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import type { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -346,6 +350,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
+    this._model.uiStateChanged.connect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
 
     // Keep draw editing UI/interactions in sync with the shared editing mode.
     this._model.editingVectorLayerChanged.connect(
@@ -490,6 +498,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
+
+    this._model.uiStateChanged.disconnect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
+    this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
   }
@@ -693,6 +707,89 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
+
+      this._geolocation = new Geolocation({
+        tracking: false,
+        trackingOptions: {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: Infinity,
+        },
+        projection: this._Map.getView().getProjection(),
+      });
+      this._geolocation.on('error', (err: GeolocationError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        this._model.setUIState({ locationIndicatorActive: false });
+      });
+
+      this._geolocationAccuracyFeature = new Feature();
+      this._geolocationAccuracyFeature.setStyle(
+        new Style({
+          fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+        }),
+      );
+      this._geolocation.on('change:accuracyGeometry', () => {
+        if (
+          this._geolocationAccuracyFeature === undefined ||
+          this._geolocation === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        this._geolocationAccuracyFeature.setGeometry(
+          this._geolocation.getAccuracyGeometry() ?? undefined,
+        );
+      });
+
+      /**
+       * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
+       * contrasting white stroke and the OL API does not support that in a single icon.
+       */
+      const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
+      const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+        `<svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 ${iconWidth} ${iconHeight}"
+        >
+          <path
+            d="${iconPath}"
+            fill="blue"
+            stroke="white"
+            stroke-width="40"
+            paint-order="stroke"
+            stroke-linejoin="round"
+          />
+        </svg>`,
+      )}`;
+
+      this._geolocationPositionFeature = new Feature();
+      this._geolocationPositionFeature.setStyle(
+        new Style({
+          image: new Icon({ src: crosshairsSrc }),
+        }),
+      );
+
+      this._geolocation.on('change:position', () => {
+        if (
+          this._geolocation === undefined ||
+          this._geolocationPositionFeature === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        const coordinates = this._geolocation.getPosition();
+        this._geolocationPositionFeature.setGeometry(
+          coordinates ? new Point(coordinates) : undefined,
+        );
+      });
+
+      this._geolocationSource = new VectorSource({});
+      new VectorLayer({
+        map: this._Map,
+        source: this._geolocationSource,
+      });
     }
   }
 
@@ -2654,6 +2751,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           },
         }));
         view = new View({ projection: newProjection });
+        this._geolocation?.setProjection(newProjection);
       } else {
         this._log('warning', `Invalid projection: ${projection}`);
         return;
@@ -3664,6 +3762,47 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private _handleLocationIndicatorToggled(
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void {
+    const active = Boolean(uiState.locationIndicatorActive);
+    if (active === this._locationIndicatorActive) {
+      return;
+    }
+    this._locationIndicatorActive = active;
+    if (active) {
+      this._startLocationIndicator();
+    } else {
+      this._stopLocationIndicator();
+    }
+  }
+
+  private _startLocationIndicator(): void {
+    if (
+      !this._geolocation ||
+      !this._geolocationSource ||
+      !this._geolocationAccuracyFeature ||
+      !this._geolocationPositionFeature
+    ) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(true);
+    this._geolocationSource.clear();
+    this._geolocationSource.addFeatures([
+      this._geolocationAccuracyFeature,
+      this._geolocationPositionFeature,
+    ]);
+  }
+
+  private _stopLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(false);
+    this._geolocationSource.clear();
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -4119,6 +4258,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
+  private _geolocation?: Geolocation;
+  private _geolocationSource?: VectorSource;
+  private _geolocationPositionFeature?: Feature;
+  private _geolocationAccuracyFeature?: Feature;
+  private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
