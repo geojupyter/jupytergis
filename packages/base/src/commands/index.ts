@@ -23,7 +23,7 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
-import { targetWithCenterIcon } from '@/src/shared/icons';
+import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -37,7 +37,6 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
-import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -273,23 +272,15 @@ export function addCommands(
 
       const model = current.model;
 
-      // OpenEO layers are edited through the process-graph editor, which is a
-      // dialog itself. Opening the Layer Properties dialog first would block
-      // it (a dialog cannot open while another is open), so go straight to the
-      // process-graph editor instead. See #1653.
+      // Each layer type declares how it is edited (see `getLayerEditHandler`).
+      // Most types open the Layer Properties dialog, but some (e.g. OpenEO)
+      // open a dedicated editor instead.
       const selected = model.localState?.selected?.value ?? {};
       const selectedId = Object.keys(selected)[0];
       const layer = selectedId ? model.getLayer(selectedId) : undefined;
-      if (selectedId && layer?.type === 'OpenEOTileLayer') {
-        await editOpenEOLayer(model, selectedId);
-        return;
-      }
 
-      const dialog = new ObjectPropertiesWidget({
-        model,
-        formSchemaRegistry,
-      });
-      await dialog.launch();
+      const editHandler = getLayerEditHandler(layer?.type);
+      await editHandler({ model, selectedId, formSchemaRegistry });
     },
     ...icons.get(CommandIDs.showLayerPropertiesDialog),
   });
@@ -1557,9 +1548,30 @@ export function addCommands(
         console.warn(`Geolocation error (${err.code}): ${err.message}`);
       };
 
-      navigator.geolocation.getCurrentPosition(success, error, options);
+      window.navigator.geolocation.getCurrentPosition(success, error, options);
     },
-    icon: targetWithCenterIcon,
+  });
+
+  commands.addCommand(CommandIDs.toggleLocationIndicator, {
+    label: trans.__('Toggle Location Indicator'),
+    caption: 'Display a live location indicator based on your GPS position.',
+    isToggled: () =>
+      Boolean(
+        tracker.currentWidget?.model.getUIState().locationIndicatorActive,
+      ),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
+      viewModel.setUIState({
+        locationIndicatorActive:
+          !viewModel.getUIState().locationIndicatorActive,
+      });
+      commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+    },
   });
 
   // Panel visibility commands

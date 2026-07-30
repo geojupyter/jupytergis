@@ -28,17 +28,16 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "jlpm build:gallery && tspc -b && jlpm run cp:gdal",
+    "build": "pnpm run build:gallery && tspc -b && pnpm run cp:gdal",
     "build:gallery": "uv run --directory ../../scripts/layer_gallery python layer_gallery",
     "cp:gdal": "cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.data lib && cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm lib",
-    "build:prod": "jlpm run clean && jlpm run build",
-    "build:dev": "tspc -b && jlpm run cp:gdal",
+    "build:prod": "pnpm run clean && pnpm run build",
+    "build:dev": "tspc -b && pnpm run cp:gdal",
     "clean": "rimraf tsconfig.tsbuildinfo",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
-    "clean:all": "jlpm run clean:lib",
+    "clean:all": "pnpm run clean:lib",
     "watch": "tspc -w"
   },
-  "packageManager": "yarn@3.5.0",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
