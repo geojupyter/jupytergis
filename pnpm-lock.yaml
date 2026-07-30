@@ -648,7 +648,7 @@ importers:
         version: 0.12.5
     devDependencies:
       '@jupyterlab/builder':
-        specifier: ^4.5
+        specifier: ~4.5
         version: 4.5.9(postcss@8.5.19)(uglify-js@3.19.3)
       '@types/json-schema':
         specifier: ^7.0.11
@@ -769,7 +769,7 @@ importers:
         version: 0.6.0(postcss@8.5.19)(react@18.3.1)(uglify-js@3.19.3)(yjs@13.6.31)
     devDependencies:
       '@jupyterlab/builder':
-        specifier: ^4.5
+        specifier: ~4.5
         version: 4.5.9(postcss@8.5.19)(uglify-js@3.19.3)
       css-loader:
         specifier: ^6.7.1
@@ -845,7 +845,7 @@ importers:
         version: 18.3.1
     devDependencies:
       '@jupyterlab/builder':
-        specifier: ^4.5
+        specifier: ~4.5
         version: 4.5.9(postcss@8.5.19)(uglify-js@3.19.3)
       css-loader:
         specifier: ^6.7.1
@@ -12617,7 +12617,7 @@ snapshots:
 
   '@types/glob@9.0.0':
     dependencies:
-      glob: 7.2.3
+      glob: 13.0.6
 
   '@types/hast@3.0.5':
     dependencies:
