@@ -11,22 +11,27 @@
     },
     "pollIntervalMs": {
       "type": "number",
+      "title": "Poll Interval",
       "description": "How often to poll the API, in milliseconds",
       "default": 5000,
       "minimum": 1000
     },
     "autoTrack": {
       "type": "boolean",
+      "title": "Auto Track",
       "description": "Center the map on the point after every successful poll",
       "default": false
     },
     "useProxy": {
       "type": "boolean",
+      "title": "Use Proxy",
+
       "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
       "default": false
     },
     "httpHeaders": {
       "type": "string",
+      "title": "HTTP Headers",
       "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
       "default": "",
       "additionalProperties": {
