@@ -39,6 +39,7 @@ import {
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
+  ILiveApiSource,
   IStorySegmentLayer,
   IWmsTileSource,
   IJupyterGISSettings,
@@ -73,7 +74,7 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
-import { Geometry, Point } from 'ol/geom';
+import { Geometry, LineString, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
@@ -1542,6 +1543,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._trackSourceExtZoom(id, newSource);
 
     if (source.type === 'LiveApiSource') {
+      // Fresh OL source — drop any stale trail buffer for this id.
+      this._liveApiTrailBuffers.delete(id);
       this._mainViewModel.liveApiPoller.pollNow(id);
     }
   }
@@ -1589,7 +1592,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
-   * Update (or create) the point feature for a LiveApiSource from lon/lat.
+   * Update (or create) the point feature for a LiveApiSource from lon/lat,
+   * and optionally maintain a LineString trail of recent positions.
    */
   private _applyLiveApiPosition(
     sourceId: string,
@@ -1602,34 +1606,73 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    const jgisSource = this._model.getSource(sourceId);
+    const parameters =
+      jgisSource?.type === 'LiveApiSource'
+        ? (jgisSource.parameters as ILiveApiSource)
+        : undefined;
+
     const projection = this._Map.getView().getProjection();
     const coordinates = fromLonLat([longitude, latitude], projection);
-    const existing = olSource.getFeatures()[0];
 
-    if (existing) {
-      const geometry = existing.getGeometry();
+    const trailLength = Math.max(2, parameters?.trailLength ?? 50);
+    const showTrail = parameters?.showTrail === true;
+
+    const buffer = this._liveApiTrailBuffers.get(sourceId) ?? [];
+    buffer.push(coordinates);
+    if (buffer.length > trailLength) {
+      buffer.splice(0, buffer.length - trailLength);
+    }
+    this._liveApiTrailBuffers.set(sourceId, buffer);
+
+    const pointFeature = olSource
+      .getFeatures()
+      .find(feature => feature.get('jgisLiveApiRole') === 'point');
+
+    if (pointFeature) {
+      const geometry = pointFeature.getGeometry();
       if (geometry instanceof Point) {
         geometry.setCoordinates(coordinates);
       } else {
-        existing.setGeometry(new Point(coordinates));
+        pointFeature.setGeometry(new Point(coordinates));
       }
       for (const [key, value] of Object.entries(properties)) {
-        existing.set(key, value);
+        pointFeature.set(key, value);
       }
     } else {
       const feature = new Feature({
         geometry: new Point(coordinates),
+        jgisLiveApiRole: 'point',
         ...properties,
       });
       olSource.addFeature(feature);
     }
 
-    const jgisSource = this._model.getSource(sourceId);
-    if (
-      jgisSource?.type === 'LiveApiSource' &&
-      (jgisSource.parameters as { autoTrack?: boolean } | undefined)
-        ?.autoTrack === true
-    ) {
+    const trailFeature = olSource
+      .getFeatures()
+      .find(feature => feature.get('jgisLiveApiRole') === 'trail');
+
+    if (showTrail && buffer.length >= 2) {
+      if (trailFeature) {
+        const geometry = trailFeature.getGeometry();
+        if (geometry instanceof LineString) {
+          geometry.setCoordinates(buffer);
+        } else {
+          trailFeature.setGeometry(new LineString(buffer));
+        }
+      } else {
+        olSource.addFeature(
+          new Feature({
+            geometry: new LineString(buffer),
+            jgisLiveApiRole: 'trail',
+          }),
+        );
+      }
+    } else if (trailFeature) {
+      olSource.removeFeature(trailFeature);
+    }
+
+    if (parameters?.autoTrack === true) {
       const zoom = this._Map.getView().getZoom();
       if (zoom === undefined) {
         return;
@@ -1652,6 +1695,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   removeSource(id: string): void {
     delete this._sources[id];
+    this._liveApiTrailBuffers.delete(id);
   }
 
   /**
@@ -4332,6 +4376,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
+  private _liveApiTrailBuffers = new Map<string, Coordinate[]>();
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
