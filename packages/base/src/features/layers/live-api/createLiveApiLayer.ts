@@ -54,6 +54,7 @@ export function createLiveApiLayer(
     url: options.parameters.url,
     pollIntervalMs:
       options.parameters.pollIntervalMs ?? DEFAULT_LIVE_API_POLL_MS,
+    autoTrack: options.parameters.autoTrack ?? false,
     useProxy: options.parameters.useProxy ?? false,
     httpHeaders: options.parameters.httpHeaders,
   };

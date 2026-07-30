@@ -691,6 +691,7 @@ export function addCommands(
       sourceData: {
         pollIntervalMs: 5000,
         useProxy: false,
+        autoTrack: false,
       },
       layerData: { name: 'Live API Layer' },
       sourceType: 'LiveApiSource',

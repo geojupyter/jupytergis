@@ -1616,15 +1616,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       for (const [key, value] of Object.entries(properties)) {
         existing.set(key, value);
       }
-
-      return;
+    } else {
+      const feature = new Feature({
+        geometry: new Point(coordinates),
+        ...properties,
+      });
+      olSource.addFeature(feature);
     }
 
-    const feature = new Feature({
-      geometry: new Point(coordinates),
-      ...properties,
-    });
-    olSource.addFeature(feature);
+    const jgisSource = this._model.getSource(sourceId);
+    if (
+      jgisSource?.type === 'LiveApiSource' &&
+      (jgisSource.parameters as { autoTrack?: boolean } | undefined)
+        ?.autoTrack === true
+    ) {
+      const zoom = this._Map.getView().getZoom();
+      if (zoom === undefined) {
+        return;
+      }
+
+      const target = { x: coordinates[0], y: coordinates[1] };
+      // Wait until the updated point has been painted, then fly.
+      this._Map.once('postrender', () => {
+        this._flyToPosition(target, zoom, 500, 'linear');
+      });
+      olSource.changed();
+      this._Map.render();
+    }
   }
 
   /**

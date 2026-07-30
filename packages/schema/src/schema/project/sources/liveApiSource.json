@@ -15,6 +15,11 @@
       "default": 5000,
       "minimum": 1000
     },
+    "autoTrack": {
+      "type": "boolean",
+      "description": "Center the map on the point after every successful poll",
+      "default": false
+    },
     "useProxy": {
       "type": "boolean",
       "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
