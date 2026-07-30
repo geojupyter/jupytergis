@@ -189,6 +189,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
+      const addIssTrackerButton = new CommandToolbarButton({
+        id: CommandIDs.addIssTracker,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('addIssTracker', addIssTrackerButton);
+      addIssTrackerButton.node.dataset.testid = 'add-iss-tracker-button';
+
       const toggleDrawFeaturesButton = new CommandToolbarButton({
         id: CommandIDs.toggleDrawFeatures,
         label: '',

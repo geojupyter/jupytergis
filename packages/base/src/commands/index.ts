@@ -26,6 +26,10 @@ import { fromLonLat } from 'ol/proj';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
+import {
+  createIssLayer,
+  findIssTrackerSourceId,
+} from '../features/layers/iss';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
@@ -58,7 +62,11 @@ import {
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
-import { JupyterGISDocumentWidget } from '../workspace/widget';
+import {
+  JupyterGISDocumentWidget,
+  JupyterGISOutputWidget,
+  JupyterGISPanel,
+} from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -78,6 +86,8 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openStoryEditor,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
+  // Live ISS tracker (polls external API into GeoJSON)
+  CommandIDs.addIssTracker,
 ]);
 
 interface ICreateEntry {
@@ -1810,6 +1820,47 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.addMarker);
     },
     ...icons.get(CommandIDs.addMarker),
+  });
+
+  commands.addCommand(CommandIDs.addIssTracker, {
+    label: trans.__('Add ISS Tracker'),
+    caption: trans.__(
+      'Add a live GeoJSON point for the International Space Station',
+    ),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (
+        !(current instanceof JupyterGISDocumentWidget) &&
+        !(current instanceof JupyterGISOutputWidget)
+      ) {
+        return;
+      }
+
+      const panel = current.content;
+      if (!(panel instanceof JupyterGISPanel)) {
+        return;
+      }
+
+      const model = current.model;
+      const viewModel = panel.currentViewModel;
+      if (!viewModel) {
+        return;
+      }
+
+      let sourceId = findIssTrackerSourceId(model);
+      if (!sourceId) {
+        try {
+          sourceId = await createIssLayer(model);
+        } catch (error) {
+          console.error('Failed to create ISS tracker layer', error);
+          return;
+        }
+      }
+
+      viewModel.issTracker.start(sourceId);
+    },
+    ...icons.get(CommandIDs.addIssTracker),
   });
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
