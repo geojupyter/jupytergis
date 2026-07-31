@@ -22,17 +22,5 @@
     "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-d849f-der-test-jGIS-without-error-chromium-retry1",
     "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-d849f-der-test-jGIS-without-error-chromium-retry1_Render-test-jGIS",
     "ext": ".png"
-  },
-  {
-    "name": "showcase-france-hiking",
-    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-showcase-Showcase-France-hiking-layers-chromium",
-    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-showcase-Showcase-France-hiking-layers-chromium_showcase-france-hiking",
-    "ext": ".jpg"
-  },
-  {
-    "name": "showcase-france-hiking",
-    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-showcase-Showcase-France-hiking-layers-chromium-retry1",
-    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-showcase-Showcase-France-hiking-layers-chromium-retry1_showcase-france-hiking",
-    "ext": ".jpg"
   }
 ]
