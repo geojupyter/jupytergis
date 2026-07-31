@@ -24,9 +24,48 @@ nodeLinker: hoisted
 linkWorkspacePackages: true
 
 overrides:
-  '@jupyterlab/apputils': '^4.6'
+  # Keep the whole JupyterLab JS stack on the 4.5 line so the built
+  # labextension stays compatible with the pinned `jupyterlab<4.6` and keeps
+  # using the webpack-based `@jupyterlab/builder`. Caret ranges (`^4.5`) still
+  # resolve up to 4.6/4.7, so these use tilde to lock the minor. Note the
+  # per-package offsets in the 4.5 line (apputils 4.6, coreutils 6.5,
+  # observables 5.5, services 7.5).
   '@lumino/coreutils': '^2.0.0'
-  '@jupyterlab/notebook': '^4.6'
-  '@jupyterlab/rendermime': '^4.6'
-  '@jupyterlab/services': '^7.6'
+  # JupyterLab 4.5's docregistry expects @jupyter/ydoc ^3, while our loose
+  # `^2 || ^3 || ^4` range would otherwise resolve to 4.x and clash with the
+  # SharedDocumentFactory `YDocument` type. Keep the whole tree on the 3.x line.
+  '@jupyter/ydoc': '^3.1.0'
+  '@jupyterlab/builder': '~4.5'
+  '@jupyterlab/application': '~4.5'
+  '@jupyterlab/apputils': '~4.6'
+  '@jupyterlab/attachments': '~4.5'
+  '@jupyterlab/cells': '~4.5'
+  '@jupyterlab/codeeditor': '~4.5'
+  '@jupyterlab/codemirror': '~4.5'
+  '@jupyterlab/completer': '~4.5'
+  '@jupyterlab/console': '~4.5'
+  '@jupyterlab/coreutils': '~6.5'
+  '@jupyterlab/docmanager': '~4.5'
+  '@jupyterlab/docregistry': '~4.5'
+  '@jupyterlab/documentsearch': '~4.5'
+  '@jupyterlab/filebrowser': '~4.5'
+  '@jupyterlab/launcher': '~4.5'
+  '@jupyterlab/logconsole': '~4.5'
+  '@jupyterlab/lsp': '~4.5'
+  '@jupyterlab/mainmenu': '~4.5'
+  '@jupyterlab/markedparser-extension': '~4.5'
+  '@jupyterlab/mermaid': '~4.5'
+  '@jupyterlab/nbformat': '~4.5'
+  '@jupyterlab/notebook': '~4.5'
+  '@jupyterlab/observables': '~5.5'
+  '@jupyterlab/outputarea': '~4.5'
+  '@jupyterlab/rendermime': '~4.5'
+  '@jupyterlab/rendermime-interfaces': '~3.13'
+  '@jupyterlab/services': '~7.5'
+  '@jupyterlab/settingregistry': '~4.5'
+  '@jupyterlab/statedb': '~4.5'
+  '@jupyterlab/statusbar': '~4.5'
+  '@jupyterlab/toc': '~6.5'
+  '@jupyterlab/translation': '~4.5'
+  '@jupyterlab/ui-components': '~4.5'
   webpack: '>=5.76.3 <5.107.0'

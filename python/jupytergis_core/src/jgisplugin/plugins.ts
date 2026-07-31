@@ -215,7 +215,10 @@ const activate = async (
   });
 
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
-    return new JupyterGISDoc();
+    // JupyterLab 4.5 ships @jupyter/ydoc 3, whose `YDocument<T>` is invariant in
+    // `T`, so `JupyterGISDoc` is not structurally assignable to the
+    // `YDocument<DocumentChange>` that `SharedDocumentFactory` expects.
+    return new JupyterGISDoc() as any;
   };
 
   if (collaborativeContentProvider) {
