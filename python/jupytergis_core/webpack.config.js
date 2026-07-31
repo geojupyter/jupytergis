@@ -10,6 +10,30 @@
 const rspack = require('@rspack/core');
 const { VueLoaderPlugin } = require('vue-loader');
 
+// In development mode @jupyter/builder injects an rspack-native source-map rule
+// (`{ test: /\.js$/, enforce: 'pre', extractSourceMap: true }`) that has no
+// `use`. vue-loader 15's VueLoaderPlugin clones every non-Vue rule through
+// webpack's own RuleSetCompiler, which doesn't understand rspack's `enforce`
+// (without `use`) or `extractSourceMap` and throws
+// "Properties enforce, extractSourceMap are unknown". Pull any such rspack-only
+// rule out of the rule list before VueLoaderPlugin runs, then restore it once
+// VueLoaderPlugin has rebuilt the list, so source-map extraction still happens.
+class HideRspackNativeRulesFromVueLoader {
+  apply(compiler) {
+    const isRspackNative = rule => rule && rule.extractSourceMap;
+    const hidden = compiler.options.module.rules.filter(isRspackNative);
+    if (!hidden.length) {
+      return;
+    }
+    compiler.options.module.rules = compiler.options.module.rules.filter(
+      rule => !isRspackNative(rule)
+    );
+    compiler.hooks.afterPlugins.tap('HideRspackNativeRulesFromVueLoader', () => {
+      compiler.options.module.rules.push(...hidden);
+    });
+  }
+}
+
 module.exports = {
   resolve: {
     fallback: {
@@ -76,6 +100,7 @@ module.exports = {
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer']
     }),
+    new HideRspackNativeRulesFromVueLoader(),
     new VueLoaderPlugin()
   ]
 };
