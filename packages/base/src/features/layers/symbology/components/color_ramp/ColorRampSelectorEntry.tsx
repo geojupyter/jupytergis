@@ -13,10 +13,16 @@
 import React, { useEffect } from 'react';
 
 import {
+  COLOR_RAMP_WARNINGS,
   ColorRampName,
   IColorMap,
   drawColorRamp,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/src/shared/components/HoverCard';
 
 interface IColorRampSelectorEntryProps {
   index: number;
@@ -43,6 +49,8 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
     drawColorRamp(canvas, colorMap);
   }, [colorMap, index]);
 
+  const warning = COLOR_RAMP_WARNINGS[colorMap.name];
+
   return (
     <div
       key={colorMap.name}
@@ -50,6 +58,29 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
       className="jp-gis-color-ramp-entry"
     >
       <span className="jp-gis-color-label">{colorMap.name}</span>
+      {warning && (
+        <span
+          className="jp-gis-color-ramp-warning"
+          onClick={e => e.stopPropagation()}
+        >
+          <HoverCard openDelay={100} closeDelay={100}>
+            <HoverCardTrigger aria-label="Color map warning">
+              ⚠️
+            </HoverCardTrigger>
+            <HoverCardContent className="jgis-info-tip-content">
+              {warning.reason}
+              {warning.link && (
+                <>
+                  {' '}
+                  <a href={warning.link} target="_blank" rel="noreferrer">
+                    Learn more
+                  </a>
+                </>
+              )}
+            </HoverCardContent>
+          </HoverCard>
+        </span>
+      )}
       <canvas
         id={`cv-${index}`}
         width={canvasWidth}
