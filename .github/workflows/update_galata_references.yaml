@@ -39,7 +39,7 @@ jobs:
           allow_forks: true
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476  # v3.0.0
+        uses: mamba-org/setup-micromamba@ce51e99f4bb8a82ab7158c4dc59ef4634c59c4f9  # v3.1.0
         with:
           environment-name: gis
           create-args: >-
@@ -48,7 +48,7 @@ jobs:
             xeus-python>=0.19
 
       - name: Setup pip cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: ~/.cache/pip
           key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
