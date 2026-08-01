@@ -198,6 +198,7 @@ interface ILayerSectionProps {
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
   disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -212,6 +213,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   featureValues,
   isRasterLayer = false,
   disabledSchemes = [],
+  bandStats,
   onChange,
   onDelete,
   onMoveUp,
@@ -517,6 +519,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               featureValues={featureValues}
               isRaster={isRaster}
               disabledSchemes={disabledSchemes}
+              bandStats={bandStats}
               onChange={updated => updateRow(i, updated)}
               onDelete={() => removeRow(i)}
             />
@@ -559,6 +562,19 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
   // For raster layers, expose $band-N pseudo-fields derived from band metadata.
   const { bandRows } = useGetBandInfo(model, layer);
+
+  const bandStats = React.useMemo(() => {
+    const map: Record<number, { min: number; max: number }> = {};
+
+    bandRows.forEach(b => {
+      map[b.band] = {
+        min: b.stats.minimum,
+        max: b.stats.maximum,
+      };
+    });
+
+    return map;
+  }, [bandRows]);
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -706,6 +722,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           featureValues={selectableAttributesAndValues}
           isRasterLayer={isRasterLayer}
           disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
+          bandStats={bandStats}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }

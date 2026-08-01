@@ -131,6 +131,7 @@ function defaultScaleForScheme(
           mode: 'equal interval',
           reverse: false,
           fallback: [0, 0, 0, 0] as RGBA,
+          domain: [0, 1],
         },
       } as IColorRampScale;
     case 'categorical':
@@ -198,7 +199,7 @@ const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
   reverse,
 }) => {
   const ref = useRef<HTMLCanvasElement>(null);
-  React.useEffect(() => {
+  useEffect(() => {
     const canvas = ref.current;
     if (!canvas) {
       return;
@@ -765,8 +766,17 @@ interface IMappingRowProps {
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
   disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
+}
+
+function getBandFromField(field?: string): number | null {
+  if (!field) {
+    return null;
+  }
+  const match = field.match(/\$band-(\d+)/);
+  return match ? Number(match[1]) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -779,6 +789,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   featureValues,
   isRaster = false,
   disabledSchemes = [],
+  bandStats,
   onChange,
   onDelete,
 }) => {
@@ -807,9 +818,66 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
+  const bandNumber = getBandFromField(row.fields?.[0]);
+  const stats = bandNumber ? bandStats?.[bandNumber] : undefined;
+  const prevBandRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!bandStats || row.scale.scheme !== 'colorRamp') {
+      return;
+    }
+
+    const scale = row.scale;
+    const currentBand = bandNumber;
+
+    if (!currentBand || !stats) {
+      return;
+    }
+
+    const prevBand = prevBandRef.current;
+    const isDefaultDomain =
+      scale.params.domain?.[0] === 0 && scale.params.domain?.[1] === 1;
+
+    const bandChange = () => {
+      onChange({
+        ...row,
+        scale: {
+          ...scale,
+          params: {
+            ...scale.params,
+            domain: [stats.min, stats.max],
+          },
+        },
+      });
+    };
+
+    if (prevBand === null) {
+      if (!scale.params.domain || isDefaultDomain) {
+        bandChange();
+      }
+    } else if (prevBand !== currentBand) {
+      bandChange();
+    }
+
+    prevBandRef.current = currentBand;
+  }, [bandNumber, stats, bandStats]);
+
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
-      const newScale = defaultScaleForScheme(scheme, row.encodings);
+      let newScale = defaultScaleForScheme(scheme, row.encodings);
+
+      if (stats && scheme === 'colorRamp') {
+        if (newScale.scheme === 'colorRamp') {
+          newScale = {
+            ...newScale,
+            params: {
+              ...newScale.params,
+              domain: [stats.min, stats.max],
+            },
+          };
+        }
+      }
+
       const compat = compatibleEncodings(newScale, isRaster);
       const filtered = row.encodings.filter(ch => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
@@ -827,7 +895,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         fields: trimmedFields,
       });
     },
-    [row, onChange],
+    [row, onChange, bandStats, isRaster],
   );
 
   const handleScaleChange = useCallback(

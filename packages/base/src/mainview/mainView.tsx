@@ -1867,7 +1867,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * @param index - expected index of the layer.
    */
   async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
-    console.log(`addLayer called with ${id}, ${layer}, ${index}`)
     if (this.getLayer(id)) {
       // Layer already exists
       return;
@@ -2026,7 +2025,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    console.log(`updateLayer called with ${id}, ${layer}, ${mapLayer}, ${oldLayer}`);
     layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
@@ -2077,9 +2075,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         } else {
           mapLayer.setOpacity(layer.parameters?.opacity);
           if (layer?.parameters?.color) {
-            console.log(layer.parameters.color);
             (mapLayer as RasterLayer).setStyle({
-              color: layer.parameters.color,  // TODO: How does layer.parameters.color get set when the symbology is edited?
+              color: layer.parameters.color,
             });
           }
         }
