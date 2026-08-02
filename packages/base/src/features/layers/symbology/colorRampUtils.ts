@@ -149,16 +149,16 @@ export const COLOR_RAMP_WARNINGS: Partial<
     link: 'https://jakevdp.github.io/blog/2014/10/16/how-bad-is-your-colormap/',
   },
   hsv: {
-    reason: 'This color map needs more than 9 classes to render accurately.',
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS.hsv} classes to render accurately.`,
   },
   picnic: {
-    reason: 'This color map needs more than 9 classes to render accurately.',
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS.picnic} classes to render accurately.`,
   },
   cubehelix: {
-    reason: 'This color map needs more than 9 classes to render accurately.',
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS.cubehelix} classes to render accurately.`,
   },
   'rainbow-soft': {
-    reason: 'This color map needs more than 9 classes to render accurately.',
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS['rainbow-soft']} classes to render accurately.`,
   },
 };
 
