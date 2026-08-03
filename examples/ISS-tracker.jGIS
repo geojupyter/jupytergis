@@ -1,0 +1,157 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "6a8e5e87-99f8-4f4b-9f3b-b18b7412d0a2",
+    "5f35856d-a886-4687-921f-f7b39a5e5ead"
+  ],
+  "layers": {
+    "5f35856d-a886-4687-921f-f7b39a5e5ead": {
+      "name": "ISS Tracker",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "888d58fa-ba30-4e84-8841-91f8ac2af3fa",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "cd660932-c064-4ab0-a761-7254c48e2a4c",
+              "rules": [
+                {
+                  "id": "3509935b-d465-4f0f-86bf-4db75671f07a",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "stroke-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            206.0,
+                            126.0,
+                            39.0,
+                            1.0
+                          ]
+                        },
+                        "scheme": "constant_rgba"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "0a57c05d-cdee-4748-b767-e37663fd38c4",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "stroke-width"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 4.0
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "79f7bb18-5b48-484c-b661-18973abe57f4",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            128.0,
+                            128.0,
+                            128.0,
+                            1.0
+                          ]
+                        },
+                        "scheme": "constant_rgba"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "6e7f4191-4c4f-473b-a40e-90bc98147b76",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "circle-radius"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": 18.0
+                        },
+                        "scheme": "constant_num"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "6a8e5e87-99f8-4f4b-9f3b-b18b7412d0a2": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "63cef2f6-2451-4d74-a655-64e3e4b2c1b0"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -4868337.411173244,
+      -1457895.4819246437,
+      -3186776.471547069,
+      446134.74259733054
+    ],
+    "latitude": -4.539643484268595,
+    "longitude": -36.180159580855,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 6.672862235948245
+  },
+  "presets": {},
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "63cef2f6-2451-4d74-a655-64e3e4b2c1b0": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "888d58fa-ba30-4e84-8841-91f8ac2af3fa": {
+      "name": "ISS Tracker",
+      "parameters": {
+        "autoTrack": true,
+        "httpHeaders": "",
+        "iconUrl": "https://pluspng.com/img-png/iss-png-open-2000.png",
+        "pollIntervalMs": 5000.0,
+        "showTrail": true,
+        "trailLength": 50.0,
+        "url": "https://api.wheretheiss.at/v1/satellites/25544",
+        "useProxy": false
+      },
+      "type": "LiveApiSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
