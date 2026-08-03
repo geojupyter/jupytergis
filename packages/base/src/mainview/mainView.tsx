@@ -3886,6 +3886,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
 
+    if (this._currentDrawLayerID) {
+      this._currentVectorSource = this._getVectorSourceFromLayerID(
+        this._currentDrawLayerID,
+      );
+    }
+
     this._updateInteractions();
     this._updateDrawSource();
 

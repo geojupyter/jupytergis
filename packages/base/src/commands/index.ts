@@ -1,9 +1,11 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISSource,
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
@@ -1814,7 +1816,8 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
-    caption: 'Toggle feature editing for the selected draw-compatible layer.',
+    caption:
+      'Toggle feature editing. Creates an empty draw layer if the selection is not draw-compatible.',
     describedBy: {
       args: {
         type: 'object',
@@ -1850,19 +1853,7 @@ export function addCommands(
         return false;
       }
 
-      const model = tracker.currentWidget?.content?.currentViewModel
-        ?.jGISModel as IJupyterGISModel | undefined;
-
-      if (!model) {
-        return false;
-      }
-
-      const selectedLayer = getSingleSelectedLayer(tracker);
-      if (!selectedLayer) {
-        return false;
-      }
-
-      return model.checkIfIsADrawVectorLayer(selectedLayer) === true;
+      return tracker.currentWidget.model.sharedModel.editable;
     },
     execute: async () => {
       if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
@@ -1874,13 +1865,15 @@ export function addCommands(
         return false;
       }
 
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
+      if (model.editingVectorLayer) {
+        model.editingVectorLayer = false;
+        model.updateEditingVectorLayer();
+        commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+        return;
       }
 
-      model.editingVectorLayer = !model.editingVectorLayer;
+      Private.ensureDrawCompatibleLayer(model, tracker);
+      model.editingVectorLayer = true;
       model.updateEditingVectorLayer();
       commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
     },
@@ -2105,6 +2098,65 @@ namespace Private {
       rendermime,
       urlResolverFactory,
     );
+  }
+
+  /**
+   * Return the id of a draw-compatible selected layer, creating an empty
+   * inline GeoJSON FeatureCollection layer when the current selection is
+   * missing or not editable for drawing.
+   */
+  export function ensureDrawCompatibleLayer(
+    model: IJupyterGISModel,
+    tracker: JupyterGISTracker,
+  ): string {
+    const selectedLayer = getSingleSelectedLayer(tracker);
+    const selected = model.localState?.selected?.value;
+    const selectedLayerId =
+      selected && Object.keys(selected).length === 1
+        ? Object.keys(selected)[0]
+        : undefined;
+
+    if (
+      selectedLayer &&
+      selectedLayerId &&
+      model.checkIfIsADrawVectorLayer(selectedLayer)
+    ) {
+      return selectedLayerId;
+    }
+
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceModel: IJGISSource = {
+      type: 'GeoJSONSource',
+      name: 'Draw Layer Source',
+      parameters: {
+        data: {
+          type: 'FeatureCollection',
+          features: [],
+        },
+      },
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      name: 'Draw Layer',
+      visible: true,
+      parameters: {
+        source: sourceId,
+        opacity: 1.0,
+        symbologyState: { layers: [] },
+      },
+    };
+
+    model.sharedModel.addSource(sourceId, sourceModel);
+    model.addLayer(layerId, layerModel);
+    model.syncSelected(
+      { [layerId]: { type: 'layer' } },
+      model.getClientId().toString(),
+    );
+
+    return layerId;
   }
 
   export function createLayerBrowser(
