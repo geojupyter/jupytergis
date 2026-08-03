@@ -146,6 +146,7 @@ function compileRasterLayer(
   const values = featureValues.length > 0 ? featureValues : [0, 1];
   const flatStyle = grammarToOLStyle(singleLayerState, values);
   const colorExpr = flatStyle['pixel-color'];
+  const bandCount = source.bandCount;
 
   if (!Array.isArray(colorExpr)) {
     // No symbology → return raw raster layer (no style)
@@ -159,7 +160,7 @@ function compileRasterLayer(
   // Apply alpha masking to the raster
   const finalExpr = [
     'case',
-    ['==', ['band', 4], 0],
+    ['==', ['band', bandCount], 0],
     ['color', 0, 0, 0, 0],
     colorExpr,
   ];
