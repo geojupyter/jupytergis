@@ -98,8 +98,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
 
-    this._editingVectorLayer = false;
-
     this._jgisSettings = { ...DEFAULT_SETTINGS };
 
     this._viewState = {};
@@ -1220,10 +1218,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Toggle a map interaction mode on or off.
    * Toggling off sets the mode to 'panning'.
+   * Modes are exclusive; entering one leaves any other.
    * @param mode The mode to be toggled
    */
   toggleMode(mode: Modes) {
-    this._currentMode = this._currentMode === mode ? 'panning' : mode;
+    this.currentMode = this._currentMode === mode ? 'panning' : mode;
   }
 
   get currentMode(): Modes {
@@ -1231,7 +1230,17 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   set currentMode(value: Modes) {
+    if (this._currentMode === value) {
+      return;
+    }
+
+    const wasDrawing = this._currentMode === 'drawing';
     this._currentMode = value;
+    const isDrawing = value === 'drawing';
+
+    if (wasDrawing !== isDrawing) {
+      this.editingVectorLayerChanged.emit(isDrawing);
+    }
   }
 
   setUIState(value: Partial<IJGISUIState>): void {
@@ -1423,16 +1432,23 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   updateEditingVectorLayer(): void {
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
+    this.editingVectorLayerChanged.emit(this.editingVectorLayer);
   }
 
+  /**
+   * Whether the map is in drawing mode.
+   * Derived from `currentMode === 'drawing'`; kept for existing call sites.
+   */
   get editingVectorLayer(): boolean {
-    return this._editingVectorLayer;
+    return this._currentMode === 'drawing';
   }
 
   set editingVectorLayer(editingVectorLayer: boolean) {
-    this._editingVectorLayer = editingVectorLayer;
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
+    if (editingVectorLayer) {
+      this.currentMode = 'drawing';
+    } else if (this._currentMode === 'drawing') {
+      this.currentMode = 'panning';
+    }
   }
 
   get geolocation(): JgisCoordinates {
@@ -1459,7 +1475,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
-  private _currentMode: Modes;
+  private _currentMode: Modes = 'panning';
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -1525,8 +1541,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     { type: SelectionType; itemId: string } | null
   >(this);
-
-  private _editingVectorLayer: boolean;
 
   static worker: Worker;
 
