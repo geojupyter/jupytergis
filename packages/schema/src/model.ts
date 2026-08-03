@@ -455,7 +455,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
-  readonly editingVectorLayerChanged = new Signal<this, boolean>(this);
+  readonly modeChanged = new Signal<this, Modes>(this);
 
   getContent(): IJGISContent {
     return {
@@ -1234,13 +1234,8 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
 
-    const wasDrawing = this._currentMode === 'drawing';
     this._currentMode = value;
-    const isDrawing = value === 'drawing';
-
-    if (wasDrawing !== isDrawing) {
-      this.editingVectorLayerChanged.emit(isDrawing);
-    }
+    this.modeChanged.emit(value);
   }
 
   setUIState(value: Partial<IJGISUIState>): void {
@@ -1429,26 +1424,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       selectedSource?.type === 'GeoJSONSource' &&
       selectedSource?.parameters?.data?.type === 'FeatureCollection'
     );
-  }
-
-  updateEditingVectorLayer(): void {
-    this.editingVectorLayerChanged.emit(this.editingVectorLayer);
-  }
-
-  /**
-   * Whether the map is in drawing mode.
-   * Derived from `currentMode === 'drawing'`; kept for existing call sites.
-   */
-  get editingVectorLayer(): boolean {
-    return this._currentMode === 'drawing';
-  }
-
-  set editingVectorLayer(editingVectorLayer: boolean) {
-    if (editingVectorLayer) {
-      this.currentMode = 'drawing';
-    } else if (this._currentMode === 'drawing') {
-      this.currentMode = 'panning';
-    }
   }
 
   get geolocation(): JgisCoordinates {

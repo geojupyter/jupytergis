@@ -237,7 +237,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  editingVectorLayer: boolean;
+  isDrawing: boolean;
   drawGeometryLabel: string | undefined;
   currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
@@ -355,11 +355,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
-    // Keep draw editing UI/interactions in sync with the shared editing mode.
-    this._model.editingVectorLayerChanged.connect(
-      this._updateEditingVectorLayer,
-      this,
-    );
+    // Keep draw UI/interactions in sync with the exclusive map mode.
+    this._model.modeChanged.connect(this._handleModeChanged, this);
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
@@ -383,7 +380,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      editingVectorLayer: false,
+      isDrawing: false,
       drawGeometryLabel: '',
       currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
@@ -503,6 +500,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleLocationIndicatorToggled,
       this,
     );
+    this._model.modeChanged.disconnect(this._handleModeChanged, this);
     this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
@@ -3841,19 +3839,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  private _updateEditingVectorLayer() {
-    const editingVectorLayer: boolean = this._model.editingVectorLayer;
-    this.setState(old => ({ ...old, editingVectorLayer }));
+  private _handleModeChanged = (): void => {
+    const isDrawing = this._model.currentMode === 'drawing';
+    this.setState(old => ({ ...old, isDrawing }));
 
-    if (editingVectorLayer === true) {
+    if (isDrawing) {
       this._editVectorLayer();
     }
 
-    if (editingVectorLayer === false && this._draw) {
+    if (!isDrawing && this._draw) {
       this._removeDrawInteraction();
       this._setCurrentDrawLayerId(undefined);
     }
-  }
+  };
 
   private _notifyInteractionModeCommands(): void {
     const commands = this._mainViewModel.commands;
@@ -4151,7 +4149,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers,
       displayTemporalController,
       drawGeometryLabel,
-      editingVectorLayer,
+      isDrawing,
       currentDrawLayerId,
       filterStates,
       initialLayersReady,
@@ -4182,7 +4180,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         <MainViewOverlayLayer
           annotationFloaters={this._renderAnnotationFloaters()}
           featureFloaters={this._renderFeatureFloaters()}
-          editingVectorLayer={editingVectorLayer}
+          isDrawing={isDrawing}
           drawGeometryLabel={drawGeometryLabel}
           drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
