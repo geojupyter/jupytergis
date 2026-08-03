@@ -138,13 +138,14 @@ export class LiveApiPollerManager implements IDisposable {
       pollIntervalMs,
     };
 
+    this._pollers.set(sourceId, state);
+
     const tick = (): void => {
       void this._tick(sourceId);
     };
 
     tick();
     state.timer = window.setInterval(tick, pollIntervalMs);
-    this._pollers.set(sourceId, state);
   }
 
   private _stopOne(sourceId: string): void {

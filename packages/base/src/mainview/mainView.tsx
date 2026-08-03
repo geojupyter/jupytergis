@@ -436,11 +436,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._handlePointerChanged();
     this._handleTemporalControllerActiveChanged();
     this._handleSelectedChanged();
-    this._mainViewModel.liveApiPoller.setFeatureApplier(
-      (sourceId, longitude, latitude, properties) => {
-        this._applyLiveApiPosition(sourceId, longitude, latitude, properties);
-      },
-    );
     this._mainViewModel.initSignal();
     if (this.state.isSpectaPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
@@ -696,6 +691,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._Map
         .getViewport()
         .addEventListener('pointermove', this._onPointerMove.bind(this));
+
+      this._mainViewModel.liveApiPoller.setFeatureApplier(
+        (sourceId, longitude, latitude, properties) => {
+          this._applyLiveApiPosition(sourceId, longitude, latitude, properties);
+        },
+      );
 
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
