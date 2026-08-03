@@ -57,6 +57,7 @@ export function createLiveApiLayer(
     autoTrack: options.parameters.autoTrack ?? false,
     showTrail: options.parameters.showTrail ?? false,
     trailLength: options.parameters.trailLength ?? 50,
+    iconUrl: options.parameters.iconUrl ?? '',
     useProxy: options.parameters.useProxy ?? false,
     httpHeaders: options.parameters.httpHeaders,
   };

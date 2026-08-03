@@ -127,6 +127,7 @@ import { TileSourceEvent } from 'ol/source/Tile';
 import { Fill, Icon, Stroke, Style } from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
+import { rulesToStyleFunction } from 'ol/render/canvas/style';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import StacLayer from 'ol-stac';
@@ -178,6 +179,14 @@ import {
   grammarToOLStyle,
 } from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
+import {
+  iconSizeFromRules,
+  LIVE_API_ROLE_PROP,
+  liveApiIconUrlFromSource,
+  loadLiveApiIconScale,
+  normalizeFlatStyleRules,
+  stripLiveApiStyleRules,
+} from '../features/layers/live-api/liveApiStyle';
 import {
   buildZarrColorStyle,
   getBandInfoFromZarr,
@@ -1589,6 +1598,127 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.addSource(id, source);
     // change source of target layer
     mapLayer.setSource(this._sources[id]);
+    if (source.type === 'LiveApiSource') {
+      const layerId = this._sourceToLayerMap.get(id);
+      this._applyLiveApiOverlayStyle(mapLayer, source, {
+        sourceId: id,
+        layerId,
+      });
+    }
+  }
+
+  /**
+   * Flat style rules from the document layer symbology, used as the non-point
+   * base when wrapping a Live API icon style function.
+   */
+  private _liveApiBaseStyleRules(
+    layerId: string | undefined,
+    mapLayer: VectorImageLayer | VectorLayer | VectorTileLayer,
+  ): Rule[] {
+    if (layerId) {
+      const jgisLayer = this._model.getLayer(layerId);
+      const layerParams = jgisLayer?.parameters as IVectorLayer | undefined;
+      const symbologyState = layerParams?.symbologyState as
+        | IGrammarSymbologyState
+        | undefined;
+
+      if (Array.isArray(symbologyState?.layers)) {
+        if (symbologyState.layers.length === 0) {
+          return [{ style: DEFAULT_FLAT_STYLE }];
+        }
+
+        const flatStyle = grammarToOLStyle(symbologyState, []);
+        if (Object.keys(flatStyle).length > 0) {
+          return [{ style: flatStyle }];
+        }
+
+        return [{ style: DEFAULT_FLAT_STYLE }];
+      }
+    }
+
+    const current = mapLayer.getStyle();
+    if (typeof current !== 'function') {
+      return stripLiveApiStyleRules(normalizeFlatStyleRules(current as any));
+    }
+
+    return [{ style: DEFAULT_FLAT_STYLE }];
+  }
+
+  /**
+   * Inject optional icon style for LiveApiSource vector layers.
+   * Uses a classic Style/Icon function (same approach as markers) because
+   * flat `icon-src` + scale/width on VectorImageLayer often fails to paint.
+   * Base (trail / non-point) styling always comes from document symbology,
+   * not from getStyle(), so a prior icon wrap cannot wipe file symbology.
+   */
+  private _applyLiveApiOverlayStyle(
+    mapLayer: Layer | LayerGroup,
+    source: IJGISSource | undefined,
+    ids?: { sourceId?: string; layerId?: string },
+  ): void {
+    if (source?.type !== 'LiveApiSource') {
+      return;
+    }
+
+    const iconUrl = liveApiIconUrlFromSource(source);
+    if (ids?.sourceId !== undefined) {
+      this._liveApiIconStyleKeys.set(ids.sourceId, iconUrl ?? '');
+    }
+
+    const applyToLayer = (layer: Layer | LayerGroup): void => {
+      if (layer instanceof LayerGroup) {
+        layer.getLayers().forEach(child => {
+          applyToLayer(child as Layer | LayerGroup);
+        });
+
+        return;
+      }
+
+      if (
+        !(layer instanceof VectorImageLayer) &&
+        !(layer instanceof VectorLayer) &&
+        !(layer instanceof VectorTileLayer)
+      ) {
+        return;
+      }
+
+      const baseRules = this._liveApiBaseStyleRules(ids?.layerId, layer);
+
+      if (!iconUrl) {
+        layer.setStyle(baseRules);
+        return;
+      }
+
+      const targetPx = iconSizeFromRules(baseRules);
+
+      void loadLiveApiIconScale(iconUrl, targetPx).then(iconScale => {
+        const iconImage = new Icon({
+          src: iconUrl,
+          scale: iconScale,
+          anchor: [0.5, 0.5],
+          anchorXUnits: 'fraction',
+          anchorYUnits: 'fraction',
+        });
+        const iconStyle = new Style({ image: iconImage });
+        const baseStyleFn = rulesToStyleFunction(baseRules);
+
+        iconImage.listenImageChange(() => {
+          layer.changed();
+        });
+
+        layer.setStyle((feature, resolution) => {
+          if (feature.get(LIVE_API_ROLE_PROP) === 'point') {
+            return iconStyle;
+          }
+
+          return baseStyleFn(feature, resolution);
+        });
+
+        layer.changed();
+      });
+    };
+
+    applyToLayer(mapLayer);
   }
 
   /**
@@ -1672,6 +1802,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       olSource.removeFeature(trailFeature);
     }
 
+    // Icon style is applied from the poll path so it still runs when the
+    // layer was built before iconUrl existed / before a hot reload.
+    const iconUrl = parameters?.iconUrl?.trim() ?? '';
+    const layerId = this._sourceToLayerMap.get(sourceId);
+    const mapLayer = layerId ? this.getLayer(layerId) : undefined;
+    const prevIconKey = this._liveApiIconStyleKeys.get(sourceId);
+    if (mapLayer && prevIconKey !== iconUrl) {
+      this._applyLiveApiOverlayStyle(mapLayer, jgisSource, {
+        sourceId,
+        layerId,
+      });
+    }
+
     if (parameters?.autoTrack === true) {
       const zoom = this._Map.getView().getZoom();
       if (zoom === undefined) {
@@ -1696,6 +1839,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   removeSource(id: string): void {
     delete this._sources[id];
     this._liveApiTrailBuffers.delete(id);
+    this._liveApiIconStyleKeys.delete(id);
   }
 
   /**
@@ -1848,6 +1992,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             layer.visible,
             featureValues,
           ) as OlLayerTypes;
+          this._applyLiveApiOverlayStyle(newMapLayer, source, {
+            sourceId: layerParameters.source,
+            layerId: id,
+          });
         } else {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
@@ -1855,6 +2003,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             source: this._sources[layerParameters.source],
             style: this.vectorLayerStyleRuleBuilder(layer),
           });
+          if (source?.type === 'LiveApiSource') {
+            this._applyLiveApiOverlayStyle(newMapLayer, source, {
+              sourceId: layerParameters.source,
+              layerId: id,
+            });
+          }
         }
 
         break;
@@ -2265,6 +2419,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
+
+        const sourceId = layerParams.source;
+        const source = sourceId ? this._model.getSource(sourceId) : undefined;
+        if (source?.type === 'LiveApiSource') {
+          this._applyLiveApiOverlayStyle(mapLayer, source, {
+            sourceId,
+            layerId: id,
+          });
+        }
 
         break;
       }
@@ -4377,6 +4540,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _ready = false;
   private _sources: Record<string, any>;
   private _liveApiTrailBuffers = new Map<string, Coordinate[]>();
+  /** sourceId → last applied iconUrl (including '' when cleared). */
+  private _liveApiIconStyleKeys = new Map<string, string>();
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;

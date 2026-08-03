@@ -694,6 +694,7 @@ export function addCommands(
         autoTrack: false,
         showTrail: false,
         trailLength: 50,
+        iconUrl: '',
       },
       layerData: { name: 'Live API Layer' },
       sourceType: 'LiveApiSource',

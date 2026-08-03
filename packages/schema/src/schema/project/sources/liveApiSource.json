@@ -35,6 +35,12 @@
       "default": 50,
       "minimum": 2
     },
+    "iconUrl": {
+      "type": "string",
+      "title": "Icon URL",
+      "description": "URL of an image to use for the live point instead of the default circle. Leave empty for the default circle.",
+      "default": ""
+    },
     "useProxy": {
       "type": "boolean",
       "title": "Use Proxy",
