@@ -147,11 +147,28 @@ function compileRasterLayer(
   const flatStyle = grammarToOLStyle(singleLayerState, values);
   const colorExpr = flatStyle['pixel-color'];
 
+  if (!Array.isArray(colorExpr)) {
+    // No symbology → return raw raster layer (no style)
+    return new WebGLTileLayer({
+      opacity,
+      visible,
+      source,
+    });
+  }
+
+  // Apply alpha masking to the raster
+  const finalExpr = [
+    'case',
+    ['==', ['band', 4], 0],
+    ['color', 0, 0, 0, 0],
+    colorExpr,
+  ];
+
   return new WebGLTileLayer({
     opacity,
     visible,
     source,
-    ...(colorExpr !== undefined ? { style: { color: colorExpr as any } } : {}),
+    style: { color: finalExpr },
   });
 }
 
