@@ -64,6 +64,34 @@ import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
+const INTERACTION_MODE_COMMANDS = [
+  CommandIDs.identify,
+  CommandIDs.addMarker,
+  CommandIDs.toggleDrawFeatures,
+] as const;
+
+function notifyInteractionModeCommands(commands: CommandRegistry): void {
+  for (const id of INTERACTION_MODE_COMMANDS) {
+    commands.notifyCommandChanged(id);
+  }
+}
+
+/**
+ * Keep the point-selection cursor class and toolbar toggles in sync with
+ * the exclusive map interaction mode.
+ */
+function syncInteractionModeUi(
+  widget: { model: IJupyterGISModel; node: HTMLElement },
+  commands: CommandRegistry,
+): void {
+  const mode = widget.model.currentMode;
+  widget.node.classList.toggle(
+    POINT_SELECTION_TOOL_CLASS,
+    mode === 'identifying' || mode === 'marking',
+  );
+  notifyInteractionModeCommands(commands);
+}
+
 /**
  * Commands for JupyterGIS-only features that cannot be round-tripped through
  * the QGIS format. They are disabled while a QGIS document (`.qgs`/`.qgz`) is
@@ -439,16 +467,13 @@ export function addCommands(
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
           current.model.currentMode = 'panning';
-          current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
-          commands.notifyCommandChanged(CommandIDs.identify);
+          syncInteractionModeUi(current, commands);
           return;
         }
       }
 
-      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
       current.model.toggleMode('identifying');
-
-      commands.notifyCommandChanged(CommandIDs.identify);
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.identify),
   });
@@ -1806,10 +1831,8 @@ export function addCommands(
         return;
       }
 
-      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
       current.model.toggleMode('marking');
-
-      commands.notifyCommandChanged(CommandIDs.addMarker);
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.addMarker),
   });
@@ -1836,17 +1859,7 @@ export function addCommands(
         return false;
       }
 
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
-      }
-
-      if (!model.checkIfIsADrawVectorLayer(selectedLayer)) {
-        return false;
-      }
-
-      return model.editingVectorLayer;
+      return model.currentMode === 'drawing';
     },
     isEnabled: () => {
       if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
@@ -1860,22 +1873,18 @@ export function addCommands(
         return;
       }
 
-      const model = tracker.currentWidget?.content.currentViewModel?.jGISModel;
+      const current = tracker.currentWidget;
+      const model = current.content.currentViewModel?.jGISModel;
       if (!model) {
         return false;
       }
 
-      if (model.editingVectorLayer) {
-        model.editingVectorLayer = false;
-        model.updateEditingVectorLayer();
-        commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
-        return;
+      if (model.currentMode !== 'drawing') {
+        Private.ensureDrawCompatibleLayer(model, tracker);
       }
 
-      Private.ensureDrawCompatibleLayer(model, tracker);
-      model.editingVectorLayer = true;
-      model.updateEditingVectorLayer();
-      commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+      model.toggleMode('drawing');
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.toggleDrawFeatures),
   });
