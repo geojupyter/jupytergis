@@ -2,17 +2,6 @@ import type { ILiveApiSource } from '@jupytergis/schema';
 
 export const DEFAULT_LIVE_API_POLL_MS = 5000;
 
-export const ISS_TRACKER_NAME = 'ISS Tracker';
-
-export const ISS_LIVE_API_PRESET: Required<
-  Pick<ILiveApiSource, 'url' | 'pollIntervalMs'>
-> &
-  Pick<ILiveApiSource, 'useProxy'> = {
-  url: 'https://api.wheretheiss.at/v1/satellites/25544',
-  pollIntervalMs: DEFAULT_LIVE_API_POLL_MS,
-  useProxy: false,
-};
-
 export interface ILiveApiPosition {
   longitude: number;
   latitude: number;

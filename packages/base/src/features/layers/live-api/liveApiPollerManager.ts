@@ -6,9 +6,15 @@ import {
 } from '@jupytergis/schema';
 import { IDisposable } from '@lumino/disposable';
 
-import { listLiveApiSourceIds } from './createLiveApiLayer';
 import { fetchLiveApiPosition } from './fetchLiveApiPosition';
 import { DEFAULT_LIVE_API_POLL_MS } from './liveApiTypes';
+
+function listLiveApiSourceIds(model: IJupyterGISModel): string[] {
+  const sources = model.getSources() ?? {};
+  return Object.entries(sources)
+    .filter(([, source]) => source.type === 'LiveApiSource')
+    .map(([id]) => id);
+}
 
 export type LiveApiFeatureApplier = (
   sourceId: string,

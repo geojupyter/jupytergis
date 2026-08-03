@@ -26,14 +26,6 @@ import { fromLonLat } from 'ol/proj';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
-import {
-  createLiveApiLayer,
-  findLiveApiSourceIdByName,
-} from '../features/layers/live-api/createLiveApiLayer';
-import {
-  ISS_LIVE_API_PRESET,
-  ISS_TRACKER_NAME,
-} from '../features/layers/live-api/liveApiTypes';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
@@ -91,7 +83,6 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
   // Live API layers (poll external JSON into a point)
-  CommandIDs.addIssTracker,
   CommandIDs.openNewLiveApiDialog,
 ]);
 
@@ -1861,45 +1852,6 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.addMarker);
     },
     ...icons.get(CommandIDs.addMarker),
-  });
-
-  commands.addCommand(CommandIDs.addIssTracker, {
-    label: trans.__('Add ISS Tracker'),
-    caption: trans.__(
-      'Add a live API point for the International Space Station',
-    ),
-    isEnabled: () => Boolean(tracker.currentWidget),
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (
-        !(current instanceof JupyterGISDocumentWidget) &&
-        !(current instanceof JupyterGISOutputWidget)
-      ) {
-        return;
-      }
-
-      const panel = current.content;
-      if (!(panel instanceof JupyterGISPanel)) {
-        return;
-      }
-
-      const model = current.model;
-      const viewModel = panel.currentViewModel;
-      if (!viewModel) {
-        return;
-      }
-
-      let sourceId = findLiveApiSourceIdByName(model, ISS_TRACKER_NAME);
-      if (!sourceId) {
-        sourceId = createLiveApiLayer(model, {
-          name: ISS_TRACKER_NAME,
-          parameters: ISS_LIVE_API_PRESET,
-        });
-      }
-
-      viewModel.liveApiPoller.syncFromModel();
-    },
-    ...icons.get(CommandIDs.addIssTracker),
   });
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {

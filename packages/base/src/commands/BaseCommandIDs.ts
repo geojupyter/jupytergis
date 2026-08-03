@@ -10,7 +10,6 @@ export const symbology = 'jupytergis:symbology';
 export const identify = 'jupytergis:identify';
 export const temporalController = 'jupytergis:temporalController';
 export const addMarker = 'jupytergis:addMarker';
-export const addIssTracker = 'jupytergis:addIssTracker';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
