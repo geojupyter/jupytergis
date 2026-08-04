@@ -17,12 +17,17 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd' # v6.0.2
+        uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' # v7.0.1
         with:
           persist-credentials: false
 
+      - name: 'Setup pnpm'
+        uses: 'pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271' # v6.0.9
+        with:
+          cache: true
+
       - name: 'Install Conda environment with Micromamba'
-        uses: 'mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476' # v3.0.0
+        uses: 'mamba-org/setup-micromamba@ce51e99f4bb8a82ab7158c4dc59ef4634c59c4f9' # v3.1.0
         with:
           cache-environment: true
           environment-name: 'gis'
@@ -32,7 +37,7 @@ jobs:
             qgis
 
       - name: 'Setup pip cache'
-        uses: 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae' # v5
+        uses: 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' # v6.1.0
         with:
           path: '~/.cache/pip'
           key: pip-${{ hashFiles('package.json') }}
@@ -42,23 +47,6 @@ jobs:
       - name: 'Install build dependencies'
         shell: 'bash -l {0}'
         run: 'pip install --group build'
-
-      - name: 'Get yarn cache directory path'
-        id: 'yarn-cache-dir-path'
-        shell: 'bash -l {0}'
-        run: |
-          set -e
-          CACHE_DIR="$(jlpm config get cacheFolder)"
-          echo "dir=${CACHE_DIR}" >> $GITHUB_OUTPUT
-
-      - name: 'Setup yarn cache'
-        uses: 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae' # v5
-        id: 'yarn-cache' # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: '${{ steps.yarn-cache-dir-path.outputs.dir }}'
-          key: "yarn-${{ hashFiles('yarn.lock') }}"
-          restore-keys: |
-            yarn-
 
       - name: 'Install'
         shell: 'bash -l {0}'
@@ -70,7 +58,7 @@ jobs:
         run: 'mypy'
 
       - name: 'Install the latest version of uv'
-        uses: 'astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b' # v8.1.0
+        uses: 'astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9' # v9.0.0
         with:
           enable-cache: true
 

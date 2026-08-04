@@ -4,8 +4,35 @@
 // - Auto-provide `process` and `Buffer` globals
 // - Emit .wasm files as separate assets so `import wasmURL` yields the correct URL
 
-const webpack = require('webpack');
+// @jupyter/builder bundles labextensions with rspack, so the ProvidePlugin
+// must come from @rspack/core rather than webpack (the webpack instance is
+// incompatible with the rspack compiler this config is merged into).
+const rspack = require('@rspack/core');
 const { VueLoaderPlugin } = require('vue-loader');
+
+// In development mode @jupyter/builder injects an rspack-native source-map rule
+// (`{ test: /\.js$/, enforce: 'pre', extractSourceMap: true }`) that has no
+// `use`. vue-loader 15's VueLoaderPlugin clones every non-Vue rule through
+// webpack's own RuleSetCompiler, which doesn't understand rspack's `enforce`
+// (without `use`) or `extractSourceMap` and throws
+// "Properties enforce, extractSourceMap are unknown". Pull any such rspack-only
+// rule out of the rule list before VueLoaderPlugin runs, then restore it once
+// VueLoaderPlugin has rebuilt the list, so source-map extraction still happens.
+class HideRspackNativeRulesFromVueLoader {
+  apply(compiler) {
+    const isRspackNative = rule => rule && rule.extractSourceMap;
+    const hidden = compiler.options.module.rules.filter(isRspackNative);
+    if (!hidden.length) {
+      return;
+    }
+    compiler.options.module.rules = compiler.options.module.rules.filter(
+      rule => !isRspackNative(rule)
+    );
+    compiler.hooks.afterPlugins.tap('HideRspackNativeRulesFromVueLoader', () => {
+      compiler.options.module.rules.push(...hidden);
+    });
+  }
+}
 
 module.exports = {
   resolve: {
@@ -18,6 +45,16 @@ module.exports = {
     }
   },
   module: {
+    parser: {
+      javascript: {
+        // geoparquet's barrel re-exports `asyncBufferFromFile` from hyparquet,
+        // which only exists in hyparquet's Node entry — not the browser export
+        // condition rspack resolves. base never uses it, so downgrade rspack's
+        // strict ESM "export not found" check from error to warning (webpack's
+        // old, lenient behavior) instead of failing the browser bundle.
+        exportsPresence: 'warn'
+      }
+    },
     rules: [
       {
         test: /\.wasm$/,
@@ -59,10 +96,11 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.ProvidePlugin({
+    new rspack.ProvidePlugin({
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer']
     }),
+    new HideRspackNativeRulesFromVueLoader(),
     new VueLoaderPlugin()
   ]
 };
