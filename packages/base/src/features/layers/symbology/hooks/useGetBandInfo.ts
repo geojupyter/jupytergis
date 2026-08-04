@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
@@ -120,7 +119,6 @@ const useGetBandInfo = (
             min = m1;
             max = m2;
           }
-          console.log('metadata min/max', min, max);
         }
 
         // fallback to sampling
