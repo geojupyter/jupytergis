@@ -1,5 +1,3 @@
-import type { ILiveApiSource } from '@jupytergis/schema';
-
 export const DEFAULT_LIVE_API_POLL_MS = 5000;
 
 export interface ILiveApiPosition {

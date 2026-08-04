@@ -111,6 +111,7 @@ import {
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
 import RenderFeature, { toGeometry } from 'ol/render/Feature';
+import { rulesToStyleFunction } from 'ol/render/canvas/style';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -127,7 +128,6 @@ import { TileSourceEvent } from 'ol/source/Tile';
 import { Fill, Icon, Stroke, Style } from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { Rule } from 'ol/style/flat';
-import { rulesToStyleFunction } from 'ol/render/canvas/style';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import StacLayer from 'ol-stac';
@@ -169,6 +169,11 @@ import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
+  iconSizeFromRules,
+  LIVE_API_ROLE_PROP,
+  loadLiveApiIconScale,
+} from '../features/layers/live-api/liveApiStyle';
+import {
   OpenEOTileLayer,
   OpenEOTileSource,
   openEOEvents,
@@ -179,11 +184,6 @@ import {
   grammarToOLStyle,
 } from '../features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
-import {
-  iconSizeFromRules,
-  LIVE_API_ROLE_PROP,
-  loadLiveApiIconScale,
-} from '../features/layers/live-api/liveApiStyle';
 import {
   buildZarrColorStyle,
   getBandInfoFromZarr,

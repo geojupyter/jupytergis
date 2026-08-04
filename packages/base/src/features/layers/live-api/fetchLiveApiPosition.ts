@@ -1,7 +1,6 @@
 import type { IJupyterGISModel, ILiveApiSource } from '@jupytergis/schema';
 
 import { fetchWithProxies } from '@/src/tools';
-
 import { parseLiveApiPosition, type ILiveApiPosition } from './liveApiTypes';
 
 export async function fetchLiveApiPosition(
