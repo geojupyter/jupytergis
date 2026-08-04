@@ -2111,7 +2111,7 @@ namespace Private {
 
   /**
    * Return the id of a draw-compatible selected layer, creating an empty
-   * inline GeoJSON FeatureCollection layer when the current selection is
+   * inline GeoJSON layer when the current selection is
    * missing or not editable for drawing.
    */
   export function ensureDrawCompatibleLayer(
