@@ -73,7 +73,7 @@ export class LiveApiPollerManager implements IDisposable {
     }
   }
 
-  /** Force an immediate poll (e.g. after the OL source is created). */
+  /** Force an immediate poll */
   pollNow(sourceId: string): void {
     if (!this._pollers.has(sourceId)) {
       this._ensurePolling(sourceId);

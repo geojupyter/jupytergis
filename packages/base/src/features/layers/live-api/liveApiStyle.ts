@@ -1,12 +1,11 @@
-import type { ILiveApiSource, IJGISSource } from '@jupytergis/schema';
-import { FlatStyle, Rule } from 'ol/style/flat';
+import { Rule } from 'ol/style/flat';
 
 import { DEFAULT_FLAT_STYLE } from '../symbology/styleBuilder';
 
 export const LIVE_API_ROLE_PROP = 'jgisLiveApiRole';
 
 /**
- * Icon pixel size ≈ circle diameter from symbology (10 × radius).
+ * Icon pixel size = 10 × radius from symbology
  * Falls back to the default flat-style circle radius when symbology
  * uses an expression or omits circle-radius.
  */
@@ -55,52 +54,4 @@ export function loadLiveApiIconScale(
   });
 
   return scalePromise;
-}
-
-export function liveApiIconUrlFromSource(
-  source: IJGISSource | undefined,
-): string | undefined {
-  if (source?.type !== 'LiveApiSource') {
-    return undefined;
-  }
-  const iconUrl = (source.parameters as ILiveApiSource).iconUrl?.trim();
-
-  return iconUrl || undefined;
-}
-
-/** Normalize getStyle() output into flat style rules. */
-export function normalizeFlatStyleRules(
-  style: FlatStyle | Rule[] | FlatStyle[] | null | undefined,
-): Rule[] {
-  if (!style) {
-    return [{ style: DEFAULT_FLAT_STYLE }];
-  }
-
-  if (Array.isArray(style)) {
-    if (style.length === 0) {
-      return [{ style: DEFAULT_FLAT_STYLE }];
-    }
-
-    const first = style[0] as Rule | FlatStyle;
-    if (first && typeof first === 'object' && 'style' in first) {
-      return style as Rule[];
-    }
-    return (style as FlatStyle[]).map(flat => ({ style: flat }));
-  }
-
-  return [{ style }];
-}
-
-/** Drop previously injected Live API icon overlay rules (by role filter). */
-export function stripLiveApiStyleRules(rules: Rule[]): Rule[] {
-  const stripped = rules.filter(rule => {
-    const filter = rule.filter;
-    if (!Array.isArray(filter)) {
-      return true;
-    }
-
-    return !JSON.stringify(filter).includes(LIVE_API_ROLE_PROP);
-  });
-
-  return stripped;
 }

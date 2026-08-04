@@ -182,10 +182,7 @@ import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import {
   iconSizeFromRules,
   LIVE_API_ROLE_PROP,
-  liveApiIconUrlFromSource,
   loadLiveApiIconScale,
-  normalizeFlatStyleRules,
-  stripLiveApiStyleRules,
 } from '../features/layers/live-api/liveApiStyle';
 import {
   buildZarrColorStyle,
@@ -1600,7 +1597,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // change source of target layer
     mapLayer.setSource(this._sources[id]);
     if (source.type === 'LiveApiSource') {
-      const layerId = this._sourceToLayerMap.get(id);
       this._applyLiveApiOverlayStyle(mapLayer, source, {
         sourceId: id,
         layerId,
@@ -1612,37 +1608,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Flat style rules from the document layer symbology, used as the non-point
    * base when wrapping a Live API icon style function.
    */
-  private _liveApiBaseStyleRules(
-    layerId: string | undefined,
-    mapLayer: VectorImageLayer | VectorLayer | VectorTileLayer,
-  ): Rule[] {
-    if (layerId) {
-      const jgisLayer = this._model.getLayer(layerId);
-      const layerParams = jgisLayer?.parameters as IVectorLayer | undefined;
-      const symbologyState = layerParams?.symbologyState as
-        | IGrammarSymbologyState
-        | undefined;
-
-      if (Array.isArray(symbologyState?.layers)) {
-        if (symbologyState.layers.length === 0) {
-          return [{ style: DEFAULT_FLAT_STYLE }];
-        }
-
-        const flatStyle = grammarToOLStyle(symbologyState, []);
-        if (Object.keys(flatStyle).length > 0) {
-          return [{ style: flatStyle }];
-        }
-
-        return [{ style: DEFAULT_FLAT_STYLE }];
-      }
+  private _liveApiBaseStyleRules(layerId: string | undefined): Rule[] {
+    if (!layerId) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
-    const current = mapLayer.getStyle();
-    if (typeof current !== 'function') {
-      return stripLiveApiStyleRules(normalizeFlatStyleRules(current as any));
+    const jgisLayer = this._model.getLayer(layerId);
+    if (!jgisLayer) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
-    return [{ style: DEFAULT_FLAT_STYLE }];
+    return this.vectorLayerStyleRuleBuilder(jgisLayer);
   }
 
   /**
@@ -1661,7 +1637,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const iconUrl = liveApiIconUrlFromSource(source);
+    const iconUrl = (source.parameters as ILiveApiSource).iconUrl?.trim();
     if (ids?.sourceId !== undefined) {
       this._liveApiIconStyleKeys.set(ids.sourceId, iconUrl ?? '');
     }
@@ -1683,7 +1659,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
 
-      const baseRules = this._liveApiBaseStyleRules(ids?.layerId, layer);
+      const baseRules = this._liveApiBaseStyleRules(ids?.layerId);
 
       if (!iconUrl) {
         layer.setStyle(baseRules);
@@ -1758,7 +1734,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const pointFeature = olSource
       .getFeatures()
-      .find(feature => feature.get('jgisLiveApiRole') === 'point');
+      .find(feature => feature.get(LIVE_API_ROLE_PROP) === 'point');
 
     if (pointFeature) {
       const geometry = pointFeature.getGeometry();
@@ -1773,7 +1749,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     } else {
       const feature = new Feature({
         geometry: new Point(coordinates),
-        jgisLiveApiRole: 'point',
+        [LIVE_API_ROLE_PROP]: 'point',
         ...properties,
       });
       olSource.addFeature(feature);
@@ -1781,7 +1757,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const trailFeature = olSource
       .getFeatures()
-      .find(feature => feature.get('jgisLiveApiRole') === 'trail');
+      .find(feature => feature.get(LIVE_API_ROLE_PROP) === 'trail');
 
     if (showTrail && buffer.length >= 2) {
       if (trailFeature) {
@@ -1795,7 +1771,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         olSource.addFeature(
           new Feature({
             geometry: new LineString(buffer),
-            jgisLiveApiRole: 'trail',
+            [LIVE_API_ROLE_PROP]: 'trail',
           }),
         );
       }
@@ -1993,10 +1969,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             layer.visible,
             featureValues,
           ) as OlLayerTypes;
-          this._applyLiveApiOverlayStyle(newMapLayer, source, {
-            sourceId: layerParameters.source,
-            layerId: id,
-          });
+          if (source?.type === 'LiveApiSource') {
+            this._applyLiveApiOverlayStyle(newMapLayer, source, {
+              sourceId: layerParameters.source,
+              layerId: id,
+            });
+          }
         } else {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
