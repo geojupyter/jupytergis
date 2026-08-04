@@ -13,10 +13,12 @@
 import React, { useEffect } from 'react';
 
 import {
+  COLOR_RAMP_WARNINGS,
   ColorRampName,
   IColorMap,
   drawColorRamp,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import { InfoTip } from '@/src/shared/components/InfoTip';
 
 interface IColorRampSelectorEntryProps {
   index: number;
@@ -43,6 +45,8 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
     drawColorRamp(canvas, colorMap);
   }, [colorMap, index]);
 
+  const warning = COLOR_RAMP_WARNINGS[colorMap.name];
+
   return (
     <div
       key={colorMap.name}
@@ -50,6 +54,20 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
       className="jp-gis-color-ramp-entry"
     >
       <span className="jp-gis-color-label">{colorMap.name}</span>
+      {warning && (
+        <span
+          className="jp-gis-color-ramp-warning"
+          onClick={e => e.stopPropagation()}
+        >
+          <InfoTip text={warning.reason}>
+            {warning.link && (
+              <a href={warning.link} target="_blank" rel="noreferrer">
+                Learn more
+              </a>
+            )}
+          </InfoTip>
+        </span>
+      )}
       <canvas
         id={`cv-${index}`}
         width={canvasWidth}

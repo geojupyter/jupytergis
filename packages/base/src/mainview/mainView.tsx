@@ -1,3 +1,4 @@
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
@@ -16,6 +17,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISUIState,
   IIdentifiedFeature,
   IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
@@ -56,6 +58,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
+  Geolocation,
   MapBrowserEvent,
   Map as OlMap,
   VectorTile,
@@ -63,6 +66,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import type { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -233,7 +237,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  editingVectorLayer: boolean;
+  isDrawing: boolean;
   drawGeometryLabel: string | undefined;
   currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
@@ -346,12 +350,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
-
-    // Keep draw editing UI/interactions in sync with the shared editing mode.
-    this._model.editingVectorLayerChanged.connect(
-      this._updateEditingVectorLayer,
+    this._model.uiStateChanged.connect(
+      this._handleLocationIndicatorToggled,
       this,
     );
+
+    // Keep draw UI/interactions in sync with the exclusive map mode.
+    this._model.modeChanged.connect(this._handleModeChanged, this);
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
@@ -375,7 +380,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      editingVectorLayer: false,
+      isDrawing: false,
       drawGeometryLabel: '',
       currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
@@ -490,6 +495,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
+
+    this._model.uiStateChanged.disconnect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
+    this._model.modeChanged.disconnect(this._handleModeChanged, this);
+    this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
   }
@@ -693,6 +705,89 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
+
+      this._geolocation = new Geolocation({
+        tracking: false,
+        trackingOptions: {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: Infinity,
+        },
+        projection: this._Map.getView().getProjection(),
+      });
+      this._geolocation.on('error', (err: GeolocationError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        this._model.setUIState({ locationIndicatorActive: false });
+      });
+
+      this._geolocationAccuracyFeature = new Feature();
+      this._geolocationAccuracyFeature.setStyle(
+        new Style({
+          fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+        }),
+      );
+      this._geolocation.on('change:accuracyGeometry', () => {
+        if (
+          this._geolocationAccuracyFeature === undefined ||
+          this._geolocation === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        this._geolocationAccuracyFeature.setGeometry(
+          this._geolocation.getAccuracyGeometry() ?? undefined,
+        );
+      });
+
+      /**
+       * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
+       * contrasting white stroke and the OL API does not support that in a single icon.
+       */
+      const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
+      const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+        `<svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 ${iconWidth} ${iconHeight}"
+        >
+          <path
+            d="${iconPath}"
+            fill="blue"
+            stroke="white"
+            stroke-width="40"
+            paint-order="stroke"
+            stroke-linejoin="round"
+          />
+        </svg>`,
+      )}`;
+
+      this._geolocationPositionFeature = new Feature();
+      this._geolocationPositionFeature.setStyle(
+        new Style({
+          image: new Icon({ src: crosshairsSrc }),
+        }),
+      );
+
+      this._geolocation.on('change:position', () => {
+        if (
+          this._geolocation === undefined ||
+          this._geolocationPositionFeature === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        const coordinates = this._geolocation.getPosition();
+        this._geolocationPositionFeature.setGeometry(
+          coordinates ? new Point(coordinates) : undefined,
+        );
+      });
+
+      this._geolocationSource = new VectorSource({});
+      new VectorLayer({
+        map: this._Map,
+        source: this._geolocationSource,
+      });
     }
   }
 
@@ -2392,8 +2487,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       selectedLayerId,
     );
     if (decision.disableEditing) {
-      this._model.editingVectorLayer = false;
-      this._updateEditingVectorLayer();
+      if (this._model.currentMode === 'drawing') {
+        this._model.currentMode = 'panning';
+        this._notifyInteractionModeCommands();
+      }
       return;
     }
     if (!decision.shouldRebind) {
@@ -2422,7 +2519,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return { disableEditing: true, shouldRebind: false };
     }
 
-    if (!this._model.editingVectorLayer) {
+    if (this._model.currentMode !== 'drawing') {
       return { disableEditing: false, shouldRebind: false };
     }
 
@@ -2648,6 +2745,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           },
         }));
         view = new View({ projection: newProjection });
+        this._geolocation?.setProjection(newProjection);
       } else {
         this._log('warning', `Invalid projection: ${projection}`);
         return;
@@ -2767,12 +2865,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
-        if (this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)) {
-          this._model.editingVectorLayer = false;
-          this._updateEditingVectorLayer();
-          this._mainViewModel.commands.notifyCommandChanged(
-            CommandIDs.toggleDrawFeatures,
-          );
+        if (
+          this._model.currentMode === 'drawing' &&
+          this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)
+        ) {
+          this._model.currentMode = 'panning';
+          this._notifyInteractionModeCommands();
         }
         return;
       }
@@ -3438,10 +3536,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private async _addMarker(e: MapBrowserEvent<any>) {
-    if (
-      this.state.editingVectorLayer ||
-      this._model.currentMode !== 'marking'
-    ) {
+    if (this._model.currentMode !== 'marking') {
       return;
     }
 
@@ -3480,10 +3575,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (
-      this.state.editingVectorLayer ||
-      this._model.currentMode !== 'identifying'
-    ) {
+    if (this._model.currentMode !== 'identifying') {
       return;
     }
 
@@ -3658,6 +3750,47 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private _handleLocationIndicatorToggled(
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void {
+    const active = Boolean(uiState.locationIndicatorActive);
+    if (active === this._locationIndicatorActive) {
+      return;
+    }
+    this._locationIndicatorActive = active;
+    if (active) {
+      this._startLocationIndicator();
+    } else {
+      this._stopLocationIndicator();
+    }
+  }
+
+  private _startLocationIndicator(): void {
+    if (
+      !this._geolocation ||
+      !this._geolocationSource ||
+      !this._geolocationAccuracyFeature ||
+      !this._geolocationPositionFeature
+    ) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(true);
+    this._geolocationSource.clear();
+    this._geolocationSource.addFeatures([
+      this._geolocationAccuracyFeature,
+      this._geolocationPositionFeature,
+    ]);
+  }
+
+  private _stopLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(false);
+    this._geolocationSource.clear();
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -3706,18 +3839,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  private _updateEditingVectorLayer() {
-    const editingVectorLayer: boolean = this._model.editingVectorLayer;
-    this.setState(old => ({ ...old, editingVectorLayer }));
+  private _handleModeChanged = (): void => {
+    const isDrawing = this._model.currentMode === 'drawing';
+    this.setState(old => ({ ...old, isDrawing }));
 
-    if (editingVectorLayer === true) {
+    if (isDrawing) {
       this._editVectorLayer();
     }
 
-    if (editingVectorLayer === false && this._draw) {
+    if (!isDrawing && this._draw) {
       this._removeDrawInteraction();
       this._setCurrentDrawLayerId(undefined);
     }
+  };
+
+  private _notifyInteractionModeCommands(): void {
+    const commands = this._mainViewModel.commands;
+    commands.notifyCommandChanged(CommandIDs.identify);
+    commands.notifyCommandChanged(CommandIDs.addMarker);
+    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   }
 
   private _setCurrentDrawLayerId(layerId: string | undefined): void {
@@ -3746,6 +3886,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
+
+    if (this._currentDrawLayerID) {
+      this._currentVectorSource = this._getVectorSourceFromLayerID(
+        this._currentDrawLayerID,
+      );
+    }
 
     this._updateInteractions();
     this._updateDrawSource();
@@ -4003,7 +4149,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers,
       displayTemporalController,
       drawGeometryLabel,
-      editingVectorLayer,
+      isDrawing,
       currentDrawLayerId,
       filterStates,
       initialLayersReady,
@@ -4034,7 +4180,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         <MainViewOverlayLayer
           annotationFloaters={this._renderAnnotationFloaters()}
           featureFloaters={this._renderFeatureFloaters()}
-          editingVectorLayer={editingVectorLayer}
+          isDrawing={isDrawing}
           drawGeometryLabel={drawGeometryLabel}
           drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
@@ -4113,6 +4259,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
+  private _geolocation?: Geolocation;
+  private _geolocationSource?: VectorSource;
+  private _geolocationPositionFeature?: Feature;
+  private _geolocationAccuracyFeature?: Feature;
+  private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
