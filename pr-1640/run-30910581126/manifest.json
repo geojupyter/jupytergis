@@ -1,0 +1,14 @@
+[
+  {
+    "name": "geoJSON-layer",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium_geoJSON-layer",
+    "ext": ".png"
+  },
+  {
+    "name": "geoJSON-layer",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium-retry1_geoJSON-layer",
+    "ext": ".png"
+  }
+]
