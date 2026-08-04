@@ -358,7 +358,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
-  editingVectorLayerChanged: ISignal<IJupyterGISModel, boolean>;
+  modeChanged: ISignal<IJupyterGISModel, Modes>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
@@ -455,8 +455,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
-  editingVectorLayer: boolean;
-  updateEditingVectorLayer(): void;
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean;
 
   isTemporalControllerActive: boolean;

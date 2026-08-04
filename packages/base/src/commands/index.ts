@@ -1,9 +1,11 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISSource,
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
@@ -61,6 +63,34 @@ import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
+
+const INTERACTION_MODE_COMMANDS = [
+  CommandIDs.identify,
+  CommandIDs.addMarker,
+  CommandIDs.toggleDrawFeatures,
+] as const;
+
+function notifyInteractionModeCommands(commands: CommandRegistry): void {
+  for (const id of INTERACTION_MODE_COMMANDS) {
+    commands.notifyCommandChanged(id);
+  }
+}
+
+/**
+ * Keep the point-selection cursor class and toolbar toggles in sync with
+ * the exclusive map interaction mode.
+ */
+function syncInteractionModeUi(
+  widget: { model: IJupyterGISModel; node: HTMLElement },
+  commands: CommandRegistry,
+): void {
+  const mode = widget.model.currentMode;
+  widget.node.classList.toggle(
+    POINT_SELECTION_TOOL_CLASS,
+    mode === 'identifying' || mode === 'marking',
+  );
+  notifyInteractionModeCommands(commands);
+}
 
 /**
  * Commands for JupyterGIS-only features that cannot be round-tripped through
@@ -437,16 +467,13 @@ export function addCommands(
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
           current.model.currentMode = 'panning';
-          current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
-          commands.notifyCommandChanged(CommandIDs.identify);
+          syncInteractionModeUi(current, commands);
           return;
         }
       }
 
-      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
       current.model.toggleMode('identifying');
-
-      commands.notifyCommandChanged(CommandIDs.identify);
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.identify),
   });
@@ -1804,17 +1831,16 @@ export function addCommands(
         return;
       }
 
-      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
       current.model.toggleMode('marking');
-
-      commands.notifyCommandChanged(CommandIDs.addMarker);
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.addMarker),
   });
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
-    caption: 'Toggle feature editing for the selected draw-compatible layer.',
+    caption:
+      'Toggle feature editing. Creates an empty draw layer if the selection is not draw-compatible.',
     describedBy: {
       args: {
         type: 'object',
@@ -1833,56 +1859,32 @@ export function addCommands(
         return false;
       }
 
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
-      }
-
-      if (!model.checkIfIsADrawVectorLayer(selectedLayer)) {
-        return false;
-      }
-
-      return model.editingVectorLayer;
+      return model.currentMode === 'drawing';
     },
     isEnabled: () => {
       if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
         return false;
       }
 
-      const model = tracker.currentWidget?.content?.currentViewModel
-        ?.jGISModel as IJupyterGISModel | undefined;
-
-      if (!model) {
-        return false;
-      }
-
-      const selectedLayer = getSingleSelectedLayer(tracker);
-      if (!selectedLayer) {
-        return false;
-      }
-
-      return model.checkIfIsADrawVectorLayer(selectedLayer) === true;
+      return tracker.currentWidget.model.sharedModel.editable;
     },
     execute: async () => {
       if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
         return;
       }
 
-      const model = tracker.currentWidget?.content.currentViewModel?.jGISModel;
+      const current = tracker.currentWidget;
+      const model = current.content.currentViewModel?.jGISModel;
       if (!model) {
         return false;
       }
 
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
+      if (model.currentMode !== 'drawing') {
+        Private.ensureDrawCompatibleLayer(model, tracker);
       }
 
-      model.editingVectorLayer = !model.editingVectorLayer;
-      model.updateEditingVectorLayer();
-      commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+      model.toggleMode('drawing');
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.toggleDrawFeatures),
   });
@@ -2105,6 +2107,65 @@ namespace Private {
       rendermime,
       urlResolverFactory,
     );
+  }
+
+  /**
+   * Return the id of a draw-compatible selected layer, creating an empty
+   * inline GeoJSON layer when the current selection is
+   * missing or not editable for drawing.
+   */
+  export function ensureDrawCompatibleLayer(
+    model: IJupyterGISModel,
+    tracker: JupyterGISTracker,
+  ): string {
+    const selectedLayer = getSingleSelectedLayer(tracker);
+    const selected = model.localState?.selected?.value;
+    const selectedLayerId =
+      selected && Object.keys(selected).length === 1
+        ? Object.keys(selected)[0]
+        : undefined;
+
+    if (
+      selectedLayer &&
+      selectedLayerId &&
+      model.checkIfIsADrawVectorLayer(selectedLayer)
+    ) {
+      return selectedLayerId;
+    }
+
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceModel: IJGISSource = {
+      type: 'GeoJSONSource',
+      name: 'Draw Layer Source',
+      parameters: {
+        data: {
+          type: 'FeatureCollection',
+          features: [],
+        },
+      },
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      name: 'Draw Layer',
+      visible: true,
+      parameters: {
+        source: sourceId,
+        opacity: 1.0,
+        symbologyState: { layers: [] },
+      },
+    };
+
+    model.sharedModel.addSource(sourceId, sourceModel);
+    model.addLayer(layerId, layerModel);
+    model.syncSelected(
+      { [layerId]: { type: 'layer' } },
+      model.getClientId().toString(),
+    );
+
+    return layerId;
   }
 
   export function createLayerBrowser(
