@@ -34,7 +34,7 @@ const iconObject = {
   RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
-  LiveApiSource: { icon: geoJSONIcon },
+  LiveApiSource: { iconClass: 'fa fa-satellite' },
   ImageSource: { iconClass: 'fa fa-image' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
