@@ -18,7 +18,11 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { helpIcon, targetWithCenterIcon, terminalToolbarIcon } from '@/src/shared/icons';
+import {
+  helpIcon,
+  targetWithCenterIcon,
+  terminalToolbarIcon,
+} from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
