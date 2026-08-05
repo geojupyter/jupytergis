@@ -855,7 +855,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       // source normalizes, OL delivers band values in [0, 1], so the domain
       // has to be [0, 1] (a raw [min, max] domain would sit above every value
       // and wash the raster out). Only raw (non-normalized) bands use [min, max].
-      const domain: [number, number] = normalize ? [0, 1] : [stats.min, stats.max];
+      const domain: [number, number] = normalize
+        ? [0, 1]
+        : [stats.min, stats.max];
 
       const updatedScale =
         scale.scheme === 'colorRamp'
