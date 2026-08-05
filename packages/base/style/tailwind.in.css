@@ -1,0 +1,22 @@
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source '../src/**/*.{ts,tsx}';
+
+@theme {
+	--color-primary: #3b82f6;
+	--color-primary-foreground: #ffffff;
+	--color-border: #d1d5db;
+	--color-ring: #93c5fd;
+	--color-destructive: #ef4444;
+	--color-muted: #f3f4f6;
+	--color-muted-foreground: #6b7280;
+	--color-input: #d1d5db;
+	--color-secondary: #e5e7eb;
+	--color-secondary-foreground: #111827;
+	--color-background: #ffffff;
+	--color-foreground: #111827;
+	--radius-md: 0.5rem;
+}

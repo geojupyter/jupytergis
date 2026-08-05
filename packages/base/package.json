@@ -28,17 +28,19 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "pnpm run build:gallery && tspc -b && pnpm run cp:gdal",
+    "build": "pnpm run build:tailwind && pnpm run build:gallery && tspc -b && pnpm run cp:gdal",
+    "build:tailwind": "tailwindcss -i ./style/tailwind.in.css -o ./style/tailwind.css",
     "build:gallery": "uv run --directory ../../scripts/layer_gallery python layer_gallery",
     "cp:gdal": "cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.data lib && cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm lib",
     "build:prod": "pnpm run clean && pnpm run build",
-    "build:dev": "tspc -b && pnpm run cp:gdal",
+    "build:dev": "pnpm run build:tailwind && tspc -b && pnpm run cp:gdal",
     "clean": "rimraf tsconfig.tsbuildinfo",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:all": "pnpm run clean:lib",
     "watch": "tspc -w"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": ">=0.2.6 <3.0.0",
@@ -119,12 +121,14 @@
   },
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
+    "@tailwindcss/cli": "^4.3.3",
     "@types/colormap": "^2.3.4",
     "@types/d3-color": "^3.1.0",
     "@types/node": "^18.15.11",
     "@types/proj4": "2.19.0",
     "@types/shpjs": "^3.4.7",
     "rimraf": "^3.0.2",
+    "tailwindcss": "^4.3.3",
     "ts-patch": "^3.3.0",
     "typescript": "^5",
     "typescript-transform-paths": "^3.5.5"
