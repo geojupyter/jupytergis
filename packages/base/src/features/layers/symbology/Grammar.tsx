@@ -199,6 +199,7 @@ interface ILayerSectionProps {
   isRasterLayer?: boolean;
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -214,6 +215,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   isRasterLayer = false,
   disabledSchemes = [],
   bandStats,
+  normalize = true,
   onChange,
   onDelete,
   onMoveUp,
@@ -520,6 +522,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               isRaster={isRaster}
               disabledSchemes={disabledSchemes}
               bandStats={bandStats}
+              normalize={normalize}
               onChange={updated => updateRow(i, updated)}
               onDelete={() => removeRow(i)}
             />
@@ -575,6 +578,13 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
     return map;
   }, [bandRows]);
+
+  // Whether the raster source normalizes band values to [0, 1]. This governs
+  // which value space the auto-filled symbology domain must live in.
+  const normalize = React.useMemo(() => {
+    const source = model.getSource(layer?.parameters?.source);
+    return (source?.parameters?.normalize as boolean | undefined) ?? true;
+  }, [model, layer]);
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -723,6 +733,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           isRasterLayer={isRasterLayer}
           disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
           bandStats={bandStats}
+          normalize={normalize}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }

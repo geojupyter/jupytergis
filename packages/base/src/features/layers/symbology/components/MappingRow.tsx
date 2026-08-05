@@ -767,6 +767,7 @@ interface IMappingRowProps {
   isRaster?: boolean;
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -790,6 +791,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   isRaster = false,
   disabledSchemes = [],
   bandStats,
+  normalize = true,
   onChange,
   onDelete,
 }) => {
@@ -849,7 +851,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           : false;
 
     const bandChange = () => {
-      const domain: [number, number] = [stats.min, stats.max];
+      // The domain must match the space the band values arrive in: when the
+      // source normalizes, OL delivers band values in [0, 1], so the domain
+      // has to be [0, 1] (a raw [min, max] domain would sit above every value
+      // and wash the raster out). Only raw (non-normalized) bands use [min, max].
+      const domain: [number, number] = normalize ? [0, 1] : [stats.min, stats.max];
 
       const updatedScale =
         scale.scheme === 'colorRamp'
@@ -880,7 +886,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     }
 
     prevBandRef.current = currentBand;
-  }, [bandNumber, stats, bandStats]);
+  }, [bandNumber, stats, bandStats, normalize]);
 
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
@@ -892,7 +898,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             ...newScale,
             params: {
               ...newScale.params,
-              domain: [stats.min, stats.max],
+              domain: normalize ? [0, 1] : [stats.min, stats.max],
             },
           };
           newScale = updated;
@@ -901,7 +907,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             ...newScale,
             params: {
               ...newScale.params,
-              domain: [stats.min, stats.max],
+              domain: normalize ? [0, 1] : [stats.min, stats.max],
             },
           };
           newScale = updated;
@@ -925,7 +931,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         fields: trimmedFields,
       });
     },
-    [row, onChange, bandStats, isRaster],
+    [row, onChange, bandStats, isRaster, normalize],
   );
 
   const handleScaleChange = useCallback(
