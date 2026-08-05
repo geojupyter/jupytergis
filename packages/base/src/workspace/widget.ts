@@ -252,12 +252,18 @@ export class JupyterGISPanel extends SplitPanel {
         commandRegistry &&
         this._consoleTracker
       ) {
+        // Prefer a xeus-python kernel over ipykernel when it is installed.
+        await manager.kernelspecs.ready;
+        const kernelspecs = manager.kernelspecs.specs?.kernelspecs ?? {};
+        const kernelName = 'xpython' in kernelspecs ? 'xpython' : 'python3';
+
         this._consoleView = new ConsoleView({
           contentFactory,
           manager,
           mimeTypeService,
           rendermime,
           commandRegistry,
+          kernelName,
         });
         const { consolePanel } = this._consoleView;
 
@@ -267,7 +273,7 @@ export class JupyterGISPanel extends SplitPanel {
         this.setRelativeSizes([2, 1]);
         this._consoleOpened = true;
         await consolePanel.console.inject(
-          `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")`,
+          `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")\nawait doc.ready()`,
         );
         consolePanel.console.sessionContext.kernelChanged.connect((_, arg) => {
           if (!arg.newValue) {
