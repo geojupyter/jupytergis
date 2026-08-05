@@ -823,7 +823,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   const prevBandRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!bandStats || row.scale.scheme !== 'colorRamp') {
+    if (!bandStats) {
       return;
     }
 
@@ -834,21 +834,41 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       return;
     }
 
+    if (scale.scheme !== 'colorRamp' && scale.scheme !== 'scalar') {
+      return;
+    }
+
     const prevBand = prevBandRef.current;
+    const domain = scale.params.domain;
+
     const isDefaultDomain =
-      scale.params.domain?.[0] === 0 && scale.params.domain?.[1] === 1;
+      scale.scheme === 'colorRamp'
+        ? domain?.[0] === 0 && domain?.[1] === 1
+        : scale.scheme === 'scalar'
+          ? domain?.[0] === 0 && domain?.[1] === 100
+          : false;
 
     const bandChange = () => {
-      onChange({
-        ...row,
-        scale: {
-          ...scale,
-          params: {
-            ...scale.params,
-            domain: [stats.min, stats.max],
-          },
-        },
-      });
+      const domain: [number, number] = [stats.min, stats.max];
+
+      const updatedScale =
+        scale.scheme === 'colorRamp'
+          ? ({
+              ...scale,
+              params: {
+                ...scale.params,
+                domain,
+              },
+            } as typeof scale)
+          : ({
+              ...scale,
+              params: {
+                ...scale.params,
+                domain,
+              },
+            } as typeof scale);
+
+      onChange({ ...row, scale: updatedScale });
     };
 
     if (prevBand === null) {
@@ -866,15 +886,25 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     (scheme: IScale['scheme']) => {
       let newScale = defaultScaleForScheme(scheme, row.encodings);
 
-      if (stats && scheme === 'colorRamp') {
+      if (stats) {
         if (newScale.scheme === 'colorRamp') {
-          newScale = {
+          const updated: typeof newScale = {
             ...newScale,
             params: {
               ...newScale.params,
               domain: [stats.min, stats.max],
             },
           };
+          newScale = updated;
+        } else if (newScale.scheme === 'scalar') {
+          const updated: typeof newScale = {
+            ...newScale,
+            params: {
+              ...newScale.params,
+              domain: [stats.min, stats.max],
+            },
+          };
+          newScale = updated;
         }
       }
 
