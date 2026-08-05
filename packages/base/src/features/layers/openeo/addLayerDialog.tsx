@@ -40,6 +40,12 @@ interface IBodyState {
   editedGraph: Record<string, any> | null;
 }
 
+interface IMapView {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+}
+
 interface IFormProps {
   initial: IBodyState;
   /**
@@ -50,6 +56,8 @@ interface IFormProps {
   initialConnection: IOpenEOConnectionInfo | null;
   /** Servers the user already authenticated against — populates the combobox. */
   knownServers: string[];
+  /** Live map view to reproduce in the Code tab's JupyterGIS snippet. */
+  mapView?: IMapView;
   onChange: (next: IBodyState) => void;
   onActiveServerChange: (info: IOpenEOConnectionInfo | null) => void;
   onValidationChange: (valid: boolean) => void;
@@ -333,6 +341,7 @@ const Form: React.FC<IFormProps> = ({
   initial,
   initialConnection,
   knownServers,
+  mapView,
   onChange,
   onActiveServerChange,
   onValidationChange,
@@ -1264,6 +1273,7 @@ const Form: React.FC<IFormProps> = ({
               graph={effectiveGraph}
               serverUrl={connectionInfo?.url}
               layerName={state.layerName}
+              mapView={mapView}
             />
           ) : viewMode === 'json' ? (
             editMode ? (
@@ -1314,6 +1324,7 @@ class AddLayerBody extends ReactWidget {
     initialConnection: IOpenEOConnectionInfo | null,
     private _knownServers: string[],
     private _onValidationChange: (valid: boolean) => void,
+    private _mapView?: IMapView,
   ) {
     super();
     this._state = initial;
@@ -1327,6 +1338,7 @@ class AddLayerBody extends ReactWidget {
         initial={this._state}
         initialConnection={this._activeConnection}
         knownServers={this._knownServers}
+        mapView={this._mapView}
         onChange={next => {
           this._state = next;
         }}
@@ -1378,6 +1390,12 @@ export interface IOpenEODialogOptions {
   title?: string;
   /** OK button label. */
   okLabel?: string;
+  /**
+   * The document's current map view (center + zoom, EPSG:4326). Baked into
+   * the Code tab's JupyterGIS snippet so exported code opens on the same
+   * viewport the user is looking at.
+   */
+  mapView?: IMapView;
 }
 
 export async function showAddOpenEOLayerDialog(
@@ -1415,6 +1433,7 @@ export async function showAddOpenEOLayerDialog(
       lastValid = valid;
       applyOk();
     },
+    options.mapView,
   );
 
   const resultPromise = new EditorAwareDialog<IOpenEODialogResult | null>({

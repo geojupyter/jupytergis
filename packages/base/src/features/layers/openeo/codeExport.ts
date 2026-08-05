@@ -36,6 +36,14 @@ export interface ICodeExportOptions {
   includeJupyterGIS?: boolean;
   /** Layer name used in the JupyterGIS snippet. */
   layerName?: string;
+  /**
+   * The live map view to reproduce in the JupyterGIS snippet (center +
+   * zoom, EPSG:4326). When set, the generated `GISDocument(...)` opens on
+   * this exact viewport — matching what the user currently sees — instead
+   * of letting `add_openeo_tile_layer` fit to the graph's `spatial_extent`
+   * (which for global collections is an arbitrary required bbox).
+   */
+  mapView?: { latitude?: number; longitude?: number; zoom?: number };
 }
 
 // Reserved identifiers we must not use as variable names. Beyond each
@@ -108,6 +116,33 @@ const R_RESERVED = new Set([
 
 // Preferred ordering for callback parameters so signatures read naturally.
 const PARAM_ORDER = ['data', 'x', 'y', 'value', 'label', 'context'];
+
+/** Round a coordinate to a sane precision so generated code stays readable. */
+function round6(n: number): number {
+  return Math.round(n * 1e6) / 1e6;
+}
+
+/**
+ * Render the `GISDocument(...)` constructor arguments for a captured map
+ * view, or `''` when no usable view is given. Emits `latitude`/`longitude`/
+ * `zoom` keywords (Python), which the widget applies directly.
+ */
+function pyViewArgs(view: ICodeExportOptions['mapView']): string {
+  if (!view) {
+    return '';
+  }
+  const parts: string[] = [];
+  if (typeof view.latitude === 'number' && Number.isFinite(view.latitude)) {
+    parts.push(`latitude=${round6(view.latitude)}`);
+  }
+  if (typeof view.longitude === 'number' && Number.isFinite(view.longitude)) {
+    parts.push(`longitude=${round6(view.longitude)}`);
+  }
+  if (typeof view.zoom === 'number' && Number.isFinite(view.zoom)) {
+    parts.push(`zoom=${round6(view.zoom)}`);
+  }
+  return parts.join(', ');
+}
 
 function isRef(
   v: any,
@@ -525,20 +560,24 @@ class CodeGenerator {
     ];
     if (options.includeJupyterGIS && resultVar) {
       const name = options.layerName || 'OpenEO Layer';
-      // A basemap under the openEO tiles for geographic context, and
-      // `add_openeo_tile_layer` fits the view to the graph's spatial extent by
-      // default — together these give a self-contained, correctly-zoomed widget.
+      // Reproduce the live map viewport when we have one; otherwise let
+      // `add_openeo_tile_layer` fit to the graph's spatial extent (default).
+      const view = pyViewArgs(options.mapView);
+      const openeoArgs = view
+        ? `${resultVar}, name=${JSON.stringify(name)}, zoom_to_extent=False`
+        : `${resultVar}, name=${JSON.stringify(name)}`;
+      // A basemap under the openEO tiles for geographic context.
       lines.push(
         '',
         'from jupytergis import GISDocument',
         '',
-        'doc = GISDocument()',
+        `doc = GISDocument(${view})`,
         'await doc.ready()',
         'doc.add_raster_layer(',
         '    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png",',
         '    name="OpenStreetMap",',
         ')',
-        `doc.add_openeo_tile_layer(${resultVar}, name=${JSON.stringify(name)})`,
+        `doc.add_openeo_tile_layer(${openeoArgs})`,
         'display(doc)',
       );
     } else if (resultVar) {

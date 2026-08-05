@@ -101,6 +101,22 @@ describe('exportProcessGraphCode — Python', () => {
     expect(code).toContain('display(doc)');
   });
 
+  it('reproduces the live map view and disables extent-fitting when a mapView is given', () => {
+    const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
+      serverUrl: SERVER,
+      includeJupyterGIS: true,
+      layerName: 'My NDVI',
+      mapView: { latitude: 40.75, longitude: -73.95, zoom: 12 },
+    });
+    expect(code).toContain(
+      'doc = GISDocument(latitude=40.75, longitude=-73.95, zoom=12)',
+    );
+    // The explicit view must win, so extent-fitting is turned off.
+    expect(code).toContain(
+      'doc.add_openeo_tile_layer(saveresult1, name="My NDVI", zoom_to_extent=False)',
+    );
+  });
+
   it('omits the JupyterGIS snippet by default and hints at execute()', () => {
     const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
       serverUrl: SERVER,

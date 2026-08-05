@@ -10,6 +10,8 @@ interface ICodeExportPanelProps {
   serverUrl?: string;
   /** Layer name used in the optional JupyterGIS snippet. */
   layerName?: string;
+  /** Live map view to reproduce in the JupyterGIS snippet. */
+  mapView?: { latitude?: number; longitude?: number; zoom?: number };
 }
 
 const LANGUAGES: { id: ExportLanguage; label: string; ext: string }[] = [
@@ -26,6 +28,7 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
   graph,
   serverUrl,
   layerName,
+  mapView,
 }) => {
   const [lang, setLang] = React.useState<ExportLanguage>('python');
   const [includeJupyterGIS, setIncludeJupyterGIS] = React.useState(true);
@@ -36,8 +39,9 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
         serverUrl,
         layerName,
         includeJupyterGIS,
+        mapView,
       }),
-    [graph, lang, serverUrl, layerName, includeJupyterGIS],
+    [graph, lang, serverUrl, layerName, includeJupyterGIS, mapView],
   );
 
   const onCopy = async () => {
