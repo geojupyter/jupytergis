@@ -87,6 +87,14 @@ describe('exportProcessGraphCode — Python', () => {
     });
     expect(code).toContain('from jupytergis import GISDocument');
     expect(code).toContain('await doc.ready()');
+    // A basemap is added for context, before the openEO layer so it renders
+    // underneath.
+    expect(code).toContain(
+      'url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"',
+    );
+    expect(code.indexOf('add_raster_layer')).toBeLessThan(
+      code.indexOf('add_openeo_tile_layer'),
+    );
     expect(code).toContain(
       'doc.add_openeo_tile_layer(saveresult1, name="My NDVI")',
     );
@@ -132,6 +140,14 @@ describe('exportProcessGraphCode — R', () => {
     });
     expect(code).toContain('library(jupytergis)');
     expect(code).toContain('doc = GISDocument$new()');
+    // A basemap is added for context, before the openEO layer so it renders
+    // underneath.
+    expect(code).toContain(
+      'url = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"',
+    );
+    expect(code.indexOf('add_raster_layer')).toBeLessThan(
+      code.indexOf('add_openeo_tile_layer'),
+    );
     // The R graph carries no connection, so it must be passed explicitly.
     expect(code).toContain(
       'doc$add_openeo_tile_layer(saveresult1, connection = connection, name = "My NDVI")',

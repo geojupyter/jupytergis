@@ -525,12 +525,19 @@ class CodeGenerator {
     ];
     if (options.includeJupyterGIS && resultVar) {
       const name = options.layerName || 'OpenEO Layer';
+      // A basemap under the openEO tiles for geographic context, and
+      // `add_openeo_tile_layer` fits the view to the graph's spatial extent by
+      // default — together these give a self-contained, correctly-zoomed widget.
       lines.push(
         '',
         'from jupytergis import GISDocument',
         '',
         'doc = GISDocument()',
         'await doc.ready()',
+        'doc.add_raster_layer(',
+        '    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png",',
+        '    name="OpenStreetMap",',
+        ')',
         `doc.add_openeo_tile_layer(${resultVar}, name=${JSON.stringify(name)})`,
         'display(doc)',
       );
@@ -564,6 +571,10 @@ class CodeGenerator {
         'library(jupytergis)',
         '',
         'doc = GISDocument$new()',
+        'doc$add_raster_layer(',
+        '  url = "https://tile.openstreetmap.org/{z}/{x}/{y}.png",',
+        '  name = "OpenStreetMap"',
+        ')',
         `doc$add_openeo_tile_layer(${resultVar}, connection = connection, name = ${JSON.stringify(name)})`,
         'doc',
       );

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import types
 import warnings
 import xml.etree.ElementTree as ET
@@ -107,6 +108,49 @@ def _extract_layer_name(path: str | Path) -> str:
     name_without_ext = filename.rsplit(".", 1)[0]
 
     return name_without_ext or filename
+
+
+def _openeo_spatial_extent(graph: Any) -> list[float] | None:
+    """Find the first ``spatial_extent`` bbox declared anywhere in a flat graph.
+
+    openEO's ``load_collection`` carries the area of interest as a
+    ``{"west", "south", "east", "north"}`` mapping. Returns it as
+    ``[west, south, east, north]`` (EPSG:4326), or ``None`` when the graph
+    declares no spatial extent.
+    """
+    corners = ("west", "south", "east", "north")
+    if isinstance(graph, dict):
+        if all(isinstance(graph.get(c), int | float) for c in corners):
+            return [float(graph[c]) for c in corners]
+        for value in graph.values():
+            found = _openeo_spatial_extent(value)
+            if found is not None:
+                return found
+    elif isinstance(graph, list | tuple):
+        for value in graph:
+            found = _openeo_spatial_extent(value)
+            if found is not None:
+                return found
+    return None
+
+
+def _lonlat_to_webmercator(lon: float, lat: float) -> tuple[float, float]:
+    """Project a lon/lat pair (EPSG:4326) to web mercator (EPSG:3857)."""
+    radius = 6378137
+    lat = max(min(lat, 85.06), -85.06)
+    x = radius * lon * math.pi / 180
+    y = radius * math.log(math.tan(math.pi / 4 + lat * math.pi / 360))
+    return x, y
+
+
+def _openeo_view_extent(extent: list[float]) -> list[float]:
+    """Convert a ``[west, south, east, north]`` EPSG:4326 bbox to an EPSG:3857
+    ``[minx, miny, maxx, maxy]`` extent suitable for ``options["extent"]``.
+    """
+    west, south, east, north = extent
+    minx, miny = _lonlat_to_webmercator(west, south)
+    maxx, maxy = _lonlat_to_webmercator(east, north)
+    return [minx, miny, maxx, maxy]
 
 
 class GISDocument(CommWidget):
@@ -522,7 +566,21 @@ class GISDocument(CommWidget):
         name: str | None = None,
         opacity: float = 1,
         zoom_to: bool = False,
+        zoom_to_extent: bool = True,
     ):
+        """Add an openEO process-graph tile layer to the document.
+
+        :param graph: An openEO datacube / result node (carrying its connection).
+        :param name: Display name for the layer.
+        :param opacity: The opacity, between 0 and 1.
+        :param zoom_to: When True, zoom the map to the layer once it is added.
+        :param zoom_to_extent: When True (the default), fit the map view to the
+            process graph's ``spatial_extent``. titiler-openeo serves tiles only
+            within the requested extent and returns HTTP 404 ("no data for the
+            given extents") for tiles outside it — which is what a zoomed-out
+            initial view requests — so without this the layer renders blank on
+            open. Ignored when the graph declares no spatial extent.
+        """
         # Persist the bearer token alongside the server url so a connection
         # opened here from the notebook is reused by the frontend without the
         # user having to sign in a second time from the UI. The bearer is a
@@ -530,11 +588,13 @@ class GISDocument(CommWidget):
 
         self._assert_is_ready()
 
+        flat_graph = graph.flat_graph()
+
         source = {
             "type": SourceType.OpenEOTileSource,
             "name": f"{name} Source" if name is not None else "OpenEO Tiles Source",
             "parameters": {
-                "processGraph": graph.flat_graph(),
+                "processGraph": flat_graph,
                 "serverUrl": graph.connection.root_url,
                 "authBearer": graph.connection.auth.bearer,
             },
@@ -549,10 +609,22 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        return self._add_layer(
+        layer_id = self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
             zoom_to=zoom_to,
         )
+
+        # Fit the view to the data extent. The frontend follows
+        # ``options.useExtent`` + ``options.extent`` (in the EPSG:3857 view
+        # projection), calling ``View.fit(extent)``. Without this the view stays
+        # at the default world zoom, where the backend has no tiles to serve.
+        if zoom_to_extent:
+            extent = _openeo_spatial_extent(flat_graph)
+            if extent is not None:
+                self._options["extent"] = _openeo_view_extent(extent)
+                self._options["useExtent"] = True
+
+        return layer_id
 
     def add_image_layer(
         self,
