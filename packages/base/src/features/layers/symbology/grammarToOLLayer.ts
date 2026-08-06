@@ -215,7 +215,7 @@ function extractGradient(rules: IEncodingRule[]): string[] | undefined {
       const isPixelEncoding = (mapping.encodings as string[]).some(
         ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
-      if (!isPixelEncoding || mapping.scale.scheme !== 'colorRamp') {
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
         continue;
       }
 

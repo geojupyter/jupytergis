@@ -141,7 +141,7 @@ def _single_band_pseudocolor_grammar(band: int, color_stops: list) -> dict[str, 
         "fields": [f"$band-{int(band)}"],
         "mappings": [
             {
-                "scale": {"scheme": "colorRamp", "params": params},
+                "scale": {"scheme": "colorMap", "params": params},
                 "encodings": ["pixel-color"],
             },
         ],
@@ -155,7 +155,7 @@ def raster_flat_color_to_grammar(color: Any) -> dict[str, Any]:
     Pre-Grammar GeoTiff layers stored symbology as an OL ``interpolate``
     expression, e.g. ``["interpolate", ["linear"], ["band", 1], stop, rgba, ...]``.
     Fold its (stop, color) pairs into a single-band pseudocolor ``pixel-color``
-    colorRamp (stops are already in normalized [0, 1] band space). Returns an
+    colorMap (stops are already in normalized [0, 1] band space). Returns an
     empty symbology state when ``color`` is not a recognised interpolate.
     """
     if not isinstance(color, list) or len(color) < 5 or color[0] != "interpolate":
@@ -309,7 +309,7 @@ def kde_grammar(
         "fields": ["$density"],
         "mappings": [
             {
-                "scale": {"scheme": "colorRamp", "params": params},
+                "scale": {"scheme": "colorMap", "params": params},
                 "encodings": ["pixel-rgb"],
             },
         ],
@@ -539,7 +539,7 @@ def _heatmap_color_ramp(grammar_layer):
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
             scale = mapping.get("scale", {})
-            if scale.get("scheme") != "colorRamp":
+            if scale.get("scheme") != "colorMap":
                 continue
             params = scale.get("params", {})
             colors = sample_colors(
@@ -726,7 +726,7 @@ def _scale_classes(
 ) -> Sequence[tuple[str | None, list]] | None:
     """Classes ``[(filter | None, rgba)]`` for a colour scale, or None.
 
-    A constant colour is a single class with no filter; colorRamp / categorical
+    A constant colour is a single class with no filter; colorMap / categorical
     expand to several filtered classes.
     """
     if not scale:
@@ -735,7 +735,7 @@ def _scale_classes(
     params = scale.get("params", {})
     if scheme == "constant_rgba":
         return [(None, params.get("value"))]
-    if scheme == "colorRamp" and field:
+    if scheme == "colorMap" and field:
         classes = _ramp_classes(field, params.get("colorStops") or [])
         if classes:
             return classes
@@ -801,7 +801,7 @@ def grammar_to_vector_tile_styles(
 ) -> list[dict[str, Any]]:
     """Vector-tile style specs from a grammar — constant colours only.
 
-    A data-driven colour (colorRamp / categorical) becomes several styles, one per
+    A data-driven colour (colorMap / categorical) becomes several styles, one per
     class, each a value filter plus a constant colour, because QGIS data-defined
     symbol colours do NOT round-trip across QGIS versions (3.40 writes them, 3.44
     drops them) while plain constant-colour styles render everywhere. A constant
@@ -872,10 +872,10 @@ def _vt_instr_to_scale(instr: tuple) -> tuple[dict | None, str | None]:
     kind = instr[0]
     if kind == "const":
         return {"scheme": "constant_rgba", "params": {"value": instr[1]}}, None
-    if kind == "colorRamp":
+    if kind == "colorMap":
         _, field, stops = instr
         return {
-            "scheme": "colorRamp",
+            "scheme": "colorMap",
             "params": {
                 "name": "custom",
                 "nShades": len(stops),
@@ -919,7 +919,7 @@ def vector_tile_grammar(
     any constant stroke width.
 
     When every geometry reconstructs to the *same* data-driven colour (QGIS export
-    splits one ungated colorRamp/categorical into a style set per geometry), the
+    splits one ungated colorMap/categorical into a style set per geometry), the
     geometries are folded back into a single ungated layer rather than emitting one
     identical rule per geometry.
     """
@@ -930,7 +930,7 @@ def vector_tile_grammar(
         for geom, slots in geom_styles.items()
         for slot, instr in slots.items()
     ]
-    data_driven = [t for t in colour_instrs if t[2][0] in ("colorRamp", "categorical")]
+    data_driven = [t for t in colour_instrs if t[2][0] in ("colorMap", "categorical")]
     if (
         len(data_driven) > 1
         and len(data_driven) == len(colour_instrs)
@@ -1052,12 +1052,12 @@ def grammar_to_raster_renderer(
     """Build a raster renderer from Grammar.
 
     ``source_min``/``source_max`` are the raster source's normalization range;
-    grammar colorRamp stops (normalized [0, 1]) are scaled back to raw values so
+    grammar colorMap stops (normalized [0, 1]) are scaled back to raw values so
     QGIS classifies on the real band range.
 
     Returns a ``QgsMultiBandColorRenderer`` for pixel-red/green/blue band
     mappings, otherwise a ``QgsSingleBandPseudoColorRenderer`` from a pixel-color
-    colorRamp. The result is ``(renderer, vmin, vmax)`` (vmin/vmax are ``None``
+    colorMap. The result is ``(renderer, vmin, vmax)`` (vmin/vmax are ``None``
     for multiband), or ``None`` when there is no recognised pixel mapping.
     """
     color_params = None
@@ -1083,7 +1083,7 @@ def grammar_to_raster_renderer(
                 scale = mapping.get("scale", {})
                 if (
                     encodings & _PIXEL_COLOR_ENCODINGS
-                    and scale.get("scheme") == "colorRamp"
+                    and scale.get("scheme") == "colorMap"
                 ):
                     color_params = scale.get("params", {})
                     if rule_band is not None:
@@ -1627,5 +1627,5 @@ def _vt_reconstruct(styles) -> tuple:
             if value is not None and (not stops or stops[-1]["stop"] != float(value)):
                 stops.append({"stop": float(value), "color": color})
         if len(stops) >= 2:
-            return ("colorRamp", field, stops)
+            return ("colorMap", field, stops)
     return ("const", _vt_style_color(styles[0]))

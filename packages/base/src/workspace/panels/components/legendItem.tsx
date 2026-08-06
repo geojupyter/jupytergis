@@ -312,7 +312,7 @@ function kdeToLegendEntries(
       const isPixelEncoding = (mapping.encodings as string[]).some(
         ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
-      if (!isPixelEncoding || mapping.scale.scheme !== 'colorRamp') {
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
         continue;
       }
       const p = mapping.scale.params;
@@ -420,7 +420,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
 
         if (isColor) {
           switch (scale.scheme) {
-            case 'colorRamp': {
+            case 'colorMap': {
               const p = scale.params;
               if (p.colorStops && p.colorStops.length >= 2) {
                 // When alpha is driven by a companion scalar, clip the displayed

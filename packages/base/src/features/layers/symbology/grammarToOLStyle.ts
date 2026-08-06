@@ -14,7 +14,7 @@
 
 import {
   ICategoricalScale,
-  IColorRampScale,
+  IColorMapScale,
   IMapping,
   IScalarScale,
   IGrammarSymbologyState,
@@ -171,7 +171,7 @@ export function grammarToOLStyle(
 
 /**
  * Extract the encoding field column from feature property rows.
- * colorRamp and categorical scales take a single input field; this returns
+ * colorMap and categorical scales take a single input field; this returns
  * all values for that field so the compiler can compute classification breaks.
  */
 export function extractEncodingFieldValues(
@@ -384,9 +384,9 @@ function compileMapping(
 ): ExpressionValue {
   const { scale } = mapping;
   switch (scale.scheme) {
-    case 'colorRamp':
+    case 'colorMap':
       return field
-        ? compileColorRamp(field, scale, featureValues, encoding)
+        ? compileColorMap(field, scale, featureValues, encoding)
         : scale.params.fallback;
     case 'categorical':
       return field
@@ -449,16 +449,16 @@ function compileMapping(
 // ---------------------------------------------------------------------------
 
 /**
- * colorRamp: numeric field → RGBA color via a named palette + classification.
+ * colorMap: numeric field → RGBA color via a named palette + classification.
  *
  * Output:
  *   ['case', ['has', field],
  *     ['interpolate', ['linear'], ['get', field], stop0, color0, ...],
  *     fallback]
  */
-function compileColorRamp(
+function compileColorMap(
   field: string,
-  scale: IColorRampScale,
+  scale: IColorMapScale,
   featureValues: unknown[],
   encoding?: Encoding,
 ): ExpressionValue {
@@ -511,7 +511,7 @@ function compileColorRamp(
  * breaks are computed from featureValues using computeGraduatedColorStops.
  */
 function resolveColorStops(
-  scale: IColorRampScale,
+  scale: IColorMapScale,
   featureValues: unknown[],
 ): Array<{ stop: number; color: RGBA }> {
   if (scale.params.colorStops && scale.params.colorStops.length >= 2) {
