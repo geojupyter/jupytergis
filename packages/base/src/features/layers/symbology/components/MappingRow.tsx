@@ -131,6 +131,7 @@ function defaultScaleForScheme(
           mode: 'equal interval',
           reverse: false,
           fallback: [0, 0, 0, 0] as RGBA,
+          domain: [0, 1],
         },
       } as IColorRampScale;
     case 'categorical':
@@ -198,7 +199,7 @@ const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
   reverse,
 }) => {
   const ref = useRef<HTMLCanvasElement>(null);
-  React.useEffect(() => {
+  useEffect(() => {
     const canvas = ref.current;
     if (!canvas) {
       return;
@@ -765,8 +766,18 @@ interface IMappingRowProps {
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
   disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
+}
+
+function getBandFromField(field?: string): number | null {
+  if (!field) {
+    return null;
+  }
+  const match = field.match(/\$band-(\d+)/);
+  return match ? Number(match[1]) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -779,6 +790,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   featureValues,
   isRaster = false,
   disabledSchemes = [],
+  bandStats,
+  normalize = true,
   onChange,
   onDelete,
 }) => {
@@ -807,9 +820,82 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
+  const bandNumber = getBandFromField(row.fields?.[0]);
+  const stats = bandNumber ? bandStats?.[bandNumber] : undefined;
+  const prevBandRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!bandStats) {
+      return;
+    }
+
+    const scale = row.scale;
+    const currentBand = bandNumber;
+
+    if (!currentBand || !stats) {
+      return;
+    }
+
+    if (scale.scheme !== 'colorRamp' && scale.scheme !== 'scalar') {
+      return;
+    }
+
+    const prevBand = prevBandRef.current;
+    const domain = scale.params.domain;
+
+    const isDefaultDomain =
+      scale.scheme === 'colorRamp'
+        ? domain?.[0] === 0 && domain?.[1] === 1
+        : scale.scheme === 'scalar'
+          ? domain?.[0] === 0 && domain?.[1] === 100
+          : false;
+
+    const bandChange = () => {
+      // The domain must match the space the band values arrive in: when the
+      // source normalizes, OL delivers band values in [0, 1], so the domain
+      // has to be [0, 1] (a raw [min, max] domain would sit above every value
+      // and wash the raster out). Only raw (non-normalized) bands use [min, max].
+      const domain: [number, number] = normalize
+        ? [0, 1]
+        : [stats.min, stats.max];
+
+      onChange({
+        ...row,
+        scale: {
+          ...scale,
+          params: { ...scale.params, domain },
+        } as typeof scale,
+      });
+    };
+
+    if (prevBand === null) {
+      if (!scale.params.domain || isDefaultDomain) {
+        bandChange();
+      }
+    } else if (prevBand !== currentBand) {
+      bandChange();
+    }
+
+    prevBandRef.current = currentBand;
+  }, [bandNumber, stats, bandStats, normalize]);
+
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
-      const newScale = defaultScaleForScheme(scheme, row.encodings);
+      let newScale = defaultScaleForScheme(scheme, row.encodings);
+
+      if (
+        stats &&
+        (newScale.scheme === 'colorRamp' || newScale.scheme === 'scalar')
+      ) {
+        newScale = {
+          ...newScale,
+          params: {
+            ...newScale.params,
+            domain: normalize ? [0, 1] : [stats.min, stats.max],
+          },
+        } as typeof newScale;
+      }
+
       const compat = compatibleEncodings(newScale, isRaster);
       const filtered = row.encodings.filter(ch => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
@@ -827,7 +913,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         fields: trimmedFields,
       });
     },
-    [row, onChange],
+    [row, onChange, bandStats, isRaster, normalize],
   );
 
   const handleScaleChange = useCallback(
