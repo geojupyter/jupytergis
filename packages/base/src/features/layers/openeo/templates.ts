@@ -77,7 +77,7 @@ export function ensureSaveResult(
   while (existing.has(key)) {
     key = `saveresult${++n}`;
   }
-  const { result: _formerResult, ...demotedNode } = resultNode;
+  const { result: _, ...demotedNode } = resultNode;
   return {
     ...graph,
     [resultNodeId]: demotedNode,
