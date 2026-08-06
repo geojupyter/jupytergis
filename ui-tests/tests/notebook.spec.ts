@@ -56,7 +56,7 @@ const testCellOutputs = async (
 };
 
 test.describe('Notebook API Visual Regression', () => {
-  test.setTimeout(0);
+  test.setTimeout(120000);
 
   test.beforeEach(async ({ page, tmpPath }) => {
     page.on('console', message => {
