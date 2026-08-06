@@ -883,26 +883,17 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     (scheme: IScale['scheme']) => {
       let newScale = defaultScaleForScheme(scheme, row.encodings);
 
-      if (stats) {
-        if (newScale.scheme === 'colorRamp') {
-          const updated: typeof newScale = {
-            ...newScale,
-            params: {
-              ...newScale.params,
-              domain: normalize ? [0, 1] : [stats.min, stats.max],
-            },
-          };
-          newScale = updated;
-        } else if (newScale.scheme === 'scalar') {
-          const updated: typeof newScale = {
-            ...newScale,
-            params: {
-              ...newScale.params,
-              domain: normalize ? [0, 1] : [stats.min, stats.max],
-            },
-          };
-          newScale = updated;
-        }
+      if (
+        stats &&
+        (newScale.scheme === 'colorRamp' || newScale.scheme === 'scalar')
+      ) {
+        newScale = {
+          ...newScale,
+          params: {
+            ...newScale.params,
+            domain: normalize ? [0, 1] : [stats.min, stats.max],
+          },
+        } as typeof newScale;
       }
 
       const compat = compatibleEncodings(newScale, isRaster);
