@@ -5,6 +5,7 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 const TOUR_ADD_COMMAND = 'jupyterlab-tour:add';
 const TOUR_LAUNCH_COMMAND = 'jupyterlab-tour:launch';
@@ -172,9 +173,11 @@ async function registerAndLaunchTour(
 
   const tourDef = createJupyterGISTour(translator);
 
+  // `jupyterlab-tour:add` takes JSON command args; our typed tour definition
+  // has no index signature, so cast it to the command-args shape at the call.
   await app.commands.execute(TOUR_ADD_COMMAND, {
-    tour: tourDef as any,
-  });
+    tour: tourDef,
+  } as unknown as ReadonlyPartialJSONObject);
 
   if (app.commands.hasCommand(TOUR_LAUNCH_COMMAND)) {
     await app.commands.execute(TOUR_LAUNCH_COMMAND, {
