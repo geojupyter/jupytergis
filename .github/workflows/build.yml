@@ -219,6 +219,15 @@ jobs:
 
           python -m pip install "${args[@]}"
 
+      # Probe: ipywidgets manager opens jupyter.widget.control on kernel
+      # start; xeus rejects it and cell exec can hang Busy in CI.
+      - name: Disable ipywidgets lab manager (xeus probe)
+        shell: bash -l {0}
+        run: |
+          set -eux
+          jupyter labextension disable @jupyter-widgets/jupyterlab-manager
+          jupyter labextension list
+
       - name: Install
         shell: bash -l {0}
         working-directory: ui-tests
