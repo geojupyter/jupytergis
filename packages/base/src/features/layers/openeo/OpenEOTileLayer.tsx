@@ -526,9 +526,7 @@ export class OpenEOTileSource extends XYZSource {
     let service: Service | null = null;
 
     // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
-    const graph = ensureSaveResult(
-      processGraph as unknown as Record<string, any>,
-    ) as unknown as Process;
+    const graph = ensureSaveResult(processGraph);
 
     try {
       service = await this._connection.createService(graph, 'XYZ');
