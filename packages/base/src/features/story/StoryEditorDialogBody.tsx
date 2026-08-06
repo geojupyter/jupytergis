@@ -39,7 +39,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
-import { useIsMobile } from '@/src/shared/hooks/useIsMobile';
+import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -273,14 +273,22 @@ export function StoryEditorDialogBody({
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const dialog = portalContainerRef.current?.closest(
-      '.jgis-story-editor-dialog',
+    const mediaQuery = window.matchMedia(
+      `(max-width: ${JGIS_NARROW_BREAKPOINT}px)`,
     );
-    dialog?.classList.toggle('jgis-story-editor-dialog--mobile', isMobile);
-  }, [isMobile]);
+    const update = (): void => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => {
+      mediaQuery.removeEventListener('change', update);
+    };
+  }, []);
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
