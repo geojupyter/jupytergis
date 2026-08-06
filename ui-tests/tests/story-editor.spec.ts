@@ -4,7 +4,7 @@ import type { Locator } from '@playwright/test';
 import path from 'path';
 
 const FILENAME = 'story_map.jGIS';
-const MOBILE_VIEWPORT = { width: 390, height: 844 };
+const MOBILE_VIEWPORT = { width: 960, height: 844 };
 const DESKTOP_VIEWPORT = { width: 1290, height: 800 };
 
 async function uploadStoryMap(
@@ -70,7 +70,7 @@ test.describe('Story editor (desktop)', () => {
 });
 
 test.describe('Story editor (mobile)', () => {
-  // test.use({ viewport: MOBILE_VIEWPORT });
+  test.use({ viewport: MOBILE_VIEWPORT });
 
   test.beforeEach(async ({ request, tmpPath }) => {
     await uploadStoryMap(request, tmpPath);
