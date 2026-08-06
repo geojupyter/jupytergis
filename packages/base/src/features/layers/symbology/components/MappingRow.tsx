@@ -859,24 +859,13 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         ? [0, 1]
         : [stats.min, stats.max];
 
-      const updatedScale =
-        scale.scheme === 'colorRamp'
-          ? ({
-              ...scale,
-              params: {
-                ...scale.params,
-                domain,
-              },
-            } as typeof scale)
-          : ({
-              ...scale,
-              params: {
-                ...scale.params,
-                domain,
-              },
-            } as typeof scale);
-
-      onChange({ ...row, scale: updatedScale });
+      onChange({
+        ...row,
+        scale: {
+          ...scale,
+          params: { ...scale.params, domain },
+        } as typeof scale,
+      });
     };
 
     if (prevBand === null) {
