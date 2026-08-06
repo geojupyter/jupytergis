@@ -198,7 +198,7 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
     if vmin is not None and vmax is not None:
         color_ramp_params["domain"] = [vmin, vmax]
 
-    color_ramp_scale = {"scheme": "colorRamp", "params": color_ramp_params}
+    color_ramp_scale = {"scheme": "colorMap", "params": color_ramp_params}
 
     fill_encodings = (
         ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]

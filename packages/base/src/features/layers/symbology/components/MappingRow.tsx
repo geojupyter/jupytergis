@@ -7,7 +7,7 @@
 import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  IColorRampScale,
+  IColorMapScale,
   ICompareOp,
   IConstantNumScale,
   IConstantRGBAScale,
@@ -31,7 +31,7 @@ import {
 } from '@/src/shared/components/NativeSelect';
 import {
   CategoricalEditor,
-  ColorRampEditor,
+  ColorMapEditor,
   ConstantEditor,
   ScalarEditor,
   ExpressionEditor,
@@ -83,7 +83,7 @@ const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
 function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
   if (isRaster) {
     switch (scale.scheme) {
-      case 'colorRamp':
+      case 'colorMap':
       case 'categorical':
       case 'constant_rgba':
         return PIXEL_RGBA_ENCODINGS;
@@ -95,7 +95,7 @@ function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
     }
   }
   switch (scale.scheme) {
-    case 'colorRamp':
+    case 'colorMap':
     case 'categorical':
     case 'constant_rgba':
       return RGBA_ENCODINGS;
@@ -122,9 +122,9 @@ function defaultScaleForScheme(
         scheme: 'constant_num',
         params: { value: 1 },
       } as IConstantNumScale;
-    case 'colorRamp':
+    case 'colorMap':
       return {
-        scheme: 'colorRamp',
+        scheme: 'colorMap',
         params: {
           name: 'viridis',
           nShades: 9,
@@ -133,7 +133,7 @@ function defaultScaleForScheme(
           fallback: [0, 0, 0, 0] as RGBA,
           domain: [0, 1],
         },
-      } as IColorRampScale;
+      } as IColorMapScale;
     case 'categorical':
       return {
         scheme: 'categorical',
@@ -183,7 +183,7 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
-  { value: 'colorRamp', label: 'color map' },
+  { value: 'colorMap', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
@@ -250,7 +250,7 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
           <span className="jp-gis-scale-meta">= {scale.params.value}</span>
         </span>
       );
-    case 'colorRamp': {
+    case 'colorMap': {
       const { name, reverse, domain } = scale.params;
       return (
         <span className="jp-gis-scale-preview">
@@ -836,7 +836,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       return;
     }
 
-    if (scale.scheme !== 'colorRamp' && scale.scheme !== 'scalar') {
+    if (scale.scheme !== 'colorMap' && scale.scheme !== 'scalar') {
       return;
     }
 
@@ -844,7 +844,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     const domain = scale.params.domain;
 
     const isDefaultDomain =
-      scale.scheme === 'colorRamp'
+      scale.scheme === 'colorMap'
         ? domain?.[0] === 0 && domain?.[1] === 1
         : scale.scheme === 'scalar'
           ? domain?.[0] === 0 && domain?.[1] === 100
@@ -885,7 +885,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
       if (
         stats &&
-        (newScale.scheme === 'colorRamp' || newScale.scheme === 'scalar')
+        (newScale.scheme === 'colorMap' || newScale.scheme === 'scalar')
       ) {
         newScale = {
           ...newScale,
@@ -1133,8 +1133,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             row.scale.scheme === 'constant_num') && (
             <ConstantEditor scale={row.scale} onChange={handleScaleChange} />
           )}
-          {row.scale.scheme === 'colorRamp' && (
-            <ColorRampEditor
+          {row.scale.scheme === 'colorMap' && (
+            <ColorMapEditor
               scale={row.scale}
               field={row.fields?.[0]}
               featureValues={featureValues}

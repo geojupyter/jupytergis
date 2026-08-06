@@ -141,7 +141,7 @@
                           "name": "viridis",
                           "reverse": false
                         },
-                        "scheme": "colorRamp"
+                        "scheme": "colorMap"
                       }
                     }
                   ]
