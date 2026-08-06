@@ -141,7 +141,6 @@
       "name": "ISS Tracker",
       "parameters": {
         "autoTrack": true,
-        "httpHeaders": "",
         "iconUrl": "https://pluspng.com/img-png/iss-png-open-2000.png",
         "pollIntervalMs": 5000.0,
         "showTrail": true,
