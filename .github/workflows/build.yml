@@ -237,6 +237,19 @@ jobs:
         working-directory: ui-tests
         run: pnpm exec playwright install chromium
 
+      - name: Log xeus / kernel diagnostics
+        shell: bash -l {0}
+        run: |
+          set -eux
+          echo '=== python ==='
+          python -V
+          echo '=== xeus packages ==='
+          micromamba list -n gis | grep -iE 'xeus|python ' || true
+          echo '=== kernelspecs ==='
+          jupyter kernelspec list
+          echo '=== xpython kernel.json ==='
+          jupyter kernelspec list --json | python -m json.tool
+
       - name: Execute integration tests
         shell: bash -l {0}
         working-directory: ui-tests
@@ -251,6 +264,7 @@ jobs:
           path: |
             ui-tests/test-results
             ui-tests/playwright-report
+            ui-tests/jupyter-server.log
 
   build-lite:
     name: Build JupyterLite artifacts

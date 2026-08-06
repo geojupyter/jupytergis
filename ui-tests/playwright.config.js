@@ -6,7 +6,8 @@ const baseConfig = require("@jupyterlab/galata/lib/playwright-config");
 module.exports = {
   ...baseConfig,
   webServer: {
-    command: "pnpm run start",
+    command:
+      "bash -c 'pnpm run start > jupyter-server.log 2>&1'",
     url: "http://localhost:8888/lab",
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,

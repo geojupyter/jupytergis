@@ -131,6 +131,7 @@ dmypy.json
 # Integration tests
 **/ui-tests/test-results/
 **/ui-tests/playwright-report/
+**/ui-tests/jupyter-server.log
 
 examples/Untitled*.ipynb
 # Hatchling
