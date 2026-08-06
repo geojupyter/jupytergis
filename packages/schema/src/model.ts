@@ -98,8 +98,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
 
-    this._editingVectorLayer = false;
-
     this._jgisSettings = { ...DEFAULT_SETTINGS };
 
     this._viewState = {};
@@ -457,7 +455,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
-  readonly editingVectorLayerChanged = new Signal<this, boolean>(this);
+  readonly modeChanged = new Signal<this, Modes>(this);
 
   getContent(): IJGISContent {
     return {
@@ -1220,10 +1218,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Toggle a map interaction mode on or off.
    * Toggling off sets the mode to 'panning'.
+   * Modes are exclusive, entering one leaves any other.
    * @param mode The mode to be toggled
    */
   toggleMode(mode: Modes) {
-    this._currentMode = this._currentMode === mode ? 'panning' : mode;
+    this.currentMode = this._currentMode === mode ? 'panning' : mode;
   }
 
   get currentMode(): Modes {
@@ -1231,7 +1230,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   set currentMode(value: Modes) {
+    if (this._currentMode === value) {
+      return;
+    }
+
     this._currentMode = value;
+    this.modeChanged.emit(value);
   }
 
   setUIState(value: Partial<IJGISUIState>): void {
@@ -1422,19 +1426,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
-  updateEditingVectorLayer(): void {
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
-  }
-
-  get editingVectorLayer(): boolean {
-    return this._editingVectorLayer;
-  }
-
-  set editingVectorLayer(editingVectorLayer: boolean) {
-    this._editingVectorLayer = editingVectorLayer;
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
-  }
-
   get geolocation(): JgisCoordinates {
     return this._geolocation;
   }
@@ -1459,7 +1450,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
-  private _currentMode: Modes;
+  private _currentMode: Modes = 'panning';
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -1525,8 +1516,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     { type: SelectionType; itemId: string } | null
   >(this);
-
-  private _editingVectorLayer: boolean;
 
   static worker: Worker;
 

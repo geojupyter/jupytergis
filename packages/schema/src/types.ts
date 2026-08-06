@@ -59,4 +59,4 @@ export * from './interfaces';
 export * from './model';
 export * from './token';
 
-export type Modes = 'panning' | 'identifying' | 'marking';
+export type Modes = 'panning' | 'identifying' | 'marking' | 'drawing';
