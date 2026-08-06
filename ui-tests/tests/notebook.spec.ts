@@ -4,6 +4,22 @@ import * as path from 'path';
 const FILENAME = 'eq.geojson';
 
 /** Run a trivial cell so xeus-python is idle before the real notebook cells. */
+const warmupKernel = async (page: IJupyterLabPageFixture): Promise<void> => {
+  await page.waitForFunction(() => {
+    const text =
+      document.querySelector('#jp-main-statusbar')?.textContent ?? '';
+    return !['Connecting', 'Initializing', 'Starting'].some(status =>
+      text.includes(status),
+    );
+  });
+
+  const warmupIndex = await page.notebook.getCellCount();
+  await page.notebook.addCell('code', '1');
+  await page.notebook.runCell(warmupIndex, true);
+  await page.notebook.selectCells(warmupIndex);
+  await page.notebook.deleteCells();
+  await page.locator('#jp-main-statusbar >> text=Idle').waitFor();
+};
 
 const testCellOutputs = async (
   page: IJupyterLabPageFixture,
@@ -19,7 +35,7 @@ const testCellOutputs = async (
   await page.notebook.openByPath(`${tmpPath}/${notebook}`);
   await page.notebook.activate(notebook);
   await expect(page.getByLabel(notebook).getByText('XPython')).toBeVisible();
-  // await warmupKernel(page);
+  await warmupKernel(page);
 
   const getCaptureImageName = (
     contextPrefix: string,
@@ -59,7 +75,7 @@ const testCellOutputs = async (
 };
 
 test.describe('Notebook API Visual Regression', () => {
-  test.setTimeout(30000);
+  // test.setTimeout(60000);
 
   test.beforeEach(async ({ page, tmpPath }) => {
     page.on('console', message => {
