@@ -20,9 +20,9 @@ test.describe('Kernel smoke', () => {
       expect(name).toBeTruthy();
 
       await expect(
-        page.getByRole('toolbar', { name: 'main area toolbar' }).getByText(
-          kernel.toolbarLabel,
-        ),
+        page
+          .getByRole('toolbar', { name: 'main area toolbar' })
+          .getByText(kernel.toolbarLabel),
       ).toBeVisible({ timeout: 30_000 });
 
       await page.notebook.setCell(0, 'code', 'print(1)');
