@@ -5,18 +5,31 @@
 
 @source '../src/**/*.{ts,tsx}';
 
+@layer base {
+	*,
+	::before,
+	::after {
+		box-sizing: border-box;
+	}
+}
+
+/* Map shadcn/Tailwind semantic tokens to JupyterLab theme vars */
 @theme {
-	--color-primary: #3b82f6;
-	--color-primary-foreground: #ffffff;
-	--color-border: #d1d5db;
-	--color-ring: #93c5fd;
-	--color-destructive: #ef4444;
-	--color-muted: #f3f4f6;
-	--color-muted-foreground: #6b7280;
-	--color-input: #d1d5db;
-	--color-secondary: #e5e7eb;
-	--color-secondary-foreground: #111827;
-	--color-background: #ffffff;
-	--color-foreground: #111827;
-	--radius-md: 0.5rem;
+	--color-primary: var(--jp-brand-color1);
+	--color-primary-foreground: var(--jp-ui-inverse-font-color1);
+	--color-border: var(--jp-border-color1);
+	--color-ring: var(--jp-brand-color2);
+	--color-destructive: var(--jp-error-color0);
+	--color-muted: var(--jp-layout-color2);
+	--color-muted-foreground: var(--jp-ui-font-color2);
+	--color-input: var(--jp-input-border-color, var(--jp-border-color1));
+	--color-secondary: var(--jp-layout-color2);
+	--color-secondary-foreground: var(--jp-ui-font-color0);
+	--color-background: var(--jp-layout-color0);
+	--color-foreground: var(--jp-ui-font-color0);
+	--color-popover: var(--jp-layout-color0);
+	--color-popover-foreground: var(--jp-ui-font-color0);
+	--color-accent: var(--jp-layout-color2);
+	--color-accent-foreground: var(--jp-ui-font-color0);
+	--radius-md: var(--jp-border-radius, 0.375rem);
 }
