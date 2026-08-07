@@ -219,6 +219,15 @@ jobs:
 
           python -m pip install "${args[@]}"
 
+      # Probe: ipywidgets manager opens jupyter.widget.control on kernel
+      # start; xeus rejects it and cell exec can hang Busy in CI.
+      - name: Disable ipywidgets lab manager (xeus probe)
+        shell: bash -l {0}
+        run: |
+          set -eux
+          jupyter labextension disable @jupyter-widgets/jupyterlab-manager
+          jupyter labextension list
+
       - name: Install
         shell: bash -l {0}
         working-directory: ui-tests
@@ -237,6 +246,19 @@ jobs:
         working-directory: ui-tests
         run: pnpm exec playwright install chromium
 
+      - name: Log xeus / kernel diagnostics
+        shell: bash -l {0}
+        run: |
+          set -eux
+          echo '=== python ==='
+          python -V
+          echo '=== xeus packages ==='
+          micromamba list -n gis | grep -iE 'xeus|python ' || true
+          echo '=== kernelspecs ==='
+          jupyter kernelspec list
+          echo '=== xpython kernel.json ==='
+          jupyter kernelspec list --json | python -m json.tool
+
       - name: Execute integration tests
         shell: bash -l {0}
         working-directory: ui-tests
@@ -251,6 +273,7 @@ jobs:
           path: |
             ui-tests/test-results
             ui-tests/playwright-report
+            ui-tests/jupyter-server.log
 
   build-lite:
     name: Build JupyterLite artifacts
