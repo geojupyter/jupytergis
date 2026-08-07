@@ -1,4 +1,5 @@
 import { Combobox as ComboboxPrimitive } from '@base-ui/react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
 
@@ -12,6 +13,45 @@ import {
 import { cn } from './utils';
 
 const Combobox = ComboboxPrimitive.Root;
+
+const useComboboxFilteredItems = ComboboxPrimitive.useFilteredItems;
+
+type ComboboxVirtualizer = ReturnType<
+  typeof useVirtualizer<HTMLDivElement, Element>
+>;
+
+/**
+ * Scroll the virtualizer when Base UI highlights an item (open / keyboard
+ * wrap). Pass the returned handler to Combobox Root `onItemHighlighted`.
+ * @see https://base-ui.com/react/components/combobox#virtualized
+ */
+function createComboboxVirtualHighlightHandler(
+  virtualizerRef: React.RefObject<ComboboxVirtualizer | null>,
+) {
+  return function onItemHighlighted(
+    item: unknown,
+    { reason, index }: { reason: string; index: number },
+  ) {
+    const virtualizer = virtualizerRef.current;
+
+    if (!item || !virtualizer) {
+      return;
+    }
+
+    const isStart = index === 0;
+    const isEnd = index === virtualizer.options.count - 1;
+    const shouldScroll =
+      reason === 'none' || (reason === 'keyboard' && (isStart || isEnd));
+
+    if (shouldScroll) {
+      queueMicrotask(() => {
+        virtualizer.scrollToIndex(index, {
+          align: isEnd ? 'start' : 'end',
+        });
+      });
+    }
+  };
+}
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />;
@@ -121,12 +161,19 @@ function ComboboxContent({
   );
 }
 
-function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
+function ComboboxList({
+  className,
+  virtualized = false,
+  ...props
+}: ComboboxPrimitive.List.Props & { virtualized?: boolean }) {
   return (
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto overscroll-contain p-1 data-empty:p-0',
+        'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] data-empty:p-0 p-1',
+        virtualized
+          ? 'overflow-hidden'
+          : 'scroll-py-1 overflow-y-auto overscroll-contain',
         className,
       )}
       {...props}
@@ -134,16 +181,16 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
   );
 }
 
-function ComboboxItem({
-  className,
-  children,
-  ...props
-}: ComboboxPrimitive.Item.Props) {
+const ComboboxItem = React.forwardRef<
+  HTMLDivElement,
+  ComboboxPrimitive.Item.Props
+>(function ComboboxItem({ className, children, ...props }, ref) {
   return (
     <ComboboxPrimitive.Item
+      ref={ref}
       data-slot="combobox-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground not-data-[variant=destructive]:data-highlighted:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground not-data-[variant=destructive]:data-highlighted:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
@@ -157,6 +204,106 @@ function ComboboxItem({
         }
       />
     </ComboboxPrimitive.Item>
+  );
+});
+
+/**
+ * Virtualized item list for use inside ComboboxList when Root has
+ * `virtualized`. Wire `virtualizerRef` + `createComboboxVirtualHighlightHandler`
+ * on Root `onItemHighlighted`.
+ * @see https://base-ui.com/react/components/combobox#virtualized
+ */
+function ComboboxVirtualizedList<T>({
+  virtualizerRef,
+  estimateSize = 32,
+  overscan = 20,
+  children,
+  className,
+}: {
+  virtualizerRef: React.RefObject<ComboboxVirtualizer | null>;
+  estimateSize?: number;
+  overscan?: number;
+  children: (item: T) => React.ReactNode;
+  className?: string;
+}) {
+  const filteredItems = useComboboxFilteredItems<T>();
+  const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
+
+  const virtualizer = useVirtualizer({
+    count: filteredItems.length,
+    getScrollElement: () => scrollElementRef.current,
+    estimateSize: () => estimateSize,
+    overscan,
+    paddingStart: 4,
+    paddingEnd: 4,
+    scrollPaddingEnd: 4,
+    scrollPaddingStart: 4,
+  });
+
+  React.useImperativeHandle(virtualizerRef, () => virtualizer);
+
+  const handleScrollElementRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      scrollElementRef.current = element;
+      if (element) {
+        virtualizer.measure();
+      }
+    },
+    [virtualizer],
+  );
+
+  const totalSize = virtualizer.getTotalSize();
+
+  if (!filteredItems.length) {
+    return null;
+  }
+
+  return (
+    <div
+      role="presentation"
+      ref={handleScrollElementRef}
+      // className={cn(
+      //   'h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] overflow-y-auto overscroll-contain',
+      //   className,
+      // )}
+      style={{ '--total-size': `${totalSize}px` } as React.CSSProperties}
+    >
+      <div
+        role="presentation"
+        className="relative w-full pointer-events-none"
+        style={{ height: totalSize }}
+      >
+        {virtualizer.getVirtualItems().map(virtualItem => {
+          const item = filteredItems[virtualItem.index];
+          if (!item) {
+            return null;
+          }
+
+          return (
+            <ComboboxItem
+              key={virtualItem.key}
+              index={virtualItem.index}
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
+              value={item}
+              aria-setsize={filteredItems.length}
+              aria-posinset={virtualItem.index + 1}
+              className="pointer-events-auto"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: virtualItem.size,
+                transform: `translateY(${virtualItem.start}px)`,
+              }}
+            >
+              {children(item)}
+            </ComboboxItem>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -298,5 +445,9 @@ export {
   ComboboxChipsInput,
   ComboboxTrigger,
   ComboboxValue,
+  ComboboxVirtualizedList,
+  createComboboxVirtualHighlightHandler,
   useComboboxAnchor,
+  useComboboxFilteredItems,
 };
+export type { ComboboxVirtualizer };
