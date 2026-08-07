@@ -3,6 +3,7 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+@import url('./tailwind.css');
 @import url('ol/ol.css');
 @import url('./dialog.css');
 @import url('./layerBrowser.css');

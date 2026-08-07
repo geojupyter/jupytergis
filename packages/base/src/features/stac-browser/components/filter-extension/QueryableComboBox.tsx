@@ -14,7 +14,16 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/features/stac-browser/types/types';
-import { Combobox } from '@/src/shared/components/Combobox';
+import { Button } from '@/src/shared/components/ButtonTw';
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
 import { Select } from '@/src/shared/components/Select';
 import { debounce } from '@/src/tools';
@@ -24,6 +33,7 @@ interface IQueryableComboProps {
   queryables: IStacQueryables;
   selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
+  portalContainer?: React.RefObject<HTMLElement | null> | HTMLElement | null;
 }
 
 interface IOperatorOption {
@@ -31,10 +41,17 @@ interface IOperatorOption {
   label: string;
 }
 
+interface IQueryableOption {
+  value: string;
+  label: string;
+  schema: IStacQueryableSchema;
+}
+
 export function QueryableComboBox({
   queryables,
   selectedQueryables,
   updateSelectedQueryables,
+  portalContainer,
 }: IQueryableComboProps) {
   const [draftValues, setDraftValues] = useState<
     Record<string, string | number | undefined>
@@ -289,27 +306,78 @@ export function QueryableComboBox({
     return `${selectedItems.length} selected`;
   };
 
-  const isSelected = (key: string) => {
-    return key in selectedQueryables;
-  };
+  const queryableOptions = useMemo<IQueryableOption[]>(
+    () =>
+      queryables.map(([key, schema]) => ({
+        value: key,
+        label: schema.title || key,
+        schema,
+      })),
+    [queryables],
+  );
 
-  const items = queryables.map(([key, val]) => ({
-    value: key,
-    label: val.title || key,
-    selected: isSelected(key),
-    showCheckIcon: true,
-    onSelect: () => handleSelect(key, val),
-  }));
+  const selectedOptions = useMemo(
+    () => queryableOptions.filter(option => option.value in selectedQueryables),
+    [queryableOptions, selectedQueryables],
+  );
+
+  const handleComboboxValueChange = (newSelected: IQueryableOption[]) => {
+    const newKeys = new Set(newSelected.map(option => option.value));
+    const currentKeys = Object.keys(selectedQueryables);
+
+    for (const key of currentKeys) {
+      if (!newKeys.has(key)) {
+        const entry = queryables.find(([k]) => k === key);
+        if (entry) {
+          handleSelect(key, entry[1]);
+        }
+      }
+    }
+
+    for (const option of newSelected) {
+      if (!(option.value in selectedQueryables)) {
+        handleSelect(option.value, option.schema);
+      }
+    }
+  };
 
   return (
     <div className="jgis-queryable-combo-container">
       <Combobox
-        items={items}
-        buttonText={getButtonText()}
-        searchPlaceholder="Search queryable..."
-        emptyText="No queryable found."
-        buttonClassName="jgis-queryable-combo-button jgis-combobox-button--full-width"
-      />
+        items={queryableOptions}
+        multiple
+        value={selectedOptions}
+        onValueChange={handleComboboxValueChange}
+        isItemEqualToValue={(a, b) => a.value === b.value}
+      >
+        <ComboboxTrigger
+          render={
+            <Button
+              variant="outline"
+              className="jgis-queryable-combo-button w-full justify-between font-normal"
+            />
+          }
+        >
+          <span className="truncate">{getButtonText()}</span>
+        </ComboboxTrigger>
+        <ComboboxContent
+          // portalContainer={portalContainer}
+          className="min-w-(--anchor-width)!"
+        >
+          <ComboboxInput
+            placeholder="Search queryable..."
+            showTrigger={false}
+          />
+          <ComboboxEmpty>No queryable found.</ComboboxEmpty>
+          <ComboboxList>
+            {(option: IQueryableOption) => (
+              <ComboboxItem key={option.value} value={option}>
+                {option.label}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
       <div className="jgis-queryable-rows-container">
         {selectedItems.map(([key, val]) => {
           const operators = getOperatorsForType(val.type, val.format);
