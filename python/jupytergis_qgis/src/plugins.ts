@@ -235,20 +235,23 @@ const activate = async (
           ? tracker.currentWidget.model.sharedModel.editable
           : false,
       execute: async args => {
-        const sourceExtension = '.jGIS';
         const extension = '.qgz';
         const model = tracker.currentWidget?.model.sharedModel;
         if (!model) {
           return;
         }
         const sourcePath = tracker.currentWidget.model.filePath;
+        // Use the actual source extension (e.g. ".jgis" or ".JGIS") so
+        // basename() strips it regardless of casing.
+        const sourceExtension = PathExt.extname(sourcePath);
+        const sourceStem = PathExt.basename(sourcePath, sourceExtension);
 
         let filepath: string | null = (args.filepath as string) ?? null;
         if (!filepath) {
           filepath = (
             await InputDialog.getText({
               label: 'File name',
-              placeholder: PathExt.basename(sourcePath, sourceExtension),
+              placeholder: sourceStem,
               title: 'Export the project to QGZ file',
             })
           ).value;
@@ -259,7 +262,7 @@ const activate = async (
           return;
         } else if (!filepath) {
           // create the filepath if the dialog has been validated empty.
-          filepath = `${PathExt.basename(sourcePath, sourceExtension)}${extension}`;
+          filepath = `${sourceStem}${extension}`;
         } else if (!filepath.endsWith(extension)) {
           // add the extension to the path if it does not exist.
           filepath = `${filepath}${extension}`;
