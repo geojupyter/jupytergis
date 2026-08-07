@@ -13,14 +13,6 @@
           "url": {
             "type": "string",
             "default": ""
-          },
-          "min": {
-            "type": "number",
-            "default": null
-          },
-          "max": {
-            "type": "number",
-            "default": null
           }
         },
         "default": {}

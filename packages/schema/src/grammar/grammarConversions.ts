@@ -118,8 +118,8 @@ export function graduatedToGrammar(
       color: s.color as RGBA,
     }));
 
-  const colorRampScale = {
-    scheme: 'colorRamp' as const,
+  const colorMapScale = {
+    scheme: 'colorMap' as const,
     params: {
       name: state.colorRamp ?? 'viridis',
       ...(state.vmin !== undefined && state.vmax !== undefined
@@ -138,7 +138,7 @@ export function graduatedToGrammar(
     : ['fill-color', 'circle-fill-color'];
 
   const mappings: IMapping[] = [
-    { scale: colorRampScale, encodings: fillEncodings },
+    { scale: colorMapScale, encodings: fillEncodings },
   ];
 
   if (!state.strokeFollowsFill) {
