@@ -1,14 +1,15 @@
-import * as React from 'react';
 import { Combobox as ComboboxPrimitive } from '@base-ui/react';
 import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
-import { cn } from './utils';
+import * as React from 'react';
+
+import { Button } from './ButtonTw';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
 } from './InputGroup';
-import { Button } from './ButtonTw';
+import { cn } from './utils';
 
 const Combobox = ComboboxPrimitive.Root;
 
@@ -90,23 +91,14 @@ function ComboboxContent({
   align = 'start',
   alignOffset = 0,
   anchor,
-  portalContainer,
   ...props
 }: ComboboxPrimitive.Popup.Props &
   Pick<
     ComboboxPrimitive.Positioner.Props,
     'side' | 'align' | 'sideOffset' | 'alignOffset' | 'anchor'
-  > & {
-    portalContainer?: HTMLElement | React.RefObject<HTMLElement | null> | null;
-  }) {
+  >) {
   return (
-    <ComboboxPrimitive.Portal
-      container={
-        portalContainer ??
-        (document.querySelector('#main') as HTMLElement | null) ??
-        undefined
-      }
-    >
+    <ComboboxPrimitive.Portal>
       <ComboboxPrimitive.Positioner
         side={side}
         sideOffset={sideOffset}
