@@ -34,6 +34,7 @@ const iconObject = {
   RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
+  LiveApiSource: { iconClass: 'fa fa-satellite' },
   ImageSource: { iconClass: 'fa fa-image' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
@@ -54,6 +55,7 @@ const iconObject = {
   [CommandIDs.openNewWmsDialog]: { iconClass: 'fa fa-server' },
   [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
+  [CommandIDs.openNewLiveApiDialog]: { iconClass: 'fa fa-satellite' },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },
   [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },

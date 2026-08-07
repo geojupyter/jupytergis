@@ -27,6 +27,7 @@ from jupytergis_core.schema import (
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
+    ILiveApiSource,
     IMarkerSource,
     IOpenEOTileLayer,
     IOpenEOTileSource,
@@ -1471,6 +1472,7 @@ OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
+OBJECT_FACTORY.register_factory(SourceType.LiveApiSource, ILiveApiSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)

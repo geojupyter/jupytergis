@@ -15,6 +15,7 @@ export { IShapefileSource } from './_interface/project/sources/shapefileSource';
 export { IVectorTileSource } from './_interface/project/sources/vectorTileSource';
 export { IGeoParquetSource } from './_interface/project/sources/geoParquetSource';
 export { IMarkerSource } from './_interface/project/sources/markerSource';
+export { ILiveApiSource } from './_interface/project/sources/liveApiSource';
 export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
 export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
 export { IOpenEOTileSource } from './_interface/project/sources/openeoTileSource';
