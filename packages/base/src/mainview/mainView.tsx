@@ -142,6 +142,7 @@ import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
+import { useIsMobile } from '@/src/shared/hooks/useIsMobile';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -4335,30 +4336,11 @@ function MainViewWithObserver(
   props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
 ) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const isMobile = useIsMobile(containerRef);
 
   React.useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    const update = (width: number) => {
-      const narrow = width < 960;
-      setIsMobile(narrow);
-      container.classList.toggle('jgis-narrow', narrow);
-    };
-
-    // Initial sync
-    update(container.clientWidth);
-
-    const observer = new ResizeObserver(([entry]) => {
-      update(entry.contentRect.width);
-    });
-
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
+    containerRef.current?.classList.toggle('jgis-narrow', isMobile);
+  }, [isMobile]);
 
   return (
     <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
