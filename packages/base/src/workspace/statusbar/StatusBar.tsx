@@ -31,7 +31,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
     () =>
       Object.keys(projCodes).map(code => ({
         value: code,
-        label: code,
+        label: `${projCodes[code].name} (${code})`,
         onSelect: () =>
           jgisModel.setOptions({
             ...jgisModel.getOptions(),
