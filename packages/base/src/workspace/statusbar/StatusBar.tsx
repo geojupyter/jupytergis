@@ -6,7 +6,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
-import proj4list from 'proj4-list';
+import projCodes from 'proj-codes';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { version } from '@/package.json';
@@ -29,7 +29,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
 
   const projectionOptions = useMemo(
     () =>
-      Object.keys(proj4list).map(code => ({
+      Object.keys(projCodes).map(code => ({
         value: code,
         label: code,
         onSelect: () =>
