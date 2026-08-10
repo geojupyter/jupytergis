@@ -87,10 +87,10 @@ const InputGroupButton = React.forwardRef<
     VariantProps<typeof inputGroupButtonVariants> & {
       type?: 'button' | 'submit' | 'reset';
     }
->(function InputGroupButton(
+>((
   { className, type = 'button', variant = 'ghost', size = 'xs', ...props },
   ref,
-) {
+) => {
   return (
     <Button
       ref={ref}
@@ -118,7 +118,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
 const InputGroupInput = React.forwardRef<
   HTMLElement,
   React.ComponentProps<'input'>
->(function InputGroupInput({ className, ...props }, ref) {
+>(({ className, ...props }, ref) => {
   return (
     <Input
       ref={ref}
@@ -135,7 +135,7 @@ const InputGroupInput = React.forwardRef<
 const InputGroupTextarea = React.forwardRef<
   HTMLTextAreaElement,
   React.ComponentProps<'textarea'>
->(function InputGroupTextarea({ className, ...props }, ref) {
+>(({ className, ...props }, ref) => {
   return (
     <Textarea
       ref={ref}

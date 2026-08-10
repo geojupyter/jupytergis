@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from './utils';
 
 const Input = React.forwardRef<HTMLElement, React.ComponentProps<'input'>>(
-  function Input({ className, type, ...props }, ref) {
+  ({ className, type, ...props }, ref) => {
     return (
       <InputPrimitive
         ref={ref}

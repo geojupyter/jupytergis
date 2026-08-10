@@ -60,7 +60,7 @@ function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
 const ComboboxTrigger = React.forwardRef<
   HTMLButtonElement,
   ComboboxPrimitive.Trigger.Props
->(function ComboboxTrigger({ className, children, ...props }, ref) {
+>(({ className, children, ...props }, ref) => {
   return (
     <ComboboxPrimitive.Trigger
       ref={ref}
@@ -184,7 +184,7 @@ function ComboboxList({
 const ComboboxItem = React.forwardRef<
   HTMLDivElement,
   ComboboxPrimitive.Item.Props
->(function ComboboxItem({ className, children, ...props }, ref) {
+>(({ className, children, ...props }, ref) => {
   return (
     <ComboboxPrimitive.Item
       ref={ref}
