@@ -49,6 +49,11 @@ export const DEFAULT_WORLD_EXTENT_3857: [number, number, number, number] = [
   20037508.342789244,
 ];
 
+/** Deep-clone JSON-compatible values without Lumino type casts. */
+function cloneJson<T>(value: T): T {
+  return structuredClone(value);
+}
+
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
@@ -199,8 +204,9 @@ export class JupyterGISDoc
         this._presets.set(key, val),
       );
 
-      const featureStores = value['featureStores'] ?? {};
-      this._hydrateFeatureStores(featureStores as IJGISFeatureStores);
+      const featureStores = (value['featureStores'] ??
+        {}) as unknown as IJGISFeatureStores;
+      this._hydrateFeatureStores(featureStores);
 
       const metadata = value['metadata'] ?? {};
       Object.entries(metadata).forEach(([key, val]) =>
@@ -625,7 +631,7 @@ export class JupyterGISDoc
       }
 
       const featuresMap = storeMap.get('features') as Y.Map<any>;
-      featuresMap.set(feature.id, JSONExt.deepCopy(feature));
+      featuresMap.set(feature.id, cloneJson(feature));
     });
 
     return result;
@@ -903,7 +909,7 @@ export class JupyterGISDoc
       result[storeId] = this._storeMapToPlain(storeMap);
     });
 
-    return JSONExt.deepCopy(result) as IJGISFeatureStores;
+    return cloneJson(result);
   }
 
   private _hydrateFeatureStores(stores: IJGISFeatureStores): void {
@@ -956,10 +962,7 @@ export class JupyterGISDoc
       meta: defaultFeatureStoreMeta(
         (storeMap.get('meta') as IFeatureStoreMeta) ?? {},
       ),
-      features: JSONExt.deepCopy(features) as Record<
-        string,
-        ICollaborativeFeature
-      >,
+      features: cloneJson(features),
     };
   }
 
