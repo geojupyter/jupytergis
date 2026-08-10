@@ -34,10 +34,15 @@ import {
   IJGISViewState,
   LayerType,
   SourceType,
+  IJGISFeatureStores,
+  ICollaborativeFeature,
+  IFeatureStore,
+  IFeatureStoreMeta,
 } from './_interface/project/jgis';
 import {
   IGeoJSONSource,
   IGeoParquetSource,
+  ICollaborativePointSource,
   IGeoTiffSource,
   IGeoZarrSource,
   IHillshadeLayer,
@@ -209,6 +214,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   viewState: IJGISViewState;
   annotations: IJGISAnnotations;
   presets: IDrawCustomAttributePresets;
+  featureStores: IJGISFeatureStores;
   metadata: IJGISMetadata;
 
   readonly editable: boolean;
@@ -265,6 +271,29 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removePreset(name: string): void;
   getPresets(): IDrawCustomAttributePresets;
 
+  ensureFeatureStore(
+    storeId: string,
+    meta?: Partial<IFeatureStoreMeta>,
+  ): IFeatureStore;
+  getFeatureStore(storeId: string): IFeatureStore | undefined;
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, ICollaborativeFeature>;
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: ICollaborativeFeature,
+  ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options: { tombstone?: boolean; updatedBy: string },
+  ): void;
+  clearFeatureStoreOverlay(storeId: string): void;
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void;
+
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
@@ -273,6 +302,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
   annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
   presetsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  featureStoresChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -449,6 +479,40 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     name: string,
     attributes: IDrawCustomAttribute[],
   ): void;
+
+  ensureFeatureStore(
+    storeId: string,
+    meta?: Partial<IFeatureStoreMeta>,
+  ): IFeatureStore;
+  getFeatureStore(storeId: string): IFeatureStore | undefined;
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, ICollaborativeFeature>;
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: ICollaborativeFeature,
+  ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
+  addCollaborativePoint(args: {
+    storeId: string;
+    lon: number;
+    lat: number;
+    props?: ICollaborativeFeature['props'];
+    id?: string;
+  }):
+    | { ok: true; nearSoftLimit: boolean; feature: ICollaborativeFeature }
+    | { ok: false; reason: 'hardLimit' | 'compacting' };
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options?: { tombstone?: boolean },
+  ): void;
+  clearFeatureStoreOverlay(storeId: string): void;
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void;
+  featureStoresChanged: ISignal<IJupyterGISModel, MapChange>;
+
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
@@ -575,6 +639,7 @@ export type ILayerGalleryEntry = {
   sourceParameters:
     | IGeoJSONSource
     | IGeoParquetSource
+    | ICollaborativePointSource
     | IGeoTiffSource
     | IGeoZarrSource
     | IImageSource
