@@ -14,6 +14,7 @@ import tomlkit
 from packaging.version import parse as parse_version
 
 ENC = dict(encoding="utf-8")
+PNPM_PATH = "/home/runner/.local/share/pnpm/bin/pnpm"
 HATCH_VERSION = "hatch version"
 PACKAGE_ROOT = Path(__file__).parent.parent
 PROJECT_ROOT = PACKAGE_ROOT.parent.parent
@@ -99,7 +100,7 @@ def bump():
     root_json = json.loads(package_json.read_text(encoding="utf-8"))
     root_json["version"] = js_version
     package_json.write_text(json.dumps(root_json), encoding="utf-8")
-    run(["pnpm", "install"], check=True)
+    run([PNPM_PATH, "install"], check=True)
     run(
         [
             "node",
@@ -116,7 +117,7 @@ def bump():
     # update CITATION.cff metadata
     bump_citation_cff(py_version)
     # bump the JS version with lerna
-    run(f"pnpm run bump:js:version {js_version}", shell=True, check=True)
+    run(f"{PNPM_PATH} run bump:js:version {js_version}", shell=True, check=True)
 
 
 if __name__ == "__main__":
