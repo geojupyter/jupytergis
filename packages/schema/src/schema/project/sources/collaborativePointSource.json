@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "description": "CollaborativePointSource",
+  "title": "ICollaborativePointSource",
+  "required": ["storeId"],
+  "additionalProperties": false,
+  "properties": {
+    "storeId": {
+      "type": "string",
+      "description": "Stable id for the collaborative feature store (maps to PostGIS table jgis_store_<slug>).",
+      "default": ""
+    },
+    "pmtilesPath": {
+      "type": "string",
+      "description": "Path or URL to the static PMTiles baseline snapshot (empty until first fold).",
+      "default": ""
+    },
+    "baselineVersion": {
+      "type": "integer",
+      "description": "Monotonic baseline / PMTiles version; bump after each fold.",
+      "default": 0,
+      "minimum": 0
+    },
+    "projection": {
+      "type": "string",
+      "description": "CRS for feature coordinates (lon/lat stored as EPSG:4326).",
+      "default": "EPSG:4326"
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "Attribution for the collaborative point source.",
+      "default": ""
+    }
+  }
+}
