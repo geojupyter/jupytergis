@@ -67,6 +67,7 @@ const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 const INTERACTION_MODE_COMMANDS = [
   CommandIDs.identify,
   CommandIDs.addMarker,
+  CommandIDs.placeCollaborativePoints,
   CommandIDs.toggleDrawFeatures,
 ] as const;
 
@@ -87,7 +88,7 @@ function syncInteractionModeUi(
   const mode = widget.model.currentMode;
   widget.node.classList.toggle(
     POINT_SELECTION_TOOL_CLASS,
-    mode === 'identifying' || mode === 'marking',
+    mode === 'identifying' || mode === 'marking' || mode === 'placingPoints',
   );
   notifyInteractionModeCommands(commands);
 }
@@ -1835,6 +1836,69 @@ export function addCommands(
       syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.addMarker),
+  });
+
+  commands.addCommand(CommandIDs.placeCollaborativePoints, {
+    label: trans.__('Place Collaborative Points'),
+    caption: trans.__(
+      'Click the map to add points to the selected collaborative point layer.',
+    ),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current?.model.currentMode === 'placingPoints';
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      current.model.toggleMode('placingPoints');
+      syncInteractionModeUi(current, commands);
+    },
+    ...icons.get(CommandIDs.placeCollaborativePoints),
+  });
+
+  commands.addCommand(CommandIDs.openNewCollaborativePointDialog, {
+    label: trans.__('Collaborative Points'),
+    caption: trans.__(
+      'Create a collaborative point layer (Ydoc overlay; fold to PostGIS later).',
+    ),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const dialog = new LayerCreationFormDialog({
+        model: current.model,
+        title: 'Create Collaborative Point Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          name: 'Collaborative Points Source',
+          storeId: UUID.uuid4(),
+          pmtilesPath: '',
+          baselineVersion: 0,
+          projection: 'EPSG:4326',
+        },
+        layerData: { name: 'Collaborative Points' },
+        sourceType: 'CollaborativePointSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.openNewCollaborativePointDialog),
   });
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
