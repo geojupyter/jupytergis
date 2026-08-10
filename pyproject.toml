@@ -52,7 +52,10 @@ python_packages = [
 ]
 
 [tool.jupyter-releaser.hooks]
-before-bump-version = ["python -m pip install hatch 'jupyterlab>=4.0.0'"]
+before-bump-version = [
+    "python -m pip install hatch 'jupyterlab>=4.0.0'",
+    "npx -y get-pnpm"
+]
 before-build-npm = [
     "python -m pip install --group build",
     "pnpm install",
