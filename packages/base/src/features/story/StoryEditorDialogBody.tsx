@@ -3,7 +3,7 @@ import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
@@ -39,6 +39,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
+import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -55,6 +56,7 @@ function SegmentEditor({
   editorServices,
   portalContainerRef,
   canRemoveSegment,
+  isMobile,
   onContentModeChange,
   onContentChange,
   onLayerNameChange,
@@ -67,6 +69,7 @@ function SegmentEditor({
   editorServices: IEditorServices;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
+  isMobile: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onLayerNameChange: (name: string) => void;
@@ -105,8 +108,11 @@ function SegmentEditor({
           disabled={!canRemoveSegment}
           onClick={onRemoveSegment}
         >
-          <Trash2 data-icon="inline-start" className="jgis-inline-icon" />{' '}
-          Delete
+          <Trash2
+            data-icon={isMobile ? undefined : 'inline-start'}
+            className="jgis-inline-icon"
+          />
+          {isMobile ? null : 'Delete'}
         </Button>
       </div>
 
@@ -173,6 +179,7 @@ function SegmentEditor({
               model={model}
               state={state}
               segmentId={segment.id}
+              isMobile={isMobile}
               portalContainerRef={portalContainerRef}
             />
           </StoryEditorSection>
@@ -200,19 +207,21 @@ function SegmentEditor({
                 </NativeSelectOption>
                 <NativeSelectOption value="linear">Linear</NativeSelectOption>
               </NativeSelect>
-              <Slider
-                min={MIN_SEGMENT_TRANSITION_TIME}
-                max={MAX_SEGMENT_TRANSITION_TIME}
-                step={SEGMENT_TRANSITION_TIME_STEP}
-                value={[transitionTime]}
-                disabled={isImmediateTransition}
-                aria-label="Transition duration"
-                style={{ maxWidth: '10rem' }}
-                onValueChange={([time]) => {
-                  onTransitionChange({ time });
-                }}
-              />
-              <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              <div className="jgis-story-editor-slider">
+                <Slider
+                  min={MIN_SEGMENT_TRANSITION_TIME}
+                  max={MAX_SEGMENT_TRANSITION_TIME}
+                  step={SEGMENT_TRANSITION_TIME_STEP}
+                  value={[transitionTime]}
+                  disabled={isImmediateTransition}
+                  aria-label="Transition duration"
+                  style={{ maxWidth: '10rem' }}
+                  onValueChange={([time]) => {
+                    onTransitionChange({ time });
+                  }}
+                />
+                <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              </div>
             </div>
           </StoryEditorSection>
         </>
@@ -264,6 +273,22 @@ export function StoryEditorDialogBody({
   } = useStoryEditorSegmentList(model, commands);
 
   const portalContainerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      `(max-width: ${JGIS_NARROW_BREAKPOINT}px)`,
+    );
+    const update = (): void => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => {
+      mediaQuery.removeEventListener('change', update);
+    };
+  }, []);
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
@@ -271,6 +296,7 @@ export function StoryEditorDialogBody({
         model={model}
         story={story}
         segmentCount={segments.length}
+        isMobile={isMobile}
         onUpdateStory={updateStory}
         portalContainerRef={portalContainerRef}
       />
@@ -279,6 +305,7 @@ export function StoryEditorDialogBody({
         <StoryEditorSegmentList
           segments={segments}
           selectedSegmentId={selectedSegmentId}
+          isMobile={isMobile}
           onSelectSegment={selectSegment}
           onAddSegment={addSegment}
           onReorderSegments={reorderSegments}
@@ -294,6 +321,7 @@ export function StoryEditorDialogBody({
               editorServices={editorServices}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
+              isMobile={isMobile}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}
