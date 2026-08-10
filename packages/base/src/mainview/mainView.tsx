@@ -34,6 +34,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IGeoParquetSource,
+  ICollaborativePointSource,
   IGeoTiffLayer,
   IGeoZarrLayer,
   JgisCoordinates,
@@ -106,6 +107,7 @@ import {
   fromLonLat,
   get as getProjection,
   toLonLat,
+  transform,
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
@@ -326,6 +328,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
     this._model.sharedAnnotationsChanged.connect(
       this._onAnnotationsChanged,
+      this,
+    );
+    this._model.featureStoresChanged.connect(
+      this._onFeatureStoresChanged,
       this,
     );
 
@@ -676,6 +682,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this._Map.on('click', this._identifyFeature.bind(this));
       this._Map.on('click', this._addMarker.bind(this));
+      this._Map.on('click', this._placeCollaborativePoint.bind(this));
 
       this._Map
         .getViewport()
@@ -1193,6 +1200,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             features: featureCollection,
           });
 
+          break;
+        }
+
+        case 'CollaborativePointSource': {
+          const parameters = source.parameters as ICollaborativePointSource;
+          const storeId = parameters.storeId;
+          if (!storeId) {
+            throw new Error('CollaborativePointSource requires storeId');
+          }
+
+          this._model.ensureFeatureStore(storeId, {
+            pmtilesPath: parameters.pmtilesPath ?? '',
+            baselineVersion: parameters.baselineVersion ?? 0,
+          });
+
+          newSource = new VectorSource();
+          this._collaborativeOverlaySources.set(storeId, newSource);
+          this._syncCollaborativeOverlaySource(storeId, newSource);
           break;
         }
 
@@ -3607,6 +3632,118 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
+  private _onFeatureStoresChanged = (): void => {
+    for (const [storeId, source] of this._collaborativeOverlaySources) {
+      this._syncCollaborativeOverlaySource(storeId, source);
+    }
+  };
+
+  private _syncCollaborativeOverlaySource(
+    storeId: string,
+    source: VectorSource,
+  ): void {
+    const features = this._model.getFeatureStoreFeatures(storeId);
+    const viewProj = this._Map.getView().getProjection();
+    const dataProjection =
+      this._model.getOptions().projection ?? DEFAULT_PROJECTION;
+    const olFeatures: Feature[] = [];
+
+    for (const feature of Object.values(features)) {
+      if (feature.deleted) {
+        continue;
+      }
+
+      const geometry = new Point(
+        transform([feature.lon, feature.lat], dataProjection, viewProj),
+      );
+
+      const olFeature = new Feature({ geometry });
+      olFeature.setId(feature.id);
+      olFeature.setProperties({ ...feature.props, _id: feature.id });
+      olFeatures.push(olFeature);
+    }
+
+    source.clear(true);
+    source.addFeatures(olFeatures);
+  }
+
+  private _placeCollaborativePoint = async (
+    e: MapBrowserEvent<any>,
+  ): Promise<void> => {
+    if (this._model.currentMode !== 'placingPoints') {
+      return;
+    }
+
+    const localState = this._model.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+    if (!selectedLayer) {
+      this._log(
+        'warning',
+        'Select a collaborative point layer before placing points',
+      );
+      return;
+    }
+
+    const layerId = Object.keys(selectedLayer)[0];
+    const jgisLayer = this._model.getLayer(layerId);
+    const sourceId = jgisLayer?.parameters?.source;
+    const jgisSource = sourceId ? this._model.getSource(sourceId) : undefined;
+    if (jgisSource?.type !== 'CollaborativePointSource') {
+      this._log(
+        'warning',
+        'Selected layer must use a CollaborativePointSource',
+      );
+      return;
+    }
+
+    const storeId = (jgisSource.parameters as ICollaborativePointSource)
+      .storeId;
+    if (!storeId) {
+      await showErrorMessage(
+        'Collaborative points',
+        'Source is missing storeId',
+      );
+      return;
+    }
+
+    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const dataProjection =
+      this._model.getOptions().projection ?? DEFAULT_PROJECTION;
+    const [lon, lat] = transform(
+      coordinate,
+      this._Map.getView().getProjection(),
+      dataProjection,
+    );
+
+    const attrs = this._model.getDrawCustomAttributes(layerId);
+    const props = Object.fromEntries(
+      attrs.map(attribute => [attribute.key, attribute.value]),
+    );
+
+    const result = this._model.addCollaborativePoint({
+      storeId,
+      lon,
+      lat,
+      props,
+    });
+    
+    if (!result.ok) {
+      const message =
+        result.reason === 'compacting'
+          ? 'Cannot add points while folding into baseline.'
+          : 'Overlay hard limit reached. Fold edits into the baseline before adding more points.';
+      await showErrorMessage('Collaborative points', message);
+      return;
+    }
+
+    if (result.nearSoftLimit) {
+      this._log(
+        'warning',
+        'Collaborative overlay is near its soft limit; fold soon.',
+      );
+    }
+  };
+
   private async _addMarker(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'marking') {
       return;
@@ -3929,6 +4066,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const commands = this._mainViewModel.commands;
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
+    commands.notifyCommandChanged(CommandIDs.placeCollaborativePoints);
     commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   }
 
@@ -4114,6 +4252,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ? this._model.getDrawCustomAttributes(layerId)
       : [];
     applyDrawCustomAttributesToFeature(feature, customAttributes);
+    console.log('awareness', this._model.sharedModel.awareness.getLocalState());
   };
 
   _editVectorLayer = () => {
@@ -4358,6 +4497,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentVectorSource: VectorSource | undefined;
   private _currentDrawSourceID: string | undefined;
   private _currentDrawGeometry: Type | undefined;
+  private _collaborativeOverlaySources = new Map<string, VectorSource>();
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
