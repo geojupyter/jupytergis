@@ -19,9 +19,6 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
-  ICollaborativeFeature,
-  IFeatureStore,
-  IFeatureStoreMeta,
 } from './_interface/project/jgis';
 import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import {
@@ -29,6 +26,11 @@ import {
   DEFAULT_WORLD_EXTENT_3857,
   JupyterGISDoc,
 } from './doc';
+import type {
+  ICollaborativeFeature,
+  IFeatureStore,
+  IFeatureStoreMeta,
+} from './types';
 import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
@@ -451,7 +453,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       };
       this.sharedModel.annotations = jsonData.annotations ?? {};
       this.sharedModel.presets = jsonData.presets ?? {};
-      this.sharedModel.featureStores = jsonData.featureStores ?? {};
+      this.sharedModel.featureStores = {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -487,7 +489,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       stories: this.sharedModel.stories,
       annotations: this.sharedModel.annotations,
       presets: this.sharedModel.presets,
-      featureStores: this.sharedModel.featureStores,
       metadata: this.sharedModel.metadata,
     };
   }
@@ -866,7 +867,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     const store = this.getFeatureStore(args.storeId);
-
+    console.log('store', store);
     return {
       ok: true,
       feature,

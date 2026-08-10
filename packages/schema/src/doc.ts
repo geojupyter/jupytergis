@@ -9,16 +9,12 @@ import {
   IJGISLayerTree,
   IJGISLayers,
   IJGISAnnotations,
-  IJGISFeatureStores,
   IJGISMetadata,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
   IJGISViewState,
-  ICollaborativeFeature,
-  IFeatureStore,
-  IFeatureStoreMeta,
 } from './_interface/project/jgis';
 import { SCHEMA_VERSION } from './_interface/version';
 import {
@@ -40,6 +36,12 @@ import {
   IDrawCustomAttributePresets,
 } from './interfaces';
 import { migrateDocument } from './migrations';
+import type {
+  ICollaborativeFeature,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  IJGISFeatureStores,
+} from './types';
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
@@ -65,7 +67,6 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"layerTree": [],
 	"annotations": {},
 	"presets": {},
-	"featureStores": {},
 	"metadata": {}
 }`;
 
@@ -130,7 +131,6 @@ export class JupyterGISDoc
     const viewState = this._viewState.toJSON();
     const annotations = this._annotations.toJSON();
     const presets = this._presets.toJSON();
-    const featureStores = this._serializeFeatureStores();
     const metadata = this._metadata.toJSON();
 
     return JSON.stringify(
@@ -143,7 +143,6 @@ export class JupyterGISDoc
         options,
         annotations,
         presets,
-        featureStores,
         metadata,
       },
       null,
@@ -204,9 +203,8 @@ export class JupyterGISDoc
         this._presets.set(key, val),
       );
 
-      const featureStores = (value['featureStores'] ??
-        {}) as unknown as IJGISFeatureStores;
-      this._hydrateFeatureStores(featureStores);
+      // featureStores are session-scoped (Y Map sync only) — never load from file.
+      // this._featureStores.clear();
 
       const metadata = value['metadata'] ?? {};
       Object.entries(metadata).forEach(([key, val]) =>

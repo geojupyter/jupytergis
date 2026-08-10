@@ -34,11 +34,13 @@ import {
   IJGISViewState,
   LayerType,
   SourceType,
+} from './_interface/project/jgis';
+import type {
   IJGISFeatureStores,
   ICollaborativeFeature,
   IFeatureStore,
   IFeatureStoreMeta,
-} from './_interface/project/jgis';
+} from './types';
 import {
   IGeoJSONSource,
   IGeoParquetSource,
