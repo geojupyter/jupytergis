@@ -1,6 +1,7 @@
 import {
   ILiveApiSource,
   IJGISSourceDocChange,
+  IJGISLayerDocChange,
   IJupyterGISDoc,
   IJupyterGISModel,
 } from '@jupytergis/schema';
@@ -15,6 +16,21 @@ function listLiveApiSourceIds(model: IJupyterGISModel): string[] {
   return Object.entries(sources)
     .filter(([, source]) => source.type === 'LiveApiSource')
     .map(([id]) => id);
+}
+
+function isLiveApiSourceVisible(
+  model: IJupyterGISModel,
+  sourceId: string,
+): boolean {
+  const layerIds = model.sharedModel.getLayersBySource(sourceId);
+  if (layerIds.length === 0) {
+    return false;
+  }
+
+  return layerIds.some(layerId => {
+    const layer = model.getLayer(layerId);
+    return layer?.visible !== false;
+  });
 }
 
 export type LiveApiFeatureApplier = (
@@ -53,6 +69,7 @@ export class LiveApiPollerManager implements IDisposable {
 
   connect(): void {
     this._model.sharedSourcesChanged.connect(this._onSourcesChanged, this);
+    this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
   }
 
   /** Start/stop/restart pollers to match LiveApiSource entries in the doc. */
@@ -76,6 +93,10 @@ export class LiveApiPollerManager implements IDisposable {
 
   /** Force an immediate poll */
   pollNow(sourceId: string): void {
+    if (!isLiveApiSourceVisible(this._model, sourceId)) {
+      return;
+    }
+
     if (!this._pollers.has(sourceId)) {
       this._ensurePolling(sourceId);
       return;
@@ -91,6 +112,7 @@ export class LiveApiPollerManager implements IDisposable {
 
     this._isDisposed = true;
     this._model.sharedSourcesChanged.disconnect(this._onSourcesChanged, this);
+    this._model.sharedLayersChanged.disconnect(this._onLayersChanged, this);
 
     for (const sourceId of [...this._pollers.keys()]) {
       this._stopOne(sourceId);
@@ -106,9 +128,21 @@ export class LiveApiPollerManager implements IDisposable {
     this.syncFromModel();
   }
 
+  private _onLayersChanged(
+    _: IJupyterGISDoc,
+    _change: IJGISLayerDocChange,
+  ): void {
+    this.syncFromModel();
+  }
+
   private _ensurePolling(sourceId: string): void {
     const source = this._model.getSource(sourceId);
     if (!source || source.type !== 'LiveApiSource') {
+      this._stopOne(sourceId);
+      return;
+    }
+
+    if (!isLiveApiSourceVisible(this._model, sourceId)) {
       this._stopOne(sourceId);
       return;
     }
