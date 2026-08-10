@@ -4,6 +4,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
 } from '@jupytergis/schema';
+import { Notification } from '@jupyterlab/apputils';
 import { IDisposable } from '@lumino/disposable';
 
 import { fetchLiveApiPosition } from './fetchLiveApiPosition';
@@ -200,7 +201,11 @@ export class LiveApiPollerManager implements IDisposable {
         return;
       }
 
-      console.warn(`Live API poll failed for source ${sourceId}`, error);
+      const message = error instanceof Error ? error.message : String(error);
+
+      Notification.error(`Live API poll failed: ${message}`, {
+        autoClose: 6000,
+      });
     }
   }
 
