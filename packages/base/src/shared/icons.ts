@@ -13,6 +13,7 @@ import columns2SvgStr from '../../style/icons/columns_2.svg';
 import geoJsonSvgStr from '../../style/icons/geojson.svg';
 import geolocationSvgStr from '../../style/icons/geolocation.svg';
 import geoPackageSvgStr from '../../style/icons/geopackage.svg';
+import helpSvgStr from '../../style/icons/help.svg';
 import infoSvgStr from '../../style/icons/info-solid.svg';
 import logoSvgStr from '../../style/icons/logo.svg';
 import logoMiniSvgStr from '../../style/icons/logo_mini.svg';
@@ -132,4 +133,9 @@ export const markerIcon = new LabIcon({
 export const pencilSolidIcon = new LabIcon({
   name: 'jupytergis::pencilSolid',
   svgstr: pencilSolidSvgStr,
+});
+
+export const helpIcon = new LabIcon({
+  name: 'jupytergis::help',
+  svgstr: helpSvgStr,
 });
