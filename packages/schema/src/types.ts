@@ -49,6 +49,39 @@ export interface IGrammarSymbologyState {
   layers: IGrammarLayer[];
 }
 
+/** Arbitrary attribute bag stamped onto a collaborative point. */
+export interface ICollaborativeFeatureProps {
+  [k: string]: string | number | boolean | null;
+}
+
+export interface ICollaborativeFeature {
+  id: string;
+  /** Longitude / Latitude in EPSG:4326. */
+  lon: number;
+  lat: number;
+  props: ICollaborativeFeatureProps;
+  updatedAt: string;
+  updatedBy: string;
+  deleted?: boolean;
+}
+
+export interface IFeatureStoreMeta {
+  softLimit: number;
+  hardLimit: number;
+  compacting: boolean;
+}
+
+export interface IFeatureStore {
+  meta: IFeatureStoreMeta;
+  features: {
+    [k: string]: ICollaborativeFeature;
+  };
+}
+
+export interface IJGISFeatureStores {
+  [k: string]: IFeatureStore;
+}
+
 // exportLayer
 export * from './_interface/export/exportGeoJson';
 export * from './_interface/export/exportGeoTiff';

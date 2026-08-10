@@ -8,7 +8,7 @@ import type {
   ICollaborativeFeatureProps,
   IFeatureStore,
   IFeatureStoreMeta,
-} from './_interface/project/jgis';
+} from './types';
 
 /** Warn when overlay feature count reaches this size. */
 export const FEATURE_STORE_SOFT_LIMIT = 40_000;
@@ -144,8 +144,7 @@ export function getOverlayAddBlockReason(
     return 'compacting';
   }
 
-  const hardLimit = store.meta.hardLimit ?? FEATURE_STORE_HARD_LIMIT;
-  if (countLiveOverlayFeatures(store.features) >= hardLimit) {
+  if (countLiveOverlayFeatures(store.features) >= store.meta.hardLimit) {
     return 'hardLimit';
   }
 
@@ -153,8 +152,7 @@ export function getOverlayAddBlockReason(
 }
 
 export function isOverlayNearSoftLimit(store: IFeatureStore): boolean {
-  const softLimit = store.meta.softLimit ?? FEATURE_STORE_SOFT_LIMIT;
-  return countLiveOverlayFeatures(store.features) >= softLimit;
+  return countLiveOverlayFeatures(store.features) >= store.meta.softLimit;
 }
 
 export function buildCollaborativeFeature(args: {
