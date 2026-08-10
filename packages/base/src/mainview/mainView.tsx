@@ -190,6 +190,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onAnnotationsChanged,
       this,
     );
+    this._model.featureStoresChanged.connect(
+      this._onFeatureStoresChanged,
+      this,
+    );
 
     this._model.identifiedFeaturesChanged.connect(
       this._handleIdentifiedFeaturesChanged,
@@ -1538,6 +1542,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const commands = this._mainViewModel.commands;
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
+    commands.notifyCommandChanged(CommandIDs.placeCollaborativePoints);
     commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   }
 
