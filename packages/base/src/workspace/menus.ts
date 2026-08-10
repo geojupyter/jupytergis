@@ -33,6 +33,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewCollaborativePointDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.newGeoPackageVectorEntry,
   });
 

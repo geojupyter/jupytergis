@@ -14,6 +14,7 @@ export { IRasterSource } from './_interface/project/sources/rasterSource';
 export { IShapefileSource } from './_interface/project/sources/shapefileSource';
 export { IVectorTileSource } from './_interface/project/sources/vectorTileSource';
 export { IGeoParquetSource } from './_interface/project/sources/geoParquetSource';
+export { ICollaborativePointSource } from './_interface/project/sources/collaborativePointSource';
 export { IMarkerSource } from './_interface/project/sources/markerSource';
 export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
 export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
@@ -59,4 +60,9 @@ export * from './interfaces';
 export * from './model';
 export * from './token';
 
-export type Modes = 'panning' | 'identifying' | 'marking' | 'drawing';
+export type Modes =
+  | 'panning'
+  | 'identifying'
+  | 'marking'
+  | 'drawing'
+  | 'placingPoints';
