@@ -70,6 +70,7 @@ const iconObject = {
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.placeCollaborativePoints]: { icon: markerIcon },
+  [CommandIDs.foldCollaborativePoints]: { icon: markerIcon },
   [CommandIDs.openNewCollaborativePointDialog]: { icon: markerIcon },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
