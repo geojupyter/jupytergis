@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "Collaborative feature source (Ydoc overlay + tipg/PostGIS baseline). Supports any GeoJSON geometry in EPSG:4326.",
+  "description": "CollaborativePointSource",
   "title": "ICollaborativePointSource",
   "required": ["storeId"],
   "additionalProperties": false,
