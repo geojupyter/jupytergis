@@ -1933,6 +1933,22 @@ export function addCommands(
         if (response?.ok) {
           // Clear the overlay only after the server merge succeeded.
           current.model.clearFeatureStoreOverlay(storeId);
+
+          // Bump baseline version so OpenLayers refetches tipg tiles
+          // (folded points move from overlay → live MVT baseline).
+          const params = jgisSource.parameters as ICollaborativePointSource;
+          const nextVersion = (params.baselineVersion ?? 0) + 1;
+          current.model.sharedModel.updateSource(sourceId, {
+            ...jgisSource,
+            parameters: {
+              ...params,
+              baselineVersion: nextVersion,
+              tileUrlTemplate: buildCollaborativePointTileUrlTemplate(
+                storeId,
+                nextVersion,
+              ),
+            },
+          });
         } else {
           console.warn(
             'Fold Collaborative Points: server responded with ok=false',
