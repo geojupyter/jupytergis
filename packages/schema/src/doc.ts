@@ -656,8 +656,7 @@ export class JupyterGISDoc
         if (options.tombstone) {
           featuresMap.set(featureId, {
             id: featureId,
-            lon: 0,
-            lat: 0,
+            geometry: { type: 'Point', coordinates: [0, 0] },
             props: {},
             updatedAt: new Date().toISOString(),
             updatedBy: options.updatedBy,

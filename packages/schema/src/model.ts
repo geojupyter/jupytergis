@@ -925,10 +925,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.setFeatureStoreFeature(storeId, feature);
   }
 
-  addCollaborativePoint(args: {
+  addCollaborativeFeature(args: {
     storeId: string;
-    lon: number;
-    lat: number;
+    geometry: ICollaborativeFeature['geometry'];
     props?: ICollaborativeFeature['props'];
     id?: string;
   }):
@@ -936,8 +935,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     | { ok: false; reason: 'hardLimit' | 'compacting' } {
     const feature = buildCollaborativeFeature({
       id: args.id ?? UUID.uuid4(),
-      lon: args.lon,
-      lat: args.lat,
+      geometry: args.geometry,
       props: args.props,
       updatedBy: this.getClientId().toString(),
     });
@@ -948,7 +946,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     const store = this.getFeatureStore(args.storeId);
-    console.log('store', store);
     return {
       ok: true,
       feature,
