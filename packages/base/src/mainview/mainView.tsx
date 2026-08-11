@@ -49,6 +49,7 @@ import {
   IOpenEOTileLayer,
   IGrammarSymbologyState,
   buildCollaborativePointTileUrlTemplate,
+  pointGeometry,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -3777,8 +3778,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   ): void {
     const features = this._model.getFeatureStoreFeatures(storeId);
     const viewProj = this._Map.getView().getProjection();
-    // Overlay lon/lat are always stored in EPSG:4326 (matches PostGIS).
-    const dataProjection = 'EPSG:4326';
+    // Overlay geometries are always stored in EPSG:4326 (matches PostGIS).
+    const format = new GeoJSON();
     const olFeatures: Feature[] = [];
 
     for (const feature of Object.values(features)) {
@@ -3786,9 +3787,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         continue;
       }
 
-      const geometry = new Point(
-        transform([feature.lon, feature.lat], dataProjection, viewProj),
-      );
+      const geometry = format.readGeometry(feature.geometry, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: viewProj,
+      });
 
       const olFeature = new Feature({ geometry });
       olFeature.setId(feature.id);
@@ -3852,10 +3854,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       attrs.map(attribute => [attribute.key, attribute.value]),
     );
 
-    const result = this._model.addCollaborativePoint({
+    const result = this._model.addCollaborativeFeature({
       storeId,
-      lon,
-      lat,
+      geometry: pointGeometry(lon, lat),
       props,
     });
 

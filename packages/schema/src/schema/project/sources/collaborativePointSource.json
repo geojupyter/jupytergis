@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "CollaborativePointSource",
+  "description": "Collaborative feature source (Ydoc overlay + tipg/PostGIS baseline). Supports any GeoJSON geometry in EPSG:4326.",
   "title": "ICollaborativePointSource",
   "required": ["storeId"],
   "additionalProperties": false,
@@ -28,13 +28,13 @@
     },
     "projection": {
       "type": "string",
-      "description": "CRS for feature coordinates (lon/lat stored as EPSG:4326).",
+      "description": "CRS for feature geometries (stored as EPSG:4326 GeoJSON).",
       "default": "EPSG:4326"
     },
     "attribution": {
       "type": "string",
       "readOnly": true,
-      "description": "Attribution for the collaborative point source.",
+      "description": "Attribution for the collaborative feature source.",
       "default": ""
     }
   }

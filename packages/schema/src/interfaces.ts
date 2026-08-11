@@ -494,10 +494,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     storeId: string,
     feature: ICollaborativeFeature,
   ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
-  addCollaborativePoint(args: {
+  addCollaborativeFeature(args: {
     storeId: string;
-    lon: number;
-    lat: number;
+    geometry: ICollaborativeFeature['geometry'];
     props?: ICollaborativeFeature['props'];
     id?: string;
   }):

@@ -6,6 +6,7 @@
 import type {
   ICollaborativeFeature,
   ICollaborativeFeatureProps,
+  ICollaborativeGeometry,
   IFeatureStore,
   IFeatureStoreMeta,
 } from './types';
@@ -140,7 +141,7 @@ export function featureStoreTableDdl(tableName: string): string {
   return [
     `CREATE TABLE IF NOT EXISTS ${tableName} (`,
     '  id uuid PRIMARY KEY,',
-    '  geom geometry(Point, 4326) NOT NULL,',
+    '  geom geometry(Geometry, 4326) NOT NULL,',
     "  props jsonb NOT NULL DEFAULT '{}'::jsonb,",
     '  updated_at timestamptz NOT NULL DEFAULT now(),',
     '  updated_by text',
@@ -185,8 +186,7 @@ export function isOverlayNearSoftLimit(store: IFeatureStore): boolean {
 
 export function buildCollaborativeFeature(args: {
   id: string;
-  lon: number;
-  lat: number;
+  geometry: ICollaborativeGeometry;
   props?: ICollaborativeFeatureProps;
   updatedBy: string;
   updatedAt?: string;
@@ -194,13 +194,17 @@ export function buildCollaborativeFeature(args: {
 }): ICollaborativeFeature {
   return {
     id: args.id,
-    lon: args.lon,
-    lat: args.lat,
+    geometry: args.geometry,
     props: args.props ?? {},
     updatedAt: args.updatedAt ?? new Date().toISOString(),
     updatedBy: args.updatedBy,
     ...(args.deleted ? { deleted: true } : {}),
   };
+}
+
+/** Convenience: build a Point geometry in EPSG:4326. */
+export function pointGeometry(lon: number, lat: number): ICollaborativeGeometry {
+  return { type: 'Point', coordinates: [lon, lat] };
 }
 
 /**

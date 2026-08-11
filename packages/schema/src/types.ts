@@ -38,6 +38,15 @@ export * from './processing/_generated/exportProcessingSchema';
 // Symbology grammar
 export * from './_interface/project/symbology';
 
+import type {
+  GeoJSONGeometryCollection,
+  GeoJSONLineString,
+  GeoJSONMultiLineString,
+  GeoJSONMultiPoint,
+  GeoJSONMultiPolygon,
+  GeoJSONPoint,
+  GeoJSONPolygon,
+} from './_interface/geojson';
 import type { IGrammarLayer } from './_interface/project/symbology';
 
 export interface IGrammarSymbologyState {
@@ -49,16 +58,28 @@ export interface IGrammarSymbologyState {
   layers: IGrammarLayer[];
 }
 
-/** Arbitrary attribute bag stamped onto a collaborative point. */
+/** Arbitrary attribute bag stamped onto a collaborative feature. */
 export interface ICollaborativeFeatureProps {
   [k: string]: string | number | boolean | null;
 }
 
+/**
+ * GeoJSON geometry types allowed on collaborative overlay features.
+ * Coordinates are always EPSG:4326 (lon/lat degrees).
+ */
+export type ICollaborativeGeometry =
+  | GeoJSONPoint
+  | GeoJSONLineString
+  | GeoJSONPolygon
+  | GeoJSONMultiPoint
+  | GeoJSONMultiLineString
+  | GeoJSONMultiPolygon
+  | GeoJSONGeometryCollection;
+
 export interface ICollaborativeFeature {
   id: string;
-  /** Longitude / Latitude in EPSG:4326. */
-  lon: number;
-  lat: number;
+  /** GeoJSON geometry in EPSG:4326 (any supported type). */
+  geometry: ICollaborativeGeometry;
   props: ICollaborativeFeatureProps;
   updatedAt: string;
   updatedBy: string;

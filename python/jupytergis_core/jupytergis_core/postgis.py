@@ -80,19 +80,19 @@ def feature_store_table_ddl(table_name: str) -> str:
 
     Notes:
     - `table_name` must already be validated via store_id_to_table_name.
-    - geometry SRID is fixed to 4326 (lon/lat degrees).
+    - geometry SRID is fixed to 4326; type is generic Geometry (points,
+      lines, polygons, …).
     """
 
     if not re.match(r"^jgis_store_[a-z0-9_]+$", table_name):
         raise ValueError(f"Refusing DDL for unexpected table name: {table_name}")
 
     index_name = f"{table_name}_geom_gix"
-    # Use a fixed Point SRID because collaborative points are lon/lat degrees.
     return "\n".join(
         [
             f"CREATE TABLE IF NOT EXISTS {table_name} (",
             "  id uuid PRIMARY KEY,",
-            "  geom geometry(Point, 4326) NOT NULL,",
+            "  geom geometry(Geometry, 4326) NOT NULL,",
             "  props jsonb NOT NULL DEFAULT '{}'::jsonb,",
             "  updated_at timestamptz NOT NULL DEFAULT now(),",
             "  updated_by text",
@@ -119,8 +119,7 @@ def merge_overlay_features_sql(
 
     `features` elements must include:
       - id: str (UUID)
-      - lon: float
-      - lat: float
+      - geometry: GeoJSON geometry object (EPSG:4326)
       - props: dict (JSON-serializable) [optional -> {}]
       - updatedAt: str (ISO-8601) [optional]
       - updatedBy: str [optional]
@@ -133,18 +132,28 @@ def merge_overlay_features_sql(
     if not re.match(r"^jgis_store_[a-z0-9_]+$", table_name):
         raise ValueError(f"Unexpected table name: {table_name}")
 
-    payload = [
-        {
-            "id": f["id"],
-            "lon": float(f["lon"]),
-            "lat": float(f["lat"]),
-            "props": f.get("props") or {},
-            "updated_at": f.get("updatedAt"),
-            "updated_by": f.get("updatedBy"),
-            "deleted": bool(f.get("deleted", False)),
-        }
-        for f in features
-    ]
+    payload = []
+    for f in features:
+        geometry = f.get("geometry")
+        if geometry is None and "lon" in f and "lat" in f:
+            # Backward-compat for older overlay payloads.
+            geometry = {
+                "type": "Point",
+                "coordinates": [float(f["lon"]), float(f["lat"])],
+            }
+        if geometry is None and not bool(f.get("deleted", False)):
+            raise ValueError(f'Feature "{f.get("id")}" is missing geometry')
+
+        payload.append(
+            {
+                "id": f["id"],
+                "geometry": geometry or {"type": "Point", "coordinates": [0, 0]},
+                "props": f.get("props") or {},
+                "updated_at": f.get("updatedAt"),
+                "updated_by": f.get("updatedBy"),
+                "deleted": bool(f.get("deleted", False)),
+            }
+        )
 
     json_str = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
     tag = f"jgis_payload_{uuid.uuid4().hex}"
@@ -162,8 +171,7 @@ BEGIN;
 WITH incoming AS (
   SELECT
     t.id::uuid AS id,
-    t.lon::double precision AS lon,
-    t.lat::double precision AS lat,
+    t.geometry AS geometry,
     COALESCE(t.props, '{{}}'::jsonb) AS props,
     COALESCE(t.updated_at::timestamptz, now()) AS updated_at,
     COALESCE(t.updated_by, '') AS updated_by,
@@ -171,8 +179,7 @@ WITH incoming AS (
   FROM jsonb_to_recordset({json_literal}::jsonb)
     AS t(
       id text,
-      lon double precision,
-      lat double precision,
+      geometry jsonb,
       props jsonb,
       updated_at text,
       updated_by text,
@@ -187,8 +194,7 @@ WHERE dst.id = src.id
 WITH incoming AS (
   SELECT
     t.id::uuid AS id,
-    t.lon::double precision AS lon,
-    t.lat::double precision AS lat,
+    t.geometry AS geometry,
     COALESCE(t.props, '{{}}'::jsonb) AS props,
     COALESCE(t.updated_at::timestamptz, now()) AS updated_at,
     COALESCE(t.updated_by, '') AS updated_by,
@@ -196,8 +202,7 @@ WITH incoming AS (
   FROM jsonb_to_recordset({json_literal}::jsonb)
     AS t(
       id text,
-      lon double precision,
-      lat double precision,
+      geometry jsonb,
       props jsonb,
       updated_at text,
       updated_by text,
@@ -207,7 +212,7 @@ WITH incoming AS (
 INSERT INTO {table_name} (id, geom, props, updated_at, updated_by)
 SELECT
   src.id,
-  ST_SetSRID(ST_MakePoint(src.lon, src.lat), 4326),
+  ST_SetSRID(ST_GeomFromGeoJSON(src.geometry::text), 4326),
   src.props,
   src.updated_at,
   src.updated_by
