@@ -207,6 +207,16 @@ export class ToolbarWidget extends ReactiveToolbar {
       placeCollaborativePointsButton.node.dataset.testid =
         'place-collaborative-points-button';
 
+      const foldCollaborativePointsButton = new CommandToolbarButton({
+        id: CommandIDs.foldCollaborativePoints,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('foldCollaborativePoints', foldCollaborativePointsButton);
+      foldCollaborativePointsButton.node.dataset.testid =
+        'fold-collaborative-points-button';
+
       const toggleDrawFeaturesButton = new CommandToolbarButton({
         id: CommandIDs.toggleDrawFeatures,
         label: '',

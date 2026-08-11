@@ -11,6 +11,7 @@ export const identify = 'jupytergis:identify';
 export const temporalController = 'jupytergis:temporalController';
 export const addMarker = 'jupytergis:addMarker';
 export const placeCollaborativePoints = 'jupytergis:placeCollaborativePoints';
+export const foldCollaborativePoints = 'jupytergis:foldCollaborativePoints';
 export const openNewCollaborativePointDialog =
   'jupytergis:openNewCollaborativePointDialog';
 

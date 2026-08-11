@@ -10,6 +10,7 @@ import {
   JgisCoordinates,
   LayerType,
   SourceType,
+  ICollaborativePointSource,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
@@ -58,7 +59,11 @@ import {
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
-import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
+import {
+  getGeoJSONDataFromLayerSource,
+  downloadFile,
+  requestAPI,
+} from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
@@ -1861,6 +1866,83 @@ export function addCommands(
       syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.placeCollaborativePoints),
+  });
+
+  commands.addCommand(CommandIDs.foldCollaborativePoints, {
+    label: trans.__('Fold Collaborative Points to PostGIS'),
+    caption: trans.__(
+      'Send collaborative overlay points to the server to upsert/delete in PostGIS.',
+    ),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const localState = current.model.sharedModel.awareness.getLocalState();
+      const selectedLayer = localState?.selected?.value;
+      if (!selectedLayer) {
+        console.warn(
+          'Fold Collaborative Points: select a collaborative point layer first.',
+        );
+        return;
+      }
+
+      const layerId = Object.keys(selectedLayer)[0];
+      const jgisLayer = current.model.getLayer(layerId);
+      const sourceId = jgisLayer?.parameters?.source;
+      const jgisSource = sourceId
+        ? current.model.getSource(sourceId)
+        : undefined;
+
+      if (jgisSource?.type !== 'CollaborativePointSource') {
+        console.warn(
+          'Fold Collaborative Points: selected layer must use a CollaborativePointSource.',
+        );
+        return;
+      }
+
+      const storeId = (jgisSource.parameters as ICollaborativePointSource)
+        .storeId;
+      if (!storeId) {
+        console.warn('Fold Collaborative Points: missing storeId on source.');
+        return;
+      }
+
+      const features = current.model.getFeatureStoreFeatures(storeId);
+      const payload = { storeId, features };
+      try {
+        const response = await requestAPI<{
+          ok: boolean;
+          storeId: string;
+          featureCount: number;
+        }>('/jupytergis_core/fold', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response?.ok) {
+          // Clear the overlay only after the server merge succeeded.
+          current.model.clearFeatureStoreOverlay(storeId);
+        } else {
+          console.warn(
+            'Fold Collaborative Points: server responded with ok=false',
+            response,
+          );
+        }
+      } catch (err: any) {
+        console.error('Fold Collaborative Points failed:', err);
+      }
+    },
+    ...icons.get(CommandIDs.foldCollaborativePoints),
   });
 
   commands.addCommand(CommandIDs.openNewCollaborativePointDialog, {
