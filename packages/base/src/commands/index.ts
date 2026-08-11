@@ -11,6 +11,7 @@ import {
   LayerType,
   SourceType,
   ICollaborativePointSource,
+  buildCollaborativePointTileUrlTemplate,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
@@ -1961,6 +1962,7 @@ export function addCommands(
         return;
       }
 
+      const storeId = UUID.uuid4();
       const dialog = new LayerCreationFormDialog({
         model: current.model,
         title: 'Create Collaborative Point Layer',
@@ -1968,7 +1970,8 @@ export function addCommands(
         createSource: true,
         sourceData: {
           name: 'Collaborative Points Source',
-          storeId: UUID.uuid4(),
+          storeId,
+          tileUrlTemplate: buildCollaborativePointTileUrlTemplate(storeId, 0),
           pmtilesPath: '',
           baselineVersion: 0,
           projection: 'EPSG:4326',

@@ -48,11 +48,12 @@ import {
   IOpenEOTileSource,
   IOpenEOTileLayer,
   IGrammarSymbologyState,
+  buildCollaborativePointTileUrlTemplate,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
-import { User } from '@jupyterlab/services';
+import { ServerConnection, User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
@@ -1215,6 +1216,58 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           newSource = new VectorSource();
           this._collaborativeOverlaySources.set(storeId, newSource);
           this._syncCollaborativeOverlaySource(storeId, newSource);
+
+          // Live tipg MVT baseline (under the Ydoc overlay).
+          const relativeTemplate =
+            parameters.tileUrlTemplate?.trim() ||
+            buildCollaborativePointTileUrlTemplate(
+              storeId,
+              parameters.baselineVersion ?? 0,
+            );
+          const settings = ServerConnection.makeSettings();
+          const base = settings.baseUrl.endsWith('/')
+            ? settings.baseUrl
+            : `${settings.baseUrl}/`;
+          const tileUrl = `${base}${relativeTemplate.replace(/^\//, '')}`;
+          const baselineSource = new VectorTileSource({
+            attributions: parameters.attribution,
+            url: tileUrl,
+            format: new MVT({
+              featureClass: RenderFeature,
+            }),
+            tileLoadFunction: (tile, url) => {
+              const vtTile = tile as VectorTile<RenderFeature>;
+              vtTile.setLoader((extent, _resolution, projection) => {
+                return ServerConnection.makeRequest(url, {}, settings)
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error(
+                        `Baseline tile request failed: ${response.status}`,
+                      );
+                    }
+                    return response.arrayBuffer();
+                  })
+                  .then(data => {
+                    const features = vtTile.getFormat().readFeatures(data, {
+                      extent,
+                      featureProjection: projection,
+                    });
+                    vtTile.setFeatures(features);
+                    return features;
+                  })
+                  .catch((err: Error) => {
+                    this._log(
+                      'debug',
+                      `Collaborative baseline tile error: ${err.message}`,
+                    );
+                    tile.setState(TileState.ERROR);
+                    return [];
+                  });
+              });
+            },
+          });
+          baselineSource.set('id', `${id}:baseline`);
+          this._collaborativeBaselineSources.set(storeId, baselineSource);
           break;
         }
 
@@ -1584,6 +1637,38 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.removeSource(id);
     // create updated source
     await this.addSource(id, source);
+    // Collaborative sources use a LayerGroup (baseline VT + overlay).
+    if (
+      mapLayer instanceof LayerGroup &&
+      source.type === 'CollaborativePointSource'
+    ) {
+      const parameters = source.parameters as ICollaborativePointSource;
+      const overlay = this._sources[id] as VectorSource;
+      const baseline = this._collaborativeBaselineSources.get(
+        parameters.storeId,
+      );
+      const style = this.vectorLayerStyleRuleBuilder(
+        this._model.getLayer(layerId)!,
+      );
+      const children: Layer[] = [];
+      if (baseline) {
+        children.push(
+          new VectorTileLayer({
+            source: baseline,
+            style,
+          }),
+        );
+      }
+      children.push(
+        new VectorImageLayer({
+          source: overlay,
+          style,
+        }),
+      );
+      mapLayer.getLayers().clear();
+      children.forEach(child => mapLayer.getLayers().push(child));
+      return;
+    }
     // change source of target layer
     mapLayer.setSource(this._sources[id]);
   }
@@ -1594,6 +1679,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * @param id - the source id.
    */
   removeSource(id: string): void {
+    const jgisSource = this._model.getSource(id);
+    if (jgisSource?.type === 'CollaborativePointSource') {
+      const storeId = (jgisSource.parameters as ICollaborativePointSource)
+        .storeId;
+      if (storeId) {
+        this._collaborativeOverlaySources.delete(storeId);
+        this._collaborativeBaselineSources.delete(storeId);
+      }
+    }
     delete this._sources[id];
   }
 
@@ -1747,6 +1841,33 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             layer.visible,
             featureValues,
           ) as OlLayerTypes;
+        } else if (source?.type === 'CollaborativePointSource') {
+          const collabParams = source.parameters as ICollaborativePointSource;
+          const style = this.vectorLayerStyleRuleBuilder(layer);
+          const children: Layer[] = [];
+          const baseline = this._collaborativeBaselineSources.get(
+            collabParams.storeId,
+          );
+          if (baseline) {
+            children.push(
+              new VectorTileLayer({
+                opacity: layerParameters.opacity,
+                source: baseline,
+                style,
+              }),
+            );
+          }
+          children.push(
+            new VectorImageLayer({
+              opacity: layerParameters.opacity,
+              source: this._sources[layerParameters.source],
+              style,
+            }),
+          );
+          newMapLayer = new LayerGroup({
+            layers: children,
+            visible: layer.visible,
+          });
         } else {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
@@ -1900,14 +2021,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
+    // Track source→layer for both plain Layers and LayerGroups (collaborative).
+    if (layerParameters && 'source' in layerParameters) {
+      this._sourceToLayerMap.set(layerParameters.source, id);
+    }
+
     // STAC layers don't have source
     if (newMapLayer instanceof Layer) {
-      // we need to keep track of which source has which layers
-      // Only set sourceToLayerMap if 'source' exists on layerParameters
-      if ('source' in layerParameters) {
-        this._sourceToLayerMap.set(layerParameters.source, id);
-      }
-
       this.addProjection(newMapLayer);
       await this._waitForLayerReady(newMapLayer);
     }
@@ -2224,6 +2344,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         if (Array.isArray(layerParams.symbologyState?.layers)) {
           this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
+          break;
+        }
+
+        if (mapLayer instanceof LayerGroup) {
+          mapLayer.setVisible(layer.visible);
+          const style = this.vectorLayerStyleRuleBuilder(layer);
+          mapLayer.getLayers().forEach(child => {
+            const sub = child as Layer;
+            sub.setOpacity(layerParams.opacity ?? 1);
+            if (
+              sub instanceof VectorImageLayer ||
+              sub instanceof VectorTileLayer
+            ) {
+              sub.setStyle(style);
+            }
+          });
           break;
         }
 
@@ -4495,6 +4631,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentDrawSourceID: string | undefined;
   private _currentDrawGeometry: Type | undefined;
   private _collaborativeOverlaySources = new Map<string, VectorSource>();
+  private _collaborativeBaselineSources = new Map<string, VectorTileSource>();
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;

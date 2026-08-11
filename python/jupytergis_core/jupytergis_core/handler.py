@@ -606,9 +606,9 @@ class TipgTilesHandler(APIHandler):
                     method=method,
                     headers={"Accept": self.request.headers.get("Accept", "*/*")},
                     follow_redirects=False,
-                    raise_error=False,
                     decompress_response=True,
                 ),
+                raise_error=False,
             )
         except Exception:
             logger.exception("tipg proxy request failed: %s", target)
