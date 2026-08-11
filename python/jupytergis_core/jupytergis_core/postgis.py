@@ -150,8 +150,12 @@ def merge_overlay_features_sql(
     tag = f"jgis_payload_{uuid.uuid4().hex}"
     json_literal = _dollar_quote(tag, json_str)
 
-    # Use a set-based operation to avoid huge per-row SQL generation.
-    # NOTE: `jsonb_to_recordset` expects exact field names as listed below.
+    # Use set-based operations to avoid huge per-row SQL generation.
+    #
+    # Important Postgres detail:
+    # A CTE defined with `WITH incoming AS (...)` only applies to the single
+    # statement that immediately follows it. We therefore repeat the CTE
+    # definition for DELETE and INSERT.
     return f"""
 BEGIN;
 
@@ -175,12 +179,31 @@ WITH incoming AS (
       deleted boolean
     )
 )
-
 DELETE FROM {table_name} dst
 USING incoming src
 WHERE dst.id = src.id
   AND src.deleted = true;
 
+WITH incoming AS (
+  SELECT
+    t.id::uuid AS id,
+    t.lon::double precision AS lon,
+    t.lat::double precision AS lat,
+    COALESCE(t.props, '{{}}'::jsonb) AS props,
+    COALESCE(t.updated_at::timestamptz, now()) AS updated_at,
+    COALESCE(t.updated_by, '') AS updated_by,
+    COALESCE(t.deleted, false) AS deleted
+  FROM jsonb_to_recordset({json_literal}::jsonb)
+    AS t(
+      id text,
+      lon double precision,
+      lat double precision,
+      props jsonb,
+      updated_at text,
+      updated_by text,
+      deleted boolean
+    )
+)
 INSERT INTO {table_name} (id, geom, props, updated_at, updated_by)
 SELECT
   src.id,
@@ -200,16 +223,44 @@ COMMIT;
 """.strip()
 
 
+def _psql_run(conn_url: str, sql: str) -> None:
+    """
+    Execute SQL using `psql` and raise a RuntimeError with real stderr.
+
+    This is crucial for debugging fold failures (frontend should get the
+    actual Postgres error message).
+    """
+
+    pg_connect_timeout = int(os.environ.get("JGIS_PG_CONNECT_TIMEOUT", "5"))
+    psql_timeout = int(os.environ.get("JGIS_PSQL_TIMEOUT", "30"))
+
+    try:
+        subprocess.run(
+            ["psql", conn_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
+            check=True,
+            timeout=psql_timeout,
+            capture_output=True,
+            text=True,
+            env={
+                **os.environ,
+                # libpq env var: seconds to wait for a connection attempt.
+                "PGCONNECT_TIMEOUT": str(pg_connect_timeout),
+            },
+        )
+    except subprocess.CalledProcessError as e:
+        stderr = (e.stderr or "").strip()
+        stdout = (e.stdout or "").strip()
+        msg = stderr or stdout or str(e)
+        raise RuntimeError(msg) from e
+
+
 def ensure_feature_store_table(conn_url: str, table_name: str) -> None:
     """Ensure the per-store table exists."""
 
     ddl = feature_store_table_ddl(table_name)
     sql = ddl
 
-    subprocess.run(
-        ["psql", conn_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
-        check=True,
-    )
+    _psql_run(conn_url, sql)
 
 
 def merge_overlay_features_via_psql(
@@ -231,8 +282,5 @@ def merge_overlay_features_via_psql(
     ensure_feature_store_table(conn_url, table_name)
     sql = merge_overlay_features_sql(table_name, features)
 
-    subprocess.run(
-        ["psql", conn_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
-        check=True,
-    )
+    _psql_run(conn_url, sql)
 
