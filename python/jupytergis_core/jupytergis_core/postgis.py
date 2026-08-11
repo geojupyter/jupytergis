@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 import os
 import re
-from typing import Final
+import subprocess
+import uuid
+from typing import Any, Final
 
 
 FEATURE_STORE_TABLE_PREFIX: Final[str] = "jgis_store_"
@@ -97,5 +100,139 @@ def feature_store_table_ddl(table_name: str) -> str:
             f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} "
             "USING GIST (geom);",
         ]
+    )
+
+
+def _dollar_quote(tag: str, value: str) -> str:
+    """Wrap `value` as a PostgreSQL dollar-quoted string."""
+
+    # Tag must not appear in the value; we ensure uniqueness by generating it.
+    return f"${tag}${value}${tag}$"
+
+
+def merge_overlay_features_sql(
+    table_name: str,
+    features: list[dict[str, Any]],
+) -> str:
+    """
+    Generate SQL to merge overlay features into `table_name` (overlay-wins).
+
+    `features` elements must include:
+      - id: str (UUID)
+      - lon: float
+      - lat: float
+      - props: dict (JSON-serializable) [optional -> {}]
+      - updatedAt: str (ISO-8601) [optional]
+      - updatedBy: str [optional]
+      - deleted: bool [optional]
+
+    Tombstones (`deleted=true`) are applied as DELETE.
+    Non-tombstones are applied as INSERT ... ON CONFLICT DO UPDATE.
+    """
+
+    if not re.match(r"^jgis_store_[a-z0-9_]+$", table_name):
+        raise ValueError(f"Unexpected table name: {table_name}")
+
+    payload = [
+        {
+            "id": f["id"],
+            "lon": float(f["lon"]),
+            "lat": float(f["lat"]),
+            "props": f.get("props") or {},
+            "updated_at": f.get("updatedAt"),
+            "updated_by": f.get("updatedBy"),
+            "deleted": bool(f.get("deleted", False)),
+        }
+        for f in features
+    ]
+
+    json_str = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+    tag = f"jgis_payload_{uuid.uuid4().hex}"
+    json_literal = _dollar_quote(tag, json_str)
+
+    # Use a set-based operation to avoid huge per-row SQL generation.
+    # NOTE: `jsonb_to_recordset` expects exact field names as listed below.
+    return f"""
+BEGIN;
+
+WITH incoming AS (
+  SELECT
+    t.id::uuid AS id,
+    t.lon::double precision AS lon,
+    t.lat::double precision AS lat,
+    COALESCE(t.props, '{{}}'::jsonb) AS props,
+    COALESCE(t.updated_at::timestamptz, now()) AS updated_at,
+    COALESCE(t.updated_by, '') AS updated_by,
+    COALESCE(t.deleted, false) AS deleted
+  FROM jsonb_to_recordset({json_literal}::jsonb)
+    AS t(
+      id text,
+      lon double precision,
+      lat double precision,
+      props jsonb,
+      updated_at text,
+      updated_by text,
+      deleted boolean
+    )
+)
+
+DELETE FROM {table_name} dst
+USING incoming src
+WHERE dst.id = src.id
+  AND src.deleted = true;
+
+INSERT INTO {table_name} (id, geom, props, updated_at, updated_by)
+SELECT
+  src.id,
+  ST_SetSRID(ST_MakePoint(src.lon, src.lat), 4326),
+  src.props,
+  src.updated_at,
+  src.updated_by
+FROM incoming src
+WHERE src.deleted = false
+ON CONFLICT (id) DO UPDATE SET
+  geom = EXCLUDED.geom,
+  props = EXCLUDED.props,
+  updated_at = EXCLUDED.updated_at,
+  updated_by = EXCLUDED.updated_by;
+
+COMMIT;
+""".strip()
+
+
+def ensure_feature_store_table(conn_url: str, table_name: str) -> None:
+    """Ensure the per-store table exists."""
+
+    ddl = feature_store_table_ddl(table_name)
+    sql = ddl
+
+    subprocess.run(
+        ["psql", conn_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
+        check=True,
+    )
+
+
+def merge_overlay_features_via_psql(
+    conn_url: str,
+    store_id: str,
+    features: list[dict[str, Any]],
+) -> None:
+    """
+    Merge overlay into PostGIS using `psql` subprocess calls.
+
+    This is Phase 3.2 “fold” backend logic; Step 3.3 will wire it to HTTP.
+    """
+
+    if not conn_url:
+        raise RuntimeError("JGIS_POSTGIS_URL is not configured")
+
+    table_name = store_id_to_table_name(store_id)
+
+    ensure_feature_store_table(conn_url, table_name)
+    sql = merge_overlay_features_sql(table_name, features)
+
+    subprocess.run(
+        ["psql", conn_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
+        check=True,
     )
 
