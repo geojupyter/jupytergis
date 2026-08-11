@@ -1526,10 +1526,17 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
     const selectedSource = this.getSource(layer.parameters?.source);
+    if (!selectedSource) {
+      return false;
+    }
+
+    if (selectedSource.type === 'CollaborativePointSource') {
+      return true;
+    }
 
     return (
-      selectedSource?.type === 'GeoJSONSource' &&
-      selectedSource?.parameters?.data?.type === 'FeatureCollection'
+      selectedSource.type === 'GeoJSONSource' &&
+      selectedSource.parameters?.data?.type === 'FeatureCollection'
     );
   }
 

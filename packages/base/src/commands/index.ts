@@ -2005,7 +2005,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
     caption:
-      'Toggle feature editing. Creates an empty draw layer if the selection is not draw-compatible.',
+      'Toggle feature editing. Uses the selected GeoJSON or collaborative layer, or creates an empty draw layer.',
     describedBy: {
       args: {
         type: 'object',
@@ -2278,6 +2278,9 @@ namespace Private {
    * Return the id of a draw-compatible selected layer, creating an empty
    * inline GeoJSON layer when the current selection is
    * missing or not editable for drawing.
+   *
+   * Collaborative layers are draw-compatible: keep the selection and do not
+   * create a GeoJSON draw layer.
    */
   export function ensureDrawCompatibleLayer(
     model: IJupyterGISModel,

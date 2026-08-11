@@ -35,6 +35,7 @@ import {
   IVectorTileSource,
   IGeoParquetSource,
   ICollaborativePointSource,
+  ICollaborativeFeature,
   IGeoTiffLayer,
   IGeoZarrLayer,
   JgisCoordinates,
@@ -4254,9 +4255,43 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const layers = this._Map.getLayers();
     const layerArray = layers.getArray();
     const matchingLayer = layerArray.find(layer => layer.get('id') === layerID);
-    const source = matchingLayer?.get('source');
 
-    this._currentVectorSource = source;
+    if (!matchingLayer) {
+      this._currentVectorSource = undefined;
+      return undefined;
+    }
+
+    // Collaborative layers are LayerGroups (tipg VT + overlay VectorSource).
+    if (matchingLayer instanceof LayerGroup) {
+      for (const child of matchingLayer.getLayers().getArray()) {
+        const childSource = (child as Layer).getSource?.();
+        if (childSource instanceof VectorSource) {
+          this._currentVectorSource = childSource;
+          return this._currentVectorSource;
+        }
+      }
+
+      const jgisLayer = this._model.getLayer(layerID);
+      const jgisSource = jgisLayer
+        ? this._model.getSource(jgisLayer.parameters?.source)
+        : undefined;
+      if (jgisSource?.type === 'CollaborativePointSource') {
+        const storeId = (jgisSource.parameters as ICollaborativePointSource)
+          .storeId;
+        this._currentVectorSource =
+          this._collaborativeOverlaySources.get(storeId);
+        return this._currentVectorSource;
+      }
+
+      this._currentVectorSource = undefined;
+      return undefined;
+    }
+
+    const source =
+      (matchingLayer as Layer).getSource?.() ?? matchingLayer.get('source');
+
+    this._currentVectorSource =
+      source instanceof VectorSource ? source : undefined;
 
     return this._currentVectorSource;
   };
@@ -4288,6 +4323,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       !this._currentDrawSource ||
       !this._currentDrawSourceID
     ) {
+      return;
+    }
+
+    // Collaborative overlays sync via Ydoc featureStores, not GeoJSON source data.
+    if (this._currentDrawSource.type === 'CollaborativePointSource') {
       return;
     }
 
@@ -4377,7 +4417,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _handleDrawEnd = (event: DrawEvent): void => {
     const feature = event.feature;
-    feature.set('_id', UUID.uuid4());
+    const featureId = UUID.uuid4();
+    feature.setId(featureId);
+    feature.set('_id', featureId);
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', this._model.getClientId().toString());
     feature.set('_fromDrawTool', true);
@@ -4387,6 +4429,58 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ? this._model.getDrawCustomAttributes(layerId)
       : [];
     applyDrawCustomAttributesToFeature(feature, customAttributes);
+
+    if (this._currentDrawSource?.type !== 'CollaborativePointSource') {
+      return;
+    }
+
+    const storeId = (
+      this._currentDrawSource.parameters as ICollaborativePointSource
+    ).storeId;
+    if (!storeId) {
+      return;
+    }
+
+    const geometry = feature.getGeometry();
+    if (!geometry) {
+      return;
+    }
+
+    const geojsonGeometry = new GeoJSON().writeGeometryObject(geometry, {
+      featureProjection: this._Map.getView().getProjection(),
+      dataProjection: 'EPSG:4326',
+    }) as ICollaborativeFeature['geometry'];
+
+    const props = Object.fromEntries(
+      customAttributes.map(attribute => [attribute.key, attribute.value]),
+    );
+
+    const result = this._model.addCollaborativeFeature({
+      storeId,
+      id: featureId,
+      geometry: geojsonGeometry,
+      props,
+    });
+
+    console.log('result', result);
+    // Drop the temporary OL feature; store sync re-adds from Ydoc.
+    this._currentVectorSource?.removeFeature(feature);
+
+    if (!result.ok) {
+      const message =
+        result.reason === 'compacting'
+          ? 'Cannot add features while folding into baseline.'
+          : 'Overlay hard limit reached. Fold edits into the baseline before adding more.';
+      void showErrorMessage('Collaborative features', message);
+      return;
+    }
+
+    if (result.nearSoftLimit) {
+      this._log(
+        'warning',
+        'Collaborative overlay is near its soft limit; fold soon.',
+      );
+    }
   };
 
   _editVectorLayer = () => {
