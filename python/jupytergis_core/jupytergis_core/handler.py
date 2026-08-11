@@ -542,6 +542,43 @@ def get_tipg_url() -> str | None:
     return url or None
 
 
+async def refresh_tipg_catalog() -> bool:
+    """
+    Ask tipg to re-scan PostGIS for collections (new jgis_store_* tables).
+
+    Requires tipg started with TIPG_DEBUG=true so ``GET /refresh`` exists.
+    Returns True on success; False if tipg is unset, unreachable, or refresh
+    is disabled (fold still succeeds — catalog may catch up via TTL).
+    """
+
+    tipg_base = get_tipg_url()
+    if not tipg_base:
+        return False
+
+    client = AsyncHTTPClient()
+    try:
+        response = await client.fetch(
+            HTTPRequest(
+                url=f"{tipg_base}/refresh",
+                method="GET",
+                request_timeout=60,
+            ),
+            raise_error=False,
+        )
+    except Exception:
+        logger.exception("tipg catalog refresh request failed")
+        return False
+
+    if response.code >= 400:
+        logger.warning(
+            "tipg catalog refresh returned %s (enable TIPG_DEBUG=true for /refresh)",
+            response.code,
+        )
+        return False
+
+    return True
+
+
 class TipgTilesHandler(APIHandler):
     """
     Authenticated reverse proxy to tipg for collaborative baseline tiles.
@@ -712,12 +749,16 @@ class FoldHandler(APIHandler):
             self.finish(json.dumps({"error": str(e)}))
             return
 
+        # Discover newly created jgis_store_* tables in tipg (no tipg restart).
+        tipg_refreshed = await refresh_tipg_catalog()
+
         self.finish(
             json.dumps(
                 {
                     "ok": True,
                     "storeId": store_id,
                     "featureCount": len(normalized),
+                    "tipgRefreshed": tipg_refreshed,
                 },
             ),
         )
