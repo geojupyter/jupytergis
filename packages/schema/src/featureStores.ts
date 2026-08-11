@@ -98,6 +98,34 @@ export function storeIdToTableName(storeId: string): string {
   return `${FEATURE_STORE_TABLE_PREFIX}${normalizeStoreIdSlug(storeId)}`;
 }
 
+/** tipg / PostGIS schema that owns `jgis_store_*` tables. */
+export const TIPG_FEATURE_STORE_SCHEMA = 'public';
+
+/**
+ * tipg collection id for a collaborative store
+ * (`public.jgis_store_<slug>`).
+ */
+export function storeIdToTipgCollectionId(storeId: string): string {
+  return `${TIPG_FEATURE_STORE_SCHEMA}.${storeIdToTableName(storeId)}`;
+}
+
+/**
+ * Relative MVT URL template for the Jupyter tipg proxy.
+ *
+ * Prefix with the Jupyter server `baseUrl` at runtime. Includes `?v=` for
+ * cache busting when `baselineVersion` changes after fold.
+ */
+export function buildCollaborativePointTileUrlTemplate(
+  storeId: string,
+  baselineVersion = 0,
+): string {
+  const collectionId = storeIdToTipgCollectionId(storeId);
+  return (
+    `jupytergis_core/tiles/collections/${collectionId}` +
+    `/tiles/WebMercatorQuad/{z}/{x}/{y}?v=${baselineVersion}`
+  );
+}
+
 /**
  * Return DDL to create a per-store baseline table and its spatial index.
  * `tableName` must already be a validated identifier from

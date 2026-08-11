@@ -10,14 +10,19 @@
       "description": "Stable id for the collaborative feature store (maps to PostGIS table jgis_store_<slug>).",
       "default": ""
     },
+    "tileUrlTemplate": {
+      "type": "string",
+      "description": "MVT URL template with {z}/{x}/{y} for the live tipg baseline (usually jupytergis_core/tiles/collections/…). Prefixed with the Jupyter base URL at runtime. Append ?v= from baselineVersion for cache busting.",
+      "default": ""
+    },
     "pmtilesPath": {
       "type": "string",
-      "description": "Path or URL to the static PMTiles baseline snapshot (empty until first fold).",
+      "description": "Legacy path/URL to a static PMTiles baseline (unused when tileUrlTemplate is set).",
       "default": ""
     },
     "baselineVersion": {
       "type": "integer",
-      "description": "Monotonic baseline / PMTiles version; bump after each fold.",
+      "description": "Monotonic baseline version; bump after each fold and append as ?v= on tile requests.",
       "default": 0,
       "minimum": 0
     },
