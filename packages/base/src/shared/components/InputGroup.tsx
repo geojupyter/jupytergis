@@ -87,21 +87,23 @@ const InputGroupButton = React.forwardRef<
     VariantProps<typeof inputGroupButtonVariants> & {
       type?: 'button' | 'submit' | 'reset';
     }
->((
-  { className, type = 'button', variant = 'ghost', size = 'xs', ...props },
-  ref,
-) => {
-  return (
-    <Button
-      ref={ref}
-      type={type}
-      data-size={size}
-      variant={variant}
-      className={cn(inputGroupButtonVariants({ size }), className)}
-      {...props}
-    />
-  );
-});
+>(
+  (
+    { className, type = 'button', variant = 'ghost', size = 'xs', ...props },
+    ref,
+  ) => {
+    return (
+      <Button
+        ref={ref}
+        type={type}
+        data-size={size}
+        variant={variant}
+        className={cn(inputGroupButtonVariants({ size }), className)}
+        {...props}
+      />
+    );
+  },
+);
 
 function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
   return (
