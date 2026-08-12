@@ -127,7 +127,7 @@ doc
 ## Symbology on `add_geotiff_layer`
 
 ```python
-rom jupytergis import GISDocument, field
+from jupytergis import GISDocument, field
 
 doc = GISDocument(latitude=16.731087, longitude=33.278505, zoom=9)
 await doc.ready()
