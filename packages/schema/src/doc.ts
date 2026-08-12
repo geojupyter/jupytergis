@@ -34,6 +34,12 @@ import { migrateDocument } from './migrations';
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
 
+/** Whole-world extent in EPSG:3857 (Default projection). */
+export const DEFAULT_WORLD_EXTENT_3857: [number, number, number, number] = [
+  -20037508.342789244, -20037508.342789244, 20037508.342789244,
+  20037508.342789244,
+];
+
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
@@ -41,7 +47,7 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"sources": {},
   "stories": {},
   "viewState": {},
-	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}"},
+	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}", "extent": [${DEFAULT_WORLD_EXTENT_3857.join(', ')}]},
 	"layerTree": [],
 	"annotations": {},
 	"presets": {},
