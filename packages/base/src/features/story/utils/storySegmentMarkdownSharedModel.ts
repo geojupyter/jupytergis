@@ -174,9 +174,12 @@ function ensureParameterSync(
   synced.add(segmentId);
 
   const debouncedSync = debounce(() => {
-    updateSegmentContent(model, segmentId, {
-      markdown: shared.getSource(),
-    });
+    // Mirror Y.Text into layer parameters without polluting the undo stack.
+    model.sharedModel.transact(() => {
+      updateSegmentContent(model, segmentId, {
+        markdown: shared.getSource(),
+      });
+    }, false);
   }, PARAMETER_SYNC_DEBOUNCE_MS);
 
   shared.changed.connect(() => {
