@@ -127,10 +127,7 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
   }
 
   let result: Record<string, any> = { ...doc, layers };
-  for (const step of [
-    _migrateStorySegmentCaptions,
-    _migrateAnnotations,
-  ]) {
+  for (const step of [_migrateStorySegmentCaptions, _migrateAnnotations]) {
     result = step(result);
   }
   return result;
