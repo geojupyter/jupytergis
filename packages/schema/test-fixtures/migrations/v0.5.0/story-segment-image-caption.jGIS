@@ -1,8 +1,5 @@
 {
-  "annotations": {},
-  "layerTree": [
-    "segment-id"
-  ],
+  "layerTree": ["segment-id"],
   "layers": {
     "segment-id": {
       "name": "Segment",
@@ -10,15 +7,10 @@
         "content": {
           "contentMode": "map",
           "image": "",
-          "imageCaption": "Old caption",
-          "markdown": "Body text"
+          "markdown": "Body text",
+          "title": "Old caption"
         },
-        "extent": [
-          0,
-          0,
-          1,
-          1
-        ],
+        "extent": [0, 0, 1, 1],
         "layerOverride": [],
         "transition": {
           "time": 2.0,
@@ -39,7 +31,6 @@
     "projection": "EPSG:3857",
     "zoom": 4
   },
-  "presets": {},
-  "schemaVersion": "0.7.0",
+  "schemaVersion": "0.5.0",
   "sources": {}
 }
