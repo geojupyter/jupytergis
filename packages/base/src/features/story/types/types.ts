@@ -21,7 +21,7 @@ export interface IOverrideLayerEntry {
 
 /** Active handoff between two segments while scrolling the virtual track. */
 export interface IListStorySegmentTransition {
-  /** 0–1 across the handoff span (outgoing segment + gap + incoming segment). */
+  /** 0–1 across the handoff span (outgoing segment height + gap). */
   progress: number;
   fromIndex: number;
   toIndex: number;
