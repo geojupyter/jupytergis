@@ -41,7 +41,7 @@ export function ColumnPresentationDesktop({
       storyData?.storyType,
       storyData?.presentationBgColor,
       storyData?.presentationTextColor,
-      storyData?.mapOverlayOpacity,
+      storyData?.storyPanelOpacity,
     ],
   );
 

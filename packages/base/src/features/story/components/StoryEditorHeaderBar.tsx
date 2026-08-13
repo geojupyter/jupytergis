@@ -317,10 +317,10 @@ function StorySettingsPopover({
               </>
             ) : null}
             <StoryOpacityField
-              label="Map overlay opacity"
-              value={story.mapOverlayOpacity}
-              onChange={mapOverlayOpacity => {
-                onUpdateStory({ mapOverlayOpacity });
+              label="Story panel opacity"
+              value={story.storyPanelOpacity}
+              onChange={storyPanelOpacity => {
+                onUpdateStory({ storyPanelOpacity });
               }}
             />
             <label className="jgis-story-editor-field">

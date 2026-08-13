@@ -192,10 +192,10 @@
           "maximum": 1,
           "default": 1
         },
-        "mapOverlayOpacity": {
+        "storyPanelOpacity": {
           "type": "number",
-          "title": "Map overlay opacity",
-          "description": "Opacity of map-segment side panel backgrounds in vertical scroll stories (0–1). Text stays fully opaque.",
+          "title": "Story panel opacity",
+          "description": "Opacity of story panel backgrounds over the map (0–1). Text stays fully opaque.",
           "minimum": 0,
           "maximum": 1,
           "default": 1

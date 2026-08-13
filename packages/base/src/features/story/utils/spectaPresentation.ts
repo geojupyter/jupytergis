@@ -115,9 +115,10 @@ export function getSpectaPresentationCssVars(
     style.color = textColor;
   }
 
-  if (story?.mapOverlayOpacity !== undefined) {
-    (style as Record<string, string>)['--jgis-story-map-overlay-opacity'] =
-      String(resolveStoryOpacity(story.mapOverlayOpacity));
+  if (story?.storyPanelOpacity !== undefined) {
+    (style as Record<string, string>)['--jgis-story-panel-opacity'] = String(
+      resolveStoryOpacity(story.storyPanelOpacity),
+    );
   }
 
   if (verticalScroll) {

@@ -133,21 +133,21 @@
     color-mix(
         in srgb,
         var(--jgis-specta-panel-color, var(--jp-layout-color0))
-          calc(var(--jgis-story-map-overlay-opacity, 1) * 100%),
+          calc(var(--jgis-story-panel-opacity, 1) * 100%),
         transparent
       )
       49%,
     color-mix(
         in srgb,
         var(--jgis-specta-panel-color, var(--jp-layout-color0))
-          calc(var(--jgis-story-map-overlay-opacity, 1) * 60%),
+          calc(var(--jgis-story-panel-opacity, 1) * 60%),
         transparent
       )
       65%,
     color-mix(
         in srgb,
         var(--jgis-specta-panel-color, var(--jp-layout-color0))
-          calc(var(--jgis-story-map-overlay-opacity, 1) * 50%),
+          calc(var(--jgis-story-panel-opacity, 1) * 50%),
         transparent
       )
       70%,
@@ -159,7 +159,7 @@
   background: color-mix(
     in srgb,
     var(--jgis-specta-panel-color, var(--jp-layout-color0))
-      calc(var(--jgis-story-map-overlay-opacity, 1) * 100%),
+      calc(var(--jgis-story-panel-opacity, 1) * 100%),
     transparent
   );
 }
@@ -430,7 +430,7 @@
   background-color: color-mix(
     in srgb,
     var(--jgis-specta-bg-color, var(--jp-layout-color0))
-      calc(var(--jgis-story-map-overlay-opacity, 1) * 100%),
+      calc(var(--jgis-story-panel-opacity, 1) * 100%),
     transparent
   );
   box-shadow:
@@ -513,7 +513,7 @@
   background-color: color-mix(
     in srgb,
     var(--jgis-specta-bg-color, var(--jp-layout-color0))
-      calc(var(--jgis-story-map-overlay-opacity, 1) * 90%),
+      calc(var(--jgis-story-panel-opacity, 1) * 90%),
     transparent
   );
 }
