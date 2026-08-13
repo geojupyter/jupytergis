@@ -40,6 +40,7 @@ import {
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
 import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
+import SegmentImageCaptionField from './components/SegmentImageCaptionField';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -80,6 +81,7 @@ function SegmentEditor({
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
   const imageUrl = segment.activeSlide?.content?.image ?? '';
+  const imageCaption = segment.activeSlide?.content?.title ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
   const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
@@ -159,6 +161,10 @@ function SegmentEditor({
                 onChange={nextImageUrl => {
                   onContentChange({ image: nextImageUrl });
                 }}
+              />
+              <SegmentImageCaptionField
+                value={imageCaption}
+                onChange={caption => onContentChange({ title: caption })}
               />
               <SegmentMarkdownEditor
                 model={model}
