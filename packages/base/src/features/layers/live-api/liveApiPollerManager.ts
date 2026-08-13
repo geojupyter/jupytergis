@@ -83,6 +83,7 @@ export class LiveApiPollerManager implements IDisposable {
     for (const sourceId of this._pollers.keys()) {
       if (!liveIds.has(sourceId)) {
         this._stopOne(sourceId);
+        this._dismissError(sourceId);
       }
     }
 
@@ -116,6 +117,7 @@ export class LiveApiPollerManager implements IDisposable {
 
     for (const sourceId of [...this._pollers.keys()]) {
       this._stopOne(sourceId);
+      this._dismissError(sourceId);
     }
 
     this._featureApplier = null;
@@ -139,11 +141,13 @@ export class LiveApiPollerManager implements IDisposable {
     const source = this._model.getSource(sourceId);
     if (!source || source.type !== 'LiveApiSource') {
       this._stopOne(sourceId);
+      this._dismissError(sourceId);
       return;
     }
 
     if (!isLiveApiSourceVisible(this._model, sourceId)) {
       this._stopOne(sourceId);
+      this._dismissError(sourceId);
       return;
     }
 
@@ -183,6 +187,16 @@ export class LiveApiPollerManager implements IDisposable {
     state.timer = window.setInterval(tick, pollIntervalMs);
   }
 
+  private _dismissError(sourceId: string): void {
+    const id = this._errorNotificationIds.get(sourceId);
+    if (!id) {
+      return;
+    }
+
+    Notification.dismiss(id);
+    this._errorNotificationIds.delete(sourceId);
+  }
+
   private _stopOne(sourceId: string): void {
     const state = this._pollers.get(sourceId);
     if (!state) {
@@ -207,8 +221,11 @@ export class LiveApiPollerManager implements IDisposable {
     const source = this._model.getSource(sourceId);
     if (!source || source.type !== 'LiveApiSource') {
       this._stopOne(sourceId);
+      this._dismissError(sourceId);
       return;
     }
+
+    const stateRef = state;
 
     state.abort?.abort();
     state.abort = new AbortController();
@@ -220,9 +237,11 @@ export class LiveApiPollerManager implements IDisposable {
         state.abort.signal,
       );
 
-      if (this._isDisposed || !this._pollers.has(sourceId)) {
+      if (this._isDisposed || this._pollers.get(sourceId) !== stateRef) {
         return;
       }
+
+      this._dismissError(sourceId);
 
       this._featureApplier?.(
         sourceId,
@@ -235,16 +254,31 @@ export class LiveApiPollerManager implements IDisposable {
         return;
       }
 
+      // Superseded by a URL restart so we don't create orphan toasts.
+      if (this._pollers.get(sourceId) !== stateRef) {
+        return;
+      }
+
+      // One sticky error per source until a successful poll.
+      if (this._errorNotificationIds.has(sourceId)) {
+        return;
+      }
+
       const message = error instanceof Error ? error.message : String(error);
 
-      Notification.error(`Live API poll failed: ${message}`, {
-        autoClose: 6000,
-      });
+      const notificationId = Notification.error(
+        `Live API poll failed: ${message}`,
+        {
+          autoClose: false,
+        },
+      );
+      this._errorNotificationIds.set(sourceId, notificationId);
     }
   }
 
   private _model: IJupyterGISModel;
   private _pollers = new Map<string, IPollerState>();
+  private _errorNotificationIds = new Map<string, string>();
   private _featureApplier: LiveApiFeatureApplier | null = null;
   private _isDisposed = false;
 }
