@@ -15,7 +15,6 @@ import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
-import StoryTitleSection from './components/StoryTitleSection';
 import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
 export interface IStoryViewerPanelSegmentNav {
