@@ -22,7 +22,10 @@ const FIXTURES_ROOT = path.resolve(
   '../../../../packages/schema/test-fixtures/migrations',
 );
 
-const VERSION_PAIRS: [string, string][] = [['v0.5.0', 'v0.6.0']];
+const VERSION_PAIRS: [string, string][] = [
+  ['v0.5.0', 'v0.6.0'],
+  ['v0.6.0', 'v0.7.0'],
+];
 
 function sharedFixtureNames(fromV: string, toV: string): string[] {
   const fromDir = path.join(FIXTURES_ROOT, fromV);

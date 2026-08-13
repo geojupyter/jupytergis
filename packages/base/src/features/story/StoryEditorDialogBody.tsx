@@ -81,7 +81,7 @@ function SegmentEditor({
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
   const imageUrl = segment.activeSlide?.content?.image ?? '';
-  const imageCaption = segment.activeSlide?.content?.title ?? '';
+  const imageCaption = segment.activeSlide?.content?.imageCaption ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
   const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
@@ -164,7 +164,7 @@ function SegmentEditor({
               />
               <SegmentImageCaptionField
                 value={imageCaption}
-                onChange={caption => onContentChange({ title: caption })}
+                onChange={caption => onContentChange({ imageCaption: caption })}
               />
               <SegmentMarkdownEditor
                 model={model}

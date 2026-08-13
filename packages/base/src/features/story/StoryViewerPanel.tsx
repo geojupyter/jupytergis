@@ -170,7 +170,7 @@ function StoryViewerPanel({
             />
           )}
           <StorySubtitleSection
-            title={activeSlide?.content?.title ?? ''}
+            title={activeSlide?.content?.imageCaption ?? ''}
             navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
           />
         </div>

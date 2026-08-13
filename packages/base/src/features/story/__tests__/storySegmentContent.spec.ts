@@ -10,13 +10,13 @@ describe('normalizeSegmentContentForMode', () => {
         {
           contentMode: 'markdown',
           markdown: '# Hello',
-          title: 'ignored',
+          imageCaption: 'ignored',
         },
         'map',
       ),
     ).toEqual({
       contentMode: 'map',
-      title: 'ignored',
+      imageCaption: 'ignored',
       image: '',
       markdown: '# Hello',
     });
@@ -27,7 +27,7 @@ describe('normalizeSegmentContentForMode', () => {
       normalizeSegmentContentForMode(
         {
           contentMode: 'map',
-          title: 'Flood stage',
+          imageCaption: 'Flood stage',
           image: 'hero.png',
           markdown: 'Caption text',
         },
@@ -49,7 +49,7 @@ describe('updateSegmentContent', () => {
         parameters: {
           content: {
             contentMode: 'map',
-            title: 'Old title',
+            imageCaption: 'Old caption',
             markdown: 'Old body',
           },
         },
@@ -64,7 +64,7 @@ describe('updateSegmentContent', () => {
     expect(updateObjectParameters).toHaveBeenCalledWith('segment-1', {
       content: {
         contentMode: 'map',
-        title: 'Old title',
+        imageCaption: 'Old caption',
         markdown: 'New body',
       },
     });
