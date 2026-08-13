@@ -160,12 +160,7 @@ function StoryViewerPanel({
               slideNumber={currentIndex}
               navSlot={navPlacement === 'over-image' ? navSlot : null}
             />
-          ) : (
-            <StoryTitleSection
-              title={storyData.title ?? ''}
-              navSlot={navPlacement === 'below-title' ? navSlot : null}
-            />
-          )}
+          ) : null}
           <StoryImageCaptionSection
             caption={activeSlide?.content?.imageCaption ?? ''}
             navSlot={navPlacement === 'caption-specta' ? navSlot : null}

@@ -2,7 +2,7 @@ import React from 'react';
 
 interface IStoryImageCaptionSectionProps {
   caption: string;
-  navSlot?: React.ReactNode;
+  navSlot: React.ReactNode;
 }
 
 function StoryImageCaptionSection({
@@ -10,7 +10,7 @@ function StoryImageCaptionSection({
   navSlot,
 }: IStoryImageCaptionSectionProps) {
   if (caption === '') {
-    return null;
+    return navSlot;
   }
 
   return (
