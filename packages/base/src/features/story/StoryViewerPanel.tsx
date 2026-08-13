@@ -12,9 +12,9 @@ import {
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
 import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
+import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
-import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryTitleSection from './components/StoryTitleSection';
 import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
