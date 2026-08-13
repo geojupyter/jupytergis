@@ -98,6 +98,8 @@ export function ListStoryScrollTrackProvider({
       storyData?.presentationBgColor,
       storyData?.presentationTextColor,
       storyData?.overlayContentWidth,
+      storyData?.markdownSegmentOpacity,
+      storyData?.storyPanelOpacity,
     ],
   );
 
