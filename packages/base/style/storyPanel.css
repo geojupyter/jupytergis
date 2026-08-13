@@ -75,7 +75,7 @@
   background-color: var(--jp-layout-color0);
 }
 
-.jgis-story-viewer-subtitle-container {
+.jgis-story-viewer-caption-container {
   display: flex;
   align-items: center;
   padding-top: 1rem;
@@ -96,7 +96,7 @@
   text-align: center;
 }
 
-.jgis-story-viewer-subtitle {
+.jgis-story-viewer-caption {
   text-align: center;
   margin: 0 auto;
 }

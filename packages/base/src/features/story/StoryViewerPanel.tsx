@@ -14,7 +14,7 @@ import type { StoryPresentationMode } from '@/src/features/story/presentation/ty
 import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
-import StorySubtitleSection from './components/StorySubtitleSection';
+import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryTitleSection from './components/StoryTitleSection';
 import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
@@ -56,13 +56,10 @@ export interface IStoryViewerPanelHandle {
  * Where the story nav bar should be rendered in the viewer layout.
  * - below-title: normal mode, guided, no image (under the title)
  * - over-image: normal mode, guided, with image (over the image)
- * - subtitle-specta: specta mode desktop (next to subtitle, fixed centered)
+ * - caption-specta: specta mode desktop (next to caption, fixed centered)
  * Specta mode mobile returns null (nav hidden).
  */
-export type StoryNavPlacement =
-  | 'below-title'
-  | 'over-image'
-  | 'subtitle-specta';
+export type StoryNavPlacement = 'below-title' | 'over-image' | 'caption-specta';
 
 /**
  * Returns which section should render the nav bar, or null if nav should be hidden.
@@ -78,7 +75,7 @@ function getStoryNavPlacement(
   }
 
   if (isSpecta) {
-    return isMobile ? null : 'subtitle-specta';
+    return isMobile ? null : 'caption-specta';
   }
 
   return hasImage ? 'over-image' : 'below-title';
@@ -169,9 +166,9 @@ function StoryViewerPanel({
               navSlot={navPlacement === 'below-title' ? navSlot : null}
             />
           )}
-          <StorySubtitleSection
-            title={activeSlide?.content?.imageCaption ?? ''}
-            navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
+          <StoryImageCaptionSection
+            caption={activeSlide?.content?.imageCaption ?? ''}
+            navSlot={navPlacement === 'caption-specta' ? navSlot : null}
           />
         </div>
         <div id="jgis-story-segment-content">

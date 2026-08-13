@@ -12,7 +12,7 @@ import { SegmentModePicker } from '@/src/features/story/components/SegmentModePi
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
-import { TitleInput } from '@/src/features/story/components/TitleInput';
+import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
@@ -97,8 +97,10 @@ function SegmentEditor({
           <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
-          <TitleInput
+          <StoryEditorInput
             value={displayTitle}
+            placeholder="Enter Segment Title..."
+            aria-label="Segment title"
             onChange={title => {
               onLayerNameChange(title);
             }}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TitleInput } from '@/src/features/story/components/TitleInput';
+import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 
 interface ISegmentImageCaptionFieldProps {
   value: string;
@@ -14,8 +14,10 @@ function SegmentImageCaptionField({
   return (
     <div style={{ flexDirection: 'row' }}>
       <div className="jgis-story-editor-eyebrow">Image Caption</div>
-      <TitleInput
+      <StoryEditorInput
         value={value}
+        placeholder="Enter Image Caption..."
+        aria-label="Image caption"
         onChange={caption => {
           onChange(caption);
         }}
