@@ -223,7 +223,7 @@ describe('getTransitionTranslatePx', () => {
   });
 
   it('uses to.start - from.start for map↔markdown handoffs', () => {
-    const { segments } = mapMdLayout!;
+    const { segments } = mapMdLayout;
     expect(
       getTransitionTranslatePx(
         {
