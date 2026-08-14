@@ -549,6 +549,17 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   );
 }
 
+.jgis-story-editor-pane-alignment-picker
+  .jgis-button.jgis-story-editor-pane-alignment-button--selected {
+  border-color: var(--jp-brand-color1);
+  background: color-mix(
+    in srgb,
+    var(--jp-brand-color1) 8%,
+    var(--jp-layout-color1)
+  );
+  z-index: 1;
+}
+
 .jgis-story-map-interaction-bar-root {
   pointer-events: auto;
 }
