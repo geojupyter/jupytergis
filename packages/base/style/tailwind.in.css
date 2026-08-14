@@ -6,10 +6,16 @@
 @source '../src/**/*.{ts,tsx}';
 
 @layer base {
-  *,
-  ::before,
-  ::after {
-    box-sizing: border-box;
+  /* Scope to GIS UI + shadcn/data-slot trees; do not reset the JupyterLab shell. */
+  :where([class^='jgis-'], [class*=' jgis-'], [data-slot]) {
+    &,
+    *,
+    &::before,
+    &::after,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
   }
 }
 
