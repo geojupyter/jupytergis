@@ -4406,8 +4406,8 @@ function MainViewWithObserver(
   );
 
   React.useEffect(() => {
-    /*TODO (fix): this creates a rare bug where certain togglable features 
-    (like the location indicator and draw tool) behave unexpectedly following a projection 
+    /*TODO (fix): this creates a rare bug where certain togglable features
+    (like the location indicator and draw tool) behave unexpectedly following a projection
     change. this is causes by the fact that the mainView component is unmounted and remounted on projection change,
     but the toolbar state is not reset.
     */
