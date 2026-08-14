@@ -18,7 +18,7 @@ import { EditorView, placeholder, keymap } from '@codemirror/view';
 import {
   ClassificationMode,
   ICategoricalScale,
-  IColorRampScale,
+  IColorMapScale,
   IConstantNumScale,
   IConstantRGBAScale,
   IExpressionScale,
@@ -119,17 +119,17 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
 };
 
 // ---------------------------------------------------------------------------
-// ColorRamp editor
+// ColorMap editor
 // ---------------------------------------------------------------------------
 
-interface IColorRampEditorProps {
-  scale: IColorRampScale;
+interface IColorMapEditorProps {
+  scale: IColorMapScale;
   field: string | undefined;
   featureValues: Record<string, Set<any>>;
   onChange: (scale: IScale) => void;
 }
 
-export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
+export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
   scale,
   field,
   featureValues,
@@ -141,8 +141,8 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
   );
 
   const update = useCallback(
-    (patch: Partial<IColorRampScale['params']>) =>
-      onChange({ scheme: 'colorRamp', params: { ...params, ...patch } }),
+    (patch: Partial<IColorMapScale['params']>) =>
+      onChange({ scheme: 'colorMap', params: { ...params, ...patch } }),
     [params, onChange],
   );
 

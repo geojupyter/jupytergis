@@ -179,9 +179,9 @@
         "color": { "$ref": "#/definitions/RGBA" }
       }
     },
-    "IColorRampScaleParams": {
+    "IColorMapScaleParams": {
       "type": "object",
-      "title": "IColorRampScaleParams",
+      "title": "IColorMapScaleParams",
       "description": "Parameters controlling color-ramp classification and fallback behavior.",
       "required": ["name", "nShades", "mode", "reverse", "fallback"],
       "additionalProperties": false,
@@ -203,15 +203,15 @@
         }
       }
     },
-    "IColorRampScale": {
+    "IColorMapScale": {
       "type": "object",
-      "title": "IColorRampScale",
+      "title": "IColorMapScale",
       "description": "Maps a numeric field through a named color palette to RGBA.",
       "required": ["scheme", "params"],
       "additionalProperties": false,
       "properties": {
-        "scheme": { "const": "colorRamp" },
-        "params": { "$ref": "#/definitions/IColorRampScaleParams" }
+        "scheme": { "const": "colorMap" },
+        "params": { "$ref": "#/definitions/IColorMapScaleParams" }
       }
     },
     "ICategoricalColorStop": {
@@ -388,7 +388,7 @@
       "title": "IScale",
       "description": "Scale union that maps input values to styled outputs.",
       "oneOf": [
-        { "$ref": "#/definitions/IColorRampScale" },
+        { "$ref": "#/definitions/IColorMapScale" },
         { "$ref": "#/definitions/ICategoricalScale" },
         { "$ref": "#/definitions/IScalarScale" },
         { "$ref": "#/definitions/IConstantRGBAScale" },

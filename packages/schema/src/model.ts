@@ -21,7 +21,11 @@ import {
   IJGISStoryMap,
 } from './_interface/project/jgis';
 import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
-import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
+import {
+  DEFAULT_PROJECTION,
+  DEFAULT_WORLD_EXTENT_3857,
+  JupyterGISDoc,
+} from './doc';
 import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
@@ -428,6 +432,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         bearing: 0,
         pitch: 0,
         projection: DEFAULT_PROJECTION,
+        extent: [...DEFAULT_WORLD_EXTENT_3857],
       };
       this.sharedModel.annotations = jsonData.annotations ?? {};
       this.sharedModel.presets = jsonData.presets ?? {};
@@ -947,7 +952,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const zoom = state?.zoom;
     const { storyId } = this.getSelectedStory();
 
-    if (!zoom || !extent) {
+    if (zoom === undefined || !extent) {
       console.warn('No extent or zoom found');
       return null;
     }

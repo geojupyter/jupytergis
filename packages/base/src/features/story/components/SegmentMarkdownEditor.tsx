@@ -83,6 +83,45 @@ export function SegmentMarkdownEditor({
 
     host.addEventListener('paste', onPaste);
 
+    // Route undo/redo through Yjs (browser historyUndo only covers typing).
+    host.dataset.jpUndoer = 'true';
+
+    const onKeyDownCapture = (event: KeyboardEvent): void => {
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod || event.altKey) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      const isUndo = key === 'z' && !event.shiftKey;
+      const isRedo = (key === 'z' && event.shiftKey) || key === 'y';
+
+      if (!isUndo && !isRedo) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (isUndo) {
+        editor.undo();
+      } else {
+        editor.redo();
+      }
+    };
+
+    const onBeforeInputCapture = (event: InputEvent): void => {
+      if (
+        event.inputType === 'historyUndo' ||
+        event.inputType === 'historyRedo'
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    host.addEventListener('keydown', onKeyDownCapture, true);
+    host.addEventListener('beforeinput', onBeforeInputCapture, true);
+
     const refreshPreview = (): void => {
       setPreviewMarkdown(sharedModel.getSource());
     };
@@ -92,6 +131,8 @@ export function SegmentMarkdownEditor({
 
     return () => {
       host.removeEventListener('paste', onPaste);
+      host.removeEventListener('keydown', onKeyDownCapture, true);
+      host.removeEventListener('beforeinput', onBeforeInputCapture, true);
       sharedModel.changed.disconnect(refreshPreview);
       editor.dispose();
       editorRef.current = null;

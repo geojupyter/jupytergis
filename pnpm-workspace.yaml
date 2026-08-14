@@ -30,3 +30,8 @@ overrides:
   '@jupyterlab/rendermime': '^4.6'
   '@jupyterlab/services': '^7.6'
   webpack: '>=5.76.3 <5.107.0'
+  # jupyterlab-tour -> react-joyride/react-floater declare a `react-dom: 15 - 18`
+  # peer; without this pnpm pulls a second react-dom@16.14.0 alongside the app's
+  # 18.3.1 (and flips the vue-loader/consolidate chain onto it). Pin to the one
+  # react-dom the app already uses.
+  react-dom: '18.3.1'
