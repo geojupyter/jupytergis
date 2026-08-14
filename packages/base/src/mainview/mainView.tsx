@@ -467,6 +467,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onSharedOptionsChanged,
       this,
     );
+    this._model.sharedLayersChanged.disconnect(this._onLayersChanged, this);
+    this._model.sharedLayerTreeChanged.disconnect(
+      this._onLayerTreeChange,
+      this,
+    );
+    this._model.sharedSourcesChanged.disconnect(this._onSourcesChange, this);
+    this._model.sharedModel.changed.disconnect(this._onSharedModelStateChange);
+    this._model.sharedAnnotationsChanged.disconnect(
+      this._onAnnotationsChanged,
+      this,
+    );
+    this._model.zoomToPositionSignal.disconnect(this._onZoomToPosition, this);
+    this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
+    this._model.addFeatureAsMsSignal.disconnect(this._convertFeatureToMs, this);
+    this._model.geolocationChanged.disconnect(
+      this._handleGeolocationChanged,
+      this,
+    );
+    this._model.flyToGeometrySignal.disconnect(this.flyToGeometry, this);
+    this._model.highlightFeatureSignal.disconnect(
+      this.highlightFeatureOnMap,
+      this,
+    );
 
     this._model.temporalControllerActiveChanged.disconnect(
       this._handleTemporalControllerActiveChanged,
@@ -4342,14 +4365,34 @@ function MainViewWithObserver(
   props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
 ) {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [key, setKey] = React.useState(0);
   const isMobile = useIsMobile(containerRef);
 
   React.useEffect(() => {
     containerRef.current?.classList.toggle('jgis-narrow', isMobile);
   }, [isMobile]);
 
+  const projectionRef = React.useRef(
+    props.viewModel.jGISModel.getOptions().projection,
+  );
+
+  React.useEffect(() => {
+    const model = props.viewModel.jGISModel;
+    const onChange = () => {
+      const projection = model.getOptions().projection;
+      if (projection !== projectionRef.current) {
+        projectionRef.current = projection;
+        setKey(prevKey => prevKey + 1);
+      }
+    };
+    model.sharedOptionsChanged.connect(onChange);
+    return () => {
+      model.sharedOptionsChanged.disconnect(onChange);
+    };
+  }, [props.viewModel]);
+
   return (
-    <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
+    <MainView {...props} isMobile={isMobile} containerRef={containerRef} key={key} />
   );
 }
 
