@@ -110,7 +110,7 @@ def _denormalize(value: float, vmin: float, vmax: float) -> float:
 def _parse_band(fields: list[str]) -> int | None:
     """Return the band index from a ``band_N`` pseudo-field, if present."""
     for field in fields:
-        match = re.match(r"/^band_(\d+)$", str(field))
+        match = re.match(r"^band_(\d+)$", str(field))
         if match:
             return int(match.group(1))
     return None
