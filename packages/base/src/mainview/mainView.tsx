@@ -1810,6 +1810,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         layerParameters = layer.parameters as IGeoTiffLayer;
         const geoTiffSource = this._sources[layerParameters.source];
 
+        await this._waitForSourceReady(geoTiffSource);
+
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
@@ -1840,6 +1842,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'GeoZarrLayer': {
         layerParameters = layer.parameters as IGeoZarrLayer;
         const geoZarrSource = this._sources[layerParameters.source];
+
+        await this._waitForSourceReady(geoZarrSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
@@ -1906,7 +1910,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       this.addProjection(newMapLayer);
-      await this._waitForSourceReady(newMapLayer);
+      await this._waitForLayerReady(newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -2446,7 +2450,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer | LayerGroup) {
+  private _waitForLayerReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -2455,7 +2459,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           resolve();
         } else if (state === 'error') {
           layer.un('change', checkState);
-          reject(new Error('Source failed to load.'));
+          reject(new Error('Layer failed to load.'));
         }
       };
 
@@ -2463,6 +2467,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       layer.on('change', checkState);
 
       // Check the state immediately in case it's already 'ready'
+      checkState();
+    });
+  }
+
+  /**
+   * Wait for a source to finish loading and configuring
+   * @param source The Source to check
+   */
+  private _waitForSourceReady(source: Source) {
+    return new Promise<void>((resolve, reject) => {
+      const checkState = () => {
+        const state = source.getState();
+        if (state === 'ready') {
+          source.un('change', checkState);
+          resolve();
+        } else if (state === 'error') {
+          source.un('change', checkState);
+          reject(new Error('Source failed to load'));
+        }
+      };
+
+      // Listen for state changes
+      source.on('change', checkState);
+
+      // Check immediately in case already ready
       checkState();
     });
   }
