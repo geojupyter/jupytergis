@@ -237,32 +237,41 @@ function segmentConfigsEqual(
   return false;
 }
 
+function isMarkdownSegment(item: IStorySegmentViewItem | undefined): boolean {
+  return getSegmentDisplayMode(item?.activeSlide) === 'markdown';
+}
+
 function getMarkdownConstrainedWidthClass(
   isMap: boolean,
   isOverlayContentWidthFull: boolean,
   segmentIndex: number,
-  segmentCount: number,
+  items: IStorySegmentViewItem[],
+  markdownSegmentGap: boolean,
 ): string {
-  if (isMap || isOverlayContentWidthFull || segmentCount <= 0) {
+  if (isMap || isOverlayContentWidthFull || items.length <= 0) {
     return '';
   }
 
-  const isFirst = segmentIndex === 0;
-  const isLast = segmentIndex === segmentCount - 1;
+  const joinsPrevious =
+    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex - 1]);
+  const joinsNext =
+    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex + 1]);
+  const roundTop = segmentIndex !== 0 && !joinsPrevious;
+  const roundBottom = segmentIndex !== items.length - 1 && !joinsNext;
 
-  if (isFirst && isLast) {
+  if (roundTop && roundBottom) {
     return ' jgis-story-markdown-scroll-pane--constrained-width';
   }
 
-  if (isFirst) {
-    return ' jgis-story-markdown-scroll-pane--constrained-width-first';
+  if (roundBottom) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-bottom';
   }
 
-  if (isLast) {
-    return ' jgis-story-markdown-scroll-pane--constrained-width-last';
+  if (roundTop) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-top';
   }
 
-  return ' jgis-story-markdown-scroll-pane--constrained-width';
+  return '';
 }
 
 function segmentOverlayPanePropsAreEqual(
@@ -298,7 +307,8 @@ const SegmentOverlayPane = React.memo(
       isMap,
       isOverlayContentWidthFull,
       segmentIndex,
-      items.length,
+      items,
+      storyData.markdownSegmentGap === true,
     );
 
     useLayoutEffect(() => {
