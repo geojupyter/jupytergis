@@ -161,6 +161,12 @@ function ComboboxContent({
   );
 }
 
+const comboboxListSizeClass =
+  'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))]';
+
+const comboboxListScrollClass =
+  'scroll-py-1 overflow-y-auto overscroll-contain';
+
 function ComboboxList({
   className,
   virtualized = false,
@@ -170,10 +176,10 @@ function ComboboxList({
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] data-empty:p-0 p-1',
+        'data-empty:p-0 p-1',
         virtualized
           ? 'overflow-hidden'
-          : 'scroll-py-1 overflow-y-auto overscroll-contain',
+          : cn(comboboxListSizeClass, comboboxListScrollClass),
         className,
       )}
       {...props}
@@ -208,7 +214,7 @@ const ComboboxItem = React.forwardRef<
 });
 
 /**
- * Virtualized item list for use inside ComboboxList when Root has
+ * Virtualized item lddist for use inside ComboboxList when Root has
  * `virtualized`. Wire `virtualizerRef` + `createComboboxVirtualHighlightHandler`
  * on Root `onItemHighlighted`.
  * @see https://base-ui.com/react/components/combobox#virtualized
@@ -234,8 +240,6 @@ function ComboboxVirtualizedList<T>({
     getScrollElement: () => scrollElementRef.current,
     estimateSize: () => estimateSize,
     overscan,
-    paddingStart: 4,
-    paddingEnd: 4,
     scrollPaddingEnd: 4,
     scrollPaddingStart: 4,
   });
@@ -262,11 +266,11 @@ function ComboboxVirtualizedList<T>({
     <div
       role="presentation"
       ref={handleScrollElementRef}
-      // className={cn(
-      //   'h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] overflow-y-auto overscroll-contain',
-      //   className,
-      // )}
-      style={{ '--total-size': `${totalSize}px` } as React.CSSProperties}
+      className={cn(
+        comboboxListSizeClass,
+        comboboxListScrollClass,
+        className,
+      )}
     >
       <div
         role="presentation"
