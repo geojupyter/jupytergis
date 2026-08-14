@@ -37,6 +37,7 @@ import {
   getStoryMarkdownFromSlide,
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
+import { isOverlayContentWidthFull } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
   NativeSelect,
@@ -66,6 +67,7 @@ function SegmentEditor({
   onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
+  showPaneAlignmentPicker,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -79,6 +81,7 @@ function SegmentEditor({
   onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
+  showPaneAlignmentPicker: boolean;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
@@ -126,12 +129,14 @@ function SegmentEditor({
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
 
-      <SegmentPaneAlignmentPicker
-        value={paneAlignment}
-        onChange={alignment => {
-          onContentChange({ paneAlignment: alignment });
-        }}
-      />
+      {showPaneAlignmentPicker ? (
+        <SegmentPaneAlignmentPicker
+          value={paneAlignment}
+          onChange={alignment => {
+            onContentChange({ paneAlignment: alignment });
+          }}
+        />
+      ) : null}
 
       {segmentMode === 'map' ? (
         <>
@@ -287,6 +292,10 @@ export function StoryEditorDialogBody({
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
+  const showPaneAlignmentPicker = !isOverlayContentWidthFull(
+    story?.overlayContentWidth,
+  );
+
   const portalContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -350,6 +359,7 @@ export function StoryEditorDialogBody({
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
               onRemoveSegment={removeSegment}
+              showPaneAlignmentPicker={showPaneAlignmentPicker}
             />
           ) : (
             <SegmentEditorEmptyState />
