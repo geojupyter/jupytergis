@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 
 import { QueryableComboBox } from '@/src/features/stac-browser/components/filter-extension/QueryableComboBox';
 import {
@@ -24,10 +24,8 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
   filterOperator,
   setFilterOperator,
 }) => {
-  const portalContainerRef = useRef<HTMLDivElement>(null);
-
   return (
-    <div ref={portalContainerRef} className="jgis-stac-queryable-filters">
+    <div className="jgis-stac-queryable-filters">
       <RadioGroup
         className="jgis-stac-queryable-filters-radio-group"
         value={filterOperator}
@@ -50,7 +48,6 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
         queryables={queryableFields}
         selectedQueryables={selectedQueryables}
         updateSelectedQueryables={updateSelectedQueryables}
-        portalContainer={portalContainerRef}
       />
     </div>
   );

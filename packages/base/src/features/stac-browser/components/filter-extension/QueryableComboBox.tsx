@@ -33,7 +33,6 @@ interface IQueryableComboProps {
   queryables: IStacQueryables;
   selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
-  portalContainer?: React.RefObject<HTMLElement | null> | HTMLElement | null;
 }
 
 interface IOperatorOption {
@@ -51,7 +50,6 @@ export function QueryableComboBox({
   queryables,
   selectedQueryables,
   updateSelectedQueryables,
-  portalContainer,
 }: IQueryableComboProps) {
   const [draftValues, setDraftValues] = useState<
     Record<string, string | number | undefined>
@@ -360,10 +358,7 @@ export function QueryableComboBox({
         >
           <span className="truncate">{getButtonText()}</span>
         </ComboboxTrigger>
-        <ComboboxContent
-          // portalContainer={portalContainer}
-          className="min-w-(--anchor-width)!"
-        >
+        <ComboboxContent className="min-w-(--anchor-width)!">
           <ComboboxInput
             placeholder="Search queryable..."
             showTrigger={false}
