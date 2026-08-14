@@ -1,14 +1,46 @@
 import type { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 
-import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
+import type {
+  StorySegmentDisplayMode,
+  StorySegmentPaneAlignment,
+} from '@/src/features/story/types/types';
 
 type SegmentContent = NonNullable<IStorySegmentLayer['content']>;
 
 export type SegmentContentPatch = Partial<
-  Pick<SegmentContent, 'title' | 'markdown' | 'image' | 'attachments'>
+  Pick<
+    SegmentContent,
+    'title' | 'markdown' | 'image' | 'attachments' | 'paneAlignment'
+  >
 >;
 
 const EMPTY_SEGMENT_CONTENT: SegmentContent = { contentMode: 'map' };
+
+/** Legacy default when paneAlignment is unset so we dont need to migrate
+ * map -> end, markdown -> center. */
+export function getSegmentPaneAlignment(
+  content: SegmentContent | undefined,
+  mode: StorySegmentDisplayMode,
+): StorySegmentPaneAlignment {
+  if (content?.paneAlignment) {
+    return content.paneAlignment;
+  }
+
+  return mode === 'map' ? 'end' : 'center';
+}
+
+export function segmentPaneAlignment(
+  alignment: StorySegmentPaneAlignment,
+): 'flex-start' | 'center' | 'flex-end' {
+  switch (alignment) {
+    case 'start':
+      return 'flex-start';
+    case 'end':
+      return 'flex-end';
+    default:
+      return 'center';
+  }
+}
 
 export function normalizeSegmentContentForMode(
   content: SegmentContent | undefined,
@@ -21,6 +53,7 @@ export function normalizeSegmentContentForMode(
       contentMode: 'markdown',
       markdown: value.markdown ?? '',
       attachments: value.attachments,
+      paneAlignment: value.paneAlignment,
     };
   }
 
@@ -30,6 +63,7 @@ export function normalizeSegmentContentForMode(
     image: value.image ?? '',
     markdown: value.markdown ?? '',
     attachments: value.attachments,
+    paneAlignment: value.paneAlignment,
   };
 }
 
