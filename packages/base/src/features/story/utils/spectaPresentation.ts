@@ -67,6 +67,10 @@ export function matchOverlayContentWidthPreset(
   return preset?.id ?? null;
 }
 
+export function isOverlayContentWidthFull(width: string | undefined): boolean {
+  return resolveOverlayContentWidthValue(width) === '100%';
+}
+
 export function parseOverlayContentWidth(width: string | undefined): {
   amount: string;
   unit: OverlayContentWidthUnit;
