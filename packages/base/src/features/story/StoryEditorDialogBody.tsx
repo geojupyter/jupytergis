@@ -21,6 +21,7 @@ import type {
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
+import { isOverlayContentWidthFull } from '@/src/features/story/utils/spectaPresentation';
 import {
   getSegmentPaneAlignment,
   type SegmentContentPatch,
@@ -37,7 +38,6 @@ import {
   getStoryMarkdownFromSlide,
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
-import { isOverlayContentWidthFull } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
   NativeSelect,
