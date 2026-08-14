@@ -23,7 +23,10 @@ import {
   getSegmentDisplayMode,
   getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
-import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import {
+  getSpectaPresentationCssVars,
+  isOverlayContentWidthFull,
+} from '@/src/features/story/utils/spectaPresentation';
 import {
   getSegmentPaneAlignment,
   segmentPaneAlignment,
@@ -203,6 +206,7 @@ interface ISegmentOverlayPaneProps {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
+  isOverlayContentWidthFull: boolean;
   onMarkdownRendered: (segmentIndex: number) => void;
   onPaneUnmount: (segmentIndex: number) => void;
 }
@@ -233,6 +237,34 @@ function segmentConfigsEqual(
   return false;
 }
 
+function getMarkdownConstrainedWidthClass(
+  isMap: boolean,
+  isOverlayContentWidthFull: boolean,
+  segmentIndex: number,
+  segmentCount: number,
+): string {
+  if (isMap || isOverlayContentWidthFull || segmentCount <= 0) {
+    return '';
+  }
+
+  const isFirst = segmentIndex === 0;
+  const isLast = segmentIndex === segmentCount - 1;
+
+  if (isFirst && isLast) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width';
+  }
+
+  if (isFirst) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-first';
+  }
+
+  if (isLast) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-last';
+  }
+
+  return ' jgis-story-markdown-scroll-pane--constrained-width';
+}
+
 function segmentOverlayPanePropsAreEqual(
   prev: ISegmentOverlayPaneProps,
   next: ISegmentOverlayPaneProps,
@@ -243,6 +275,7 @@ function segmentOverlayPanePropsAreEqual(
     prev.model === next.model &&
     prev.storyData === next.storyData &&
     prev.items === next.items &&
+    prev.isOverlayContentWidthFull === next.isOverlayContentWidthFull &&
     segmentConfigsEqual(prev.config, next.config)
   );
 }
@@ -255,11 +288,18 @@ const SegmentOverlayPane = React.memo(
     model,
     storyData,
     items,
+    isOverlayContentWidthFull,
     onMarkdownRendered,
     onPaneUnmount,
   }: ISegmentOverlayPaneProps): React.ReactElement => {
     const isMap = config.type === 'map';
     const alignSelf = segmentPaneAlignment(config.paneAlignment);
+    const markdownConstrainedWidthClass = getMarkdownConstrainedWidthClass(
+      isMap,
+      isOverlayContentWidthFull,
+      segmentIndex,
+      items.length,
+    );
 
     useLayoutEffect(() => {
       return () => {
@@ -273,7 +313,7 @@ const SegmentOverlayPane = React.memo(
         data-segment-index={segmentIndex}
         className={`jgis-story-segment-overlay-pane jgis-story-${
           isMap ? 'map' : 'markdown'
-        }-scroll-pane`}
+        }-scroll-pane${markdownConstrainedWidthClass}`}
         style={{
           alignSelf,
           ...(isMap ? { alignItems: alignSelf } : undefined),
@@ -348,6 +388,10 @@ export function ListStoryStageOverlay({
       story?.markdownSegmentOpacity,
       story?.storyPanelOpacity,
     ],
+  );
+
+  const overlayContentWidthFull = isOverlayContentWidthFull(
+    story?.overlayContentWidth,
   );
 
   const activeItem = items.find(item => item.index === currentIndex);
@@ -575,6 +619,7 @@ export function ListStoryStageOverlay({
               config={stackPane.config}
               storyData={story}
               items={items}
+              isOverlayContentWidthFull={overlayContentWidthFull}
               onMarkdownRendered={handleMarkdownRendered}
               onPaneUnmount={clearMarkdownRendered}
             />,

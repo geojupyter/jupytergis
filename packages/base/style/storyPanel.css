@@ -443,6 +443,23 @@
   box-sizing: border-box;
 }
 
+.jgis-story-markdown-scroll-pane--constrained-width
+  .jgis-story-stage-overlay-content {
+  border-radius: 8px;
+}
+
+.jgis-story-markdown-scroll-pane--constrained-width-first
+  .jgis-story-stage-overlay-content {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.jgis-story-markdown-scroll-pane--constrained-width-last
+  .jgis-story-stage-overlay-content {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
 .jgis-story-markdown-measure-host {
   position: absolute;
   top: 0;
