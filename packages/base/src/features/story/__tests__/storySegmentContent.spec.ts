@@ -1,6 +1,6 @@
 import {
   getSegmentPaneAlignment,
-  mapPaneAlignmentToAlignSelf,
+  segmentPaneAlignment,
   normalizeSegmentContentForMode,
   updateSegmentContent,
 } from '@/src/features/story/utils/storySegmentContent';
@@ -26,11 +26,11 @@ describe('getSegmentPaneAlignment', () => {
   });
 });
 
-describe('mapPaneAlignmentToAlignSelf', () => {
+describe('segmentPaneAlignment', () => {
   it('maps schema values to flex align-self keywords', () => {
-    expect(mapPaneAlignmentToAlignSelf('start')).toBe('flex-start');
-    expect(mapPaneAlignmentToAlignSelf('center')).toBe('center');
-    expect(mapPaneAlignmentToAlignSelf('end')).toBe('flex-end');
+    expect(segmentPaneAlignment('start')).toBe('flex-start');
+    expect(segmentPaneAlignment('center')).toBe('center');
+    expect(segmentPaneAlignment('end')).toBe('flex-end');
   });
 });
 

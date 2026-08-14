@@ -14,6 +14,7 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import type {
   IListStorySegmentTransition,
   StorySegmentDisplayMode,
+  StorySegmentPaneAlignment,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
@@ -23,6 +24,10 @@ import {
   getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import {
+  getSegmentPaneAlignment,
+  segmentPaneAlignment,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
@@ -35,8 +40,17 @@ interface IListStoryStageOverlayProps {
 }
 
 type SegmentOverlayPaneConfig =
-  | { type: 'markdown'; markdown: string; segmentId: string }
-  | { type: 'map'; segmentIndex: number };
+  | {
+      type: 'markdown';
+      markdown: string;
+      segmentId: string;
+      paneAlignment: StorySegmentPaneAlignment;
+    }
+  | {
+      type: 'map';
+      segmentIndex: number;
+      paneAlignment: StorySegmentPaneAlignment;
+    };
 
 type OverlayPaneRole = 'from' | 'to' | 'lookahead';
 
@@ -44,6 +58,7 @@ const EMPTY_MARKDOWN_PANE: SegmentOverlayPaneConfig = {
   type: 'markdown',
   markdown: '',
   segmentId: '',
+  paneAlignment: 'center',
 };
 
 interface IOverlayStackPane {
@@ -65,13 +80,21 @@ function buildPaneConfig(
   if (!item) {
     return EMPTY_MARKDOWN_PANE;
   }
+
+  const paneAlignment = getSegmentPaneAlignment(
+    item.activeSlide?.content,
+    mode,
+  );
+
   if (mode === 'map') {
-    return { type: 'map', segmentIndex: item.index };
+    return { type: 'map', segmentIndex: item.index, paneAlignment };
   }
+
   return {
     type: 'markdown',
     markdown: getStoryMarkdownFromSlide(item.activeSlide),
     segmentId: item.id,
+    paneAlignment,
   };
 }
 
@@ -193,11 +216,18 @@ function segmentConfigsEqual(
   }
 
   if (prev.type === 'map' && next.type === 'map') {
-    return prev.segmentIndex === next.segmentIndex;
+    return (
+      prev.segmentIndex === next.segmentIndex &&
+      prev.paneAlignment === next.paneAlignment
+    );
   }
 
   if (prev.type === 'markdown' && next.type === 'markdown') {
-    return prev.segmentId === next.segmentId && prev.markdown === next.markdown;
+    return (
+      prev.segmentId === next.segmentId &&
+      prev.markdown === next.markdown &&
+      prev.paneAlignment === next.paneAlignment
+    );
   }
 
   return false;
@@ -229,6 +259,7 @@ const SegmentOverlayPane = React.memo(
     onPaneUnmount,
   }: ISegmentOverlayPaneProps): React.ReactElement => {
     const isMap = config.type === 'map';
+    const alignSelf = segmentPaneAlignment(config.paneAlignment);
 
     useLayoutEffect(() => {
       return () => {
@@ -243,6 +274,10 @@ const SegmentOverlayPane = React.memo(
         className={`jgis-story-segment-overlay-pane jgis-story-${
           isMap ? 'map' : 'markdown'
         }-scroll-pane`}
+        style={{
+          alignSelf,
+          ...(isMap ? { alignItems: alignSelf } : undefined),
+        }}
       >
         {isMap ? (
           <ListStoryMapOverlayPanel
