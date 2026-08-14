@@ -17,7 +17,7 @@
               "rules": [
                 {
                   "fields": [
-                    "$band-2"
+                    "band_2"
                   ],
                   "id": "55c47ad3-2bc6-448f-86f5-8a8984dc55fe",
                   "mappings": [

@@ -108,9 +108,9 @@ def _denormalize(value: float, vmin: float, vmax: float) -> float:
 
 
 def _parse_band(fields: list[str]) -> int | None:
-    """Return the band index from a ``$band-N`` pseudo-field, if present."""
+    """Return the band index from a ``band_N`` pseudo-field, if present."""
     for field in fields:
-        match = re.match(r"^\$band-(\d+)$", str(field))
+        match = re.match(r"/^band_(\d+)$", str(field))
         if match:
             return int(match.group(1))
     return None
@@ -138,7 +138,7 @@ def _single_band_pseudocolor_grammar(band: int, color_stops: list) -> dict[str, 
     }
     rule = {
         "id": _new_id(),
-        "fields": [f"$band-{int(band)}"],
+        "fields": [f"band_{int(band)}"],
         "mappings": [
             {
                 "scale": {"scheme": "colorMap", "params": params},
@@ -260,7 +260,7 @@ def multiband_raster_to_grammar(
         rules.append(
             {
                 "id": _new_id(),
-                "fields": [f"$band-{int(band)}"],
+                "fields": [f"band_{int(band)}"],
                 "mappings": [
                     {"scale": scale, "encodings": [index_to_encoding[index]]},
                 ],
@@ -270,7 +270,7 @@ def multiband_raster_to_grammar(
         rules.append(
             {
                 "id": _new_id(),
-                "fields": [f"$band-{int(alpha_band)}"],
+                "fields": [f"band_{int(alpha_band)}"],
                 "mappings": [
                     {
                         "scale": {"scheme": "identity", "params": {}},
@@ -1064,7 +1064,7 @@ def grammar_to_raster_renderer(
     band = 1
     alpha_present = False
     # Band referenced by a pixel-alpha mapping, when it is a dedicated mask band
-    # (``$band-N``). Used as the QGIS alpha band for multiband RGB rasters.
+    # (`band_N`). Used as the QGIS alpha band for multiband RGB rasters.
     alpha_band: int | None = None
     # color index (0=red,1=green,2=blue) -> (band, scale) for multiband RGB.
     multiband: dict[int, tuple[int, dict[str, Any]]] = {}

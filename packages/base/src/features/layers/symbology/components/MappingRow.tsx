@@ -776,7 +776,7 @@ function getBandFromField(field?: string): number | null {
   if (!field) {
     return null;
   }
-  const match = field.match(/\$band-(\d+)/);
+  const match = field.match(/^band_(\d+)/);
   return match ? Number(match[1]) : null;
 }
 

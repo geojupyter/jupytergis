@@ -137,10 +137,10 @@ doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 doc.add_geotiff_layer(
     url="https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/TCI.tif",
     symbology=[
-        field("$band-1")
+        field("band_1")
         .scalar(domain=(0, 0.5), output_range=(0, 1))
         .encoding("pixel-alpha"),
-        field("$band-2").colormap("winter", n_shades=9).encoding("pixel-rgb"),
+        field("band_2").colormap("winter", n_shades=9).encoding("pixel-rgb"),
     ],
 )
 doc
@@ -157,7 +157,7 @@ doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
     symbology=[
-        field("$band-1")
+        field("band_1")
         .scalar(domain=(0, 233), output_range=(4, 20))
         .encoding("pixel-red", "pixel-green", "pixel-blue", "pixel-alpha"),
     ],
@@ -178,9 +178,9 @@ doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
     symbology=[
         constant(0).encoding("pixel-red"),
-        field("$band-1").scalar(domain=[0, 233], output_range=[0, 25]).encoding("pixel-green"),
+        field("band_1").scalar(domain=[0, 233], output_range=[0, 25]).encoding("pixel-green"),
         constant(0).encoding("pixel-blue"),
-        field("$band-1").identity().encoding("pixel-alpha"),
+        field("band_1").identity().encoding("pixel-alpha"),
     ],
     normalize=False
 )
