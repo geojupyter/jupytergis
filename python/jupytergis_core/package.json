@@ -131,18 +131,6 @@
       "@jupyter/docprovider": {
         "singleton": true,
         "bundled": false
-      },
-      "@jupyterlab/docregistry": {
-        "singleton": true,
-        "bundled": true
-      },
-      "@jupyterlab/attachments": {
-        "singleton": true,
-        "bundled": true
-      },
-      "@jupyterlab/observables": {
-        "singleton": true,
-        "bundled": true
       }
     }
   }
