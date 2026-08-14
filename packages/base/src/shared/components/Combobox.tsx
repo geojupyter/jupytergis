@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { Button } from './ButtonTw';
+import { ButtonTw } from './ButtonTw';
 import {
   InputGroup,
   InputGroupAddon,
@@ -266,11 +266,7 @@ function ComboboxVirtualizedList<T>({
     <div
       role="presentation"
       ref={handleScrollElementRef}
-      className={cn(
-        comboboxListSizeClass,
-        comboboxListScrollClass,
-        className,
-      )}
+      className={cn(comboboxListSizeClass, comboboxListScrollClass, className)}
     >
       <div
         role="presentation"
@@ -406,9 +402,9 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
           render={
-            <Button variant="ghost" size="icon-xs">
+            <ButtonTw variant="ghost" size="icon-xs">
               <XIcon className="pointer-events-none" />
-            </Button>
+            </ButtonTw>
           }
         />
       )}

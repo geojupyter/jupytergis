@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
-import { Button } from './ButtonTw';
+import { ButtonTw } from './ButtonTw';
 import { Input } from './Input';
 import { Textarea } from './TextArea';
 import { cn } from './utils';
@@ -83,7 +83,7 @@ const inputGroupButtonVariants = cva(
 
 const InputGroupButton = React.forwardRef<
   HTMLElement,
-  Omit<React.ComponentProps<typeof Button>, 'size' | 'type'> &
+  Omit<React.ComponentProps<typeof ButtonTw>, 'size' | 'type'> &
     VariantProps<typeof inputGroupButtonVariants> & {
       type?: 'button' | 'submit' | 'reset';
     }
@@ -93,7 +93,7 @@ const InputGroupButton = React.forwardRef<
     ref,
   ) => {
     return (
-      <Button
+      <ButtonTw
         ref={ref}
         type={type}
         data-size={size}

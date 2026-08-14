@@ -41,7 +41,7 @@ const buttonVariants = cva(
   },
 );
 
-const Button = React.forwardRef<
+const ButtonTw = React.forwardRef<
   HTMLElement,
   ButtonPrimitive.Props & VariantProps<typeof buttonVariants>
 >(({ className, variant = 'default', size = 'default', ...props }, ref) => {
@@ -55,4 +55,4 @@ const Button = React.forwardRef<
   );
 });
 
-export { Button, buttonVariants };
+export { ButtonTw, buttonVariants };

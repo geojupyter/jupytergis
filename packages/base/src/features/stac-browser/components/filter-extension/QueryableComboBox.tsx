@@ -14,7 +14,7 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/features/stac-browser/types/types';
-import { Button } from '@/src/shared/components/ButtonTw';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Combobox,
   ComboboxContent,
@@ -350,7 +350,7 @@ export function QueryableComboBox({
       >
         <ComboboxTrigger
           render={
-            <Button
+            <ButtonTw
               variant="outline"
               className="jgis-queryable-combo-button w-full justify-between font-normal"
             />
