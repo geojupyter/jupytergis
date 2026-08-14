@@ -4421,7 +4421,12 @@ function MainViewWithObserver(
   }, [props.viewModel]);
 
   return (
-    <MainView {...props} isMobile={isMobile} containerRef={containerRef} key={key} />
+    <MainView
+      {...props}
+      isMobile={isMobile}
+      containerRef={containerRef}
+      key={key}
+    />
   );
 }
 
