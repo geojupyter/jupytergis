@@ -20,7 +20,6 @@ import {
   IGrammarSymbologyState,
   IPredicate,
   Encoding,
-  RGBA,
   UInt8Encoding,
   UNormEncoding,
 } from '@jupytergis/schema';
@@ -29,12 +28,11 @@ import { py2vega } from 'py2vega-ts';
 import { vega2ol } from 'vega2ol';
 
 import {
-  computeCategorizedColorStops,
-  computeGraduatedColorStops,
-  STOP_NULL,
-  STOP_UNDEFINED,
-  SymbologyState,
-} from './styleBuilder';
+  resolveCategoricalStops,
+  resolveColorMapStops,
+  resolveScalarStops,
+} from './resolveStops';
+import { STOP_NULL, STOP_UNDEFINED } from './styleBuilder';
 
 // '$density' is the pseudo-field produced by a kde transform (KDE density raster).
 // Encoding rules referencing it are compiled only when a kde transform is present;
@@ -77,6 +75,24 @@ interface IEncodingEntry {
 // ---------------------------------------------------------------------------
 
 /**
+ * Values available to classify a rule against, either as one column per field
+ * or as a single column applied to every field.
+ *
+ * The flat form is a convenience for states that classify on one field; a state
+ * with rules on different fields must pass the keyed form, or every rule is
+ * classified against the same column.
+ */
+export type FeatureValues = unknown[] | Record<string, unknown[]>;
+
+/** Pick the column a rule classifies against. */
+function columnFor(featureValues: FeatureValues, field?: string): unknown[] {
+  if (Array.isArray(featureValues)) {
+    return featureValues;
+  }
+  return (field && featureValues[field]) || [];
+}
+
+/**
  * Compile a Grammar symbology state to an OL FlatStyle object.
  * Sub-encodings (fill-red/green/blue/alpha) are assembled into fill-color.
  *
@@ -87,7 +103,7 @@ interface IEncodingEntry {
  */
 export function grammarToOLStyle(
   state: IGrammarSymbologyState,
-  featureValues: unknown[] = [],
+  featureValues: FeatureValues = [],
 ): Record<string, ExpressionValue> {
   // Accumulate per-encoding entries from all layers and their rules.
   // Layers with a kde/cluster preprocess are handled at the renderer level;
@@ -113,6 +129,8 @@ export function grammarToOLStyle(
       // For now use the first field; multi-field assembly is handled via
       // sub-encoding mappings (pixel-red/green/blue) or expression scales.
       const field = rule.fields?.[0];
+      // Each rule classifies against its own field's column.
+      const ruleValues = columnFor(featureValues, field);
       const ruleGuard =
         rule.when && rule.when.length > 0
           ? compileGuard(rule.when, rule.whenOp ?? 'all')
@@ -132,7 +150,7 @@ export function grammarToOLStyle(
               'pixel-green',
               'pixel-blue',
             ] as Encoding[]) {
-              const expr = compileMapping(field, mapping, featureValues, sub);
+              const expr = compileMapping(field, mapping, ruleValues, sub);
               const entries = accumulator.get(sub) ?? [];
               entries.push({ guard, expr });
               accumulator.set(sub, entries);
@@ -140,12 +158,7 @@ export function grammarToOLStyle(
           } else {
             // Compile per-encoding so sub-encodings (pixel-red/green/blue) can each
             // extract the correct component from a colorRamp or other color scale.
-            const expr = compileMapping(
-              field,
-              mapping,
-              featureValues,
-              encoding,
-            );
+            const expr = compileMapping(field, mapping, ruleValues, encoding);
             const entries = accumulator.get(encoding) ?? [];
             entries.push({ guard, expr });
             accumulator.set(encoding, entries);
@@ -199,6 +212,37 @@ export function extractEncodingFieldValues(
     return [];
   }
   return rows.map(r => r[field]).filter(v => v !== null && v !== undefined);
+}
+
+/**
+ * Extract one column per field the state classifies on.
+ *
+ * Prefer this over `extractEncodingFieldValues`: a state with rules on
+ * different fields needs each rule classified against its own column, and a
+ * single flat array silently classifies them all against the first field's.
+ */
+export function extractFieldColumns(
+  state: IGrammarSymbologyState,
+  rows: Record<string, unknown>[],
+): Record<string, unknown[]> {
+  const fields = new Set<string>();
+  for (const gl of state.layers ?? []) {
+    for (const rule of gl.rules ?? []) {
+      const f = rule.fields?.[0];
+      // $-prefixed fields are raster/transform pseudo-fields with no column.
+      if (f && !f.startsWith('$')) {
+        fields.add(f);
+      }
+    }
+  }
+
+  const columns: Record<string, unknown[]> = {};
+  for (const field of fields) {
+    columns[field] = rows
+      .map(r => r[field])
+      .filter(v => v !== null && v !== undefined);
+  }
+  return columns;
 }
 
 // ---------------------------------------------------------------------------
@@ -462,7 +506,7 @@ function compileColorMap(
   featureValues: unknown[],
   encoding?: Encoding,
 ): ExpressionValue {
-  const stops = resolveColorStops(scale, featureValues);
+  const stops = resolveColorMapStops(scale.params, featureValues);
 
   // Guard: interpolate requires at least 2 stop pairs. Return fallback when
   // the source is not yet loaded and no explicit domain/colorStops are set.
@@ -506,36 +550,6 @@ function compileColorMap(
 }
 
 /**
- * Resolve color stops for a colorRamp scale.
- * Explicit colorStops (user overrides) take precedence; otherwise classification
- * breaks are computed from featureValues using computeGraduatedColorStops.
- */
-function resolveColorStops(
-  scale: IColorMapScale,
-  featureValues: unknown[],
-): Array<{ stop: number; color: RGBA }> {
-  if (scale.params.colorStops && scale.params.colorStops.length >= 2) {
-    return scale.params.colorStops;
-  }
-
-  const numericValues = featureValues.filter(Number.isFinite) as number[];
-  const syntheticState = {
-    nClasses: scale.params.nShades,
-    mode: scale.params.mode,
-    colorRamp: scale.params.name,
-    reverseRamp: scale.params.reverse,
-    vmin: scale.params.domain?.[0],
-    vmax: scale.params.domain?.[1],
-  } as unknown as SymbologyState;
-
-  const computed = computeGraduatedColorStops(syntheticState, numericValues);
-  return computed.map(s => ({
-    stop: s.value as number,
-    color: s.color as RGBA,
-  }));
-}
-
-/**
  * categorical: nominal field → RGBA color via a named palette.
  * Unique field values are enumerated from featureValues at render time,
  * mirroring buildCategorized.
@@ -551,20 +565,7 @@ function compileCategorical(
   scale: ICategoricalScale,
   featureValues: unknown[],
 ): ExpressionValue {
-  let stops: Array<{ value: unknown; color: unknown }>;
-
-  if (scale.params.colorStops && scale.params.colorStops.length > 0) {
-    stops = scale.params.colorStops.map(s => ({
-      value: s.stop,
-      color: s.color,
-    }));
-  } else {
-    const syntheticState = {
-      colorRamp: scale.params.colorRamp,
-      reverseRamp: scale.params.reverse ?? false,
-    } as unknown as SymbologyState;
-    stops = computeCategorizedColorStops(syntheticState, featureValues);
-  }
+  const stops = resolveCategoricalStops(scale.params, featureValues);
 
   // Guard: a OL case expression requires at least one condition+value pair
   // before the else branch. Return fallback directly when stops is empty.
@@ -575,10 +576,10 @@ function compileCategorical(
   const caseExpr: ExpressionValue[] = ['case'];
   for (const stop of stops) {
     let condition: ExpressionValue;
-    if (stop.value === STOP_UNDEFINED) {
+    if (stop.stop === STOP_UNDEFINED) {
       // Property missing entirely
       condition = ['!', ['has', field]] as ExpressionValue;
-    } else if (stop.value === STOP_NULL) {
+    } else if (stop.stop === STOP_NULL) {
       // Property exists but value is null
       condition = [
         'all',
@@ -589,7 +590,7 @@ function compileCategorical(
       condition = [
         '==',
         fieldExpr(field),
-        stop.value as ExpressionValue,
+        stop.stop as ExpressionValue,
       ] as ExpressionValue;
     }
     caseExpr.push(condition, stop.color as ExpressionValue);
@@ -613,17 +614,8 @@ function compileScalar(field: string, scale: IScalarScale): ExpressionValue {
     fieldExpr(field),
   ];
 
-  if (scale.params.scalarStops && scale.params.scalarStops.length >= 2) {
-    for (const { stop, output } of scale.params.scalarStops) {
-      interpolateExpr.push(stop, output);
-    }
-  } else {
-    interpolateExpr.push(
-      scale.params.domain[0],
-      scale.params.range[0],
-      scale.params.domain[1],
-      scale.params.range[1],
-    );
+  for (const { stop, output } of resolveScalarStops(scale.params)) {
+    interpolateExpr.push(stop, output);
   }
 
   if (fieldAlwaysPresent(field)) {

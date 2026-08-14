@@ -49,10 +49,10 @@ import RgbaColorPicker, {
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
 import {
-  computeCategorizedColorStops,
-  computeGraduatedColorStops,
-  IComputedStop,
-} from '@/src/features/layers/symbology/styleBuilder';
+  deriveCategoricalStops,
+  deriveColorMapStops,
+  deriveScalarStops,
+} from '@/src/features/layers/symbology/resolveStops';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { InfoTip } from '@/src/shared/components/InfoTip';
@@ -185,33 +185,14 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
     if (!field) {
       return [];
     }
-    const values = Array.from(featureValues[field] ?? []).filter(
-      (v): v is number => Number.isFinite(v),
-    );
-    if (values.length === 0) {
-      return [];
-    }
-
-    const minRequired = COLOR_RAMP_DEFAULTS[params.name as ColorRampName];
-    const nClasses = minRequired
-      ? Math.max(params.nShades ?? minRequired, minRequired)
-      : params.nShades;
-
-    const computed: IComputedStop[] = computeGraduatedColorStops(
-      {
-        renderType: 'Graduated',
-        nClasses,
-        mode: params.mode as any,
-        colorRamp: params.name,
-        reverseRamp: params.reverse,
-        vmin: params.domain?.[0],
-        vmax: params.domain?.[1],
-      } as any,
-      values,
-    );
-    return computed.map(s => ({
+    const values = Array.from(featureValues[field] ?? []);
+    // Not short-circuiting on an empty column: with a fully specified domain
+    // the classification is derivable without any data, which is how a vector
+    // tile layer classifies. Bailing here would show an empty table over a
+    // classified map.
+    return deriveColorMapStops(params, values).map(s => ({
       id: UUID.uuid4(),
-      stop: s.value as number,
+      stop: s.stop,
       output: s.color as RgbaColor,
     }));
   }, [
@@ -380,20 +361,9 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
       return [];
     }
     const values = Array.from(featureValues[field] ?? []);
-    if (values.length === 0) {
-      return [];
-    }
-    const computed: IComputedStop[] = computeCategorizedColorStops(
-      {
-        renderType: 'Categorized',
-        colorRamp: params.colorRamp,
-        reverseRamp: params.reverse ?? false,
-      } as any,
-      values,
-    );
-    return computed.map(s => ({
+    return deriveCategoricalStops(params, values).map(s => ({
       id: UUID.uuid4(),
-      stop: s.value as string | number,
+      stop: s.stop,
       output: s.color as RgbaColor,
     }));
   }, [field, featureValues, params.colorRamp, params.reverse]);
@@ -840,10 +810,12 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
   }, [params, onChange]);
 
   const derivedRows = useMemo<IStopRow[]>(
-    () => [
-      { id: UUID.uuid4(), stop: params.domain[0], output: params.range[0] },
-      { id: UUID.uuid4(), stop: params.domain[1], output: params.range[1] },
-    ],
+    () =>
+      deriveScalarStops(params).map(s => ({
+        id: UUID.uuid4(),
+        stop: s.stop,
+        output: s.output,
+      })),
     [params.domain, params.range],
   );
 
