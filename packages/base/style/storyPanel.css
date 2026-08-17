@@ -382,7 +382,6 @@
       calc(var(--jgis-story-markdown-segment-opacity, 1) * 100%),
     transparent
   );
-  margin: 0 auto;
   padding: 1rem;
 }
 
@@ -398,7 +397,6 @@
   height: auto;
   box-sizing: border-box;
   width: var(--jgis-story-overlay-content-width, 100%);
-  margin: 0 auto;
 }
 
 .jgis-story-segment-transition-stack .jgis-story-map-scroll-pane {
@@ -415,8 +413,7 @@
   justify-content: space-evenly;
   box-sizing: border-box;
   background-color: transparent;
-  align-items: flex-end;
-  padding-right: 1rem;
+  padding-inline: 1rem;
 }
 
 .jgis-story-map-overlay-content {
