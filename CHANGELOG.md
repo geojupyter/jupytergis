@@ -2,6 +2,44 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0rc1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc0...758a0a2b1cb31cc8450eb6c972e9e0ad34185544))
+
+### Enhancements made
+
+- Story Maps: Add option to align segments [#1756](https://github.com/geojupyter/jupytergis/pull/1756) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Despaghetti transition progress [#1699](https://github.com/geojupyter/jupytergis/pull/1699) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Add opacity sliders for markdown segments and story side panel [#1696](https://github.com/geojupyter/jupytergis/pull/1696) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Renaming band to make it work with expressions [#1759](https://github.com/geojupyter/jupytergis/pull/1759) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Remove replaceLayer method [#1758](https://github.com/geojupyter/jupytergis/pull/1758) ([@martinRenou](https://github.com/martinRenou), [@gjmooney](https://github.com/gjmooney))
+- Story Maps: Round all corners [#1757](https://github.com/geojupyter/jupytergis/pull/1757) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Fix blank color map previews by using refs instead of shared canvas ids [#1752](https://github.com/geojupyter/jupytergis/pull/1752) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Add `waitForSourceReady` function [#1746](https://github.com/geojupyter/jupytergis/pull/1746) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Add default extent when creating new jgis [#1743](https://github.com/geojupyter/jupytergis/pull/1743) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Fix undo/redo in markdown editor [#1742](https://github.com/geojupyter/jupytergis/pull/1742) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py))
+- Port the rest of the Specta CSS [#1741](https://github.com/geojupyter/jupytergis/pull/1741) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Maintenance and upkeep improvements
+
+- Fix CI snapshots [#1762](https://github.com/geojupyter/jupytergis/pull/1762) ([@martinRenou](https://github.com/martinRenou))
+- Update emscripten-forge channels [#1760](https://github.com/geojupyter/jupytergis/pull/1760) ([@martinRenou](https://github.com/martinRenou))
+- Updating examples after adding min/max from symbology [#1739](https://github.com/geojupyter/jupytergis/pull/1739) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-11&to=2026-08-17&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-08-11..2026-08-17&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-11..2026-08-17&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-11..2026-08-17&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-08-11..2026-08-17&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0rc0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.16.0-beta.5...3db742f95812ccb2878dc57789120f376530e0de))
@@ -90,8 +128,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-07-15&to=2026-08-11&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-07-15..2026-08-11&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-07-15..2026-08-11&type=Issues)) | @feimpraim ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Afeimpraim+updated%3A2026-07-15..2026-08-11&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-07-15..2026-08-11&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-07-15..2026-08-11&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-07-15..2026-08-11&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-07-15..2026-08-11&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-07-15..2026-08-11&type=Issues)) | @ssnum ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Assnum+updated%3A2026-07-15..2026-08-11&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-07-15..2026-08-11&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0b5
 

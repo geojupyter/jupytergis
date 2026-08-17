@@ -934,6 +934,20 @@ Radix won't set hidden so do it manually */
     margin-right: auto;
   }
 
+  .jgis-story-editor-opacity-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .jgis-story-editor-opacity-value {
+    min-width: 2.5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--jp-ui-font-color2);
+  }
+
   .jgis-story-editor-main {
     flex-direction: column;
   }

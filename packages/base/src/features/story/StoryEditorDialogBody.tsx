@@ -10,6 +10,7 @@ import { SegmentImageUrlField } from '@/src/features/story/components/SegmentIma
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
+import { SegmentPaneAlignmentPicker } from '@/src/features/story/components/SegmentPaneAlignmentPicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
@@ -21,7 +22,11 @@ import type {
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
+import { isOverlayContentWidthFull } from '@/src/features/story/utils/spectaPresentation';
+import {
+  getSegmentPaneAlignment,
+  type SegmentContentPatch,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   formatSegmentTransitionTime,
   getSegmentTransitionTime,
@@ -63,6 +68,7 @@ function SegmentEditor({
   onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
+  showPaneAlignmentPicker,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -76,6 +82,7 @@ function SegmentEditor({
   onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
+  showPaneAlignmentPicker: boolean;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
@@ -84,6 +91,10 @@ function SegmentEditor({
   const imageCaption = segment.activeSlide?.content?.imageCaption ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
+  const paneAlignment = getSegmentPaneAlignment(
+    segment.activeSlide?.content,
+    segmentMode,
+  );
   const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
   const transitionTime = getSegmentTransitionTime(
     segment.activeSlide?.transition,
@@ -121,6 +132,15 @@ function SegmentEditor({
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
+
+      {showPaneAlignmentPicker ? (
+        <SegmentPaneAlignmentPicker
+          value={paneAlignment}
+          onChange={alignment => {
+            onContentChange({ paneAlignment: alignment });
+          }}
+        />
+      ) : null}
 
       {segmentMode === 'map' ? (
         <>
@@ -280,6 +300,10 @@ export function StoryEditorDialogBody({
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
+  const showPaneAlignmentPicker = !isOverlayContentWidthFull(
+    story?.overlayContentWidth,
+  );
+
   const portalContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -343,6 +367,7 @@ export function StoryEditorDialogBody({
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
               onRemoveSegment={removeSegment}
+              showPaneAlignmentPicker={showPaneAlignmentPicker}
             />
           ) : (
             <SegmentEditorEmptyState />

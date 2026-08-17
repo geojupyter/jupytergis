@@ -42,7 +42,7 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
  * Compile a Grammar symbology state into a single OL layer.
  *
  * isRaster=true: each grammar layer → WebGLTile (pixel-color encoding → color
- *   style), $band-N fields → ['band', N] expressions.
+ *   style), band_N fields → ['band', N] expressions.
  * isRaster=false (default): non-KDE → VectorImageLayer, KDE → HeatmapLayer.
  *
  * When the state contains multiple grammar layers a LayerGroup is returned;
@@ -127,7 +127,7 @@ function compileGrammarLayer(
 /**
  * Compile a single Grammar layer to an OL WebGLTile layer.
  * The pixel-color encoding of the compiled style becomes the WebGL tile
- * `color` expression.  $band-N fields compile to ['band', N] in the style
+ * `color` expression. band_N fields compile to ['band', N] in the style
  * compiler; normalized GeoTIFF bands cover [0, 1] so featureValues [0, 1]
  * produces sensible colorRamp stops by default.
  */

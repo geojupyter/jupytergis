@@ -184,6 +184,22 @@
           "description": "Inserts a full-stage gap between consecutive markdown segments in vertical scroll stories.",
           "default": false
         },
+        "markdownSegmentOpacity": {
+          "type": "number",
+          "title": "Markdown segment opacity",
+          "description": "Opacity of markdown segment backgrounds in vertical scroll stories.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "storyPanelOpacity": {
+          "type": "number",
+          "title": "Story panel opacity",
+          "description": "Opacity of story panel backgrounds over the map (0–1). Text stays fully opaque.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
         "presentationBgColor": {
           "type": "string",
           "title": "Presentation Background Color",

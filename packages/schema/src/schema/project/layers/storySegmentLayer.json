@@ -26,6 +26,13 @@
           "enum": ["map", "markdown"],
           "default": "map"
         },
+        "paneAlignment": {
+          "type": "string",
+          "title": "Pane Alignment",
+          "description": "Horizontal alignment of the segment overlay pane",
+          "enum": ["start", "center", "end"],
+          "default": "center"
+        },
         "image": {
           "type": "string",
           "description": "Link to image for the story",

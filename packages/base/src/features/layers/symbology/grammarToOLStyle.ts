@@ -47,11 +47,11 @@ export const DENSITY_FIELD = '$density';
 
 /**
  * Convert a field name to an OL expression.
- * $band-N (raster pseudo-fields) → ['band', N]
+ * band_N (raster pseudo-fields) → ['band', N]
  * everything else → ['get', field]
  */
 function fieldExpr(field: string): ExpressionValue {
-  const m = field.match(/^\$band-(\d+)$/);
+  const m = field.match(/^band_(\d+)$/);
   if (m) {
     return ['band', parseInt(m[1], 10)] as ExpressionValue;
   }
@@ -60,7 +60,29 @@ function fieldExpr(field: string): ExpressionValue {
 
 /** Band pseudo-fields always exist; vector feature properties may not. */
 function fieldAlwaysPresent(field: string): boolean {
-  return /^\$band-\d+$/.test(field) || field === DENSITY_FIELD;
+  return /^band_\d+$/.test(field) || field === DENSITY_FIELD;
+}
+
+function normalizeRasterBandFields(
+  expression: ExpressionValue,
+): ExpressionValue {
+  if (!Array.isArray(expression)) {
+    return expression;
+  }
+
+  if (expression[0] === 'get' && typeof expression[1] === 'string') {
+    const match = expression[1].match(/^band_(\d+)$/);
+
+    if (match) {
+      return ['band', Number(match[1])] as ExpressionValue;
+    }
+  }
+
+  return expression.map(value =>
+    Array.isArray(value)
+      ? normalizeRasterBandFields(value as ExpressionValue)
+      : value,
+  ) as ExpressionValue;
 }
 
 // ---------------------------------------------------------------------------
@@ -402,7 +424,7 @@ function compileMapping(
             ? py2vega(scale.params.expr)
             : scale.params.expr;
         const olExpr = vega2ol(vegaExpr as string);
-        return olExpr ?? scale.params.fallback;
+        return normalizeRasterBandFields(olExpr) ?? scale.params.fallback;
       } catch (err) {
         console.debug(
           `grammarToOLStyle: failed to compile ${scale.params.language ?? 'vega'} expression`,

@@ -14,15 +14,23 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import type {
   IListStorySegmentTransition,
   StorySegmentDisplayMode,
+  StorySegmentPaneAlignment,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
 import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
 import {
-  getScrollTrackSegmentHeight,
   getSegmentDisplayMode,
+  getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
-import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import {
+  getSpectaPresentationCssVars,
+  isOverlayContentWidthFull,
+} from '@/src/features/story/utils/spectaPresentation';
+import {
+  getSegmentPaneAlignment,
+  segmentPaneAlignment,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
@@ -35,8 +43,17 @@ interface IListStoryStageOverlayProps {
 }
 
 type SegmentOverlayPaneConfig =
-  | { type: 'markdown'; markdown: string; segmentId: string }
-  | { type: 'map'; segmentIndex: number };
+  | {
+      type: 'markdown';
+      markdown: string;
+      segmentId: string;
+      paneAlignment: StorySegmentPaneAlignment;
+    }
+  | {
+      type: 'map';
+      segmentIndex: number;
+      paneAlignment: StorySegmentPaneAlignment;
+    };
 
 type OverlayPaneRole = 'from' | 'to' | 'lookahead';
 
@@ -44,6 +61,7 @@ const EMPTY_MARKDOWN_PANE: SegmentOverlayPaneConfig = {
   type: 'markdown',
   markdown: '',
   segmentId: '',
+  paneAlignment: 'center',
 };
 
 interface IOverlayStackPane {
@@ -65,13 +83,21 @@ function buildPaneConfig(
   if (!item) {
     return EMPTY_MARKDOWN_PANE;
   }
+
+  const paneAlignment = getSegmentPaneAlignment(
+    item.activeSlide?.content,
+    mode,
+  );
+
   if (mode === 'map') {
-    return { type: 'map', segmentIndex: item.index };
+    return { type: 'map', segmentIndex: item.index, paneAlignment };
   }
+
   return {
     type: 'markdown',
     markdown: getStoryMarkdownFromSlide(item.activeSlide),
     segmentId: item.id,
+    paneAlignment,
   };
 }
 
@@ -180,6 +206,7 @@ interface ISegmentOverlayPaneProps {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
+  isOverlayContentWidthFull: boolean;
   onMarkdownRendered: (segmentIndex: number) => void;
   onPaneUnmount: (segmentIndex: number) => void;
 }
@@ -193,14 +220,58 @@ function segmentConfigsEqual(
   }
 
   if (prev.type === 'map' && next.type === 'map') {
-    return prev.segmentIndex === next.segmentIndex;
+    return (
+      prev.segmentIndex === next.segmentIndex &&
+      prev.paneAlignment === next.paneAlignment
+    );
   }
 
   if (prev.type === 'markdown' && next.type === 'markdown') {
-    return prev.segmentId === next.segmentId && prev.markdown === next.markdown;
+    return (
+      prev.segmentId === next.segmentId &&
+      prev.markdown === next.markdown &&
+      prev.paneAlignment === next.paneAlignment
+    );
   }
 
   return false;
+}
+
+function isMarkdownSegment(item: IStorySegmentViewItem | undefined): boolean {
+  return getSegmentDisplayMode(item?.activeSlide) === 'markdown';
+}
+
+function getMarkdownConstrainedWidthClass(
+  isMap: boolean,
+  isOverlayContentWidthFull: boolean,
+  segmentIndex: number,
+  items: IStorySegmentViewItem[],
+  markdownSegmentGap: boolean,
+): string {
+  if (isMap || isOverlayContentWidthFull || items.length <= 0) {
+    return '';
+  }
+
+  const joinsPrevious =
+    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex - 1]);
+  const joinsNext =
+    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex + 1]);
+  const roundTop = segmentIndex !== 0 && !joinsPrevious;
+  const roundBottom = segmentIndex !== items.length - 1 && !joinsNext;
+
+  if (roundTop && roundBottom) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width';
+  }
+
+  if (roundBottom) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-bottom';
+  }
+
+  if (roundTop) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-top';
+  }
+
+  return '';
 }
 
 function segmentOverlayPanePropsAreEqual(
@@ -213,6 +284,7 @@ function segmentOverlayPanePropsAreEqual(
     prev.model === next.model &&
     prev.storyData === next.storyData &&
     prev.items === next.items &&
+    prev.isOverlayContentWidthFull === next.isOverlayContentWidthFull &&
     segmentConfigsEqual(prev.config, next.config)
   );
 }
@@ -225,10 +297,19 @@ const SegmentOverlayPane = React.memo(
     model,
     storyData,
     items,
+    isOverlayContentWidthFull,
     onMarkdownRendered,
     onPaneUnmount,
   }: ISegmentOverlayPaneProps): React.ReactElement => {
     const isMap = config.type === 'map';
+    const alignSelf = segmentPaneAlignment(config.paneAlignment);
+    const markdownConstrainedWidthClass = getMarkdownConstrainedWidthClass(
+      isMap,
+      isOverlayContentWidthFull,
+      segmentIndex,
+      items,
+      storyData.markdownSegmentGap === true,
+    );
 
     useLayoutEffect(() => {
       return () => {
@@ -242,7 +323,11 @@ const SegmentOverlayPane = React.memo(
         data-segment-index={segmentIndex}
         className={`jgis-story-segment-overlay-pane jgis-story-${
           isMap ? 'map' : 'markdown'
-        }-scroll-pane`}
+        }-scroll-pane${markdownConstrainedWidthClass}`}
+        style={{
+          alignSelf,
+          ...(isMap ? { alignItems: alignSelf } : undefined),
+        }}
       >
         {isMap ? (
           <ListStoryMapOverlayPanel
@@ -289,15 +374,10 @@ export function ListStoryStageOverlay({
   const stackRef = useRef<HTMLDivElement>(null);
   const markdownRenderedRef = useRef<Set<number>>(new Set());
   const imageWaitCancelRef = useRef<(() => void) | null>(null);
-  const measureTransitionRef = useRef<(() => void) | null>(null);
-  const measuredTransitionKeyRef = useRef('');
-  const measureTransitionKeyRef = useRef('');
-  const stableTravelRef = useRef(0);
   const clearMarkdownRendered = useCallback((segmentIndex: number): void => {
     markdownRenderedRef.current.delete(segmentIndex);
   }, []);
   const [stageHeight, setStageHeight] = useState(0);
-  const [transitionTranslatePx, setTransitionTranslatePx] = useState(0);
   const currentIndex = useCurrentSegmentIndex(model);
   const { scrollTrackLayout, reportSegmentHeight } =
     useListStoryScrollTrackContext();
@@ -315,7 +395,13 @@ export function ListStoryStageOverlay({
       story?.presentationBgColor,
       story?.presentationTextColor,
       story?.overlayContentWidth,
+      story?.markdownSegmentOpacity,
+      story?.storyPanelOpacity,
     ],
+  );
+
+  const overlayContentWidthFull = isOverlayContentWidthFull(
+    story?.overlayContentWidth,
   );
 
   const activeItem = items.find(item => item.index === currentIndex);
@@ -369,15 +455,13 @@ export function ListStoryStageOverlay({
   ]);
 
   const fromStackPane = overlayStack.panes.find(pane => pane.role === 'from');
-  const toStackPane = overlayStack.panes.find(pane => pane.role === 'to');
-  const lookaheadStackPane = overlayStack.panes.find(
-    pane => pane.role === 'lookahead',
-  );
 
   const overlayHeight = Math.max(stageHeight, 0);
   const transitionProgress = transition?.progress ?? 0;
-  const fromIndex = fromStackPane?.segmentIndex ?? currentIndex;
-  const toIndex = toStackPane?.segmentIndex ?? fromIndex;
+  const transitionTranslatePx = getTransitionTranslatePx(
+    transition,
+    scrollTrackLayout,
+  );
 
   useLayoutEffect(() => {
     const parent = overlayRef.current?.parentElement;
@@ -433,15 +517,10 @@ export function ListStoryStageOverlay({
         imageWaitCancelRef.current = whenImagesSettled(paneEl, () => {
           imageWaitCancelRef.current = null;
           reportPaneHeight();
-          measureTransitionRef.current?.();
         });
       }
-
-      if (segmentIndex === fromIndex) {
-        measureTransitionRef.current?.();
-      }
     },
-    [fromIndex, overlayStack.panes, reportSegmentHeight],
+    [overlayStack.panes, reportSegmentHeight],
   );
 
   useLayoutEffect(() => {
@@ -497,137 +576,12 @@ export function ListStoryStageOverlay({
 
     return () => {
       ro.disconnect();
-    };
-  }, [overlayStack.panes, reportSegmentHeight]);
-
-  useLayoutEffect(() => {
-    const stack = stackRef.current;
-    if (!stack || !transition || !fromStackPane) {
-      return;
-    }
-
-    const fromPaneIsMarkdown =
-      fromStackPane.config.type === 'markdown' &&
-      Boolean(fromStackPane.config.markdown);
-
-    const transitionKey = intraSegmentScroll
-      ? `intra:${fromIndex}`
-      : `handoff:${fromIndex}:${toIndex}:${transition.fromMode}:${transition.toMode}`;
-
-    if (measureTransitionKeyRef.current !== transitionKey) {
-      measureTransitionKeyRef.current = transitionKey;
-      measuredTransitionKeyRef.current = '';
-      stableTravelRef.current = 0;
-      setTransitionTranslatePx(0);
-    }
-
-    const measure = (): void => {
-      const fromPane = stack.querySelector('[data-pane="from"]');
-
-      if (!(fromPane instanceof HTMLElement)) {
-        return;
-      }
-
-      const gapHeight = overlayStack.includeGap ? handoffGapHeight : 0;
-      const rawTravel = fromPane.offsetHeight + gapHeight;
-      const fromReady =
-        !fromPaneIsMarkdown ||
-        markdownRenderedRef.current.has(fromStackPane.segmentIndex);
-
-      if (fromReady && rawTravel > 0) {
-        stableTravelRef.current = Math.max(stableTravelRef.current, rawTravel);
-      }
-      const travel = stableTravelRef.current;
-
-      if (!fromReady) {
-        return;
-      }
-
-      measuredTransitionKeyRef.current = transitionKey;
-      setTransitionTranslatePx(prev => (prev === travel ? prev : travel));
-    };
-
-    measureTransitionRef.current = measure;
-    measure();
-
-    const fromPane = stack.querySelector('[data-pane="from"]');
-    if (!(fromPane instanceof HTMLElement)) {
-      return;
-    }
-
-    const ro = new ResizeObserver(() => {
-      if (
-        !fromPaneIsMarkdown ||
-        markdownRenderedRef.current.has(fromStackPane.segmentIndex)
-      ) {
-        measure();
-      }
-    });
-    ro.observe(fromPane);
-
-    return () => {
-      ro.disconnect();
       imageWaitCancelRef.current?.();
       imageWaitCancelRef.current = null;
     };
-  }, [
-    transition,
-    fromStackPane,
-    toStackPane,
-    lookaheadStackPane,
-    overlayStack.includeGap,
-    intraSegmentScroll,
-    fromIndex,
-    toIndex,
-    handoffGapHeight,
-  ]);
-
-  useLayoutEffect(() => {
-    measureTransitionRef.current?.();
-  }, [stageHeight]);
+  }, [overlayStack.panes, reportSegmentHeight]);
 
   const overlaySized = stageHeight > 0;
-  const currentTransitionKey = intraSegmentScroll
-    ? `intra:${fromIndex}`
-    : `handoff:${fromIndex}:${toIndex}:${transition?.fromMode ?? ''}:${transition?.toMode ?? ''}`;
-
-  const scrollFromHeight = getScrollTrackSegmentHeight(
-    scrollTrackLayout,
-    fromIndex,
-  );
-  const fromTrackSegment = scrollTrackLayout?.segments.find(
-    segment => segment.index === fromIndex,
-  );
-
-  const isMdToMdNoGap =
-    !intraSegmentScroll &&
-    handoffGapHeight === 0 &&
-    transition?.fromMode === 'markdown' &&
-    transition?.toMode === 'markdown';
-
-  const translateIsCurrent =
-    measuredTransitionKeyRef.current === currentTransitionKey &&
-    transitionTranslatePx > 0;
-
-  // Pixel travel for progress 0->1 (`--jgis-transition-translate`).
-  //
-  // Md->md with no gap: scroll progress is computed from the virtual track, so
-  // prefer the track's from-segment height once measured. Until then, use the
-  // live DOM measure if ready, else use the track estimate.
-  //
-  // All other transitions: use the live DOM measure when it matches this
-  // transition, gap handoffs fall back to stageHeight, otherwise 0.
-  const effectiveTranslatePx = isMdToMdNoGap
-    ? fromTrackSegment?.measured && scrollFromHeight
-      ? scrollFromHeight
-      : translateIsCurrent
-        ? transitionTranslatePx
-        : (scrollFromHeight ?? 0)
-    : translateIsCurrent
-      ? transitionTranslatePx
-      : handoffGapHeight > 0
-        ? stageHeight
-        : 0;
 
   if (!model || !story || !activeItem || !transition || !fromStackPane) {
     return null;
@@ -647,7 +601,7 @@ export function ListStoryStageOverlay({
             ? {
                 height: overlayHeight,
                 '--jgis-handoff-gap-height': `${stageHeight}px`,
-                '--jgis-transition-translate': `${effectiveTranslatePx}px`,
+                '--jgis-transition-translate': `${transitionTranslatePx}px`,
               }
             : {}),
         } as React.CSSProperties
@@ -675,6 +629,7 @@ export function ListStoryStageOverlay({
               config={stackPane.config}
               storyData={story}
               items={items}
+              isOverlayContentWidthFull={overlayContentWidthFull}
               onMarkdownRendered={handleMarkdownRendered}
               onPaneUnmount={clearMarkdownRendered}
             />,
