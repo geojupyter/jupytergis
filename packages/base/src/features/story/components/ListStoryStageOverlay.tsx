@@ -32,6 +32,10 @@ import {
   segmentPaneAlignment,
 } from '@/src/features/story/utils/storySegmentContent';
 import {
+  getSegmentPaneAlignment,
+  segmentPaneAlignment,
+} from '@/src/features/story/utils/storySegmentContent';
+import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
 } from '@/src/features/story/utils/storySegmentViewItems';
