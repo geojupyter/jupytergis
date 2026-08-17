@@ -1,0 +1,38 @@
+{
+  "annotations": {},
+  "presets": {},
+  "layerTree": ["segment-id"],
+  "layers": {
+    "segment-id": {
+      "name": "Segment",
+      "parameters": {
+        "content": {
+          "contentMode": "map",
+          "image": "",
+          "imageCaption": "Old caption",
+          "markdown": "Body text"
+        },
+        "extent": [0, 0, 1, 1],
+        "layerOverride": [],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 4
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "pitch": 0,
+    "projection": "EPSG:3857",
+    "zoom": 4
+  },
+  "schemaVersion": "0.6.0",
+  "sources": {}
+}

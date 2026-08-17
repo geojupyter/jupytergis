@@ -966,7 +966,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       layerOverride: [],
       content: {
         contentMode: 'map',
-        title: '',
+        imageCaption: '',
         image: '',
       },
     };

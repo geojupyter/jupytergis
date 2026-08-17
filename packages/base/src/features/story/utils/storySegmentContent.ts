@@ -10,7 +10,7 @@ type SegmentContent = NonNullable<IStorySegmentLayer['content']>;
 export type SegmentContentPatch = Partial<
   Pick<
     SegmentContent,
-    'title' | 'markdown' | 'image' | 'attachments' | 'paneAlignment'
+    'imageCaption' | 'markdown' | 'image' | 'attachments' | 'paneAlignment'
   >
 >;
 
@@ -59,7 +59,7 @@ export function normalizeSegmentContentForMode(
 
   return {
     contentMode: 'map',
-    title: value.title ?? '',
+    imageCaption: value.imageCaption ?? '',
     image: value.image ?? '',
     markdown: value.markdown ?? '',
     attachments: value.attachments,

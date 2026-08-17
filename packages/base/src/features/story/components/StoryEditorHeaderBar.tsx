@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState, type RefObject } from 'react';
 
-import { TitleInput } from '@/src/features/story/components/TitleInput';
+import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import {
   getStoryPresentationMode,
   isColumnPresentation,
@@ -368,8 +368,10 @@ export function StoryEditorHeaderBar({
 
   return (
     <div className="jgis-story-editor-context-bar">
-      <TitleInput
+      <StoryEditorInput
         value={story?.title ?? ''}
+        placeholder="Enter Story Title..."
+        aria-label="Story title"
         disabled={!story}
         onChange={title => {
           onUpdateStory({ title });

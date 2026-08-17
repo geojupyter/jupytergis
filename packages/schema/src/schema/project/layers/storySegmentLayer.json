@@ -33,14 +33,14 @@
           "enum": ["start", "center", "end"],
           "default": "center"
         },
-        "title": {
-          "title": "Segment Title",
-          "type": "string",
-          "default": ""
-        },
         "image": {
           "type": "string",
           "description": "Link to image for the story",
+          "default": ""
+        },
+        "imageCaption": {
+          "title": "Image Caption",
+          "type": "string",
           "default": ""
         },
         "markdown": {
