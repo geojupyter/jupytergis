@@ -2148,15 +2148,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
 
     if (mapLayer instanceof LayerGroup) {
-      const replacementLayers =
-        nextLayer instanceof LayerGroup
-          ? nextLayer.getLayers().getArray()
-          : [nextLayer];
-      mapLayer.setOpacity(
-        layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
-      );
-      mapLayer.setVisible(layer.visible);
-      mapLayer.setLayers(new Collection(replacementLayers));
+      if (nextLayer instanceof LayerGroup) {
+        const replacementLayers = nextLayer.getLayers().getArray();
+        mapLayer.setOpacity(
+          layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+        );
+        mapLayer.setVisible(layer.visible);
+        mapLayer.setLayers(new Collection(replacementLayers));
+        return;
+      }
+
+      // Collapse back to a single top-level layer so tools that expect a
+      // concrete OL Layer (fly-to/identify) keep working.
+      nextLayer.set('id', id);
+      const index = this.getLayerIndex(id);
+      if (index !== -1) {
+        this._Map.getLayers().setAt(index, nextLayer);
+      }
       return;
     }
 
