@@ -2,6 +2,25 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0rc2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc1...489870718ec0c8d56c7bb4e75399ae78ae6b96ae))
+
+### Bugs fixed
+
+- Story Maps: Removed unused title property, replace it with image caption [#1749](https://github.com/geojupyter/jupytergis/pull/1749) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-17&to=2026-08-17&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-17..2026-08-17&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-17..2026-08-17&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0rc1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc0...758a0a2b1cb31cc8450eb6c972e9e0ad34185544))
@@ -37,8 +56,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-11&to=2026-08-17&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-08-11..2026-08-17&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-11..2026-08-17&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-11..2026-08-17&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-08-11..2026-08-17&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0rc0
 
