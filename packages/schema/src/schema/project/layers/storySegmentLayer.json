@@ -33,6 +33,12 @@
           "enum": ["start", "center", "end"],
           "default": "center"
         },
+        "panelWidth": {
+          "type": "string",
+          "title": "Panel width",
+          "description": "CSS width (percent only) of the map overlay card for this segment in vertical-scroll stories. Unset uses the default layout width.",
+          "default": ""
+        },
         "image": {
           "type": "string",
           "description": "Link to image for the story",
