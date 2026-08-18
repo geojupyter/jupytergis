@@ -29,6 +29,7 @@ import {
 } from '@/src/features/story/utils/spectaPresentation';
 import {
   getSegmentPaneAlignment,
+  resolveSegmentPanelWidth,
   segmentPaneAlignment,
 } from '@/src/features/story/utils/storySegmentContent';
 import {
@@ -40,6 +41,7 @@ import { whenImagesSettled } from '@/src/features/story/utils/whenImagesSettled'
 interface IListStoryStageOverlayProps {
   model: IJupyterGISModel;
   segmentTransition: IListStorySegmentTransition | null;
+  isMobile: boolean;
 }
 
 type SegmentOverlayPaneConfig =
@@ -53,6 +55,7 @@ type SegmentOverlayPaneConfig =
       type: 'map';
       segmentIndex: number;
       paneAlignment: StorySegmentPaneAlignment;
+      panelWidth?: string;
     };
 
 type OverlayPaneRole = 'from' | 'to' | 'lookahead';
@@ -90,7 +93,12 @@ function buildPaneConfig(
   );
 
   if (mode === 'map') {
-    return { type: 'map', segmentIndex: item.index, paneAlignment };
+    return {
+      type: 'map',
+      segmentIndex: item.index,
+      paneAlignment,
+      panelWidth: resolveSegmentPanelWidth(item.activeSlide?.content),
+    };
   }
 
   return {
@@ -206,6 +214,7 @@ interface ISegmentOverlayPaneProps {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
+  isMobile: boolean;
   isOverlayContentWidthFull: boolean;
   onMarkdownRendered: (segmentIndex: number) => void;
   onPaneUnmount: (segmentIndex: number) => void;
@@ -222,7 +231,8 @@ function segmentConfigsEqual(
   if (prev.type === 'map' && next.type === 'map') {
     return (
       prev.segmentIndex === next.segmentIndex &&
-      prev.paneAlignment === next.paneAlignment
+      prev.paneAlignment === next.paneAlignment &&
+      prev.panelWidth === next.panelWidth
     );
   }
 
@@ -285,6 +295,7 @@ function segmentOverlayPanePropsAreEqual(
     prev.storyData === next.storyData &&
     prev.items === next.items &&
     prev.isOverlayContentWidthFull === next.isOverlayContentWidthFull &&
+    prev.isMobile === next.isMobile &&
     segmentConfigsEqual(prev.config, next.config)
   );
 }
@@ -297,6 +308,7 @@ const SegmentOverlayPane = React.memo(
     model,
     storyData,
     items,
+    isMobile,
     isOverlayContentWidthFull,
     onMarkdownRendered,
     onPaneUnmount,
@@ -335,6 +347,8 @@ const SegmentOverlayPane = React.memo(
             storyData={storyData}
             segmentIndex={config.segmentIndex}
             items={items}
+            panelWidth={config.panelWidth}
+            isMobile={isMobile}
           />
         ) : config.markdown ? (
           <ListStoryOverlayMarkdown
@@ -369,6 +383,7 @@ function buildFallbackTransition(
 export function ListStoryStageOverlay({
   model,
   segmentTransition,
+  isMobile,
 }: IListStoryStageOverlayProps): JSX.Element | null {
   const overlayRef = useRef<HTMLDivElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
@@ -629,6 +644,7 @@ export function ListStoryStageOverlay({
               config={stackPane.config}
               storyData={story}
               items={items}
+              isMobile={isMobile}
               isOverlayContentWidthFull={overlayContentWidthFull}
               onMarkdownRendered={handleMarkdownRendered}
               onPaneUnmount={clearMarkdownRendered}

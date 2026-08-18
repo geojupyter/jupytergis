@@ -10,11 +10,43 @@ type SegmentContent = NonNullable<IStorySegmentLayer['content']>;
 export type SegmentContentPatch = Partial<
   Pick<
     SegmentContent,
-    'imageCaption' | 'markdown' | 'image' | 'attachments' | 'paneAlignment'
+    | 'imageCaption'
+    | 'markdown'
+    | 'image'
+    | 'attachments'
+    | 'paneAlignment'
+    | 'panelWidth'
   >
 >;
 
 const EMPTY_SEGMENT_CONTENT: SegmentContent = { contentMode: 'map' };
+
+/** Percent-only widths for map overlay cards (vertical-scroll stories). */
+export const MAP_PANEL_WIDTH_PRESETS = ['25%', '50%', '75%', '100%'] as const;
+
+const PANEL_WIDTH_PERCENT = /^(\d*\.?\d+)%$/;
+
+/** Normalize a percent width string, or undefined when unset/invalid. */
+export function resolveSegmentPanelWidth(
+  content: SegmentContent | undefined,
+): string | undefined {
+  const raw = content?.panelWidth?.trim();
+  if (!raw) {
+    return undefined;
+  }
+
+  const match = PANEL_WIDTH_PERCENT.exec(raw);
+  if (!match) {
+    return undefined;
+  }
+
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 100) {
+    return undefined;
+  }
+
+  return `${amount}%`;
+}
 
 /** Legacy default when paneAlignment is unset so we dont need to migrate
  * map -> end, markdown -> center. */
@@ -64,6 +96,7 @@ export function normalizeSegmentContentForMode(
     markdown: value.markdown ?? '',
     attachments: value.attachments,
     paneAlignment: value.paneAlignment,
+    panelWidth: value.panelWidth,
   };
 }
 
