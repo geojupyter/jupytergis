@@ -91,6 +91,24 @@ describe('normalizeSegmentContentForMode', () => {
       markdown: 'Caption text',
     });
   });
+
+  it('defaults panelWidth when switching to map without one', () => {
+    expect(
+      normalizeSegmentContentForMode(
+        {
+          contentMode: 'markdown',
+          markdown: 'Caption text',
+        },
+        'map',
+      ),
+    ).toEqual({
+      contentMode: 'map',
+      imageCaption: '',
+      image: '',
+      markdown: 'Caption text',
+      panelWidth: '25%',
+    });
+  });
 });
 
 describe('updateSegmentContent', () => {

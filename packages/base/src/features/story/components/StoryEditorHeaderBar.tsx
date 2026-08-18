@@ -160,7 +160,6 @@ function StorySettingsPopover({
                   }}
                   presets={CSS_WIDTH_PRESETS}
                   presetGroupAriaLabel="Overlay content width presets"
-                  fallback="100%"
                   size="xs"
                 />
                 <StoryOpacityField

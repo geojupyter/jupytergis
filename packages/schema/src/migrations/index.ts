@@ -19,8 +19,20 @@ const STEPS: IMigrationStep[] = [
   { from: '0.5.0', to: '0.6.0', migrate: migrateV0_5ToV0_6 },
 ];
 
-/** Legacy story type removed from schema; migrate to guided on load. */
-function normalizeStoryMaps(
+const DEFAULT_OVERLAY_CONTENT_WIDTH = '100%';
+const DEFAULT_MAP_PANEL_WIDTH = '25%';
+
+function isUnsetWidth(width: unknown): boolean {
+  return typeof width !== 'string' || width.trim() === '';
+}
+
+/**
+ * Load-time story defaults (no schema bump):
+ *  - unguided → guided
+ *  - overlayContentWidth → 100%
+ *  - map segment panelWidth → 25%
+ */
+function _normalizeStoryOverlays(
   doc: Record<string, unknown>,
 ): Record<string, unknown> {
   const stories = doc.stories;
@@ -32,19 +44,86 @@ function normalizeStoryMaps(
   const nextStories: Record<string, unknown> = {};
 
   for (const [id, story] of Object.entries(stories)) {
-    if (
-      story &&
-      typeof story === 'object' &&
-      (story as { storyType?: string }).storyType === 'unguided'
-    ) {
-      nextStories[id] = { ...story, storyType: 'guided' };
-      changed = true;
-    } else {
+    if (!story || typeof story !== 'object') {
       nextStories[id] = story;
+      continue;
     }
+
+    const current = story as Record<string, unknown>;
+    let nextStory = current;
+
+    if (current.storyType === 'unguided') {
+      nextStory = { ...nextStory, storyType: 'guided' };
+      changed = true;
+    }
+
+    if (isUnsetWidth(nextStory.overlayContentWidth)) {
+      nextStory = {
+        ...nextStory,
+        overlayContentWidth: DEFAULT_OVERLAY_CONTENT_WIDTH,
+      };
+      changed = true;
+    }
+
+    nextStories[id] = nextStory;
   }
 
   return changed ? { ...doc, stories: nextStories } : doc;
+}
+
+function _normalizeMapPanelWidths(
+  doc: Record<string, unknown>,
+): Record<string, unknown> {
+  const layers = doc.layers;
+  if (!layers || typeof layers !== 'object') {
+    return doc;
+  }
+
+  let changed = false;
+  const nextLayers: Record<string, unknown> = {};
+
+  for (const [id, layer] of Object.entries(layers)) {
+    if (
+      !layer ||
+      typeof layer !== 'object' ||
+      (layer as { type?: string }).type !== 'StorySegmentLayer'
+    ) {
+      nextLayers[id] = layer;
+      continue;
+    }
+
+    const parameters = (layer as { parameters?: Record<string, unknown> })
+      .parameters;
+    const content = parameters?.content;
+    if (!content || typeof content !== 'object') {
+      nextLayers[id] = layer;
+      continue;
+    }
+
+    const mode =
+      (content as { contentMode?: string }).contentMode ?? 'map';
+    if (
+      mode !== 'map' ||
+      !isUnsetWidth((content as { panelWidth?: unknown }).panelWidth)
+    ) {
+      nextLayers[id] = layer;
+      continue;
+    }
+
+    nextLayers[id] = {
+      ...layer,
+      parameters: {
+        ...parameters,
+        content: {
+          ...content,
+          panelWidth: DEFAULT_MAP_PANEL_WIDTH,
+        },
+      },
+    };
+    changed = true;
+  }
+
+  return changed ? { ...doc, layers: nextLayers } : doc;
 }
 
 /**
@@ -82,7 +161,11 @@ export function migrateDocument(
     }
   }
 
-  return normalizeStoryMaps(result);
+  for (const step of [_normalizeStoryOverlays, _normalizeMapPanelWidths]) {
+    result = step(result);
+  }
+
+  return result;
 }
 
 /** Simple semver comparison: returns negative, 0, or positive. */

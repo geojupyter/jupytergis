@@ -213,7 +213,8 @@
         "overlayContentWidth": {
           "type": "string",
           "title": "Overlay content width",
-          "description": "CSS width for vertical-scroll markdown overlay content."
+          "description": "CSS width for vertical-scroll markdown overlay content.",
+          "default": "100%"
         }
       }
     },

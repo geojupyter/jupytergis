@@ -1,5 +1,5 @@
 import {
-  isCssWidthFull,
+  isMarkdownOverlayWidthFull,
   resolveCssWidth,
 } from '@/src/features/story/utils/cssWidth';
 
@@ -21,10 +21,10 @@ describe('resolveCssWidth', () => {
   });
 });
 
-describe('isCssWidthFull', () => {
-  it('treats unset as the overlay default of 100%', () => {
-    expect(isCssWidthFull(undefined)).toBe(true);
-    expect(isCssWidthFull('100%')).toBe(true);
-    expect(isCssWidthFull('50ch')).toBe(false);
+describe('isMarkdownOverlayWidthFull', () => {
+  it('is true only for stored 100%', () => {
+    expect(isMarkdownOverlayWidthFull(undefined)).toBe(false);
+    expect(isMarkdownOverlayWidthFull('100%')).toBe(true);
+    expect(isMarkdownOverlayWidthFull('50ch')).toBe(false);
   });
 });

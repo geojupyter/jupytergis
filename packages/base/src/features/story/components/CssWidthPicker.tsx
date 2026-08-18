@@ -47,8 +47,6 @@ export interface ICssWidthPickerProps {
   onChange: (width: string) => void;
   presets: readonly ICssWidthPreset[];
   presetGroupAriaLabel: string;
-  /** When set, empty values resolve to this (e.g. overlay default `100%`). */
-  fallback?: string;
   layout?: 'field' | 'block';
   size?: ButtonProps['size'];
 }
@@ -59,11 +57,10 @@ export function CssWidthPicker({
   onChange,
   presets,
   presetGroupAriaLabel,
-  fallback,
   layout = 'field',
   size,
 }: ICssWidthPickerProps): JSX.Element {
-  const resolved = resolveCssWidth(value) ?? fallback;
+  const resolved = resolveCssWidth(value);
   const matchedPreset = presets.find(preset => preset.value === resolved);
   const parsed = parseCssWidth(resolved) ?? { amount: '', unit: '%' };
   const [isCustom, setIsCustom] = useState(() => matchedPreset === undefined);
@@ -73,7 +70,7 @@ export function CssWidthPicker({
   const selectedPresetId = isCustom ? null : matchedPreset?.id;
 
   useEffect(() => {
-    const nextResolved = resolveCssWidth(value) ?? fallback;
+    const nextResolved = resolveCssWidth(value);
     const nextPreset = presets.find(preset => preset.value === nextResolved);
     const nextParsed = parseCssWidth(nextResolved) ?? {
       amount: '',
@@ -83,7 +80,7 @@ export function CssWidthPicker({
     setAmount(nextParsed.amount);
     setUnit(nextParsed.unit);
     setWidthError(null);
-  }, [value, fallback, presets]);
+  }, [value, presets]);
 
   const commitCustomWidth = (nextAmount: string, nextUnit: string): void => {
     if (!CSS_AMOUNT_COMPLETE.test(nextAmount.trim())) {

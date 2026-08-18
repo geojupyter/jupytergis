@@ -8,6 +8,8 @@ import {
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { getCssVarValue } from '@/src/tools';
 
+import { resolveCssWidth } from './cssWidth';
+
 /** Fallbacks when presentation settings are unset (see storyPanel.css). */
 const PRESENTATION_BG_COLOR_FALLBACK = '--jp-layout-color0';
 const PRESENTATION_TEXT_COLOR_FALLBACK = '--jp-ui-font-color1';
@@ -44,7 +46,7 @@ export function getSpectaPresentationCssVars(
   const verticalScroll = isVerticalScrollPresentation(presentationMode);
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
-  const overlayContentWidth = story?.overlayContentWidth?.trim();
+  const overlayContentWidth = resolveCssWidth(story?.overlayContentWidth);
   const style: CSSProperties = {};
 
   if (textColor) {

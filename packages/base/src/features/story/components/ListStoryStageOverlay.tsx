@@ -19,7 +19,7 @@ import type {
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
 import {
-  isCssWidthFull,
+  isMarkdownOverlayWidthFull,
   resolveCssWidth,
 } from '@/src/features/story/utils/cssWidth';
 import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
@@ -415,7 +415,9 @@ export function ListStoryStageOverlay({
     ],
   );
 
-  const overlayContentWidthFull = isCssWidthFull(story?.overlayContentWidth);
+  const overlayContentWidthFull = isMarkdownOverlayWidthFull(
+    story?.overlayContentWidth,
+  );
 
   const activeItem = items.find(item => item.index === currentIndex);
 

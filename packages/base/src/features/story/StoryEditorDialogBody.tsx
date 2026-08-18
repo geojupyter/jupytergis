@@ -23,8 +23,8 @@ import type {
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
 import {
+  isMarkdownOverlayWidthFull,
   MAP_PANEL_WIDTH_PRESETS,
-  isCssWidthFull,
 } from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import {

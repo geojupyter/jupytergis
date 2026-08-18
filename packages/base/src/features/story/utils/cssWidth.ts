@@ -2,6 +2,9 @@ export const CSS_WIDTH_UNITS = ['ch', '%', 'rem', 'px', 'em', 'vw'] as const;
 
 export type CssWidthUnit = (typeof CSS_WIDTH_UNITS)[number];
 
+export const DEFAULT_OVERLAY_CONTENT_WIDTH = '100%';
+export const DEFAULT_MAP_PANEL_WIDTH = '25%';
+
 export const CSS_WIDTH_PRESETS = [
   { id: 'narrow', label: 'Narrow', value: '50ch' },
   { id: 'comfort', label: 'Comfort', value: '75ch' },
@@ -64,7 +67,9 @@ export function validateCssWidth(amount: string, unit: string): string | null {
   return null;
 }
 
-/** Overlay CSS default is 100%; unset/invalid counts as full. */
-export function isCssWidthFull(width: string | undefined): boolean {
-  return (resolveCssWidth(width) ?? '100%') === '100%';
+/** Markdown overlay is full when stored width is 100%. */
+export function isMarkdownOverlayWidthFull(
+  width: string | undefined,
+): boolean {
+  return resolveCssWidth(width) === '100%';
 }

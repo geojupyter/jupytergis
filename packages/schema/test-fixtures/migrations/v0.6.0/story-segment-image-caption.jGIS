@@ -10,7 +10,8 @@
           "contentMode": "map",
           "image": "",
           "imageCaption": "Old caption",
-          "markdown": "Body text"
+          "markdown": "Body text",
+          "panelWidth": "25%"
         },
         "extent": [0, 0, 1, 1],
         "layerOverride": [],
