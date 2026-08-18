@@ -3,7 +3,9 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
+import { jupyterHighlightStyle } from '@jupyterlab/codemirror';
 import React, { RefObject } from 'react';
+import { StyleModule } from 'style-mod';
 
 import {
   getStoryPresentationMode,
@@ -80,6 +82,15 @@ function getStoryNavPlacement(
   return hasImage ? 'over-image' : 'below-title';
 }
 
+let highlightStyleMounted = false;
+
+export function ensureJupyterHighlightStyle(): void {
+  if (!highlightStyleMounted) {
+    StyleModule.mount(document, jupyterHighlightStyle.module as StyleModule);
+    highlightStyleMounted = true;
+  }
+}
+
 function StoryViewerPanel({
   model,
   isSpecta,
@@ -101,6 +112,8 @@ function StoryViewerPanel({
       </div>
     );
   }
+
+  ensureJupyterHighlightStyle();
 
   const segmentId = storyData.storySegments?.[currentIndex] ?? '';
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
