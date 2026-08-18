@@ -6,7 +6,8 @@ import {
   resolveCssWidth,
   validateCssWidth,
 } from '@/src/features/story/utils/cssWidth';
-import { Button } from '@/src/shared/components/Button';
+import { Button, type ButtonProps } from '@/src/shared/components/Button';
+import { ButtonGroup } from '@/src/shared/components/ButtonGroup';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -49,6 +50,7 @@ export interface ICssWidthPickerProps {
   /** When set, empty values resolve to this (e.g. overlay default `100%`). */
   fallback?: string;
   layout?: 'field' | 'block';
+  size?: ButtonProps['size'];
 }
 
 export function CssWidthPicker({
@@ -59,6 +61,7 @@ export function CssWidthPicker({
   presetGroupAriaLabel,
   fallback,
   layout = 'field',
+  size,
 }: ICssWidthPickerProps): JSX.Element {
   const resolved = resolveCssWidth(value) ?? fallback;
   const matchedPreset = presets.find(preset => preset.value === resolved);
@@ -99,22 +102,13 @@ export function CssWidthPicker({
   };
 
   const presetButtons = (
-    <div
-      className="jgis-story-editor-width-presets"
-      role="group"
-      aria-label={presetGroupAriaLabel}
-    >
+    <ButtonGroup aria-label={presetGroupAriaLabel}>
       {presets.map(preset => (
         <Button
           key={preset.id}
           type="button"
-          variant="outline"
-          size="sm"
-          className={`jgis-story-editor-width-preset${
-            selectedPresetId === preset.id
-              ? ' jgis-story-editor-width-preset--selected'
-              : ''
-          }`}
+          size={size}
+          variant={selectedPresetId === preset.id ? 'secondary' : 'outline'}
           aria-pressed={selectedPresetId === preset.id}
           title={preset.value}
           onClick={() => {
@@ -127,11 +121,8 @@ export function CssWidthPicker({
       ))}
       <Button
         type="button"
-        variant="outline"
-        size="sm"
-        className={`jgis-story-editor-width-preset${
-          isCustom ? ' jgis-story-editor-width-preset--selected' : ''
-        }`}
+        size={size}
+        variant={isCustom ? 'secondary' : 'outline'}
         aria-pressed={isCustom}
         onClick={() => {
           setIsCustom(true);
@@ -139,7 +130,7 @@ export function CssWidthPicker({
       >
         Custom
       </Button>
-    </div>
+    </ButtonGroup>
   );
 
   const customEditor = isCustom ? (
