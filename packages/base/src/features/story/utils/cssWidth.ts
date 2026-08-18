@@ -43,7 +43,6 @@ function isValidCssWidthAmount(amount: number, unit: CssWidthUnit): boolean {
   return unit !== '%' || amount <= 100;
 }
 
-/** Normalize a stored width, or undefined when unset/invalid. */
 export function resolveCssWidth(width: string | undefined): string | undefined {
   const parsed = parseCssWidth(width);
   if (!parsed || !isValidCssWidthAmount(Number(parsed.amount), parsed.unit)) {
@@ -67,7 +66,6 @@ export function validateCssWidth(amount: string, unit: string): string | null {
   return null;
 }
 
-/** Markdown overlay is full when stored width is 100%. */
 export function isMarkdownOverlayWidthFull(width: string | undefined): boolean {
   return resolveCssWidth(width) === '100%';
 }

@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState, type RefObject } from 'react';
 
-import { CssWidthPicker } from '@/src/features/story/components/CssWidthPicker';
+import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import {
   getStoryPresentationMode,
@@ -152,7 +152,7 @@ function StorySettingsPopover({
                     }}
                   />
                 </label>
-                <CssWidthPicker
+                <SegmentWidthSelector
                   label="Overlay content width"
                   value={story.overlayContentWidth}
                   onChange={overlayContentWidth => {

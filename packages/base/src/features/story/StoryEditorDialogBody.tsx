@@ -5,7 +5,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { CssWidthPicker } from '@/src/features/story/components/CssWidthPicker';
+import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
 import SegmentImageCaptionField from '@/src/features/story/components/SegmentImageCaptionField';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
@@ -140,7 +140,7 @@ function SegmentEditor({
       {segmentMode === 'map' || !isTextSegmentWidthFull ? (
         <div className="jgis-story-editor-split">
           {segmentMode === 'map' ? (
-            <CssWidthPicker
+            <SegmentWidthSelector
               label="Panel width"
               layout="block"
               value={segment.activeSlide?.content?.panelWidth}

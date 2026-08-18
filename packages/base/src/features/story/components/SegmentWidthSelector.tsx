@@ -35,23 +35,23 @@ function sanitizeCssAmountInput(raw: string): string {
   return result;
 }
 
-export interface ICssWidthPreset {
+export interface ISegmentWidthSelectorPreset {
   id: string;
   label: string;
   value: string;
 }
 
-export interface ICssWidthPickerProps {
+export interface ISegmentWidthSelectorPickerProps {
   label: string;
   value: string | undefined;
   onChange: (width: string) => void;
-  presets: readonly ICssWidthPreset[];
+  presets: readonly ISegmentWidthSelectorPreset[];
   presetGroupAriaLabel: string;
   layout?: 'field' | 'block';
   size?: ButtonProps['size'];
 }
 
-export function CssWidthPicker({
+export function SegmentWidthSelector({
   label,
   value,
   onChange,
@@ -59,7 +59,7 @@ export function CssWidthPicker({
   presetGroupAriaLabel,
   layout = 'field',
   size,
-}: ICssWidthPickerProps): JSX.Element {
+}: ISegmentWidthSelectorPickerProps): JSX.Element {
   const resolved = resolveCssWidth(value);
   const matchedPreset = presets.find(preset => preset.value === resolved);
   const parsed = parseCssWidth(resolved) ?? { amount: '', unit: '%' };
