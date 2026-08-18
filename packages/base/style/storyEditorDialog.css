@@ -61,6 +61,17 @@
   font-size: 0.8rem;
 }
 
+.jgis-story-editor-split {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+}
+
+.jgis-story-editor-split > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .jgis-story-editor-slider {
   display: flex;
   align-items: center;
@@ -1007,6 +1018,10 @@ Radix won't set hidden so do it manually */
   .jgis-story-editor-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .jgis-story-editor-split {
+    flex-direction: column;
   }
 
   .jgis-story-editor-row > .jgis-button,
