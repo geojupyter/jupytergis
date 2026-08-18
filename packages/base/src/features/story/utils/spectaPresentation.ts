@@ -7,7 +7,6 @@ import {
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { getCssVarValue } from '@/src/tools';
-
 import { resolveCssWidth } from './cssWidth';
 
 /** Fallbacks when presentation settings are unset (see storyPanel.css). */

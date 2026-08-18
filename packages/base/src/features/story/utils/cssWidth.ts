@@ -68,8 +68,6 @@ export function validateCssWidth(amount: string, unit: string): string | null {
 }
 
 /** Markdown overlay is full when stored width is 100%. */
-export function isMarkdownOverlayWidthFull(
-  width: string | undefined,
-): boolean {
+export function isMarkdownOverlayWidthFull(width: string | undefined): boolean {
   return resolveCssWidth(width) === '100%';
 }

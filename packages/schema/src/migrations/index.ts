@@ -100,8 +100,7 @@ function _normalizeMapPanelWidths(
       continue;
     }
 
-    const mode =
-      (content as { contentMode?: string }).contentMode ?? 'map';
+    const mode = (content as { contentMode?: string }).contentMode ?? 'map';
     if (
       mode !== 'map' ||
       !isUnsetWidth((content as { panelWidth?: unknown }).panelWidth)
