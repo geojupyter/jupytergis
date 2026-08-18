@@ -10,7 +10,7 @@ import { SegmentImageUrlField } from '@/src/features/story/components/SegmentIma
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
-import { SegmentPanelWidthPicker } from '@/src/features/story/components/SegmentPanelWidthPicker';
+import { CssWidthPicker } from '@/src/features/story/components/CssWidthPicker';
 import { SegmentPaneAlignmentPicker } from '@/src/features/story/components/SegmentPaneAlignmentPicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
@@ -22,8 +22,11 @@ import type {
   IStorySegmentViewItem,
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
+import {
+  MAP_PANEL_WIDTH_PRESETS,
+  isCssWidthFull,
+} from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import { isOverlayContentWidthFull } from '@/src/features/story/utils/spectaPresentation';
 import {
   getSegmentPaneAlignment,
   type SegmentContentPatch,

@@ -279,11 +279,7 @@
   grid-template-columns: 1fr auto;
   gap: 0.35rem;
   align-items: center;
-}
-
-.jgis-story-editor-width-unit {
-  font-size: 0.8rem;
-  color: var(--jp-ui-font-color2);
+  max-width: fit-content;
 }
 
 .jgis-story-editor-toggle-row {

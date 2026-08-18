@@ -36,7 +36,7 @@
         "panelWidth": {
           "type": "string",
           "title": "Panel width",
-          "description": "CSS width (percent only) of the map overlay card for this segment in vertical-scroll stories. Unset uses the default layout width.",
+          "description": "CSS width (ch, %, rem, px, em, or vw) of the map overlay card for this segment in vertical-scroll stories. Unset uses the default layout width.",
           "default": ""
         },
         "image": {

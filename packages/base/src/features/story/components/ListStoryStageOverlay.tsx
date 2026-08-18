@@ -23,13 +23,10 @@ import {
   getSegmentDisplayMode,
   getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
-import {
-  getSpectaPresentationCssVars,
-  isOverlayContentWidthFull,
-} from '@/src/features/story/utils/spectaPresentation';
+import { isCssWidthFull, resolveCssWidth } from '@/src/features/story/utils/cssWidth';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   getSegmentPaneAlignment,
-  resolveSegmentPanelWidth,
   segmentPaneAlignment,
 } from '@/src/features/story/utils/storySegmentContent';
 import {
@@ -97,7 +94,7 @@ function buildPaneConfig(
       type: 'map',
       segmentIndex: item.index,
       paneAlignment,
-      panelWidth: resolveSegmentPanelWidth(item.activeSlide?.content),
+      panelWidth: resolveCssWidth(item.activeSlide?.content?.panelWidth),
     };
   }
 
@@ -415,9 +412,7 @@ export function ListStoryStageOverlay({
     ],
   );
 
-  const overlayContentWidthFull = isOverlayContentWidthFull(
-    story?.overlayContentWidth,
-  );
+  const overlayContentWidthFull = isCssWidthFull(story?.overlayContentWidth);
 
   const activeItem = items.find(item => item.index === currentIndex);
 
