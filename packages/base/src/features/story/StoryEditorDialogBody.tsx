@@ -138,12 +138,26 @@ function SegmentEditor({
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
 
       {segmentMode === 'map' || !isTextSegmentWidthFull ? (
-        <SegmentPaneAlignmentPicker
-          value={paneAlignment}
-          onChange={alignment => {
-            onContentChange({ paneAlignment: alignment });
-          }}
-        />
+        <div className="jgis-story-editor-split">
+          {segmentMode === 'map' ? (
+            <CssWidthPicker
+              label="Panel width"
+              layout="block"
+              value={segment.activeSlide?.content?.panelWidth}
+              onChange={panelWidth => {
+                onContentChange({ panelWidth });
+              }}
+              presets={MAP_PANEL_WIDTH_PRESETS}
+              presetGroupAriaLabel="Map panel width presets"
+            />
+          ) : null}
+          <SegmentPaneAlignmentPicker
+            value={paneAlignment}
+            onChange={alignment => {
+              onContentChange({ paneAlignment: alignment });
+            }}
+          />
+        </div>
       ) : null}
 
       {segmentMode === 'map' ? (
@@ -304,7 +318,7 @@ export function StoryEditorDialogBody({
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
-  const isTextSegmentWidthFull = isOverlayContentWidthFull(
+  const isTextSegmentWidthFull = isMarkdownOverlayWidthFull(
     story?.overlayContentWidth,
   );
 
