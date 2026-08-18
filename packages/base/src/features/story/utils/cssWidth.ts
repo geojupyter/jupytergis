@@ -1,11 +1,4 @@
-export const CSS_WIDTH_UNITS = [
-  'ch',
-  '%',
-  'rem',
-  'px',
-  'em',
-  'vw',
-] as const;
+export const CSS_WIDTH_UNITS = ['ch', '%', 'rem', 'px', 'em', 'vw'] as const;
 
 export type CssWidthUnit = (typeof CSS_WIDTH_UNITS)[number];
 

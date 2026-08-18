@@ -5,12 +5,12 @@ import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { CssWidthPicker } from '@/src/features/story/components/CssWidthPicker';
 import SegmentImageCaptionField from '@/src/features/story/components/SegmentImageCaptionField';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
-import { CssWidthPicker } from '@/src/features/story/components/CssWidthPicker';
 import { SegmentPaneAlignmentPicker } from '@/src/features/story/components/SegmentPaneAlignmentPicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';

@@ -18,12 +18,15 @@ import type {
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
+import {
+  isCssWidthFull,
+  resolveCssWidth,
+} from '@/src/features/story/utils/cssWidth';
 import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
 import {
   getSegmentDisplayMode,
   getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
-import { isCssWidthFull, resolveCssWidth } from '@/src/features/story/utils/cssWidth';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   getSegmentPaneAlignment,
