@@ -1,7 +1,9 @@
 import {
   getSegmentPaneAlignment,
-  segmentPaneAlignment,
+  MAP_PANEL_WIDTH_PRESETS,
   normalizeSegmentContentForMode,
+  resolveSegmentPanelWidth,
+  segmentPaneAlignment,
   updateSegmentContent,
 } from '@/src/features/story/utils/storySegmentContent';
 
@@ -43,6 +45,7 @@ describe('normalizeSegmentContentForMode', () => {
           markdown: '# Hello',
           imageCaption: 'ignored',
           paneAlignment: 'start',
+          panelWidth: '50%',
         },
         'map',
       ),
@@ -52,6 +55,7 @@ describe('normalizeSegmentContentForMode', () => {
       image: '',
       markdown: '# Hello',
       paneAlignment: 'start',
+      panelWidth: '50%',
     });
   });
 
@@ -72,6 +76,57 @@ describe('normalizeSegmentContentForMode', () => {
       markdown: 'Caption text',
       paneAlignment: 'end',
     });
+  });
+
+  it('drops panelWidth when switching to markdown', () => {
+    expect(
+      normalizeSegmentContentForMode(
+        {
+          contentMode: 'map',
+          panelWidth: '50%',
+          markdown: 'Caption text',
+        },
+        'markdown',
+      ),
+    ).toEqual({
+      contentMode: 'markdown',
+      markdown: 'Caption text',
+    });
+  });
+});
+
+describe('resolveSegmentPanelWidth', () => {
+  it('returns undefined when unset', () => {
+    expect(resolveSegmentPanelWidth(undefined)).toBeUndefined();
+    expect(resolveSegmentPanelWidth({ contentMode: 'map' })).toBeUndefined();
+    expect(
+      resolveSegmentPanelWidth({ contentMode: 'map', panelWidth: '' }),
+    ).toBeUndefined();
+  });
+
+  it('accepts percent-only values in range', () => {
+    expect(
+      resolveSegmentPanelWidth({ contentMode: 'map', panelWidth: '25%' }),
+    ).toBe('25%');
+    expect(
+      resolveSegmentPanelWidth({ contentMode: 'map', panelWidth: ' 50% ' }),
+    ).toBe('50%');
+  });
+
+  it('rejects non-percent and out-of-range values', () => {
+    expect(
+      resolveSegmentPanelWidth({ contentMode: 'map', panelWidth: '50ch' }),
+    ).toBeUndefined();
+    expect(
+      resolveSegmentPanelWidth({ contentMode: 'map', panelWidth: '0%' }),
+    ).toBeUndefined();
+    expect(
+      resolveSegmentPanelWidth({ contentMode: 'map', panelWidth: '150%' }),
+    ).toBeUndefined();
+  });
+
+  it('exposes percent presets for the editor', () => {
+    expect(MAP_PANEL_WIDTH_PRESETS).toEqual(['25%', '50%', '75%', '100%']);
   });
 });
 
