@@ -68,7 +68,7 @@ function SegmentEditor({
   onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
-  showPaneAlignmentPicker,
+  isTextSegmentWidthFull,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -82,7 +82,7 @@ function SegmentEditor({
   onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
-  showPaneAlignmentPicker: boolean;
+  isTextSegmentWidthFull: boolean;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
@@ -133,7 +133,7 @@ function SegmentEditor({
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
 
-      {showPaneAlignmentPicker ? (
+      {segmentMode === 'map' || !isTextSegmentWidthFull ? (
         <SegmentPaneAlignmentPicker
           value={paneAlignment}
           onChange={alignment => {
@@ -300,7 +300,7 @@ export function StoryEditorDialogBody({
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
-  const showPaneAlignmentPicker = !isOverlayContentWidthFull(
+  const isTextSegmentWidthFull = isOverlayContentWidthFull(
     story?.overlayContentWidth,
   );
 
@@ -367,7 +367,7 @@ export function StoryEditorDialogBody({
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
               onRemoveSegment={removeSegment}
-              showPaneAlignmentPicker={showPaneAlignmentPicker}
+              isTextSegmentWidthFull={isTextSegmentWidthFull}
             />
           ) : (
             <SegmentEditorEmptyState />
