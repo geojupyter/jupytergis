@@ -281,6 +281,11 @@
   align-items: center;
 }
 
+.jgis-story-editor-width-unit {
+  font-size: 0.8rem;
+  color: var(--jp-ui-font-color2);
+}
+
 .jgis-story-editor-toggle-row {
   display: flex;
   align-items: center;

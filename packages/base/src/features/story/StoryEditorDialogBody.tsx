@@ -10,6 +10,7 @@ import { SegmentImageUrlField } from '@/src/features/story/components/SegmentIma
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
+import { SegmentPanelWidthPicker } from '@/src/features/story/components/SegmentPanelWidthPicker';
 import { SegmentPaneAlignmentPicker } from '@/src/features/story/components/SegmentPaneAlignmentPicker';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
