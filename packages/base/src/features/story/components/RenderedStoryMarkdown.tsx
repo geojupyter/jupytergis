@@ -1,7 +1,9 @@
-import type { IJupyterGISModel } from '@jupytergis/schema';
-import { MimeModel } from '@jupyterlab/rendermime';
-import { Widget } from '@lumino/widgets';
+import { StyleModule } from 'style-mod';
 import React, { memo, useLayoutEffect, useRef } from 'react';
+import { Widget } from '@lumino/widgets';
+import { jupyterHighlightStyle } from '@jupyterlab/codemirror';
+import { MimeModel } from '@jupyterlab/rendermime';
+import type { IJupyterGISModel } from '@jupytergis/schema';
 
 import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
@@ -50,6 +52,15 @@ function renderedStoryMarkdownPropsAreEqual(
   );
 }
 
+let highlightStyleMounted = false;
+
+export function ensureJupyterHighlightStyle(): void {
+  if (!highlightStyleMounted) {
+    StyleModule.mount(document, jupyterHighlightStyle.module as StyleModule);
+    highlightStyleMounted = true;
+  }
+}
+
 /** Jupyter rendermime markdown output (shared by overlay and story editor). */
 export const RenderedStoryMarkdown = memo(
   ({
@@ -69,6 +80,8 @@ export const RenderedStoryMarkdown = memo(
       if (!host || !source) {
         return;
       }
+
+      ensureJupyterHighlightStyle();
 
       const registry = rendermime.clone();
       const renderer = registry.createRenderer(MARKDOWN_MIME);
