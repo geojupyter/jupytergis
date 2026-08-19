@@ -1,7 +1,7 @@
 import {
   getSegmentPaneAlignment,
-  segmentPaneAlignment,
   normalizeSegmentContentForMode,
+  segmentPaneAlignment,
   updateSegmentContent,
 } from '@/src/features/story/utils/storySegmentContent';
 
@@ -43,6 +43,7 @@ describe('normalizeSegmentContentForMode', () => {
           markdown: '# Hello',
           imageCaption: 'ignored',
           paneAlignment: 'start',
+          panelWidth: '50%',
         },
         'map',
       ),
@@ -52,6 +53,7 @@ describe('normalizeSegmentContentForMode', () => {
       image: '',
       markdown: '# Hello',
       paneAlignment: 'start',
+      panelWidth: '50%',
     });
   });
 
@@ -71,6 +73,40 @@ describe('normalizeSegmentContentForMode', () => {
       contentMode: 'markdown',
       markdown: 'Caption text',
       paneAlignment: 'end',
+    });
+  });
+
+  it('drops panelWidth when switching to markdown', () => {
+    expect(
+      normalizeSegmentContentForMode(
+        {
+          contentMode: 'map',
+          panelWidth: '50%',
+          markdown: 'Caption text',
+        },
+        'markdown',
+      ),
+    ).toEqual({
+      contentMode: 'markdown',
+      markdown: 'Caption text',
+    });
+  });
+
+  it('defaults panelWidth when switching to map without one', () => {
+    expect(
+      normalizeSegmentContentForMode(
+        {
+          contentMode: 'markdown',
+          markdown: 'Caption text',
+        },
+        'map',
+      ),
+    ).toEqual({
+      contentMode: 'map',
+      imageCaption: '',
+      image: '',
+      markdown: 'Caption text',
+      panelWidth: '25%',
     });
   });
 });

@@ -132,6 +132,10 @@
 }
 
 /* sizing */
+.jgis-button[data-size='xs'] {
+  padding: 0.5rem 0.25rem;
+}
+
 .jgis-button[data-size='sm'] {
   border-radius: var(--jp-border-radius, 0.375rem);
   padding-left: 0.75rem;

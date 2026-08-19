@@ -968,6 +968,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         contentMode: 'map',
         imageCaption: '',
         image: '',
+        panelWidth: '25%',
       },
     };
     const layerModel: IJGISLayer = {
@@ -987,7 +988,12 @@ export class JupyterGISModel implements IJupyterGISModel {
       const storyType = 'guided';
       const storySegments = [newStorySegmentId];
 
-      const storyMap: IJGISStoryMap = { title, storyType, storySegments };
+      const storyMap: IJGISStoryMap = {
+        title,
+        storyType,
+        storySegments,
+        overlayContentWidth: '100%',
+      };
 
       this.sharedModel.addStoryMap(storyId, storyMap);
       this._segmentAdded.emit({
