@@ -2,6 +2,25 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0rc4
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc3...438c223e7c07ba86e4f7b3aa0611e8bf2776ea70))
+
+### Bugs fixed
+
+- Story mode: Fix code blocks color [#1771](https://github.com/geojupyter/jupytergis/pull/1771) ([@martinRenou](https://github.com/martinRenou), [@gjmooney](https://github.com/gjmooney))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-19&to=2026-08-19&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-19..2026-08-19&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-19..2026-08-19&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0rc3
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc2...7c16fc4171e0c6222fba61afde3e73e6aedb98c7))
@@ -28,8 +47,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-17&to=2026-08-19&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-08-17..2026-08-19&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-08-17..2026-08-19&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-17..2026-08-19&type=Issues)) | @jtpio ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajtpio+updated%3A2026-08-17..2026-08-19&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-17..2026-08-19&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-08-17..2026-08-19&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0rc2
 

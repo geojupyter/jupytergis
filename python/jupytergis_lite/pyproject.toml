@@ -18,8 +18,8 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "jupytergis_core==0.16.0rc3",
-  "jupytergis_lab==0.16.0rc3",
+  "jupytergis_core==0.16.0rc4",
+  "jupytergis_lab==0.16.0rc4",
   "my-jupyter-shared-drive>=0.2.2",
   "jupyterlab-tour>=4,<5",
 ]
