@@ -2,6 +2,35 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.0rc3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc2...7c16fc4171e0c6222fba61afde3e73e6aedb98c7))
+
+### Enhancements made
+
+- Story Maps: Allow setting overlay panel width. Fix panels being too narrow [#1767](https://github.com/geojupyter/jupytergis/pull/1767) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Update combobox to support virtualized lists (and adds Tailwind) [#1724](https://github.com/geojupyter/jupytergis/pull/1724) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py), [@benjaminszeghy](https://github.com/benjaminszeghy), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Bugs fixed
+
+- Story maps specta view: Fix syntax highlighting for code blocks [#1766](https://github.com/geojupyter/jupytergis/pull/1766) ([@martinRenou](https://github.com/martinRenou), [@gjmooney](https://github.com/gjmooney))
+- Story Maps: always show alignment option for map segments [#1763](https://github.com/geojupyter/jupytergis/pull/1763) ([@martinRenou](https://github.com/martinRenou), [@gjmooney](https://github.com/gjmooney))
+
+### Maintenance and upkeep improvements
+
+- Do not bundle jupyterlab packages [#1768](https://github.com/geojupyter/jupytergis/pull/1768) ([@jtpio](https://github.com/jtpio), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-17&to=2026-08-19&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-08-17..2026-08-19&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-08-17..2026-08-19&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-17..2026-08-19&type=Issues)) | @jtpio ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajtpio+updated%3A2026-08-17..2026-08-19&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-17..2026-08-19&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-08-17..2026-08-19&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0rc2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0rc1...489870718ec0c8d56c7bb4e75399ae78ae6b96ae))
@@ -18,8 +47,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-17&to=2026-08-17&type=c))
 
 @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-17..2026-08-17&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-17..2026-08-17&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0rc1
 
