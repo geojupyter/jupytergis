@@ -37,6 +37,7 @@ export function defaultFeatureStoreMeta(
     softLimit: FEATURE_STORE_SOFT_LIMIT,
     hardLimit: FEATURE_STORE_HARD_LIMIT,
     compacting: false,
+    foldRequested: false,
     ...overrides,
   };
 }

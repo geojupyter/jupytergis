@@ -90,6 +90,8 @@ export interface IFeatureStoreMeta {
   softLimit: number;
   hardLimit: number;
   compacting: boolean;
+  /** Client fold intent. Server consumes and clears this. */
+  foldRequested: boolean;
 }
 
 export interface IFeatureStore {
