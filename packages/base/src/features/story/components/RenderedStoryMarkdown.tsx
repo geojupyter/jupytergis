@@ -1,9 +1,9 @@
-import { StyleModule } from 'style-mod';
-import React, { memo, useLayoutEffect, useRef } from 'react';
-import { Widget } from '@lumino/widgets';
+import type { IJupyterGISModel } from '@jupytergis/schema';
 import { jupyterHighlightStyle } from '@jupyterlab/codemirror';
 import { MimeModel } from '@jupyterlab/rendermime';
-import type { IJupyterGISModel } from '@jupytergis/schema';
+import { Widget } from '@lumino/widgets';
+import React, { memo, useLayoutEffect, useRef } from 'react';
+import { StyleModule } from 'style-mod';
 
 import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
