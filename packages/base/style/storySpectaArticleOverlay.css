@@ -136,14 +136,12 @@
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget pre code {
-  color: #222;
   background-color: transparent !important;
   padding: 0;
   font-size: 0.875rem !important;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget code {
-  background-color: #e9ecef;
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 0.875rem !important;
