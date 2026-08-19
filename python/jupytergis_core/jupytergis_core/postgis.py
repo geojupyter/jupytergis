@@ -26,6 +26,7 @@ def get_postgis_url() -> str | None:
     if url is None:
         return None
     url = url.strip()
+
     return url or None
 
 
@@ -135,19 +136,13 @@ def merge_overlay_features_sql(
     payload = []
     for f in features:
         geometry = f.get("geometry")
-        if geometry is None and "lon" in f and "lat" in f:
-            # Backward-compat for older overlay payloads.
-            geometry = {
-                "type": "Point",
-                "coordinates": [float(f["lon"]), float(f["lat"])],
-            }
         if geometry is None and not bool(f.get("deleted", False)):
             raise ValueError(f'Feature "{f.get("id")}" is missing geometry')
 
         payload.append(
             {
                 "id": f["id"],
-                "geometry": geometry or {"type": "Point", "coordinates": [0, 0]},
+                "geometry": geometry,
                 "props": f.get("props") or {},
                 "updated_at": f.get("updatedAt"),
                 "updated_by": f.get("updatedBy"),
@@ -275,8 +270,6 @@ def merge_overlay_features_via_psql(
 ) -> None:
     """
     Merge overlay into PostGIS using `psql` subprocess calls.
-
-    This is Phase 3.2 “fold” backend logic; Step 3.3 will wire it to HTTP.
     """
 
     if not conn_url:
