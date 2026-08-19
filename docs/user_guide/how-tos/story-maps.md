@@ -124,7 +124,7 @@ dependencies:
   - python
   - pip
   - jupyter_server
-  - jupyterlite-core >=0.7
+  - jupyterlite-core >=0.8
   - jupyterlite-xeus >=4.3
   - notebook >=7.5
   - specta
