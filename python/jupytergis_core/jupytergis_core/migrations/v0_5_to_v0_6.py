@@ -6,6 +6,7 @@ Converts legacy representations to Grammar symbologyState in one pass:
   - HeatmapLayer color array → symbologyState.gradient
   - WebGlLayer type → GeoTiffLayer
   - flat metadata keys ``annotation_<id>`` → top-level ``annotations``
+  - StorySegmentLayer content.title → imageCaption
 """
 
 import json
@@ -61,7 +62,46 @@ def migrate(doc: dict[str, Any]) -> dict[str, Any]:
         layer["parameters"] = params
         layers[layer_id] = layer
 
-    return _migrate_annotations({**doc, "layers": layers})
+    result: dict[str, Any] = {**doc, "layers": layers}
+    for step in (
+        _migrate_story_segment_captions,
+        _migrate_annotations,
+    ):
+        result = step(result)
+    return result
+
+
+def _migrate_story_segment_captions(doc: dict[str, Any]) -> dict[str, Any]:
+    """Rename StorySegmentLayer content.title → imageCaption."""
+    layers = dict(doc.get("layers", {}))
+
+    for layer_id, layer in layers.items():
+        if layer.get("type") != "StorySegmentLayer":
+            continue
+
+        parameters = layer.get("parameters") or {}
+        content = parameters.get("content")
+
+        if (
+            not isinstance(content, dict)
+            or "title" not in content
+            or content.get("imageCaption") is not None
+        ):
+            continue
+
+        rest = {k: v for k, v in content.items() if k != "title"}
+        layers[layer_id] = {
+            **layer,
+            "parameters": {
+                **parameters,
+                "content": {
+                    **rest,
+                    "imageCaption": content.get("title") or "",
+                },
+            },
+        }
+
+    return {**doc, "layers": layers}
 
 
 def _migrate_annotations(doc: dict[str, Any]) -> dict[str, Any]:

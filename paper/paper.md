@@ -78,7 +78,7 @@ However, none of the existing open-source offerings addresses the growing demand
 
 ## Closed-Source Desktop Solutions
 
-**ESRI's ArcGIS** remains the dominant proprietary GIS platform, offering comprehensive tools for data management, analysis, and visualization. While ArcGIS Online provides cloud-based collaboration features, it is not as instantaneous. Edits are synchronized at scheduled intervals or manually, not in real time.
+**Esri's ArcGIS** remains the dominant proprietary GIS platform, offering comprehensive tools for data management, analysis, and visualization. While ArcGIS Online provides cloud-based collaboration features, it is not as instantaneous. Edits are synchronized at scheduled intervals or manually, not in real time.
 
 ## Open-Source Desktop Solutions
 
@@ -102,7 +102,7 @@ JupyterGIS brings a collaborative, desktop-style GIS experience to the web, enab
 
 ## Supported Layer Types
 
-JupyterGIS supports a broad range of **geospatial data formats** including vector formats (**GeoJSON**, **Shapefile**, **GeoParquet**), raster formats (Cloud-Optimized GeoTIFFs), as well as **raster and vector tile layers**.
+JupyterGIS supports a broad range of **geospatial data formats**, including vector formats (**GeoJSON**, **Shapefile**, **GeoParquet**), raster formats (Cloud-Optimized GeoTIFFs), as well as **raster and vector tile layers**.
 
 ## Real-time Collaboration and Annotation
 
@@ -189,7 +189,7 @@ JupyterGIS has been deployed across several major **research infrastructures**:
 
 - It is available on the [Copernicus Data Space Ecosystem (CDSE)](https://jupyterhub.dataspace.copernicus.eu).
 - It has been integrated with the Open OnDemand portal [@OpenOnDemand2018] and deployed at the University of Oslo.
-- JupyterGIS is integrated in the Galaxy Toolbox [@Galaxy2024] and deployed on the [Galaxy Europe deployment](https://usegalaxy.eu) of EOSC at usegalaxy.eu. It will soon be installed on the Earth Science thematic node of EOSC. More details on the Galaxy integration are available in an [article](https://galaxyproject.org/news/2025-05-20-jupytergis/) published on the Galaxy project's blog.
+- JupyterGIS is integrated into the Galaxy Toolbox [@Galaxy2024] and deployed on the [Galaxy Europe deployment](https://usegalaxy.eu) of EOSC at usegalaxy.eu. It will soon be installed on the Earth Science thematic node of EOSC. More details on the Galaxy integration are available in an [article](https://galaxyproject.org/news/2025-05-20-jupytergis/) published on the Galaxy project's blog.
 
 ## Public Deployments
 
@@ -206,7 +206,7 @@ JupyterGIS powers an [interactive map](https://cdr.apps.ece.iiasa.ac.at/sediment
 
 ## Contributing to JupyterGIS
 
-JupyterGIS is available under the BSD 3-Clause License. Contributions are welcome on the [GitHub repository](https://github.com/geojupyter/jupytergis). The [documentation](https://jupytergis.readthedocs.io) is available online on ReadTheDocs. We host community discussions on a [public channel](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter).
+JupyterGIS is available under the BSD 3-Clause License. Contributions are welcome on the [GitHub repository](https://github.com/geojupyter/jupytergis). The [documentation](https://jupytergis.readthedocs.io) is available online on Read The Docs. We host community discussions on a [public channel](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter).
 
 ## The GeoJupyter Initiative
 
@@ -230,7 +230,7 @@ This API will interact with the collaborative editing framework and the underlyi
 
 ## JupyterLite-AI
 
-We will integrate JupyterGIS with JupyterLite-AI by exposing JupyterGIS features as tools to Large Language Models (LLMs). By leveraging the JupyterLab application framework, we ensured that all user actions are backed by JupyterLab commands, which are exposed to JupyterLite-AI's tool calling system.
+We will integrate JupyterGIS with JupyterLite-AI by exposing JupyterGIS features as tools to Large Language Models (LLMs). By leveraging the JupyterLab application framework, we will ensure that all user actions are backed by JupyterLab commands, which are exposed to JupyterLite-AI's tool calling system.
 
 # Acknowledgments
 

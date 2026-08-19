@@ -316,7 +316,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     });
   }, [layer, onChange, isRaster]);
 
-  // KDE layers expose '$density'; raster layers expose $band-N fields.
+  // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
   const encodingFields: IFieldOption[] = hasKDE
     ? [{ value: '$density', label: '$density' }]
@@ -563,7 +563,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     { layerId, model },
   );
 
-  // For raster layers, expose $band-N pseudo-fields derived from band metadata.
+  // For raster layers, expose band_N pseudo-fields derived from band metadata.
   const { bandRows } = useGetBandInfo(model, layer);
 
   const bandStats = React.useMemo(() => {
@@ -710,8 +710,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
   const availableFields = isRasterLayer
     ? bandRows.map(b => ({
-        value: `$band-${b.band}`,
-        label: `$band-${b.band}  ${b.name}${
+        value: `band_${b.band}`,
+        label: `band_${b.band}  ${b.name}${
           b.colorInterpretation ? ` (${b.colorInterpretation})` : ''
         }`,
       }))

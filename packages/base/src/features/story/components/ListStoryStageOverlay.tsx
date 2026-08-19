@@ -14,15 +14,24 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import type {
   IListStorySegmentTransition,
   StorySegmentDisplayMode,
+  StorySegmentPaneAlignment,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
 import { isIntraSegmentScroll } from '@/src/features/story/utils/computeListStoryScrollState';
+import {
+  isMarkdownOverlayWidthFull,
+  resolveCssWidth,
+} from '@/src/features/story/utils/cssWidth';
 import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
 import {
   getSegmentDisplayMode,
   getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
+import {
+  getSegmentPaneAlignment,
+  segmentPaneAlignment,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   buildStorySegmentViewItems,
   getStoryMarkdownFromSlide,
@@ -32,11 +41,22 @@ import { whenImagesSettled } from '@/src/features/story/utils/whenImagesSettled'
 interface IListStoryStageOverlayProps {
   model: IJupyterGISModel;
   segmentTransition: IListStorySegmentTransition | null;
+  isMobile: boolean;
 }
 
 type SegmentOverlayPaneConfig =
-  | { type: 'markdown'; markdown: string; segmentId: string }
-  | { type: 'map'; segmentIndex: number };
+  | {
+      type: 'markdown';
+      markdown: string;
+      segmentId: string;
+      paneAlignment: StorySegmentPaneAlignment;
+    }
+  | {
+      type: 'map';
+      segmentIndex: number;
+      paneAlignment: StorySegmentPaneAlignment;
+      panelWidth?: string;
+    };
 
 type OverlayPaneRole = 'from' | 'to' | 'lookahead';
 
@@ -44,6 +64,7 @@ const EMPTY_MARKDOWN_PANE: SegmentOverlayPaneConfig = {
   type: 'markdown',
   markdown: '',
   segmentId: '',
+  paneAlignment: 'center',
 };
 
 interface IOverlayStackPane {
@@ -65,13 +86,26 @@ function buildPaneConfig(
   if (!item) {
     return EMPTY_MARKDOWN_PANE;
   }
+
+  const paneAlignment = getSegmentPaneAlignment(
+    item.activeSlide?.content,
+    mode,
+  );
+
   if (mode === 'map') {
-    return { type: 'map', segmentIndex: item.index };
+    return {
+      type: 'map',
+      segmentIndex: item.index,
+      paneAlignment,
+      panelWidth: resolveCssWidth(item.activeSlide?.content?.panelWidth),
+    };
   }
+
   return {
     type: 'markdown',
     markdown: getStoryMarkdownFromSlide(item.activeSlide),
     segmentId: item.id,
+    paneAlignment,
   };
 }
 
@@ -180,6 +214,8 @@ interface ISegmentOverlayPaneProps {
   model: IJupyterGISModel;
   storyData: IJGISStoryMap;
   items: IStorySegmentViewItem[];
+  isMobile: boolean;
+  isOverlayContentWidthFull: boolean;
   onMarkdownRendered: (segmentIndex: number) => void;
   onPaneUnmount: (segmentIndex: number) => void;
 }
@@ -193,14 +229,59 @@ function segmentConfigsEqual(
   }
 
   if (prev.type === 'map' && next.type === 'map') {
-    return prev.segmentIndex === next.segmentIndex;
+    return (
+      prev.segmentIndex === next.segmentIndex &&
+      prev.paneAlignment === next.paneAlignment &&
+      prev.panelWidth === next.panelWidth
+    );
   }
 
   if (prev.type === 'markdown' && next.type === 'markdown') {
-    return prev.segmentId === next.segmentId && prev.markdown === next.markdown;
+    return (
+      prev.segmentId === next.segmentId &&
+      prev.markdown === next.markdown &&
+      prev.paneAlignment === next.paneAlignment
+    );
   }
 
   return false;
+}
+
+function isMarkdownSegment(item: IStorySegmentViewItem | undefined): boolean {
+  return getSegmentDisplayMode(item?.activeSlide) === 'markdown';
+}
+
+function getMarkdownConstrainedWidthClass(
+  isMap: boolean,
+  isOverlayContentWidthFull: boolean,
+  segmentIndex: number,
+  items: IStorySegmentViewItem[],
+  markdownSegmentGap: boolean,
+): string {
+  if (isMap || isOverlayContentWidthFull || items.length <= 0) {
+    return '';
+  }
+
+  const joinsPrevious =
+    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex - 1]);
+  const joinsNext =
+    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex + 1]);
+  const roundTop = segmentIndex !== 0 && !joinsPrevious;
+  const roundBottom = segmentIndex !== items.length - 1 && !joinsNext;
+
+  if (roundTop && roundBottom) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width';
+  }
+
+  if (roundBottom) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-bottom';
+  }
+
+  if (roundTop) {
+    return ' jgis-story-markdown-scroll-pane--constrained-width-top';
+  }
+
+  return '';
 }
 
 function segmentOverlayPanePropsAreEqual(
@@ -213,6 +294,8 @@ function segmentOverlayPanePropsAreEqual(
     prev.model === next.model &&
     prev.storyData === next.storyData &&
     prev.items === next.items &&
+    prev.isOverlayContentWidthFull === next.isOverlayContentWidthFull &&
+    prev.isMobile === next.isMobile &&
     segmentConfigsEqual(prev.config, next.config)
   );
 }
@@ -225,10 +308,20 @@ const SegmentOverlayPane = React.memo(
     model,
     storyData,
     items,
+    isMobile,
+    isOverlayContentWidthFull,
     onMarkdownRendered,
     onPaneUnmount,
   }: ISegmentOverlayPaneProps): React.ReactElement => {
     const isMap = config.type === 'map';
+    const alignSelf = segmentPaneAlignment(config.paneAlignment);
+    const markdownConstrainedWidthClass = getMarkdownConstrainedWidthClass(
+      isMap,
+      isOverlayContentWidthFull,
+      segmentIndex,
+      items,
+      storyData.markdownSegmentGap === true,
+    );
 
     useLayoutEffect(() => {
       return () => {
@@ -242,7 +335,11 @@ const SegmentOverlayPane = React.memo(
         data-segment-index={segmentIndex}
         className={`jgis-story-segment-overlay-pane jgis-story-${
           isMap ? 'map' : 'markdown'
-        }-scroll-pane`}
+        }-scroll-pane${markdownConstrainedWidthClass}`}
+        style={{
+          alignSelf,
+          ...(isMap ? { alignItems: alignSelf } : undefined),
+        }}
       >
         {isMap ? (
           <ListStoryMapOverlayPanel
@@ -250,6 +347,8 @@ const SegmentOverlayPane = React.memo(
             storyData={storyData}
             segmentIndex={config.segmentIndex}
             items={items}
+            panelWidth={config.panelWidth}
+            isMobile={isMobile}
           />
         ) : config.markdown ? (
           <ListStoryOverlayMarkdown
@@ -284,6 +383,7 @@ function buildFallbackTransition(
 export function ListStoryStageOverlay({
   model,
   segmentTransition,
+  isMobile,
 }: IListStoryStageOverlayProps): JSX.Element | null {
   const overlayRef = useRef<HTMLDivElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
@@ -313,6 +413,10 @@ export function ListStoryStageOverlay({
       story?.markdownSegmentOpacity,
       story?.storyPanelOpacity,
     ],
+  );
+
+  const overlayContentWidthFull = isMarkdownOverlayWidthFull(
+    story?.overlayContentWidth,
   );
 
   const activeItem = items.find(item => item.index === currentIndex);
@@ -540,6 +644,8 @@ export function ListStoryStageOverlay({
               config={stackPane.config}
               storyData={story}
               items={items}
+              isMobile={isMobile}
+              isOverlayContentWidthFull={overlayContentWidthFull}
               onMarkdownRendered={handleMarkdownRendered}
               onPaneUnmount={clearMarkdownRendered}
             />,
