@@ -698,104 +698,6 @@ class TipgTilesHandler(APIHandler):
             self.finish(response.body)
 
 
-class FoldHandler(APIHandler):
-    """
-    Merge collaborative overlay (“featureStores”) into PostGIS.
-
-    Phase 3.3 is intentionally minimal: it accepts a payload and runs an
-    upsert/delete merge in Postgres via `psql`.
-    """
-
-    @tornado.web.authenticated
-    async def post(self) -> None:
-        try:
-            body = json.loads(self.request.body)
-        except json.JSONDecodeError:
-            self.set_status(400)
-            self.finish(json.dumps({"error": "Invalid JSON body"}))
-            return
-
-        store_id = body.get("storeId")
-        features = body.get("features")
-
-        if not store_id or not isinstance(store_id, str):
-            self.set_status(400)
-            self.finish(json.dumps({"error": "Missing or invalid 'storeId'"}))
-            return
-
-        if features is None:
-            self.set_status(400)
-            self.finish(json.dumps({"error": "Missing 'features'"}))
-            return
-
-        # Accept features as either:
-        # - list of feature objects
-        # - object keyed by feature id
-        normalized: list[dict[str, Any]] = []
-        if isinstance(features, list):
-            if not all(isinstance(f, dict) for f in features):
-                self.set_status(400)
-                self.finish(json.dumps({"error": "'features' list must be objects"}))
-                return
-            normalized = features  # type: ignore[assignment]
-        elif isinstance(features, dict):
-            for feature_id, feature in features.items():
-                if not isinstance(feature, dict):
-                    continue
-                feature = dict(feature)
-                feature.setdefault("id", feature_id)
-                normalized.append(feature)
-        else:
-            self.set_status(400)
-            self.finish(
-                json.dumps(
-                    {"error": "'features' must be an array or an object"},
-                ),
-            )
-            return
-
-        conn_url = get_postgis_url()
-        if not conn_url:
-            self.set_status(503)
-            self.finish(
-                json.dumps(
-                    {
-                        "error": "PostGIS is not configured on this server",
-                        "hint": "Set JGIS_POSTGIS_URL in server environment",
-                    },
-                ),
-            )
-            return
-
-        try:
-            await tornado.ioloop.IOLoop.current().run_in_executor(
-                None,
-                lambda: merge_overlay_features_via_psql(
-                    conn_url,
-                    store_id,
-                    normalized,
-                ),
-            )
-        except Exception as e:
-            logger.exception("PostGIS merge failed")
-            self.set_status(500)
-            self.finish(json.dumps({"error": str(e)}))
-            return
-
-        # Discover newly created jgis_store_* tables in tipg (no tipg restart).
-        tipg_refreshed = await refresh_tipg_catalog()
-
-        self.finish(
-            json.dumps(
-                {
-                    "ok": True,
-                    "storeId": store_id,
-                    "featureCount": len(normalized),
-                    "tipgRefreshed": tipg_refreshed,
-                },
-            ),
-        )
-
 
 def setup_handlers(web_app: Any) -> None:
     """Register handlers with configuration validation.
@@ -812,13 +714,11 @@ def setup_handlers(web_app: Any) -> None:
 
     # Configure processing route
     processing_route = url_path_join(base_url, "jupytergis_core", "processing")
-    fold_route = url_path_join(base_url, "jupytergis_core", "fold")
     tiles_route = url_path_join(base_url, "jupytergis_core", "tiles", r"(.*)")
 
     handlers = [
         (proxy_route, ProxyHandler),
         (processing_route, ProcessingHandler),
-        (fold_route, FoldHandler),
         (tiles_route, TipgTilesHandler),
     ]
 
@@ -830,5 +730,4 @@ def setup_handlers(web_app: Any) -> None:
     web_app.add_handlers(host_pattern, handlers)
     logger.info("JupyterGIS proxy endpoint initialized at: %s", proxy_route)
     logger.info("JupyterGIS processing endpoint initialized at: %s", processing_route)
-    logger.info("JupyterGIS fold endpoint initialized at: %s", fold_route)
     logger.info("JupyterGIS tipg tiles proxy initialized at: %s", tiles_route)
