@@ -63,7 +63,6 @@ import keybindings from '../keybindings.json';
 import {
   getGeoJSONDataFromLayerSource,
   downloadFile,
-  requestAPI,
 } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
@@ -81,6 +80,26 @@ function notifyInteractionModeCommands(commands: CommandRegistry): void {
   for (const id of INTERACTION_MODE_COMMANDS) {
     commands.notifyCommandChanged(id);
   }
+}
+
+function selectedCollaborativeStoreId(
+  model: IJupyterGISModel,
+): string | undefined {
+  const selectedLayer =
+    model.sharedModel.awareness.getLocalState()?.selected?.value;
+  if (!selectedLayer) {
+    return undefined;
+  }
+
+  const layerId = Object.keys(selectedLayer)[0];
+  const jgisLayer = model.getLayer(layerId);
+  const sourceId = jgisLayer?.parameters?.source;
+  const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
+  if (jgisSource?.type !== 'CollaborativePointSource') {
+    return undefined;
+  }
+
+  return (jgisSource.parameters as ICollaborativePointSource).storeId;
 }
 
 /**
@@ -1872,92 +1891,38 @@ export function addCommands(
   commands.addCommand(CommandIDs.foldCollaborativePoints, {
     label: trans.__('Fold Collaborative Points to PostGIS'),
     caption: trans.__(
-      'Send collaborative overlay points to the server to upsert/delete in PostGIS.',
+      'Request that the server fold overlay features into PostGIS.',
     ),
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
+      const current = tracker.currentWidget;
+      if (!current?.model.sharedModel.editable) {
+        return false;
+      }
+      const storeId = selectedCollaborativeStoreId(current.model);
+      if (!storeId) {
+        return true;
+      }
+      return !current.model.getFeatureStore(storeId)?.meta.compacting;
     },
-    execute: async () => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
 
-      const localState = current.model.sharedModel.awareness.getLocalState();
-      const selectedLayer = localState?.selected?.value;
-      if (!selectedLayer) {
+      const storeId = selectedCollaborativeStoreId(current.model);
+      if (!storeId) {
         console.warn(
           'Fold Collaborative Points: select a collaborative point layer first.',
         );
         return;
       }
 
-      const layerId = Object.keys(selectedLayer)[0];
-      const jgisLayer = current.model.getLayer(layerId);
-      const sourceId = jgisLayer?.parameters?.source;
-      const jgisSource = sourceId
-        ? current.model.getSource(sourceId)
-        : undefined;
-
-      if (jgisSource?.type !== 'CollaborativePointSource') {
-        console.warn(
-          'Fold Collaborative Points: selected layer must use a CollaborativePointSource.',
-        );
+      if (current.model.getFeatureStore(storeId)?.meta.compacting) {
         return;
       }
 
-      const storeId = (jgisSource.parameters as ICollaborativePointSource)
-        .storeId;
-      if (!storeId) {
-        console.warn('Fold Collaborative Points: missing storeId on source.');
-        return;
-      }
-
-      const features = current.model.getFeatureStoreFeatures(storeId);
-      const payload = { storeId, features };
-      try {
-        const response = await requestAPI<{
-          ok: boolean;
-          storeId: string;
-          featureCount: number;
-        }>('/jupytergis_core/fold', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (response?.ok) {
-          // Clear the overlay only after the server merge succeeded.
-          current.model.clearFeatureStoreOverlay(storeId);
-
-          // Bump baseline version so OpenLayers refetches tipg tiles
-          // (folded points move from overlay → live MVT baseline).
-          const params = jgisSource.parameters as ICollaborativePointSource;
-          const nextVersion = (params.baselineVersion ?? 0) + 1;
-          current.model.sharedModel.updateSource(sourceId, {
-            ...jgisSource,
-            parameters: {
-              ...params,
-              baselineVersion: nextVersion,
-              tileUrlTemplate: buildCollaborativePointTileUrlTemplate(
-                storeId,
-                nextVersion,
-              ),
-            },
-          });
-        } else {
-          console.warn(
-            'Fold Collaborative Points: server responded with ok=false',
-            response,
-          );
-        }
-      } catch (err: any) {
-        console.error('Fold Collaborative Points failed:', err);
-      }
+      current.model.updateFeatureStoreMeta(storeId, { foldRequested: true });
     },
     ...icons.get(CommandIDs.foldCollaborativePoints),
   });

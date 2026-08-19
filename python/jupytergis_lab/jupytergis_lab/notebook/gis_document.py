@@ -164,6 +164,9 @@ class GISDocument(CommWidget):
         self._presets: Map = Map()
         self.ydoc["presets"] = self._presets
 
+        self._featureStores: Map = Map()
+        self.ydoc["featureStores"] = self._featureStores
+
         # For untitled docs, initialize options right away
         if path is None:
             self.ydoc["options"] = self._options = Map(
@@ -249,6 +252,11 @@ class GISDocument(CommWidget):
     def layer_tree(self) -> list[Any] | None:
         """Get the layer tree"""
         return self._layerTree.to_py()
+
+    @property
+    def feature_stores(self) -> dict[str, Any]:
+        """Collaborative overlay feature stores (session Y.Map, not the .jGIS file)."""
+        return self._featureStores.to_py() or {}
 
     @property
     def _is_qgis_document(self) -> bool:
