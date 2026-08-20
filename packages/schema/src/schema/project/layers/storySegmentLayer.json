@@ -33,14 +33,20 @@
           "enum": ["start", "center", "end"],
           "default": "center"
         },
-        "title": {
-          "title": "Segment Title",
+        "panelWidth": {
           "type": "string",
-          "default": ""
+          "title": "Panel width",
+          "description": "CSS width of the map overlay card for this segment in vertical-scroll stories.",
+          "default": "25%"
         },
         "image": {
           "type": "string",
           "description": "Link to image for the story",
+          "default": ""
+        },
+        "imageCaption": {
+          "title": "Image Caption",
+          "type": "string",
           "default": ""
         },
         "markdown": {

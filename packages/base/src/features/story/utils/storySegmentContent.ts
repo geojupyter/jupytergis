@@ -4,17 +4,26 @@ import type {
   StorySegmentDisplayMode,
   StorySegmentPaneAlignment,
 } from '@/src/features/story/types/types';
+import { DEFAULT_MAP_PANEL_WIDTH } from '@/src/features/story/utils/cssWidth';
 
 type SegmentContent = NonNullable<IStorySegmentLayer['content']>;
 
 export type SegmentContentPatch = Partial<
   Pick<
     SegmentContent,
-    'title' | 'markdown' | 'image' | 'attachments' | 'paneAlignment'
+    | 'imageCaption'
+    | 'markdown'
+    | 'image'
+    | 'attachments'
+    | 'paneAlignment'
+    | 'panelWidth'
   >
 >;
 
-const EMPTY_SEGMENT_CONTENT: SegmentContent = { contentMode: 'map' };
+const EMPTY_SEGMENT_CONTENT: SegmentContent = {
+  contentMode: 'map',
+  panelWidth: DEFAULT_MAP_PANEL_WIDTH,
+};
 
 /** Legacy default when paneAlignment is unset so we dont need to migrate
  * map -> end, markdown -> center. */
@@ -59,11 +68,12 @@ export function normalizeSegmentContentForMode(
 
   return {
     contentMode: 'map',
-    title: value.title ?? '',
+    imageCaption: value.imageCaption ?? '',
     image: value.image ?? '',
     markdown: value.markdown ?? '',
     attachments: value.attachments,
     paneAlignment: value.paneAlignment,
+    panelWidth: value.panelWidth?.trim() || DEFAULT_MAP_PANEL_WIDTH,
   };
 }
 
