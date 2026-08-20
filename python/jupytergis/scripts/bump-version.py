@@ -5,8 +5,6 @@
 
 import argparse
 import json
-import re
-from datetime import datetime
 from pathlib import Path
 from subprocess import run
 
@@ -51,42 +49,6 @@ def bump_jupytergis_deps(py_version: str):
         tomlkit.dump(data, f)
 
 
-def bump_citation_cff(py_version: str):
-    citation_file = PROJECT_ROOT / "CITATION.cff"
-    content = citation_file.read_text(encoding="utf-8")
-
-    # Replace `version: "{anything}"` with `version: "{py_version}"`
-    version_pattern = r'^(\s*version: )"[^"]*"$'
-    content, nsubs = re.subn(
-        version_pattern,
-        rf'\1"{py_version}"',
-        content,
-        flags=re.MULTILINE,
-    )
-
-    if nsubs != 1:
-        raise ValueError(
-            f"Expected exactly 1 'version' replacement in CITATION.cff, but made {nsubs} replacements",
-        )
-
-    # Replace `date-released: "{anything}"` with `date-released: "{today}"`
-    today = datetime.now().strftime("%Y-%m-%d")
-    date_pattern = r'^(\s*date-released: )"[^"]*"$'
-    content, nsubs = re.subn(
-        date_pattern,
-        rf'\1"{today}"',
-        content,
-        flags=re.MULTILINE,
-    )
-
-    if nsubs != 1:
-        raise ValueError(
-            f"Expected exactly 1 'date-released' replacement in CITATION.cff, but made {nsubs} replacements",
-        )
-
-    citation_file.write_text(content, encoding="utf-8")
-
-
 def bump():
     parser = argparse.ArgumentParser()
     parser.add_argument("version")
@@ -113,8 +75,6 @@ def bump():
     run(f"{HATCH_VERSION} {py_version}", shell=True, check=True, cwd=PACKAGE_ROOT)
     # pin jupytergis_* package to the same version
     bump_jupytergis_deps(py_version)
-    # update CITATION.cff metadata
-    bump_citation_cff(py_version)
     # bump the JS version with lerna
     run(f"pnpm run bump:js:version {js_version}", shell=True, check=True)
 
