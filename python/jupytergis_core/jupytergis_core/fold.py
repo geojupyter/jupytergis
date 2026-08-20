@@ -40,6 +40,9 @@ def _plain_meta(store: Map) -> dict[str, Any]:
     if isinstance(meta, Map):
         return dict(meta.to_py() or {})
 
+    if isinstance(meta, dict):
+        return dict(meta)
+
     return {}
 
 
@@ -53,6 +56,8 @@ def _features_as_list(store: Map) -> list[dict[str, Any]]:
     features = store.get("features")
     if isinstance(features, Map):
         plain = features.to_py() or {}
+    elif isinstance(features, dict):
+        plain = features
     else:
         return []
 
@@ -79,6 +84,8 @@ def _copy_and_release_overlay(ydoc: Doc, store: Map) -> list[dict[str, Any]]:
         features = store.get("features")
         if isinstance(features, Map):
             features.clear()
+        else:
+            store["features"] = Map()
         _write_meta(store, compacting=False, foldRequested=False)
 
     return snapshot
@@ -91,6 +98,8 @@ def bump_collaborative_point_sources(ysources: Map, store_id: str) -> None:
         source = ysources.get(source_id)
         if isinstance(source, Map):
             plain = source.to_py() or {}
+        elif isinstance(source, dict):
+            plain = dict(source)
         else:
             continue
 
