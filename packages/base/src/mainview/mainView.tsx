@@ -834,9 +834,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (layer === expected) {
           return true;
         }
-        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
+        // Grammar / collaborative layers wrap children in a LayerGroup.
         // OL Select flattens groups, so we receive leaf layers, not the group.
+        // Skip VectorTileLayer leaves, Select cannot hit MVT RenderFeatures;
+        // collaborative tipg baseline identify is handled in _identifyFeature.
         if (expected instanceof LayerGroup) {
+          if (layer instanceof VectorTileLayer) {
+            return false;
+          }
           return expected.getLayers().getArray().includes(layer);
         }
         return false;
@@ -3919,6 +3924,117 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
   }
 
+  /**
+   * Normalize tipg MVT attributes for identify floaters.
+   *
+   * tipg exposes PostGIS columns plus flattened `props` jsonb keys, e.g.
+   * `{ id, updated_at, updated_by, layer, …userProps }`. Match the overlay
+   * shape (`{ …userProps, _id }`): drop tipg/system fields, map `id` → `_id`.
+   */
+  private _normalizeTipgBaselineProperties(
+    raw: Record<string, unknown>,
+  ): IIdentifiedFeature | undefined {
+    const drop = new Set(['layer', 'geometry']);
+    const out: IIdentifiedFeature = {};
+
+    for (const [key, value] of Object.entries(raw)) {
+      if (drop.has(key)) {
+        continue;
+      }
+      if (key === 'id') {
+        if (typeof value === 'string' || typeof value === 'number') {
+          out._id = String(value);
+        }
+        continue;
+      }
+      out[key] = value;
+    }
+
+    return Object.keys(out).length > 0 ? out : undefined;
+  }
+
+  /**
+   * Identify tipg MVT baseline features for a collaborative layer.
+   * Overlay identify stays uses Select interaction
+   * This only hit-tests the baseline VectorTileLayer.
+   */
+  private _identifyCollaborativeBaseline(
+    e: MapBrowserEvent<any>,
+    layerId: string,
+    parameters: ICollaborativePointSource,
+  ): void {
+    const storeId = parameters.storeId;
+    if (!storeId) {
+      return;
+    }
+
+    const baselineSource = this._collaborativeBaselineSources.get(storeId);
+    const mapLayer = this.getLayer(layerId);
+    if (!baselineSource || !(mapLayer instanceof LayerGroup)) {
+      return;
+    }
+
+    const baselineLayer = mapLayer
+      .getLayers()
+      .getArray()
+      .find(
+        child =>
+          child instanceof VectorTileLayer &&
+          child.getSource() === baselineSource,
+      ) as VectorTileLayer | undefined;
+
+    if (!baselineLayer) {
+      return;
+    }
+
+    const geometries: Geometry[] = [];
+    const features: IIdentifiedFeatureEntry[] = [];
+
+    this._Map.forEachFeatureAtPixel(
+      e.pixel,
+      (feature: FeatureLike) => {
+        let geom: Geometry | undefined;
+        if (feature instanceof RenderFeature) {
+          geom = toGeometry(feature);
+        }
+
+        const rawProps = feature.getProperties() as Record<string, unknown>;
+        const normalized = this._normalizeTipgBaselineProperties(rawProps);
+        if (normalized) {
+          features.push({
+            feature: normalized,
+            floaterOpen: false,
+          });
+        }
+
+        if (geom) {
+          geometries.push(geom);
+        }
+
+        return true;
+      },
+      {
+        layerFilter: layer => layer === baselineLayer,
+        hitTolerance: 3,
+      },
+    );
+
+    // Only sync when we actually hit baseline features so we do not wipe
+    // overlay identify results produced by Select on the same click.
+    if (features.length === 0) {
+      return;
+    }
+
+    this._model.syncIdentifiedFeatures(
+      features,
+      this._model.getClientId().toString(),
+    );
+
+    for (const geom of geometries) {
+      this._model.highlightFeatureSignal.emit(geom);
+    }
+  }
+
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {
       return;
@@ -3936,9 +4052,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
-      case 'VectorLayer':
-        // Handled by selectInteraction (createSelectInteraction).
+      case 'VectorLayer': {
+        // Overlay (VectorImageLayer) is handled by selectInteraction.
+        // Collaborative tipg baseline (VectorTileLayer) is hit-tested here.
+        const sourceId = jgisLayer.parameters?.source;
+        const jgisSource = sourceId
+          ? this._model.getSource(sourceId)
+          : undefined;
+        if (jgisSource?.type === 'CollaborativePointSource') {
+          this._identifyCollaborativeBaseline(
+            e,
+            layerId,
+            jgisSource.parameters as ICollaborativePointSource,
+          );
+        }
         break;
+      }
 
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
