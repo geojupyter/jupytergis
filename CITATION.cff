@@ -11,7 +11,7 @@ abstract: >-
   environment in JupyterLab.
 
 type: "software"
-license: ["BSD-3-Clause"]
+license: "BSD-3-Clause"
 keywords:
   - "Jupyter"
   - "GIS"
