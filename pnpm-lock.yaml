@@ -307,7 +307,7 @@ importers:
         specifier: ^2.0.0 || ^3.0.0 || ^4.0.0
         version: 4.1.1
       '@jupytergis/schema':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -627,10 +627,10 @@ importers:
         specifier: ^4.1.2 || ^5.0.0-alpha.0
         version: 4.4.1(react@18.3.1)
       '@jupytergis/base':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../../packages/base
       '@jupytergis/schema':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../../packages/schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -748,10 +748,10 @@ importers:
         specifier: ^4.1.2 || ^5.0.0-alpha.0
         version: 4.4.1(react@18.3.1)
       '@jupytergis/base':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../../packages/base
       '@jupytergis/schema':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../../packages/schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -827,13 +827,13 @@ importers:
         specifier: ^4.1.2 || ^5.0.0-alpha.0
         version: 4.4.1(react@18.3.1)
       '@jupytergis/base':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../../packages/base
       '@jupytergis/jupytergis-core':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../jupytergis_core
       '@jupytergis/schema':
-        specifier: ^0.16.0-rc.4
+        specifier: ^0.16.0
         version: link:../../packages/schema
       '@jupyterlab/application':
         specifier: ^4.6
