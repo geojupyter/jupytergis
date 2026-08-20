@@ -129,8 +129,8 @@ import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import StacLayer from 'ol-stac';
-import proj4 from 'proj4';
 import projcodes from 'proj-codes';
+import proj4 from 'proj4';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
