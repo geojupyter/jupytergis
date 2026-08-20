@@ -130,7 +130,7 @@ import { Rule } from 'ol/style/flat';
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
-import proj4list from 'proj4-list';
+import projcodes from 'proj-codes';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
@@ -1900,22 +1900,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private ensureProjectionRegistered(projectionCode: string): void {
     const hasProj4Definition = Boolean(proj4.defs(projectionCode));
     if (!hasProj4Definition) {
-      // Check if the projection exists in proj4list
-      const proj4Definition = proj4list[projectionCode];
+      const proj4Definition = projcodes[projectionCode];
       if (!proj4Definition) {
         this._log(
           'warning',
-          `Projection code '${projectionCode}' not found in proj4list`,
+          `Projection code '${projectionCode}' not found in projcodes`,
         );
         return;
       }
 
       try {
-        if (Array.isArray(proj4Definition)) {
-          proj4.defs([proj4Definition]);
-        } else {
-          proj4.defs(projectionCode, proj4Definition);
-        }
+        proj4.defs(projectionCode, proj4Definition.proj4string);
       } catch (error: any) {
         this._log(
           'warning',
