@@ -8,6 +8,7 @@ from typing import Any, Callable
 from pycrdt import Doc, Map
 
 from .postgis import (
+    ensure_feature_store_table,
     get_postgis_url,
     merge_overlay_features_via_psql,
     store_id_to_table_name,
@@ -202,7 +203,16 @@ class FeatureStoreFold:
     ) -> None:
         from tornado.ioloop import IOLoop
 
+        from .handler import refresh_tipg_catalog
+
         try:
+            table_name = store_id_to_table_name(store_id)
+            await IOLoop.current().run_in_executor(
+                None,
+                ensure_feature_store_table,
+                conn_url,
+                table_name,
+            )
             if snapshot:
                 await IOLoop.current().run_in_executor(
                     None,
@@ -211,6 +221,9 @@ class FeatureStoreFold:
                     store_id,
                     snapshot,
                 )
+            # Refresh before bump so clients hit a catalog that knows the table.
+            await refresh_tipg_catalog()
+            if snapshot:
                 with self._ydoc.transaction():
                     bump_collaborative_point_sources(
                         self._ysources,
