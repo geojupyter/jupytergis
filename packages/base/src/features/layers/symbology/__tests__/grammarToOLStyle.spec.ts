@@ -276,10 +276,10 @@ describe('grammarToOLStyle — when predicates', () => {
 });
 
 // ---------------------------------------------------------------------------
-// colorRamp scale
+// colorMap scale
 // ---------------------------------------------------------------------------
 
-describe('grammarToOLStyle — colorRamp scale', () => {
+describe('grammarToOLStyle — colorMap scale', () => {
   it('emits encodingZero when no field and no stops', () => {
     const style = grammarToOLStyle(
       makeState({
@@ -287,7 +287,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
         mappings: [
           {
             scale: {
-              scheme: 'colorRamp',
+              scheme: 'colorMap',
               params: {
                 name: 'viridis',
                 nShades: 5,
@@ -313,7 +313,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
         mappings: [
           {
             scale: {
-              scheme: 'colorRamp',
+              scheme: 'colorMap',
               params: {
                 name: 'viridis',
                 nShades: 3,
@@ -347,7 +347,7 @@ describe('grammarToOLStyle — colorRamp scale', () => {
         mappings: [
           {
             scale: {
-              scheme: 'colorRamp',
+              scheme: 'colorMap',
               params: {
                 name: 'viridis',
                 nShades: 5,
@@ -585,7 +585,7 @@ describe('grammarToOLStyle — OL runtime parsing', () => {
     ).not.toThrow();
   });
 
-  it('colorRamp interpolate expression compiled from featureValues parses natively', () => {
+  it('colorMap interpolate expression compiled from featureValues parses natively', () => {
     const style = grammarToOLStyle(
       makeState({
         id: '1',
@@ -593,7 +593,7 @@ describe('grammarToOLStyle — OL runtime parsing', () => {
         mappings: [
           {
             scale: {
-              scheme: 'colorRamp',
+              scheme: 'colorMap',
               params: {
                 name: 'viridis',
                 nShades: 5,
@@ -800,7 +800,7 @@ describe('extractEncodingFieldValues', () => {
       mappings: [
         {
           scale: {
-            scheme: 'colorRamp',
+            scheme: 'colorMap',
             params: {
               name: 'viridis',
               nShades: 3,

@@ -110,7 +110,7 @@ class TestGrammarSymbologyBuilders:
         )
         assert (
             state["layers"][0]["rules"][1]["mappings"][0]["scale"]["scheme"]
-            == "colorRamp"
+            == "colorMap"
         )
 
     def test_chain_when_and_when_op(self):
@@ -150,7 +150,7 @@ class TestGrammarSymbologyBuilders:
             ],
         )
         scale = state["layers"][0]["rules"][0]["mappings"][0]["scale"]
-        assert scale["scheme"] == "colorRamp"
+        assert scale["scheme"] == "colorMap"
 
     def test_categorical_accepts_colormap_attribute(self):
         state = to_symbology_state(

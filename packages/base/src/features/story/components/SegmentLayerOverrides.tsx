@@ -19,6 +19,7 @@ export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
   state: IStateDB;
   segmentId: string;
+  isMobile?: boolean;
   portalContainerRef: RefObject<HTMLElement | null>;
 }
 
@@ -26,6 +27,7 @@ export function SegmentLayerOverrides({
   model,
   state,
   segmentId,
+  isMobile = false,
   portalContainerRef,
 }: ISegmentLayerOverridesProps): JSX.Element {
   const rows = buildSegmentLayerRows(model, segmentId);
@@ -37,18 +39,24 @@ export function SegmentLayerOverrides({
   }
 
   return (
-    <div className="jgis-story-editor-segment-layer-grid">
-      <div
-        className="jgis-story-editor-segment-layer-header"
-        aria-hidden="true"
-      >
-        <span>Layer Name</span>
-        <span>Visibility</span>
-        <span>Opacity</span>
-        <span>Symbology</span>
-        <span>Override</span>
-        <span>Reset</span>
-      </div>
+    <div
+      className={`jgis-story-editor-segment-layer-grid${
+        isMobile ? ' jgis-story-editor-segment-layer-grid--mobile' : ''
+      }`}
+    >
+      {!isMobile ? (
+        <div
+          className="jgis-story-editor-segment-layer-header"
+          aria-hidden="true"
+        >
+          <span>Layer Name</span>
+          <span>Visibility</span>
+          <span>Opacity</span>
+          <span>Symbology</span>
+          <span>Override</span>
+          <span>Reset</span>
+        </div>
+      ) : null}
       <ul className="jgis-story-editor-segment-layer-list">
         {rows.map(row => {
           const layer = model.getLayer(row.layerId);
@@ -112,12 +120,12 @@ export function SegmentLayerOverrides({
                 ) : null}
               </span>
               <span className="jgis-story-editor-segment-layer-override">
-                {row.isChanged ? (
-                  <CheckIcon
-                    className="jgis-story-editor-segment-layer-override-icon"
-                    aria-label="Override applied"
-                  />
-                ) : null}
+                <CheckIcon
+                  className="jgis-story-editor-segment-layer-override-icon"
+                  aria-label={row.isChanged ? 'Override applied' : undefined}
+                  aria-hidden={row.isChanged ? undefined : true}
+                  style={{ visibility: row.isChanged ? 'visible' : 'hidden' }}
+                />
               </span>
               <span className="jgis-story-editor-segment-layer-reset">
                 <Button

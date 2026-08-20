@@ -218,7 +218,7 @@ def _color_instruction(scale: dict, field: str | None) -> tuple[str, Any] | None
         return ("const", value) if value is not None else None
     if scheme == "identity" and field:
         return ("field", field)
-    if scheme == "colorRamp" and field:
+    if scheme == "colorMap" and field:
         return ("expr", _colorramp_case_expr(field, _colorramp_stops(params)))
     if scheme == "categorical" and field:
         stops = params.get("colorStops")
@@ -295,7 +295,7 @@ def _ramp_meta(
     meta: dict[str, dict] = {}
     # The KDE heatmap ramp lives on the pixel-rgb encoding, outside the vector slots.
     hscale, _hfield = _find_mapping(base_rules, {"pixel-rgb"})
-    if hscale and hscale.get("scheme") == "colorRamp":
+    if hscale and hscale.get("scheme") == "colorMap":
         hparams = hscale.get("params", {})
         meta["heatmap"] = {
             "name": hparams.get("name", "viridis"),
@@ -307,7 +307,7 @@ def _ramp_meta(
             continue
         params = scale.get("params", {})
         slot = "primary" if is_primary else "outline"
-        if scale.get("scheme") == "colorRamp":
+        if scale.get("scheme") == "colorMap":
             meta[slot] = {
                 "name": params.get("name", "viridis"),
                 "reverse": bool(params.get("reverse", False)),
@@ -331,7 +331,7 @@ def grammar_layer_to_dd_symbol(
     Every encoding is resolved by geometry-aware *slot* — the primary colour (fill
     for area/point, stroke for a line), the outline colour (area/point only), the
     width and the marker radius. Each slot accepts any scale (constant / identity
-    / categorical / colorRamp) and rule-level ``when`` guards wrap the primary
+    / categorical / colorMap) and rule-level ``when`` guards wrap the primary
     colour in a nested CASE. A scale that cannot translate warns rather than
     silently dropping to black.
     """
@@ -503,7 +503,7 @@ def _parse_color_expr(
     """Classify a data-defined colour ``CASE`` expression.
 
     Returns one of:
-    - ``("colorRamp", field, color_stops)`` — all ``"f" < v`` branches (>=2),
+    - ``("colorMap", field, color_stops)`` — all ``"f" < v`` branches (>=2),
     - ``("categorical", field, color_stops)`` — all ``"f" = v`` branches (>=2),
     - ``("guarded", else_rgba, [(when, when_op, rgba), ...])`` — anything else,
     - ``None`` — not a recognised CASE (caller uses the symbol's constant colour).
@@ -536,7 +536,7 @@ def _parse_color_expr(
             stops = [
                 {"stop": float(cmp[2]), "color": rgba} for _, cmp, rgba in branches
             ]
-            return "colorRamp", field, stops
+            return "colorMap", field, stops
 
     guards: list[tuple[str, str, list[float] | None]] = []
     for when_node, _, rgba in branches:
@@ -561,7 +561,7 @@ def _color_scale_from_property(
     """Read a colour slot back into ``(scale, field, guards)``.
 
     The inverse of the export colour slot: a field reference -> identity, a
-    ``CASE`` -> categorical / colorRamp / guarded, otherwise the symbol's constant.
+    ``CASE`` -> categorical / colorMap / guarded, otherwise the symbol's constant.
     Used for both the primary and the outline colour so each round-trips with its
     own scale (not just identity). ``ramp`` is the slot's stashed ``{name, reverse}``
     (see :func:`_ramp_meta`) restoring the named ramp the baked stops can't carry.
@@ -577,11 +577,11 @@ def _color_scale_from_property(
             expr = prop.expressionString()
             if expr:
                 parsed = _parse_color_expr(expr)
-                if parsed and parsed[0] == "colorRamp":
+                if parsed and parsed[0] == "colorMap":
                     _, field, stops = parsed
                     return (
                         {
-                            "scheme": "colorRamp",
+                            "scheme": "colorMap",
                             "params": {
                                 "name": ramp_name,
                                 "nShades": len(stops),

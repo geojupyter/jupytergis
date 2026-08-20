@@ -1,0 +1,52 @@
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source '../src/**/*.{ts,tsx}';
+
+@layer base {
+  /* Scope to GIS UI + shadcn/data-slot trees; do not reset the JupyterLab shell. */
+  :where([class^='jgis-'], [class*=' jgis-'], [data-slot]) {
+    &,
+    *,
+    &::before,
+    &::after,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+  }
+}
+
+/* Map shadcn/Tailwind semantic tokens to JupyterLab theme vars */
+@theme {
+  --color-background: var(--jp-layout-color0);
+  --color-foreground: var(--jp-ui-font-color0);
+  --color-popover: var(--jp-layout-color0);
+  --color-popover-foreground: var(--jp-ui-font-color0);
+  --color-primary: var(--jp-brand-color1);
+  --color-primary-foreground: var(--jp-ui-inverse-font-color1);
+  --color-secondary: var(--jp-layout-color2);
+  --color-secondary-foreground: var(--jp-ui-font-color0);
+  --color-muted: var(--jp-layout-color2);
+  --color-muted-foreground: var(--jp-ui-font-color2);
+  --color-accent: var(--jp-layout-color2);
+  --color-accent-foreground: var(--jp-ui-font-color0);
+  --color-destructive: var(--jp-error-color0);
+  --color-border: var(--jp-border-color1);
+  --color-input: var(--jp-input-border-color, var(--jp-border-color1));
+  --color-ring: var(--jp-brand-color2);
+  --radius: var(--jp-border-radius, 0.625rem);
+  --text-base: var(--jp-ui-font-size1);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}

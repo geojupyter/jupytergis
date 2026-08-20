@@ -1,6 +1,7 @@
 import type {
   IListStoryScrollTrackLayout,
   IListStoryScrollTrackSegment,
+  IListStorySegmentTransition,
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
@@ -41,6 +42,40 @@ export function getScrollTrackSegmentHeight(
   index: number,
 ): number | undefined {
   return layout?.segments.find(segment => segment.index === index)?.height;
+}
+
+/**
+ * Pixel travel for progress 0→1 (`--jgis-transition-translate`).
+ * Same geometry that drives scroll progress: segment height (intra) or
+ * `to.start - from.start` (handoff = from height + gap).
+ */
+export function getTransitionTranslatePx(
+  transition: IListStorySegmentTransition | null,
+  layout: IListStoryScrollTrackLayout | null,
+): number {
+  if (!transition || !layout?.segments.length) {
+    return 0;
+  }
+
+  const fromSegment = layout.segments.find(
+    segment => segment.index === transition.fromIndex,
+  );
+  if (!fromSegment) {
+    return 0;
+  }
+
+  if (transition.fromIndex === transition.toIndex) {
+    return fromSegment.height;
+  }
+
+  const toSegment = layout.segments.find(
+    segment => segment.index === transition.toIndex,
+  );
+  if (!toSegment) {
+    return 0;
+  }
+
+  return Math.max(0, toSegment.start - fromSegment.start);
 }
 
 function segmentHeightForItem(

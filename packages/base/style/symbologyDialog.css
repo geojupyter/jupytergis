@@ -180,6 +180,19 @@ select option {
   transform: translateX(6px);
 }
 
+.jp-gis-color-ramp-warning {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jp-gis-color-ramp-warning .jgis-hover-card-trigger {
+  color: white !important;
+  filter: drop-shadow(0 0 2px black);
+}
+
 .jp-gis-color-canvas {
   margin: 0 -7px;
   border-radius: 4px;

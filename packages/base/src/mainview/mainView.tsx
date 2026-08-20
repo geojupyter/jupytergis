@@ -142,6 +142,7 @@ import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
+import { useIsMobile } from '@/src/shared/hooks/useIsMobile';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -237,7 +238,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  editingVectorLayer: boolean;
+  isDrawing: boolean;
   drawGeometryLabel: string | undefined;
   currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
@@ -355,11 +356,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
 
-    // Keep draw editing UI/interactions in sync with the shared editing mode.
-    this._model.editingVectorLayerChanged.connect(
-      this._updateEditingVectorLayer,
-      this,
-    );
+    // Keep draw UI/interactions in sync with the exclusive map mode.
+    this._model.modeChanged.connect(this._handleModeChanged, this);
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
@@ -383,7 +381,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      editingVectorLayer: false,
+      isDrawing: false,
       drawGeometryLabel: '',
       currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
@@ -503,6 +501,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleLocationIndicatorToggled,
       this,
     );
+    this._model.modeChanged.disconnect(this._handleModeChanged, this);
     this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
@@ -1281,8 +1280,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  min: sourceInfo.min,
-                  max: sourceInfo.max,
                   url: sourceInfo.url,
                 };
               } else if (isDataUrl) {
@@ -1290,8 +1287,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 const blob = await (await fetch(sourceInfo.url!)).blob();
                 return {
                   ...addNoData(sourceInfo),
-                  min: sourceInfo.min,
-                  max: sourceInfo.max,
                   url: URL.createObjectURL(blob),
                 };
               } else {
@@ -1302,8 +1297,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 });
                 return {
                   ...addNoData(sourceInfo),
-                  min: sourceInfo.min,
-                  max: sourceInfo.max,
                   geotiff,
                   url: URL.createObjectURL(geotiff.file),
                 };
@@ -1794,6 +1787,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         layerParameters = layer.parameters as IGeoTiffLayer;
         const geoTiffSource = this._sources[layerParameters.source];
 
+        await this._waitForSourceReady(geoTiffSource);
+
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
@@ -1824,6 +1819,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'GeoZarrLayer': {
         layerParameters = layer.parameters as IGeoZarrLayer;
         const geoZarrSource = this._sources[layerParameters.source];
+
+        await this._waitForSourceReady(geoZarrSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
@@ -1890,7 +1887,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       this.addProjection(newMapLayer);
-      await this._waitForSourceReady(newMapLayer);
+      await this._waitForLayerReady(newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -2111,8 +2108,73 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return scaled;
   };
 
+  private _syncGrammarSubLayers(
+    id: string,
+    layer: IJGISLayer,
+    mapLayer: Layer | LayerGroup,
+  ): void {
+    const layerParams = layer.parameters as
+      | IVectorLayer
+      | IGeoTiffLayer
+      | IGeoZarrLayer
+      | undefined;
+    const grammarState = layerParams?.symbologyState as
+      | IGrammarSymbologyState
+      | undefined;
+
+    if (!grammarState || !Array.isArray(grammarState.layers)) {
+      return;
+    }
+
+    const sourceId = layerParams?.source;
+    const source = sourceId ? this._sources[sourceId] : undefined;
+    const rows =
+      source instanceof VectorSource
+        ? source.getFeatures().map(f => (f as Feature).getProperties())
+        : [];
+    const featureValues = extractEncodingFieldValues(grammarState, rows);
+    const nextLayer = grammarToOLLayer(
+      grammarState,
+      source,
+      layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+      layer.visible,
+      featureValues,
+      layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
+    );
+
+    if (mapLayer instanceof LayerGroup) {
+      if (nextLayer instanceof LayerGroup) {
+        const replacementLayers = nextLayer.getLayers().getArray();
+        mapLayer.setOpacity(
+          layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+        );
+        mapLayer.setVisible(layer.visible);
+        mapLayer.setLayers(new Collection(replacementLayers));
+        return;
+      }
+
+      // Collapse back to a single top-level layer so tools that expect a
+      // concrete OL Layer (fly-to/identify) keep working.
+      nextLayer.set('id', id);
+      const index = this.getLayerIndex(id);
+      if (index !== -1) {
+        this._Map.getLayers().setAt(index, nextLayer);
+      }
+      return;
+    }
+
+    nextLayer.set('id', id);
+    const index = this.getLayerIndex(id);
+    if (index !== -1) {
+      this._Map.getLayers().setAt(index, nextLayer);
+    }
+  }
+
   /**
    * Update a layer of the map.
+   *
+   * Only for updating appearance -- opacity or style.
+   * For vector layers, the whole layer is replaced.
    *
    * @param id - id of the layer.
    * @param layer - the layer object.
@@ -2134,8 +2196,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const layerParams = layer.parameters as IVectorLayer;
 
         if (Array.isArray(layerParams.symbologyState?.layers)) {
-          // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
@@ -2169,7 +2230,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoTiffLayer': {
         if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
         } else {
           mapLayer.setOpacity(layer.parameters?.opacity);
           if (layer?.parameters?.color) {
@@ -2182,7 +2243,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoZarrLayer': {
         if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
@@ -2422,7 +2483,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer | LayerGroup) {
+  private _waitForLayerReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -2431,7 +2492,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           resolve();
         } else if (state === 'error') {
           layer.un('change', checkState);
-          reject(new Error('Source failed to load.'));
+          reject(new Error('Layer failed to load.'));
         }
       };
 
@@ -2439,6 +2500,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       layer.on('change', checkState);
 
       // Check the state immediately in case it's already 'ready'
+      checkState();
+    });
+  }
+
+  /**
+   * Wait for a source to finish loading and configuring
+   * @param source The Source to check
+   */
+  private _waitForSourceReady(source: Source) {
+    return new Promise<void>((resolve, reject) => {
+      const checkState = () => {
+        const state = source.getState();
+        if (state === 'ready') {
+          source.un('change', checkState);
+          resolve();
+        } else if (state === 'error') {
+          source.un('change', checkState);
+          reject(new Error('Source failed to load'));
+        }
+      };
+
+      // Listen for state changes
+      source.on('change', checkState);
+
+      // Check immediately in case already ready
       checkState();
     });
   }
@@ -2484,8 +2570,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       selectedLayerId,
     );
     if (decision.disableEditing) {
-      this._model.editingVectorLayer = false;
-      this._updateEditingVectorLayer();
+      if (this._model.currentMode === 'drawing') {
+        this._model.currentMode = 'panning';
+        this._notifyInteractionModeCommands();
+      }
       return;
     }
     if (!decision.shouldRebind) {
@@ -2514,7 +2602,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return { disableEditing: true, shouldRebind: false };
     }
 
-    if (!this._model.editingVectorLayer) {
+    if (this._model.currentMode !== 'drawing') {
       return { disableEditing: false, shouldRebind: false };
     }
 
@@ -2834,17 +2922,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._Map.getLayers().insertAt(safeIndex, layer);
   }
 
-  /**
-   * Remove and recreate layer
-   * @param id ID of layer being replaced
-   * @param layer New layer to replace with
-   */
-  replaceLayer(id: string, layer: IJGISLayer) {
-    const layerIndex = this.getLayerIndex(id);
-    this.removeLayer(id);
-    this.addLayer(id, layer, layerIndex);
-  }
-
   private _onLayersChanged(
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
@@ -2860,18 +2937,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
-        if (this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)) {
-          this._model.editingVectorLayer = false;
-          this._updateEditingVectorLayer();
-          this._mainViewModel.commands.notifyCommandChanged(
-            CommandIDs.toggleDrawFeatures,
-          );
+        if (
+          this._model.currentMode === 'drawing' &&
+          this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)
+        ) {
+          this._model.currentMode = 'panning';
+          this._notifyInteractionModeCommands();
         }
-        return;
-      }
-
-      if (oldLayer && oldLayer.type !== newLayer.type) {
-        this.replaceLayer(id, newLayer);
         return;
       }
 
@@ -3531,10 +3603,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private async _addMarker(e: MapBrowserEvent<any>) {
-    if (
-      this.state.editingVectorLayer ||
-      this._model.currentMode !== 'marking'
-    ) {
+    if (this._model.currentMode !== 'marking') {
       return;
     }
 
@@ -3573,10 +3642,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (
-      this.state.editingVectorLayer ||
-      this._model.currentMode !== 'identifying'
-    ) {
+    if (this._model.currentMode !== 'identifying') {
       return;
     }
 
@@ -3840,18 +3906,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  private _updateEditingVectorLayer() {
-    const editingVectorLayer: boolean = this._model.editingVectorLayer;
-    this.setState(old => ({ ...old, editingVectorLayer }));
+  private _handleModeChanged = (): void => {
+    const isDrawing = this._model.currentMode === 'drawing';
+    this.setState(old => ({ ...old, isDrawing }));
 
-    if (editingVectorLayer === true) {
+    if (isDrawing) {
       this._editVectorLayer();
     }
 
-    if (editingVectorLayer === false && this._draw) {
+    if (!isDrawing && this._draw) {
       this._removeDrawInteraction();
       this._setCurrentDrawLayerId(undefined);
     }
+  };
+
+  private _notifyInteractionModeCommands(): void {
+    const commands = this._mainViewModel.commands;
+    commands.notifyCommandChanged(CommandIDs.identify);
+    commands.notifyCommandChanged(CommandIDs.addMarker);
+    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   }
 
   private _setCurrentDrawLayerId(layerId: string | undefined): void {
@@ -3880,6 +3953,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
+
+    if (this._currentDrawLayerID) {
+      this._currentVectorSource = this._getVectorSourceFromLayerID(
+        this._currentDrawLayerID,
+      );
+    }
 
     this._updateInteractions();
     this._updateDrawSource();
@@ -4137,7 +4216,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers,
       displayTemporalController,
       drawGeometryLabel,
-      editingVectorLayer,
+      isDrawing,
       currentDrawLayerId,
       filterStates,
       initialLayersReady,
@@ -4168,7 +4247,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         <MainViewOverlayLayer
           annotationFloaters={this._renderAnnotationFloaters()}
           featureFloaters={this._renderFeatureFloaters()}
-          editingVectorLayer={editingVectorLayer}
+          isDrawing={isDrawing}
           drawGeometryLabel={drawGeometryLabel}
           drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
@@ -4326,30 +4405,11 @@ function MainViewWithObserver(
   props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
 ) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const isMobile = useIsMobile(containerRef);
 
   React.useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    const update = (width: number) => {
-      const narrow = width < 960;
-      setIsMobile(narrow);
-      container.classList.toggle('jgis-narrow', narrow);
-    };
-
-    // Initial sync
-    update(container.clientWidth);
-
-    const observer = new ResizeObserver(([entry]) => {
-      update(entry.contentRect.width);
-    });
-
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
+    containerRef.current?.classList.toggle('jgis-narrow', isMobile);
+  }, [isMobile]);
 
   return (
     <MainView {...props} isMobile={isMobile} containerRef={containerRef} />

@@ -198,6 +198,8 @@ interface ILayerSectionProps {
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
   disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -212,6 +214,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   featureValues,
   isRasterLayer = false,
   disabledSchemes = [],
+  bandStats,
+  normalize = true,
   onChange,
   onDelete,
   onMoveUp,
@@ -312,7 +316,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     });
   }, [layer, onChange, isRaster]);
 
-  // KDE layers expose '$density'; raster layers expose $band-N fields.
+  // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
   const encodingFields: IFieldOption[] = hasKDE
     ? [{ value: '$density', label: '$density' }]
@@ -517,6 +521,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               featureValues={featureValues}
               isRaster={isRaster}
               disabledSchemes={disabledSchemes}
+              bandStats={bandStats}
+              normalize={normalize}
               onChange={updated => updateRow(i, updated)}
               onDelete={() => removeRow(i)}
             />
@@ -557,8 +563,28 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     { layerId, model },
   );
 
-  // For raster layers, expose $band-N pseudo-fields derived from band metadata.
+  // For raster layers, expose band_N pseudo-fields derived from band metadata.
   const { bandRows } = useGetBandInfo(model, layer);
+
+  const bandStats = React.useMemo(() => {
+    const map: Record<number, { min: number; max: number }> = {};
+
+    bandRows.forEach(b => {
+      map[b.band] = {
+        min: b.stats.minimum,
+        max: b.stats.maximum,
+      };
+    });
+
+    return map;
+  }, [bandRows]);
+
+  // Whether the raster source normalizes band values to [0, 1]. This governs
+  // which value space the auto-filled symbology domain must live in.
+  const normalize = React.useMemo(() => {
+    const source = model.getSource(layer?.parameters?.source);
+    return (source?.parameters?.normalize as boolean | undefined) ?? true;
+  }, [model, layer]);
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -684,8 +710,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
   const availableFields = isRasterLayer
     ? bandRows.map(b => ({
-        value: `$band-${b.band}`,
-        label: `$band-${b.band}  ${b.name}${
+        value: `band_${b.band}`,
+        label: `band_${b.band}  ${b.name}${
           b.colorInterpretation ? ` (${b.colorInterpretation})` : ''
         }`,
       }))
@@ -706,6 +732,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           featureValues={selectableAttributesAndValues}
           isRasterLayer={isRasterLayer}
           disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
+          bandStats={bandStats}
+          normalize={normalize}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
