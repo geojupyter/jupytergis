@@ -570,39 +570,6 @@ async def refresh_tipg_catalog() -> bool:
         return False
 
     if response.code >= 400:
-        return False
-
-    return True
-
-
-async def refresh_tipg_catalog() -> bool:
-    """
-    Ask tipg to re-scan PostGIS for collections (new jgis_store_* tables).
-
-    Requires tipg started with TIPG_DEBUG=true so ``GET /refresh`` exists.
-    Returns True on success; False if tipg is unset, unreachable, or refresh
-    is disabled (fold still succeeds — catalog may catch up via TTL).
-    """
-
-    tipg_base = get_tipg_url()
-    if not tipg_base:
-        return False
-
-    client = AsyncHTTPClient()
-    try:
-        response = await client.fetch(
-            HTTPRequest(
-                url=f"{tipg_base}/refresh",
-                method="GET",
-                request_timeout=60,
-            ),
-            raise_error=False,
-        )
-    except Exception:
-        logger.exception("tipg catalog refresh request failed")
-        return False
-
-    if response.code >= 400:
         logger.warning(
             "tipg catalog refresh returned %s (enable TIPG_DEBUG=true for /refresh)",
             response.code,
