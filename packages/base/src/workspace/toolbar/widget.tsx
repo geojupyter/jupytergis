@@ -194,19 +194,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
-      const placeCollaborativePointsButton = new CommandToolbarButton({
-        id: CommandIDs.placeCollaborativePoints,
-        label: '',
-        commands: options.commands,
-      });
-
-      this.addItem(
-        'placeCollaborativePoints',
-        placeCollaborativePointsButton,
-      );
-      placeCollaborativePointsButton.node.dataset.testid =
-        'place-collaborative-points-button';
-
       const foldCollaborativePointsButton = new CommandToolbarButton({
         id: CommandIDs.foldCollaborativePoints,
         label: '',

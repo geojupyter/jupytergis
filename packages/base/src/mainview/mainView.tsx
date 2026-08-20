@@ -50,7 +50,6 @@ import {
   IOpenEOTileLayer,
   IGrammarSymbologyState,
   buildCollaborativePointTileUrlTemplate,
-  pointGeometry,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -110,7 +109,6 @@ import {
   fromLonLat,
   get as getProjection,
   toLonLat,
-  transform,
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
@@ -685,7 +683,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this._Map.on('click', this._identifyFeature.bind(this));
       this._Map.on('click', this._addMarker.bind(this));
-      this._Map.on('click', this._placeCollaborativePoint.bind(this));
 
       this._Map
         .getViewport()
@@ -3808,83 +3805,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     source.addFeatures(olFeatures);
   }
 
-  private _placeCollaborativePoint = async (
-    e: MapBrowserEvent<any>,
-  ): Promise<void> => {
-    if (this._model.currentMode !== 'placingPoints') {
-      return;
-    }
-
-    const localState = this._model.sharedModel.awareness.getLocalState();
-    const selectedLayer = localState?.selected?.value;
-    if (!selectedLayer) {
-      this._log(
-        'warning',
-        'Select a collaborative point layer before placing points',
-      );
-      return;
-    }
-
-    const layerId = Object.keys(selectedLayer)[0];
-    const jgisLayer = this._model.getLayer(layerId);
-    const sourceId = jgisLayer?.parameters?.source;
-    const jgisSource = sourceId ? this._model.getSource(sourceId) : undefined;
-    if (jgisSource?.type !== 'CollaborativePointSource') {
-      this._log(
-        'warning',
-        'Selected layer must use a CollaborativePointSource',
-      );
-      return;
-    }
-
-    const storeId = (jgisSource.parameters as ICollaborativePointSource)
-      .storeId;
-    if (!storeId) {
-      await showErrorMessage(
-        'Collaborative points',
-        'Source is missing storeId',
-      );
-      return;
-    }
-
-    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
-    // Persist lon/lat in EPSG:4326 regardless of the map view CRS.
-    const [lon, lat] = transform(
-      coordinate,
-      this._Map.getView().getProjection(),
-      'EPSG:4326',
-    );
-
-    const attrs = this._model.getDrawCustomAttributes(layerId);
-    const props = Object.fromEntries(
-      attrs.map(attribute => [attribute.key, attribute.value]),
-    );
-
-    const result = this._model.addCollaborativeFeature({
-      storeId,
-      geometry: pointGeometry(lon, lat),
-      props,
-    });
-
-    if (!result.ok) {
-      const message =
-        result.reason === 'compacting'
-          ? 'Cannot add points while folding into baseline.'
-          : 'Overlay hard limit reached. Fold edits into the baseline before adding more points.';
-      await showErrorMessage('Collaborative points', message);
-      return;
-    }
-
-    console.log('awareness', this._model.sharedModel.awareness.getLocalState());
-
-    if (result.nearSoftLimit) {
-      this._log(
-        'warning',
-        'Collaborative overlay is near its soft limit; fold soon.',
-      );
-    }
-  };
-
   private async _addMarker(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'marking') {
       return;
@@ -4331,7 +4251,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const commands = this._mainViewModel.commands;
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
-    commands.notifyCommandChanged(CommandIDs.placeCollaborativePoints);
     commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   }
 

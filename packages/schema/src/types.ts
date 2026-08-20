@@ -120,5 +120,4 @@ export type Modes =
   | 'panning'
   | 'identifying'
   | 'marking'
-  | 'drawing'
-  | 'placingPoints';
+  | 'drawing';
