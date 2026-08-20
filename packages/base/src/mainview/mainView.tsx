@@ -3892,10 +3892,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    const story = this._model.getSelectedStory().story;
+    // Don't treat horizontal swipes as guided prev/next segment navigation.
+    if (
+      isVerticalScrollPresentation(getStoryPresentationMode(story?.storyType))
+    ) {
+      return;
+    }
+
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - this._spectaTouchStartX;
     const threshold = 50;
-    const story = this._model.getSelectedStory().story;
     const segmentCount = story?.storySegments?.length ?? 0;
 
     if (segmentCount === 0) {
