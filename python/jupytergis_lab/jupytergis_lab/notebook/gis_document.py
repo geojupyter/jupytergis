@@ -255,7 +255,7 @@ class GISDocument(CommWidget):
 
     @property
     def feature_stores(self) -> dict[str, Any]:
-        """Collaborative overlay feature stores (session Y.Map, not the .jGIS file)."""
+        """Collaborative overlay feature stores"""
         return self._featureStores.to_py() or {}
 
     @property

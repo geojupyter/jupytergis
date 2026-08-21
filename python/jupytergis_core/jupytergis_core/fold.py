@@ -124,7 +124,7 @@ def bump_feature_store_sources(ysources: Map, store_id: str) -> None:
 class FeatureStoreFold:
     """Observe featureStores and fold when a client sets foldRequested.
 
-    Not wired through YJGIS.observe() — that persist callback would dirty
+    Not wired through YJGIS.observe() — that callback would pollute
     the .jGIS file on every overlay point.
     """
 
@@ -172,8 +172,8 @@ class FeatureStoreFold:
         if not meta.get("foldRequested"):
             return
 
-        conn_url = get_postgis_url()
-        if not conn_url:
+        postgis_url = get_postgis_url()
+        if not postgis_url:
             logger.warning(
                 "Fold requested for store %s but JGIS_POSTGIS_URL is unset",
                 store_id,
@@ -183,6 +183,7 @@ class FeatureStoreFold:
             return
 
         self._in_flight.add(store_id)
+
         try:
             snapshot = _copy_and_release_overlay(self._ydoc, store)
         except Exception:
@@ -193,13 +194,13 @@ class FeatureStoreFold:
             )
             return
 
-        self._schedule(self._run_fold, store_id, snapshot, conn_url)
+        self._schedule(self._run_fold, store_id, snapshot, postgis_url)
 
     async def _run_fold(
         self,
         store_id: str,
         snapshot: list[dict[str, Any]],
-        conn_url: str,
+        postgis_url: str,
     ) -> None:
         from tornado.ioloop import IOLoop
 
@@ -210,17 +211,19 @@ class FeatureStoreFold:
             await IOLoop.current().run_in_executor(
                 None,
                 ensure_feature_store_table,
-                conn_url,
+                postgis_url,
                 table_name,
             )
+
             if snapshot:
                 await IOLoop.current().run_in_executor(
                     None,
                     merge_overlay_features_via_psql,
-                    conn_url,
+                    postgis_url,
                     store_id,
                     snapshot,
                 )
+
             # Refresh before bump so clients hit a catalog that knows the table.
             await refresh_tipg_catalog()
             if snapshot:

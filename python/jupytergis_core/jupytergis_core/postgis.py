@@ -223,12 +223,9 @@ COMMIT;
 """.strip()
 
 
-def _psql_run(conn_url: str, sql: str) -> None:
+def _psql_run(postgis_url: str, sql: str) -> None:
     """
     Execute SQL using `psql` and raise a RuntimeError with real stderr.
-
-    This is crucial for debugging fold failures (frontend should get the
-    actual Postgres error message).
     """
 
     pg_connect_timeout = int(os.environ.get("JGIS_PG_CONNECT_TIMEOUT", "5"))
@@ -236,7 +233,7 @@ def _psql_run(conn_url: str, sql: str) -> None:
 
     try:
         subprocess.run(
-            ["psql", conn_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
+            ["psql", postgis_url, "-v", "ON_ERROR_STOP=1", "-X", "-q", "-c", sql],
             check=True,
             timeout=psql_timeout,
             capture_output=True,
@@ -254,17 +251,17 @@ def _psql_run(conn_url: str, sql: str) -> None:
         raise RuntimeError(msg) from e
 
 
-def ensure_feature_store_table(conn_url: str, table_name: str) -> None:
+def ensure_feature_store_table(postgis_url: str, table_name: str) -> None:
     """Ensure the per-store table exists."""
 
     ddl = feature_store_table_ddl(table_name)
     sql = ddl
 
-    _psql_run(conn_url, sql)
+    _psql_run(postgis_url, sql)
 
 
 def merge_overlay_features_via_psql(
-    conn_url: str,
+    postgis_url: str,
     store_id: str,
     features: list[dict[str, Any]],
 ) -> None:
@@ -272,13 +269,13 @@ def merge_overlay_features_via_psql(
     Merge overlay into PostGIS using `psql` subprocess calls.
     """
 
-    if not conn_url:
+    if not postgis_url:
         raise RuntimeError("JGIS_POSTGIS_URL is not configured")
 
     table_name = store_id_to_table_name(store_id)
 
-    ensure_feature_store_table(conn_url, table_name)
+    ensure_feature_store_table(postgis_url, table_name)
     sql = merge_overlay_features_sql(table_name, features)
 
-    _psql_run(conn_url, sql)
+    _psql_run(postgis_url, sql)
 
