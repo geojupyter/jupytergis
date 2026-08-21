@@ -568,7 +568,7 @@ export class JupyterGISDoc
       result[storeId] = this._storeMapToPlain(storeMap);
     });
 
-    return JSONExt.deepCopy(result as any) as IJGISFeatureStores;
+    return result;
   }
 
   set featureStores(stores: IJGISFeatureStores) {
@@ -948,10 +948,7 @@ export class JupyterGISDoc
         : ((featuresMap as Record<string, IFeatureStoreFeature>) ?? {});
 
     return {
-      meta: defaultFeatureStoreMeta(
-        (storeMap.get('meta') as IFeatureStoreMeta) ?? {},
-      ),
-
+      meta: storeMap.get('meta'),
       features: JSONExt.deepCopy(features as any),
     };
   }
