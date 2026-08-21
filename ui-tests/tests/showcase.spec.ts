@@ -105,7 +105,6 @@ test.describe('Showcase', () => {
         await setup(page);
       }
 
-      
       while (
         Date.now() < timeout &&
         (pendingRequests > 0 || Date.now() - lastActivity < 2000)
