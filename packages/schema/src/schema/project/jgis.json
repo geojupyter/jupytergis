@@ -67,7 +67,7 @@
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
-        "CollaborativePointSource",
+        "FeatureStoreSource",
         "MarkerSource",
         "OpenEOTileSource"
       ]

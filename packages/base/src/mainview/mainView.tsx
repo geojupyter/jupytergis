@@ -34,7 +34,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IGeoParquetSource,
-  ICollaborativePointSource,
+  IFeatureStoreSource,
   ICollaborativeFeature,
   IGeoTiffLayer,
   IGeoZarrLayer,
@@ -49,7 +49,7 @@ import {
   IOpenEOTileSource,
   IOpenEOTileLayer,
   IGrammarSymbologyState,
-  buildCollaborativePointTileUrlTemplate,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -831,10 +831,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (layer === expected) {
           return true;
         }
-        // Grammar / collaborative layers wrap children in a LayerGroup.
+        // Grammar / feature-store layers wrap children in a LayerGroup.
         // OL Select flattens groups, so we receive leaf layers, not the group.
         // Skip VectorTileLayer leaves, Select cannot hit MVT RenderFeatures;
-        // collaborative tipg baseline identify is handled in _identifyFeature.
+        // Feature-store tipg baseline identify is handled in _identifyFeature.
         if (expected instanceof LayerGroup) {
           if (layer instanceof VectorTileLayer) {
             return false;
@@ -1208,23 +1208,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
-        case 'CollaborativePointSource': {
-          const parameters = source.parameters as ICollaborativePointSource;
+        case 'FeatureStoreSource': {
+          const parameters = source.parameters as IFeatureStoreSource;
           const storeId = parameters.storeId;
           if (!storeId) {
-            throw new Error('CollaborativePointSource requires storeId');
+            throw new Error('FeatureStoreSource requires storeId');
           }
 
           this._model.ensureFeatureStore(storeId);
 
           newSource = new VectorSource();
-          this._collaborativeOverlaySources.set(storeId, newSource);
-          this._syncCollaborativeOverlaySource(storeId, newSource);
+          this._featureStoreOverlaySources.set(storeId, newSource);
+          this._syncFeatureStoreOverlaySource(storeId, newSource);
 
           // Live tipg MVT baseline (under the Ydoc overlay).
           const relativeTemplate =
             parameters.tileUrlTemplate?.trim() ||
-            buildCollaborativePointTileUrlTemplate(
+            buildFeatureStoreTileUrlTemplate(
               storeId,
               parameters.baselineVersion ?? 0,
             );
@@ -1271,7 +1271,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             },
           });
           baselineSource.set('id', `${id}:baseline`);
-          this._collaborativeBaselineSources.set(storeId, baselineSource);
+          this._featureStoreBaselineSources.set(storeId, baselineSource);
           break;
         }
 
@@ -1644,11 +1644,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Collaborative sources use a LayerGroup (baseline VT + overlay).
     if (
       mapLayer instanceof LayerGroup &&
-      source.type === 'CollaborativePointSource'
+      source.type === 'FeatureStoreSource'
     ) {
-      const parameters = source.parameters as ICollaborativePointSource;
+      const parameters = source.parameters as IFeatureStoreSource;
       const overlay = this._sources[id] as VectorSource;
-      const baseline = this._collaborativeBaselineSources.get(
+      const baseline = this._featureStoreBaselineSources.get(
         parameters.storeId,
       );
       const style = this.vectorLayerStyleRuleBuilder(
@@ -1684,12 +1684,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   removeSource(id: string): void {
     const jgisSource = this._model.getSource(id);
-    if (jgisSource?.type === 'CollaborativePointSource') {
-      const storeId = (jgisSource.parameters as ICollaborativePointSource)
+    if (jgisSource?.type === 'FeatureStoreSource') {
+      const storeId = (jgisSource.parameters as IFeatureStoreSource)
         .storeId;
       if (storeId) {
-        this._collaborativeOverlaySources.delete(storeId);
-        this._collaborativeBaselineSources.delete(storeId);
+        this._featureStoreOverlaySources.delete(storeId);
+        this._featureStoreBaselineSources.delete(storeId);
       }
     }
     delete this._sources[id];
@@ -1845,12 +1845,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             layer.visible,
             featureValues,
           ) as OlLayerTypes;
-        } else if (source?.type === 'CollaborativePointSource') {
-          const collabParams = source.parameters as ICollaborativePointSource;
+        } else if (source?.type === 'FeatureStoreSource') {
+          const storeParams = source.parameters as IFeatureStoreSource;
           const style = this.vectorLayerStyleRuleBuilder(layer);
           const children: Layer[] = [];
-          const baseline = this._collaborativeBaselineSources.get(
-            collabParams.storeId,
+          const baseline = this._featureStoreBaselineSources.get(
+            storeParams.storeId,
           );
           if (baseline) {
             children.push(
@@ -2025,7 +2025,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
-    // Track source→layer for both plain Layers and LayerGroups (collaborative).
+    // Track source→layer for both plain Layers and LayerGroups (feature store).
     if (layerParameters && 'source' in layerParameters) {
       this._sourceToLayerMap.set(layerParameters.source, id);
     }
@@ -3770,12 +3770,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private _onFeatureStoresChanged = (): void => {
-    for (const [storeId, source] of this._collaborativeOverlaySources) {
-      this._syncCollaborativeOverlaySource(storeId, source);
+    for (const [storeId, source] of this._featureStoreOverlaySources) {
+      this._syncFeatureStoreOverlaySource(storeId, source);
     }
   };
 
-  private _syncCollaborativeOverlaySource(
+  private _syncFeatureStoreOverlaySource(
     storeId: string,
     source: VectorSource,
   ): void {
@@ -3874,21 +3874,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
-   * Identify tipg MVT baseline features for a collaborative layer.
+   * Identify tipg MVT baseline features for a feature store layer.
    * Overlay identify stays uses Select interaction
    * This only hit-tests the baseline VectorTileLayer.
    */
-  private _identifyCollaborativeBaseline(
+  private _identifyFeatureStoreBaseline(
     e: MapBrowserEvent<any>,
     layerId: string,
-    parameters: ICollaborativePointSource,
+    parameters: IFeatureStoreSource,
   ): void {
     const storeId = parameters.storeId;
     if (!storeId) {
       return;
     }
 
-    const baselineSource = this._collaborativeBaselineSources.get(storeId);
+    const baselineSource = this._featureStoreBaselineSources.get(storeId);
     const mapLayer = this.getLayer(layerId);
     if (!baselineSource || !(mapLayer instanceof LayerGroup)) {
       return;
@@ -3974,16 +3974,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     switch (jgisLayer?.type) {
       case 'VectorLayer': {
         // Overlay (VectorImageLayer) is handled by selectInteraction.
-        // Collaborative tipg baseline (VectorTileLayer) is hit-tested here.
+        // Feature-store tipg baseline (VectorTileLayer) is hit-tested here.
         const sourceId = jgisLayer.parameters?.source;
         const jgisSource = sourceId
           ? this._model.getSource(sourceId)
           : undefined;
-        if (jgisSource?.type === 'CollaborativePointSource') {
-          this._identifyCollaborativeBaseline(
+        if (jgisSource?.type === 'FeatureStoreSource') {
+          this._identifyFeatureStoreBaseline(
             e,
             layerId,
-            jgisSource.parameters as ICollaborativePointSource,
+            jgisSource.parameters as IFeatureStoreSource,
           );
         }
         break;
@@ -4309,7 +4309,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return undefined;
     }
 
-    // Collaborative layers are LayerGroups (tipg VT + overlay VectorSource).
+    // Feature-store layers are LayerGroups (tipg VT + overlay VectorSource).
     if (matchingLayer instanceof LayerGroup) {
       for (const child of matchingLayer.getLayers().getArray()) {
         const childSource = (child as Layer).getSource?.();
@@ -4323,11 +4323,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const jgisSource = jgisLayer
         ? this._model.getSource(jgisLayer.parameters?.source)
         : undefined;
-      if (jgisSource?.type === 'CollaborativePointSource') {
-        const storeId = (jgisSource.parameters as ICollaborativePointSource)
+      if (jgisSource?.type === 'FeatureStoreSource') {
+        const storeId = (jgisSource.parameters as IFeatureStoreSource)
           .storeId;
         this._currentVectorSource =
-          this._collaborativeOverlaySources.get(storeId);
+          this._featureStoreOverlaySources.get(storeId);
         return this._currentVectorSource;
       }
 
@@ -4374,8 +4374,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    // Collaborative overlays sync via Ydoc featureStores, not GeoJSON source data.
-    if (this._currentDrawSource.type === 'CollaborativePointSource') {
+    // Feature-store overlays sync via Ydoc featureStores, not GeoJSON source data.
+    if (this._currentDrawSource.type === 'FeatureStoreSource') {
       return;
     }
 
@@ -4478,12 +4478,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       : [];
     applyDrawCustomAttributesToFeature(feature, customAttributes);
 
-    if (this._currentDrawSource?.type !== 'CollaborativePointSource') {
+    if (this._currentDrawSource?.type !== 'FeatureStoreSource') {
       return;
     }
 
     const storeId = (
-      this._currentDrawSource.parameters as ICollaborativePointSource
+      this._currentDrawSource.parameters as IFeatureStoreSource
     ).storeId;
     if (!storeId) {
       return;
@@ -4773,8 +4773,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentVectorSource: VectorSource | undefined;
   private _currentDrawSourceID: string | undefined;
   private _currentDrawGeometry: Type | undefined;
-  private _collaborativeOverlaySources = new Map<string, VectorSource>();
-  private _collaborativeBaselineSources = new Map<string, VectorTileSource>();
+  private _featureStoreOverlaySources = new Map<string, VectorSource>();
+  private _featureStoreBaselineSources = new Map<string, VectorTileSource>();
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;

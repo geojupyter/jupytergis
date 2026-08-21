@@ -10,8 +10,8 @@ import {
   JgisCoordinates,
   LayerType,
   SourceType,
-  ICollaborativePointSource,
-  buildCollaborativePointTileUrlTemplate,
+  IFeatureStoreSource,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
@@ -78,9 +78,7 @@ function notifyInteractionModeCommands(commands: CommandRegistry): void {
   }
 }
 
-function selectedCollaborativeStoreId(
-  model: IJupyterGISModel,
-): string | undefined {
+function selectedFeatureStoreId(model: IJupyterGISModel): string | undefined {
   const selectedLayer =
     model.sharedModel.awareness.getLocalState()?.selected?.value;
   if (!selectedLayer) {
@@ -91,11 +89,11 @@ function selectedCollaborativeStoreId(
   const jgisLayer = model.getLayer(layerId);
   const sourceId = jgisLayer?.parameters?.source;
   const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
-  if (jgisSource?.type !== 'CollaborativePointSource') {
+  if (jgisSource?.type !== 'FeatureStoreSource') {
     return undefined;
   }
 
-  return (jgisSource.parameters as ICollaborativePointSource).storeId;
+  return (jgisSource.parameters as IFeatureStoreSource).storeId;
 }
 
 /**
@@ -1859,18 +1857,16 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
-  commands.addCommand(CommandIDs.foldCollaborativePoints, {
+  commands.addCommand(CommandIDs.foldFeatureStore, {
     label: trans.__('Fold to Feature Store'),
-    caption: trans.__(
-      'Fold overlay features into the feature store baseline.',
-    ),
+    caption: trans.__('Fold overlay features into the feature store baseline.'),
     isEnabled: () => {
       const current = tracker.currentWidget;
       if (!current?.model.sharedModel.editable) {
         return false;
       }
 
-      const storeId = selectedCollaborativeStoreId(current.model);
+      const storeId = selectedFeatureStoreId(current.model);
       if (!storeId) {
         return true;
       }
@@ -1883,7 +1879,7 @@ export function addCommands(
         return;
       }
 
-      const storeId = selectedCollaborativeStoreId(current.model);
+      const storeId = selectedFeatureStoreId(current.model);
       if (!storeId) {
         console.warn(
           'Fold to Feature Store: select a feature store layer first.',
@@ -1898,10 +1894,10 @@ export function addCommands(
 
       current.model.updateFeatureStoreMeta(storeId, { foldRequested: true });
     },
-    ...icons.get(CommandIDs.foldCollaborativePoints),
+    ...icons.get(CommandIDs.foldFeatureStore),
   });
 
-  commands.addCommand(CommandIDs.openNewCollaborativePointDialog, {
+  commands.addCommand(CommandIDs.openNewFeatureStoreDialog, {
     label: trans.__('Feature Store'),
     caption: trans.__(
       'Create a feature store layer (server-backed baseline with overlay edits).',
@@ -1926,19 +1922,18 @@ export function addCommands(
         sourceData: {
           name: 'Feature Store Source',
           storeId,
-          tileUrlTemplate: buildCollaborativePointTileUrlTemplate(storeId, 0),
-          pmtilesPath: '',
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
           baselineVersion: 0,
           projection: 'EPSG:4326',
         },
         layerData: { name: 'Feature Store' },
-        sourceType: 'CollaborativePointSource',
+        sourceType: 'FeatureStoreSource',
         layerType: 'VectorLayer',
         formSchemaRegistry,
       });
       await dialog.launch();
     },
-    ...icons.get(CommandIDs.openNewCollaborativePointDialog),
+    ...icons.get(CommandIDs.openNewFeatureStoreDialog),
   });
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {

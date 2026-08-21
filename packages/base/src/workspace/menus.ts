@@ -33,7 +33,7 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.openNewCollaborativePointDialog,
+    command: CommandIDs.openNewFeatureStoreDialog,
   });
 
   subMenu.addItem({

@@ -79,7 +79,7 @@ export function getSourceTypeForm(
     case 'GeoParquetSource':
       SourceForm = PathBasedSourcePropertiesForm;
       break;
-    case 'CollaborativePointSource':
+    case 'FeatureStoreSource':
       SourceForm = SourcePropertiesForm;
       break;
 

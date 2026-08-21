@@ -44,7 +44,7 @@ import type {
 import {
   IGeoJSONSource,
   IGeoParquetSource,
-  ICollaborativePointSource,
+  IFeatureStoreSource,
   IGeoTiffSource,
   IGeoZarrSource,
   IHillshadeLayer,
@@ -640,7 +640,7 @@ export type ILayerGalleryEntry = {
   sourceParameters:
     | IGeoJSONSource
     | IGeoParquetSource
-    | ICollaborativePointSource
+    | IFeatureStoreSource
     | IGeoTiffSource
     | IGeoZarrSource
     | IImageSource
