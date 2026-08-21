@@ -2211,9 +2211,6 @@ namespace Private {
    * Return the id of a draw-compatible selected layer, creating an empty
    * inline GeoJSON layer when the current selection is
    * missing or not editable for drawing.
-   *
-   * Feature store layers are draw-compatible: keep the selection and do not
-   * create a GeoJSON draw layer.
    */
   export function ensureDrawCompatibleLayer(
     model: IJupyterGISModel,
