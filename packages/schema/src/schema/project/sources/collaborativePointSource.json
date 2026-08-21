@@ -1,13 +1,13 @@
 {
   "type": "object",
-  "description": "CollaborativePointSource",
+  "description": "Feature store source (server-backed baseline with Ydoc overlay).",
   "title": "ICollaborativePointSource",
   "required": ["storeId"],
   "additionalProperties": false,
   "properties": {
     "storeId": {
       "type": "string",
-      "description": "Stable id for the collaborative feature store (maps to PostGIS table jgis_store_<slug>).",
+      "description": "Stable id for the feature store (maps to PostGIS table jgis_store_<slug>).",
       "default": ""
     },
     "tileUrlTemplate": {
@@ -34,7 +34,7 @@
     "attribution": {
       "type": "string",
       "readOnly": true,
-      "description": "Attribution for the collaborative feature source.",
+      "description": "Attribution for the feature store source.",
       "default": ""
     }
   }
