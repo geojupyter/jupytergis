@@ -36,7 +36,7 @@ const iconObject = {
   RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
-  FeatureStoreSource: { icon: markerIcon },
+  FeatureStoreSource: { iconClass: 'fa fa-store' },
   ImageSource: { iconClass: 'fa fa-image' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
@@ -71,7 +71,7 @@ const iconObject = {
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.foldFeatureStore]: { icon: dbIcon },
-  [CommandIDs.openNewFeatureStoreDialog]: { icon: markerIcon },
+  [CommandIDs.openNewFeatureStoreDialog]: { iconClass: 'fa fa-store' },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.openStoryEditor]: {
