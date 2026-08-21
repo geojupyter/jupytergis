@@ -151,6 +151,28 @@ def _make_rgb_tif(path):
     ds = None
 
 
+def _make_gpkg_raster(path, table="tiles"):
+    """Write a tiny valid raster GeoPackage for GeoPackage raster tests."""
+    from osgeo import gdal, osr
+
+    ds = gdal.GetDriverByName("GPKG").Create(
+        str(path),
+        256,
+        256,
+        3,
+        gdal.GDT_Byte,
+        options=[f"RASTER_TABLE={table}"],
+    )
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(3857)
+    ds.SetProjection(srs.ExportToWkt())
+    ds.SetGeoTransform([0, 100, 0, 0, 0, -100])
+    for band in range(1, 4):
+        ds.GetRasterBand(band).Fill(band * 10)
+    ds.FlushCache()
+    ds = None
+
+
 def _make_gray_tif(path):
     """Write a tiny single-band float GeoTIFF with a value gradient (min < max)."""
     import numpy as np
@@ -2347,7 +2369,10 @@ def test_qgis_bundles_local_geojson_to_sidecar_gpkg():
     imported_jgis = import_project_from_qgis(str(project_path))
     imported_source = next(iter(imported_jgis["sources"].values()))
     assert imported_source["type"] == "GeoPackageVectorSource"
-    assert imported_source["parameters"]["path"] == str(sidecar_path)
+    # Stored relative to the project, like every other local jGIS source: the
+    # sidecar travels with the .qgz, and jGIS resolves paths against its own
+    # document directory.
+    assert imported_source["parameters"]["path"] == sidecar_path.name
     assert imported_source["parameters"]["tables"] == "sample"
 
 
@@ -2442,6 +2467,58 @@ def test_qgis_geopackage_round_trip():
     imported_jgis = import_project_from_qgis(str(project_path))
     imported_source = imported_jgis["sources"][source_id]
     assert imported_source["type"] == "GeoPackageVectorSource"
-    assert imported_source["parameters"]["path"] == str(gpkg_path)
+    assert imported_source["parameters"]["path"] == gpkg_path.name
     assert imported_source["parameters"]["tables"] == "sample"
     assert imported_jgis["layers"][layer_id]["type"] == "VectorLayer"
+
+
+def test_qgis_geopackage_raster_round_trip():
+    """A GeoPackageRasterSource must survive the .qgz round trip.
+
+    The import branch that recognises "GPKG:<path>:<table>" sits in the same
+    if/elif chain as the .tif branch: if it ever falls through to the generic
+    XYZ raster branch, the source comes back as a RasterSource with an empty
+    url, i.e. a layer that renders nothing.
+    """
+    gpkg_path = FILES / "raster_source.gpkg"
+    project_path = FILES / "project_gpkg_raster.qgz"
+    for p in (gpkg_path, project_path):
+        if p.exists():
+            p.unlink()
+    _make_gpkg_raster(gpkg_path)
+
+    layer_id = str(uuid4())
+    source_id = str(uuid4())
+    jgis = {
+        "options": _base_options(),
+        "layers": {
+            layer_id: {
+                "name": "GeoPackage Raster Layer",
+                "parameters": {"opacity": 1.0, "source": source_id},
+                "type": "RasterLayer",
+                "visible": True,
+            },
+        },
+        "layerTree": [layer_id],
+        "sources": {
+            source_id: {
+                "name": "GeoPackage Raster Source",
+                "type": "GeoPackageRasterSource",
+                "parameters": {"path": str(gpkg_path), "tables": "tiles"},
+            },
+        },
+        "metadata": {},
+    }
+
+    logs = export_project_to_qgis(str(project_path), jgis)
+    assert logs is not None
+    assert logs.get("errors") == []
+
+    imported_jgis = import_project_from_qgis(str(project_path))
+    imported_source = next(iter(imported_jgis["sources"].values()))
+    assert imported_source["type"] == "GeoPackageRasterSource"
+    assert imported_source["parameters"]["path"] == gpkg_path.name
+    assert imported_source["parameters"]["tables"] == "tiles"
+    # The generic XYZ raster branch would have bolted these on.
+    assert "url" not in imported_source["parameters"]
+    assert next(iter(imported_jgis["layers"].values()))["type"] == "RasterLayer"

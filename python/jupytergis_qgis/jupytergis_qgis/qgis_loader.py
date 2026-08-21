@@ -89,6 +89,29 @@ def _to_gdal_readable_path(path: str) -> str:
     return path
 
 
+def _relative_to_project(path: str) -> str:
+    """Re-relativise a QGIS-resolved data path against the project directory.
+
+    QGIS resolves layer sources to absolute paths. jGIS stores paths relative to
+    its document directory (the same place the project lives), so keep any
+    subdirectory (e.g. "data/eq.geojson") rather than collapsing to the bare
+    basename. Only fall back to the basename when the data sits outside the
+    project tree, to avoid emitting fragile "../" paths. Remote URLs are
+    returned untouched.
+    """
+    if path.startswith(("http://", "https://")):
+        return path
+
+    project_dir = QgsProject.instance().absolutePath()
+    src = Path(path)
+    if project_dir and src.is_absolute():
+        try:
+            return str(src.relative_to(project_dir))
+        except ValueError:
+            return src.name
+    return path
+
+
 def _parse_ogr_gpkg_source(source: str) -> tuple[str, str | None] | None:
     """Parse a QGIS OGR source string like '/path/file.gpkg|layername=foo' or
     '/path/file.gpkg|layerid=0'. Returns (path, table_name) if the source points
@@ -157,11 +180,11 @@ def qgis_layer_to_jgis(
             layer_type = "RasterLayer"
             source_type = "GeoPackageRasterSource"
             source_parameters.update(
-                path=gpkg_path,
+                path=_relative_to_project(gpkg_path),
                 tables=gpkg_table or "",
             )
         # QGIS treats tif layers as raster layer
-        if layer.source().endswith(".tif"):
+        elif layer.source().endswith(".tif"):
             layer_type = "GeoTiffLayer"
             source_type = "GeoTiffSource"
 
@@ -276,7 +299,7 @@ def qgis_layer_to_jgis(
             source_type = "GeoPackageVectorSource"
             crs = layer.crs()
             source_parameters.update(
-                path=gpkg_path,
+                path=_relative_to_project(gpkg_path),
                 tables=gpkg_table or "",
                 projection=crs.authid() if crs.isValid() else "EPSG:3857",
             )
@@ -287,26 +310,7 @@ def qgis_layer_to_jgis(
             # data path off the provider options (the "|subset=" we add on export
             # would otherwise be glued onto the GeoJSON URL/path).
             path_part = source.split("|", 1)[0]
-            if path_part.startswith("http://") or path_part.startswith("https://"):
-                file_name = path_part
-            else:
-                # QGIS resolves layer sources to absolute paths. jGIS stores paths
-                # relative to its document directory (same place the project lives),
-                # so re-relativise to keep any subdirectory (e.g. "data/eq.geojson")
-                # rather than collapsing to the bare basename. Only fall back to the
-                # basename when the data sits outside the project tree, to avoid
-                # emitting fragile "../" paths.
-                project_dir = QgsProject.instance().absolutePath()
-                src = Path(path_part)
-                if project_dir and src.is_absolute():
-                    try:
-                        file_name = str(src.relative_to(project_dir))
-                    except ValueError:
-                        file_name = src.name
-                else:
-                    file_name = path_part
-
-            source_parameters.update(path=file_name)
+            source_parameters.update(path=_relative_to_project(path_part))
 
         renderer = layer.renderer()
 
@@ -914,6 +918,10 @@ def _bundle_local_vector_sources_to_gpkg(
             "name": source.get("name", layer_name),
             "type": "GeoPackageVectorSource",
             "parameters": {
+                # Absolute on purpose: these sources are only used to build the
+                # QGIS layers, and an OGR uri resolved against the cwd yields an
+                # invalid layer (which then silently drops subset strings). The
+                # path stored in a jGIS document is re-relativised on import.
                 "path": str(sidecar_path),
                 "tables": layer_name,
                 "projection": crs.authid() if crs.isValid() else "EPSG:3857",
