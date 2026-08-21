@@ -51,11 +51,6 @@ export const DEFAULT_WORLD_EXTENT_3857: [number, number, number, number] = [
   20037508.342789244,
 ];
 
-/** Deep-clone JSON-compatible values without Lumino type casts. */
-function cloneJson<T>(value: T): T {
-  return structuredClone(value);
-}
-
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"schemaVersion": "${SCHEMA_VERSION}",
@@ -202,9 +197,6 @@ export class JupyterGISDoc
       Object.entries(presets).forEach(([key, val]) =>
         this._presets.set(key, val),
       );
-
-      // featureStores are session-scoped (Y Map sync only) — never load from file.
-      // this._featureStores.clear();
 
       const metadata = value['metadata'] ?? {};
       Object.entries(metadata).forEach(([key, val]) =>
@@ -567,7 +559,12 @@ export class JupyterGISDoc
   }
 
   get featureStores(): IJGISFeatureStores {
-    return this._serializeFeatureStores();
+    const result: IJGISFeatureStores = {};
+    this._featureStores.forEach((storeMap: any, storeId: string) => {
+      result[storeId] = this._storeMapToPlain(storeMap);
+    });
+
+    return JSONExt.deepCopy(result as any) as IJGISFeatureStores;
   }
 
   set featureStores(stores: IJGISFeatureStores) {
@@ -629,7 +626,7 @@ export class JupyterGISDoc
       }
 
       const featuresMap = storeMap.get('features') as Y.Map<any>;
-      featuresMap.set(feature.id, cloneJson(feature));
+      featuresMap.set(feature.id, JSONExt.deepCopy(feature as any));
     });
 
     return result;
@@ -900,15 +897,6 @@ export class JupyterGISDoc
     this._featureStoresChanged.emit(changes);
   };
 
-  private _serializeFeatureStores(): IJGISFeatureStores {
-    const result: IJGISFeatureStores = {};
-    this._featureStores.forEach((storeMap: any, storeId: string) => {
-      result[storeId] = this._storeMapToPlain(storeMap);
-    });
-
-    return cloneJson(result);
-  }
-
   private _hydrateFeatureStores(stores: IJGISFeatureStores): void {
     this._featureStores.clear();
 
@@ -959,7 +947,8 @@ export class JupyterGISDoc
       meta: defaultFeatureStoreMeta(
         (storeMap.get('meta') as IFeatureStoreMeta) ?? {},
       ),
-      features: cloneJson(features),
+
+      features: JSONExt.deepCopy(features as any),
     };
   }
 
