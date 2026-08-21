@@ -1,5 +1,5 @@
 import { expect, galata, test } from '@jupyterlab/galata';
-import type { Page } from '@playwright/test';
+import type { Page, Request } from '@playwright/test';
 import path from 'path';
 
 /**
@@ -74,6 +74,19 @@ test.describe('Showcase', () => {
 
   for (const { name, file, snapshot, setup } of SHOWCASES) {
     test(name, async ({ page }) => {
+      const timeout = Date.now() + 30000;
+      let pendingRequests = 0;
+      let lastActivity = Date.now();
+      const track = (delta: number) => (request: Request) => {
+        if (!request.url().includes('localhost')) {
+          pendingRequests += delta;
+          lastActivity = Date.now();
+        }
+      };
+      page.on('request', track(1));
+      page.on('requestfinished', track(-1));
+      page.on('requestfailed', track(-1));
+
       await page.goto();
       await page.notebook.openByPath(`showcase/${file}`);
       await page.notebook.activate(`showcase/${file}`);
@@ -92,21 +105,15 @@ test.describe('Showcase', () => {
         await setup(page);
       }
 
-      const idle = await page.evaluate(() => {
-        const map: any = Object.values((window as any).jupytergisMaps)[0];
-        return new Promise<boolean>(resolve => {
-          let quiet: ReturnType<typeof setTimeout>;
-          setTimeout(() => resolve(false), 30000);
-          map.on('loadstart', () => clearTimeout(quiet));
-          map.on('loadend', () => {
-            clearTimeout(quiet);
-            quiet = setTimeout(() => resolve(true), 2000);
-          });
-          map.render();
-        });
-      });
+      
+      while (
+        Date.now() < timeout &&
+        (pendingRequests > 0 || Date.now() - lastActivity < 2000)
+      ) {
+        await page.waitForTimeout(250);
+      }
 
-      if (!idle) {
+      if (pendingRequests > 0 || Date.now() - lastActivity < 2000) {
         console.warn(
           `${file}: map load complete not detected, screenshotted after 30s timeout`,
         );
