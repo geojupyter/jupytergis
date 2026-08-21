@@ -92,7 +92,25 @@ test.describe('Showcase', () => {
         await setup(page);
       }
 
-      await page.waitForTimeout(15000);
+      const idle = await page.evaluate(() => {
+        const map: any = Object.values((window as any).jupytergisMaps)[0];
+        return new Promise<boolean>(resolve => {
+          let quiet: ReturnType<typeof setTimeout>;
+          setTimeout(() => resolve(false), 30000);
+          map.on('loadstart', () => clearTimeout(quiet));
+          map.on('loadend', () => {
+            clearTimeout(quiet);
+            quiet = setTimeout(() => resolve(true), 2000);
+          });
+          map.render();
+        });
+      });
+
+      if (!idle) {
+        console.warn(
+          `${file}: map load complete not detected, screenshotted after 30s timeout`,
+        );
+      }
 
       expect(
         await main.screenshot({ type: 'jpeg', quality: 80 }),
