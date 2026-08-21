@@ -587,7 +587,7 @@ class TipgTilesHandler(APIHandler):
     """
     Authenticated reverse proxy to tipg for collaborative baseline tiles.
 
-    Maps ``/jupytergis_core/tiles/<path>`` → ``$JGIS_TIPG_URL/<path>``.
+    Maps ``/jupytergis_core/tiles/<path>`` -> ``$JGIS_TIPG_URL/<path>``.
     """
 
     _FORWARD_RESPONSE_HEADERS = (
