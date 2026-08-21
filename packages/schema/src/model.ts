@@ -27,7 +27,7 @@ import {
   JupyterGISDoc,
 } from './doc';
 import type {
-  ICollaborativeFeature,
+  IFeatureStoreFeature,
   IFeatureStore,
   IFeatureStoreMeta,
 } from './types';
@@ -62,7 +62,7 @@ import { migrateDocument } from './migrations';
 import jgisSchema from './schema/project/jgis.json';
 import { IViewState, Modes } from './types';
 import {
-  buildCollaborativeFeature,
+  buildFeatureStoreFeature,
   isOverlayNearSoftLimit,
 } from './featureStores';
 
@@ -833,26 +833,26 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getFeatureStoreFeatures(
     storeId: string,
-  ): Record<string, ICollaborativeFeature> {
+  ): Record<string, IFeatureStoreFeature> {
     return this.sharedModel.getFeatureStoreFeatures(storeId);
   }
 
   setFeatureStoreFeature(
     storeId: string,
-    feature: ICollaborativeFeature,
+    feature: IFeatureStoreFeature,
   ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' } {
     return this.sharedModel.setFeatureStoreFeature(storeId, feature);
   }
 
-  addCollaborativeFeature(args: {
+  addFeatureStoreFeature(args: {
     storeId: string;
-    geometry: ICollaborativeFeature['geometry'];
-    props?: ICollaborativeFeature['props'];
+    geometry: IFeatureStoreFeature['geometry'];
+    props?: IFeatureStoreFeature['props'];
     id?: string;
   }):
-    | { ok: true; nearSoftLimit: boolean; feature: ICollaborativeFeature }
+    | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
     | { ok: false; reason: 'hardLimit' | 'compacting' } {
-    const feature = buildCollaborativeFeature({
+    const feature = buildFeatureStoreFeature({
       id: args.id ?? UUID.uuid4(),
       geometry: args.geometry,
       props: args.props,

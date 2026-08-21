@@ -1,12 +1,12 @@
 /**
- * Collaborative feature-store helpers: limits, PostGIS naming, and overlay CRUD
+ * Feature-store helpers: limits, PostGIS naming, and overlay CRUD
  * helpers used by the Ydoc layer.
  */
 
 import type {
-  ICollaborativeFeature,
-  ICollaborativeFeatureProps,
-  ICollaborativeGeometry,
+  IFeatureStoreFeature,
+  IFeatureStoreFeatureProps,
+  IFeatureStoreGeometry,
   IFeatureStore,
   IFeatureStoreMeta,
 } from './types';
@@ -93,7 +93,7 @@ export function normalizeStoreIdSlug(storeId: string): string {
 }
 
 /**
- * Map a collaborative store id to its PostGIS table name
+ * Map a feature-store id to its PostGIS table name
  * (`jgis_store_<slug>`).
  */
 export function storeIdToTableName(storeId: string): string {
@@ -153,7 +153,7 @@ export function featureStoreTableDdl(tableName: string): string {
 
 /** Count non-tombstone overlay features. */
 export function countLiveOverlayFeatures(
-  features: Record<string, ICollaborativeFeature>,
+  features: Record<string, IFeatureStoreFeature>,
 ): number {
   let count = 0;
   for (const feature of Object.values(features)) {
@@ -185,14 +185,14 @@ export function isOverlayNearSoftLimit(store: IFeatureStore): boolean {
   return countLiveOverlayFeatures(store.features) >= store.meta.softLimit;
 }
 
-export function buildCollaborativeFeature(args: {
+export function buildFeatureStoreFeature(args: {
   id: string;
-  geometry: ICollaborativeGeometry;
-  props?: ICollaborativeFeatureProps;
+  geometry: IFeatureStoreGeometry;
+  props?: IFeatureStoreFeatureProps;
   updatedBy: string;
   updatedAt?: string;
   deleted?: boolean;
-}): ICollaborativeFeature {
+}): IFeatureStoreFeature {
   return {
     id: args.id,
     geometry: args.geometry,
@@ -204,7 +204,7 @@ export function buildCollaborativeFeature(args: {
 }
 
 /** Convenience: build a Point geometry in EPSG:4326. */
-export function pointGeometry(lon: number, lat: number): ICollaborativeGeometry {
+export function pointGeometry(lon: number, lat: number): IFeatureStoreGeometry {
   return { type: 'Point', coordinates: [lon, lat] };
 }
 
@@ -213,9 +213,9 @@ export function pointGeometry(lon: number, lat: number): ICollaborativeGeometry 
  * Returns undefined when the feature should be hidden.
  */
 export function resolveOverlayFeature(
-  baseline: ICollaborativeFeature | undefined,
-  overlay: ICollaborativeFeature | undefined,
-): ICollaborativeFeature | undefined {
+  baseline: IFeatureStoreFeature | undefined,
+  overlay: IFeatureStoreFeature | undefined,
+): IFeatureStoreFeature | undefined {
   if (overlay) {
     if (overlay.deleted) {
       return undefined;

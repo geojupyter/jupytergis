@@ -37,7 +37,7 @@ import {
 } from './_interface/project/jgis';
 import type {
   IJGISFeatureStores,
-  ICollaborativeFeature,
+  IFeatureStoreFeature,
   IFeatureStore,
   IFeatureStoreMeta,
 } from './types';
@@ -280,10 +280,10 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getFeatureStore(storeId: string): IFeatureStore | undefined;
   getFeatureStoreFeatures(
     storeId: string,
-  ): Record<string, ICollaborativeFeature>;
+  ): Record<string, IFeatureStoreFeature>;
   setFeatureStoreFeature(
     storeId: string,
-    feature: ICollaborativeFeature,
+    feature: IFeatureStoreFeature,
   ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
   removeFeatureStoreFeature(
     storeId: string,
@@ -489,18 +489,18 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getFeatureStore(storeId: string): IFeatureStore | undefined;
   getFeatureStoreFeatures(
     storeId: string,
-  ): Record<string, ICollaborativeFeature>;
+  ): Record<string, IFeatureStoreFeature>;
   setFeatureStoreFeature(
     storeId: string,
-    feature: ICollaborativeFeature,
+    feature: IFeatureStoreFeature,
   ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
-  addCollaborativeFeature(args: {
+  addFeatureStoreFeature(args: {
     storeId: string;
-    geometry: ICollaborativeFeature['geometry'];
-    props?: ICollaborativeFeature['props'];
+    geometry: IFeatureStoreFeature['geometry'];
+    props?: IFeatureStoreFeature['props'];
     id?: string;
   }):
-    | { ok: true; nearSoftLimit: boolean; feature: ICollaborativeFeature }
+    | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
     | { ok: false; reason: 'hardLimit' | 'compacting' };
   removeFeatureStoreFeature(
     storeId: string,
