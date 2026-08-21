@@ -74,7 +74,7 @@ test.describe('Showcase', () => {
 
   for (const { name, file, snapshot, setup } of SHOWCASES) {
     test(name, async ({ page }) => {
-      const timeout = Date.now() + 30000;
+      let timeout = Date.now() + 30000;
       let pendingRequests = 0;
       let lastActivity = Date.now();
       const track = (delta: number) => (request: Request) => {
