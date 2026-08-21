@@ -29,7 +29,13 @@ import {
 import { jupyterTheme } from '@jupyterlab/codemirror';
 import { UUID } from '@lumino/coreutils';
 import { py2vega } from 'py2vega-ts';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { vega2ol, FUNCTION_MAPPING, CONSTANTS_MAPPING } from 'vega2ol';
 
 import {
@@ -43,10 +49,10 @@ import RgbaColorPicker, {
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
 import {
-  computeCategorizedColorStops,
-  computeGraduatedColorStops,
-  IComputedStop,
-} from '@/src/features/layers/symbology/styleBuilder';
+  deriveCategoricalStops,
+  deriveColorMapStops,
+  deriveScalarStops,
+} from '@/src/features/layers/symbology/resolveStops';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { InfoTip } from '@/src/shared/components/InfoTip';
@@ -136,8 +142,10 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
   onChange,
 }) => {
   const { params } = scale;
-  const [stopRows, setStopRows] = useState<IStopRow[]>(
-    params.colorStops ? stopsToRows(params.colorStops) : [],
+  // Manually edited stops, which are persisted to the document. `null` means the
+  // user has not overridden anything, so the classification stays data-driven.
+  const [overrideRows, setOverrideRows] = useState<IStopRow[] | null>(
+    params.colorStops ? stopsToRows(params.colorStops) : null,
   );
 
   const update = useCallback(
@@ -145,6 +153,12 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
       onChange({ scheme: 'colorMap', params: { ...params, ...patch } }),
     [params, onChange],
   );
+
+  // Drop persisted stops so the layer falls back to the data-driven path.
+  const clearStops = useCallback(() => {
+    const { colorStops: _, ...rest } = params;
+    onChange({ scheme: 'colorMap', params: rest });
+  }, [params, onChange]);
 
   // Auto-populate domain from data when the field is known and domain is unset.
   useEffect(() => {
@@ -164,47 +178,49 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
     }
   }, [field, featureValues]); // intentionally omits `update` to avoid loop
 
+  // Preview of the classification the renderer derives from the data currently
+  // available. Recomputed as features load, so the editor stays in sync with the
+  // map without the user having to press Classify.
+  const derivedRows = useMemo<IStopRow[]>(() => {
+    if (!field) {
+      return [];
+    }
+    const values = Array.from(featureValues[field] ?? []);
+    // Not short-circuiting on an empty column: with a fully specified domain
+    // the classification is derivable without any data, which is how a vector
+    // tile layer classifies. Bailing here would show an empty table over a
+    // classified map.
+    return deriveColorMapStops(params, values).map(s => ({
+      id: UUID.uuid4(),
+      stop: s.stop,
+      output: s.color as RgbaColor,
+    }));
+  }, [
+    field,
+    featureValues,
+    params.name,
+    params.nShades,
+    params.mode,
+    params.reverse,
+    params.domain,
+  ]);
+
+  const stopRows = overrideRows ?? derivedRows;
+
+  // Classify only refreshes the preview: it discards any manual override so the
+  // classification goes back to being computed from the data at render time.
   const classify = () => {
     if (!field) {
       return;
     }
-    const values = Array.from(featureValues[field] ?? []).filter(
-      (v): v is number => Number.isFinite(v),
-    );
-
-    const minRequired = COLOR_RAMP_DEFAULTS[params.name as ColorRampName];
-    const nClasses = minRequired
-      ? Math.max(params.nShades ?? minRequired, minRequired)
-      : params.nShades;
-
-    const computed: IComputedStop[] = computeGraduatedColorStops(
-      {
-        renderType: 'Graduated',
-        nClasses,
-        mode: params.mode as any,
-        colorRamp: params.name,
-        reverseRamp: params.reverse,
-        vmin: params.domain?.[0],
-        vmax: params.domain?.[1],
-      } as any,
-      values,
-    );
-    const rows = computed.map(s => ({
-      id: UUID.uuid4(),
-      stop: s.value as number,
-      output: s.color as RgbaColor,
-    }));
-    setStopRows(rows);
-    update({
-      colorStops: computed.map(s => ({
-        stop: s.value as number,
-        color: s.color as RGBA,
-      })),
-    });
+    setOverrideRows(null);
+    if (params.colorStops) {
+      clearStops();
+    }
   };
 
   const handleStopRowsChange = (rows: IStopRow[]) => {
-    setStopRows(rows);
+    setOverrideRows(rows);
     update({
       colorStops: rowsToColorStops(rows) as Array<{
         stop: number;
@@ -294,6 +310,7 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
           selectedMethod="color"
           stopRows={stopRows}
           setStopRows={handleStopRowsChange}
+          numericStops
         />
       )}
     </div>
@@ -319,10 +336,11 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
 }) => {
   const { params } = scale;
 
-  const initialRows: IStopRow[] = params.colorStops
-    ? stopsToRows(params.colorStops)
-    : [];
-  const [stopRows, setStopRows] = useState<IStopRow[]>(initialRows);
+  // Manually edited stops, which are persisted to the document. `null` means the
+  // user has not overridden anything, so the categories stay data-driven.
+  const [overrideRows, setOverrideRows] = useState<IStopRow[] | null>(
+    params.colorStops ? stopsToRows(params.colorStops) : null,
+  );
 
   const update = useCallback(
     (patch: Partial<ICategoricalScale['params']>) =>
@@ -330,35 +348,42 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
     [params, onChange],
   );
 
+  // Drop persisted stops so the layer falls back to the data-driven path.
+  const clearStops = useCallback(() => {
+    const { colorStops: _, ...rest } = params;
+    onChange({ scheme: 'categorical', params: rest });
+  }, [params, onChange]);
+
+  // Preview of the categories the renderer enumerates from the data currently
+  // available. Recomputed as features load.
+  const derivedRows = useMemo<IStopRow[]>(() => {
+    if (!field) {
+      return [];
+    }
+    const values = Array.from(featureValues[field] ?? []);
+    return deriveCategoricalStops(params, values).map(s => ({
+      id: UUID.uuid4(),
+      stop: s.stop,
+      output: s.color as RgbaColor,
+    }));
+  }, [field, featureValues, params.colorRamp, params.reverse]);
+
+  const stopRows = overrideRows ?? derivedRows;
+
+  // Classify only refreshes the preview: it discards any manual override so the
+  // categories go back to being enumerated from the data at render time.
   const classify = () => {
     if (!field) {
       return;
     }
-    const values = Array.from(featureValues[field] ?? []);
-    const computed: IComputedStop[] = computeCategorizedColorStops(
-      {
-        renderType: 'Categorized',
-        colorRamp: params.colorRamp,
-        reverseRamp: params.reverse ?? false,
-      } as any,
-      values,
-    );
-    const rows = computed.map(s => ({
-      id: UUID.uuid4(),
-      stop: s.value as string | number,
-      output: s.color as RgbaColor,
-    }));
-    setStopRows(rows);
-    update({
-      colorStops: computed.map(s => ({
-        stop: s.value as string | number,
-        color: s.color as RGBA,
-      })),
-    });
+    setOverrideRows(null);
+    if (params.colorStops) {
+      clearStops();
+    }
   };
 
   const handleStopRowsChange = (rows: IStopRow[]) => {
-    setStopRows(rows);
+    setOverrideRows(rows);
     update({ colorStops: rowsToColorStops(rows) });
   };
 
@@ -765,36 +790,48 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
     [params, onChange],
   );
 
-  const [stopRows, setStopRows] = useState<IStopRow[]>(
+  // Manually edited stops, which are persisted to the document. `null` means the
+  // user has not overridden anything, so the endpoints stay derived from
+  // domain/range — which is exactly what the renderer falls back to.
+  const [overrideRows, setOverrideRows] = useState<IStopRow[] | null>(
     params.scalarStops
       ? params.scalarStops.map(s => ({
           id: UUID.uuid4(),
           stop: s.stop,
           output: s.output,
         }))
-      : [],
+      : null,
   );
 
+  // Drop persisted stops so the layer falls back to plain domain/range interpolation.
+  const clearStops = useCallback(() => {
+    const { scalarStops: _, ...rest } = params;
+    onChange({ scheme: 'scalar', params: rest });
+  }, [params, onChange]);
+
+  const derivedRows = useMemo<IStopRow[]>(
+    () =>
+      deriveScalarStops(params).map(s => ({
+        id: UUID.uuid4(),
+        stop: s.stop,
+        output: s.output,
+      })),
+    [params.domain, params.range],
+  );
+
+  const stopRows = overrideRows ?? derivedRows;
+
+  // "Set stops" only refreshes the preview: it discards any manual override so
+  // the mapping goes back to interpolating between domain and range.
   const classify = () => {
-    const inMin = params.domain[0];
-    const inMax = params.domain[1];
-    const outMin = params.range[0];
-    const outMax = params.range[1];
-    const rows: IStopRow[] = [
-      { id: UUID.uuid4(), stop: inMin, output: outMin },
-      { id: UUID.uuid4(), stop: inMax, output: outMax },
-    ];
-    setStopRows(rows);
-    update({
-      scalarStops: [
-        { stop: inMin, output: outMin },
-        { stop: inMax, output: outMax },
-      ],
-    });
+    setOverrideRows(null);
+    if (params.scalarStops) {
+      clearStops();
+    }
   };
 
   const handleStopRowsChange = (rows: IStopRow[]) => {
-    setStopRows(rows);
+    setOverrideRows(rows);
     update({
       scalarStops: rows.map(r => ({
         stop: r.stop as number,

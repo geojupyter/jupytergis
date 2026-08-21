@@ -174,9 +174,10 @@ import {
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
 import {
-  extractEncodingFieldValues,
+  extractFieldColumns,
   grammarToOLStyle,
 } from '../features/layers/symbology/grammarToOLStyle';
+import { grammarNeedsFeatureValues } from '../features/layers/symbology/resolveStops';
 import { DEFAULT_FLAT_STYLE } from '../features/layers/symbology/styleBuilder';
 import {
   buildZarrColorStyle,
@@ -503,6 +504,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.modeChanged.disconnect(this._handleModeChanged, this);
     this._stopLocationIndicator();
+
+    if (this._restyleFrame !== null) {
+      cancelAnimationFrame(this._restyleFrame);
+      this._restyleFrame = null;
+    }
 
     this._mainViewModel.dispose();
   }
@@ -1148,6 +1154,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 sourceId: id,
                 features,
               });
+              this._scheduleRestyleForSource(id);
             }
           });
 
@@ -1717,7 +1724,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             olSource instanceof VectorSource
               ? olSource.getFeatures().map(f => (f as Feature).getProperties())
               : [];
-          const featureValues = extractEncodingFieldValues(grammarState, rows);
+          const featureValues = extractFieldColumns(grammarState, rows);
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
             olSource,
@@ -2027,6 +2034,52 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  /**
+   * Recompile the style of every tile layer bound to `sourceId`.
+   *
+   * A tile source reveals its features a tile at a time, so a data-driven
+   * classification computed when the first tile landed is stale as soon as the
+   * next one does. Tile loads arrive in bursts, and recompiling per tile would
+   * be wasteful, so restyles are coalesced into one per frame.
+   *
+   * Layers whose stops are all persisted don't depend on the data and are left
+   * alone.
+   */
+  private _scheduleRestyleForSource(sourceId: string): void {
+    this._pendingRestyleSources.add(sourceId);
+    if (this._restyleFrame !== null) {
+      return;
+    }
+    this._restyleFrame = requestAnimationFrame(() => {
+      this._restyleFrame = null;
+      const sourceIds = new Set(this._pendingRestyleSources);
+      this._pendingRestyleSources.clear();
+
+      for (const [layerId, layer] of Object.entries(this._model.getLayers())) {
+        const params = layer.parameters as IVectorLayer | undefined;
+        if (!params?.source || !sourceIds.has(params.source)) {
+          continue;
+        }
+        if (!Array.isArray(params.symbologyState?.layers)) {
+          continue;
+        }
+        if (
+          !grammarNeedsFeatureValues(
+            params.symbologyState as IGrammarSymbologyState,
+          )
+        ) {
+          continue;
+        }
+        const mapLayer = this.getLayer(layerId);
+        if (mapLayer && 'setStyle' in mapLayer) {
+          (mapLayer as VectorTileLayer).setStyle(
+            this.vectorLayerStyleRuleBuilder(layer),
+          );
+        }
+      }
+    });
+  }
+
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
     const layerParams = layer.parameters as IVectorLayer | undefined;
@@ -2035,9 +2088,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return [{ style: DEFAULT_FLAT_STYLE }];
     }
 
+    // Classification is only persisted to the document when the user edits a
+    // stop by hand, so the compiler needs the feature values to derive it. For
+    // a tile source that means whatever tiles have loaded so far, which grows
+    // as the user pans — `_scheduleRestyleForSource` recompiles as it does.
+    const grammarState = layerParams.symbologyState as IGrammarSymbologyState;
+    const sourceId = layerParams.source;
+    const rows = sourceId
+      ? this._model
+          .getFeaturesForCurrentTile({ sourceId })
+          .map(f => f.getProperties?.() ?? {})
+      : [];
     const flatStyle = grammarToOLStyle(
-      layerParams.symbologyState as IGrammarSymbologyState,
-      [],
+      grammarState,
+      extractFieldColumns(grammarState, rows),
     );
 
     const layerStyle: Rule = { style: flatStyle };
@@ -4386,6 +4450,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
+  private _pendingRestyleSources = new Set<string>();
+  private _restyleFrame: number | null = null;
   private _pendingZoomLayerId: string | null = null;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayerRef: {
