@@ -39,6 +39,7 @@ export function StoryStage(props: IStoryStageProps): JSX.Element {
             <ListStoryStageOverlay
               model={model}
               segmentTransition={segmentTransition}
+              isMobile={isMobile}
             />
             <ListStoryStageScrollHost
               model={model}

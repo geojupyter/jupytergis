@@ -3,6 +3,7 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+@import url('./tailwind.css');
 @import url('ol/ol.css');
 @import url('./dialog.css');
 @import url('./layerBrowser.css');
@@ -46,6 +47,14 @@
 @import url('./shared/nativeSelect.css');
 @import url('./shared/separator.css');
 @import url('./shared/buttonGroup.css');
+
+/* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
+   the notification toast container (react-toastify default: 9999). Without this
+   override, error/info toasts are hidden behind the dialog backdrop while a
+   dialog is open. Lift the toast container above the dialog. */
+.Toastify__toast-container {
+  z-index: 10001 !important;
+}
 
 .jgis-underline-indicator {
   position: relative;
@@ -278,7 +287,7 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 .jgis-icon-adjust {
-  padding-top: 5px;
+  scale: 1.15;
 }
 
 .jgis-inline-icon {

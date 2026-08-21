@@ -155,7 +155,7 @@
                           "name": "viridis",
                           "reverse": true
                         },
-                        "scheme": "colorRamp"
+                        "scheme": "colorMap"
                       }
                     }
                   ]

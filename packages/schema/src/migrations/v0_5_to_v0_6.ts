@@ -8,6 +8,7 @@
  *  - WebGlLayer type → GeoTiffLayer
  *  - layer.filters → grammar layer-level when + whenOp (filters removed)
  *  - flat metadata keys ``annotation_<id>`` → top-level ``annotations``
+ *  - StorySegmentLayer content.title → imageCaption
  */
 
 import {
@@ -125,7 +126,51 @@ export function migrate(doc: Record<string, any>): Record<string, any> {
     layers[id] = { ...layerWithoutFilters, parameters: newParams };
   }
 
-  return _migrateAnnotations({ ...doc, layers });
+  let result: Record<string, any> = { ...doc, layers };
+  for (const step of [_migrateStorySegmentCaptions, _migrateAnnotations]) {
+    result = step(result);
+  }
+  return result;
+}
+
+/** Rename StorySegmentLayer content.title → imageCaption. */
+function _migrateStorySegmentCaptions(
+  doc: Record<string, any>,
+): Record<string, any> {
+  const layers: Record<string, any> = { ...doc.layers };
+
+  for (const [id, layer] of Object.entries(layers)) {
+    if (layer?.type !== 'StorySegmentLayer') {
+      continue;
+    }
+
+    const parameters = layer.parameters;
+    const content = parameters?.content;
+
+    if (
+      !content ||
+      typeof content !== 'object' ||
+      !('title' in content) ||
+      content.imageCaption !== undefined
+    ) {
+      continue;
+    }
+
+    const { title, ...rest } = content;
+
+    layers[id] = {
+      ...layer,
+      parameters: {
+        ...parameters,
+        content: {
+          ...rest,
+          imageCaption: title ?? '',
+        },
+      },
+    };
+  }
+
+  return { ...doc, layers };
 }
 
 function _migrateAnnotations(doc: Record<string, any>): Record<string, any> {

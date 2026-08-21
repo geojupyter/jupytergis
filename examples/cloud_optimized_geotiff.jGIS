@@ -1,33 +1,25 @@
 {
+  "annotations": {},
   "layerTree": [
     "6dd80360-2675-40cf-aaee-c7101ef1779a",
-    "f75fd646-bc7d-478b-b65b-de34155b8efa"
+    "2c81b7f5-1f44-413e-801b-f8cc6c369164"
   ],
   "layers": {
-    "6dd80360-2675-40cf-aaee-c7101ef1779a": {
-      "name": "OpenStreetMap.Mapnik Layer",
-      "parameters": {
-        "opacity": 1.0,
-        "source": "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9"
-      },
-      "type": "RasterLayer",
-      "visible": true
-    },
-    "f75fd646-bc7d-478b-b65b-de34155b8efa": {
+    "2c81b7f5-1f44-413e-801b-f8cc6c369164": {
       "name": "COG Layer",
       "parameters": {
         "opacity": 1.0,
-        "source": "8b1d4258-5d46-48da-b466-496d376b593d",
+        "source": "06fda086-7915-4915-b2be-6c339626cb4e",
         "symbologyState": {
           "layers": [
             {
-              "id": "baa35f97-74a2-42ed-bb15-f64090e8a8b7",
+              "id": "7e4e616c-aa79-4420-8a46-d78687f0d9ce",
               "rules": [
                 {
                   "fields": [
-                    "$band-1"
+                    "band_2"
                   ],
-                  "id": "510c202d-6a51-4588-a1b1-28e17ed1a3a4",
+                  "id": "55c47ad3-2bc6-448f-86f5-8a8984dc55fe",
                   "mappings": [
                     {
                       "encodings": [
@@ -38,98 +30,98 @@
                           "colorStops": [
                             {
                               "color": [
-                                255.0,
-                                255.0,
-                                255.0,
+                                68.0,
+                                1.0,
+                                84.0,
                                 1.0
                               ],
-                              "stop": 0.0
+                              "stop": 83.0
                             },
                             {
                               "color": [
-                                255.0,
-                                244.0,
-                                191.0,
+                                71.0,
+                                44.0,
+                                122.0,
                                 1.0
                               ],
-                              "stop": 0.05555555555555555
+                              "stop": 102.11111111111111
                             },
                             {
                               "color": [
-                                255.0,
-                                233.0,
-                                128.0,
+                                59.0,
+                                81.0,
+                                139.0,
                                 1.0
                               ],
-                              "stop": 0.1111111111111111
+                              "stop": 121.22222222222223
                             },
                             {
                               "color": [
-                                255.0,
-                                221.0,
-                                64.0,
+                                44.0,
+                                113.0,
+                                142.0,
                                 1.0
                               ],
-                              "stop": 0.16666666666666666
+                              "stop": 140.33333333333331
                             },
                             {
                               "color": [
-                                255.0,
-                                210.0,
-                                0.0,
+                                39.0,
+                                129.0,
+                                142.0,
                                 1.0
                               ],
-                              "stop": 0.2222222222222222
+                              "stop": 159.44444444444446
                             },
                             {
                               "color": [
-                                243.0,
-                                105.0,
-                                0.0,
+                                33.0,
+                                144.0,
+                                141.0,
                                 1.0
                               ],
-                              "stop": 0.2777777777777778
+                              "stop": 178.55555555555554
                             },
                             {
                               "color": [
-                                230.0,
-                                0.0,
-                                0.0,
+                                39.0,
+                                173.0,
+                                129.0,
                                 1.0
                               ],
-                              "stop": 0.3333333333333333
+                              "stop": 197.66666666666666
                             },
                             {
                               "color": [
-                                153.0,
-                                0.0,
-                                0.0,
+                                92.0,
+                                200.0,
+                                99.0,
                                 1.0
                               ],
-                              "stop": 0.38888888888888884
+                              "stop": 216.77777777777777
                             },
                             {
                               "color": [
-                                77.0,
-                                0.0,
-                                0.0,
+                                170.0,
+                                220.0,
+                                50.0,
                                 1.0
                               ],
-                              "stop": 0.4444444444444444
+                              "stop": 235.88888888888889
                             },
                             {
                               "color": [
-                                0.0,
-                                0.0,
-                                0.0,
+                                253.0,
+                                231.0,
+                                37.0,
                                 1.0
                               ],
-                              "stop": 0.5
+                              "stop": 255.0
                             }
                           ],
                           "domain": [
-                            0.0,
-                            0.5
+                            83.0,
+                            255.0
                           ],
                           "fallback": [
                             0.0,
@@ -139,49 +131,10 @@
                           ],
                           "mode": "equal interval",
                           "nShades": 9.0,
-                          "name": "hot",
-                          "reverse": true
+                          "name": "viridis",
+                          "reverse": false
                         },
-                        "scheme": "colorRamp"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "fields": [
-                    "$band-1"
-                  ],
-                  "id": "b7db8010-4d20-401f-82da-e3f22c79a548",
-                  "mappings": [
-                    {
-                      "encodings": [
-                        "pixel-alpha"
-                      ],
-                      "scale": {
-                        "params": {
-                          "domain": [
-                            0.0,
-                            0.5
-                          ],
-                          "fallback": 1.0,
-                          "mode": "equal interval",
-                          "nStops": 5.0,
-                          "range": [
-                            0.0,
-                            1.0
-                          ],
-                          "scalarStops": [
-                            {
-                              "output": 0.0,
-                              "stop": 0.0
-                            },
-                            {
-                              "output": 1.0,
-                              "stop": 0.5
-                            }
-                          ]
-                        },
-                        "scheme": "scalar"
+                        "scheme": "colorMap"
                       }
                     }
                   ]
@@ -193,40 +146,49 @@
       },
       "type": "GeoTiffLayer",
       "visible": true
+    },
+    "6dd80360-2675-40cf-aaee-c7101ef1779a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9"
+      },
+      "type": "RasterLayer",
+      "visible": true
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      -12798292.253902288,
-      -264247.9336611023,
-      7239216.088886956,
-      10383703.359608546
+      3607711.6438909615,
+      1802521.4125888613,
+      3879771.4997465345,
+      1956147.251591884
     ],
-    "latitude": 41.32047850414531,
-    "longitude": -24.96901542308904,
+    "latitude": 16.64323173992463,
+    "longitude": 33.63060273758422,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 3.693486957499325
+    "zoom": 9.43864940917689
   },
+  "presets": {},
   "schemaVersion": "0.6.0",
   "sources": {
-    "8b1d4258-5d46-48da-b466-496d376b593d": {
+    "06fda086-7915-4915-b2be-6c339626cb4e": {
       "name": "Custom GeoTiff Source",
       "parameters": {
         "httpHeaders": "",
         "interpolate": false,
-        "normalize": true,
+        "normalize": false,
+        "projection": "",
         "urls": [
           {
-            "max": 25000.0,
-            "min": 2000.0,
-            "url": "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
+            "url": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/TCI.tif"
           }
         ],
         "useProxy": false,
-        "wrapX": true
+        "wrapX": false
       },
       "type": "GeoTiffSource"
     },

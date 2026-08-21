@@ -14,6 +14,7 @@ import {
   vectorSquareIcon,
   markerIcon,
   pencilSolidIcon,
+  scrollIcon,
 } from './shared/icons';
 
 /**
@@ -69,7 +70,10 @@ const iconObject = {
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
-  [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-scroll jgis-icon-adjust' },
+  [CommandIDs.openStoryEditor]: {
+    // iconClass is ignored when `icon` is a LabIcon, bind className instead.
+    icon: scrollIcon.bindprops({ className: 'jgis-icon-adjust' }),
+  },
   [CommandIDs.showLayerPropertiesDialog]: { iconClass: 'fa fa-sliders' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },

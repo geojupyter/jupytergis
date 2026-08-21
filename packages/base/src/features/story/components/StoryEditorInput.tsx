@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react';
 
 import { Input } from '@/src/shared/components/Input';
 
-export function TitleInput({
+export function StoryEditorInput({
   value,
   onChange,
+  placeholder,
+  'aria-label': ariaLabel,
   disabled = false,
 }: {
   value: string;
-  onChange: (title: string) => void;
+  onChange: (value: string) => void;
+  placeholder: string;
+  'aria-label': string;
   disabled?: boolean;
 }): JSX.Element {
   const [draft, setDraft] = useState(value);
@@ -21,9 +25,9 @@ export function TitleInput({
     <Input
       className="jgis-story-editor-toolbar-title"
       value={disabled ? '' : draft}
-      placeholder="No Story"
+      placeholder={placeholder}
       disabled={disabled}
-      aria-label="Title"
+      aria-label={ariaLabel}
       onChange={event => {
         setDraft(event.target.value);
       }}

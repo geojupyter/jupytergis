@@ -4,8 +4,4 @@ channels:
   - https://prefix.dev/conda-forge
 dependencies:
   - xeus-python
-  - pydantic
-  - pycrdt
-  - markupsafe
-  - pip:
-      - jupytergis-lite>=0.16.0b3
+  - jupytergis-lite>=0.16

@@ -2,6 +2,8 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
+export type StorySegmentPaneAlignment = 'start' | 'center' | 'end';
+
 export const SegmentInteractionMode = {
   mapView: 'map-view',
   previewingSegment: 'previewing-segment',
@@ -21,7 +23,7 @@ export interface IOverrideLayerEntry {
 
 /** Active handoff between two segments while scrolling the virtual track. */
 export interface IListStorySegmentTransition {
-  /** 0–1 across the handoff span (outgoing segment + gap + incoming segment). */
+  /** 0–1 across the handoff span (outgoing segment height + gap). */
   progress: number;
   fromIndex: number;
   toIndex: number;

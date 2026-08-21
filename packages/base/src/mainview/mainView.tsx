@@ -1,3 +1,4 @@
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
@@ -16,6 +17,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISUIState,
   IIdentifiedFeature,
   IIdentifiedFeatureEntry,
   IIdentifiedFeatures,
@@ -56,6 +58,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import {
   Collection,
+  Geolocation,
   MapBrowserEvent,
   Map as OlMap,
   VectorTile,
@@ -63,6 +66,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
+import type { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -138,6 +142,7 @@ import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
+import { useIsMobile } from '@/src/shared/hooks/useIsMobile';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -233,7 +238,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  editingVectorLayer: boolean;
+  isDrawing: boolean;
   drawGeometryLabel: string | undefined;
   currentDrawLayerId: string | undefined;
   jgisSettings: IJupyterGISSettings;
@@ -346,12 +351,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
-
-    // Keep draw editing UI/interactions in sync with the shared editing mode.
-    this._model.editingVectorLayerChanged.connect(
-      this._updateEditingVectorLayer,
+    this._model.uiStateChanged.connect(
+      this._handleLocationIndicatorToggled,
       this,
     );
+
+    // Keep draw UI/interactions in sync with the exclusive map mode.
+    this._model.modeChanged.connect(this._handleModeChanged, this);
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
@@ -375,7 +381,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      editingVectorLayer: false,
+      isDrawing: false,
       drawGeometryLabel: '',
       currentDrawLayerId: undefined,
       jgisSettings: this._model.jgisSettings,
@@ -490,6 +496,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
+
+    this._model.uiStateChanged.disconnect(
+      this._handleLocationIndicatorToggled,
+      this,
+    );
+    this._model.modeChanged.disconnect(this._handleModeChanged, this);
+    this._stopLocationIndicator();
 
     this._mainViewModel.dispose();
   }
@@ -693,6 +706,89 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           units: (getProjection(projection) ?? view.getProjection()).getUnits(),
         },
       }));
+
+      this._geolocation = new Geolocation({
+        tracking: false,
+        trackingOptions: {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: Infinity,
+        },
+        projection: this._Map.getView().getProjection(),
+      });
+      this._geolocation.on('error', (err: GeolocationError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        this._model.setUIState({ locationIndicatorActive: false });
+      });
+
+      this._geolocationAccuracyFeature = new Feature();
+      this._geolocationAccuracyFeature.setStyle(
+        new Style({
+          fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+        }),
+      );
+      this._geolocation.on('change:accuracyGeometry', () => {
+        if (
+          this._geolocationAccuracyFeature === undefined ||
+          this._geolocation === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        this._geolocationAccuracyFeature.setGeometry(
+          this._geolocation.getAccuracyGeometry() ?? undefined,
+        );
+      });
+
+      /**
+       * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
+       * contrasting white stroke and the OL API does not support that in a single icon.
+       */
+      const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
+      const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+        `<svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 ${iconWidth} ${iconHeight}"
+        >
+          <path
+            d="${iconPath}"
+            fill="blue"
+            stroke="white"
+            stroke-width="40"
+            paint-order="stroke"
+            stroke-linejoin="round"
+          />
+        </svg>`,
+      )}`;
+
+      this._geolocationPositionFeature = new Feature();
+      this._geolocationPositionFeature.setStyle(
+        new Style({
+          image: new Icon({ src: crosshairsSrc }),
+        }),
+      );
+
+      this._geolocation.on('change:position', () => {
+        if (
+          this._geolocation === undefined ||
+          this._geolocationPositionFeature === undefined
+        ) {
+          throw new Error('State incorrectly initialized. This is a bug.');
+        }
+
+        const coordinates = this._geolocation.getPosition();
+        this._geolocationPositionFeature.setGeometry(
+          coordinates ? new Point(coordinates) : undefined,
+        );
+      });
+
+      this._geolocationSource = new VectorSource({});
+      new VectorLayer({
+        map: this._Map,
+        source: this._geolocationSource,
+      });
     }
   }
 
@@ -1184,8 +1280,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  min: sourceInfo.min,
-                  max: sourceInfo.max,
                   url: sourceInfo.url,
                 };
               } else if (isDataUrl) {
@@ -1193,8 +1287,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 const blob = await (await fetch(sourceInfo.url!)).blob();
                 return {
                   ...addNoData(sourceInfo),
-                  min: sourceInfo.min,
-                  max: sourceInfo.max,
                   url: URL.createObjectURL(blob),
                 };
               } else {
@@ -1205,8 +1297,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 });
                 return {
                   ...addNoData(sourceInfo),
-                  min: sourceInfo.min,
-                  max: sourceInfo.max,
                   geotiff,
                   url: URL.createObjectURL(geotiff.file),
                 };
@@ -1697,6 +1787,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         layerParameters = layer.parameters as IGeoTiffLayer;
         const geoTiffSource = this._sources[layerParameters.source];
 
+        await this._waitForSourceReady(geoTiffSource);
+
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
             layerParameters.symbologyState as IGrammarSymbologyState,
@@ -1727,6 +1819,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       case 'GeoZarrLayer': {
         layerParameters = layer.parameters as IGeoZarrLayer;
         const geoZarrSource = this._sources[layerParameters.source];
+
+        await this._waitForSourceReady(geoZarrSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
           newMapLayer = grammarToOLLayer(
@@ -1793,7 +1887,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       this.addProjection(newMapLayer);
-      await this._waitForSourceReady(newMapLayer);
+      await this._waitForLayerReady(newMapLayer);
     }
 
     this._loadingLayers.delete(id);
@@ -2019,8 +2113,73 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return scaled;
   };
 
+  private _syncGrammarSubLayers(
+    id: string,
+    layer: IJGISLayer,
+    mapLayer: Layer | LayerGroup,
+  ): void {
+    const layerParams = layer.parameters as
+      | IVectorLayer
+      | IGeoTiffLayer
+      | IGeoZarrLayer
+      | undefined;
+    const grammarState = layerParams?.symbologyState as
+      | IGrammarSymbologyState
+      | undefined;
+
+    if (!grammarState || !Array.isArray(grammarState.layers)) {
+      return;
+    }
+
+    const sourceId = layerParams?.source;
+    const source = sourceId ? this._sources[sourceId] : undefined;
+    const rows =
+      source instanceof VectorSource
+        ? source.getFeatures().map(f => (f as Feature).getProperties())
+        : [];
+    const featureValues = extractEncodingFieldValues(grammarState, rows);
+    const nextLayer = grammarToOLLayer(
+      grammarState,
+      source,
+      layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+      layer.visible,
+      featureValues,
+      layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
+    );
+
+    if (mapLayer instanceof LayerGroup) {
+      if (nextLayer instanceof LayerGroup) {
+        const replacementLayers = nextLayer.getLayers().getArray();
+        mapLayer.setOpacity(
+          layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+        );
+        mapLayer.setVisible(layer.visible);
+        mapLayer.setLayers(new Collection(replacementLayers));
+        return;
+      }
+
+      // Collapse back to a single top-level layer so tools that expect a
+      // concrete OL Layer (fly-to/identify) keep working.
+      nextLayer.set('id', id);
+      const index = this.getLayerIndex(id);
+      if (index !== -1) {
+        this._Map.getLayers().setAt(index, nextLayer);
+      }
+      return;
+    }
+
+    nextLayer.set('id', id);
+    const index = this.getLayerIndex(id);
+    if (index !== -1) {
+      this._Map.getLayers().setAt(index, nextLayer);
+    }
+  }
+
   /**
    * Update a layer of the map.
+   *
+   * Only for updating appearance -- opacity or style.
+   * For vector layers, the whole layer is replaced.
    *
    * @param id - id of the layer.
    * @param layer - the layer object.
@@ -2042,8 +2201,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const layerParams = layer.parameters as IVectorLayer;
 
         if (Array.isArray(layerParams.symbologyState?.layers)) {
-          // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
@@ -2077,7 +2235,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoTiffLayer': {
         if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
         } else {
           mapLayer.setOpacity(layer.parameters?.opacity);
           if (layer?.parameters?.color) {
@@ -2090,7 +2248,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoZarrLayer': {
         if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
@@ -2330,7 +2488,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer | LayerGroup) {
+  private _waitForLayerReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -2339,7 +2497,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           resolve();
         } else if (state === 'error') {
           layer.un('change', checkState);
-          reject(new Error('Source failed to load.'));
+          reject(new Error('Layer failed to load.'));
         }
       };
 
@@ -2347,6 +2505,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       layer.on('change', checkState);
 
       // Check the state immediately in case it's already 'ready'
+      checkState();
+    });
+  }
+
+  /**
+   * Wait for a source to finish loading and configuring
+   * @param source The Source to check
+   */
+  private _waitForSourceReady(source: Source) {
+    return new Promise<void>((resolve, reject) => {
+      const checkState = () => {
+        const state = source.getState();
+        if (state === 'ready') {
+          source.un('change', checkState);
+          resolve();
+        } else if (state === 'error') {
+          source.un('change', checkState);
+          reject(new Error('Source failed to load'));
+        }
+      };
+
+      // Listen for state changes
+      source.on('change', checkState);
+
+      // Check immediately in case already ready
       checkState();
     });
   }
@@ -2392,8 +2575,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       selectedLayerId,
     );
     if (decision.disableEditing) {
-      this._model.editingVectorLayer = false;
-      this._updateEditingVectorLayer();
+      if (this._model.currentMode === 'drawing') {
+        this._model.currentMode = 'panning';
+        this._notifyInteractionModeCommands();
+      }
       return;
     }
     if (!decision.shouldRebind) {
@@ -2422,7 +2607,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return { disableEditing: true, shouldRebind: false };
     }
 
-    if (!this._model.editingVectorLayer) {
+    if (this._model.currentMode !== 'drawing') {
       return { disableEditing: false, shouldRebind: false };
     }
 
@@ -2648,6 +2833,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           },
         }));
         view = new View({ projection: newProjection });
+        this._geolocation?.setProjection(newProjection);
       } else {
         this._log('warning', `Invalid projection: ${projection}`);
         return;
@@ -2741,17 +2927,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._Map.getLayers().insertAt(safeIndex, layer);
   }
 
-  /**
-   * Remove and recreate layer
-   * @param id ID of layer being replaced
-   * @param layer New layer to replace with
-   */
-  replaceLayer(id: string, layer: IJGISLayer) {
-    const layerIndex = this.getLayerIndex(id);
-    this.removeLayer(id);
-    this.addLayer(id, layer, layerIndex);
-  }
-
   private _onLayersChanged(
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
@@ -2767,18 +2942,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
-        if (this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)) {
-          this._model.editingVectorLayer = false;
-          this._updateEditingVectorLayer();
-          this._mainViewModel.commands.notifyCommandChanged(
-            CommandIDs.toggleDrawFeatures,
-          );
+        if (
+          this._model.currentMode === 'drawing' &&
+          this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)
+        ) {
+          this._model.currentMode = 'panning';
+          this._notifyInteractionModeCommands();
         }
-        return;
-      }
-
-      if (oldLayer && oldLayer.type !== newLayer.type) {
-        this.replaceLayer(id, newLayer);
         return;
       }
 
@@ -3090,12 +3260,44 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+        return;
+      }
+
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return;
+      }
+
+      const storyType = this._model.getSelectedStory().story?.storyType;
+      if (!isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
+        return;
+      }
+
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer = resolveStoryScrollContainer();
+      }
+
+      if (!scrollContainer) {
+        return;
+      }
+
+      event.preventDefault();
+      const step = Math.max(5, Math.round(scrollContainer.clientHeight * 0.05));
+      scrollContainer.scrollBy({
+        top: event.key === 'ArrowDown' ? step : -step,
+      });
+    };
+
     this._storyScrollHandler = handleScroll;
+    this._storyKeyDownHandler = handleKeyDown;
     const container = this.props.containerRef.current;
     if (container) {
       this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
     }
+    // Document-level so arrows work while the map surface holds focus.
+    document.addEventListener('keydown', handleKeyDown);
   };
 
   private _cleanupStoryScrollListener = (): void => {
@@ -3110,6 +3312,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
       this._storyScrollHandler = null;
       this._storyScrollContainerEl = null;
+    }
+    if (this._storyKeyDownHandler) {
+      document.removeEventListener('keydown', this._storyKeyDownHandler);
+      this._storyKeyDownHandler = null;
     }
   };
 
@@ -3438,10 +3644,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private async _addMarker(e: MapBrowserEvent<any>) {
-    if (
-      this.state.editingVectorLayer ||
-      this._model.currentMode !== 'marking'
-    ) {
+    if (this._model.currentMode !== 'marking') {
       return;
     }
 
@@ -3480,10 +3683,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (
-      this.state.editingVectorLayer ||
-      this._model.currentMode !== 'identifying'
-    ) {
+    if (this._model.currentMode !== 'identifying') {
       return;
     }
 
@@ -3658,6 +3858,47 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private _handleLocationIndicatorToggled(
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void {
+    const active = Boolean(uiState.locationIndicatorActive);
+    if (active === this._locationIndicatorActive) {
+      return;
+    }
+    this._locationIndicatorActive = active;
+    if (active) {
+      this._startLocationIndicator();
+    } else {
+      this._stopLocationIndicator();
+    }
+  }
+
+  private _startLocationIndicator(): void {
+    if (
+      !this._geolocation ||
+      !this._geolocationSource ||
+      !this._geolocationAccuracyFeature ||
+      !this._geolocationPositionFeature
+    ) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(true);
+    this._geolocationSource.clear();
+    this._geolocationSource.addFeatures([
+      this._geolocationAccuracyFeature,
+      this._geolocationPositionFeature,
+    ]);
+  }
+
+  private _stopLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(false);
+    this._geolocationSource.clear();
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -3687,10 +3928,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    const story = this._model.getSelectedStory().story;
+    // Don't treat horizontal swipes as guided prev/next segment navigation.
+    if (
+      isVerticalScrollPresentation(getStoryPresentationMode(story?.storyType))
+    ) {
+      return;
+    }
+
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - this._spectaTouchStartX;
     const threshold = 50;
-    const story = this._model.getSelectedStory().story;
     const segmentCount = story?.storySegments?.length ?? 0;
 
     if (segmentCount === 0) {
@@ -3706,18 +3954,25 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  private _updateEditingVectorLayer() {
-    const editingVectorLayer: boolean = this._model.editingVectorLayer;
-    this.setState(old => ({ ...old, editingVectorLayer }));
+  private _handleModeChanged = (): void => {
+    const isDrawing = this._model.currentMode === 'drawing';
+    this.setState(old => ({ ...old, isDrawing }));
 
-    if (editingVectorLayer === true) {
+    if (isDrawing) {
       this._editVectorLayer();
     }
 
-    if (editingVectorLayer === false && this._draw) {
+    if (!isDrawing && this._draw) {
       this._removeDrawInteraction();
       this._setCurrentDrawLayerId(undefined);
     }
+  };
+
+  private _notifyInteractionModeCommands(): void {
+    const commands = this._mainViewModel.commands;
+    commands.notifyCommandChanged(CommandIDs.identify);
+    commands.notifyCommandChanged(CommandIDs.addMarker);
+    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   }
 
   private _setCurrentDrawLayerId(layerId: string | undefined): void {
@@ -3746,6 +4001,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
+
+    if (this._currentDrawLayerID) {
+      this._currentVectorSource = this._getVectorSourceFromLayerID(
+        this._currentDrawLayerID,
+      );
+    }
 
     this._updateInteractions();
     this._updateDrawSource();
@@ -4003,7 +4264,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers,
       displayTemporalController,
       drawGeometryLabel,
-      editingVectorLayer,
+      isDrawing,
       currentDrawLayerId,
       filterStates,
       initialLayersReady,
@@ -4034,7 +4295,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         <MainViewOverlayLayer
           annotationFloaters={this._renderAnnotationFloaters()}
           featureFloaters={this._renderFeatureFloaters()}
-          editingVectorLayer={editingVectorLayer}
+          isDrawing={isDrawing}
           drawGeometryLabel={drawGeometryLabel}
           drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
@@ -4113,6 +4374,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
+  private _geolocation?: Geolocation;
+  private _geolocationSource?: VectorSource;
+  private _geolocationPositionFeature?: Feature;
+  private _geolocationAccuracyFeature?: Feature;
+  private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
@@ -4174,6 +4440,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _spectaRemovedInteractions: Interaction[] = [];
   private _spectaZoomControlWasRemoved = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _storyKeyDownHandler: ((e: KeyboardEvent) => void) | null = null;
   private _storyScrollContainerEl: HTMLDivElement | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;
@@ -4187,30 +4454,11 @@ function MainViewWithObserver(
   props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
 ) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const isMobile = useIsMobile(containerRef);
 
   React.useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    const update = (width: number) => {
-      const narrow = width < 960;
-      setIsMobile(narrow);
-      container.classList.toggle('jgis-narrow', narrow);
-    };
-
-    // Initial sync
-    update(container.clientWidth);
-
-    const observer = new ResizeObserver(([entry]) => {
-      update(entry.contentRect.width);
-    });
-
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
+    containerRef.current?.classList.toggle('jgis-narrow', isMobile);
+  }, [isMobile]);
 
   return (
     <MainView {...props} isMobile={isMobile} containerRef={containerRef} />

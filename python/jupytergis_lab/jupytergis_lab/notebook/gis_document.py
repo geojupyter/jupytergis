@@ -601,8 +601,6 @@ class GISDocument(CommWidget):
     def add_geotiff_layer(
         self,
         url: str,
-        min: int | None = None,
-        max: int | None = None,
         name: str | None = None,
         normalize: bool = True,
         wrapX: bool = False,
@@ -615,8 +613,6 @@ class GISDocument(CommWidget):
         """Add a GeoTIFF layer.
 
         :param url: URL of the GeoTIFF
-        :param min: Minimum pixel value to be displayed, defaults to letting the map display set the value
-        :param max: Maximum pixel value to be displayed, defaults to letting the map display set the value
         :param name: The name that will be used for the object in the document, defaults to "GeoTIFF Layer"
         :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
         :param wrapX: Render tiles beyond the tile grid extent, defaults to False
@@ -632,7 +628,7 @@ class GISDocument(CommWidget):
             name = _extract_layer_name(url)
 
         source_params = {
-            "urls": [{"url": url, "min": min, "max": max}],
+            "urls": [{"url": url}],
             "normalize": normalize,
             "wrapX": wrapX,
         }

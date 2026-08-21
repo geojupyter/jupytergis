@@ -207,7 +207,7 @@ def test_qgis_saver():
                 "mappings": [
                     {
                         "scale": {
-                            "scheme": "colorRamp",
+                            "scheme": "colorMap",
                             "params": {
                                 "name": "viridis",
                                 "nShades": 9,
@@ -440,11 +440,11 @@ def test_qgis_saver():
     assert fields is None
     assert [round(c) for c in params["value"][:3]] == [78, 164, 208]
 
-    # Graduated -> colorRamp scale keyed on the original field.
+    # Graduated -> colorMap scale keyed on the original field.
     scheme, fields, _ = _fill_mapping(
         imported_layers[layer_ids[5]]["parameters"]["symbologyState"],
     )
-    assert scheme == "colorRamp"
+    assert scheme == "colorMap"
     assert fields == ["POP_RANK"]
 
     # Categorized line -> categorical scale on stroke-color keyed on the field.
@@ -558,7 +558,7 @@ def test_qgis_multilayer_kde_roundtrip():
                         "mappings": [
                             {
                                 "scale": {
-                                    "scheme": "colorRamp",
+                                    "scheme": "colorMap",
                                     "params": {
                                         "name": "viridis",
                                         "nShades": 9,
@@ -699,7 +699,7 @@ def test_qgis_scalar_size_and_heatmap_alpha():
                         "mappings": [
                             {
                                 "scale": {
-                                    "scheme": "colorRamp",
+                                    "scheme": "colorMap",
                                     "params": {
                                         "name": "viridis",
                                         "nShades": 9,
@@ -982,7 +982,7 @@ def test_vector_tile_colorramp_to_class_styles():
                             {
                                 "encodings": ["fill-color", "stroke-color"],
                                 "scale": {
-                                    "scheme": "colorRamp",
+                                    "scheme": "colorMap",
                                     "params": {
                                         "name": "viridis",
                                         "colorStops": [
@@ -1146,7 +1146,7 @@ def test_multiband_alpha_band_roundtrip():
             bands,
             alpha_band=renderer.alphaBand(),
         )
-        assert _encoding_band_sig(grammar_out)["pixel-alpha"] == ("$band-4", "identity")
+        assert _encoding_band_sig(grammar_out)["pixel-alpha"] == ("band_4", "identity")
     finally:
         if os.path.exists(tif):
             os.remove(tif)
@@ -1185,7 +1185,7 @@ def test_single_band_gray_import_has_min_max():
         grammar = grayscale_raster_to_grammar(renderer.grayBand())
         mapping = grammar["layers"][0]["rules"][0]["mappings"][0]
         assert mapping["encodings"] == ["pixel-color"]
-        assert mapping["scale"]["scheme"] == "colorRamp"
+        assert mapping["scale"]["scheme"] == "colorMap"
         # Stops/domain are normalized [0, 1] (JupyterGIS renders normalized bands);
         # raw [vmin, vmax] stops would collapse the data to one colour ("1 pixel").
         assert mapping["scale"]["params"]["domain"] == [0.0, 1.0]
@@ -1222,11 +1222,11 @@ def test_raster_colorramp_value_space_roundtrip():
                     "rules": [
                         {
                             "id": "r",
-                            "fields": ["$band-1"],
+                            "fields": ["band_1"],
                             "mappings": [
                                 {
                                     "scale": {
-                                        "scheme": "colorRamp",
+                                        "scheme": "colorMap",
                                         "params": {
                                             "domain": [0.0, 1.0],
                                             "colorStops": [
@@ -1297,10 +1297,10 @@ def test_raster_flat_color_to_grammar_migrates_legacy_ramp():
     grammar = raster_flat_color_to_grammar(color)
 
     rule = grammar["layers"][0]["rules"][0]
-    assert rule["fields"] == ["$band-1"]
+    assert rule["fields"] == ["band_1"]
     mapping = rule["mappings"][0]
     assert mapping["encodings"] == ["pixel-color"]
-    assert mapping["scale"]["scheme"] == "colorRamp"
+    assert mapping["scale"]["scheme"] == "colorMap"
     stops = mapping["scale"]["params"]["colorStops"]
     # Stops (already normalized [0, 1]) pass straight through, transparent 0 kept.
     assert [s["stop"] for s in stops] == [0.0, 0.0, 0.5, 1.0]
@@ -1354,7 +1354,7 @@ def _mapping_for_encoding(grammar_layer, encoding):
 
 
 def test_graduated_roundtrip():
-    """ColorRamp fill with materialized stops -> native graduated -> colorRamp.
+    """ColorRamp fill with materialized stops -> native graduated -> colorMap.
 
     Graduated layers export as a native QgsGraduatedSymbolRenderer (not rule-based)
     so the exact class breaks survive the round-trip on all QGIS versions.
@@ -1367,7 +1367,7 @@ def test_graduated_roundtrip():
                 "mappings": [
                     {
                         "scale": {
-                            "scheme": "colorRamp",
+                            "scheme": "colorMap",
                             "params": {
                                 "name": "viridis",
                                 "nShades": 2,
@@ -1389,7 +1389,7 @@ def test_graduated_roundtrip():
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "fill")
     scheme, params, fields, _ = _mapping_for_encoding(out, "fill-color")
-    assert scheme == "colorRamp"
+    assert scheme == "colorMap"
     assert fields == ["pop"]
     assert [s["stop"] for s in params["colorStops"]] == [0.0, 5.0, 10.0]
     assert logs["warnings"] == []
@@ -1609,7 +1609,7 @@ def test_line_colorramp_mixed_encodings_roundtrip():
                     {
                         "encodings": ["stroke-color", "circle-fill-color"],
                         "scale": {
-                            "scheme": "colorRamp",
+                            "scheme": "colorMap",
                             "params": {
                                 "name": "viridis",
                                 "nShades": 2,
@@ -1629,7 +1629,7 @@ def test_line_colorramp_mixed_encodings_roundtrip():
     )["layers"][0]
     out, logs = _roundtrip_layer(layer, "line")
     scheme, _params, fields, _when = _mapping_for_encoding(out, "stroke-color")
-    assert scheme == "colorRamp"
+    assert scheme == "colorMap"
     assert fields == ["length_km"]
     # The line has no fill, so the ramp must NOT have landed on fill-color.
     assert _mapping_for_encoding(out, "fill-color")[0] is None
@@ -1667,7 +1667,7 @@ def test_roads_when_colorramp_and_constant_roundtrip(tmp_path):
                     {
                         "encodings": ["stroke-color", "circle-fill-color"],
                         "scale": {
-                            "scheme": "colorRamp",
+                            "scheme": "colorMap",
                             "params": {
                                 "name": "viridis",
                                 "domain": [0.0, 1583.0],
@@ -1752,7 +1752,7 @@ def test_roads_when_colorramp_and_constant_roundtrip(tmp_path):
         by_continent["Asia"],
         "stroke-color",
     )
-    assert scheme == "colorRamp"
+    assert scheme == "colorMap"
     assert fields == ["length_km"]
     # Africa: constant green stroke colour preserved.
     a_scheme, a_params, _f, _w = _mapping_for_encoding(
@@ -1911,7 +1911,7 @@ def test_colorramp_name_survives_reopen(tmp_path):
                                         "mappings": [
                                             {
                                                 "scale": {
-                                                    "scheme": "colorRamp",
+                                                    "scheme": "colorMap",
                                                     "params": {
                                                         "name": "plasma",
                                                         "nShades": 3,
@@ -1981,7 +1981,7 @@ def test_colorramp_name_survives_reopen(tmp_path):
     layer = next(iter(reimported["layers"].values()))
     state = layer["parameters"]["symbologyState"]
     scheme, params, fields, _ = _mapping_for_encoding(state["layers"][0], "fill-color")
-    assert scheme == "colorRamp"
+    assert scheme == "colorMap"
     assert fields == ["pop"]
     # The picker's ramp name + direction are restored, not defaulted to viridis.
     assert params["name"] == "plasma"
@@ -2006,7 +2006,7 @@ def test_heatmap_ramp_only_first_stop_transparent():
                     {
                         "encodings": ["pixel-rgb"],
                         "scale": {
-                            "scheme": "colorRamp",
+                            "scheme": "colorMap",
                             "params": {"name": "viridis", "reverse": False},
                         },
                     },
@@ -2023,7 +2023,7 @@ def test_heatmap_ramp_only_first_stop_transparent():
 
 
 def _vector_tile_ramp_jgis(lid, sid, line_stroke_rgba, stroke_width):
-    """A vector tile with a Polygon colorRamp + width and a LineString stroke."""
+    """A vector tile with a Polygon colorMap + width and a LineString stroke."""
     state = {
         "layers": [
             {
@@ -2037,7 +2037,7 @@ def _vector_tile_ramp_jgis(lid, sid, line_stroke_rgba, stroke_width):
                             {
                                 "encodings": ["fill-color", "stroke-color"],
                                 "scale": {
-                                    "scheme": "colorRamp",
+                                    "scheme": "colorMap",
                                     "params": {
                                         "name": "viridis",
                                         "colorStops": [
@@ -2147,7 +2147,7 @@ def test_vector_tile_colorramp_width_alpha_roundtrip():
         if gl.get("when", [{}])[0].get("value") == "Polygon"
     )
     scheme, params, fields, _ = _mapping_for_encoding(polygon, "fill-color")
-    assert scheme == "colorRamp"
+    assert scheme == "colorMap"
     assert fields == ["best_age_top"]
     stops = params["colorStops"]
     # The first stop (value == 1) survives and is not collapsed into the next.

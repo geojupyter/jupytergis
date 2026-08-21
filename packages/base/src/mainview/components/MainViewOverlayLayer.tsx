@@ -6,7 +6,7 @@ import { VectorDrawControls } from '@/src/features/labels/components/VectorDrawC
 export interface IMainViewOverlayLayerProps {
   annotationFloaters: React.ReactNode;
   featureFloaters: React.ReactNode;
-  editingVectorLayer: boolean;
+  isDrawing: boolean;
   drawGeometryLabel: string | undefined;
   onDrawGeometryTypeChange: (geometryType: string) => void;
   model: IJupyterGISModel;
@@ -16,7 +16,7 @@ export interface IMainViewOverlayLayerProps {
 export function MainViewOverlayLayer({
   annotationFloaters,
   featureFloaters,
-  editingVectorLayer,
+  isDrawing,
   drawGeometryLabel,
   onDrawGeometryTypeChange,
   model,
@@ -26,7 +26,7 @@ export function MainViewOverlayLayer({
     <>
       {annotationFloaters}
       {featureFloaters}
-      {editingVectorLayer ? (
+      {isDrawing ? (
         <VectorDrawControls
           drawGeometryLabel={drawGeometryLabel}
           onDrawGeometryTypeChange={onDrawGeometryTypeChange}

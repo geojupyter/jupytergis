@@ -18,7 +18,11 @@ import { Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { terminalToolbarIcon } from '@/src/shared/icons';
+import {
+  helpIcon,
+  targetWithCenterIcon,
+  terminalToolbarIcon,
+} from '@/src/shared/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
@@ -72,6 +76,7 @@ export class ToolbarWidget extends ReactiveToolbar {
     super();
 
     this._model = options.model;
+
     this.node.classList.add('jGIS-toolbar-widget', 'data-jgis-keybinding');
 
     // Listen for settings changes
@@ -133,14 +138,33 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('separator1', new Separator());
 
-      const geolocationButton = new CommandToolbarButton({
-        id: CommandIDs.getGeolocation,
+      const geolocationDropdownMenu = new MenuSvg({
         commands: options.commands,
-        label: '',
+      });
+      geolocationDropdownMenu.addItem({
+        type: 'command',
+        command: CommandIDs.getGeolocation,
+      });
+      geolocationDropdownMenu.addItem({
+        type: 'command',
+        command: CommandIDs.toggleLocationIndicator,
       });
 
-      this.addItem('Geolocation', geolocationButton);
-      geolocationButton.node.dataset.testid = 'geolocation-button';
+      const geolocationDropdownButton = new ToolbarButton({
+        icon: targetWithCenterIcon,
+        noFocusOnClick: false,
+        onClick: () => {
+          const bbox = geolocationDropdownButton.node.getBoundingClientRect();
+          geolocationDropdownMenu.open(bbox.x, bbox.bottom);
+        },
+      });
+
+      geolocationDropdownMenu.aboutToClose.connect(() => {
+        geolocationDropdownButton.pressed = false;
+      });
+
+      this.addItem('Geolocation', geolocationDropdownButton);
+      geolocationDropdownButton.node.dataset.testid = 'geolocation-button';
 
       const identifyButton = new CommandToolbarButton({
         id: CommandIDs.identify,
@@ -210,6 +234,17 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
+
+      this.addItem('separator3', new Separator());
+
+      const launchTourButton = new CommandToolbarButton({
+        id: CommandIDs.launchFeatureTour,
+        commands: options.commands,
+        label: '',
+        icon: helpIcon,
+      });
+      this.addItem('Launch feature tour', launchTourButton);
+      launchTourButton.node.dataset.testid = 'launch-tour-button';
 
       const spacer = ReactiveToolbar.createSpacerItem();
       spacer.node.tabIndex = -1;

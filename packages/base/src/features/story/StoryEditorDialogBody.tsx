@@ -3,24 +3,34 @@ import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
+import SegmentImageCaptionField from '@/src/features/story/components/SegmentImageCaptionField';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
+import { SegmentPaneAlignmentPicker } from '@/src/features/story/components/SegmentPaneAlignmentPicker';
+import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
+import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
-import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
   IStorySegmentViewItem,
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
+import {
+  isMarkdownOverlayWidthFull,
+  MAP_PANEL_WIDTH_PRESETS,
+} from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
+import {
+  getSegmentPaneAlignment,
+  type SegmentContentPatch,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   formatSegmentTransitionTime,
   getSegmentTransitionTime,
@@ -39,6 +49,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
+import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -55,11 +66,13 @@ function SegmentEditor({
   editorServices,
   portalContainerRef,
   canRemoveSegment,
+  isMobile,
   onContentModeChange,
   onContentChange,
   onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
+  isTextSegmentWidthFull,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -67,18 +80,25 @@ function SegmentEditor({
   editorServices: IEditorServices;
   portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
+  isMobile: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
+  isTextSegmentWidthFull: boolean;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
   const imageUrl = segment.activeSlide?.content?.image ?? '';
+  const imageCaption = segment.activeSlide?.content?.imageCaption ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
+  const paneAlignment = getSegmentPaneAlignment(
+    segment.activeSlide?.content,
+    segmentMode,
+  );
   const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
   const transitionTime = getSegmentTransitionTime(
     segment.activeSlide?.transition,
@@ -92,8 +112,10 @@ function SegmentEditor({
           <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
-          <TitleInput
+          <StoryEditorInput
             value={displayTitle}
+            placeholder="Enter Segment Title..."
+            aria-label="Segment title"
             onChange={title => {
               onLayerNameChange(title);
             }}
@@ -105,12 +127,38 @@ function SegmentEditor({
           disabled={!canRemoveSegment}
           onClick={onRemoveSegment}
         >
-          <Trash2 data-icon="inline-start" className="jgis-inline-icon" />{' '}
-          Delete
+          <Trash2
+            data-icon={isMobile ? undefined : 'inline-start'}
+            className="jgis-inline-icon"
+          />
+          {isMobile ? null : 'Delete'}
         </Button>
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
+
+      {segmentMode === 'map' || !isTextSegmentWidthFull ? (
+        <div className="jgis-story-editor-split">
+          {segmentMode === 'map' ? (
+            <SegmentWidthSelector
+              label="Panel width"
+              layout="block"
+              value={segment.activeSlide?.content?.panelWidth}
+              onChange={panelWidth => {
+                onContentChange({ panelWidth });
+              }}
+              presets={MAP_PANEL_WIDTH_PRESETS}
+              presetGroupAriaLabel="Map panel width presets"
+            />
+          ) : null}
+          <SegmentPaneAlignmentPicker
+            value={paneAlignment}
+            onChange={alignment => {
+              onContentChange({ paneAlignment: alignment });
+            }}
+          />
+        </div>
+      ) : null}
 
       {segmentMode === 'map' ? (
         <>
@@ -154,6 +202,10 @@ function SegmentEditor({
                   onContentChange({ image: nextImageUrl });
                 }}
               />
+              <SegmentImageCaptionField
+                value={imageCaption}
+                onChange={caption => onContentChange({ imageCaption: caption })}
+              />
               <SegmentMarkdownEditor
                 model={model}
                 segmentId={segment.id}
@@ -173,6 +225,7 @@ function SegmentEditor({
               model={model}
               state={state}
               segmentId={segment.id}
+              isMobile={isMobile}
               portalContainerRef={portalContainerRef}
             />
           </StoryEditorSection>
@@ -200,19 +253,21 @@ function SegmentEditor({
                 </NativeSelectOption>
                 <NativeSelectOption value="linear">Linear</NativeSelectOption>
               </NativeSelect>
-              <Slider
-                min={MIN_SEGMENT_TRANSITION_TIME}
-                max={MAX_SEGMENT_TRANSITION_TIME}
-                step={SEGMENT_TRANSITION_TIME_STEP}
-                value={[transitionTime]}
-                disabled={isImmediateTransition}
-                aria-label="Transition duration"
-                style={{ maxWidth: '10rem' }}
-                onValueChange={([time]) => {
-                  onTransitionChange({ time });
-                }}
-              />
-              <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              <div className="jgis-story-editor-slider">
+                <Slider
+                  min={MIN_SEGMENT_TRANSITION_TIME}
+                  max={MAX_SEGMENT_TRANSITION_TIME}
+                  step={SEGMENT_TRANSITION_TIME_STEP}
+                  value={[transitionTime]}
+                  disabled={isImmediateTransition}
+                  aria-label="Transition duration"
+                  style={{ maxWidth: '10rem' }}
+                  onValueChange={([time]) => {
+                    onTransitionChange({ time });
+                  }}
+                />
+                <span>{formatSegmentTransitionTime(transitionTime)}</span>
+              </div>
             </div>
           </StoryEditorSection>
         </>
@@ -263,7 +318,27 @@ export function StoryEditorDialogBody({
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
+  const isTextSegmentWidthFull = isMarkdownOverlayWidthFull(
+    story?.overlayContentWidth,
+  );
+
   const portalContainerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      `(max-width: ${JGIS_NARROW_BREAKPOINT}px)`,
+    );
+    const update = (): void => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => {
+      mediaQuery.removeEventListener('change', update);
+    };
+  }, []);
 
   return (
     <div ref={portalContainerRef} className="jgis-story-editor">
@@ -271,6 +346,7 @@ export function StoryEditorDialogBody({
         model={model}
         story={story}
         segmentCount={segments.length}
+        isMobile={isMobile}
         onUpdateStory={updateStory}
         portalContainerRef={portalContainerRef}
       />
@@ -279,6 +355,7 @@ export function StoryEditorDialogBody({
         <StoryEditorSegmentList
           segments={segments}
           selectedSegmentId={selectedSegmentId}
+          isMobile={isMobile}
           onSelectSegment={selectSegment}
           onAddSegment={addSegment}
           onReorderSegments={reorderSegments}
@@ -294,6 +371,7 @@ export function StoryEditorDialogBody({
               editorServices={editorServices}
               portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
+              isMobile={isMobile}
               onContentModeChange={mode => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}
@@ -307,6 +385,7 @@ export function StoryEditorDialogBody({
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
               onRemoveSegment={removeSegment}
+              isTextSegmentWidthFull={isTextSegmentWidthFull}
             />
           ) : (
             <SegmentEditorEmptyState />

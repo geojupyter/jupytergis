@@ -41,6 +41,7 @@ export function ColumnPresentationDesktop({
       storyData?.storyType,
       storyData?.presentationBgColor,
       storyData?.presentationTextColor,
+      storyData?.storyPanelOpacity,
     ],
   );
 
@@ -67,7 +68,9 @@ export function ColumnPresentationDesktop({
       >
         <div
           ref={containerRef}
-          className="jgis-specta-story-panel-container"
+          className={`jgis-specta-story-panel-container${
+            showGradient ? '' : ' jgis-specta-story-panel-container--solid'
+          }`}
           style={spectaPresentationStyle}
         >
           <div
