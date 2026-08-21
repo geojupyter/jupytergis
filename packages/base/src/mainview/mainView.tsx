@@ -1224,7 +1224,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             );
 
           const settings = ServerConnection.makeSettings();
-          console.log('settings', settings);
           const base = settings.baseUrl.endsWith('/')
             ? settings.baseUrl
             : `${settings.baseUrl}/`;
