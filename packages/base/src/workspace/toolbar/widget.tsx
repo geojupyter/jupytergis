@@ -194,16 +194,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
-      const foldFeatureStoreButton = new CommandToolbarButton({
-        id: CommandIDs.foldFeatureStore,
-        label: '',
-        commands: options.commands,
-      });
-
-      this.addItem('foldFeatureStore', foldFeatureStoreButton);
-      foldFeatureStoreButton.node.dataset.testid =
-        'fold-feature-store-button';
-
       const toggleDrawFeaturesButton = new CommandToolbarButton({
         id: CommandIDs.toggleDrawFeatures,
         label: '',
@@ -213,6 +203,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('toggleDrawFeatures', toggleDrawFeaturesButton);
       toggleDrawFeaturesButton.node.dataset.testid =
         'toggle-draw-features-button';
+
+      const foldFeatureStoreButton = new CommandToolbarButton({
+        id: CommandIDs.foldFeatureStore,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('foldFeatureStore', foldFeatureStoreButton);
+      foldFeatureStoreButton.node.dataset.testid = 'fold-feature-store-button';
 
       const openStoryEditorButton = new CommandToolbarButton({
         id: CommandIDs.openStoryEditor,
