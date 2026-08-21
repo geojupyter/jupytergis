@@ -1924,7 +1924,6 @@ export function addCommands(
           storeId,
           tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
           baselineVersion: 0,
-          projection: 'EPSG:4326',
         },
         layerData: { name: 'Feature Store' },
         sourceType: 'FeatureStoreSource',

@@ -21,11 +21,6 @@
       "default": 0,
       "minimum": 0
     },
-    "projection": {
-      "type": "string",
-      "description": "CRS for feature geometries (stored as EPSG:4326 GeoJSON).",
-      "default": "EPSG:4326"
-    },
     "attribution": {
       "type": "string",
       "readOnly": true,
