@@ -1707,7 +1707,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       return false;
     }
 
-    if (selectedSource.type === 'CollaborativePointSource') {
+    if (selectedSource.type === 'FeatureStoreSource') {
       return true;
     }
 

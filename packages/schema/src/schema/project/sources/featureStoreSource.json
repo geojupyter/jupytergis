@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "Feature store source (server-backed baseline with Ydoc overlay).",
-  "title": "ICollaborativePointSource",
+  "description": "FeatureStoreSource",
+  "title": "IFeatureStoreSource",
   "required": ["storeId"],
   "additionalProperties": false,
   "properties": {
@@ -13,11 +13,6 @@
     "tileUrlTemplate": {
       "type": "string",
       "description": "MVT URL template with {z}/{x}/{y} for the live tipg baseline (usually jupytergis_core/tiles/collections/…). Prefixed with the Jupyter base URL at runtime. Append ?v= from baselineVersion for cache busting.",
-      "default": ""
-    },
-    "pmtilesPath": {
-      "type": "string",
-      "description": "Legacy path/URL to a static PMTiles baseline (unused when tileUrlTemplate is set).",
       "default": ""
     },
     "baselineVersion": {

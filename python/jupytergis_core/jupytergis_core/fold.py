@@ -1,4 +1,4 @@
-"""Server-side fold of collaborative overlay into PostGIS (Y as the bus)."""
+"""Server-side fold of feature-store overlay into PostGIS"""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 TIPG_FEATURE_STORE_SCHEMA = "public"
 
 
-def build_collaborative_point_tile_url_template(
+def build_feature_store_tile_url_template(
     store_id: str,
     baseline_version: int = 0,
 ) -> str:
@@ -92,7 +92,7 @@ def _copy_and_release_overlay(ydoc: Doc, store: Map) -> list[dict[str, Any]]:
     return snapshot
 
 
-def bump_collaborative_point_sources(ysources: Map, store_id: str) -> None:
+def bump_feature_store_sources(ysources: Map, store_id: str) -> None:
     """Bump baselineVersion / tileUrlTemplate on matching sources."""
 
     for source_id in list(ysources):
@@ -104,7 +104,7 @@ def bump_collaborative_point_sources(ysources: Map, store_id: str) -> None:
         else:
             continue
 
-        if plain.get("type") != "CollaborativePointSource":
+        if plain.get("type") != "FeatureStoreSource":
             continue
 
         params = dict(plain.get("parameters") or {})
@@ -113,7 +113,7 @@ def bump_collaborative_point_sources(ysources: Map, store_id: str) -> None:
 
         next_version = int(params.get("baselineVersion") or 0) + 1
         params["baselineVersion"] = next_version
-        params["tileUrlTemplate"] = build_collaborative_point_tile_url_template(
+        params["tileUrlTemplate"] = build_feature_store_tile_url_template(
             store_id,
             next_version,
         )
@@ -225,7 +225,7 @@ class FeatureStoreFold:
             await refresh_tipg_catalog()
             if snapshot:
                 with self._ydoc.transaction():
-                    bump_collaborative_point_sources(
+                    bump_feature_store_sources(
                         self._ysources,
                         store_id,
                     )

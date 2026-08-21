@@ -104,7 +104,7 @@ export function storeIdToTableName(storeId: string): string {
 export const TIPG_FEATURE_STORE_SCHEMA = 'public';
 
 /**
- * tipg collection id for a collaborative store
+ * tipg collection id for a feature store
  * (`public.jgis_store_<slug>`).
  */
 export function storeIdToTipgCollectionId(storeId: string): string {
@@ -117,7 +117,7 @@ export function storeIdToTipgCollectionId(storeId: string): string {
  * Prefix with the Jupyter server `baseUrl` at runtime. Includes `?v=` for
  * cache busting when `baselineVersion` changes after fold.
  */
-export function buildCollaborativePointTileUrlTemplate(
+export function buildFeatureStoreTileUrlTemplate(
   storeId: string,
   baselineVersion = 0,
 ): string {
