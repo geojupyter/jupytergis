@@ -2869,8 +2869,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._Map.setView(view);
     this._geolocation?.setProjection(newProjection);
 
-    // TODO: fix the layers!
+    await this._rebuildLayers();
+  }
 
+  private async _rebuildLayers(): Promise<void> {
+    const layerIds = JupyterGISModel.getOrderedLayerIds(this._model);
+    layerIds.forEach(id => this.removeLayer(id));
+    this._sources = [];
+    this._sourceToLayerMap = new Map();
+    this._ready = false;
+    await this._updateLayersImpl(layerIds);
   }
 
   private async updateOptions(options: IJGISOptions): Promise<void> {
@@ -2886,6 +2894,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     let view = this._Map.getView();
 
     this._handleProjectionChange(view, projection, bearing);
+    view = this._Map.getView();
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
@@ -4454,44 +4463,14 @@ function MainViewWithObserver(
   props: Omit<IMainViewProps, 'isMobile' | 'containerRef'>,
 ) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [key, setKey] = React.useState(0);
   const isMobile = useIsMobile(containerRef);
 
   React.useEffect(() => {
     containerRef.current?.classList.toggle('jgis-narrow', isMobile);
   }, [isMobile]);
 
-  const projectionRef = React.useRef(
-    props.viewModel.jGISModel.getOptions().projection,
-  );
-
-  React.useEffect(() => {
-    /*TODO (fix): this creates a rare bug where certain togglable features
-    (like the location indicator and draw tool) behave unexpectedly following a projection
-    change. this is causes by the fact that the mainView component is unmounted and remounted on projection change,
-    but the toolbar state is not reset.
-    */
-    const model = props.viewModel.jGISModel;
-    const onChange = () => {
-      const projection = model.getOptions().projection;
-      if (projection !== projectionRef.current) {
-        projectionRef.current = projection;
-        setKey(prevKey => prevKey + 1);
-      }
-    };
-    model.sharedOptionsChanged.connect(onChange);
-    return () => {
-      model.sharedOptionsChanged.disconnect(onChange);
-    };
-  }, [props.viewModel]);
-
   return (
-    <MainView
-      {...props}
-      isMobile={isMobile}
-      containerRef={containerRef}
-      key={key}
-    />
+    <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
   );
 }
 
