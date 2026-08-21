@@ -66,6 +66,7 @@ const DRAG_MIME = 'application/x-openeo-node';
 type DragPayload =
   | { kind: 'collection'; id: string }
   | { kind: 'process'; id: string }
+  | { kind: 'udp'; id: string }
   | { kind: 'format'; id: string };
 
 function mintNodeKey(procId: string, existing: Set<string>): string {
@@ -134,6 +135,7 @@ function buildSaveResultNode(formatId: string): Record<string, any> {
 interface ICatalogPaletteProps {
   collections: any[] | undefined;
   processes: any[] | undefined;
+  userProcesses: any[] | undefined;
   outputFormats: any[] | undefined;
   loading: boolean;
   onBack: () => void;
@@ -142,6 +144,7 @@ interface ICatalogPaletteProps {
 const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
   collections,
   processes,
+  userProcesses,
   outputFormats,
   loading,
   onBack,
@@ -149,6 +152,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
   const [filter, setFilter] = React.useState('');
   const [openCollections, setOpenCollections] = React.useState(true);
   const [openProcesses, setOpenProcesses] = React.useState(false);
+  const [openUserProcesses, setOpenUserProcesses] = React.useState(false);
   const [openFormats, setOpenFormats] = React.useState(false);
 
   const q = filter.trim().toLowerCase();
@@ -175,6 +179,18 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
         (p.summary ?? '').toLowerCase().includes(q),
     );
   }, [processes, q]);
+
+  const filteredUserProcesses = React.useMemo(() => {
+    const list = userProcesses ?? [];
+    if (!q) {
+      return list;
+    }
+    return list.filter(
+      p =>
+        (p.id ?? '').toLowerCase().includes(q) ||
+        (p.summary ?? '').toLowerCase().includes(q),
+    );
+  }, [userProcesses, q]);
 
   const filteredFormats = React.useMemo(() => {
     const list = outputFormats ?? [];
@@ -249,6 +265,23 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
               />
             ))}
           </PaletteSection>
+          {(userProcesses?.length ?? 0) > 0 && (
+            <PaletteSection
+              title="User-Defined Processes"
+              count={filteredUserProcesses.length}
+              open={openUserProcesses}
+              onToggle={() => setOpenUserProcesses(o => !o)}
+            >
+              {filteredUserProcesses.map((p: any) => (
+                <PaletteRow
+                  key={p.id}
+                  id={p.id}
+                  subtitle={p.summary ?? p.description}
+                  onDragStart={e => onDragStart(e, { kind: 'udp', id: p.id })}
+                />
+              ))}
+            </PaletteSection>
+          )}
           <PaletteSection
             title="Output Formats"
             count={filteredFormats.length}
@@ -655,7 +688,11 @@ const Form: React.FC<IFormProps> = ({
     // (missing required args, wrong argument types, etc) without waiting
     // for the network. Stored in a ref so the backend pass can merge.
     localErrorsRef.current = [];
-    validateProcessGraphLocally(parsed, catalog?.processes).then(local => {
+    validateProcessGraphLocally(
+      parsed,
+      catalog?.processes,
+      catalog?.userProcesses,
+    ).then(local => {
       if (versionRef.current !== myVersion) {
         return;
       }
@@ -710,7 +747,12 @@ const Form: React.FC<IFormProps> = ({
     return () => {
       window.clearTimeout(handle);
     };
-  }, [effectiveGraphJson, connectionInfo, catalog?.processes]);
+  }, [
+    effectiveGraphJson,
+    connectionInfo,
+    catalog?.processes,
+    catalog?.userProcesses,
+  ]);
 
   React.useEffect(() => {
     const fresh = lastResultVersionRef.current === versionRef.current;
@@ -789,6 +831,12 @@ const Form: React.FC<IFormProps> = ({
     } else if (payload.kind === 'format') {
       procId = 'save_result';
       node = buildSaveResultNode(payload.id);
+    } else if (payload.kind === 'udp') {
+      procId = payload.id;
+      const udp = (catalog?.userProcesses ?? []).find(
+        (p: any) => p?.id === payload.id,
+      );
+      node = buildProcessNode(payload.id, udp);
     } else {
       procId = payload.id;
       const proc = (catalog?.processes ?? []).find(
@@ -852,6 +900,7 @@ const Form: React.FC<IFormProps> = ({
         payload &&
         (payload.kind === 'collection' ||
           payload.kind === 'process' ||
+          payload.kind === 'udp' ||
           payload.kind === 'format')
       ) {
         insertNode(payload);
@@ -868,6 +917,7 @@ const Form: React.FC<IFormProps> = ({
           <CatalogPalette
             collections={catalog?.collections}
             processes={catalog?.processes}
+            userProcesses={catalog?.userProcesses}
             outputFormats={catalog?.outputFormats}
             loading={catalogLoading}
             onBack={() => setEditMode(false)}
