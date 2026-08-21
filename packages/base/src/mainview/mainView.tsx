@@ -4519,14 +4519,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         result.reason === 'compacting'
           ? 'Cannot add features while folding into baseline.'
           : 'Overlay hard limit reached. Fold edits into the baseline before adding more.';
-      void showErrorMessage('Collaborative features', message);
+      void showErrorMessage('Feature store', message);
       return;
     }
 
     if (result.nearSoftLimit) {
       this._log(
         'warning',
-        'Collaborative overlay is near its soft limit; fold soon.',
+        'Feature store overlay is near its soft limit; fold soon.',
       );
     }
   };

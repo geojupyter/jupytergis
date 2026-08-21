@@ -60,10 +60,7 @@ import {
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
 import keybindings from '../keybindings.json';
-import {
-  getGeoJSONDataFromLayerSource,
-  downloadFile,
-} from '../tools';
+import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
@@ -1863,19 +1860,21 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.foldCollaborativePoints, {
-    label: trans.__('Fold Collaborative Points to PostGIS'),
+    label: trans.__('Fold to Feature Store'),
     caption: trans.__(
-      'Request that the server fold overlay features into PostGIS.',
+      'Fold overlay features into the feature store baseline.',
     ),
     isEnabled: () => {
       const current = tracker.currentWidget;
       if (!current?.model.sharedModel.editable) {
         return false;
       }
+
       const storeId = selectedCollaborativeStoreId(current.model);
       if (!storeId) {
         return true;
       }
+
       return !current.model.getFeatureStore(storeId)?.meta.compacting;
     },
     execute: () => {
@@ -1887,8 +1886,9 @@ export function addCommands(
       const storeId = selectedCollaborativeStoreId(current.model);
       if (!storeId) {
         console.warn(
-          'Fold Collaborative Points: select a collaborative point layer first.',
+          'Fold to Feature Store: select a feature store layer first.',
         );
+
         return;
       }
 
@@ -1902,9 +1902,9 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openNewCollaborativePointDialog, {
-    label: trans.__('Collaborative Points'),
+    label: trans.__('Feature Store'),
     caption: trans.__(
-      'Create a collaborative point layer (Ydoc overlay; fold to PostGIS later).',
+      'Create a feature store layer (server-backed baseline with overlay edits).',
     ),
     isEnabled: () => {
       return tracker.currentWidget
@@ -1920,18 +1920,18 @@ export function addCommands(
       const storeId = UUID.uuid4();
       const dialog = new LayerCreationFormDialog({
         model: current.model,
-        title: 'Create Collaborative Point Layer',
+        title: 'Create Feature Store Layer',
         createLayer: true,
         createSource: true,
         sourceData: {
-          name: 'Collaborative Points Source',
+          name: 'Feature Store Source',
           storeId,
           tileUrlTemplate: buildCollaborativePointTileUrlTemplate(storeId, 0),
           pmtilesPath: '',
           baselineVersion: 0,
           projection: 'EPSG:4326',
         },
-        layerData: { name: 'Collaborative Points' },
+        layerData: { name: 'Feature Store' },
         sourceType: 'CollaborativePointSource',
         layerType: 'VectorLayer',
         formSchemaRegistry,
@@ -1944,7 +1944,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
     caption:
-      'Toggle feature editing. Uses the selected GeoJSON or collaborative layer, or creates an empty draw layer.',
+      'Toggle feature editing. Uses the selected GeoJSON or feature store layer, or creates an empty draw layer.',
     describedBy: {
       args: {
         type: 'object',
@@ -2218,7 +2218,7 @@ namespace Private {
    * inline GeoJSON layer when the current selection is
    * missing or not editable for drawing.
    *
-   * Collaborative layers are draw-compatible: keep the selection and do not
+   * Feature store layers are draw-compatible: keep the selection and do not
    * create a GeoJSON draw layer.
    */
   export function ensureDrawCompatibleLayer(
