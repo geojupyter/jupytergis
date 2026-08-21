@@ -11,6 +11,8 @@ import type {
   IFeatureStoreMeta,
 } from './types';
 
+export type FeatureStoreAddBlockReason = 'hardLimit' | 'compacting';
+
 /** Warn when overlay feature count reaches this size. */
 export const FEATURE_STORE_SOFT_LIMIT = 40_000;
 
@@ -19,6 +21,9 @@ export const FEATURE_STORE_HARD_LIMIT = 50_000;
 
 /** PostgreSQL table name prefix for per-store baseline tables. */
 export const FEATURE_STORE_TABLE_PREFIX = 'jgis_store_';
+
+/** tipg / PostGIS schema that owns `jgis_store_*` tables. */
+export const TIPG_FEATURE_STORE_SCHEMA = 'public';
 
 /**
  * Max length of the slug after the table prefix.
@@ -39,15 +44,6 @@ export function defaultFeatureStoreMeta(
     compacting: false,
     foldRequested: false,
     ...overrides,
-  };
-}
-
-export function emptyFeatureStore(
-  meta: Partial<IFeatureStoreMeta> = {},
-): IFeatureStore {
-  return {
-    meta: defaultFeatureStoreMeta(meta),
-    features: {},
   };
 }
 
@@ -99,9 +95,6 @@ export function normalizeStoreIdSlug(storeId: string): string {
 export function storeIdToTableName(storeId: string): string {
   return `${FEATURE_STORE_TABLE_PREFIX}${normalizeStoreIdSlug(storeId)}`;
 }
-
-/** tipg / PostGIS schema that owns `jgis_store_*` tables. */
-export const TIPG_FEATURE_STORE_SCHEMA = 'public';
 
 /**
  * tipg collection id for a feature store
@@ -165,8 +158,6 @@ export function countLiveOverlayFeatures(
   return count;
 }
 
-export type FeatureStoreAddBlockReason = 'hardLimit' | 'compacting';
-
 export function getOverlayAddBlockReason(
   store: IFeatureStore,
 ): FeatureStoreAddBlockReason | undefined {
@@ -201,28 +192,4 @@ export function buildFeatureStoreFeature(args: {
     updatedBy: args.updatedBy,
     ...(args.deleted ? { deleted: true } : {}),
   };
-}
-
-/** Convenience: build a Point geometry in EPSG:4326. */
-export function pointGeometry(lon: number, lat: number): IFeatureStoreGeometry {
-  return { type: 'Point', coordinates: [lon, lat] };
-}
-
-/**
- * Apply overlay-wins merge for a single id (used by render / fold planning).
- * Returns undefined when the feature should be hidden.
- */
-export function resolveOverlayFeature(
-  baseline: IFeatureStoreFeature | undefined,
-  overlay: IFeatureStoreFeature | undefined,
-): IFeatureStoreFeature | undefined {
-  if (overlay) {
-    if (overlay.deleted) {
-      return undefined;
-    }
-
-    return overlay;
-  }
-
-  return baseline;
 }
