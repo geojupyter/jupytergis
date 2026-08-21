@@ -70,7 +70,7 @@ function createModel(
       parameters: {
         content: {
           contentMode: 'map',
-          title: '',
+          imageCaption: '',
           markdown: '',
         },
       },

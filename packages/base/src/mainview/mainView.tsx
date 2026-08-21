@@ -2113,6 +2113,68 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return scaled;
   };
 
+  private _syncGrammarSubLayers(
+    id: string,
+    layer: IJGISLayer,
+    mapLayer: Layer | LayerGroup,
+  ): void {
+    const layerParams = layer.parameters as
+      | IVectorLayer
+      | IGeoTiffLayer
+      | IGeoZarrLayer
+      | undefined;
+    const grammarState = layerParams?.symbologyState as
+      | IGrammarSymbologyState
+      | undefined;
+
+    if (!grammarState || !Array.isArray(grammarState.layers)) {
+      return;
+    }
+
+    const sourceId = layerParams?.source;
+    const source = sourceId ? this._sources[sourceId] : undefined;
+    const rows =
+      source instanceof VectorSource
+        ? source.getFeatures().map(f => (f as Feature).getProperties())
+        : [];
+    const featureValues = extractEncodingFieldValues(grammarState, rows);
+    const nextLayer = grammarToOLLayer(
+      grammarState,
+      source,
+      layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+      layer.visible,
+      featureValues,
+      layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
+    );
+
+    if (mapLayer instanceof LayerGroup) {
+      if (nextLayer instanceof LayerGroup) {
+        const replacementLayers = nextLayer.getLayers().getArray();
+        mapLayer.setOpacity(
+          layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
+        );
+        mapLayer.setVisible(layer.visible);
+        mapLayer.setLayers(new Collection(replacementLayers));
+        return;
+      }
+
+      // Collapse back to a single top-level layer so tools that expect a
+      // concrete OL Layer (fly-to/identify) keep working.
+      nextLayer.set('id', id);
+      const index = this.getLayerIndex(id);
+      if (index !== -1) {
+        this._Map.getLayers().setAt(index, nextLayer);
+      }
+      return;
+    }
+
+    nextLayer.set('id', id);
+    const index = this.getLayerIndex(id);
+    if (index !== -1) {
+      this._Map.getLayers().setAt(index, nextLayer);
+    }
+  }
+
   /**
    * Update a layer of the map.
    *
@@ -2139,8 +2201,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const layerParams = layer.parameters as IVectorLayer;
 
         if (Array.isArray(layerParams.symbologyState?.layers)) {
-          // Grammar layers may change structure (e.g. KDE added/removed) — rebuild.
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
@@ -2174,7 +2235,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoTiffLayer': {
         if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
         } else {
           mapLayer.setOpacity(layer.parameters?.opacity);
           if (layer?.parameters?.color) {
@@ -2187,7 +2248,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       case 'GeoZarrLayer': {
         if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
-          this.replaceLayer(id, layer);
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
@@ -2866,17 +2927,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._Map.getLayers().insertAt(safeIndex, layer);
   }
 
-  /**
-   * Remove and recreate layer
-   * @param id ID of layer being replaced
-   * @param layer New layer to replace with
-   */
-  replaceLayer(id: string, layer: IJGISLayer) {
-    const layerIndex = this.getLayerIndex(id);
-    this.removeLayer(id);
-    this.addLayer(id, layer, layerIndex);
-  }
-
   private _onLayersChanged(
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
@@ -2899,11 +2949,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this._model.currentMode = 'panning';
           this._notifyInteractionModeCommands();
         }
-        return;
-      }
-
-      if (oldLayer && oldLayer.type !== newLayer.type) {
-        this.replaceLayer(id, newLayer);
         return;
       }
 
@@ -3215,12 +3260,44 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+        return;
+      }
+
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return;
+      }
+
+      const storyType = this._model.getSelectedStory().story?.storyType;
+      if (!isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
+        return;
+      }
+
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer = resolveStoryScrollContainer();
+      }
+
+      if (!scrollContainer) {
+        return;
+      }
+
+      event.preventDefault();
+      const step = Math.max(5, Math.round(scrollContainer.clientHeight * 0.05));
+      scrollContainer.scrollBy({
+        top: event.key === 'ArrowDown' ? step : -step,
+      });
+    };
+
     this._storyScrollHandler = handleScroll;
+    this._storyKeyDownHandler = handleKeyDown;
     const container = this.props.containerRef.current;
     if (container) {
       this._storyScrollContainerEl = container;
       container.addEventListener('wheel', handleScroll, { passive: false });
     }
+    // Document-level so arrows work while the map surface holds focus.
+    document.addEventListener('keydown', handleKeyDown);
   };
 
   private _cleanupStoryScrollListener = (): void => {
@@ -3235,6 +3312,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
       this._storyScrollHandler = null;
       this._storyScrollContainerEl = null;
+    }
+    if (this._storyKeyDownHandler) {
+      document.removeEventListener('keydown', this._storyKeyDownHandler);
+      this._storyKeyDownHandler = null;
     }
   };
 
@@ -3847,10 +3928,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    const story = this._model.getSelectedStory().story;
+    // Don't treat horizontal swipes as guided prev/next segment navigation.
+    if (
+      isVerticalScrollPresentation(getStoryPresentationMode(story?.storyType))
+    ) {
+      return;
+    }
+
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - this._spectaTouchStartX;
     const threshold = 50;
-    const story = this._model.getSelectedStory().story;
     const segmentCount = story?.storySegments?.length ?? 0;
 
     if (segmentCount === 0) {
@@ -4352,6 +4440,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _spectaRemovedInteractions: Interaction[] = [];
   private _spectaZoomControlWasRemoved = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _storyKeyDownHandler: ((e: KeyboardEvent) => void) | null = null;
   private _storyScrollContainerEl: HTMLDivElement | null = null;
   private _clearStoryScrollGuard: () => void;
   private _pendingStoryScrollRafId: number | null = null;

@@ -24,6 +24,7 @@ import moundSvgStr from '../../style/icons/mound.svg';
 import nonVisibilitySvgStr from '../../style/icons/nonvisibility.svg';
 import pencilSolidSvgStr from '../../style/icons/pencil_solid.svg';
 import rasterSvgStr from '../../style/icons/raster.svg';
+import scrollSvgStr from '../../style/icons/scroll.svg';
 import targetWithCenterSvgStr from '../../style/icons/target_with_center.svg';
 import targetWithoutCenterSvgStr from '../../style/icons/target_without_center.svg';
 import terminalToolbarSvgStr from '../../style/icons/terminal_toolbar.svg';
@@ -133,6 +134,11 @@ export const markerIcon = new LabIcon({
 export const pencilSolidIcon = new LabIcon({
   name: 'jupytergis::pencilSolid',
   svgstr: pencilSolidSvgStr,
+});
+
+export const scrollIcon = new LabIcon({
+  name: 'jupytergis::scroll',
+  svgstr: scrollSvgStr,
 });
 
 export const helpIcon = new LabIcon({

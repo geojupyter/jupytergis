@@ -1140,7 +1140,7 @@ def test_multiband_alpha_band_roundtrip():
             bands,
             alpha_band=renderer.alphaBand(),
         )
-        assert _encoding_band_sig(grammar_out)["pixel-alpha"] == ("$band-4", "identity")
+        assert _encoding_band_sig(grammar_out)["pixel-alpha"] == ("band_4", "identity")
     finally:
         if os.path.exists(tif):
             os.remove(tif)
@@ -1216,7 +1216,7 @@ def test_raster_colorramp_value_space_roundtrip():
                     "rules": [
                         {
                             "id": "r",
-                            "fields": ["$band-1"],
+                            "fields": ["band_1"],
                             "mappings": [
                                 {
                                     "scale": {
@@ -1291,7 +1291,7 @@ def test_raster_flat_color_to_grammar_migrates_legacy_ramp():
     grammar = raster_flat_color_to_grammar(color)
 
     rule = grammar["layers"][0]["rules"][0]
-    assert rule["fields"] == ["$band-1"]
+    assert rule["fields"] == ["band_1"]
     mapping = rule["mappings"][0]
     assert mapping["encodings"] == ["pixel-color"]
     assert mapping["scale"]["scheme"] == "colorMap"

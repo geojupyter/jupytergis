@@ -88,7 +88,7 @@ You can share a story map (or a whole JupyterGIS project) as a small, browser-on
    ```yaml
    name: xeus-kernel
    channels:
-     - https://repo.prefix.dev/emscripten-forge-dev
+     - https://repo.prefix.dev/emscripten-forge-4x
      - https://repo.prefix.dev/conda-forge
    dependencies:
      - xeus-python
@@ -124,7 +124,7 @@ dependencies:
   - python
   - pip
   - jupyter_server
-  - jupyterlite-core >=0.7
+  - jupyterlite-core >=0.8
   - jupyterlite-xeus >=4.3
   - notebook >=7.5
   - specta

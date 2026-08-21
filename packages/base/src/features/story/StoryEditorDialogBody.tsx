@@ -5,22 +5,32 @@ import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
+import SegmentImageCaptionField from '@/src/features/story/components/SegmentImageCaptionField';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
 import { SegmentLayerOverrides } from '@/src/features/story/components/SegmentLayerOverrides';
 import { SegmentMarkdownEditor } from '@/src/features/story/components/SegmentMarkdownEditor';
 import { SegmentModePicker } from '@/src/features/story/components/SegmentModePicker';
+import { SegmentPaneAlignmentPicker } from '@/src/features/story/components/SegmentPaneAlignmentPicker';
+import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
 import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEditorHeaderBar';
+import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
-import { TitleInput } from '@/src/features/story/components/TitleInput';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
   IStorySegmentViewItem,
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
+import {
+  isMarkdownOverlayWidthFull,
+  MAP_PANEL_WIDTH_PRESETS,
+} from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import type { SegmentContentPatch } from '@/src/features/story/utils/storySegmentContent';
+import {
+  getSegmentPaneAlignment,
+  type SegmentContentPatch,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   formatSegmentTransitionTime,
   getSegmentTransitionTime,
@@ -62,6 +72,7 @@ function SegmentEditor({
   onLayerNameChange,
   onTransitionChange,
   onRemoveSegment,
+  isTextSegmentWidthFull,
 }: {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -75,13 +86,19 @@ function SegmentEditor({
   onLayerNameChange: (name: string) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
+  isTextSegmentWidthFull: boolean;
 }): JSX.Element {
   const [layersOpen, setLayersOpen] = useState(true);
   const [animationOpen, setAnimationOpen] = useState(false);
   const displayTitle = getStorySegmentDisplayTitle(segment);
   const imageUrl = segment.activeSlide?.content?.image ?? '';
+  const imageCaption = segment.activeSlide?.content?.imageCaption ?? '';
   const markdown = getStoryMarkdownFromSlide(segment.activeSlide);
   const segmentMode = getSegmentDisplayMode(segment.activeSlide);
+  const paneAlignment = getSegmentPaneAlignment(
+    segment.activeSlide?.content,
+    segmentMode,
+  );
   const transitionType = segment.activeSlide?.transition?.type ?? 'linear';
   const transitionTime = getSegmentTransitionTime(
     segment.activeSlide?.transition,
@@ -95,8 +112,10 @@ function SegmentEditor({
           <div className="jgis-story-editor-eyebrow">
             Segment {segment.index + 1}
           </div>
-          <TitleInput
+          <StoryEditorInput
             value={displayTitle}
+            placeholder="Enter Segment Title..."
+            aria-label="Segment title"
             onChange={title => {
               onLayerNameChange(title);
             }}
@@ -117,6 +136,29 @@ function SegmentEditor({
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
+
+      {segmentMode === 'map' || !isTextSegmentWidthFull ? (
+        <div className="jgis-story-editor-split">
+          {segmentMode === 'map' ? (
+            <SegmentWidthSelector
+              label="Panel width"
+              layout="block"
+              value={segment.activeSlide?.content?.panelWidth}
+              onChange={panelWidth => {
+                onContentChange({ panelWidth });
+              }}
+              presets={MAP_PANEL_WIDTH_PRESETS}
+              presetGroupAriaLabel="Map panel width presets"
+            />
+          ) : null}
+          <SegmentPaneAlignmentPicker
+            value={paneAlignment}
+            onChange={alignment => {
+              onContentChange({ paneAlignment: alignment });
+            }}
+          />
+        </div>
+      ) : null}
 
       {segmentMode === 'map' ? (
         <>
@@ -159,6 +201,10 @@ function SegmentEditor({
                 onChange={nextImageUrl => {
                   onContentChange({ image: nextImageUrl });
                 }}
+              />
+              <SegmentImageCaptionField
+                value={imageCaption}
+                onChange={caption => onContentChange({ imageCaption: caption })}
               />
               <SegmentMarkdownEditor
                 model={model}
@@ -272,6 +318,10 @@ export function StoryEditorDialogBody({
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
+  const isTextSegmentWidthFull = isMarkdownOverlayWidthFull(
+    story?.overlayContentWidth,
+  );
+
   const portalContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -335,6 +385,7 @@ export function StoryEditorDialogBody({
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
               onRemoveSegment={removeSegment}
+              isTextSegmentWidthFull={isTextSegmentWidthFull}
             />
           ) : (
             <SegmentEditorEmptyState />

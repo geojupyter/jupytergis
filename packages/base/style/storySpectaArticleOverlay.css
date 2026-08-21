@@ -115,7 +115,6 @@
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget a {
-  color: #007bff;
   text-decoration: none;
 }
 
@@ -136,14 +135,12 @@
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget pre code {
-  color: #222;
   background-color: transparent !important;
   padding: 0;
   font-size: 0.875rem !important;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget code {
-  background-color: #e9ecef;
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 0.875rem !important;
@@ -162,7 +159,7 @@
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget blockquote {
-  border-left: 3px solid #ffffff00;
+  border-left: 3px solid;
   padding-left: 1rem;
   margin: 1.2em 0;
   font-style: italic;
@@ -189,7 +186,6 @@
 .jgis-story-rendered-markdown .specta-article-host-widget hr {
   border: 0;
   height: 1px;
-  background-color: #ddd;
   margin: 2em 0;
 }
 
@@ -202,13 +198,12 @@
 
 .jgis-story-rendered-markdown .specta-article-host-widget th,
 .jgis-story-rendered-markdown .specta-article-host-widget td {
-  border: 1px solid #ddd;
+  border: 1px solid;
   padding: 0.375rem 0.625rem;
   text-align: left;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget th {
-  background-color: #f7f7f7;
   font-weight: bold;
 }
 

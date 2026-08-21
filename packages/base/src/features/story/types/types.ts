@@ -2,6 +2,8 @@ import type { IStorySegmentLayer } from '@jupytergis/schema';
 
 export type StorySegmentDisplayMode = 'map' | 'markdown';
 
+export type StorySegmentPaneAlignment = 'start' | 'center' | 'end';
+
 export const SegmentInteractionMode = {
   mapView: 'map-view',
   previewingSegment: 'previewing-segment',
