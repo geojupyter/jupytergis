@@ -10,6 +10,13 @@
       "description": "The proxy URL to use for external requests.",
       "default": "https://corsproxy.io"
     },
+    "mapViewer": {
+      "type": "string",
+      "enum": ["openlayers", "maplibre"],
+      "title": "Map Viewer",
+      "description": "The map viewer to use.",
+      "default": "openlayers"
+    },
     "leftPanelDisabled": {
       "type": "boolean",
       "title": "Disable Left Panel",

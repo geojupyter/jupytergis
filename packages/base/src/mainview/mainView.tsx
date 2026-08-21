@@ -165,6 +165,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import { createMapViewer, IMapViewer, MapViewerType } from './mapviewer';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -503,6 +504,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.modeChanged.disconnect(this._handleModeChanged, this);
     this._stopLocationIndicator();
+    if (this._mapViewer) {
+      this._mapViewer.destroy();
+      this._mapViewer = null;
+    }
 
     this._mainViewModel.dispose();
   }
@@ -533,17 +538,40 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     if (this.divRef.current) {
-      this._Map = new OlMap({
-        target: this.divRef.current,
-        keyboardEventTarget: document,
-        layers: [],
-        view: new View({
-          center,
-          zoom,
-          projection,
-        }),
-        controls,
+      const mapViewerSetting =
+        this._model.jgisSettings.mapViewer || 'openlayers';
+      const mapViewerType: MapViewerType = (
+        mapViewerSetting === 'maplibre' ? 'maplibre' : 'openlayers'
+      ) as MapViewerType;
+
+      this._lastMapViewerType = mapViewerType;
+
+      // Create the map viewer using abstraction
+      this._mapViewer = await createMapViewer(mapViewerType);
+
+      await this._mapViewer.initialize(this.divRef.current, {
+        projection,
+        center,
+        zoom,
+        rotation: 0,
       });
+
+      this._Map = (this._mapViewer as any).getMap?.() || null;
+
+      if (!this._Map) {
+        // Fallback
+        this._Map = new OlMap({
+          target: this.divRef.current,
+          keyboardEventTarget: document,
+          layers: [],
+          view: new View({
+            center,
+            zoom,
+            projection,
+          }),
+          controls,
+        });
+      }
 
       // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
@@ -593,11 +621,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return;
         }
 
-        const view = this._Map.getView();
+        const view = this._Map?.getView();
+        if (view) {
+          this._lastCenter = view.getCenter();
+          this._lastZoom = view.getZoom();
+        }
+
         const center = view.getCenter();
         const zoom = view.getZoom();
 
         if (!center || !zoom) {
+          return;
+        }
+
+        if (this._model.localState?.remoteUser) {
           return;
         }
 
@@ -2794,6 +2831,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    // Handle mapViewer setting changes
+    const mapViewerSetting =
+      (this._model.jgisSettings.mapViewer as string) || 'openlayers';
+    const newMapViewerType: MapViewerType = (
+      mapViewerSetting === 'maplibre' ? 'maplibre' : 'openlayers'
+    ) as MapViewerType;
+
+    if (newMapViewerType !== this._lastMapViewerType) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `Map viewer changed from ${this._lastMapViewerType} to ${newMapViewerType}`,
+      );
+      this._regenerateMap();
+      return;
+    }
+
+    // Handle other settings changes (existing code)
     const enabled = this._model.jgisSettings.zoomButtonsEnabled;
 
     if (!enabled && this._zoomControl) {
@@ -2806,6 +2860,30 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         target: this.controlsToolbarRef.current || undefined,
       });
       this._Map.addControl(this._zoomControl);
+    }
+  }
+
+  private async _regenerateMap(): Promise<void> {
+    try {
+      // Dispose old viewer
+      if (this._mapViewer) {
+        this._mapViewer.destroy();
+        this._mapViewer = null;
+      }
+
+      // Get current view state before regenerating
+      const center = this._lastCenter || [0, 0];
+      const zoom = this._lastZoom || 1;
+      const projection = this.state.viewProjection.code || DEFAULT_PROJECTION;
+
+      // Regenerate map with new viewer
+      await this.generateMap(center, zoom, projection);
+
+      const layerids = this.getLayerIDs();
+
+      this.updateLayers(layerids);
+    } catch (error) {
+      console.error('Error regenerating map:', error);
     }
   }
 
@@ -4372,6 +4450,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
+  private _mapViewer: IMapViewer | null = null;
+  private _lastMapViewerType: MapViewerType = 'openlayers';
+  private _lastCenter: Coordinate | undefined;
+  private _lastZoom: number | undefined;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
   private _geolocation?: Geolocation;
