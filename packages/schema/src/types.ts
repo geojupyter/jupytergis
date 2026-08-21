@@ -58,16 +58,16 @@ export interface IGrammarSymbologyState {
   layers: IGrammarLayer[];
 }
 
-/** Arbitrary attribute bag stamped onto a collaborative feature. */
-export interface ICollaborativeFeatureProps {
+/** Arbitrary attribute bag stamped onto a feature-store overlay feature. */
+export interface IFeatureStoreFeatureProps {
   [k: string]: string | number | boolean | null;
 }
 
 /**
- * GeoJSON geometry types allowed on collaborative overlay features.
+ * GeoJSON geometry types allowed on feature-store overlay features.
  * Coordinates are always EPSG:4326 (lon/lat degrees).
  */
-export type ICollaborativeGeometry =
+export type IFeatureStoreGeometry =
   | GeoJSONPoint
   | GeoJSONLineString
   | GeoJSONPolygon
@@ -76,11 +76,11 @@ export type ICollaborativeGeometry =
   | GeoJSONMultiPolygon
   | GeoJSONGeometryCollection;
 
-export interface ICollaborativeFeature {
+export interface IFeatureStoreFeature {
   id: string;
   /** GeoJSON geometry in EPSG:4326 (any supported type). */
-  geometry: ICollaborativeGeometry;
-  props: ICollaborativeFeatureProps;
+  geometry: IFeatureStoreGeometry;
+  props: IFeatureStoreFeatureProps;
   updatedAt: string;
   updatedBy: string;
   deleted?: boolean;
@@ -97,7 +97,7 @@ export interface IFeatureStoreMeta {
 export interface IFeatureStore {
   meta: IFeatureStoreMeta;
   features: {
-    [k: string]: ICollaborativeFeature;
+    [k: string]: IFeatureStoreFeature;
   };
 }
 

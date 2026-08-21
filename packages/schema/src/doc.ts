@@ -37,7 +37,7 @@ import {
 } from './interfaces';
 import { migrateDocument } from './migrations';
 import type {
-  ICollaborativeFeature,
+  IFeatureStoreFeature,
   IFeatureStore,
   IFeatureStoreMeta,
   IJGISFeatureStores,
@@ -602,7 +602,7 @@ export class JupyterGISDoc
 
   getFeatureStoreFeatures(
     storeId: string,
-  ): Record<string, ICollaborativeFeature> {
+  ): Record<string, IFeatureStoreFeature> {
     return this.getFeatureStore(storeId)?.features ?? {};
   }
 
@@ -612,7 +612,7 @@ export class JupyterGISDoc
    */
   setFeatureStoreFeature(
     storeId: string,
-    feature: ICollaborativeFeature,
+    feature: IFeatureStoreFeature,
   ): { ok: true } | { ok: false; reason: FeatureStoreAddBlockReason } {
     let result:
       | { ok: true }
@@ -661,14 +661,14 @@ export class JupyterGISDoc
             updatedAt: new Date().toISOString(),
             updatedBy: options.updatedBy,
             deleted: true,
-          } satisfies ICollaborativeFeature);
+          } satisfies IFeatureStoreFeature);
         }
 
         return;
       }
 
       if (options.tombstone) {
-        const existing = featuresMap.get(featureId) as ICollaborativeFeature;
+        const existing = featuresMap.get(featureId) as IFeatureStoreFeature;
         featuresMap.set(featureId, {
           ...existing,
           deleted: true,
@@ -956,8 +956,8 @@ export class JupyterGISDoc
     const featuresMap = storeMap.get('features');
     const features =
       featuresMap instanceof Y.Map
-        ? (featuresMap.toJSON() as Record<string, ICollaborativeFeature>)
-        : ((featuresMap as Record<string, ICollaborativeFeature>) ?? {});
+        ? (featuresMap.toJSON() as Record<string, IFeatureStoreFeature>)
+        : ((featuresMap as Record<string, IFeatureStoreFeature>) ?? {});
 
     return {
       meta: defaultFeatureStoreMeta(
