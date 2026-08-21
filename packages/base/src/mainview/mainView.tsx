@@ -831,14 +831,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (layer === expected) {
           return true;
         }
-        // Grammar / feature-store layers wrap children in a LayerGroup.
+        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
         // OL Select flattens groups, so we receive leaf layers, not the group.
-        // Skip VectorTileLayer leaves, Select cannot hit MVT RenderFeatures;
-        // Feature-store tipg baseline identify is handled in _identifyFeature.
         if (expected instanceof LayerGroup) {
-          if (layer instanceof VectorTileLayer) {
-            return false;
-          }
           return expected.getLayers().getArray().includes(layer);
         }
         return false;
@@ -1218,7 +1213,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this._model.ensureFeatureStore(storeId);
 
           newSource = new VectorSource();
-          this._featureStoreOverlaySources.set(storeId, newSource);
           this._syncFeatureStoreOverlaySource(storeId, newSource);
 
           // Live tipg MVT baseline (under the Ydoc overlay).
@@ -1228,10 +1222,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               storeId,
               parameters.baselineVersion ?? 0,
             );
+
           const settings = ServerConnection.makeSettings();
+          console.log('settings', settings);
           const base = settings.baseUrl.endsWith('/')
             ? settings.baseUrl
             : `${settings.baseUrl}/`;
+
           const tileUrl = `${base}${relativeTemplate.replace(/^\//, '')}`;
           const baselineSource = new VectorTileSource({
             attributions: parameters.attribution,
@@ -1270,8 +1267,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               });
             },
           });
+
           baselineSource.set('id', `${id}:baseline`);
-          this._featureStoreBaselineSources.set(storeId, baselineSource);
+          this._featureStoreSources.set(storeId, {
+            overlay: newSource,
+            baseline: baselineSource,
+          });
           break;
         }
 
@@ -1641,20 +1642,27 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.removeSource(id);
     // create updated source
     await this.addSource(id, source);
+
     // Collaborative sources use a LayerGroup (baseline VT + overlay).
     if (
       mapLayer instanceof LayerGroup &&
       source.type === 'FeatureStoreSource'
     ) {
       const parameters = source.parameters as IFeatureStoreSource;
-      const overlay = this._sources[id] as VectorSource;
-      const baseline = this._featureStoreBaselineSources.get(
-        parameters.storeId,
-      );
+      const storeSources = this._featureStoreSources.get(parameters.storeId);
+      const overlay = storeSources?.overlay;
+      const baseline = storeSources?.baseline;
+
+      if (!overlay) {
+        return;
+      }
+
       const style = this.vectorLayerStyleRuleBuilder(
         this._model.getLayer(layerId)!,
       );
+
       const children: Layer[] = [];
+
       if (baseline) {
         children.push(
           new VectorTileLayer({
@@ -1663,12 +1671,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }),
         );
       }
+
       children.push(
         new VectorImageLayer({
           source: overlay,
           style,
         }),
       );
+
       mapLayer.getLayers().clear();
       children.forEach(child => mapLayer.getLayers().push(child));
       return;
@@ -1684,14 +1694,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   removeSource(id: string): void {
     const jgisSource = this._model.getSource(id);
+
     if (jgisSource?.type === 'FeatureStoreSource') {
-      const storeId = (jgisSource.parameters as IFeatureStoreSource)
-        .storeId;
+      const storeId = (jgisSource.parameters as IFeatureStoreSource).storeId;
       if (storeId) {
-        this._featureStoreOverlaySources.delete(storeId);
-        this._featureStoreBaselineSources.delete(storeId);
+        this._featureStoreSources.delete(storeId);
       }
     }
+
     delete this._sources[id];
   }
 
@@ -1849,9 +1859,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           const storeParams = source.parameters as IFeatureStoreSource;
           const style = this.vectorLayerStyleRuleBuilder(layer);
           const children: Layer[] = [];
-          const baseline = this._featureStoreBaselineSources.get(
+          const baseline = this._featureStoreSources.get(
             storeParams.storeId,
-          );
+          )?.baseline;
+
           if (baseline) {
             children.push(
               new VectorTileLayer({
@@ -1868,6 +1879,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               style,
             }),
           );
+
           newMapLayer = new LayerGroup({
             layers: children,
             visible: layer.visible,
@@ -2025,12 +2037,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
-    // Track source→layer for both plain Layers and LayerGroups (feature store).
+    // STAC layers don't have source
     if (layerParameters && 'source' in layerParameters) {
       this._sourceToLayerMap.set(layerParameters.source, id);
     }
 
-    // STAC layers don't have source
     if (newMapLayer instanceof Layer) {
       this.addProjection(newMapLayer);
       await this._waitForLayerReady(newMapLayer);
@@ -2354,6 +2365,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (mapLayer instanceof LayerGroup) {
           mapLayer.setVisible(layer.visible);
           const style = this.vectorLayerStyleRuleBuilder(layer);
+
           mapLayer.getLayers().forEach(child => {
             const sub = child as Layer;
             sub.setOpacity(layerParams.opacity ?? 1);
@@ -3770,8 +3782,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   });
 
   private _onFeatureStoresChanged = (): void => {
-    for (const [storeId, source] of this._featureStoreOverlaySources) {
-      this._syncFeatureStoreOverlaySource(storeId, source);
+    for (const [storeId, { overlay }] of this._featureStoreSources) {
+      this._syncFeatureStoreOverlaySource(storeId, overlay);
     }
   };
 
@@ -3781,7 +3793,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   ): void {
     const features = this._model.getFeatureStoreFeatures(storeId);
     const viewProj = this._Map.getView().getProjection();
-    // Overlay geometries are always stored in EPSG:4326 (matches PostGIS).
     const format = new GeoJSON();
     const olFeatures: Feature[] = [];
 
@@ -3791,6 +3802,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       const geometry = format.readGeometry(feature.geometry, {
+        // Overlay geometries are always stored in EPSG:4326 (matches PostGIS).
         dataProjection: 'EPSG:4326',
         featureProjection: viewProj,
       });
@@ -3845,11 +3857,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   /**
-   * Normalize tipg MVT attributes for identify floaters.
-   *
-   * tipg exposes PostGIS columns plus flattened `props` jsonb keys, e.g.
-   * `{ id, updated_at, updated_by, layer, …userProps }`. Match the overlay
-   * shape (`{ …userProps, _id }`): drop tipg/system fields, map `id` → `_id`.
+   * Normalize tipg MVT attributes from PostGIS for identify tool.
    */
   private _normalizeTipgBaselineProperties(
     raw: Record<string, unknown>,
@@ -3861,12 +3869,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (drop.has(key)) {
         continue;
       }
+
       if (key === 'id') {
         if (typeof value === 'string' || typeof value === 'number') {
           out._id = String(value);
         }
         continue;
       }
+
       out[key] = value;
     }
 
@@ -3875,7 +3885,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   /**
    * Identify tipg MVT baseline features for a feature store layer.
-   * Overlay identify stays uses Select interaction
+   * Overlay identify uses Select interaction
    * This only hit-tests the baseline VectorTileLayer.
    */
   private _identifyFeatureStoreBaseline(
@@ -3888,7 +3898,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const baselineSource = this._featureStoreBaselineSources.get(storeId);
+    const baselineSource = this._featureStoreSources.get(storeId)?.baseline;
     const mapLayer = this.getLayer(layerId);
     if (!baselineSource || !(mapLayer instanceof LayerGroup)) {
       return;
@@ -3920,6 +3930,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         const rawProps = feature.getProperties() as Record<string, unknown>;
         const normalized = this._normalizeTipgBaselineProperties(rawProps);
+
         if (normalized) {
           features.push({
             feature: normalized,
@@ -3979,6 +3990,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const jgisSource = sourceId
           ? this._model.getSource(sourceId)
           : undefined;
+
         if (jgisSource?.type === 'FeatureStoreSource') {
           this._identifyFeatureStoreBaseline(
             e,
@@ -3986,6 +3998,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             jgisSource.parameters as IFeatureStoreSource,
           );
         }
+
         break;
       }
 
@@ -4309,7 +4322,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return undefined;
     }
 
-    // Feature-store layers are LayerGroups (tipg VT + overlay VectorSource).
+    // Feature-store layers are LayerGroups
     if (matchingLayer instanceof LayerGroup) {
       for (const child of matchingLayer.getLayers().getArray()) {
         const childSource = (child as Layer).getSource?.();
@@ -4323,11 +4336,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const jgisSource = jgisLayer
         ? this._model.getSource(jgisLayer.parameters?.source)
         : undefined;
+
       if (jgisSource?.type === 'FeatureStoreSource') {
-        const storeId = (jgisSource.parameters as IFeatureStoreSource)
-          .storeId;
+        const storeId = (jgisSource.parameters as IFeatureStoreSource).storeId;
         this._currentVectorSource =
-          this._featureStoreOverlaySources.get(storeId);
+          this._featureStoreSources.get(storeId)?.overlay;
         return this._currentVectorSource;
       }
 
@@ -4374,7 +4387,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    // Feature-store overlays sync via Ydoc featureStores, not GeoJSON source data.
+    // Feature-store overlays sync via Ydoc featureStores, not source data.
     if (this._currentDrawSource.type === 'FeatureStoreSource') {
       return;
     }
@@ -4482,9 +4495,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const storeId = (
-      this._currentDrawSource.parameters as IFeatureStoreSource
-    ).storeId;
+    const storeId = (this._currentDrawSource.parameters as IFeatureStoreSource)
+      .storeId;
     if (!storeId) {
       return;
     }
@@ -4510,7 +4522,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       props,
     });
 
-    console.log('result', result);
     // Drop the temporary OL feature; store sync re-adds from Ydoc.
     this._currentVectorSource?.removeFeature(feature);
 
@@ -4520,6 +4531,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           ? 'Cannot add features while folding into baseline.'
           : 'Overlay hard limit reached. Fold edits into the baseline before adding more.';
       void showErrorMessage('Feature store', message);
+
       return;
     }
 
@@ -4773,8 +4785,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _currentVectorSource: VectorSource | undefined;
   private _currentDrawSourceID: string | undefined;
   private _currentDrawGeometry: Type | undefined;
-  private _featureStoreOverlaySources = new Map<string, VectorSource>();
-  private _featureStoreBaselineSources = new Map<string, VectorTileSource>();
+  private _featureStoreSources = new Map<
+    string,
+    { overlay: VectorSource; baseline: VectorTileSource }
+  >();
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
