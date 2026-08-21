@@ -30,6 +30,7 @@ import type {
   IFeatureStoreFeature,
   IFeatureStore,
   IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
 } from './types';
 import {
   AWARENESS_FIELD_KEYS,
@@ -62,7 +63,6 @@ import { migrateDocument } from './migrations';
 import jgisSchema from './schema/project/jgis.json';
 import { IViewState, Modes } from './types';
 import {
-  buildFeatureStoreFeature,
   isOverlayNearSoftLimit,
 } from './featureStores';
 
@@ -840,7 +840,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   setFeatureStoreFeature(
     storeId: string,
     feature: IFeatureStoreFeature,
-  ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' } {
+  ): { ok: true } | { ok: false; reason: FeatureStoreAddBlockReason } {
     return this.sharedModel.setFeatureStoreFeature(storeId, feature);
   }
 
@@ -851,13 +851,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     id?: string;
   }):
     | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
-    | { ok: false; reason: 'hardLimit' | 'compacting' } {
-    const feature = buildFeatureStoreFeature({
+    | { ok: false; reason: FeatureStoreAddBlockReason } {
+    const feature: IFeatureStoreFeature = {
       id: args.id ?? UUID.uuid4(),
       geometry: args.geometry,
-      props: args.props,
+      props: args.props ?? {},
+      updatedAt: new Date().toISOString(),
       updatedBy: this.getClientId().toString(),
-    });
+    };
 
     const result = this.setFeatureStoreFeature(args.storeId, feature);
     if (!result.ok) {

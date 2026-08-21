@@ -5,8 +5,6 @@
 
 import type {
   IFeatureStoreFeature,
-  IFeatureStoreFeatureProps,
-  IFeatureStoreGeometry,
   IFeatureStore,
   IFeatureStoreMeta,
 } from './types';
@@ -121,29 +119,6 @@ export function buildFeatureStoreTileUrlTemplate(
   );
 }
 
-/**
- * Return DDL to create a per-store baseline table and its spatial index.
- * `tableName` must already be a validated identifier from
- * {@link storeIdToTableName}.
- */
-export function featureStoreTableDdl(tableName: string): string {
-  if (!/^jgis_store_[a-z0-9_]+$/.test(tableName)) {
-    throw new Error(`Refusing DDL for unexpected table name: ${tableName}`);
-  }
-
-  const indexName = `${tableName}_geom_gix`;
-  return [
-    `CREATE TABLE IF NOT EXISTS ${tableName} (`,
-    '  id uuid PRIMARY KEY,',
-    '  geom geometry(Geometry, 4326) NOT NULL,',
-    "  props jsonb NOT NULL DEFAULT '{}'::jsonb,",
-    '  updated_at timestamptz NOT NULL DEFAULT now(),',
-    '  updated_by text',
-    ');',
-    `CREATE INDEX IF NOT EXISTS ${indexName} ON ${tableName} USING GIST (geom);`,
-  ].join('\n');
-}
-
 /** Count non-tombstone overlay features. */
 export function countLiveOverlayFeatures(
   features: Record<string, IFeatureStoreFeature>,
@@ -174,22 +149,4 @@ export function getOverlayAddBlockReason(
 
 export function isOverlayNearSoftLimit(store: IFeatureStore): boolean {
   return countLiveOverlayFeatures(store.features) >= store.meta.softLimit;
-}
-
-export function buildFeatureStoreFeature(args: {
-  id: string;
-  geometry: IFeatureStoreGeometry;
-  props?: IFeatureStoreFeatureProps;
-  updatedBy: string;
-  updatedAt?: string;
-  deleted?: boolean;
-}): IFeatureStoreFeature {
-  return {
-    id: args.id,
-    geometry: args.geometry,
-    props: args.props ?? {},
-    updatedAt: args.updatedAt ?? new Date().toISOString(),
-    updatedBy: args.updatedBy,
-    ...(args.deleted ? { deleted: true } : {}),
-  };
 }

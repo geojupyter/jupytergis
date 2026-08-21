@@ -65,7 +65,7 @@ export interface IFeatureStoreFeatureProps {
 
 /**
  * GeoJSON geometry types allowed on feature-store overlay features.
- * Coordinates are always EPSG:4326 (lon/lat degrees).
+ * Coordinates are always EPSG:4326.
  */
 export type IFeatureStoreGeometry =
   | GeoJSONPoint
@@ -90,7 +90,6 @@ export interface IFeatureStoreMeta {
   softLimit: number;
   hardLimit: number;
   compacting: boolean;
-  /** Client fold intent. Server consumes and clears this. */
   foldRequested: boolean;
 }
 
@@ -116,8 +115,4 @@ export * from './interfaces';
 export * from './model';
 export * from './token';
 
-export type Modes =
-  | 'panning'
-  | 'identifying'
-  | 'marking'
-  | 'drawing';
+export type Modes = 'panning' | 'identifying' | 'marking' | 'drawing';
