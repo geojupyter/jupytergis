@@ -486,9 +486,6 @@ importers:
       proj4:
         specifier: 2.19.3
         version: 2.19.3(geotiff@2.1.3)
-      proj4-list:
-        specifier: 1.0.4
-        version: 1.0.4
       radix-ui:
         specifier: ^1.4.3
         version: 1.6.2(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -7910,9 +7907,6 @@ packages:
 
   proj-codes@0.0.3:
     resolution: {integrity: sha512-KzaXpgdTQWcnr1I1HPEE7AhVjyf0hZtXiONyMKnuRwpGs+XPRLQsHrTH9gDhQyzwhHjlSD4+H52p30O2PPmN/A==}
-
-  proj4-list@1.0.4:
-    resolution: {integrity: sha512-BMU39s6xU/bIi3ro9unYo94HauD4bO1u1qXVtoqtc+8qdAKtXXe2FV9zGxEVM/tyNeQUdxX8QHPUtGCktFPwAg==}
 
   proj4@2.19.3:
     resolution: {integrity: sha512-sXMnThBbpAzYqYLtKDOzmLGvvfFAv+VIJKKDOUied/xWVeVPKi0pwDFUHnLD4OysbIR1lF4aYO5J4LhJxgKMGw==}
@@ -18401,8 +18395,6 @@ snapshots:
   proggy@3.0.0: {}
 
   proj-codes@0.0.3: {}
-
-  proj4-list@1.0.4: {}
 
   proj4@2.19.3(geotiff@2.1.3):
     dependencies:
