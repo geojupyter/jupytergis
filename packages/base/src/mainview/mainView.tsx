@@ -467,6 +467,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onSharedOptionsChanged,
       this,
     );
+    this._model.sharedLayersChanged.disconnect(this._onLayersChanged, this);
+    this._model.sharedLayerTreeChanged.disconnect(
+      this._onLayerTreeChange,
+      this,
+    );
+    this._model.sharedSourcesChanged.disconnect(this._onSourcesChange, this);
+    this._model.sharedModel.changed.disconnect(this._onSharedModelStateChange);
+    this._model.sharedAnnotationsChanged.disconnect(
+      this._onAnnotationsChanged,
+      this,
+    );
+    this._model.zoomToPositionSignal.disconnect(this._onZoomToPosition, this);
+    this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
+    this._model.addFeatureAsMsSignal.disconnect(this._convertFeatureToMs, this);
+    this._model.geolocationChanged.disconnect(
+      this._handleGeolocationChanged,
+      this,
+    );
+    this._model.flyToGeometrySignal.disconnect(this.flyToGeometry, this);
+    this._model.highlightFeatureSignal.disconnect(
+      this.highlightFeatureOnMap,
+      this,
+    );
 
     this._model.temporalControllerActiveChanged.disconnect(
       this._handleTemporalControllerActiveChanged,
