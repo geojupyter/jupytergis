@@ -78,7 +78,8 @@ test.describe('Showcase', () => {
       let pendingRequests = 0;
       let lastActivity = Date.now();
       const track = (delta: number) => (request: Request) => {
-        if (!request.url().includes('localhost')) {
+        const type = request.resourceType();
+        if (type !== 'websocket' && type !== 'eventsource') {
           pendingRequests += delta;
           lastActivity = Date.now();
         }
