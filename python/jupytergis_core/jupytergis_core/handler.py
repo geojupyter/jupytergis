@@ -1,8 +1,12 @@
+import asyncio
 import json
 import logging
 import os
+import queue
 import subprocess
+import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
@@ -14,6 +18,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse
 
 from .processing import (
     ALLOWED_OPERATIONS,
+    ProcessingCancelledError,
     gdal_available,
     run_gdal,
     run_gdal_url,
@@ -478,37 +483,53 @@ class ProcessingHandler(APIHandler):
             self.finish(json.dumps({"error": "'options' must be a list of strings"}))
             return
 
-        try:
+        # Single entry point for the three GDAL variants. The optional
+        # `progress_callback` and `cancel_event` are forwarded to the worker so
+        # progress can be streamed back to the client and the run cancelled.
+        def do_run(progress_callback=None, cancel_event=None):
             if url and cutline_geojson:
-                (
-                    result_content,
-                    result_format,
-                ) = await tornado.ioloop.IOLoop.current().run_in_executor(
-                    None,
-                    lambda: run_gdal_url_with_cutline(
-                        operation,
-                        options,
-                        url,
-                        cutline_geojson,
-                        output_name,
-                    ),
+                return run_gdal_url_with_cutline(
+                    operation,
+                    options,
+                    url,
+                    cutline_geojson,
+                    output_name,
+                    progress_callback=progress_callback,
+                    cancel_event=cancel_event,
                 )
-            elif url:
-                (
-                    result_content,
-                    result_format,
-                ) = await tornado.ioloop.IOLoop.current().run_in_executor(
-                    None,
-                    lambda: run_gdal_url(operation, options, url, output_name),
+            if url:
+                return run_gdal_url(
+                    operation,
+                    options,
+                    url,
+                    output_name,
+                    progress_callback=progress_callback,
+                    cancel_event=cancel_event,
                 )
-            else:
-                (
-                    result_content,
-                    result_format,
-                ) = await tornado.ioloop.IOLoop.current().run_in_executor(
-                    None,
-                    lambda: run_gdal(operation, options, geojson, output_name),
-                )
+            return run_gdal(
+                operation,
+                options,
+                geojson,
+                output_name,
+                progress_callback=progress_callback,
+                cancel_event=cancel_event,
+            )
+
+        # When the client opts in via Accept: text/event-stream, stream
+        # incremental progress as Server-Sent Events and finish with the result.
+        accept = self.request.headers.get("Accept") or ""
+        if "text/event-stream" in accept:
+            await self._stream_processing(operation, do_run)
+            return
+
+        try:
+            (
+                result_content,
+                result_format,
+            ) = await tornado.ioloop.IOLoop.current().run_in_executor(
+                None,
+                lambda: do_run(None),
+            )
         except subprocess.TimeoutExpired:
             self.set_status(504)
             self.finish(json.dumps({"error": "GDAL operation timed out"}))
@@ -525,6 +546,105 @@ class ProcessingHandler(APIHandler):
             return
 
         self.finish(json.dumps({"result": result_content, "format": result_format}))
+
+    async def _stream_processing(
+        self,
+        operation: str,
+        do_run: Callable[..., tuple[str, str]],
+    ) -> None:
+        """Run a GDAL operation, streaming progress as Server-Sent Events.
+
+        Each SSE frame carries a JSON payload:
+          - ``{"progress": <int 0-100>}`` — incremental progress updates,
+          - ``{"result": <str>, "format": "text"|"base64"}`` — final output,
+          - ``{"error": <str>}`` — failure (status is already 200, so errors
+            are surfaced in-band rather than via an HTTP status code).
+
+        If the client disconnects, ``on_connection_close`` sets ``_cancel_event``
+        and the worker kills the GDAL subprocess.
+        """
+        self.set_header("Content-Type", "text/event-stream")
+        self.set_header("Cache-Control", "no-cache")
+        # Disable proxy buffering (e.g. nginx) so frames flush immediately.
+        self.set_header("X-Accel-Buffering", "no")
+
+        loop = tornado.ioloop.IOLoop.current()
+        progress_queue: queue.Queue[float] = queue.Queue()
+
+        # Set by on_connection_close (client went away) to abort the GDAL run.
+        cancel_event = threading.Event()
+        self._cancel_event = cancel_event
+
+        def progress_callback(fraction: float) -> None:
+            # Invoked from the executor thread; the queue is the thread-safe
+            # hand-off back to this coroutine running on the IOLoop.
+            progress_queue.put(fraction)
+
+        future = loop.run_in_executor(
+            None,
+            lambda: do_run(progress_callback, cancel_event),
+        )
+
+        async def send(payload: dict) -> None:
+            self.write(f"data: {json.dumps(payload)}\n\n")
+            await self.flush()
+
+        last_pct = -1
+
+        def drain() -> int:
+            nonlocal last_pct
+            pct = last_pct
+            try:
+                while True:
+                    pct = int(progress_queue.get_nowait() * 100)
+            except queue.Empty:
+                pass
+            return pct
+
+        while not future.done():
+            pct = drain()
+            if pct != last_pct:
+                last_pct = pct
+                await send({"progress": pct})
+            await asyncio.sleep(0.1)
+
+        # Flush any progress emitted between the last poll and completion.
+        pct = drain()
+        if pct != last_pct:
+            last_pct = pct
+            await send({"progress": pct})
+
+        try:
+            result_content, result_format = future.result()
+        except ProcessingCancelledError:
+            # The client disconnected and the subprocess was killed; the
+            # connection is already gone, so there's nothing to send.
+            logger.info("Processing cancelled by client: %s", operation)
+            return
+        except subprocess.TimeoutExpired:
+            await send({"error": "GDAL operation timed out"})
+            self.finish()
+            return
+        except subprocess.CalledProcessError as e:
+            logger.error("GDAL %s failed: %s", operation, e.stderr)
+            await send({"error": f"GDAL error: {e.stderr.strip()}"})
+            self.finish()
+            return
+        except Exception as e:
+            logger.exception("Processing error")
+            await send({"error": str(e)})
+            self.finish()
+            return
+
+        await send({"result": result_content, "format": result_format})
+        self.finish()
+
+    def on_connection_close(self) -> None:
+        """Abort an in-flight streaming run when the client disconnects."""
+        super().on_connection_close()
+        cancel_event = getattr(self, "_cancel_event", None)
+        if cancel_event is not None:
+            cancel_event.set()
 
 
 def setup_handlers(web_app: Any) -> None:
