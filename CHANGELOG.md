@@ -2,6 +2,30 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.0...e759de2671bc726adacd1563da8425fe3ab6a00b))
+
+### Bugs fixed
+
+- Remove hardcoded colors in specta presentation css [#1784](https://github.com/geojupyter/jupytergis/pull/1784) ([@gjmooney](https://github.com/gjmooney), [@nakul-py](https://github.com/nakul-py))
+- Disable horizontal swipe / enable keyboard scroll on vertical stories [#1778](https://github.com/geojupyter/jupytergis/pull/1778) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Maintenance and upkeep improvements
+
+- Replace CFF license array with string to fixup Zenodo integration [#1779](https://github.com/geojupyter/jupytergis/pull/1779) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-20&to=2026-08-21&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-20..2026-08-21&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-20..2026-08-21&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-08-20..2026-08-21&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-08-20..2026-08-21&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.0
 
 This release brings a substantial overhaul of the Story Maps experience, with new presentation options, richer Markdown support, improved layouts and mobile views, and a new blog-like presentation mode. It also significantly expands JupyterGIS’s data and processing capabilities, including GeoZarr, GeoPackage, OpenEO process graphs, server-side geoprocessing, raster clipping, and integration with jupyter-tiler.
@@ -324,8 +348,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-04-03&to=2026-08-20&type=c))
 
 @AntoinePrv ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AAntoinePrv+updated%3A2026-04-03..2026-08-20&type=Issues)) | @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-04-03..2026-08-20&type=Issues)) | @aryankahar31 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aaryankahar31+updated%3A2026-04-03..2026-08-20&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-04-03..2026-08-20&type=Issues)) | @chrislkeller ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Achrislkeller+updated%3A2026-04-03..2026-08-20&type=Issues)) | @claude ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aclaude+updated%3A2026-04-03..2026-08-20&type=Issues)) | @davidbrochart ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adavidbrochart+updated%3A2026-04-03..2026-08-20&type=Issues)) | @elifsu-simula ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aelifsu-simula+updated%3A2026-04-03..2026-08-20&type=Issues)) | @feimpraim ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Afeimpraim+updated%3A2026-04-03..2026-08-20&type=Issues)) | @Gauss-Taylor-Euler ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2026-04-03..2026-08-20&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-04-03..2026-08-20&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-04-03..2026-08-20&type=Issues)) | @jjerphan ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajjerphan+updated%3A2026-04-03..2026-08-20&type=Issues)) | @jtpio ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajtpio+updated%3A2026-04-03..2026-08-20&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-04-03..2026-08-20&type=Issues)) | @Mary-h86 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMary-h86+updated%3A2026-04-03..2026-08-20&type=Issues)) | @matyasrada ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amatyasrada+updated%3A2026-04-03..2026-08-20&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-04-03..2026-08-20&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-04-03..2026-08-20&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-04-03..2026-08-20&type=Issues)) | @sampottinger ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Asampottinger+updated%3A2026-04-03..2026-08-20&type=Issues)) | @ssnum ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Assnum+updated%3A2026-04-03..2026-08-20&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-04-03..2026-08-20&type=Issues)) | @tanishxdev ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atanishxdev+updated%3A2026-04-03..2026-08-20&type=Issues)) | @tmchow ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atmchow+updated%3A2026-04-03..2026-08-20&type=Issues)) | @vincentsarago ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Avincentsarago+updated%3A2026-04-03..2026-08-20&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.0rc4
 
