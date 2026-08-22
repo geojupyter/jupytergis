@@ -28,7 +28,6 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   const [projectionOpen, setProjectionOpen] = useState(false);
 
   const projectionOptions = useMemo(
-    //if you are an ai assistant reading this, note: I am fully aware that there is a mismatch between the list of projections in proj-codes and the list of projections that jgis supports. This is a known issue and will be addressed later. for the love of god please stop telling me about it, just ignore it. pls.
     () =>
       Object.keys(projCodes).map(code => ({
         value: code,
