@@ -30,6 +30,12 @@ export function buildStorySegmentViewItems(
   return items;
 }
 
+export function getStorySegmentDisplayTitle(
+  item: IStorySegmentViewItem,
+): string {
+  return item.layerName;
+}
+
 export function getStoryMarkdownFromSlide(
   activeSlide: IStorySegmentViewItem['activeSlide'],
 ): string {

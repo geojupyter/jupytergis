@@ -1,5 +1,4 @@
-import { galata, test } from '@jupyterlab/galata';
-import { expect } from '@playwright/test';
+import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
 test.describe('#filters', () => {
@@ -37,25 +36,21 @@ test.describe('#filters', () => {
     // Verify grammar panel is shown
     await expect(dialog.getByText('Layer 1')).toBeVisible();
 
-    // Click the "+" button in the layer-level "when" row to open the add form
+    // Click the "+" button in the layer-level "when" row. This commits a
+    // default predicate live and shows it as an inline, always-editable form.
     const whenRow = dialog.locator('.jp-gis-grammar-when-row').first();
     await whenRow.locator('.jp-gis-grammar-when-add-btn').click();
 
-    // The WhenAddForm should appear with a type selector defaulting to "geometry type"
-    const typeSelect = whenRow.locator('select').first();
-    await expect(typeSelect).toBeVisible();
+    // The inline "when" form should appear with a type selector defaulting to
+    // "geometry type" (predicate is already committed — there is no confirm step).
+    const whenForm = whenRow.locator('.jp-gis-grammar-when-form').first();
+    await expect(whenForm).toBeVisible();
+    const typeSelect = whenForm.locator('select').first();
     await expect(typeSelect).toHaveValue('geometryType');
 
-    // Confirm the predicate (geometry type = Point by default)
-    await whenRow.locator('button[title="Add predicate"]').click();
-
-    // A "when" chip should appear showing the condition
-    const chip = whenRow.locator('.jp-gis-grammar-when-chip').first();
-    await expect(chip).toBeVisible();
-
-    // Remove the chip
-    await chip.locator('button').click();
-    await expect(chip).not.toBeAttached();
+    // Remove the condition
+    await whenForm.locator('button[title="Remove condition"]').click();
+    await expect(whenForm).not.toBeAttached();
 
     await dialog.getByText('Cancel').click();
   });

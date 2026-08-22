@@ -8,7 +8,7 @@ We'd love to hear from you at a [community meeting](https://geojupyter.org/calen
 <a href="lite/lab/index.html" class="jgis-try-button">Try with JupyterLite</a>
 
 ```{note}
-Backend-free JupyterGIS via JupyterLite runs entirely in the browser and does not support real-time collaboration.
+Backend-free JupyterGIS via JupyterLite runs entirely in the browser. Some key features may not work as expected. Learn more [here](user_guide/explanation/jupyter-lite-limitations.md).
 ```
 
 ## Highlights
@@ -42,7 +42,7 @@ about/index
 getting_started/index
 user_guide/index
 contributor_guide/index
-about/gallery
+gallery
 ```
 
 ```{toctree}

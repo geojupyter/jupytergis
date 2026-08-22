@@ -1,4 +1,6 @@
 {
+  "annotations": {},
+  "presets": {},
   "layerTree": [
     "vector-fill-id",
     "vector-line-id",
@@ -58,7 +60,7 @@
                           ]
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "fill-color",
                         "circle-fill-color"
                       ]
@@ -75,7 +77,7 @@
                           ]
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "stroke-color",
                         "circle-stroke-color"
                       ]
@@ -87,7 +89,7 @@
                           "value": 1.25
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "stroke-width",
                         "circle-stroke-width"
                       ]
@@ -99,7 +101,7 @@
                           "value": 4.5
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "circle-radius"
                       ]
                     }
@@ -138,7 +140,7 @@
                           ]
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "fill-color",
                         "circle-fill-color"
                       ]
@@ -155,7 +157,7 @@
                           ]
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "stroke-color",
                         "circle-stroke-color"
                       ]
@@ -167,7 +169,7 @@
                           "value": 2.0
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "stroke-width",
                         "circle-stroke-width"
                       ]
@@ -179,7 +181,7 @@
                           "value": 5
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "circle-radius"
                       ]
                     }
@@ -218,7 +220,7 @@
                           ]
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "fill-color",
                         "circle-fill-color"
                       ]
@@ -235,7 +237,7 @@
                           ]
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "stroke-color",
                         "circle-stroke-color"
                       ]
@@ -247,7 +249,7 @@
                           "value": 1.5
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "stroke-width",
                         "circle-stroke-width"
                       ]
@@ -259,7 +261,7 @@
                           "value": 5
                         }
                       },
-                      "channels": [
+                      "encodings": [
                         "circle-radius"
                       ]
                     }

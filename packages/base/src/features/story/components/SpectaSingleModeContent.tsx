@@ -1,9 +1,14 @@
-import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
 import React, { RefObject } from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
 
 interface ISpectaSingleModeContentProps {
+  model: IJupyterGISModel;
   isSpecta: boolean;
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
@@ -19,6 +24,7 @@ interface ISpectaSingleModeContentProps {
 }
 
 export function SpectaSingleModeContent({
+  model,
   isSpecta,
   segmentContainerRef,
   storyData,
@@ -41,6 +47,7 @@ export function SpectaSingleModeContent({
         style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
       />
       <StoryViewerPanel
+        model={model}
         isSpecta={isSpecta}
         segmentContainerRef={segmentContainerRef}
         storyData={storyData}

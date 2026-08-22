@@ -29,11 +29,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@f5d710df1483f19b666dd96aeabbe949a53642c2 # v1
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # IMPORTANT: This step installs pnpm, but requires the code to be checked out to do that successfully.
+      #            This is why this workflow looks different from the jupyter_releaser examples.
+      - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@94b14ddfbdd1ed651e9f9343ae2409ab5c73a6a8 # v1
 
       - name: Prep Release
         id: prep-release
-        uses: jupyter-server/jupyter_releaser/.github/actions/prep-release@f1cb16e30ea64b0c39609ba8000f571e1f81f20f # v1.11.1
+        uses: jupyter-server/jupyter_releaser/.github/actions/prep-release@cf9c1ac90471e0978ef4d4f106b5d9b8917cb7af
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version_spec: ${{ github.event.inputs.version_spec }}

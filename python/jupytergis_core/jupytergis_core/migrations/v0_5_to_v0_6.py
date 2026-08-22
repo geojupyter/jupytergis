@@ -5,10 +5,16 @@ Converts legacy representations to Grammar symbologyState in one pass:
   - parameters.symbologyState with old render types → Grammar
   - HeatmapLayer color array → symbologyState.gradient
   - WebGlLayer type → GeoTiffLayer
+  - flat metadata keys ``annotation_<id>`` → top-level ``annotations``
+  - StorySegmentLayer content.title → imageCaption
 """
 
+import json
+import re
 import uuid
-from typing import Any
+from typing import Any, cast
+
+_ANNOTATION_KEY_PATTERN = re.compile(r"^annotation_(.+)$")
 
 _DEFAULT_STROKE_WIDTH = 1.25
 _DEFAULT_FILL = [255, 255, 255, 0.4]
@@ -56,7 +62,82 @@ def migrate(doc: dict[str, Any]) -> dict[str, Any]:
         layer["parameters"] = params
         layers[layer_id] = layer
 
+    result: dict[str, Any] = {**doc, "layers": layers}
+    for step in (
+        _migrate_story_segment_captions,
+        _migrate_annotations,
+    ):
+        result = step(result)
+    return result
+
+
+def _migrate_story_segment_captions(doc: dict[str, Any]) -> dict[str, Any]:
+    """Rename StorySegmentLayer content.title → imageCaption."""
+    layers = dict(doc.get("layers", {}))
+
+    for layer_id, layer in layers.items():
+        if layer.get("type") != "StorySegmentLayer":
+            continue
+
+        parameters = layer.get("parameters") or {}
+        content = parameters.get("content")
+
+        if (
+            not isinstance(content, dict)
+            or "title" not in content
+            or content.get("imageCaption") is not None
+        ):
+            continue
+
+        rest = {k: v for k, v in content.items() if k != "title"}
+        layers[layer_id] = {
+            **layer,
+            "parameters": {
+                **parameters,
+                "content": {
+                    **rest,
+                    "imageCaption": content.get("title") or "",
+                },
+            },
+        }
+
     return {**doc, "layers": layers}
+
+
+def _migrate_annotations(doc: dict[str, Any]) -> dict[str, Any]:
+    metadata = dict(doc.get("metadata") or {})
+    existing_annotations = doc.get("annotations")
+    annotations: dict[str, Any] = (
+        dict(existing_annotations)
+        if isinstance(existing_annotations, dict)
+        and not isinstance(existing_annotations, list)
+        else {}
+    )
+
+    nested = metadata.get("annotations")
+    if isinstance(nested, dict) and not isinstance(nested, list):
+        annotations.update(nested)
+
+    for key, value in metadata.items():
+        match = _ANNOTATION_KEY_PATTERN.match(key)
+        if not match:
+            continue
+
+        annotation: Any = value
+        if isinstance(annotation, str):
+            try:
+                annotation = json.loads(annotation)
+            except json.JSONDecodeError:
+                continue
+
+        annotations[match.group(1)] = annotation
+
+    return {
+        **doc,
+        "annotations": annotations,
+        "metadata": {},
+        "presets": {},
+    }
 
 
 def _color_to_grammar(color: dict[str, Any]) -> dict[str, Any]:
@@ -84,12 +165,16 @@ def _to_grammar(state: dict[str, Any]) -> dict[str, Any] | None:
         return _single_symbol(
             fill=state.get("fillColor") or _DEFAULT_FILL,
             stroke=state.get("strokeColor") or _DEFAULT_STROKE,
-            stroke_width=state.get("strokeWidth")
-            if state.get("strokeWidth") is not None
-            else _DEFAULT_STROKE_WIDTH,
-            radius=state.get("radius")
-            if state.get("radius") is not None
-            else _DEFAULT_RADIUS,
+            stroke_width=(
+                cast("float", state.get("strokeWidth"))
+                if state.get("strokeWidth") is not None
+                else _DEFAULT_STROKE_WIDTH
+            ),
+            radius=(
+                cast("float", state.get("radius"))
+                if state.get("radius") is not None
+                else _DEFAULT_RADIUS
+            ),
         )
     if render_type == "Graduated":
         return _graduated(state)
@@ -109,19 +194,19 @@ def _single_symbol(
         "mappings": [
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": fill}},
-                "channels": ["fill-color", "circle-fill-color"],
+                "encodings": ["fill-color", "circle-fill-color"],
             },
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
+                "encodings": ["stroke-color", "circle-stroke-color"],
             },
             {
                 "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-                "channels": ["stroke-width", "circle-stroke-width"],
+                "encodings": ["stroke-width", "circle-stroke-width"],
             },
             {
                 "scale": {"scheme": "constant_num", "params": {"value": radius}},
-                "channels": ["circle-radius"],
+                "encodings": ["circle-radius"],
             },
         ],
     }
@@ -153,32 +238,32 @@ def _graduated(state: dict[str, Any]) -> dict[str, Any]:
     if vmin is not None and vmax is not None:
         color_ramp_params["domain"] = [vmin, vmax]
 
-    color_ramp_scale = {"scheme": "colorRamp", "params": color_ramp_params}
+    color_ramp_scale = {"scheme": "colorMap", "params": color_ramp_params}
 
-    fill_channels = (
+    fill_encodings = (
         ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]
         if state.get("strokeFollowsFill")
         else ["fill-color", "circle-fill-color"]
     )
 
     mappings: list[dict[str, Any]] = [
-        {"scale": color_ramp_scale, "channels": fill_channels},
+        {"scale": color_ramp_scale, "encodings": fill_encodings},
     ]
     if not state.get("strokeFollowsFill"):
         mappings.append(
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
+                "encodings": ["stroke-color", "circle-stroke-color"],
             },
         )
     mappings += [
         {
             "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
+            "encodings": ["stroke-width", "circle-stroke-width"],
         },
         {
             "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
+            "encodings": ["circle-radius"],
         },
     ]
 
@@ -213,30 +298,30 @@ def _categorized(state: dict[str, Any]) -> dict[str, Any]:
 
     categorical_scale = {"scheme": "categorical", "params": categorical_params}
 
-    fill_channels = (
+    fill_encodings = (
         ["fill-color", "stroke-color", "circle-fill-color", "circle-stroke-color"]
         if state.get("strokeFollowsFill")
         else ["fill-color", "circle-fill-color"]
     )
 
     mappings: list[dict[str, Any]] = [
-        {"scale": categorical_scale, "channels": fill_channels},
+        {"scale": categorical_scale, "encodings": fill_encodings},
     ]
     if not state.get("strokeFollowsFill"):
         mappings.append(
             {
                 "scale": {"scheme": "constant_rgba", "params": {"value": stroke}},
-                "channels": ["stroke-color", "circle-stroke-color"],
+                "encodings": ["stroke-color", "circle-stroke-color"],
             },
         )
     mappings += [
         {
             "scale": {"scheme": "constant_num", "params": {"value": stroke_width}},
-            "channels": ["stroke-width", "circle-stroke-width"],
+            "encodings": ["stroke-width", "circle-stroke-width"],
         },
         {
             "scale": {"scheme": "constant_num", "params": {"value": radius}},
-            "channels": ["circle-radius"],
+            "encodings": ["circle-radius"],
         },
     ]
 

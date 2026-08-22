@@ -26,14 +26,14 @@
     "viewState": {
       "$ref": "#/definitions/jGISViewState"
     },
+    "annotations": {
+      "$ref": "#/definitions/jGISAnnotations"
+    },
+    "presets": {
+      "$ref": "#/definitions/jGISDrawCustomAttributePresets"
+    },
     "metadata": {
-      "type": "object",
-      "patternProperties": {
-        "^.*$": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "#/definitions/jGISMetadata"
     }
   },
   "definitions": {
@@ -45,8 +45,8 @@
         "VectorTileLayer",
         "HillshadeLayer",
         "GeoTiffLayer",
+        "GeoZarrLayer",
         "ImageLayer",
-        "HeatmapLayer",
         "StacLayer",
         "StorySegmentLayer",
         "OpenEOTileLayer"
@@ -60,10 +60,10 @@
         "VectorTileSource",
         "GeoJSONSource",
         "RasterDemSource",
-        "VideoSource",
         "ImageSource",
         "ShapefileSource",
         "GeoTiffSource",
+        "GeoZarrSource",
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
@@ -161,7 +161,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": ["guided", "unguided", "Vertical Scroll"],
+          "enum": ["guided", "Vertical Scroll"],
           "description": "The type of story map"
         },
         "storySegments": {
@@ -178,6 +178,28 @@
           "description": "Toggle the gradient background in presentation mode.",
           "default": true
         },
+        "markdownSegmentGap": {
+          "type": "boolean",
+          "title": "Gap between markdown segments",
+          "description": "Inserts a full-stage gap between consecutive markdown segments in vertical scroll stories.",
+          "default": false
+        },
+        "markdownSegmentOpacity": {
+          "type": "number",
+          "title": "Markdown segment opacity",
+          "description": "Opacity of markdown segment backgrounds in vertical scroll stories.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "storyPanelOpacity": {
+          "type": "number",
+          "title": "Story panel opacity",
+          "description": "Opacity of story panel backgrounds over the map (0–1). Text stays fully opaque.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
         "presentationBgColor": {
           "type": "string",
           "title": "Presentation Background Color",
@@ -187,6 +209,12 @@
           "type": "string",
           "title": "Presentation Text Color",
           "description": "The text color of the story map"
+        },
+        "overlayContentWidth": {
+          "type": "string",
+          "title": "Overlay content width",
+          "description": "CSS width for vertical-scroll markdown overlay content.",
+          "default": "100%"
         }
       }
     },
@@ -277,11 +305,6 @@
         "useExtent": {
           "type": "boolean",
           "default": false
-        },
-        "storyMapPresentationMode": {
-          "type": "boolean",
-          "title": "Whether presentation mode is active",
-          "default": false
         }
       }
     },
@@ -330,6 +353,100 @@
           }
         }
       }
+    },
+    "jGISAnnotationContent": {
+      "title": "IJGISAnnotationContent",
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "user": {
+          "type": "object"
+        }
+      }
+    },
+    "jGISAnnotation": {
+      "title": "IJGISAnnotation",
+      "type": "object",
+      "required": ["label", "position", "zoom", "contents", "parent", "open"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "position": {
+          "type": "object",
+          "required": ["x", "y"],
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        },
+        "zoom": {
+          "type": "number"
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/jGISAnnotationContent"
+          }
+        },
+        "parent": {
+          "type": "string"
+        },
+        "open": {
+          "type": "boolean"
+        }
+      }
+    },
+    "jGISAnnotations": {
+      "title": "IJGISAnnotations",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISAnnotation"
+      }
+    },
+    "jGISDrawCustomAttribute": {
+      "title": "IDrawCustomAttribute",
+      "type": "object",
+      "required": ["key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "jGISDrawCustomAttributePreset": {
+      "title": "IDrawCustomAttributePreset",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/jGISDrawCustomAttribute"
+      }
+    },
+    "jGISDrawCustomAttributePresets": {
+      "title": "IDrawCustomAttributePresets",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISDrawCustomAttributePreset"
+      }
+    },
+    "jGISMetadata": {
+      "title": "IJGISMetadata",
+      "type": "object",
+      "default": {},
+      "additionalProperties": { "type": "string" }
     }
   }
 }

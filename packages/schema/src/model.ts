@@ -20,11 +20,12 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
+import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import {
-  IStorySegmentLayer,
-  LayerOverride,
-} from './_interface/project/layers/storySegmentLayer';
-import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
+  DEFAULT_PROJECTION,
+  DEFAULT_WORLD_EXTENT_3857,
+  JupyterGISDoc,
+} from './doc';
 import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
@@ -32,6 +33,10 @@ import {
   IAwarenessFieldChange,
   IAnnotationModel,
   IIdentifiedFeatures,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
+  IDrawCustomAttributesByLayer,
+  IDrawCustomAttributesLayerState,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -65,7 +70,6 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   rightPanelDisabled: false,
   layersDisabled: false,
   stacBrowserDisabled: false,
-  objectPropertiesDisabled: false,
   annotationsDisabled: false,
   identifyDisabled: false,
   storyMapsDisabled: false,
@@ -88,12 +92,15 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._metadataChangedHandler,
       this,
     );
+    this._sharedModel.annotationsChanged.connect(
+      this._annotationsChangedHandler,
+      this,
+    );
+    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
-
-    this._editingVectorLayer = false;
 
     this._jgisSettings = { ...DEFAULT_SETTINGS };
 
@@ -297,6 +304,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._identifiedFeaturesChanged;
   }
 
+  get drawCustomAttributesChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  > {
+    return this._drawCustomAttributesChanged;
+  }
+
   get remoteUserChanged(): ISignal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -338,6 +352,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedMetadataChanged;
   }
 
+  get sharedAnnotationsChanged(): ISignal<this, MapChange> {
+    return this._sharedAnnotationsChanged;
+  }
+
+  get sharedPresetsChanged(): ISignal<this, MapChange> {
+    return this._sharedPresetsChanged;
+  }
+
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
   }
@@ -358,15 +380,16 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._sharedMetadataChanged.emit(args);
   }
 
-  addMetadata(key: string, value: string): void {
-    this.sharedModel.setMetadata(key, value);
+  private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedAnnotationsChanged.emit(args);
   }
 
-  removeMetadata(key: string): void {
-    this.sharedModel.removeMetadata(key);
+  private _presetsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedPresetsChanged.emit(args);
   }
 
   dispose(): void {
+    this._storyPreviewActive = false;
     if (this._isDisposed) {
       return;
     }
@@ -409,7 +432,10 @@ export class JupyterGISModel implements IJupyterGISModel {
         bearing: 0,
         pitch: 0,
         projection: DEFAULT_PROJECTION,
+        extent: [...DEFAULT_WORLD_EXTENT_3857],
       };
+      this.sharedModel.annotations = jsonData.annotations ?? {};
+      this.sharedModel.presets = jsonData.presets ?? {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -434,7 +460,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
-  readonly editingVectorLayerChanged = new Signal<this, boolean>(this);
+  readonly modeChanged = new Signal<this, Modes>(this);
 
   getContent(): IJGISContent {
     return {
@@ -442,6 +468,9 @@ export class JupyterGISModel implements IJupyterGISModel {
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options,
+      stories: this.sharedModel.stories,
+      annotations: this.sharedModel.annotations,
+      presets: this.sharedModel.presets,
       metadata: this.sharedModel.metadata,
     };
   }
@@ -478,6 +507,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   set filePath(path: string) {
     this._filePath = path;
     this._pathChanged.emit(path);
+  }
+
+  /**
+   * Whether the document is backed by a QGIS file (`.qgs`/`.qgz`).
+   */
+  get isQgisDocument(): boolean {
+    const path = this._filePath?.toLowerCase() ?? '';
+    return path.endsWith('.qgs') || path.endsWith('.qgz');
   }
 
   getLayers(): IJGISLayers {
@@ -586,6 +623,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layer = this._sharedModel.getLayer(layer_id);
     const source_id = layer?.parameters?.source;
 
+    this.clearDrawCustomAttributesForLayer(layer_id);
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
 
@@ -682,6 +720,88 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
+  syncDrawCustomAttributes(
+    attributesByLayer: IDrawCustomAttributesByLayer,
+    emitter?: string,
+  ): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.drawCustomAttributes,
+      {
+        value: attributesByLayer,
+        emitter,
+      },
+    );
+  }
+
+  getDrawCustomAttributes(layerId: string): IDrawCustomAttribute[] {
+    let winner: IDrawCustomAttributesLayerState | undefined;
+    let winnerClientId: number | undefined;
+
+    for (const [clientId, state] of this.sharedModel.awareness.getStates()) {
+      const layerState = (state as IJupyterGISClientState | null)
+        ?.drawCustomAttributes?.value?.[layerId];
+
+      if (!layerState) {
+        continue;
+      }
+
+      if (
+        !winner ||
+        layerState.updatedAt > winner.updatedAt ||
+        (layerState.updatedAt === winner.updatedAt &&
+          clientId > (winnerClientId ?? -1))
+      ) {
+        winner = layerState;
+        winnerClientId = clientId;
+      }
+    }
+
+    return winner?.attributes ?? [];
+  }
+
+  setDrawCustomAttributesForLayer(
+    layerId: string,
+    attributes: IDrawCustomAttribute[],
+    emitter?: string,
+  ): void {
+    const current = {
+      ...(this.localState?.drawCustomAttributes?.value ?? {}),
+    };
+
+    current[layerId] = {
+      updatedAt: Date.now(),
+      attributes,
+    };
+
+    this.syncDrawCustomAttributes(current, emitter);
+  }
+
+  clearDrawCustomAttributesForLayer(layerId: string, emitter?: string): void {
+    const current = this.localState?.drawCustomAttributes?.value;
+    if (!current || !(layerId in current)) {
+      return;
+    }
+
+    const next = { ...current };
+    next[layerId] = {
+      updatedAt: Date.now(),
+      attributes: [],
+    };
+
+    this.syncDrawCustomAttributes(next, emitter);
+  }
+
+  getDrawCustomAttributePresets(): IDrawCustomAttributePresets {
+    return this.sharedModel.getPresets();
+  }
+
+  setDrawCustomAttributePreset(
+    name: string,
+    attributes: IDrawCustomAttribute[],
+  ): void {
+    this.sharedModel.setPreset(name, attributes);
+  }
+
   setUserToFollow(userId?: number): void {
     if (this._sharedModel) {
       this._sharedModel.awareness.setLocalStateField(
@@ -733,6 +853,59 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Whether the in-lab story presentation preview is active (session-only).
+   */
+  isStoryPreviewActive(): boolean {
+    return this._storyPreviewActive;
+  }
+
+  /**
+   * Whether the story viewer presentation UI should be shown (Specta or
+   * in-lab preview).
+   */
+  isStoryPresentationActive(): boolean {
+    return this.isSpectaMode() || this._storyPreviewActive;
+  }
+
+  /**
+   * Whether the current story supports presentation preview.
+   */
+  canUseStoryPreview(): boolean {
+    const storySegments = this.getSelectedStory().story?.storySegments;
+    return (
+      !this.jgisSettings.storyMapsDisabled &&
+      !!storySegments &&
+      storySegments.length >= 1 &&
+      this._isStoryTypeSupportedForPresentation(
+        this.getSelectedStory().story?.storyType,
+      )
+    );
+  }
+
+  setStoryPreviewActive(active: boolean): void {
+    if (active && !this.canUseStoryPreview()) {
+      return;
+    }
+
+    if (this._storyPreviewActive === active) {
+      return;
+    }
+
+    this._storyPreviewActive = active;
+    this._storyPreviewActiveChanged.emit(active);
+  }
+
+  get storyPreviewActiveChanged(): ISignal<this, boolean> {
+    return this._storyPreviewActiveChanged;
+  }
+
+  private _isStoryTypeSupportedForPresentation(
+    storyType: IJGISStoryMap['storyType'] | undefined,
+  ): boolean {
+    return storyType !== undefined && SPECTA_STORY_TYPES.includes(storyType);
+  }
+
+  /**
    * Placeholder in case we eventually want to support multiple stories
    * @returns First/only story
    */
@@ -779,7 +952,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const zoom = state?.zoom;
     const { storyId } = this.getSelectedStory();
 
-    if (!zoom || !extent) {
+    if (zoom === undefined || !extent) {
       console.warn('No extent or zoom found');
       return null;
     }
@@ -790,10 +963,12 @@ export class JupyterGISModel implements IJupyterGISModel {
       extent,
       zoom,
       transition: { type: 'linear', time: 1 },
+      layerOverride: [],
       content: {
         contentMode: 'map',
-        title: '',
+        imageCaption: '',
         image: '',
+        panelWidth: '25%',
       },
     };
     const layerModel: IJGISLayer = {
@@ -813,7 +988,12 @@ export class JupyterGISModel implements IJupyterGISModel {
       const storyType = 'guided';
       const storySegments = [newStorySegmentId];
 
-      const storyMap: IJGISStoryMap = { title, storyType, storySegments };
+      const storyMap: IJGISStoryMap = {
+        title,
+        storyType,
+        storySegments,
+        overlayContentWidth: '100%',
+      };
 
       this.sharedModel.addStoryMap(storyId, storyMap);
       this._segmentAdded.emit({
@@ -853,49 +1033,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return viewState?.layerName
       ? `${viewState.layerName} - ${basename}`
       : basename;
-  }
-
-  /**
-   * Adds a story segment from a layer
-   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
-   */
-  createStorySegmentFromLayer(layerId: string) {
-    const layer = this.getLayer(layerId);
-    if (!layer) {
-      return null;
-    }
-
-    const viewState = this.getViewState()[layerId];
-    if (!viewState) {
-      return null;
-    }
-
-    const segment = this.addStorySegment(viewState);
-    if (!segment) {
-      return null;
-    }
-
-    const segmentLayer = this.getLayer(segment.storySegmentId);
-    if (!segmentLayer) {
-      return null;
-    }
-
-    const segmentParams = segmentLayer.parameters as IStorySegmentLayer;
-
-    const layerParams = layer.parameters;
-
-    const override: LayerOverride[number] = {
-      targetLayer: layerId,
-      visible: layer.visible,
-      color: layerParams?.color,
-      opacity: layerParams?.opacity,
-      symbologyState: layerParams?.symbologyState,
-    };
-
-    segmentParams.layerOverride = [override];
-    segmentLayer.parameters = segmentParams;
-
-    return segment;
   }
 
   get segmentAdded(): ISignal<this, IStorySegmentRef> {
@@ -1092,10 +1229,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Toggle a map interaction mode on or off.
    * Toggling off sets the mode to 'panning'.
+   * Modes are exclusive, entering one leaves any other.
    * @param mode The mode to be toggled
    */
   toggleMode(mode: Modes) {
-    this._currentMode = this._currentMode === mode ? 'panning' : mode;
+    this.currentMode = this._currentMode === mode ? 'panning' : mode;
   }
 
   get currentMode(): Modes {
@@ -1103,7 +1241,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   set currentMode(value: Modes) {
+    if (this._currentMode === value) {
+      return;
+    }
+
     this._currentMode = value;
+    this.modeChanged.emit(value);
   }
 
   setUIState(value: Partial<IJGISUIState>): void {
@@ -1200,6 +1343,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
+
         if (previousValue === currentValue) {
           return;
         }
@@ -1239,6 +1383,13 @@ export class JupyterGISModel implements IJupyterGISModel {
             this._identifiedFeaturesChanged.emit(
               payload as IAwarenessFieldChange<
                 IJupyterGISClientState['identifiedFeatures']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.drawCustomAttributes:
+            this._drawCustomAttributesChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['drawCustomAttributes']
               >,
             );
             break;
@@ -1286,19 +1437,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
   }
 
-  updateEditingVectorLayer(): void {
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
-  }
-
-  get editingVectorLayer(): boolean {
-    return this._editingVectorLayer;
-  }
-
-  set editingVectorLayer(editingVectorLayer: boolean) {
-    this._editingVectorLayer = editingVectorLayer;
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
-  }
-
   get geolocation(): JgisCoordinates {
     return this._geolocation;
   }
@@ -1323,7 +1461,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
-  private _currentMode: Modes;
+  private _currentMode: Modes = 'panning';
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -1358,6 +1496,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >(this);
+  private _drawCustomAttributesChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >(this);
   private _remoteUserChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -1368,6 +1510,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
+  private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
+  private _sharedPresetsChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
@@ -1384,8 +1528,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     { type: SelectionType; itemId: string } | null
   >(this);
 
-  private _editingVectorLayer: boolean;
-
   static worker: Worker;
 
   private _geolocation: JgisCoordinates;
@@ -1393,6 +1535,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
+  private _storyPreviewActive = false;
+  private _storyPreviewActiveChanged = new Signal<this, boolean>(this);
   stories: Map<string, IJGISStoryMap> = new Map();
 
   private _localUIState: Partial<IJGISUIState> = {};

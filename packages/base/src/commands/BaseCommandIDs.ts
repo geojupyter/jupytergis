@@ -13,6 +13,7 @@ export const addMarker = 'jupytergis:addMarker';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
+export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -25,16 +26,19 @@ export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';
-export const openNewVideoDialog = 'jupytergis:openNewVideoDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
+export const openNewGeoZarrDialog = 'jupytergis:openNewGeoZarrDialog';
 export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
+export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
 
 // Layer and group actions
+export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
+export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
 export const duplicateSelected = 'jupytergis:duplicateSelected';
 export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
 export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
@@ -45,6 +49,9 @@ export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';
 export const removeConsole = 'jupytergis:removeConsole';
 export const executeConsole = 'jupytergis:executeConsole';
 export const selectCompleter = 'jupytergis:selectConsoleCompleter';
+
+// Tour command
+export const launchFeatureTour = 'jupytergis:launchFeatureTour';
 
 // Map Commands
 export const addAnnotation = 'jupytergis:addAnnotation';
@@ -61,15 +68,11 @@ export const showLayersTab = 'jupytergis:showLayersTab';
 export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
 
 // Right panel tabs
-export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
-export const toggleStoryPresentationMode =
-  'jupytergis:toggleStoryPresentationMode';
-export const createStorySegmentFromLayer =
-  'jupytergis:createStorySegmentFromLayer';
+export const openStoryEditor = 'jupytergis:openStoryEditor';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';

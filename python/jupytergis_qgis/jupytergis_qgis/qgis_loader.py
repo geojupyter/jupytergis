@@ -3,49 +3,58 @@ from __future__ import annotations
 import atexit
 import json
 import os
+import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import unquote
 from uuid import uuid4
 
-from jupytergis_core.color_ramps import sample_colors
-from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
-from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsApplication,
-    QgsCategorizedSymbolRenderer,
-    QgsColorRampShader,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
-    QgsFillSymbol,
-    QgsGradientColorRamp,
-    QgsGraduatedSymbolRenderer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
-    QgsLineSymbol,
     QgsMapLayer,
-    QgsMarkerSymbol,
+    QgsMultiBandColorRenderer,
     QgsProject,
     QgsRasterLayer,
-    QgsRasterShader,
     QgsRectangle,
     QgsReferencedRectangle,
-    QgsRendererCategory,
     QgsSettings,
+    QgsSingleBandGrayRenderer,
     QgsSingleBandPseudoColorRenderer,
-    QgsSingleSymbolRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
 )
 
-# Custom property keys stored on QGIS layers to survive round-trip.
-PROP_GEOMETRY_TYPE = "jgis_symbology_geometryType"
-PROP_STROKE_COLOR = "jgis_symbology_strokeColor"
-PROP_CAP_STYLE = "jgis_symbology_capStyle"
-PROP_JOIN_STYLE = "jgis_symbology_joinStyle"
-PROP_STROKE_WIDTH = "jgis_symbology_strokeWidth"
+from .data_defined import (
+    _RAMP_META_KEY,
+    _vector_renderer_to_grammar,
+    grammar_layer_to_renderer,
+)
+from .grammar import (
+    _is_finite_number,
+    _raster_min_max,
+    _vt_reconstruct,
+    _vt_spec_to_style,
+    _vt_style_width,
+    combine_subsets,
+    filters_to_subset,
+    grammar_layer_alpha_factor,
+    grammar_layer_geometry_hint,
+    grammar_layer_subset,
+    grammar_to_raster_renderer,
+    grammar_to_vector_tile_styles,
+    grayscale_raster_to_grammar,
+    multiband_raster_to_grammar,
+    raster_flat_color_to_grammar,
+    raster_to_grammar,
+    subset_to_when,
+    vector_tile_grammar,
+)
 
 # Prevent any Qt application and event loop to spawn when
 # using the QGIS Python app
@@ -67,7 +76,7 @@ def qgis_layer_to_jgis(
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
     settings: QgsSettings | None,
-) -> str:
+) -> str | None:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
     if layer is None:
@@ -78,8 +87,8 @@ def qgis_layer_to_jgis(
     layer_type = None
     source_type = None
 
-    layer_parameters = {}
-    source_parameters = {}
+    layer_parameters: dict[str, dict[str, Any]] = {}
+    source_parameters: dict[str, list[dict[str, Any]] | str | int | bool] = {}
 
     if isinstance(layer, QgsRasterLayer):
         # QGIS treats tif layers as raster layer
@@ -87,58 +96,85 @@ def qgis_layer_to_jgis(
             layer_type = "GeoTiffLayer"
             source_type = "GeoTiffSource"
 
-            # Need to build layer color
+            # Express the renderer as Grammar (symbologyState.layers), the single
+            # source of truth post #1390; no OpenLayers `color` array is persisted.
             renderer = layer.renderer()
-            shader = renderer.shader()
-            shaderFunc = shader.rasterShaderFunction()
-            colorList = shaderFunc.colorRampItemList()
-            band = renderer.band()
-            source_min = renderer.classificationMin()
-            source_max = renderer.classificationMax()
+            provider = layer.dataProvider()
+
+            if isinstance(renderer, QgsMultiBandColorRenderer):
+                # Multiband RGB -> pixel-red/green/blue band mappings. A band's
+                # contrast stretch (if any) becomes a scalar rescale.
+                bands = {
+                    0: renderer.redBand(),
+                    1: renderer.greenBand(),
+                    2: renderer.blueBand(),
+                }
+                enhancements = {
+                    0: renderer.redContrastEnhancement(),
+                    1: renderer.greenContrastEnhancement(),
+                    2: renderer.blueContrastEnhancement(),
+                }
+                ranges = {
+                    index: (enhancement.minimumValue(), enhancement.maximumValue())
+                    for index, enhancement in enhancements.items()
+                    if enhancement is not None
+                    and _is_finite_number(enhancement.minimumValue())
+                    and _is_finite_number(enhancement.maximumValue())
+                }
+                # A dedicated alpha/mask band (renderer.alphaBand() is -1 when
+                # unset) round-trips as a pixel-alpha mapping.
+                alpha_band = renderer.alphaBand()
+                layer_parameters["symbologyState"] = multiband_raster_to_grammar(
+                    bands,
+                    ranges,
+                    alpha_band if alpha_band >= 1 else None,
+                )
+                source_min, source_max = _raster_min_max(
+                    provider,
+                    renderer.redBand(),
+                    renderer.redContrastEnhancement(),
+                )
+            elif isinstance(renderer, QgsSingleBandPseudoColorRenderer):
+                shaderFunc = renderer.shader().rasterShaderFunction()
+                colorList = shaderFunc.colorRampItemList()
+                band = renderer.band()
+                source_min = renderer.classificationMin()
+                source_max = renderer.classificationMax()
+                if not (
+                    _is_finite_number(source_min) and _is_finite_number(source_max)
+                ):
+                    source_min, source_max = _raster_min_max(provider, band, None)
+                layer_parameters["symbologyState"] = raster_to_grammar(
+                    colorList,
+                    band,
+                    source_min,
+                    source_max,
+                )
+            elif isinstance(renderer, QgsSingleBandGrayRenderer):
+                band = renderer.grayBand()
+                source_min, source_max = _raster_min_max(
+                    provider,
+                    band,
+                    renderer.contrastEnhancement(),
+                )
+                layer_parameters["symbologyState"] = grayscale_raster_to_grammar(band)
+            else:
+                # Unknown raster renderer: keep the layer with a default stretch.
+                source_min, source_max = _raster_min_max(provider, 1, None)
+                layer_parameters["symbologyState"] = {"layers": []}
 
             # Remove "/vsicurl/" from source
-            urls = [
-                {
-                    "url": layer.source()[9:],
-                    "min": source_min,
-                    "max": source_max,
-                },
-            ]
-
-            colorRampTypeMap = {0: "interpolate", 1: "discrete", 2: "exact"}
-            colorRampType = colorRampTypeMap[shaderFunc.colorRampType()]
-
-            if colorRampType == "interpolate":
-                color = [
-                    "interpolate",
-                    ["linear"],
-                    ["band", float(band)],
-                    0.0,
-                    [0.0, 0.0, 0.0, 0.0],
-                ]
-
-                for node in colorList:
-                    unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
-                        source_max - source_min
-                    )
-                    color.append(unscaled_val)
-                    color.append(
-                        [
-                            node.color.red(),
-                            node.color.green(),
-                            node.color.blue(),
-                            float(node.color.alpha()) / 255,
-                        ],
-                    )
-
-            if colorRampType == "discrete":
-                color = _build_color_ramp("<=", colorList, band, source_min, source_max)
-
-            if colorRampType == "exact":
-                color = _build_color_ramp("==", colorList, band, source_min, source_max)
-
-            source_parameters.update(urls=urls, normalize=True, wrapX=True)
-            layer_parameters.update(color=color)
+            source_parameters.update(
+                urls=[
+                    {
+                        "url": layer.source()[9:],
+                        "min": source_min,
+                        "max": source_max,
+                    },
+                ],
+                normalize=True,
+                wrapX=True,
+            )
 
         else:
             layer_type = "RasterLayer"
@@ -164,149 +200,59 @@ def qgis_layer_to_jgis(
     if isinstance(layer, QgsVectorLayer):
         layer_type = "VectorLayer"
         source_type = "GeoJSONSource"
-        source = layer.source()
 
-        if source.startswith("http://") or source.startswith("https://"):
-            file_name = source
+        # OGR data sources look like "path|subset=...|layername=...". Split the
+        # data path off the provider options (the "|subset=" we add on export
+        # would otherwise be glued onto the GeoJSON URL/path).
+        source = layer.source()
+        path_part = source.split("|", 1)[0]
+        if path_part.startswith("http://") or path_part.startswith("https://"):
+            file_name = path_part
         else:
-            components = source.split("/")
-            file_name = components[-1]
-            file_name = file_name.split("|")[0]
+            # QGIS resolves layer sources to absolute paths. jGIS stores paths
+            # relative to its document directory (same place the project lives),
+            # so re-relativise to keep any subdirectory (e.g. "data/eq.geojson")
+            # rather than collapsing to the bare basename. Only fall back to the
+            # basename when the data sits outside the project tree, to avoid
+            # emitting fragile "../" paths.
+            project_dir = QgsProject.instance().absolutePath()
+            src = Path(path_part)
+            if project_dir and src.is_absolute():
+                try:
+                    file_name = str(src.relative_to(project_dir))
+                except ValueError:
+                    file_name = src.name
+            else:
+                file_name = path_part
 
         source_parameters.update(path=file_name)
 
         renderer = layer.renderer()
 
-        # Build symbologyState as the single source of truth (#698).
-        # No `color` (OL FlatStyle) is persisted — it's derived on the fly.
-        symbol = None
-        symb_state = layer_parameters.setdefault("symbologyState", {})
+        # The named colour ramp baked into a data-defined CASE is recovered from the
+        # layer custom property export stashed it under (the stops alone can't say
+        # which ramp produced them).
+        ramp_meta = {}
+        raw_ramp_meta = layer.customProperty(_RAMP_META_KEY)
+        if raw_ramp_meta:
+            try:
+                ramp_meta = json.loads(raw_ramp_meta)
+            except (ValueError, TypeError):
+                ramp_meta = {}
 
-        if isinstance(renderer, QgsSingleSymbolRenderer):
-            symbol = renderer.symbol()
-            symb_state["renderType"] = "Single Symbol"
+        # Express the QGIS renderer as Grammar (symbologyState.layers), the single
+        # source of truth post #1390. Single Symbol / Categorized / Graduated map
+        # cleanly; anything else falls back to a default single symbol.
+        symbology_state = _vector_renderer_to_grammar(renderer, ramp_meta)
 
-        elif isinstance(renderer, QgsCategorizedSymbolRenderer):
-            field_name = renderer.classAttribute()
-            cat_symbol = None
-            for category in renderer.categories():
-                cat_symbol = category.symbol()
+        # Translate the OGR subset string back into a layer-level grammar `when`
+        # so feature filters survive the round-trip (best-effort: simple filters).
+        when = subset_to_when(layer.subsetString())
+        if when:
+            for grammar_layer in symbology_state.get("layers", []):
+                grammar_layer["when"] = when
 
-            symb_state.update(
-                renderType="Categorized",
-                value=field_name,
-                colorRamp="viridis",
-                fallbackColor=[0.0, 0.0, 0.0, 0.0],
-            )
-
-            if cat_symbol is not None:
-                outline_color_str = (
-                    cat_symbol.symbolLayer(0)
-                    .properties()
-                    .get("outline_color", "0,0,0,255")
-                )
-                stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
-                symb_state["strokeColor"] = list(stroke_rgba)
-
-                if isinstance(cat_symbol, QgsMarkerSymbol):
-                    symb_state["geometryType"] = "circle"
-                elif isinstance(cat_symbol, QgsLineSymbol):
-                    props = cat_symbol.symbolLayer(0).properties()
-                    symb_state["geometryType"] = "line"
-                    symb_state["capStyle"] = props.get("capstyle", "round")
-                    symb_state["joinStyle"] = props.get("joinstyle", "round")
-                    symb_state["strokeWidth"] = float(props.get("line_width", 1.25))
-                elif isinstance(cat_symbol, QgsFillSymbol):
-                    symb_state["geometryType"] = "fill"
-
-        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            field_name = renderer.classAttribute()
-            range_symbol = None
-            for rng in renderer.ranges():
-                range_symbol = rng.symbol()
-
-            n_classes = len(renderer.ranges()) or 9
-
-            symb_state.update(
-                renderType="Graduated",
-                value=field_name,
-                colorRamp="viridis",
-                nClasses=n_classes,
-                mode="equal interval",
-            )
-
-            if range_symbol is not None:
-                if isinstance(range_symbol, QgsMarkerSymbol):
-                    outline_color_str = (
-                        range_symbol.symbolLayer(0)
-                        .properties()
-                        .get("outline_color", "0,0,0,255")
-                    )
-                    stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
-                    symb_state["strokeColor"] = list(stroke_rgba)
-                    symb_state["geometryType"] = "circle"
-                elif isinstance(range_symbol, QgsLineSymbol):
-                    props = range_symbol.symbolLayer(0).properties()
-                    symb_state["geometryType"] = "line"
-                    symb_state["capStyle"] = props.get("capstyle", "round")
-                    symb_state["joinStyle"] = props.get("joinstyle", "round")
-                    symb_state["strokeWidth"] = float(props.get("line_width", 1.25))
-                elif isinstance(range_symbol, QgsFillSymbol):
-                    outline_color_str = (
-                        range_symbol.symbolLayer(0)
-                        .properties()
-                        .get("outline_color", "0,0,0,255")
-                    )
-                    stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
-                    symb_state["strokeColor"] = list(stroke_rgba)
-                    symb_state["geometryType"] = "fill"
-
-        if symbol:
-            r, g, b, a = hex_to_rgba(symbol.color().name())
-            fill_color = [r, g, b, a]
-
-            if isinstance(symbol, QgsMarkerSymbol):
-                symb_state["fillColor"] = fill_color
-                symb_state["strokeColor"] = fill_color
-                symb_state["geometryType"] = "circle"
-
-            elif isinstance(symbol, QgsLineSymbol):
-                props = symbol.symbolLayer(0).properties()
-                symb_state["strokeColor"] = fill_color
-                symb_state["geometryType"] = "line"
-                symb_state["capStyle"] = props.get("capstyle", "round")
-                symb_state["joinStyle"] = props.get("joinstyle", "round")
-                symb_state["strokeWidth"] = float(props.get("line_width", 1.25))
-
-            elif isinstance(symbol, QgsFillSymbol):
-                symb_state["fillColor"] = fill_color
-                outline_color_str = (
-                    symbol.symbolLayer(0).properties().get("outline_color", "0,0,0,255")
-                )
-                stroke_rgba = hex_to_rgba(rgb_to_hex(outline_color_str))
-                symb_state["strokeColor"] = list(stroke_rgba)
-                symb_state["geometryType"] = "fill"
-
-        # Override with stored custom properties (survive round-trip without data).
-        jgis_geom_type = layer.customProperty(PROP_GEOMETRY_TYPE)
-        if jgis_geom_type:
-            symb_state["geometryType"] = jgis_geom_type
-
-        jgis_stroke_color = layer.customProperty(PROP_STROKE_COLOR)
-        if jgis_stroke_color:
-            symb_state["strokeColor"] = json.loads(jgis_stroke_color)
-
-        jgis_cap_style = layer.customProperty(PROP_CAP_STYLE)
-        if jgis_cap_style:
-            symb_state["capStyle"] = jgis_cap_style
-
-        jgis_join_style = layer.customProperty(PROP_JOIN_STYLE)
-        if jgis_join_style:
-            symb_state["joinStyle"] = jgis_join_style
-
-        jgis_stroke_width = layer.customProperty(PROP_STROKE_WIDTH)
-        if jgis_stroke_width is not None:
-            symb_state["strokeWidth"] = float(jgis_stroke_width)
+        layer_parameters["symbologyState"] = symbology_state
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -329,29 +275,23 @@ def qgis_layer_to_jgis(
         )
 
         renderer = layer.renderer()
-        styles = renderer.styles()
-        color = {}
-
-        for style in styles:
-            symbol = style.symbol()
-            geometry_type = style.geometryType()
-
-            opacity = symbol.opacity()
-            alpha = hex(int(opacity * 255))[2:].zfill(2)
-
-            # 0 = points, 1 = lines, 2 = polygons
-            if geometry_type == 0:
-                color["circle-fill-color"] = symbol.color().name() + alpha
-                color["circle-stroke-color"] = symbol.color().name() + alpha
-
-            if geometry_type == 1:
-                color["stroke-color"] = symbol.color().name() + alpha
-
-            if geometry_type == 2:
-                color["fill-color"] = symbol.color().name() + alpha
-
-        layer_parameters.update(type="fill")
-        layer_parameters.update(color=color)
+        styles_by_geom: dict[int, list] = {}
+        for style in renderer.styles():
+            styles_by_geom.setdefault(int(style.geometryType()), []).append(style)
+        # A line's colour is its "stroke"; polygons/points carry it as "fill".
+        geom_styles = {
+            geom: {("stroke" if geom == 1 else "fill"): _vt_reconstruct(styles)}
+            for geom, styles in styles_by_geom.items()
+        }
+        geom_widths = {
+            geom: width
+            for geom, styles in styles_by_geom.items()
+            if (width := _vt_style_width(styles[0])) is not None
+        }
+        layer_parameters["symbologyState"] = vector_tile_grammar(
+            geom_styles,
+            geom_widths,
+        )
 
     if layer_type is None:
         print(f"JUPYTERGIS - Unable to load layer type {type(layer)}")
@@ -388,57 +328,16 @@ def qgis_layer_to_jgis(
     return layer_id
 
 
-def _build_color_ramp(operator, colorList, band, source_min, source_max):
-    color = [
-        "case",
-        ["==", ["band", 1.0], 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-    ]
-
-    # Last entry is inf for discrete, so handle differently
-    for node in colorList[:-1]:
-        unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
-            source_max - source_min
-        )
-        color.append([operator, ["band", float(band)], unscaled_val])
-        color.append(
-            [
-                node.color.red(),
-                node.color.green(),
-                node.color.blue(),
-                float(node.color.alpha()) / 255,
-            ],
-        )
-
-    lastElement = colorList[-1]
-    last_value = (
-        source_max
-        if operator == "<="
-        else lastElement.value * (1 - 0) - source_min * (1 - 0)
-    ) / (source_max - source_min)
-    color.append([operator, ["band", float(band)], last_value])
-    color.append(
-        [
-            lastElement.color.red(),
-            lastElement.color.green(),
-            lastElement.color.blue(),
-            float(node.color.alpha()) / 255,
-        ],
-    )
-
-    # Fallback value for openlayers
-    color.append([0.0, 0.0, 0.0, 0.0])
-
-    return color
-
-
 def qgis_layer_tree_to_jgis(
     node: QgsLayerTreeGroup,
     layer_tree: list | None = None,
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
     settings: QgsSettings | None = None,
-) -> list[dict[str, Any]] | None:
+) -> dict[
+    str,
+    list[dict[str, list | str | bool]] | dict[str, dict[str, Any]] | None,
+]:
     if layer_tree is None:
         layer_tree = []
         layers = {}
@@ -447,7 +346,7 @@ def qgis_layer_tree_to_jgis(
     children = node.children()
     for child in children:
         if isinstance(child, QgsLayerTreeGroup):
-            _layer_tree = []
+            _layer_tree: list[dict[str, list | str | bool]] = []
             group = {
                 "layers": _layer_tree,
                 "name": child.name(),
@@ -456,11 +355,85 @@ def qgis_layer_tree_to_jgis(
             layer_tree.append(group)
             qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources, settings)
         elif isinstance(child, QgsLayerTreeLayer):
+            if layers is None:
+                raise RuntimeError("layers cannot be None. This is a bug.")
+            if sources is None:
+                raise RuntimeError("sources cannot be None. This is a bug.")
+
             layer_id = qgis_layer_to_jgis(child, layers, sources, settings)
             if layer_id is not None:
                 layer_tree.append(layer_id)
 
     return {"layers": layers, "sources": sources, "layerTree": layer_tree}
+
+
+# A jGIS layer with several renderings is exported as one QGIS layer per
+# rendering, all sharing the data source; the extras get an "<id>::<n>" id
+# (see jgis_layer_to_qgis). This matches "<base>::<index>" so import can fold
+# them back into a single jGIS layer.
+_MULTI_RENDER_ID_RE = re.compile(r"(?P<base>.+)::(?P<index>\d+)$")
+
+
+def _prune_ids_from_tree(layer_tree: list, removed: set[str]) -> list:
+    """Drop merged layer ids from the (possibly nested) layer tree."""
+    pruned = []
+    for item in layer_tree:
+        if isinstance(item, str):
+            if item not in removed:
+                pruned.append(item)
+        else:
+            item["layers"] = _prune_ids_from_tree(item.get("layers", []), removed)
+            pruned.append(item)
+    return pruned
+
+
+def _merge_multi_render_layers(jgis: dict[str, Any]) -> dict[str, Any]:
+    """Recombine the "<id>::<n>" QGIS layers back into one jGIS layer whose
+    symbologyState holds the several renderings (e.g. points + heatmap).
+    """
+    layers = jgis["layers"]
+
+    # base id -> [(index, extra_id), ...]
+    extras: dict[str, list[tuple[int, str]]] = {}
+    for layer_id in layers:
+        match = _MULTI_RENDER_ID_RE.fullmatch(layer_id)
+        if match:
+            extras.setdefault(match["base"], []).append(
+                (int(match["index"]), layer_id),
+            )
+
+    removed: set[str] = set()
+    for base_id, items in extras.items():
+        base = layers.get(base_id)
+        if base is None:
+            # No base layer to merge into (e.g. it failed to import); leave the
+            # extras as standalone layers rather than dropping them.
+            continue
+        base_grammar = (
+            base.setdefault("parameters", {})
+            .setdefault("symbologyState", {})
+            .setdefault("layers", [])
+        )
+        for _, extra_id in sorted(items):
+            extra = layers.pop(extra_id)
+            removed.add(extra_id)
+            base_grammar.extend(
+                extra.get("parameters", {}).get("symbologyState", {}).get("layers", []),
+            )
+
+    if removed:
+        jgis["layerTree"] = _prune_ids_from_tree(jgis["layerTree"], removed)
+        # Drop sources no longer referenced by any surviving layer.
+        used_sources = {
+            layer.get("parameters", {}).get("source") for layer in layers.values()
+        }
+        jgis["sources"] = {
+            source_id: source
+            for source_id, source in jgis["sources"].items()
+            if source_id in used_sources
+        }
+
+    return jgis
 
 
 def import_project_from_qgis(path: str | Path):
@@ -474,6 +447,7 @@ def import_project_from_qgis(path: str | Path):
     layer_tree_root = project.layerTreeRoot()
     qgis_settings = QgsSettings()
     jgis_layer_tree = qgis_layer_tree_to_jgis(layer_tree_root, settings=qgis_settings)
+    jgis_layer_tree = _merge_multi_render_layers(jgis_layer_tree)
 
     # extract the viewport in lat/long coordinates
     view_settings = project.viewSettings()
@@ -493,156 +467,9 @@ def import_project_from_qgis(path: str | Path):
             "projection": project.crs().authid(),
         },
         "metadata": {},
+        "annotations": {},
         **jgis_layer_tree,
     }
-
-
-def _rgba_to_qcolor(rgba):
-    """Convert an [r,g,b,a] list (a in 0-1) to QColor."""
-    if isinstance(rgba, str) and rgba.startswith("#"):
-        r, g, b, a = hex_to_rgba(rgba)
-        return QColor(int(r), int(g), int(b), int(a * 255))
-    if isinstance(rgba, list) and len(rgba) == 4:
-        r, g, b, a = rgba
-        return QColor(int(r), int(g), int(b), int(a * 255))
-    return QColor(0, 0, 0, 255)
-
-
-def get_base_symbol(geometry_type, symb_state, opacity):
-    """Returns a base symbol based on geometry type, reading from symbologyState."""
-    if geometry_type == "circle":
-        symbol = QgsMarkerSymbol()
-    elif geometry_type == "line":
-        symbol = QgsLineSymbol()
-    elif geometry_type == "fill":
-        symbol = QgsFillSymbol()
-    else:
-        return None
-
-    symbol.setOpacity(opacity)
-    symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
-    symbol_layer = symbol.symbolLayer(0)
-
-    stroke_color = _rgba_to_qcolor(symb_state.get("strokeColor", [0, 0, 0, 1]))
-    stroke_width = symb_state.get("strokeWidth", 1.25)
-
-    if geometry_type == "circle":
-        symbol_layer.setStrokeColor(stroke_color)
-        symbol_layer.setStrokeWidth(stroke_width)
-    elif geometry_type == "line":
-        symbol_layer.setWidth(float(stroke_width))
-    elif geometry_type == "fill":
-        symbol_layer.setStrokeColor(stroke_color)
-        symbol_layer.setStrokeWidth(stroke_width)
-
-    return symbol
-
-
-def _build_color_ramp(symbology_state):
-    """Build a QgsGradientColorRamp from the symbologyState colorRamp/reverseRamp fields.
-
-    Uses the shared ``jupytergis_core.color_ramps`` module (backed by branca)
-    to resolve the frontend ramp name and sample the start/end colours.
-    """
-    ramp_name = symbology_state.get("colorRamp", "viridis")
-    reverse = symbology_state.get("reverseRamp", False)
-
-    endpoints = sample_colors(ramp_name, n=2, reverse=reverse)
-    c1 = QColor(*endpoints[0])
-    c2 = QColor(*endpoints[1])
-
-    return QgsGradientColorRamp(c1, c2)
-
-
-def _sample_qcolors(symbology_state, n):
-    """Sample *n* QColors from the ramp specified in symbologyState."""
-    ramp_name = symbology_state.get("colorRamp", "viridis")
-    reverse = symbology_state.get("reverseRamp", False)
-
-    return [QColor(*rgba) for rgba in sample_colors(ramp_name, n=n, reverse=reverse)]
-
-
-# Map jGIS classification mode names to QgsGraduatedSymbolRenderer method constants.
-_GRADUATED_MODE_MAP = {
-    "equal interval": 0,  # EqualInterval
-    "quantile": 1,  # Quantile
-    "jenks": 2,  # Jenks
-    "pretty": 4,  # Pretty
-    "logarithmic": 3,  # StdDev (closest match)
-}
-
-
-def create_categorized_renderer(symbology_state, geometry_type, base_symbol, map_layer):
-    """Creates a categorized renderer by computing categories from the layer data.
-
-    If stopsOverride is present, uses those custom stops instead of computing from data.
-    """
-    field_name = symbology_state.get("value")
-    renderer = QgsCategorizedSymbolRenderer(field_name)
-    stops_override = symbology_state.get("stopsOverride")
-
-    if stops_override:
-        for stop in stops_override:
-            value = stop.get("value")
-            rgba = stop.get("color", [0, 0, 0, 1])
-            category_symbol = base_symbol.clone()
-            category_symbol.setColor(_rgba_to_qcolor(rgba))
-            if geometry_type == "circle":
-                category_symbol.setSize(2 * symbology_state.get("radius", 5))
-            renderer.addCategory(
-                QgsRendererCategory(value, category_symbol, str(value)),
-            )
-    else:
-        idx = map_layer.fields().indexOf(field_name) if map_layer else -1
-        unique_values = sorted(map_layer.uniqueValues(idx)) if idx >= 0 else []
-        n = len(unique_values)
-        colors = _sample_qcolors(symbology_state, max(n, 1))
-
-        for i, value in enumerate(unique_values):
-            category_symbol = base_symbol.clone()
-            category_symbol.setColor(colors[i])
-            if geometry_type == "circle":
-                category_symbol.setSize(2 * symbology_state.get("radius", 5))
-            renderer.addCategory(
-                QgsRendererCategory(value, category_symbol, str(value)),
-            )
-
-    return renderer
-
-
-def create_graduated_renderer(symbology_state, geometry_type, base_symbol, map_layer):
-    """Creates a graduated renderer by computing classification breaks from the layer data.
-
-    If stopsOverride is present, uses those custom stops instead of computing from data.
-    """
-    field_name = symbology_state.get("value")
-    n_classes = symbology_state.get("nClasses", 9)
-
-    renderer = QgsGraduatedSymbolRenderer(field_name)
-    renderer.setSourceSymbol(base_symbol.clone())
-
-    color_ramp = _build_color_ramp(symbology_state)
-    renderer.setSourceColorRamp(color_ramp)
-
-    stops_override = symbology_state.get("stopsOverride")
-    if stops_override:
-        from qgis.core import QgsRendererRange  # type: ignore[import-untyped]
-
-        for i, stop in enumerate(stops_override):
-            rgba = stop.get("color", [0, 0, 0, 1])
-            upper = stop.get("value", 0)
-            lower = stops_override[i - 1].get("value", 0) if i > 0 else 0
-            range_symbol = base_symbol.clone()
-            range_symbol.setColor(_rgba_to_qcolor(rgba))
-            renderer.addClassRange(
-                QgsRendererRange(lower, upper, range_symbol, f"{lower} - {upper}"),
-            )
-    elif map_layer:
-        mode = symbology_state.get("mode", "equal interval")
-        qgis_mode = _GRADUATED_MODE_MAP.get(mode, 0)
-        renderer.updateClasses(map_layer, qgis_mode, n_classes)
-
-    return renderer
 
 
 def jgis_layer_to_qgis(
@@ -651,18 +478,18 @@ def jgis_layer_to_qgis(
     sources: dict[str, dict[str, Any]],
     settings: QgsSettings,
     logs: dict[str, list[str]],
-) -> QgsMapLayer | None:
+) -> list[QgsMapLayer]:
     # The function that build the URI from the source parameters.
-    def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
-        layer_config = {}
-        zmax = parameters.get("maxZoom")
-        zmin = parameters.get("minZoom", 0)
+    def build_uri(parameters: dict[str, object], source_type: str) -> str | None:
+        layer_config: dict[str, str] = {}
+        zmax = cast("str | int | float", parameters.get("maxZoom"))
+        zmin = cast("str | int | float", parameters.get("minZoom", 0))
 
         if source_type in ["RasterSource", "VectorTileSource"]:
-            url = parameters.get("url")
+            url = cast("str | None", parameters.get("url"))
             if url is None:
                 return None
-            urlParameters = parameters.get("urlParameters")
+            urlParameters = cast("dict[str, str]", parameters.get("urlParameters"))
             if urlParameters:
                 for k, v in urlParameters.items():
                     url = url.replace(f"{{{k}}}", v)
@@ -670,15 +497,15 @@ def jgis_layer_to_qgis(
             layer_config["type"] = "xyz"
 
         if source_type == "GeoJSONSource":
-            path = parameters.get("path")
+            path = cast("str", parameters.get("path"))
             return path
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
 
-        layer_config["zmin"] = str(round(zmin))
+        layer_config["zmin"] = str(round(float(zmin)))
         if zmax:
-            layer_config["zmax"] = str(round(zmax))
+            layer_config["zmax"] = str(round(float(zmax)))
         uri = QgsDataSourceUri()
         for key, val in layer_config.items():
             uri.setParam(key, val)
@@ -689,16 +516,19 @@ def jgis_layer_to_qgis(
         logs["warnings"].append(
             f"Layer {layer_id} not exported: the layer {layer_id} is not in layer list",
         )
-        return None
+        return []
     source_id = layer.get("parameters", {}).get("source", "")
     source = sources.get(source_id)
     if source is None:
         logs["warnings"].append(
             f"Layer {layer_id} not exported: the source {source_id} is not in source list",
         )
-        return None
+        return []
 
-    map_layer = None
+    map_layers: list[QgsMapLayer] = []
+    # Per-layer opacity, parallel to map_layers (a Grammar layer's constant
+    # pixel/fill alpha folds into the QGIS layer opacity).
+    layer_opacities: list[float] = []
 
     layer_name = layer.get("name", "")
     layer_type = layer.get("type", None)
@@ -707,279 +537,160 @@ def jgis_layer_to_qgis(
         logs["warnings"].append(
             f"Layer {layer_id} not exported: at least one of layer name, layer type or source type is missing.",
         )
-        return None
+        return []
 
     if layer_type == "OpenEOTileLayer":
         logs["warnings"].append(
             f"Layer {layer_id} not exported: OpenEO Tile layers not supported for export yet.",
         )
-        return None
+        return []
+
+    layer_params = layer.get("parameters", {})
+    opacity = layer_params.get("opacity", 1.0)
 
     if layer_type == "RasterLayer" and source_type == "RasterSource":
         source_parameters = source.get("parameters", {})
         uri = build_uri(source_parameters, "RasterSource")
-        map_layer = QgsRasterLayer(uri, layer_name, "wms")
+        map_layers.append(QgsRasterLayer(uri, layer_name, "wms"))
+        layer_opacities.append(opacity)
 
-    if layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
+    elif layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         source_parameters = source.get("parameters", {})
-        color_params = layer["parameters"]["color"]
+        symbology_state = layer_params.get("symbologyState", {})
+        # Each spec is one constant-colour style (a value-filtered class for a
+        # colorRamp/categorical, or a single unfiltered style for a constant).
+        # No data-defined colours: those do not load across QGIS versions.
+        style_specs = grammar_to_vector_tile_styles(symbology_state, logs, layer_id)
         uri = build_uri(source_parameters, "VectorTileSource")
 
         map_layer = QgsVectorTileLayer(uri, layer_name)
-        renderer = map_layer.renderer()
-        styles = renderer.styles()
-        parsed_styles = []
+        if style_specs:
+            qgis_styles = [
+                _vt_spec_to_style(spec, index) for index, spec in enumerate(style_specs)
+            ]
+            renderer = map_layer.renderer()
+            renderer.setStyles([style for style in qgis_styles if style is not None])
 
-        if color_params:
-            for style in styles:
-                symbol = style.symbol()
+        map_layers.append(map_layer)
+        layer_opacities.append(opacity)
 
-                geometry_type = style.geometryType()
-                # 0 = points, 1 = lines, 2 = polygons
-                # Slice color_params to get rid of the opacity value from the hex string
-                if geometry_type == 0:
-                    symbol.setColor(QColor(color_params["circle-fill-color"][:7]))
-                    opacity = int(color_params["circle-fill-color"][-2:], 16) / 255
-                    symbol.setOpacity(opacity)
-
-                if geometry_type == 1:
-                    symbol.setColor(QColor(color_params["stroke-color"][:7]))
-                    opacity = int(color_params["stroke-color"][-2:], 16) / 255
-                    symbol.setOpacity(opacity)
-
-                if geometry_type == 2:
-                    symbol.setColor(QColor(color_params["fill-color"][:7]))
-                    opacity = int(color_params["fill-color"][-2:], 16) / 255
-                    symbol.setOpacity(opacity)
-
-                parsed_styles.append(style)
-
-            renderer.setStyles(parsed_styles)
-
-    if layer_type == "VectorLayer" and source_type == "GeoJSONSource":
+    elif layer_type == "VectorLayer" and source_type == "GeoJSONSource":
         source_parameters = source.get("parameters", {})
         uri = build_uri(source_parameters, "GeoJSONSource")
         if not uri:
             logs["warnings"].append(
                 f"Layer {layer_id} not exported: invalid GeoJSON source.",
             )
-            return None
+            return []
 
-        # Not checking for file.isValid() since it will eventually fail to load the file (relative path on the original file does not match server root)
-        map_layer = QgsVectorLayer(uri, layer_name, "ogr")
-        crs_84 = QgsCoordinateReferenceSystem("EPSG:4326")
-        map_layer.setCrs(crs_84)
-
-        layer_params = layer.get("parameters", {})
         symbology_state = layer_params.get("symbologyState", {})
-        geometry_type = symbology_state.get("geometryType") or layer_params.get("type")
+        # One QGIS layer per Grammar rendering layer, all sharing the source —
+        # this is how QGIS shows several renderings (e.g. points + heatmap) of
+        # the same data. A layer with no grammar still gets a default symbol.
+        grammar_layers = symbology_state.get("layers") or [{}]
+        layer_filter_subset = filters_to_subset(layer.get("filters"))
 
-        # Infer geometry type from the QGIS layer when not set in jGIS data
-        if not geometry_type and map_layer and map_layer.isValid():
-            qgis_geom = map_layer.geometryType()
-            geom_map = {
-                Qgis.GeometryType.Point: "circle",
-                Qgis.GeometryType.Line: "line",
-                Qgis.GeometryType.Polygon: "fill",
-            }
-            geometry_type = geom_map.get(qgis_geom)
+        for grammar_layer in grammar_layers:
+            # Not checking isValid(): remote data often can't load here, but the
+            # renderer is still written to the project.
+            vlayer = QgsVectorLayer(uri, layer_name, "ogr")
+            vlayer.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
 
-        # infer from symbologyState fields
-        if not geometry_type:
-            if symbology_state.get("radius") is not None:
-                geometry_type = "circle"
-            elif symbology_state.get("fillColor") is not None:
-                geometry_type = "fill"
-            else:
-                geometry_type = "line"
+            # Grammar is geometry-agnostic; infer geometry from the data.
+            geometry_type = None
+            if vlayer.isValid():
+                geom_map = {
+                    Qgis.GeometryType.Point: "circle",
+                    Qgis.GeometryType.Line: "line",
+                    Qgis.GeometryType.Polygon: "fill",
+                }
+                geometry_type = geom_map.get(vlayer.geometryType())
+            if not geometry_type:
+                geometry_type = grammar_layer_geometry_hint(grammar_layer) or "fill"
 
-        opacity = layer_params.get("opacity", 1.0)
-        render_type = symbology_state.get("renderType", "Single Symbol")
-
-        symbol = get_base_symbol(geometry_type, symbology_state, opacity)
-
-        if symbol is None:
-            logs["warnings"].append(
-                f"Layer {layer_id} not exported: unknown geometry type '{geometry_type}'.",
-            )
-            return None
-
-        if render_type == "Single Symbol":
-            fill_color = _rgba_to_qcolor(
-                symbology_state.get("fillColor", [51, 153, 204, 1]),
-            )
-            symbol.setColor(fill_color)
-
-            if geometry_type == "circle":
-                radius = symbology_state.get("radius", 5)
-                symbol.setSize(2 * radius)
-            elif geometry_type == "fill":
-                stroke_color = _rgba_to_qcolor(
-                    symbology_state.get("strokeColor", [0, 0, 0, 1]),
-                )
-                symbol_layer = symbol.symbolLayer(0)
-                symbol_layer.setStrokeColor(stroke_color)
-
-            renderer = QgsSingleSymbolRenderer(symbol)
-
-        elif render_type == "Categorized":
-            renderer = create_categorized_renderer(
-                symbology_state,
+            # Opacity is applied once, at the QGIS layer level (set below via
+            # layer_opacities). Passing it into the renderer too would set symbol
+            # opacity as well, and QGIS multiplies symbol x layer opacity -> the
+            # effective opacity would be squared. Build symbols at full opacity.
+            renderer = grammar_layer_to_renderer(
+                grammar_layer,
                 geometry_type,
-                symbol,
-                map_layer,
+                1.0,
+                vlayer,
+                logs,
+                layer_id,
             )
+            if renderer is not None:
+                vlayer.setRenderer(renderer)
 
-        elif render_type == "Graduated":
-            renderer = create_graduated_renderer(
-                symbology_state,
-                geometry_type,
-                symbol,
-                map_layer,
+            subset = combine_subsets(
+                layer_filter_subset,
+                grammar_layer_subset(grammar_layer),
             )
+            if subset:
+                vlayer.setSubsetString(subset)
 
-        map_layer.setRenderer(renderer)
+            map_layers.append(vlayer)
+            layer_opacities.append(opacity * grammar_layer_alpha_factor(grammar_layer))
 
-        # Store symbology metadata as custom properties so they survive
-        # round-trip even when remote data can't be loaded in the target env.
-        if geometry_type:
-            map_layer.setCustomProperty(PROP_GEOMETRY_TYPE, geometry_type)
-        stroke_color = symbology_state.get("strokeColor")
-        if stroke_color is not None:
-            map_layer.setCustomProperty(PROP_STROKE_COLOR, json.dumps(stroke_color))
-        cap_style = symbology_state.get("capStyle")
-        if cap_style is not None:
-            map_layer.setCustomProperty(PROP_CAP_STYLE, cap_style)
-        join_style = symbology_state.get("joinStyle")
-        if join_style is not None:
-            map_layer.setCustomProperty(PROP_JOIN_STYLE, join_style)
-        stroke_width = symbology_state.get("strokeWidth")
-        if stroke_width is not None:
-            map_layer.setCustomProperty(PROP_STROKE_WIDTH, stroke_width)
-
-    if layer_type == "GeoTiffLayer" and source_type == "GeoTiffSource":
+    elif layer_type == "GeoTiffLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
         # TODO: Support sources with multiple URLs
-        url = "/vsicurl/" + source_parameters["urls"][0]["url"]
+        first_url = source_parameters["urls"][0]
+        url = "/vsicurl/" + first_url["url"]
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
-        layer_colors = layer["parameters"]["color"]
-
-        source_min = source_parameters["urls"][0]["min"]
-        source_max = source_parameters["urls"][0]["max"]
-
-        # Create a color ramp shader
-        color_ramp_shader = QgsColorRampShader()
-        color_stops = []
-
-        if layer_colors[0] == "interpolate":
-            selected_band = layer_colors[2][1]
-            color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
-
-            # Define color stops
-            for index in range(5, len(layer_colors), 2):
-                scaled_value = (layer_colors[index] * (source_max - source_min)) / (
-                    1 - 0
-                ) + source_min
-
-                colors = layer_colors[index + 1]
-                color_stops.append(
-                    QgsColorRampShader.ColorRampItem(
-                        scaled_value,
-                        QColor(
-                            int(colors[0]),
-                            int(colors[1]),
-                            int(colors[2]),
-                            int(colors[3] * 255),
-                        ),
-                    ),
-                )
-
-        if layer_colors[0] == "case":
-            selected_band = layer_colors[1][1][1]
-            # check logical operator to choose discrete or exact
-            op = layer_colors[3][0]
-
-            # skip the last value in both cases, that's the fallback and not used by qgis
-            if op == "<=":
-                # skip the second to last pair because that needs special handling
-                color_ramp_shader.setColorRampType(QgsColorRampShader.Discrete)
-                endIndex = len(layer_colors) - 3
-            if op == "==":
-                color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
-                endIndex = len(layer_colors) - 1
-
-            # skip the first pair, that's for open layers to handle NoData values
-            for index in range(3, endIndex, 2):
-                val = layer_colors[index][2]
-                scaled_value = (val * (source_max - source_min)) / (1 - 0) + source_min
-                colors = layer_colors[index + 1]
-                color_stops.append(
-                    QgsColorRampShader.ColorRampItem(
-                        scaled_value,
-                        QColor(
-                            int(colors[0]),
-                            int(colors[1]),
-                            int(colors[2]),
-                            int(colors[3] * 255),
-                        ),
-                    ),
-                )
-
-            # Final stop in qgis for discrete has inf value
-            if op == "<=":
-                color_stops.append(
-                    QgsColorRampShader.ColorRampItem(
-                        float("inf"),
-                        QColor(
-                            int(layer_colors[-2][0]),
-                            int(layer_colors[-2][1]),
-                            int(layer_colors[-2][2]),
-                            int(layer_colors[-2][3] * 255),
-                        ),
-                    ),
-                )
-
-        color_ramp_shader.setColorRampItemList(color_stops)
-        color_ramp_shader.setClip(True)
-
-        # Create a raster shader
-        raster_shader = QgsRasterShader()
-        raster_shader.setRasterShaderFunction(color_ramp_shader)
-
-        # Create the renderer
-        renderer = QgsSingleBandPseudoColorRenderer(
+        symbology_state = layer_params.get("symbologyState", {})
+        # Legacy (pre-Grammar) GeoTiff layers keep their ramp in the OL `color`
+        # expression rather than `symbologyState.layers`; migrate it so the ramp
+        # exports instead of falling back to QGIS's default grayscale renderer.
+        if not symbology_state.get("layers"):
+            symbology_state = raster_flat_color_to_grammar(layer_params.get("color"))
+        result = grammar_to_raster_renderer(
+            symbology_state,
             map_layer.dataProvider(),
-            int(selected_band),
-            raster_shader,
+            logs,
+            layer_id,
+            first_url.get("min"),
+            first_url.get("max"),
         )
+        if result is not None:
+            renderer, _, _ = result
+            map_layer.setRenderer(renderer)
 
-        # Set minimum and maximum values
-        renderer.setClassificationMin(source_min)
-        renderer.setClassificationMax(source_max)
+        map_layers.append(map_layer)
+        layer_opacities.append(opacity)
 
-        # Apply the renderer to the layer
-        map_layer.setRenderer(renderer)
+    if layer_type == "GeoZarrLayer":
+        logs["warnings"].append(
+            f"Layer {layer_id} ({layer_name}) not exported: "
+            "GeoZarr layers are not supported in QGIS.",
+        )
+        return []
 
-    if map_layer is None:
+    if not map_layers:
         logs["warnings"].append(
             f"Layer {layer_id} not exported: enable to export layer type {layer_type}",
         )
         print(f"JUPYTERGIS - Unable to export layer type {layer_type}")
-        return None
+        return []
 
-    map_layer.setId(layer_id)
-    map_layer.setOpacity(layer.get("parameters", {}).get("opacity", 1.0))
-
-    # Map the source id/name to the layer
+    # Assign ids / opacity / source map. The first layer keeps the jGIS layer id
+    # (so single-layer projects round-trip); extras get a suffixed id but share
+    # the same source entry.
     layerSourceMap = settings.value("layerSourceMap", {})
-    layerSourceMap[layer_id] = {
-        "source_id": source_id,
-        "source_name": source.get("name", f"{layer_name} Source"),
-    }
+    source_name = source.get("name", f"{layer_name} Source")
+    for index, map_layer in enumerate(map_layers):
+        map_layer_id = layer_id if index == 0 else f"{layer_id}::{index}"
+        map_layer.setId(map_layer_id)
+        map_layer.setOpacity(layer_opacities[index])
+        layerSourceMap[map_layer_id] = {
+            "source_id": source_id,
+            "source_name": source_name,
+        }
     settings.setValue("layerSourceMap", layerSourceMap)
 
-    return map_layer
+    return map_layers
 
 
 def jgis_layer_group_to_qgis(
@@ -993,9 +704,10 @@ def jgis_layer_group_to_qgis(
 ) -> None:
     for item in layer_group:
         if isinstance(item, str):
-            # Item is a layer id
-            qgis_layer = jgis_layer_to_qgis(item, layers, sources, settings, logs)
-            if qgis_layer is not None:
+            # Item is a layer id — may expand to several QGIS layers (one per
+            # Grammar rendering layer) sharing the same source.
+            qgis_layers = jgis_layer_to_qgis(item, layers, sources, settings, logs)
+            for qgis_layer in qgis_layers:
                 project.addMapLayer(qgis_layer, False)
                 layer = qgisGroup.addLayer(qgis_layer)
                 layer.setItemVisibilityChecked(layers[item].get("visible", True))
@@ -1018,21 +730,21 @@ def jgis_layer_group_to_qgis(
 def export_project_to_qgis(
     path: str | Path,
     virtual_file: dict[str, Any],
-) -> dict[str, list[str]]:
+) -> dict[str, list[str]] | None:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return None
 
     if isinstance(path, Path):
         path = str(path)
 
+    # Always rebuild the project from scratch: the JupyterGIS document is the
+    # source of truth for layers, sources, CRS and extent. Reading an existing
+    # .qgz back into the singleton project leaks stale state from it (e.g. a
+    # heatmap's old colour ramp survives removeAllMapLayers()/clear() and
+    # clobbers the freshly-built renderer on re-export over the same file).
     project = QgsProject.instance()
-    if os.path.exists(path):
-        project.read(path)
-        root = project.layerTreeRoot()
-        root.clear()
-    else:
-        project.clear()
-        root = project.layerTreeRoot()
+    project.clear()
+    root = project.layerTreeRoot()
 
     if not project.crs().isValid():
         dst_crs_id = "EPSG:3857"
@@ -1041,7 +753,7 @@ def export_project_to_qgis(
 
     qgis_settings = QgsSettings()
 
-    logs = {"warnings": [], "errors": []}
+    logs: dict[str, list[str]] = {"warnings": [], "errors": []}
 
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],

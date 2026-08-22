@@ -28,6 +28,7 @@ authors:
     orcid: 0009-0007-2318-0285
     affiliation: 1
   - name: Nakul Verma
+    orcid: 0009-0002-9625-3493
     affiliation: 4
   - name: Anne Fouilloux
     orcid: 0000-0002-1784-2920
@@ -73,11 +74,11 @@ Geospatial data analysis and visualization are essential in fields such as envir
 
 The geospatial software ecosystem comprises a broad diversity of tools addressing specific needs, including proprietary solutions and open-source alternatives, cloud-based platforms, and notebook-integrated workflows.
 
-However, none of the existing open-source offerings address the growing demand for real-time collaboration.
+However, none of the existing open-source offerings addresses the growing demand for real-time collaboration.
 
 ## Closed-Source Desktop Solutions
 
-**ESRI's ArcGIS** remains the dominant proprietary GIS platform, offering comprehensive tools for data management, analysis, and visualization. While ArcGIS Online provides cloud-based collaboration features, it is not as instantaneous. Edits are synchronized at scheduled intervals or manually, not in real time.
+**Esri's ArcGIS** remains the dominant proprietary GIS platform, offering comprehensive tools for data management, analysis, and visualization. While ArcGIS Online provides cloud-based collaboration features, it is not as instantaneous. Edits are synchronized at scheduled intervals or manually, not in real time.
 
 ## Open-Source Desktop Solutions
 
@@ -85,7 +86,7 @@ However, none of the existing open-source offerings address the growing demand f
 
 It provides a powerful alternative to proprietary software but does not allow real-time collaborative editing of GIS documents. As a desktop application, it must be installed on the user’s device.
 
-## Closed-source Cloud-Based Platforms
+## Closed-Source Cloud-Based Platforms
 
 **Google Earth Engine** enables large-scale geospatial analysis in the cloud. However, its focus on script-based workflows and lack of interactive, collaborative editing make it less suitable for teams needing real-time collaboration.
 
@@ -93,7 +94,7 @@ It provides a powerful alternative to proprietary software but does not allow re
 
 ## In-Notebook Tools
 
-Libraries like [ipyleaflet](https://github.com/jupyter-widgets/ipyleaflet) and [folium](https://github.com/python-visualization/folium) bring interactive mapping to Jupyter notebooks. While useful for exploratory analysis, these tools lack a graphical user interface for non-developers willing to create GIS documents with advanced layer styling.
+Libraries like [ipyleaflet](https://github.com/jupyter-widgets/ipyleaflet) and [folium](https://github.com/python-visualization/folium) bring interactive mapping to Jupyter notebooks. While useful for exploratory analysis, these tools lack a graphical user interface for non-developers wishing to create GIS documents with advanced layer styling.
 
 # JupyterGIS
 
@@ -101,11 +102,11 @@ JupyterGIS brings a collaborative, desktop-style GIS experience to the web, enab
 
 ## Supported Layer Types
 
-JupyterGIS supports a broad range of **geospatial data formats** including vector formats (**GeoJSON**, **Shapefile**, **GeoParquet**), raster formats (Cloud-Optimized GeoTIFFs), as well as **raster and vector tile layers**.
+JupyterGIS supports a broad range of **geospatial data formats**, including vector formats (**GeoJSON**, **Shapefile**, **GeoParquet**), raster formats (Cloud-Optimized GeoTIFFs), as well as **raster and vector tile layers**.
 
 ## Real-time Collaboration and Annotation
 
-JupyterGIS enables live multi-user collaboration: track cursors, follow others’ views and annotate maps in real time.
+JupyterGIS enables live multi-user collaboration: track cursors, follow others’ views, and annotate maps in real time.
 
 ![Screenshot of the follow mode, tracking a user cursor and viewport](JupyterGIS-folow-mode.png)
 
@@ -139,7 +140,7 @@ JupyterGIS allows editing QGIS project files (`.qgz` and `.qgs`) directly, with 
 
 The symbology panel enables users to style vector layers with graduated, categorized, canonical, and heatmap renderers, while raster layers support single-band and multi-band visualization.
 
-![Screenshot of JupyterGIS' advanced symbology: a graduated colormap of earthquake magnitudes](JupyterGIS-symbology-colormap.png)
+![Screenshot of JupyterGIS advanced symbology: a graduated colormap of earthquake magnitudes](JupyterGIS-symbology-colormap.png)
 
 ## Interactive Tools and Dynamic Visualizations
 
@@ -154,7 +155,7 @@ JupyterGIS’s Story Map feature lets users combine interactive maps with text, 
 
 ## Collaborative Editing as a First-Class Requirement: Shaping the JupyterGIS Document Model
 
-Collaborative editing has transformed how teams work, replacing slow email exchanges with real-time collaboration. Looking ahead, the potential of co-editing extends beyond text documents, especially in designing complex systems that require diverse expertise, such as climate modeling, agriculture, and urban planning.
+Collaborative editing has transformed how teams work, replacing slow email exchanges with real-time collaboration. Looking ahead, the potential of coediting extends beyond text documents, especially in designing complex systems that require diverse expertise, such as climate modeling, agriculture, and urban planning.
 
 Users will soon expect co-editing as the norm:
 
@@ -165,18 +166,20 @@ These capabilities should be core to any application, not bolted on later.
 
 ## Building upon the JupyterLab Application Framework
 
-Professionals depend on advanced authoring tools - IDEs, CAD modelers, and GIS applications — for daily productivity. They have high expectations for tools that they use for extended periods of time: extensibility, customization, theming, internationalization, and scriptability are strong requirements.
+Professionals depend on advanced authoring tools — IDEs, CAD modelers, and GIS applications — for daily productivity. They have high expectations for tools that they use for extended periods of time: extensibility, customization, theming, internationalization, and scriptability are strong requirements.
 
-JupyterLab delivers these features as a robust framework, backed by a large user base and extension ecosystem. It supports collaborative editing via CRDTs (Conflict-free Replicated Data Types) [@CRDT2011] through the YJS framework [@YJS2015]. JupyterGIS builds on this foundation, integrating seamlessly with the Jupyter ecosystem and enabling serverless deployments via JupyterLite.
+JupyterLab delivers these features as a robust framework, backed by a large user base and extension ecosystem. It supports collaborative editing via CRDTs (Conflict-free Replicated Data Types) [@CRDT2011] through the Yjs framework [@YJS2015]. JupyterGIS builds on this foundation, integrating seamlessly with the Jupyter ecosystem and enabling serverless deployments via JupyterLite.
 
 ## The JupyterGIS Stack
 
 JupyterGIS leverages the following technologies:
 
-| Frontend | JupyterLab application framework |
-| Collaboration | Collaborative editing with YJS and PyCRDT [@YJS2015] |
-| Processing | GDAL-based [@GDAL2025] toolbox |
-| Visualization | OpenLayers [@OpenLayers2025] for map rendering |
+|               |
+| ------------- | ---------------------------------------------------- |
+| Frontend      | JupyterLab application framework                     |
+| Collaboration | Collaborative editing with Yjs and PyCRDT [@YJS2015] |
+| Processing    | GDAL-based [@GDAL2025] toolbox                       |
+| Visualization | OpenLayers [@OpenLayers2025] for map rendering       |
 
 # Research Impact
 
@@ -185,8 +188,8 @@ JupyterGIS leverages the following technologies:
 JupyterGIS has been deployed across several major **research infrastructures**:
 
 - It is available on the [Copernicus Data Space Ecosystem (CDSE)](https://jupyterhub.dataspace.copernicus.eu).
-- It has been integrated with the Open OnDemand portal [@OpenOnDemand2018], and deployed at the University of Oslo.
-- JupyterGIS is integrated in the Galaxy Toolbox [@Galaxy2024] and deployed on the [Galaxy Europe deployment](https://usegalaxy.eu) of EOSC at usegalaxy.eu. It will soon be installed on the Earth Science thematic node of EOSC. More details on the Galaxy integration are available in an [article](https://galaxyproject.org/news/2025-05-20-jupytergis/) published on the Galaxy project's blog.
+- It has been integrated with the Open OnDemand portal [@OpenOnDemand2018] and deployed at the University of Oslo.
+- JupyterGIS is integrated into the Galaxy Toolbox [@Galaxy2024] and deployed on the [Galaxy Europe deployment](https://usegalaxy.eu) of EOSC at usegalaxy.eu. It will soon be installed on the Earth Science thematic node of EOSC. More details on the Galaxy integration are available in an [article](https://galaxyproject.org/news/2025-05-20-jupytergis/) published on the Galaxy project's blog.
 
 ## Public Deployments
 
@@ -197,13 +200,13 @@ JupyterGIS is accessible through multiple public deployments:
 
 ## Supporting Scientific Publications
 
-JupyterGIS powers an [interactive map](https://cdr.apps.ece.iiasa.ac.at/sedimentary-basin-level-maps) of global CO₂ storage potential in sedimentary basins, hosted by IIASA and deployed via JupyterLite as supplementary material for a Nature article [@NATURE2025].
+JupyterGIS powers an [interactive map](https://cdr.apps.ece.iiasa.ac.at/sedimentary-basin-level-maps) of global CO2 storage potential in sedimentary basins, hosted by IIASA and deployed via JupyterLite as supplementary material for a Nature article [@NATURE2025].
 
 # Community and Contributions
 
 ## Contributing to JupyterGIS
 
-JupyterGIS is available under the BSD 3-Clause License. Contributions are welcome on the [GitHub repository](https://github.com/geojupyter/jupytergis). The [documentation](https://jupytergis.readthedocs.io) is available online on ReadTheDocs. We host community discussions on a [public channel](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter).
+JupyterGIS is available under the BSD 3-Clause License. Contributions are welcome on the [GitHub repository](https://github.com/geojupyter/jupytergis). The [documentation](https://jupytergis.readthedocs.io) is available online on Read The Docs. We host community discussions on a [public channel](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter).
 
 ## The GeoJupyter Initiative
 
@@ -227,9 +230,7 @@ This API will interact with the collaborative editing framework and the underlyi
 
 ## JupyterLite-AI
 
-We will integrate JupyterGIS with JupyterLite-AI by exposing JupyterGIS features as tools to Large Lanaguage Models (LLMs). By leveraging the JupyterLab application framework, we ensured that all user actions are backed by JupyterLab commands, which are exposed to JupyterLite-AI's tool calling system.
-
-In the screenshot below, we showcase an early example of such an integration.
+We will integrate JupyterGIS with JupyterLite-AI by exposing JupyterGIS features as tools to Large Language Models (LLMs). By leveraging the JupyterLab application framework, we will ensure that all user actions are backed by JupyterLab commands, which are exposed to JupyterLite-AI's tool calling system.
 
 # Acknowledgments
 

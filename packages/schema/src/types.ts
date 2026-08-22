@@ -1,32 +1,35 @@
 export * from './_interface/project/jgis';
 
+// GeoJSON format
+export * from './_interface/geojson';
+
 // Sources
-export * from './_interface/project/sources/geoPackageVectorSource';
-export * from './_interface/project/sources/geoPackageRasterSource';
-export * from './_interface/project/sources/geoJsonSource';
-export * from './_interface/project/sources/geoTiffSource';
-export * from './_interface/project/sources/imageSource';
-export * from './_interface/project/sources/rasterDemSource';
-export * from './_interface/project/sources/rasterSource';
-export * from './_interface/project/sources/shapefileSource';
-export * from './_interface/project/sources/vectorTileSource';
-export * from './_interface/project/sources/videoSource';
-export * from './_interface/project/sources/geoParquetSource';
-export * from './_interface/project/sources/markerSource';
-export * from './_interface/project/sources/wmsTileSource';
-export * from './_interface/project/sources/openeoTileSource';
+export { IGeoPackageVectorSource } from './_interface/project/sources/geoPackageVectorSource';
+export { IGeoPackageRasterSource } from './_interface/project/sources/geoPackageRasterSource';
+export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export { IGeoTiffSource } from './_interface/project/sources/geoTiffSource';
+export { IImageSource } from './_interface/project/sources/imageSource';
+export { IRasterDemSource } from './_interface/project/sources/rasterDemSource';
+export { IRasterSource } from './_interface/project/sources/rasterSource';
+export { IShapefileSource } from './_interface/project/sources/shapefileSource';
+export { IVectorTileSource } from './_interface/project/sources/vectorTileSource';
+export { IGeoParquetSource } from './_interface/project/sources/geoParquetSource';
+export { IMarkerSource } from './_interface/project/sources/markerSource';
+export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
+export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
+export { IOpenEOTileSource } from './_interface/project/sources/openeoTileSource';
 
 // Layers
-export * from './_interface/project/layers/heatmapLayer';
-export * from './_interface/project/layers/hillshadeLayer';
-export * from './_interface/project/layers/storySegmentLayer';
-export * from './_interface/project/layers/rasterLayer';
-export * from './_interface/project/layers/vectorLayer';
-export * from './_interface/project/layers/imageLayer';
-export * from './_interface/project/layers/stacLayer';
-export * from './_interface/project/layers/vectorTileLayer';
-export * from './_interface/project/layers/geoTiffLayer';
-export * from './_interface/project/layers/openeoTileLayer';
+export { IHillshadeLayer } from './_interface/project/layers/hillshadeLayer';
+export { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
+export { IRasterLayer } from './_interface/project/layers/rasterLayer';
+export { IVectorLayer } from './_interface/project/layers/vectorLayer';
+export { IImageLayer } from './_interface/project/layers/imageLayer';
+export { IStacLayer } from './_interface/project/layers/stacLayer';
+export { IVectorTileLayer } from './_interface/project/layers/vectorTileLayer';
+export { IGeoTiffLayer } from './_interface/project/layers/geoTiffLayer';
+export { IGeoZarrLayer } from './_interface/project/layers/geoZarrLayer';
+export { IOpenEOTileLayer } from './_interface/project/layers/openeoTileLayer';
 
 // Processing
 export * from './processing/_generated/exportProcessingSchema';
@@ -39,7 +42,7 @@ import type { IGrammarLayer } from './_interface/project/symbology';
 export interface IGrammarSymbologyState {
   /**
    * Ordered list of independent rendering layers sharing the same source.
-   * Each layer produces one renderer layer (VectorLayer, HeatmapLayer, etc.).
+   * Each layer produces one renderer layer (Vector, Image, WebGLTile, etc.).
    * Layers are rendered in order (first = bottom).
    */
   layers: IGrammarLayer[];
@@ -56,4 +59,4 @@ export * from './interfaces';
 export * from './model';
 export * from './token';
 
-export type Modes = 'panning' | 'identifying' | 'marking';
+export type Modes = 'panning' | 'identifying' | 'marking' | 'drawing';

@@ -1,6 +1,7 @@
 *.bundle.*
 lib/
 node_modules/
+packages/base/style/tailwind.css
 .mamba
 *.egg-info/
 .ipynb_checkpoints
@@ -82,6 +83,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/html
 
 # PyBuilder
 target/
@@ -135,7 +137,10 @@ examples/Untitled*.ipynb
 # Hatchling
 jupytergis/_version.py
 
+# JS stuff
 .yarn
+yarn.lock
+.pnpm-store/
 
 python/jupytergis_qgis/jupytergis_qgis/labextension/
 python/jupytergis_lab/jupytergis_lab/labextension/
@@ -158,6 +163,8 @@ packages/schema/src/processing/_generated/*
 examples/local_examples/*
 
 packages/base/_generated/
+
+/titiler-openeo/
 
 # jupyter-collaboration cache
 .jupyter

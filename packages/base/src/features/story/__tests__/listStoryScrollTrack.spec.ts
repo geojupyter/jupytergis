@@ -2,6 +2,7 @@ import {
   buildListStoryScrollTrack,
   estimateMarkdownHeight,
   getSegmentDisplayMode,
+  getTransitionTranslatePx,
 } from '../utils/listStoryScrollTrack';
 import { storyItem } from './fixtures/listStoryTestItems';
 
@@ -128,5 +129,176 @@ describe('buildListStoryScrollTrack', () => {
       height: 120,
       contentMode: 'markdown',
     });
+  });
+
+  it('omits gap between markdown segments when markdownSegmentGap is false', () => {
+    const layout = buildListStoryScrollTrack({
+      items: [
+        storyItem('a', 0, 'markdown', 'one'),
+        storyItem('b', 1, 'markdown', 'two'),
+      ],
+      viewportHeight: 400,
+      heightsById: { a: 120, b: 180 },
+      markdownSegmentGap: false,
+    });
+
+    expect(layout.segments[0]).toMatchObject({
+      start: 0,
+      height: 120,
+      end: 120,
+    });
+    expect(layout.segments[1]).toMatchObject({
+      start: 120,
+      height: 180,
+      end: 300,
+    });
+  });
+
+  it('inserts gap between markdown segments when markdownSegmentGap is true', () => {
+    const layout = buildListStoryScrollTrack({
+      items: [
+        storyItem('a', 0, 'markdown', 'one'),
+        storyItem('b', 1, 'markdown', 'two'),
+      ],
+      viewportHeight: 400,
+      mapViewportHeight: 350,
+      heightsById: { a: 120, b: 180 },
+      markdownSegmentGap: true,
+    });
+
+    expect(layout.segments[0]).toMatchObject({
+      start: 0,
+      height: 120,
+      end: 120 + 350,
+    });
+    expect(layout.segments[1]).toMatchObject({
+      start: 470,
+      height: 180,
+      end: 650,
+    });
+  });
+});
+
+describe('getTransitionTranslatePx', () => {
+  const mapMdLayout = buildListStoryScrollTrack({
+    items: [
+      storyItem('a', 0, 'map'),
+      storyItem('b', 1, 'markdown', 'line\nline'),
+      storyItem('c', 2, 'map'),
+    ],
+    viewportHeight: 400,
+    mapViewportHeight: 350,
+    heightsById: { b: 500 },
+  });
+
+  it('returns 0 without transition or layout', () => {
+    expect(getTransitionTranslatePx(null, mapMdLayout)).toBe(0);
+    expect(
+      getTransitionTranslatePx(
+        {
+          progress: 0,
+          fromIndex: 0,
+          toIndex: 1,
+          fromMode: 'map',
+          toMode: 'markdown',
+        },
+        null,
+      ),
+    ).toBe(0);
+  });
+
+  it('uses segment height for intra-segment scroll', () => {
+    expect(
+      getTransitionTranslatePx(
+        {
+          progress: 0.4,
+          fromIndex: 1,
+          toIndex: 1,
+          fromMode: 'markdown',
+          toMode: 'markdown',
+        },
+        mapMdLayout,
+      ),
+    ).toBe(500);
+  });
+
+  it('uses to.start - from.start for map↔markdown handoffs', () => {
+    const { segments } = mapMdLayout;
+    expect(
+      getTransitionTranslatePx(
+        {
+          progress: 0.5,
+          fromIndex: 0,
+          toIndex: 1,
+          fromMode: 'map',
+          toMode: 'markdown',
+        },
+        mapMdLayout,
+      ),
+    ).toBe(segments[1].start - segments[0].start);
+
+    expect(
+      getTransitionTranslatePx(
+        {
+          progress: 0.5,
+          fromIndex: 1,
+          toIndex: 2,
+          fromMode: 'markdown',
+          toMode: 'map',
+        },
+        mapMdLayout,
+      ),
+    ).toBe(segments[2].start - segments[1].start);
+  });
+
+  it('uses from height only for md→md with no gap', () => {
+    const layout = buildListStoryScrollTrack({
+      items: [
+        storyItem('a', 0, 'markdown', 'one'),
+        storyItem('b', 1, 'markdown', 'two'),
+      ],
+      viewportHeight: 400,
+      heightsById: { a: 120, b: 180 },
+      markdownSegmentGap: false,
+    });
+
+    expect(
+      getTransitionTranslatePx(
+        {
+          progress: 0.5,
+          fromIndex: 0,
+          toIndex: 1,
+          fromMode: 'markdown',
+          toMode: 'markdown',
+        },
+        layout,
+      ),
+    ).toBe(120);
+  });
+
+  it('includes gap for md→md when markdownSegmentGap is true', () => {
+    const layout = buildListStoryScrollTrack({
+      items: [
+        storyItem('a', 0, 'markdown', 'one'),
+        storyItem('b', 1, 'markdown', 'two'),
+      ],
+      viewportHeight: 400,
+      mapViewportHeight: 350,
+      heightsById: { a: 120, b: 180 },
+      markdownSegmentGap: true,
+    });
+
+    expect(
+      getTransitionTranslatePx(
+        {
+          progress: 0.5,
+          fromIndex: 0,
+          toIndex: 1,
+          fromMode: 'markdown',
+          toMode: 'markdown',
+        },
+        layout,
+      ),
+    ).toBe(120 + 350);
   });
 });

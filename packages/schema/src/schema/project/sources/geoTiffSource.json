@@ -13,14 +13,6 @@
           "url": {
             "type": "string",
             "default": ""
-          },
-          "min": {
-            "type": "number",
-            "default": null
-          },
-          "max": {
-            "type": "number",
-            "default": null
           }
         },
         "default": {}
@@ -43,6 +35,11 @@
       "type": "boolean",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
+    },
+    "projection": {
+      "type": "string",
+      "description": "Source CRS. Use when the GeoTIFF omits a standard EPSG code in its metadata.",
+      "default": ""
     },
     "useProxy": {
       "type": "boolean",

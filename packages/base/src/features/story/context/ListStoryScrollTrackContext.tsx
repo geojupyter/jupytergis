@@ -14,6 +14,7 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import { useQueuedMarkdownHeightMeasure } from '@/src/features/story/hooks/useQueuedMarkdownHeightMeasure';
 import type { IListStoryScrollTrackLayout } from '@/src/features/story/types/types';
 import { buildListStoryScrollTrack } from '@/src/features/story/utils/listStoryScrollTrack';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   buildStorySegmentViewItems,
   getListStoryMarkdownSegmentsFromItems,
@@ -21,7 +22,14 @@ import {
 
 interface IListStoryScrollTrackContextValue {
   scrollTrackLayout: IListStoryScrollTrackLayout | null;
+  scrollTop: number;
   bindScrollTrackElement: (element: HTMLDivElement | null) => void;
+  scrollToSegmentIndex: (
+    index: number,
+    options?: { behavior?: ScrollBehavior },
+  ) => void;
+  /** Report a measured markdown height from the live overlay (or measure pane). */
+  reportSegmentHeight: (segmentId: string, height: number) => void;
 }
 
 const ListStoryScrollTrackContext =
@@ -42,9 +50,12 @@ export function ListStoryScrollTrackProvider({
   const [heightsById, setHeightsById] = useState<Record<string, number>>({});
   const [viewportHeight, setViewportHeight] = useState(0);
   const [mapViewportHeight, setMapViewportHeight] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const currentSegmentIndex = useCurrentSegmentIndex(model);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTrackElement, setScrollTrackElement] =
+    useState<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     const bump = (): void => {
@@ -78,6 +89,20 @@ export function ListStoryScrollTrackProvider({
   const mapViewportHeightOption =
     mapViewportHeight > 0 ? mapViewportHeight : undefined;
 
+  const markdownSegmentGap = storyData?.markdownSegmentGap === true;
+
+  const measurePresentationStyle = useMemo(
+    () => getSpectaPresentationCssVars(storyData),
+    [
+      storyData?.storyType,
+      storyData?.presentationBgColor,
+      storyData?.presentationTextColor,
+      storyData?.overlayContentWidth,
+      storyData?.markdownSegmentOpacity,
+      storyData?.storyPanelOpacity,
+    ],
+  );
+
   const buildScrollTrackLayout = useCallback(
     (
       nextHeightsById: Readonly<Record<string, number>>,
@@ -87,21 +112,29 @@ export function ListStoryScrollTrackProvider({
         viewportHeight,
         mapViewportHeight: mapViewportHeightOption,
         heightsById: nextHeightsById,
+        markdownSegmentGap,
       }),
-    [items, viewportHeight, mapViewportHeightOption],
+    [items, viewportHeight, mapViewportHeightOption, markdownSegmentGap],
   );
+
+  const syncScrollerMetrics = useCallback((scroller: HTMLDivElement): void => {
+    setViewportHeight(scroller.clientHeight);
+    setScrollTop(scroller.scrollTop);
+  }, []);
 
   const bindScrollTrackElement = useCallback(
     (element: HTMLDivElement | null) => {
       scrollerRef.current = element;
+      setScrollTrackElement(element);
       if (!element) {
         setViewportHeight(0);
+        setScrollTop(0);
         return;
       }
 
-      setViewportHeight(element.clientHeight);
+      syncScrollerMetrics(element);
     },
-    [],
+    [syncScrollerMetrics],
   );
 
   const observeElementHeight = useCallback(
@@ -125,17 +158,36 @@ export function ListStoryScrollTrackProvider({
   );
 
   useLayoutEffect(() => {
-    const scroller = scrollerRef.current;
+    const scroller = scrollTrackElement;
     if (!scroller || !enabled) {
       return;
     }
 
     const update = (): void => {
-      setViewportHeight(scroller.clientHeight);
+      syncScrollerMetrics(scroller);
     };
 
     return observeElementHeight(scroller, update);
-  }, [enabled, storyRevision, observeElementHeight]);
+  }, [enabled, scrollTrackElement, observeElementHeight, syncScrollerMetrics]);
+
+  useLayoutEffect(() => {
+    const scroller = scrollTrackElement;
+    if (!scroller || !enabled) {
+      return;
+    }
+
+    const onScroll = (): void => {
+      setScrollTop(scroller.scrollTop);
+      setViewportHeight(scroller.clientHeight);
+    };
+
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+    };
+  }, [enabled, scrollTrackElement]);
 
   useLayoutEffect(() => {
     if (!enabled) {
@@ -165,6 +217,13 @@ export function ListStoryScrollTrackProvider({
           return prev;
         }
 
+        // Ignore transient shrinks (empty remount / pre-image layout). Markdown
+        // height should only grow until the story is rebuilt.
+        const previousHeight = prev[segmentId];
+        if (previousHeight !== undefined && measuredHeightPx < previousHeight) {
+          return prev;
+        }
+
         const scroller = scrollerRef.current;
         const oldLayout =
           enabled && viewportHeight > 0
@@ -173,6 +232,7 @@ export function ListStoryScrollTrackProvider({
                 viewportHeight,
                 mapViewportHeight: mapViewportHeight || undefined,
                 heightsById: prev,
+                markdownSegmentGap,
               })
             : null;
 
@@ -182,9 +242,13 @@ export function ListStoryScrollTrackProvider({
           const oldSegment = oldLayout.segments.find(s => s.id === segmentId);
           if (oldSegment && !oldSegment.measured) {
             const scrollCompensation = measuredHeightPx - oldSegment.height;
+            // Only shift scroll when the user is already past this segment so
+            // later content stays put. Inside the segment, leave scrollTop so
+            // progress recalculates against the new height so there's no
+            // visual jump.
             if (
               scrollCompensation !== 0 &&
-              scroller.scrollTop > oldSegment.start
+              scroller.scrollTop >= oldSegment.end
             ) {
               requestAnimationFrame(() => {
                 scroller.scrollTop += scrollCompensation;
@@ -196,7 +260,7 @@ export function ListStoryScrollTrackProvider({
         return next;
       });
     },
-    [enabled, items, mapViewportHeight, viewportHeight],
+    [enabled, items, mapViewportHeight, viewportHeight, markdownSegmentGap],
   );
 
   const { segmentBeingMeasured, reportHeight, completeMeasure } =
@@ -216,21 +280,64 @@ export function ListStoryScrollTrackProvider({
     return buildScrollTrackLayout(heightsById);
   }, [enabled, items, viewportHeight, heightsById, buildScrollTrackLayout]);
 
+  const scrollToSegmentIndex = useCallback(
+    (index: number, options?: { behavior?: ScrollBehavior }) => {
+      const safeIndex = Math.max(0, index);
+      const scroller = scrollerRef.current;
+      const segment = scrollTrackLayout?.segments.find(
+        s => s.index === safeIndex,
+      );
+
+      if (scroller && segment !== undefined) {
+        const isHidden = getComputedStyle(scroller).visibility === 'hidden';
+        const behavior = options?.behavior ?? (isHidden ? 'auto' : 'smooth');
+
+        if (isHidden && behavior === 'auto') {
+          scroller.scrollTop = segment.start;
+        } else {
+          scroller.scrollTo({
+            top: segment.start,
+            behavior,
+          });
+        }
+
+        return;
+      }
+
+      model.setCurrentSegmentIndex(safeIndex);
+    },
+    [model, scrollTrackLayout],
+  );
+
   const value = useMemo(
     (): IListStoryScrollTrackContextValue => ({
       scrollTrackLayout,
+      scrollTop,
       bindScrollTrackElement,
+      scrollToSegmentIndex,
+      reportSegmentHeight: handleMeasuredHeight,
     }),
-    [scrollTrackLayout, bindScrollTrackElement],
+    [
+      scrollTrackLayout,
+      scrollTop,
+      bindScrollTrackElement,
+      scrollToSegmentIndex,
+      handleMeasuredHeight,
+    ],
   );
 
   return (
     <ListStoryScrollTrackContext.Provider value={value}>
       {children}
       {enabled && segmentBeingMeasured ? (
-        <div className="jgis-story-markdown-measure-host" aria-hidden>
+        <div
+          className="jgis-story-markdown-measure-host"
+          style={measurePresentationStyle}
+          aria-hidden
+        >
           <ListStoryMarkdownMeasurePane
             key={segmentBeingMeasured.id}
+            model={model}
             segmentId={segmentBeingMeasured.id}
             markdown={segmentBeingMeasured.markdown}
             onHeight={reportHeight}

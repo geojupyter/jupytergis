@@ -26,28 +26,47 @@
           "enum": ["map", "markdown"],
           "default": "map"
         },
-        "title": {
-          "title": "Segment Title",
+        "paneAlignment": {
           "type": "string",
-          "default": ""
+          "title": "Pane Alignment",
+          "description": "Horizontal alignment of the segment overlay pane",
+          "enum": ["start", "center", "end"],
+          "default": "center"
+        },
+        "panelWidth": {
+          "type": "string",
+          "title": "Panel width",
+          "description": "CSS width of the map overlay card for this segment in vertical-scroll stories.",
+          "default": "25%"
         },
         "image": {
           "type": "string",
           "description": "Link to image for the story",
           "default": ""
         },
+        "imageCaption": {
+          "title": "Image Caption",
+          "type": "string",
+          "default": ""
+        },
         "markdown": {
           "type": "string",
           "description": "Markdown string representing the content of the story stop",
           "default": ""
+        },
+        "attachments": {
+          "type": "object",
+          "description": "Embedded markdown attachments keyed by filename (nbformat attachments)",
+          "default": {},
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
         }
       },
-      "required": ["contentMode"],
-      "default": {
-        "contentMode": "map",
-        "title": "",
-        "image": ""
-      }
+      "required": ["contentMode"]
     },
     "transition": {
       "type": "object",

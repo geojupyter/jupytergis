@@ -144,13 +144,7 @@
           }
         }
       },
-      "additionalProperties": false,
-      "default": {
-        "method": "color",
-        "colorRamp": "viridis",
-        "nClasses": 9,
-        "mode": "equal interval"
-      }
+      "additionalProperties": false
     }
   }
 }

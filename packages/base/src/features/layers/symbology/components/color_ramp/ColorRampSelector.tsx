@@ -1,13 +1,13 @@
 /**
  * @module ColorRampSelector
  *
- * Dropdown component for selecting a color ramp.
+ * Dropdown component for selecting a color map.
  * - Displays the currently selected ramp as a preview on a canvas.
  * - Expands to show a list of available ramps (`ColorRampSelectorEntry`).
  * - Updates the preview and notifies parent via `setSelected` when a ramp is chosen.
  *
  * Props:
- * - `selectedRamp`: Name of the currently selected color ramp.
+ * - `selectedRamp`: Name of the currently selected color map.
  * - `setSelected`: Callback fired with the new ramp when selected.
  */
 
@@ -38,6 +38,10 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   colorMaps: propColorMaps,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // A ref rather than a DOM id: several selectors can be mounted at once (one
+  // per mapping card), and a shared id meant they all drew onto the first
+  // selector's canvas.
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
   const canvasWidth = 512;
@@ -77,8 +81,8 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   };
 
   const updateCanvas = (rampName: string) => {
-    // update canvas for displayed color ramp
-    const canvas = document.getElementById('cv') as HTMLCanvasElement;
+    // update canvas for displayed color map
+    const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
@@ -118,7 +122,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
         <div className="jp-gis-color-ramp-entry jp-gis-selected-entry">
           <span className="jp-gis-color-label">{selectedRamp}</span>
           <canvas
-            id="cv"
+            ref={canvasRef}
             className="jp-gis-color-canvas-display"
             width={canvasWidth}
             height={canvasHeight}
@@ -128,9 +132,9 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       <div
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
-        {colorMaps.map((item, index) => (
+        {colorMaps.map(item => (
           <ColorRampSelectorEntry
-            index={index}
+            key={item.name}
             colorMap={item}
             onClick={selectItem}
           />
@@ -143,7 +147,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
             checked={reverse}
             onChange={e => setReverse(e.target.checked)}
           />
-          Reverse Color Ramp
+          Reverse Color Map
         </label>
       </div>
     </div>

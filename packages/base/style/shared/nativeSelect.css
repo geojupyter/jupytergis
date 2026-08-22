@@ -33,6 +33,11 @@
   color: var(--jp-ui-inverse-font-color1);
 }
 
+[data-slot='native-select']:focus {
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 3px rgba(var(--jp-brand-color1-rgb), 0.1);
+}
+
 [data-slot='native-select']:focus-visible {
   border-color: var(--jp-brand-color1);
   box-shadow: 0 0 0 3px rgba(var(--jp-brand-color1-rgb), 0.1);
@@ -52,7 +57,7 @@
   height: 1.75rem;
   padding-top: 0.125rem;
   padding-bottom: 0.125rem;
-  border-radius: min(var(--jp-border-radius, 0.375rem), 10px);
+  border-radius: var(--jp-border-radius);
 }
 
 .jgis-native-select-icon {

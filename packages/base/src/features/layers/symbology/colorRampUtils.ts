@@ -129,6 +129,39 @@ export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
   cubehelix: 16,
 } as const;
 
+export interface IColorRampWarning {
+  reason: string;
+  link?: string;
+}
+
+/** Color ramps with a known issue, mapped to the reason and (if available) a link with more info. */
+export const COLOR_RAMP_WARNINGS: Partial<
+  Record<ColorRampName, IColorRampWarning>
+> = {
+  jet: {
+    reason:
+      'This color map is not perceptually uniform and may misrepresent your data.',
+    link: 'https://jakevdp.github.io/blog/2014/10/16/how-bad-is-your-colormap/',
+  },
+  rainbow: {
+    reason:
+      'This color map is not perceptually uniform and may misrepresent your data.',
+    link: 'https://jakevdp.github.io/blog/2014/10/16/how-bad-is-your-colormap/',
+  },
+  hsv: {
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS.hsv} classes to render accurately.`,
+  },
+  picnic: {
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS.picnic} classes to render accurately.`,
+  },
+  cubehelix: {
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS.cubehelix} classes to render accurately.`,
+  },
+  'rainbow-soft': {
+    reason: `This color map needs at least ${COLOR_RAMP_DEFAULTS['rainbow-soft']} classes to render accurately.`,
+  },
+};
+
 export const D3_CATEGORICAL_SCHEMES = {
   schemeCategory10: d3Chromatic.schemeCategory10,
   schemeAccent: d3Chromatic.schemeAccent,
@@ -182,7 +215,7 @@ export const useColorMapList = (setColorMaps: (maps: IColorMap[]) => void) => {
 
 /**
  * Get a color map by name.
- * Caches the full list on first call for efficiency, since generating color ramps is expensive.
+ * Caches the full list on first call for efficiency, since generating color maps is expensive.
  */
 let colorMapCache: IColorMap[] | null = null;
 
@@ -242,7 +275,7 @@ export function colorToRgba(color: unknown): RgbaColor {
 }
 
 /**
- * Draw a color ramp to a canvas.
+ * Draw a color map to a canvas.
  */
 export const drawColorRamp = (
   canvas: HTMLCanvasElement,

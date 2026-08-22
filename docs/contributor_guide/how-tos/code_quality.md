@@ -19,7 +19,7 @@ We have several tools configured for checking code quality:
 
 - **Formatting and lint checks and autofixers for Typescript, Javascript, CSS, JSON, Markdown, and YAML.**
   Defined as package scripts (in `package.json`).
-  Run manually with `jlpm run lint`.
+  Run manually with `pnpm run lint`.
   **Will exit 0 when applying fixes.**
   **Check the logs and/or `git status` after every run.**
   - Prettier formats the file types listed above.
@@ -33,9 +33,9 @@ We have several tools configured for checking code quality:
 
   ```bash
   cd ui-tests
-  jlpm install             # If you haven't already
-  jlpm playwright install  # If you haven't already
-  jlpm run test:local      # Or, to test in jupyterlite, run `test:locallite`
+  pnpm install                  # If you haven't already
+  pnpm exec playwright install  # If you haven't already
+  pnpm run test:local           # Or, to test in jupyterlite, run `test:locallite`
   ```
 
   For more, see {doc}`Explanation: UI testing </contributor_guide/explanation/ui-testing>`.

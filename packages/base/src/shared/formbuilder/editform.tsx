@@ -137,6 +137,7 @@ export function EditForm(props: IEditFormProps): React.ReactElement | null {
             filePath={model.filePath}
             schema={sourceSchema}
             sourceData={sourceData}
+            sourceId={sourceId}
             syncData={(properties: IDict) => {
               syncObjectProperties(model, sourceId, properties);
             }}

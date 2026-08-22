@@ -1,92 +1,156 @@
-/* Specta article typography for list story stage overlay markdown (subset of specta/style/article.css). */
+/* Specta article typography for story rendermime markdown.
+ * Port of specta/style/article.css with .jgis-story-rendered-markdown scoping
+ * and a 1rem body baseline (no 20px media overrides). */
 
-.jgis-story-stage-overlay-content .specta-article-host-widget {
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+.jgis-story-rendered-markdown .specta-article-host-widget {
   --jp-content-font-family: 'Source Serif 4', Georgia, serif;
   --jp-code-font-family:
     'Source Code Pro', Menlo, Monaco, 'Courier New', Courier, monospace;
-  --jp-code-font-size: 14px;
+  --jp-code-font-size: 0.875rem;
+  /* So .jp-RenderedHTMLCommon { color: var(--jp-content-font-color1) } uses specta text. */
+  --jp-content-font-color1: var(
+    --jgis-specta-text-color,
+    var(--jp-content-font-color1)
+  );
   font-family: var(--jp-content-font-family);
   font-size: 1rem;
   line-height: 1.6;
+  max-width: 100ch;
+  margin: 0 auto;
+  padding-bottom: 2rem;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget h1 {
+#jgis-story-segment-content
+  .jgis-story-rendered-markdown
+  .specta-article-host-widget.specta-cell-content {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-Collapser-child,
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .jp-collapseHeadingButton,
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-InputPrompt,
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-InputCollapser,
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .jp-InternalAnchorLink {
+  display: none;
+}
+
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .specta-article-outputs-panel {
+  font-size: 1rem;
+  line-height: 1.6;
+  width: 100%;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget .specta-cell-output {
+  max-width: 680px;
+  margin: auto;
+}
+
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .specta-article-outputs-panel
+  .jp-MarkdownOutput {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .specta-article-outputs-panel
+  .specta-item-widget {
+  padding: 0 !important;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget h1 {
   font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   letter-spacing: -0.014em;
-  line-height: 38px;
-  margin-bottom: 24px;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
   margin-top: 1.5em !important;
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
+  font-style: normal;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget h2 {
+.jgis-story-rendered-markdown .specta-article-host-widget h2 {
   font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   margin-top: 1em !important;
   font-size: 1.6em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget h3 {
+.jgis-story-rendered-markdown .specta-article-host-widget h3 {
   margin-top: 1em !important;
   font-size: 1.3em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget h4 {
+.jgis-story-rendered-markdown .specta-article-host-widget h4 {
   margin-top: 1em;
   font-size: 1.2em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget h5 {
+.jgis-story-rendered-markdown .specta-article-host-widget h5 {
   margin-top: 1em;
   font-size: 1.1em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget h6 {
+.jgis-story-rendered-markdown .specta-article-host-widget h6 {
   margin-top: 1em;
   font-size: 1em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget p {
+.jgis-story-rendered-markdown .specta-article-host-widget p {
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.2em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget a {
-  color: #007bff;
+.jgis-story-rendered-markdown .specta-article-host-widget a {
   text-decoration: none;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget a:hover {
+.jgis-story-rendered-markdown .specta-article-host-widget a:hover {
   text-decoration: underline;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget pre {
+.jgis-story-rendered-markdown .specta-article-host-widget pre {
   background-color: var(--jp-cell-editor-background) !important;
-  padding: 32px !important;
+  padding: 2rem !important;
   border-radius: 4px !important;
   border: 1px solid var(--jp-cell-editor-border-color) !important;
   overflow-x: auto;
-  margin-top: 56px !important;
+  margin: 0 !important;
+  margin-top: 3.5rem !important;
   font-size: 0.85em !important;
   line-height: 1.4 !important;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget pre code {
-  color: #222;
+.jgis-story-rendered-markdown .specta-article-host-widget pre code {
   background-color: transparent !important;
   padding: 0;
-  font-size: 14px !important;
+  font-size: 0.875rem !important;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget code {
-  background-color: #e9ecef;
+.jgis-story-rendered-markdown .specta-article-host-widget code {
   padding: 0.2em 0.4em;
   border-radius: 4px;
-  font-size: 14px !important;
+  font-size: 0.875rem !important;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget img {
+.jgis-story-rendered-markdown .specta-article-host-widget p code {
+  font-size: 75% !important;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget img {
   max-width: 100%;
   height: auto;
   display: block;
@@ -94,36 +158,244 @@
   border-radius: 4px;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget blockquote {
-  border-left: 3px solid transparent;
-  padding-left: 16px;
+.jgis-story-rendered-markdown .specta-article-host-widget blockquote {
+  border-left: 3px solid;
+  padding-left: 1rem;
   margin: 1.2em 0;
   font-style: italic;
   color: var(--jp-ui-font-color2);
+  font-size: 1em;
 }
 
-.jgis-story-stage-overlay-content .specta-article-host-widget ul,
-.jgis-story-stage-overlay-content .specta-article-host-widget ol {
-  margin-bottom: 1.2em;
-  padding-left: 1.5em;
-}
-
-.jgis-story-stage-overlay-content .specta-article-host-widget li {
+.jgis-story-rendered-markdown .specta-article-host-widget blockquote p {
   margin-bottom: 0.4em;
 }
 
-.jgis-story-stage-overlay-content
+.jgis-story-rendered-markdown .specta-article-host-widget ul,
+.jgis-story-rendered-markdown .specta-article-host-widget ol {
+  margin-bottom: 1.2em;
+  padding-left: 1.5em;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget li {
+  margin-bottom: 0.4em;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget hr {
+  border: 0;
+  height: 1px;
+  margin: 2em 0;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 0.9em;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget th,
+.jgis-story-rendered-markdown .specta-article-host-widget td {
+  border: 1px solid;
+  padding: 0.375rem 0.625rem;
+  text-align: left;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget th {
+  font-weight: bold;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget h1 + p,
+.jgis-story-rendered-markdown .specta-article-host-widget h2 + p,
+.jgis-story-rendered-markdown .specta-article-host-widget h3 + p,
+.jgis-story-rendered-markdown .specta-article-host-widget h4 + p,
+.jgis-story-rendered-markdown .specta-article-host-widget h5 + p {
+  margin-top: 0.66em !important;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-CodeCell {
+  padding: 0 !important;
+  margin-top: 2.5rem !important;
+}
+
+.jgis-story-rendered-markdown
   .specta-article-host-widget
-  .jp-MarkdownOutput {
+  .jp-OutputArea
+  > .jp-OutputArea-child:first-child {
+  margin-top: 2.5rem !important;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-InputArea-editor {
+  padding: 2rem !important;
+  border-radius: 4px !important;
+  background-color: var(--jp-cell-editor-background) !important;
+}
+
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  .jp-InputArea-editor
+  > div.cm-editor {
+  background: transparent !important;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget .cm-content {
+  padding: 0 !important;
+}
+
+.jgis-story-rendered-markdown .specta-article-host-widget .jp-MarkdownOutput {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
-.jgis-story-overlay-markdown-plain {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: var(--jp-content-font-family, var(--jp-ui-font-family1));
-  font-size: 1rem;
-  line-height: 1.6;
+/* Bigger screen */
+@media screen and (min-width: 728px) {
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-article-outputs-panel {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget h1 {
+    font-size: 2.625rem;
+    font-style: normal;
+    font-weight: 700;
+    margin-top: 1.8em !important;
+    margin-bottom: 2rem;
+    line-height: 1.25;
+    letter-spacing: -0.011em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 1.25em !important;
+    line-height: 1.25;
+    margin-bottom: 0 !important;
+    letter-spacing: -0.016em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget h3 {
+    letter-spacing: 0;
+    line-height: 1.2;
+    font-size: 1.3em;
+    margin-top: 1.72em !important;
+    font-weight: 700;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget h4 {
+    font-size: 1.3em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget h5 {
+    font-size: 1.2em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget h6 {
+    font-size: 1.1em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget p,
+  .jgis-story-rendered-markdown .specta-article-host-widget ul,
+  .jgis-story-rendered-markdown .specta-article-host-widget ol {
+    letter-spacing: -0.003em;
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-top: 2.1em;
+    margin-bottom: 0 !important;
+    font-style: normal;
+    word-break: break-word;
+    font-weight: 400;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget li {
+    margin-bottom: 0.5em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget pre {
+    font-size: 0.9em;
+    padding: 0.9375rem;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget pre code,
+  .jgis-story-rendered-markdown .specta-article-host-widget code {
+    font-size: 0.9em;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget blockquote {
+    font-size: 1.1em;
+    margin: 1.5em 0;
+    padding-left: 1.25rem;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget table {
+    font-size: 0.95em;
+    margin: 1.5em 0;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget th,
+  .jgis-story-rendered-markdown .specta-article-host-widget td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget img {
+    margin: 2em auto;
+  }
+
+  .jgis-story-rendered-markdown .specta-article-host-widget .jp-CodeCell {
+    margin-top: 3.5rem !important;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .jp-OutputArea
+    > .jp-OutputArea-child:first-child {
+    margin-top: 3.5rem !important;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-cell-output-big {
+    max-width: 1192px;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-cell-output-big
+    .jp-Cell {
+    max-width: 680px;
+    margin: auto;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-cell-output-big
+    .jp-Cell.jp-MarkdownCell {
+    max-width: 1192px;
+    margin: auto;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-cell-output-full {
+    max-width: 100%;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-cell-output-full
+    .jp-Cell {
+    max-width: 680px;
+    margin: auto;
+  }
+
+  .jgis-story-rendered-markdown
+    .specta-article-host-widget
+    .specta-cell-output-full
+    .jp-Cell.jp-MarkdownCell {
+    max-width: 100%;
+    margin: auto;
+  }
 }

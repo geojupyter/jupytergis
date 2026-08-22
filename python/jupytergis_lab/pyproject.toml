@@ -25,9 +25,10 @@ dependencies = [
   "requests",
   "jupyter-ydoc>=2,<4",
   "ypywidgets>=0.9.0,<0.10.0",
-  "yjs-widgets>=0.5,<0.6",
+  "yjs-widgets>=0.6,<0.7",
   "comm>=0.1.2,<0.2.0",
   "pydantic>=2,<3",
+  "py2vega>=0.7.0",
   "jupytergis_core>=0.1.0,<1",
   "sidecar>=0.7.0",
 ]
@@ -39,7 +40,8 @@ requires-python = ">=3.12"
 
 [project.optional-dependencies]
 tiler = [
-  "jupyter-tiler>=0.6.0",
+  "jupyter-tiler>=0.8.1",
+  "sniffio",
 ]
 
 [tool.hatch.version]
@@ -70,12 +72,12 @@ skip-if-exists = ["jupytergis_lab/labextension/static/style.js"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
 build_cmd = "build:prod"
-npm = ["jlpm"]
+npm = ["pnpm"]
 
 [tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
 build_cmd = "install:extension"
 build_dir = "jupytergis_lab/labextension"
-npm = ["jlpm"]
+npm = ["pnpm"]
 source_dir = "src"
 
 [tool.jupyter-releaser.options]
@@ -84,10 +86,10 @@ version_cmd = "hatch version"
 [tool.jupyter-releaser.hooks]
 before-build-npm = [
   "python -m pip install 'jupyterlab>=4.5.1'",
-  "jlpm",
-  "jlpm build:prod",
+  "pnpm install",
+  "pnpm run build:prod",
 ]
-before-build-python = ["jlpm clean:all"]
+before-build-python = ["pnpm run clean:all"]
 
 [tool.check-wheel-contents]
 ignore = ["W002"]

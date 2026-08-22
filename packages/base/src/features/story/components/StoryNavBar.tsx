@@ -22,12 +22,12 @@ function StoryNavBar({
   const containerClassName =
     placement === 'over-image'
       ? 'jgis-story-viewer-nav-container'
-      : placement === 'subtitle-specta'
+      : placement === 'caption-specta'
         ? 'jgis-story-viewer-nav-container-specta-mod'
         : undefined;
 
   const navbarClassName =
-    placement === 'subtitle-specta'
+    placement === 'caption-specta'
       ? 'jgis-story-navbar jgis-story-navbar-specta-mod'
       : 'jgis-story-navbar';
 

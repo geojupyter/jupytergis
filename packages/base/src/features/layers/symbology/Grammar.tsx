@@ -2,28 +2,35 @@
  * Grammar symbology panel.
  *
  * Shows encoding rules grouped by layer. Each layer has optional render-side
- * transforms (KDE, cluster) followed by (field → scale → channels) mapping rows.
+ * transforms (KDE, cluster) followed by (field → scale → encodings) mapping rows.
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
-import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowDown,
+  faArrowUp,
+  faGripVertical,
+  faPlus,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IEncodingRule,
   IGrammarLayer,
   IGrammarSymbologyState,
   IPredicate,
+  IScale,
   ITransform,
-  StyleChannel,
+  Encoding,
   RGBA,
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import MappingRow, {
   IGrammarRow,
-  WhenAddForm,
-  formatPredicate,
+  WhenRow,
+  defaultPredicate,
 } from '@/src/features/layers/symbology/components/MappingRow';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
@@ -41,8 +48,12 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 
-const DEFAULT_CHANNELS: StyleChannel[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_ENCODINGS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
+
+// Scale schemes that cannot be round-tripped through the QGIS format, and are
+// therefore hidden from the picker while a QGIS document is open.
+const QGIS_UNSUPPORTED_SCHEMES: IScale['scheme'][] = ['expression'];
 
 // ---------------------------------------------------------------------------
 // Layer UI state
@@ -75,12 +86,14 @@ function defaultTransform(type: ITransform['type']): ITransform {
       return { type: 'kde', radius: 10, blur: 15 };
     case 'cluster':
       return { type: 'cluster', radius: 40 };
+    default:
+      throw new Error(`Invalid transform type ${type}`);
   }
 }
 
 interface ITransformRowProps {
   transform: ITransform;
-  availableFields: string[];
+  availableFields: IFieldOption[];
   onChange: (t: ITransform) => void;
   onDelete: () => void;
 }
@@ -136,8 +149,8 @@ const TransformRow: React.FC<ITransformRowProps> = ({
           >
             <NativeSelectOption value="">(none)</NativeSelectOption>
             {availableFields.map(field => (
-              <NativeSelectOption key={field} value={field}>
-                {field}
+              <NativeSelectOption key={field.value} value={field.value}>
+                {field.label}
               </NativeSelectOption>
             ))}
           </NativeSelect>
@@ -158,7 +171,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
 
       <Button
         type="button"
-        className="jp-gis-grammar-delete-btn"
+        variant="ghost"
         onClick={onDelete}
         title="Remove transform"
         style={{ marginLeft: 'auto' }}
@@ -173,15 +186,24 @@ const TransformRow: React.FC<ITransformRowProps> = ({
 // Layer section
 // ---------------------------------------------------------------------------
 
+interface IFieldOption {
+  value: string;
+  label: string;
+}
 interface ILayerSectionProps {
   layer: ILayerUIState;
   layerIndex: number;
   totalLayers: number;
-  availableFields: string[];
+  availableFields: IFieldOption[];
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
+  disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 const LayerSection: React.FC<ILayerSectionProps> = ({
@@ -191,15 +213,40 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   availableFields,
   featureValues,
   isRasterLayer = false,
+  disabledSchemes = [],
+  bandStats,
+  normalize = true,
   onChange,
   onDelete,
+  onMoveUp,
+  onMoveDown,
 }) => {
-  const [addingLayerWhen, setAddingLayerWhen] = useState(false);
+  const dragIndexRef = useRef<number | null>(null);
+  const dragOverRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const addLayerPredicate = useCallback(
-    (pred: IPredicate) => {
-      onChange({ ...layer, when: [...(layer.when ?? []), pred] });
-      setAddingLayerWhen(false);
+  const moveRow = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) {
+        return;
+      }
+      const next = [...layer.rows];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      onChange({ ...layer, rows: next });
+    },
+    [layer, onChange],
+  );
+
+  const addLayerPredicate = useCallback(() => {
+    onChange({ ...layer, when: [...(layer.when ?? []), defaultPredicate()] });
+  }, [layer, onChange]);
+
+  const updateLayerPredicate = useCallback(
+    (index: number, pred: IPredicate) => {
+      const next = [...(layer.when ?? [])];
+      next[index] = pred;
+      onChange({ ...layer, when: next });
     },
     [layer, onChange],
   );
@@ -212,30 +259,25 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const updateTransform = useCallback(
-    (index: number, t: ITransform) => {
-      const next = [...layer.transforms];
-      next[index] = t;
-      onChange({ ...layer, transforms: next });
-    },
-    [layer, onChange],
-  );
-
-  const removeTransform = useCallback(
-    (index: number) => {
-      onChange({
-        ...layer,
-        transforms: layer.transforms.filter((_, i) => i !== index),
-      });
-    },
-    [layer, onChange],
-  );
-
   const addTransform = useCallback(() => {
+    if (layer.transforms.length > 0) {
+      return;
+    }
     onChange({
       ...layer,
-      transforms: [...layer.transforms, defaultTransform('kde')],
+      transforms: [defaultTransform('kde')],
     });
+  }, [layer, onChange]);
+
+  const updateTransform = useCallback(
+    (t: ITransform) => {
+      onChange({ ...layer, transforms: [t] });
+    },
+    [layer, onChange],
+  );
+
+  const removeTransform = useCallback(() => {
+    onChange({ ...layer, transforms: [] });
   }, [layer, onChange]);
 
   const updateRow = useCallback(
@@ -258,9 +300,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultChannels: StyleChannel[] = isRaster
+    const defaultEncodings: Encoding[] = isRaster
       ? ['pixel-color']
-      : DEFAULT_CHANNELS;
+      : DEFAULT_ENCODINGS;
     onChange({
       ...layer,
       rows: [
@@ -268,15 +310,17 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {
           id: UUID.uuid4(),
           scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
-          channels: [...defaultChannels],
+          encodings: [...defaultEncodings],
         },
       ],
     });
   }, [layer, onChange, isRaster]);
 
-  // KDE layers expose '$density'; raster layers expose $band-N fields.
+  // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
-  const encodingFields = hasKDE ? ['$density'] : availableFields;
+  const encodingFields: IFieldOption[] = hasKDE
+    ? [{ value: '$density', label: '$density' }]
+    : availableFields;
 
   return (
     <div className="jp-gis-grammar-layer-section">
@@ -285,20 +329,44 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         <span className="jp-gis-grammar-layer-label">
           Layer {layerIndex + 1}
         </span>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addTransform}
-          title="Add transform"
-        >
-          <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
-          Transform
-        </Button>
+        {layer.transforms.length === 0 && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={addTransform}
+            title="Add transform"
+          >
+            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+            Transform
+          </Button>
+        )}
 
+        {totalLayers > 1 && onMoveUp && (
+          <Button
+            type="button"
+            variant="ghost"
+            style={{ height: 32, width: 32 }}
+            onClick={onMoveUp}
+            title="Move layer up"
+          >
+            <FontAwesomeIcon icon={faArrowUp} />
+          </Button>
+        )}
+        {totalLayers > 1 && onMoveDown && (
+          <Button
+            type="button"
+            variant="ghost"
+            style={{ height: 32, width: 32 }}
+            onClick={onMoveDown}
+            title="Move layer down"
+          >
+            <FontAwesomeIcon icon={faArrowDown} />
+          </Button>
+        )}
         {totalLayers > 1 && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             style={{ height: 32, width: 32 }}
             onClick={onDelete}
             title="Remove layer"
@@ -326,64 +394,149 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           </Button>
         )}
         {layer.when?.map((pred, i) => (
-          <span key={i} className="jp-gis-grammar-when-chip">
-            {formatPredicate(pred)}
-            <Button
-              type="button"
-              onClick={() => removeLayerPredicate(i)}
-              title="Remove condition"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-            </Button>
-          </span>
-        ))}
-        {addingLayerWhen ? (
-          <WhenAddForm
+          <WhenRow
+            key={i}
+            predicate={pred}
             availableFields={availableFields}
-            onAdd={addLayerPredicate}
-            onCancel={() => setAddingLayerWhen(false)}
+            onChange={updated => updateLayerPredicate(i, updated)}
+            onDelete={() => removeLayerPredicate(i)}
           />
-        ) : (
-          <Button
-            type="button"
-            className="jp-gis-grammar-when-add-btn"
-            onClick={() => setAddingLayerWhen(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-          </Button>
-        )}
+        ))}
+        <Button
+          type="button"
+          className="jp-gis-grammar-when-add-btn"
+          onClick={addLayerPredicate}
+          title="Add condition"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </Button>
       </div>
 
-      {/* Transforms */}
-      {layer.transforms.map((t, i) => (
+      {/* Transform params (single transform per layer) */}
+      {layer.transforms[0] && (
         <TransformRow
-          key={i}
-          transform={t}
+          transform={layer.transforms[0]}
           availableFields={availableFields}
-          onChange={updated => updateTransform(i, updated)}
-          onDelete={() => removeTransform(i)}
+          onChange={updateTransform}
+          onDelete={removeTransform}
         />
-      ))}
+      )}
 
-      {/* Mapping rows */}
-      {layer.rows.map((row, i) => (
-        <MappingRow
-          key={row.id}
-          row={row}
-          availableFields={encodingFields}
-          featureValues={featureValues}
-          isRaster={isRaster}
-          onChange={updated => updateRow(i, updated)}
-          onDelete={() => removeRow(i)}
-        />
-      ))}
+      {/* Mapping rows — reorder bar (drag + arrows) above each rule */}
+      {/* Container handles drag events so drops work even at top/bottom edges */}
+      <div
+        className="jp-gis-grammar-rules-container"
+        onDragOver={e => {
+          e.preventDefault();
+          // Find which wrapper the cursor is closest to
+          const wrappers = Array.from(
+            e.currentTarget.querySelectorAll(
+              ':scope > .jp-gis-grammar-drag-wrapper',
+            ),
+          );
+          let idx = layer.rows.length;
+          for (let j = 0; j < wrappers.length; j++) {
+            const rect = wrappers[j].getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            if (e.clientY < midY) {
+              idx = j;
+              break;
+            }
+          }
+          dragOverRef.current = idx;
+          setDragOverIndex(idx);
+        }}
+        onDrop={() => {
+          const over = dragOverRef.current;
+          if (dragIndexRef.current !== null && over !== null) {
+            const to = over > dragIndexRef.current ? over - 1 : over;
+            moveRow(dragIndexRef.current, to);
+          }
+          dragIndexRef.current = null;
+          dragOverRef.current = null;
+          setDragOverIndex(null);
+        }}
+        onDragEnd={() => {
+          dragIndexRef.current = null;
+          dragOverRef.current = null;
+          setDragOverIndex(null);
+        }}
+      >
+        {layer.rows.map((row, i) => (
+          <div
+            key={row.id}
+            className="jp-gis-grammar-drag-wrapper"
+            style={{
+              borderTop:
+                dragOverIndex === i && dragIndexRef.current !== i
+                  ? '2px solid var(--jp-brand-color1)'
+                  : '2px solid transparent',
+              borderBottom:
+                dragOverIndex === layer.rows.length &&
+                i === layer.rows.length - 1 &&
+                dragIndexRef.current !== i
+                  ? '2px solid var(--jp-brand-color1)'
+                  : '2px solid transparent',
+            }}
+          >
+            {layer.rows.length > 1 && (
+              <div className="jp-gis-grammar-reorder-bar">
+                <Button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => moveRow(i, i - 1)}
+                  title="Move up"
+                >
+                  <FontAwesomeIcon icon={faArrowUp} />
+                </Button>
+                <div
+                  className="jp-gis-grammar-drag-handle"
+                  draggable
+                  onDragStart={e => {
+                    dragIndexRef.current = i;
+                    const wrapper = e.currentTarget.closest(
+                      '.jp-gis-grammar-drag-wrapper',
+                    );
+                    if (wrapper) {
+                      e.dataTransfer.setDragImage(wrapper, 0, 0);
+                    }
+                  }}
+                  title="Drag to reorder"
+                >
+                  <FontAwesomeIcon icon={faGripVertical} />
+                </div>
+                <Button
+                  type="button"
+                  disabled={i === layer.rows.length - 1}
+                  onClick={() => moveRow(i, i + 1)}
+                  title="Move down"
+                >
+                  <FontAwesomeIcon icon={faArrowDown} />
+                </Button>
+              </div>
+            )}
+            <MappingRow
+              row={row}
+              availableFields={encodingFields}
+              featureValues={featureValues}
+              isRaster={isRaster}
+              disabledSchemes={disabledSchemes}
+              bandStats={bandStats}
+              normalize={normalize}
+              onChange={updated => updateRow(i, updated)}
+              onDelete={() => removeRow(i)}
+            />
+          </div>
+        ))}
+      </div>
 
       <div className="jp-gis-symbology-button-container">
         <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          variant="ghost"
           style={{ margin: '0 0 0.5rem 1rem' }}
           onClick={addRow}
         >
+          <FontAwesomeIcon icon={faPlus} />
           Add Mapping
         </Button>
       </div>
@@ -403,14 +556,35 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   segmentId,
 }) => {
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
-  const isRasterLayer = layer?.type === 'GeoTiffLayer';
+  const isRasterLayer =
+    layer?.type === 'GeoTiffLayer' || layer?.type === 'GeoZarrLayer';
 
   const { featureProperties: selectableAttributesAndValues } = useGetProperties(
     { layerId, model },
   );
 
-  // For raster layers, expose $band-N pseudo-fields derived from band metadata.
+  // For raster layers, expose band_N pseudo-fields derived from band metadata.
   const { bandRows } = useGetBandInfo(model, layer);
+
+  const bandStats = React.useMemo(() => {
+    const map: Record<number, { min: number; max: number }> = {};
+
+    bandRows.forEach(b => {
+      map[b.band] = {
+        min: b.stats.minimum,
+        max: b.stats.maximum,
+      };
+    });
+
+    return map;
+  }, [bandRows]);
+
+  // Whether the raster source normalizes band values to [0, 1]. This governs
+  // which value space the auto-filled symbology domain must live in.
+  const normalize = React.useMemo(() => {
+    const source = model.getSource(layer?.parameters?.source);
+    return (source?.parameters?.normalize as boolean | undefined) ?? true;
+  }, [model, layer]);
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -451,7 +625,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
-            channels: [...(mapping.channels as StyleChannel[])],
+            encodings: [...(mapping.encodings as Encoding[])],
             ...(rule.when ? { when: rule.when } : {}),
             ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
           })),
@@ -467,7 +641,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
     const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
       const rules: IEncodingRule[] = uiLayer.rows
-        .filter(row => row.channels.length > 0)
+        .filter(row => row.encodings.length > 0)
         .map(row => ({
           id: row.id,
           ...(row.fields?.length ? { fields: row.fields } : {}),
@@ -476,7 +650,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           mappings: [
             {
               scale: row.scale,
-              channels: row.channels as [StyleChannel, ...StyleChannel[]],
+              encodings: row.encodings as [Encoding, ...Encoding[]],
             },
           ],
         }));
@@ -519,9 +693,32 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     ]);
   };
 
+  const moveLayer = useCallback(
+    (from: number, to: number) => {
+      if (from === to) {
+        return;
+      }
+      setLayers(prev => {
+        const next = [...prev];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    },
+    [setLayers],
+  );
+
   const availableFields = isRasterLayer
-    ? bandRows.map(b => `$band-${b.band}`)
-    : Object.keys(selectableAttributesAndValues);
+    ? bandRows.map(b => ({
+        value: `band_${b.band}`,
+        label: `band_${b.band}  ${b.name}${
+          b.colorInterpretation ? ` (${b.colorInterpretation})` : ''
+        }`,
+      }))
+    : Object.keys(selectableAttributesAndValues).map(f => ({
+        value: f,
+        label: f,
+      }));
 
   return (
     <div className="jp-gis-layer-symbology-container">
@@ -534,17 +731,21 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           availableFields={availableFields}
           featureValues={selectableAttributesAndValues}
           isRasterLayer={isRasterLayer}
+          disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
+          bandStats={bandStats}
+          normalize={normalize}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
           onDelete={() => setLayers(prev => prev.filter((_, j) => j !== i))}
+          onMoveUp={i > 0 ? () => moveLayer(i, i - 1) : undefined}
+          onMoveDown={
+            i < layers.length - 1 ? () => moveLayer(i, i + 1) : undefined
+          }
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={addLayer}
-        >
+        <Button className="jp-gis-grammar-action-btn" onClick={addLayer}>
           Add Layer
         </Button>
       </div>

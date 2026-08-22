@@ -27,6 +27,10 @@ export const DEFAULT_FLAT_STYLE: FlatStyle = {
   'circle-stroke-color': '#3399CC',
 };
 
+/** Sentinel stop values for missing data. */
+export const STOP_NULL = '__null__';
+export const STOP_UNDEFINED = '__undefined__';
+
 /** A computed stop: value → RGBA color. */
 export interface IComputedStop {
   value: number | string | boolean;
@@ -131,8 +135,22 @@ export function computeCategorizedColorStops(
   const reverse = state.reverseRamp ?? false;
 
   const uniqueValues = [
-    ...new Set(featureValues.filter(v => v !== undefined && v !== null)),
-  ].sort((a: any, b: any) => (a < b ? -1 : a > b ? 1 : 0));
+    ...new Set(
+      featureValues.map(v =>
+        v === null ? STOP_NULL : v === undefined ? STOP_UNDEFINED : v,
+      ),
+    ),
+  ].sort((a: any, b: any) => {
+    const aIsSentinel = a === STOP_NULL || a === STOP_UNDEFINED;
+    const bIsSentinel = b === STOP_NULL || b === STOP_UNDEFINED;
+    if (aIsSentinel && !bIsSentinel) {
+      return 1;
+    }
+    if (!aIsSentinel && bIsSentinel) {
+      return -1;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
 
   if (uniqueValues.length === 0) {
     return [];
@@ -151,7 +169,7 @@ export function computeCategorizedColorStops(
   }));
 }
 
-// Color ramp helpers
+// color map helpers
 
 function mapStopsToColors(
   stops: number[],

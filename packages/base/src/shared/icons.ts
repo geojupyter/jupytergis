@@ -9,9 +9,11 @@ import { LabIcon } from '@jupyterlab/ui-components';
 
 import bookOpenSvgStr from '../../style/icons/book_open.svg';
 import clockSvgStr from '../../style/icons/clock-solid.svg';
+import columns2SvgStr from '../../style/icons/columns_2.svg';
 import geoJsonSvgStr from '../../style/icons/geojson.svg';
 import geolocationSvgStr from '../../style/icons/geolocation.svg';
 import geoPackageSvgStr from '../../style/icons/geopackage.svg';
+import helpSvgStr from '../../style/icons/help.svg';
 import infoSvgStr from '../../style/icons/info-solid.svg';
 import logoSvgStr from '../../style/icons/logo.svg';
 import logoMiniSvgStr from '../../style/icons/logo_mini.svg';
@@ -22,6 +24,7 @@ import moundSvgStr from '../../style/icons/mound.svg';
 import nonVisibilitySvgStr from '../../style/icons/nonvisibility.svg';
 import pencilSolidSvgStr from '../../style/icons/pencil_solid.svg';
 import rasterSvgStr from '../../style/icons/raster.svg';
+import scrollSvgStr from '../../style/icons/scroll.svg';
 import targetWithCenterSvgStr from '../../style/icons/target_with_center.svg';
 import targetWithoutCenterSvgStr from '../../style/icons/target_without_center.svg';
 import terminalToolbarSvgStr from '../../style/icons/terminal_toolbar.svg';
@@ -93,6 +96,11 @@ export const clockIcon = new LabIcon({
   svgstr: clockSvgStr,
 });
 
+export const columns2Icon = new LabIcon({
+  name: 'jupytergis::columns2',
+  svgstr: columns2SvgStr,
+});
+
 export const terminalToolbarIcon = new LabIcon({
   name: 'jupytergis::terminalToolbar',
   svgstr: terminalToolbarSvgStr,
@@ -126,4 +134,14 @@ export const markerIcon = new LabIcon({
 export const pencilSolidIcon = new LabIcon({
   name: 'jupytergis::pencilSolid',
   svgstr: pencilSolidSvgStr,
+});
+
+export const scrollIcon = new LabIcon({
+  name: 'jupytergis::scroll',
+  svgstr: scrollSvgStr,
+});
+
+export const helpIcon = new LabIcon({
+  name: 'jupytergis::help',
+  svgstr: helpSvgStr,
 });

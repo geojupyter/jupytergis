@@ -23,6 +23,11 @@ export interface ISourceFormProps extends IBaseFormProps {
   sourceType: SourceType;
 
   /**
+   * The id of the source being edited, when known (object properties panel).
+   */
+  sourceId?: string;
+
+  /**
    * The signal emitted when the source form has changed.
    */
   sourceFormChangedSignal?: Signal<any, IDict<any>>;

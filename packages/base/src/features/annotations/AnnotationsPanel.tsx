@@ -19,7 +19,9 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     this._annotationModel = props.annotationModel;
     this._jgisModel = props.jgisModel;
 
-    this._annotationModel?.model?.sharedMetadataChanged.connect(updateCallback);
+    this._annotationModel?.model?.sharedAnnotationsChanged.connect(
+      updateCallback,
+    );
     this.forceUpdate();
   }
 
@@ -28,6 +30,14 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
 
     if (!annotationIds || !this._annotationModel) {
       return <div></div>;
+    }
+
+    if (annotationIds.length === 0) {
+      return (
+        <div style={{ textAlign: 'center' }}>
+          <p>No annotations yet. Right-click on the map to add one.</p>
+        </div>
+      );
     }
 
     const annotations = annotationIds.map((id: string) => {
