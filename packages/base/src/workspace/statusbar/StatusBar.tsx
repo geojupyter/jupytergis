@@ -6,9 +6,11 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import projCodes from 'proj-codes';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { version } from '@/package.json';
+import { Select } from '@/src/shared/components/Select';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -23,6 +25,21 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   scale,
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
+  const [projectionOpen, setProjectionOpen] = useState(false);
+
+  const projectionOptions = useMemo(
+    () =>
+      Object.keys(projCodes).map(code => ({
+        value: code,
+        label: `${code} (${projCodes[code].name})`,
+        onSelect: () =>
+          jgisModel.setOptions({
+            ...jgisModel.getOptions(),
+            projection: code,
+          }),
+      })),
+    [jgisModel],
+  );
 
   useEffect(() => {
     const handlePointerChanged = () => {
@@ -64,10 +81,24 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         <FontAwesomeIcon icon={faRuler} />{' '}
         <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
-      <div className="jgis-status-bar-item">
-        <FontAwesomeIcon icon={faGlobe} />{' '}
-        <span>{projection?.code ?? null}</span>
-      </div>
+      <Select
+        items={projectionOptions}
+        buttonText={projection?.code ?? ''}
+        className="jgis-status-bar-select-popover"
+        open={projectionOpen}
+        onOpenChange={setProjectionOpen}
+        showSearch
+        trigger={
+          <button
+            type="button"
+            className="jgis-status-bar-item jgis-status-bar-projection-trigger"
+            aria-label="Change projection"
+          >
+            <FontAwesomeIcon icon={faGlobe} />{' '}
+            <span>{projection?.code ?? null}</span>
+          </button>
+        }
+      />
       <div className="jgis-status-bar-item">Units: {projection?.units}</div>
     </div>
   );

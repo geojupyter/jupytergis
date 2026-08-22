@@ -467,7 +467,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onSharedOptionsChanged,
       this,
     );
-
     this._model.temporalControllerActiveChanged.disconnect(
       this._handleTemporalControllerActiveChanged,
       this,
@@ -2762,7 +2761,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
   };
 
-  private _onSharedOptionsChanged(): void {
+  private _onSharedOptionsChanged(
+    _sender?: IJupyterGISDoc,
+    change?: MapChange,
+  ): void {
     if (!this._Map) {
       return;
     }
@@ -2776,6 +2778,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const options = this._model.getOptions();
       this.updateOptions(options);
       this._isPositionInitialized = true;
+    } else if (change?.has('projection')) {
+      this.updateOptions(this._model.getOptions());
     }
   }
 
@@ -2809,6 +2813,50 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private async _handleProjectionChange(
+    view: View,
+    projection: string | undefined,
+    bearing: number | undefined,
+  ) {
+    const currentProjection = view.getProjection().getCode();
+    if (projection === undefined || currentProjection === projection) {
+      // Nothing to do
+      return;
+    }
+
+    // Projection changed; try to recreate view
+    this.ensureProjectionRegistered(projection);
+    const newProjection = getProjection(projection);
+
+    if (!newProjection) {
+      this._log('warning', `Invalid projection: ${projection}`);
+      return;
+    }
+
+    this.setState(old => ({
+      viewProjection: {
+        code: newProjection.getCode(),
+        units: newProjection.getUnits(),
+      },
+    }));
+
+    view = new View({ projection: newProjection });
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
+    this._geolocation?.setProjection(newProjection);
+
+    await this._rebuildLayers();
+  }
+
+  private async _rebuildLayers(): Promise<void> {
+    const layerIds = JupyterGISModel.getOrderedLayerIds(this._model);
+    layerIds.forEach(id => this.removeLayer(id));
+    this._sources = [];
+    this._sourceToLayerMap = new Map();
+    this._ready = false;
+    await this._updateLayersImpl(layerIds);
+  }
+
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const {
       projection,
@@ -2820,28 +2868,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       bearing,
     } = options;
     let view = this._Map.getView();
-    const currentProjection = view.getProjection().getCode();
 
-    // Need to recreate view if the projection changes
-    if (projection !== undefined && currentProjection !== projection) {
-      const newProjection = getProjection(projection);
-      if (newProjection) {
-        this.setState(old => ({
-          viewProjection: {
-            code: newProjection.getCode(),
-            units: newProjection.getUnits(),
-          },
-        }));
-        view = new View({ projection: newProjection });
-        this._geolocation?.setProjection(newProjection);
-      } else {
-        this._log('warning', `Invalid projection: ${projection}`);
-        return;
-      }
-    }
-
-    view.setRotation(bearing || 0);
-    this._Map.setView(view);
+    this._handleProjectionChange(view, projection, bearing);
+    view = this._Map.getView();
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
