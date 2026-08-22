@@ -1,31 +1,43 @@
 /* -----------------------------------------------------------------------------
-| Placement of the Cancel action on a running processing notification.
+| In-progress processing toasts: keep the Cancel action on the message line.
 |
-| JupyterLab renders notification actions in a `.jp-toast-buttonBar` row *below*
-| the message, which lands the Cancel button under the toast's close (X) button
-| and adds height. For our long-running (in-progress) processing toasts we lift
-| that bar up to the top-right corner so Cancel sits just to the LEFT of the X,
-| vertically aligned with it, and adds no extra height.
-|
-| The toast element (`.Toastify__toast`) is `position: relative`, so the bar can
-| be absolutely positioned against it. Scoped to in-progress toasts so other
-| notifications (info/success/error with actions) keep the default layout.
+| JupyterLab stacks notification actions in a `.jp-toast-buttonBar` below the
+| message, which adds an empty row and never lines up with the toast's close (X).
+| We lay the toast content out as a two-column grid instead, so spinner, message,
+| Cancel and X share one centre line. Scoped to in-progress toasts; other
+| notifications keep the default stacked layout.
 |---------------------------------------------------------------------------- */
 
-.jp-Notification-Toast-in-progress .jp-toast-buttonBar {
-  position: absolute;
-  top: 7px;
-  right: 30px;
-  padding-block-start: 0;
+/* react-toastify wraps the toast content in this div and styles it likewise. */
+.jp-Notification-Toast-in-progress .Toastify__toast-body > div:last-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  align-items: center;
 }
 
-/* Keep the message clear of the absolutely-positioned Cancel button. */
 .jp-Notification-Toast-in-progress .jp-toast-message {
-  padding-inline-end: 92px;
+  min-width: 0;
+  padding-inline-end: 0;
 }
 
-.jp-toast-button {
+.jp-Notification-Toast-in-progress .jp-toast-buttonBar {
+  padding-block-start: 0;
+  /* Gutter for the close (X) button, which is absolutely positioned. */
+  margin-inline-end: 18px;
+}
+
+/* The grid right-aligns the bar, so the flexbox spacer is redundant. */
+.jp-Notification-Toast-in-progress .jp-toast-spacer {
+  display: none;
+}
+
+.jp-Notification-Toast-in-progress .jp-toast-button {
   margin: 0;
-  padding: 0 8px;
-  line-height: 1.6;
+}
+
+/* JupyterLab pins the close button top-right; centre it onto the Cancel line. */
+.jp-Notification-Toast-in-progress .jp-Notification-Toast-Close {
+  top: 50%;
+  transform: translateY(-50%);
 }
