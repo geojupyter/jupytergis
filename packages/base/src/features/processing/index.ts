@@ -53,7 +53,9 @@ function createProcessingNotification(label: string): IProcessingNotification {
     autoClose: false,
   });
   // Highest percentage shown so far; keeps the reported progress monotonic.
-  let shownPercent = 0;
+  // Starts below zero so a genuine 0% still renders — that first tick is the
+  // signal that GDAL has stopped opening the source and started working.
+  let shownPercent = -1;
   return {
     onProgress: (percent: number) => {
       if (percent <= shownPercent) {
@@ -1170,13 +1172,17 @@ export async function clipRasterByVector(
       'COMPRESS=LZW',
       '-co',
       'BIGTIFF=IF_SAFER',
-      // Parallel warp + 1 GB warp memory so each pass covers a larger output
-      // area, reducing the number of /vsicurl/ round-trips.
+      // Parallel warp, but a modest warp memory on purpose: gdalwarp only
+      // ticks its progress meter between chunks, so a large -wm sizes the
+      // whole output into one chunk and the run reports 0% and then 100%
+      // with nothing in between. 32 MB gives a France-sized clip a few dozen
+      // chunks. The cost is negligible here — this path is bound by /vsicurl
+      // throughput, not by chunk overhead.
       '-multi',
       '-wo',
       'NUM_THREADS=ALL_CPUS',
       '-wm',
-      '1024',
+      '32',
       '-cutline',
       cutlinePath,
       '-cutline_srs',

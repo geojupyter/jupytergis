@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +18,17 @@ ALLOWED_OPERATIONS = {"ogr2ogr", "gdal_rasterize", "gdalwarp", "gdal_translate"}
 
 # Optional callback invoked with a fractional progress value in [0.0, 1.0].
 ProgressCallback = Callable[[float], None]
+
+# GDAL's terminal progress meter, e.g.
+#
+#     0...10...20...30...40...50...60...70...80...90...100 - done.
+#
+# Match only numbers carrying the meter's own "..." / " - done." delimiters.
+# The same stdout stream also carries chatter we must not read as progress:
+# gdalwarp echoes the source path, and a /vsicurl URL happily contains things
+# like ".../FCM-AGB-100m/2023/01/01/..." — a bare digit scan reports 100%
+# before the operation has begun.
+_PROGRESS_METER = re.compile(rb"(?<!\d)(\d{1,3})(?=\.\.\.|\s-\sdone\.)")
 
 
 class ProcessingCancelledError(Exception):
@@ -46,11 +58,16 @@ def _run_gdal_command(
 
         0...10...20...30...40...50...60...70...80...90...100 - done.
 
-    The numbers are emitted incrementally — not newline-delimited — so we read
-    stdout one byte at a time on a background thread, parse each completed
-    integer token, and forward it to ``progress_callback`` as a fraction in
-    ``[0.0, 1.0]``. stderr is redirected to a temp file (and surfaced on
-    failure) so a large warning stream can't deadlock the stdout reader.
+    The meter is not newline-delimited, so a background thread reads stdout as
+    it arrives and pulls out the numbers that carry the meter's own delimiters
+    (see ``_PROGRESS_METER``), forwarding each to ``progress_callback`` as a
+    fraction in ``[0.0, 1.0]``. stderr is redirected to a temp file (and
+    surfaced on failure) so a large warning stream can't deadlock the reader.
+
+    Granularity is GDAL's, not ours: the meter only ticks between warp/copy
+    chunks, so an operation sized to fit in a single chunk reports 0 and then
+    100 with nothing in between. Callers wanting a usable bar must keep the
+    chunks small (for gdalwarp, a modest ``-wm``).
 
     When ``cancel_event`` is set (e.g. because the client disconnected from the
     progress stream) the subprocess is killed and ``ProcessingCancelledError`` is
@@ -82,32 +99,37 @@ def _run_gdal_command(
         )
 
         def _read_progress() -> None:
-            digits = b""
+            buf = b""
             last_pct = -1
             assert proc.stdout is not None
             while True:
-                ch = proc.stdout.read(1)
-                if ch == b"":
+                # read1 returns as soon as the pipe has anything, so the meter
+                # is forwarded as GDAL writes it rather than a buffer at a time.
+                chunk = proc.stdout.read1(4096)
+                if not chunk:
                     break
                 if progress_callback is None:
                     continue
-                if ch.isdigit():
-                    digits += ch
-                    continue
-                if digits:
+                buf += chunk
+                match = None
+                for match in _PROGRESS_METER.finditer(buf):
+                    pct = int(match.group(1))
+                    if pct > 100 or pct == last_pct:
+                        continue
+                    last_pct = pct
                     try:
-                        pct = int(digits)
-                    except ValueError:
-                        pct = -1
-                    digits = b""
-                    if 0 <= pct <= 100 and pct != last_pct:
-                        last_pct = pct
-                        try:
-                            progress_callback(pct / 100.0)
-                        except Exception:  # noqa: BLE001
-                            # A misbehaving progress callback must never abort
-                            # the GDAL run; progress reporting is best-effort.
-                            logger.debug("progress_callback raised", exc_info=True)
+                        progress_callback(pct / 100.0)
+                    except Exception:  # noqa: BLE001
+                        # A misbehaving progress callback must never abort the
+                        # GDAL run; progress reporting is best-effort.
+                        logger.debug("progress_callback raised", exc_info=True)
+                if match is not None:
+                    buf = buf[match.end() :]
+                # A meter token can straddle two reads, and the pattern looks
+                # behind it, so on a long run of unmatched chatter keep a tail
+                # rather than dropping the buffer outright.
+                if len(buf) > 4096:
+                    buf = buf[-64:]
 
         reader = threading.Thread(target=_read_progress, daemon=True)
         reader.start()

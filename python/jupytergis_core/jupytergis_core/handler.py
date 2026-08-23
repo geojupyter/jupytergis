@@ -62,6 +62,10 @@ def load_config() -> ProxyConfig:
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# How long a processing stream may go quiet before we send an SSE comment
+# frame to keep the connection (and any proxy in between) alive.
+_SSE_KEEPALIVE_SECONDS = 15
+
 
 class ProxyError(Exception):
     """Base exception for proxy-related errors."""
@@ -589,7 +593,16 @@ class ProcessingHandler(APIHandler):
             self.write(f"data: {json.dumps(payload)}\n\n")
             await self.flush()
 
+        async def keepalive() -> None:
+            # An SSE comment frame: ignored by the client, but it keeps the
+            # connection warm. GDAL can work for minutes before its meter
+            # ticks (opening a remote source, building overviews), and an idle
+            # proxy in between would otherwise drop us.
+            self.write(": keepalive\n\n")
+            await self.flush()
+
         last_pct = -1
+        last_sent = time.monotonic()
 
         def drain() -> int:
             nonlocal last_pct
@@ -606,6 +619,10 @@ class ProcessingHandler(APIHandler):
             if pct != last_pct:
                 last_pct = pct
                 await send({"progress": pct})
+                last_sent = time.monotonic()
+            elif time.monotonic() - last_sent >= _SSE_KEEPALIVE_SECONDS:
+                await keepalive()
+                last_sent = time.monotonic()
             await asyncio.sleep(0.1)
 
         # Flush any progress emitted between the last poll and completion.
