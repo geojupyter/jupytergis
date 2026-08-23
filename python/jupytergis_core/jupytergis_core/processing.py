@@ -9,7 +9,11 @@ import time
 from base64 import b64encode
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 from urllib.parse import urlparse
+
+if TYPE_CHECKING:
+    from io import BufferedReader
 
 logger = logging.getLogger(__name__)
 
@@ -102,10 +106,14 @@ def _run_gdal_command(
             buf = b""
             last_pct = -1
             assert proc.stdout is not None
+            # A binary PIPE is always a BufferedReader, but Popen only
+            # promises IO[bytes], which has no read1.
+            stdout = cast("BufferedReader", proc.stdout)
             while True:
-                # read1 returns as soon as the pipe has anything, so the meter
-                # is forwarded as GDAL writes it rather than a buffer at a time.
-                chunk = proc.stdout.read1(4096)
+                # read1 hands back whatever has arrived rather than blocking
+                # for a full 4 KB the way read() would, so the meter is still
+                # forwarded as GDAL writes it.
+                chunk = stdout.read1(4096)
                 if not chunk:
                     break
                 if progress_callback is None:
