@@ -165,3 +165,8 @@ export function duplicateStorySegment(
 
   return pasteStorySegment(model, segmentId);
 }
+
+/**  Test helper */
+export function clearStorySegmentClipboard(): void {
+  clipboard = null;
+}
