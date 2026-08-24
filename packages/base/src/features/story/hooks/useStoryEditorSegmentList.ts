@@ -164,8 +164,10 @@ export function useStoryEditorSegmentList(
     }
 
     const currentIndex = model.getCurrentSegmentIndex();
-    disposeSegmentMarkdown(model, selectedSegmentId);
-    model.removeLayer(selectedSegmentId);
+    model.sharedModel.transact(() => {
+      disposeSegmentMarkdown(model, selectedSegmentId);
+      model.removeLayer(selectedSegmentId);
+    });
 
     const remainingCount =
       model.getSelectedStory().story?.storySegments?.length ?? 0;

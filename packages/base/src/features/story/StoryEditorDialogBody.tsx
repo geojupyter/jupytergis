@@ -31,7 +31,11 @@ import {
   getSegmentPaneAlignment,
   type SegmentContentPatch,
 } from '@/src/features/story/utils/storySegmentContent';
-import { copyStorySegment } from '@/src/features/story/utils/storySegmentClipboard';
+import {
+  copyStorySegment,
+  isAccelKey,
+  isStoryEditorTypingTarget,
+} from '@/src/features/story/utils/storySegmentClipboard';
 import {
   formatSegmentTransitionTime,
   getSegmentTransitionTime,
@@ -51,25 +55,6 @@ import {
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
 import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
-
-function isStoryEditorTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-
-  if (target.isContentEditable) {
-    return true;
-  }
-
-  const tag = target.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-    return true;
-  }
-
-  return Boolean(
-    target.closest('.cm-editor, .cm-content, [contenteditable="true"]'),
-  );
-}
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -368,45 +353,35 @@ export function StoryEditorDialogBody({
       return;
     }
 
-    const isCopy =
-      (event.key === 'c' || event.key === 'C') &&
-      (event.ctrlKey || event.metaKey) &&
-      !event.altKey &&
-      !event.shiftKey;
+    if (isAccelKey(event, 'z', { shift: true })) {
+      event.preventDefault();
+      model.sharedModel.redo();
+      return;
+    }
 
-    if (isCopy) {
-      if (!selectedSegmentId) {
-        return;
-      }
+    if (isAccelKey(event, 'z')) {
+      event.preventDefault();
+      model.sharedModel.undo();
+      return;
+    }
 
-      if (copyStorySegment(model, selectedSegmentId)) {
+    if (isAccelKey(event, 'c')) {
+      if (selectedSegmentId && copyStorySegment(model, selectedSegmentId)) {
         event.preventDefault();
       }
       return;
     }
 
-    const isPaste =
-      (event.key === 'v' || event.key === 'V') &&
-      (event.ctrlKey || event.metaKey) &&
-      !event.altKey &&
-      !event.shiftKey;
-
-    if (isPaste) {
+    if (isAccelKey(event, 'v')) {
       event.preventDefault();
       pasteSegment();
       return;
     }
 
-    if (event.key !== 'Delete') {
-      return;
+    if (event.key === 'Delete' && canRemoveSegment) {
+      event.preventDefault();
+      removeSegment();
     }
-
-    if (!canRemoveSegment) {
-      return;
-    }
-
-    event.preventDefault();
-    removeSegment();
   };
 
   return (

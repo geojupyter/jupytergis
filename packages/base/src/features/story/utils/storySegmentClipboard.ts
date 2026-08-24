@@ -17,6 +17,46 @@ export interface IStorySegmentClipboardItem {
 
 let clipboard: IStorySegmentClipboardItem | null = null;
 
+/** True when focus is in a text field / CodeMirror — keep native clipboard/undo. */
+export function isStoryEditorTypingTarget(
+  target: EventTarget | null,
+): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target.isContentEditable) {
+    return true;
+  }
+
+  const tag = target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+    return true;
+  }
+
+  return Boolean(
+    target.closest('.cm-editor, .cm-content, [contenteditable="true"]'),
+  );
+}
+
+/** Ctrl/Cmd (+ optional Shift) + key, ignoring Alt. */
+export function isAccelKey(
+  event: Pick<
+    KeyboardEvent,
+    'key' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'
+  >,
+  key: string,
+  options: { shift?: boolean } = {},
+): boolean {
+  const shift = options.shift ?? false;
+  return (
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    event.shiftKey === shift &&
+    event.key.toLowerCase() === key.toLowerCase()
+  );
+}
+
 function cloneSegmentParameters(
   parameters: IStorySegmentLayer,
 ): IStorySegmentLayer {
@@ -91,8 +131,6 @@ export function pasteStorySegment(
     parameters,
   };
 
-  model.addLayer(newSegmentId, layerModel);
-
   const segmentIds = [...(story.storySegments ?? [])];
   const selectedIndex = insertAfterSegmentId
     ? segmentIds.indexOf(insertAfterSegmentId)
@@ -101,14 +139,18 @@ export function pasteStorySegment(
   const insertAt = selectedIndex >= 0 ? selectedIndex + 1 : segmentIds.length;
   segmentIds.splice(insertAt, 0, newSegmentId);
 
-  model.sharedModel.updateStoryMap(storyId, {
-    ...story,
-    storySegments: segmentIds,
-  });
+  // One undo step for layer + story list (+ markdown seed).
+  model.sharedModel.transact(() => {
+    model.addLayer(newSegmentId, layerModel);
+    model.sharedModel.updateStoryMap(storyId, {
+      ...story,
+      storySegments: segmentIds,
+    });
 
-  if (markdown) {
-    getStorySegmentMarkdownSharedModel(model, newSegmentId, markdown);
-  }
+    if (markdown) {
+      getStorySegmentMarkdownSharedModel(model, newSegmentId, markdown);
+    }
+  });
 
   model.setCurrentSegmentIndex(insertAt);
   return newSegmentId;
