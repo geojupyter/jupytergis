@@ -29,6 +29,7 @@ import {
 } from './doc';
 import type {
   IFeatureStoreFeature,
+  IFeatureStoreGeometry,
   IFeatureStore,
   IFeatureStoreMeta,
   FeatureStoreAddBlockReason,
@@ -901,13 +902,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.syncDialogView({ ...current, ...patch }, emitter);
   }
 
-  ensureFeatureStore(
-    storeId: string,
-    meta?: Partial<IFeatureStoreMeta>,
-  ): IFeatureStore {
-    return this.sharedModel.ensureFeatureStore(storeId, meta);
-  }
-
   getFeatureStore(storeId: string): IFeatureStore | undefined {
     return this.sharedModel.getFeatureStore(storeId);
   }
@@ -927,7 +921,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   addFeatureStoreFeature(args: {
     storeId: string;
-    geometry: IFeatureStoreFeature['geometry'];
+    geometry: IFeatureStoreGeometry;
     props?: IFeatureStoreFeature['props'];
     id?: string;
   }):

@@ -9,7 +9,10 @@ import type {
   IFeatureStoreMeta,
 } from './types';
 
-export type FeatureStoreAddBlockReason = 'hardLimit' | 'compacting';
+export type FeatureStoreAddBlockReason =
+  | 'hardLimit'
+  | 'compacting'
+  | 'missingStore';
 
 /** Warn when overlay feature count reaches this size. */
 export const FEATURE_STORE_SOFT_LIMIT = 40_000;
@@ -134,8 +137,12 @@ export function countLiveOverlayFeatures(
 }
 
 export function getOverlayAddBlockReason(
-  store: IFeatureStore,
+  store: IFeatureStore | undefined,
 ): FeatureStoreAddBlockReason | undefined {
+  if (!store) {
+    return 'missingStore';
+  }
+
   if (store.meta.compacting) {
     return 'compacting';
   }

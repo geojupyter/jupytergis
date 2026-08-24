@@ -39,8 +39,10 @@ import {
 import type {
   IJGISFeatureStores,
   IFeatureStoreFeature,
+  IFeatureStoreGeometry,
   IFeatureStore,
   IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
 } from './types';
 import {
   IGeoJSONSource,
@@ -332,10 +334,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removePreset(name: string): void;
   getPresets(): IDrawCustomAttributePresets;
 
-  ensureFeatureStore(
-    storeId: string,
-    meta?: Partial<IFeatureStoreMeta>,
-  ): IFeatureStore;
   getFeatureStore(storeId: string): IFeatureStore | undefined;
   getFeatureStoreFeatures(
     storeId: string,
@@ -343,7 +341,14 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   setFeatureStoreFeature(
     storeId: string,
     feature: IFeatureStoreFeature,
-  ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
+  ):
+    | {
+        ok: true;
+      }
+    | {
+        ok: false;
+        reason: FeatureStoreAddBlockReason;
+      };
   removeFeatureStoreFeature(
     storeId: string,
     featureId: string,
@@ -560,10 +565,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   syncDialogView(view: IDialogViewState | null, emitter?: string): void;
   updateDialogView(patch: Partial<IDialogViewState>, emitter?: string): void;
 
-  ensureFeatureStore(
-    storeId: string,
-    meta?: Partial<IFeatureStoreMeta>,
-  ): IFeatureStore;
   getFeatureStore(storeId: string): IFeatureStore | undefined;
   getFeatureStoreFeatures(
     storeId: string,
@@ -571,15 +572,22 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setFeatureStoreFeature(
     storeId: string,
     feature: IFeatureStoreFeature,
-  ): { ok: true } | { ok: false; reason: 'hardLimit' | 'compacting' };
+  ):
+    | {
+        ok: true;
+      }
+    | {
+        ok: false;
+        reason: FeatureStoreAddBlockReason;
+      };
   addFeatureStoreFeature(args: {
     storeId: string;
-    geometry: IFeatureStoreFeature['geometry'];
+    geometry: IFeatureStoreGeometry;
     props?: IFeatureStoreFeature['props'];
     id?: string;
   }):
     | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
-    | { ok: false; reason: 'hardLimit' | 'compacting' };
+    | { ok: false; reason: FeatureStoreAddBlockReason };
   removeFeatureStoreFeature(
     storeId: string,
     featureId: string,
