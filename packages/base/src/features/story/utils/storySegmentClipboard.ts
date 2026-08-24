@@ -70,7 +70,7 @@ export function copyStorySegment(
   model: IJupyterGISModel,
   segmentId: string,
 ): boolean {
-  const layer = model.getLayer(segmentId) as IJGISLayer | undefined;
+  const layer = model.getLayer(segmentId);
   if (!layer || layer.type !== 'StorySegmentLayer' || !layer.parameters) {
     return false;
   }

@@ -7,13 +7,13 @@ import type {
   IStorySegmentViewItem,
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
+import { pasteStorySegment } from '@/src/features/story/utils/storySegmentClipboard';
 import {
   type SegmentContentPatch,
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
   updateSegmentLayerName as applySegmentLayerName,
 } from '@/src/features/story/utils/storySegmentContent';
-import { pasteStorySegment } from '@/src/features/story/utils/storySegmentClipboard';
 import { disposeSegmentMarkdown } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   type SegmentTransitionPatch,

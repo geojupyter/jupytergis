@@ -61,11 +61,13 @@ function createParameters(
   };
 }
 
-function createModel(options: {
-  layer?: ReturnType<IJupyterGISModel['getLayer']> | null;
-  storySegments?: string[];
-  storyId?: string | null;
-} = {}) {
+function createModel(
+  options: {
+    layer?: ReturnType<IJupyterGISModel['getLayer']> | null;
+    storySegments?: string[];
+    storyId?: string | null;
+  } = {},
+) {
   const storySegments = options.storySegments ?? ['segment-1', 'segment-2'];
   const storyId = options.storyId === undefined ? 'story-1' : options.storyId;
   const layer =

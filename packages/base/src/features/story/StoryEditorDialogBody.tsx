@@ -28,15 +28,15 @@ import {
 } from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import {
-  getSegmentPaneAlignment,
-  type SegmentContentPatch,
-} from '@/src/features/story/utils/storySegmentContent';
-import {
   copyStorySegment,
   duplicateStorySegment,
   isAccelKey,
   isStoryEditorTypingTarget,
 } from '@/src/features/story/utils/storySegmentClipboard';
+import {
+  getSegmentPaneAlignment,
+  type SegmentContentPatch,
+} from '@/src/features/story/utils/storySegmentContent';
 import {
   formatSegmentTransitionTime,
   getSegmentTransitionTime,
