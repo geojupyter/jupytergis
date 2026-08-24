@@ -208,6 +208,7 @@ class GISDocument(CommWidget):
         self._presets: Map = Map()
         self.ydoc["presets"] = self._presets
 
+        self._options: Map[str | float | bool | list[float]]
         # For untitled docs, initialize options right away
         if path is None:
             self.ydoc["options"] = self._options = Map(
