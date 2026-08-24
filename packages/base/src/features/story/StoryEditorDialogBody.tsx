@@ -33,6 +33,7 @@ import {
 } from '@/src/features/story/utils/storySegmentContent';
 import {
   copyStorySegment,
+  duplicateStorySegment,
   isAccelKey,
   isStoryEditorTypingTarget,
 } from '@/src/features/story/utils/storySegmentClipboard';
@@ -367,6 +368,16 @@ export function StoryEditorDialogBody({
 
     if (isAccelKey(event, 'c')) {
       if (selectedSegmentId && copyStorySegment(model, selectedSegmentId)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (isAccelKey(event, 'd')) {
+      if (
+        selectedSegmentId &&
+        duplicateStorySegment(model, selectedSegmentId)
+      ) {
         event.preventDefault();
       }
       return;

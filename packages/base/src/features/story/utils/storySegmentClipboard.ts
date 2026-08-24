@@ -18,9 +18,7 @@ export interface IStorySegmentClipboardItem {
 let clipboard: IStorySegmentClipboardItem | null = null;
 
 /** True when focus is in a text field / CodeMirror — keep native clipboard/undo. */
-export function isStoryEditorTypingTarget(
-  target: EventTarget | null,
-): boolean {
+export function isStoryEditorTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
   }
@@ -154,6 +152,18 @@ export function pasteStorySegment(
 
   model.setCurrentSegmentIndex(insertAt);
   return newSegmentId;
+}
+
+/** Copy the segment into the clipboard and paste a clone after it. */
+export function duplicateStorySegment(
+  model: IJupyterGISModel,
+  segmentId: string,
+): string | null {
+  if (!copyStorySegment(model, segmentId)) {
+    return null;
+  }
+
+  return pasteStorySegment(model, segmentId);
 }
 
 /** @internal Test helper */
