@@ -31,6 +31,7 @@ import {
   getSegmentPaneAlignment,
   type SegmentContentPatch,
 } from '@/src/features/story/utils/storySegmentContent';
+import { copyStorySegment } from '@/src/features/story/utils/storySegmentClipboard';
 import {
   formatSegmentTransitionTime,
   getSegmentTransitionTime,
@@ -50,6 +51,25 @@ import {
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
 import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
+
+function isStoryEditorTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target.isContentEditable) {
+    return true;
+  }
+
+  const tag = target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+    return true;
+  }
+
+  return Boolean(
+    target.closest('.cm-editor, .cm-content, [contenteditable="true"]'),
+  );
+}
 
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
@@ -340,8 +360,48 @@ export function StoryEditorDialogBody({
     };
   }, []);
 
+  const handleEditorKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+  ): void => {
+    if (isStoryEditorTypingTarget(event.target)) {
+      return;
+    }
+
+    const isCopy =
+      (event.key === 'c' || event.key === 'C') &&
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey;
+
+    if (isCopy) {
+      if (!selectedSegmentId) {
+        return;
+      }
+
+      if (copyStorySegment(model, selectedSegmentId)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (event.key !== 'Delete') {
+      return;
+    }
+
+    if (!canRemoveSegment) {
+      return;
+    }
+
+    event.preventDefault();
+    removeSegment();
+  };
+
   return (
-    <div ref={portalContainerRef} className="jgis-story-editor">
+    <div
+      ref={portalContainerRef}
+      className="jgis-story-editor"
+      onKeyDown={handleEditorKeyDown}
+    >
       <StoryEditorHeaderBar
         model={model}
         story={story}
