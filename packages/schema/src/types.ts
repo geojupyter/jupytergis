@@ -78,8 +78,8 @@ export type IFeatureStoreGeometry =
 
 export interface IFeatureStoreFeature {
   id: string;
-  /** GeoJSON geometry in EPSG:4326 (any supported type). */
-  geometry: IFeatureStoreGeometry;
+  // GeoJSON geometry in EPSG:4326
+  geometry: IFeatureStoreGeometry | null;
   props: IFeatureStoreFeatureProps;
   updatedAt: string;
   updatedBy: string;

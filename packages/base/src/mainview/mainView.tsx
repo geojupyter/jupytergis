@@ -1210,8 +1210,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             throw new Error('FeatureStoreSource requires storeId');
           }
 
-          this._model.ensureFeatureStore(storeId);
-
           newSource = new VectorSource();
           this._syncFeatureStoreOverlaySource(storeId, newSource);
 
@@ -4525,11 +4523,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._currentVectorSource?.removeFeature(feature);
 
     if (!result.ok) {
-      const message =
-        result.reason === 'compacting'
-          ? 'Cannot add features while folding into baseline.'
-          : 'Overlay hard limit reached. Fold edits into the baseline before adding more.';
-      void showErrorMessage('Feature store', message);
+      const messages: Record<string, string> = {
+        compacting: 'Cannot add features while folding into baseline.',
+        missingStore: 'Feature store overlay is missing for this layer.',
+        hardLimit:
+          'Overlay hard limit reached. Fold edits into the baseline before adding more.',
+      };
+      void showErrorMessage(
+        'Feature store',
+        messages[result.reason] ?? messages.hardLimit,
+      );
 
       return;
     }

@@ -40,6 +40,7 @@ import type {
   IFeatureStoreFeature,
   IFeatureStore,
   IFeatureStoreMeta,
+  IFeatureStoreSource,
   IJGISFeatureStores,
 } from './types';
 
@@ -177,6 +178,7 @@ export class JupyterGISDoc
       Object.entries(sources).forEach(([key, val]) =>
         this._sources.set(key, val),
       );
+      this._createFeatureStoresForSources(sources as unknown as IJGISSources);
 
       const stories = value['stories'] ?? {};
       Object.entries(stories).forEach(([key, val]) =>
@@ -230,6 +232,7 @@ export class JupyterGISDoc
       for (const [key, value] of Object.entries(sources)) {
         this._sources.set(key, value);
       }
+      this._createFeatureStoresForSources(sources);
     });
   }
 
@@ -426,19 +429,26 @@ export class JupyterGISDoc
       return;
     }
 
+    const removed = this.getLayerSource(id);
+
     this.transact(() => {
       this._sources.delete(id);
+      this._maybeRemoveFeatureStoreForSource(removed);
     });
   }
 
   addSource(id: string, value: IJGISSource): void {
     this.transact(() => {
       this._sources.set(id, value);
+      this._createFeatureStoreForSource(value);
     });
   }
 
   updateSource(id: string, value: any): void {
-    this.transact(() => this._sources.set(id, value));
+    this.transact(() => {
+      this._sources.set(id, value);
+      this._createFeatureStoreForSource(value);
+    });
   }
 
   removeStoryMap(id: string): void {
@@ -573,17 +583,6 @@ export class JupyterGISDoc
     });
   }
 
-  ensureFeatureStore(
-    storeId: string,
-    meta?: Partial<IFeatureStoreMeta>,
-  ): IFeatureStore {
-    this.transact(() => {
-      this._ensureFeatureStoreMap(storeId, meta);
-    });
-
-    return this.getFeatureStore(storeId)!;
-  }
-
   getFeatureStore(storeId: string): IFeatureStore | undefined {
     const storeMap = this._featureStores.get(storeId);
     if (!storeMap) {
@@ -600,8 +599,8 @@ export class JupyterGISDoc
   }
 
   /**
-   * Insert or replace an overlay feature. Creates the store if missing.
-   * Returns a block reason when the add is refused (hard limit / compacting).
+   * Insert or replace an overlay feature. Store must already exist.
+   * Returns a block reason when the add is refused.
    */
   setFeatureStoreFeature(
     storeId: string,
@@ -612,7 +611,15 @@ export class JupyterGISDoc
       | { ok: false; reason: FeatureStoreAddBlockReason } = { ok: true };
 
     this.transact(() => {
-      const storeMap = this._ensureFeatureStoreMap(storeId);
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+
+      if (!storeMap) {
+        result = { ok: false, reason: 'missingStore' };
+        return;
+      }
+
       const plain = this._storeMapToPlain(storeMap);
       const isNew =
         !plain.features[feature.id] || plain.features[feature.id].deleted;
@@ -633,8 +640,10 @@ export class JupyterGISDoc
   }
 
   /**
-   * Remove an overlay-only feature, or tombstone when `tombstone` is true
-   * (baseline-origin deletes).
+   * Remove a feature from the overlay.
+   *
+   * If tombstone is true, we keep an overlay record with
+   * deleted: true so fold can propagate the delete to PostGIS.
    */
   removeFeatureStoreFeature(
     storeId: string,
@@ -642,35 +651,34 @@ export class JupyterGISDoc
     options: { tombstone?: boolean; updatedBy: string },
   ): void {
     this.transact(() => {
-      const storeMap = this._ensureFeatureStoreMap(storeId);
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+
+      if (!storeMap) {
+        return;
+      }
+
       const featuresMap = storeMap.get('features') as Y.Map<any>;
 
-      if (!featuresMap.has(featureId)) {
-        if (options.tombstone) {
-          featuresMap.set(featureId, {
-            id: featureId,
-            geometry: { type: 'Point', coordinates: [0, 0] },
-            props: {},
-            updatedAt: new Date().toISOString(),
-            updatedBy: options.updatedBy,
-            deleted: true,
-          } satisfies IFeatureStoreFeature);
-        }
+      if (options.tombstone) {
+        const existing = featuresMap.get(featureId) as
+          | IFeatureStoreFeature
+          | undefined;
+
+        featuresMap.set(featureId, {
+          id: featureId,
+          geometry: existing?.geometry ?? null,
+          props: existing?.props ?? {},
+          updatedAt: new Date().toISOString(),
+          updatedBy: options.updatedBy,
+          deleted: true,
+        } satisfies IFeatureStoreFeature);
 
         return;
       }
 
-      if (options.tombstone) {
-        const existing = featuresMap.get(featureId) as IFeatureStoreFeature;
-        featuresMap.set(featureId, {
-          ...existing,
-          deleted: true,
-          updatedAt: new Date().toISOString(),
-          updatedBy: options.updatedBy,
-        });
-      } else {
-        featuresMap.delete(featureId);
-      }
+      featuresMap.delete(featureId);
     });
   }
 
@@ -693,7 +701,14 @@ export class JupyterGISDoc
     meta: Partial<IFeatureStoreMeta>,
   ): void {
     this.transact(() => {
-      const storeMap = this._ensureFeatureStoreMap(storeId);
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+
+      if (!storeMap) {
+        return;
+      }
+
       const current = (storeMap.get('meta') ??
         defaultFeatureStoreMeta()) as IFeatureStoreMeta;
       storeMap.set('meta', { ...current, ...meta });
@@ -912,7 +927,20 @@ export class JupyterGISDoc
     }
   }
 
-  private _ensureFeatureStoreMap(
+  private _featureStoreIdFromSource(
+    source: IJGISSource | undefined,
+  ): string | undefined {
+    if (!source || source.type !== 'FeatureStoreSource') {
+      return undefined;
+    }
+
+    const storeId = (source.parameters as IFeatureStoreSource | undefined)
+      ?.storeId;
+    return storeId || undefined;
+  }
+
+  /** Create empty overlay store if missing. Caller must be in a transaction. */
+  private _createFeatureStoreMap(
     storeId: string,
     meta?: Partial<IFeatureStoreMeta>,
   ): Y.Map<any> {
@@ -930,6 +958,36 @@ export class JupyterGISDoc
     }
 
     return storeMap;
+  }
+
+  private _createFeatureStoreForSource(source: IJGISSource | undefined): void {
+    const storeId = this._featureStoreIdFromSource(source);
+    if (storeId) {
+      this._createFeatureStoreMap(storeId);
+    }
+  }
+
+  private _createFeatureStoresForSources(sources: IJGISSources): void {
+    for (const source of Object.values(sources ?? {})) {
+      this._createFeatureStoreForSource(source);
+    }
+  }
+
+  private _maybeRemoveFeatureStoreForSource(
+    source: IJGISSource | undefined,
+  ): void {
+    const storeId = this._featureStoreIdFromSource(source);
+    if (!storeId) {
+      return;
+    }
+
+    for (const other of Object.values(this.sources)) {
+      if (this._featureStoreIdFromSource(other) === storeId) {
+        return;
+      }
+    }
+
+    this._featureStores.delete(storeId);
   }
 
   private _storeMapToPlain(storeMap: any): IFeatureStore {
