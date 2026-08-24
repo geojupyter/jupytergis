@@ -33,7 +33,6 @@ interface ISelectProps {
   onOpenChange?: (open: boolean) => void;
   showSearch?: boolean;
   searchPlaceholder?: string;
-  trigger?: React.ReactNode;
 }
 
 export function Select({
@@ -46,7 +45,6 @@ export function Select({
   onOpenChange: controlledOnOpenChange,
   showSearch = false,
   searchPlaceholder = 'Search...',
-  trigger,
 }: ISelectProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -62,17 +60,15 @@ export function Select({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {trigger ?? (
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn('jgis-combobox-button', buttonClassName)}
-          >
-            <span className="jgis-combobox-button-text">{buttonText}</span>
-            <ChevronsUpDownIcon className="jgis-combobox-icon" />
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn('jgis-combobox-button', buttonClassName)}
+        >
+          <span className="jgis-combobox-button-text">{buttonText}</span>
+          <ChevronsUpDownIcon className="jgis-combobox-icon" />
+        </Button>
       </PopoverTrigger>
       <PopoverContent className={cn('jgis-select-popover', className)}>
         <Command>
