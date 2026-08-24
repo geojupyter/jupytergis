@@ -3,8 +3,12 @@ import type {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 
-import { peekStorySegmentMarkdown } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
+import {
+  getStorySegmentMarkdownSharedModel,
+  peekStorySegmentMarkdown,
+} from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 
 export interface IStorySegmentClipboardItem {
   name: string;
@@ -59,8 +63,55 @@ export function getStorySegmentClipboard(): IStorySegmentClipboardItem | null {
   return clipboard;
 }
 
-export function hasStorySegmentClipboard(): boolean {
-  return clipboard !== null;
+/**
+ * Insert a clone of the clipboard segment after `insertAfterSegmentId`.
+ * Returns the new segment id, or null if there is nothing to paste.
+ */
+export function pasteStorySegment(
+  model: IJupyterGISModel,
+  insertAfterSegmentId: string | null,
+): string | null {
+  if (!clipboard) {
+    return null;
+  }
+
+  const { storyId, story } = model.getSelectedStory();
+  if (!storyId || !story) {
+    return null;
+  }
+
+  const newSegmentId = UUID.uuid4();
+  const parameters = cloneSegmentParameters(clipboard.parameters);
+  const markdown = parameters.content?.markdown ?? '';
+
+  const layerModel: IJGISLayer = {
+    type: 'StorySegmentLayer',
+    visible: true,
+    name: clipboard.name,
+    parameters,
+  };
+
+  model.addLayer(newSegmentId, layerModel);
+
+  const segmentIds = [...(story.storySegments ?? [])];
+  const selectedIndex = insertAfterSegmentId
+    ? segmentIds.indexOf(insertAfterSegmentId)
+    : -1;
+
+  const insertAt = selectedIndex >= 0 ? selectedIndex + 1 : segmentIds.length;
+  segmentIds.splice(insertAt, 0, newSegmentId);
+
+  model.sharedModel.updateStoryMap(storyId, {
+    ...story,
+    storySegments: segmentIds,
+  });
+
+  if (markdown) {
+    getStorySegmentMarkdownSharedModel(model, newSegmentId, markdown);
+  }
+
+  model.setCurrentSegmentIndex(insertAt);
+  return newSegmentId;
 }
 
 /** @internal Test helper */

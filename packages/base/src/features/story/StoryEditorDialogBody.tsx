@@ -328,6 +328,7 @@ export function StoryEditorDialogBody({
     selectedSegment,
     selectSegment,
     addSegment,
+    pasteSegment,
     removeSegment,
     canRemoveSegment,
     reorderSegments,
@@ -381,6 +382,18 @@ export function StoryEditorDialogBody({
       if (copyStorySegment(model, selectedSegmentId)) {
         event.preventDefault();
       }
+      return;
+    }
+
+    const isPaste =
+      (event.key === 'v' || event.key === 'V') &&
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey;
+
+    if (isPaste) {
+      event.preventDefault();
+      pasteSegment();
       return;
     }
 

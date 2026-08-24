@@ -13,6 +13,7 @@ import {
   updateSegmentContentMode as applySegmentContentMode,
   updateSegmentLayerName as applySegmentLayerName,
 } from '@/src/features/story/utils/storySegmentContent';
+import { pasteStorySegment } from '@/src/features/story/utils/storySegmentClipboard';
 import { disposeSegmentMarkdown } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   type SegmentTransitionPatch,
@@ -28,6 +29,7 @@ interface IUseStoryEditorSegmentListResult {
   selectedSegment: IStorySegmentViewItem | null;
   selectSegment: (segmentId: string) => void;
   addSegment: () => void;
+  pasteSegment: () => void;
   removeSegment: () => void;
   canRemoveSegment: boolean;
   reorderSegments: (fromIndex: number, toIndex: number) => void;
@@ -146,6 +148,10 @@ export function useStoryEditorSegmentList(
     void commands.execute(CommandIDs.addStorySegment);
   }, [commands]);
 
+  const pasteSegment = useCallback(() => {
+    pasteStorySegment(model, selectedSegmentId);
+  }, [model, selectedSegmentId]);
+
   const canRemoveSegment = segments.length > 1;
 
   const removeSegment = useCallback(() => {
@@ -246,6 +252,7 @@ export function useStoryEditorSegmentList(
     selectedSegment,
     selectSegment,
     addSegment,
+    pasteSegment,
     removeSegment,
     canRemoveSegment,
     reorderSegments,
