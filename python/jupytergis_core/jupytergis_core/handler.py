@@ -12,11 +12,6 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse
 
-from .postgis import (
-    get_postgis_url,
-    merge_overlay_features_via_psql,
-)
-
 from .processing import (
     ALLOWED_OPERATIONS,
     gdal_available,
@@ -538,7 +533,6 @@ class ProcessingHandler(APIHandler):
 
 def get_tipg_url() -> str | None:
     """Return tipg base URL from env (if set), without trailing slash."""
-
     url = os.environ.get("JGIS_TIPG_URL")
     if url is None:
         return None
@@ -547,14 +541,12 @@ def get_tipg_url() -> str | None:
 
 
 async def refresh_tipg_catalog() -> bool:
-    """
-    Ask tipg to re-scan PostGIS for collections (new jgis_store_* tables).
+    """Ask tipg to re-scan PostGIS for collections (new jgis_store_* tables).
 
     Requires tipg started with TIPG_DEBUG=true so ``GET /refresh`` exists.
     Returns True on success; False if tipg is unset, unreachable, or refresh
     is disabled (fold still succeeds — catalog may catch up via TTL).
     """
-
     tipg_base = get_tipg_url()
     if not tipg_base:
         return False
@@ -584,8 +576,7 @@ async def refresh_tipg_catalog() -> bool:
 
 
 class TipgTilesHandler(APIHandler):
-    """
-    Authenticated reverse proxy to tipg for collaborative baseline tiles.
+    """Authenticated reverse proxy to tipg for collaborative baseline tiles.
 
     Maps ``/jupytergis_core/tiles/<path>`` -> ``$JGIS_TIPG_URL/<path>``.
     """
@@ -667,7 +658,6 @@ class TipgTilesHandler(APIHandler):
             self.finish()
         else:
             self.finish(response.body)
-
 
 
 def setup_handlers(web_app: Any) -> None:
