@@ -26,13 +26,7 @@ import {
   DEFAULT_WORLD_EXTENT_3857,
   JupyterGISDoc,
 } from './doc';
-import type {
-  IFeatureStoreFeature,
-  IFeatureStoreGeometry,
-  IFeatureStore,
-  IFeatureStoreMeta,
-  FeatureStoreAddBlockReason,
-} from './types';
+import { isOverlayNearSoftLimit } from './featureStores';
 import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
@@ -62,10 +56,15 @@ import {
 } from './interfaces';
 import { migrateDocument } from './migrations';
 import jgisSchema from './schema/project/jgis.json';
-import { IViewState, Modes } from './types';
-import {
-  isOverlayNearSoftLimit,
-} from './featureStores';
+import type {
+  IFeatureStoreFeature,
+  IFeatureStoreGeometry,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
+  IViewState,
+  Modes,
+} from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 

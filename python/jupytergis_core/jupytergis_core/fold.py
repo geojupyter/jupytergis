@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from pycrdt import Doc, Map
 
@@ -24,10 +27,7 @@ def build_feature_store_tile_url_template(
     baseline_version: int = 0,
 ) -> str:
     """Relative MVT URL template for the Jupyter tipg proxy."""
-
-    collection_id = (
-        f"{TIPG_FEATURE_STORE_SCHEMA}.{store_id_to_table_name(store_id)}"
-    )
+    collection_id = f"{TIPG_FEATURE_STORE_SCHEMA}.{store_id_to_table_name(store_id)}"
 
     return (
         "jupytergis_core/tiles/collections/"
@@ -69,13 +69,12 @@ def _features_as_list(store: Map) -> list[dict[str, Any]]:
         row = dict(feature)
         row.setdefault("id", feature_id)
         result.append(row)
-        
+
     return result
 
 
 def _copy_and_release_overlay(ydoc: Doc, store: Map) -> list[dict[str, Any]]:
     """Short lock: compacting → snapshot → clear overlay and flags."""
-
     with ydoc.transaction():
         _write_meta(store, compacting=True)
 
@@ -94,7 +93,6 @@ def _copy_and_release_overlay(ydoc: Doc, store: Map) -> list[dict[str, Any]]:
 
 def bump_feature_store_sources(ysources: Map, store_id: str) -> None:
     """Bump baselineVersion / tileUrlTemplate on matching sources."""
-
     for source_id in list(ysources):
         source = ysources.get(source_id)
         if isinstance(source, Map):

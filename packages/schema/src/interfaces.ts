@@ -36,14 +36,6 @@ import {
   SourceType,
 } from './_interface/project/jgis';
 import type {
-  IJGISFeatureStores,
-  IFeatureStoreFeature,
-  IFeatureStoreGeometry,
-  IFeatureStore,
-  IFeatureStoreMeta,
-  FeatureStoreAddBlockReason,
-} from './types';
-import {
   IGeoJSONSource,
   IGeoParquetSource,
   IFeatureStoreSource,
@@ -67,6 +59,12 @@ import {
   IGeoTiffLayer,
   IGeoZarrLayer,
   Modes,
+  IJGISFeatureStores,
+  IFeatureStoreFeature,
+  IFeatureStoreGeometry,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };

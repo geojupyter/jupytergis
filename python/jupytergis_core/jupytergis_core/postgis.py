@@ -7,13 +7,10 @@ import subprocess
 import uuid
 from typing import Any, Final
 
-
 FEATURE_STORE_TABLE_PREFIX: Final[str] = "jgis_store_"
 
 # PostgreSQL identifiers are capped at 63 bytes.
-FEATURE_STORE_SLUG_MAX_LENGTH: Final[int] = (
-    63 - len(FEATURE_STORE_TABLE_PREFIX)
-)
+FEATURE_STORE_SLUG_MAX_LENGTH: Final[int] = 63 - len(FEATURE_STORE_TABLE_PREFIX)
 
 _UUID_HEX_RE: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{32}$")
 _SLUG_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -21,7 +18,6 @@ _SLUG_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z][a-z0-9_]*$")
 
 def get_postgis_url() -> str | None:
     """Return the shared PostGIS connection URL from env (if set)."""
-
     url = os.environ.get("JGIS_POSTGIS_URL")
     if url is None:
         return None
@@ -31,8 +27,7 @@ def get_postgis_url() -> str | None:
 
 
 def normalize_store_id_slug(store_id: str) -> str:
-    """
-    Normalize a collaborative store id to a safe lowercase slug.
+    """Normalize a collaborative store id to a safe lowercase slug.
 
     Rules (mirrors the TS implementation):
     - UUID (with or without dashes) -> 32 hex chars
@@ -40,7 +35,6 @@ def normalize_store_id_slug(store_id: str) -> str:
       strip leading/trailing underscores.
     - Result must start with a letter and fit length limits.
     """
-
     trimmed = store_id.strip().lower()
     if not trimmed:
         raise ValueError("storeId is required")
@@ -56,14 +50,14 @@ def normalize_store_id_slug(store_id: str) -> str:
     if not slug or not _SLUG_RE.match(slug):
         raise ValueError(
             f'storeId "{store_id}" cannot be converted to a safe table slug '
-            '(use a UUID or an identifier starting with a letter)'
+            "(use a UUID or an identifier starting with a letter)",
         )
 
     if len(slug) > FEATURE_STORE_SLUG_MAX_LENGTH:
         raise ValueError(
             "storeId slug exceeds "
             f"{FEATURE_STORE_SLUG_MAX_LENGTH} characters after sanitization "
-            f"(got {len(slug)})"
+            f"(got {len(slug)})",
         )
 
     return slug
@@ -71,20 +65,18 @@ def normalize_store_id_slug(store_id: str) -> str:
 
 def store_id_to_table_name(store_id: str) -> str:
     """Map storeId to PostGIS table name (`jgis_store_<slug>`)."""
-
     return f"{FEATURE_STORE_TABLE_PREFIX}{normalize_store_id_slug(store_id)}"
 
 
 def feature_store_table_ddl(table_name: str) -> str:
-    """
-    Return DDL to create a per-store baseline table and its spatial index.
+    """Return DDL to create a per-store baseline table and its spatial index.
 
     Notes:
     - `table_name` must already be validated via store_id_to_table_name.
     - geometry SRID is fixed to 4326; type is generic Geometry (points,
       lines, polygons, …).
-    """
 
+    """
     if not re.match(r"^jgis_store_[a-z0-9_]+$", table_name):
         raise ValueError(f"Refusing DDL for unexpected table name: {table_name}")
 
@@ -100,13 +92,12 @@ def feature_store_table_ddl(table_name: str) -> str:
             ");",
             f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} "
             "USING GIST (geom);",
-        ]
+        ],
     )
 
 
 def _dollar_quote(tag: str, value: str) -> str:
     """Wrap `value` as a PostgreSQL dollar-quoted string."""
-
     # Tag must not appear in the value; we ensure uniqueness by generating it.
     return f"${tag}${value}${tag}$"
 
@@ -115,8 +106,7 @@ def merge_overlay_features_sql(
     table_name: str,
     features: list[dict[str, Any]],
 ) -> str:
-    """
-    Generate SQL to merge overlay features into `table_name` (overlay-wins).
+    """Generate SQL to merge overlay features into `table_name` (overlay-wins).
 
     `features` elements must include:
       - id: str (UUID)
@@ -129,7 +119,6 @@ def merge_overlay_features_sql(
     Tombstones (`deleted=true`) are applied as DELETE.
     Non-tombstones are applied as INSERT ... ON CONFLICT DO UPDATE.
     """
-
     if not re.match(r"^jgis_store_[a-z0-9_]+$", table_name):
         raise ValueError(f"Unexpected table name: {table_name}")
 
@@ -147,7 +136,7 @@ def merge_overlay_features_sql(
                 "updated_at": f.get("updatedAt"),
                 "updated_by": f.get("updatedBy"),
                 "deleted": bool(f.get("deleted", False)),
-            }
+            },
         )
 
     json_str = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
@@ -224,10 +213,7 @@ COMMIT;
 
 
 def _psql_run(postgis_url: str, sql: str) -> None:
-    """
-    Execute SQL using `psql` and raise a RuntimeError with real stderr.
-    """
-
+    """Execute SQL using `psql` and raise a RuntimeError with real stderr."""
     pg_connect_timeout = int(os.environ.get("JGIS_PG_CONNECT_TIMEOUT", "5"))
     psql_timeout = int(os.environ.get("JGIS_PSQL_TIMEOUT", "30"))
 
@@ -253,7 +239,6 @@ def _psql_run(postgis_url: str, sql: str) -> None:
 
 def ensure_feature_store_table(postgis_url: str, table_name: str) -> None:
     """Ensure the per-store table exists."""
-
     ddl = feature_store_table_ddl(table_name)
     sql = ddl
 
@@ -265,10 +250,7 @@ def merge_overlay_features_via_psql(
     store_id: str,
     features: list[dict[str, Any]],
 ) -> None:
-    """
-    Merge overlay into PostGIS using `psql` subprocess calls.
-    """
-
+    """Merge overlay into PostGIS using `psql` subprocess calls."""
     if not postgis_url:
         raise RuntimeError("JGIS_POSTGIS_URL is not configured")
 
@@ -278,4 +260,3 @@ def merge_overlay_features_via_psql(
     sql = merge_overlay_features_sql(table_name, features)
 
     _psql_run(postgis_url, sql)
-

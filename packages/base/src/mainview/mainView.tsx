@@ -35,7 +35,7 @@ import {
   IVectorTileSource,
   IGeoParquetSource,
   IFeatureStoreSource,
-  IFeatureStoreFeature,
+  IFeatureStoreGeometry,
   IGeoTiffLayer,
   IGeoZarrLayer,
   JgisCoordinates,
@@ -4506,7 +4506,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const geojsonGeometry = new GeoJSON().writeGeometryObject(geometry, {
       featureProjection: this._Map.getView().getProjection(),
       dataProjection: 'EPSG:4326',
-    }) as IFeatureStoreFeature['geometry'];
+    }) as IFeatureStoreGeometry;
 
     const props = Object.fromEntries(
       customAttributes.map(attribute => [attribute.key, attribute.value]),

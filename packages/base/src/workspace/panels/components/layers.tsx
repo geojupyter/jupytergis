@@ -763,13 +763,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const supportsOpacity = !isStorySegmentLayer;
 
   const sourceId = layer.parameters?.source as string | undefined;
-  const sourceType = sourceId
-    ? gisModel?.getSource(sourceId)?.type
-    : undefined;
+  const sourceType = sourceId ? gisModel?.getSource(sourceId)?.type : undefined;
   // Feature store layers are VectorLayers; use the source icon so they don't
   // look like ordinary vector layers in the tree.
-  const iconKey =
-    sourceType === 'FeatureStoreSource' ? sourceType : layer.type;
+  const iconKey = sourceType === 'FeatureStoreSource' ? sourceType : layer.type;
 
   const name = layer.name;
 
