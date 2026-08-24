@@ -8,6 +8,7 @@ import {
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
+import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import {
@@ -39,6 +40,12 @@ interface IBodyState {
   editedGraph: Record<string, any> | null;
 }
 
+interface IMapView {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+}
+
 interface IFormProps {
   initial: IBodyState;
   /**
@@ -49,6 +56,8 @@ interface IFormProps {
   initialConnection: IOpenEOConnectionInfo | null;
   /** Servers the user already authenticated against — populates the combobox. */
   knownServers: string[];
+  /** Live map view to reproduce in the Code tab's JupyterGIS snippet. */
+  mapView?: IMapView;
   onChange: (next: IBodyState) => void;
   onActiveServerChange: (info: IOpenEOConnectionInfo | null) => void;
   onValidationChange: (valid: boolean) => void;
@@ -365,6 +374,7 @@ const Form: React.FC<IFormProps> = ({
   initial,
   initialConnection,
   knownServers,
+  mapView,
   onChange,
   onActiveServerChange,
   onValidationChange,
@@ -540,7 +550,9 @@ const Form: React.FC<IFormProps> = ({
     () => JSON.stringify(effectiveGraph, null, 2),
     [effectiveGraph],
   );
-  const [viewMode, setViewMode] = React.useState<'graph' | 'json'>('graph');
+  const [viewMode, setViewMode] = React.useState<'graph' | 'json' | 'code'>(
+    'graph',
+  );
   const [editMode, setEditMode] = React.useState(false);
   // Local JSON buffer so the user can type freely; on valid parse, push
   // back to state.editedGraph. Reseeded whenever effectiveGraph changes
@@ -1177,19 +1189,28 @@ const Form: React.FC<IFormProps> = ({
             >
               JSON
             </button>
+            <button
+              type="button"
+              className={viewMode === 'code' ? 'jp-mod-selected' : ''}
+              onClick={() => setViewMode('code')}
+            >
+              Code
+            </button>
           </div>
-          <button
-            type="button"
-            className={
-              'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
-              (editMode ? ' jp-mod-selected' : '')
-            }
-            onClick={() => setEditMode(v => !v)}
-            title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
-            aria-label="Toggle edit mode"
-          >
-            ✎
-          </button>
+          {viewMode !== 'code' && (
+            <button
+              type="button"
+              className={
+                'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
+                (editMode ? ' jp-mod-selected' : '')
+              }
+              onClick={() => setEditMode(v => !v)}
+              title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
+              aria-label="Toggle edit mode"
+            >
+              ✎
+            </button>
+          )}
           {editMode && viewMode === 'graph' && (
             <>
               <button
@@ -1297,7 +1318,14 @@ const Form: React.FC<IFormProps> = ({
               Drop to add node to graph
             </div>
           )}
-          {viewMode === 'json' ? (
+          {viewMode === 'code' ? (
+            <CodeExportPanel
+              graph={effectiveGraph}
+              serverUrl={connectionInfo?.url}
+              layerName={state.layerName}
+              mapView={mapView}
+            />
+          ) : viewMode === 'json' ? (
             editMode ? (
               <JsonEditor
                 value={jsonText}
@@ -1346,6 +1374,7 @@ class AddLayerBody extends ReactWidget {
     initialConnection: IOpenEOConnectionInfo | null,
     private _knownServers: string[],
     private _onValidationChange: (valid: boolean) => void,
+    private _mapView?: IMapView,
   ) {
     super();
     this._state = initial;
@@ -1359,6 +1388,7 @@ class AddLayerBody extends ReactWidget {
         initial={this._state}
         initialConnection={this._activeConnection}
         knownServers={this._knownServers}
+        mapView={this._mapView}
         onChange={next => {
           this._state = next;
         }}
@@ -1410,6 +1440,12 @@ export interface IOpenEODialogOptions {
   title?: string;
   /** OK button label. */
   okLabel?: string;
+  /**
+   * The document's current map view (center + zoom, EPSG:4326). Baked into
+   * the Code tab's JupyterGIS snippet so exported code opens on the same
+   * viewport the user is looking at.
+   */
+  mapView?: IMapView;
 }
 
 export async function showAddOpenEOLayerDialog(
@@ -1447,6 +1483,7 @@ export async function showAddOpenEOLayerDialog(
       lastValid = valid;
       applyOk();
     },
+    options.mapView,
   );
 
   const resultPromise = new EditorAwareDialog<IOpenEODialogResult | null>({
