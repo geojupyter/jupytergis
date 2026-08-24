@@ -43,6 +43,10 @@
   gap: 0.75rem;
 }
 
+.jgis-story-editor:focus {
+  outline: none;
+}
+
 .jgis-story-editor-stack {
   display: flex;
   flex-direction: column;

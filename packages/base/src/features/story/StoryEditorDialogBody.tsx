@@ -392,6 +392,9 @@ export function StoryEditorDialogBody({
     if (event.key === 'Delete' && canRemoveSegment) {
       event.preventDefault();
       removeSegment();
+      // Deleting the focused segment button drops focus outside the editor;
+      // keep the shell focused so undo/copy/etc. still receive keys.
+      portalContainerRef.current?.focus();
     }
   };
 
@@ -399,6 +402,7 @@ export function StoryEditorDialogBody({
     <div
       ref={portalContainerRef}
       className="jgis-story-editor"
+      tabIndex={-1}
       onKeyDown={handleEditorKeyDown}
     >
       <StoryEditorHeaderBar
