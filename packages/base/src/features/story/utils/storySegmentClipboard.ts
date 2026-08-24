@@ -17,7 +17,7 @@ export interface IStorySegmentClipboardItem {
 
 let clipboard: IStorySegmentClipboardItem | null = null;
 
-/** True when focus is in a text field / CodeMirror — keep native clipboard/undo. */
+/** True when focus is in a text field / CodeMirror, keep normal clipboard/undo. */
 export function isStoryEditorTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -164,9 +164,4 @@ export function duplicateStorySegment(
   }
 
   return pasteStorySegment(model, segmentId);
-}
-
-/** @internal Test helper */
-export function clearStorySegmentClipboard(): void {
-  clipboard = null;
 }
