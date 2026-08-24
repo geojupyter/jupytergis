@@ -1,4 +1,5 @@
 import pytest
+from pycrdt import Map
 
 from jupytergis_lab import GISDocument
 from jupytergis_lab.notebook.gis_document import QGIS_UNSUPPORTED_TYPES
@@ -309,6 +310,33 @@ class TestQgisUnsupportedFeatures(TestDocument):
             symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
         )
         assert self.doc.layers[layer_id]
+
+
+class TestFeatureStores(TestDocument):
+    def test_feature_stores_empty_by_default(self):
+        assert self.doc.feature_stores == {}
+
+    def test_feature_stores_reads_overlay(self):
+        store = Map()
+        self.doc._featureStores["store-1"] = store
+        store["meta"] = {
+            "softLimit": 1,
+            "hardLimit": 2,
+            "compacting": False,
+        }
+        features = Map()
+        store["features"] = features
+        features["f1"] = {
+            "id": "f1",
+            "geometry": {"type": "Point", "coordinates": [0, 0]},
+            "props": {},
+            "updatedAt": "t",
+            "updatedBy": "u",
+        }
+
+        stores = self.doc.feature_stores
+        assert stores["store-1"]["features"]["f1"]["id"] == "f1"
+        assert stores["store-1"]["meta"]["compacting"] is False
 
 
 class TestLayerManipulation(TestDocument):

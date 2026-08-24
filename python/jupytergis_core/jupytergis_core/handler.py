@@ -527,6 +527,135 @@ class ProcessingHandler(APIHandler):
         self.finish(json.dumps({"result": result_content, "format": result_format}))
 
 
+def get_tipg_url() -> str | None:
+    """Return tipg base URL from env (if set), without trailing slash."""
+    url = os.environ.get("JGIS_TIPG_URL")
+    if url is None:
+        return None
+    url = url.strip().rstrip("/")
+    return url or None
+
+
+async def refresh_tipg_catalog() -> bool:
+    """Ask tipg to re-scan PostGIS for collections (new jgis_store_* tables).
+
+    Requires tipg started with TIPG_DEBUG=true so ``GET /refresh`` exists.
+    Returns True on success; False if tipg is unset, unreachable, or refresh
+    is disabled (fold still succeeds — catalog may catch up via TTL).
+    """
+    tipg_base = get_tipg_url()
+    if not tipg_base:
+        return False
+
+    client = AsyncHTTPClient()
+    try:
+        response = await client.fetch(
+            HTTPRequest(
+                url=f"{tipg_base}/refresh",
+                method="GET",
+                request_timeout=60,
+            ),
+            raise_error=False,
+        )
+    except Exception:
+        logger.exception("tipg catalog refresh request failed")
+        return False
+
+    if response.code >= 400:
+        logger.warning(
+            "tipg catalog refresh returned %s (enable TIPG_DEBUG=true for /refresh)",
+            response.code,
+        )
+        return False
+
+    return True
+
+
+class TipgTilesHandler(APIHandler):
+    """Authenticated reverse proxy to tipg for collaborative baseline tiles.
+
+    Maps ``/jupytergis_core/tiles/<path>`` -> ``$JGIS_TIPG_URL/<path>``.
+    """
+
+    _FORWARD_RESPONSE_HEADERS = (
+        "content-type",
+        "cache-control",
+        "etag",
+        "last-modified",
+    )
+
+    def initialize(self) -> None:
+        self.http_client = AsyncHTTPClient(
+            defaults={
+                "connect_timeout": 30,
+                "request_timeout": 60,
+                "max_body_size": 50 * 1024 * 1024,
+            },
+        )
+
+    @tornado.web.authenticated
+    async def get(self, path: str = "") -> None:
+        await self._proxy(path)
+
+    @tornado.web.authenticated
+    async def head(self, path: str = "") -> None:
+        await self._proxy(path, method="HEAD")
+
+    async def _proxy(self, path: str, method: str = "GET") -> None:
+        tipg_base = get_tipg_url()
+        if not tipg_base:
+            self.set_status(503)
+            self.set_header("Content-Type", "application/json")
+            self.finish(
+                json.dumps(
+                    {
+                        "error": "tipg is not configured on this server",
+                        "hint": "Set JGIS_TIPG_URL in server environment",
+                    },
+                ),
+            )
+            return
+
+        # Reject path traversal; tipg paths are collection/tile URLs only.
+        if ".." in path.split("/"):
+            self.set_status(400)
+            self.set_header("Content-Type", "application/json")
+            self.finish(json.dumps({"error": "Invalid path"}))
+            return
+
+        target = f"{tipg_base}/{path.lstrip('/')}"
+        if self.request.query:
+            target = f"{target}?{self.request.query}"
+
+        try:
+            response = await self.http_client.fetch(
+                HTTPRequest(
+                    url=target,
+                    method=method,
+                    headers={"Accept": self.request.headers.get("Accept", "*/*")},
+                    follow_redirects=False,
+                    decompress_response=True,
+                ),
+                raise_error=False,
+            )
+        except Exception:
+            logger.exception("tipg proxy request failed: %s", target)
+            self.set_status(502)
+            self.set_header("Content-Type", "application/json")
+            self.finish(json.dumps({"error": "Failed to reach tipg"}))
+            return
+
+        self.set_status(response.code)
+        for name in self._FORWARD_RESPONSE_HEADERS:
+            value = response.headers.get(name)
+            if value:
+                self.set_header(name, value)
+        if method == "HEAD":
+            self.finish()
+        else:
+            self.finish(response.body)
+
+
 def setup_handlers(web_app: Any) -> None:
     """Register handlers with configuration validation.
 
@@ -542,10 +671,12 @@ def setup_handlers(web_app: Any) -> None:
 
     # Configure processing route
     processing_route = url_path_join(base_url, "jupytergis_core", "processing")
+    tiles_route = url_path_join(base_url, "jupytergis_core", "tiles", r"(.*)")
 
     handlers = [
         (proxy_route, ProxyHandler),
         (processing_route, ProcessingHandler),
+        (tiles_route, TipgTilesHandler),
     ]
 
     # Add feature flags
@@ -556,3 +687,4 @@ def setup_handlers(web_app: Any) -> None:
     web_app.add_handlers(host_pattern, handlers)
     logger.info("JupyterGIS proxy endpoint initialized at: %s", proxy_route)
     logger.info("JupyterGIS processing endpoint initialized at: %s", processing_route)
+    logger.info("JupyterGIS tipg tiles proxy initialized at: %s", tiles_route)

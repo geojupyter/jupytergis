@@ -10,6 +10,8 @@ import {
   JgisCoordinates,
   LayerType,
   SourceType,
+  IFeatureStoreSource,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
@@ -74,6 +76,24 @@ function notifyInteractionModeCommands(commands: CommandRegistry): void {
   for (const id of INTERACTION_MODE_COMMANDS) {
     commands.notifyCommandChanged(id);
   }
+}
+
+function selectedFeatureStoreId(model: IJupyterGISModel): string | undefined {
+  const selectedLayer =
+    model.sharedModel.awareness.getLocalState()?.selected?.value;
+  if (!selectedLayer) {
+    return undefined;
+  }
+
+  const layerId = Object.keys(selectedLayer)[0];
+  const jgisLayer = model.getLayer(layerId);
+  const sourceId = jgisLayer?.parameters?.source;
+  const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
+  if (jgisSource?.type !== 'FeatureStoreSource') {
+    return undefined;
+  }
+
+  return (jgisSource.parameters as IFeatureStoreSource).storeId;
 }
 
 /**
@@ -1837,10 +1857,88 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
+  commands.addCommand(CommandIDs.foldFeatureStore, {
+    label: trans.__('Fold to Feature Store'),
+    caption: trans.__('Fold overlay features into the feature store baseline.'),
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current?.model.sharedModel.editable) {
+        return false;
+      }
+
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        return true;
+      }
+
+      return !current.model.getFeatureStore(storeId)?.meta.compacting;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        console.warn(
+          'Fold to Feature Store: select a feature store layer first.',
+        );
+
+        return;
+      }
+
+      if (current.model.getFeatureStore(storeId)?.meta.compacting) {
+        return;
+      }
+
+      current.model.updateFeatureStoreMeta(storeId, { foldRequested: true });
+    },
+    ...icons.get(CommandIDs.foldFeatureStore),
+  });
+
+  commands.addCommand(CommandIDs.openNewFeatureStoreDialog, {
+    label: trans.__('Feature Store'),
+    caption: trans.__(
+      'Create a feature store layer (server-backed baseline with overlay edits).',
+    ),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = UUID.uuid4();
+      const dialog = new LayerCreationFormDialog({
+        model: current.model,
+        title: 'Create Feature Store Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          name: 'Feature Store Source',
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        },
+        layerData: { name: 'Feature Store' },
+        sourceType: 'FeatureStoreSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.openNewFeatureStoreDialog),
+  });
+
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
     caption:
-      'Toggle feature editing. Creates an empty draw layer if the selection is not draw-compatible.',
+      'Toggle feature editing. Uses the selected GeoJSON or feature store layer, or creates an empty draw layer.',
     describedBy: {
       args: {
         type: 'object',

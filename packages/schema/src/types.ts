@@ -14,6 +14,7 @@ export { IRasterSource } from './_interface/project/sources/rasterSource';
 export { IShapefileSource } from './_interface/project/sources/shapefileSource';
 export { IVectorTileSource } from './_interface/project/sources/vectorTileSource';
 export { IGeoParquetSource } from './_interface/project/sources/geoParquetSource';
+export { IFeatureStoreSource } from './_interface/project/sources/featureStoreSource';
 export { IMarkerSource } from './_interface/project/sources/markerSource';
 export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
 export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
@@ -37,6 +38,15 @@ export * from './processing/_generated/exportProcessingSchema';
 // Symbology grammar
 export * from './_interface/project/symbology';
 
+import type {
+  GeoJSONGeometryCollection,
+  GeoJSONLineString,
+  GeoJSONMultiLineString,
+  GeoJSONMultiPoint,
+  GeoJSONMultiPolygon,
+  GeoJSONPoint,
+  GeoJSONPolygon,
+} from './_interface/geojson';
 import type { IGrammarLayer } from './_interface/project/symbology';
 
 export interface IGrammarSymbologyState {
@@ -46,6 +56,52 @@ export interface IGrammarSymbologyState {
    * Layers are rendered in order (first = bottom).
    */
   layers: IGrammarLayer[];
+}
+
+/** Arbitrary attribute bag stamped onto a feature-store overlay feature. */
+export interface IFeatureStoreFeatureProps {
+  [k: string]: string | number | boolean | null;
+}
+
+/**
+ * GeoJSON geometry types allowed on feature-store overlay features.
+ * Coordinates are always EPSG:4326.
+ */
+export type IFeatureStoreGeometry =
+  | GeoJSONPoint
+  | GeoJSONLineString
+  | GeoJSONPolygon
+  | GeoJSONMultiPoint
+  | GeoJSONMultiLineString
+  | GeoJSONMultiPolygon
+  | GeoJSONGeometryCollection;
+
+export interface IFeatureStoreFeature {
+  id: string;
+  // GeoJSON geometry in EPSG:4326
+  geometry: IFeatureStoreGeometry | null;
+  props: IFeatureStoreFeatureProps;
+  updatedAt: string;
+  updatedBy: string;
+  deleted?: boolean;
+}
+
+export interface IFeatureStoreMeta {
+  softLimit: number;
+  hardLimit: number;
+  compacting: boolean;
+  foldRequested: boolean;
+}
+
+export interface IFeatureStore {
+  meta: IFeatureStoreMeta;
+  features: {
+    [k: string]: IFeatureStoreFeature;
+  };
+}
+
+export interface IJGISFeatureStores {
+  [k: string]: IFeatureStore;
 }
 
 // exportLayer

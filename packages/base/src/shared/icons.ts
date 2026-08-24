@@ -10,6 +10,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import bookOpenSvgStr from '../../style/icons/book_open.svg';
 import clockSvgStr from '../../style/icons/clock-solid.svg';
 import columns2SvgStr from '../../style/icons/columns_2.svg';
+import dbSvgStr from '../../style/icons/db.svg';
 import geoJsonSvgStr from '../../style/icons/geojson.svg';
 import geolocationSvgStr from '../../style/icons/geolocation.svg';
 import geoPackageSvgStr from '../../style/icons/geopackage.svg';
@@ -94,6 +95,11 @@ export const infoIcon = new LabIcon({
 export const clockIcon = new LabIcon({
   name: 'jupytergis::clock',
   svgstr: clockSvgStr,
+});
+
+export const dbIcon = new LabIcon({
+  name: 'jupytergis::db',
+  svgstr: dbSvgStr,
 });
 
 export const columns2Icon = new LabIcon({

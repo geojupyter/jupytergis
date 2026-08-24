@@ -6,6 +6,7 @@ import {
   bookOpenIcon,
   clockIcon,
   columns2Icon,
+  dbIcon,
   geoJSONIcon,
   geoPackageIcon,
   infoIcon,
@@ -35,6 +36,7 @@ const iconObject = {
   RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
+  FeatureStoreSource: { iconClass: 'fa fa-store' },
   ImageSource: { iconClass: 'fa fa-image' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
@@ -68,6 +70,8 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.foldFeatureStore]: { icon: dbIcon },
+  [CommandIDs.openNewFeatureStoreDialog]: { iconClass: 'fa fa-store' },
   [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.openStoryEditor]: {

@@ -762,6 +762,12 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   // have no associated OpenLayers layer.
   const supportsOpacity = !isStorySegmentLayer;
 
+  const sourceId = layer.parameters?.source as string | undefined;
+  const sourceType = sourceId ? gisModel?.getSource(sourceId)?.type : undefined;
+  // Feature store layers are VectorLayers; use the source icon so they don't
+  // look like ordinary vector layers in the tree.
+  const iconKey = sourceType === 'FeatureStoreSource' ? sourceType : layer.type;
+
   const name = layer.name;
 
   useEffect(() => {
@@ -981,9 +987,9 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </Button>
         )}
 
-        {icons.has(layer.type) && (
+        {icons.has(iconKey) && (
           <LabIcon.resolveReact
-            {...icons.get(layer.type)}
+            {...icons.get(iconKey)}
             className={LAYER_ICON_CLASS}
           />
         )}

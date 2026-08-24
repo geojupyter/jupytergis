@@ -204,6 +204,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       toggleDrawFeaturesButton.node.dataset.testid =
         'toggle-draw-features-button';
 
+      const foldFeatureStoreButton = new CommandToolbarButton({
+        id: CommandIDs.foldFeatureStore,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('foldFeatureStore', foldFeatureStoreButton);
+      foldFeatureStoreButton.node.dataset.testid = 'fold-feature-store-button';
+
       const openStoryEditorButton = new CommandToolbarButton({
         id: CommandIDs.openStoryEditor,
         label: '',
