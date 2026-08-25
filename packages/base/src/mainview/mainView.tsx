@@ -2485,7 +2485,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     options: { duration?: number; padding?: number[] } = {},
   ): void {
     if (!this._isValidExtent(extent)) {
-      this._log('warning', `Layer ${layerId} has no extent.`);
+      this._log('warning', `Layer ${layerId} extent is not valid.`);
       return;
     }
 
