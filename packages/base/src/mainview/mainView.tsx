@@ -2877,13 +2877,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this._rebuildLayers();
   }
 
-  private async _rebuildLayers(): Promise<void> {
-    const layerIds = JupyterGISModel.getOrderedLayerIds(this._model);
-    layerIds.forEach(id => this.removeLayer(id));
-    this._sources = [];
-    this._sourceToLayerMap = new Map();
-    this._ready = false;
-    await this._updateLayersImpl(layerIds);
+  private _rebuildLayers(): Promise<void> {
+    this._rebuildLayersPromise = this._rebuildLayersPromise
+      .catch(() => undefined)
+      .then(async () => {
+        const layerIds = JupyterGISModel.getOrderedLayerIds(this._model);
+        layerIds.forEach(id => this.removeLayer(id));
+        this._sources = [];
+        this._sourceToLayerMap = new Map();
+        this._ready = false;
+        await this._updateLayersImpl(layerIds);
+      });
+    return this._rebuildLayersPromise;
   }
 
   private async updateOptions(options: IJGISOptions): Promise<void> {
@@ -4440,6 +4445,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
+  private _rebuildLayersPromise: Promise<void> = Promise.resolve();
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
