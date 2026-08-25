@@ -770,9 +770,18 @@ export function addCommands(
       // used server and offer the rest in the picker. The user
       // picks/connects inside the dialog itself, so we don't
       // pre-authenticate here.
+      // Capture the current map viewport so the Code tab's exported
+      // snippet opens on exactly what the user is looking at, rather than
+      // the graph's (often arbitrary) spatial_extent.
+      const viewOptions = current.model.getOptions();
       const result = await showAddOpenEOLayerDialog({
         connectionInfo: getLatestOpenEOConnection(),
         knownServers: listOpenEOConnections(),
+        mapView: {
+          latitude: viewOptions.latitude,
+          longitude: viewOptions.longitude,
+          zoom: viewOptions.zoom,
+        },
       });
       if (!result) {
         return;
