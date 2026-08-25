@@ -2424,7 +2424,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   ): number[] {
     const viewProjection = this._Map.getView().getProjection();
 
-    if (sourceProjection && sourceProjection !== viewProjection) {
+    if (
+      sourceProjection &&
+      sourceProjection.getCode() !== viewProjection.getCode()
+    ) {
       return transformExtent(extent, sourceProjection, viewProjection);
     }
 
@@ -2453,10 +2456,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       const source = current.getSource();
-      const extent = this._computeExtent(
-        current as Layer | StacLayer,
-        source,
-      );
+      const extent = this._computeExtent(current as Layer | StacLayer, source);
       if (!this._isValidExtent(extent)) {
         continue;
       }
