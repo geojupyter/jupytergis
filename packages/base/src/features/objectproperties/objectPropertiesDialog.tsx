@@ -60,8 +60,12 @@ export class ObjectPropertiesWidget extends Dialog<void> {
     const body = (
       <Tabs defaultValue={initialTab} className="jgis-object-properties-tabs">
         <TabsList>
-          <TabsTrigger value="properties">Properties</TabsTrigger>
-          <TabsTrigger value="information">Information</TabsTrigger>
+          <TabsTrigger className="jgis-underline-indicator" value="properties">
+            Properties
+          </TabsTrigger>
+          <TabsTrigger className="jgis-underline-indicator" value="information">
+            Information
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="properties" className={panelClass}>

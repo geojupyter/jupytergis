@@ -51,11 +51,10 @@
 }
 
 .jgis-tabs-trigger[data-state='active'] {
-  background-color: var(--jp-layout-color0);
+  background-color: var(--jp-layout-color2);
   color: var(--jp-ui-font-color0);
-  border-color: var(--jp-border-color1);
   box-shadow: 0 1px 2px
-    color-mix(in srgb, var(--jp-ui-font-color0), transparent 85%);
+    color-mix(in srgb, var(--jp-layout-color0), transparent 90%);
 }
 
 .jgis-tabs-content {
