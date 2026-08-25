@@ -1464,7 +1464,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         case 'MarkerSource': {
           const parameters = source.parameters as IMarkerSource;
 
-          const point = new Point(parameters.feature.coords);
+          const point = new Point(
+            fromLonLat(
+              parameters.feature.coords,
+              this._Map.getView().getProjection(),
+            ),
+          );
           const marker = new Feature({
             type: 'icon',
             geometry: point,
@@ -3702,11 +3707,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const lonLat = toLonLat(coordinate, this._Map.getView().getProjection());
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
     const sourceParameters: IMarkerSource = {
-      feature: { coords: [coordinate[0], coordinate[1]] },
+      feature: { coords: [lonLat[0], lonLat[1]] },
     };
 
     const layerParams: IVectorLayer = {
