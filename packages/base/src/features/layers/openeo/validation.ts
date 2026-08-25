@@ -1,6 +1,6 @@
 import { ProcessGraph, ProcessRegistry } from '@openeo/js-processgraphs';
 
-import { connect, IOpenEOConnectionInfo } from './OpenEOTileLayer';
+import type { IOpenEOConnectionInfo } from './OpenEOTileLayer';
 
 export interface IValidationError {
   code?: string;
@@ -93,6 +93,7 @@ function checkCallbackArgs(
 export async function validateProcessGraphLocally(
   processGraph: Record<string, any>,
   processes: any[] | undefined,
+  userProcesses?: any[] | undefined,
 ): Promise<IValidationError[]> {
   if (!processes || processes.length === 0) {
     return [];
@@ -106,14 +107,41 @@ export async function validateProcessGraphLocally(
         // Skip processes the registry rejects (malformed catalog entries).
       }
     }
+    // Register user-defined processes too, so a graph that references a UDP
+    // by id (a "graph that extends another graph") resolves locally instead
+    // of tripping a spurious ProcessUnsupported error.
+    for (const p of userProcesses ?? []) {
+      try {
+        registry.add(p);
+      } catch {
+        // Skip UDPs the registry rejects.
+      }
+    }
     const pg = new ProcessGraph(
       { id: 'jp-openeo-local', process_graph: processGraph },
       registry,
     );
     await pg.validate(false);
+    // Process ids referenced with an explicit `namespace` (e.g. an external
+    // UDP from the APEX catalogue, given by URL). The local registry can't
+    // know these; only the backend can resolve them, so a local
+    // ProcessUnsupported for such a node is a false positive we drop.
+    const namespacedProcessIds = new Set<string>();
+    for (const node of Object.values(processGraph)) {
+      if (node?.namespace && typeof node.process_id === 'string') {
+        namespacedProcessIds.add(node.process_id);
+      }
+    }
     const libErrs = pg
       .getErrors()
       .getAll()
+      .filter(
+        (e: any) =>
+          !(
+            e?.code === 'ProcessUnsupported' &&
+            namespacedProcessIds.has(e?.variables?.process)
+          ),
+      )
       .map((e: any) => ({
         code: typeof e?.code === 'string' ? e.code : undefined,
         message: e?.message ?? String(e),
@@ -219,6 +247,10 @@ export async function validateProcessGraph(
   connectionInfo: IOpenEOConnectionInfo,
   processGraph: Record<string, any>,
 ): Promise<IValidationError[]> {
+  // Lazily imported so the pure validators above (used in unit tests) don't
+  // pull OpenEOTileLayer's @jupyterlab/apputils dependency into the module
+  // graph. Only the backend pass needs a live connection.
+  const { connect } = await import('./OpenEOTileLayer');
   const connection = await connect(connectionInfo);
   const result = await connection.validateProcess({
     id: 'jp-openeo-validation',
