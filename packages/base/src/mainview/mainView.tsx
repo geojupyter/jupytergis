@@ -2565,32 +2565,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     layerId: string,
     olLayer: Layer | LayerGroup,
   ): void {
-    const effectiveLayer =
-      olLayer instanceof LayerGroup
-        ? (olLayer.getLayers().getArray()[0] as Layer | undefined)
-        : olLayer;
-    if (!effectiveLayer) {
+    const extent = this._getZoomExtentForOlLayer(olLayer);
+    if (!this._isValidExtent(extent)) {
       return;
     }
-    const source = effectiveLayer.getSource();
-    const sourceId = source?.get?.('id');
 
-    let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
-
-    if (!extent) {
-      extent = this._computeExtent(effectiveLayer, source);
+    const zoom = this._computeZoomFromExtent(extent);
+    if (zoom === null) {
+      return;
     }
 
-    if (extent) {
-      const zoom = this._computeZoomFromExtent(extent);
+    const view: IViewState[string] = {
+      extent,
+      zoom,
+    };
 
-      if (zoom === null) {
-        return;
-      }
-
-      const view: IViewState[string] = { extent, zoom };
-      this._model.updateLayerViewState(layerId, view);
-    }
+    this._model.updateLayerViewState(layerId, view);
   }
 
   /**
