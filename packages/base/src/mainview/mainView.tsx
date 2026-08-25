@@ -2434,53 +2434,49 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _getZoomExtentForOlLayer(
     olLayer: Layer | LayerGroup,
   ): number[] | undefined {
-    if (olLayer instanceof LayerGroup) {
-      let combined: number[] | undefined;
-      for (const child of olLayer.getLayers().getArray()) {
-        if (!(child instanceof Layer)) {
-          continue;
-        }
+    const stack: Array<Layer | LayerGroup> = [olLayer];
+    let combined: number[] | undefined;
 
-        const childSource = child.getSource();
-        const childExtent = this._computeExtent(
-          child as Layer | StacLayer,
-          childSource,
-        );
-
-        if (!this._isValidExtent(childExtent)) {
-          continue;
-        }
-
-        const transformed = this._transformExtentToViewProjection(
-          childExtent,
-          childSource?.getProjection(),
-        );
-
-        if (!this._isValidExtent(transformed)) {
-          continue;
-        }
-
-        if (!combined) {
-          combined = [...transformed];
-        } else {
-          extend(combined, transformed);
-        }
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current) {
+        continue;
       }
 
-      return combined;
+      if (current instanceof LayerGroup) {
+        for (const child of current.getLayers().getArray()) {
+          if (child instanceof LayerGroup || child instanceof Layer) {
+            stack.push(child as Layer | LayerGroup);
+          }
+        }
+        continue;
+      }
+
+      const source = current.getSource();
+      const extent = this._computeExtent(
+        current as Layer | StacLayer,
+        source,
+      );
+      if (!this._isValidExtent(extent)) {
+        continue;
+      }
+
+      const transformed = this._transformExtentToViewProjection(
+        extent,
+        source?.getProjection(),
+      );
+      if (!this._isValidExtent(transformed)) {
+        continue;
+      }
+
+      if (!combined) {
+        combined = [...transformed];
+      } else {
+        extend(combined, transformed);
+      }
     }
 
-    const source = olLayer.getSource();
-    const extent = this._computeExtent(olLayer as Layer | StacLayer, source);
-
-    if (!this._isValidExtent(extent)) {
-      return undefined;
-    }
-
-    return this._transformExtentToViewProjection(
-      extent,
-      source?.getProjection(),
-    );
+    return combined;
   }
 
   private _fitViewToExtent(
