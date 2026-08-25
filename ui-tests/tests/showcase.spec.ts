@@ -77,16 +77,16 @@ test.describe('Showcase', () => {
       let timeout = Date.now() + 30000;
       let pendingRequests = 0;
       let lastActivity = Date.now();
-      const track = (delta: number) => (request: Request) => {
+      const countRequest = (delta: number) => (request: Request) => {
         const type = request.resourceType();
         if (type !== 'websocket' && type !== 'eventsource') {
           pendingRequests += delta;
           lastActivity = Date.now();
         }
       };
-      page.on('request', track(1));
-      page.on('requestfinished', track(-1));
-      page.on('requestfailed', track(-1));
+      page.on('request', countRequest(1));
+      page.on('requestfinished', countRequest(-1));
+      page.on('requestfailed', countRequest(-1));
 
       await page.goto();
       await page.notebook.openByPath(`showcase/${file}`);
@@ -106,14 +106,18 @@ test.describe('Showcase', () => {
         await setup(page);
       }
 
+      const wasRequestActivityRecent = () => Date.now() - lastActivity < 2000;
+
       while (
         Date.now() < timeout &&
-        (pendingRequests > 0 || Date.now() - lastActivity < 2000)
+        (pendingRequests > 0 || wasRequestActivityRecent())
       ) {
-        await page.waitForTimeout(250);
+        await page
+          .waitForEvent('requestfinished', { timeout: 250 })
+          .catch(() => {});
       }
 
-      if (pendingRequests > 0 || Date.now() - lastActivity < 2000) {
+      if (pendingRequests > 0 || wasRequestActivityRecent()) {
         console.warn(
           `${file}: map load complete not detected, screenshotted after 30s timeout`,
         );
