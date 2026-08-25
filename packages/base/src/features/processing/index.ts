@@ -48,10 +48,49 @@ interface IProcessingNotification {
   error: (message: string) => void;
 }
 
+/**
+ * The class we put on our own processing toasts, so the layout tweaks in
+ * `processingNotification.css` apply to them and to nothing else.
+ */
+const PROCESSING_TOAST_CLASS = 'jgis-ProcessingToast';
+
+/**
+ * Tag our toast with {@link PROCESSING_TOAST_CLASS}.
+ *
+ * `Notification.emit` takes no class name, but react-toastify renders the toast
+ * with the notification id as its element id, so we can tag the element
+ * ourselves. The toast is rendered asynchronously (JupyterLab lazy-loads
+ * react-toastify), hence the retry until it lands in the DOM.
+ *
+ * Returns a function that stops looking and removes the class again, to be
+ * called once the notification settles.
+ */
+function tagProcessingToast(id: string): () => void {
+  let stopped = false;
+  const findToast = () => {
+    if (stopped) {
+      return;
+    }
+    const toast = document.getElementById(id);
+    if (toast) {
+      toast.classList.add(PROCESSING_TOAST_CLASS);
+      return;
+    }
+    requestAnimationFrame(findToast);
+  };
+  requestAnimationFrame(findToast);
+
+  return () => {
+    stopped = true;
+    document.getElementById(id)?.classList.remove(PROCESSING_TOAST_CLASS);
+  };
+}
+
 function createProcessingNotification(label: string): IProcessingNotification {
   const id = Notification.emit(`${label}…`, 'in-progress', {
     autoClose: false,
   });
+  const releaseToast = tagProcessingToast(id);
   // Highest percentage shown so far; keeps the reported progress monotonic.
   // Starts below zero so a genuine 0% still renders — that first tick is the
   // signal that GDAL has stopped opening the source and started working.
@@ -93,6 +132,7 @@ function createProcessingNotification(label: string): IProcessingNotification {
       });
     },
     cancelled: () => {
+      releaseToast();
       Notification.update({
         id,
         message: `${label} cancelled.`,
@@ -102,6 +142,7 @@ function createProcessingNotification(label: string): IProcessingNotification {
       });
     },
     success: (message: string) => {
+      releaseToast();
       Notification.update({
         id,
         message,
@@ -111,6 +152,7 @@ function createProcessingNotification(label: string): IProcessingNotification {
       });
     },
     error: (message: string) => {
+      releaseToast();
       Notification.update({
         id,
         message,

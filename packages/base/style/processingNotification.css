@@ -4,40 +4,43 @@
 | JupyterLab stacks notification actions in a `.jp-toast-buttonBar` below the
 | message, which adds an empty row and never lines up with the toast's close (X).
 | We lay the toast content out as a two-column grid instead, so spinner, message,
-| Cancel and X share one centre line. Scoped to in-progress toasts; other
-| notifications keep the default stacked layout.
+| Cancel and X share one centre line.
+|
+| Everything here is scoped to `.jgis-ProcessingToast`, a class we put on our own
+| toasts (see `tagProcessingToast` in `features/processing/index.ts`), so no
+| other notification — JupyterLab's own or another extension's — is affected.
 |---------------------------------------------------------------------------- */
 
 /* react-toastify wraps the toast content in this div and styles it likewise. */
-.jp-Notification-Toast-in-progress .Toastify__toast-body > div:last-child {
+.jgis-ProcessingToast .Toastify__toast-body > div:last-child {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   column-gap: 8px;
   align-items: center;
 }
 
-.jp-Notification-Toast-in-progress .jp-toast-message {
+.jgis-ProcessingToast .jp-toast-message {
   min-width: 0;
   padding-inline-end: 0;
 }
 
-.jp-Notification-Toast-in-progress .jp-toast-buttonBar {
+.jgis-ProcessingToast .jp-toast-buttonBar {
   padding-block-start: 0;
   /* Gutter for the close (X) button, which is absolutely positioned. */
   margin-inline-end: 18px;
 }
 
 /* The grid right-aligns the bar, so the flexbox spacer is redundant. */
-.jp-Notification-Toast-in-progress .jp-toast-spacer {
+.jgis-ProcessingToast .jp-toast-spacer {
   display: none;
 }
 
-.jp-Notification-Toast-in-progress .jp-toast-button {
+.jgis-ProcessingToast .jp-toast-button {
   margin: 0;
 }
 
 /* JupyterLab pins the close button top-right; centre it onto the Cancel line. */
-.jp-Notification-Toast-in-progress .jp-Notification-Toast-Close {
+.jgis-ProcessingToast .jp-Notification-Toast-Close {
   top: 50%;
   transform: translateY(-50%);
 }
