@@ -80,6 +80,9 @@ function createModel(
       layersChanged,
       storyMapsChanged,
       updateStoryMap: jest.fn(),
+      transact: jest.fn((fn: () => void) => {
+        fn();
+      }),
     },
     currentSegmentIndexChanged,
     segmentAdded,
