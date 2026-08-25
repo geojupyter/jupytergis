@@ -1,7 +1,7 @@
 import type { Layer } from 'ol/layer';
 import type LayerGroup from 'ol/layer/Group';
-import type Projection from 'ol/proj/Projection';
 import { get as getProjection } from 'ol/proj';
+import type Projection from 'ol/proj/Projection';
 import type { Source } from 'ol/source';
 
 import {
@@ -55,9 +55,9 @@ describe('isValidExtent', () => {
 describe('transformExtentToViewProjection', () => {
   it('returns the same array when projection codes match', () => {
     const extent = [0, 1, 2, 3];
-    expect(
-      transformExtentToViewProjection(extent, EPSG3857, EPSG3857),
-    ).toBe(extent);
+    expect(transformExtentToViewProjection(extent, EPSG3857, EPSG3857)).toBe(
+      extent,
+    );
   });
 
   it('transforms when projection codes differ', () => {
@@ -86,10 +86,7 @@ describe('getZoomExtentForOlLayer', () => {
   it('unions extents from sibling layers in a group', () => {
     expect(
       getZoomExtentForOlLayer(
-        mockGroup([
-          mockLayer([0, 0, 5, 5]),
-          mockLayer([10, 10, 20, 20]),
-        ]),
+        mockGroup([mockLayer([0, 0, 5, 5]), mockLayer([10, 10, 20, 20])]),
         EPSG3857,
         computeFromMockSource,
       ),

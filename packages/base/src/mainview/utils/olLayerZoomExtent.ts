@@ -1,9 +1,9 @@
 import { extend } from 'ol/extent';
-import type BaseLayer from 'ol/layer/Base';
 import type { Layer } from 'ol/layer';
+import type BaseLayer from 'ol/layer/Base';
 import type LayerGroup from 'ol/layer/Group';
-import type Projection from 'ol/proj/Projection';
 import { transformExtent } from 'ol/proj';
+import type Projection from 'ol/proj/Projection';
 import type { Source } from 'ol/source';
 
 export function isValidExtent(
@@ -39,10 +39,7 @@ function isLayer(layer: BaseLayer): layer is Layer {
 export function getZoomExtentForOlLayer(
   olLayer: Layer | LayerGroup,
   viewProjection: Projection,
-  computeExtent: (
-    layer: Layer,
-    source: Source | null,
-  ) => number[] | undefined,
+  computeExtent: (layer: Layer, source: Source | null) => number[] | undefined,
 ): number[] | undefined {
   const stack: BaseLayer[] = [olLayer];
   let combined: number[] | undefined;
