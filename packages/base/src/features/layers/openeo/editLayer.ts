@@ -45,6 +45,7 @@ export async function editOpenEOLayer(
   } catch {
     return;
   }
+  const viewOptions = model.getOptions();
   const result = await showAddOpenEOLayerDialog({
     title: 'Edit OpenEO Layer',
     okLabel: 'Save',
@@ -52,6 +53,11 @@ export async function editOpenEOLayer(
     knownServers: listOpenEOConnections(),
     initialGraph: sourceParams.processGraph,
     layerName: layer.name,
+    mapView: {
+      latitude: viewOptions.latitude,
+      longitude: viewOptions.longitude,
+      zoom: viewOptions.zoom,
+    },
   });
   if (!result) {
     return;

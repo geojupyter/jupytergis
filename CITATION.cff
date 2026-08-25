@@ -5,13 +5,13 @@ message: >-
 title: "JupyterGIS"
 url: "https://jupytergis.readthedocs.io"
 repository-code: "https://github.com/geojupyter/jupytergis"
-# doi: "TODO"
+doi: "10.5281/zenodo.22045276"
 abstract: >-
   JupyterGIS is a collaborative Geographical Information System (GIS)
   environment in JupyterLab.
 
 type: "software"
-license: ["BSD-3-Clause"]
+license: "BSD-3-Clause"
 keywords:
   - "Jupyter"
   - "GIS"
@@ -23,8 +23,8 @@ contact:
   - name: "The GeoJupyter Community Chat"
     website: "https://jupyter.zulipchat.com"
 
-version: "0.16.0rc4"
-date-released: "2026-08-19"
+version: "0.16.2"
+date-released: "2026-08-25"
 
 # TODO: More comprehensive authors list. Initialized from the JOSS paper.
 authors:
