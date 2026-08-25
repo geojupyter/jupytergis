@@ -123,6 +123,12 @@ function createContextMenu(
     rank: 6,
   });
 
+  gisContextMenu.addItem({
+    command: CommandIDs.showLayerInformation,
+    selector: GIS_LAYER_ITEM,
+    rank: 6.5,
+  });
+
   const moveSelectedSubmenu = new Menu({ commands });
   moveSelectedSubmenu.title.label = translator
     .load('jupyterlab')

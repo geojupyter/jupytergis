@@ -75,6 +75,7 @@ const iconObject = {
     icon: scrollIcon.bindprops({ className: 'jgis-icon-adjust' }),
   },
   [CommandIDs.showLayerPropertiesDialog]: { iconClass: 'fa fa-sliders' },
+  [CommandIDs.showLayerInformation]: { iconClass: 'fa fa-circle-info' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
   [CommandIDs.togglePanel]: { icon: columns2Icon },

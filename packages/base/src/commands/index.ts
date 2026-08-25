@@ -39,6 +39,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -313,6 +314,75 @@ export function addCommands(
       await editHandler({ model, selectedId, formSchemaRegistry });
     },
     ...icons.get(CommandIDs.showLayerPropertiesDialog),
+  });
+
+  commands.addCommand(CommandIDs.showLayerInformation, {
+    label: trans.__('Layer Information'),
+    caption:
+      'Show the projection, extent, bands and tile pyramid of the selected layer.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+        },
+      },
+    },
+
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      const selectedIds = Object.keys(selected);
+
+      // Only a single object can be described at a time.
+      if (selectedIds.length !== 1) {
+        return false;
+      }
+
+      const id = selectedIds[0];
+      return Boolean(model.getLayer(id) || model.getSource(id));
+    },
+
+    execute: async (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
+      if (!current) {
+        console.error(
+          'Cannot show layer information: no active JupyterGIS document.',
+        );
+        return;
+      }
+
+      const model = current.model;
+
+      if (layerId) {
+        model.syncSelected(
+          { [layerId]: { type: 'layer' } },
+          model.getClientId().toString(),
+        );
+      }
+
+      // Unlike editing, describing a layer is the same for every layer type, so
+      // this deliberately bypasses `getLayerEditHandler`: types with their own
+      // editor (e.g. OpenEO) still get an Information tab.
+      const dialog = new ObjectPropertiesWidget({
+        model,
+        formSchemaRegistry,
+        initialTab: 'information',
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.showLayerInformation),
   });
 
   commands.addCommand(CommandIDs.redo, {
