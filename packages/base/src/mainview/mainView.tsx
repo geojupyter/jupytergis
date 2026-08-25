@@ -71,7 +71,7 @@ import TileState from 'ol/TileState';
 import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
-import { extend, getCenter, getSize } from 'ol/extent';
+import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
@@ -165,6 +165,11 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import {
+  getZoomExtentForOlLayer,
+  isValidExtent,
+  transformExtentToViewProjection,
+} from './utils/olLayerZoomExtent';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -2414,77 +2419,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return undefined;
   }
 
-  private _isValidExtent(extent: number[] | undefined): extent is number[] {
-    return !!extent && extent.every(value => Number.isFinite(value));
-  }
-
-  private _transformExtentToViewProjection(
-    extent: number[],
-    sourceProjection?: ReturnType<Source['getProjection']>,
-  ): number[] {
-    const viewProjection = this._Map.getView().getProjection();
-
-    if (
-      sourceProjection &&
-      sourceProjection.getCode() !== viewProjection.getCode()
-    ) {
-      return transformExtent(extent, sourceProjection, viewProjection);
-    }
-
-    return extent;
-  }
-
-  private _getZoomExtentForOlLayer(
-    olLayer: Layer | LayerGroup,
-  ): number[] | undefined {
-    const stack: Array<Layer | LayerGroup> = [olLayer];
-    let combined: number[] | undefined;
-
-    while (stack.length > 0) {
-      const current = stack.pop();
-      if (!current) {
-        continue;
-      }
-
-      if (current instanceof LayerGroup) {
-        for (const child of current.getLayers().getArray()) {
-          if (child instanceof LayerGroup || child instanceof Layer) {
-            stack.push(child as Layer | LayerGroup);
-          }
-        }
-        continue;
-      }
-
-      const source = current.getSource();
-      const extent = this._computeExtent(current as Layer | StacLayer, source);
-      if (!this._isValidExtent(extent)) {
-        continue;
-      }
-
-      const transformed = this._transformExtentToViewProjection(
-        extent,
-        source?.getProjection(),
-      );
-      if (!this._isValidExtent(transformed)) {
-        continue;
-      }
-
-      if (!combined) {
-        combined = [...transformed];
-      } else {
-        extend(combined, transformed);
-      }
-    }
-
-    return combined;
-  }
-
   private _fitViewToExtent(
     extent: number[] | undefined,
     layerId: string,
     options: { duration?: number; padding?: number[] } = {},
   ): void {
-    if (!this._isValidExtent(extent)) {
+    if (!isValidExtent(extent)) {
       this._log('warning', `Layer ${layerId} extent is not valid.`);
       return;
     }
@@ -2507,8 +2447,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (jgisLayer.type === 'StacLayer') {
       const stacBbox = (jgisLayer.parameters as IStacLayer).data?.bbox;
       if (stacBbox?.length === 4) {
-        const extent = this._transformExtentToViewProjection(
+        const extent = transformExtentToViewProjection(
           [...stacBbox],
+          this._Map.getView().getProjection(),
           getProjection('EPSG:4326'),
         );
 
@@ -2565,8 +2506,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     layerId: string,
     olLayer: Layer | LayerGroup,
   ): void {
-    const extent = this._getZoomExtentForOlLayer(olLayer);
-    if (!this._isValidExtent(extent)) {
+    const extent = getZoomExtentForOlLayer(
+      olLayer,
+      this._Map.getView().getProjection(),
+      (layer, source) => this._computeExtent(layer, source),
+    );
+    if (!isValidExtent(extent)) {
       return;
     }
 
@@ -3585,13 +3530,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const olLayer = this.getLayer(id) as Layer | LayerGroup | undefined;
+    const olLayer = this.getLayer(id);
     if (!olLayer) {
       this._zoomToJgisLayerWithoutOlLayer(id, this._model.getLayer(id));
       return;
     }
 
-    this._fitViewToExtent(this._getZoomExtentForOlLayer(olLayer), id);
+    this._fitViewToExtent(
+      getZoomExtentForOlLayer(
+        olLayer,
+        this._Map.getView().getProjection(),
+        (layer, source) => this._computeExtent(layer, source),
+      ),
+      id,
+    );
   }
 
   private _moveToPosition(
