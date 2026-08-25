@@ -107,9 +107,9 @@ export const RenderedStoryMarkdown = memo(
         try {
           await renderer.renderModel(mimeModel);
         } catch (error) {
-          console.error('Failed to render story markdown', error);
-          disposeRenderer(renderer);
-          return;
+          // URL resolve can throw on missing local images (Specta contents
+          // manager). Jupyter already painted the markdown so don't dispose.
+          console.warn('Story markdown rendered with errors', error);
         }
 
         if (cancelled || renderer.isDisposed) {
