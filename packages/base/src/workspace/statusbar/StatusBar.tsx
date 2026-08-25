@@ -1,3 +1,4 @@
+import { Combobox as ComboboxPrimitive } from '@base-ui/react';
 import {
   faGlobe,
   faLocationDot,
@@ -17,7 +18,6 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-  ComboboxTrigger,
 } from '@/src/shared/components/Combobox';
 
 interface IStatusBarProps {
@@ -110,18 +110,14 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         onValueChange={handleProjectionChange}
         isItemEqualToValue={(a, b) => a.value === b.value}
       >
-        <ComboboxTrigger
-          render={
-            <button
-              type="button"
-              className="jgis-status-bar-item jgis-status-bar-projection-trigger"
-              aria-label="Change projection"
-            />
-          }
+        <ComboboxPrimitive.Trigger
+          type="button"
+          className="jgis-status-bar-item jgis-status-bar-projection-trigger"
+          aria-label={`Change projection, current ${projection?.code ?? 'unknown'}`}
         >
           <FontAwesomeIcon icon={faGlobe} />{' '}
           <span>{projection?.code ?? null}</span>
-        </ComboboxTrigger>
+        </ComboboxPrimitive.Trigger>
         <ComboboxContent className="jgis-status-bar-select-popover">
           <ComboboxInput
             placeholder="Search projection..."
