@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Render-notebook",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium_Render-notebook",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-shapefile-jGIS",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium_Render-shapefile-jGIS",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-shapefile-jGIS",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium-retry1_Render-shapefile-jGIS",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-notebook",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium-retry1_Render-notebook",
+    "ext": ".png"
+  },
+  {
+    "name": "dark-Notebook-ipynb-cell-2",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium_dark-Notebook-ipynb-cell-2",
+    "ext": ".png"
+  },
+  {
+    "name": "dark-Notebook-ipynb-cell-2",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium-retry1_dark-Notebook-ipynb-cell-2",
+    "ext": ".png"
+  },
+  {
+    "name": "showcase-france-hiking",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-showcase-Showcase-France-hiking-layers-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-showcase-Showcase-France-hiking-layers-chromium-retry1_showcase-france-hiking",
+    "ext": ".jpg"
+  },
+  {
+    "name": "showcase-france-hiking",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-showcase-Showcase-France-hiking-layers-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-showcase-Showcase-France-hiking-layers-chromium_showcase-france-hiking",
+    "ext": ".jpg"
+  }
+]
