@@ -16,7 +16,7 @@ import { EditForm } from '@/src/shared/formbuilder/editform';
  *
  * `properties` edits the object, `information` describes the data behind it.
  */
-export type ObjectPropertiesTab = 'properties' | 'information';
+export type ObjectPropertiesTab = 'properties' | 'metadata';
 
 export interface IObjectPropertiesWidgetOptions {
   model: IJupyterGISModel;
@@ -32,7 +32,7 @@ export interface IObjectPropertiesWidgetOptions {
  * layer (or source). This gives the property form room to breathe on narrow /
  * mobile layouts where the merged side panel is too cramped to edit in.
  *
- * The Information tab alongside it reports what JupyterGIS can read about the
+ * The Metadata tab alongside it reports what JupyterGIS can read about the
  * underlying data: its projection, extent, bands and tile pyramid.
  */
 export class ObjectPropertiesWidget extends Dialog<void> {
@@ -63,8 +63,8 @@ export class ObjectPropertiesWidget extends Dialog<void> {
           <TabsTrigger className="jgis-underline-indicator" value="properties">
             Properties
           </TabsTrigger>
-          <TabsTrigger className="jgis-underline-indicator" value="information">
-            Information
+          <TabsTrigger className="jgis-underline-indicator" value="metadata">
+            Metadata
           </TabsTrigger>
         </TabsList>
 
@@ -79,7 +79,7 @@ export class ObjectPropertiesWidget extends Dialog<void> {
 
         {/* Radix unmounts inactive tabs, so metadata is only read — and only
             fetched — once the user actually opens this tab. */}
-        <TabsContent value="information" className={panelClass}>
+        <TabsContent value="metadata" className={panelClass}>
           <MetadataView model={model} selectedId={selectedId} />
         </TabsContent>
       </Tabs>

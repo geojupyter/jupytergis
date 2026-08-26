@@ -1,7 +1,7 @@
 import { IJGISLayer, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
 
 /**
- * A single label/value row rendered in the Information tab.
+ * A single label/value row rendered in the Metadata tab.
  */
 export interface IMetadataField {
   label: string;
@@ -111,7 +111,7 @@ export interface IVectorMetadata {
 }
 
 /**
- * Everything the Information tab knows about one layer or source.
+ * Everything the Metadata tab knows about one layer or source.
  */
 export interface ILayerMetadata {
   general: IMetadataField[];

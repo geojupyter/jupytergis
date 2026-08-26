@@ -31,7 +31,7 @@ test.describe('layer information', () => {
       .getByText(layerName)
       .click({ button: 'right' });
 
-    await page.getByRole('menu').getByText('Layer Information').click();
+    await page.getByRole('menu').getByText('Layer Metadata').click();
   };
 
   test('layer context menu offers layer information', async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe('layer information', () => {
       .click({ button: 'right' });
 
     await expect(
-      page.getByRole('menu').getByText('Layer Information'),
+      page.getByRole('menu').getByText('Layer Metadata'),
     ).toBeVisible();
   });
 

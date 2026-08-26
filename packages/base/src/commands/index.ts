@@ -316,8 +316,8 @@ export function addCommands(
     ...icons.get(CommandIDs.showLayerPropertiesDialog),
   });
 
-  commands.addCommand(CommandIDs.showLayerInformation, {
-    label: trans.__('Layer Information'),
+  commands.addCommand(CommandIDs.showLayerMetadata, {
+    label: trans.__('Layer Metadata'),
     caption:
       'Show the projection, extent, bands and tile pyramid of the selected layer.',
     describedBy: {
@@ -374,15 +374,15 @@ export function addCommands(
 
       // Unlike editing, describing a layer is the same for every layer type, so
       // this deliberately bypasses `getLayerEditHandler`: types with their own
-      // editor (e.g. OpenEO) still get an Information tab.
+      // editor (e.g. OpenEO) still get a Metadata tab.
       const dialog = new ObjectPropertiesWidget({
         model,
         formSchemaRegistry,
-        initialTab: 'information',
+        initialTab: 'metadata',
       });
       await dialog.launch();
     },
-    ...icons.get(CommandIDs.showLayerInformation),
+    ...icons.get(CommandIDs.showLayerMetadata),
   });
 
   commands.addCommand(CommandIDs.redo, {

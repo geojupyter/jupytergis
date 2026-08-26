@@ -124,7 +124,7 @@ function createContextMenu(
   });
 
   gisContextMenu.addItem({
-    command: CommandIDs.showLayerInformation,
+    command: CommandIDs.showLayerMetadata,
     selector: GIS_LAYER_ITEM,
     rank: 6.5,
   });

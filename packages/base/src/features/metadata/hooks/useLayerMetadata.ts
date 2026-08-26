@@ -14,7 +14,7 @@ interface IUseLayerMetadataResult {
  * Load the metadata for a layer or source.
  *
  * Reading metadata can mean touching the network (a remote COG, a Zarr store),
- * so this only runs when the Information tab is actually mounted rather than
+ * so this only runs when the Metadata tab is actually mounted rather than
  * every time the selection changes.
  */
 export function useLayerMetadata(

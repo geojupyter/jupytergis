@@ -1,4 +1,4 @@
-(how-to-layer-information)=
+(how-to-layer-metadata)=
 
 # Inspect a Layer's Projection, Extent and Bands
 
@@ -7,18 +7,18 @@ what the data actually is: which {term}`Coordinate Reference System` it is store
 what area it covers, how many {term}`bands <band>` it has and what range of values those
 bands hold.
 
-JupyterGIS reports all of this in the **Information** tab of the Layer Properties
+JupyterGIS reports all of this in the **Metadata** tab of the Layer Properties
 dialog.
 
-## Open the Information tab
+## Open the Metadata tab
 
-Right-click a layer in the **Layers** panel and choose **Layer Information**.
+Right-click a layer in the **Layers** panel and choose **Layer Metadata**.
 
 You can also open **Layer Properties** (by right-clicking the layer, or by
-double-clicking it) and switch to the **Information** tab.
+double-clicking it) and switch to the **Metadata** tab.
 
 :::{note}
-Information is read when you open the tab, not when you select the layer. For a remote
+Metadata is read when you open the tab, not when you select the layer. For a remote
 file this means a short pause the first time while JupyterGIS reads the file's header.
 :::
 
