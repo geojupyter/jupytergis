@@ -62,7 +62,6 @@ describe('getLayerMetadata', () => {
     expect(labels(metadata)).toEqual([
       'Layer',
       'Layer type',
-      'Source',
       'Source type',
       'URL',
     ]);
@@ -108,7 +107,7 @@ describe('getLayerMetadata', () => {
 
     const metadata = await getLayerMetadata(model, 'source1');
 
-    expect(labels(metadata)).toEqual(['Source', 'Source type', 'URL']);
+    expect(labels(metadata)).toEqual(['Source type', 'URL']);
   });
 
   it('still describes a layer that holds its data inline', async () => {

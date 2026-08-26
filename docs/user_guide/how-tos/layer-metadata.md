@@ -26,7 +26,7 @@ file this means a short pause the first time while JupyterGIS reads the file's h
 
 Which sections appear depends on what the data format is able to tell us.
 
-**General** — the layer and source names, their types, and where the data is loaded
+**General** — the layer's name, the layer and source types, and where the data is loaded
 from.
 
 **Coordinate reference system** — the EPSG code the data is stored in, its name, its

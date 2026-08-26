@@ -24,7 +24,9 @@ export async function documentProvider(
   }
 
   if (source) {
-    general.push({ label: 'Source', value: source.name });
+    // The source's own name is deliberately not shown: it is generated when the
+    // source is created ("Custom GeoJSON Source") and the user has no way to
+    // change it, so it says nothing the source type does not already say.
     general.push({
       label: 'Source type',
       value: humanizeTypeName(source.type),
