@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { InfoTip } from '@/src/shared/components/InfoTip';
 import { ICrsMetadata, IMetadataField } from '../types';
 import { FieldList, MetadataSection } from './MetadataSection';
 import { getCrsInfoUrl } from '../utils/crs';
@@ -19,7 +20,9 @@ interface ICrsCardProps {
  *
  * This is the section the issue calls out as hard to interpret, so it leads
  * with the plain-language name where we have one, and always offers somewhere
- * to go and read more.
+ * to go and read more — from a hover tip rather than a paragraph, so that the
+ * explanation is there for a reader who needs it without pushing the values
+ * down the panel for everyone who does not.
  */
 export const CrsCard: React.FC<ICrsCardProps> = ({ crs }) => {
   const fields: IMetadataField[] = [];
@@ -53,21 +56,22 @@ export const CrsCard: React.FC<ICrsCardProps> = ({ crs }) => {
   }
 
   return (
-    <MetadataSection title="Coordinate reference system">
+    <MetadataSection
+      title="Coordinate reference system"
+      info={
+        <InfoTip text="A coordinate reference system describes how the numbers in this data map onto positions on the Earth.">
+          <a
+            href={CRS_GLOSSARY_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-primary hover:underline"
+          >
+            Learn about coordinate reference systems
+          </a>
+        </InfoTip>
+      }
+    >
       <FieldList fields={fields} />
-      <p className="m-0 text-xs text-muted-foreground">
-        A coordinate reference system describes how the numbers in this data map
-        onto positions on the Earth.{' '}
-        <a
-          href={CRS_GLOSSARY_URL}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary hover:underline"
-        >
-          Learn about coordinate reference systems
-        </a>
-        .
-      </p>
     </MetadataSection>
   );
 };

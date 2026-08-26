@@ -7,15 +7,21 @@ interface IMetadataSectionProps {
   title: string;
   /** Shown next to the title, for counts and other one-word summaries. */
   summary?: string;
+  /**
+   * Hover tip rendered after the title, for explanations that a reader who
+   * already knows the subject should not have to scroll past.
+   */
+  info?: React.ReactNode;
   children: React.ReactNode;
 }
 
 /**
- * A titled block of the Information tab.
+ * A titled block of the Metadata tab.
  */
 export const MetadataSection: React.FC<IMetadataSectionProps> = ({
   title,
   summary,
+  info,
   children,
 }) => (
   <section className="jgis-metadata-section flex flex-col gap-2">
@@ -26,6 +32,7 @@ export const MetadataSection: React.FC<IMetadataSectionProps> = ({
           {summary}
         </span>
       ) : null}
+      {info}
     </h3>
     {children}
   </section>
