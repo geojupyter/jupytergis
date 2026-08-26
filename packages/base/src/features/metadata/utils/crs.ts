@@ -1,24 +1,7 @@
+import projCodes from 'proj-codes';
 import proj4 from 'proj4';
-import proj4list from 'proj4-list';
 
 import { ICrsMetadata } from '../types';
-
-/**
- * Names for the handful of CRSs that show up constantly in web mapping.
- *
- * `proj4-list` ships proj4 strings but no human readable names, and we
- * deliberately do not bundle an EPSG database just to label a projection. For
- * anything outside this list the name is left undefined unless the file itself
- * carries one (e.g. a GeoTIFF citation key).
- */
-const WELL_KNOWN_CRS_NAMES: Record<string, string> = {
-  'EPSG:4326': 'WGS 84',
-  'EPSG:3857': 'WGS 84 / Pseudo-Mercator',
-  'EPSG:4269': 'NAD83',
-  'EPSG:3395': 'WGS 84 / World Mercator',
-  'EPSG:4258': 'ETRS89',
-  'OGC:CRS84': 'WGS 84 (longitude/latitude order)',
-};
 
 /**
  * Number of points sampled along each edge when reprojecting an extent.
@@ -72,20 +55,17 @@ export function normalizeCrsCode(
 
 /**
  * Return the proj4 definition string for a CRS code, registering it with proj4
- * on the way if it is known to `proj4-list` but not yet defined.
+ * on the way if it is known to `proj-codes` but not yet defined.
  */
 export function getProj4Definition(code?: string): string | undefined {
   const normalized = normalizeCrsCode(code);
-  if (!normalized) {
+  const definition = normalized
+    ? projCodes[normalized]?.proj4string.trim()
+    : undefined;
+
+  if (!normalized || !definition) {
     return undefined;
   }
-
-  const listed = proj4list[normalized];
-  if (!listed) {
-    return undefined;
-  }
-
-  const definition = (Array.isArray(listed) ? listed[1] : listed).trim();
 
   // Registering here means a code we can describe is also a code we can
   // transform with, without every caller having to remember to do this.
@@ -107,12 +87,11 @@ function ensureProj4Definition(code: string): boolean {
 }
 
 /**
- * A human readable name for a CRS code, when we can supply one without
- * guessing.
+ * The authority's own name for a CRS code, e.g. `NAD83 / UTM zone 15N`.
  */
-export function getWellKnownCrsName(code?: string): string | undefined {
+export function getCrsName(code?: string): string | undefined {
   const normalized = normalizeCrsCode(code);
-  return normalized ? WELL_KNOWN_CRS_NAMES[normalized] : undefined;
+  return normalized ? projCodes[normalized]?.name : undefined;
 }
 
 /**
@@ -155,8 +134,9 @@ export function getCrsInfoUrl(code?: string): string | undefined {
 /**
  * Build the CRS section from whatever the format told us.
  *
- * `name` and `wkt` are only ever what the file itself carries; the proj4 string
- * and units are looked up from the code.
+ * `wkt` is only ever what the file itself carries. The name, proj4 string and
+ * units are looked up from the code, so a name the file does not supply is
+ * still shown.
  */
 export function buildCrsMetadata(options: {
   code?: string | number | null;
@@ -165,7 +145,7 @@ export function buildCrsMetadata(options: {
 }): ICrsMetadata | undefined {
   const code = normalizeCrsCode(options.code);
   const proj4String = getProj4Definition(code);
-  const name = options.name?.trim() || getWellKnownCrsName(code);
+  const name = options.name?.trim() || getCrsName(code);
 
   if (!code && !name && !options.wkt && !proj4String) {
     return undefined;

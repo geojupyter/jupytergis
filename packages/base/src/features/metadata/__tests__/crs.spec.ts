@@ -3,7 +3,7 @@ import {
   getCrsInfoUrl,
   getCrsUnits,
   getProj4Definition,
-  getWellKnownCrsName,
+  getCrsName,
   normalizeCrsCode,
   transformExtent,
 } from '../utils/crs';
@@ -78,14 +78,21 @@ describe('getCrsInfoUrl', () => {
   });
 });
 
-describe('getWellKnownCrsName', () => {
+describe('getCrsName', () => {
   it('names the CRSs people meet constantly', () => {
-    expect(getWellKnownCrsName('EPSG:4326')).toBe('WGS 84');
-    expect(getWellKnownCrsName('epsg:3857')).toBe('WGS 84 / Pseudo-Mercator');
+    expect(getCrsName('EPSG:4326')).toBe('WGS 84');
+    expect(getCrsName('epsg:3857')).toBe('WGS 84 / Pseudo-Mercator');
   });
 
-  it('does not invent a name for anything else', () => {
-    expect(getWellKnownCrsName('EPSG:26915')).toBeUndefined();
+  it('names the ones a hardcoded table would have missed', () => {
+    expect(getCrsName('EPSG:26915')).toBe('NAD83 / UTM zone 15N');
+    expect(getCrsName('urn:ogc:def:crs:EPSG::32636')).toBe(
+      'WGS 84 / UTM zone 36N',
+    );
+  });
+
+  it('has no name for a code no authority defines', () => {
+    expect(getCrsName('EPSG:999999')).toBeUndefined();
   });
 });
 
