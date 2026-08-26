@@ -37,4 +37,4 @@ overrides:
   react-dom: '18.3.1'
 
 minimumReleaseAgeExclude:
-  - proj-codes@0.0.3 || 0.0.4
+  - proj-codes@0.0.4
