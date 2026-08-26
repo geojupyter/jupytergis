@@ -393,7 +393,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onAnnotationsChanged,
       this,
     );
-    this._model.zoomToPositionSignal.disconnect(this._onZoomToPosition, this);
+    this._model.zoomToPositionSignal.disconnect(
+      this._mapViewer.onZoomToPosition,
+      this,
+    );
     this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.disconnect(this._convertFeatureToMs, this);
     this._model.geolocationChanged.disconnect(
