@@ -168,11 +168,12 @@ export function SegmentMarkdownEditor({
             tall ? ' jgis-story-editor-markdown-host--tall' : ''
           }`}
         >
-          <div
-            ref={hostRef}
-            className="jgis-story-editor-markdown-editor"
-            aria-label="Markdown source"
-          />
+        <div
+          ref={hostRef}
+          className="jgis-story-editor-markdown-editor"
+          aria-label="Markdown source"
+          data-lm-suppress-shortcuts="true"
+        />
         </div>
       </TabsContent>
 

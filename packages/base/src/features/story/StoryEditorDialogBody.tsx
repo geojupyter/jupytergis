@@ -16,7 +16,6 @@ import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEdito
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
-import { CommandIDs } from '@/src/constants';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
@@ -28,10 +27,6 @@ import {
   MAP_PANEL_WIDTH_PRESETS,
 } from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
-import {
-  isAccelKey,
-  isStoryEditorTypingTarget,
-} from '@/src/features/story/utils/storySegmentClipboard';
 import {
   getSegmentPaneAlignment,
   type SegmentContentPatch,
@@ -345,65 +340,11 @@ export function StoryEditorDialogBody({
     };
   }, []);
 
-  const handleEditorKeyDown = (
-    event: React.KeyboardEvent<HTMLDivElement>,
-  ): void => {
-    if (isStoryEditorTypingTarget(event.target)) {
-      return;
-    }
-
-    if (isAccelKey(event, 'z', { shift: true })) {
-      event.preventDefault();
-      model.sharedModel.redo();
-      return;
-    }
-
-    if (isAccelKey(event, 'z')) {
-      event.preventDefault();
-      model.sharedModel.undo();
-      return;
-    }
-
-    if (isAccelKey(event, 'c')) {
-      if (commands.isEnabled(CommandIDs.copyStorySegment)) {
-        event.preventDefault();
-        void commands.execute(CommandIDs.copyStorySegment);
-      }
-      return;
-    }
-
-    if (isAccelKey(event, 'd')) {
-      if (commands.isEnabled(CommandIDs.duplicateStorySegment)) {
-        event.preventDefault();
-        void commands.execute(CommandIDs.duplicateStorySegment);
-      }
-      return;
-    }
-
-    if (isAccelKey(event, 'v')) {
-      if (commands.isEnabled(CommandIDs.pasteStorySegment)) {
-        event.preventDefault();
-        void commands.execute(CommandIDs.pasteStorySegment);
-      }
-      return;
-    }
-
-    if (
-      event.key === 'Delete' &&
-      commands.isEnabled(CommandIDs.removeStorySegment)
-    ) {
-      event.preventDefault();
-      void commands.execute(CommandIDs.removeStorySegment);
-      portalContainerRef.current?.focus();
-    }
-  };
-
   return (
     <div
       ref={portalContainerRef}
       className="jgis-story-editor"
       tabIndex={-1}
-      onKeyDown={handleEditorKeyDown}
     >
       <StoryEditorHeaderBar
         model={model}

@@ -138,6 +138,7 @@ export function SegmentWidthSelector({
           type="text"
           inputMode="decimal"
           value={amount}
+          data-lm-suppress-shortcuts="true"
           onChange={event => {
             const nextAmount = sanitizeCssAmountInput(event.target.value);
             setAmount(nextAmount);
