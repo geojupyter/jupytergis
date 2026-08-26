@@ -8,6 +8,7 @@ import { UUID } from '@lumino/coreutils';
 import {
   getStorySegmentMarkdownSharedModel,
   peekStorySegmentMarkdown,
+  disposeSegmentMarkdown,
 } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 
 export interface IStorySegmentClipboardItem {
@@ -164,6 +165,27 @@ export function duplicateStorySegment(
   }
 
   return pasteStorySegment(model, segmentId);
+}
+
+/**
+ * Dispose editor markdown state, then remove the segment on the model.
+ * Returns false when the segment cannot be removed.
+ */
+export function removeStorySegment(
+  model: IJupyterGISModel,
+  segmentId: string,
+): boolean {
+  if (!model.canRemoveStorySegment()) {
+    return false;
+  }
+
+  const segmentIds = model.getSelectedStory().story?.storySegments ?? [];
+  if (!segmentIds.includes(segmentId)) {
+    return false;
+  }
+
+  disposeSegmentMarkdown(model, segmentId);
+  return model.removeStorySegment(segmentId);
 }
 
 /**  Test helper */

@@ -18,6 +18,7 @@ jest.mock('@lumino/coreutils', () => ({
 jest.mock('@/src/features/story/utils/storySegmentMarkdownSharedModel', () => ({
   peekStorySegmentMarkdown: jest.fn(() => undefined),
   getStorySegmentMarkdownSharedModel: jest.fn(),
+  disposeSegmentMarkdown: jest.fn(),
 }));
 
 import type { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
@@ -30,8 +31,10 @@ import {
   isAccelKey,
   isStoryEditorTypingTarget,
   pasteStorySegment,
+  removeStorySegment,
 } from '@/src/features/story/utils/storySegmentClipboard';
 import {
+  disposeSegmentMarkdown,
   getStorySegmentMarkdownSharedModel,
   peekStorySegmentMarkdown,
 } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
@@ -41,6 +44,9 @@ const peekMarkdown = peekStorySegmentMarkdown as jest.MockedFunction<
 >;
 const seedMarkdown = getStorySegmentMarkdownSharedModel as jest.MockedFunction<
   typeof getStorySegmentMarkdownSharedModel
+>;
+const disposeMarkdown = disposeSegmentMarkdown as jest.MockedFunction<
+  typeof disposeSegmentMarkdown
 >;
 
 function createParameters(
@@ -87,6 +93,8 @@ function createModel(
     getLayer: jest.fn(() => layer),
     addLayer: jest.fn(),
     setCurrentSegmentIndex: jest.fn(),
+    canRemoveStorySegment: jest.fn(() => storySegments.length > 1),
+    removeStorySegment: jest.fn(() => storySegments.length > 1),
     getSelectedStory: jest.fn(() => ({
       storyId: storyId ?? undefined,
       story: storyId
@@ -107,6 +115,8 @@ function createModel(
     };
     addLayer: jest.Mock;
     setCurrentSegmentIndex: jest.Mock;
+    canRemoveStorySegment: jest.Mock;
+    removeStorySegment: jest.Mock;
   };
 }
 
@@ -285,5 +295,23 @@ describe('storySegmentClipboard', () => {
       storySegments: ['segment-1', 'segment-2', 'new-segment-id'],
     });
     expect(model.setCurrentSegmentIndex).toHaveBeenCalledWith(2);
+  });
+
+  it('disposes markdown then removes on the model', () => {
+    const model = createModel();
+    disposeMarkdown.mockClear();
+
+    expect(removeStorySegment(model, 'segment-2')).toBe(true);
+    expect(disposeMarkdown).toHaveBeenCalledWith(model, 'segment-2');
+    expect(model.removeStorySegment).toHaveBeenCalledWith('segment-2');
+  });
+
+  it('does not remove the last remaining segment', () => {
+    const model = createModel({ storySegments: ['segment-1'] });
+    disposeMarkdown.mockClear();
+
+    expect(removeStorySegment(model, 'segment-1')).toBe(false);
+    expect(disposeMarkdown).not.toHaveBeenCalled();
+    expect(model.removeStorySegment).not.toHaveBeenCalled();
   });
 });

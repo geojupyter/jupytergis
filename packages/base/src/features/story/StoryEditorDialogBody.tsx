@@ -16,6 +16,7 @@ import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEdito
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
+import { CommandIDs } from '@/src/constants';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
@@ -28,8 +29,6 @@ import {
 } from '@/src/features/story/utils/cssWidth';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import {
-  copyStorySegment,
-  duplicateStorySegment,
   isAccelKey,
   isStoryEditorTypingTarget,
 } from '@/src/features/story/utils/storySegmentClipboard';
@@ -314,7 +313,6 @@ export function StoryEditorDialogBody({
     selectedSegment,
     selectSegment,
     addSegment,
-    pasteSegment,
     removeSegment,
     canRemoveSegment,
     reorderSegments,
@@ -367,31 +365,35 @@ export function StoryEditorDialogBody({
     }
 
     if (isAccelKey(event, 'c')) {
-      if (selectedSegmentId && copyStorySegment(model, selectedSegmentId)) {
+      if (commands.isEnabled(CommandIDs.copyStorySegment)) {
         event.preventDefault();
+        void commands.execute(CommandIDs.copyStorySegment);
       }
       return;
     }
 
     if (isAccelKey(event, 'd')) {
-      if (
-        selectedSegmentId &&
-        duplicateStorySegment(model, selectedSegmentId)
-      ) {
+      if (commands.isEnabled(CommandIDs.duplicateStorySegment)) {
         event.preventDefault();
+        void commands.execute(CommandIDs.duplicateStorySegment);
       }
       return;
     }
 
     if (isAccelKey(event, 'v')) {
-      event.preventDefault();
-      pasteSegment();
+      if (commands.isEnabled(CommandIDs.pasteStorySegment)) {
+        event.preventDefault();
+        void commands.execute(CommandIDs.pasteStorySegment);
+      }
       return;
     }
 
-    if (event.key === 'Delete' && canRemoveSegment) {
+    if (
+      event.key === 'Delete' &&
+      commands.isEnabled(CommandIDs.removeStorySegment)
+    ) {
       event.preventDefault();
-      removeSegment();
+      void commands.execute(CommandIDs.removeStorySegment);
       portalContainerRef.current?.focus();
     }
   };

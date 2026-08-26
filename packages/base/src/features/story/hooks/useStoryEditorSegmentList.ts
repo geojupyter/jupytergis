@@ -7,14 +7,12 @@ import type {
   IStorySegmentViewItem,
   StorySegmentDisplayMode,
 } from '@/src/features/story/types/types';
-import { pasteStorySegment } from '@/src/features/story/utils/storySegmentClipboard';
 import {
   type SegmentContentPatch,
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
   updateSegmentLayerName as applySegmentLayerName,
 } from '@/src/features/story/utils/storySegmentContent';
-import { disposeSegmentMarkdown } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   type SegmentTransitionPatch,
   updateSegmentTransition as applySegmentTransition,
@@ -149,33 +147,14 @@ export function useStoryEditorSegmentList(
   }, [commands]);
 
   const pasteSegment = useCallback(() => {
-    pasteStorySegment(model, selectedSegmentId);
-  }, [model, selectedSegmentId]);
+    void commands.execute(CommandIDs.pasteStorySegment);
+  }, [commands]);
 
   const canRemoveSegment = segments.length > 1;
 
   const removeSegment = useCallback(() => {
-    if (
-      !selectedSegmentId ||
-      !story?.storySegments ||
-      story.storySegments.length <= 1
-    ) {
-      return;
-    }
-
-    const currentIndex = model.getCurrentSegmentIndex();
-    model.sharedModel.transact(() => {
-      disposeSegmentMarkdown(model, selectedSegmentId);
-      model.removeLayer(selectedSegmentId);
-    });
-
-    const remainingCount =
-      model.getSelectedStory().story?.storySegments?.length ?? 0;
-
-    model.setCurrentSegmentIndex(
-      remainingCount === 0 ? 0 : Math.min(currentIndex, remainingCount - 1),
-    );
-  }, [model, selectedSegmentId, story]);
+    void commands.execute(CommandIDs.removeStorySegment);
+  }, [commands]);
 
   const reorderSegments = useCallback(
     (fromIndex: number, toIndex: number) => {

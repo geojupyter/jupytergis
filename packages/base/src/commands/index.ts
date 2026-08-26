@@ -58,6 +58,13 @@ import {
   modelHasHiddenPanel,
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
+import {
+  copyStorySegment,
+  duplicateStorySegment,
+  getStorySegmentClipboard,
+  pasteStorySegment,
+  removeStorySegment,
+} from '../features/story/utils/storySegmentClipboard';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
@@ -107,6 +114,10 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
+  CommandIDs.copyStorySegment,
+  CommandIDs.pasteStorySegment,
+  CommandIDs.duplicateStorySegment,
+  CommandIDs.removeStorySegment,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
@@ -2041,6 +2052,138 @@ export function addCommands(
       session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
+  });
+
+  const isStorySegmentCommandEnabled = (): boolean => {
+    const current = tracker.currentWidget;
+    if (!current) {
+      return false;
+    }
+
+    return (
+      current.model.sharedModel.editable &&
+      !current.model.jgisSettings.storyMapsDisabled
+    );
+  };
+
+  commands.addCommand(CommandIDs.copyStorySegment, {
+    label: trans.__('Copy Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      return (
+        isStorySegmentCommandEnabled() &&
+        !!model &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return false;
+      }
+
+      return copyStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.copyStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.pasteStorySegment, {
+    label: trans.__('Paste Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () =>
+      isStorySegmentCommandEnabled() && getStorySegmentClipboard() !== null,
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return null;
+      }
+
+      return pasteStorySegment(model, model.getSelectedStorySegmentId());
+    },
+    ...icons.get(CommandIDs.pasteStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.duplicateStorySegment, {
+    label: trans.__('Duplicate Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      return (
+        isStorySegmentCommandEnabled() &&
+        !!model &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return null;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return null;
+      }
+
+      return duplicateStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.duplicateStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.removeStorySegment, {
+    label: trans.__('Delete Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model || !isStorySegmentCommandEnabled()) {
+        return false;
+      }
+
+      return (
+        model.canRemoveStorySegment() &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return false;
+      }
+
+      return removeStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.removeStorySegment),
   });
 
   /* Enabled during story presentation (Specta or lab preview). */
