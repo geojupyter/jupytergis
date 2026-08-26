@@ -1,4 +1,4 @@
-import { formatExtent, formatNumber, formatRange } from '../utils/format';
+import { formatNumber, formatRange } from '../utils/format';
 
 describe('formatNumber', () => {
   it('leaves integers alone', () => {
@@ -21,21 +21,6 @@ describe('formatNumber', () => {
   it('handles values that are not numbers', () => {
     expect(formatNumber(NaN)).toBe('—');
     expect(formatNumber(Infinity)).toBe('—');
-  });
-});
-
-describe('formatExtent', () => {
-  it('renders the four corners in order', () => {
-    expect(formatExtent([-180, -90, 180, 90])).toBe('-180, -90, 180, 90');
-  });
-
-  it('ignores anything past the fourth value', () => {
-    expect(formatExtent([1, 2, 3, 4, 5, 6])).toBe('1, 2, 3, 4');
-  });
-
-  it('returns undefined when there is no usable extent', () => {
-    expect(formatExtent(undefined)).toBeUndefined();
-    expect(formatExtent([1, 2])).toBeUndefined();
   });
 });
 

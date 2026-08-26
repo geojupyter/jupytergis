@@ -19,17 +19,6 @@ export function formatNumber(value: number): string {
 }
 
 /**
- * Format an extent as `minX, minY, maxX, maxY`.
- */
-export function formatExtent(extent?: number[]): string | undefined {
-  if (!extent || extent.length < 4) {
-    return undefined;
-  }
-
-  return extent.slice(0, 4).map(formatNumber).join(', ');
-}
-
-/**
  * Format a value range, tolerating a missing half.
  */
 export function formatRange(

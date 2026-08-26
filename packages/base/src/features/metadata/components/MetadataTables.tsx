@@ -11,11 +11,16 @@ const headerClass = `${cellClass} font-medium text-muted-foreground`;
  * A horizontally scrollable table, so a wide band list never forces the dialog
  * itself to scroll sideways.
  */
-const Table: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+export const Table: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <div className="overflow-x-auto">
     <table className="w-full border-collapse text-xs">{children}</table>
   </div>
 );
+
+export const tableCellClass = cellClass;
+export const tableHeaderClass = headerClass;
 
 /**
  * One row per band, with whatever the format could tell us about it.
