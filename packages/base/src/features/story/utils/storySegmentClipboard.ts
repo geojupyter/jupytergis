@@ -125,7 +125,7 @@ export function pasteStorySegment(
   const layerModel: IJGISLayer = {
     type: 'StorySegmentLayer',
     visible: true,
-    name: clipboard.name,
+    name: `${clipboard.name} Copy`,
     parameters,
   };
 
