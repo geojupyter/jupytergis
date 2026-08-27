@@ -13,8 +13,6 @@ import { OpenLayersViewer } from './viewers/openlayersViewer';
 
 export type MapViewerType = 'openlayers' | 'maplibre';
 
-export type MapCoordinate = [number, number];
-
 /**
  * Minimal abstraction layer between MainView and map engines.
  *
@@ -24,14 +22,6 @@ export type MapCoordinate = [number, number];
 export interface IMapViewer {
   initialize(target: HTMLElement, options: IMapViewerOptions): Promise<void>;
   destroy(): void;
-
-  getCenter(): MapCoordinate | undefined;
-  setCenter(center: MapCoordinate): void;
-  getZoom(): number | undefined;
-  setZoom(zoom: number): void;
-  getRotation(): number;
-  setRotation(rotation: number): void;
-  getProjection(): string;
 
   getLayer(id: string): any | undefined;
   getLayerIDs(): string[];
@@ -49,6 +39,8 @@ export interface IMapViewer {
 
   updateLayersImpl(layerIds: string[]): Promise<void>;
   trackLayerViewState(id: string, mapLayer: any): void;
+  createSelectInteraction(): void;
+  secureHighlightLayer(): void;
 
   updateLayer(
     id: string,
@@ -65,15 +57,11 @@ export interface IMapViewer {
   removeSource(id: string): void;
 
   updateSource(id: string, source: IJGISSource): Promise<void>;
-
-  getSource(sourceId: string): IJGISSource | undefined;
-
-  getViewport(): HTMLElement | undefined;
 }
 
 export interface IMapViewerOptions {
   projection?: string;
-  center?: MapCoordinate;
+  center?: [number, number];
   zoom?: number;
   rotation?: number;
   layers?: IJGISLayers;

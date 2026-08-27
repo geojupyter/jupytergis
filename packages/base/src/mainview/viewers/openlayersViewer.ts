@@ -27,6 +27,7 @@ import {
   IStorySegmentLayer,
   IVectorTileLayer,
   IDict,
+  IIdentifiedFeatureEntry,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -34,6 +35,7 @@ import {
   Collection,
   Feature,
   getUid,
+  MapBrowserEvent,
   Map as OlMap,
   VectorTile,
   View,
@@ -41,9 +43,11 @@ import {
 import type { FeatureLike } from 'ol/Feature';
 import TileState from 'ol/TileState';
 import { Coordinate } from 'ol/coordinate';
-import { getCenter, getForViewAndSize } from 'ol/extent';
+import { singleClick } from 'ol/events/condition';
+import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Point } from 'ol/geom';
+import { Select } from 'ol/interaction';
 import {
   Image as ImageLayer,
   Layer,
@@ -77,6 +81,8 @@ import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 
+import { ensureHighlightLayer } from '@/src/features/identify/utils/highlightLayer';
+import { buildHighlightStyle } from '@/src/features/identify/utils/highlightStyle';
 import {
   OpenEOTileLayer,
   OpenEOTileSource,
@@ -93,13 +99,10 @@ import {
   getDefaultRGBBands,
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
-import {
-  IMapViewer,
-  IMapViewerOptions,
-  MapCoordinate,
-} from '@/src/mainview/mapviewer';
+import { IMapViewer, IMapViewerOptions } from '@/src/mainview/mapviewer';
 import { markerIcon } from '@/src/shared/icons';
 import { INTERNAL_PROXY_BASE, isJupyterLite, loadFile } from '@/src/tools';
+import { MainViewModel } from '../mainviewmodel';
 
 type OlLayerTypes =
   | TileLayer
@@ -187,42 +190,6 @@ export class OpenLayersViewer implements IMapViewer {
     this._sources.clear();
   }
 
-  // ---------------------------------------------------------------------------
-  // View
-  // ---------------------------------------------------------------------------
-
-  getCenter(): MapCoordinate | undefined {
-    return this._map?.getView().getCenter() as MapCoordinate | undefined;
-  }
-
-  setCenter(center: MapCoordinate): void {
-    this._map?.getView().setCenter(center);
-  }
-
-  getZoom(): number | undefined {
-    return this._map?.getView().getZoom();
-  }
-
-  setZoom(zoom: number): void {
-    this._map?.getView().setZoom(zoom);
-  }
-
-  getRotation(): number {
-    return this._map?.getView().getRotation() ?? 0;
-  }
-
-  setRotation(rotation: number): void {
-    this._map?.getView().setRotation(rotation);
-  }
-
-  getProjection(): string {
-    return this._map?.getView().getProjection().getCode() ?? 'EPSG:3857';
-  }
-
-  getViewport(): HTMLElement | undefined {
-    return this._map?.getViewport();
-  }
-
   getSize(): [number, number] | undefined {
     const size = this._map?.getSize();
 
@@ -231,26 +198,6 @@ export class OpenLayersViewer implements IMapViewer {
     }
 
     return [size[0], size[1]];
-  }
-
-  getExtent(): [number, number, number, number] | undefined {
-    if (!this._map) {
-      return undefined;
-    }
-
-    const view = this._map.getView();
-    const size = this._map.getSize();
-
-    if (!size) {
-      return undefined;
-    }
-
-    return getForViewAndSize(
-      view.getCenter() ?? [0, 0],
-      view.getResolution() ?? 1,
-      view.getRotation(),
-      size,
-    ) as [number, number, number, number];
   }
 
   /**
@@ -522,6 +469,131 @@ export class OpenLayersViewer implements IMapViewer {
 
     return [layerStyle];
   };
+
+  createSelectInteraction = () => {
+    const selectInteraction = new Select({
+      hitTolerance: 3,
+      multi: true,
+      layers: layer => {
+        const localState = this._model?.sharedModel.awareness.getLocalState();
+        const selectedLayers = localState?.selected?.value;
+
+        if (!selectedLayers) {
+          return false;
+        }
+        const selectedLayerId = Object.keys(selectedLayers)[0];
+        const expected = this.getLayer(selectedLayerId);
+        if (layer === expected) {
+          return true;
+        }
+        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
+        // OL Select flattens groups, so we receive leaf layers, not the group.
+        if (expected instanceof LayerGroup) {
+          return expected.getLayers().getArray().includes(layer);
+        }
+        return false;
+      },
+      condition: (event: MapBrowserEvent<any>) => {
+        return singleClick(event) && this._model.currentMode === 'identifying';
+      },
+      // Use the layer's own style so selected features keep their original
+      // appearance.  Visual highlight feedback comes from _highlightLayer.
+      style: null,
+    });
+
+    selectInteraction.on('select', event => {
+      const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
+      const highlightFeatures: Feature[] = [];
+
+      // Look up the selected layer's style function for adaptive highlights.
+      const localState = this._model?.sharedModel.awareness.getLocalState();
+      const selectedLayers = localState?.selected?.value;
+      const selectedLayerId = selectedLayers
+        ? Object.keys(selectedLayers)[0]
+        : undefined;
+      const mapLayer = selectedLayerId
+        ? this.getLayer(selectedLayerId)
+        : undefined;
+
+      // For LayerGroup (multi-layer grammar), collect style functions from
+      // all sub-layers so we can match the right one per feature.
+      const styleFnCandidates: ReturnType<VectorLayer['getStyleFunction']>[] =
+        [];
+      if (mapLayer instanceof LayerGroup) {
+        for (const sub of mapLayer.getLayers().getArray()) {
+          if ('getStyleFunction' in sub) {
+            styleFnCandidates.push((sub as VectorLayer).getStyleFunction());
+          }
+        }
+      } else if (mapLayer && 'getStyleFunction' in mapLayer) {
+        styleFnCandidates.push((mapLayer as VectorLayer).getStyleFunction());
+      }
+      const resolution = this._map.getView().getResolution() ?? 1;
+
+      selectInteraction.getFeatures().forEach(feature => {
+        identifiedFeatures.push({
+          feature: feature.getProperties(),
+          floaterOpen: false,
+        });
+        const geom = feature.getGeometry();
+        if (geom) {
+          const hlFeature = new Feature({ geometry: geom });
+          // Try each style function candidate; use the first that resolves
+          // a non-empty style array (important for LayerGroup sub-layers
+          // where only one sub-layer's style applies to this feature).
+          for (const fn of styleFnCandidates) {
+            if (!fn) {
+              continue;
+            }
+            const resolved = fn(feature, resolution);
+            const styles = Array.isArray(resolved)
+              ? resolved
+              : resolved
+                ? [resolved]
+                : [];
+            if (styles.length > 0) {
+              const gType = geom.getType();
+              hlFeature.setStyle(
+                styles.map(s => this._buildHighlightStyle(s, gType)),
+              );
+              break;
+            }
+          }
+          highlightFeatures.push(hlFeature);
+        }
+      });
+
+      this._model.syncIdentifiedFeatures(
+        identifiedFeatures,
+        this._mainViewModel.id,
+      );
+
+      // Sync _highlightLayer with the current selection (clears on deselect).
+      this._setHighlightFeatures(highlightFeatures);
+    });
+
+    this._map.addInteraction(selectInteraction);
+  };
+
+  /**
+   * Replace the highlight layer contents with pre-styled features.
+   * Each feature carries its own highlight style via feature.setStyle().
+   */
+  private _setHighlightFeatures(features: Feature[]): void {
+    this.secureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
+    source?.clear();
+    for (const f of features) {
+      source?.addFeature(f);
+    }
+  }
+  private _buildHighlightStyle(original: Style, geomType?: string): Style {
+    return buildHighlightStyle(original, geomType);
+  }
+
+  secureHighlightLayer(): void {
+    ensureHighlightLayer(this._map, this._highlightLayerRef);
+  }
 
   private ensureProjectionRegistered(projectionCode: string): void {
     const hasProj4Definition = Boolean(proj4.defs(projectionCode));
@@ -1680,10 +1752,6 @@ export class OpenLayersViewer implements IMapViewer {
     mapLayer.setSource(this._sources.get(id));
   }
 
-  getSource(sourceId: string): IJGISSource | undefined {
-    return this._sources.get(sourceId);
-  }
-
   private computeSourceUrl(source: IJGISSource): string {
     const parameters = source.parameters as IRasterSource;
     const urlParameters = parameters.urlParameters || {};
@@ -1936,10 +2004,14 @@ export class OpenLayersViewer implements IMapViewer {
   private _sourceToLayerMap = new Map();
   private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
+  private _mainViewModel: MainViewModel;
   private _ready = false;
   private _pendingZoomLayerId: string | null = null;
   private _loggerRegistry?: ILoggerRegistry;
   private _loadingLayers: Set<string>;
+  private _highlightLayerRef: {
+    current: VectorImageLayer<VectorSource> | null;
+  } = { current: null };
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',

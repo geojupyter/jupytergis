@@ -39,7 +39,6 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import type { GeolocationError } from 'ol/Geolocation';
 import { FullScreen, ScaleLine, Zoom, Control, Rotate } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
-import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
@@ -66,7 +65,6 @@ import {
   VectorImage as VectorImageLayer,
   WebGLTile as RasterLayer,
 } from 'ol/layer';
-import LayerGroup from 'ol/layer/Group';
 import {
   fromLonLat,
   get as getProjection,
@@ -104,8 +102,6 @@ import {
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
 import { createMapViewer, IMapViewer, MapViewerType } from './mapviewer';
-import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
-import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
@@ -495,23 +491,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         rotation: 0,
       });
 
-      this._Map = (this._mapViewer as any).getMap?.() || null;
-
-      if (!this._Map) {
-        // Fallback
-        this._Map = new OlMap({
-          target: this.divRef.current,
-          keyboardEventTarget: document,
-          layers: [],
-          view: new View({
-            center,
-            zoom,
-            projection,
-          }),
-          controls,
-        });
-      }
-
       // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
         formatConstructors: [GeoJSON],
@@ -554,7 +533,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       this._Map.addInteraction(dragAndDropInteraction);
 
-      this.createSelectInteraction();
+      this._mapViewer.createSelectInteraction();
 
       const view = this._Map.getView();
 
@@ -788,111 +767,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return transformExtent(extent, view.getProjection(), targetProjection);
   };
 
-  createSelectInteraction = () => {
-    const selectInteraction = new Select({
-      hitTolerance: 3,
-      multi: true,
-      layers: layer => {
-        const localState = this._model?.sharedModel.awareness.getLocalState();
-        const selectedLayers = localState?.selected?.value;
-
-        if (!selectedLayers) {
-          return false;
-        }
-        const selectedLayerId = Object.keys(selectedLayers)[0];
-        const expected = this._mapViewer.getLayer(selectedLayerId);
-        if (layer === expected) {
-          return true;
-        }
-        // Grammar multi-layer symbology wraps sub-layers in a LayerGroup.
-        // OL Select flattens groups, so we receive leaf layers, not the group.
-        if (expected instanceof LayerGroup) {
-          return expected.getLayers().getArray().includes(layer);
-        }
-        return false;
-      },
-      condition: (event: MapBrowserEvent<any>) => {
-        return singleClick(event) && this._model.currentMode === 'identifying';
-      },
-      // Use the layer's own style so selected features keep their original
-      // appearance.  Visual highlight feedback comes from _highlightLayer.
-      style: null,
-    });
-
-    selectInteraction.on('select', event => {
-      const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
-      const highlightFeatures: Feature[] = [];
-
-      // Look up the selected layer's style function for adaptive highlights.
-      const localState = this._model?.sharedModel.awareness.getLocalState();
-      const selectedLayers = localState?.selected?.value;
-      const selectedLayerId = selectedLayers
-        ? Object.keys(selectedLayers)[0]
-        : undefined;
-      const mapLayer = selectedLayerId
-        ? this._mapViewer.getLayer(selectedLayerId)
-        : undefined;
-
-      // For LayerGroup (multi-layer grammar), collect style functions from
-      // all sub-layers so we can match the right one per feature.
-      const styleFnCandidates: ReturnType<VectorLayer['getStyleFunction']>[] =
-        [];
-      if (mapLayer instanceof LayerGroup) {
-        for (const sub of mapLayer.getLayers().getArray()) {
-          if ('getStyleFunction' in sub) {
-            styleFnCandidates.push((sub as VectorLayer).getStyleFunction());
-          }
-        }
-      } else if (mapLayer && 'getStyleFunction' in mapLayer) {
-        styleFnCandidates.push((mapLayer as VectorLayer).getStyleFunction());
-      }
-      const resolution = this._Map.getView().getResolution() ?? 1;
-
-      selectInteraction.getFeatures().forEach(feature => {
-        identifiedFeatures.push({
-          feature: feature.getProperties(),
-          floaterOpen: false,
-        });
-        const geom = feature.getGeometry();
-        if (geom) {
-          const hlFeature = new Feature({ geometry: geom });
-          // Try each style function candidate; use the first that resolves
-          // a non-empty style array (important for LayerGroup sub-layers
-          // where only one sub-layer's style applies to this feature).
-          for (const fn of styleFnCandidates) {
-            if (!fn) {
-              continue;
-            }
-            const resolved = fn(feature, resolution);
-            const styles = Array.isArray(resolved)
-              ? resolved
-              : resolved
-                ? [resolved]
-                : [];
-            if (styles.length > 0) {
-              const gType = geom.getType();
-              hlFeature.setStyle(
-                styles.map(s => this._buildHighlightStyle(s, gType)),
-              );
-              break;
-            }
-          }
-          highlightFeatures.push(hlFeature);
-        }
-      });
-
-      this._model.syncIdentifiedFeatures(
-        identifiedFeatures,
-        this._mainViewModel.id,
-      );
-
-      // Sync _highlightLayer with the current selection (clears on deselect).
-      this._setHighlightFeatures(highlightFeatures);
-    });
-
-    this._Map.addInteraction(selectInteraction);
-  };
-
   addContextMenu = (): void => {
     this._commands.addCommand(CommandIDs.addAnnotation, {
       label: 'Add annotation',
@@ -1038,31 +912,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
     });
 
-    this._ensureHighlightLayer();
+    this._mapViewer.secureHighlightLayer();
     const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     source?.addFeature(olFeature);
-  }
-
-  private _ensureHighlightLayer(): void {
-    ensureHighlightLayer(this._Map, this._highlightLayerRef);
-  }
-
-  /**
-   * Replace the highlight layer contents with pre-styled features.
-   * Each feature carries its own highlight style via feature.setStyle().
-   */
-  private _setHighlightFeatures(features: Feature[]): void {
-    this._ensureHighlightLayer();
-    const source = this._highlightLayerRef.current?.getSource();
-    source?.clear();
-    for (const f of features) {
-      source?.addFeature(f);
-    }
-  }
-
-  private _buildHighlightStyle(original: Style, geomType?: string): Style {
-    return buildHighlightStyle(original, geomType);
   }
 
   private _handleSelectedChanged = (): void => {
@@ -1426,17 +1279,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     change: IObservableMap.IChangedArgs<JSONValue>,
   ): void {
     // TODO SOMETHING
-  }
-
-  /**
-   * Convenience method to get a specific layer index from OpenLayers Map
-   * @param id Layer to retrieve
-   */
-  private getLayerIndex(id: string) {
-    return this._Map
-      .getLayers()
-      .getArray()
-      .findIndex(layer => layer.get('id') === id);
   }
 
   private _onLayersChanged(
