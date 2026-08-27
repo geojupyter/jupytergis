@@ -114,7 +114,6 @@ type OlLayerTypes =
 export class OpenLayersViewer implements IMapViewer {
   constructor(model: IJupyterGISModel) {
     this._model = model;
-    this._sources = [];
     this._loadingLayers = new Set();
   }
   async initialize(
@@ -1935,7 +1934,7 @@ export class OpenLayersViewer implements IMapViewer {
 
   private _map: OlMap;
   private _sourceToLayerMap = new Map();
-  private _sources: Record<string, any>;
+  private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
   private _ready = false;
   private _pendingZoomLayerId: string | null = null;
