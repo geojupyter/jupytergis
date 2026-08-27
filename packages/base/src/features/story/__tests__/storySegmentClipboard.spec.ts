@@ -247,7 +247,7 @@ describe('storySegmentClipboard', () => {
       'new-segment-id',
       expect.objectContaining({
         type: 'StorySegmentLayer',
-        name: 'Segment A',
+        name: 'Segment A Copy',
       }),
     );
     expect(model.sharedModel.updateStoryMap).toHaveBeenCalledWith('story-1', {
