@@ -608,7 +608,7 @@ export class OpenLayersViewer implements IMapViewer {
       }
 
       try {
-       proj4.defs(projectionCode, proj4Definition.proj4string);
+        proj4.defs(projectionCode, proj4Definition.proj4string);
       } catch (error: any) {
         this._log(
           'warning',
