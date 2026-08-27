@@ -941,9 +941,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._currentSegmentIndexChanged;
   }
 
-  /**
-   * Segment id for the current story segment index, if any.
-   */
   getSelectedStorySegmentId(): string | null {
     const { story } = this.getSelectedStory();
     const segmentIds = story?.storySegments;
@@ -955,9 +952,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return segmentIds[index] ?? segmentIds[0] ?? null;
   }
 
-  /**
-   * True when the selected story has more than one segment.
-   */
   canRemoveStorySegment(): boolean {
     const { story } = this.getSelectedStory();
     return (story?.storySegments?.length ?? 0) > 1;

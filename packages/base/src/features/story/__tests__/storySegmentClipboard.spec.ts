@@ -28,8 +28,6 @@ import {
   copyStorySegment,
   duplicateStorySegment,
   getStorySegmentClipboard,
-  isAccelKey,
-  isStoryEditorTypingTarget,
   pasteStorySegment,
   removeStorySegment,
 } from '@/src/features/story/utils/storySegmentClipboard';
@@ -119,68 +117,6 @@ function createModel(
     removeStorySegment: jest.Mock;
   };
 }
-
-describe('isStoryEditorTypingTarget', () => {
-  it('detects inputs and CodeMirror hosts', () => {
-    const input = document.createElement('input');
-    expect(isStoryEditorTypingTarget(input)).toBe(true);
-
-    const host = document.createElement('div');
-    host.className = 'cm-editor';
-    const nested = document.createElement('span');
-    host.appendChild(nested);
-    document.body.appendChild(host);
-    expect(isStoryEditorTypingTarget(nested)).toBe(true);
-
-    expect(isStoryEditorTypingTarget(document.createElement('button'))).toBe(
-      false,
-    );
-  });
-});
-
-describe('isAccelKey', () => {
-  it('matches Ctrl/Cmd + key with optional Shift', () => {
-    expect(
-      isAccelKey(
-        {
-          key: 'c',
-          ctrlKey: true,
-          metaKey: false,
-          altKey: false,
-          shiftKey: false,
-        },
-        'c',
-      ),
-    ).toBe(true);
-
-    expect(
-      isAccelKey(
-        {
-          key: 'Z',
-          ctrlKey: true,
-          metaKey: false,
-          altKey: false,
-          shiftKey: true,
-        },
-        'z',
-        { shift: true },
-      ),
-    ).toBe(true);
-
-    expect(
-      isAccelKey(
-        {
-          key: 'z',
-          ctrlKey: true,
-          metaKey: false,
-          altKey: false,
-          shiftKey: true,
-        },
-        'z',
-      ),
-    ).toBe(false);
-  });
-});
 
 describe('storySegmentClipboard', () => {
   beforeEach(() => {

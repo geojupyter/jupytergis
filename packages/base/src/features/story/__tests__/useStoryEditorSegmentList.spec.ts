@@ -5,7 +5,6 @@
 jest.mock('@/src/constants', () => ({
   CommandIDs: {
     addStorySegment: 'jupytergis:addStorySegment',
-    pasteStorySegment: 'jupytergis:pasteStorySegment',
     removeStorySegment: 'jupytergis:removeStorySegment',
   },
 }));
@@ -23,7 +22,6 @@ import { createRoot, type Root } from 'react-dom/client';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 
 const ADD_STORY_SEGMENT_COMMAND = 'jupytergis:addStorySegment';
-const PASTE_STORY_SEGMENT_COMMAND = 'jupytergis:pasteStorySegment';
 const REMOVE_STORY_SEGMENT_COMMAND = 'jupytergis:removeStorySegment';
 
 interface IModelSignals {
@@ -174,17 +172,6 @@ describe('useStoryEditorSegmentList', () => {
     });
 
     expect(commands.execute).toHaveBeenCalledWith(ADD_STORY_SEGMENT_COMMAND);
-  });
-
-  it('pastes a segment through the paste-story-segment command', () => {
-    const { model } = createModel();
-    const view = mountHook(model, commands);
-
-    act(() => {
-      view.current.pasteSegment();
-    });
-
-    expect(commands.execute).toHaveBeenCalledWith(PASTE_STORY_SEGMENT_COMMAND);
   });
 
   it('removes a segment through the remove-story-segment command', () => {

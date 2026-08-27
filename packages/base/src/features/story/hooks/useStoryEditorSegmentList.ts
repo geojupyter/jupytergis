@@ -27,7 +27,6 @@ interface IUseStoryEditorSegmentListResult {
   selectedSegment: IStorySegmentViewItem | null;
   selectSegment: (segmentId: string) => void;
   addSegment: () => void;
-  pasteSegment: () => void;
   removeSegment: () => void;
   canRemoveSegment: boolean;
   reorderSegments: (fromIndex: number, toIndex: number) => void;
@@ -146,10 +145,6 @@ export function useStoryEditorSegmentList(
     void commands.execute(CommandIDs.addStorySegment);
   }, [commands]);
 
-  const pasteSegment = useCallback(() => {
-    void commands.execute(CommandIDs.pasteStorySegment);
-  }, [commands]);
-
   const canRemoveSegment = segments.length > 1;
 
   const removeSegment = useCallback(() => {
@@ -233,7 +228,6 @@ export function useStoryEditorSegmentList(
     selectedSegment,
     selectSegment,
     addSegment,
-    pasteSegment,
     removeSegment,
     canRemoveSegment,
     reorderSegments,

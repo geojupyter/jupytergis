@@ -18,54 +18,9 @@ export interface IStorySegmentClipboardItem {
 
 let clipboard: IStorySegmentClipboardItem | null = null;
 
-/** True when focus is in a text field / CodeMirror, keep normal clipboard/undo. */
-export function isStoryEditorTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-
-  if (target.isContentEditable) {
-    return true;
-  }
-
-  const tag = target.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-    return true;
-  }
-
-  return Boolean(
-    target.closest('.cm-editor, .cm-content, [contenteditable="true"]'),
-  );
-}
-
-/** Ctrl/Cmd (+ optional Shift) + key, ignoring Alt. */
-export function isAccelKey(
-  event: Pick<
-    KeyboardEvent,
-    'key' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'
-  >,
-  key: string,
-  options: { shift?: boolean } = {},
-): boolean {
-  const shift = options.shift ?? false;
-  return (
-    (event.ctrlKey || event.metaKey) &&
-    !event.altKey &&
-    event.shiftKey === shift &&
-    event.key.toLowerCase() === key.toLowerCase()
-  );
-}
-
-function cloneSegmentParameters(
-  parameters: IStorySegmentLayer,
-): IStorySegmentLayer {
-  return structuredClone(parameters);
-}
-
 /**
- * Snapshot the selected story segment for in-session paste.
  * Prefers live Y.Text markdown when the editor has a fresher value than
- * layer parameters (debounced sync).
+ * layer parameters
  */
 export function copyStorySegment(
   model: IJupyterGISModel,
@@ -76,9 +31,7 @@ export function copyStorySegment(
     return false;
   }
 
-  const parameters = cloneSegmentParameters(
-    layer.parameters as IStorySegmentLayer,
-  );
+  const parameters = structuredClone(layer.parameters as IStorySegmentLayer);
 
   const liveMarkdown = peekStorySegmentMarkdown(model, segmentId);
 
@@ -120,7 +73,7 @@ export function pasteStorySegment(
   }
 
   const newSegmentId = UUID.uuid4();
-  const parameters = cloneSegmentParameters(clipboard.parameters);
+  const parameters = structuredClone(clipboard.parameters);
   const markdown = parameters.content?.markdown ?? '';
 
   const layerModel: IJGISLayer = {
@@ -138,7 +91,7 @@ export function pasteStorySegment(
   const insertAt = selectedIndex >= 0 ? selectedIndex + 1 : segmentIds.length;
   segmentIds.splice(insertAt, 0, newSegmentId);
 
-  // One undo step for layer + story list (+ markdown seed).
+  // One undo step for layer + story list
   model.sharedModel.transact(() => {
     model.addLayer(newSegmentId, layerModel);
     model.sharedModel.updateStoryMap(storyId, {
@@ -188,7 +141,6 @@ export function removeStorySegment(
   return model.removeStorySegment(segmentId);
 }
 
-/**  Test helper */
 export function clearStorySegmentClipboard(): void {
   clipboard = null;
 }

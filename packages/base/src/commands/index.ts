@@ -2054,18 +2054,6 @@ export function addCommands(
     ...icons.get(CommandIDs.openStoryEditor),
   });
 
-  const isStorySegmentCommandEnabled = (): boolean => {
-    const current = tracker.currentWidget;
-    if (!current) {
-      return false;
-    }
-
-    return (
-      current.model.sharedModel.editable &&
-      !current.model.jgisSettings.storyMapsDisabled
-    );
-  };
-
   commands.addCommand(CommandIDs.copyStorySegment, {
     label: trans.__('Copy Segment'),
     describedBy: {
@@ -2077,8 +2065,7 @@ export function addCommands(
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       return (
-        isStorySegmentCommandEnabled() &&
-        !!model &&
+        !!model?.sharedModel.editable &&
         model.getSelectedStorySegmentId() !== null
       );
     },
@@ -2107,7 +2094,8 @@ export function addCommands(
       },
     },
     isEnabled: () =>
-      isStorySegmentCommandEnabled() && getStorySegmentClipboard() !== null,
+      !!tracker.currentWidget?.model.sharedModel.editable &&
+      getStorySegmentClipboard() !== null,
     execute: () => {
       const model = tracker.currentWidget?.model;
       if (!model) {
@@ -2130,8 +2118,7 @@ export function addCommands(
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       return (
-        isStorySegmentCommandEnabled() &&
-        !!model &&
+        !!model?.sharedModel.editable &&
         model.getSelectedStorySegmentId() !== null
       );
     },
@@ -2161,7 +2148,7 @@ export function addCommands(
     },
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
-      if (!model || !isStorySegmentCommandEnabled()) {
+      if (!model?.sharedModel.editable) {
         return false;
       }
 
