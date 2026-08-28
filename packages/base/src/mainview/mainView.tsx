@@ -942,6 +942,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   addContextMenu = (): void => {
+    this._commands.addCommand(CommandIDs.deleteSelectedFeatures, {
+      label: 'Delete feature',
+      isEnabled: () => {
+        if (!this._clickCoords || this._model.currentMode !== 'drawing') {
+          return false;
+        }
+        return this._mapHasDrawFeatureAtCoordinate(this._clickCoords);
+      },
+      execute: () => {
+        if (this._clickCoords) {
+          this._deleteDrawFeaturesAtCoordinate(this._clickCoords);
+        }
+      },
+    });
+
     this._commands.addCommand(CommandIDs.addAnnotation, {
       label: 'Add annotation',
       describedBy: {
@@ -1012,6 +1027,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
         await navigator.clipboard.writeText(text);
       },
+    });
+
+    this._contextMenu.addItem({
+      command: CommandIDs.deleteSelectedFeatures,
+      selector: '.ol-viewport',
+      rank: 0,
     });
 
     this._contextMenu.addItem({
@@ -3044,6 +3065,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (mapLayer) {
           this._trackLayerViewState(id, mapLayer);
         }
+
+        if (
+          this._model.currentMode === 'drawing' &&
+          id === this._currentDrawLayerID
+        ) {
+          this._editVectorLayer();
+        }
       } else {
         this.updateLayers(layerTree);
       }
@@ -3106,14 +3134,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    change.sourceChange?.forEach(change => {
-      if (!change.newValue || Object.keys(change.newValue).length === 0) {
-        this.removeSource(change.id);
+    change.sourceChange?.forEach(srcChange => {
+      if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
+        this.removeSource(srcChange.id);
       } else {
-        const source = this._model.getSource(change.id);
-        if (source) {
-          this.updateSource(change.id, source);
+        const source = this._model.getSource(srcChange.id);
+        if (!source) {
+          return;
         }
+        if (
+          this._model.currentMode === 'drawing' &&
+          srcChange.id === this._currentDrawSourceID
+        ) {
+          return;
+        }
+        void this.updateSource(srcChange.id, source);
       }
     });
 
@@ -3947,13 +3982,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState(old => ({ ...old, isDrawing }));
 
     if (isDrawing) {
+      this._setHighlightFeatures([]);
       this._editVectorLayer();
+      return;
     }
 
-    if (!isDrawing && this._draw) {
-      this._removeDrawInteraction();
-      this._setCurrentDrawLayerId(undefined);
-    }
+    this._removeInteractions();
+    this._currentDrawGeometry = undefined;
+    this._setCurrentDrawLayerId(undefined);
+    this.setState(old => ({ ...old, drawGeometryLabel: '' }));
   };
 
   private _notifyInteractionModeCommands(): void {
@@ -3972,15 +4009,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  private _handleDrawGeometryTypeChange = (
-    /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
-    drawGeometryLabel: string,
-  ) => {
-    // Clicking the active geometry toggles drawing off.
-    if (this._currentDrawGeometry === drawGeometryLabel) {
+  private _handleDrawGeometryTypeChange = (drawGeometryLabel: string) => {
+    // Empty label (Select) or re-clicking the active tool -> select mode
+    if (!drawGeometryLabel || this._currentDrawGeometry === drawGeometryLabel) {
       this._currentDrawGeometry = undefined;
-      this._removeInteractions();
-
+      this._updateInteractions();
       this.setState(old => ({
         ...old,
         drawGeometryLabel: '',
@@ -3989,15 +4022,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._currentDrawGeometry = drawGeometryLabel as Type;
-
-    if (this._currentDrawLayerID) {
-      this._currentVectorSource = this._getVectorSourceFromLayerID(
-        this._currentDrawLayerID,
-      );
-    }
-
     this._updateInteractions();
-    this._updateDrawSource();
 
     this.setState(old => ({
       ...old,
@@ -4008,15 +4033,44 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _getVectorSourceFromLayerID = (
     layerID: string,
   ): VectorSource | undefined => {
-    /* get the OpenLayers VectorSource corresponding to the JGIS currentDrawLayerID */
-    const layers = this._Map.getLayers();
-    const layerArray = layers.getArray();
-    const matchingLayer = layerArray.find(layer => layer.get('id') === layerID);
-    const source = matchingLayer?.get('source');
+    const matchingLayer = this.getLayer(layerID);
+    let source: VectorSource | undefined;
+
+    if (matchingLayer instanceof LayerGroup) {
+      for (const sub of matchingLayer.getLayers().getArray()) {
+        if (typeof (sub as VectorLayer).getSource === 'function') {
+          source = (sub as VectorLayer).getSource() as VectorSource;
+          break;
+        }
+      }
+    } else if (
+      matchingLayer &&
+      typeof (matchingLayer as VectorLayer).getSource === 'function'
+    ) {
+      source = (matchingLayer as VectorLayer).getSource() as VectorSource;
+    }
 
     this._currentVectorSource = source;
 
     return this._currentVectorSource;
+  };
+
+  private _isDrawLayerFilter = (layer: Layer): boolean => {
+    const drawLayerId = this._currentDrawLayerID;
+    if (!drawLayerId) {
+      return false;
+    }
+
+    if (layer.get('id') === drawLayerId) {
+      return true;
+    }
+
+    const expected = this.getLayer(drawLayerId);
+    if (expected instanceof LayerGroup) {
+      return expected.getLayers().getArray().includes(layer);
+    }
+
+    return false;
   };
 
   _getDrawSourceFromSelectedLayer = () => {
@@ -4040,9 +4094,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  _onVectorSourceChange = () => {
+  private _persistDrawVectorSource = (
+    source?: VectorSource,
+    pendingFeature?: Feature,
+  ): void => {
+    const vectorSource =
+      source ??
+      (this._currentDrawLayerID
+        ? this._getVectorSourceFromLayerID(this._currentDrawLayerID)
+        : this._currentVectorSource);
+
+    if (!this._currentDrawSourceID && this._currentDrawLayerID) {
+      this._getDrawSourceFromSelectedLayer();
+    }
+
     if (
-      !this._currentVectorSource ||
+      !vectorSource ||
       !this._currentDrawSource ||
       !this._currentDrawSourceID
     ) {
@@ -4053,9 +4120,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       featureProjection: this._Map.getView().getProjection(),
     });
 
-    const features = this._currentVectorSource
-      .getFeatures()
-      .map(feature => geojsonWriter.writeFeatureObject(feature));
+    const liveFeatures = vectorSource.getFeatures();
+    const featuresToSerialize =
+      pendingFeature && !liveFeatures.includes(pendingFeature)
+        ? [...liveFeatures, pendingFeature]
+        : liveFeatures;
+
+    const features = featuresToSerialize.map(feature =>
+      geojsonWriter.writeFeatureObject(feature),
+    );
 
     const updatedData = {
       type: 'FeatureCollection',
@@ -4077,19 +4150,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   };
 
-  _updateDrawSource = () => {
-    if (this._currentVectorSource) {
-      this._currentVectorSource.on('change', this._onVectorSourceChange);
-    }
-  };
-
   _removeInteractions = () => {
     if (this._draw) {
       this._removeDrawInteraction();
-    }
-
-    if (this._select) {
-      this._removeSelectInteraction();
     }
 
     if (this._modify) {
@@ -4102,35 +4165,119 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   _updateInteractions = () => {
+    if (this._currentDrawLayerID) {
+      this._getVectorSourceFromLayerID(this._currentDrawLayerID);
+    }
+
     this._removeInteractions();
 
-    if (!this._currentDrawGeometry) {
+    if (!this._currentVectorSource) {
       return;
     }
 
-    this._draw = new Draw({
-      style: drawInteractionStyle,
-      type: this._currentDrawGeometry,
-      source: this._currentVectorSource,
-    });
-    this._draw.on('drawend', this._handleDrawEnd);
-    this._select = new Select();
-    this._modify = new Modify({
-      features: this._select.getFeatures(),
-    });
-    this._snap = new Snap({
-      source: this._currentVectorSource,
+    const drawSource = this._currentVectorSource;
+
+    // draw-and-modify, Modify always on source, Draw when a geometry tool is selected.
+    this._modify = new Modify({ source: drawSource });
+    this._modify.on('modifystart', () => {
+      if (this._draw) {
+        this._draw.setActive(false);
+      }
     });
 
-    this._Map.addInteraction(this._draw);
-    this._Map.addInteraction(this._select);
+    this._modify.on('modifyend', () => {
+      if (this._draw) {
+        this._draw.setActive(true);
+      }
+      this._persistDrawVectorSource();
+    });
+
+    this._snap = new Snap({ source: drawSource });
+
     this._Map.addInteraction(this._modify);
     this._Map.addInteraction(this._snap);
 
-    this._draw.setActive(true);
-    this._select.setActive(false);
-    this._modify.setActive(false);
+    if (this._currentDrawGeometry) {
+      this._draw = new Draw({
+        style: drawInteractionStyle,
+        type: this._currentDrawGeometry,
+        source: drawSource,
+      });
+      this._draw.on('drawend', this._handleDrawEnd);
+      this._Map.addInteraction(this._draw);
+      this._draw.setActive(true);
+    }
+
+    this._modify.setActive(true);
     this._snap.setActive(true);
+  };
+
+  private _deleteDrawFeaturesAtCoordinate = (
+    coordinate: Coordinate,
+  ): boolean => {
+    if (!this._currentDrawLayerID) {
+      return false;
+    }
+
+    const source = this._getVectorSourceFromLayerID(this._currentDrawLayerID);
+    if (!source) {
+      return false;
+    }
+
+    const pixel = this._Map.getPixelFromCoordinate(coordinate);
+    if (!pixel) {
+      return false;
+    }
+
+    const hits = this._Map.getFeaturesAtPixel(pixel, {
+      hitTolerance: 10,
+      layerFilter: this._isDrawLayerFilter,
+    });
+
+    if (hits.length === 0) {
+      return false;
+    }
+
+    for (const hit of hits) {
+      if (!(hit instanceof Feature)) {
+        continue;
+      }
+
+      const featureId = hit.get('_id');
+      const onSource =
+        featureId !== undefined
+          ? source.getFeatures().find(f => f.get('_id') === featureId)
+          : hit;
+
+      if (onSource) {
+        source.removeFeature(onSource);
+      } else {
+        source.removeFeature(hit);
+      }
+    }
+
+    this._currentVectorSource = source;
+    this._persistDrawVectorSource(source);
+    this._commands.notifyCommandChanged(CommandIDs.deleteSelectedFeatures);
+    return true;
+  };
+
+  private _mapHasDrawFeatureAtCoordinate = (
+    coordinate: Coordinate,
+  ): boolean => {
+    if (!this._currentVectorSource) {
+      return false;
+    }
+
+    const pixel = this._Map.getPixelFromCoordinate(coordinate);
+    if (!pixel) {
+      return false;
+    }
+
+    return this._Map.hasFeatureAtPixel(pixel, {
+      hitTolerance: 10,
+      layerFilter: this._isDrawLayerFilter,
+    });
   };
 
   private _handleDrawEnd = (event: DrawEvent): void => {
@@ -4145,6 +4292,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ? this._model.getDrawCustomAttributes(layerId)
       : [];
     applyDrawCustomAttributesToFeature(feature, customAttributes);
+
+    const source = layerId
+      ? this._getVectorSourceFromLayerID(layerId)
+      : this._currentVectorSource;
+    const onSource = source?.getFeatures().includes(feature) ?? false;
+
+    // OL dispatches drawend before adding the feature to the source.
+    this._persistDrawVectorSource(source, onSource ? undefined : feature);
   };
 
   _editVectorLayer = () => {
@@ -4153,36 +4308,37 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    this._currentVectorSource = this._getVectorSourceFromLayerID(
-      this._currentDrawLayerID,
-    );
-
-    if (!this._currentVectorSource || !this._currentDrawGeometry) {
-      return;
-    }
-
-    this._updateInteractions(); /* remove previous interactions and instantiate new ones */
-    this._updateDrawSource(); /*add new features, update source and get changes reported to the JGIS Document in geoJSON format */
+    this._updateInteractions();
   };
 
   private _removeDrawInteraction = () => {
+    if (!this._draw) {
+      return;
+    }
+
     this._draw.setActive(false);
     this._Map.removeInteraction(this._draw);
-  };
-
-  private _removeSelectInteraction = () => {
-    this._select.setActive(false);
-    this._Map.removeInteraction(this._select);
+    this._draw = undefined;
   };
 
   private _removeSnapInteraction = () => {
+    if (!this._snap) {
+      return;
+    }
+
     this._snap.setActive(false);
     this._Map.removeInteraction(this._snap);
+    this._snap = undefined;
   };
 
   private _removeModifyInteraction = () => {
+    if (!this._modify) {
+      return;
+    }
+
     this._modify.setActive(false);
     this._Map.removeInteraction(this._modify);
+    this._modify = undefined;
   };
 
   /**
@@ -4379,10 +4535,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;
   } = { current: null };
-  private _draw: Draw;
-  private _snap: Snap;
-  private _modify: Modify;
-  private _select: Select;
+  private _draw: Draw | undefined;
+  private _snap: Snap | undefined;
+  private _modify: Modify | undefined;
   private _currentDrawLayerID: string | undefined;
   private _previousDrawLayerID: string | undefined;
   private _currentDrawSource: IJGISSource | undefined;
