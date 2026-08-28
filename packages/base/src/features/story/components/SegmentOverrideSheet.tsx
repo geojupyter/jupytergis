@@ -48,13 +48,8 @@ export function SegmentOverrideSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen} modal={false}>
-      <SheetTrigger asChild>
-        <Button variant="outline">Edit</Button>
-      </SheetTrigger>
-      <SheetContent
-        container={portalContainerRef.current}
-        showCloseButton={false}
-      >
+      <SheetTrigger render={<Button variant="outline">Edit</Button>} />
+      <SheetContent showCloseButton={false}>
         <SheetHeader>
           <SheetTitle>Layer Symbology Override</SheetTitle>
           <SheetDescription>
@@ -79,9 +74,7 @@ export function SegmentOverrideSheet({
           >
             Save changes
           </Button>
-          <SheetClose asChild>
-            <Button variant="outline">Close</Button>
-          </SheetClose>
+          <SheetClose render={<Button variant="outline">Close</Button>} />
         </SheetFooter>
       </SheetContent>
     </Sheet>
