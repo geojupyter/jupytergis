@@ -481,14 +481,11 @@ importers:
         specifier: ^3.0.7
         version: 3.2.1
       proj-codes:
-        specifier: 0.0.2
-        version: 0.0.2
+        specifier: ^0.0.4
+        version: 0.0.4
       proj4:
         specifier: 2.19.3
         version: 2.19.3(geotiff@2.1.3)
-      proj4-list:
-        specifier: 1.0.4
-        version: 1.0.4
       radix-ui:
         specifier: ^1.4.3
         version: 1.6.2(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -7908,11 +7905,8 @@ packages:
     resolution: {integrity: sha512-QE8RApCM3IaRRxVzxrjbgNMpQEX6Wu0p0KBeoSiSEw5/bsGwZHsshF4LCxH2jp/r6BU+bqA3LrMDEYNfJnpD8Q==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  proj-codes@0.0.2:
-    resolution: {integrity: sha512-FP/HI9dBkfIS2OkgBiLczAGp6hv0zfcWJETq6OQMmZKpSDODLKFXYq+3vIPr1Gb8DG6Eg9l3krgTj8x/oMODrQ==}
-
-  proj4-list@1.0.4:
-    resolution: {integrity: sha512-BMU39s6xU/bIi3ro9unYo94HauD4bO1u1qXVtoqtc+8qdAKtXXe2FV9zGxEVM/tyNeQUdxX8QHPUtGCktFPwAg==}
+  proj-codes@0.0.4:
+    resolution: {integrity: sha512-KCIlQtOQxuaGa1pmldQ1GXPeMuQPpl5Q+Vg5eWXAm33vVMwWjoDnufZp5Bk1RIqWIzrVNM1tJW7lvMbW08R7zg==}
 
   proj4@2.19.3:
     resolution: {integrity: sha512-sXMnThBbpAzYqYLtKDOzmLGvvfFAv+VIJKKDOUied/xWVeVPKi0pwDFUHnLD4OysbIR1lF4aYO5J4LhJxgKMGw==}
@@ -18400,9 +18394,7 @@ snapshots:
 
   proggy@3.0.0: {}
 
-  proj-codes@0.0.2: {}
-
-  proj4-list@1.0.4: {}
+  proj-codes@0.0.4: {}
 
   proj4@2.19.3(geotiff@2.1.3):
     dependencies:

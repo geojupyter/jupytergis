@@ -17,7 +17,7 @@ allowBuilds:
   nx: false
   unrs-resolver: false
 
-minimumReleaseAge: 10080  # 1 week
+minimumReleaseAge: 10080 # 1 week
 
 # First-party GeoJupyter package; exempt from the quarantine above. Remove this exclusion in a week.
 minimumReleaseAgeExclude:
@@ -39,3 +39,6 @@ overrides:
   # 18.3.1 (and flips the vue-loader/consolidate chain onto it). Pin to the one
   # react-dom the app already uses.
   react-dom: '18.3.1'
+
+minimumReleaseAgeExclude:
+  - proj-codes@0.0.4
