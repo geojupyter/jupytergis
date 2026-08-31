@@ -47,6 +47,7 @@ export function ListStoryTitleBarMobile({
   const activeSegment =
     currentPosition >= 0 ? segmentItems[currentPosition] : undefined;
 
+  const navRef = useRef<HTMLElement>(null);
   const prevSegmentIdRef = useRef<string | undefined>(undefined);
   const slideDirectionRef = useRef<SlideDirection | undefined>(undefined);
   const activeSegmentId = activeSegment?.id;
@@ -67,6 +68,7 @@ export function ListStoryTitleBarMobile({
 
   return (
     <nav
+      ref={navRef}
       className="jgis-story-title-bar jgis-story-title-bar--mobile"
       aria-label="Story segments"
     >
@@ -84,9 +86,10 @@ export function ListStoryTitleBarMobile({
           }
         />
         <PopoverContent
+          anchor={navRef}
           align="center"
           side="bottom"
-          className="jgis-story-title-bar-segment-menu"
+          className="gap-1 max-h-64 w-[calc(100vw-1rem)] max-w-sm overflow-y-auto"
         >
           {segmentItems.map(item => {
             const isActive = item.index === currentIndex;
