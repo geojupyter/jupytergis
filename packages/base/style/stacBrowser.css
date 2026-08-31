@@ -148,7 +148,6 @@
   gap: 1rem;
 }
 
-/* Modifiers for queryable combo - uses shared combobox base */
 .jgis-queryable-combo-button {
   width: 100%;
 }
@@ -163,11 +162,6 @@
 
 /* More specific selector to override button base styles */
 .jgis-button.jgis-queryable-combo-input-date-picker {
-  justify-content: flex-start;
-}
-
-.jgis-queryable-combo-input.jgis-combobox-button-text {
-  display: flex;
   justify-content: flex-start;
 }
 
