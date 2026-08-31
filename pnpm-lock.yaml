@@ -519,6 +519,9 @@ importers:
       three-mesh-bvh:
         specifier: ^0.5.17
         version: 0.5.24(three@0.135.0)
+      tw-animate-css:
+        specifier: ^1.4.0
+        version: 1.4.0
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -8930,6 +8933,9 @@ packages:
 
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
+
+  tw-animate-css@1.4.0:
+    resolution: {integrity: sha512-7bziOlRqH0hJx80h/3mbicLW7o8qLsH5+RaLR2t+OHM3D0JlWGODQKQ4cxbK7WlvmUxpcj6Kgu6EKqjrGFe3QQ==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -19546,6 +19552,8 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
     optional: true
+
+  tw-animate-css@1.4.0: {}
 
   type-check@0.4.0:
     dependencies:
