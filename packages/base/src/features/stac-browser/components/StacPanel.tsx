@@ -9,12 +9,9 @@ import {
   useStacResultsContext,
 } from '@/src/features/stac-browser/context/StacResultsContext';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/shared/components/Select';
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 import {
   Tabs,
   TabsContent,
@@ -116,34 +113,25 @@ const StacPanel = ({ model }: IStacViewProps) => {
 function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
 
-  const items = PROVIDERS.map(provider => ({
-    value: provider.url,
-    label: provider.name,
-  }));
-
   return (
     <div className="jgis-stac-filter-extension-section">
       <label className="jgis-stac-filter-extension-label">Provider</label>
-      <Select
-        value={selectedUrl || null}
-        onValueChange={value => {
-          if (value != null) {
-            setSelectedUrl(value);
-          }
+      <NativeSelect
+        className="w-full"
+        value={selectedUrl ?? ''}
+        onChange={event => {
+          setSelectedUrl(event.target.value);
         }}
-        items={items}
       >
-        <SelectTrigger className="jgis-stac-filter-extension-select w-full max-w-none">
-          <SelectValue placeholder="Select a provider..." />
-        </SelectTrigger>
-        <SelectContent>
-          {items.map(item => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <NativeSelectOption value="" disabled>
+          Select a provider...
+        </NativeSelectOption>
+        {PROVIDERS.map(provider => (
+          <NativeSelectOption key={provider.url} value={provider.url}>
+            {provider.name}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
     </div>
   );
 }

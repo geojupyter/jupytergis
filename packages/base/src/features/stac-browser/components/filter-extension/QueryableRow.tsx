@@ -6,12 +6,9 @@ import {
   Operator,
 } from '@/src/features/stac-browser/types/types';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/shared/components/Select';
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 interface IOperatorOption {
   value: Operator;
@@ -35,30 +32,22 @@ function QueryableRow({
   inputComponent,
   onOperatorChange,
 }: IQueryableRowProps) {
-  const items = operators.map(operator => ({
-    value: String(operator.value),
-    label: operator.label,
-  }));
-
   return (
     <div className="jgis-queryable-row">
       <span>{qVal.title || qKey}</span>
-      <Select
+      <NativeSelect
+        className="jgis-queryable-combo-operator w-full"
         value={String(currentFilter.operator)}
-        onValueChange={value => onOperatorChange(value as Operator)}
-        items={items}
+        onChange={event => {
+          onOperatorChange(event.target.value as Operator);
+        }}
       >
-        <SelectTrigger className="jgis-queryable-combo-operator w-full max-w-none">
-          <SelectValue placeholder="Select operator..." />
-        </SelectTrigger>
-        <SelectContent>
-          {items.map(item => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {operators.map(operator => (
+          <NativeSelectOption key={operator.value} value={operator.value}>
+            {operator.label}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
       {inputComponent}
     </div>
   );
