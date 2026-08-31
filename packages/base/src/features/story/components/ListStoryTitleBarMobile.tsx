@@ -89,7 +89,7 @@ export function ListStoryTitleBarMobile({
           anchor={navRef}
           align="center"
           side="bottom"
-          className="gap-1 max-h-64 w-[calc(100vw-1rem)] max-w-sm overflow-y-auto"
+          className="max-h-64 w-[calc(100vw-1rem)] max-w-sm gap-1 overflow-y-auto"
         >
           {segmentItems.map(item => {
             const isActive = item.index === currentIndex;
