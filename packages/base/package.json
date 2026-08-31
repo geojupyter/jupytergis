@@ -130,6 +130,7 @@
     "@types/node": "^18.15.11",
     "@types/proj4": "2.19.0",
     "@types/shpjs": "^3.4.7",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "rimraf": "^3.0.2",
     "tailwindcss": "^4.3.3",
     "ts-patch": "^3.3.0",
