@@ -99,7 +99,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           }}
         >
           <ComboboxInput
-            className="bg-background"
+            className="bg-background w-full"
             placeholder="Search collections..."
           />
           <ComboboxContent>
