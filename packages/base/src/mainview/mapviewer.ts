@@ -7,6 +7,7 @@ import type {
   IJupyterGISModel,
   JgisCoordinates,
 } from '@jupytergis/schema';
+import type { Coordinate } from 'ol/coordinate';
 
 import { MapLibreViewer } from './viewers/maplibreViewer';
 import { OpenLayersViewer } from './viewers/openlayersViewer';
@@ -57,6 +58,33 @@ export interface IMapViewer {
   removeSource(id: string): void;
 
   updateSource(id: string, source: IJGISSource): Promise<void>;
+
+  /**
+   * Temporary escape hatch while extraction is happening.
+   *
+   * This should also be removed once all operations
+   * have moved behind IMapViewer.
+   */
+  getMap(): any;
+
+  /** Adds or removes the zoom +/- control, matching `enabled`. */
+  setZoomButtonsEnabled(enabled: boolean | undefined): void;
+
+  /**
+   * Removes the FullScreen control.
+   *
+   * This should also be removed once all operations
+   * have moved behind IMapViewer.
+   */
+  enterPresentationMode(): void;
+
+  /** Restores whatever enterPresentationMode() removed. */
+  exitPresentationMode(): void;
+
+  /**
+   * i hope we could omit(any) in upcoming changes.
+   */
+  getGeolocationHandles(): any | undefined;
 }
 
 export interface IMapViewerOptions {
@@ -66,6 +94,25 @@ export interface IMapViewerOptions {
   rotation?: number;
   layers?: IJGISLayers;
   sources?: IJGISSources;
+  controlsTarget?: HTMLElement;
+  zoomButtonsEnabled?: boolean;
+  isSpectaMode?: boolean;
+  mainViewId?: string;
+  callbacks?: IMapViewerCallbacks;
+}
+
+/**
+ * Hooks for the bits of `generateMap` that are genuinely MainView's
+ * concern (React state, Lumino context menu) rather
+ * than the map engine's.
+ */
+export interface IMapViewerCallbacks {
+  onPostRender?: () => void;
+  onScaleChange?: (scale: number) => void;
+  onContextMenu?: (
+    event: MouseEvent,
+    lastPointerCoord: Coordinate | null,
+  ) => void;
 }
 
 /**

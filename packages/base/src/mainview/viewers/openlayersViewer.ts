@@ -1,3 +1,4 @@
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import {
   IJGISLayer,
   IJGISSource,
@@ -22,6 +23,7 @@ import {
   IGeoTiffLayer,
   IGeoZarrLayer,
   IJGISFilterItem,
+  IJGISOptions,
   IStacLayer,
   IJupyterGISModel,
   IStorySegmentLayer,
@@ -31,9 +33,11 @@ import {
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import { UUID } from '@lumino/coreutils';
 import {
   Collection,
   Feature,
+  Geolocation,
   getUid,
   MapBrowserEvent,
   Map as OlMap,
@@ -41,13 +45,28 @@ import {
   View,
 } from 'ol';
 import type { FeatureLike } from 'ol/Feature';
+import type { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
+import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
-import { Point } from 'ol/geom';
-import { Select } from 'ol/interaction';
+import { Geometry, Point } from 'ol/geom';
+import {
+  DoubleClickZoom,
+  DragAndDrop,
+  DragPan,
+  DragRotate,
+  DragZoom,
+  Interaction,
+  KeyboardPan,
+  KeyboardZoom,
+  MouseWheelZoom,
+  PinchRotate,
+  PinchZoom,
+  Select,
+} from 'ol/interaction';
 import {
   Image as ImageLayer,
   Layer,
@@ -58,9 +77,14 @@ import {
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
-import { fromLonLat, get as getProjection, transformExtent } from 'ol/proj';
+import {
+  fromLonLat,
+  get as getProjection,
+  toLonLat,
+  transformExtent,
+} from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
-import RenderFeature from 'ol/render/Feature';
+import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -73,7 +97,7 @@ import {
 import GeoZarr from 'ol/source/GeoZarr';
 import Static from 'ol/source/ImageStatic';
 import TileSource, { TileSourceEvent } from 'ol/source/Tile';
-import { Icon, Style } from 'ol/style';
+import { Fill, Icon, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -99,9 +123,19 @@ import {
   getDefaultRGBBands,
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
-import { IMapViewer, IMapViewerOptions } from '@/src/mainview/mapviewer';
+import {
+  IMapViewer,
+  IMapViewerCallbacks,
+  IMapViewerOptions,
+} from '@/src/mainview/mapviewer';
 import { markerIcon } from '@/src/shared/icons';
-import { INTERNAL_PROXY_BASE, isJupyterLite, loadFile } from '@/src/tools';
+import {
+  debounce,
+  INTERNAL_PROXY_BASE,
+  isJupyterLite,
+  loadFile,
+  throttle,
+} from '@/src/tools';
 import { MainViewModel } from '../mainviewmodel';
 
 type OlLayerTypes =
@@ -113,6 +147,18 @@ type OlLayerTypes =
   | StacLayer
   | ImageLayer<any>
   | LayerGroup;
+
+/**
+ * Concrete, OL-typed shape returned by OpenLayersViewer.getGeolocationHandles().
+ * The abstraction in mapviewer.ts types this `any` since it's shared across
+ * engines; this is the real shape MainView receives when running OpenLayers.
+ */
+export interface IGeolocationHandles {
+  geolocation: Geolocation;
+  source: VectorSource;
+  positionFeature: Feature | undefined;
+  accuracyFeature: Feature | undefined;
+}
 
 export class OpenLayersViewer implements IMapViewer {
   constructor(model: IJupyterGISModel) {
@@ -130,12 +176,34 @@ export class OpenLayersViewer implements IMapViewer {
       rotation = 0,
       layers = {},
       sources = {},
+      controlsTarget,
+      zoomButtonsEnabled = false,
+      isSpectaMode = false,
+      mainViewId,
+      callbacks,
     } = options;
+
+    this._callbacks = callbacks;
+    this._mainViewId = mainViewId;
+    this._controlsTarget = controlsTarget;
 
     const proj = getProjection(projection);
 
     if (!proj) {
       throw new Error(`Invalid projection: ${projection}`);
+    }
+
+    const controls: Control[] = [new ScaleLine({ target: controlsTarget })];
+
+    if (!isSpectaMode) {
+      controls.push(new FullScreen({ target: controlsTarget }));
+    }
+
+    controls.push(new Rotate({ target: controlsTarget, autoHide: true }));
+
+    if (zoomButtonsEnabled) {
+      this._zoomControl = new Zoom({ target: controlsTarget });
+      controls.push(this._zoomControl);
     }
 
     this._map = new OlMap({
@@ -146,6 +214,7 @@ export class OpenLayersViewer implements IMapViewer {
         rotation,
         projection: proj,
       }),
+      controls,
       keyboardEventTarget: document,
     });
 
@@ -158,6 +227,10 @@ export class OpenLayersViewer implements IMapViewer {
     for (const [layerId, layer] of Object.entries(layers)) {
       this.addLayer(layerId, layer, index++);
     }
+
+    this._setupInteractions();
+    this._setupViewEvents();
+    this._setupGeolocation();
 
     await new Promise<void>(resolve => {
       if (!this._map) {
@@ -181,6 +254,445 @@ export class OpenLayersViewer implements IMapViewer {
     });
   }
 
+  /**
+   * Map-level interactions that used to live in MainView.generateMap():
+   * drag-and-drop of GeoJSON files onto the map, plus the select
+   * interaction used for identify/highlight.
+   */
+  private _setupInteractions(): void {
+    const dragAndDropInteraction = new DragAndDrop({
+      formatConstructors: [GeoJSON],
+    });
+
+    dragAndDropInteraction.on('addfeatures', event => {
+      const sourceId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'GeoJSONSource',
+        name: 'Drag and Drop source',
+        parameters: { path: event.file.name },
+      };
+
+      const layerId = UUID.uuid4();
+
+      this.addSource(sourceId, sourceModel);
+      this._model.sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'VectorLayer',
+        visible: true,
+        name: 'Drag and Drop layer',
+        parameters: {
+          color: '#FF0000',
+          opacity: 1.0,
+          type: 'line',
+          source: sourceId,
+        },
+      };
+
+      this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+      this._model.addLayer(layerId, layerModel);
+    });
+
+    this._map.addInteraction(dragAndDropInteraction);
+
+    this.createSelectInteraction();
+  }
+
+  /**
+   * View/map event wiring that used to live in MainView.generateMap().
+   * Anything that can be resolved against the model directly (options,
+   * viewport sync, bbox signal) is done right here; only the bits that
+   * are genuinely MainView's concern (React state, floaters, the Lumino
+   * context menu) are forwarded through `this._callbacks`.
+   */
+  private _setupViewEvents(): void {
+    const view = this._map.getView();
+
+    const emitBboxChanged = debounce(() => {
+      const extentIn4326 = this.getViewBbox();
+      this._model.updateBboxSignal.emit(extentIn4326);
+    }, 100);
+
+    const syncViewportThrottled = throttle(() => {
+      // Not syncing center if following someone else
+      if (this._model.localState?.remoteUser) {
+        return;
+      }
+
+      const currentView = this._map.getView();
+      const currentCenter = currentView.getCenter();
+      const currentZoom = currentView.getZoom();
+
+      if (!currentCenter || !currentZoom) {
+        return;
+      }
+
+      const currentExtent = currentView.calculateExtent(this._map.getSize());
+      this._model.syncViewport(
+        {
+          coordinates: {
+            x: currentCenter[0],
+            y: currentCenter[1],
+          },
+          zoom: currentZoom,
+          extent: [
+            currentExtent[0],
+            currentExtent[1],
+            currentExtent[2],
+            currentExtent[3],
+          ],
+        },
+        this._mainViewId,
+      );
+    }, 200);
+
+    view.on('change:center', () => {
+      emitBboxChanged();
+      syncViewportThrottled();
+    });
+
+    this._map.on('postrender', () => {
+      this._callbacks?.onPostRender?.();
+    });
+
+    this._map.on('moveend', () => {
+      const currentOptions = this._model.getOptions();
+
+      const moveEndView = this._map.getView();
+      const center = moveEndView.getCenter() || [0, 0];
+      const zoom = moveEndView.getZoom() || 0;
+
+      const currentProjection =
+        getProjection(currentOptions.projection) ?? moveEndView.getProjection();
+      const latLng = toLonLat(center, currentProjection);
+      const bearing = moveEndView.getRotation();
+      const resolution = moveEndView.getResolution();
+
+      const updatedOptions: Partial<IJGISOptions> = {
+        latitude: latLng[1],
+        longitude: latLng[0],
+        bearing,
+        projection: currentProjection.getCode(),
+        zoom,
+      };
+
+      updatedOptions.extent = moveEndView.calculateExtent();
+
+      this._model.setOptions({
+        ...currentOptions,
+        ...updatedOptions,
+      });
+
+      // Calculate scale
+      if (resolution) {
+        // DPI and inches per meter values taken from OpenLayers
+        const dpi = 25.4 / 0.28;
+        const inchesPerMeter = 1000 / 25.4;
+        const scale = resolution * inchesPerMeter * dpi;
+
+        this._callbacks?.onScaleChange?.(scale);
+      }
+    });
+
+    this._map.on('click', event => {
+      this._identifyFeature(event);
+    });
+    this._map.on('click', event => {
+      this._addMarker(event);
+    });
+
+    this._map
+      .getViewport()
+      .addEventListener('pointermove', (event: PointerEvent) => {
+        const pixel = this._map.getEventPixel(event);
+        this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
+        this._syncPointer(this._lastPointerCoord);
+      });
+
+    this._map.getViewport().addEventListener('contextmenu', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      this._callbacks?.onContextMenu?.(
+        event as MouseEvent,
+        this._lastPointerCoord,
+      );
+    });
+  }
+
+  private _identifyFeature(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'identifying') {
+      return;
+    }
+
+    const localState = this._model?.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+
+    if (!selectedLayer) {
+      this._log('warning', 'Layer must be selected to use identify tool');
+      return;
+    }
+
+    const layerId = Object.keys(selectedLayer)[0];
+    const jgisLayer = this._model.getLayer(layerId);
+
+    switch (jgisLayer?.type) {
+      case 'VectorLayer':
+        // Handled by selectInteraction (createSelectInteraction).
+        break;
+
+      case 'VectorTileLayer': {
+        const geometries: Geometry[] = [];
+        const features: IIdentifiedFeatureEntry[] = [];
+        let foundAnyFeatures = false;
+
+        this._map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          foundAnyFeatures = true;
+
+          let geom: Geometry | undefined;
+          let props = {};
+
+          if (feature instanceof RenderFeature) {
+            geom = toGeometry(feature);
+          } else if ('getGeometry' in feature) {
+            geom = feature.getGeometry();
+          }
+
+          const rawProps = feature.getProperties();
+          const fid = feature.getId?.() ?? rawProps?.fid;
+
+          if (rawProps && Object.keys(rawProps).length > 1) {
+            const { ...clean } = rawProps;
+            props = clean;
+            if (fid !== null) {
+              // TODO Clean the cache under some condition?
+              this._featureAttributeCache.set(fid, props);
+            }
+          } else if (fid !== null && this._featureAttributeCache.has(fid)) {
+            props = this._featureAttributeCache.get(fid);
+          }
+
+          if (geom) {
+            geometries.push(geom);
+          }
+          if (props && Object.keys(props).length > 0) {
+            features.push({
+              feature: props,
+              floaterOpen: false,
+            });
+          }
+
+          return true;
+        });
+
+        if (features.length > 0) {
+          this._model.syncIdentifiedFeatures(
+            features,
+            this._model.getClientId().toString(),
+          );
+        } else if (!foundAnyFeatures) {
+          this._model.syncIdentifiedFeatures(
+            [],
+            this._model.getClientId().toString(),
+          );
+        }
+
+        if (geometries.length > 0) {
+          for (const geom of geometries) {
+            this._model.highlightFeatureSignal.emit(geom);
+          }
+        } else {
+          const coordinate = this._map.getCoordinateFromPixel(e.pixel);
+          const point = new Point(coordinate);
+          this._model.highlightFeatureSignal.emit(point);
+        }
+
+        break;
+      }
+
+      case 'GeoTiffLayer':
+      case 'GeoZarrLayer': {
+        const layer = this.getLayer(layerId) as RasterLayer;
+        const data = layer.getData(e.pixel);
+
+        // TODO: Handle dataviews?
+        if (!data || data instanceof DataView) {
+          return;
+        }
+
+        const bandValues: IDict<number> = {};
+
+        // Data is an array of band values
+        for (let i = 0; i < data.length - 1; i++) {
+          bandValues[`Band ${i + 1}`] = data[i];
+        }
+
+        // last element is alpha
+        bandValues['Alpha'] = data[data.length - 1];
+
+        this._model.syncIdentifiedFeatures(
+          [{ feature: bandValues, floaterOpen: false }],
+          this._mainViewModel.id,
+        );
+
+        const coordinate = this._map.getCoordinateFromPixel(e.pixel);
+        const point = new Point(coordinate);
+
+        // trigger highlight via signal
+        this._model.highlightFeatureSignal.emit(point);
+
+        break;
+      }
+    }
+  }
+
+  private async _addMarker(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const coordinate = this._map.getCoordinateFromPixel(e.pixel);
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [coordinate[0], coordinate[1]] },
+    };
+
+    const layerParams: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { layers: [] },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParams,
+    };
+
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
+
+    this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+  }
+
+  private _syncPointer = throttle((coordinates: Coordinate) => {
+    const pointer = {
+      coordinates: { x: coordinates[0], y: coordinates[1] },
+    };
+    this._model.syncPointer(pointer);
+  });
+
+  /** Compute the current view extent in `targetProjection`. */
+  getViewBbox(targetProjection = 'EPSG:4326'): number[] {
+    const view = this._map.getView();
+    const extent = view.calculateExtent(this._map.getSize());
+
+    if (view.getProjection().getCode() === targetProjection) {
+      return extent;
+    }
+
+    return transformExtent(extent, view.getProjection(), targetProjection);
+  }
+
+  /**
+   * Geolocation tracking used by the "center on my location" UI state.
+   * Moved verbatim out of MainView.generateMap().
+   */
+  private _setupGeolocation(): void {
+    this._geolocation = new Geolocation({
+      tracking: false,
+      trackingOptions: {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: Infinity,
+      },
+      projection: this._map.getView().getProjection(),
+    });
+    this._geolocation.on('error', (err: GeolocationError) => {
+      console.warn(`Geolocation error (${err.code}): ${err.message}`);
+      this._model.setUIState({ locationIndicatorActive: false });
+    });
+
+    this._geolocationAccuracyFeature = new Feature();
+    this._geolocationAccuracyFeature.setStyle(
+      new Style({
+        fill: new Fill({ color: 'rgba(135, 206, 250, 0.5)' }),
+      }),
+    );
+    this._geolocation.on('change:accuracyGeometry', () => {
+      if (
+        this._geolocationAccuracyFeature === undefined ||
+        this._geolocation === undefined
+      ) {
+        throw new Error('State incorrectly initialized. This is a bug.');
+      }
+
+      this._geolocationAccuracyFeature.setGeometry(
+        this._geolocation.getAccuracyGeometry() ?? undefined,
+      );
+    });
+
+    /**
+     * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
+     * contrasting white stroke and the OL API does not support that in a single icon.
+     */
+    const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
+    const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+      `<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 ${iconWidth} ${iconHeight}"
+      >
+        <path
+          d="${iconPath}"
+          fill="blue"
+          stroke="white"
+          stroke-width="40"
+          paint-order="stroke"
+          stroke-linejoin="round"
+        />
+      </svg>`,
+    )}`;
+
+    this._geolocationPositionFeature = new Feature();
+    this._geolocationPositionFeature.setStyle(
+      new Style({
+        image: new Icon({ src: crosshairsSrc }),
+      }),
+    );
+
+    this._geolocation.on('change:position', () => {
+      if (
+        this._geolocation === undefined ||
+        this._geolocationPositionFeature === undefined
+      ) {
+        throw new Error('State incorrectly initialized. This is a bug.');
+      }
+
+      const coordinates = this._geolocation.getPosition();
+      this._geolocationPositionFeature.setGeometry(
+        coordinates ? new Point(coordinates) : undefined,
+      );
+    });
+
+    this._geolocationSource = new VectorSource({});
+    new VectorLayer({
+      map: this._map,
+      source: this._geolocationSource,
+    });
+  }
+
   destroy(): void {
     if (!this._map) {
       return;
@@ -188,6 +700,93 @@ export class OpenLayersViewer implements IMapViewer {
 
     this._map.setTarget(undefined);
     this._sources.clear();
+  }
+
+  getMap(): OlMap {
+    return this._map;
+  }
+
+  setZoomButtonsEnabled(enabled: boolean): void {
+    if (!enabled && this._zoomControl) {
+      this._map.removeControl(this._zoomControl);
+      this._zoomControl = undefined;
+      return;
+    }
+
+    if (enabled && !this._zoomControl) {
+      this._zoomControl = new Zoom({ target: this._controlsTarget });
+      this._map.addControl(this._zoomControl);
+    }
+  }
+
+  enterPresentationMode(): void {
+    if (!this._map) {
+      return;
+    }
+
+    const interactionArray = this._map.getInteractions().getArray();
+
+    const interactionsToRemove = [
+      DragPan,
+      DragRotate,
+      DragZoom,
+      KeyboardPan,
+      KeyboardZoom,
+      MouseWheelZoom,
+      PinchRotate,
+      PinchZoom,
+      DoubleClickZoom,
+      DragAndDrop,
+      Select,
+    ];
+
+    this._spectaRemovedInteractions = [];
+
+    interactionsToRemove.forEach(InteractionClass => {
+      const interaction = interactionArray.find(
+        candidate => candidate instanceof InteractionClass,
+      );
+      if (interaction) {
+        this._spectaRemovedInteractions.push(interaction);
+        this._map.removeInteraction(interaction);
+      }
+    });
+
+    if (this._zoomControl) {
+      this._spectaZoomControlWasRemoved = true;
+      this._map.removeControl(this._zoomControl);
+    } else {
+      this._spectaZoomControlWasRemoved = false;
+    }
+  }
+
+  exitPresentationMode(): void {
+    if (!this._map) {
+      return;
+    }
+
+    for (const interaction of this._spectaRemovedInteractions) {
+      this._map.addInteraction(interaction);
+    }
+    this._spectaRemovedInteractions = [];
+
+    if (this._spectaZoomControlWasRemoved && this._zoomControl) {
+      this._map.addControl(this._zoomControl);
+      this._spectaZoomControlWasRemoved = false;
+    }
+  }
+
+  getGeolocationHandles(): IGeolocationHandles | undefined {
+    if (!this._geolocation || !this._geolocationSource) {
+      return undefined;
+    }
+
+    return {
+      geolocation: this._geolocation,
+      source: this._geolocationSource,
+      positionFeature: this._geolocationPositionFeature,
+      accuracyFeature: this._geolocationAccuracyFeature,
+    };
   }
 
   getSize(): [number, number] | undefined {
@@ -1985,21 +2584,12 @@ export class OpenLayersViewer implements IMapViewer {
     }
   }
 
-  /**
-   * Temporary escape hatch while extraction is happening.
-   *
-   * This should eventually disappear once all OpenLayers-specific
-   * operations have moved behind IMapViewer.
-   */
-  getMap(): OlMap | null {
-    return this._map;
-  }
-
   private _map: OlMap;
   private _sourceToLayerMap = new Map();
   private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
+  private _mainViewId?: string;
   private _ready = false;
   private _pendingZoomLayerId: string | null = null;
   private _loggerRegistry?: ILoggerRegistry;
@@ -2007,6 +2597,16 @@ export class OpenLayersViewer implements IMapViewer {
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;
   } = { current: null };
+  private _callbacks?: IMapViewerCallbacks;
+  private _zoomControl?: Zoom;
+  private _controlsTarget?: HTMLElement;
+  private _spectaRemovedInteractions: Interaction[] = [];
+  private _spectaZoomControlWasRemoved = false;
+  private _lastPointerCoord: Coordinate | null = null;
+  private _geolocation?: Geolocation;
+  private _geolocationSource?: VectorSource;
+  private _geolocationPositionFeature?: Feature;
+  private _geolocationAccuracyFeature?: Feature;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -2030,4 +2630,6 @@ export class OpenLayersViewer implements IMapViewer {
       ?.getLogger(this._model.filePath)
       .log({ type: 'text', level, data: message });
   }
+
+  private _featureAttributeCache: Map<string | number, any> = new Map();
 }
