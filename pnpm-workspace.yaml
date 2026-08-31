@@ -19,10 +19,6 @@ allowBuilds:
 
 minimumReleaseAge: 10080 # 1 week
 
-# First-party GeoJupyter package; exempt from the quarantine above. Remove this exclusion in a week.
-minimumReleaseAgeExclude:
-  - proj-codes
-
 nodeLinker: hoisted
 
 linkWorkspacePackages: true
