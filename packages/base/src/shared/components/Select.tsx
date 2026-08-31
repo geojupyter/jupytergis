@@ -59,17 +59,19 @@ export function Select({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn('jgis-combobox-button', buttonClassName)}
-        >
-          <span className="jgis-combobox-button-text">{buttonText}</span>
-          <ChevronsUpDownIcon className="jgis-combobox-icon" />
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn('jgis-combobox-button', buttonClassName)}
+          >
+            <span className="jgis-combobox-button-text">{buttonText}</span>
+            <ChevronsUpDownIcon className="jgis-combobox-icon" />
+          </Button>
+        }
+      />
       <PopoverContent className={cn('jgis-select-popover', className)}>
         <Command>
           {showSearch && <CommandInput placeholder={searchPlaceholder} />}
