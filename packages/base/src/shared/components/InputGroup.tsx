@@ -123,7 +123,7 @@ const InputGroupInput = React.forwardRef<
 >(({ className, ...props }, ref) => {
   return (
     <Input
-      ref={ref}
+      // ref={ref}
       data-slot="input-group-control"
       className={cn(
         'flex-1 rounded-none border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 disabled:bg-transparent aria-invalid:ring-0',
