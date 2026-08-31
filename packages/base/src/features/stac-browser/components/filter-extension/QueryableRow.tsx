@@ -5,7 +5,13 @@ import {
   IStacQueryableSchema,
   Operator,
 } from '@/src/features/stac-browser/types/types';
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/src/shared/components/Select';
 
 interface IOperatorOption {
   value: Operator;
@@ -29,26 +35,30 @@ function QueryableRow({
   inputComponent,
   onOperatorChange,
 }: IQueryableRowProps) {
-  const currentOperator = operators.find(
-    op => op.value === currentFilter.operator,
-  );
-  const buttonText = currentOperator?.label || 'Select operator...';
-
-  const items: ISelectItem[] = operators.map(operator => ({
+  const items = operators.map(operator => ({
     value: String(operator.value),
-    label: String(operator.label),
-    onSelect: () => onOperatorChange(operator.value),
+    label: operator.label,
   }));
 
   return (
     <div className="jgis-queryable-row">
       <span>{qVal.title || qKey}</span>
       <Select
+        value={String(currentFilter.operator)}
+        onValueChange={value => onOperatorChange(value as Operator)}
         items={items}
-        buttonText={String(buttonText)}
-        emptyText="No operator found."
-        buttonClassName="jgis-queryable-combo-operator"
-      />
+      >
+        <SelectTrigger className="jgis-queryable-combo-operator w-full max-w-none">
+          <SelectValue placeholder="Select operator..." />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map(item => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {inputComponent}
     </div>
   );
