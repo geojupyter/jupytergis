@@ -481,8 +481,8 @@ importers:
         specifier: ^3.0.7
         version: 3.2.1
       proj-codes:
-        specifier: ^0.0.3
-        version: 0.0.3
+        specifier: ^0.0.4
+        version: 0.0.4
       proj4:
         specifier: 2.19.3
         version: 2.19.3(geotiff@2.1.3)
@@ -7905,8 +7905,8 @@ packages:
     resolution: {integrity: sha512-QE8RApCM3IaRRxVzxrjbgNMpQEX6Wu0p0KBeoSiSEw5/bsGwZHsshF4LCxH2jp/r6BU+bqA3LrMDEYNfJnpD8Q==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  proj-codes@0.0.3:
-    resolution: {integrity: sha512-KzaXpgdTQWcnr1I1HPEE7AhVjyf0hZtXiONyMKnuRwpGs+XPRLQsHrTH9gDhQyzwhHjlSD4+H52p30O2PPmN/A==}
+  proj-codes@0.0.4:
+    resolution: {integrity: sha512-KCIlQtOQxuaGa1pmldQ1GXPeMuQPpl5Q+Vg5eWXAm33vVMwWjoDnufZp5Bk1RIqWIzrVNM1tJW7lvMbW08R7zg==}
 
   proj4@2.19.3:
     resolution: {integrity: sha512-sXMnThBbpAzYqYLtKDOzmLGvvfFAv+VIJKKDOUied/xWVeVPKi0pwDFUHnLD4OysbIR1lF4aYO5J4LhJxgKMGw==}
@@ -18394,7 +18394,7 @@ snapshots:
 
   proggy@3.0.0: {}
 
-  proj-codes@0.0.3: {}
+  proj-codes@0.0.4: {}
 
   proj4@2.19.3(geotiff@2.1.3):
     dependencies:
