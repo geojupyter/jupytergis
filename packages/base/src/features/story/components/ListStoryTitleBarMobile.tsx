@@ -71,16 +71,18 @@ export function ListStoryTitleBarMobile({
       aria-label="Story segments"
     >
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            className="jgis-story-title-bar-menu-btn"
-            aria-label="Open story menu"
-          >
-            <Menu />
-          </Button>
-        </PopoverTrigger>
+        <PopoverTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              className="jgis-story-title-bar-menu-btn"
+              aria-label="Open story menu"
+            >
+              <Menu />
+            </Button>
+          }
+        />
         <PopoverContent
           align="center"
           side="bottom"

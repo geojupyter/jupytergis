@@ -296,7 +296,7 @@
   color: inherit;
 }
 
-.jgis-popover-content.jgis-story-title-bar-segment-menu {
+[data-slot='popover-content'].jgis-story-title-bar-segment-menu {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;

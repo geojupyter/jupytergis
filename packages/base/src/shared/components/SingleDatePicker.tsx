@@ -29,12 +29,14 @@ function SingleDatePicker({
 }: ISingleDatePickerProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button className={className} variant="outline">
-          {showIcon && <CalendarIcon className="jgis-stac-datepicker-icon" />}
-          {date ? format(date, dateFormat) : <span>{placeholder}</span>}
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <Button className={className} variant="outline">
+            {showIcon && <CalendarIcon className="jgis-stac-datepicker-icon" />}
+            {date ? format(date, dateFormat) : <span>{placeholder}</span>}
+          </Button>
+        }
+      />
       <PopoverContent>
         <Calendar
           mode="single"
