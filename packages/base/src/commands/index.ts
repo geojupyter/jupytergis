@@ -108,6 +108,8 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openStoryEditor,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
+  // Live API layers (poll external JSON into a point)
+  CommandIDs.openNewLiveApiDialog,
 ]);
 
 interface ICreateEntry {
@@ -677,6 +679,42 @@ export function addCommands(
       layerType: 'VectorLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoJSONDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewLiveApiDialog, {
+    label: trans.__('Live API Point'),
+    caption:
+      'Open a dialog to create a layer that polls a JSON API for latitude/longitude.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Live API Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: {
+        pollIntervalMs: 5000,
+        useProxy: false,
+        autoTrack: false,
+        showTrail: false,
+        trailLength: 50,
+        iconUrl: '',
+      },
+      layerData: { name: 'Live API Layer' },
+      sourceType: 'LiveApiSource',
+      layerType: 'VectorLayer',
+    }),
+    ...icons.get(CommandIDs.openNewLiveApiDialog),
   });
 
   commands.addCommand(CommandIDs.openNewWmsDialog, {

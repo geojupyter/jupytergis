@@ -52,6 +52,9 @@ export function getSourceTypeForm(
     case 'GeoJSONSource':
       SourceForm = GeoJSONSourcePropertiesForm;
       break;
+    case 'LiveApiSource':
+      SourceForm = SourcePropertiesForm;
+      break;
     case 'ImageSource':
       SourceForm = PathBasedSourcePropertiesForm;
       break;

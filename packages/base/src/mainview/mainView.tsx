@@ -39,6 +39,7 @@ import {
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
+  ILiveApiSource,
   IStorySegmentLayer,
   IWmsTileSource,
   IJupyterGISSettings,
@@ -73,7 +74,7 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
-import { Geometry, Point } from 'ol/geom';
+import { Geometry, LineString, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
@@ -110,6 +111,7 @@ import {
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
 import RenderFeature, { toGeometry } from 'ol/render/Feature';
+import { rulesToStyleFunction } from 'ol/render/canvas/style';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -167,6 +169,11 @@ import {
 import { MainViewModel } from './mainviewmodel';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
+import {
+  iconSizeFromRules,
+  LIVE_API_ROLE_PROP,
+  loadLiveApiIconScale,
+} from '../features/layers/live-api/liveApiStyle';
 import {
   OpenEOTileLayer,
   OpenEOTileSource,
@@ -704,6 +711,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         .getViewport()
         .addEventListener('pointermove', this._onPointerMove.bind(this));
 
+      this._mainViewModel.liveApiPoller.setFeatureApplier(
+        (sourceId, longitude, latitude, properties) => {
+          this._applyLiveApiPosition(sourceId, longitude, latitude, properties);
+        },
+      );
+
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model),
@@ -1219,6 +1232,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           break;
         }
 
+        case 'LiveApiSource': {
+          // Geometry is filled by the live API poller; start empty.
+          newSource = new VectorSource({ features: [] });
+          break;
+        }
+
         case 'ShapefileSource': {
           const parameters = source.parameters as IShapefileSource;
 
@@ -1545,6 +1564,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._sources[id] = newSource;
 
     this._trackSourceExtZoom(id, newSource);
+
+    if (source.type === 'LiveApiSource') {
+      // Fresh OL source — drop any stale trail buffer for this id.
+      this._liveApiTrailBuffers.delete(id);
+      this._mainViewModel.liveApiPoller.pollNow(id);
+    }
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -1587,6 +1612,216 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.addSource(id, source);
     // change source of target layer
     mapLayer.setSource(this._sources[id]);
+    if (source.type === 'LiveApiSource') {
+      this._applyLiveApiOverlayStyle(mapLayer, source, {
+        sourceId: id,
+        layerId,
+      });
+    }
+  }
+
+  /**
+   * Flat style rules from the document layer symbology, used as the non-point
+   * base when wrapping a Live API icon style function.
+   */
+  private _liveApiBaseStyleRules(layerId: string | undefined): Rule[] {
+    if (!layerId) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
+    }
+
+    const jgisLayer = this._model.getLayer(layerId);
+    if (!jgisLayer) {
+      return [{ style: DEFAULT_FLAT_STYLE }];
+    }
+
+    return this.vectorLayerStyleRuleBuilder(jgisLayer);
+  }
+
+  /**
+   * Inject optional icon style for LiveApiSource vector layers.
+   * Uses a classic Style/Icon function (same approach as markers) because
+   * flat `icon-src` + scale/width on VectorImageLayer often fails to paint.
+   * Base (trail / non-point) styling always comes from document symbology,
+   * not from getStyle(), so a prior icon wrap cannot wipe file symbology.
+   */
+  private _applyLiveApiOverlayStyle(
+    mapLayer: Layer | LayerGroup,
+    source: IJGISSource | undefined,
+    ids?: { sourceId?: string; layerId?: string },
+  ): void {
+    if (source?.type !== 'LiveApiSource') {
+      return;
+    }
+
+    const iconUrl = (source.parameters as ILiveApiSource).iconUrl?.trim();
+    if (ids?.sourceId !== undefined) {
+      this._liveApiIconStyleKeys.set(ids.sourceId, iconUrl ?? '');
+    }
+
+    const applyToLayer = (layer: Layer | LayerGroup): void => {
+      if (layer instanceof LayerGroup) {
+        layer.getLayers().forEach(child => {
+          applyToLayer(child as Layer | LayerGroup);
+        });
+
+        return;
+      }
+
+      if (
+        !(layer instanceof VectorImageLayer) &&
+        !(layer instanceof VectorLayer) &&
+        !(layer instanceof VectorTileLayer)
+      ) {
+        return;
+      }
+
+      const baseRules = this._liveApiBaseStyleRules(ids?.layerId);
+
+      if (!iconUrl) {
+        layer.setStyle(baseRules);
+        return;
+      }
+
+      const targetPx = iconSizeFromRules(baseRules);
+
+      void loadLiveApiIconScale(iconUrl, targetPx).then(iconScale => {
+        const iconImage = new Icon({
+          src: iconUrl,
+          scale: iconScale,
+          anchor: [0.5, 0.5],
+          anchorXUnits: 'fraction',
+          anchorYUnits: 'fraction',
+        });
+        const iconStyle = new Style({ image: iconImage });
+        const baseStyleFn = rulesToStyleFunction(baseRules);
+
+        iconImage.listenImageChange(() => {
+          layer.changed();
+        });
+
+        layer.setStyle((feature, resolution) => {
+          if (feature.get(LIVE_API_ROLE_PROP) === 'point') {
+            return iconStyle;
+          }
+
+          return baseStyleFn(feature, resolution);
+        });
+
+        layer.changed();
+      });
+    };
+
+    applyToLayer(mapLayer);
+  }
+
+  /**
+   * Update (or create) the point feature for a LiveApiSource from lon/lat,
+   * and optionally maintain a LineString trail of recent positions.
+   */
+  private _applyLiveApiPosition(
+    sourceId: string,
+    longitude: number,
+    latitude: number,
+    properties: Record<string, unknown>,
+  ): void {
+    const olSource = this._sources[sourceId];
+    if (!(olSource instanceof VectorSource)) {
+      return;
+    }
+
+    const jgisSource = this._model.getSource(sourceId);
+    const parameters =
+      jgisSource?.type === 'LiveApiSource'
+        ? (jgisSource.parameters as ILiveApiSource)
+        : undefined;
+
+    const projection = this._Map.getView().getProjection();
+    const coordinates = fromLonLat([longitude, latitude], projection);
+
+    const trailLength = Math.max(2, parameters?.trailLength ?? 50);
+    const showTrail = parameters?.showTrail === true;
+
+    const buffer = this._liveApiTrailBuffers.get(sourceId) ?? [];
+    buffer.push(coordinates);
+    if (buffer.length > trailLength) {
+      buffer.splice(0, buffer.length - trailLength);
+    }
+    this._liveApiTrailBuffers.set(sourceId, buffer);
+
+    const pointFeature = olSource
+      .getFeatures()
+      .find(feature => feature.get(LIVE_API_ROLE_PROP) === 'point');
+
+    if (pointFeature) {
+      const geometry = pointFeature.getGeometry();
+      if (geometry instanceof Point) {
+        geometry.setCoordinates(coordinates);
+      } else {
+        pointFeature.setGeometry(new Point(coordinates));
+      }
+      for (const [key, value] of Object.entries(properties)) {
+        pointFeature.set(key, value);
+      }
+    } else {
+      const feature = new Feature({
+        geometry: new Point(coordinates),
+        [LIVE_API_ROLE_PROP]: 'point',
+        ...properties,
+      });
+      olSource.addFeature(feature);
+    }
+
+    const trailFeature = olSource
+      .getFeatures()
+      .find(feature => feature.get(LIVE_API_ROLE_PROP) === 'trail');
+
+    if (showTrail && buffer.length >= 2) {
+      if (trailFeature) {
+        const geometry = trailFeature.getGeometry();
+        if (geometry instanceof LineString) {
+          geometry.setCoordinates(buffer);
+        } else {
+          trailFeature.setGeometry(new LineString(buffer));
+        }
+      } else {
+        olSource.addFeature(
+          new Feature({
+            geometry: new LineString(buffer),
+            [LIVE_API_ROLE_PROP]: 'trail',
+          }),
+        );
+      }
+    } else if (trailFeature) {
+      olSource.removeFeature(trailFeature);
+    }
+
+    // Icon style is applied from the poll path so it still runs when the
+    // layer was built before iconUrl existed / before a hot reload.
+    const iconUrl = parameters?.iconUrl?.trim() ?? '';
+    const layerId = this._sourceToLayerMap.get(sourceId);
+    const mapLayer = layerId ? this.getLayer(layerId) : undefined;
+    const prevIconKey = this._liveApiIconStyleKeys.get(sourceId);
+    if (mapLayer && prevIconKey !== iconUrl) {
+      this._applyLiveApiOverlayStyle(mapLayer, jgisSource, {
+        sourceId,
+        layerId,
+      });
+    }
+
+    if (parameters?.autoTrack === true) {
+      const zoom = this._Map.getView().getZoom();
+      if (zoom === undefined) {
+        return;
+      }
+
+      const target = { x: coordinates[0], y: coordinates[1] };
+      // Wait until the updated point has been painted, then fly.
+      this._Map.once('postrender', () => {
+        this._flyToPosition(target, zoom, 500, 'linear');
+      });
+      olSource.changed();
+      this._Map.render();
+    }
   }
 
   /**
@@ -1596,6 +1831,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    */
   removeSource(id: string): void {
     delete this._sources[id];
+    this._liveApiTrailBuffers.delete(id);
+    this._liveApiIconStyleKeys.delete(id);
   }
 
   /**
@@ -1748,6 +1985,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             layer.visible,
             featureValues,
           ) as OlLayerTypes;
+          if (source?.type === 'LiveApiSource') {
+            this._applyLiveApiOverlayStyle(newMapLayer, source, {
+              sourceId: layerParameters.source,
+              layerId: id,
+            });
+          }
         } else {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
@@ -1755,6 +1998,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             source: this._sources[layerParameters.source],
             style: this.vectorLayerStyleRuleBuilder(layer),
           });
+          if (source?.type === 'LiveApiSource') {
+            this._applyLiveApiOverlayStyle(newMapLayer, source, {
+              sourceId: layerParameters.source,
+              layerId: id,
+            });
+          }
         }
 
         break;
@@ -2228,6 +2477,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
+
+        const sourceId = layerParams.source;
+        const source = sourceId ? this._model.getSource(sourceId) : undefined;
+        if (source?.type === 'LiveApiSource') {
+          this._applyLiveApiOverlayStyle(mapLayer, source, {
+            sourceId,
+            layerId: id,
+          });
+        }
 
         break;
       }
@@ -4400,6 +4658,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
+  private _liveApiTrailBuffers = new Map<string, Coordinate[]>();
+  /** sourceId → last applied iconUrl (including '' when cleared). */
+  private _liveApiIconStyleKeys = new Map<string, string>();
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;

@@ -1,0 +1,51 @@
+{
+  "type": "object",
+  "description": "LiveApiSource",
+  "title": "ILiveApiSource",
+  "required": ["url"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "HTTP(S) API endpoint that returns JSON with root-level latitude and longitude fields"
+    },
+    "pollIntervalMs": {
+      "type": "number",
+      "title": "Poll Interval",
+      "description": "How often to poll the API, in milliseconds",
+      "default": 5000,
+      "minimum": 1000
+    },
+    "autoTrack": {
+      "type": "boolean",
+      "title": "Auto Track",
+      "description": "Center the map on the point after every successful poll",
+      "default": false
+    },
+    "showTrail": {
+      "type": "boolean",
+      "title": "Show Trail",
+      "description": "Draw a line through recent positions from this API",
+      "default": false
+    },
+    "trailLength": {
+      "type": "number",
+      "title": "Trail Length",
+      "description": "Maximum number of positions kept in the trail",
+      "default": 50,
+      "minimum": 2
+    },
+    "iconUrl": {
+      "type": "string",
+      "title": "Icon URL",
+      "description": "URL of an image to use for the live point instead of the default circle. Leave empty for the default circle.",
+      "default": ""
+    },
+    "useProxy": {
+      "type": "boolean",
+      "title": "Use Proxy",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    }
+  }
+}
