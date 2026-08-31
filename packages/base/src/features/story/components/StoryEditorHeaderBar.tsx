@@ -109,7 +109,7 @@ function StorySettingsPopover({
           <label className="jgis-story-editor-field">
             <span>Story type</span>
             <NativeSelect
-              className="jgis-story-editor-story-type-native-select"
+              className="w-full"
               value={story.storyType ?? STORY_TYPE.guided}
               onChange={event => {
                 onUpdateStory({
