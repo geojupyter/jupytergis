@@ -8,7 +8,13 @@ import {
   StacResultsProvider,
   useStacResultsContext,
 } from '@/src/features/stac-browser/context/StacResultsContext';
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/src/shared/components/Select';
 import {
   Tabs,
   TabsContent,
@@ -110,26 +116,34 @@ const StacPanel = ({ model }: IStacViewProps) => {
 function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
 
-  const selectedProvider = PROVIDERS.find(
-    provider => provider.url === selectedUrl,
-  );
-  const buttonText = selectedProvider?.name || 'Select a provider...';
-
-  const items: ISelectItem[] = PROVIDERS.map(provider => ({
+  const items = PROVIDERS.map(provider => ({
     value: provider.url,
     label: provider.name,
-    onSelect: () => setSelectedUrl(provider.url),
   }));
 
   return (
     <div className="jgis-stac-filter-extension-section">
       <label className="jgis-stac-filter-extension-label">Provider</label>
       <Select
+        value={selectedUrl || null}
+        onValueChange={value => {
+          if (value != null) {
+            setSelectedUrl(value);
+          }
+        }}
         items={items}
-        buttonText={buttonText}
-        emptyText="No provider found."
-        buttonClassName="jgis-stac-filter-extension-select"
-      />
+      >
+        <SelectTrigger className="jgis-stac-filter-extension-select w-full max-w-none">
+          <SelectValue placeholder="Select a provider..." />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map(item => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

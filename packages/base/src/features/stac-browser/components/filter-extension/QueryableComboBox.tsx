@@ -25,7 +25,13 @@ import {
   ComboboxTrigger,
 } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
-import { Select } from '@/src/shared/components/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/src/shared/components/Select';
 import { debounce } from '@/src/tools';
 import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
@@ -187,24 +193,32 @@ export function QueryableComboBox({
     switch (val.type) {
       case 'string':
         if (val.enum) {
-          const selectedOption = val.enum.find(
-            opt => String(opt) === String(currentValue),
-          );
-          const buttonText = selectedOption
-            ? String(selectedOption)
-            : 'Select option...';
+          const items = val.enum.map(option => ({
+            value: String(option),
+            label: String(option),
+          }));
 
           return (
             <Select
-              items={val.enum.map(option => ({
-                value: String(option),
-                label: String(option),
-                onSelect: () => onChange(String(option)),
-              }))}
-              buttonText={buttonText}
-              emptyText="No option found."
-              buttonClassName="jgis-queryable-combo-input"
-            />
+              value={
+                currentValue != null && currentValue !== ''
+                  ? String(currentValue)
+                  : null
+              }
+              onValueChange={value => onChange(String(value))}
+              items={items}
+            >
+              <SelectTrigger className="jgis-queryable-combo-input w-full max-w-none">
+                <SelectValue placeholder="Select option..." />
+              </SelectTrigger>
+              <SelectContent>
+                {items.map(item => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           );
         }
         if (val.format === 'date-time') {
@@ -252,24 +266,32 @@ export function QueryableComboBox({
       case 'number':
       case 'integer':
         if (val.enum) {
-          const selectedOption = val.enum.find(
-            opt => Number(opt) === Number(currentValue),
-          );
-          const buttonText = selectedOption
-            ? String(selectedOption)
-            : 'Select option...';
+          const items = val.enum.map(option => ({
+            value: String(option),
+            label: String(option),
+          }));
 
           return (
             <Select
-              items={val.enum.map(option => ({
-                value: String(option),
-                label: String(option),
-                onSelect: () => onChange(Number(option)),
-              }))}
-              buttonText={buttonText}
-              emptyText="No option found."
-              buttonClassName="jgis-queryable-combo-input"
-            />
+              value={
+                currentValue != null && currentValue !== ''
+                  ? String(currentValue)
+                  : null
+              }
+              onValueChange={value => onChange(Number(value))}
+              items={items}
+            >
+              <SelectTrigger className="jgis-queryable-combo-input w-full max-w-none">
+                <SelectValue placeholder="Select option..." />
+              </SelectTrigger>
+              <SelectContent>
+                {items.map(item => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           );
         }
         return (
