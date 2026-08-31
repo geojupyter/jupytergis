@@ -159,13 +159,64 @@ authors:
     website: "https://www.eusoj.dev/"
 
 
-# TODO: Fill in grant numbers. Are there more grants?
-# references:
-#   - type: "grant"
-#     institution:
-#       name: "European Space Agency"
-#     number: "TODO"
-#   - type: "grant"
-#     institution:
-#       name: "Centre national d'études spatiales"
-#     number: "TODO"
+references:
+  - type: "article"
+    doi: "10.21105/joss.10383"
+    title: "JupyterGIS: A Collaborative GIS Environment for JupyterLab"
+    url: "https://joss.theoj.org/papers/10.21105/joss.10383"
+    date-published: "2026-08-19"
+    issn: "2475-9066"
+    publisher:
+      name: "Open Journals"
+    journal: "Journal of Open Source Software"
+    issue: 124
+    volume: 11
+    start: 10383
+    authors:
+      - given-names: "Martin"
+        family-names: "Renou"
+        orcid: "https://orcid.org/0009-0002-3422-9156"
+      - given-names: "Arjun"
+        family-names: "Verma"
+        orcid: "https://orcid.org/0009-0007-3278-9607"
+      - given-names: "Matt"
+        family-names: "Fisher"
+        orcid: "https://orcid.org/0000-0003-3260-5445"
+      - given-names: "Gregory"
+        family-names: "Mooney"
+        orcid: "https://orcid.org/0009-0007-5501-6471"
+      - given-names: "Matthias"
+        family-names: "Meschede"
+        orcid: "https://orcid.org/0000-0002-9451-3928"
+      - given-names: "Nicolas"
+        family-names: "Brichet"
+        orcid: "https://orcid.org/0009-0009-2649-1809"
+      - given-names: "David"
+        family-names: "Brochart"
+        orcid: "https://orcid.org/0009-0007-2318-0285"
+      - given-names: "Nakul"
+        family-names: "Verma"
+        orcid: "https://orcid.org/0009-0002-9625-3493"
+      - given-names: "Anne"
+        family-names: "Fouilloux"
+        orcid: "https://orcid.org/0000-0002-1784-2920"
+      - given-names: "Sylvain"
+        family-names: "Corlay"
+        orcid: "https://orcid.org/0009-0007-2816-4102"
+      - given-names: "Fernando"
+        family-names: "Pérez"
+        orcid: "https://orcid.org/0000-0002-1725-9815"
+    contact:
+      - given-names: "Sylvain"
+        family-names: "Corlay"
+        orcid: "https://orcid.org/0009-0007-2816-4102"
+
+  # # TODO: Fill in grant numbers. Are there more grants?
+  # - type: "grant"
+  #   institution:
+  #     name: "European Space Agency"
+  #   number: "TODO"
+  # - type: "grant"
+  #   institution:
+  #     name: "Centre national d'études spatiales"
+  #   number: "TODO"
