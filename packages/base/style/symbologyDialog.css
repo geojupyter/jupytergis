@@ -470,7 +470,6 @@ select option {
   min-width: 0;
 }
 
-.jp-gis-grammar-encoding-select .jgis-combobox-button,
 .jp-gis-grammar-encoding-select [data-slot='native-select-wrapper'] {
   width: 100%;
   box-sizing: border-box;
