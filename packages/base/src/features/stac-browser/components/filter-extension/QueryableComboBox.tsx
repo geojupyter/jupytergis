@@ -26,12 +26,9 @@ import {
 } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/shared/components/Select';
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 import { debounce } from '@/src/tools';
 import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
@@ -193,32 +190,25 @@ export function QueryableComboBox({
     switch (val.type) {
       case 'string':
         if (val.enum) {
-          const items = val.enum.map(option => ({
-            value: String(option),
-            label: String(option),
-          }));
-
           return (
-            <Select
+            <NativeSelect
+              className="jgis-queryable-combo-input w-full"
               value={
                 currentValue != null && currentValue !== ''
                   ? String(currentValue)
-                  : null
+                  : ''
               }
-              onValueChange={value => onChange(String(value))}
-              items={items}
+              onChange={event => onChange(String(event.target.value))}
             >
-              <SelectTrigger className="jgis-queryable-combo-input w-full max-w-none">
-                <SelectValue placeholder="Select option..." />
-              </SelectTrigger>
-              <SelectContent>
-                {items.map(item => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <NativeSelectOption value="" disabled>
+                Select option...
+              </NativeSelectOption>
+              {val.enum.map(option => (
+                <NativeSelectOption key={String(option)} value={String(option)}>
+                  {String(option)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           );
         }
         if (val.format === 'date-time') {
@@ -266,32 +256,25 @@ export function QueryableComboBox({
       case 'number':
       case 'integer':
         if (val.enum) {
-          const items = val.enum.map(option => ({
-            value: String(option),
-            label: String(option),
-          }));
-
           return (
-            <Select
+            <NativeSelect
+              className="jgis-queryable-combo-input w-full"
               value={
                 currentValue != null && currentValue !== ''
                   ? String(currentValue)
-                  : null
+                  : ''
               }
-              onValueChange={value => onChange(Number(value))}
-              items={items}
+              onChange={event => onChange(Number(event.target.value))}
             >
-              <SelectTrigger className="jgis-queryable-combo-input w-full max-w-none">
-                <SelectValue placeholder="Select option..." />
-              </SelectTrigger>
-              <SelectContent>
-                {items.map(item => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <NativeSelectOption value="" disabled>
+                Select option...
+              </NativeSelectOption>
+              {val.enum.map(option => (
+                <NativeSelectOption key={String(option)} value={String(option)}>
+                  {String(option)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           );
         }
         return (
