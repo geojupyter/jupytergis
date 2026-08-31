@@ -152,14 +152,6 @@
   width: 100%;
 }
 
-/* More specific selector to override Input styles for queryable combo */
-.jgis-input.jgis-queryable-combo-input,
-.jgis-queryable-combo-input[data-slot='input'] {
-  padding: 0.5rem;
-  /* padding-left: 1rem; */
-  height: 1.5rem;
-}
-
 /* More specific selector to override button base styles */
 .jgis-button.jgis-queryable-combo-input-date-picker {
   justify-content: flex-start;
