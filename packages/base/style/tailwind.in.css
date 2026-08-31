@@ -18,6 +18,16 @@
       box-sizing: border-box;
       border-color: var(--color-border);
     }
+
+    /* shadcn includes Tailwind preflight; we only import theme+utilities.
+       Ghost buttons have no resting bg class — without this, native button
+       face color shows until hover:bg-muted applies. */
+    & button,
+    &:is(button) {
+      appearance: none;
+      background-color: transparent;
+      background-image: none;
+    }
   }
 }
 

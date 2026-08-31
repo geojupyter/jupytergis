@@ -49,7 +49,7 @@ const ButtonTw = React.forwardRef<
     <ButtonPrimitive
       ref={ref}
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   );

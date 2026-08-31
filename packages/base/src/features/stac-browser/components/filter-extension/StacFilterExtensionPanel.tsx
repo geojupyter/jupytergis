@@ -98,10 +98,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
             setSelectedCollection(item?.value ?? '');
           }}
         >
-          <ComboboxInput
-            className="bg-background w-full"
-            placeholder="Search collections..."
-          />
+          <ComboboxInput placeholder="Search collections..." />
           <ComboboxContent>
             <ComboboxEmpty>No collection found.</ComboboxEmpty>
             <ComboboxList>
