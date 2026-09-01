@@ -92,12 +92,8 @@ function StorySettingsPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button
-            variant="ghost"
-            title="Story settings"
-            style={{ marginBottom: 1 }}
-          >
-            <FontAwesomeIcon icon={faGear} style={{ marginBottom: 3 }} />
+          <Button variant="ghost" title="Story settings">
+            <FontAwesomeIcon icon={faGear} />
           </Button>
         }
       />
