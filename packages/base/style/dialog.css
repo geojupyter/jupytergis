@@ -12,8 +12,12 @@
   display: none !important;
 }
 
+/* A fixed width rather than a minimum: the dialog is shrink-to-fit, so with
+ * only a minimum the Information tab's tables and URLs stretched it wider than
+ * the property form and the dialog jumped when switching tabs. Wide content
+ * wraps or scrolls within this width instead. */
 .jp-gis-object-properties-dialog .jp-Dialog-content {
-  min-width: min(600px, 90vw);
+  width: min(600px, 90vw);
   max-height: 80vh;
 }
 

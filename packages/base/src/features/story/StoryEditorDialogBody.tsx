@@ -341,7 +341,7 @@ export function StoryEditorDialogBody({
   }, []);
 
   return (
-    <div ref={portalContainerRef} className="jgis-story-editor">
+    <div ref={portalContainerRef} className="jgis-story-editor" tabIndex={-1}>
       <StoryEditorHeaderBar
         model={model}
         story={story}

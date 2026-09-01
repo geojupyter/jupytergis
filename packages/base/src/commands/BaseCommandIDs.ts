@@ -33,9 +33,11 @@ export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
+export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
 
 // Layer and group actions
 export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
+export const showLayerMetadata = 'jupytergis:showLayerMetadata';
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
 export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
@@ -74,5 +76,9 @@ export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const openStoryEditor = 'jupytergis:openStoryEditor';
+export const copyStorySegment = 'jupytergis:copyStorySegment';
+export const pasteStorySegment = 'jupytergis:pasteStorySegment';
+export const duplicateStorySegment = 'jupytergis:duplicateStorySegment';
+export const removeStorySegment = 'jupytergis:removeStorySegment';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';

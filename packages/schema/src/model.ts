@@ -942,6 +942,51 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._currentSegmentIndexChanged;
   }
 
+  getSelectedStorySegmentId(): string | null {
+    const { story } = this.getSelectedStory();
+    const segmentIds = story?.storySegments;
+    if (!segmentIds?.length) {
+      return null;
+    }
+
+    const index = this.getCurrentSegmentIndex() ?? 0;
+    return segmentIds[index] ?? segmentIds[0] ?? null;
+  }
+
+  canRemoveStorySegment(): boolean {
+    const { story } = this.getSelectedStory();
+    return (story?.storySegments?.length ?? 0) > 1;
+  }
+
+  /**
+   * Remove a story segment layer and clamp the current index.
+   * Returns false when the segment is missing or it is the last remaining one.
+   */
+  removeStorySegment(segmentId: string): boolean {
+    const { story } = this.getSelectedStory();
+    if (!story?.storySegments || story.storySegments.length <= 1) {
+      return false;
+    }
+
+    if (!story.storySegments.includes(segmentId)) {
+      return false;
+    }
+
+    const currentIndex = this.getCurrentSegmentIndex();
+    this.sharedModel.transact(() => {
+      this.removeLayer(segmentId);
+    });
+
+    const remainingCount =
+      this.getSelectedStory().story?.storySegments?.length ?? 0;
+
+    this.setCurrentSegmentIndex(
+      remainingCount === 0 ? 0 : Math.min(currentIndex, remainingCount - 1),
+    );
+
+    return true;
+  }
+
   /**
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found

@@ -39,6 +39,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
@@ -57,6 +58,13 @@ import {
   modelHasHiddenPanel,
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
+import {
+  copyStorySegment,
+  duplicateStorySegment,
+  getStorySegmentClipboard,
+  pasteStorySegment,
+  removeStorySegment,
+} from '../features/story/utils/storySegmentClipboard';
 import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
@@ -106,6 +114,10 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
+  CommandIDs.copyStorySegment,
+  CommandIDs.pasteStorySegment,
+  CommandIDs.duplicateStorySegment,
+  CommandIDs.removeStorySegment,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
@@ -313,6 +325,75 @@ export function addCommands(
       await editHandler({ model, selectedId, formSchemaRegistry });
     },
     ...icons.get(CommandIDs.showLayerPropertiesDialog),
+  });
+
+  commands.addCommand(CommandIDs.showLayerMetadata, {
+    label: trans.__('Layer Metadata'),
+    caption:
+      'Show the projection, extent, bands and tile pyramid of the selected layer.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+        },
+      },
+    },
+
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      const selectedIds = Object.keys(selected);
+
+      // Only a single object can be described at a time.
+      if (selectedIds.length !== 1) {
+        return false;
+      }
+
+      const id = selectedIds[0];
+      return Boolean(model.getLayer(id) || model.getSource(id));
+    },
+
+    execute: async (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
+      if (!current) {
+        console.error(
+          'Cannot show layer information: no active JupyterGIS document.',
+        );
+        return;
+      }
+
+      const model = current.model;
+
+      if (layerId) {
+        model.syncSelected(
+          { [layerId]: { type: 'layer' } },
+          model.getClientId().toString(),
+        );
+      }
+
+      // Unlike editing, describing a layer is the same for every layer type, so
+      // this deliberately bypasses `getLayerEditHandler`: types with their own
+      // editor (e.g. OpenEO) still get a Metadata tab.
+      const dialog = new ObjectPropertiesWidget({
+        model,
+        formSchemaRegistry,
+        initialTab: 'metadata',
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.showLayerMetadata),
   });
 
   commands.addCommand(CommandIDs.redo, {
@@ -1971,6 +2052,125 @@ export function addCommands(
       session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
+  });
+
+  commands.addCommand(CommandIDs.copyStorySegment, {
+    label: trans.__('Copy Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      return (
+        !!model?.sharedModel.editable &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return false;
+      }
+
+      return copyStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.copyStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.pasteStorySegment, {
+    label: trans.__('Paste Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () =>
+      !!tracker.currentWidget?.model.sharedModel.editable &&
+      getStorySegmentClipboard() !== null,
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return null;
+      }
+
+      return pasteStorySegment(model, model.getSelectedStorySegmentId());
+    },
+    ...icons.get(CommandIDs.pasteStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.duplicateStorySegment, {
+    label: trans.__('Duplicate Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      return (
+        !!model?.sharedModel.editable &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return null;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return null;
+      }
+
+      return duplicateStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.duplicateStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.removeStorySegment, {
+    label: trans.__('Delete Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model?.sharedModel.editable) {
+        return false;
+      }
+
+      return (
+        model.canRemoveStorySegment() &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return false;
+      }
+
+      return removeStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.removeStorySegment),
   });
 
   /* Enabled during story presentation (Specta or lab preview). */
