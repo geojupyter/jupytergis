@@ -3,5 +3,8 @@
   "trailingComma": "all",
   "arrowParens": "avoid",
   "endOfLine": "auto",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "./packages/base/style/tailwind.in.css",
+  "tailwindFunctions": ["cn"],
   "tailwindPreserveWhitespace": true
 }
