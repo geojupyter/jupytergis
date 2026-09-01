@@ -10,11 +10,11 @@
       "description": "The proxy URL to use for external requests.",
       "default": "https://corsproxy.io"
     },
-    "mapViewer": {
+    "mapAdapter": {
       "type": "string",
       "enum": ["openlayers", "maplibre"],
-      "title": "Map Viewer",
-      "description": "The map viewer to use.",
+      "title": "Map Adapter",
+      "description": "The Map adapter to use.",
       "default": "openlayers"
     },
     "leftPanelDisabled": {

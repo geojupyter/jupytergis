@@ -9,10 +9,10 @@ import type {
 } from '@jupytergis/schema';
 import type { Coordinate } from 'ol/coordinate';
 
-import { MapLibreViewer } from './viewers/maplibreViewer';
-import { OpenLayersViewer } from './viewers/openlayersViewer';
+import { MapLibreAdapter } from './adapters/maplibreAdapter';
+import { OpenLayersAdapter } from './adapters/openlayersAdapter';
 
-export type MapViewerType = 'openlayers' | 'maplibre';
+export type MapAdapterType = 'openlayers' | 'maplibre';
 
 /**
  * Minimal abstraction layer between MainView and map engines.
@@ -20,8 +20,8 @@ export type MapViewerType = 'openlayers' | 'maplibre';
  * Keep this interface small initially.
  * More methods can be added as MapLibre support grows.
  */
-export interface IMapViewer {
-  initialize(target: HTMLElement, options: IMapViewerOptions): Promise<void>;
+export interface IMapAdapter {
+  initialize(target: HTMLElement, options: IMapAdapterOptions): Promise<void>;
   destroy(): void;
 
   getLayer(id: string): any | undefined;
@@ -63,7 +63,7 @@ export interface IMapViewer {
    * Temporary escape hatch while extraction is happening.
    *
    * This should also be removed once all operations
-   * have moved behind IMapViewer.
+   * have moved behind IMapAdapter.
    */
   getMap(): any;
 
@@ -74,7 +74,7 @@ export interface IMapViewer {
    * Removes the FullScreen control.
    *
    * This should also be removed once all operations
-   * have moved behind IMapViewer.
+   * have moved behind IMapAdapter.
    */
   enterPresentationMode(): void;
 
@@ -87,7 +87,7 @@ export interface IMapViewer {
   getGeolocationHandles(): any | undefined;
 }
 
-export interface IMapViewerOptions {
+export interface IMapAdapterOptions {
   projection?: string;
   center?: [number, number];
   zoom?: number;
@@ -98,7 +98,7 @@ export interface IMapViewerOptions {
   zoomButtonsEnabled?: boolean;
   isSpectaMode?: boolean;
   mainViewId?: string;
-  callbacks?: IMapViewerCallbacks;
+  callbacks?: IMapAdapterCallbacks;
 }
 
 /**
@@ -106,7 +106,7 @@ export interface IMapViewerOptions {
  * concern (React state, Lumino context menu) rather
  * than the map engine's.
  */
-export interface IMapViewerCallbacks {
+export interface IMapAdapterCallbacks {
   onPostRender?: () => void;
   onScaleChange?: (scale: number) => void;
   onContextMenu?: (
@@ -116,25 +116,25 @@ export interface IMapViewerCallbacks {
 }
 
 /**
- * Factory for creating map viewers.
+ * Factory for creating map adapters.
  * - OpenLayers → OpenLayers implementation
  * - MapLibre   → OpenLayers fallback for now
  */
-export async function createMapViewer(
-  type: MapViewerType,
+export async function createMapAdapter(
+  type: MapAdapterType,
   model: IJupyterGISModel,
-): Promise<IMapViewer> {
+): Promise<IMapAdapter> {
   switch (type) {
     case 'openlayers': {
-      return new OpenLayersViewer(model);
+      return new OpenLayersAdapter(model);
     }
 
     case 'maplibre': {
-      return new MapLibreViewer(model);
+      return new MapLibreAdapter(model);
     }
 
     default: {
-      throw new Error(`Unknown map viewer type: ${type}`);
+      throw new Error(`Unknown map adapter type: ${type}`);
     }
   }
 }

@@ -124,10 +124,10 @@ import {
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
 import {
-  IMapViewer,
-  IMapViewerCallbacks,
-  IMapViewerOptions,
-} from '@/src/mainview/mapviewer';
+  IMapAdapter,
+  IMapAdapterCallbacks,
+  IMapAdapterOptions,
+} from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
@@ -149,8 +149,8 @@ type OlLayerTypes =
   | LayerGroup;
 
 /**
- * Concrete, OL-typed shape returned by OpenLayersViewer.getGeolocationHandles().
- * The abstraction in mapviewer.ts types this `any` since it's shared across
+ * Concrete, OL-typed shape returned by OpenLayersAdapter.getGeolocationHandles().
+ * The abstraction in mapadapter.ts types this `any` since it's shared across
  * engines; this is the real shape MainView receives when running OpenLayers.
  */
 export interface IGeolocationHandles {
@@ -160,14 +160,14 @@ export interface IGeolocationHandles {
   accuracyFeature: Feature | undefined;
 }
 
-export class OpenLayersViewer implements IMapViewer {
+export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
     this._loadingLayers = new Set();
   }
   async initialize(
     target: HTMLElement,
-    options: IMapViewerOptions,
+    options: IMapAdapterOptions,
   ): Promise<void> {
     const {
       projection = 'EPSG:3857',
@@ -2597,7 +2597,7 @@ export class OpenLayersViewer implements IMapViewer {
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;
   } = { current: null };
-  private _callbacks?: IMapViewerCallbacks;
+  private _callbacks?: IMapAdapterCallbacks;
   private _zoomControl?: Zoom;
   private _controlsTarget?: HTMLElement;
   private _spectaRemovedInteractions: Interaction[] = [];

@@ -1,13 +1,13 @@
-import { OpenLayersViewer } from './openlayersViewer';
+import { OpenLayersAdapter } from './openlayersAdapter';
 
 /**
- * Temporary MapLibre viewer implementation.
+ * Temporary MapLibre adapter implementation.
  *
  * MapLibre is not implemented yet, so it currently inherits the
  * OpenLayers implementation. This allows the application to expose
- * MapLibre as a selectable viewer without changing the existing
+ * MapLibre as a selectable adapter without changing the existing
  * rendering behavior.
  */
-export class MapLibreViewer extends OpenLayersViewer {
+export class MapLibreAdapter extends OpenLayersAdapter {
   // MapLibre-specific implementation will be added in follow ups.
 }

@@ -71,7 +71,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { createMapViewer, IMapViewer, MapViewerType } from './mapviewer';
+import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
@@ -296,8 +296,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     await this.generateMap(center, zoom, projection);
     this._model.zoomToPositionSignal.connect(
-      this._mapViewer.onZoomToPosition,
-      this._mapViewer,
+      this._mapAdapter.onZoomToPosition,
+      this._mapAdapter,
     );
 
     this._handleRemoteUserChanged();
@@ -310,7 +310,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._spectaModeSetupDone = true;
     }
     if (window.jupytergisMaps !== undefined && this._documentPath) {
-      window.jupytergisMaps[this._documentPath] = this._mapViewer.getMap();
+      window.jupytergisMaps[this._documentPath] = this._mapAdapter.getMap();
     }
   }
 
@@ -359,7 +359,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.zoomToPositionSignal.disconnect(
-      this._mapViewer.onZoomToPosition,
+      this._mapAdapter.onZoomToPosition,
       this,
     );
     this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
@@ -409,8 +409,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.modeChanged.disconnect(this._handleModeChanged, this);
     this._stopLocationIndicator();
-    if (this._mapViewer) {
-      this._mapViewer.destroy();
+    if (this._mapAdapter) {
+      this._mapAdapter.destroy();
     }
 
     this._mainViewModel.dispose();
@@ -431,17 +431,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const mapViewerSetting = this._model.jgisSettings.mapViewer || 'openlayers';
-    const mapViewerType: MapViewerType = (
-      mapViewerSetting === 'maplibre' ? 'maplibre' : 'openlayers'
-    ) as MapViewerType;
+    const mapAdapterSetting =
+      this._model.jgisSettings.mapAdapter || 'openlayers';
+    const mapAdapterType: MapAdapterType = (
+      mapAdapterSetting === 'maplibre' ? 'maplibre' : 'openlayers'
+    ) as MapAdapterType;
 
-    this._lastMapViewerType = mapViewerType;
+    this._lastMapAdapterType = mapAdapterType;
 
-    // Create the map viewer using abstraction
-    this._mapViewer = await createMapViewer(mapViewerType, this._model);
+    // Create the map adapter using abstraction
+    this._mapAdapter = await createMapAdapter(mapAdapterType, this._model);
 
-    await this._mapViewer.initialize(this.divRef.current, {
+    await this._mapAdapter.initialize(this.divRef.current, {
       projection,
       center: [center[0], center[1]],
       zoom,
@@ -472,21 +473,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       },
     });
 
-    const geolocationHandles = this._mapViewer.getGeolocationHandles();
+    const geolocationHandles = this._mapAdapter.getGeolocationHandles();
     this._geolocation = geolocationHandles.geolocation;
     this._geolocationSource = geolocationHandles.source;
     this._geolocationPositionFeature = geolocationHandles.positionFeature;
     this._geolocationAccuracyFeature = geolocationHandles.accuracyFeature;
 
     if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
-      await this._mapViewer.updateLayersImpl(
+      await this._mapAdapter.updateLayersImpl(
         JupyterGISModel.getOrderedLayerIds(this._model),
       );
       const options = this._model.getOptions();
       this.updateOptions(options);
     }
 
-    const view = this._mapViewer.getMap().getView();
+    const view = this._mapAdapter.getMap().getView();
     this.setState(old => ({
       ...old,
       loading: false,
@@ -507,10 +508,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
       },
       isEnabled: () => {
-        return !!this._mapViewer?.getMap();
+        return !!this._mapAdapter?.getMap();
       },
       execute: () => {
-        const map = this._mapViewer?.getMap();
+        const map = this._mapAdapter?.getMap();
         if (!map) {
           return;
         }
@@ -531,7 +532,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._commands.addCommand('Copy-Coordinates-Map-CRS', {
       label: () => {
-        const map = this._mapViewer?.getMap();
+        const map = this._mapAdapter?.getMap();
         if (!map || !this._clickCoords) {
           return 'Map CRS';
         }
@@ -550,7 +551,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._commands.addCommand('Copy-Coordinates-LonLat', {
       label: () => {
-        const map = this._mapViewer?.getMap();
+        const map = this._mapAdapter?.getMap();
         if (!map || !this._clickCoords) {
           return 'Latitude/Longitude';
         }
@@ -565,7 +566,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       execute: async () => {
         const lonLat = toLonLat(
           this._clickCoords,
-          this._mapViewer.getMap().getView().getProjection(),
+          this._mapAdapter.getMap().getView().getProjection(),
         );
 
         const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
@@ -605,7 +606,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    const view = this._mapViewer.getMap().getView();
+    const view = this._mapAdapter.getMap().getView();
     const extent = geometry.getExtent();
 
     view.fit(extent, {
@@ -637,7 +638,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._mapViewer.getMap().getView().getProjection(),
+          featureProjection: this._mapAdapter
+            .getMap()
+            .getView()
+            .getProjection(),
         });
 
     const olFeature = new Feature({
@@ -645,7 +649,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
     });
 
-    this._mapViewer.secureHighlightLayer();
+    this._mapAdapter.secureHighlightLayer();
     const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     source?.addFeature(olFeature);
@@ -818,7 +822,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       let currentClientPointer = clientPointers[clientId];
 
       if (pointer) {
-        const pixel = this._mapViewer
+        const pixel = this._mapAdapter
           .getMap()
           .getPixelFromCoordinate([
             pointer.coordinates.x,
@@ -870,7 +874,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
-    if (!this._mapViewer?.getMap()) {
+    if (!this._mapAdapter?.getMap()) {
       return;
     }
 
@@ -897,21 +901,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _onSettingsChanged(): void {
     this.setState({ jgisSettings: this._model.jgisSettings });
 
-    if (!this._mapViewer) {
+    if (!this._mapAdapter) {
       return;
     }
 
-    // Handle mapViewer setting changes
-    const mapViewerSetting =
-      (this._model.jgisSettings.mapViewer as string) || 'openlayers';
-    const newMapViewerType: MapViewerType = (
-      mapViewerSetting === 'maplibre' ? 'maplibre' : 'openlayers'
-    ) as MapViewerType;
+    // Handle mapAdapter setting changes
+    const mapAdapterSetting =
+      (this._model.jgisSettings.mapAdapter as string) || 'openlayers';
+    const newMapAdapterType: MapAdapterType = (
+      mapAdapterSetting === 'maplibre' ? 'maplibre' : 'openlayers'
+    ) as MapAdapterType;
 
-    if (newMapViewerType !== this._lastMapViewerType) {
+    if (newMapAdapterType !== this._lastMapAdapterType) {
       // eslint-disable-next-line no-console
       console.log(
-        `Map viewer changed from ${this._lastMapViewerType} to ${newMapViewerType}`,
+        `Map adapter changed from ${this._lastMapAdapterType} to ${newMapAdapterType}`,
       );
       this._regenerateMap();
       return;
@@ -919,28 +923,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     // Handle other settings changes (existing code)
     const enabled = this._model.jgisSettings.zoomButtonsEnabled;
-    this._mapViewer.setZoomButtonsEnabled(enabled);
+    this._mapAdapter.setZoomButtonsEnabled(enabled);
   }
 
   private async _regenerateMap(): Promise<void> {
     try {
-      // Dispose old viewer
-      if (this._mapViewer) {
-        this._mapViewer.destroy();
+      // Dispose old adapter
+      if (this._mapAdapter) {
+        this._mapAdapter.destroy();
       }
 
       // Get current view state before regenerating
-      const currentView = this._mapViewer?.getMap()?.getView();
+      const currentView = this._mapAdapter?.getMap()?.getView();
       const center = currentView?.getCenter() || [0, 0];
       const zoom = currentView?.getZoom() || 1;
       const projection = this.state.viewProjection.code || DEFAULT_PROJECTION;
 
-      // Regenerate map with new viewer
+      // Regenerate map with new adapter
       await this.generateMap(center, zoom, projection);
 
-      const layerids = this._mapViewer.getLayerIDs();
+      const layerids = this._mapAdapter.getLayerIDs();
 
-      this._mapViewer.updateLayers(layerids);
+      this._mapAdapter.updateLayers(layerids);
     } catch (error) {
       console.error('Error regenerating map:', error);
     }
@@ -956,7 +960,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       zoom,
       bearing,
     } = options;
-    const map = this._mapViewer.getMap();
+    const map = this._mapAdapter.getMap();
     let view = map.getView();
     const currentProjection = view.getProjection().getCode();
 
@@ -1021,7 +1025,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const { id, oldValue: oldLayer, newValue: newLayer } = change;
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
-        this._mapViewer.removeLayer(id);
+        this._mapAdapter.removeLayer(id);
         if (
           this._model.currentMode === 'drawing' &&
           this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)
@@ -1032,17 +1036,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
 
-      const mapLayer = this._mapViewer.getLayer(id);
+      const mapLayer = this._mapAdapter.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
       if (layerTree.includes(id)) {
-        this._mapViewer.updateLayer(id, newLayer, mapLayer, oldLayer);
+        this._mapAdapter.updateLayer(id, newLayer, mapLayer, oldLayer);
 
         if (mapLayer) {
-          this._mapViewer.trackLayerViewState(id, mapLayer);
+          this._mapAdapter.trackLayerViewState(id, mapLayer);
         }
       } else {
-        this._mapViewer.updateLayers(layerTree);
+        this._mapAdapter.updateLayers(layerTree);
       }
     });
   }
@@ -1054,7 +1058,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
-    this._mapViewer.updateLayers(
+    this._mapAdapter.updateLayers(
       JupyterGISModel.getOrderedLayerIds(this._model),
     );
   }
@@ -1092,7 +1096,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (normalize(sourceServerUrl) === normalize(serverUrl)) {
         // updateSource removes the OL source and reconstructs it; the new
         // OpenEOTileSource finds the cached connection and renders.
-        void this._mapViewer.updateSource(sourceId, source);
+        void this._mapAdapter.updateSource(sourceId, source);
       }
     }
   }
@@ -1107,11 +1111,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     change.sourceChange?.forEach(change => {
       if (!change.newValue || Object.keys(change.newValue).length === 0) {
-        this._mapViewer.removeSource(change.id);
+        this._mapAdapter.removeSource(change.id);
       } else {
         const source = this._model.getSource(change.id);
         if (source) {
-          this._mapViewer.updateSource(change.id, source);
+          this._mapAdapter.updateSource(change.id, source);
         }
       }
     });
@@ -1137,7 +1141,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
       this._documentPath = path;
       if (window.jupytergisMaps !== undefined) {
-        window.jupytergisMaps[this._documentPath] = this._mapViewer.getMap();
+        window.jupytergisMaps[this._documentPath] = this._mapAdapter.getMap();
       }
     }
   };
@@ -1175,11 +1179,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _removeAllInteractions = (): void => {
-    this._mapViewer.enterPresentationMode();
+    this._mapAdapter.enterPresentationMode();
   };
 
   private _restoreMapInteractions = (): void => {
-    this._mapViewer.exitPresentationMode();
+    this._mapAdapter.exitPresentationMode();
   };
 
   private _setupStoryScrollListener = (): void => {
@@ -1371,7 +1375,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
     const { x, y } = annotation.position;
-    const pixels = this._mapViewer.getMap().getPixelFromCoordinate([x, y]);
+    const pixels = this._mapAdapter.getMap().getPixelFromCoordinate([x, y]);
 
     if (pixels) {
       return { x: pixels[0], y: pixels[1] };
@@ -1406,7 +1410,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (typeof geometry.getExtent === 'function') {
       const extent = geometry.getExtent();
       const center = getCenter(extent);
-      const pixels = this._mapViewer.getMap().getPixelFromCoordinate(center);
+      const pixels = this._mapAdapter.getMap().getPixelFromCoordinate(center);
       if (pixels) {
         return { x: pixels[0], y: pixels[1] };
       }
@@ -1414,7 +1418,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
-      const pixels = this._mapViewer
+      const pixels = this._mapAdapter
         .getMap()
         .getPixelFromCoordinate(geometry.coordinates);
       if (pixels) {
@@ -1472,7 +1476,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     zoom: number,
     duration = 1000,
   ) {
-    const view = this._mapViewer.getMap().getView();
+    const view = this._mapAdapter.getMap().getView();
     view.setZoom(zoom);
     view.setCenter([center.x, center.y]);
     // Zoom needs to be set before changing center
@@ -1491,22 +1495,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const { layerId, layer: jgisLayer } = json;
     const isSourceType =
       typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
-    const olLayer = this._mapViewer.getLayer(layerId);
+    const olLayer = this._mapAdapter.getLayer(layerId);
 
     if (isSourceType) {
-      this._mapViewer.updateSource(layerId, jgisLayer);
+      this._mapAdapter.updateSource(layerId, jgisLayer);
     }
     if (!jgisLayer || !olLayer) {
       this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
-    this._mapViewer.updateLayer(layerId, jgisLayer, olLayer);
+    this._mapAdapter.updateLayer(layerId, jgisLayer, olLayer);
   }
 
   private _convertFeatureToMs(_: IJupyterGISModel, args: string) {
     const json = JSON.parse(args);
     const { id: layerId, selectedFeature } = json;
-    const olLayer = this._mapViewer.getLayer(layerId);
+    const olLayer = this._mapAdapter.getLayer(layerId);
     const source = olLayer.getSource() as VectorSource;
 
     if (typeof source.forEachFeature !== 'function') {
@@ -1524,10 +1528,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     sender: any,
     newPosition: JgisCoordinates,
   ): void {
-    const view = this._mapViewer.getMap().getView();
+    const view = this._mapAdapter.getMap().getView();
     const zoom = view.getZoom();
     if (zoom) {
-      this._mapViewer.flyToPosition(newPosition, zoom);
+      this._mapAdapter.flyToPosition(newPosition, zoom);
     } else {
       throw new Error(
         'Could not move to geolocation, because current zoom is not defined.',
@@ -1700,7 +1704,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     layerID: string,
   ): VectorSource | undefined => {
     /* get the OpenLayers VectorSource corresponding to the JGIS currentDrawLayerID */
-    const layers = this._mapViewer.getMap().getLayers();
+    const layers = this._mapAdapter.getMap().getLayers();
     const layerArray = layers.getArray();
     const matchingLayer = layerArray.find(
       (layer: any) => layer.get('id') === layerID,
@@ -1743,7 +1747,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const geojsonWriter = new GeoJSON({
-      featureProjection: this._mapViewer.getMap().getView().getProjection(),
+      featureProjection: this._mapAdapter.getMap().getView().getProjection(),
     });
 
     const features = this._currentVectorSource
@@ -1815,7 +1819,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       source: this._currentVectorSource,
     });
 
-    const map = this._mapViewer.getMap();
+    const map = this._mapAdapter.getMap();
     map.addInteraction(this._draw);
     map.addInteraction(this._select);
     map.addInteraction(this._modify);
@@ -1861,22 +1865,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _removeDrawInteraction = () => {
     this._draw.setActive(false);
-    this._mapViewer.getMap().removeInteraction(this._draw);
+    this._mapAdapter.getMap().removeInteraction(this._draw);
   };
 
   private _removeSelectInteraction = () => {
     this._select.setActive(false);
-    this._mapViewer.getMap().removeInteraction(this._select);
+    this._mapAdapter.getMap().removeInteraction(this._select);
   };
 
   private _removeSnapInteraction = () => {
     this._snap.setActive(false);
-    this._mapViewer.getMap().removeInteraction(this._snap);
+    this._mapAdapter.getMap().removeInteraction(this._snap);
   };
 
   private _removeModifyInteraction = () => {
     this._modify.setActive(false);
-    this._mapViewer.getMap().removeInteraction(this._modify);
+    this._mapAdapter.getMap().removeInteraction(this._modify);
   };
 
   /**
@@ -1888,7 +1892,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     source: IJGISSource,
   ): Promise<void> => {
     this._model.sharedModel.updateSource(id, source);
-    await this._mapViewer.updateSource(id, source);
+    await this._mapAdapter.updateSource(id, source);
   };
 
   private _renderAnnotationFloaters(): React.ReactNode {
@@ -2053,8 +2057,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
-  private _mapViewer: IMapViewer;
-  private _lastMapViewerType: MapViewerType = 'openlayers';
+  private _mapAdapter: IMapAdapter;
+  private _lastMapAdapterType: MapAdapterType = 'openlayers';
   private _model: IJupyterGISModel;
   private _geolocation?: Geolocation;
   private _geolocationSource?: VectorSource;
@@ -2083,9 +2087,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
   private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
-    this._mapViewer.addLayer(id, layer, index);
+    this._mapAdapter.addLayer(id, layer, index);
   private _removeLayerForPanels = (id: string) =>
-    this._mapViewer.removeLayer(id);
+    this._mapAdapter.removeLayer(id);
   private _patchGeoJSONFeatureAttributes: PatchGeoJSONFeatureAttributes;
 
   private _log(
