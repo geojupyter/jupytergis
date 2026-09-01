@@ -148,10 +148,6 @@
   gap: 1rem;
 }
 
-.jgis-queryable-combo-button {
-  width: 100%;
-}
-
 /* More specific selector to override button base styles */
 .jgis-button.jgis-queryable-combo-input-date-picker {
   justify-content: flex-start;

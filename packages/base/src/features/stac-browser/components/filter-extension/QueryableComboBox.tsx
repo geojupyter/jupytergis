@@ -354,12 +354,8 @@ export function QueryableComboBox({
         isItemEqualToValue={(a, b) => a.value === b.value}
       >
         <ComboboxTrigger
-          render={
-            <ButtonTw
-              variant="outline"
-              className="jgis-queryable-combo-button w-full justify-between font-normal"
-            />
-          }
+          className={'border-input'}
+          render={<ButtonTw variant="outline" className="justify-between" />}
         >
           <span className="truncate">{getButtonText()}</span>
         </ComboboxTrigger>
