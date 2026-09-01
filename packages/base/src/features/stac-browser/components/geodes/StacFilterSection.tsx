@@ -8,7 +8,7 @@ import {
   PlatformsType,
   ProductsType,
 } from '@/src/features/stac-browser/constants';
-import Badge from '@/src/shared/components/Badge';
+import { Badge } from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,

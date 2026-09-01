@@ -17,7 +17,7 @@ import {
   resolveStoryPresentationColorForInput,
 } from '@/src/features/story/utils/spectaPresentation';
 import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
-import Badge from '@/src/shared/components/Badge';
+import { Badge } from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
@@ -227,9 +227,10 @@ export function StoryEditorHeaderBar({
         }}
       />
       <div className="jgis-story-editor-context-meta-group">
-        <Badge variant="secondary" className="jgis-story-editor-context-badge">
+        <Badge>
           {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
         </Badge>
+
         <span className="jgis-story-editor-context-meta">
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>

@@ -915,10 +915,6 @@ Radix won't set hidden so do it manually */
     justify-content: flex-start;
   }
 
-  .jgis-story-editor-context-badge {
-    margin-right: auto;
-  }
-
   .jgis-story-editor-opacity-row {
     display: grid;
     grid-template-columns: 1fr auto;
