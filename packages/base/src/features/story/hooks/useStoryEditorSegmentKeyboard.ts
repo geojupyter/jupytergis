@@ -14,9 +14,7 @@ export function shouldIgnoreStoryEditorArrowKeys(
     return false;
   }
 
-  return (
-    target.closest('select, [role="combobox"], [role="listbox"]') !== null
-  );
+  return target.closest('select, [role="combobox"], [role="listbox"]') !== null;
 }
 
 export function getAdjacentStorySegmentIndex(
