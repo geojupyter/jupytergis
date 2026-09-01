@@ -28,23 +28,16 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
-import { JSONValue, UUID } from '@lumino/coreutils';
+import { JSONValue } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import { Geolocation, View } from 'ol';
 import Feature from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
 import { getCenter } from 'ol/extent';
 import { GeoJSON } from 'ol/format';
-import { Type } from 'ol/geom/Geometry';
-import { Select } from 'ol/interaction';
-import Draw, { DrawEvent } from 'ol/interaction/Draw';
-import Modify from 'ol/interaction/Modify';
-import Snap from 'ol/interaction/Snap';
 import { VectorImage as VectorImageLayer } from 'ol/layer';
 import { fromLonLat, get as getProjection, toLonLat } from 'ol/proj';
 import { Vector as VectorSource } from 'ol/source';
-import { Fill, Stroke, Style } from 'ol/style';
-import CircleStyle from 'ol/style/Circle';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
@@ -73,14 +66,8 @@ import {
 import { MainViewModel } from './mainviewmodel';
 import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
-import {
-  getZoomExtentForOlLayer,
-  isValidExtent,
-  transformExtentToViewProjection,
-} from './utils/olLayerZoomExtent';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
-
 
 interface IMainViewProps {
   viewModel: MainViewModel;
@@ -1673,7 +1660,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState(old => ({ ...old, isDrawing }));
 
     if (isDrawing) {
-      this._setHighlightFeatures([]);
+      // this._setHighlightFeatures([]);
       this._drawTool.enterLayer();
       return;
     }

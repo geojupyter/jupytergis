@@ -137,6 +137,11 @@ import {
   throttle,
 } from '@/src/tools';
 import { MainViewModel } from '../mainviewmodel';
+import {
+  getZoomExtentForOlLayer,
+  isValidExtent,
+  transformExtentToViewProjection,
+} from '../utils/olLayerZoomExtent';
 
 type OlLayerTypes =
   | TileLayer
@@ -2151,7 +2156,6 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
-  // TODO this and flyToPosition need a rework
   onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2160,113 +2164,20 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
-    // The id is a layer
-    const layer = this.getLayer(id);
-    const source = layer?.getSource();
-    const jgisLayer = this._model.getLayer(id);
-
-    /**
-     * Layer may be undefined in two cases:
-     * 1. StorySegmentLayer: These layers don't have an associated OpenLayers layer
-     * 2. StacLayer: When centerOnPosition is called immediately after adding the layer,
-     *    the OpenLayers layer hasn't been created yet, so we use the bbox from the
-     *    layer model's STAC data directly.
-     */
-    if (!layer) {
-      // Handle StacLayer that hasn't been added to the map yet
-      if (jgisLayer?.type === 'StacLayer') {
-        const layerParams = jgisLayer.parameters as IStacLayer;
-        const stacBbox = layerParams.data?.bbox;
-
-        if (stacBbox && stacBbox.length === 4) {
-          // STAC bbox format: [west, south, east, north] in EPSG:4326
-          const [west, south, east, north] = stacBbox;
-          const bboxExtent = [west, south, east, north];
-
-          // Convert from EPSG:4326 to view projection
-          const viewProjection = this._map.getView().getProjection();
-          const transformedExtent =
-            viewProjection.getCode() !== 'EPSG:4326'
-              ? transformExtent(bboxExtent, 'EPSG:4326', viewProjection)
-              : bboxExtent;
-
-          this._map.getView().fit(transformedExtent, {
-            size: this._map.getSize(),
-            duration: 500,
-            padding: [250, 250, 250, 250],
-          });
-          return;
-        }
-      }
-
-      // Handle StorySegmentLayer
-      if (jgisLayer?.type === 'StorySegmentLayer') {
-        const layerParams = jgisLayer.parameters as IStorySegmentLayer;
-        const coords = getCenter(layerParams.extent);
-
-        // Don't move map if we're already centered on the segment
-        const viewCenter = this._map.getView().getCenter();
-        const centersEqual =
-          viewCenter !== undefined &&
-          Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
-          Math.abs(viewCenter[1] - coords[1]) < 1e-9;
-        if (centersEqual) {
-          return;
-        }
-
-        this.flyToPosition(
-          { x: coords[0], y: coords[1] },
-          layerParams.zoom,
-          (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
-          layerParams.transition.type,
-        );
-
-        return;
-      }
-
-      // Generic layer whose OpenLayers layer hasn't been created yet (e.g. a
-      // layer just added via the Python API with zoom_to=True). Remember the
-      // request and retry once the layer has been added to the map.
-      if (jgisLayer) {
-        this._pendingZoomLayerId = id;
-        return;
-      }
-    }
-
-    const extent = this._computeExtent(layer, source);
-    if (!extent) {
-      this._log('warning', 'Layer ${id} has no extent.');
+    const olLayer = this.getLayer(id);
+    if (!olLayer) {
+      this._zoomToJgisLayerWithoutOlLayer(id, this._model.getLayer(id));
       return;
     }
 
-    if (!extent.every(value => Number.isFinite(value))) {
-      this._log(
-        'warning',
-        `Layer ${id} has an invalid extent: ${extent.join(', ')}`,
-      );
-      return;
-    }
-
-    // Convert layer extent value to view projection if needed
-    const sourceProjection = source?.getProjection();
-    const viewProjection = this._map.getView().getProjection();
-
-    const transformedExtent =
-      sourceProjection && sourceProjection !== viewProjection
-        ? transformExtent(extent, sourceProjection, viewProjection)
-        : extent;
-    if (!transformedExtent.every(value => Number.isFinite(value))) {
-      this._log(
-        'warning',
-        `Layer ${id} has an invalid transformed extent: ${transformedExtent.join(', ')}`,
-      );
-      return;
-    }
-
-    this._map.getView().fit(transformedExtent, {
-      size: this._map.getSize(),
-      duration: 500,
-    });
+    this._fitViewToExtent(
+      getZoomExtentForOlLayer(
+        olLayer,
+        this._map.getView().getProjection(),
+        (layer, source) => this._computeExtent(layer, source),
+      ),
+      id,
+    );
   }
 
   flyToPosition(
@@ -2515,6 +2426,72 @@ export class OpenLayersAdapter implements IMapAdapter {
     return undefined;
   }
 
+  private _fitViewToExtent(
+    extent: number[] | undefined,
+    layerId: string,
+    options: { duration?: number; padding?: number[] } = {},
+  ): void {
+    if (!isValidExtent(extent)) {
+      this._log('warning', `Layer ${layerId} extent is not valid.`);
+      return;
+    }
+
+    this._map.getView().fit(extent, {
+      size: this._map.getSize(),
+      duration: options.duration ?? 500,
+      ...(options.padding ? { padding: options.padding } : {}),
+    });
+  }
+
+  private _zoomToJgisLayerWithoutOlLayer(
+    id: string,
+    jgisLayer: IJGISLayer | undefined,
+  ): void {
+    if (!jgisLayer) {
+      return;
+    }
+
+    if (jgisLayer.type === 'StacLayer') {
+      const stacBbox = (jgisLayer.parameters as IStacLayer).data?.bbox;
+      if (stacBbox?.length === 4) {
+        const extent = transformExtentToViewProjection(
+          [...stacBbox],
+          this._map.getView().getProjection(),
+          getProjection('EPSG:4326'),
+        );
+
+        this._fitViewToExtent(extent, id, {
+          padding: [250, 250, 250, 250],
+        });
+
+        return;
+      }
+    }
+
+    if (jgisLayer.type === 'StorySegmentLayer') {
+      const params = jgisLayer.parameters as IStorySegmentLayer;
+      const coords = getCenter(params.extent);
+      const viewCenter = this._map.getView().getCenter();
+      const alreadyCentered =
+        viewCenter !== undefined &&
+        Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
+        Math.abs(viewCenter[1] - coords[1]) < 1e-9;
+
+      if (!alreadyCentered) {
+        this.flyToPosition(
+          { x: coords[0], y: coords[1] },
+          params.zoom,
+          (params.transition.time ?? 1) * 1000,
+          params.transition.type,
+        );
+      }
+
+      return;
+    }
+
+    this._pendingZoomLayerId = id;
+  }
+
   private _computeZoomFromExtent(extent: number[]): number | null {
     if (!this._map) {
       return null;
@@ -2556,32 +2533,25 @@ export class OpenLayersAdapter implements IMapAdapter {
    * Track layer's extent and zoom in model's view state
    */
   trackLayerViewState(layerId: string, olLayer: Layer | LayerGroup): void {
-    const effectiveLayer =
-      olLayer instanceof LayerGroup
-        ? (olLayer.getLayers().getArray()[0] as Layer | undefined)
-        : olLayer;
-    if (!effectiveLayer) {
+    const extent = getZoomExtentForOlLayer(
+      olLayer,
+      this._map.getView().getProjection(),
+      (layer, source) => this._computeExtent(layer, source),
+    );
+    if (!isValidExtent(extent)) {
       return;
     }
-    const source = effectiveLayer.getSource();
-    const sourceId = source?.get?.('id');
-
-    let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
-
-    if (!extent) {
-      extent = this._computeExtent(effectiveLayer, source);
+    const zoom = this._computeZoomFromExtent(extent);
+    if (zoom === null) {
+      return;
     }
 
-    if (extent) {
-      const zoom = this._computeZoomFromExtent(extent);
+    const view: IViewState[string] = {
+      extent,
+      zoom,
+    };
 
-      if (zoom === null) {
-        return;
-      }
-
-      const view: IViewState[string] = { extent, zoom };
-      this._model.updateLayerViewState(layerId, view);
-    }
+    this._model.updateLayerViewState(layerId, view);
   }
 
   private _map: OlMap;
