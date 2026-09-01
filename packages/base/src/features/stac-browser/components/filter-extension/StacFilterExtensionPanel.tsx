@@ -14,8 +14,11 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
 } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 interface IStacFilterExtensionPanelProps {
   model?: IJupyterGISModel;
@@ -98,8 +101,24 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
             setSelectedCollection(item?.value ?? '');
           }}
         >
-          <ComboboxInput placeholder="Search collections..." />
+          <ComboboxTrigger
+            className={'border-input'}
+            render={
+              <ButtonTw
+                variant="outline"
+                className="h-auto min-h-8 justify-between whitespace-normal text-left"
+              />
+            }
+          >
+            <span className="flex-1 wrap-break-word">
+              <ComboboxValue />
+            </span>
+          </ComboboxTrigger>
           <ComboboxContent>
+            <ComboboxInput
+              placeholder="Search collections..."
+              showTrigger={false}
+            />
             <ComboboxEmpty>No collection found.</ComboboxEmpty>
             <ComboboxList>
               {(item: CollectionItem) => (
