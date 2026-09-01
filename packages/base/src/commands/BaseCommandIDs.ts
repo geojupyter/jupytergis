@@ -33,6 +33,7 @@ export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
 export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
+export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
 
 // Layer and group actions
 export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
