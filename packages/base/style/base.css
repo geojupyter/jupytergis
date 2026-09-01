@@ -35,7 +35,6 @@
 @import url('./shared/infoTip.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
-@import url('./shared/separator.css');
 @import url('./shared/buttonGroup.css');
 
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
