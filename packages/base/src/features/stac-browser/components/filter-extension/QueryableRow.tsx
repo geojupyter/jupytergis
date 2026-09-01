@@ -36,7 +36,6 @@ function QueryableRow({
     <div className="jgis-queryable-row">
       <span>{qVal.title || qKey}</span>
       <NativeSelect
-        className="jgis-queryable-combo-operator w-full"
         value={String(currentFilter.operator)}
         onChange={event => {
           onOperatorChange(event.target.value as Operator);

@@ -192,12 +192,8 @@ export function QueryableComboBox({
         if (val.enum) {
           return (
             <NativeSelect
-              className="jgis-queryable-combo-input w-full"
-              value={
-                currentValue != null && currentValue !== ''
-                  ? String(currentValue)
-                  : ''
-              }
+              className="w-full"
+              value={String(currentValue ?? '')}
               onChange={event => onChange(String(event.target.value))}
             >
               <NativeSelectOption value="" disabled>
@@ -242,7 +238,7 @@ export function QueryableComboBox({
               dateFormat="P"
               showIcon={true}
               placeholder="Select date"
-              className="jgis-queryable-combo-input jgis-queryable-combo-input-date-picker"
+              className="jgis-queryable-combo-input-date-picker"
             />
           );
         }
@@ -258,12 +254,8 @@ export function QueryableComboBox({
         if (val.enum) {
           return (
             <NativeSelect
-              className="jgis-queryable-combo-input w-full"
-              value={
-                currentValue != null && currentValue !== ''
-                  ? String(currentValue)
-                  : ''
-              }
+              className="w-full"
+              value={String(currentValue ?? '')}
               onChange={event => onChange(Number(event.target.value))}
             >
               <NativeSelectOption value="" disabled>
@@ -280,7 +272,6 @@ export function QueryableComboBox({
         return (
           <Input
             type="number"
-            className="jgis-queryable-combo-input"
             min={val.minimum !== undefined ? val.minimum : undefined}
             max={val.maximum !== undefined ? val.maximum : undefined}
             value={(currentValue as number) || ''}
@@ -291,7 +282,6 @@ export function QueryableComboBox({
         return (
           <Input
             type="text"
-            className="jgis-queryable-combo-input"
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}
           />

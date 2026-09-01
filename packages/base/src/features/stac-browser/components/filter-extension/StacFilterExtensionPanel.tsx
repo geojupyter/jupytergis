@@ -7,6 +7,7 @@ import StacTemporalExtent from '@/src/features/stac-browser/components/shared/St
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacFilterExtension } from '@/src/features/stac-browser/hooks/useStacFilterExtension';
 import { IStacCollection } from '@/src/features/stac-browser/types/types';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Combobox,
   ComboboxContent,
@@ -18,7 +19,6 @@ import {
   ComboboxValue,
 } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 interface IStacFilterExtensionPanelProps {
   model?: IJupyterGISModel;
@@ -106,7 +106,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
             render={
               <ButtonTw
                 variant="outline"
-                className="h-auto min-h-8 justify-between whitespace-normal text-left"
+                className="h-auto min-h-8 justify-between text-left whitespace-normal"
               />
             }
           >
