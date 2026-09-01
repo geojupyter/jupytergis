@@ -74,6 +74,10 @@ const iconObject = {
     // iconClass is ignored when `icon` is a LabIcon, bind className instead.
     icon: scrollIcon.bindprops({ className: 'jgis-icon-adjust' }),
   },
+  [CommandIDs.copyStorySegment]: { iconClass: 'fa fa-copy' },
+  [CommandIDs.pasteStorySegment]: { iconClass: 'fa fa-paste' },
+  [CommandIDs.duplicateStorySegment]: { iconClass: 'fa fa-clone' },
+  [CommandIDs.removeStorySegment]: { iconClass: 'fa fa-trash' },
   [CommandIDs.showLayerPropertiesDialog]: { iconClass: 'fa fa-sliders' },
   [CommandIDs.showLayerMetadata]: { iconClass: 'fa fa-circle-info' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },

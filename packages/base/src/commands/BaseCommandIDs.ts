@@ -75,5 +75,9 @@ export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const openStoryEditor = 'jupytergis:openStoryEditor';
+export const copyStorySegment = 'jupytergis:copyStorySegment';
+export const pasteStorySegment = 'jupytergis:pasteStorySegment';
+export const duplicateStorySegment = 'jupytergis:duplicateStorySegment';
+export const removeStorySegment = 'jupytergis:removeStorySegment';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';
