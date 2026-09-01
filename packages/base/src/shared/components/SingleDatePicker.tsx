@@ -1,14 +1,14 @@
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
-
-import { Button } from '@/src/shared/components/Button';
 import { Calendar } from '@/src/shared/components/Calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
+import { cn } from './utils';
+import { ButtonTw } from './ButtonTw';
 
 interface ISingleDatePickerProps {
   date: Date | undefined;
@@ -30,14 +30,22 @@ function SingleDatePicker({
   return (
     <Popover>
       <PopoverTrigger
+        className={'border-input'}
         render={
-          <Button className={className} variant="outline">
+          <ButtonTw
+            data-empty={!date}
+            className={cn(
+              'justify-start text-left font-normal data-[empty=true]:text-muted-foreground',
+              className,
+            )}
+            variant="outline"
+          >
             {showIcon && <CalendarIcon className="jgis-stac-datepicker-icon" />}
             {date ? format(date, dateFormat) : <span>{placeholder}</span>}
-          </Button>
+          </ButtonTw>
         }
       />
-      <PopoverContent>
+      <PopoverContent className={'w-fit'}>
         <Calendar
           mode="single"
           selected={date}
