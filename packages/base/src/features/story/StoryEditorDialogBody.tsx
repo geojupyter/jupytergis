@@ -17,6 +17,7 @@ import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInp
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
+import { useStoryEditorSegmentKeyboard } from '@/src/features/story/hooks/useStoryEditorSegmentKeyboard';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
   IStorySegmentViewItem,
@@ -317,6 +318,8 @@ export function StoryEditorDialogBody({
     updateSegmentLayerName,
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
+
+  useStoryEditorSegmentKeyboard(model, story);
 
   const isTextSegmentWidthFull = isMarkdownOverlayWidthFull(
     story?.overlayContentWidth,
