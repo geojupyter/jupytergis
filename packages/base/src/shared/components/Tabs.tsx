@@ -1,8 +1,13 @@
 import * as React from 'react';
+import { useCallback, useRef } from 'react';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 import { cva, type VariantProps } from 'class-variance-authority';
 
-import { cn } from './utils';
+import {
+  cn,
+  stripJupyterButtonStyling,
+  useStripJupyterLabStyling,
+} from './utils';
 
 function Tabs({
   className,
@@ -52,9 +57,29 @@ const TabsList = React.forwardRef<
   );
 });
 
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+const TabsTrigger = React.forwardRef<
+  HTMLButtonElement,
+  TabsPrimitive.Tab.Props
+>(function TabsTrigger({ className, ...props }, ref) {
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useStripJupyterLabStyling(triggerRef, stripJupyterButtonStyling);
+
+  const mergedRef = useCallback(
+    (node: HTMLButtonElement | null) => {
+      triggerRef.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
+  );
+
   return (
     <TabsPrimitive.Tab
+      ref={mergedRef}
       data-slot="tabs-trigger"
       className={cn(
         "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-base font-medium whitespace-nowrap text-foreground/60 transition-all group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=line]/tabs-list:data-active:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -66,7 +91,7 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
       {...props}
     />
   );
-}
+});
 
 function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   return (

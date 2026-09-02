@@ -1,33 +1,16 @@
 import { ChevronDownIcon } from 'lucide-react';
 import * as React from 'react';
-import { useLayoutEffect, useRef } from 'react';
+import { useRef } from 'react';
 
-import { cn } from './utils';
+import {
+  cn,
+  stripJupyterSelectStyling,
+  useStripJupyterLabStyling,
+} from './utils';
 
 type NativeSelectProps = Omit<React.ComponentProps<'select'>, 'size'> & {
   size?: 'sm' | 'default';
 };
-
-/**
- * JupyterLab Dialog runs Styling.styleNode on the body and wraps every
- * <select> in .jp-select-wrapper + jp-mod-styled. Undo that so this
- * component keeps its own styling.
- */
-function stripJupyterSelectStyling(root: HTMLElement): void {
-  root.querySelectorAll(':scope > .jp-select-wrapper').forEach(wrapper => {
-    const select = wrapper.querySelector(':scope > select');
-    if (!(select instanceof HTMLSelectElement) || !wrapper.parentElement) {
-      return;
-    }
-    select.classList.remove('jp-mod-styled');
-    wrapper.parentElement.insertBefore(select, wrapper);
-    wrapper.remove();
-  });
-
-  root.querySelectorAll(':scope > select').forEach(select => {
-    select.classList.remove('jp-mod-styled');
-  });
-}
 
 function NativeSelect({
   className,
@@ -36,29 +19,7 @@ function NativeSelect({
 }: NativeSelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-
-    const strip = (): void => {
-      stripJupyterSelectStyling(root);
-    };
-
-    strip();
-
-    const observer = new MutationObserver(() => {
-      observer.disconnect();
-      strip();
-      observer.observe(root, { childList: true, subtree: true });
-    });
-
-    observer.observe(root, { childList: true, subtree: true });
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
+  useStripJupyterLabStyling(rootRef, stripJupyterSelectStyling);
 
   return (
     <div
