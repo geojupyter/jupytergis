@@ -44,17 +44,19 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
   items,
 }) => {
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          className="jgis-attribute-col-actions"
-          title={title}
-          variant="icon"
-          size="icon-md"
-        >
-          <Ellipsis />
-        </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            className="jgis-attribute-col-actions"
+            title={title}
+            variant="icon"
+            size="icon-md"
+          />
+        }
+      >
+        <Ellipsis />
       </DropdownMenuTrigger>
       <DropdownMenuContent side={side} onClick={onContentClick}>
         {items.map(item => (

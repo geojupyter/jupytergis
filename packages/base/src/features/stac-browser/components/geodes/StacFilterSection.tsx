@@ -148,13 +148,13 @@ const StacFilterSection = ({
 
   return (
     <div className="jgis-stac-filter-section-container">
-      <DropdownMenu modal={false}>
+      <DropdownMenu>
         <DropdownMenuTrigger
           className="jgis-stac-filter-trigger"
           disabled={isTriggerDisabled}
         >
           {section}
-          <ChevronRight className="DropdownMenuIcon" />
+          <ChevronRight className="ml-auto h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right">{items}</DropdownMenuContent>
       </DropdownMenu>
