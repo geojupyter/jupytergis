@@ -41,14 +41,19 @@ export function HoverTip({
   openDelay = 100,
   closeDelay = 100,
   className,
-  portalContainerRef,
   ...contentProps
 }: IHoverTipProps) {
   return (
-    <HoverCard openDelay={openDelay} closeDelay={closeDelay}>
-      <HoverCardTrigger aria-label={triggerLabel}>{icon}</HoverCardTrigger>
+    <HoverCard>
+      <HoverCardTrigger
+        aria-label={triggerLabel}
+        className="m-0 inline-flex cursor-help items-center border-0 bg-transparent p-0 leading-none text-foreground"
+        closeDelay={closeDelay}
+        delay={openDelay}
+      >
+        {icon}
+      </HoverCardTrigger>
       <HoverCardContent
-        portalContainerRef={portalContainerRef}
         className={cn('jgis-info-tip-content', className)}
         {...contentProps}
       >

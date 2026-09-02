@@ -188,7 +188,7 @@ select option {
   justify-content: center;
 }
 
-.jp-gis-color-ramp-warning .jgis-hover-card-trigger {
+.jp-gis-color-ramp-warning [data-slot='hover-card-trigger'] {
   color: white !important;
   filter: drop-shadow(0 0 2px black);
 }
