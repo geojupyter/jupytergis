@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Render-notebook",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium_Render-notebook",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-shapefile-jGIS",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium_Render-shapefile-jGIS",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-test-jGIS",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-d849f-der-test-jGIS-without-error-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-d849f-der-test-jGIS-without-error-chromium-retry1_Render-test-jGIS",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-shapefile-jGIS",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-52742-hapefile-jGIS-without-error-chromium-retry1_Render-shapefile-jGIS",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-notebook",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-Should-open-jgis-ipynb-and-execute-it-chromium-retry1_Render-notebook",
+    "ext": ".png"
+  },
+  {
+    "name": "Render-test-jGIS",
+    "dir": "/tmp/artifacts/jupytergis-lite-playwright-tests/test-results/tests-lite-UI-Test-File-op-d849f-der-test-jGIS-without-error-chromium",
+    "slug": "_tmp_artifacts_jupytergis-lite-playwright-tests_test-results_tests-lite-UI-Test-File-op-d849f-der-test-jGIS-without-error-chromium_Render-test-jGIS",
+    "ext": ".png"
+  },
+  {
+    "name": "light-Notebook-ipynb-cell-3",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-notebook-Notebook-AP-da5b3-l-outputs-should-be-correct-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-notebook-Notebook-AP-da5b3-l-outputs-should-be-correct-chromium_light-Notebook-ipynb-cell-3",
+    "ext": ".png"
+  },
+  {
+    "name": "light-Notebook-ipynb-cell-3",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-notebook-Notebook-AP-da5b3-l-outputs-should-be-correct-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-notebook-Notebook-AP-da5b3-l-outputs-should-be-correct-chromium-retry1_light-Notebook-ipynb-cell-3",
+    "ext": ".png"
+  },
+  {
+    "name": "dark-Notebook-ipynb-cell-2",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium_dark-Notebook-ipynb-cell-2",
+    "ext": ".png"
+  },
+  {
+    "name": "dark-Notebook-ipynb-cell-2",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-notebook-Notebook-AP-aebed-l-outputs-should-be-correct-chromium-retry1_dark-Notebook-ipynb-cell-2",
+    "ext": ".png"
+  },
+  {
+    "name": "geoJSON-layer",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium-retry1_geoJSON-layer",
+    "ext": ".png"
+  },
+  {
+    "name": "geoJSON-layer",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium_geoJSON-layer",
+    "ext": ".png"
+  },
+  {
+    "name": "showcase-macrostrat-geology",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-showcase-Showcase-Macrostrat-geology-overlay-chromium",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-showcase-Showcase-Macrostrat-geology-overlay-chromium_showcase-macrostrat-geology",
+    "ext": ".jpg"
+  },
+  {
+    "name": "showcase-macrostrat-geology",
+    "dir": "/tmp/artifacts/jupytergis-playwright-tests/test-results/tests-showcase-Showcase-Macrostrat-geology-overlay-chromium-retry1",
+    "slug": "_tmp_artifacts_jupytergis-playwright-tests_test-results_tests-showcase-Showcase-Macrostrat-geology-overlay-chromium-retry1_showcase-macrostrat-geology",
+    "ext": ".jpg"
+  }
+]
