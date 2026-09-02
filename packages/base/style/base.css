@@ -23,7 +23,6 @@
 @import url('./labels.css');
 @import url('./openeo.css');
 @import url('./shared/button.css');
-@import url('./shared/tabs.css');
 @import url('./shared/pagination.css');
 @import url('./shared/infoTip.css');
 @import url('./shared/errorBanner.css');
@@ -60,7 +59,7 @@
   background-color: transparent;
 }
 
-.jgis-underline-indicator[data-state='active']::after {
+.jgis-underline-indicator[data-active]::after {
   width: 100%;
   background-color: var(--jp-inverse-layout-color2);
 }
@@ -225,7 +224,7 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-content[data-state='active'] {
+  .jgis-panel-tabs [data-slot='tabs-content']:not([hidden]) {
   flex: 1;
   min-height: 0;
   height: unset;
@@ -235,7 +234,7 @@ button.jp-mod-styled.jp-mod-reject {
 /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list {
+  .jgis-panel-tabs [data-slot='tabs-list'] {
   cursor: ns-resize;
   justify-content: flex-start;
   touch-action: pan-x;
@@ -245,25 +244,25 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list:active {
+  .jgis-panel-tabs [data-slot='tabs-list']:active {
   cursor: ns-resize;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list::-webkit-scrollbar {
+  .jgis-panel-tabs [data-slot='tabs-list']::-webkit-scrollbar {
   height: 3px;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list::-webkit-scrollbar-track {
+  .jgis-panel-tabs [data-slot='tabs-list']::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list::-webkit-scrollbar-thumb {
+  .jgis-panel-tabs [data-slot='tabs-list']::-webkit-scrollbar-thumb {
   background-color: var(--jp-border-color1);
   border-radius: 2px;
 }

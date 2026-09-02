@@ -147,6 +147,7 @@ export function SegmentMarkdownEditor({
       onValueChange={nextTab => setTab(nextTab as MarkdownEditorTab)}
     >
       <TabsList
+        variant={'line'}
         className="jgis-story-editor-markdown-tabs"
         aria-label="Markdown editor"
       >
@@ -160,7 +161,7 @@ export function SegmentMarkdownEditor({
 
       <TabsContent
         value="write"
-        forceMount
+        keepMounted
         className="jgis-story-editor-markdown-tab-content"
       >
         <div

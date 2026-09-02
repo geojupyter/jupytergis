@@ -1,3 +1,36 @@
+.jgis-panel-tabs {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--jp-layout-color0);
+}
+
+.jgis-panel-tabs [data-slot='tabs-list'] {
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: space-evenly;
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color0);
+  cursor: grab;
+  gap: 1rem;
+  width: 100%;
+  font-size: 9px;
+  overflow-x: auto;
+}
+
+.jgis-panel-tabs [data-slot='tabs-list']:active {
+  cursor: grabbing;
+}
+
+.jgis-panel-tabs [data-slot='tabs-content'] {
+  outline: none;
+  width: 100%;
+  overflow-y: auto;
+  padding-top: 0.5rem;
+}
+
 .jgis-panel-tab-content {
   font-size: var(--jp-ui-font-size0);
   padding-bottom: 50px;

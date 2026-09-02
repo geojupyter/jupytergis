@@ -14,7 +14,7 @@ import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import {
-  TabsRoot,
+  Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
@@ -71,15 +71,15 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
 
   return (
     <Draggable
-      handle=".jgis-tabs-list"
-      cancel=".jgis-tabs-trigger"
+      handle="[data-slot='tabs-list']"
+      cancel="[data-slot='tabs-trigger']"
       bounds=".jGIS-Mainview-Container"
     >
       <div
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
-        <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
+        <Tabs className="jgis-panel-tabs" value={curTab || null}>
           <TabsList>
             {tabInfo.map(tab => (
               <TabsTrigger
@@ -119,7 +119,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
               ></IdentifyPanelComponent>
             </TabsContent>
           )}
-        </TabsRoot>
+        </Tabs>
       </div>
     </Draggable>
   );
