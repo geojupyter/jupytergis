@@ -2,6 +2,7 @@ import type {
   IDict,
   IJGISLayer,
   IJGISLayers,
+  IJGISOptions,
   IJGISSource,
   IJGISSources,
   IJGISUIState,
@@ -43,9 +44,12 @@ export interface IMapAdapter {
     featureOrGeometry: any,
   ): void;
   handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void;
+  startLocationIndicator(): void;
+  stopLocationIndicator(): void;
   computeFeatureFloaterPosition(
     feature: any,
   ): { x: number; y: number } | undefined;
+  toLonLat(coordinate: number[], projection?: any): number[];
   flyToPosition(
     center: JgisCoordinates,
     zoom: number,
@@ -58,10 +62,13 @@ export interface IMapAdapter {
     duration?: number,
   ): void;
 
-  startLocationIndicator(): void;
-  stopLocationIndicator(): void;
+  applyOptions(
+    options: IJGISOptions,
+  ): { code: string; units: string } | undefined;
+
   updateLayersImpl(layerIds: string[]): Promise<void>;
   trackLayerViewState(id: string, mapLayer: any): void;
+  createSelectInteraction(): void;
 
   updateLayer(
     id: string,
@@ -70,6 +77,8 @@ export interface IMapAdapter {
     oldLayer?: IDict,
   ): Promise<void>;
   updateLayers(layerIds: string[]): void;
+
+  clearHighlightIfNotIdentifying(): void;
 
   moveLayer(id: string, index: number): void;
 
@@ -90,26 +99,18 @@ export interface IMapAdapter {
   /** Adds or removes the zoom +/- control, matching `enabled`. */
   setZoomButtonsEnabled(enabled: boolean | undefined): void;
 
-  /**
-   * Removes the FullScreen control.
-   *
-   * This should also be removed once all operations
-   * have moved behind IMapAdapter.
-   */
+  /** Removes the FullScreen control. */
   enterPresentationMode(): void;
 
   /** Restores whatever enterPresentationMode() removed. */
   exitPresentationMode(): void;
-
-  /**
-   * i hope we could omit(any) in upcoming changes.
-   */
-  getGeolocationHandles(): any | undefined;
 }
 
 export interface IMapAdapterOptions {
   projection?: string;
   center?: [number, number];
+  /** Raw [longitude, latitude] in degrees; */
+  lonLat?: [number, number];
   zoom?: number;
   rotation?: number;
   layers?: IJGISLayers;

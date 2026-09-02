@@ -28,11 +28,6 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
-import { Geolocation, View } from 'ol';
-import { Coordinate } from 'ol/coordinate';
-import { VectorImage as VectorImageLayer } from 'ol/layer';
-import { fromLonLat, get as getProjection, toLonLat } from 'ol/proj';
-import { Vector as VectorSource } from 'ol/source';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
@@ -477,8 +472,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...old,
       loading: false,
       viewProjection: {
-        code: projection,
-        units: (getProjection(projection) ?? view.getProjection()).getUnits(),
+        code: view.getProjection().getCode(),
+        units: view.getProjection().getUnits(),
       },
     }));
   }
@@ -556,7 +551,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return 'Latitude/Longitude';
         }
 
-        const lonLat = toLonLat(
+        const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
           map.getView().getProjection(),
         );
@@ -564,7 +559,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
       },
       execute: async () => {
-        const lonLat = toLonLat(
+        const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
           this._mapAdapter.getMap().getView().getProjection(),
         );
@@ -782,7 +777,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             pointer.coordinates.x,
             pointer.coordinates.y,
           ]);
-        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
+        const lonLat = this._mapAdapter.toLonLat([
+          pointer.coordinates.x,
+          pointer.coordinates.y,
+        ]);
 
         if (!currentClientPointer) {
           currentClientPointer = {
@@ -889,12 +887,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       // Get current view state before regenerating
       const currentView = this._mapAdapter?.getMap()?.getView();
-      const center = currentView?.getCenter() || [0, 0];
+      const currentCenter = currentView?.getCenter();
+      const lonLat =
+        currentCenter && this._mapAdapter
+          ? this._mapAdapter.toLonLat(
+              currentCenter,
+              currentView?.getProjection(),
+            )
+          : [0, 0];
       const zoom = currentView?.getZoom() || 1;
       const projection = this.state.viewProjection.code || DEFAULT_PROJECTION;
 
       // Regenerate map with new adapter
-      await this.generateMap(center, zoom, projection);
+      await this.generateMap(lonLat, zoom, projection);
 
       const layerids = this._mapAdapter.getLayerIDs();
 
@@ -905,59 +910,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private async updateOptions(options: IJGISOptions): Promise<void> {
-    const {
-      projection,
-      extent,
-      useExtent,
-      latitude,
-      longitude,
-      zoom,
-      bearing,
-    } = options;
-    const map = this._mapAdapter.getMap();
-    let view = map.getView();
-    const currentProjection = view.getProjection().getCode();
-
-    // Need to recreate view if the projection changes
-    if (projection !== undefined && currentProjection !== projection) {
-      const newProjection = getProjection(projection);
-      if (newProjection) {
-        this.setState(old => ({
-          viewProjection: {
-            code: newProjection.getCode(),
-            units: newProjection.getUnits(),
-          },
-        }));
-        view = new View({ projection: newProjection });
-        this._geolocation?.setProjection(newProjection);
-      } else {
-        this._log('warning', `Invalid projection: ${projection}`);
-        return;
-      }
-    }
-
-    view.setRotation(bearing || 0);
-    map.setView(view);
-
-    // Use the extent only if explicitly requested (QGIS files).
-    if (useExtent && extent) {
-      view.fit(extent);
-    } else {
-      const centerCoord = fromLonLat(
-        [longitude || 0, latitude || 0],
-        view.getProjection(),
-      );
-
-      this._mapAdapter.moveToPosition(
-        { x: centerCoord[0], y: centerCoord[1] },
-        zoom || 0,
-      );
-
-      // Save the extent if it does not exists, to allow proper export to qgis.
-      if (!options.extent) {
-        options.extent = view.calculateExtent();
-        this._model.setOptions(options);
-      }
+    const projectionInfo = this._mapAdapter.applyOptions(options);
+    if (projectionInfo) {
+      this.setState(old => ({
+        ...old,
+        viewProjection: projectionInfo,
+      }));
     }
   }
 
@@ -1117,21 +1075,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   };
 
-  private _clearHighlightWhenIdentifyDisabled(): void {
-    if (
-      this._model.currentMode !== 'identifying' &&
-      this._highlightLayerRef.current
-    ) {
-      this._highlightLayerRef.current?.getSource()?.clear();
-    }
-  }
-
   private _handleIdentifiedFeaturesChanged = (): void => {
     this.setState(old => ({
       ...old,
       identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
     }));
-    this._clearHighlightWhenIdentifyDisabled();
+    this._mapAdapter.clearHighlightIfNotIdentifying();
   };
 
   /**
@@ -1682,7 +1631,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  private _clickCoords: Coordinate;
+  private _clickCoords: number[];
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
@@ -1694,14 +1643,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _mapAdapter: IMapAdapter;
   private _lastMapAdapterType: MapAdapterType = 'openlayers';
   private _model: IJupyterGISModel;
-  private _geolocation?: Geolocation;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
-  private _highlightLayerRef: {
-    current: VectorImageLayer<VectorSource> | null;
-  } = { current: null };
   private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;
   private _state?: IStateDB;

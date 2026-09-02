@@ -155,18 +155,6 @@ type OlLayerTypes =
   | ImageLayer<any>
   | LayerGroup;
 
-/**
- * Concrete, OL-typed shape returned by OpenLayersAdapter.getGeolocationHandles().
- * The abstraction in mapadapter.ts types this `any` since it's shared across
- * engines; this is the real shape MainView receives when running OpenLayers.
- */
-export interface IGeolocationHandles {
-  geolocation: Geolocation;
-  source: VectorSource;
-  positionFeature: Feature | undefined;
-  accuracyFeature: Feature | undefined;
-}
-
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -179,6 +167,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const {
       projection = 'EPSG:3857',
       center = [0, 0],
+      lonLat,
       zoom = 1,
       rotation = 0,
       layers = {},
@@ -200,6 +189,8 @@ export class OpenLayersAdapter implements IMapAdapter {
       throw new Error(`Invalid projection: ${projection}`);
     }
 
+    const initialCenter = lonLat ? fromLonLat(lonLat, proj) : center;
+
     const controls: Control[] = [new ScaleLine({ target: controlsTarget })];
 
     if (!isSpectaMode) {
@@ -216,7 +207,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._map = new OlMap({
       target,
       view: new View({
-        center,
+        center: initialCenter,
         zoom,
         rotation,
         projection: proj,
@@ -611,6 +602,11 @@ export class OpenLayersAdapter implements IMapAdapter {
     return transformExtent(extent, view.getProjection(), targetProjection);
   }
 
+  /** Converts map coordinate to [longitude, latitude]. */
+  toLonLat(coordinate: number[], projection?: any): number[] {
+    return projection ? toLonLat(coordinate, projection) : toLonLat(coordinate);
+  }
+
   /**
    * Geolocation tracking used by the "center on my location" UI state.
    * Moved verbatim out of MainView.generateMap().
@@ -783,17 +779,62 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
-  getGeolocationHandles(): IGeolocationHandles | undefined {
-    if (!this._geolocation || !this._geolocationSource) {
-      return undefined;
+  applyOptions(
+    options: IJGISOptions,
+  ): { code: string; units: string } | undefined {
+    const {
+      projection,
+      extent,
+      useExtent,
+      latitude,
+      longitude,
+      zoom,
+      bearing,
+    } = options;
+    const map = this._map;
+    let view = map.getView();
+    const currentProjection = view.getProjection().getCode();
+
+    let projectionInfo: { code: string; units: string } | undefined;
+
+    // Need to recreate view if the projection changes
+    if (projection !== undefined && currentProjection !== projection) {
+      const newProjection = getProjection(projection);
+      if (newProjection) {
+        projectionInfo = {
+          code: newProjection.getCode(),
+          units: newProjection.getUnits(),
+        };
+        view = new View({ projection: newProjection });
+        this._geolocation?.setProjection(newProjection);
+      } else {
+        this._log('warning', `Invalid projection: ${projection}`);
+        return undefined;
+      }
     }
 
-    return {
-      geolocation: this._geolocation,
-      source: this._geolocationSource,
-      positionFeature: this._geolocationPositionFeature,
-      accuracyFeature: this._geolocationAccuracyFeature,
-    };
+    view.setRotation(bearing || 0);
+    map.setView(view);
+
+    // Use the extent only if explicitly requested (QGIS files).
+    if (useExtent && extent) {
+      view.fit(extent);
+    } else {
+      const centerCoord = fromLonLat(
+        [longitude || 0, latitude || 0],
+        view.getProjection(),
+      );
+
+      this.moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
+
+      // Save the extent if it does not exist, to allow proper export to qgis.
+      if (!options.extent) {
+        options.extent = view.calculateExtent();
+        this._model.setOptions(options);
+      }
+    }
+
+    return projectionInfo;
   }
 
   getSize(): [number, number] | undefined {
@@ -1303,6 +1344,15 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   private _ensureHighlightLayer(): void {
     ensureHighlightLayer(this._map, this._highlightLayerRef);
+  }
+
+  clearHighlightIfNotIdentifying(): void {
+    if (
+      this._model.currentMode !== 'identifying' &&
+      this._highlightLayerRef.current
+    ) {
+      this._highlightLayerRef.current?.getSource()?.clear();
+    }
   }
 
   private ensureProjectionRegistered(projectionCode: string): void {
@@ -2748,6 +2798,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _geolocationPositionFeature?: Feature;
   private _geolocationAccuracyFeature?: Feature;
   private _locationIndicatorActive = false;
+  private _featureAttributeCache: Map<string | number, any> = new Map();
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -2771,6 +2822,4 @@ export class OpenLayersAdapter implements IMapAdapter {
       ?.getLogger(this._model.filePath)
       .log({ type: 'text', level, data: message });
   }
-
-  private _featureAttributeCache: Map<string | number, any> = new Map();
 }
