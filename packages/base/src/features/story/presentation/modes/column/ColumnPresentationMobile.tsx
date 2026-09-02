@@ -21,10 +21,8 @@ const SNAP_FIRST_DEFAULT = 0.7;
 const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 /**
- * Compute the first snap point so that vaul's --snap-point-height (the
- * transform offset) equals #jgis-story-segment-panel height minus #jgis-story-segment-header height.
- * For a bottom drawer, offset = mainHeight * (1 - snapPoint), so
- * snapPoint = (mainHeight - offset) / mainHeight.
+ * Compute the first snap point so the drawer height leaves the segment header
+ * visible above the panel. For a bottom drawer, offset = mainHeight * (1 - snapPoint).
  */
 function getFirstSnapFromSegmentHeader(
   mainEl: HTMLElement,
@@ -67,7 +65,9 @@ export function ColumnPresentationMobile({
     SNAP_FIRST_DEFAULT,
     1,
   ]);
-  const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
+  const [snap, setSnap] = useState<number | null>(
+    SNAP_FIRST_DEFAULT,
+  );
 
   const presentationStyle = getSpectaPresentationStyle(storyData);
 
@@ -147,16 +147,15 @@ export function ColumnPresentationMobile({
     <div className="jgis-mobile-specta-trigger-wrapper">
       <Drawer
         snapPoints={snapPoints}
-        activeSnapPoint={snap}
-        setActiveSnapPoint={setSnap}
-        direction="bottom"
-        container={container}
-        noBodyStyles={true}
+        snapPoint={snap}
+        onSnapPointChange={snapPoint => {
+          setSnap(typeof snapPoint === 'number' ? snapPoint : null);
+        }}
+        swipeDirection="down"
+        showSwipeHandle
       >
-        <DrawerTrigger asChild>
-          <Button>Open Story Panel</Button>
-        </DrawerTrigger>
-        <DrawerContent style={presentationStyle}>
+        <DrawerTrigger render={<Button>Open Story Panel</Button>} />
+        <DrawerContent keepMounted container={container} style={presentationStyle}>
           <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
               model={model}
