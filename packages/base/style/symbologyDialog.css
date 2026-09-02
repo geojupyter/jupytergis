@@ -288,6 +288,20 @@ select option {
   flex: 1 0 auto;
 }
 
+.jp-gis-grammar-layer-declutter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.jp-gis-grammar-layer-declutter input {
+  margin: 0;
+}
+
 .jp-gis-grammar-transform-row {
   display: flex;
   align-items: center;
