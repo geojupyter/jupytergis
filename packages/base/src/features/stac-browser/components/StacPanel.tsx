@@ -66,17 +66,10 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
       style={{ boxShadow: 'none' }}
     >
       <TabsList className="jgis-stac-panel-tabs-list">
-        <TabsTrigger className="jGIS-layer-browser-category" value="filters">
+        <TabsTrigger className={'text-sm'} value="filters">
           Filters
         </TabsTrigger>
-        <TabsTrigger
-          className="jGIS-layer-browser-category"
-          value="results"
-          // Total results will always be the the same as the limit if the
-          // provider doesn't support the context extension (where totalPages comes from)
-        >
-          {`Results (${totalResults})`}
-        </TabsTrigger>
+        <TabsTrigger value="results">{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
         <div className="jgis-stac-filter-extension-panel">

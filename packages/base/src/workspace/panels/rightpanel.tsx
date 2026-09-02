@@ -83,7 +83,6 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
           <TabsList>
             {tabInfo.map(tab => (
               <TabsTrigger
-                className="jGIS-layer-browser-category"
                 key={`${tab.name}-${tab.title}`}
                 value={tab.name}
                 onClick={() => {

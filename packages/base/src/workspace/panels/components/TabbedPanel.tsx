@@ -47,14 +47,12 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   return (
     <Tabs className="jgis-panel-tabs" value={curTab || null}>
       <TabsList
-        variant={'line'}
         ref={tabsListRef}
         onMouseDown={onTabListMouseDown}
         onTouchStart={onTabListTouchStart}
       >
         {enabledTabs.map(tab => (
           <TabsTrigger
-            className="jGIS-layer-browser-category"
             key={tab.name}
             value={tab.name}
             onClick={() => onTabClick(tab.name)}
