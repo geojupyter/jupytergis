@@ -31,6 +31,10 @@ export interface IMapAdapter {
   removeLayer(id: string): void;
 
   onZoomToPosition(_: IJupyterGISModel, id: string): void;
+  convertFeatureToMs(_: IJupyterGISModel, args: string): void;
+  computeFeatureFloaterPosition(
+    feature: any,
+  ): { x: number; y: number } | undefined;
   flyToPosition(
     center: JgisCoordinates,
     zoom: number,

@@ -12,8 +12,6 @@ import {
   IJGISSource,
   IJGISSourceDocChange,
   IJGISUIState,
-  IIdentifiedFeature,
-  IIdentifiedFeatures,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISDocChange,
@@ -22,6 +20,8 @@ import {
   JupyterGISModel,
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
+  IIdentifiedFeature,
+  IIdentifiedFeatures,
 } from '@jupytergis/schema';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -33,7 +33,6 @@ import { ContextMenu, Menu } from '@lumino/widgets';
 import { Geolocation, View } from 'ol';
 import Feature from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
-import { getCenter } from 'ol/extent';
 import { GeoJSON } from 'ol/format';
 import { VectorImage as VectorImageLayer } from 'ol/layer';
 import { fromLonLat, get as getProjection, toLonLat } from 'ol/proj';
@@ -44,7 +43,6 @@ import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
 import { DrawToolController } from '@/src/features/draw-tool';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
-import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
 import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
@@ -65,6 +63,7 @@ import {
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
 import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
+import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
@@ -191,7 +190,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
-    this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.addFeatureAsMsSignal.connect(
+      this._mapAdapter.convertFeatureToMs,
+      this,
+    );
     this._model.storyPreviewActiveChanged.connect(
       this._onStoryPreviewActiveChanged,
       this,
@@ -348,7 +350,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
-    this._model.addFeatureAsMsSignal.disconnect(this._convertFeatureToMs, this);
+    this._model.addFeatureAsMsSignal.disconnect(
+      this._mapAdapter.convertFeatureToMs,
+      this,
+    );
     this._model.geolocationChanged.disconnect(
       this._handleGeolocationChanged,
       this,
@@ -1417,38 +1422,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     });
   }
-
-  private _computeFeatureFloaterPosition(
-    feature: any,
-  ): { x: number; y: number } | undefined {
-    const geometry = feature?.geometry ?? feature?._geometry;
-
-    if (!geometry) {
-      return undefined;
-    }
-
-    if (typeof geometry.getExtent === 'function') {
-      const extent = geometry.getExtent();
-      const center = getCenter(extent);
-      const pixels = this._mapAdapter.getMap().getPixelFromCoordinate(center);
-      if (pixels) {
-        return { x: pixels[0], y: pixels[1] };
-      }
-      return undefined;
-    }
-
-    if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
-      const pixels = this._mapAdapter
-        .getMap()
-        .getPixelFromCoordinate(geometry.coordinates);
-      if (pixels) {
-        return { x: pixels[0], y: pixels[1] };
-      }
-    }
-
-    return undefined;
-  }
-
   private _getVisibleDrawIdentifiedFeatures(): Array<
     [string, IIdentifiedFeature]
   > {
@@ -1480,7 +1453,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return;
         }
 
-        const screenPosition = this._computeFeatureFloaterPosition(feature);
+        const screenPosition =
+          this._mapAdapter.computeFeatureFloaterPosition(feature);
         if (!screenPosition) {
           return;
         }
@@ -1525,23 +1499,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
     this._mapAdapter.updateLayer(layerId, jgisLayer, olLayer);
-  }
-
-  private _convertFeatureToMs(_: IJupyterGISModel, args: string) {
-    const json = JSON.parse(args);
-    const { id: layerId, selectedFeature } = json;
-    const olLayer = this._mapAdapter.getLayer(layerId);
-    const source = olLayer.getSource() as VectorSource;
-
-    if (typeof source.forEachFeature !== 'function') {
-      return;
-    }
-
-    source.forEachFeature(feature => {
-      const time = feature.get(selectedFeature);
-      const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
-      feature.set(`${selectedFeature}ms`, parsedTime);
-    });
   }
 
   private _handleGeolocationChanged(
@@ -1728,7 +1685,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _renderFeatureFloaters(): React.ReactNode {
     return this._getVisibleDrawIdentifiedFeatures().map(
       ([floaterKey, feature]) => {
-        const screenPosition = this._computeFeatureFloaterPosition(feature);
+        const screenPosition =
+          this._mapAdapter.computeFeatureFloaterPosition(feature);
         if (!screenPosition) {
           return null;
         }

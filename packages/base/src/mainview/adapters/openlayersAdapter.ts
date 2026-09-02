@@ -2156,6 +2156,23 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
+  convertFeatureToMs(_: IJupyterGISModel, args: string) {
+    const json = JSON.parse(args);
+    const { id: layerId, selectedFeature } = json;
+    const olLayer = this.getLayer(layerId);
+    const source = olLayer.getSource() as VectorSource;
+
+    if (typeof source.forEachFeature !== 'function') {
+      return;
+    }
+
+    source.forEachFeature(feature => {
+      const time = feature.get(selectedFeature);
+      const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
+      feature.set(`${selectedFeature}ms`, parsedTime);
+    });
+  }
+
   onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2233,6 +2250,35 @@ export class OpenLayersAdapter implements IMapAdapter {
     // Immediate move
     view.setCenter(targetCenter);
     view.setZoom(zoom);
+  }
+
+  computeFeatureFloaterPosition(
+    feature: any,
+  ): { x: number; y: number } | undefined {
+    const geometry = feature?.geometry ?? feature?._geometry;
+
+    if (!geometry) {
+      return undefined;
+    }
+
+    if (typeof geometry.getExtent === 'function') {
+      const extent = geometry.getExtent();
+      const center = getCenter(extent);
+      const pixels = this._map.getPixelFromCoordinate(center);
+      if (pixels) {
+        return { x: pixels[0], y: pixels[1] };
+      }
+      return undefined;
+    }
+
+    if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
+      const pixels = this._map.getPixelFromCoordinate(geometry.coordinates);
+      if (pixels) {
+        return { x: pixels[0], y: pixels[1] };
+      }
+    }
+
+    return undefined;
   }
 
   /**
