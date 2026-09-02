@@ -190,10 +190,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
-    this._model.addFeatureAsMsSignal.connect(
-      this._mapAdapter.convertFeatureToMs,
-      this,
-    );
     this._model.storyPreviewActiveChanged.connect(
       this._onStoryPreviewActiveChanged,
       this,
@@ -284,6 +280,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     await this.generateMap(center, zoom, projection);
     this._model.zoomToPositionSignal.connect(
       this._mapAdapter.onZoomToPosition,
+      this._mapAdapter,
+    );
+    this._model.addFeatureAsMsSignal.connect(
+      this._mapAdapter.convertFeatureToMs,
       this._mapAdapter,
     );
 
@@ -1836,7 +1836,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   } = { current: null };
   private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;
-  private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
