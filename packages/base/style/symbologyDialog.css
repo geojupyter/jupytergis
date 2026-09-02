@@ -302,6 +302,41 @@ select option {
   margin: 0;
 }
 
+.jp-gis-grammar-label-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  border-bottom: 1px solid var(--jp-border-color2);
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-gis-grammar-label-title {
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+  flex: 0 0 auto;
+}
+
+.jp-gis-grammar-label-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+.jp-gis-grammar-label-control input[type='checkbox'] {
+  margin: 0;
+}
+
+.jp-gis-grammar-label-row .jgis-button.jp-gis-grammar-label-delete {
+  margin-left: auto;
+  background: transparent;
+  background-color: transparent;
+  border-color: transparent;
+}
+
 .jp-gis-grammar-transform-row {
   display: flex;
   align-items: center;

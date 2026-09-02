@@ -21,7 +21,9 @@ import {
   IColorMapScale,
   IConstantNumScale,
   IConstantRGBAScale,
+  IConstantStrScale,
   IExpressionScale,
+  Encoding,
   IScale,
   IScalarScale,
   RGBA,
@@ -50,6 +52,11 @@ import {
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { InfoTip } from '@/src/shared/components/InfoTip';
+import { Input } from '@/src/shared/components/Input';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 function stopsToRows(
   stops: Array<{ stop: number | string; color: RGBA }>,
@@ -81,15 +88,68 @@ const MODE_OPTIONS: ClassificationMode[] = [
 // Constant editor
 // ---------------------------------------------------------------------------
 
+/**
+ * Text encodings whose value is one of a fixed set. Offering a free text box
+ * for these invites typos that OL rejects at style-parse time, taking the
+ * whole layer's symbology down with them.
+ */
+const TEXT_ENUM_OPTIONS: Partial<Record<Encoding, string[]>> = {
+  'text-placement': ['point', 'line'],
+  'text-align': ['left', 'center', 'right', 'start', 'end'],
+  'text-baseline': ['bottom', 'top', 'middle', 'alphabetic', 'hanging'],
+};
+
 interface IConstantEditorProps {
-  scale: IConstantRGBAScale | IConstantNumScale;
+  scale: IConstantRGBAScale | IConstantNumScale | IConstantStrScale;
   onChange: (scale: IScale) => void;
+  /** Encodings this scale drives, used to pick the right text input. */
+  encodings?: Encoding[];
 }
 
 export const ConstantEditor: React.FC<IConstantEditorProps> = ({
   scale,
   onChange,
+  encodings = [],
 }) => {
+  if (scale.scheme === 'constant_str') {
+    const enumEncoding = encodings.find(c => c in TEXT_ENUM_OPTIONS);
+    const options = enumEncoding ? TEXT_ENUM_OPTIONS[enumEncoding] : undefined;
+
+    return (
+      <div className="jp-gis-symbology-row">
+        <label>Value</label>
+        {options ? (
+          <NativeSelect
+            value={scale.params.value}
+            onChange={e =>
+              onChange({
+                scheme: 'constant_str',
+                params: { value: e.target.value },
+              })
+            }
+          >
+            {options.map(o => (
+              <NativeSelectOption key={o} value={o}>
+                {o}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        ) : (
+          <Input
+            className="jp-mod-styled"
+            value={scale.params.value}
+            onChange={e =>
+              onChange({
+                scheme: 'constant_str',
+                params: { value: e.target.value },
+              })
+            }
+          />
+        )}
+      </div>
+    );
+  }
+
   if (scale.scheme === 'constant_num') {
     return (
       <div className="jp-gis-symbology-row">

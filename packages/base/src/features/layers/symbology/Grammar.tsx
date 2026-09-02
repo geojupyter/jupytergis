@@ -27,6 +27,7 @@ import {
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import LabelRow from '@/src/features/layers/symbology/components/LabelRow';
 import MappingRow, {
   IGrammarRow,
   WhenRow,
@@ -37,6 +38,14 @@ import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hoo
 import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
 import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
+import {
+  defaultLabelConfig,
+  ILabelConfig,
+  isLabelRow,
+  readLabel,
+  removeLabel,
+  writeLabel,
+} from '@/src/features/layers/symbology/labelRules';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
@@ -318,6 +327,38 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     });
   }, [layer, onChange, isRaster]);
 
+  // The label is stored as ordinary grammar rules but edited as one row, so
+  // it is read back out of the rows rather than held as separate UI state.
+  const labelConfig = readLabel(layer.rows);
+
+  const addLabel = useCallback(() => {
+    onChange({
+      ...layer,
+      rows: writeLabel(
+        layer.rows,
+        defaultLabelConfig(availableFields[0]?.value),
+      ),
+    });
+  }, [layer, onChange, availableFields]);
+
+  const updateLabel = useCallback(
+    (config: ILabelConfig) => {
+      onChange({ ...layer, rows: writeLabel(layer.rows, config) });
+    },
+    [layer, onChange],
+  );
+
+  const deleteLabel = useCallback(() => {
+    onChange({ ...layer, rows: removeLabel(layer.rows) });
+  }, [layer, onChange]);
+
+  // Label rows are rendered by the label editor, not as generic mapping rows.
+  // Their original indices are carried along so reordering still addresses the
+  // right entries in layer.rows.
+  const styleRows = layer.rows
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) => !isLabelRow(row));
+
   // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
   const encodingFields: IFieldOption[] = hasKDE
@@ -340,6 +381,18 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           >
             <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
             Transform
+          </Button>
+        )}
+
+        {!isRaster && !labelConfig && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={addLabel}
+            title="Label each feature with one of its attributes"
+          >
+            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+            Label
           </Button>
         )}
 
@@ -441,6 +494,16 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         />
       )}
 
+      {/* Label editor — one row standing in for the label's grammar rules */}
+      {labelConfig && (
+        <LabelRow
+          config={labelConfig}
+          availableFields={availableFields}
+          onChange={updateLabel}
+          onDelete={deleteLabel}
+        />
+      )}
+
       {/* Mapping rows — reorder bar (drag + arrows) above each rule */}
       {/* Container handles drag events so drops work even at top/bottom edges */}
       <div
@@ -453,7 +516,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               ':scope > .jp-gis-grammar-drag-wrapper',
             ),
           );
-          let idx = layer.rows.length;
+          let idx = styleRows.length;
           for (let j = 0; j < wrappers.length; j++) {
             const rect = wrappers[j].getBoundingClientRect();
             const midY = rect.top + rect.height / 2;
@@ -468,8 +531,14 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         onDrop={() => {
           const over = dragOverRef.current;
           if (dragIndexRef.current !== null && over !== null) {
-            const to = over > dragIndexRef.current ? over - 1 : over;
-            moveRow(dragIndexRef.current, to);
+            // Drag positions count visible rows; moveRow addresses layer.rows,
+            // which also holds the hidden label rows.
+            const toPosition = over > dragIndexRef.current ? over - 1 : over;
+            const from = styleRows[dragIndexRef.current]?.index;
+            const to = styleRows[toPosition]?.index;
+            if (from !== undefined && to !== undefined) {
+              moveRow(from, to);
+            }
           }
           dragIndexRef.current = null;
           dragOverRef.current = null;
@@ -481,29 +550,29 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           setDragOverIndex(null);
         }}
       >
-        {layer.rows.map((row, i) => (
+        {styleRows.map(({ row, index: i }, position) => (
           <div
             key={row.id}
             className="jp-gis-grammar-drag-wrapper"
             style={{
               borderTop:
-                dragOverIndex === i && dragIndexRef.current !== i
+                dragOverIndex === position && dragIndexRef.current !== position
                   ? '2px solid var(--jp-brand-color1)'
                   : '2px solid transparent',
               borderBottom:
-                dragOverIndex === layer.rows.length &&
-                i === layer.rows.length - 1 &&
-                dragIndexRef.current !== i
+                dragOverIndex === styleRows.length &&
+                position === styleRows.length - 1 &&
+                dragIndexRef.current !== position
                   ? '2px solid var(--jp-brand-color1)'
                   : '2px solid transparent',
             }}
           >
-            {layer.rows.length > 1 && (
+            {styleRows.length > 1 && (
               <div className="jp-gis-grammar-reorder-bar">
                 <Button
                   type="button"
-                  disabled={i === 0}
-                  onClick={() => moveRow(i, i - 1)}
+                  disabled={position === 0}
+                  onClick={() => moveRow(i, styleRows[position - 1].index)}
                   title="Move up"
                 >
                   <FontAwesomeIcon icon={faArrowUp} />
@@ -512,7 +581,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                   className="jp-gis-grammar-drag-handle"
                   draggable
                   onDragStart={e => {
-                    dragIndexRef.current = i;
+                    dragIndexRef.current = position;
                     const wrapper = e.currentTarget.closest(
                       '.jp-gis-grammar-drag-wrapper',
                     );
@@ -526,8 +595,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                 </div>
                 <Button
                   type="button"
-                  disabled={i === layer.rows.length - 1}
-                  onClick={() => moveRow(i, i + 1)}
+                  disabled={position === styleRows.length - 1}
+                  onClick={() => moveRow(i, styleRows[position + 1].index)}
                   title="Move down"
                 >
                   <FontAwesomeIcon icon={faArrowDown} />
