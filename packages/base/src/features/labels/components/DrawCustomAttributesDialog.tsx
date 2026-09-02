@@ -103,15 +103,17 @@ export function DrawCustomAttributesDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <SlidersHorizontal
-            data-icon="inline-start"
-            className="jgis-inline-icon"
-          />
-          Edit
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button>
+            <SlidersHorizontal
+              data-icon="inline-start"
+              className="jgis-inline-icon"
+            />
+            Edit
+          </Button>
+        }
+      />
       <DialogContent>
         <DrawCustomAttributesDialogContent
           model={model}
@@ -200,7 +202,7 @@ function DrawCustomAttributesDialogContent({
         <DialogTitle className="jgis-draw-custom-attributes-header-main">
           Set up custom attributes
         </DialogTitle>
-        <DialogDescription className="jgis-sr-only">
+        <DialogDescription className="sr-only">
           Configure custom attributes applied to newly drawn features.
         </DialogDescription>
       </DialogHeader>
