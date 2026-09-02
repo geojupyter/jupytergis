@@ -262,7 +262,8 @@ function SegmentEditor({
                   disabled={isImmediateTransition}
                   aria-label="Transition duration"
                   style={{ maxWidth: '10rem' }}
-                  onValueChange={([time]) => {
+                  onValueChange={value => {
+                    const time = Array.isArray(value) ? value[0] : value;
                     onTransitionChange({ time });
                   }}
                 />

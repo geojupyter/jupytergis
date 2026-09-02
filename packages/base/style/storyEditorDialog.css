@@ -852,9 +852,6 @@ Radix won't set hidden so do it manually */
 
 .jgis-story-editor-segment-layer-grid--mobile
   .jgis-story-editor-segment-layer-opacity
-  .jgis-slider,
-.jgis-story-editor-segment-layer-grid--mobile
-  .jgis-story-editor-segment-layer-opacity
   [data-slot='slider'] {
   flex: 1 1 auto;
   min-width: 0;

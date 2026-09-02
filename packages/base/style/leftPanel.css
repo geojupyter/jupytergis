@@ -142,13 +142,15 @@
 }
 
 /* Use the JupyterLab brand blue for the filled range by default. */
-.jp-gis-layerOpacitySlider .jgis-slider-range {
+.jp-gis-layerOpacitySlider [data-slot='slider-range'] {
   background-color: var(--jp-brand-color1);
 }
 
 /* On a selected (blue) row, recolor the slider so it reads against the
    inverse background instead of showing the green accent range. */
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-track {
+.jp-gis-layer.jp-mod-selected
+  .jp-gis-layerOpacitySlider
+  [data-slot='slider-track'] {
   background-color: color-mix(
     in srgb,
     var(--jp-ui-inverse-font-color1),
@@ -156,16 +158,20 @@
   );
 }
 
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-range {
-  background-color: var(--jp-ui-inverse-font-color1);
+.jp-gis-layer.jp-mod-selected
+  .jp-gis-layerOpacitySlider
+  [data-slot='slider-range'] {
+  background-color: var(--color-background);
 }
 
-.jp-gis-layer.jp-mod-selected .jp-gis-layerOpacitySlider .jgis-slider-thumb {
+.jp-gis-layer.jp-mod-selected
+  .jp-gis-layerOpacitySlider
+  [data-slot='slider-thumb'] {
   background-color: var(--jp-ui-inverse-font-color1);
   border-color: var(--jp-ui-inverse-font-color1);
 }
 
-.jp-gis-layerSlideNumber {
+*/ .jp-gis-layerSlideNumber {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;

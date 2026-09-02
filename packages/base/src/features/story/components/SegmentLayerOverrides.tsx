@@ -96,7 +96,8 @@ export function SegmentLayerOverrides({
                   step={1}
                   value={[Math.round(row.effectiveOpacity * 100)]}
                   aria-label={`Opacity for ${row.layerName}`}
-                  onValueChange={([opacity]) => {
+                  onValueChange={value => {
+                    const opacity = Array.isArray(value) ? value[0] : value;
                     setSegmentLayerOpacity(
                       model,
                       segmentId,

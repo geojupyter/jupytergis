@@ -58,14 +58,18 @@ function StoryOpacityField({
   return (
     <div className="jgis-story-editor-field">
       <span>{label}</span>
-      <div className="jgis-story-editor-opacity-row">
+      <div
+      // className="jgis-story-editor-opacity-row"
+      >
         <Slider
+          orientation="horizontal"
           min={0}
           max={100}
           step={1}
           value={[opacityPercent]}
           aria-label={label}
-          onValueChange={([next]) => {
+          onValueChange={value => {
+            const next = Array.isArray(value) ? value[0] : value;
             onChange(next / 100);
           }}
         />

@@ -113,7 +113,7 @@ test.describe('#layerPanel', () => {
       const opacitySlider = layerTree.locator('.jp-gis-layerOpacitySlider');
       await expect(opacitySlider).toHaveCount(1);
 
-      const thumb = opacitySlider.locator('.jgis-slider-thumb');
+      const thumb = opacitySlider.locator('[data-slot="slider-thumb"]');
 
       // Defaults to fully opaque (100%).
       await expect(thumb).toHaveAttribute('aria-valuenow', '100');
