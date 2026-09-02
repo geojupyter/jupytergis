@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import unquote
 from uuid import uuid4
 
@@ -26,6 +26,7 @@ from qgis.core import (  # type: ignore[import-untyped]
     QgsSettings,
     QgsSingleBandGrayRenderer,
     QgsSingleBandPseudoColorRenderer,
+    QgsVectorFileWriter,
     QgsVectorLayer,
     QgsVectorTileLayer,
 )
@@ -71,12 +72,94 @@ def closeQgis():
     qgs.exitQgis()
 
 
+_VSICURL_PREFIX = "/vsicurl/"
+
+
+def _strip_vsicurl(path: str) -> str:
+    """Remove the GDAL /vsicurl/ prefix so the stored jgis path stays clean."""
+    if path.startswith(_VSICURL_PREFIX):
+        return path[len(_VSICURL_PREFIX) :]
+    return path
+
+
+def _to_gdal_readable_path(path: str) -> str:
+    """Wrap remote HTTP(S) URLs with /vsicurl/ so GDAL/OGR can read them."""
+    if path.startswith(("http://", "https://")):
+        return _VSICURL_PREFIX + path
+    return path
+
+
+def _relative_to_project(path: str) -> str:
+    """Re-relativise a QGIS-resolved data path against the project directory.
+
+    QGIS resolves layer sources to absolute paths. jGIS stores paths relative to
+    its document directory (the same place the project lives), so keep any
+    subdirectory (e.g. "data/eq.geojson") rather than collapsing to the bare
+    basename. Only fall back to the basename when the data sits outside the
+    project tree, to avoid emitting fragile "../" paths. Remote URLs are
+    returned untouched.
+    """
+    if path.startswith(("http://", "https://")):
+        return path
+
+    project_dir = QgsProject.instance().absolutePath()
+    src = Path(path)
+    if project_dir and src.is_absolute():
+        try:
+            return str(src.relative_to(project_dir))
+        except ValueError:
+            return src.name
+    return path
+
+
+def _parse_ogr_gpkg_source(source: str) -> tuple[str, str | None] | None:
+    """Parse a QGIS OGR source string like '/path/file.gpkg|layername=foo' or
+    '/path/file.gpkg|layerid=0'. Returns (path, table_name) if the source points
+    to a GeoPackage, else None. /vsicurl/ prefixes are stripped from the path.
+    """
+    # Strip any provider options that come after a `|`
+    head, sep, tail = source.partition("|")
+    path = _strip_vsicurl(head)
+    if not path.lower().endswith(".gpkg"):
+        return None
+
+    table = None
+    if sep:
+        for part in tail.split("|"):
+            if part.startswith("layername="):
+                table = part[len("layername=") :]
+                break
+            if part.startswith("layerid="):
+                # We don't resolve layerid -> name here; leave table empty so
+                # the consumer falls back to "all tables".
+                table = ""
+                break
+    return path, table
+
+
+def _parse_gdal_gpkg_source(source: str) -> tuple[str, str | None] | None:
+    """Parse a GDAL GPKG raster source string of the form 'GPKG:<path>:<table>'.
+    Returns (path, table_name) if the source is a GeoPackage raster, else None.
+    /vsicurl/ prefixes are stripped from the path.
+    """
+    if not source.upper().startswith("GPKG:"):
+        return None
+    rest = source[5:]
+    if rest.lower().endswith(".gpkg"):
+        return _strip_vsicurl(rest), None
+    # Path may itself contain ':' on Windows ('C:/...'); parse from the right.
+    path, sep, table = rest.rpartition(":")
+    if not sep or not path.lower().endswith(".gpkg"):
+        return None
+    return _strip_vsicurl(path), table or None
+
+
 def qgis_layer_to_jgis(
     qgis_layer: QgsLayerTreeLayer,
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
     settings: QgsSettings | None,
-) -> str:
+) -> str | None:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
     if layer is None:
@@ -87,12 +170,21 @@ def qgis_layer_to_jgis(
     layer_type = None
     source_type = None
 
-    layer_parameters = {}
-    source_parameters = {}
+    layer_parameters: dict[str, dict[str, Any]] = {}
+    source_parameters: dict[str, list[dict[str, Any]] | str | int | bool] = {}
 
     if isinstance(layer, QgsRasterLayer):
+        gpkg_raster = _parse_gdal_gpkg_source(layer.source())
+        if gpkg_raster is not None:
+            gpkg_path, gpkg_table = gpkg_raster
+            layer_type = "RasterLayer"
+            source_type = "GeoPackageRasterSource"
+            source_parameters.update(
+                path=_relative_to_project(gpkg_path),
+                tables=gpkg_table or "",
+            )
         # QGIS treats tif layers as raster layer
-        if layer.source().endswith(".tif"):
+        elif layer.source().endswith(".tif"):
             layer_type = "GeoTiffLayer"
             source_type = "GeoTiffSource"
 
@@ -199,33 +291,26 @@ def qgis_layer_to_jgis(
             )
     if isinstance(layer, QgsVectorLayer):
         layer_type = "VectorLayer"
-        source_type = "GeoJSONSource"
-
-        # OGR data sources look like "path|subset=...|layername=...". Split the
-        # data path off the provider options (the "|subset=" we add on export
-        # would otherwise be glued onto the GeoJSON URL/path).
         source = layer.source()
-        path_part = source.split("|", 1)[0]
-        if path_part.startswith("http://") or path_part.startswith("https://"):
-            file_name = path_part
-        else:
-            # QGIS resolves layer sources to absolute paths. jGIS stores paths
-            # relative to its document directory (same place the project lives),
-            # so re-relativise to keep any subdirectory (e.g. "data/eq.geojson")
-            # rather than collapsing to the bare basename. Only fall back to the
-            # basename when the data sits outside the project tree, to avoid
-            # emitting fragile "../" paths.
-            project_dir = QgsProject.instance().absolutePath()
-            src = Path(path_part)
-            if project_dir and src.is_absolute():
-                try:
-                    file_name = str(src.relative_to(project_dir))
-                except ValueError:
-                    file_name = src.name
-            else:
-                file_name = path_part
 
-        source_parameters.update(path=file_name)
+        gpkg_vector = _parse_ogr_gpkg_source(source)
+        if gpkg_vector is not None:
+            gpkg_path, gpkg_table = gpkg_vector
+            source_type = "GeoPackageVectorSource"
+            crs = layer.crs()
+            source_parameters.update(
+                path=_relative_to_project(gpkg_path),
+                tables=gpkg_table or "",
+                projection=crs.authid() if crs.isValid() else "EPSG:3857",
+            )
+        else:
+            source_type = "GeoJSONSource"
+
+            # OGR data sources look like "path|subset=...|layername=...". Split the
+            # data path off the provider options (the "|subset=" we add on export
+            # would otherwise be glued onto the GeoJSON URL/path).
+            path_part = source.split("|", 1)[0]
+            source_parameters.update(path=_relative_to_project(path_part))
 
         renderer = layer.renderer()
 
@@ -334,7 +419,10 @@ def qgis_layer_tree_to_jgis(
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
     settings: QgsSettings | None = None,
-) -> list[dict[str, Any]] | None:
+) -> dict[
+    str,
+    list[dict[str, list | str | bool]] | dict[str, dict[str, Any]] | None,
+]:
     if layer_tree is None:
         layer_tree = []
         layers = {}
@@ -343,7 +431,7 @@ def qgis_layer_tree_to_jgis(
     children = node.children()
     for child in children:
         if isinstance(child, QgsLayerTreeGroup):
-            _layer_tree = []
+            _layer_tree: list[dict[str, list | str | bool]] = []
             group = {
                 "layers": _layer_tree,
                 "name": child.name(),
@@ -352,6 +440,11 @@ def qgis_layer_tree_to_jgis(
             layer_tree.append(group)
             qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources, settings)
         elif isinstance(child, QgsLayerTreeLayer):
+            if layers is None:
+                raise RuntimeError("layers cannot be None. This is a bug.")
+            if sources is None:
+                raise RuntimeError("sources cannot be None. This is a bug.")
+
             layer_id = qgis_layer_to_jgis(child, layers, sources, settings)
             if layer_id is not None:
                 layer_tree.append(layer_id)
@@ -459,6 +552,7 @@ def import_project_from_qgis(path: str | Path):
             "projection": project.crs().authid(),
         },
         "metadata": {},
+        "annotations": {},
         **jgis_layer_tree,
     }
 
@@ -471,16 +565,16 @@ def jgis_layer_to_qgis(
     logs: dict[str, list[str]],
 ) -> list[QgsMapLayer]:
     # The function that build the URI from the source parameters.
-    def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
-        layer_config = {}
-        zmax = parameters.get("maxZoom")
-        zmin = parameters.get("minZoom", 0)
+    def build_uri(parameters: dict[str, object], source_type: str) -> str | None:
+        layer_config: dict[str, str] = {}
+        zmax = cast("str | int | float", parameters.get("maxZoom"))
+        zmin = cast("str | int | float", parameters.get("minZoom", 0))
 
         if source_type in ["RasterSource", "VectorTileSource"]:
-            url = parameters.get("url")
+            url = cast("str | None", parameters.get("url"))
             if url is None:
                 return None
-            urlParameters = parameters.get("urlParameters")
+            urlParameters = cast("dict[str, str]", parameters.get("urlParameters"))
             if urlParameters:
                 for k, v in urlParameters.items():
                     url = url.replace(f"{{{k}}}", v)
@@ -488,15 +582,15 @@ def jgis_layer_to_qgis(
             layer_config["type"] = "xyz"
 
         if source_type == "GeoJSONSource":
-            path = parameters.get("path")
+            path = cast("str", parameters.get("path"))
             return path
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
 
-        layer_config["zmin"] = str(round(zmin))
+        layer_config["zmin"] = str(round(float(zmin)))
         if zmax:
-            layer_config["zmax"] = str(round(zmax))
+            layer_config["zmax"] = str(round(float(zmax)))
         uri = QgsDataSourceUri()
         for key, val in layer_config.items():
             uri.setParam(key, val)
@@ -545,6 +639,21 @@ def jgis_layer_to_qgis(
         map_layers.append(QgsRasterLayer(uri, layer_name, "wms"))
         layer_opacities.append(opacity)
 
+    elif layer_type == "RasterLayer" and source_type == "GeoPackageRasterSource":
+        source_parameters = source.get("parameters", {})
+        gpkg_path = source_parameters.get("path")
+        table = source_parameters.get("tables", "")
+        if not gpkg_path:
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: GeoPackage raster source missing 'path'.",
+            )
+            return []
+        readable_path = _to_gdal_readable_path(gpkg_path)
+        uri = f"GPKG:{readable_path}:{table}" if table else f"GPKG:{readable_path}"
+        map_layer = QgsRasterLayer(uri, layer_name, "gdal")
+        map_layers.append(map_layer)
+        layer_opacities.append(opacity)
+
     elif layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         source_parameters = source.get("parameters", {})
         symbology_state = layer_params.get("symbologyState", {})
@@ -565,14 +674,37 @@ def jgis_layer_to_qgis(
         map_layers.append(map_layer)
         layer_opacities.append(opacity)
 
-    elif layer_type == "VectorLayer" and source_type == "GeoJSONSource":
+    elif layer_type == "VectorLayer" and source_type in (
+        "GeoJSONSource",
+        "GeoPackageVectorSource",
+    ):
         source_parameters = source.get("parameters", {})
-        uri = build_uri(source_parameters, "GeoJSONSource")
-        if not uri:
-            logs["warnings"].append(
-                f"Layer {layer_id} not exported: invalid GeoJSON source.",
+        # GeoJSON and (bundled/native) GeoPackage vector layers share the exact
+        # same Grammar symbology path; only the OGR uri and the layer CRS differ.
+        if source_type == "GeoPackageVectorSource":
+            gpkg_path = source_parameters.get("path")
+            if not gpkg_path:
+                logs["warnings"].append(
+                    f"Layer {layer_id} not exported: "
+                    "GeoPackage vector source missing 'path'.",
+                )
+                return []
+            readable_path = _to_gdal_readable_path(gpkg_path)
+            table = source_parameters.get("tables", "")
+            uri = f"{readable_path}|layername={table}" if table else readable_path
+            vector_crs = QgsCoordinateReferenceSystem(
+                source_parameters.get("projection") or "EPSG:4326",
             )
-            return []
+            if not vector_crs.isValid():
+                vector_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+        else:
+            uri = build_uri(source_parameters, "GeoJSONSource")
+            if not uri:
+                logs["warnings"].append(
+                    f"Layer {layer_id} not exported: invalid GeoJSON source.",
+                )
+                return []
+            vector_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
         symbology_state = layer_params.get("symbologyState", {})
         # One QGIS layer per Grammar rendering layer, all sharing the source —
@@ -585,7 +717,7 @@ def jgis_layer_to_qgis(
             # Not checking isValid(): remote data often can't load here, but the
             # renderer is still written to the project.
             vlayer = QgsVectorLayer(uri, layer_name, "ogr")
-            vlayer.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+            vlayer.setCrs(vector_crs)
 
             # Grammar is geometry-agnostic; infer geometry from the data.
             geometry_type = None
@@ -718,10 +850,91 @@ def jgis_layer_group_to_qgis(
             )
 
 
+def _bundle_local_vector_sources_to_gpkg(
+    project_path: str,
+    sources: dict[str, dict[str, Any]],
+    logs: dict[str, list[str]],
+) -> dict[str, dict[str, Any]]:
+    """Pack any local-file vector sources (GeoJSON/Shapefile) into a sidecar
+    '<project>.gpkg' next to the QGIS project, returning a mutated copy of
+    `sources` where those entries are converted to GeoPackageVectorSource
+    referencing the sidecar. Remote (http/https) sources and already-GeoPackage
+    sources are left untouched.
+    """
+    bundleable = ("GeoJSONSource", "ShapefileSource")
+    project = Path(project_path).resolve()
+    project_dir = project.parent
+    sidecar_path = project_dir / f"{project.stem}.gpkg"
+
+    bundled = dict(sources)
+    sidecar_initialized = False
+    for source_id, source in sources.items():
+        if source.get("type") not in bundleable:
+            continue
+        params = source.get("parameters", {}) or {}
+        src_path = params.get("path")
+        if not src_path or src_path.startswith(("http://", "https://")):
+            continue
+
+        # Resolve relative paths against the project directory.
+        resolved = Path(src_path)
+        if not resolved.is_absolute():
+            resolved = project_dir / resolved
+        if not resolved.exists():
+            logs["warnings"].append(
+                f"Source {source_id} not bundled: file not found at {resolved}",
+            )
+            continue
+
+        layer_name = resolved.stem
+        vlayer = QgsVectorLayer(str(resolved), layer_name, "ogr")
+        if not vlayer.isValid():
+            logs["warnings"].append(
+                f"Source {source_id} not bundled: failed to read {resolved}",
+            )
+            continue
+
+        opts = QgsVectorFileWriter.SaveVectorOptions()
+        opts.driverName = "GPKG"
+        opts.layerName = layer_name
+        if sidecar_initialized:
+            opts.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+
+        result = QgsVectorFileWriter.writeAsVectorFormatV3(
+            vlayer,
+            str(sidecar_path),
+            vlayer.transformContext(),
+            opts,
+        )
+        if result and result[0] != QgsVectorFileWriter.NoError:
+            logs["warnings"].append(
+                f"Source {source_id} not bundled: writer error {result}",
+            )
+            continue
+        sidecar_initialized = True
+
+        crs = vlayer.crs()
+        bundled[source_id] = {
+            "name": source.get("name", layer_name),
+            "type": "GeoPackageVectorSource",
+            "parameters": {
+                # Absolute on purpose: these sources are only used to build the
+                # QGIS layers, and an OGR uri resolved against the cwd yields an
+                # invalid layer (which then silently drops subset strings). The
+                # path stored in a jGIS document is re-relativised on import.
+                "path": str(sidecar_path),
+                "tables": layer_name,
+                "projection": crs.authid() if crs.isValid() else "EPSG:3857",
+            },
+        }
+
+    return bundled
+
+
 def export_project_to_qgis(
     path: str | Path,
     virtual_file: dict[str, Any],
-) -> dict[str, list[str]]:
+) -> dict[str, list[str]] | None:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return None
 
@@ -744,12 +957,18 @@ def export_project_to_qgis(
 
     qgis_settings = QgsSettings()
 
-    logs = {"warnings": [], "errors": []}
+    logs: dict[str, list[str]] = {"warnings": [], "errors": []}
+
+    bundled_sources = _bundle_local_vector_sources_to_gpkg(
+        path,
+        virtual_file["sources"],
+        logs,
+    )
 
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],
         virtual_file["layers"],
-        virtual_file["sources"],
+        bundled_sources,
         root,
         project,
         qgis_settings,

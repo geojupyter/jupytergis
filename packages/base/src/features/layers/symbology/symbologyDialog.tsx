@@ -1,10 +1,10 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { Dialog } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
+import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { SymbologyTab, SymbologyValue } from '@/src/types';
 import Grammar from './Grammar';
 
@@ -117,7 +117,7 @@ export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   return <>{componentToRender}</>;
 };
 
-export class SymbologyWidget extends Dialog<boolean> {
+export class SymbologyWidget extends EditorAwareDialog<boolean> {
   private okSignal: Signal<SymbologyWidget, null>;
 
   constructor(options: ISymbologyWidgetOptions) {

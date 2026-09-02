@@ -24,7 +24,10 @@ export class ConsoleView extends BoxPanel {
       contentFactory,
       mimeTypeService,
       rendermime: clonedRendermime,
-      kernelPreference: { name: 'python3', shutdownOnDispose: true },
+      kernelPreference: {
+        name: options.kernelName ?? 'python3',
+        shutdownOnDispose: true,
+      },
     });
     this._consolePanel.console.node.dataset.jpInteractionMode = 'notebook';
     this.addWidget(this._consolePanel);
@@ -84,5 +87,9 @@ export namespace ConsoleView {
     mimeTypeService: IEditorMimeTypeService;
     rendermime: IRenderMimeRegistry;
     commandRegistry: CommandRegistry;
+    /**
+     * Name of the kernel to prefer for the console. Defaults to `python3`.
+     */
+    kernelName?: string;
   }
 }

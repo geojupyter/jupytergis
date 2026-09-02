@@ -2,6 +2,35 @@
   "jupyter.lab.setting-icon": "jupytergis::logoMini",
   "title": "JupyterGIS Settings",
   "description": "Settings for the JupyterGIS extension.",
+  "jupyter.lab.menus": {
+    "context": [
+      {
+        "command": "jupytergis:copyStorySegment",
+        "selector": ".jgis-story-editor-segment-list-items",
+        "rank": 0
+      },
+      {
+        "command": "jupytergis:pasteStorySegment",
+        "selector": ".jgis-story-editor-segment-list-items",
+        "rank": 1
+      },
+      {
+        "command": "jupytergis:duplicateStorySegment",
+        "selector": ".jgis-story-editor-segment-list-items",
+        "rank": 2
+      },
+      {
+        "type": "separator",
+        "selector": ".jgis-story-editor-segment-list-items",
+        "rank": 3
+      },
+      {
+        "command": "jupytergis:removeStorySegment",
+        "selector": ".jgis-story-editor-segment-list-items",
+        "rank": 4
+      }
+    ]
+  },
   "type": "object",
   "properties": {
     "proxyUrl": {
@@ -32,12 +61,6 @@
       "type": "boolean",
       "title": "Disable STAC Browser",
       "description": "Disable STAC Browser tab from the Left Panel.",
-      "default": false
-    },
-    "objectPropertiesDisabled": {
-      "type": "boolean",
-      "title": "Disable Object Properties",
-      "description": "Disable Object Properties tab from the Right Panel.",
       "default": false
     },
     "storyMapsDisabled": {

@@ -41,8 +41,8 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
 /**
  * Compile a Grammar symbology state into a single OL layer.
  *
- * isRaster=true: each grammar layer → WebGLTile (pixel-color channel → color
- *   style), $band-N fields → ['band', N] expressions.
+ * isRaster=true: each grammar layer → WebGLTile (pixel-color encoding → color
+ *   style), band_N fields → ['band', N] expressions.
  * isRaster=false (default): non-KDE → VectorImageLayer, KDE → HeatmapLayer.
  *
  * When the state contains multiple grammar layers a LayerGroup is returned;
@@ -126,8 +126,8 @@ function compileGrammarLayer(
 
 /**
  * Compile a single Grammar layer to an OL WebGLTile layer.
- * The pixel-color channel of the compiled style becomes the WebGL tile
- * `color` expression.  $band-N fields compile to ['band', N] in the style
+ * The pixel-color encoding of the compiled style becomes the WebGL tile
+ * `color` expression. band_N fields compile to ['band', N] in the style
  * compiler; normalized GeoTIFF bands cover [0, 1] so featureValues [0, 1]
  * produces sensible colorRamp stops by default.
  */
@@ -146,12 +146,30 @@ function compileRasterLayer(
   const values = featureValues.length > 0 ? featureValues : [0, 1];
   const flatStyle = grammarToOLStyle(singleLayerState, values);
   const colorExpr = flatStyle['pixel-color'];
+  const bandCount = source.bandCount;
+
+  if (!Array.isArray(colorExpr)) {
+    // No symbology → return raw raster layer (no style)
+    return new WebGLTileLayer({
+      opacity,
+      visible,
+      source,
+    });
+  }
+
+  // Apply alpha masking to the raster
+  const finalExpr = [
+    'case',
+    ['==', ['band', bandCount], 0],
+    ['color', 0, 0, 0, 0],
+    colorExpr,
+  ];
 
   return new WebGLTileLayer({
     opacity,
     visible,
     source,
-    ...(colorExpr !== undefined ? { style: { color: colorExpr as any } } : {}),
+    style: { color: finalExpr },
   });
 }
 
@@ -194,10 +212,10 @@ function compileKDELayer(
 function extractGradient(rules: IEncodingRule[]): string[] | undefined {
   for (const rule of rules) {
     for (const mapping of rule.mappings) {
-      const isPixelChannel = (mapping.channels as string[]).some(
+      const isPixelEncoding = (mapping.encodings as string[]).some(
         ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
-      if (!isPixelChannel || mapping.scale.scheme !== 'colorRamp') {
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
         continue;
       }
 

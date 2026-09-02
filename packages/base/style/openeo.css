@@ -713,28 +713,6 @@
   color: var(--jp-ui-font-color1);
 }
 
-.jp-openeo-bbox-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.jp-openeo-bbox-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.jp-openeo-bbox-grid span {
-  font-size: var(--jp-ui-font-size0);
-  color: var(--jp-ui-font-color2);
-}
-
-.jp-openeo-bbox-grid input {
-  padding: 3px 6px;
-}
-
 /* Right pane toolbar */
 .jp-openeo-toolbar {
   display: flex;
@@ -797,6 +775,30 @@
 
 .jp-openeo-toolbar-spacer {
   flex: 1;
+}
+
+/* Code export view (Python / R) */
+.jp-openeo-code-export {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.jp-openeo-code-export-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.jp-openeo-code-export-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
 }
 
 .jp-openeo-status {

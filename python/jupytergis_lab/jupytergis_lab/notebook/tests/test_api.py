@@ -1,12 +1,14 @@
 import pytest
 
 from jupytergis_lab import GISDocument
+from jupytergis_lab.notebook.gis_document import QGIS_UNSUPPORTED_TYPES
 from jupytergis_lab.notebook.symbology import (
     cluster,
     constant,
     field,
     heatmap,
     to_symbology_state,
+    vega_expr,
     when,
 )
 
@@ -52,24 +54,28 @@ class TestDocument:
 
 class TestTiffLayer(TestDocument):
     def test_sourcelayer(self):
+        self.doc._is_ready = True
         tif_layer = self.doc.add_geotiff_layer(url=TEST_TIF)
         assert self.doc.layers[tif_layer]
 
 
 class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
+        self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
         assert all(name in self.doc.layers for name in gpkg_layers)
 
 
 class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):
+        self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
         assert all(name in self.doc.layers for name in gpkg_layers)
 
 
 class TestGeoParquetLayer(TestDocument):
     def test_sourcelayer(self):
+        self.doc._is_ready = True
         geoparquet_layer = self.doc.add_geoparquet_layer(
             TEST_GEOPARQUET,
         )
@@ -104,7 +110,7 @@ class TestGrammarSymbologyBuilders:
         )
         assert (
             state["layers"][0]["rules"][1]["mappings"][0]["scale"]["scheme"]
-            == "colorRamp"
+            == "colorMap"
         )
 
     def test_chain_when_and_when_op(self):
@@ -144,7 +150,7 @@ class TestGrammarSymbologyBuilders:
             ],
         )
         scale = state["layers"][0]["rules"][0]["mappings"][0]["scale"]
-        assert scale["scheme"] == "colorRamp"
+        assert scale["scheme"] == "colorMap"
 
     def test_categorical_accepts_colormap_attribute(self):
         state = to_symbology_state(
@@ -218,6 +224,7 @@ class TestGrammarSymbologyBuilders:
 
 class TestGeoJSONGrammarSymbology(TestDocument):
     def test_add_geojson_layer_persists_fill_symbology_as_layers_only(self):
+        self.doc._is_ready = True
         layer_id = self.doc.add_geojson_layer(
             data=SAMPLE_GEOJSON,
             name="Quakes",
@@ -243,8 +250,70 @@ class TestGeoJSONGrammarSymbology(TestDocument):
             )
 
 
+class TestQgisUnsupportedFeatures(TestDocument):
+    def test_jgis_document_allows_unsupported_layers(self):
+        assert not self.doc._is_qgis_document
+        layer_id = self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
+        assert self.doc.layers[layer_id]
+
+    @pytest.mark.parametrize("ext", [".qgz", ".qgs", ".QGZ"])
+    def test_qgis_document_is_detected(self, ext):
+        self.doc._path = f"project{ext}"
+        assert self.doc._is_qgis_document
+
+    def test_geozarr_layer_blocked_on_qgis_document(self):
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
+        # Nothing should have been added.
+        assert len(self.doc.layers) == 0
+        assert len(self.doc._sources) == 0
+
+    @pytest.mark.parametrize("object_type", sorted(QGIS_UNSUPPORTED_TYPES, key=str))
+    def test_unsupported_types_are_blocked_on_qgis_document(self, object_type):
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc._ensure_qgis_supported(object_type)
+
+    def test_unsupported_types_are_allowed_on_jgis_document(self):
+        for object_type in QGIS_UNSUPPORTED_TYPES:
+            self.doc._ensure_qgis_supported(object_type)  # does not raise
+
+    def test_expression_symbology_blocked_on_add_layer(self):
+        self.doc._is_ready = True
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.add_geojson_layer(
+                data=SAMPLE_GEOJSON,
+                name="Quakes",
+                symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
+            )
+        # Nothing should have been added.
+        assert len(self.doc.layers) == 0
+
+    def test_expression_symbology_blocked_on_apply(self):
+        self.doc._is_ready = True
+        layer_id = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+        self.doc._path = "project.qgz"
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.apply_symbology(
+                layer_id,
+                [[vega_expr("datum.mag * 2").encoding("radius")]],
+            )
+
+    def test_expression_symbology_allowed_on_jgis_document(self):
+        self.doc._is_ready = True
+        layer_id = self.doc.add_geojson_layer(
+            data=SAMPLE_GEOJSON,
+            name="Quakes",
+            symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
+        )
+        assert self.doc.layers[layer_id]
+
+
 class TestLayerManipulation(TestDocument):
     def test_add_and_remove_layer_and_source(self):
+        self.doc._is_ready = True
         layer_id = self.doc.add_geotiff_layer(url=TEST_TIF)
         assert len(self.doc.layers) == 1
 

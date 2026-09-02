@@ -1,9 +1,15 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
+import type { IEditorServices } from '@jupyterlab/codeeditor';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
+import { StoryRenderMimeProvider } from '@/src/features/story/components/StoryRenderMime';
 import { StoryEditorDialogBody } from './StoryEditorDialogBody';
 import { StoryEditorSession } from './storyEditorSession';
 
@@ -12,17 +18,29 @@ export interface IStoryEditorWidgetOptions {
   commands: CommandRegistry;
   state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  editorServices: IEditorServices;
+  rendermime: IRenderMimeRegistry;
+  urlResolverFactory?: IUrlResolverFactory;
 }
 
 export class StoryEditorWidget extends Dialog<boolean> {
+  readonly model: IJupyterGISModel;
+
   constructor(options: IStoryEditorWidgetOptions) {
     const body = (
-      <StoryEditorDialogBody
+      <StoryRenderMimeProvider
+        rendermime={options.rendermime}
         model={options.model}
-        commands={options.commands}
-        state={options.state}
-        formSchemaRegistry={options.formSchemaRegistry}
-      />
+        urlResolverFactory={options.urlResolverFactory}
+      >
+        <StoryEditorDialogBody
+          model={options.model}
+          commands={options.commands}
+          state={options.state}
+          formSchemaRegistry={options.formSchemaRegistry}
+          editorServices={options.editorServices}
+        />
+      </StoryRenderMimeProvider>
     );
 
     super({
@@ -31,27 +49,28 @@ export class StoryEditorWidget extends Dialog<boolean> {
       buttons: [],
     });
 
+    this.model = options.model;
     this.id = 'jupytergis::storyEditor';
     this.addClass('jgis-story-editor-dialog');
   }
 
-  minimize(): void {
-    this.addClass('jgis-story-editor-dialog--minimized');
-    this.hide();
+  handleEvent(event: Event): void {
+    if (event.type === 'contextmenu') {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest('.jgis-story-editor-segment-list-items')
+      ) {
+        return;
+      }
+    }
+
+    super.handleEvent(event);
   }
 
-  restore(): void {
-    this.removeClass('jgis-story-editor-dialog--minimized');
-    this.show();
-    this.activate();
-  }
-
-  // Prevent Jupyter Dialog from from eating enter key presses
+  // Prevent Jupyter Dialog from from eating key presses
   protected _evtKeydown(event: KeyboardEvent): void {
-    if (
-      event.key === 'Enter' &&
-      document.activeElement instanceof HTMLTextAreaElement
-    ) {
+    if (event.key === 'Enter' || event.key === 'Escape') {
       return;
     }
 
@@ -59,7 +78,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
   }
 
   dispose(): void {
-    StoryEditorSession.getInstance().clear();
+    StoryEditorSession.getInstance().onDialogDisposed(this.model);
     super.dispose();
   }
 }

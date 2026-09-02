@@ -14,6 +14,7 @@ import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSeg
 import { useQueuedMarkdownHeightMeasure } from '@/src/features/story/hooks/useQueuedMarkdownHeightMeasure';
 import type { IListStoryScrollTrackLayout } from '@/src/features/story/types/types';
 import { buildListStoryScrollTrack } from '@/src/features/story/utils/listStoryScrollTrack';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import {
   buildStorySegmentViewItems,
   getListStoryMarkdownSegmentsFromItems,
@@ -27,6 +28,8 @@ interface IListStoryScrollTrackContextValue {
     index: number,
     options?: { behavior?: ScrollBehavior },
   ) => void;
+  /** Report a measured markdown height from the live overlay (or measure pane). */
+  reportSegmentHeight: (segmentId: string, height: number) => void;
 }
 
 const ListStoryScrollTrackContext =
@@ -86,6 +89,20 @@ export function ListStoryScrollTrackProvider({
   const mapViewportHeightOption =
     mapViewportHeight > 0 ? mapViewportHeight : undefined;
 
+  const markdownSegmentGap = storyData?.markdownSegmentGap === true;
+
+  const measurePresentationStyle = useMemo(
+    () => getSpectaPresentationCssVars(storyData),
+    [
+      storyData?.storyType,
+      storyData?.presentationBgColor,
+      storyData?.presentationTextColor,
+      storyData?.overlayContentWidth,
+      storyData?.markdownSegmentOpacity,
+      storyData?.storyPanelOpacity,
+    ],
+  );
+
   const buildScrollTrackLayout = useCallback(
     (
       nextHeightsById: Readonly<Record<string, number>>,
@@ -95,8 +112,9 @@ export function ListStoryScrollTrackProvider({
         viewportHeight,
         mapViewportHeight: mapViewportHeightOption,
         heightsById: nextHeightsById,
+        markdownSegmentGap,
       }),
-    [items, viewportHeight, mapViewportHeightOption],
+    [items, viewportHeight, mapViewportHeightOption, markdownSegmentGap],
   );
 
   const syncScrollerMetrics = useCallback((scroller: HTMLDivElement): void => {
@@ -199,6 +217,13 @@ export function ListStoryScrollTrackProvider({
           return prev;
         }
 
+        // Ignore transient shrinks (empty remount / pre-image layout). Markdown
+        // height should only grow until the story is rebuilt.
+        const previousHeight = prev[segmentId];
+        if (previousHeight !== undefined && measuredHeightPx < previousHeight) {
+          return prev;
+        }
+
         const scroller = scrollerRef.current;
         const oldLayout =
           enabled && viewportHeight > 0
@@ -207,6 +232,7 @@ export function ListStoryScrollTrackProvider({
                 viewportHeight,
                 mapViewportHeight: mapViewportHeight || undefined,
                 heightsById: prev,
+                markdownSegmentGap,
               })
             : null;
 
@@ -216,9 +242,13 @@ export function ListStoryScrollTrackProvider({
           const oldSegment = oldLayout.segments.find(s => s.id === segmentId);
           if (oldSegment && !oldSegment.measured) {
             const scrollCompensation = measuredHeightPx - oldSegment.height;
+            // Only shift scroll when the user is already past this segment so
+            // later content stays put. Inside the segment, leave scrollTop so
+            // progress recalculates against the new height so there's no
+            // visual jump.
             if (
               scrollCompensation !== 0 &&
-              scroller.scrollTop > oldSegment.start
+              scroller.scrollTop >= oldSegment.end
             ) {
               requestAnimationFrame(() => {
                 scroller.scrollTop += scrollCompensation;
@@ -230,7 +260,7 @@ export function ListStoryScrollTrackProvider({
         return next;
       });
     },
-    [enabled, items, mapViewportHeight, viewportHeight],
+    [enabled, items, mapViewportHeight, viewportHeight, markdownSegmentGap],
   );
 
   const { segmentBeingMeasured, reportHeight, completeMeasure } =
@@ -259,10 +289,18 @@ export function ListStoryScrollTrackProvider({
       );
 
       if (scroller && segment !== undefined) {
-        scroller.scrollTo({
-          top: segment.start,
-          behavior: options?.behavior ?? 'smooth',
-        });
+        const isHidden = getComputedStyle(scroller).visibility === 'hidden';
+        const behavior = options?.behavior ?? (isHidden ? 'auto' : 'smooth');
+
+        if (isHidden && behavior === 'auto') {
+          scroller.scrollTop = segment.start;
+        } else {
+          scroller.scrollTo({
+            top: segment.start,
+            behavior,
+          });
+        }
+
         return;
       }
 
@@ -277,12 +315,14 @@ export function ListStoryScrollTrackProvider({
       scrollTop,
       bindScrollTrackElement,
       scrollToSegmentIndex,
+      reportSegmentHeight: handleMeasuredHeight,
     }),
     [
       scrollTrackLayout,
       scrollTop,
       bindScrollTrackElement,
       scrollToSegmentIndex,
+      handleMeasuredHeight,
     ],
   );
 
@@ -290,9 +330,14 @@ export function ListStoryScrollTrackProvider({
     <ListStoryScrollTrackContext.Provider value={value}>
       {children}
       {enabled && segmentBeingMeasured ? (
-        <div className="jgis-story-markdown-measure-host" aria-hidden>
+        <div
+          className="jgis-story-markdown-measure-host"
+          style={measurePresentationStyle}
+          aria-hidden
+        >
           <ListStoryMarkdownMeasurePane
             key={segmentBeingMeasured.id}
+            model={model}
             segmentId={segmentBeingMeasured.id}
             markdown={segmentBeingMeasured.markdown}
             onHeight={reportHeight}

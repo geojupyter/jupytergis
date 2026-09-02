@@ -1,12 +1,17 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import type { CSSProperties } from 'react';
 
-import { getCssVarAsColor } from '@/src/tools';
-import { STORY_TYPE } from '@/src/types';
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import { getCssVarValue } from '@/src/tools';
+import { resolveCssWidth } from './cssWidth';
 
-/** Jupyter theme vars used when presentation colors are unset (see storyPanel.css). */
-const JP_THEME_BG_VAR = '--jp-layout-color0';
-const JP_THEME_TEXT_VAR = '--jp-ui-font-color1';
+/** Fallbacks when presentation settings are unset (see storyPanel.css). */
+const PRESENTATION_BG_COLOR_FALLBACK = '--jp-layout-color0';
+const PRESENTATION_TEXT_COLOR_FALLBACK = '--jp-ui-font-color1';
 
 export function resolveStoryPresentationColorForInput(
   color: string | undefined,
@@ -16,16 +21,31 @@ export function resolveStoryPresentationColorForInput(
     return color;
   }
 
-  return getCssVarAsColor(kind === 'bg' ? JP_THEME_BG_VAR : JP_THEME_TEXT_VAR);
+  return getCssVarValue(
+    kind === 'bg'
+      ? PRESENTATION_BG_COLOR_FALLBACK
+      : PRESENTATION_TEXT_COLOR_FALLBACK,
+  );
+}
+
+/** Clamp story overlay opacity to the schema range [0, 1]. */
+export function resolveStoryOpacity(opacity: number | undefined): number {
+  if (opacity === undefined || !Number.isFinite(opacity)) {
+    return 1;
+  }
+
+  return Math.min(1, Math.max(0, opacity));
 }
 
 /** CSS variables (+ optional text color) for specta theming */
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
 ): CSSProperties {
-  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
+  const presentationMode = getStoryPresentationMode(story?.storyType);
+  const verticalScroll = isVerticalScrollPresentation(presentationMode);
   const bgColor = story?.presentationBgColor;
   const textColor = story?.presentationTextColor;
+  const overlayContentWidth = resolveCssWidth(story?.overlayContentWidth);
   const style: CSSProperties = {};
 
   if (textColor) {
@@ -33,12 +53,31 @@ export function getSpectaPresentationCssVars(
     style.color = textColor;
   }
 
-  if (isListMode) {
+  if (story?.storyPanelOpacity !== undefined) {
+    (style as Record<string, string>)['--jgis-story-panel-opacity'] = String(
+      resolveStoryOpacity(story.storyPanelOpacity),
+    );
+  }
+
+  if (verticalScroll) {
     (style as Record<string, string>)['--jgis-specta-panel-color'] =
       'transparent';
+
     if (bgColor) {
       (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
     }
+
+    if (overlayContentWidth) {
+      (style as Record<string, string>)['--jgis-story-overlay-content-width'] =
+        overlayContentWidth;
+    }
+
+    if (story?.markdownSegmentOpacity !== undefined) {
+      (style as Record<string, string>)[
+        '--jgis-story-markdown-segment-opacity'
+      ] = String(resolveStoryOpacity(story.markdownSegmentOpacity));
+    }
+
     return style;
   }
 
@@ -57,10 +96,12 @@ export function getSpectaPresentationStyle(
   story: IJGISStoryMap | null,
 ): CSSProperties {
   const style = getSpectaPresentationCssVars(story);
-  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
+  const column = isColumnPresentation(
+    getStoryPresentationMode(story?.storyType),
+  );
   const bgColor = story?.presentationBgColor;
 
-  if (!isListMode && bgColor) {
+  if (column && bgColor) {
     style.backgroundColor = bgColor;
   }
 

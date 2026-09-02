@@ -1,14 +1,55 @@
 import type { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 
-import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
+import type {
+  StorySegmentDisplayMode,
+  StorySegmentPaneAlignment,
+} from '@/src/features/story/types/types';
+import { DEFAULT_MAP_PANEL_WIDTH } from '@/src/features/story/utils/cssWidth';
 
 type SegmentContent = NonNullable<IStorySegmentLayer['content']>;
 
 export type SegmentContentPatch = Partial<
-  Pick<SegmentContent, 'title' | 'markdown' | 'image'>
+  Pick<
+    SegmentContent,
+    | 'imageCaption'
+    | 'markdown'
+    | 'image'
+    | 'attachments'
+    | 'paneAlignment'
+    | 'panelWidth'
+  >
 >;
 
-const EMPTY_SEGMENT_CONTENT: SegmentContent = { contentMode: 'map' };
+const EMPTY_SEGMENT_CONTENT: SegmentContent = {
+  contentMode: 'map',
+  panelWidth: DEFAULT_MAP_PANEL_WIDTH,
+};
+
+/** Legacy default when paneAlignment is unset so we dont need to migrate
+ * map -> end, markdown -> center. */
+export function getSegmentPaneAlignment(
+  content: SegmentContent | undefined,
+  mode: StorySegmentDisplayMode,
+): StorySegmentPaneAlignment {
+  if (content?.paneAlignment) {
+    return content.paneAlignment;
+  }
+
+  return mode === 'map' ? 'end' : 'center';
+}
+
+export function segmentPaneAlignment(
+  alignment: StorySegmentPaneAlignment,
+): 'flex-start' | 'center' | 'flex-end' {
+  switch (alignment) {
+    case 'start':
+      return 'flex-start';
+    case 'end':
+      return 'flex-end';
+    default:
+      return 'center';
+  }
+}
 
 export function normalizeSegmentContentForMode(
   content: SegmentContent | undefined,
@@ -20,14 +61,19 @@ export function normalizeSegmentContentForMode(
     return {
       contentMode: 'markdown',
       markdown: value.markdown ?? '',
+      attachments: value.attachments,
+      paneAlignment: value.paneAlignment,
     };
   }
 
   return {
     contentMode: 'map',
-    title: value.title ?? '',
+    imageCaption: value.imageCaption ?? '',
     image: value.image ?? '',
     markdown: value.markdown ?? '',
+    attachments: value.attachments,
+    paneAlignment: value.paneAlignment,
+    panelWidth: value.panelWidth?.trim() || DEFAULT_MAP_PANEL_WIDTH,
   };
 }
 
@@ -71,6 +117,23 @@ export function updateSegmentContent(
       ...patch,
     },
   });
+
+  return true;
+}
+
+export function updateSegmentLayerName(
+  model: IJupyterGISModel,
+  segmentId: string,
+  name: string,
+): boolean {
+  const layer = model.getLayer(segmentId);
+
+  if (!layer || layer.type !== 'StorySegmentLayer') {
+    return false;
+  }
+
+  const nextName = name.trim();
+  model.sharedModel.updateLayer(segmentId, { ...layer, name: nextName });
 
   return true;
 }

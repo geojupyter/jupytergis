@@ -16,7 +16,7 @@ export function buildHighlightStyle(original: Style, geomType?: string): Style {
     if (image instanceof CircleStyle) {
       return new Style({
         image: new Circle({
-          radius: image.getRadius() + 4,
+          radius: image.getRadius(),
           fill: new Fill({ color: 'transparent' }),
           stroke: new Stroke({ color: '#ff0', width: 3 }),
         }),

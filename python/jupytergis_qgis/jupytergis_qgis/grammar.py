@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import re
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 import webcolors
 from jupytergis_core.color_ramps import sample_colors
@@ -34,6 +34,9 @@ from qgis.core import (  # type: ignore[import-untyped]
 from qgis.PyQt import sip
 from qgis.PyQt.QtCore import Qt
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 # Grammar defaults, mirroring packages/schema/src/grammar/grammarConversions.ts
 # and python/jupytergis_core/.../migrations/v0_5_to_v0_6.py so import output stays
 # consistent with the frontend migration.
@@ -46,15 +49,15 @@ _OL_CANVAS_STROKE = [0.0, 0.0, 0.0, 1.0]
 # Number of gradient stops sampled for an exported heatmap colour ramp.
 _HEATMAP_RAMP_STOPS = 9
 
-# Channel groups (see packages/schema/src/_interface/project/symbology.d.ts).
-_FILL_CHANNELS = {"fill-color", "circle-fill-color"}
-_STROKE_COLOR_CHANNELS = {"stroke-color", "circle-stroke-color"}
-_STROKE_WIDTH_CHANNELS = {"stroke-width", "circle-stroke-width"}
-_RADIUS_CHANNELS = {"circle-radius"}
-_PIXEL_COLOR_CHANNELS = {"pixel-color", "pixel-rgb"}
-_PIXEL_ALPHA_CHANNELS = {"pixel-alpha"}
-# Multiband RGB sub-channel -> color index (red=0, green=1, blue=2).
-_PIXEL_BAND_CHANNELS = {"pixel-red": 0, "pixel-green": 1, "pixel-blue": 2}
+# Encoding groups (see packages/schema/src/_interface/project/symbology.d.ts).
+_FILL_ENCODINGS = {"fill-color", "circle-fill-color"}
+_STROKE_COLOR_ENCODINGS = {"stroke-color", "circle-stroke-color"}
+_STROKE_WIDTH_ENCODINGS = {"stroke-width", "circle-stroke-width"}
+_RADIUS_ENCODINGS = {"circle-radius"}
+_PIXEL_COLOR_ENCODINGS = {"pixel-color", "pixel-rgb"}
+_PIXEL_ALPHA_ENCODINGS = {"pixel-alpha"}
+# Multiband RGB sub-encoding -> color index (red=0, green=1, blue=2).
+_PIXEL_BAND_ENCODINGS = {"pixel-red": 0, "pixel-green": 1, "pixel-blue": 2}
 
 
 # ---------------------------------------------------------------------------
@@ -118,9 +121,9 @@ def _denormalize(value: float, vmin: float, vmax: float) -> float:
 
 
 def _parse_band(fields: list[str]) -> int | None:
-    """Return the band index from a ``$band-N`` pseudo-field, if present."""
+    """Return the band index from a ``band_N`` pseudo-field, if present."""
     for field in fields:
-        match = re.match(r"^\$band-(\d+)$", str(field))
+        match = re.match(r"^band_(\d+)$", str(field))
         if match:
             return int(match.group(1))
     return None
@@ -148,11 +151,11 @@ def _single_band_pseudocolor_grammar(band: int, color_stops: list) -> dict[str, 
     }
     rule = {
         "id": _new_id(),
-        "fields": [f"$band-{int(band)}"],
+        "fields": [f"band_{int(band)}"],
         "mappings": [
             {
-                "scale": {"scheme": "colorRamp", "params": params},
-                "channels": ["pixel-color"],
+                "scale": {"scheme": "colorMap", "params": params},
+                "encodings": ["pixel-color"],
             },
         ],
     }
@@ -165,7 +168,7 @@ def raster_flat_color_to_grammar(color: Any) -> dict[str, Any]:
     Pre-Grammar GeoTiff layers stored symbology as an OL ``interpolate``
     expression, e.g. ``["interpolate", ["linear"], ["band", 1], stop, rgba, ...]``.
     Fold its (stop, color) pairs into a single-band pseudocolor ``pixel-color``
-    colorRamp (stops are already in normalized [0, 1] band space). Returns an
+    colorMap (stops are already in normalized [0, 1] band space). Returns an
     empty symbology state when ``color`` is not a recognised interpolate.
     """
     if not isinstance(color, list) or len(color) < 5 or color[0] != "interpolate":
@@ -249,7 +252,7 @@ def multiband_raster_to_grammar(
     the transparency round-trips back to a QGIS alpha band on re-export.
     """
     ranges = ranges or {}
-    index_to_channel = {0: "pixel-red", 1: "pixel-green", 2: "pixel-blue"}
+    index_to_encoding = {0: "pixel-red", 1: "pixel-green", 2: "pixel-blue"}
     rules = []
     for index in sorted(bands):
         band = bands[index]
@@ -270,9 +273,9 @@ def multiband_raster_to_grammar(
         rules.append(
             {
                 "id": _new_id(),
-                "fields": [f"$band-{int(band)}"],
+                "fields": [f"band_{int(band)}"],
                 "mappings": [
-                    {"scale": scale, "channels": [index_to_channel[index]]},
+                    {"scale": scale, "encodings": [index_to_encoding[index]]},
                 ],
             },
         )
@@ -280,11 +283,11 @@ def multiband_raster_to_grammar(
         rules.append(
             {
                 "id": _new_id(),
-                "fields": [f"$band-{int(alpha_band)}"],
+                "fields": [f"band_{int(alpha_band)}"],
                 "mappings": [
                     {
                         "scale": {"scheme": "identity", "params": {}},
-                        "channels": ["pixel-alpha"],
+                        "encodings": ["pixel-alpha"],
                     },
                 ],
             },
@@ -319,8 +322,8 @@ def kde_grammar(
         "fields": ["$density"],
         "mappings": [
             {
-                "scale": {"scheme": "colorRamp", "params": params},
-                "channels": ["pixel-rgb"],
+                "scale": {"scheme": "colorMap", "params": params},
+                "encodings": ["pixel-rgb"],
             },
         ],
     }
@@ -376,7 +379,7 @@ def _predicate_to_expr(predicate: dict[str, Any]) -> str | None:
     if kind == "hasField":
         return f'"{field}" IS NOT NULL'
     if kind == "geometryType":
-        qgis_geom = _GEOMETRY_TYPE_MAP.get(predicate.get("value"))
+        qgis_geom = _GEOMETRY_TYPE_MAP.get(cast("str", predicate.get("value")))
         if qgis_geom:
             return f"geometry_type($geometry) = '{qgis_geom}'"
     return None
@@ -517,7 +520,7 @@ def grammar_layer_geometry_hint(grammar_layer: dict[str, Any]) -> str | None:
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
             if (
-                "circle-radius" in mapping.get("channels", [])
+                "circle-radius" in mapping.get("encodings", [])
                 and mapping.get("scale", {}).get("scheme") == "scalar"
             ):
                 return "circle"
@@ -528,8 +531,8 @@ def grammar_layer_alpha_factor(grammar_layer: dict[str, Any]) -> float:
     """Constant pixel-alpha/fill-alpha for a grammar layer, applied as layer opacity."""
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
-            channels = set(mapping.get("channels", []))
-            if channels & {"pixel-alpha", "fill-alpha"}:
+            encodings = set(mapping.get("encodings", []))
+            if encodings & {"pixel-alpha", "fill-alpha"}:
                 scale = mapping.get("scale", {})
                 if scale.get("scheme") == "constant_num":
                     return scale.get("params", {}).get("value", 1.0)
@@ -549,7 +552,7 @@ def _heatmap_color_ramp(grammar_layer):
     for rule in grammar_layer.get("rules", []):
         for mapping in rule.get("mappings", []):
             scale = mapping.get("scale", {})
-            if scale.get("scheme") != "colorRamp":
+            if scale.get("scheme") != "colorMap":
                 continue
             params = scale.get("params", {})
             colors = sample_colors(
@@ -611,7 +614,7 @@ def _cluster_renderer(preprocess, inner_renderer):
 
 
 def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
-    """Extract constant per-channel colors from grammar (for vector tile export)."""
+    """Extract constant per-encoding colors from grammar (for vector tile export)."""
     colors: dict[str, list] = {}
     for grammar_layer in symbology_state.get("layers") or []:
         for rule in grammar_layer.get("rules", []):
@@ -620,8 +623,8 @@ def grammar_to_flat_colors(symbology_state: dict[str, Any]) -> dict[str, list]:
                 if scale.get("scheme") != "constant_rgba":
                     continue
                 value = scale.get("params", {}).get("value")
-                for channel in mapping.get("channels", []):
-                    colors.setdefault(channel, value)
+                for encoding in mapping.get("encodings", []):
+                    colors.setdefault(encoding, value)
     return colors
 
 
@@ -632,8 +635,8 @@ _VT_WHEN_GEOM = {
     "LineString": _VT_GEOM_LINE,
     "Polygon": _VT_GEOM_POLYGON,
 }
-# Ungated channel -> (geometry, slot), preserving the historic flat-colour mapping.
-_VT_CHANNEL_TARGET = {
+# Ungated encoding -> (geometry, slot), preserving the historic flat-colour mapping.
+_VT_ENCODING_TARGET = {
     "fill-color": (_VT_GEOM_POLYGON, "fill"),
     "stroke-color": (_VT_GEOM_LINE, "stroke"),
     "circle-fill-color": (_VT_GEOM_POINT, "fill"),
@@ -667,14 +670,14 @@ def _vt_layer_widths(
             value = scale.get("params", {}).get("value")
             if value is None:
                 continue
-            channels = set(mapping.get("channels", []))
-            if "stroke-width" in channels:
+            encodings = set(mapping.get("encodings", []))
+            if "stroke-width" in encodings:
                 geoms = (
                     (gate,) if gate is not None else (_VT_GEOM_LINE, _VT_GEOM_POLYGON)
                 )
                 for geom in geoms:
                     widths.setdefault(geom, float(value))
-            if "circle-stroke-width" in channels:
+            if "circle-stroke-width" in encodings:
                 geoms = (gate,) if gate is not None else (_VT_GEOM_POINT,)
                 for geom in geoms:
                     widths.setdefault(geom, float(value))
@@ -733,10 +736,10 @@ def _scale_classes(
     field: str | None,
     logs: dict[str, list[str]],
     layer_id: str,
-) -> list[tuple[str | None, list]] | None:
+) -> Sequence[tuple[str | None, list]] | None:
     """Classes ``[(filter | None, rgba)]`` for a colour scale, or None.
 
-    A constant colour is a single class with no filter; colorRamp / categorical
+    A constant colour is a single class with no filter; colorMap / categorical
     expand to several filtered classes.
     """
     if not scale:
@@ -745,7 +748,7 @@ def _scale_classes(
     params = scale.get("params", {})
     if scheme == "constant_rgba":
         return [(None, params.get("value"))]
-    if scheme == "colorRamp" and field:
+    if scheme == "colorMap" and field:
         classes = _ramp_classes(field, params.get("colorStops") or [])
         if classes:
             return classes
@@ -785,6 +788,9 @@ def _emit_vt_specs(
         if candidate and (driver is None or len(candidate) > len(driver)):
             driver = candidate
 
+    if not driver:
+        raise RuntimeError("driver is None. This is a bug.")
+
     specs = []
     for index, (filter_expr, _) in enumerate(driver):
         fill = None
@@ -808,7 +814,7 @@ def grammar_to_vector_tile_styles(
 ) -> list[dict[str, Any]]:
     """Vector-tile style specs from a grammar — constant colours only.
 
-    A data-driven colour (colorRamp / categorical) becomes several styles, one per
+    A data-driven colour (colorMap / categorical) becomes several styles, one per
     class, each a value filter plus a constant colour, because QGIS data-defined
     symbol colours do NOT round-trip across QGIS versions (3.40 writes them, 3.44
     drops them) while plain constant-colour styles render everywhere. A constant
@@ -824,10 +830,10 @@ def grammar_to_vector_tile_styles(
             if gate is not None:
                 fill_scale = stroke_scale = None
                 for mapping in rule.get("mappings", []):
-                    channels = set(mapping.get("channels", []))
-                    if channels & _FILL_CHANNELS:
+                    encodings = set(mapping.get("encodings", []))
+                    if encodings & _FILL_ENCODINGS:
                         fill_scale = mapping.get("scale", {})
-                    if channels & _STROKE_COLOR_CHANNELS:
+                    if encodings & _STROKE_COLOR_ENCODINGS:
                         stroke_scale = mapping.get("scale", {})
                 layer_specs.extend(
                     _emit_vt_specs(
@@ -840,11 +846,11 @@ def grammar_to_vector_tile_styles(
                     ),
                 )
             else:
-                # Ungated: each channel maps to its own geometry/slot.
+                # Ungated: each encoding maps to its own geometry/slot.
                 for mapping in rule.get("mappings", []):
                     scale = mapping.get("scale", {})
-                    for channel in mapping.get("channels", []):
-                        target = _VT_CHANNEL_TARGET.get(channel)
+                    for encoding in mapping.get("encodings", []):
+                        target = _VT_ENCODING_TARGET.get(encoding)
                         if not target:
                             continue
                         geom, slot = target
@@ -863,8 +869,8 @@ def grammar_to_vector_tile_styles(
     return specs
 
 
-# Import: vector-tile geometry (int) -> grammar channel for a colour slot.
-_VT_IMPORT_CHANNELS = {
+# Import: vector-tile geometry (int) -> grammar encoding for a colour slot.
+_VT_IMPORT_ENCODINGS = {
     (_VT_GEOM_POLYGON, "fill"): "fill-color",
     (_VT_GEOM_POLYGON, "stroke"): "stroke-color",
     (_VT_GEOM_LINE, "stroke"): "stroke-color",
@@ -879,10 +885,10 @@ def _vt_instr_to_scale(instr: tuple) -> tuple[dict | None, str | None]:
     kind = instr[0]
     if kind == "const":
         return {"scheme": "constant_rgba", "params": {"value": instr[1]}}, None
-    if kind == "colorRamp":
+    if kind == "colorMap":
         _, field, stops = instr
         return {
-            "scheme": "colorRamp",
+            "scheme": "colorMap",
             "params": {
                 "name": "custom",
                 "nShades": len(stops),
@@ -908,10 +914,10 @@ def _vt_instr_to_scale(instr: tuple) -> tuple[dict | None, str | None]:
 
 def _vt_width_mapping(geom: int, width: float) -> dict[str, Any]:
     """A constant stroke-width mapping for a geometry's import."""
-    channel = "circle-stroke-width" if geom == _VT_GEOM_POINT else "stroke-width"
+    encoding = "circle-stroke-width" if geom == _VT_GEOM_POINT else "stroke-width"
     return {
         "scale": {"scheme": "constant_num", "params": {"value": width}},
-        "channels": [channel],
+        "encodings": [encoding],
     }
 
 
@@ -926,7 +932,7 @@ def vector_tile_grammar(
     any constant stroke width.
 
     When every geometry reconstructs to the *same* data-driven colour (QGIS export
-    splits one ungated colorRamp/categorical into a style set per geometry), the
+    splits one ungated colorMap/categorical into a style set per geometry), the
     geometries are folded back into a single ungated layer rather than emitting one
     identical rule per geometry.
     """
@@ -937,19 +943,19 @@ def vector_tile_grammar(
         for geom, slots in geom_styles.items()
         for slot, instr in slots.items()
     ]
-    data_driven = [t for t in colour_instrs if t[2][0] in ("colorRamp", "categorical")]
+    data_driven = [t for t in colour_instrs if t[2][0] in ("colorMap", "categorical")]
     if (
         len(data_driven) > 1
         and len(data_driven) == len(colour_instrs)
         and all(instr == data_driven[0][2] for _, _, instr in data_driven)
     ):
         scale, field = _vt_instr_to_scale(data_driven[0][2])
-        channels = []
+        encodings = []
         for geom, slot, _ in data_driven:
-            channel = _VT_IMPORT_CHANNELS.get((geom, slot))
-            if channel and channel not in channels:
-                channels.append(channel)
-        mappings: list[dict[str, Any]] = [{"scale": scale, "channels": channels}]
+            encoding = _VT_IMPORT_ENCODINGS.get((geom, slot))
+            if encoding and encoding not in encodings:
+                encodings.append(encoding)
+        mappings: list[dict[str, Any]] = [{"scale": scale, "encodings": encodings}]
         for geom, width in geom_widths.items():
             mapping = _vt_width_mapping(geom, width)
             if mapping not in mappings:
@@ -964,15 +970,15 @@ def vector_tile_grammar(
         mappings = []
         field = None
         for slot, instr in slots.items():
-            channel = _VT_IMPORT_CHANNELS.get((geom, slot))
-            if channel is None:
+            encoding = _VT_IMPORT_ENCODINGS.get((geom, slot))
+            if encoding is None:
                 continue
             scale, scale_field = _vt_instr_to_scale(instr)
             if scale is None:
                 continue
             if scale_field:
                 field = scale_field
-            mappings.append({"scale": scale, "channels": [channel]})
+            mappings.append({"scale": scale, "encodings": [encoding]})
         if geom in geom_widths:
             mappings.append(_vt_width_mapping(geom, geom_widths[geom]))
         if not mappings:
@@ -1059,19 +1065,19 @@ def grammar_to_raster_renderer(
     """Build a raster renderer from Grammar.
 
     ``source_min``/``source_max`` are the raster source's normalization range;
-    grammar colorRamp stops (normalized [0, 1]) are scaled back to raw values so
+    grammar colorMap stops (normalized [0, 1]) are scaled back to raw values so
     QGIS classifies on the real band range.
 
     Returns a ``QgsMultiBandColorRenderer`` for pixel-red/green/blue band
     mappings, otherwise a ``QgsSingleBandPseudoColorRenderer`` from a pixel-color
-    colorRamp. The result is ``(renderer, vmin, vmax)`` (vmin/vmax are ``None``
+    colorMap. The result is ``(renderer, vmin, vmax)`` (vmin/vmax are ``None``
     for multiband), or ``None`` when there is no recognised pixel mapping.
     """
     color_params = None
     band = 1
     alpha_present = False
     # Band referenced by a pixel-alpha mapping, when it is a dedicated mask band
-    # (``$band-N``). Used as the QGIS alpha band for multiband RGB rasters.
+    # (`band_N`). Used as the QGIS alpha band for multiband RGB rasters.
     alpha_band: int | None = None
     # color index (0=red,1=green,2=blue) -> (band, scale) for multiband RGB.
     multiband: dict[int, tuple[int, dict[str, Any]]] = {}
@@ -1086,23 +1092,23 @@ def grammar_to_raster_renderer(
         for rule in grammar_layer.get("rules", []):
             rule_band = _parse_band(rule.get("fields") or [])
             for mapping in rule.get("mappings", []):
-                channels = set(mapping.get("channels", []))
+                encodings = set(mapping.get("encodings", []))
                 scale = mapping.get("scale", {})
                 if (
-                    channels & _PIXEL_COLOR_CHANNELS
-                    and scale.get("scheme") == "colorRamp"
+                    encodings & _PIXEL_COLOR_ENCODINGS
+                    and scale.get("scheme") == "colorMap"
                 ):
                     color_params = scale.get("params", {})
                     if rule_band is not None:
                         band = rule_band
-                elif channels & _PIXEL_ALPHA_CHANNELS:
+                elif encodings & _PIXEL_ALPHA_ENCODINGS:
                     alpha_present = True
                     if rule_band is not None:
                         alpha_band = rule_band
                 else:
-                    for channel in channels & _PIXEL_BAND_CHANNELS.keys():
+                    for encoding in encodings & _PIXEL_BAND_ENCODINGS.keys():
                         if rule_band is not None:
-                            multiband[_PIXEL_BAND_CHANNELS[channel]] = (
+                            multiband[_PIXEL_BAND_ENCODINGS[encoding]] = (
                                 rule_band,
                                 scale,
                             )
@@ -1148,7 +1154,7 @@ def grammar_to_raster_renderer(
 
     shader = QgsColorRampShader()
     shader.setColorRampType(QgsColorRampShader.Interpolated)
-    items = []
+    items: list[QgsColorRampShader.ColorRampItem] = []
 
     if color_stops and len(color_stops) >= 2:
         items.extend(
@@ -1644,11 +1650,11 @@ def _vt_reconstruct(styles) -> tuple:
         # Order by lower bound (open first class sorts first); each class's stop is
         # its lower bound, so the ramp spans the recovered class breaks.
         ranges.sort(key=lambda item: (item[0] is not None, item[0]))
-        stops = []
+        stops: list[dict[str, float | list]] = []
         for lo, hi, color in ranges:
             value = lo if lo is not None else hi
             if value is not None and (not stops or stops[-1]["stop"] != float(value)):
                 stops.append({"stop": float(value), "color": color})
         if len(stops) >= 2:
-            return ("colorRamp", field, stops)
+            return ("colorMap", field, stops)
     return ("const", _vt_style_color(styles[0]))

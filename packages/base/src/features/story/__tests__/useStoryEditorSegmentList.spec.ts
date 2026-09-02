@@ -5,7 +5,12 @@
 jest.mock('@/src/constants', () => ({
   CommandIDs: {
     addStorySegment: 'jupytergis:addStorySegment',
+    removeStorySegment: 'jupytergis:removeStorySegment',
   },
+}));
+
+jest.mock('@/src/features/story/utils/storySegmentMarkdownSharedModel', () => ({
+  disposeSegmentMarkdown: jest.fn(),
 }));
 
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
@@ -17,6 +22,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 
 const ADD_STORY_SEGMENT_COMMAND = 'jupytergis:addStorySegment';
+const REMOVE_STORY_SEGMENT_COMMAND = 'jupytergis:removeStorySegment';
 
 interface IModelSignals {
   layersChanged: Signal<unknown, void>;
@@ -66,7 +72,7 @@ function createModel(
       parameters: {
         content: {
           contentMode: 'map',
-          title: '',
+          imageCaption: '',
           markdown: '',
         },
       },
@@ -76,6 +82,9 @@ function createModel(
       layersChanged,
       storyMapsChanged,
       updateStoryMap: jest.fn(),
+      transact: jest.fn((fn: () => void) => {
+        fn();
+      }),
     },
     currentSegmentIndexChanged,
     segmentAdded,
@@ -165,26 +174,15 @@ describe('useStoryEditorSegmentList', () => {
     expect(commands.execute).toHaveBeenCalledWith(ADD_STORY_SEGMENT_COMMAND);
   });
 
-  it('removes the selected segment and clamps the current index', () => {
-    const story = createStory();
-    const { model } = createModel({ story, currentIndex: 1 });
-
-    model.getSelectedStory = jest
-      .fn()
-      .mockReturnValueOnce({ storyId: 'story-1', story })
-      .mockReturnValueOnce({
-        storyId: 'story-1',
-        story: { ...story, storySegments: ['segment-1'] },
-      });
-
+  it('removes a segment through the remove-story-segment command', () => {
+    const { model } = createModel({ currentIndex: 1 });
     const view = mountHook(model, commands);
 
     act(() => {
       view.current.removeSegment();
     });
 
-    expect(model.removeLayer).toHaveBeenCalledWith('segment-2');
-    expect(model.setCurrentSegmentIndex).toHaveBeenCalledWith(0);
+    expect(commands.execute).toHaveBeenCalledWith(REMOVE_STORY_SEGMENT_COMMAND);
   });
 
   it('selects a newly added segment when segmentAdded fires', () => {
@@ -213,12 +211,6 @@ describe('useStoryEditorSegmentList', () => {
     const view = mountHook(model, commands);
 
     expect(view.current.canRemoveSegment).toBe(false);
-
-    act(() => {
-      view.current.removeSegment();
-    });
-
-    expect(model.removeLayer).not.toHaveBeenCalled();
   });
 
   it('reorders story segments', () => {

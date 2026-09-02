@@ -120,3 +120,12 @@ html[data-theme='dark'] {
   margin: 1.5rem 0;
   display: block;
 }
+
+/* Make tabbed displays more comprehensible:
+ *   Right now, it's hard to tell when a tab-set ends.
+ */
+.tab-set {
+  border: 1px solid var(--pst-color-border);
+  border-radius: 4px;
+  padding: 10px;
+}

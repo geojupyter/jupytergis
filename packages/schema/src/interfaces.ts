@@ -18,11 +18,15 @@ import { FeatureLike } from 'ol/Feature';
 
 import {
   IJGISContent,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
   IJGISLayers,
   IJGISLayerTree,
+  IJGISAnnotations,
+  IJGISMetadata,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -56,10 +60,12 @@ import {
   Modes,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  locationIndicatorActive?: boolean;
 }
 
 export interface IJGISStoryMaps {
@@ -134,6 +140,21 @@ export interface IIdentifiedFeaturesAwarenessState {
   emitter?: string | null;
 }
 
+export interface IDrawCustomAttributesLayerState {
+  updatedAt: number;
+  attributes: IDrawCustomAttribute[];
+}
+
+export type IDrawCustomAttributesByLayer = Record<
+  string,
+  IDrawCustomAttributesLayerState
+>;
+
+export interface IDrawCustomAttributesAwarenessState {
+  value?: IDrawCustomAttributesByLayer;
+  emitter?: string | null;
+}
+
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   lastAddedLayer?: { layerId?: string };
@@ -145,6 +166,7 @@ export interface IJupyterGISClientState {
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
+  drawCustomAttributes: IDrawCustomAttributesAwarenessState;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -156,6 +178,7 @@ export const AWARENESS_STATE_FIELDS = {
   pointer: 'pointer',
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
+  drawCustomAttributes: 'drawCustomAttributes',
   remoteUser: 'remoteUser',
   isTemporalControllerActive: 'isTemporalControllerActive',
   lastAddedLayer: 'lastAddedLayer',
@@ -184,7 +207,9 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   viewState: IJGISViewState;
-  metadata: any;
+  annotations: IJGISAnnotations;
+  presets: IDrawCustomAttributePresets;
+  metadata: IJGISMetadata;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -229,9 +254,16 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getMetadata(key: string): string | IAnnotation | undefined;
-  setMetadata(key: string, value: string | IAnnotation): void;
-  removeMetadata(key: string): void;
+  getAnnotation(id: string): IAnnotation | undefined;
+  setAnnotation(id: string, value: IAnnotation): void;
+  removeAnnotation(id: string): void;
+  getAnnotations(): Record<string, IAnnotation>;
+  getAnnotationIds(): string[];
+
+  getPreset(name: string): IDrawCustomAttribute[] | undefined;
+  setPreset(name: string, attributes: IDrawCustomAttribute[]): void;
+  removePreset(name: string): void;
+  getPresets(): IDrawCustomAttributePresets;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
@@ -239,6 +271,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
+  annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  presetsChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -298,6 +332,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >;
+  drawCustomAttributesChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >;
   remoteUserChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -311,6 +349,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
+  sharedAnnotationsChanged: ISignal<IJupyterGISModel, MapChange>;
+  sharedPresetsChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
@@ -318,10 +358,15 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
-  editingVectorLayerChanged: ISignal<IJupyterGISModel, boolean>;
+  modeChanged: ISignal<IJupyterGISModel, Modes>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
+
+  /**
+   * Whether the document is backed by a QGIS file (`.qgs`/`.qgz`).
+   */
+  readonly isQgisDocument: boolean;
 
   pathChanged: ISignal<IJupyterGISModel, string>;
 
@@ -388,17 +433,28 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
   syncIdentifiedFeatures(features: IIdentifiedFeatures, emitter?: string): void;
+  syncDrawCustomAttributes(
+    attributesByLayer: IDrawCustomAttributesByLayer,
+    emitter?: string,
+  ): void;
+  getDrawCustomAttributes(layerId: string): IDrawCustomAttribute[];
+  setDrawCustomAttributesForLayer(
+    layerId: string,
+    attributes: IDrawCustomAttribute[],
+    emitter?: string,
+  ): void;
+  clearDrawCustomAttributesForLayer(layerId: string, emitter?: string): void;
+  getDrawCustomAttributePresets(): IDrawCustomAttributePresets;
+  setDrawCustomAttributePreset(
+    name: string,
+    attributes: IDrawCustomAttribute[],
+  ): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
-
-  addMetadata(key: string, value: string): void;
-  removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
-  editingVectorLayer: boolean;
-  updateEditingVectorLayer(): void;
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean;
 
   isTemporalControllerActive: boolean;
@@ -417,8 +473,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getCurrentSegmentIndex(): number;
   setCurrentSegmentIndex(index: number): void;
   currentSegmentIndexChanged: ISignal<IJupyterGISModel, number>;
+  getSelectedStorySegmentId(): string | null;
+  canRemoveStorySegment(): boolean;
+  removeStorySegment(segmentId: string): boolean;
   addStorySegment(viewState?: IViewState[string]): IStorySegmentRef | null;
-  createStorySegmentFromLayer(layerId: string): IStorySegmentRef | null;
   segmentAdded: ISignal<IJupyterGISModel, IStorySegmentRef>;
   isSpectaMode(): boolean;
   isStoryPreviewActive(): boolean;
@@ -588,7 +646,6 @@ export interface IJupyterGISSettings {
   stacBrowserDisabled?: boolean;
 
   // Right panel tabs
-  objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
 

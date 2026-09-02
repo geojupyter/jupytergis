@@ -21,6 +21,8 @@ export class StoryMapInteractionBarWidget extends ReactWidget {
     this.addClass('jgis-story-map-interaction-bar-root');
     if (placement === 'main-top-left') {
       this.addClass('jgis-story-map-interaction-bar-root--main-top-left');
+    } else {
+      this.addClass('jgis-story-map-interaction-bar-root--overlay-bottom');
     }
   }
 

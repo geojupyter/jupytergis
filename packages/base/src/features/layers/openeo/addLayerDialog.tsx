@@ -1,23 +1,21 @@
-import {
-  Dialog,
-  Notification,
-  ReactWidget,
-  showDialog,
-} from '@jupyterlab/apputils';
+import { Dialog, Notification, ReactWidget } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
+import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import {
   IOpenEOTemplate,
   IOpenEOTemplateParams,
   OPENEO_TEMPLATES,
+  normalizeSpatialExtent,
 } from './templates';
 import {
   IValidationError,
@@ -42,6 +40,12 @@ interface IBodyState {
   editedGraph: Record<string, any> | null;
 }
 
+interface IMapView {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+}
+
 interface IFormProps {
   initial: IBodyState;
   /**
@@ -52,6 +56,8 @@ interface IFormProps {
   initialConnection: IOpenEOConnectionInfo | null;
   /** Servers the user already authenticated against — populates the combobox. */
   knownServers: string[];
+  /** Live map view to reproduce in the Code tab's JupyterGIS snippet. */
+  mapView?: IMapView;
   onChange: (next: IBodyState) => void;
   onActiveServerChange: (info: IOpenEOConnectionInfo | null) => void;
   onValidationChange: (valid: boolean) => void;
@@ -69,6 +75,7 @@ const DRAG_MIME = 'application/x-openeo-node';
 type DragPayload =
   | { kind: 'collection'; id: string }
   | { kind: 'process'; id: string }
+  | { kind: 'udp'; id: string }
   | { kind: 'format'; id: string };
 
 function mintNodeKey(procId: string, existing: Set<string>): string {
@@ -137,6 +144,7 @@ function buildSaveResultNode(formatId: string): Record<string, any> {
 interface ICatalogPaletteProps {
   collections: any[] | undefined;
   processes: any[] | undefined;
+  userProcesses: any[] | undefined;
   outputFormats: any[] | undefined;
   loading: boolean;
   onBack: () => void;
@@ -145,6 +153,7 @@ interface ICatalogPaletteProps {
 const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
   collections,
   processes,
+  userProcesses,
   outputFormats,
   loading,
   onBack,
@@ -152,6 +161,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
   const [filter, setFilter] = React.useState('');
   const [openCollections, setOpenCollections] = React.useState(true);
   const [openProcesses, setOpenProcesses] = React.useState(false);
+  const [openUserProcesses, setOpenUserProcesses] = React.useState(false);
   const [openFormats, setOpenFormats] = React.useState(false);
 
   const q = filter.trim().toLowerCase();
@@ -178,6 +188,18 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
         (p.summary ?? '').toLowerCase().includes(q),
     );
   }, [processes, q]);
+
+  const filteredUserProcesses = React.useMemo(() => {
+    const list = userProcesses ?? [];
+    if (!q) {
+      return list;
+    }
+    return list.filter(
+      p =>
+        (p.id ?? '').toLowerCase().includes(q) ||
+        (p.summary ?? '').toLowerCase().includes(q),
+    );
+  }, [userProcesses, q]);
 
   const filteredFormats = React.useMemo(() => {
     const list = outputFormats ?? [];
@@ -252,6 +274,23 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
               />
             ))}
           </PaletteSection>
+          {(userProcesses?.length ?? 0) > 0 && (
+            <PaletteSection
+              title="User-Defined Processes"
+              count={filteredUserProcesses.length}
+              open={openUserProcesses}
+              onToggle={() => setOpenUserProcesses(o => !o)}
+            >
+              {filteredUserProcesses.map((p: any) => (
+                <PaletteRow
+                  key={p.id}
+                  id={p.id}
+                  subtitle={p.summary ?? p.description}
+                  onDragStart={e => onDragStart(e, { kind: 'udp', id: p.id })}
+                />
+              ))}
+            </PaletteSection>
+          )}
           <PaletteSection
             title="Output Formats"
             count={filteredFormats.length}
@@ -335,6 +374,7 @@ const Form: React.FC<IFormProps> = ({
   initial,
   initialConnection,
   knownServers,
+  mapView,
   onChange,
   onActiveServerChange,
   onValidationChange,
@@ -496,30 +536,23 @@ const Form: React.FC<IFormProps> = ({
     setServerMode('select');
   };
 
-  const updateBbox = (key: keyof IBodyState['params']['bbox'], v: string) => {
-    const num = parseFloat(v);
-    guardReseed(() =>
-      update({
-        params: {
-          ...state.params,
-          bbox: { ...state.params.bbox, [key]: isNaN(num) ? 0 : num },
-        },
-        editedGraph: null,
-      }),
-    );
-  };
-
   // Memoize the graph so its identity only changes when the contents
   // actually change. Otherwise every render produces a new object,
   // re-firing validation and reassigning ModelBuilder.value mid-edit.
   const effectiveGraph = React.useMemo(() => {
-    return state.editedGraph ?? template.buildGraph(state.params);
+    const graph = state.editedGraph ?? template.buildGraph(state.params);
+    // An empty `spatial_extent: {}` (e.g. from a graph authored before we
+    // sent a real extent) is invalid per the openEO schema; normalize it to
+    // `null` so validation doesn't block an otherwise-valid graph.
+    return normalizeSpatialExtent(graph);
   }, [state.editedGraph, state.templateId, state.params]);
   const effectiveGraphJson = React.useMemo(
     () => JSON.stringify(effectiveGraph, null, 2),
     [effectiveGraph],
   );
-  const [viewMode, setViewMode] = React.useState<'graph' | 'json'>('graph');
+  const [viewMode, setViewMode] = React.useState<'graph' | 'json' | 'code'>(
+    'graph',
+  );
   const [editMode, setEditMode] = React.useState(false);
   // Local JSON buffer so the user can type freely; on valid parse, push
   // back to state.editedGraph. Reseeded whenever effectiveGraph changes
@@ -667,7 +700,11 @@ const Form: React.FC<IFormProps> = ({
     // (missing required args, wrong argument types, etc) without waiting
     // for the network. Stored in a ref so the backend pass can merge.
     localErrorsRef.current = [];
-    validateProcessGraphLocally(parsed, catalog?.processes).then(local => {
+    validateProcessGraphLocally(
+      parsed,
+      catalog?.processes,
+      catalog?.userProcesses,
+    ).then(local => {
       if (versionRef.current !== myVersion) {
         return;
       }
@@ -722,7 +759,12 @@ const Form: React.FC<IFormProps> = ({
     return () => {
       window.clearTimeout(handle);
     };
-  }, [effectiveGraphJson, connectionInfo, catalog?.processes]);
+  }, [
+    effectiveGraphJson,
+    connectionInfo,
+    catalog?.processes,
+    catalog?.userProcesses,
+  ]);
 
   React.useEffect(() => {
     const fresh = lastResultVersionRef.current === versionRef.current;
@@ -801,6 +843,12 @@ const Form: React.FC<IFormProps> = ({
     } else if (payload.kind === 'format') {
       procId = 'save_result';
       node = buildSaveResultNode(payload.id);
+    } else if (payload.kind === 'udp') {
+      procId = payload.id;
+      const udp = (catalog?.userProcesses ?? []).find(
+        (p: any) => p?.id === payload.id,
+      );
+      node = buildProcessNode(payload.id, udp);
     } else {
       procId = payload.id;
       const proc = (catalog?.processes ?? []).find(
@@ -864,6 +912,7 @@ const Form: React.FC<IFormProps> = ({
         payload &&
         (payload.kind === 'collection' ||
           payload.kind === 'process' ||
+          payload.kind === 'udp' ||
           payload.kind === 'format')
       ) {
         insertNode(payload);
@@ -880,6 +929,7 @@ const Form: React.FC<IFormProps> = ({
           <CatalogPalette
             collections={catalog?.collections}
             processes={catalog?.processes}
+            userProcesses={catalog?.userProcesses}
             outputFormats={catalog?.outputFormats}
             loading={catalogLoading}
             onBack={() => setEditMode(false)}
@@ -1062,7 +1112,7 @@ const Form: React.FC<IFormProps> = ({
             </section>
 
             <section className="jp-openeo-section">
-              <h4>Region &amp; time</h4>
+              <h4>Collection &amp; time</h4>
               <label className="jp-openeo-field">
                 <span>Collection</span>
                 <input
@@ -1079,44 +1129,6 @@ const Form: React.FC<IFormProps> = ({
                   }}
                 />
               </label>
-              <div className="jp-openeo-bbox-grid">
-                <label>
-                  <span>West</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.west}
-                    onChange={e => updateBbox('west', e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>East</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.east}
-                    onChange={e => updateBbox('east', e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>South</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.south}
-                    onChange={e => updateBbox('south', e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>North</span>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={state.params.bbox.north}
-                    onChange={e => updateBbox('north', e.target.value)}
-                  />
-                </label>
-              </div>
               <label className="jp-openeo-field">
                 <span>Start date</span>
                 <input
@@ -1177,19 +1189,28 @@ const Form: React.FC<IFormProps> = ({
             >
               JSON
             </button>
+            <button
+              type="button"
+              className={viewMode === 'code' ? 'jp-mod-selected' : ''}
+              onClick={() => setViewMode('code')}
+            >
+              Code
+            </button>
           </div>
-          <button
-            type="button"
-            className={
-              'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
-              (editMode ? ' jp-mod-selected' : '')
-            }
-            onClick={() => setEditMode(v => !v)}
-            title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
-            aria-label="Toggle edit mode"
-          >
-            ✎
-          </button>
+          {viewMode !== 'code' && (
+            <button
+              type="button"
+              className={
+                'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
+                (editMode ? ' jp-mod-selected' : '')
+              }
+              onClick={() => setEditMode(v => !v)}
+              title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
+              aria-label="Toggle edit mode"
+            >
+              ✎
+            </button>
+          )}
           {editMode && viewMode === 'graph' && (
             <>
               <button
@@ -1297,7 +1318,14 @@ const Form: React.FC<IFormProps> = ({
               Drop to add node to graph
             </div>
           )}
-          {viewMode === 'json' ? (
+          {viewMode === 'code' ? (
+            <CodeExportPanel
+              graph={effectiveGraph}
+              serverUrl={connectionInfo?.url}
+              layerName={state.layerName}
+              mapView={mapView}
+            />
+          ) : viewMode === 'json' ? (
             editMode ? (
               <JsonEditor
                 value={jsonText}
@@ -1346,6 +1374,7 @@ class AddLayerBody extends ReactWidget {
     initialConnection: IOpenEOConnectionInfo | null,
     private _knownServers: string[],
     private _onValidationChange: (valid: boolean) => void,
+    private _mapView?: IMapView,
   ) {
     super();
     this._state = initial;
@@ -1359,6 +1388,7 @@ class AddLayerBody extends ReactWidget {
         initial={this._state}
         initialConnection={this._activeConnection}
         knownServers={this._knownServers}
+        mapView={this._mapView}
         onChange={next => {
           this._state = next;
         }}
@@ -1410,6 +1440,12 @@ export interface IOpenEODialogOptions {
   title?: string;
   /** OK button label. */
   okLabel?: string;
+  /**
+   * The document's current map view (center + zoom, EPSG:4326). Baked into
+   * the Code tab's JupyterGIS snippet so exported code opens on the same
+   * viewport the user is looking at.
+   */
+  mapView?: IMapView;
 }
 
 export async function showAddOpenEOLayerDialog(
@@ -1447,16 +1483,17 @@ export async function showAddOpenEOLayerDialog(
       lastValid = valid;
       applyOk();
     },
+    options.mapView,
   );
 
-  const resultPromise = showDialog<IOpenEODialogResult | null>({
+  const resultPromise = new EditorAwareDialog<IOpenEODialogResult | null>({
     title: options.title ?? 'Add OpenEO Layer',
     body,
     buttons: [
       Dialog.cancelButton(),
       Dialog.okButton({ label: options.okLabel ?? 'Add Layer' }),
     ],
-  });
+  }).launch();
   // Apply the initial disabled state once the dialog mounts.
   window.setTimeout(applyOk, 0);
   const result = await resultPromise;

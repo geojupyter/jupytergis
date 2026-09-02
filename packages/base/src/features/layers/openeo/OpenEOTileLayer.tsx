@@ -13,6 +13,8 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
+import { ensureSaveResult } from './templates';
+
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
 
 /**
@@ -523,8 +525,11 @@ export class OpenEOTileSource extends XYZSource {
 
     let service: Service | null = null;
 
+    // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
+    const graph = ensureSaveResult(processGraph);
+
     try {
-      service = await this._connection.createService(processGraph, 'XYZ');
+      service = await this._connection.createService(graph, 'XYZ');
     } catch (e) {
       throw new Error(`Failed to connect to XYZ service ${e}`);
     }

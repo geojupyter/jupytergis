@@ -42,6 +42,7 @@ extensions = [
     "sphinx_inline_tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
+    "sphinx_copybutton",
     "myst_parser",
 ]
 
@@ -62,7 +63,7 @@ bibtex_bibfiles = [
 ]
 
 jupyterlite_contents = [
-    "../examples",
+    "../examples/*",
 ]
 jupyterlite_ignore_contents = [
     r"\.\./examples/tiler-.*",

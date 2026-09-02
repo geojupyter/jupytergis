@@ -11,6 +11,7 @@ import {
   type SegmentContentPatch,
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
+  updateSegmentLayerName as applySegmentLayerName,
 } from '@/src/features/story/utils/storySegmentContent';
 import {
   type SegmentTransitionPatch,
@@ -35,6 +36,7 @@ interface IUseStoryEditorSegmentListResult {
     mode: StorySegmentDisplayMode,
   ) => void;
   updateSegmentContent: (segmentId: string, patch: SegmentContentPatch) => void;
+  updateSegmentLayerName: (segmentId: string, name: string) => void;
   updateSegmentTransition: (
     segmentId: string,
     patch: SegmentTransitionPatch,
@@ -146,24 +148,8 @@ export function useStoryEditorSegmentList(
   const canRemoveSegment = segments.length > 1;
 
   const removeSegment = useCallback(() => {
-    if (
-      !selectedSegmentId ||
-      !story?.storySegments ||
-      story.storySegments.length <= 1
-    ) {
-      return;
-    }
-
-    const currentIndex = model.getCurrentSegmentIndex();
-    model.removeLayer(selectedSegmentId);
-
-    const remainingCount =
-      model.getSelectedStory().story?.storySegments?.length ?? 0;
-
-    model.setCurrentSegmentIndex(
-      remainingCount === 0 ? 0 : Math.min(currentIndex, remainingCount - 1),
-    );
-  }, [model, selectedSegmentId, story]);
+    void commands.execute(CommandIDs.removeStorySegment);
+  }, [commands]);
 
   const reorderSegments = useCallback(
     (fromIndex: number, toIndex: number) => {
@@ -220,6 +206,13 @@ export function useStoryEditorSegmentList(
     [model],
   );
 
+  const updateSegmentLayerName = useCallback(
+    (segmentId: string, name: string) => {
+      applySegmentLayerName(model, segmentId, name);
+    },
+    [model],
+  );
+
   const updateSegmentTransition = useCallback(
     (segmentId: string, patch: SegmentTransitionPatch) => {
       applySegmentTransition(model, segmentId, patch);
@@ -241,6 +234,7 @@ export function useStoryEditorSegmentList(
     updateStory,
     updateSegmentContentMode,
     updateSegmentContent,
+    updateSegmentLayerName,
     updateSegmentTransition,
   };
 }

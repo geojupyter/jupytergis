@@ -1,6 +1,7 @@
 *.bundle.*
 lib/
 node_modules/
+packages/base/style/tailwind.css
 .mamba
 *.egg-info/
 .ipynb_checkpoints
@@ -136,7 +137,10 @@ examples/Untitled*.ipynb
 # Hatchling
 jupytergis/_version.py
 
+# JS stuff
 .yarn
+yarn.lock
+.pnpm-store/
 
 python/jupytergis_qgis/jupytergis_qgis/labextension/
 python/jupytergis_lab/jupytergis_lab/labextension/

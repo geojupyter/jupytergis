@@ -42,24 +42,15 @@ export class AnnotationModel implements IAnnotationModel {
   }
 
   getAnnotation(id: string): IAnnotation | undefined {
-    const rawData = this._model?.sharedModel.getMetadata(id);
-    if (rawData) {
-      return rawData as IAnnotation;
-    }
+    return this._model?.sharedModel.getAnnotation(id);
   }
 
   getAnnotationIds(): string[] {
-    const annotationIds: string[] = [];
-    for (const id in this._model?.sharedModel.metadata) {
-      if (id.startsWith('annotation')) {
-        annotationIds.push(id);
-      }
-    }
-    return annotationIds;
+    return this._model?.sharedModel.getAnnotationIds() ?? [];
   }
 
   addAnnotation(key: string, value: IAnnotation): void {
-    this._model?.sharedModel.setMetadata(`annotation_${key}`, value);
+    this._model?.sharedModel.setAnnotation(key, value);
   }
 
   updateAnnotation(id: string, updates: Partial<IAnnotation>): void {
@@ -68,13 +59,13 @@ export class AnnotationModel implements IAnnotationModel {
       return;
     }
 
-    this._model?.sharedModel.setMetadata(id, { ...existing, ...updates });
+    this._model?.sharedModel.setAnnotation(id, { ...existing, ...updates });
 
     this._updateSignal.emit(null);
   }
 
   removeAnnotation(key: string): void {
-    this._model?.removeMetadata(key);
+    this._model?.sharedModel.removeAnnotation(key);
   }
 
   addContent(id: string, value: string): void {
@@ -89,7 +80,7 @@ export class AnnotationModel implements IAnnotationModel {
         contents: [...currentAnnotation.contents, newContent],
       };
 
-      this._model?.sharedModel.setMetadata(id, newAnnotation);
+      this._model?.sharedModel.setAnnotation(id, newAnnotation);
     }
   }
 

@@ -21,7 +21,6 @@ export function GeoTiffLayerPropertiesForm(
     model,
     filePath,
     formContext,
-    sourceType,
     dialogOptions,
     formErrorSignal,
   } = props;
@@ -61,16 +60,12 @@ export function GeoTiffLayerPropertiesForm(
       removeFormEntry,
     );
 
-    if (schema.properties?.source) {
-      const availableSources = model.getSourcesByType(sourceType);
-
-      (schema.properties.source as IDict).enumNames =
-        Object.values(availableSources);
-      (schema.properties.source as IDict).enum = Object.keys(availableSources);
+    if (formContext === 'update') {
+      removeFormEntry('source', formData, schema, builtUiSchema);
     }
 
     return builtUiSchema;
-  }, [schema, formData, formContext, model, sourceType]);
+  }, [schema, formData, formContext]);
 
   if (!hasSchema) {
     return null;
