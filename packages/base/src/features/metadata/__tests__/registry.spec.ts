@@ -1,6 +1,8 @@
 import { IJGISLayer, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
 
-import { getLayerMetadata } from '../registry';
+import { METADATA_VERSION } from '../persistence';
+import { geoTiffProvider } from '../providers/geoTiffProvider';
+import { getLayerMetadata, populateSourceMetadata } from '../registry';
 
 // The format-specific providers reach for the network and for the GeoTIFF /
 // Zarr readers. This suite is about how the registry resolves a selection and
@@ -15,13 +17,14 @@ jest.mock('../providers/geoZarrProvider', () => ({
   geoZarrProvider: jest.fn(),
 }));
 jest.mock('../providers/vectorProvider', () => ({ vectorProvider: jest.fn() }));
-jest.mock('../providers/tileProvider', () => ({ tileProvider: jest.fn() }));
 
 interface IFakeModelOptions {
   layers?: Record<string, IJGISLayer>;
   sources?: Record<string, IJGISSource>;
   extents?: Record<string, number[]>;
 }
+
+const updateSource = jest.fn();
 
 function fakeModel(options: IFakeModelOptions): IJupyterGISModel {
   const { layers = {}, sources = {}, extents = {} } = options;
@@ -31,8 +34,13 @@ function fakeModel(options: IFakeModelOptions): IJupyterGISModel {
     getSource: (id: string) => sources[id],
     getExtent: (id: string) => extents[id],
     getOptions: () => ({ projection: 'EPSG:3857' }),
+    sharedModel: { updateSource },
   } as unknown as IJupyterGISModel;
 }
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 const labels = (metadata: { general: { label: string }[] }) =>
   metadata.general.map(field => field.label);
@@ -173,5 +181,182 @@ describe('getLayerMetadata', () => {
 
   it('rejects an id that is neither a layer nor a source', async () => {
     await expect(getLayerMetadata(fakeModel({}), 'nope')).rejects.toThrow();
+  });
+});
+
+describe('stored metadata', () => {
+  const source = (metadata?: IJGISSource['metadata']): IJGISSource => ({
+    name: 'Custom GeoTiff Source',
+    type: 'GeoTiffSource',
+    parameters: { urls: [{ url: 'https://example.org/x.tif' }] },
+    metadata,
+  });
+
+  const fingerprint = {
+    source: 'https://example.org/x.tif',
+    version: METADATA_VERSION,
+  };
+
+  const fresh: IJGISSource['metadata'] = {
+    crs: { code: 'EPSG:4326' },
+    fingerprint,
+  };
+
+  it('is read from the document instead of the file', async () => {
+    const model = fakeModel({ sources: { source1: source(fresh) } });
+
+    const metadata = await getLayerMetadata(model, 'source1');
+
+    expect(metadata.crs?.code).toBe('EPSG:4326');
+    expect(geoTiffProvider).not.toHaveBeenCalled();
+  });
+
+  it('is re-read when it was written by an older version', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: source({
+          ...fresh,
+          fingerprint: { ...fingerprint, version: METADATA_VERSION - 1 },
+        }),
+      },
+    });
+
+    const metadata = await getLayerMetadata(model, 'source1');
+
+    expect(geoTiffProvider).toHaveBeenCalled();
+    expect(metadata.crs?.code).toBe('EPSG:32636');
+  });
+
+  it('is re-read when the source now points somewhere else', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: source({
+          ...fresh,
+          fingerprint: { ...fingerprint, source: 'https://old.example' },
+        }),
+      },
+    });
+
+    await getLayerMetadata(model, 'source1');
+
+    expect(geoTiffProvider).toHaveBeenCalled();
+  });
+
+  it('is written back after reading a source that had none', async () => {
+    const model = fakeModel({ sources: { source1: source() } });
+
+    await getLayerMetadata(model, 'source1');
+    await Promise.resolve();
+
+    expect(updateSource).toHaveBeenCalledWith(
+      'source1',
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          crs: { code: 'EPSG:32636' },
+          fingerprint: expect.objectContaining({
+            source: 'https://example.org/x.tif',
+            version: METADATA_VERSION,
+          }),
+        }),
+      }),
+    );
+  });
+});
+
+describe('populateSourceMetadata', () => {
+  it('reads and stores metadata for a newly added source', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: {
+          name: 'Custom GeoTiff Source',
+          type: 'GeoTiffSource',
+          parameters: { urls: [{ url: 'https://example.org/x.tif' }] },
+        },
+      },
+    });
+
+    await expect(populateSourceMetadata(model, 'source1')).resolves.toBe(true);
+    expect(updateSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing for a source that already holds current metadata', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: {
+          name: 'Custom GeoTiff Source',
+          type: 'GeoTiffSource',
+          parameters: { urls: [{ url: 'https://example.org/x.tif' }] },
+          metadata: {
+            crs: { code: 'EPSG:4326' },
+            fingerprint: {
+              source: 'https://example.org/x.tif',
+              version: METADATA_VERSION,
+            },
+          },
+        },
+      },
+    });
+
+    await expect(populateSourceMetadata(model, 'source1')).resolves.toBe(false);
+    expect(geoTiffProvider).not.toHaveBeenCalled();
+    expect(updateSource).not.toHaveBeenCalled();
+  });
+
+  it('does not store metadata for a source whose data is inline', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: {
+          name: 'Inline GeoJSON',
+          type: 'GeoJSONSource',
+          parameters: { data: { type: 'FeatureCollection', features: [] } },
+        },
+      },
+    });
+
+    await expect(populateSourceMetadata(model, 'source1')).resolves.toBe(false);
+    expect(updateSource).not.toHaveBeenCalled();
+  });
+});
+
+describe('tiled services', () => {
+  it('are described from the document and never stored', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: {
+          name: 'OpenStreetMap',
+          type: 'RasterSource',
+          parameters: {
+            url: 'https://tile.example.org/{z}/{x}/{y}.png',
+            minZoom: 0,
+            maxZoom: 19,
+          },
+        },
+      },
+    });
+
+    const metadata = await getLayerMetadata(model, 'source1');
+
+    expect(metadata.crs?.code).toBe('EPSG:3857');
+    expect(metadata.pyramid?.maxZoom).toBe(19);
+    // Everything above came from the source's own parameters, so writing it
+    // back would duplicate the document into itself.
+    expect(updateSource).not.toHaveBeenCalled();
+    await expect(populateSourceMetadata(model, 'source1')).resolves.toBe(false);
+  });
+
+  it('are not reported as an unreadable source type', async () => {
+    const model = fakeModel({
+      sources: {
+        source1: {
+          name: 'WMS',
+          type: 'WmsTileSource',
+          parameters: { url: 'https://wms.example.org' },
+        },
+      },
+    });
+
+    const metadata = await getLayerMetadata(model, 'source1');
+
+    expect(metadata.notes?.join(' ')).not.toContain('cannot yet read');
   });
 });
