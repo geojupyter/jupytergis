@@ -30,6 +30,8 @@ import {
   IVectorTileLayer,
   IDict,
   IIdentifiedFeatureEntry,
+  IJGISUIState,
+  JgisCoordinates,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -1179,12 +1181,116 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._map.addInteraction(selectInteraction);
   };
 
+  handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void {
+    const view = this._map.getView();
+    const zoom = view.getZoom();
+    if (zoom) {
+      this.flyToPosition(newPosition, zoom);
+    } else {
+      throw new Error(
+        'Could not move to geolocation, because current zoom is not defined.',
+      );
+    }
+  }
+  handleLocationIndicatorToggled(
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void {
+    const active = Boolean(uiState.locationIndicatorActive);
+    if (active === this._locationIndicatorActive) {
+      return;
+    }
+    this._locationIndicatorActive = active;
+    if (active) {
+      this.startLocationIndicator();
+    } else {
+      this.stopLocationIndicator();
+    }
+  }
+
+  startLocationIndicator(): void {
+    if (
+      !this._geolocation ||
+      !this._geolocationSource ||
+      !this._geolocationAccuracyFeature ||
+      !this._geolocationPositionFeature
+    ) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(true);
+    this._geolocationSource.clear();
+    this._geolocationSource.addFeatures([
+      this._geolocationAccuracyFeature,
+      this._geolocationPositionFeature,
+    ]);
+  }
+
+  stopLocationIndicator(): void {
+    if (!this._geolocation || !this._geolocationSource) {
+      throw new Error('State incorrectly initialized. This is a bug.');
+    }
+    this._geolocation.setTracking(false);
+    this._geolocationSource.clear();
+  }
+
+  flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
+    if (!geometry || typeof geometry.getExtent !== 'function') {
+      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
+      return;
+    }
+
+    const view = this._map.getView();
+    const extent = geometry.getExtent();
+
+    view.fit(extent, {
+      padding: [50, 50, 50, 50],
+      duration: 1000,
+      maxZoom: 16,
+    });
+  }
+
+  highlightFeatureOnMap(
+    sender: IJupyterGISModel,
+    featureOrGeometry: any,
+  ): void {
+    const geometry =
+      featureOrGeometry?.geometry ||
+      featureOrGeometry?._geometry ||
+      featureOrGeometry;
+
+    if (!geometry) {
+      this._log(
+        'warning',
+        `No geometry found in feature: ${featureOrGeometry}`,
+      );
+      return;
+    }
+
+    const isOlGeometry = typeof geometry.getCoordinates === 'function';
+
+    const parsedGeometry = isOlGeometry
+      ? geometry
+      : new GeoJSON().readGeometry(geometry, {
+          featureProjection: this._map.getView().getProjection(),
+        });
+
+    const olFeature = new Feature({
+      geometry: parsedGeometry,
+      ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
+    });
+
+    this._ensureHighlightLayer();
+    const source = this._highlightLayerRef.current?.getSource();
+    source?.clear();
+    source?.addFeature(olFeature);
+  }
+
   /**
    * Replace the highlight layer contents with pre-styled features.
    * Each feature carries its own highlight style via feature.setStyle().
    */
   private _setHighlightFeatures(features: Feature[]): void {
-    this.secureHighlightLayer();
+    this._ensureHighlightLayer();
     const source = this._highlightLayerRef.current?.getSource();
     source?.clear();
     for (const f of features) {
@@ -1195,7 +1301,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return buildHighlightStyle(original, geomType);
   }
 
-  secureHighlightLayer(): void {
+  private _ensureHighlightLayer(): void {
     ensureHighlightLayer(this._map, this._highlightLayerRef);
   }
 
@@ -2252,6 +2358,24 @@ export class OpenLayersAdapter implements IMapAdapter {
     view.setZoom(zoom);
   }
 
+  moveToPosition(
+    center: { x: number; y: number },
+    zoom: number,
+    duration = 1000,
+  ) {
+    const view = this._map.getView();
+    view.setZoom(zoom);
+    view.setCenter([center.x, center.y]);
+    // Zoom needs to be set before changing center
+    if (!view.animate === undefined) {
+      view.animate({ zoom, duration });
+      view.animate({
+        center: [center.x, center.y],
+        duration,
+      });
+    }
+  }
+
   computeFeatureFloaterPosition(
     feature: any,
   ): { x: number; y: number } | undefined {
@@ -2623,6 +2747,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _geolocationSource?: VectorSource;
   private _geolocationPositionFeature?: Feature;
   private _geolocationAccuracyFeature?: Feature;
+  private _locationIndicatorActive = false;
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',

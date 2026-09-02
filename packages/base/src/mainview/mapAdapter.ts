@@ -4,6 +4,7 @@ import type {
   IJGISLayers,
   IJGISSource,
   IJGISSources,
+  IJGISUIState,
   IJupyterGISModel,
   JgisCoordinates,
 } from '@jupytergis/schema';
@@ -32,6 +33,16 @@ export interface IMapAdapter {
 
   onZoomToPosition(_: IJupyterGISModel, id: string): void;
   convertFeatureToMs(_: IJupyterGISModel, args: string): void;
+  handleLocationIndicatorToggled(
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void;
+  flyToGeometry(_: IJupyterGISModel, geometry: any): void;
+  highlightFeatureOnMap(
+    _sender: IJupyterGISModel,
+    featureOrGeometry: any,
+  ): void;
+  handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void;
   computeFeatureFloaterPosition(
     feature: any,
   ): { x: number; y: number } | undefined;
@@ -41,11 +52,16 @@ export interface IMapAdapter {
     duration?: number,
     transitionType?: 'linear' | 'immediate' | 'smooth',
   ): void;
+  moveToPosition(
+    center: JgisCoordinates,
+    zoom: number,
+    duration?: number,
+  ): void;
 
+  startLocationIndicator(): void;
+  stopLocationIndicator(): void;
   updateLayersImpl(layerIds: string[]): Promise<void>;
   trackLayerViewState(id: string, mapLayer: any): void;
-  createSelectInteraction(): void;
-  secureHighlightLayer(): void;
 
   updateLayer(
     id: string,

@@ -11,12 +11,10 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
-  IJGISUIState,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISDocChange,
   IJupyterGISModel,
-  JgisCoordinates,
   JupyterGISModel,
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
@@ -31,9 +29,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
 import { Geolocation, View } from 'ol';
-import Feature from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
-import { GeoJSON } from 'ol/format';
 import { VectorImage as VectorImageLayer } from 'ol/layer';
 import { fromLonLat, get as getProjection, toLonLat } from 'ol/proj';
 import { Vector as VectorSource } from 'ol/source';
@@ -200,23 +196,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // would have failed to construct on document load when CONNECTIONS
     // was still empty.
     openEOEvents.connected.connect(this._onOpenEOConnected, this);
-    this._model.geolocationChanged.connect(
-      this._handleGeolocationChanged,
-      this,
-    );
-    this._model.uiStateChanged.connect(
-      this._handleLocationIndicatorToggled,
-      this,
-    );
 
     // Keep draw UI/interactions in sync with the exclusive map mode.
     this._model.modeChanged.connect(this._handleModeChanged, this);
-
-    this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
-    this._model.highlightFeatureSignal.connect(
-      this.highlightFeatureOnMap,
-      this,
-    );
 
     Promise.resolve().then(() => {
       this._syncSettingsFromRegistry();
@@ -271,13 +253,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
-    const center =
+    const lonLat: [number, number] =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude, options.latitude], projection)
+        ? [options.longitude, options.latitude]
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(center, zoom, projection);
+    await this.generateMap(lonLat, zoom, projection);
     this._model.zoomToPositionSignal.connect(
       this._mapAdapter.onZoomToPosition,
       this._mapAdapter,
@@ -285,6 +267,22 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.addFeatureAsMsSignal.connect(
       this._mapAdapter.convertFeatureToMs,
       this._mapAdapter,
+    );
+    this._model.uiStateChanged.connect(
+      this._mapAdapter.handleLocationIndicatorToggled,
+      this._mapAdapter,
+    );
+    this._model.flyToGeometrySignal.connect(
+      this._mapAdapter.flyToGeometry,
+      this._mapAdapter,
+    );
+    this._model.highlightFeatureSignal.connect(
+      this._mapAdapter.highlightFeatureOnMap,
+      this._mapAdapter,
+    );
+    this._model.geolocationChanged.connect(
+      this._mapAdapter.handleGeolocationChanged,
+      this,
     );
 
     this._handleRemoteUserChanged();
@@ -347,21 +345,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.zoomToPositionSignal.disconnect(
       this._mapAdapter.onZoomToPosition,
-      this,
+      this._mapAdapter,
     );
     this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.disconnect(
       this._mapAdapter.convertFeatureToMs,
-      this,
+      this._mapAdapter,
     );
     this._model.geolocationChanged.disconnect(
-      this._handleGeolocationChanged,
+      this._mapAdapter.handleGeolocationChanged,
       this,
     );
-    this._model.flyToGeometrySignal.disconnect(this.flyToGeometry, this);
+    this._model.flyToGeometrySignal.disconnect(
+      this._mapAdapter.flyToGeometry,
+      this._mapAdapter,
+    );
     this._model.highlightFeatureSignal.disconnect(
-      this.highlightFeatureOnMap,
-      this,
+      this._mapAdapter.highlightFeatureOnMap,
+      this._mapAdapter,
     );
 
     this._model.temporalControllerActiveChanged.disconnect(
@@ -394,11 +395,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._cleanupStoryScrollListener();
 
     this._model.uiStateChanged.disconnect(
-      this._handleLocationIndicatorToggled,
-      this,
+      this._mapAdapter.handleLocationIndicatorToggled,
+      this._mapAdapter,
     );
     this._model.modeChanged.disconnect(this._handleModeChanged, this);
-    this._stopLocationIndicator();
+    this._mapAdapter.stopLocationIndicator();
     if (this._mapAdapter) {
       this._mapAdapter.destroy();
     }
@@ -462,12 +463,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
       },
     });
-
-    const geolocationHandles = this._mapAdapter.getGeolocationHandles();
-    this._geolocation = geolocationHandles.geolocation;
-    this._geolocationSource = geolocationHandles.source;
-    this._geolocationPositionFeature = geolocationHandles.positionFeature;
-    this._geolocationAccuracyFeature = geolocationHandles.accuracyFeature;
 
     if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
       await this._mapAdapter.updateLayersImpl(
@@ -611,61 +606,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
   };
 
-  private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
-    if (!geometry || typeof geometry.getExtent !== 'function') {
-      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
-      return;
-    }
-
-    const view = this._mapAdapter.getMap().getView();
-    const extent = geometry.getExtent();
-
-    view.fit(extent, {
-      padding: [50, 50, 50, 50],
-      duration: 1000,
-      maxZoom: 16,
-    });
-  }
-
-  private highlightFeatureOnMap(
-    sender: IJupyterGISModel,
-    featureOrGeometry: any,
-  ): void {
-    const geometry =
-      featureOrGeometry?.geometry ||
-      featureOrGeometry?._geometry ||
-      featureOrGeometry;
-
-    if (!geometry) {
-      this._log(
-        'warning',
-        `No geometry found in feature: ${featureOrGeometry}`,
-      );
-      return;
-    }
-
-    const isOlGeometry = typeof geometry.getCoordinates === 'function';
-
-    const parsedGeometry = isOlGeometry
-      ? geometry
-      : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._mapAdapter
-            .getMap()
-            .getView()
-            .getProjection(),
-        });
-
-    const olFeature = new Feature({
-      geometry: parsedGeometry,
-      ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
-    });
-
-    this._mapAdapter.secureHighlightLayer();
-    const source = this._highlightLayerRef.current?.getSource();
-    source?.clear();
-    source?.addFeature(olFeature);
-  }
-
   private _handleSelectedChanged = (): void => {
     const localState = this._model.localState;
     if (!localState) {
@@ -799,7 +739,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
-        this._moveToPosition({ x, y }, zoom, 0);
+        this._mapAdapter.moveToPosition({ x, y }, zoom, 0);
       }
       return;
     }
@@ -812,7 +752,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }));
       const viewportState = localState.viewportState?.value;
       if (viewportState) {
-        this._moveToPosition(viewportState.coordinates, viewportState.zoom);
+        this._mapAdapter.moveToPosition(
+          viewportState.coordinates,
+          viewportState.zoom,
+        );
       }
     }
   }
@@ -1005,7 +948,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         view.getProjection(),
       );
 
-      this._moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
+      this._mapAdapter.moveToPosition(
+        { x: centerCoord[0], y: centerCoord[1] },
+        zoom || 0,
+      );
 
       // Save the extent if it does not exists, to allow proper export to qgis.
       if (!options.extent) {
@@ -1465,24 +1411,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  private _moveToPosition(
-    center: { x: number; y: number },
-    zoom: number,
-    duration = 1000,
-  ) {
-    const view = this._mapAdapter.getMap().getView();
-    view.setZoom(zoom);
-    view.setCenter([center.x, center.y]);
-    // Zoom needs to be set before changing center
-    if (!view.animate === undefined) {
-      view.animate({ zoom, duration });
-      view.animate({
-        center: [center.x, center.y],
-        duration,
-      });
-    }
-  }
-
   private _triggerLayerUpdate(_: IJupyterGISModel, args: string) {
     // ? could send just the filters object and modify that instead of emitting whole layer
     const json = JSON.parse(args);
@@ -1499,62 +1427,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
     this._mapAdapter.updateLayer(layerId, jgisLayer, olLayer);
-  }
-
-  private _handleGeolocationChanged(
-    sender: any,
-    newPosition: JgisCoordinates,
-  ): void {
-    const view = this._mapAdapter.getMap().getView();
-    const zoom = view.getZoom();
-    if (zoom) {
-      this._mapAdapter.flyToPosition(newPosition, zoom);
-    } else {
-      throw new Error(
-        'Could not move to geolocation, because current zoom is not defined.',
-      );
-    }
-  }
-
-  private _handleLocationIndicatorToggled(
-    _sender: IJupyterGISModel,
-    uiState: IJGISUIState,
-  ): void {
-    const active = Boolean(uiState.locationIndicatorActive);
-    if (active === this._locationIndicatorActive) {
-      return;
-    }
-    this._locationIndicatorActive = active;
-    if (active) {
-      this._startLocationIndicator();
-    } else {
-      this._stopLocationIndicator();
-    }
-  }
-
-  private _startLocationIndicator(): void {
-    if (
-      !this._geolocation ||
-      !this._geolocationSource ||
-      !this._geolocationAccuracyFeature ||
-      !this._geolocationPositionFeature
-    ) {
-      throw new Error('State incorrectly initialized. This is a bug.');
-    }
-    this._geolocation.setTracking(true);
-    this._geolocationSource.clear();
-    this._geolocationSource.addFeatures([
-      this._geolocationAccuracyFeature,
-      this._geolocationPositionFeature,
-    ]);
-  }
-
-  private _stopLocationIndicator(): void {
-    if (!this._geolocation || !this._geolocationSource) {
-      throw new Error('State incorrectly initialized. This is a bug.');
-    }
-    this._geolocation.setTracking(false);
-    this._geolocationSource.clear();
   }
 
   private _handleThemeChange = (): void => {
@@ -1823,10 +1695,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _lastMapAdapterType: MapAdapterType = 'openlayers';
   private _model: IJupyterGISModel;
   private _geolocation?: Geolocation;
-  private _geolocationSource?: VectorSource;
-  private _geolocationPositionFeature?: Feature;
-  private _geolocationAccuracyFeature?: Feature;
-  private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _documentPath?: string;
