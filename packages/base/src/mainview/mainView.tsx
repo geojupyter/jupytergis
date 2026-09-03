@@ -277,7 +277,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.geolocationChanged.connect(
       this._mapAdapter.handleGeolocationChanged,
-      this,
+      this._mapAdapter,
     );
 
     this._handleRemoteUserChanged();
@@ -349,7 +349,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.geolocationChanged.disconnect(
       this._mapAdapter.handleGeolocationChanged,
-      this,
+      this._mapAdapter,
     );
     this._model.flyToGeometrySignal.disconnect(
       this._mapAdapter.flyToGeometry,
