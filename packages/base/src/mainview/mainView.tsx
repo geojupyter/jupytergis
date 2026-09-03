@@ -172,7 +172,10 @@ import {
   OpenEOTileSource,
   openEOEvents,
 } from '../features/layers/openeo/OpenEOTileLayer';
-import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
+import {
+  grammarDeclutter,
+  grammarToOLLayer,
+} from '../features/layers/symbology/grammarToOLLayer';
 import {
   extractEncodingFieldValues,
   grammarToOLStyle,
@@ -1780,6 +1783,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer),
+          declutter: grammarDeclutter(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+          ),
         });
 
         break;
@@ -2251,6 +2257,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
+        );
+        // Vector tile layers are restyled in place rather than rebuilt, so
+        // declutter has to be pushed across by hand. Vector layers get it for
+        // free because _syncGrammarSubLayers reconstructs the OL layer.
+        (mapLayer as VectorTileLayer).setDeclutter(
+          grammarDeclutter(
+            layerParams.symbologyState as IGrammarSymbologyState,
+          ),
         );
 
         break;

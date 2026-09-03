@@ -86,6 +86,30 @@ export function grammarToOLLayer(
   return new LayerGroup({ opacity, visible, layers: subLayers });
 }
 
+/**
+ * The OL declutter group a grammar state asks for, or false for none.
+ *
+ * OL does not take a boolean here: any truthy value is a group *name*, and
+ * every layer sharing a name is decluttered against the others. Passing plain
+ * `true` would put every decluttered layer in the world into one group named
+ * "true", so that switching it on for two unrelated layers would make them
+ * hide each other's symbols. Using the grammar layer's own id keeps each one
+ * decluttering only against itself, which is what a per-layer checkbox reads
+ * as. Decluttering across layers, which labels will eventually want, is then a
+ * deliberate change rather than an accident.
+ *
+ * Vector tile layers are styled from the same grammar but built outside this
+ * compiler, so they read the group through here rather than duplicating it.
+ */
+export function grammarDeclutter(
+  state: IGrammarSymbologyState | undefined,
+): string | false {
+  const asking = (state?.layers ?? []).find(
+    grammarLayer => grammarLayer.declutter,
+  );
+  return asking ? asking.id : false;
+}
+
 // ---------------------------------------------------------------------------
 // Per grammar-layer compilation
 // ---------------------------------------------------------------------------
@@ -276,5 +300,11 @@ function compileVectorLayer(
     Object.keys(flatStyle).length === 0 ? DEFAULT_FLAT_STYLE : flatStyle;
   const rule: Rule = { style };
 
-  return new VectorImageLayer({ opacity, visible, source, style: [rule] });
+  return new VectorImageLayer({
+    opacity,
+    visible,
+    source,
+    style: [rule],
+    declutter: grammarLayer.declutter ? grammarLayer.id : false,
+  });
 }
