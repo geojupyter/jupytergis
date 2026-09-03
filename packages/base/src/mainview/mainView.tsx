@@ -1437,8 +1437,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const isDrawing = this._model.currentMode === 'drawing';
     this.setState(old => ({ ...old, isDrawing }));
 
+    this._mapAdapter.handleDrawModeChanged(isDrawing);
     if (isDrawing) {
-      // this._setHighlightFeatures([]);
       this._drawTool.enterLayer();
       return;
     }

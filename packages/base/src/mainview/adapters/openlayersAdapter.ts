@@ -1222,6 +1222,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._map.addInteraction(selectInteraction);
   };
 
+  handleDrawModeChanged(isDrawing: boolean): void {
+    if (isDrawing) {
+      this._setHighlightFeatures([]);
+    }
+  }
+
   handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void {
     const view = this._map.getView();
     const zoom = view.getZoom();

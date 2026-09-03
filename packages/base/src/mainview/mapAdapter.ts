@@ -50,6 +50,7 @@ export interface IMapAdapter {
     feature: any,
   ): { x: number; y: number } | undefined;
   toLonLat(coordinate: number[], projection?: any): number[];
+  handleDrawModeChanged(isDrawing: boolean): void;
   flyToPosition(
     center: JgisCoordinates,
     zoom: number,
