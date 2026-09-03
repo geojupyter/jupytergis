@@ -103,19 +103,29 @@ export function WmsTileSourceForm(
     const layerNames = wmsAvailableLayers
       .map(layer => layer.name)
       .filter(name => name !== '');
+    const hasAvailableLayers = layerNames.length > 0;
 
     // Populate schema enum dynamically so RJSF renders a select for params.layers
     const params = (schema.properties?.params ?? {}) as IDict;
     const paramsProperties = (params.properties ?? {}) as IDict;
     if (paramsProperties.layers) {
       // Keep select options in sync with the cached/available layers list.
-      if (layerNames.length > 0) {
+      if (hasAvailableLayers) {
         paramsProperties.layers.enum = layerNames;
       } else {
         // Avoid invalid schema (`enum` must be a non-empty array).
         delete (paramsProperties.layers as IDict).enum;
       }
     }
+
+    // A layer can only be picked once the server has been contacted, so don't
+    // report it as missing before then; the disabled dropdown says what to do.
+    const requiredParams = ((params.required ?? []) as string[]).filter(
+      key => key !== 'layers',
+    );
+    params.required = hasAvailableLayers
+      ? [...requiredParams, 'layers']
+      : requiredParams;
 
     builtUiSchema.url = {
       'ui:widget': WmsTileSourceUrlInput,
@@ -127,7 +137,15 @@ export function WmsTileSourceForm(
       layers: {
         ...(builtUiSchema.params as IDict)?.layers,
         'ui:widget': 'select',
-        'ui:placeholder': 'Select a layer',
+        // Without a connection the list is empty, so make it clear that
+        // connecting is the prerequisite rather than offering an empty select.
+        'ui:disabled': !hasAvailableLayers,
+        'ui:placeholder': hasAvailableLayers
+          ? 'Select a layer'
+          : 'Connect to the WMS server first',
+        'ui:description': hasAvailableLayers
+          ? undefined
+          : 'Connect to the WMS server to get the list of available layers.',
         'ui:enumNames': wmsAvailableLayers.map(layer => layer.title),
       },
     };
