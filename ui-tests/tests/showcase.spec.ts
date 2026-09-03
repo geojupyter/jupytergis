@@ -1,5 +1,5 @@
 import { expect, galata, test } from '@jupyterlab/galata';
-import type { Page } from '@playwright/test';
+import type { Page, Request } from '@playwright/test';
 import path from 'path';
 
 /**
@@ -74,6 +74,20 @@ test.describe('Showcase', () => {
 
   for (const { name, file, snapshot, setup } of SHOWCASES) {
     test(name, async ({ page }) => {
+      let timeout = Date.now() + 30000;
+      let pendingRequests = 0;
+      let lastActivity = Date.now();
+      const countRequest = (delta: number) => (request: Request) => {
+        const type = request.resourceType();
+        if (type !== 'websocket' && type !== 'eventsource') {
+          pendingRequests += delta;
+          lastActivity = Date.now();
+        }
+      };
+      page.on('request', countRequest(1));
+      page.on('requestfinished', countRequest(-1));
+      page.on('requestfailed', countRequest(-1));
+
       await page.goto();
       await page.notebook.openByPath(`showcase/${file}`);
       await page.notebook.activate(`showcase/${file}`);
@@ -92,7 +106,22 @@ test.describe('Showcase', () => {
         await setup(page);
       }
 
-      await page.waitForTimeout(15000);
+      const wasRequestActivityRecent = () => Date.now() - lastActivity < 2000;
+
+      while (
+        Date.now() < timeout &&
+        (pendingRequests > 0 || wasRequestActivityRecent())
+      ) {
+        await page
+          .waitForEvent('requestfinished', { timeout: 250 })
+          .catch(() => {});
+      }
+
+      if (pendingRequests > 0 || wasRequestActivityRecent()) {
+        console.warn(
+          `${file}: map load complete not detected, screenshotted after 30s timeout`,
+        );
+      }
 
       expect(
         await main.screenshot({ type: 'jpeg', quality: 80 }),
