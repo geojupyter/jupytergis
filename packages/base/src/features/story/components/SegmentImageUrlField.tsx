@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import { Input } from '@/src/shared/components/Input';
 
 export interface ISegmentImageUrlFieldProps {
@@ -60,13 +60,14 @@ export function SegmentImageUrlField({
           />
         </label>
         <div className="jgis-story-editor-actions">
-          <Button type="button" onClick={handleCommit} variant="secondary">
+          <ButtonTw size={'xs'} type="button" onClick={handleCommit}>
             Use URL
-          </Button>
+          </ButtonTw>
           {trimmedValue ? (
-            <Button
+            <ButtonTw
               type="button"
-              variant="destructive"
+              size={'xs'}
+              variant="secondary"
               onClick={() => {
                 setDraftUrl(value);
                 setIsEditing(false);
@@ -74,7 +75,7 @@ export function SegmentImageUrlField({
               }}
             >
               Cancel
-            </Button>
+            </ButtonTw>
           ) : null}
         </div>
       </div>
@@ -91,7 +92,7 @@ export function SegmentImageUrlField({
           onError={() => setPreviewFailed(true)}
         />
         <div className="jgis-story-editor-actions">
-          <Button
+          <ButtonTw
             type="button"
             variant="outline"
             onClick={() => {
@@ -100,10 +101,10 @@ export function SegmentImageUrlField({
             }}
           >
             Change
-          </Button>
-          <Button type="button" variant="ghost" onClick={handleRemove}>
+          </ButtonTw>
+          <ButtonTw type="button" variant="destructive" onClick={handleRemove}>
             Remove
-          </Button>
+          </ButtonTw>
         </div>
       </div>
     </div>

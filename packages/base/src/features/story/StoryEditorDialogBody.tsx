@@ -43,7 +43,7 @@ import {
   getStoryMarkdownFromSlide,
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -121,18 +121,15 @@ function SegmentEditor({
             }}
           />
         </div>
-        <Button
+        <ButtonTw
           type="button"
           variant="destructive"
           disabled={!canRemoveSegment}
           onClick={onRemoveSegment}
         >
-          <Trash2
-            data-icon={isMobile ? undefined : 'inline-start'}
-            className="jgis-inline-icon"
-          />
+          <Trash2 data-icon={isMobile ? undefined : 'inline-start'} />
           {isMobile ? null : 'Delete'}
-        </Button>
+        </ButtonTw>
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
@@ -169,7 +166,7 @@ function SegmentEditor({
                 this segment with its layer overrides applied.
               </p>
               <div className="jgis-story-editor-row">
-                <Button
+                <ButtonTw
                   variant="outline"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterMapViewMode(
@@ -178,10 +175,9 @@ function SegmentEditor({
                   }}
                 >
                   Set segment viewport
-                </Button>
-                <Button
+                </ButtonTw>
+                <ButtonTw
                   type="button"
-                  className="jp-mod-styled jp-mod-accept"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterPreviewMode(
                       segment.id,
@@ -189,7 +185,7 @@ function SegmentEditor({
                   }}
                 >
                   Preview layer overrides
-                </Button>
+                </ButtonTw>
               </div>
             </div>
           </StoryEditorSection>
