@@ -1480,7 +1480,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         case 'MarkerSource': {
           const parameters = source.parameters as IMarkerSource;
 
-          const point = new Point(parameters.feature.coords);
+          const point = new Point(
+            fromLonLat(
+              parameters.feature.coords,
+              this._Map.getView().getProjection(),
+            ),
+          );
           const marker = new Feature({
             type: 'icon',
             geometry: point,
@@ -2867,7 +2872,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
   };
 
-  private _onSharedOptionsChanged(): void {
+  private _onSharedOptionsChanged(
+    _sender?: IJupyterGISDoc,
+    change?: MapChange,
+  ): void {
     if (!this._Map) {
       return;
     }
@@ -2881,6 +2889,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const options = this._model.getOptions();
       this.updateOptions(options);
       this._isPositionInitialized = true;
+    } else if (change?.has('projection')) {
+      this.updateOptions(this._model.getOptions());
     }
   }
 
@@ -2914,6 +2924,55 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private async _handleProjectionChange(
+    view: View,
+    projection: string | undefined,
+    bearing: number | undefined,
+  ) {
+    const currentProjection = view.getProjection().getCode();
+    if (projection === undefined || currentProjection === projection) {
+      // Nothing to do
+      return;
+    }
+
+    // Projection changed; try to recreate view
+    this.ensureProjectionRegistered(projection);
+    const newProjection = getProjection(projection);
+
+    if (!newProjection) {
+      this._log('warning', `Invalid projection: ${projection}`);
+      return;
+    }
+
+    this.setState(old => ({
+      viewProjection: {
+        code: newProjection.getCode(),
+        units: newProjection.getUnits(),
+      },
+    }));
+
+    view = new View({ projection: newProjection });
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
+    this._geolocation?.setProjection(newProjection);
+
+    await this._rebuildLayers();
+  }
+
+  private _rebuildLayers(): Promise<void> {
+    this._rebuildLayersPromise = this._rebuildLayersPromise
+      .catch(() => undefined)
+      .then(async () => {
+        const layerIds = JupyterGISModel.getOrderedLayerIds(this._model);
+        layerIds.forEach(id => this.removeLayer(id));
+        this._sources = [];
+        this._sourceToLayerMap = new Map();
+        this._ready = false;
+        await this._updateLayersImpl(layerIds);
+      });
+    return this._rebuildLayersPromise;
+  }
+
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const {
       projection,
@@ -2925,28 +2984,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       bearing,
     } = options;
     let view = this._Map.getView();
-    const currentProjection = view.getProjection().getCode();
 
-    // Need to recreate view if the projection changes
-    if (projection !== undefined && currentProjection !== projection) {
-      const newProjection = getProjection(projection);
-      if (newProjection) {
-        this.setState(old => ({
-          viewProjection: {
-            code: newProjection.getCode(),
-            units: newProjection.getUnits(),
-          },
-        }));
-        view = new View({ projection: newProjection });
-        this._geolocation?.setProjection(newProjection);
-      } else {
-        this._log('warning', `Invalid projection: ${projection}`);
-        return;
-      }
-    }
-
-    view.setRotation(bearing || 0);
-    this._Map.setView(view);
+    this._handleProjectionChange(view, projection, bearing);
+    view = this._Map.getView();
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
@@ -3673,11 +3713,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const lonLat = toLonLat(coordinate, this._Map.getView().getProjection());
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
     const sourceParameters: IMarkerSource = {
-      feature: { coords: [coordinate[0], coordinate[1]] },
+      feature: { coords: [lonLat[0], lonLat[1]] },
     };
 
     const layerParams: IVectorLayer = {
@@ -4194,6 +4235,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _locationIndicatorActive = false;
   private _mainViewModel: MainViewModel;
   private _ready = false;
+  private _rebuildLayersPromise: Promise<void> = Promise.resolve();
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;

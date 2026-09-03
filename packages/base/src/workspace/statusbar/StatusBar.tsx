@@ -1,3 +1,4 @@
+import { Combobox as ComboboxPrimitive } from '@base-ui/react';
 import {
   faGlobe,
   faLocationDot,
@@ -6,9 +7,18 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import projCodes from 'proj-codes';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { version } from '@/package.json';
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/src/shared/components/Combobox';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -16,6 +26,12 @@ interface IStatusBarProps {
   projection?: { code: string; units: string };
   scale: number;
 }
+
+interface IProjectionOption {
+  value: string;
+  label: string;
+}
+
 const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
   loading,
@@ -23,6 +39,30 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   scale,
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
+
+  const projectionOptions = useMemo<IProjectionOption[]>(
+    () =>
+      Object.keys(projCodes).map(code => ({
+        value: code,
+        label: `${code} (${projCodes[code].name})`,
+      })),
+    [],
+  );
+
+  const selectedProjectionOption = useMemo(
+    () => projectionOptions.find(option => option.value === projection?.code),
+    [projectionOptions, projection?.code],
+  );
+
+  const handleProjectionChange = (option: IProjectionOption | null) => {
+    if (!option) {
+      return;
+    }
+    jgisModel.setOptions({
+      ...jgisModel.getOptions(),
+      projection: option.value,
+    });
+  };
 
   useEffect(() => {
     const handlePointerChanged = () => {
@@ -64,10 +104,35 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         <FontAwesomeIcon icon={faRuler} />{' '}
         <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
-      <div className="jgis-status-bar-item">
-        <FontAwesomeIcon icon={faGlobe} />{' '}
-        <span>{projection?.code ?? null}</span>
-      </div>
+      <Combobox
+        items={projectionOptions}
+        value={selectedProjectionOption ?? null}
+        onValueChange={handleProjectionChange}
+        isItemEqualToValue={(a, b) => a.value === b.value}
+      >
+        <ComboboxPrimitive.Trigger
+          type="button"
+          className="jgis-status-bar-item jgis-status-bar-projection-trigger"
+          aria-label={`Change projection, current ${projection?.code ?? 'unknown'}`}
+        >
+          <FontAwesomeIcon icon={faGlobe} />{' '}
+          <span>{projection?.code ?? null}</span>
+        </ComboboxPrimitive.Trigger>
+        <ComboboxContent className="jgis-status-bar-select-popover">
+          <ComboboxInput
+            placeholder="Search projection..."
+            showTrigger={false}
+          />
+          <ComboboxEmpty>No projection found.</ComboboxEmpty>
+          <ComboboxList>
+            {(option: IProjectionOption) => (
+              <ComboboxItem key={option.value} value={option}>
+                {option.label}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
       <div className="jgis-status-bar-item">Units: {projection?.units}</div>
     </div>
   );
