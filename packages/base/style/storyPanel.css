@@ -501,11 +501,12 @@
   right: 0.125rem;
 }
 
-/* Full-viewport touch scroll driver; segment UI is on ListStoryStageOverlay. */
+/* Full-viewport touch scroll driver; sits under the segment UI so that taps
+   reach the overlay controls, and above the map so swipes never pan it. */
 .jgis-story-mobile-list-scroll {
   position: fixed;
   inset: 0;
-  z-index: 6;
+  z-index: 4;
   top: var(--jgis-story-title-bar-height);
   width: 100%;
   overflow-y: auto;
@@ -513,6 +514,29 @@
   overscroll-behavior: contain;
   touch-action: pan-y;
   background: transparent;
+}
+
+/* The segment UI covers the scroll driver, so it stays transparent to touch
+   and only its controls take the tap. */
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-stage-overlay {
+  pointer-events: none;
+}
+
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-stage-overlay
+  :is(
+    a[href],
+    button,
+    summary,
+    input,
+    select,
+    textarea,
+    label,
+    [role='button'],
+    [role='link']
+  ) {
+  pointer-events: auto;
 }
 
 /* Mobile list only (scroll driver mounted); desktop list keeps 25% map cards. */
