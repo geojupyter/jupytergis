@@ -13,7 +13,7 @@ import type { Coordinate } from 'ol/coordinate';
 
 import { OpenLayersAdapter } from './adapters/openlayersAdapter';
 
-export type MapAdapterType = 'openlayers' | 'maplibre';
+export type MapAdapterType = 'openlayers';
 
 /**
  * Minimal abstraction layer between MainView and map engines.
@@ -25,8 +25,6 @@ export interface IMapAdapter {
   initialize(target: HTMLElement, options: IMapAdapterOptions): Promise<void>;
   destroy(): void;
 
-  getLayer(id: string): any | undefined;
-  getLayerIDs(): string[];
   addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void>;
 
   removeLayer(id: string): void;
@@ -67,15 +65,9 @@ export interface IMapAdapter {
   ): { code: string; units: string } | undefined;
 
   updateLayersImpl(layerIds: string[]): Promise<void>;
-  trackLayerViewState(id: string, mapLayer: any): void;
   createSelectInteraction(): void;
 
-  updateLayer(
-    id: string,
-    layer: IJGISLayer,
-    mapLayer: any,
-    oldLayer?: IDict,
-  ): Promise<void>;
+  updateLayer(id: string, layer: IJGISLayer, oldLayer?: IDict): Promise<void>;
   updateLayers(layerIds: string[]): void;
 
   clearHighlightIfNotIdentifying(): void;
@@ -134,6 +126,8 @@ export interface IMapAdapterCallbacks {
     event: MouseEvent,
     lastPointerCoord: Coordinate | null,
   ) => void;
+  onDrawLayerIdChange?: (layerId: string | undefined) => void;
+  onDrawGeometryLabelChange?: (label: string) => void;
 }
 
 /**

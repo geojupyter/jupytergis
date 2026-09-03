@@ -107,6 +107,7 @@ import StacLayer from 'ol-stac';
 import projcodes from 'proj-codes';
 import proj4 from 'proj4';
 
+import { DrawToolController } from '@/src/features/draw-tool';
 import { ensureHighlightLayer } from '@/src/features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '@/src/features/identify/utils/highlightStyle';
 import {
@@ -158,6 +159,15 @@ export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
     this._loadingLayers = new Set();
+    this._drawTool = new DrawToolController({
+      getMap: () => this._map,
+      getLayer: layerId => this.getLayer(layerId),
+      getModel: () => this._model,
+      onDrawLayerIdChange: layerId =>
+        this._callbacks?.onDrawLayerIdChange?.(layerId),
+      onDrawGeometryLabelChange: label =>
+        this._callbacks?.onDrawGeometryLabelChange?.(label),
+    });
   }
   async initialize(
     target: HTMLElement,
@@ -1563,9 +1573,13 @@ export class OpenLayersAdapter implements IMapAdapter {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-    mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
+    const mapLayer = this.getLayer(id);
+    if (!mapLayer) {
+      return;
+    }
+
     layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
@@ -2785,6 +2799,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _model: IJupyterGISModel;
   private _mainViewId?: string;
   private _ready = false;
+  private _drawTool: DrawToolController;
   private _pendingZoomLayerId: string | null = null;
   private _loggerRegistry?: ILoggerRegistry;
   private _loadingLayers: Set<string>;

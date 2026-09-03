@@ -53,7 +53,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { IMapAdapter } from './mapAdapter';
+import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -224,14 +224,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({
       commands: this._commands,
-    });
-    this._drawTool = new DrawToolController({
-      getMap: () => this._mapAdapter.getMap(),
-      getLayer: layerId => this._mapAdapter.getLayer(layerId),
-      getModel: () => this._model,
-      onDrawLayerIdChange: layerId => this._setCurrentDrawLayerId(layerId),
-      onDrawGeometryLabelChange: label =>
-        this.setState(old => ({ ...old, drawGeometryLabel: label })),
     });
   }
 
@@ -406,6 +398,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     center: number[],
     zoom: number,
     projection = DEFAULT_PROJECTION,
+    mapAdapterType: MapAdapterType = 'openlayers',
   ): Promise<void> {
     const layers = this._model.getLayers();
 
@@ -416,6 +409,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!this.divRef.current) {
       return;
     }
+
+    this._mapAdapter = await createMapAdapter(mapAdapterType, this._model);
 
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
@@ -445,6 +440,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
           this._contextMenu.open(event);
         },
+        onDrawLayerIdChange: layerId => {
+          this.setState(old =>
+            old.currentDrawLayerId === layerId
+              ? old
+              : { ...old, currentDrawLayerId: layerId },
+          );
+        },
+        onDrawGeometryLabelChange: label =>
+          this.setState(old => ({
+            ...old,
+            drawGeometryLabel: label,
+          })),
       },
     });
 
@@ -893,15 +900,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return;
       }
 
-      const mapLayer = this._mapAdapter.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
       if (layerTree.includes(id)) {
-        this._mapAdapter.updateLayer(id, newLayer, mapLayer, oldLayer);
-
-        if (mapLayer) {
-          this._mapAdapter.trackLayerViewState(id, mapLayer);
-        }
+        this._mapAdapter.updateLayer(id, newLayer, oldLayer);
 
         if (
           this._model.currentMode === 'drawing' &&
@@ -1308,16 +1310,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const { layerId, layer: jgisLayer } = json;
     const isSourceType =
       typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
-    const olLayer = this._mapAdapter.getLayer(layerId);
 
     if (isSourceType) {
       this._mapAdapter.updateSource(layerId, jgisLayer);
     }
-    if (!jgisLayer || !olLayer) {
+    if (!jgisLayer) {
       this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
-    this._mapAdapter.updateLayer(layerId, jgisLayer, olLayer);
+    this._mapAdapter.updateLayer(layerId, jgisLayer);
   }
 
   private _handleThemeChange = (): void => {
@@ -1393,14 +1394,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
     commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
-  }
-
-  private _setCurrentDrawLayerId(layerId: string | undefined): void {
-    this.setState(old =>
-      old.currentDrawLayerId === layerId
-        ? old
-        : { ...old, currentDrawLayerId: layerId },
-    );
   }
 
   private _handleDrawGeometryTypeChange = (drawGeometryLabel: string): void => {
