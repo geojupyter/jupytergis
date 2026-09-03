@@ -430,7 +430,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
-      center: [center[0], center[1]],
+      lonLat: [center[0], center[1]],
       zoom,
       rotation: 0,
       controlsTarget: this.controlsToolbarRef.current || undefined,
