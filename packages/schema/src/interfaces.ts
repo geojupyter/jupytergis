@@ -636,7 +636,6 @@ export interface IAnnotation {
 
 export interface IJupyterGISSettings {
   proxyUrl: string;
-  mapAdapter: 'openlayers' | 'maplibre';
 
   // Panel visibility
   leftPanelDisabled?: boolean;

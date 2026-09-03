@@ -11,7 +11,6 @@ import type {
 } from '@jupytergis/schema';
 import type { Coordinate } from 'ol/coordinate';
 
-import { MapLibreAdapter } from './adapters/maplibreAdapter';
 import { OpenLayersAdapter } from './adapters/openlayersAdapter';
 
 export type MapAdapterType = 'openlayers' | 'maplibre';
@@ -140,7 +139,6 @@ export interface IMapAdapterCallbacks {
 /**
  * Factory for creating map adapters.
  * - OpenLayers → OpenLayers implementation
- * - MapLibre   → OpenLayers fallback for now
  */
 export async function createMapAdapter(
   type: MapAdapterType,
@@ -149,10 +147,6 @@ export async function createMapAdapter(
   switch (type) {
     case 'openlayers': {
       return new OpenLayersAdapter(model);
-    }
-
-    case 'maplibre': {
-      return new MapLibreAdapter(model);
     }
 
     default: {

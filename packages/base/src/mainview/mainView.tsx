@@ -53,7 +53,7 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
+import { IMapAdapter } from './mapAdapter';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -416,17 +416,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (!this.divRef.current) {
       return;
     }
-
-    const mapAdapterSetting =
-      this._model.jgisSettings.mapAdapter || 'openlayers';
-    const mapAdapterType: MapAdapterType = (
-      mapAdapterSetting === 'maplibre' ? 'maplibre' : 'openlayers'
-    ) as MapAdapterType;
-
-    this._lastMapAdapterType = mapAdapterType;
-
-    // Create the map adapter using abstraction
-    this._mapAdapter = await createMapAdapter(mapAdapterType, this._model);
 
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
@@ -854,22 +843,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState({ jgisSettings: this._model.jgisSettings });
 
     if (!this._mapAdapter) {
-      return;
-    }
-
-    // Handle mapAdapter setting changes
-    const mapAdapterSetting =
-      (this._model.jgisSettings.mapAdapter as string) || 'openlayers';
-    const newMapAdapterType: MapAdapterType = (
-      mapAdapterSetting === 'maplibre' ? 'maplibre' : 'openlayers'
-    ) as MapAdapterType;
-
-    if (newMapAdapterType !== this._lastMapAdapterType) {
-      // eslint-disable-next-line no-console
-      console.log(
-        `Map adapter changed from ${this._lastMapAdapterType} to ${newMapAdapterType}`,
-      );
-      this._regenerateMap();
       return;
     }
 
@@ -1641,7 +1614,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _mapAdapter: IMapAdapter;
-  private _lastMapAdapterType: MapAdapterType = 'openlayers';
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;

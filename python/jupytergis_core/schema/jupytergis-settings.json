@@ -39,13 +39,6 @@
       "description": "The proxy URL to use for external requests.",
       "default": "https://corsproxy.io"
     },
-    "mapAdapter": {
-      "type": "string",
-      "enum": ["openlayers", "maplibre"],
-      "title": "Map Adapter",
-      "description": "The Map adapter to use.",
-      "default": "openlayers"
-    },
     "leftPanelDisabled": {
       "type": "boolean",
       "title": "Disable Left Panel",
