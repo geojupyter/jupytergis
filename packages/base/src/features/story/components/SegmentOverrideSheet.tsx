@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/src/shared/components/Sheet';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface ISegmentOverrideSheetProps {
   model: IJupyterGISModel;
@@ -48,7 +49,13 @@ export function SegmentOverrideSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen} modal={false}>
-      <SheetTrigger render={<Button variant="outline">Edit</Button>} />
+      <SheetTrigger
+        render={
+          <ButtonTw size={'xs'} variant="outline">
+            Edit
+          </ButtonTw>
+        }
+      />
       <SheetContent showCloseButton={false}>
         <SheetHeader>
           <SheetTitle>Layer Symbology Override</SheetTitle>
@@ -67,14 +74,10 @@ export function SegmentOverrideSheet({
           />
         </div>
         <SheetFooter className="jgis-story-editor-sheet-footer">
-          <Button
-            type="button"
-            className="jp-mod-accept jp-mod-styled"
-            onClick={handleSave}
-          >
+          <ButtonTw type="button" onClick={handleSave}>
             Save changes
-          </Button>
-          <SheetClose render={<Button variant="outline">Close</Button>} />
+          </ButtonTw>
+          <SheetClose render={<ButtonTw variant="outline">Close</ButtonTw>} />
         </SheetFooter>
       </SheetContent>
     </Sheet>

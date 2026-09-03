@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 
 import type { IListStoryTitleBarContentProps } from '@/src/features/story/types/types';
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export function ListStoryTitleBarDesktop({
   segmentItems,
@@ -71,17 +71,15 @@ export function ListStoryTitleBarDesktop({
   return (
     <nav className="jgis-story-title-bar" aria-label="Story segments">
       {hasOverflow ? (
-        <Button
+        <ButtonTw
           type="button"
           variant="ghost"
-          size="icon-sm"
-          className="jgis-story-title-bar-scroll-btn"
           aria-label="Previous segment"
           disabled={!hasPrev}
           onClick={() => goToAdjacentSegment(-1)}
         >
           <ChevronLeft />
-        </Button>
+        </ButtonTw>
       ) : null}
       <div
         ref={segmentsRef}
@@ -106,17 +104,15 @@ export function ListStoryTitleBarDesktop({
         })}
       </div>
       {hasOverflow ? (
-        <Button
+        <ButtonTw
           type="button"
           variant="ghost"
-          size="icon-sm"
-          className="jgis-story-title-bar-scroll-btn"
           aria-label="Next segment"
           disabled={!hasNext}
           onClick={() => goToAdjacentSegment(1)}
         >
           <ChevronRight />
-        </Button>
+        </ButtonTw>
       ) : null}
     </nav>
   );

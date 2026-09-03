@@ -10,10 +10,10 @@ import {
   setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
-import { Button } from '@/src/shared/components/Button';
 import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
@@ -129,10 +129,9 @@ export function SegmentLayerOverrides({
                 />
               </span>
               <span className="jgis-story-editor-segment-layer-reset">
-                <Button
+                <ButtonTw
                   type="button"
-                  variant="icon"
-                  size="icon-sm"
+                  variant="ghost"
                   disabled={!row.isChanged}
                   aria-label={`Reset overrides for ${row.layerName}`}
                   onClick={() => {
@@ -140,7 +139,7 @@ export function SegmentLayerOverrides({
                   }}
                 >
                   <RotateCcw />
-                </Button>
+                </ButtonTw>
               </span>
             </li>
           );
