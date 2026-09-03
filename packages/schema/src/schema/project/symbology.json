@@ -471,6 +471,11 @@
           "type": "string",
           "enum": ["all", "any"],
           "description": "Logical combinator for when predicates. Defaults to 'all'."
+        },
+        "declutter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip drawing anything that would overlap something already drawn, so a dense layer stays readable. Applies to text and to point symbols alike. Off by default because it hides data."
         }
       }
     }
