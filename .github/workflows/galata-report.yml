@@ -1,41 +1,45 @@
 name: Galata Diff Report
 
-# When the `Build` workflow finishes, collect any Galata (Playwright) visual
-# snapshot diffs it produced and post/update a comment on the PR so reviewers can
-# see the pixel differences inline instead of downloading the artifact zip.
+# After `Build` finishes, collect its Galata (Playwright) snapshot diffs and post
+# them as a PR comment so reviewers see the pixels inline.
 #
-# This runs via `workflow_run` (not `pull_request`) on purpose: fork PRs run
-# `Build` with a read-only token and cannot comment. `workflow_run` runs in the
-# base-repo context with a read-write token, so it can comment safely without
-# ever executing untrusted PR code.
+# Diffs are pushed to an orphan `galata-diffs` branch in this same repo (kept out
+# of the default branch's history); the comment embeds them via raw URLs. Pushing
+# to our own repo works with the built-in GITHUB_TOKEN, so no extra repo or PAT is
+# needed, and fork PRs are still covered because these jobs run in base-repo
+# context (workflow_run / pull_request_target).
 
 on:
-  # `workflow_run` is required, not incidental: the `Build` run itself has a
-  # read-only token on fork PRs and cannot comment, so posting the report has to
-  # happen in this separate base-repo-context workflow. It never checks out or
-  # executes PR code — it only reads the produced artifacts as data, and all
-  # untrusted values are sanitized before use — so the usual `workflow_run`
-  # escalation risks do not apply here.
+  # Runs in base-repo context so it can comment on fork PRs, which Build can't.
   workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: [Build]
     types: [completed]
+  # Drop a PR's diffs once it closes. Only reads the PR number, never PR code.
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+    types: [closed]
+  # Weekly re-orphan so blobs from overwritten/deleted diffs stop bloating clones.
+  schedule:
+    - cron: '0 3 * * 0' # 03:00 UTC every Sunday
 
-permissions:
-  contents: write # push diff images to the `galata-diffs` branch
-  pull-requests: write # post/update the sticky comment
-  actions: read # download artifacts from the triggering run
+permissions: {}
 
-# Serialize pushes to the shared `galata-diffs` branch to avoid races.
+# Serialize every push to the diffs branch.
 concurrency:
   group: galata-diffs
   cancel-in-progress: false
+
+env:
+  DIFFS_BRANCH: galata-diffs
 
 jobs:
   report:
     name: Post snapshot diffs
     runs-on: ubuntu-latest
-    # Only react to PR builds (ignore pushes to main, etc.).
-    if: github.event.workflow_run.event == 'pull_request'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request'
+    permissions:
+      actions: read # download build artifacts from the triggering run
+      contents: write # push diffs to the galata-diffs branch
+      pull-requests: write # post the sticky comment
     steps:
       - name: Download artifacts from the triggering run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -43,14 +47,13 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: '{pr-number,jupytergis-playwright-tests,jupytergis-lite-playwright-tests}'
-          path: /tmp/artifacts
+          path: /tmp/artifacts # untrusted artifacts: keep them off the checkout
 
       - name: Resolve PR number
         id: pr
         run: |
           set -euo pipefail
-          # No PR number means the triggering Build can't be mapped to a PR, so
-          # there's nowhere to post the report.
+          # No PR number means we can't map the Build to a PR to comment on.
           if [[ ! -f /tmp/artifacts/pr-number/pr_number.txt ]]; then
             echo "::error::No pr-number artifact found in the triggering run." >&2
             exit 1
@@ -71,41 +74,50 @@ jobs:
           import shutil
           from pathlib import Path
 
-          # This runs on a fresh runner, so "collected" should never already
-          # exist; if it does, some state leaked in and we'd rather fail than
-          # silently merge into it (exist_ok defaults to False).
+          # Playwright `retries` in the ui-tests configs. Keep in sync.
+          RETRIES = 1
+
           collected = Path("collected")
           collected.mkdir()
-          entries = []
-          # Playwright writes "<name>-diff.<ext>" alongside "<name>-actual.<ext>"
-          # and "<name>-expected.<ext>" into test-results/ when a snapshot
-          # assertion fails. <ext> is the screenshot format: most specs use png,
-          # but the showcase specs screenshot as jpeg, so we have to match both.
-          # A diff is only ever produced by comparing an actual against an
-          # expected, so whenever a "-diff" image exists the other two exist with
-          # the same extension.
+
+          # Playwright writes <name>-{diff,actual,expected}.<ext> per failed
+          # attempt; <ext> is png for most specs, jpg for the showcase specs.
+          # Retries land in sibling "-retryN" dirs (attempt 0 has no suffix).
           diffs = []
           for ext in ("png", "jpg", "jpeg"):
               diffs += glob.glob(
                   f"/tmp/artifacts/**/test-results/**/*-diff.{ext}", recursive=True
               )
+
+          entries = []
+          skipped = 0
           for diff in diffs:
               diff_path = Path(diff)
-              d = diff_path.parent
-              ext = diff_path.suffix  # includes the leading dot, e.g. ".jpg"
+              attempt_dir = diff_path.parent
+              m = re.search(r"-retry(\d+)$", attempt_dir.name)
+              attempt = int(m.group(1)) if m else 0
+              # Only the final attempt counts: an earlier-only diff means the test
+              # passed on retry (flaky). This also dedupes genuine failures.
+              if attempt != RETRIES:
+                  skipped += 1
+                  continue
+              ext = diff_path.suffix  # e.g. ".jpg"
               base = diff_path.name.removesuffix(f"-diff{ext}")
-              slug = re.sub(r"[^a-zA-Z0-9._-]", "_", str(d / base))
+              slug = re.sub(r"[^a-zA-Z0-9._-]", "_", str(attempt_dir / base))
               out = collected / slug
               out.mkdir()
               shutil.copy(diff_path, out / f"diff{ext}")
               for kind in ("actual", "expected"):
-                  shutil.copy(d / f"{base}-{kind}{ext}", out / f"{kind}{ext}")
-              entries.append({"name": base, "dir": str(d), "slug": slug, "ext": ext})
+                  shutil.copy(attempt_dir / f"{base}-{kind}{ext}", out / f"{kind}{ext}")
+              display_dir = re.sub(r"-retry\d+$", "", attempt_dir.name)
+              entries.append(
+                  {"name": base, "dir": display_dir, "slug": slug, "ext": ext}
+              )
 
           (collected / "manifest.json").write_text(json.dumps(entries, indent=2))
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"count={len(entries)}\n")
-          print(f"Collected {len(entries)} snapshot diff(s).")
+          print(f"Collected {len(entries)} diff(s); skipped {skipped} non-final.")
           PY
 
       - name: Publish diffs to the galata-diffs branch
@@ -113,28 +125,28 @@ jobs:
         if: steps.collect.outputs.count != '' && steps.collect.outputs.count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           PR: ${{ steps.pr.outputs.number }}
           RUN_ID: ${{ github.event.workflow_run.id }}
-          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          dest="pr-${PR}/run-${RUN_ID}"
+          dest="pr-${PR}"
           repo_dir="$(mktemp -d)"
           url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
 
-          # Clone the orphan branch if it exists; otherwise create it empty.
-          if git clone --quiet --depth 1 --branch galata-diffs "$url" "$repo_dir" 2>/dev/null; then
-            :
-          else
-            git clone --quiet --depth 1 "$url" "$repo_dir"
-            git -C "$repo_dir" checkout --orphan galata-diffs
-            git -C "$repo_dir" rm -rfq . || true
+          # Fetch just the diffs branch (never the huge default branch); start a
+          # fresh orphan if it doesn't exist yet.
+          if ! git clone --quiet --depth 1 --branch "$DIFFS_BRANCH" "$url" "$repo_dir" 2>/dev/null; then
+            git init --quiet "$repo_dir"
+            git -C "$repo_dir" remote add origin "$url"
+            git -C "$repo_dir" checkout --quiet --orphan "$DIFFS_BRANCH"
           fi
 
-          rm -rf "${repo_dir}/${dest}"
+          # One folder per PR, overwritten each run.
+          rm -rf "${repo_dir:?}/${dest:?}"
           mkdir -p "$repo_dir/$dest"
           cp -r collected/. "$repo_dir/$dest/"
 
@@ -144,17 +156,16 @@ jobs:
           else
             git -C "$repo_dir" commit --quiet -m "Galata diffs for PR #${PR} (run ${RUN_ID})"
             for i in 1 2 3 4 5; do
-              if git -C "$repo_dir" push --quiet origin galata-diffs; then
+              if git -C "$repo_dir" push --quiet origin "HEAD:${DIFFS_BRANCH}"; then
                 break
               fi
               echo "push failed (attempt $i), rebasing and retrying..."
-              git -C "$repo_dir" pull --quiet --rebase origin galata-diffs || true
-              # Linear backoff so concurrent runners don't retry in lockstep.
-              sleep "$i"
+              git -C "$repo_dir" pull --quiet --rebase origin "$DIFFS_BRANCH" || true
+              sleep "$i" # linear backoff
             done
           fi
 
-          echo "base_url=https://raw.githubusercontent.com/${REPO}/galata-diffs/${dest}" >> "$GITHUB_OUTPUT"
+          echo "base_url=https://raw.githubusercontent.com/${REPO}/${DIFFS_BRANCH}/${dest}" >> "$GITHUB_OUTPUT"
 
       - name: Post or update PR comment
         if: steps.pr.outputs.number != ''
@@ -171,10 +182,11 @@ jobs:
             const prNumber = Number(process.env.PR_NUMBER);
             const count = Number(process.env.COUNT || '0');
             const baseUrl = process.env.BASE_URL || '';
+            const bust = process.env.RUN_ID; // cache-bust the overwritten images
             const { owner, repo } = context.repo;
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${process.env.RUN_ID}`;
 
-            // Find an existing report comment to update (sticky comment).
+            // Reuse one sticky comment.
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner, repo, issue_number: prNumber, per_page: 100,
             });
@@ -183,7 +195,7 @@ jobs:
             let body;
             if (!count) {
               if (!existing) {
-                core.info('No diffs and no prior report comment; staying silent.');
+                core.info('No diffs and no prior comment; staying silent.');
                 return;
               }
               body = `${marker}\n### ✅ Galata snapshots match\n\n`
@@ -192,17 +204,14 @@ jobs:
               const entries = JSON.parse(fs.readFileSync('collected/manifest.json', 'utf8'));
               const esc = s => String(s).replace(/[&<>"']/g,
                 c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-              // `ext` includes the leading dot (".png"/".jpg"); older manifests
-              // without it are all-png, so fall back to ".png".
-              const cell = (slug, kind, ext) =>
-                `<img src="${baseUrl}/${slug}/${kind}${ext}" width="240">`;
+              const cell = (slug, kind, ext) => // ext falls back for old manifests
+                `<img src="${baseUrl}/${slug}/${kind}${ext}?${bust}" width="240">`;
               const blocks = entries.map(e => {
                 const ext = e.ext || '.png';
                 const row = `| ${cell(e.slug, 'expected', ext)} `
                   + `| ${cell(e.slug, 'actual', ext)} `
                   + `| ${cell(e.slug, 'diff', ext)} |`;
-                // Collapsed by default so a run with many diffs stays scannable;
-                // the reader expands the ones they care about.
+                // Collapsed so a run with many diffs stays scannable.
                 return `<details>\n<summary><b>${esc(e.name)}</b></summary>\n\n`
                   + `<sub>${esc(e.dir)}</sub>\n\n`
                   + `| Expected | Actual | Diff |\n|---|---|---|\n${row}\n\n</details>`;
@@ -221,3 +230,94 @@ jobs:
             } else {
               await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
             }
+
+  cleanup:
+    name: Remove diffs for closed PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target'
+    permissions:
+      contents: write # push the folder removal to the galata-diffs branch
+      pull-requests: write # remove the sticky comment
+    steps:
+      - name: Delete the PR's diff folder from the diffs branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.number }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          dest="pr-${PR}"
+          repo_dir="$(mktemp -d)"
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+
+          if ! git clone --quiet --depth 1 --branch "$DIFFS_BRANCH" "$url" "$repo_dir" 2>/dev/null; then
+            echo "No ${DIFFS_BRANCH} branch yet; nothing to clean."
+            exit 0
+          fi
+          if [[ ! -d "${repo_dir}/${dest}" ]]; then
+            echo "No diffs stored for PR #${PR}."
+            exit 0
+          fi
+
+          rm -rf "${repo_dir:?}/${dest:?}"
+          git -C "$repo_dir" add -A
+          git -C "$repo_dir" commit --quiet -m "Remove diffs for closed PR #${PR}"
+          for i in 1 2 3 4 5; do
+            if git -C "$repo_dir" push --quiet origin "HEAD:${DIFFS_BRANCH}"; then
+              break
+            fi
+            echo "push failed (attempt $i), rebasing and retrying..."
+            git -C "$repo_dir" pull --quiet --rebase origin "$DIFFS_BRANCH" || true
+            sleep "$i"
+          done
+
+      - name: Remove the sticky comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const marker = '<!-- galata-diff-report -->';
+            const prNumber = Number(context.payload.number);
+            const { owner, repo } = context.repo;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNumber, per_page: 100,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.deleteComment({ owner, repo, comment_id: existing.id });
+            }
+
+  reorphan:
+    name: Squash diffs history
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: write # force-push the squashed galata-diffs branch
+    steps:
+      - name: Re-orphan the diffs branch to reclaim space
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          repo_dir="$(mktemp -d)"
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          if ! git clone --quiet --depth 1 --branch "$DIFFS_BRANCH" "$url" "$repo_dir" 2>/dev/null; then
+            echo "No ${DIFFS_BRANCH} branch; nothing to squash."
+            exit 0
+          fi
+
+          # Replace all history with a single commit of the current tree.
+          git -C "$repo_dir" checkout --quiet --orphan squashed
+          git -C "$repo_dir" add -A
+          if git -C "$repo_dir" diff --cached --quiet; then
+            echo "Diffs branch has no content; nothing to squash."
+            exit 0
+          fi
+          git -C "$repo_dir" commit --quiet -m "Squash galata diffs history ($(date -u +%Y-%m-%d))"
+          git -C "$repo_dir" push --quiet --force origin "squashed:${DIFFS_BRANCH}"
