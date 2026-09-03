@@ -138,7 +138,6 @@ import {
   loadFile,
   throttle,
 } from '@/src/tools';
-import { MainViewModel } from '../mainviewmodel';
 import {
   getZoomExtentForOlLayer,
   isValidExtent,
@@ -530,7 +529,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
         this._model.syncIdentifiedFeatures(
           [{ feature: bandValues, floaterOpen: false }],
-          this._mainViewModel.id,
+          this._mainViewId ?? this._model.getClientId().toString(),
         );
 
         const coordinate = this._map.getCoordinateFromPixel(e.pixel);
@@ -1212,7 +1211,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       this._model.syncIdentifiedFeatures(
         identifiedFeatures,
-        this._mainViewModel.id,
+        this._mainViewId ?? this._model.getClientId().toString(),
       );
 
       // Sync _highlightLayer with the current selection (clears on deselect).
@@ -2784,7 +2783,6 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _sourceToLayerMap = new Map();
   private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
-  private _mainViewModel: MainViewModel;
   private _mainViewId?: string;
   private _ready = false;
   private _pendingZoomLayerId: string | null = null;
