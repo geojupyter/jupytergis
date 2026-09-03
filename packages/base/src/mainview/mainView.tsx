@@ -851,37 +851,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter.setZoomButtonsEnabled(enabled);
   }
 
-  private async _regenerateMap(): Promise<void> {
-    try {
-      // Dispose old adapter
-      if (this._mapAdapter) {
-        this._mapAdapter.destroy();
-      }
-
-      // Get current view state before regenerating
-      const currentView = this._mapAdapter?.getMap()?.getView();
-      const currentCenter = currentView?.getCenter();
-      const lonLat =
-        currentCenter && this._mapAdapter
-          ? this._mapAdapter.toLonLat(
-              currentCenter,
-              currentView?.getProjection(),
-            )
-          : [0, 0];
-      const zoom = currentView?.getZoom() || 1;
-      const projection = this.state.viewProjection.code || DEFAULT_PROJECTION;
-
-      // Regenerate map with new adapter
-      await this.generateMap(lonLat, zoom, projection);
-
-      const layerids = this._mapAdapter.getLayerIDs();
-
-      this._mapAdapter.updateLayers(layerids);
-    } catch (error) {
-      console.error('Error regenerating map:', error);
-    }
-  }
-
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const projectionInfo = this._mapAdapter.applyOptions(options);
     if (projectionInfo) {
