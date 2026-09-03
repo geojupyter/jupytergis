@@ -2,6 +2,7 @@
 
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
+@import 'tw-animate-css';
 
 @source '../src/**/*.{ts,tsx}';
 
@@ -15,6 +16,48 @@
     *::before,
     *::after {
       box-sizing: border-box;
+      border-color: var(--color-border);
+    }
+
+    /* shadcn uses full Tailwind preflight, we only import some.
+       Scope form-control resets so UA chrome doesn't fight
+       shadcn styles. See tailwind preflight form block:
+       https://github.com/tailwindlabs/tailwindcss/blob/main/packages/tailwindcss/preflight.css */
+    & button,
+    & input,
+    & select,
+    & textarea,
+    & optgroup,
+    &:is(button, input, select, textarea) {
+      font: inherit;
+      color: inherit;
+      border-radius: 0;
+      background-color: transparent;
+      background-image: none;
+    }
+
+    & button,
+    &:is(button) {
+      appearance: none;
+    }
+
+    & ::placeholder {
+      opacity: 1;
+    }
+
+    @supports (not (-webkit-appearance: -apple-pay-button)) or
+      (contain-intrinsic-size: 1px) {
+      & ::placeholder {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
+    }
+
+    & textarea {
+      resize: vertical;
+    }
+
+    & ::-webkit-search-decoration {
+      -webkit-appearance: none;
     }
   }
 }

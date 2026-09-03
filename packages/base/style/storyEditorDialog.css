@@ -250,10 +250,6 @@
   overflow: auto;
 }
 
-.jgis-native-select.jgis-story-editor-story-type-native-select {
-  width: 100%;
-}
-
 .jgis-story-editor-settings-section {
   display: flex;
   flex-direction: column;

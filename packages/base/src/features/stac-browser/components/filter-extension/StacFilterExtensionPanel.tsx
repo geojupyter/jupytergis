@@ -7,6 +7,7 @@ import StacTemporalExtent from '@/src/features/stac-browser/components/shared/St
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacFilterExtension } from '@/src/features/stac-browser/hooks/useStacFilterExtension';
 import { IStacCollection } from '@/src/features/stac-browser/types/types';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Combobox,
   ComboboxContent,
@@ -14,6 +15,8 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
 } from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
 
@@ -98,11 +101,24 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
             setSelectedCollection(item?.value ?? '');
           }}
         >
-          <ComboboxInput
-            className="bg-background"
-            placeholder="Search collections..."
-          />
+          <ComboboxTrigger
+            className={'border-input'}
+            render={
+              <ButtonTw
+                variant="outline"
+                className="h-auto min-h-8 justify-between text-left whitespace-normal"
+              />
+            }
+          >
+            <span className="flex-1 wrap-break-word">
+              <ComboboxValue />
+            </span>
+          </ComboboxTrigger>
           <ComboboxContent>
+            <ComboboxInput
+              placeholder="Search collections..."
+              showTrigger={false}
+            />
             <ComboboxEmpty>No collection found.</ComboboxEmpty>
             <ComboboxList>
               {(item: CollectionItem) => (

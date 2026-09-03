@@ -118,7 +118,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
 }
 
 const InputGroupInput = React.forwardRef<
-  HTMLElement,
+  HTMLInputElement,
   React.ComponentProps<'input'>
 >(({ className, ...props }, ref) => {
   return (
@@ -134,13 +134,12 @@ const InputGroupInput = React.forwardRef<
   );
 });
 
-const InputGroupTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  React.ComponentProps<'textarea'>
->(({ className, ...props }, ref) => {
+function InputGroupTextarea({
+  className,
+  ...props
+}: React.ComponentProps<'textarea'>) {
   return (
     <Textarea
-      ref={ref}
       data-slot="input-group-control"
       className={cn(
         'flex-1 resize-none rounded-none border-0 bg-transparent py-2 shadow-none ring-0 focus-visible:ring-0 disabled:bg-transparent aria-invalid:ring-0',
@@ -149,7 +148,7 @@ const InputGroupTextarea = React.forwardRef<
       {...props}
     />
   );
-});
+}
 
 export {
   InputGroup,

@@ -274,7 +274,7 @@
 }
 
 /* Unset width and border when popover contains calendar */
-.jgis-popover-content:has(> .jgis-calendar-container) {
+[data-slot='popover-content']:has(> .jgis-calendar-container) {
   width: unset;
   border: unset;
 }

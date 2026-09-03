@@ -320,7 +320,7 @@ select option {
 .jp-gis-grammar-transform-row input,
 .jp-gis-grammar-transform-row [data-slot='native-select'],
 .jp-gis-grammar-transform-row select,
-.jp-gis-grammar-transform-row .jgis-native-select {
+.jp-gis-grammar-transform-row [data-slot='native-select-wrapper'] {
   background: transparent;
   background-color: transparent;
   border-color: transparent;
@@ -484,8 +484,7 @@ select option {
   min-width: 0;
 }
 
-.jp-gis-grammar-encoding-select .jgis-combobox-button,
-.jp-gis-grammar-encoding-select .jgis-native-select {
+.jp-gis-grammar-encoding-select [data-slot='native-select-wrapper'] {
   width: 100%;
   box-sizing: border-box;
 }
@@ -528,7 +527,7 @@ select option {
     transform: rotate(90deg);
   }
 
-  .jp-gis-grammar-scale-section .jgis-native-select {
+  .jp-gis-grammar-scale-section [data-slot='native-select-wrapper'] {
     align-self: flex-start;
   }
 }
@@ -728,7 +727,7 @@ select option {
   flex-wrap: nowrap;
 }
 
-.jp-gis-grammar-when-form .jgis-native-select {
+.jp-gis-grammar-when-form [data-slot='native-select-wrapper'] {
   flex: 0 0 auto;
 }
 

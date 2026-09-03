@@ -90,20 +90,14 @@ function StorySettingsPopover({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          title="Story settings"
-          style={{ marginBottom: 1 }}
-        >
-          <FontAwesomeIcon icon={faGear} style={{ marginBottom: 3 }} />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        side="bottom"
-        portalContainer={portalContainerRef.current}
-      >
+      <PopoverTrigger
+        render={
+          <Button variant="ghost" title="Story settings">
+            <FontAwesomeIcon icon={faGear} />
+          </Button>
+        }
+      />
+      <PopoverContent align="end" side="bottom">
         <PopoverHeader>
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
@@ -111,7 +105,7 @@ function StorySettingsPopover({
           <label className="jgis-story-editor-field">
             <span>Story type</span>
             <NativeSelect
-              className="jgis-story-editor-story-type-native-select"
+              className="w-full"
               value={story.storyType ?? STORY_TYPE.guided}
               onChange={event => {
                 onUpdateStory({

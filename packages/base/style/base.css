@@ -29,22 +29,15 @@
 @import url('./shared/calendar.css');
 @import url('./shared/dropdownMenu.css');
 @import url('./shared/badge.css');
-@import url('./shared/checkbox.css');
-@import url('./shared/radioGroup.css');
 @import url('./shared/dialog.css');
 @import url('./shared/drawer.css');
-@import url('./shared/sheet.css');
 @import url('./shared/switch.css');
 @import url('./shared/slider.css');
-@import url('./shared/popover.css');
 @import url('./shared/hoverCard.css');
 @import url('./shared/infoTip.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
 @import url('./shared/command.css');
-@import url('./shared/combobox.css');
-@import url('./shared/input.css');
-@import url('./shared/nativeSelect.css');
 @import url('./shared/separator.css');
 @import url('./shared/buttonGroup.css');
 
