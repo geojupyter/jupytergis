@@ -26,8 +26,17 @@ export interface IMapAdapter {
   destroy(): void;
 
   addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void>;
-
   removeLayer(id: string): void;
+
+  getZoom(): number;
+  getViewportId(): string;
+  getProjection(): {
+    code: string;
+    units: string;
+  };
+  getPixelFromCoordinate(coordinate: Coordinate): [number, number];
+
+  registerMap(path: string): void;
 
   onZoomToPosition(_: IJupyterGISModel, id: string): void;
   convertFeatureToMs(_: IJupyterGISModel, args: string): void;
@@ -79,14 +88,6 @@ export interface IMapAdapter {
   removeSource(id: string): void;
 
   updateSource(id: string, source: IJGISSource): Promise<void>;
-
-  /**
-   * Temporary escape hatch while extraction is happening.
-   *
-   * This should also be removed once all operations
-   * have moved behind IMapAdapter.
-   */
-  getMap(): any;
 
   /** Adds or removes the zoom +/- control, matching `enabled`. */
   setZoomButtonsEnabled(enabled: boolean | undefined): void;

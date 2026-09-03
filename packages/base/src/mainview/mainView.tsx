@@ -281,8 +281,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      window.jupytergisMaps[this._documentPath] = this._mapAdapter.getMap();
+    if (this._documentPath) {
+      this._mapAdapter.registerMap(this._documentPath);
     }
   }
 
@@ -463,14 +463,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.updateOptions(options);
     }
 
-    const view = this._mapAdapter.getMap().getView();
+    const viewProjection = this._mapAdapter.getProjection();
     this.setState(old => ({
       ...old,
       loading: false,
-      viewProjection: {
-        code: view.getProjection().getCode(),
-        units: view.getProjection().getUnits(),
-      },
+      viewProjection: viewProjection,
     }));
   }
 
@@ -499,11 +496,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
       },
       isEnabled: () => {
-        return !!this._mapAdapter?.getMap();
+        return !!this._mapAdapter;
       },
       execute: () => {
-        const map = this._mapAdapter?.getMap();
-        if (!map) {
+        if (!this._mapAdapter) {
           return;
         }
 
@@ -512,10 +508,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             x: this._clickCoords[0],
             y: this._clickCoords[1],
           },
-          zoom: map.getView().getZoom() ?? 0,
+          zoom: this._mapAdapter.getZoom(),
           label: 'New annotation',
           contents: [],
-          parent: map.getViewport().id,
+          parent: this._mapAdapter.getViewportId(),
           open: true,
         });
       },
@@ -523,12 +519,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._commands.addCommand('Copy-Coordinates-Map-CRS', {
       label: () => {
-        const map = this._mapAdapter?.getMap();
-        if (!map || !this._clickCoords) {
+        if (!this._clickCoords) {
           return 'Map CRS';
         }
 
-        const proj = map.getView().getProjection().getCode();
+        const proj = this._mapAdapter.getProjection().code;
         const coord = this._clickCoords;
 
         return `Map CRS — ${proj} (${coord[0].toFixed(0)}E, ${coord[1].toFixed(0)}N)`;
@@ -542,14 +537,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._commands.addCommand('Copy-Coordinates-LonLat', {
       label: () => {
-        const map = this._mapAdapter?.getMap();
-        if (!map || !this._clickCoords) {
+        if (!this._clickCoords) {
           return 'Latitude/Longitude';
         }
 
         const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
-          map.getView().getProjection(),
+          this._mapAdapter.getProjection(),
         );
 
         return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
@@ -557,7 +551,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       execute: async () => {
         const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
-          this._mapAdapter.getMap().getView().getProjection(),
+          this._mapAdapter.getProjection(),
         );
 
         const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
@@ -767,12 +761,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       let currentClientPointer = clientPointers[clientId];
 
       if (pointer) {
-        const pixel = this._mapAdapter
-          .getMap()
-          .getPixelFromCoordinate([
-            pointer.coordinates.x,
-            pointer.coordinates.y,
-          ]);
+        const pixel = this._mapAdapter.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y,
+        ]);
         const lonLat = this._mapAdapter.toLonLat([
           pointer.coordinates.x,
           pointer.coordinates.y,
@@ -822,7 +814,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
-    if (!this._mapAdapter?.getMap()) {
+    if (!this._mapAdapter) {
       return;
     }
 
@@ -1013,9 +1005,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         delete window.jupytergisMaps[this._documentPath];
       }
       this._documentPath = path;
-      if (window.jupytergisMaps !== undefined) {
-        window.jupytergisMaps[this._documentPath] = this._mapAdapter.getMap();
-      }
+      this._mapAdapter.registerMap(this._documentPath);
     }
   };
 
@@ -1239,7 +1229,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
     const { x, y } = annotation.position;
-    const pixels = this._mapAdapter.getMap().getPixelFromCoordinate([x, y]);
+    const pixels = this._mapAdapter.getPixelFromCoordinate([x, y]);
 
     if (pixels) {
       return { x: pixels[0], y: pixels[1] };

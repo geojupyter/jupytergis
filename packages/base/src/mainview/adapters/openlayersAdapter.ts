@@ -599,6 +599,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._model.syncPointer(pointer);
   });
 
+  registerMap(path: string): void {
+    if (window.jupytergisMaps !== undefined) {
+      window.jupytergisMaps[path] = this._map;
+    }
+  }
+
   /** Compute the current view extent in `targetProjection`. */
   getViewBbox(targetProjection = 'EPSG:4326'): number[] {
     const view = this._map.getView();
@@ -609,6 +615,33 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     return transformExtent(extent, view.getProjection(), targetProjection);
+  }
+
+  getZoom(): number {
+    return this._map.getView().getZoom() ?? 0;
+  }
+
+  getViewportId(): string {
+    return this._map.getViewport().id;
+  }
+
+  getProjection(): { code: string; units: string } {
+    const projection = this._map.getView().getProjection();
+
+    return {
+      code: projection.getCode(),
+      units: projection.getUnits(),
+    };
+  }
+
+  getPixelFromCoordinate(coordinate: Coordinate): [number, number] {
+    const pixel = this._map.getPixelFromCoordinate(coordinate);
+
+    if (!pixel) {
+      return [0, 0];
+    }
+
+    return [pixel[0], pixel[1]];
   }
 
   /** Converts map coordinate to [longitude, latitude]. */
