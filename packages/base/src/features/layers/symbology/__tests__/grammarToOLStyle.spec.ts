@@ -20,6 +20,7 @@ import { IGrammarSymbologyState } from '@jupytergis/schema';
 
 import {
   extractEncodingFieldValues,
+  extractFieldColumns,
   grammarToOLStyle,
 } from '../grammarToOLStyle';
 
@@ -814,5 +815,79 @@ describe('extractEncodingFieldValues', () => {
       ],
     });
     expect(extractEncodingFieldValues(fieldlessState, rows)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Per-field feature values
+// ---------------------------------------------------------------------------
+
+describe('grammarToOLStyle — per-field feature values', () => {
+  const rows = [
+    { kind: 'road', surface: 'gravel' },
+    { kind: 'river', surface: 'gravel' },
+    { kind: 'lake', surface: 'tarmac' },
+  ];
+
+  /** Two rules classifying on two different fields. */
+  const twoFieldState: IGrammarSymbologyState = {
+    layers: [
+      {
+        id: 'test-layer',
+        rules: [
+          {
+            id: '1',
+            fields: ['kind'],
+            mappings: [
+              {
+                scale: {
+                  scheme: 'categorical',
+                  params: { colorRamp: 'viridis', fallback: [0, 0, 0, 0] },
+                },
+                encodings: ['fill-color'],
+              },
+            ],
+          },
+          {
+            id: '2',
+            fields: ['surface'],
+            mappings: [
+              {
+                scale: {
+                  scheme: 'categorical',
+                  params: { colorRamp: 'viridis', fallback: [0, 0, 0, 0] },
+                },
+                encodings: ['stroke-color'],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  it('extracts one column per classified field', () => {
+    expect(extractFieldColumns(twoFieldState, rows)).toEqual({
+      kind: ['road', 'river', 'lake'],
+      surface: ['gravel', 'gravel', 'tarmac'],
+    });
+  });
+
+  it('classifies each rule against its own field', () => {
+    const style = grammarToOLStyle(
+      twoFieldState,
+      extractFieldColumns(twoFieldState, rows),
+    ) as any;
+
+    // kind has 3 unique values, surface has 2 — a shared column would give
+    // both the same branch count.
+    expect(style['fill-color'].length).toBe(1 + 2 * 3 + 1);
+    expect(style['stroke-color'].length).toBe(1 + 2 * 2 + 1);
+  });
+
+  it('still accepts a flat column, applying it to every field', () => {
+    const style = grammarToOLStyle(twoFieldState, ['a', 'b']) as any;
+    expect(style['fill-color'].length).toBe(1 + 2 * 2 + 1);
+    expect(style['stroke-color'].length).toBe(1 + 2 * 2 + 1);
   });
 });
