@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import {
   CSS_WIDTH_UNITS,
@@ -6,16 +6,19 @@ import {
   resolveCssWidth,
   validateCssWidth,
 } from '@/src/features/story/utils/cssWidth';
-import { Button, type ButtonProps } from '@/src/shared/components/Button';
-import { ButtonGroup } from '@/src/shared/components/ButtonGroup';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/src/shared/components/ToggleGroup';
 
 const CSS_AMOUNT_FRAGMENT = /^\d*\.?\d*$/;
 const CSS_AMOUNT_COMPLETE = /^\d*\.?\d+$/;
+const CUSTOM_PRESET_VALUE = 'custom';
 
 function sanitizeCssAmountInput(raw: string): string {
   if (CSS_AMOUNT_FRAGMENT.test(raw)) {
@@ -48,7 +51,7 @@ export interface ISegmentWidthSelectorPickerProps {
   presets: readonly ISegmentWidthSelectorPreset[];
   presetGroupAriaLabel: string;
   layout?: 'field' | 'block';
-  size?: ButtonProps['size'];
+  size?: React.ComponentProps<typeof ToggleGroupItem>['size'];
 }
 
 export function SegmentWidthSelector({
@@ -68,6 +71,9 @@ export function SegmentWidthSelector({
   const [unit, setUnit] = useState(parsed.unit);
   const [widthError, setWidthError] = useState<string | null>(null);
   const selectedPresetId = isCustom ? null : matchedPreset?.id;
+  const toggleValue = isCustom
+    ? CUSTOM_PRESET_VALUE
+    : (selectedPresetId ?? undefined);
 
   useEffect(() => {
     const nextResolved = resolveCssWidth(value);
@@ -81,6 +87,21 @@ export function SegmentWidthSelector({
     setUnit(nextParsed.unit);
     setWidthError(null);
   }, [value, presets]);
+
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  // const [lockedWidth, setLockedWidth] = useState<number | null>(null);
+
+  // TODO keep this? or stick with css (current)?
+  // useLayoutEffect(() => {
+  //   // If component mounts already in custom mode, lock to the toggle strip
+  //   // width immediately (before the custom editor paints).
+  //   if (isCustom && lockedWidth === null) {
+  //     const w = wrapperRef.current?.getBoundingClientRect().width ?? null;
+  //     if (w) {
+  //       setLockedWidth(w);
+  //     }
+  //   }
+  // }, []);
 
   const commitCustomWidth = (nextAmount: string, nextUnit: string): void => {
     if (!CSS_AMOUNT_COMPLETE.test(nextAmount.trim())) {
@@ -99,35 +120,45 @@ export function SegmentWidthSelector({
   };
 
   const presetButtons = (
-    <ButtonGroup aria-label={presetGroupAriaLabel}>
+    <ToggleGroup
+      variant="outline"
+      spacing={0}
+      size={size}
+      className="[&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
+      aria-label={presetGroupAriaLabel}
+      value={toggleValue ? [toggleValue] : []}
+      onValueChange={next => {
+        const selected = next[0];
+        if (!selected) {
+          return;
+        }
+
+        // if (selected === CUSTOM_PRESET_VALUE) {
+        //   // Capture wrapper width synchronously before the custom editor
+        //   // mounts and expands the inline-flex container.
+        //   const w = wrapperRef.current?.getBoundingClientRect().width ?? null;
+        //   setLockedWidth(w);
+        //   setIsCustom(true);
+        //   return;
+        // }
+
+        const preset = presets.find(item => item.id === selected);
+        if (!preset) {
+          return;
+        }
+
+        // setLockedWidth(null);
+        setIsCustom(false);
+        onChange(preset.value);
+      }}
+    >
       {presets.map(preset => (
-        <Button
-          key={preset.id}
-          type="button"
-          size={size}
-          variant={selectedPresetId === preset.id ? 'secondary' : 'outline'}
-          aria-pressed={selectedPresetId === preset.id}
-          title={preset.value}
-          onClick={() => {
-            setIsCustom(false);
-            onChange(preset.value);
-          }}
-        >
+        <ToggleGroupItem key={preset.id} value={preset.id} title={preset.value}>
           {preset.label}
-        </Button>
+        </ToggleGroupItem>
       ))}
-      <Button
-        type="button"
-        size={size}
-        variant={isCustom ? 'secondary' : 'outline'}
-        aria-pressed={isCustom}
-        onClick={() => {
-          setIsCustom(true);
-        }}
-      >
-        Custom
-      </Button>
-    </ButtonGroup>
+      <ToggleGroupItem value={CUSTOM_PRESET_VALUE}>Custom</ToggleGroupItem>
+    </ToggleGroup>
   );
 
   const customEditor = isCustom ? (
@@ -167,12 +198,22 @@ export function SegmentWidthSelector({
     </>
   ) : null;
 
+  const toggleAndCustom = (
+    <div
+      ref={wrapperRef}
+      className="inline-flex flex-col gap-1"
+      // style={lockedWidth !== null ? { width: lockedWidth } : undefined}
+    >
+      {presetButtons}
+      {customEditor}
+    </div>
+  );
+
   if (layout === 'block') {
     return (
       <section className="jgis-story-editor-block">
         <div className="jgis-story-editor-label">{label}</div>
-        {presetButtons}
-        {customEditor}
+        {toggleAndCustom}
       </section>
     );
   }
@@ -180,8 +221,7 @@ export function SegmentWidthSelector({
   return (
     <div className="jgis-story-editor-field">
       <span>{label}</span>
-      {presetButtons}
-      {customEditor}
+      {toggleAndCustom}
     </div>
   );
 }

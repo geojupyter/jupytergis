@@ -260,7 +260,7 @@
 
 .jgis-story-editor-width-custom {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 12rem) auto;
   gap: 0.35rem;
   align-items: center;
   max-width: fit-content;
@@ -492,8 +492,7 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   gap: 0.5rem;
 }
 
-.jgis-story-editor-segment-mode-picker
-  .jgis-story-editor-segment-mode-card {
+.jgis-story-editor-segment-mode-picker .jgis-story-editor-segment-mode-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -959,8 +958,7 @@ Radix won't set hidden so do it manually */
     grid-template-columns: 1fr 1fr;
   }
 
-  .jgis-story-editor-segment-mode-picker
-    .jgis-story-editor-segment-mode-card {
+  .jgis-story-editor-segment-mode-picker .jgis-story-editor-segment-mode-card {
     align-items: center;
     padding: 0.5rem 0.625rem;
   }

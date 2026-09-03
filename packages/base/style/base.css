@@ -27,7 +27,6 @@
 @import url('./shared/infoTip.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
-@import url('./shared/buttonGroup.css');
 
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this
@@ -35,6 +34,16 @@
    dialog is open. Lift the toast container above the dialog. */
 .Toastify__toast-container {
   z-index: 10001 !important;
+}
+
+/*
+  JupyterLab sets border-radius. So corner utilities get overwritten.
+   `revert-layer` drops back to the utilities layer for our data-slot
+   controls only.
+*/
+.jp-ThemedContainer button[data-slot],
+.jp-ThemedContainer [data-slot] :is(button) {
+  border-radius: revert-layer;
 }
 
 .jgis-underline-indicator {
@@ -224,7 +233,8 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-panel-tabs [data-slot='tabs-content']:not([hidden]) {
+  .jgis-panel-tabs
+  [data-slot='tabs-content']:not([hidden]) {
   flex: 1;
   min-height: 0;
   height: unset;
@@ -234,7 +244,8 @@ button.jp-mod-styled.jp-mod-reject {
 /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-panel-tabs [data-slot='tabs-list'] {
+  .jgis-panel-tabs
+  [data-slot='tabs-list'] {
   cursor: ns-resize;
   justify-content: flex-start;
   touch-action: pan-x;
@@ -244,25 +255,29 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-panel-tabs [data-slot='tabs-list']:active {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']:active {
   cursor: ns-resize;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-panel-tabs [data-slot='tabs-list']::-webkit-scrollbar {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']::-webkit-scrollbar {
   height: 3px;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-panel-tabs [data-slot='tabs-list']::-webkit-scrollbar-track {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-panel-tabs [data-slot='tabs-list']::-webkit-scrollbar-thumb {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']::-webkit-scrollbar-thumb {
   background-color: var(--jp-border-color1);
   border-radius: 2px;
 }

@@ -101,7 +101,11 @@ function StorySettingsPopover({
           </Button>
         }
       />
-      <PopoverContent align="end" side="bottom">
+      <PopoverContent
+        //  className={'w-fit'}
+        align="end"
+        side="bottom"
+      >
         <PopoverHeader>
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
