@@ -302,6 +302,69 @@ select option {
   margin: 0;
 }
 
+.jp-gis-grammar-rule-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The leading row and its controls read as one block */
+.jp-gis-grammar-rule:has(+ .jp-gis-grammar-rule-constants) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Fixed-value channels of a rule, as controls under its leading row */
+.jp-gis-grammar-rule-constants {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 4px 8px 6px 10px;
+  border: 1px solid var(--jp-border-color2);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background: var(--jp-layout-color1);
+}
+
+.jp-gis-grammar-rule-constant {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+.jp-gis-grammar-rule-constant .jp-gis-inline-constant-num {
+  width: 48px;
+}
+
+/* Turns a fixed value into a row driven by a field */
+.jp-gis-inline-constant-promote {
+  display: flex;
+  align-items: center;
+  padding: 2px 3px;
+  border: none;
+  border-radius: 3px;
+  background: none;
+  color: var(--jp-ui-font-color3);
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-gis-inline-constant-promote:hover {
+  color: var(--jp-brand-color1);
+  background: var(--jp-layout-color3);
+}
+
+.jp-gis-grammar-rule-constant .jp-gis-inline-constant-text {
+  width: 96px;
+}
+
+.jp-gis-grammar-rule-constant .jp-gis-inline-constant-select {
+  max-width: 120px;
+}
+
 .jp-gis-grammar-transform-row {
   display: flex;
   align-items: center;
@@ -347,7 +410,8 @@ select option {
   padding-right: 8px; /* A little more on the right because of the scroll bar */
 }
 
-.jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule {
+.jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule,
+.jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule-group {
   flex: 1;
   min-width: 0;
 }
@@ -367,7 +431,10 @@ select option {
   border-radius: 4px 0 0 4px;
 }
 
-.jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule {
+.jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule,
+.jp-gis-grammar-reorder-bar
+  + .jp-gis-grammar-rule-group
+  > .jp-gis-grammar-rule:first-child {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -426,7 +493,10 @@ select option {
     border-radius: 4px 4px 0 0;
   }
 
-  .jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule {
+  .jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule,
+  .jp-gis-grammar-reorder-bar
+    + .jp-gis-grammar-rule-group
+    > .jp-gis-grammar-rule:first-child {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     border-bottom-left-radius: 4px;

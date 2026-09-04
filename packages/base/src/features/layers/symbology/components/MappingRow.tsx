@@ -23,6 +23,11 @@ import {
   drawColorRamp,
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import {
+  hasPlaceholderDomain,
+  numericValuesFor,
+  withDataDomain,
+} from '@/src/features/layers/symbology/scaleDomain';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
@@ -46,13 +51,29 @@ const RGBA_ENCODINGS: Encoding[] = [
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
+  'text-fill-color',
+  'text-stroke-color',
 ];
 const POSFLOAT_ENCODINGS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
+  'text-stroke-width',
+  'text-font-size',
 ];
-const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
+const STRING_ENCODINGS: Encoding[] = [
+  'text-value',
+  'text-font-family',
+  'text-font',
+  'text-placement',
+  'text-align',
+  'text-baseline',
+];
+const ALL_ENCODINGS = [
+  ...RGBA_ENCODINGS,
+  ...POSFLOAT_ENCODINGS,
+  ...STRING_ENCODINGS,
+];
 
 // Encodings relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
@@ -76,8 +97,18 @@ const ALL_PIXEL_ENCODINGS = Array.from(
 );
 
 /** Display labels for encodings that need a friendlier name. */
-const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
+export const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
+  'text-value': 'label text',
+  'text-font-size': 'label font size',
+  'text-font-family': 'label font',
+  'text-font': 'label font (CSS shorthand)',
+  'text-fill-color': 'label color',
+  'text-stroke-color': 'label halo color',
+  'text-stroke-width': 'label halo width',
+  'text-placement': 'label placement',
+  'text-align': 'label align',
+  'text-baseline': 'label baseline',
 };
 
 function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
@@ -102,12 +133,14 @@ function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
     case 'scalar':
     case 'constant_num':
       return POSFLOAT_ENCODINGS;
+    case 'constant_str':
+      return STRING_ENCODINGS;
     default:
       return ALL_ENCODINGS;
   }
 }
 
-function defaultScaleForScheme(
+export function defaultScaleForScheme(
   scheme: IScale['scheme'],
   _currentEncodings: Encoding[],
 ): IScale {
@@ -183,6 +216,7 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
+  { value: 'constant_str', label: 'const (text)' },
   { value: 'colorMap', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
@@ -244,6 +278,14 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
         </span>
       );
     }
+    case 'constant_str':
+      return (
+        <span className="jp-gis-scale-preview">
+          <span className="jp-gis-scale-meta">
+            {scale.params.value === '' ? '(empty)' : `"${scale.params.value}"`}
+          </span>
+        </span>
+      );
     case 'constant_num':
       return (
         <span className="jp-gis-scale-preview">
@@ -332,6 +374,8 @@ interface INewPredicate {
   compareOp: ICompareOp;
   betweenMin: string;
   betweenMax: string;
+  minZoom: string;
+  maxZoom: string;
 }
 
 const EMPTY_NEW: INewPredicate = {
@@ -342,6 +386,8 @@ const EMPTY_NEW: INewPredicate = {
   compareOp: '>',
   betweenMin: '',
   betweenMax: '',
+  minZoom: '',
+  maxZoom: '',
 };
 
 function buildPredicate(p: INewPredicate): IPredicate | null {
@@ -380,6 +426,22 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
         ? { type: 'between', field: p.field, min, max }
         : null;
     }
+    case 'zoomRange': {
+      const min = Number(p.minZoom);
+      const max = Number(p.maxZoom);
+      const hasMin = p.minZoom !== '' && !isNaN(min);
+      const hasMax = p.maxZoom !== '' && !isNaN(max);
+      // A range with neither bound matches everything, which is not a
+      // condition; leave it uncommitted until one end is filled in.
+      if (!hasMin && !hasMax) {
+        return null;
+      }
+      return {
+        type: 'zoomRange',
+        ...(hasMin ? { minZoom: min } : {}),
+        ...(hasMax ? { maxZoom: max } : {}),
+      };
+    }
     default:
       throw new Error(`Invalid predicate type ${p.type}`);
   }
@@ -415,6 +477,13 @@ function predicateToDraft(pred: IPredicate): INewPredicate {
         betweenMin: String(pred.min),
         betweenMax: String(pred.max),
       };
+    case 'zoomRange':
+      return {
+        ...EMPTY_NEW,
+        type: 'zoomRange',
+        minZoom: pred.minZoom !== undefined ? String(pred.minZoom) : '',
+        maxZoom: pred.maxZoom !== undefined ? String(pred.maxZoom) : '',
+      };
     default:
       return { ...EMPTY_NEW };
   }
@@ -447,6 +516,10 @@ function defaultDraftForType(
         betweenMin: prev.betweenMin || '0',
         betweenMax: prev.betweenMax || '0',
       };
+    case 'zoomRange':
+      // Seed a min so the condition is valid, and therefore committed, the
+      // moment the type is picked. Zoom 10 is roughly city scale.
+      return { ...prev, type, minZoom: prev.minZoom || '10' };
     default:
       return { ...prev, type };
   }
@@ -523,6 +596,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
           Field Compare
         </NativeSelectOption>
         <NativeSelectOption value="between">Between</NativeSelectOption>
+        <NativeSelectOption value="zoomRange">Zoom Range</NativeSelectOption>
       </NativeSelect>
 
       {draft.type === 'geometryType' && (
@@ -600,6 +674,32 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
             placeholder="max"
             value={draft.betweenMax}
             onChange={e => patch({ betweenMax: e.target.value })}
+          />
+        </>
+      )}
+
+      {draft.type === 'zoomRange' && (
+        <>
+          <Input
+            style={{ flex: '0 0 60px', minWidth: 0 }}
+            type="number"
+            placeholder="min z"
+            title="Apply only when zoomed in at least this far"
+            value={draft.minZoom}
+            onChange={e => patch({ minZoom: e.target.value })}
+          />
+          <span
+            style={{ flex: '0 0 auto', fontSize: 'var(--jp-ui-font-size0)' }}
+          >
+            –
+          </span>
+          <Input
+            style={{ flex: '0 0 60px', minWidth: 0 }}
+            type="number"
+            placeholder="max z"
+            title="Apply only when zoomed out at least this far"
+            value={draft.maxZoom}
+            onChange={e => patch({ maxZoom: e.target.value })}
           />
         </>
       )}
@@ -734,6 +834,12 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
 
 export interface IGrammarRow {
   id: string;
+  /**
+   * Rule this mapping belongs to. Rows sharing a ruleId are one rule with
+   * several mappings, which is how a group of channels that only mean anything
+   * together (a label, a circle) stays one entry in the list.
+   */
+  ruleId?: string;
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
@@ -752,6 +858,7 @@ export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
   switch (scheme) {
     case 'constant_rgba':
     case 'constant_num':
+    case 'constant_str':
       return 0;
     case 'expression':
       return 'any';
@@ -805,9 +912,19 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       } else {
         next.splice(index, 1);
       }
-      onChange({ ...row, fields: next.length > 0 ? next : undefined });
+      const fields = next.length > 0 ? next : undefined;
+      // Refit the scale to the new column. Without this the domain keeps the
+      // previous field's range and every feature clamps to one end of it.
+      onChange({
+        ...row,
+        fields,
+        scale: withDataDomain(
+          row.scale,
+          numericValuesFor(fields?.[0], featureValues),
+        ),
+      });
     },
-    [row, onChange],
+    [row, onChange, featureValues],
   );
 
   const addField = useCallback(
@@ -908,12 +1025,36 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             : row.fields;
       onChange({
         ...row,
-        scale: newScale,
+        // A freshly created scale carries a placeholder domain, so fit it to
+        // the field before it ever reaches the map.
+        scale: hasPlaceholderDomain(newScale)
+          ? withDataDomain(
+              newScale,
+              numericValuesFor(trimmedFields?.[0], featureValues),
+            )
+          : newScale,
         encodings: filtered.length > 0 ? filtered : [compat[0]],
         fields: trimmedFields,
       });
     },
-    [row, onChange, bandStats, isRaster, normalize],
+    [row, onChange, bandStats, isRaster, normalize, featureValues],
+  );
+
+  // A scheme that cannot produce any of this row's outputs is offered but
+  // disabled. Switching to it used to silently retarget the row at whatever
+  // the new scheme could drive, which quietly turned a label into a fill.
+  const schemeKeepsEncodings = useCallback(
+    (scheme: IScale['scheme']) => {
+      if (scheme === row.scale.scheme) {
+        return true;
+      }
+      const compat = compatibleEncodings(
+        defaultScaleForScheme(scheme, row.encodings),
+        isRaster,
+      );
+      return row.encodings.some(ch => compat.includes(ch));
+    },
+    [row.scale.scheme, row.encodings, isRaster],
   );
 
   const handleScaleChange = useCallback(
@@ -1005,7 +1146,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               ({ value, disabled }) =>
                 !disabled && !disabledSchemes.includes(value),
             ).map(({ value, label }) => (
-              <NativeSelectOption key={value} value={value}>
+              <NativeSelectOption
+                key={value}
+                value={value}
+                disabled={!schemeKeepsEncodings(value)}
+              >
                 {label}
               </NativeSelectOption>
             ))}
@@ -1130,8 +1275,13 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       {expanded && (
         <div className="jp-gis-grammar-rule-editor">
           {(row.scale.scheme === 'constant_rgba' ||
-            row.scale.scheme === 'constant_num') && (
-            <ConstantEditor scale={row.scale} onChange={handleScaleChange} />
+            row.scale.scheme === 'constant_num' ||
+            row.scale.scheme === 'constant_str') && (
+            <ConstantEditor
+              scale={row.scale}
+              encodings={row.encodings}
+              onChange={handleScaleChange}
+            />
           )}
           {row.scale.scheme === 'colorMap' && (
             <ColorMapEditor

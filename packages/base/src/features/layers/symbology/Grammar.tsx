@@ -15,7 +15,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  IEncodingRule,
   IGrammarLayer,
   IGrammarSymbologyState,
   IPredicate,
@@ -27,16 +26,23 @@ import {
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import MappingRow, {
+import {
   IGrammarRow,
   WhenRow,
   defaultPredicate,
 } from '@/src/features/layers/symbology/components/MappingRow';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
+import RuleGroup from '@/src/features/layers/symbology/components/RuleGroup';
 import { useEffectiveSymbologyParams } from '@/src/features/layers/symbology/hooks/useEffectiveSymbologyParams';
 import useGetBandInfo from '@/src/features/layers/symbology/hooks/useGetBandInfo';
 import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
+import { defaultLabelRows } from '@/src/features/layers/symbology/labelPreset';
+import {
+  groupRows,
+  rowsToRules,
+  rulesToRows,
+} from '@/src/features/layers/symbology/ruleRows';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
   saveSymbology,
@@ -227,15 +233,17 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const dragOverRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const moveRow = useCallback(
-    (fromIndex: number, toIndex: number) => {
-      if (fromIndex === toIndex) {
+  // Reordering moves a whole rule, so every mapping of a grouped rule travels
+  // together and the group stays contiguous.
+  const moveGroup = useCallback(
+    (groups: IGrammarRow[][], fromPos: number, toPos: number) => {
+      if (fromPos === toPos) {
         return;
       }
-      const next = [...layer.rows];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
-      onChange({ ...layer, rows: next });
+      const next = [...groups];
+      const [moved] = next.splice(fromPos, 1);
+      next.splice(toPos, 0, moved);
+      onChange({ ...layer, rows: next.flat() });
     },
     [layer, onChange],
   );
@@ -318,6 +326,20 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     });
   }, [layer, onChange, isRaster]);
 
+  // A label is an ordinary rule whose mappings happen to be text channels.
+  // The button is a preset that fills them in, not a separate kind of thing.
+  const addLabel = useCallback(() => {
+    onChange({
+      ...layer,
+      rows: [...layer.rows, ...defaultLabelRows(availableFields[0]?.value)],
+    });
+  }, [layer, onChange, availableFields]);
+
+  const hasLabel = layer.rows.some(row => row.encodings.includes('text-value'));
+
+  const styleGroups = groupRows(layer.rows);
+  const groupedRows = styleGroups.map(g => g.rows.map(r => r.row));
+
   // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
   const encodingFields: IFieldOption[] = hasKDE
@@ -340,6 +362,18 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           >
             <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
             Transform
+          </Button>
+        )}
+
+        {!isRaster && !hasLabel && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={addLabel}
+            title="Label each feature with one of its attributes"
+          >
+            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+            Label
           </Button>
         )}
 
@@ -453,7 +487,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               ':scope > .jp-gis-grammar-drag-wrapper',
             ),
           );
-          let idx = layer.rows.length;
+          let idx = styleGroups.length;
           for (let j = 0; j < wrappers.length; j++) {
             const rect = wrappers[j].getBoundingClientRect();
             const midY = rect.top + rect.height / 2;
@@ -468,8 +502,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         onDrop={() => {
           const over = dragOverRef.current;
           if (dragIndexRef.current !== null && over !== null) {
-            const to = over > dragIndexRef.current ? over - 1 : over;
-            moveRow(dragIndexRef.current, to);
+            const toPosition = over > dragIndexRef.current ? over - 1 : over;
+            moveGroup(groupedRows, dragIndexRef.current, toPosition);
           }
           dragIndexRef.current = null;
           dragOverRef.current = null;
@@ -481,29 +515,29 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           setDragOverIndex(null);
         }}
       >
-        {layer.rows.map((row, i) => (
+        {styleGroups.map(({ key, rows }, position) => (
           <div
-            key={row.id}
+            key={key}
             className="jp-gis-grammar-drag-wrapper"
             style={{
               borderTop:
-                dragOverIndex === i && dragIndexRef.current !== i
+                dragOverIndex === position && dragIndexRef.current !== position
                   ? '2px solid var(--jp-brand-color1)'
                   : '2px solid transparent',
               borderBottom:
-                dragOverIndex === layer.rows.length &&
-                i === layer.rows.length - 1 &&
-                dragIndexRef.current !== i
+                dragOverIndex === styleGroups.length &&
+                position === styleGroups.length - 1 &&
+                dragIndexRef.current !== position
                   ? '2px solid var(--jp-brand-color1)'
                   : '2px solid transparent',
             }}
           >
-            {layer.rows.length > 1 && (
+            {styleGroups.length > 1 && (
               <div className="jp-gis-grammar-reorder-bar">
                 <Button
                   type="button"
-                  disabled={i === 0}
-                  onClick={() => moveRow(i, i - 1)}
+                  disabled={position === 0}
+                  onClick={() => moveGroup(groupedRows, position, position - 1)}
                   title="Move up"
                 >
                   <FontAwesomeIcon icon={faArrowUp} />
@@ -512,7 +546,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                   className="jp-gis-grammar-drag-handle"
                   draggable
                   onDragStart={e => {
-                    dragIndexRef.current = i;
+                    dragIndexRef.current = position;
                     const wrapper = e.currentTarget.closest(
                       '.jp-gis-grammar-drag-wrapper',
                     );
@@ -526,24 +560,24 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                 </div>
                 <Button
                   type="button"
-                  disabled={i === layer.rows.length - 1}
-                  onClick={() => moveRow(i, i + 1)}
+                  disabled={position === styleGroups.length - 1}
+                  onClick={() => moveGroup(groupedRows, position, position + 1)}
                   title="Move down"
                 >
                   <FontAwesomeIcon icon={faArrowDown} />
                 </Button>
               </div>
             )}
-            <MappingRow
-              row={row}
+            <RuleGroup
+              rows={rows}
               availableFields={encodingFields}
               featureValues={featureValues}
               isRaster={isRaster}
               disabledSchemes={disabledSchemes}
               bandStats={bandStats}
               normalize={normalize}
-              onChange={updated => updateRow(i, updated)}
-              onDelete={() => removeRow(i)}
+              onChangeRow={updateRow}
+              onDeleteRow={removeRow}
             />
           </div>
         ))}
@@ -637,19 +671,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
         ...(grammarLayer.whenOp ? { whenOp: grammarLayer.whenOp } : {}),
         ...(grammarLayer.declutter ? { declutter: true } : {}),
-        rows: grammarLayer.rules.flatMap(rule =>
-          rule.mappings.map((mapping, mi) => ({
-            // Preserve the rule's stable id so React keys and story-segment
-            // override merging stay consistent across dialog opens.
-            // When a rule has multiple mappings, suffix with the mapping index.
-            id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
-            fields: rule.fields?.length ? rule.fields : undefined,
-            scale: mapping.scale,
-            encodings: [...(mapping.encodings as Encoding[])],
-            ...(rule.when ? { when: rule.when } : {}),
-            ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
-          })),
-        ),
+        rows: rulesToRows(grammarLayer.rules),
       })),
     );
   }, [params]);
@@ -660,30 +682,15 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     }
 
     const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
-      const rules: IEncodingRule[] = uiLayer.rows
-        .filter(row => row.encodings.length > 0)
-        .map(row => ({
-          id: row.id,
-          ...(row.fields?.length ? { fields: row.fields } : {}),
-          ...(row.when?.length ? { when: row.when } : {}),
-          ...(row.whenOp ? { whenOp: row.whenOp } : {}),
-          mappings: [
-            {
-              scale: row.scale,
-              encodings: row.encodings as [Encoding, ...Encoding[]],
-            },
-          ],
-        }));
-
       return {
         id: uiLayer.id,
+        rules: rowsToRules(uiLayer.rows),
         ...(uiLayer.transforms.length
           ? { preprocess: uiLayer.transforms }
           : {}),
         ...(uiLayer.when?.length ? { when: uiLayer.when } : {}),
         ...(uiLayer.whenOp ? { whenOp: uiLayer.whenOp } : {}),
         ...(uiLayer.declutter ? { declutter: true } : {}),
-        rules,
       };
     });
 

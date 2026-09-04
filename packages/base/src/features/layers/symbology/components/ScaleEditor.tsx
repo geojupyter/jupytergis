@@ -21,7 +21,9 @@ import {
   IColorMapScale,
   IConstantNumScale,
   IConstantRGBAScale,
+  IConstantStrScale,
   IExpressionScale,
+  Encoding,
   IScale,
   IScalarScale,
   RGBA,
@@ -43,6 +45,11 @@ import RgbaColorPicker, {
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
 import {
+  hasPlaceholderDomain,
+  numericValuesFor,
+  withDataDomain,
+} from '@/src/features/layers/symbology/scaleDomain';
+import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
   IComputedStop,
@@ -50,6 +57,11 @@ import {
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { InfoTip } from '@/src/shared/components/InfoTip';
+import { Input } from '@/src/shared/components/Input';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 function stopsToRows(
   stops: Array<{ stop: number | string; color: RGBA }>,
@@ -81,15 +93,68 @@ const MODE_OPTIONS: ClassificationMode[] = [
 // Constant editor
 // ---------------------------------------------------------------------------
 
+/**
+ * Text encodings whose value is one of a fixed set. Offering a free text box
+ * for these invites typos that OL rejects at style-parse time, taking the
+ * whole layer's symbology down with them.
+ */
+export const TEXT_ENUM_OPTIONS: Partial<Record<Encoding, string[]>> = {
+  'text-placement': ['point', 'line'],
+  'text-align': ['left', 'center', 'right', 'start', 'end'],
+  'text-baseline': ['bottom', 'top', 'middle', 'alphabetic', 'hanging'],
+};
+
 interface IConstantEditorProps {
-  scale: IConstantRGBAScale | IConstantNumScale;
+  scale: IConstantRGBAScale | IConstantNumScale | IConstantStrScale;
   onChange: (scale: IScale) => void;
+  /** Encodings this scale drives, used to pick the right text input. */
+  encodings?: Encoding[];
 }
 
 export const ConstantEditor: React.FC<IConstantEditorProps> = ({
   scale,
   onChange,
+  encodings = [],
 }) => {
+  if (scale.scheme === 'constant_str') {
+    const enumEncoding = encodings.find(c => c in TEXT_ENUM_OPTIONS);
+    const options = enumEncoding ? TEXT_ENUM_OPTIONS[enumEncoding] : undefined;
+
+    return (
+      <div className="jp-gis-symbology-row">
+        <label>Value</label>
+        {options ? (
+          <NativeSelect
+            value={scale.params.value}
+            onChange={e =>
+              onChange({
+                scheme: 'constant_str',
+                params: { value: e.target.value },
+              })
+            }
+          >
+            {options.map(o => (
+              <NativeSelectOption key={o} value={o}>
+                {o}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        ) : (
+          <Input
+            className="jp-mod-styled"
+            value={scale.params.value}
+            onChange={e =>
+              onChange({
+                scheme: 'constant_str',
+                params: { value: e.target.value },
+              })
+            }
+          />
+        )}
+      </div>
+    );
+  }
+
   if (scale.scheme === 'constant_num') {
     return (
       <div className="jp-gis-symbology-row">
@@ -146,23 +211,32 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
     [params, onChange],
   );
 
-  // Auto-populate domain from data when the field is known and domain is unset.
+  const prevFieldRef = useRef<string | undefined>(undefined);
+
+  // Follow the data: fit the domain while it is still the placeholder one, and
+  // again when the input field changes. defaultScaleForScheme always supplies
+  // [0, 1], so testing only for an absent domain never fired and the ramp
+  // stayed pinned there whatever the values were.
   useEffect(() => {
-    if (!field || params.domain) {
+    const fieldChanged =
+      prevFieldRef.current !== undefined && prevFieldRef.current !== field;
+    prevFieldRef.current = field;
+
+    if (!field || (!hasPlaceholderDomain(scale) && !fieldChanged)) {
       return;
     }
-    const values = Array.from(featureValues[field] ?? []).filter(
-      (v): v is number => Number.isFinite(v),
+    const fitted = withDataDomain(
+      scale,
+      numericValuesFor(field, featureValues),
     );
-    if (values.length === 0) {
+    if (fitted === scale) {
       return;
     }
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    if (min !== max) {
-      update({ domain: [min, max] });
-    }
-  }, [field, featureValues]); // intentionally omits `update` to avoid loop
+    setStopRows(
+      stopsToRows((fitted as IColorMapScale).params.colorStops ?? []),
+    );
+    onChange(fitted);
+  }, [field, featureValues]); // intentionally omits onChange to avoid loop
 
   const classify = () => {
     if (!field) {
@@ -774,6 +848,33 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
         }))
       : [],
   );
+
+  const prevFieldRef = useRef<string | undefined>(undefined);
+
+  // Same as the colour ramp: fit the domain to the data while it is still the
+  // placeholder [0, 100], and again when the field changes. Otherwise every
+  // feature lands in the bottom sliver of the output range.
+  useEffect(() => {
+    const fieldChanged =
+      prevFieldRef.current !== undefined && prevFieldRef.current !== field;
+    prevFieldRef.current = field;
+
+    if (!field || (!hasPlaceholderDomain(scale) && !fieldChanged)) {
+      return;
+    }
+    const fitted = withDataDomain(
+      scale,
+      numericValuesFor(field, featureValues),
+    );
+    if (fitted === scale) {
+      return;
+    }
+    const stops = (fitted as IScalarScale).params.scalarStops ?? [];
+    setStopRows(
+      stops.map(st => ({ id: UUID.uuid4(), stop: st.stop, output: st.output })),
+    );
+    onChange(fitted);
+  }, [field, featureValues]); // intentionally omits onChange to avoid loop
 
   const classify = () => {
     const inMin = params.domain[0];
