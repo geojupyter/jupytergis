@@ -133,14 +133,14 @@ export function SegmentWidthSelector({
           return;
         }
 
-        // if (selected === CUSTOM_PRESET_VALUE) {
-        //   // Capture wrapper width synchronously before the custom editor
-        //   // mounts and expands the inline-flex container.
-        //   const w = wrapperRef.current?.getBoundingClientRect().width ?? null;
-        //   setLockedWidth(w);
-        //   setIsCustom(true);
-        //   return;
-        // }
+        if (selected === CUSTOM_PRESET_VALUE) {
+          // Capture wrapper width synchronously before the custom editor
+          // mounts and expands the inline-flex container.
+          // const w = wrapperRef.current?.getBoundingClientRect().width ?? null;
+          // setLockedWidth(w);
+          setIsCustom(true);
+          return;
+        }
 
         const preset = presets.find(item => item.id === selected);
         if (!preset) {

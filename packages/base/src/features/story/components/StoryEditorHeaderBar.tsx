@@ -58,9 +58,7 @@ function StoryOpacityField({
   return (
     <div className="jgis-story-editor-field">
       <span>{label}</span>
-      <div
-      // className="jgis-story-editor-opacity-row"
-      >
+      <div>
         <Slider
           orientation="horizontal"
           min={0}
@@ -101,11 +99,7 @@ function StorySettingsPopover({
           </Button>
         }
       />
-      <PopoverContent
-        //  className={'w-fit'}
-        align="end"
-        side="bottom"
-      >
+      <PopoverContent className={'w-fit'} align="end" side="bottom">
         <PopoverHeader>
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
