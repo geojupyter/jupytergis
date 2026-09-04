@@ -927,9 +927,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _: unknown,
     { serverUrl }: { serverUrl: string },
   ): void {
-    if (!this._ready) {
-      return;
-    }
     const sources = this._model.sharedModel.sources ?? {};
     for (const [sourceId, source] of Object.entries(sources)) {
       if (source?.type !== 'OpenEOTileSource') {
@@ -957,10 +954,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISSourceDocChange,
   ): void {
-    if (!this._ready) {
-      return;
-    }
-
     change.sourceChange?.forEach(srcChange => {
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
         this._mapAdapter.removeSource(srcChange.id);
