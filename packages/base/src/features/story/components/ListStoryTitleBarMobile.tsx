@@ -5,7 +5,7 @@ import type {
   IListStoryTitleBarContentProps,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Popover,
   PopoverContent,
@@ -75,14 +75,15 @@ export function ListStoryTitleBarMobile({
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>
         <PopoverTrigger
           render={
-            <Button
+            <ButtonTw
               type="button"
               variant="ghost"
+              size="icon"
               className="jgis-story-title-bar-menu-btn"
               aria-label="Open story menu"
             >
               <Menu />
-            </Button>
+            </ButtonTw>
           }
         />
         <PopoverContent

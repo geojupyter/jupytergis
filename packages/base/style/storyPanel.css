@@ -189,30 +189,16 @@
   overflow: hidden;
 }
 
-.jgis-story-title-bar-scroll-btn,
-.jgis-story-title-bar-menu-btn {
-  flex-shrink: 0;
-  min-width: 2rem;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
 .jgis-story-title-bar--mobile {
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0;
   overflow: visible;
 }
 
 .jgis-story-title-bar--mobile > * {
   grid-area: 1 / 1;
-}
-
-.jgis-story-title-bar--mobile .jgis-story-title-bar-menu-btn {
-  justify-self: start;
-  position: relative;
-  z-index: 1;
 }
 
 .jgis-story-title-bar-active-segment {
