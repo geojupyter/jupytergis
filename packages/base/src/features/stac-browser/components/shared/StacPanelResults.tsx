@@ -63,20 +63,27 @@ const StacPanelResults = () => {
   return (
     <div className="jgis-stac-browser-filters-panel">
       <Pagination>
-        <PaginationContent className="jgis-stac-panel-results-pagination">
+        <PaginationContent className="jgis-stac-panel-results-pagination gap-0">
           <PaginationItem>
             <PaginationPrevious
+              aria-disabled={!isPrev || undefined}
+              tabIndex={!isPrev ? -1 : undefined}
+              className={!isPrev ? 'pointer-events-none opacity-50' : undefined}
               onClick={() => {
+                if (!isPrev) {
+                  return;
+                }
                 setCurrentPage(Math.max(currentPage - 1, 1));
                 handlePaginationClick('previous');
               }}
-              disabled={!isPrev}
             />
           </PaginationItem>
           {totalPages === 1 ? (
             // One page, display current page number and keep active
             <PaginationItem>
-              <PaginationLink isActive={true}>{currentPage}</PaginationLink>
+              <PaginationLink size={'icon-xs'} isActive={true}>
+                {currentPage}
+              </PaginationLink>
             </PaginationItem>
           ) : results.length !== 0 ? (
             // Multiple pages, display fancy pagination numbers
@@ -93,12 +100,12 @@ const StacPanelResults = () => {
                 return (
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
+                      size={'icon-xs'}
                       isActive={pageNumber === currentPage}
                       onClick={async () => {
                         setCurrentPage(pageNumber);
                         await executeQueryWithPage(pageNumber);
                       }}
-                      disabled={totalPages === 1}
                     >
                       {pageNumber}
                     </PaginationLink>
@@ -109,18 +116,29 @@ const StacPanelResults = () => {
           ) : (
             // No results
             <PaginationItem>
-              <PaginationLink isActive={true} disabled={true}>
+              <PaginationLink
+                size={'icon-xs'}
+                isActive={true}
+                aria-disabled={true}
+                tabIndex={-1}
+                className="pointer-events-none opacity-50"
+              >
                 0
               </PaginationLink>
             </PaginationItem>
           )}
           <PaginationItem>
             <PaginationNext
+              aria-disabled={!isNext || undefined}
+              tabIndex={!isNext ? -1 : undefined}
+              className={!isNext ? 'pointer-events-none opacity-50' : undefined}
               onClick={() => {
+                if (!isNext) {
+                  return;
+                }
                 setCurrentPage(currentPage + 1);
                 handlePaginationClick('next');
               }}
-              disabled={!isNext}
             />
           </PaginationItem>
         </PaginationContent>

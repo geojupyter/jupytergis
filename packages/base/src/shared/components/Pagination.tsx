@@ -1,110 +1,126 @@
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MoreHorizontalIcon,
+} from 'lucide-react';
 
-import { Button, ButtonProps } from './Button';
+import { ButtonTw } from './ButtonTw';
 import { cn } from './utils';
 
-const Pagination: React.FC<React.ComponentProps<'nav'>> = ({ ...props }) => (
-  <nav
-    role="navigation"
-    aria-label="pagination"
-    className={'jgis-pagination'}
-    {...props}
-  />
-);
-Pagination.displayName = 'Pagination';
+function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
+  return (
+    <nav
+      role="navigation"
+      aria-label="pagination"
+      data-slot="pagination"
+      className={cn('mx-auto flex w-full justify-center', className)}
+      {...props}
+    />
+  );
+}
 
-const PaginationContent = React.forwardRef<
-  HTMLUListElement,
-  React.ComponentProps<'ul'>
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    className={cn('jgis-pagination-content', className)}
-    {...props}
-  />
-));
-PaginationContent.displayName = 'PaginationContent';
+function PaginationContent({
+  className,
+  ...props
+}: React.ComponentProps<'ul'>) {
+  return (
+    <ul
+      data-slot="pagination-content"
+      className={cn('flex items-center gap-1', className)}
+      {...props}
+    />
+  );
+}
 
-const PaginationItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentProps<'li'>
->(({ ...props }, ref) => <li ref={ref} className="" {...props} />);
-PaginationItem.displayName = 'PaginationItem';
+function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
+  return <li data-slot="pagination-item" {...props} />;
+}
 
 type PaginationLinkProps = {
   isActive?: boolean;
-} & Pick<ButtonProps, 'size'> &
-  React.ComponentProps<'button'>;
+} & Pick<React.ComponentProps<typeof ButtonTw>, 'size'> &
+  React.ComponentProps<'a'>;
 
-const PaginationLink = ({
+function PaginationLink({
+  className,
   isActive,
   size = 'icon',
   ...props
-}: PaginationLinkProps) => (
-  <Button
-    aria-current={isActive ? 'page' : undefined}
-    data-variant={isActive ? 'outline' : 'ghost'}
-    data-size={size}
-    className={'jgis-pagination-link'}
-    {...props}
-  />
-);
-PaginationLink.displayName = 'PaginationLink';
+}: PaginationLinkProps) {
+  return (
+    <ButtonTw
+      variant={isActive ? 'outline' : 'ghost'}
+      size={size}
+      className={cn(className)}
+      nativeButton={false}
+      render={
+        <a
+          aria-current={isActive ? 'page' : undefined}
+          data-slot="pagination-link"
+          data-active={isActive}
+          {...props}
+        />
+      }
+    />
+  );
+}
 
-// size is 'default' from both next and previous
-const PaginationPrevious = ({
+function PaginationPrevious({
+  className,
+  text = 'Previous',
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to previous page"
-    className={'jgis-pagination-previous'}
-    {...props}
-  >
-    <ChevronLeft
-      style={{
-        height: '1rem',
-        width: '1rem',
-        flexShrink: 0,
-      }}
-    />
-    <span>Prev</span>
-  </PaginationLink>
-);
-PaginationPrevious.displayName = 'PaginationPrevious';
+}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+  return (
+    <PaginationLink
+      aria-label="Go to previous page"
+      size="default"
+      className={cn('pl-2!', className)}
+      {...props}
+    >
+      <ChevronLeftIcon data-icon="inline-start" className="cn-rtl-flip" />
+      <span className="block max-sm:hidden">{text}</span>
+    </PaginationLink>
+  );
+}
 
-const PaginationNext = ({
+function PaginationNext({
+  className,
+  text = 'Next',
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to next page"
-    className={'jgis-pagination-next'}
-    {...props}
-  >
-    <span>Next</span>
-    <ChevronRight
-      style={{
-        height: '1rem',
-        width: '1rem',
-        flexShrink: 0,
-      }}
-    />
-  </PaginationLink>
-);
-PaginationNext.displayName = 'PaginationNext';
+}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+  return (
+    <PaginationLink
+      aria-label="Go to next page"
+      size="default"
+      className={cn('pr-2!', className)}
+      {...props}
+    >
+      <span className="block max-sm:hidden">{text}</span>
+      <ChevronRightIcon data-icon="inline-end" className="cn-rtl-flip" />
+    </PaginationLink>
+  );
+}
 
-const PaginationEllipsis = ({ ...props }: React.ComponentProps<'span'>) => (
-  <span aria-hidden className={'jgis-pagination-ellipsis'} {...props}>
-    <MoreHorizontal
-      style={{
-        height: '1rem',
-        width: '1rem',
-      }}
-    />
-    <span className="sr-only">More pages</span>
-  </span>
-);
-PaginationEllipsis.displayName = 'PaginationEllipsis';
+function PaginationEllipsis({
+  className,
+  ...props
+}: React.ComponentProps<'span'>) {
+  return (
+    <span
+      aria-hidden
+      data-slot="pagination-ellipsis"
+      className={cn(
+        "flex size-9 items-center justify-center [&_svg:not([class*='size-'])]:size-4",
+        className,
+      )}
+      {...props}
+    >
+      <MoreHorizontalIcon />
+      <span className="sr-only">More pages</span>
+    </span>
+  );
+}
 
 export {
   Pagination,
