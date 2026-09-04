@@ -424,8 +424,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      window.jupytergisMaps[this._documentPath] = this._Map;
+    if (window.jupytergisMaps !== undefined) {
+      // The shared model only emits a path change when the document is renamed,
+      // so on a normal open the path has to be read directly.
+      this._documentPath ??=
+        (this._model.sharedModel.getState('path') as string | undefined) ||
+        this._model.filePath ||
+        undefined;
+      if (this._documentPath) {
+        window.jupytergisMaps[this._documentPath] = this._Map;
+      }
     }
   }
 
