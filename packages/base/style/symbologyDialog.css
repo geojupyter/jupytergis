@@ -326,14 +326,6 @@ select option {
   border-color: transparent;
 }
 
-.jp-gis-grammar-transform-row .jgis-button,
-.jp-gis-grammar-layer-header .jgis-button,
-.jp-gis-grammar-layer-section > .jp-gis-grammar-when-row .jgis-button {
-  background: transparent;
-  background-color: transparent;
-  border-color: transparent;
-}
-
 /* ---------------------------------------------------------------------------
  * Grammar reorder pill (drag handle + arrows above each rule)
  * --------------------------------------------------------------------------*/
@@ -372,7 +364,7 @@ select option {
   border-bottom-left-radius: 0;
 }
 
-.jp-gis-grammar-reorder-bar .jgis-button {
+.jp-gis-grammar-reorder-bar [data-slot='button'] {
   height: 20px;
   width: 22px;
   padding: 0;
@@ -382,12 +374,12 @@ select option {
   background: none;
 }
 
-.jp-gis-grammar-reorder-bar .jgis-button:hover:not(:disabled) {
+.jp-gis-grammar-reorder-bar [data-slot='button']:hover:not(:disabled) {
   color: var(--jp-ui-font-color1);
   background: var(--jp-layout-color3);
 }
 
-.jp-gis-grammar-reorder-bar .jgis-button:disabled {
+.jp-gis-grammar-reorder-bar [data-slot='button']:disabled {
   opacity: 0.3;
 }
 
@@ -541,26 +533,6 @@ select option {
   background: var(--jp-layout-color0);
 }
 
-.jp-gis-grammar-action-btn {
-  background: transparent;
-  border: 1px solid var(--jp-border-color2);
-  border-radius: var(--jp-border-radius, 0.375rem);
-  color: var(--jp-ui-font-color1);
-  font-size: var(--jp-ui-font-size1);
-  padding: 4px 12px;
-  cursor: pointer;
-  width: fit-content;
-}
-
-.jp-gis-grammar-action-btn:hover {
-  background: var(--jp-layout-color2);
-}
-
-.jp-gis-grammar-action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Preview button spans all encoding rows — stretches vertically */
 .jp-gis-grammar-preview-btn {
   background: none;
@@ -694,7 +666,7 @@ select option {
   white-space: nowrap;
 }
 
-.jp-gis-grammar-when-chip button {
+.jp-gis-grammar-when-chip [data-slot='button'] {
   background: none;
   border: none;
   padding: 0 0 0 2px;
@@ -702,22 +674,9 @@ select option {
   line-height: 1;
   color: var(--jp-ui-font-color2);
   font-size: 11px;
-}
-
-.jgis-button.jp-gis-grammar-when-add-btn {
-  background: transparent;
-  background-color: transparent;
-  border: 1px dashed var(--jp-border-color2);
-  border-radius: 10px;
-  padding: 1px 8px;
-  cursor: pointer;
-  font-size: var(--jp-ui-font-size0);
-  color: var(--jp-ui-font-color2);
-}
-
-.jp-gis-grammar-when-add-btn:hover {
-  border-color: var(--jp-brand-color1);
-  color: var(--jp-brand-color1);
+  height: auto;
+  width: auto;
+  min-width: 0;
 }
 
 .jp-gis-grammar-when-form {
@@ -747,17 +706,6 @@ select option {
   font-size: var(--jp-ui-font-size0);
   border-color: var(--jp-border-color2);
   box-shadow: none;
-}
-
-/* Icon buttons in the when-form should be transparent, not white */
-.jp-gis-grammar-when-form .jgis-button {
-  background: transparent;
-  background-color: transparent;
-  border-color: transparent;
-}
-
-.jgis-button.jp-gis-grammar-when-form-cancel {
-  color: var(--jp-error-color0);
 }
 
 /* Domain min/max pair inside a symbology row */

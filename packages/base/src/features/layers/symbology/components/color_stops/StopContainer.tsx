@@ -1,8 +1,8 @@
-import { Button } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import React from 'react';
 
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import StopRow from './StopRow';
 
 interface IStopContainerProps {
@@ -55,9 +55,9 @@ const StopContainer: React.FC<IStopContainerProps> = ({
         ))}
       </div>
       <div className="jp-gis-symbology-button-container">
-        <Button className="jp-gis-grammar-action-btn" onClick={addStopRow}>
+        <ButtonTw variant="outline" size="sm" onClick={addStopRow}>
           Add Stop
-        </Button>
+        </ButtonTw>
       </div>
     </>
   );

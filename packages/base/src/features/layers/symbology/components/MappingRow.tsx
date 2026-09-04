@@ -23,7 +23,7 @@ import {
   drawColorRamp,
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -604,16 +604,16 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
         </>
       )}
 
-      <Button
+      <ButtonTw
         type="button"
-        variant="icon"
-        size="icon-md"
-        className="jp-gis-grammar-when-form-cancel"
+        variant="ghost"
+        size="icon-xs"
+        className="text-destructive"
         onClick={onDelete}
         title="Remove condition"
       >
         <FontAwesomeIcon icon={faXmark} />
-      </Button>
+      </ButtonTw>
     </span>
   );
 };
@@ -695,14 +695,16 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
       {fields.map((f, i) => (
         <span key={i} className="jp-gis-grammar-when-chip">
           {f}
-          <Button
+          <ButtonTw
             type="button"
-            className="jp-gis-grammar-when-cancel"
+            variant="ghost"
+            size="icon-xs"
+            className="text-muted-foreground"
             onClick={() => onFieldChange(i, '')}
             title="Remove field"
           >
             <FontAwesomeIcon icon={faXmark} />
-          </Button>
+          </ButtonTw>
         </span>
       ))}
       <div style={{ minWidth: 60, flex: '0 0 auto' }}>
@@ -1046,11 +1048,10 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                   ))}
                 </NativeSelect>
               </div>
-              <Button
+              <ButtonTw
                 type="button"
                 variant="ghost"
-                size="icon-md"
-                className="jp-mod-styled"
+                size="icon-xs"
                 onClick={() => removeEncoding(ch)}
                 title={
                   row.encodings.length === 1
@@ -1059,7 +1060,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 }
               >
                 <FontAwesomeIcon icon={faTrash} />
-              </Button>
+              </ButtonTw>
             </div>
           ))}
 
@@ -1094,8 +1095,10 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(row.when?.length ?? 0) > 1 && (
-          <Button
+          <ButtonTw
             type="button"
+            variant="ghost"
+            size="xs"
             className="jp-gis-grammar-when-op"
             onClick={() =>
               onChange({
@@ -1105,7 +1108,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             }
           >
             {row.whenOp ?? 'all'}
-          </Button>
+          </ButtonTw>
         )}
         {row.when?.map((pred, i) => (
           <WhenRow
@@ -1116,14 +1119,16 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             onDelete={() => removePredicate(i)}
           />
         ))}
-        <Button
+        <ButtonTw
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="outline"
+          size="icon-xs"
+          className="rounded-[10px] border-dashed hover:border-primary hover:text-primary"
           onClick={addPredicate}
           title="Add condition"
         >
           <FontAwesomeIcon icon={faPlus} />
-        </Button>
+        </ButtonTw>
       </div>
 
       {/* Inline scale editor */}
