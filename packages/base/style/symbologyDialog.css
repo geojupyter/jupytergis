@@ -302,36 +302,17 @@ select option {
   margin: 0;
 }
 
-.jp-gis-grammar-label-row {
+.jp-gis-grammar-rule-group {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px;
-  border-bottom: 1px solid var(--jp-border-color2);
-  font-size: var(--jp-ui-font-size1);
+  flex-direction: column;
 }
 
-.jp-gis-grammar-label-title {
-  font-weight: 600;
-  color: var(--jp-ui-font-color1);
-  flex: 0 0 auto;
-}
-
-.jp-gis-grammar-label-control {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.jp-gis-grammar-rule-group .jgis-button.jp-gis-grammar-rule-group-toggle {
+  align-self: flex-start;
+  margin: 2px 0 2px 8px;
+  padding: 0 4px;
+  font-size: var(--jp-ui-font-size0);
   color: var(--jp-ui-font-color2);
-  white-space: nowrap;
-}
-
-.jp-gis-grammar-label-control input[type='checkbox'] {
-  margin: 0;
-}
-
-.jp-gis-grammar-label-row .jgis-button.jp-gis-grammar-label-delete {
-  margin-left: auto;
   background: transparent;
   background-color: transparent;
   border-color: transparent;
@@ -382,7 +363,8 @@ select option {
   padding-right: 8px; /* A little more on the right because of the scroll bar */
 }
 
-.jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule {
+.jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule,
+.jp-gis-grammar-drag-wrapper > .jp-gis-grammar-rule-group {
   flex: 1;
   min-width: 0;
 }
@@ -402,7 +384,10 @@ select option {
   border-radius: 4px 0 0 4px;
 }
 
-.jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule {
+.jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule,
+.jp-gis-grammar-reorder-bar
+  + .jp-gis-grammar-rule-group
+  > .jp-gis-grammar-rule:first-child {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -461,7 +446,10 @@ select option {
     border-radius: 4px 4px 0 0;
   }
 
-  .jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule {
+  .jp-gis-grammar-reorder-bar + .jp-gis-grammar-rule,
+  .jp-gis-grammar-reorder-bar
+    + .jp-gis-grammar-rule-group
+    > .jp-gis-grammar-rule:first-child {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     border-bottom-left-radius: 4px;

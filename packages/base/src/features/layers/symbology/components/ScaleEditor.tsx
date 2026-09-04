@@ -45,6 +45,11 @@ import RgbaColorPicker, {
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
 import {
+  hasPlaceholderDomain,
+  numericValuesFor,
+  withDataDomain,
+} from '@/src/features/layers/symbology/scaleDomain';
+import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
   IComputedStop,
@@ -206,23 +211,32 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
     [params, onChange],
   );
 
-  // Auto-populate domain from data when the field is known and domain is unset.
+  const prevFieldRef = useRef<string | undefined>(undefined);
+
+  // Follow the data: fit the domain while it is still the placeholder one, and
+  // again when the input field changes. defaultScaleForScheme always supplies
+  // [0, 1], so testing only for an absent domain never fired and the ramp
+  // stayed pinned there whatever the values were.
   useEffect(() => {
-    if (!field || params.domain) {
+    const fieldChanged =
+      prevFieldRef.current !== undefined && prevFieldRef.current !== field;
+    prevFieldRef.current = field;
+
+    if (!field || (!hasPlaceholderDomain(scale) && !fieldChanged)) {
       return;
     }
-    const values = Array.from(featureValues[field] ?? []).filter(
-      (v): v is number => Number.isFinite(v),
+    const fitted = withDataDomain(
+      scale,
+      numericValuesFor(field, featureValues),
     );
-    if (values.length === 0) {
+    if (fitted === scale) {
       return;
     }
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    if (min !== max) {
-      update({ domain: [min, max] });
-    }
-  }, [field, featureValues]); // intentionally omits `update` to avoid loop
+    setStopRows(
+      stopsToRows((fitted as IColorMapScale).params.colorStops ?? []),
+    );
+    onChange(fitted);
+  }, [field, featureValues]); // intentionally omits onChange to avoid loop
 
   const classify = () => {
     if (!field) {
@@ -834,6 +848,33 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
         }))
       : [],
   );
+
+  const prevFieldRef = useRef<string | undefined>(undefined);
+
+  // Same as the colour ramp: fit the domain to the data while it is still the
+  // placeholder [0, 100], and again when the field changes. Otherwise every
+  // feature lands in the bottom sliver of the output range.
+  useEffect(() => {
+    const fieldChanged =
+      prevFieldRef.current !== undefined && prevFieldRef.current !== field;
+    prevFieldRef.current = field;
+
+    if (!field || (!hasPlaceholderDomain(scale) && !fieldChanged)) {
+      return;
+    }
+    const fitted = withDataDomain(
+      scale,
+      numericValuesFor(field, featureValues),
+    );
+    if (fitted === scale) {
+      return;
+    }
+    const stops = (fitted as IScalarScale).params.scalarStops ?? [];
+    setStopRows(
+      stops.map(st => ({ id: UUID.uuid4(), stop: st.stop, output: st.output })),
+    );
+    onChange(fitted);
+  }, [field, featureValues]); // intentionally omits onChange to avoid loop
 
   const classify = () => {
     const inMin = params.domain[0];

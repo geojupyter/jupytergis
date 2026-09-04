@@ -23,6 +23,11 @@ import {
   drawColorRamp,
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import {
+  hasPlaceholderDomain,
+  numericValuesFor,
+  withDataDomain,
+} from '@/src/features/layers/symbology/scaleDomain';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
@@ -46,16 +51,29 @@ const RGBA_ENCODINGS: Encoding[] = [
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
+  'text-fill-color',
+  'text-stroke-color',
 ];
 const POSFLOAT_ENCODINGS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
+  'text-stroke-width',
+  'text-font-size',
 ];
-// Text encodings are deliberately absent: labels are created and edited
-// through the label row, which writes the same rules. Offering them here too
-// would give two ways to build a label and make neither obvious.
-const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
+const STRING_ENCODINGS: Encoding[] = [
+  'text-value',
+  'text-font-family',
+  'text-font',
+  'text-placement',
+  'text-align',
+  'text-baseline',
+];
+const ALL_ENCODINGS = [
+  ...RGBA_ENCODINGS,
+  ...POSFLOAT_ENCODINGS,
+  ...STRING_ENCODINGS,
+];
 
 // Encodings relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
@@ -79,10 +97,12 @@ const ALL_PIXEL_ENCODINGS = Array.from(
 );
 
 /** Display labels for encodings that need a friendlier name. */
-const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
+export const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
   'text-value': 'label text',
-  'text-font': 'label font',
+  'text-font-size': 'label font size',
+  'text-font-family': 'label font',
+  'text-font': 'label font (CSS shorthand)',
   'text-fill-color': 'label color',
   'text-stroke-color': 'label halo color',
   'text-stroke-width': 'label halo width',
@@ -113,6 +133,8 @@ function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
     case 'scalar':
     case 'constant_num':
       return POSFLOAT_ENCODINGS;
+    case 'constant_str':
+      return STRING_ENCODINGS;
     default:
       return ALL_ENCODINGS;
   }
@@ -194,6 +216,7 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
+  { value: 'constant_str', label: 'const (text)' },
   { value: 'colorMap', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
@@ -811,6 +834,12 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
 
 export interface IGrammarRow {
   id: string;
+  /**
+   * Rule this mapping belongs to. Rows sharing a ruleId are one rule with
+   * several mappings, which is how a group of channels that only mean anything
+   * together (a label, a circle) stays one entry in the list.
+   */
+  ruleId?: string;
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
@@ -883,9 +912,19 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       } else {
         next.splice(index, 1);
       }
-      onChange({ ...row, fields: next.length > 0 ? next : undefined });
+      const fields = next.length > 0 ? next : undefined;
+      // Refit the scale to the new column. Without this the domain keeps the
+      // previous field's range and every feature clamps to one end of it.
+      onChange({
+        ...row,
+        fields,
+        scale: withDataDomain(
+          row.scale,
+          numericValuesFor(fields?.[0], featureValues),
+        ),
+      });
     },
-    [row, onChange],
+    [row, onChange, featureValues],
   );
 
   const addField = useCallback(
@@ -986,12 +1025,36 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             : row.fields;
       onChange({
         ...row,
-        scale: newScale,
+        // A freshly created scale carries a placeholder domain, so fit it to
+        // the field before it ever reaches the map.
+        scale: hasPlaceholderDomain(newScale)
+          ? withDataDomain(
+              newScale,
+              numericValuesFor(trimmedFields?.[0], featureValues),
+            )
+          : newScale,
         encodings: filtered.length > 0 ? filtered : [compat[0]],
         fields: trimmedFields,
       });
     },
-    [row, onChange, bandStats, isRaster, normalize],
+    [row, onChange, bandStats, isRaster, normalize, featureValues],
+  );
+
+  // A scheme that cannot produce any of this row's outputs is offered but
+  // disabled. Switching to it used to silently retarget the row at whatever
+  // the new scheme could drive, which quietly turned a label into a fill.
+  const schemeKeepsEncodings = useCallback(
+    (scheme: IScale['scheme']) => {
+      if (scheme === row.scale.scheme) {
+        return true;
+      }
+      const compat = compatibleEncodings(
+        defaultScaleForScheme(scheme, row.encodings),
+        isRaster,
+      );
+      return row.encodings.some(ch => compat.includes(ch));
+    },
+    [row.scale.scheme, row.encodings, isRaster],
   );
 
   const handleScaleChange = useCallback(
@@ -1083,7 +1146,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               ({ value, disabled }) =>
                 !disabled && !disabledSchemes.includes(value),
             ).map(({ value, label }) => (
-              <NativeSelectOption key={value} value={value}>
+              <NativeSelectOption
+                key={value}
+                value={value}
+                disabled={!schemeKeepsEncodings(value)}
+              >
                 {label}
               </NativeSelectOption>
             ))}

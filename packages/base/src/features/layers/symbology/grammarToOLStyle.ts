@@ -168,9 +168,9 @@ export function grammarToOLStyle(
         : undefined;
 
     for (const rule of layer.rules) {
-      // For now use the first field; multi-field assembly is handled via
-      // sub-encoding mappings (pixel-red/green/blue) or expression scales.
-      const field = rule.fields?.[0];
+      // Rule-level default; a mapping may name its own input instead, so that
+      // channels of one rule can read different columns.
+      const ruleField = rule.fields?.[0];
       const ruleGuard =
         rule.when && rule.when.length > 0
           ? compileGuard(rule.when, rule.whenOp ?? 'all')
@@ -181,6 +181,9 @@ export function grammarToOLStyle(
           : (layerGuard ?? ruleGuard);
 
       for (const mapping of rule.mappings) {
+        // For now use the first field; multi-field assembly is handled via
+        // sub-encoding mappings (pixel-red/green/blue) or expression scales.
+        const field = mapping.fields?.[0] ?? ruleField;
         for (const encoding of mapping.encodings) {
           if (encoding === 'pixel-rgb') {
             // Virtual encoding: fan out to pixel-red/green/blue so assembleStyle
@@ -324,10 +327,22 @@ const RGBA_ENCODINGS = new Set<Encoding>([
 const STRING_ENCODINGS = new Set<Encoding>([
   'text-value',
   'text-font',
+  'text-font-family',
   'text-placement',
   'text-align',
   'text-baseline',
 ]);
+
+/** Encodings composed into the `text-font` CSS shorthand. */
+const FONT_SUB: Encoding[] = ['text-font-size', 'text-font-family'];
+
+/** OL's own text-font default, used when only one half of it is mapped. */
+const DEFAULT_FONT_SIZE = 10;
+const DEFAULT_FONT_FAMILY = 'sans-serif';
+
+/** Halo drawn behind label text when the user has not styled one. */
+const DEFAULT_HALO_COLOR = 'rgba(255,255,255,1)';
+const DEFAULT_HALO_WIDTH = 3;
 
 const FILL_SUB: UInt8Encoding[] = ['fill-red', 'fill-green', 'fill-blue'];
 const FILL_ALPHA_SUB: UNormEncoding[] = ['fill-alpha'];
@@ -351,11 +366,36 @@ function assembleStyle(
     ...FILL_ALPHA_SUB,
     ...PIXEL_SUB,
     ...PIXEL_ALPHA_SUB,
+    ...FONT_SUB,
   ]);
 
   for (const [encoding, expr] of encodingExprs) {
     if (!skip.has(encoding)) {
       style[encoding] = expr;
+    }
+  }
+
+  // Assemble text-font from its parts. Either part on its own wins over a
+  // whole-shorthand rule, falling back to OL's own default for the other half.
+  if (FONT_SUB.some(c => encodingExprs.has(c))) {
+    const size = encodingExprs.get('text-font-size') ?? DEFAULT_FONT_SIZE;
+    const family = encodingExprs.get('text-font-family') ?? DEFAULT_FONT_FAMILY;
+    style['text-font'] = [
+      'concat',
+      ['to-string', size],
+      'px ',
+      family,
+    ] as ExpressionValue;
+  }
+
+  // A label with no halo rules is unreadable over an aerial or a dark basemap,
+  // so give it a white one until the user says otherwise.
+  if (encodingExprs.has('text-value')) {
+    if (!encodingExprs.has('text-stroke-color')) {
+      style['text-stroke-color'] = DEFAULT_HALO_COLOR;
+    }
+    if (!encodingExprs.has('text-stroke-width')) {
+      style['text-stroke-width'] = DEFAULT_HALO_WIDTH;
     }
   }
 

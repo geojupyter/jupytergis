@@ -51,15 +51,17 @@
         "stroke-width",
         "circle-radius",
         "circle-stroke-width",
-        "text-stroke-width"
+        "text-stroke-width",
+        "text-font-size"
       ]
     },
     "StringEncoding": {
       "type": "string",
-      "description": "Encodings whose output is a string. `text-value` is the label content itself; the rest control how it is drawn.",
+      "description": "Encodings whose output is a string. `text-value` is the label content itself; the rest control how it is drawn. `text-font` is the whole CSS font shorthand; `text-font-size` and `text-font-family` set one part each and win over it.",
       "enum": [
         "text-value",
         "text-font",
+        "text-font-family",
         "text-placement",
         "text-align",
         "text-baseline"
@@ -464,6 +466,11 @@
       "required": ["scale", "encodings"],
       "additionalProperties": false,
       "properties": {
+        "fields": {
+          "type": "array",
+          "description": "Input field name(s) for this mapping. Defaults to the rule's fields. Set it when channels of one rule read different columns, such as a label whose text comes from one attribute and whose size comes from another.",
+          "items": { "type": "string" }
+        },
         "scale": { "$ref": "#/definitions/IScale" },
         "encodings": {
           "type": "array",
