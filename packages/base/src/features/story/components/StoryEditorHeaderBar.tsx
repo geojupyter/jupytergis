@@ -18,7 +18,6 @@ import {
 } from '@/src/features/story/utils/spectaPresentation';
 import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
 import { Badge } from '@/src/shared/components/Badge';
-import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -34,6 +33,7 @@ import {
 import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { STORY_TYPE } from '@/src/types';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface IStoryEditorHeaderBarProps {
   model: IJupyterGISModel;
@@ -94,9 +94,9 @@ function StorySettingsPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button variant="ghost" title="Story settings">
+          <ButtonTw size={'icon-sm'} variant="ghost" title="Story settings">
             <FontAwesomeIcon icon={faGear} />
-          </Button>
+          </ButtonTw>
         }
       />
       <PopoverContent className={'w-fit'} align="end" side="bottom">
@@ -237,7 +237,7 @@ export function StoryEditorHeaderBar({
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>
         {story && canPreview ? (
-          <Button
+          <ButtonTw
             type="button"
             variant="outline"
             size="sm"
@@ -246,7 +246,7 @@ export function StoryEditorHeaderBar({
             }}
           >
             {isMobile ? 'Preview' : 'Preview story'}
-          </Button>
+          </ButtonTw>
         ) : null}
         {story && (
           <StorySettingsPopover

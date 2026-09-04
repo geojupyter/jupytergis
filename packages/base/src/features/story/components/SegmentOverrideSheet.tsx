@@ -7,7 +7,6 @@ import {
   SymbologyDialog,
   SymbologyWidget,
 } from '@/src/features/layers/symbology/symbologyDialog';
-import { Button } from '@/src/shared/components/Button';
 import {
   Sheet,
   SheetClose,
