@@ -62,11 +62,6 @@
   justify-content: center;
 }
 
-.jgis-story-navbar .jgis-button.jgis-story-navbar-button {
-  color: var(--jp-ui-inverse-font-color0);
-  background-color: var(--jp-inverse-layout-color0);
-}
-
 .jgis-story-viewer-image-container
   .jgis-story-viewer-nav-container
   .jgis-story-navbar
@@ -86,10 +81,6 @@
   top: 50%;
   width: 100%;
   justify-content: space-between;
-}
-
-.jgis-story-navbar-specta-mod > .jgis-button {
-  padding: 0;
 }
 
 .jgis-story-viewer-title {
