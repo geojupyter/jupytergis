@@ -1489,16 +1489,19 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     try {
+      this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
 
       if (newMapLayer !== undefined) {
-        await this._waitForReady();
+        this._waitForReady();
 
         const numLayers = this._map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
 
         this._map.getLayers().insertAt(safeIndex, newMapLayer);
         this.trackLayerViewState(id, newMapLayer);
+
+        this._callbacks?.onLayerInserted?.(numLayers + 1);
       }
 
       if (layer.type !== 'StorySegmentLayer') {
@@ -1508,12 +1511,15 @@ export class OpenLayersAdapter implements IMapAdapter {
         );
       }
     } catch (error: any) {
-      await showErrorMessage(
-        `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`,
-      );
-
-      throw error;
+      const message = error.message || 'invalid file path';
+      if (this._callbacks?.shouldShowLayerError?.(id, message) ?? true) {
+        await showErrorMessage(
+          `Error Adding ${layer.name}`,
+          `Failed to add ${layer.name}: ${message}`,
+        );
+      }
+    } finally {
+      this._callbacks?.onLayerAddSettled?.(id);
     }
   }
 
@@ -1524,10 +1530,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return new Promise(resolve => {
       const checkReady = () => {
         if (this._loadingLayers.size === 0) {
-          // this.setState(old => ({
-          //   ...old,
-          // loadingLayer: false,
-          // }));
+          this._callbacks?.onAllLayersSettled?.();
           resolve();
         } else {
           setTimeout(checkReady, 50);

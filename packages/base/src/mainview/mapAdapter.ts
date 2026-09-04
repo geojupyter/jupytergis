@@ -129,6 +129,10 @@ export interface IMapAdapterCallbacks {
   ) => void;
   onDrawLayerIdChange?: (layerId: string | undefined) => void;
   onDrawGeometryLabelChange?: (label: string) => void;
+  onAllLayersSettled?: () => void;
+  onLayerInserted?: (layerCount: number) => void;
+  onLayerAddSettled?: (id: string) => void;
+  shouldShowLayerError?: (id: string, message: string) => boolean;
 }
 
 /**
