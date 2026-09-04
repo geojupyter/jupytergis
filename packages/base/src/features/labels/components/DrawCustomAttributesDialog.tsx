@@ -13,7 +13,7 @@ import React, { useRef, useState } from 'react';
 import { DrawCustomAttributesPresetsMenu } from '@/src/features/labels/components/DrawCustomAttributesPresetsMenu';
 import { validatePresetName } from '@/src/features/labels/drawCustomAttributes';
 import { useDrawCustomAttributes } from '@/src/features/labels/hooks/useDrawCustomAttributes';
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Dialog,
   DialogContent,
@@ -67,25 +67,28 @@ function DrawCustomAttributeDraftRow({
         onPropertyValueChange={onDraftValueChange}
         onKeyDown={handleKeyDown}
       />
-      <Button
-        type="button"
-        variant="icon"
-        size="icon-md"
-        title="Save"
-        onClick={onSave}
-        disabled={!canSave}
-      >
-        <Save />
-      </Button>
-      <Button
-        type="button"
-        variant="icon"
-        size="icon-md"
-        title="Cancel"
-        onClick={onCancel}
-      >
-        <Ban />
-      </Button>
+      <div className="inline-flex gap-0">
+        <ButtonTw
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Save"
+          onClick={onSave}
+          disabled={!canSave}
+        >
+          <Save />
+        </ButtonTw>
+        <ButtonTw
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Cancel"
+          onClick={onCancel}
+          className="text-destructive"
+        >
+          <Ban />
+        </ButtonTw>
+      </div>
     </div>
   );
 }
@@ -105,13 +108,10 @@ export function DrawCustomAttributesDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button>
-            <SlidersHorizontal
-              data-icon="inline-start"
-              className="jgis-inline-icon"
-            />
+          <ButtonTw variant={'outline'}>
+            <SlidersHorizontal data-icon="inline-start" />
             Edit
-          </Button>
+          </ButtonTw>
         }
       />
       <DialogContent>
@@ -239,26 +239,29 @@ function DrawCustomAttributesDialogContent({
                 <span className="jgis-attribute-col-value">
                   {attribute.value}
                 </span>
-                <Button
-                  type="button"
-                  variant="icon"
-                  size="icon-md"
-                  title="Edit"
-                  onClick={() => startEdit(index)}
-                  disabled={controlsDisabled}
-                >
-                  <Pencil />
-                </Button>
-                <Button
-                  type="button"
-                  variant="icon"
-                  size="icon-md"
-                  title="Remove"
-                  onClick={() => removeAttribute(index)}
-                  disabled={controlsDisabled}
-                >
-                  <Trash2 />
-                </Button>
+                <div className="inline-flex gap-0">
+                  <ButtonTw
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Edit"
+                    onClick={() => startEdit(index)}
+                    disabled={controlsDisabled}
+                  >
+                    <Pencil />
+                  </ButtonTw>
+                  <ButtonTw
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Remove"
+                    onClick={() => removeAttribute(index)}
+                    disabled={controlsDisabled}
+                    className="text-destructive"
+                  >
+                    <Trash2 />
+                  </ButtonTw>
+                </div>
               </div>
             );
           })}
@@ -312,56 +315,51 @@ function DrawCustomAttributesDialogContent({
                 }
               }}
             />
-            <Button
-              type="button"
-              variant="icon"
-              size="icon-md"
-              title="Save preset"
-              onClick={() => handleSavePreset()}
-              disabled={!isPresetNameValid}
-            >
-              <Save />
-            </Button>
-            <Button
-              type="button"
-              variant="icon"
-              size="icon-md"
-              title="Cancel"
-              onClick={resetPresetDraft}
-            >
-              <Ban />
-            </Button>
+            <div className="inline-flex gap-0">
+              <ButtonTw
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Save preset"
+                onClick={() => handleSavePreset()}
+                disabled={!isPresetNameValid}
+              >
+                <Save />
+              </ButtonTw>
+              <ButtonTw
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Cancel"
+                className="text-destructive"
+                onClick={resetPresetDraft}
+              >
+                <Ban />
+              </ButtonTw>
+            </div>
           </div>
         </div>
         <div className="jgis-draw-custom-attributes-row">
           <div className="jgis-draw-custom-attributes-actions">
-            <Button
+            <ButtonTw
               className="jgis-attribute-add-button"
               type="button"
               variant="outline"
-              size="sm"
               onClick={startAdd}
               disabled={!canAdd}
             >
-              <CirclePlus
-                data-icon="inline-start"
-                className="jgis-inline-icon"
-              />
+              <CirclePlus data-icon="inline-start" />
               Add Attribute
-            </Button>
-            <Button
+            </ButtonTw>
+            <ButtonTw
               type="button"
               variant="outline"
-              size="sm"
               onClick={() => setSavingPreset(true)}
               disabled={!canSavePreset}
             >
-              <BookmarkPlus
-                data-icon="inline-start"
-                className="jgis-inline-icon"
-              />
+              <BookmarkPlus data-icon="inline-start" />
               Save as preset
-            </Button>
+            </ButtonTw>
           </div>
           <DrawCustomAttributesPresetsMenu
             presets={presets}

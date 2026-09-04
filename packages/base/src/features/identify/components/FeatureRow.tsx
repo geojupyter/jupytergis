@@ -37,18 +37,14 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
           items={[
             {
               label: 'Edit',
-              icon: (
-                <Pencil data-icon="inline-start" className="jgis-inline-icon" />
-              ),
+              icon: <Pencil />,
               onSelect: () => {
                 onEditAttribute(attributeKey, value);
               },
             },
             {
               label: 'Delete',
-              icon: (
-                <Trash2 data-icon="inline-start" className="jgis-inline-icon" />
-              ),
+              icon: <Trash2 />,
               variant: 'destructive',
               onSelect: () => {
                 onDeleteAttribute(feature, rowIndex, attributeKey);

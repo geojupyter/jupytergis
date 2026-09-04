@@ -2,7 +2,7 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Ban, CirclePlus, Ellipsis, Save } from 'lucide-react';
 import React from 'react';
 
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,24 +47,24 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
+          <ButtonTw
             type="button"
             className="jgis-attribute-col-actions"
             title={title}
-            variant="icon"
-            size="icon-md"
-          />
+            variant="ghost"
+            size="icon-sm"
+          >
+            <Ellipsis />
+          </ButtonTw>
         }
-      >
-        <Ellipsis />
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent side={side} onClick={onContentClick}>
         {items.map(item => (
           <DropdownMenuItem
             key={item.label}
             disabled={item.disabled}
             variant={item.variant ?? 'default'}
-            onSelect={item.onSelect}
+            onClick={item.onSelect}
           >
             {item.icon}
             {item.label}
@@ -86,7 +86,7 @@ export const AttributeActionMenu: React.FC<IAttributeActionMenuProps> = ({
       items={[
         {
           label: 'Save',
-          icon: <Save data-icon="inline-start" className="jgis-inline-icon" />,
+          icon: <Save />,
           disabled:
             !editorState.newAttributeKey.trim() ||
             editorState.isSavingAttribute,
@@ -96,7 +96,7 @@ export const AttributeActionMenu: React.FC<IAttributeActionMenuProps> = ({
         },
         {
           label: 'Cancel',
-          icon: <Ban data-icon="inline-start" className="jgis-inline-icon" />,
+          icon: <Ban />,
           variant: 'destructive',
           onSelect: () => {
             editorActions.onCancelAttribute();
@@ -164,15 +164,15 @@ export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
 
   return (
     <div className="jgis-attribute-row jgis-attribute-row-add">
-      <Button
+      <ButtonTw
         className="jgis-attribute-add-button"
         onClick={() => editorActions.onStartAddAttribute(rowIndex)}
         variant="outline"
         size="sm"
       >
-        <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
+        <CirclePlus data-icon="inline-start" />
         Add Attribute
-      </Button>
+      </ButtonTw>
     </div>
   );
 };

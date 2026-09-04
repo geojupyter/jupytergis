@@ -56,7 +56,7 @@ export function DrawCustomAttributesPresetsMenu({
             <DropdownMenuItem
               key={name}
               className="jgis-draw-custom-attributes-preset-item"
-              onSelect={() => onLoadPreset(name)}
+              onClick={() => onLoadPreset(name)}
             >
               <span className="jgis-draw-custom-attributes-preset-name">
                 {name}

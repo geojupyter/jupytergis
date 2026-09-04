@@ -5,11 +5,11 @@ import React, { useCallback, useRef, useState } from 'react';
 import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getStorySegmentDisplayTitle } from '@/src/features/story/utils/storySegmentViewItems';
-import { Button } from '@/src/shared/components/Button';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface IStoryEditorSegmentListProps {
   segments: IStorySegmentViewItem[];
@@ -117,14 +117,15 @@ function MobileSegmentPicker({
           ))}
         </NativeSelect>
       )}
-      <Button
+      <ButtonTw
         variant="outline"
+        size={'sm'}
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
         aria-label="Add segment"
       >
         <FontAwesomeIcon icon={faPlus} />
-      </Button>
+      </ButtonTw>
     </aside>
   );
 }
@@ -262,13 +263,14 @@ export function StoryEditorSegmentList({
           ))
         )}
       </div>
-      <Button
+      <ButtonTw
         variant="outline"
+        size={'sm'}
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
       >
         <FontAwesomeIcon icon={faPlus} /> Add segment
-      </Button>
+      </ButtonTw>
     </aside>
   );
 }
