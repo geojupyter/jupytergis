@@ -189,6 +189,7 @@ import {
 } from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
+import type { IMapElement } from '../types';
 
 type OlLayerTypes =
   | TileLayer
@@ -424,8 +425,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      window.jupytergisMaps[this._documentPath] = this._Map;
+    if (window.jupytergisMaps !== undefined) {
+      // The shared model only emits a path change when the document is renamed,
+      // so on a normal open the path has to be read directly.
+      this._documentPath ??=
+        (this._model.sharedModel.getState('path') as string | undefined) ||
+        this._model.filePath ||
+        undefined;
+      if (this._documentPath) {
+        window.jupytergisMaps[this._documentPath] = this._Map;
+      }
+      // Several notebook widgets share one synthetic path, so the dict alone
+      // cannot tell them apart. Hang each map off its own container too.
+      const target = this._Map.getTargetElement();
+      if (target) {
+        (target as IMapElement).jupytergisMap = this._Map;
+        target.dataset.jgisMap = '';
+      }
     }
   }
 

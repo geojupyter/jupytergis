@@ -1,6 +1,13 @@
 import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
+import {
+  getCellLayerSummary,
+  getLayerSummary,
+  waitForCellMapReady,
+  waitForMapReady,
+} from './utils/map';
+
 test.use({ autoGoto: false });
 
 test.describe('UI Test', () => {
@@ -48,19 +55,22 @@ test.describe('UI Test', () => {
           await page.getByRole('button', { name: 'Ok' }).click();
         }
 
-        const main = await page.waitForSelector('.jp-MainAreaWidget', {
+        await page.waitForSelector('.jp-MainAreaWidget', {
           state: 'visible',
         });
 
-        await page.waitForTimeout(10000);
+        await waitForMapReady(page, file);
 
         expect(errors).toBe(0);
-        if (main) {
-          expect(await main.screenshot()).toMatchSnapshot({
-            name: `Render-${file}.png`,
-            maxDiffPixelRatio: 0.01,
-          });
+
+        // Every layer the document declares must be on the map with its data
+        // loaded, which is what the screenshot used to stand in for.
+        const layers = await getLayerSummary(page, file);
+        expect(layers.length).toBeGreaterThan(0);
+        for (const layer of layers) {
+          expect(layer.sourceState).not.toBe('error');
         }
+        expect(layers.some(layer => (layer.featureCount ?? 0) > 0)).toBe(true);
       });
     }
   });
@@ -84,18 +94,17 @@ test.describe('UI Test', () => {
     const outputErrors = await page.$$('.jp-OutputArea-error');
     expect(outputErrors.length).toBe(0);
 
-    const jgisWidget = await page.waitForSelector(
-      '.jupytergis-notebook-widget',
-      {
-        state: 'visible',
-      },
-    );
+    const jgisWidget = page.locator('.jupytergis-notebook-widget').first();
+    await jgisWidget.waitFor({ state: 'visible' });
 
-    await page.waitForTimeout(10000);
+    await waitForCellMapReady(jgisWidget);
 
-    expect(await jgisWidget.screenshot()).toMatchSnapshot({
-      name: 'Render-notebook.png',
-      maxDiffPixelRatio: 0.01,
-    });
+    // The notebook builds its map through the Python API, so assert what it
+    // produced rather than comparing pixels.
+    const layers = await getCellLayerSummary(jgisWidget);
+    expect(layers.length).toBeGreaterThan(0);
+    for (const layer of layers) {
+      expect(layer.sourceState).not.toBe('error');
+    }
   });
 });

@@ -242,6 +242,14 @@ jobs:
         working-directory: ui-tests
         run: pnpm run test
 
+      # Documentation renders, not regression tests: a diff here should not
+      # block a PR.
+      - name: Refresh showcase snapshots
+        continue-on-error: true
+        shell: bash -l {0}
+        working-directory: ui-tests
+        run: pnpm run test:showcase
+
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()

@@ -1,68 +1,33 @@
-import { expect, IJupyterLabPageFixture, test } from '@jupyterlab/galata';
+import { expect, test } from '@jupyterlab/galata';
 import * as path from 'path';
-const klaw = require('klaw-sync');
+
+import {
+  getCellLayerSummary,
+  getCellView,
+  waitForCellMapReady,
+} from './utils/map';
 
 const FILENAME = 'eq.geojson';
+const NOTEBOOK = 'Notebook.ipynb';
 
-const testCellOutputs = async (
-  page: IJupyterLabPageFixture,
-  tmpPath: string,
-  theme: 'JupyterLab Light' | 'JupyterLab Dark',
-) => {
-  const paths = klaw(path.resolve(__dirname, './notebooks'), {
-    nodir: true,
-  });
-  const notebooks = paths.map(item => path.basename(item.path));
+/**
+ * What each cell of `./notebooks/Notebook.ipynb` is expected to build. This
+ * mirrors the `GISDocument` calls in that notebook, so a change to the Python
+ * API that stops producing layers, or moves the view, fails here.
+ *
+ * The old version of this spec compared a screenshot of every cell output in
+ * both themes. Those images broke whenever unrelated UI chrome changed, while
+ * the map itself was identical.
+ */
+const EXPECTED_CELLS = [
+  { layers: 1, vectors: 0 },
+  { layers: 1, vectors: 0, view: { latitude: 21, longitude: 130, zoom: 4 } },
+  { layers: 2, vectors: 1, view: { latitude: 19, longitude: -88, zoom: 6 } },
+  { layers: 2, vectors: 1, view: { latitude: 58, longitude: 12, zoom: 12 } },
+  { layers: 1, vectors: 0 },
+];
 
-  const contextPrefix = theme == 'JupyterLab Light' ? 'light' : 'dark';
-  page.theme.setTheme(theme);
-
-  for (const notebook of notebooks) {
-    const results: Array<{ cellIndex: number; screenshot: Buffer }> = [];
-
-    await page.notebook.openByPath(`${tmpPath}/${notebook}`);
-    await page.notebook.activate(notebook);
-    await expect(page.getByLabel(notebook).getByText('XPython')).toBeVisible();
-
-    const getCaptureImageName = (
-      contextPrefix: string,
-      notebook: string,
-      id: number,
-    ): string => {
-      return `${contextPrefix}-${notebook}-cell-${id}.png`;
-    };
-
-    await page.notebook.runCellByCell({
-      onAfterCellRun: async (cellIndex: number) => {
-        const cellType = await page.notebook.getCellType(cellIndex);
-        if (cellType !== 'code') {
-          return; // skip Markdown cells
-        }
-
-        await page.waitForTimeout(5000);
-
-        const cell = await page.notebook.getCellOutputLocator(cellIndex);
-        if (cell) {
-          results.push({
-            cellIndex,
-            screenshot: await cell.screenshot(),
-          });
-        }
-      },
-    });
-
-    for (const { cellIndex, screenshot } of results) {
-      expect(screenshot).toMatchSnapshot({
-        name: getCaptureImageName(contextPrefix, notebook, cellIndex),
-        maxDiffPixelRatio: 0.02, // The URL of the tiler layers will be different every time
-      });
-    }
-
-    await page.notebook.close(true);
-  }
-};
-
-test.describe('Notebook API Visual Regression', () => {
+test.describe('Notebook API', () => {
   test.beforeEach(async ({ page, tmpPath }) => {
     page.on('console', message => {
       console.log('CONSOLE MSG ---', message.text());
@@ -79,17 +44,44 @@ test.describe('Notebook API Visual Regression', () => {
     await page.filebrowser.openDirectory(tmpPath);
   });
 
-  test('Light theme: Cell outputs should be correct', async ({
-    page,
-    tmpPath,
-  }) => {
-    await testCellOutputs(page, tmpPath, 'JupyterLab Light');
-  });
+  test('Cell outputs build the expected maps', async ({ page, tmpPath }) => {
+    await page.notebook.openByPath(`${tmpPath}/${NOTEBOOK}`);
+    await page.notebook.activate(NOTEBOOK);
+    await expect(page.getByLabel(NOTEBOOK).getByText('XPython')).toBeVisible();
 
-  test('Dark theme: Cell outputs should be correct', async ({
-    page,
-    tmpPath,
-  }) => {
-    await testCellOutputs(page, tmpPath, 'JupyterLab Dark');
+    await page.notebook.run();
+
+    for (const [index, expected] of EXPECTED_CELLS.entries()) {
+      const cell = await page.notebook.getCellOutputLocator(index);
+      expect(cell, `cell ${index} produced no output`).not.toBeNull();
+
+      await waitForCellMapReady(cell!);
+
+      const layers = await getCellLayerSummary(cell!);
+      expect(layers, `cell ${index} layers`).toHaveLength(expected.layers);
+
+      for (const layer of layers) {
+        expect(layer.sourceState, `cell ${index} source state`).not.toBe(
+          'error',
+        );
+      }
+
+      const vectors = layers.filter(layer => layer.kind === 'vector');
+      expect(vectors, `cell ${index} vector layers`).toHaveLength(
+        expected.vectors,
+      );
+      for (const vector of vectors) {
+        expect(
+          vector.featureCount,
+          `cell ${index} vector features`,
+        ).toBeGreaterThan(0);
+      }
+
+      if (expected.view) {
+        expect(await getCellView(cell!), `cell ${index} view`).toEqual(
+          expected.view,
+        );
+      }
+    }
   });
 });
