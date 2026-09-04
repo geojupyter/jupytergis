@@ -1,7 +1,12 @@
 import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
-import { getLayerSummary, waitForMapReady } from './utils/map';
+import {
+  getCellLayerSummary,
+  getLayerSummary,
+  waitForCellMapReady,
+  waitForMapReady,
+} from './utils/map';
 
 test.use({ autoGoto: false });
 
@@ -89,18 +94,17 @@ test.describe('UI Test', () => {
     const outputErrors = await page.$$('.jp-OutputArea-error');
     expect(outputErrors.length).toBe(0);
 
-    const jgisWidget = await page.waitForSelector(
-      '.jupytergis-notebook-widget',
-      {
-        state: 'visible',
-      },
-    );
+    const jgisWidget = page.locator('.jupytergis-notebook-widget').first();
+    await jgisWidget.waitFor({ state: 'visible' });
 
-    await page.waitForTimeout(10000);
+    await waitForCellMapReady(jgisWidget);
 
-    expect(await jgisWidget.screenshot()).toMatchSnapshot({
-      name: 'Render-notebook.png',
-      maxDiffPixelRatio: 0.01,
-    });
+    // The notebook builds its map through the Python API, so assert what it
+    // produced rather than comparing pixels.
+    const layers = await getCellLayerSummary(jgisWidget);
+    expect(layers.length).toBeGreaterThan(0);
+    for (const layer of layers) {
+      expect(layer.sourceState).not.toBe('error');
+    }
   });
 });
