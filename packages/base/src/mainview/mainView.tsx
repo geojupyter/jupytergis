@@ -189,6 +189,7 @@ import {
 } from '../features/layers/symbology/zarrBandDiscovery';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
+import type { IMapElement } from '../types';
 
 type OlLayerTypes =
   | TileLayer
@@ -433,6 +434,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         undefined;
       if (this._documentPath) {
         window.jupytergisMaps[this._documentPath] = this._Map;
+      }
+      // Several notebook widgets share one synthetic path, so the dict alone
+      // cannot tell them apart. Hang each map off its own container too.
+      const target = this._Map.getTargetElement();
+      if (target) {
+        (target as IMapElement).jupytergisMap = this._Map;
+        target.dataset.jgisMap = '';
       }
     }
   }

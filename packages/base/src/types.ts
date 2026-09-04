@@ -32,6 +32,13 @@ export type SymbologyValue = SizeValue | ColorValue | InternalRgbArray;
 export type VectorRenderType = 'Heatmap' | 'Grammar';
 
 /**
+ * A map container element, tagged with the map it renders.
+ */
+export interface IMapElement extends HTMLElement {
+  jupytergisMap?: Map;
+}
+
+/**
  * Add jupytergisMaps object to the global variables.
  */
 declare global {
