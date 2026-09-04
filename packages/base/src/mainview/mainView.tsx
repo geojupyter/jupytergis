@@ -871,12 +871,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
   ): void {
-    // Avoid concurrency update on layers on first load, if layersTreeChanged and
-    // LayersChanged are triggered simultaneously.
-    if (!this._ready) {
-      return;
-    }
-
     change.layerChange?.forEach(change => {
       const { id, oldValue: oldLayer, newValue: newLayer } = change;
 

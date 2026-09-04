@@ -1616,6 +1616,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   ): Promise<void> {
     const mapLayer = this.getLayer(id);
     if (!mapLayer) {
+      console.warn(`Could not update layer ${id} - layer not found in adapter`);
       return;
     }
 
@@ -1760,7 +1761,7 @@ export class OpenLayersAdapter implements IMapAdapter {
    * Convenience method to get a specific layer from OpenLayers Map
    * @param id Layer to retrieve
    */
-  getLayer(id: string) {
+  private getLayer(id: string) {
     return this._map
       .getLayers()
       .getArray()
