@@ -98,7 +98,7 @@ const MODE_OPTIONS: ClassificationMode[] = [
  * for these invites typos that OL rejects at style-parse time, taking the
  * whole layer's symbology down with them.
  */
-const TEXT_ENUM_OPTIONS: Partial<Record<Encoding, string[]>> = {
+export const TEXT_ENUM_OPTIONS: Partial<Record<Encoding, string[]>> = {
   'text-placement': ['point', 'line'],
   'text-align': ['left', 'center', 'right', 'start', 'end'],
   'text-baseline': ['bottom', 'top', 'middle', 'alphabetic', 'hanging'],

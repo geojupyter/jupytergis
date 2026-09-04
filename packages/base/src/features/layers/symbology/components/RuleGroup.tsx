@@ -1,17 +1,19 @@
-import {
-  faChevronDown,
-  faChevronRight,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Encoding, IScale } from '@jupytergis/schema';
-import React, { useState } from 'react';
+import React from 'react';
 
+import InlineConstant, {
+  dataDrivenSchemeFor,
+  isConstantScale,
+} from '@/src/features/layers/symbology/components/InlineConstant';
 import MappingRow, {
   ENCODING_LABELS,
   IGrammarRow,
+  defaultScaleForScheme,
 } from '@/src/features/layers/symbology/components/MappingRow';
-import { Button } from '@/src/shared/components/Button';
-
+import {
+  numericValuesFor,
+  withDataDomain,
+} from '@/src/features/layers/symbology/scaleDomain';
 
 interface IFieldOption {
   value: string;
@@ -30,20 +32,21 @@ interface IRuleGroupProps {
   onDeleteRow: (index: number) => void;
 }
 
-/** Name the extra channels so the summary says what is hidden. */
-function channelSummary(rows: { row: IGrammarRow }[]): string {
-  return rows
-    .flatMap(({ row }) => row.encodings as Encoding[])
-    .map(encoding => ENCODING_LABELS[encoding] ?? encoding)
-    .join(', ');
+/**
+ * Drop the "label " that reads as noise once the controls sit on the label's
+ * own row.
+ */
+function controlLabel(encodings: Encoding[]): string {
+  const name = ENCODING_LABELS[encodings[0]] ?? encodings[0];
+  return name.replace(/^label /, '');
 }
 
 /**
  * One rule, however many mappings it has.
  *
- * A single-mapping rule renders as the bare row it always did. A rule with
- * several mappings leads with the first and keeps the rest collapsed, so a
- * label reads as one entry in the list rather than four.
+ * The channels that only carry a fixed value become controls on the leading
+ * row, so a default label reads as one entry. A channel driven by data keeps
+ * the full row it needs for its field, scale and stops, and appears beneath.
  */
 const RuleGroup: React.FC<IRuleGroupProps> = ({
   rows,
@@ -51,8 +54,6 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
   onDeleteRow,
   ...rowProps
 }) => {
-  const [expanded, setExpanded] = useState(false);
-
   const renderRow = ({ row, index }: { row: IGrammarRow; index: number }) => (
     <MappingRow
       key={row.id}
@@ -68,24 +69,49 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
   }
 
   const [head, ...rest] = rows;
+  const constants = rest.filter(({ row }) => isConstantScale(row.scale));
+  const dynamic = rest.filter(({ row }) => !isConstantScale(row.scale));
+
+  /**
+   * Give a fixed channel a scale and a field so it becomes a row of its own.
+   * The rule's own field is the sensible starting point, and the row collapses
+   * back into a control the moment its scheme returns to a constant.
+   */
+  const promote = ({ row, index }: { row: IGrammarRow; index: number }) => {
+    const scheme = dataDrivenSchemeFor(row.scale);
+    if (!scheme) {
+      return;
+    }
+    const fields = row.fields ?? head.row.fields;
+    onChangeRow(index, {
+      ...row,
+      fields,
+      scale: withDataDomain(
+        defaultScaleForScheme(scheme, row.encodings),
+        numericValuesFor(fields?.[0], rowProps.featureValues),
+      ),
+    });
+  };
 
   return (
     <div className="jp-gis-grammar-rule-group">
       {renderRow(head)}
-      <Button
-        type="button"
-        variant="ghost"
-        className="jp-gis-grammar-rule-group-toggle"
-        onClick={() => setExpanded(!expanded)}
-        title={channelSummary(rest)}
-      >
-        <FontAwesomeIcon
-          data-icon="inline-start"
-          icon={expanded ? faChevronDown : faChevronRight}
-        />
-        {expanded ? 'Hide styling' : `Styling (${channelSummary(rest)})`}
-      </Button>
-      {expanded && rest.map(renderRow)}
+      {constants.length > 0 && (
+        <div className="jp-gis-grammar-rule-constants">
+          {constants.map(({ row, index }) => (
+            <label key={row.id} className="jp-gis-grammar-rule-constant">
+              <span>{controlLabel(row.encodings)}</span>
+              <InlineConstant
+                scale={row.scale}
+                encodings={row.encodings}
+                onChange={scale => onChangeRow(index, { ...row, scale })}
+                onPromote={() => promote({ row, index })}
+              />
+            </label>
+          ))}
+        </div>
+      )}
+      {dynamic.map(renderRow)}
     </div>
   );
 };

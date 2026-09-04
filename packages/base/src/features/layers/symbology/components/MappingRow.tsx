@@ -140,7 +140,7 @@ function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
   }
 }
 
-function defaultScaleForScheme(
+export function defaultScaleForScheme(
   scheme: IScale['scheme'],
   _currentEncodings: Encoding[],
 ): IScale {
