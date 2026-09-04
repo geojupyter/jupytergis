@@ -1,12 +1,14 @@
-import type { Page } from '@playwright/test';
+import type { JSHandle, Locator, Page } from '@playwright/test';
 
 /**
  * Helpers to assert on the live OpenLayers map instead of comparing screenshots.
  *
- * The map is exposed on `window.jupytergisMaps`, keyed by document path, when
- * the server runs with `JGIS_EXPOSE_MAPS=1` (see `ui-tests/package.json`).
+ * When the server runs with `JGIS_EXPOSE_MAPS=1` (see `ui-tests/package.json`)
+ * each map is exposed two ways: on `window.jupytergisMaps` keyed by document
+ * path, and on its own container element. Notebook widgets need the second one,
+ * because every in-memory `GISDocument` shares one synthetic path.
  *
- * Everything returned from `page.evaluate` must be JSON-serializable, so these
+ * Everything returned from `evaluate` must be JSON-serializable, so these
  * helpers always project the OpenLayers objects down to plain values.
  */
 
@@ -22,74 +24,38 @@ export interface ILayerSummary {
 
 const DEFAULT_TIMEOUT = 30000;
 
-/**
- * Resolve the `window.jupytergisMaps` key for an open document.
- *
- * Matching on the file name rather than the full path keeps the tests
- * independent of the temporary directory Galata opens the file from.
- */
-export async function getMapKey(
-  page: Page,
-  filename: string,
-  timeout = DEFAULT_TIMEOUT,
-): Promise<string> {
-  const handle = await page.waitForFunction(
-    name => {
-      const maps = (window as any).jupytergisMaps;
-      if (!maps) {
-        return null;
-      }
-      const keys = Object.keys(maps).filter(
-        key => key === name || key.endsWith(`/${name}`),
-      );
-      return keys.length === 1 ? keys[0] : null;
-    },
-    filename,
-    { timeout },
-  );
-  return handle.jsonValue();
-}
+// ---------------------------------------------------------------------------
+// Operations on a map handle, shared by the path and element lookups below
+// ---------------------------------------------------------------------------
 
 /**
  * Wait until the map has drawn a complete frame, meaning every source it needs
  * has finished loading. Replaces the fixed sleeps the snapshot tests relied on.
  */
-export async function waitForMapReady(
-  page: Page,
-  filename: string,
+async function waitForRender(
+  map: JSHandle,
   timeout = DEFAULT_TIMEOUT,
-): Promise<string> {
-  const key = await getMapKey(page, filename, timeout);
-  await page.evaluate(
-    async ([mapKey, limit]) => {
-      const map = (window as any).jupytergisMaps[mapKey];
-      await new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error(`Map "${mapKey}" never finished rendering`)),
-          limit as number,
-        );
-        map.once('rendercomplete', () => {
-          clearTimeout(timer);
-          resolve();
-        });
-        map.render();
+): Promise<void> {
+  await map.evaluate(async (instance: any, limit) => {
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error('Map never finished rendering')),
+        limit,
+      );
+      instance.once('rendercomplete', () => {
+        clearTimeout(timer);
+        resolve();
       });
-    },
-    [key, timeout] as [string, number],
-  );
-  return key;
+      instance.render();
+    });
+  }, timeout);
 }
 
 /**
  * Flat list of the layers on the map, groups included, in render order.
  */
-export async function getLayerSummary(
-  page: Page,
-  filename: string,
-): Promise<ILayerSummary[]> {
-  const key = await getMapKey(page, filename);
-  return page.evaluate(mapKey => {
-    const map = (window as any).jupytergisMaps[mapKey];
+async function summarise(map: JSHandle): Promise<ILayerSummary[]> {
+  return map.evaluate((instance: any) => {
     const summaries: any[] = [];
 
     const describe = (layer: any, depth: number) => {
@@ -123,11 +89,96 @@ export async function getLayerSummary(
       }
     };
 
-    for (const layer of map.getLayers().getArray()) {
+    for (const layer of instance.getLayers().getArray()) {
       describe(layer, 0);
     }
     return summaries;
-  }, key);
+  });
+}
+
+/**
+ * Centre and zoom of the map view, rounded so floating point noise in the
+ * projection maths cannot make an assertion flaky.
+ */
+async function describeView(
+  map: JSHandle,
+): Promise<{ zoom: number; longitude: number; latitude: number }> {
+  return map.evaluate((instance: any) => {
+    const view = instance.getView();
+    const [x, y] = view.getCenter();
+
+    // Inverse Web Mercator, so the assertion can be written in the same
+    // coordinates the notebook passes to GISDocument.
+    const RADIUS = 20037508.342789244;
+    const isMercator = view.getProjection().getCode() === 'EPSG:3857';
+    const longitude = isMercator ? (x / RADIUS) * 180 : x;
+    const latitude = isMercator
+      ? (180 / Math.PI) *
+        (2 * Math.atan(Math.exp(((y / RADIUS) * 180 * Math.PI) / 180)) -
+          Math.PI / 2)
+      : y;
+
+    return {
+      zoom: Math.round(view.getZoom() * 100) / 100,
+      longitude: Math.round(longitude),
+      latitude: Math.round(latitude),
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Lookup by document path, for documents opened from a file
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the `window.jupytergisMaps` key for an open document.
+ *
+ * Matching on the file name rather than the full path keeps the tests
+ * independent of the temporary directory Galata opens the file from.
+ */
+export async function getMapKey(
+  page: Page,
+  filename: string,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<string> {
+  const handle = await page.waitForFunction(
+    name => {
+      const maps = (window as any).jupytergisMaps;
+      if (!maps) {
+        return null;
+      }
+      const keys = Object.keys(maps).filter(
+        key => key === name || key.endsWith(`/${name}`),
+      );
+      return keys.length === 1 ? keys[0] : null;
+    },
+    filename,
+    { timeout },
+  );
+  return handle.jsonValue();
+}
+
+async function mapForFile(page: Page, filename: string): Promise<JSHandle> {
+  const key = await getMapKey(page, filename);
+  return page.evaluateHandle(
+    mapKey => (window as any).jupytergisMaps[mapKey],
+    key,
+  );
+}
+
+export async function waitForMapReady(
+  page: Page,
+  filename: string,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<void> {
+  await waitForRender(await mapForFile(page, filename), timeout);
+}
+
+export async function getLayerSummary(
+  page: Page,
+  filename: string,
+): Promise<ILayerSummary[]> {
+  return summarise(await mapForFile(page, filename));
 }
 
 /**
@@ -139,35 +190,30 @@ export async function getLayerStyle(
   filename: string,
   layerId: string,
 ): Promise<any> {
-  const key = await getMapKey(page, filename);
-  return page.evaluate(
-    ([mapKey, id]) => {
-      const map = (window as any).jupytergisMaps[mapKey];
-
-      const find = (layers: any[]): any => {
-        for (const layer of layers) {
-          if (layer.get('id') === id) {
-            return layer;
-          }
-          if (typeof layer.getLayers === 'function') {
-            const match = find(layer.getLayers().getArray());
-            if (match) {
-              return match;
-            }
+  const map = await mapForFile(page, filename);
+  return map.evaluate((instance: any, id) => {
+    const find = (layers: any[]): any => {
+      for (const layer of layers) {
+        if (layer.get('id') === id) {
+          return layer;
+        }
+        if (typeof layer.getLayers === 'function') {
+          const match = find(layer.getLayers().getArray());
+          if (match) {
+            return match;
           }
         }
-        return null;
-      };
-
-      const layer = find(map.getLayers().getArray());
-      if (!layer) {
-        throw new Error(`No layer with id "${id}" on map "${mapKey}"`);
       }
-      const style = layer.getStyle();
-      return typeof style === 'function' ? 'function' : style;
-    },
-    [key, layerId] as [string, string],
-  );
+      return null;
+    };
+
+    const layer = find(instance.getLayers().getArray());
+    if (!layer) {
+      throw new Error(`No layer with id "${id}" on the map`);
+    }
+    const style = layer.getStyle();
+    return typeof style === 'function' ? 'function' : style;
+  }, layerId);
 }
 
 /**
@@ -183,11 +229,9 @@ export async function getResolvedFeatureStyles(
 ): Promise<
   Array<{ value: any; stroke?: string; fill?: string; width?: number }>
 > {
-  const key = await getMapKey(page, filename);
-  return page.evaluate(
-    ([mapKey, id, attr]) => {
-      const map = (window as any).jupytergisMaps[mapKey];
-
+  const map = await mapForFile(page, filename);
+  return map.evaluate(
+    (instance: any, [id, attr]: [string, string]) => {
       const find = (layers: any[]): any => {
         for (const layer of layers) {
           if (layer.get('id') === id) {
@@ -203,9 +247,9 @@ export async function getResolvedFeatureStyles(
         return null;
       };
 
-      let layer = find(map.getLayers().getArray());
+      let layer = find(instance.getLayers().getArray());
       if (!layer) {
-        throw new Error(`No layer with id "${id}" on map "${mapKey}"`);
+        throw new Error(`No layer with id "${id}" on the map`);
       }
       // A grammar layer compiles to a LayerGroup; the styled layer is inside.
       while (layer && typeof layer.getStyleFunction !== 'function') {
@@ -215,11 +259,11 @@ export async function getResolvedFeatureStyles(
             : null;
       }
       if (!layer) {
-        throw new Error(`Layer "${id}" on map "${mapKey}" carries no style`);
+        throw new Error(`Layer "${id}" carries no style`);
       }
 
       const styleFn = layer.getStyleFunction();
-      const resolution = map.getView().getResolution();
+      const resolution = instance.getView().getResolution();
       const asColor = (value: any) =>
         Array.isArray(value) ? `rgba(${value.join(',')})` : value;
 
@@ -239,6 +283,44 @@ export async function getResolvedFeatureStyles(
           };
         });
     },
-    [key, layerId, attribute] as [string, string, string],
+    [layerId, attribute] as [string, string],
   );
+}
+
+// ---------------------------------------------------------------------------
+// Lookup by container element, for notebook widgets
+// ---------------------------------------------------------------------------
+
+async function mapInCell(cell: Locator, timeout: number): Promise<JSHandle> {
+  const target = cell.locator('[data-jgis-map]').first();
+  await target.waitFor({ state: 'visible', timeout });
+  await cell
+    .page()
+    .waitForFunction(
+      element => !!(element as any).jupytergisMap,
+      await target.elementHandle(),
+      { timeout },
+    );
+  return target.evaluateHandle((element: any) => element.jupytergisMap);
+}
+
+export async function waitForCellMapReady(
+  cell: Locator,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<void> {
+  await waitForRender(await mapInCell(cell, timeout), timeout);
+}
+
+export async function getCellLayerSummary(
+  cell: Locator,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<ILayerSummary[]> {
+  return summarise(await mapInCell(cell, timeout));
+}
+
+export async function getCellView(
+  cell: Locator,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<{ zoom: number; longitude: number; latitude: number }> {
+  return describeView(await mapInCell(cell, timeout));
 }
