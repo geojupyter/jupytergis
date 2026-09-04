@@ -9,6 +9,7 @@ import {
   DrawerContent,
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
@@ -65,9 +66,7 @@ export function ColumnPresentationMobile({
     SNAP_FIRST_DEFAULT,
     1,
   ]);
-  const [snap, setSnap] = useState<number | null>(
-    SNAP_FIRST_DEFAULT,
-  );
+  const [snap, setSnap] = useState<number | null>(SNAP_FIRST_DEFAULT);
 
   const presentationStyle = getSpectaPresentationStyle(storyData);
 
@@ -154,8 +153,12 @@ export function ColumnPresentationMobile({
         swipeDirection="down"
         showSwipeHandle
       >
-        <DrawerTrigger render={<Button>Open Story Panel</Button>} />
-        <DrawerContent keepMounted container={container} style={presentationStyle}>
+        <DrawerTrigger render={<ButtonTw>Open Story Panel</ButtonTw>} />
+        <DrawerContent
+          keepMounted
+          container={container}
+          style={presentationStyle}
+        >
           <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
               model={model}
