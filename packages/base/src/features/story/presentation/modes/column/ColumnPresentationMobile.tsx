@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
 import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
-import { Button } from '@/src/shared/components/Button';
 import {
   Drawer,
   DrawerContent,
