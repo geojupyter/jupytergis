@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
-import { Button } from '@/src/shared/components/Button';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import type { StoryNavPlacement } from '../StoryViewerPanel';
 
 interface IStoryNavBarProps {
@@ -34,24 +34,26 @@ function StoryNavBar({
   return (
     <div className={containerClassName}>
       <div className={navbarClassName}>
-        <>
-          <Button
-            onClick={onPrev}
-            disabled={!hasPrev}
-            className="jgis-story-navbar-button"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            onClick={onNext}
-            disabled={!hasNext}
-            className="jgis-story-navbar-button"
-            aria-label="Next slide"
-          >
-            <ChevronRight />
-          </Button>
-        </>
+        <ButtonTw
+          onClick={onPrev}
+          disabled={!hasPrev}
+          variant="outline"
+          size="icon-xs"
+          className="jgis-story-navbar-button"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft />
+        </ButtonTw>
+        <ButtonTw
+          onClick={onNext}
+          disabled={!hasNext}
+          variant="outline"
+          size="icon-xs"
+          className="jgis-story-navbar-button"
+          aria-label="Next slide"
+        >
+          <ChevronRight />
+        </ButtonTw>
       </div>
     </div>
   );
