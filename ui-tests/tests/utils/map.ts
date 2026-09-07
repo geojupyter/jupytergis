@@ -4,9 +4,10 @@ import type { JSHandle, Locator, Page } from '@playwright/test';
  * Helpers to assert on the live OpenLayers map instead of comparing screenshots.
  *
  * When the server runs with `JGIS_EXPOSE_MAPS=1` (see `ui-tests/package.json`)
- * each map is exposed two ways: on `window.jupytergisMaps` keyed by document
- * path, and on its own container element. Notebook widgets need the second one,
- * because every in-memory `GISDocument` shares one synthetic path.
+ * every map is published on `window.jupytergisMaps` under a unique key, and its
+ * container element carries that key in `data-jgis-map`. Documents opened from
+ * a file are found by name, notebook widgets by their cell, but both resolve to
+ * a key and from there to the same map handle.
  *
  * Everything returned from `evaluate` must be JSON-serializable, so these
  * helpers always project the OpenLayers objects down to plain values.
@@ -22,30 +23,102 @@ export interface ILayerSummary {
   sourceState: string | null;
 }
 
+export interface ITileLoadStats {
+  id?: string;
+  loaded: number;
+  errors: number;
+}
+
 const DEFAULT_TIMEOUT = 30000;
 
 // ---------------------------------------------------------------------------
-// Operations on a map handle, shared by the path and element lookups below
+// Resolving a map key
 // ---------------------------------------------------------------------------
 
 /**
- * Wait until the map has drawn a complete frame, meaning every source it needs
- * has finished loading. Replaces the fixed sleeps the snapshot tests relied on.
+ * The `window.jupytergisMaps` key of a document opened from a file.
+ *
+ * Matching on the file name rather than the full path keeps the tests
+ * independent of the temporary directory Galata opens the file from.
  */
-async function waitForRender(
-  map: JSHandle,
+export async function mapKeyForFile(
+  page: Page,
+  filename: string,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<string> {
+  const handle = await page.waitForFunction(
+    name => {
+      const maps = (window as any).jupytergisMaps;
+      if (!maps) {
+        return null;
+      }
+      const keys = Object.keys(maps).filter(
+        key => key === name || key.endsWith(`/${name}`),
+      );
+      return keys.length === 1 ? keys[0] : null;
+    },
+    filename,
+    { timeout },
+  );
+  const key = await handle.jsonValue();
+  if (!key) {
+    throw new Error(`No map registered for "${filename}"`);
+  }
+  return key;
+}
+
+/**
+ * The `window.jupytergisMaps` key of the map rendered inside a notebook cell.
+ *
+ * Every in-memory `GISDocument` shares one synthetic path, so the key is read
+ * off the container element rather than guessed from the document.
+ */
+export async function mapKeyInCell(
+  cell: Locator,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<string> {
+  const target = cell.locator('[data-jgis-map]').first();
+  await target.waitFor({ state: 'visible', timeout });
+  const key = await target.getAttribute('data-jgis-map');
+  if (!key) {
+    throw new Error('The map container carries no data-jgis-map key');
+  }
+  return key;
+}
+
+async function mapHandle(page: Page, key: string): Promise<JSHandle> {
+  return page.evaluateHandle(
+    mapKey => (window as any).jupytergisMaps[mapKey],
+    key,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Assertions on a map
+// ---------------------------------------------------------------------------
+
+/**
+ * Wait until the map has drawn a complete frame. OpenLayers only reports
+ * `rendercomplete` once the tile queue is empty and no source is still loading,
+ * so this replaces the fixed sleeps the snapshot tests relied on.
+ */
+export async function waitForMapReady(
+  page: Page,
+  key: string,
   timeout = DEFAULT_TIMEOUT,
 ): Promise<void> {
+  const map = await mapHandle(page, key);
   await map.evaluate(async (instance: any, limit) => {
     await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error('Map never finished rendering')),
-        limit,
-      );
-      instance.once('rendercomplete', () => {
+      const done = () => {
         clearTimeout(timer);
         resolve();
-      });
+      };
+      const timer = setTimeout(() => {
+        instance.un('rendercomplete', done);
+        reject(new Error('Map never finished rendering'));
+      }, limit);
+      instance.once('rendercomplete', done);
       instance.render();
     });
   }, timeout);
@@ -54,7 +127,11 @@ async function waitForRender(
 /**
  * Flat list of the layers on the map, groups included, in render order.
  */
-async function summarise(map: JSHandle): Promise<ILayerSummary[]> {
+export async function getLayerSummary(
+  page: Page,
+  key: string,
+): Promise<ILayerSummary[]> {
+  const map = await mapHandle(page, key);
   return map.evaluate((instance: any) => {
     const summaries: any[] = [];
 
@@ -76,6 +153,9 @@ async function summarise(map: JSHandle): Promise<ILayerSummary[]> {
         visible: layer.getVisible(),
         opacity: layer.getOpacity(),
         featureCount: hasFeatures ? source.getFeatures().length : null,
+        // Only sources that resolve their own metadata, such as GeoTIFF and
+        // GeoZarr, ever report 'error' here; a tile source that 404s does not.
+        // Use `getTileLoadStats` to check that tiles actually arrived.
         sourceState:
           source && typeof source.getState === 'function'
             ? source.getState()
@@ -97,123 +177,91 @@ async function summarise(map: JSHandle): Promise<ILayerSummary[]> {
 }
 
 /**
- * Centre and zoom of the map view, rounded so floating point noise in the
- * projection maths cannot make an assertion flaky.
+ * Reload every tile source on the map and report how many tiles each one
+ * loaded and how many failed. This is the part of "did it render" that layer
+ * state cannot answer: a tile source whose URL is broken looks perfectly ready.
  */
-async function describeView(
-  map: JSHandle,
+export async function getTileLoadStats(
+  page: Page,
+  key: string,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<ITileLoadStats[]> {
+  const map = await mapHandle(page, key);
+  return map.evaluate(async (instance: any, limit) => {
+    const stats: ITileLoadStats[] = [];
+
+    const collect = (layer: any) => {
+      if (typeof layer.getLayers === 'function') {
+        layer.getLayers().getArray().forEach(collect);
+        return;
+      }
+      const source = layer.getSource ? layer.getSource() : null;
+      if (!source || typeof source.getTile !== 'function') {
+        return;
+      }
+      const entry: ITileLoadStats = {
+        id: layer.get('id'),
+        loaded: 0,
+        errors: 0,
+      };
+      stats.push(entry);
+      source.on('tileloadend', () => (entry.loaded += 1));
+      source.on('tileloaderror', () => (entry.errors += 1));
+      source.refresh();
+    };
+
+    instance.getLayers().getArray().forEach(collect);
+
+    await new Promise<void>(resolve => {
+      const done = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      // Resolving on timeout rather than rejecting keeps the counts readable:
+      // "no tile ever arrived" is a more useful failure than "timed out".
+      const timer = setTimeout(() => {
+        instance.un('rendercomplete', done);
+        resolve();
+      }, limit);
+      instance.once('rendercomplete', done);
+      instance.render();
+    });
+
+    return stats;
+  }, timeout);
+}
+
+/**
+ * Centre and zoom of the map view, in the same coordinates the Python API takes.
+ */
+export async function getView(
+  page: Page,
+  key: string,
 ): Promise<{ zoom: number; longitude: number; latitude: number }> {
+  const map = await mapHandle(page, key);
   return map.evaluate((instance: any) => {
     const view = instance.getView();
     const [x, y] = view.getCenter();
 
-    // Inverse Web Mercator, so the assertion can be written in the same
-    // coordinates the notebook passes to GISDocument.
+    // Inverse Web Mercator. `ol/proj` cannot be imported into the page, and the
+    // map does not expose it, so the two lines are spelled out here.
     const RADIUS = 20037508.342789244;
     const isMercator = view.getProjection().getCode() === 'EPSG:3857';
     const longitude = isMercator ? (x / RADIUS) * 180 : x;
     const latitude = isMercator
       ? (180 / Math.PI) *
-        (2 * Math.atan(Math.exp(((y / RADIUS) * 180 * Math.PI) / 180)) -
-          Math.PI / 2)
+        (2 * Math.atan(Math.exp((y / RADIUS) * Math.PI)) - Math.PI / 2)
       : y;
 
+    // Three decimals is about 100 m: tight enough to catch a wrong centre,
+    // loose enough to absorb the round trip through the projection.
+    const round = (value: number) => Math.round(value * 1000) / 1000;
     return {
-      zoom: Math.round(view.getZoom() * 100) / 100,
-      longitude: Math.round(longitude),
-      latitude: Math.round(latitude),
+      zoom: round(view.getZoom()),
+      longitude: round(longitude),
+      latitude: round(latitude),
     };
   });
-}
-
-// ---------------------------------------------------------------------------
-// Lookup by document path, for documents opened from a file
-// ---------------------------------------------------------------------------
-
-/**
- * Resolve the `window.jupytergisMaps` key for an open document.
- *
- * Matching on the file name rather than the full path keeps the tests
- * independent of the temporary directory Galata opens the file from.
- */
-export async function getMapKey(
-  page: Page,
-  filename: string,
-  timeout = DEFAULT_TIMEOUT,
-): Promise<string> {
-  const handle = await page.waitForFunction(
-    name => {
-      const maps = (window as any).jupytergisMaps;
-      if (!maps) {
-        return null;
-      }
-      const keys = Object.keys(maps).filter(
-        key => key === name || key.endsWith(`/${name}`),
-      );
-      return keys.length === 1 ? keys[0] : null;
-    },
-    filename,
-    { timeout },
-  );
-  return handle.jsonValue();
-}
-
-async function mapForFile(page: Page, filename: string): Promise<JSHandle> {
-  const key = await getMapKey(page, filename);
-  return page.evaluateHandle(
-    mapKey => (window as any).jupytergisMaps[mapKey],
-    key,
-  );
-}
-
-export async function waitForMapReady(
-  page: Page,
-  filename: string,
-  timeout = DEFAULT_TIMEOUT,
-): Promise<void> {
-  await waitForRender(await mapForFile(page, filename), timeout);
-}
-
-export async function getLayerSummary(
-  page: Page,
-  filename: string,
-): Promise<ILayerSummary[]> {
-  return summarise(await mapForFile(page, filename));
-}
-
-/**
- * The OpenLayers flat style rules applied to a layer. Vector layers are styled
- * with plain rule objects, so this is directly assertable.
- */
-export async function getLayerStyle(
-  page: Page,
-  filename: string,
-  layerId: string,
-): Promise<any> {
-  const map = await mapForFile(page, filename);
-  return map.evaluate((instance: any, id) => {
-    const find = (layers: any[]): any => {
-      for (const layer of layers) {
-        if (layer.get('id') === id) {
-          return layer;
-        }
-        if (typeof layer.getLayers === 'function') {
-          const match = find(layer.getLayers().getArray());
-          if (match) {
-            return match;
-          }
-        }
-      }
-      return null;
-    };
-
-    const layer = find(instance.getLayers().getArray());
-    if (!layer) {
-      throw new Error(`No layer with id "${id}" on the map`);
-    }
-    const style = layer.getStyle();
-    return typeof style === 'function' ? 'function' : style;
-  }, layerId);
 }
 
 /**
@@ -223,13 +271,13 @@ export async function getLayerStyle(
  */
 export async function getResolvedFeatureStyles(
   page: Page,
-  filename: string,
+  key: string,
   layerId: string,
   attribute: string,
 ): Promise<
   Array<{ value: any; stroke?: string; fill?: string; width?: number }>
 > {
-  const map = await mapForFile(page, filename);
+  const map = await mapHandle(page, key);
   return map.evaluate(
     (instance: any, [id, attr]: [string, string]) => {
       const find = (layers: any[]): any => {
@@ -285,42 +333,4 @@ export async function getResolvedFeatureStyles(
     },
     [layerId, attribute] as [string, string],
   );
-}
-
-// ---------------------------------------------------------------------------
-// Lookup by container element, for notebook widgets
-// ---------------------------------------------------------------------------
-
-async function mapInCell(cell: Locator, timeout: number): Promise<JSHandle> {
-  const target = cell.locator('[data-jgis-map]').first();
-  await target.waitFor({ state: 'visible', timeout });
-  await cell
-    .page()
-    .waitForFunction(
-      element => !!(element as any).jupytergisMap,
-      await target.elementHandle(),
-      { timeout },
-    );
-  return target.evaluateHandle((element: any) => element.jupytergisMap);
-}
-
-export async function waitForCellMapReady(
-  cell: Locator,
-  timeout = DEFAULT_TIMEOUT,
-): Promise<void> {
-  await waitForRender(await mapInCell(cell, timeout), timeout);
-}
-
-export async function getCellLayerSummary(
-  cell: Locator,
-  timeout = DEFAULT_TIMEOUT,
-): Promise<ILayerSummary[]> {
-  return summarise(await mapInCell(cell, timeout));
-}
-
-export async function getCellView(
-  cell: Locator,
-  timeout = DEFAULT_TIMEOUT,
-): Promise<{ zoom: number; longitude: number; latitude: number }> {
-  return describeView(await mapInCell(cell, timeout));
 }

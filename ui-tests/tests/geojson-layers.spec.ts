@@ -7,7 +7,7 @@ import {
 import { Locator } from '@playwright/test';
 import path from 'path';
 
-import { getLayerSummary, waitForMapReady } from './utils/map';
+import { getLayerSummary, mapKeyForFile, waitForMapReady } from './utils/map';
 
 const FILENAME = 'empty-france.jGIS';
 
@@ -51,8 +51,9 @@ test.describe('#geoJSONLayer', () => {
   test('Add a GeoJSON layer', async ({ page, tmpPath }) => {
     await openGIS(page, tmpPath, FILENAME);
 
-    await waitForMapReady(page, FILENAME);
-    expect(await getLayerSummary(page, FILENAME)).toHaveLength(0);
+    const map = await mapKeyForFile(page, FILENAME);
+    await waitForMapReady(page, map);
+    expect(await getLayerSummary(page, map)).toHaveLength(0);
 
     await page.getByTestId('new-entry-button').click();
     await page.getByText('Add Vector Layer').hover();
@@ -73,16 +74,15 @@ test.describe('#geoJSONLayer', () => {
     await expect(dialog).not.toBeAttached();
 
     await expect
-      .poll(async () => (await getLayerSummary(page, FILENAME)).length)
+      .poll(async () => (await getLayerSummary(page, map)).length)
       .toBe(1);
 
-    await waitForMapReady(page, FILENAME);
+    await waitForMapReady(page, map);
 
-    const [added] = await getLayerSummary(page, FILENAME);
+    const [added] = await getLayerSummary(page, map);
     expect(added.id).toBeTruthy();
     expect(added.visible).toBe(true);
     expect(added.kind).toBe('vector');
-    expect(added.sourceState).toBe('ready');
     expect(added.featureCount).toBe(13);
   });
 });

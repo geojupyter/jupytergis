@@ -4,6 +4,7 @@ import path from 'path';
 import {
   getLayerSummary,
   getResolvedFeatureStyles,
+  mapKeyForFile,
   waitForMapReady,
 } from './utils/map';
 
@@ -49,9 +50,10 @@ test.describe('#graduatedLines', () => {
   });
 
   test('graduated symbology renders on line layer', async ({ page }) => {
-    await waitForMapReady(page, FILENAME);
+    const map = await mapKeyForFile(page, FILENAME);
+    await waitForMapReady(page, map);
 
-    const layers = await getLayerSummary(page, FILENAME);
+    const layers = await getLayerSummary(page, map);
     const roads = layers.find(layer => layer.id === ROADS_LAYER);
     expect(roads).toBeDefined();
     expect(roads?.visible).toBe(true);
@@ -59,7 +61,7 @@ test.describe('#graduatedLines', () => {
 
     const styles = await getResolvedFeatureStyles(
       page,
-      FILENAME,
+      map,
       ROADS_LAYER,
       'speed_limit',
     );
@@ -93,7 +95,8 @@ test.describe('#graduatedLines', () => {
   test('applying graduated symbology on line layer uses stroke color', async ({
     page,
   }) => {
-    await waitForMapReady(page, FILENAME);
+    const map = await mapKeyForFile(page, FILENAME);
+    await waitForMapReady(page, map);
 
     // Open the symbology dialog
     await page
@@ -108,12 +111,12 @@ test.describe('#graduatedLines', () => {
     await dialog.getByText('Ok', { exact: true }).first().click();
     await expect(dialog).not.toBeAttached();
 
-    await waitForMapReady(page, FILENAME);
+    await waitForMapReady(page, map);
 
     // Re-applying must not drop the graduated stroke colours.
     const styles = await getResolvedFeatureStyles(
       page,
-      FILENAME,
+      map,
       ROADS_LAYER,
       'speed_limit',
     );

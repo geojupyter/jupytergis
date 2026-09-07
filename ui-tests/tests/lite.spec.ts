@@ -2,9 +2,10 @@ import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
 import {
-  getCellLayerSummary,
   getLayerSummary,
-  waitForCellMapReady,
+  getTileLoadStats,
+  mapKeyForFile,
+  mapKeyInCell,
   waitForMapReady,
 } from './utils/map';
 
@@ -59,18 +60,25 @@ test.describe('UI Test', () => {
           state: 'visible',
         });
 
-        await waitForMapReady(page, file);
+        const map = await mapKeyForFile(page, file);
+        await waitForMapReady(page, map);
 
         expect(errors).toBe(0);
 
         // Every layer the document declares must be on the map with its data
         // loaded, which is what the screenshot used to stand in for.
-        const layers = await getLayerSummary(page, file);
+        const layers = await getLayerSummary(page, map);
         expect(layers.length).toBeGreaterThan(0);
-        for (const layer of layers) {
-          expect(layer.sourceState).not.toBe('error');
-        }
         expect(layers.some(layer => (layer.featureCount ?? 0) > 0)).toBe(true);
+
+        // Tile sources report 'ready' whatever their URL answers, so the only
+        // way to know the basemap arrived is to count the tiles.
+        for (const tiles of await getTileLoadStats(page, map)) {
+          expect(
+            tiles.loaded,
+            `tiles loaded for layer ${tiles.id}`,
+          ).toBeGreaterThan(0);
+        }
       });
     }
   });
@@ -97,14 +105,18 @@ test.describe('UI Test', () => {
     const jgisWidget = page.locator('.jupytergis-notebook-widget').first();
     await jgisWidget.waitFor({ state: 'visible' });
 
-    await waitForCellMapReady(jgisWidget);
+    const map = await mapKeyInCell(jgisWidget);
+    await waitForMapReady(page, map);
 
     // The notebook builds its map through the Python API, so assert what it
     // produced rather than comparing pixels.
-    const layers = await getCellLayerSummary(jgisWidget);
+    const layers = await getLayerSummary(page, map);
     expect(layers.length).toBeGreaterThan(0);
-    for (const layer of layers) {
-      expect(layer.sourceState).not.toBe('error');
+    for (const tiles of await getTileLoadStats(page, map)) {
+      expect(
+        tiles.loaded,
+        `tiles loaded for layer ${tiles.id}`,
+      ).toBeGreaterThan(0);
     }
   });
 });

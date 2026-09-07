@@ -1,10 +1,13 @@
 import { expect, test } from '@jupyterlab/galata';
+import * as fs from 'fs';
 import * as path from 'path';
 
 import {
-  getCellLayerSummary,
-  getCellView,
-  waitForCellMapReady,
+  getLayerSummary,
+  getTileLoadStats,
+  getView,
+  mapKeyInCell,
+  waitForMapReady,
 } from './utils/map';
 
 const FILENAME = 'eq.geojson';
@@ -21,9 +24,21 @@ const NOTEBOOK = 'Notebook.ipynb';
  */
 const EXPECTED_CELLS = [
   { layers: 1, vectors: 0 },
-  { layers: 1, vectors: 0, view: { latitude: 21, longitude: 130, zoom: 4 } },
-  { layers: 2, vectors: 1, view: { latitude: 19, longitude: -88, zoom: 6 } },
-  { layers: 2, vectors: 1, view: { latitude: 58, longitude: 12, zoom: 12 } },
+  {
+    layers: 1,
+    vectors: 0,
+    view: { latitude: 20.718, longitude: 129.94, zoom: 4 },
+  },
+  {
+    layers: 2,
+    vectors: 1,
+    view: { latitude: 19.089113, longitude: -87.561299, zoom: 6 },
+  },
+  {
+    layers: 2,
+    vectors: 1,
+    view: { latitude: 57.676696, longitude: 11.864487, zoom: 12 },
+  },
   { layers: 1, vectors: 0 },
 ];
 
@@ -45,9 +60,17 @@ test.describe('Notebook API', () => {
   });
 
   test('Cell outputs build the expected maps', async ({ page, tmpPath }) => {
+    // EXPECTED_CELLS describes one notebook, so a second one added to the
+    // folder would otherwise go untested.
+    expect(fs.readdirSync(path.resolve(__dirname, './notebooks'))).toEqual([
+      NOTEBOOK,
+    ]);
+
     await page.notebook.openByPath(`${tmpPath}/${NOTEBOOK}`);
     await page.notebook.activate(NOTEBOOK);
     await expect(page.getByLabel(NOTEBOOK).getByText('XPython')).toBeVisible();
+
+    expect(await page.notebook.getCellCount()).toBe(EXPECTED_CELLS.length);
 
     await page.notebook.run();
 
@@ -55,16 +78,11 @@ test.describe('Notebook API', () => {
       const cell = await page.notebook.getCellOutputLocator(index);
       expect(cell, `cell ${index} produced no output`).not.toBeNull();
 
-      await waitForCellMapReady(cell!);
+      const map = await mapKeyInCell(cell!);
+      await waitForMapReady(page, map);
 
-      const layers = await getCellLayerSummary(cell!);
+      const layers = await getLayerSummary(page, map);
       expect(layers, `cell ${index} layers`).toHaveLength(expected.layers);
-
-      for (const layer of layers) {
-        expect(layer.sourceState, `cell ${index} source state`).not.toBe(
-          'error',
-        );
-      }
 
       const vectors = layers.filter(layer => layer.kind === 'vector');
       expect(vectors, `cell ${index} vector layers`).toHaveLength(
@@ -77,9 +95,25 @@ test.describe('Notebook API', () => {
         ).toBeGreaterThan(0);
       }
 
+      // A tile source is 'ready' whatever its URL answers, so count the tiles
+      // that actually came back.
+      for (const tiles of await getTileLoadStats(page, map)) {
+        expect(
+          tiles.loaded,
+          `cell ${index} tiles loaded for layer ${tiles.id}`,
+        ).toBeGreaterThan(0);
+      }
+
       if (expected.view) {
-        expect(await getCellView(cell!), `cell ${index} view`).toEqual(
-          expected.view,
+        const view = await getView(page, map);
+        expect(view.zoom, `cell ${index} zoom`).toBe(expected.view.zoom);
+        expect(view.latitude, `cell ${index} latitude`).toBeCloseTo(
+          expected.view.latitude,
+          2,
+        );
+        expect(view.longitude, `cell ${index} longitude`).toBeCloseTo(
+          expected.view.longitude,
+          2,
         );
       }
     }
