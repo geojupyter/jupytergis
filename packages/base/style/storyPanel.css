@@ -541,23 +541,3 @@
 .jp-arrayFieldWrapper legend {
   border-bottom: none;
 }
-
-.jgis-symbology-override-collapsible-trigger {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  cursor: pointer;
-  padding: 0.5rem 0.25rem;
-  background-color: var(--jp-layout-color0);
-  border-radius: var(--jp-border-radius);
-}
-
-.jgis-symbology-override-collapsible-trigger[data-state='open'] {
-  background-color: var(--jp-layout-color3);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.jgis-symbology-override-collapsible-trigger span {
-  font-weight: bold;
-}

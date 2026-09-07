@@ -138,33 +138,19 @@
 
 .jgis-story-editor-section-trigger {
   display: flex;
-  gap: 1rem;
   align-items: center;
   cursor: pointer;
-  padding: 0.5rem 0.25rem;
-  background-color: var(--jp-layout-color0);
-  border-radius: var(--jp-border-radius);
 }
 
-.jgis-story-editor-section-trigger[data-state='open'] {
+.jgis-story-editor-section-trigger[data-panel-open] {
   background-color: var(--jp-layout-color3);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
 }
 
 .jgis-story-editor-section-trigger span {
   font-weight: bold;
 }
 
-.jgis-story-editor-section-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.jgis-story-editor-section-body[data-state='open'] {
+.jgis-story-editor-section-body[data-open] {
   padding: 0.5rem;
 }
 
