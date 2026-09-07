@@ -15,6 +15,10 @@ import { validatePresetName } from '@/src/features/labels/drawCustomAttributes';
 import { useDrawCustomAttributes } from '@/src/features/labels/hooks/useDrawCustomAttributes';
 import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
+  CollapsibleContentAnimated,
+  Collapsible,
+} from '@/src/shared/components/Collapsible';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -287,62 +291,58 @@ function DrawCustomAttributesDialogContent({
           <p className="jgis-draw-custom-attributes-error">{draftError}</p>
         ) : null}
 
-        <div
-          className={`jgis-draw-custom-attributes-preset-save-collapse${
-            savingPreset
-              ? ' jgis-draw-custom-attributes-preset-save-collapse--open'
-              : ''
-          }`}
-        >
-          {presetNameError ? (
-            <p className="jgis-draw-custom-attributes-error">
-              {presetNameError}
-            </p>
-          ) : null}
+        <Collapsible open={savingPreset}>
+          <CollapsibleContentAnimated>
+            {presetNameError ? (
+              <p className="jgis-draw-custom-attributes-error">
+                {presetNameError}
+              </p>
+            ) : null}
 
-          <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
-            <Input
-              className="jgis-draw-custom-attributes-preset-name-input"
-              type="text"
-              placeholder="Preset name"
-              value={presetName}
-              onChange={event => handlePresetNameChange(event.target.value)}
-              onKeyDown={event => {
-                if (event.key !== 'Enter') {
-                  return;
-                }
+            <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
+              <Input
+                className="jgis-draw-custom-attributes-preset-name-input"
+                type="text"
+                placeholder="Preset name"
+                value={presetName}
+                onChange={event => handlePresetNameChange(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key !== 'Enter') {
+                    return;
+                  }
 
-                event.preventDefault();
-                event.currentTarget.blur();
-                if (validatePresetName(event.currentTarget.value).valid) {
-                  handleSavePreset(event.currentTarget.value);
-                }
-              }}
-            />
-            <div className="inline-flex gap-0">
-              <ButtonTw
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                title="Save preset"
-                onClick={() => handleSavePreset()}
-                disabled={!isPresetNameValid}
-              >
-                <Save />
-              </ButtonTw>
-              <ButtonTw
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                title="Cancel"
-                className="text-destructive"
-                onClick={resetPresetDraft}
-              >
-                <Ban />
-              </ButtonTw>
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                  if (validatePresetName(event.currentTarget.value).valid) {
+                    handleSavePreset(event.currentTarget.value);
+                  }
+                }}
+              />
+              <div className="inline-flex gap-0">
+                <ButtonTw
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Save preset"
+                  onClick={() => handleSavePreset()}
+                  disabled={!isPresetNameValid}
+                >
+                  <Save />
+                </ButtonTw>
+                <ButtonTw
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Cancel"
+                  className="text-destructive"
+                  onClick={resetPresetDraft}
+                >
+                  <Ban />
+                </ButtonTw>
+              </div>
             </div>
-          </div>
-        </div>
+          </CollapsibleContentAnimated>
+        </Collapsible>
         <div className="jgis-draw-custom-attributes-row">
           <div className="jgis-draw-custom-attributes-actions">
             <ButtonTw
