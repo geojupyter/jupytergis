@@ -545,7 +545,7 @@ function resolveColorStops(
     nClasses: scale.params.nShades,
     mode: scale.params.mode,
     colorRamp: scale.params.name,
-    reverseRamp: !scale.params.reverse,
+    reverseRamp: scale.params.reverse,
     vmin: scale.params.domain?.[0],
     vmax: scale.params.domain?.[1],
   } as unknown as SymbologyState;
