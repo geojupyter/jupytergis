@@ -3,9 +3,10 @@ import { ChevronRightIcon, Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
 
 import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { cn } from '@/src/shared/components/utils';
 import { getFeatureIdentifier } from '../utils/getFeatureIdentifier';
 
-interface IFeatureCardHeaderProps {
+interface IFeatureCardHeaderProps extends React.ComponentPropsWithoutRef<'div'> {
   feature: IIdentifiedFeature;
   featureTitle: string;
   isFloaterOpen: boolean;
@@ -13,13 +14,21 @@ interface IFeatureCardHeaderProps {
   onHighlightFeature: (feature: IIdentifiedFeature) => void;
 }
 
-export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
-  feature,
-  featureTitle,
-  isFloaterOpen,
-  onToggleFloater,
-  onHighlightFeature,
-}) => {
+export const FeatureCardHeader = React.forwardRef<
+  HTMLDivElement,
+  IFeatureCardHeaderProps
+>(function FeatureCardHeader(
+  {
+    feature,
+    featureTitle,
+    isFloaterOpen,
+    onToggleFloater,
+    onHighlightFeature,
+    className,
+    ...props
+  },
+  ref,
+) {
   const featureIdentifier = getFeatureIdentifier(feature);
   const isRasterFeature =
     !feature.geometry &&
@@ -28,9 +37,17 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
     typeof feature?.y !== 'number';
 
   return (
-    <div className="jgis-identify-card-header">
+    <div
+      ref={ref}
+      className={cn('jgis-identify-card-header', className)}
+      {...props}
+    >
       <div className="jgis-identify-card-header-actions">
-        <ButtonTw size="icon-xs" variant="ghost" className="jgis-rotate-90">
+        <ButtonTw
+          size="icon-xs"
+          variant="ghost"
+          className="jgis-rotate-90  hover:bg-transparent"
+        >
           <ChevronRightIcon />
         </ButtonTw>
         <span>{featureTitle}</span>
@@ -74,4 +91,4 @@ export const FeatureCardHeader: React.FC<IFeatureCardHeaderProps> = ({
       </div>
     </div>
   );
-};
+});

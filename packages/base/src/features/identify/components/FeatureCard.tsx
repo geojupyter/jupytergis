@@ -52,41 +52,39 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
         };
 
   return (
-    <div className="jgis-identify-card">
-      <Collapsible
-        open={isVisible}
-        onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
-      >
-        <CollapsibleTrigger asChild>
-          <div className="jgis-symbology-override-collapsible-trigger">
-            <FeatureCardHeader
-              feature={feature}
-              isFloaterOpen={isFloaterOpen}
-              featureTitle={featureTitle}
-              onToggleFloater={onToggleFloater}
-              onHighlightFeature={onHighlightFeature}
-            />
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="jgis-identify-content">
-            <FeatureAttributeList
-              feature={feature}
-              rowIndex={rowIndex}
-              editorState={cardEditorState}
-              editorActions={editorActions}
-            />
-            {feature._fromDrawTool === true && (
-              <AddAttributeEditor
-                feature={feature}
-                rowIndex={rowIndex}
-                editorState={cardEditorState}
-                editorActions={editorActions}
-              />
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+    <Collapsible
+      className="jgis-identify-card px-2"
+      open={isVisible}
+      onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
+    >
+      <CollapsibleTrigger
+        nativeButton={false}
+        render={
+          <FeatureCardHeader
+            feature={feature}
+            isFloaterOpen={isFloaterOpen}
+            featureTitle={featureTitle}
+            onToggleFloater={onToggleFloater}
+            onHighlightFeature={onHighlightFeature}
+          />
+        }
+      />
+      <CollapsibleContent className="jgis-identify-content">
+        <FeatureAttributeList
+          feature={feature}
+          rowIndex={rowIndex}
+          editorState={cardEditorState}
+          editorActions={editorActions}
+        />
+        {feature._fromDrawTool === true && (
+          <AddAttributeEditor
+            feature={feature}
+            rowIndex={rowIndex}
+            editorState={cardEditorState}
+            editorActions={editorActions}
+          />
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
