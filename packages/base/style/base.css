@@ -391,7 +391,7 @@ body[data-notebook='specta'] #main.jp-ThemedContainer {
   transition: rotate 150ms ease;
 }
 
-[data-slot='collapsible-trigger'][data-state='open'] .jgis-rotate-90 {
+[data-slot='collapsible-trigger'][data-panel-open] .jgis-rotate-90 {
   rotate: 90deg;
 }
 
