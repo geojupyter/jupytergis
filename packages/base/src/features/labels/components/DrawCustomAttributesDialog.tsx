@@ -108,7 +108,11 @@ export function DrawCustomAttributesDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <ButtonTw variant={'outline'}>
+          <ButtonTw
+            variant={'outline'}
+            size={'sm'}
+            className={'rounded-[0.5rem]'}
+          >
             <SlidersHorizontal data-icon="inline-start" />
             Edit
           </ButtonTw>
@@ -345,6 +349,7 @@ function DrawCustomAttributesDialogContent({
               className="jgis-attribute-add-button"
               type="button"
               variant="outline"
+              size={'sm'}
               onClick={startAdd}
               disabled={!canAdd}
             >
@@ -354,6 +359,7 @@ function DrawCustomAttributesDialogContent({
             <ButtonTw
               type="button"
               variant="outline"
+              size={'sm'}
               onClick={() => setSavingPreset(true)}
               disabled={!canSavePreset}
             >
