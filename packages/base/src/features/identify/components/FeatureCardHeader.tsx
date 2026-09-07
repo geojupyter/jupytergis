@@ -39,7 +39,10 @@ export const FeatureCardHeader = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn('jgis-identify-card-header', className)}
+      className={cn(
+        'jgis-identify-card-header h-9 hover:bg-muted data-panel-open:bg-secondary data-panel-open:hover:bg-secondary/60',
+        className,
+      )}
       {...props}
     >
       <div className="jgis-identify-card-header-actions">

@@ -7,6 +7,7 @@ import {
 import { User } from '@jupyterlab/services';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { cn } from '@/src/shared/components/utils';
 import { FeatureCard } from './components/FeatureCard';
 import { useIdentifyAttributeEditor } from './hooks/useIdentifyAttributeEditor';
 import { PatchGeoJSONFeatureAttributes } from './types/editorTypes';
@@ -156,7 +157,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       }}
     >
       {!features.length && (
-        <div style={{ textAlign: 'center' }}>
+        <div className="p-2 text-center">
           Please select a layer from the layer list, then "i" from the toolbar
           to start identifying features.
         </div>

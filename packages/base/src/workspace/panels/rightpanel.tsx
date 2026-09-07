@@ -110,7 +110,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
           {!props.settings.identifyDisabled && (
             <TabsContent
               value="identifyPanel"
-              className="jgis-panel-tab-content"
+              className="jgis-panel-tab-content border-t pt-0"
             >
               <IdentifyPanelComponent
                 model={props.model}

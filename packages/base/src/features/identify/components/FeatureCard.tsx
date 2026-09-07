@@ -2,8 +2,8 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
 import {
+  CollapsibleContentAnimated,
   Collapsible,
-  CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
 import { AddAttributeEditor } from './AttributeEditors';
@@ -53,7 +53,6 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
 
   return (
     <Collapsible
-      className="jgis-identify-card px-2"
       open={isVisible}
       onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
     >
@@ -69,7 +68,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
           />
         }
       />
-      <CollapsibleContent className="jgis-identify-content">
+      <CollapsibleContentAnimated className="jgis-identify-content">
         <FeatureAttributeList
           feature={feature}
           rowIndex={rowIndex}
@@ -84,7 +83,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
             editorActions={editorActions}
           />
         )}
-      </CollapsibleContent>
+      </CollapsibleContentAnimated>
     </Collapsible>
   );
 };
