@@ -7,6 +7,13 @@
   background-image: unset;
 }
 
+/* RJSF sets `disabled` on the `<select>` itself, but the form's own colours
+ * override the browser default, so a disabled dropdown still looks clickable. */
+.jGIS-property-panel .rjsf select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* Collapse the form-group row that contains our hidden field marker */
 .jp-root .form-group:has(.jGIS-hidden-field) {
   display: none !important;
