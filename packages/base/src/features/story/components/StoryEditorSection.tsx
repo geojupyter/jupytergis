@@ -1,11 +1,10 @@
-import { ChevronRightIcon } from 'lucide-react';
 import React, { useId } from 'react';
 
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   CollapsibleTrigger,
   Collapsible,
   CollapsibleContentAnimated,
+  CollapsibleHeader,
 } from '@/src/shared/components/Collapsible';
 
 interface IStoryEditorSectionProps {
@@ -39,17 +38,10 @@ export function StoryEditorSection({
     >
       <CollapsibleTrigger
         nativeButton={false}
-        render={<div className="jgis-story-editor-section-trigger" />}
-      >
-        <ButtonTw
-          size="icon-sm"
-          variant="ghost"
-          className="jgis-rotate-90 hover:bg-transparent"
-        >
-          <ChevronRightIcon data-icon="inline-start" />
-        </ButtonTw>
-        <span id={triggerId}>{triggerText}</span>
-      </CollapsibleTrigger>
+        render={
+          <CollapsibleHeader title={triggerText} titleId={triggerId} />
+        }
+      />
       <CollapsibleContentAnimated className="jgis-story-editor-section-body">
         {children}
       </CollapsibleContentAnimated>

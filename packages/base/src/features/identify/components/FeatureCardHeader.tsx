@@ -1,9 +1,9 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
-import { ChevronRightIcon, Eye, EyeOff, Search } from 'lucide-react';
+import { Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
 
 import { ButtonTw } from '@/src/shared/components/ButtonTw';
-import { cn } from '@/src/shared/components/utils';
+import { CollapsibleHeader } from '@/src/shared/components/Collapsible';
 import { getFeatureIdentifier } from '../utils/getFeatureIdentifier';
 
 interface IFeatureCardHeaderProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -37,27 +37,12 @@ export const FeatureCardHeader = React.forwardRef<
     typeof feature?.y !== 'number';
 
   return (
-    <div
+    <CollapsibleHeader
       ref={ref}
-      className={cn(
-        'jgis-identify-card-header h-9 hover:bg-muted data-panel-open:bg-secondary data-panel-open:hover:bg-secondary/60',
-        className,
-      )}
-      {...props}
-    >
-      <div className="jgis-identify-card-header-actions">
-        <ButtonTw
-          size="icon-xs"
-          variant="ghost"
-          className="jgis-rotate-90  hover:bg-transparent"
-        >
-          <ChevronRightIcon />
-        </ButtonTw>
-        <span>{featureTitle}</span>
-      </div>
-
-      <div className="jgis-identify-card-header-actions">
-        <div className="inline-flex gap-0">
+      title={featureTitle}
+      className={className}
+      actions={
+        <>
           {featureIdentifier && (
             <ButtonTw
               size="icon-sm"
@@ -90,8 +75,9 @@ export const FeatureCardHeader = React.forwardRef<
           >
             <Search />
           </ButtonTw>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      {...props}
+    />
   );
 });

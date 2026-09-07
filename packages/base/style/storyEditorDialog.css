@@ -136,20 +136,6 @@
   background-color: var(--jp-layout-color0);
 }
 
-.jgis-story-editor-section-trigger {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.jgis-story-editor-section-trigger[data-panel-open] {
-  background-color: var(--jp-layout-color3);
-}
-
-.jgis-story-editor-section-trigger span {
-  font-weight: bold;
-}
-
 .jgis-story-editor-section-body[data-open] {
   padding: 0.5rem;
 }
