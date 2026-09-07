@@ -242,9 +242,11 @@ jobs:
         working-directory: ui-tests
         run: pnpm run test
 
-      # Documentation renders, not regression tests: a diff here should not
-      # block a PR.
-      - name: Refresh showcase snapshots
+      # The showcase images are documentation renders, not regression tests, so
+      # a diff must not block a PR. This step exists only so the snapshot diff
+      # bot has images to comment with; comment "please update snapshots" to
+      # accept them.
+      - name: Render showcase snapshots (informational)
         continue-on-error: true
         shell: bash -l {0}
         working-directory: ui-tests
