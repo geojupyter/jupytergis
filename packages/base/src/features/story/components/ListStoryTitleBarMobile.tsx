@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 
+import { ListStoryTitleBarSegmentButton } from '@/src/features/story/components/ListStoryTitleBarSegmentButton';
 import type {
   IListStoryTitleBarContentProps,
   IStorySegmentViewItem,
@@ -90,21 +91,18 @@ export function ListStoryTitleBarMobile({
           anchor={navRef}
           align="center"
           side="bottom"
-          className="max-h-64 w-[calc(100vw-1rem)] max-w-sm gap-1 overflow-y-auto"
+          className="max-h-64 w-[calc(100vw-1rem)] max-w-sm items-center gap-1 overflow-y-auto"
         >
           {segmentItems.map(item => {
             const isActive = item.index === currentIndex;
             return (
-              <button
+              <ListStoryTitleBarSegmentButton
                 key={item.id}
-                type="button"
-                className="jgis-underline-indicator jgis-story-title-bar-label jgis-story-title-bar-segment-menu-item"
-                data-state={isActive ? 'active' : 'inactive'}
-                aria-current={isActive ? 'true' : undefined}
+                label={item.layerName}
+                isActive={isActive}
+                // className="jgis-story-title-bar-segment-menu-item"
                 onClick={() => handleMenuSegmentClick(item.index)}
-              >
-                {item.layerName}
-              </button>
+              />
             );
           })}
         </PopoverContent>
@@ -112,7 +110,7 @@ export function ListStoryTitleBarMobile({
       <span
         key={activeSegment?.id}
         className="jgis-underline-indicator jgis-story-title-bar-active-segment"
-        data-state="active"
+        data-active
         data-slide-direction={slideDirectionRef.current}
       >
         {activeSegment?.layerName ?? ''}

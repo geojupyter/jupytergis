@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 
+import { ListStoryTitleBarSegmentButton } from '@/src/features/story/components/ListStoryTitleBarSegmentButton';
 import type { IListStoryTitleBarContentProps } from '@/src/features/story/types/types';
 import { Button } from '@/src/shared/components/Button';
 
@@ -56,7 +57,7 @@ export function ListStoryTitleBarDesktop({
     }
 
     const active = segments.querySelector(
-      '.jgis-story-title-bar-segment[data-state="active"]',
+      '.jgis-story-title-bar-segment[data-active]',
     );
 
     if (!active) {
@@ -89,17 +90,15 @@ export function ListStoryTitleBarDesktop({
         {segmentItems.map(item => {
           const isActive = item.index === currentIndex;
           return (
-            <button
+            <ListStoryTitleBarSegmentButton
               key={item.id}
-              type="button"
-              className="jgis-underline-indicator jgis-story-title-bar-label jgis-story-title-bar-segment"
-              data-state={isActive ? 'active' : 'inactive'}
-              aria-current={isActive ? 'true' : undefined}
+              label={item.layerName}
+              isActive={isActive}
+              // className="jgis-story-title-bar-segment"
+              className="text-sm"
               aria-label={`Go to ${item.layerName}`}
               onClick={() => onSegmentClick(item.index)}
-            >
-              {item.layerName}
-            </button>
+            />
           );
         })}
       </div>

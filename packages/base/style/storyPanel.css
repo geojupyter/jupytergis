@@ -251,19 +251,6 @@
   overflow-y: hidden;
 }
 
-.jgis-story-title-bar-label {
-  position: relative;
-  opacity: 0.7;
-  padding: 0.25rem 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.jgis-story-title-bar-label[data-state='active'] {
-  opacity: 1;
-  font-weight: bold;
-}
-
 .jgis-story-title-bar-segment {
   flex-shrink: 0;
   white-space: nowrap;
@@ -271,6 +258,12 @@
   background: transparent;
   font: inherit;
   color: inherit;
+}
+
+.jgis-story-title-bar-segment[data-active],
+.jgis-story-title-bar-segment-menu-item[data-active] {
+  opacity: 1;
+  font-weight: bold;
 }
 
 .jgis-story-title-bar-segment-menu-item {
