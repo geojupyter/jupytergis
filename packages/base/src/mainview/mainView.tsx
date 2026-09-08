@@ -424,8 +424,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      window.jupytergisMaps[this._documentPath] = this._Map;
+    if (window.jupytergisMaps !== undefined) {
+      // The shared model only emits a path change when the document is renamed,
+      // so on a normal open the path has to be read directly.
+      this._documentPath ??=
+        (this._model.sharedModel.getState('path') as string | undefined) ||
+        this._model.filePath ||
+        undefined;
+      this._registerMap(this._documentPath);
     }
   }
 
@@ -447,9 +453,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      delete window.jupytergisMaps[this._documentPath];
-    }
+    this._unregisterMap();
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
@@ -3169,15 +3173,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
     const path = this._model.sharedModel.getState('path');
     if (path !== this._documentPath && typeof path === 'string') {
-      if (window.jupytergisMaps !== undefined && this._documentPath) {
-        delete window.jupytergisMaps[this._documentPath];
-      }
       this._documentPath = path;
       if (window.jupytergisMaps !== undefined) {
-        window.jupytergisMaps[this._documentPath] = this._Map;
+        this._unregisterMap();
+        this._registerMap(path);
       }
     }
   };
+
+  /**
+   * Publish this map on `window.jupytergisMaps` under a unique key, and tag the
+   * map container with that key.
+   *
+   * Notebook widgets all share one synthetic document path, so the path alone
+   * is not a unique key; a suffix is appended when it is already taken. The
+   * container carries the key so a test holding a cell element can find its map
+   * without a second lookup mechanism.
+   */
+  private _registerMap(path?: string): void {
+    if (window.jupytergisMaps === undefined) {
+      return;
+    }
+    const base = path || 'unsaved';
+    let key = base;
+    for (let n = 2; window.jupytergisMaps[key] !== undefined; n++) {
+      key = `${base}#${n}`;
+    }
+    window.jupytergisMaps[key] = this._Map;
+    this._mapKey = key;
+    this._Map.getTargetElement()?.setAttribute('data-jgis-map', key);
+  }
+
+  private _unregisterMap(): void {
+    if (window.jupytergisMaps === undefined || this._mapKey === undefined) {
+      return;
+    }
+    delete window.jupytergisMaps[this._mapKey];
+    this._mapKey = undefined;
+    this._Map.getTargetElement()?.removeAttribute('data-jgis-map');
+  }
 
   private _clearHighlightWhenIdentifyDisabled(): void {
     if (
@@ -4197,6 +4231,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
+  private _mapKey?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _pendingZoomLayerId: string | null = null;
