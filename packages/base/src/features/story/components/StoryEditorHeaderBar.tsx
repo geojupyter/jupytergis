@@ -1,7 +1,7 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useState, type RefObject } from 'react';
+import React, { useState } from 'react';
 
 import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
