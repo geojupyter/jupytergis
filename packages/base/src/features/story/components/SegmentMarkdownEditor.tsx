@@ -15,6 +15,9 @@ import {
 
 type MarkdownEditorTab = 'write' | 'preview';
 
+const markdownTabTriggerClassName =
+  'bg-transparent shadow-none group-data-[variant=default]/tabs-list:data-active:bg-transparent group-data-[variant=default]/tabs-list:data-active:shadow-none data-active:bg-transparent data-active:shadow-none';
+
 export interface ISegmentMarkdownEditorProps {
   model: IJupyterGISModel;
   segmentId: string;
@@ -143,16 +146,20 @@ export function SegmentMarkdownEditor({
 
   return (
     <Tabs
-      className="jgis-panel-tabs"
+      className={'gap-0'}
       value={tab}
       onValueChange={nextTab => setTab(nextTab as MarkdownEditorTab)}
     >
       <TabsList
-        className="w-full rounded-b-none [&_[data-slot=tabs-trigger]]:text-muted-foreground"
+        className="w-full cursor-auto rounded-b-none [&_[data-slot=tabs-trigger]]:text-muted-foreground"
         aria-label="Markdown editor"
       >
-        <TabsTrigger value="write">Write</TabsTrigger>
-        <TabsTrigger value="preview">Preview</TabsTrigger>
+        <TabsTrigger className={markdownTabTriggerClassName} value="write">
+          <span className="jgis-underline-indicator">Write</span>
+        </TabsTrigger>
+        <TabsTrigger className={markdownTabTriggerClassName} value="preview">
+          <span className="jgis-underline-indicator">Preview</span>
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent
