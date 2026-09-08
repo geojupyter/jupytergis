@@ -305,9 +305,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      delete window.jupytergisMaps[this._documentPath];
-    }
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
@@ -1014,9 +1011,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
     const path = this._model.sharedModel.getState('path');
     if (path !== this._documentPath && typeof path === 'string') {
-      if (window.jupytergisMaps !== undefined && this._documentPath) {
-        delete window.jupytergisMaps[this._documentPath];
-      }
       this._documentPath = path;
       this._mapAdapter.registerMap(this._documentPath);
     }
@@ -1583,6 +1577,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _documentPath?: string;
+  private _mapKey?: string;
   private _contextMenu: ContextMenu;
   private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;
