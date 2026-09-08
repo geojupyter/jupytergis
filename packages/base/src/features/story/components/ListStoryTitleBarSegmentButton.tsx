@@ -22,7 +22,7 @@ export function ListStoryTitleBarSegmentButton({
     <Button
       type="button"
       variant="ghost"
-      className={cn('jgis-underline-indicator w-fit', className)}
+      className={cn('jgis-underline-indicator', className)}
       data-active={isActive ? true : undefined}
       aria-current={isActive ? 'true' : undefined}
       aria-label={ariaLabel}

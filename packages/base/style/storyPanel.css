@@ -241,7 +241,6 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 1.5rem;
-  margin-top: 3px;
   min-width: 0;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;

@@ -64,7 +64,7 @@
 .jgis-underline-indicator::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: 0;
   left: 0;
   width: 0;
   height: 3px;
