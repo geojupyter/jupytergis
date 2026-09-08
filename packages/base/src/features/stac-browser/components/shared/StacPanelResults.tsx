@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   Pagination,
   PaginationContent,
@@ -148,14 +148,14 @@ const StacPanelResults = () => {
           <LoadingIcon size="3x" />
         ) : (
           results.map(result => (
-            <ButtonTw
+            <Button
               key={result.id}
               variant="outline"
               className="jgis-stac-browser-results-item"
               onClick={() => handleResultClick(result.id)}
             >
               {formatResult(result)}
-            </ButtonTw>
+            </Button>
           ))
         )}
       </div>

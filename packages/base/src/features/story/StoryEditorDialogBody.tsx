@@ -43,7 +43,7 @@ import {
   getStoryMarkdownFromSlide,
   getStorySegmentDisplayTitle,
 } from '@/src/features/story/utils/storySegmentViewItems';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -121,7 +121,7 @@ function SegmentEditor({
             }}
           />
         </div>
-        <ButtonTw
+        <Button
           type="button"
           variant="destructive"
           disabled={!canRemoveSegment}
@@ -129,7 +129,7 @@ function SegmentEditor({
         >
           <Trash2 data-icon={isMobile ? undefined : 'inline-start'} />
           {isMobile ? null : 'Delete'}
-        </ButtonTw>
+        </Button>
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
@@ -166,7 +166,7 @@ function SegmentEditor({
                 this segment with its layer overrides applied.
               </p>
               <div className="jgis-story-editor-row">
-                <ButtonTw
+                <Button
                   variant="outline"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterMapViewMode(
@@ -175,8 +175,8 @@ function SegmentEditor({
                   }}
                 >
                   Set segment viewport
-                </ButtonTw>
-                <ButtonTw
+                </Button>
+                <Button
                   type="button"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterPreviewMode(
@@ -185,7 +185,7 @@ function SegmentEditor({
                   }}
                 >
                   Preview layer overrides
-                </ButtonTw>
+                </Button>
               </div>
             </div>
           </StoryEditorSection>

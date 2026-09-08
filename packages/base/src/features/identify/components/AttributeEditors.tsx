@@ -2,7 +2,7 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Ban, CirclePlus, Ellipsis, Save } from 'lucide-react';
 import React from 'react';
 
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +47,7 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <ButtonTw
+          <Button
             type="button"
             className="jgis-attribute-col-actions"
             title={title}
@@ -55,7 +55,7 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
             size="icon-sm"
           >
             <Ellipsis />
-          </ButtonTw>
+          </Button>
         }
       />
       <DropdownMenuContent side={side} onClick={onContentClick}>
@@ -164,7 +164,7 @@ export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
 
   return (
     <div className="jgis-attribute-row jgis-attribute-row-add">
-      <ButtonTw
+      <Button
         className="jgis-attribute-add-button"
         onClick={() => editorActions.onStartAddAttribute(rowIndex)}
         variant="outline"
@@ -172,7 +172,7 @@ export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
       >
         <CirclePlus data-icon="inline-start" />
         Add Attribute
-      </ButtonTw>
+      </Button>
     </div>
   );
 };

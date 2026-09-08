@@ -23,7 +23,7 @@ import {
   drawColorRamp,
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -604,7 +604,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
         </>
       )}
 
-      <ButtonTw
+      <Button
         type="button"
         variant="ghost"
         size="icon-xs"
@@ -613,7 +613,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
         title="Remove condition"
       >
         <FontAwesomeIcon icon={faXmark} />
-      </ButtonTw>
+      </Button>
     </span>
   );
 };
@@ -695,7 +695,7 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
       {fields.map((f, i) => (
         <span key={i} className="jp-gis-grammar-when-chip">
           {f}
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             size="icon-xs"
@@ -704,7 +704,7 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
             title="Remove field"
           >
             <FontAwesomeIcon icon={faXmark} />
-          </ButtonTw>
+          </Button>
         </span>
       ))}
       <div style={{ minWidth: 60, flex: '0 0 auto' }}>
@@ -1048,7 +1048,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                   ))}
                 </NativeSelect>
               </div>
-              <ButtonTw
+              <Button
                 type="button"
                 variant="ghost"
                 size="icon-xs"
@@ -1060,7 +1060,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                 }
               >
                 <FontAwesomeIcon icon={faTrash} />
-              </ButtonTw>
+              </Button>
             </div>
           ))}
 
@@ -1095,7 +1095,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(row.when?.length ?? 0) > 1 && (
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             size="xs"
@@ -1108,7 +1108,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             }
           >
             {row.whenOp ?? 'all'}
-          </ButtonTw>
+          </Button>
         )}
         {row.when?.map((pred, i) => (
           <WhenRow
@@ -1119,7 +1119,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             onDelete={() => removePredicate(i)}
           />
         ))}
-        <ButtonTw
+        <Button
           type="button"
           variant="outline"
           size="icon-xs"
@@ -1128,7 +1128,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           title="Add condition"
         >
           <FontAwesomeIcon icon={faPlus} />
-        </ButtonTw>
+        </Button>
       </div>
 
       {/* Inline scale editor */}

@@ -2,7 +2,7 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import { Eye, EyeOff, Search } from 'lucide-react';
 import React from 'react';
 
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import { CollapsibleHeader } from '@/src/shared/components/Collapsible';
 import { getFeatureIdentifier } from '../utils/getFeatureIdentifier';
 
@@ -45,7 +45,7 @@ export const FeatureCardHeader = React.forwardRef<
         actions={
           <>
             {featureIdentifier && (
-              <ButtonTw
+              <Button
                 size="icon-sm"
                 variant="ghost"
                 onClick={e => {
@@ -56,10 +56,10 @@ export const FeatureCardHeader = React.forwardRef<
                 title={isFloaterOpen ? 'Hide map floater' : 'Show map floater'}
               >
                 {isFloaterOpen ? <EyeOff /> : <Eye />}
-              </ButtonTw>
+              </Button>
             )}
 
-            <ButtonTw
+            <Button
               size="icon-sm"
               variant="ghost"
               onClick={e => {
@@ -75,7 +75,7 @@ export const FeatureCardHeader = React.forwardRef<
               disabled={isRasterFeature}
             >
               <Search />
-            </ButtonTw>
+            </Button>
           </>
         }
         {...props}

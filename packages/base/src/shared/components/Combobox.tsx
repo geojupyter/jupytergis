@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { ButtonTw } from './ButtonTw';
+import { Button } from './Button';
 import {
   InputGroup,
   InputGroupAddon,
@@ -402,9 +402,9 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
           render={
-            <ButtonTw variant="ghost" size="icon-xs">
+            <Button variant="ghost" size="icon-xs">
               <XIcon className="pointer-events-none" />
-            </ButtonTw>
+            </Button>
           }
         />
       )}

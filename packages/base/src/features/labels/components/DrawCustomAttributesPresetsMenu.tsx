@@ -2,7 +2,7 @@ import type { IDrawCustomAttributePresets } from '@jupytergis/schema';
 import { ChevronDown } from 'lucide-react';
 import React from 'react';
 
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +34,7 @@ export function DrawCustomAttributesPresetsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <ButtonTw
+          <Button
             type="button"
             variant="outline"
             size="sm"

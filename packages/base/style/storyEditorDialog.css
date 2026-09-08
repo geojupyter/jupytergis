@@ -582,7 +582,6 @@ button.jgis-story-editor-segment-item.jp-mod-styled.jgis-story-editor-segment-it
   flex-shrink: 1;
 }
 
-.jgis-narrow .jgis-story-map-interaction-bar-actions > .jgis-button,
 .jgis-narrow .jgis-story-map-interaction-bar-actions > button {
   flex: 1 1 0;
   min-width: 0;
@@ -828,9 +827,6 @@ Radix won't set hidden so do it manually */
 
 .jgis-story-editor-segment-layer-grid--mobile
   .jgis-story-editor-segment-layer-symbology
-  > .jgis-button,
-.jgis-story-editor-segment-layer-grid--mobile
-  .jgis-story-editor-segment-layer-symbology
   > button {
   width: 100%;
 }
@@ -950,7 +946,6 @@ Radix won't set hidden so do it manually */
     flex-direction: column;
   }
 
-  .jgis-story-editor-row > .jgis-button,
   .jgis-story-editor-row > button {
     width: 100%;
   }

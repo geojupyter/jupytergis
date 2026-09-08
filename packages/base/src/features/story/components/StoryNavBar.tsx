@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import type { StoryNavPlacement } from '../StoryViewerPanel';
 
 interface IStoryNavBarProps {
@@ -34,7 +34,7 @@ function StoryNavBar({
   return (
     <div className={containerClassName}>
       <div className={navbarClassName}>
-        <ButtonTw
+        <Button
           onClick={onPrev}
           disabled={!hasPrev}
           variant="outline"
@@ -43,8 +43,8 @@ function StoryNavBar({
           aria-label="Previous slide"
         >
           <ChevronLeft />
-        </ButtonTw>
-        <ButtonTw
+        </Button>
+        <Button
           onClick={onNext}
           disabled={!hasNext}
           variant="outline"
@@ -53,7 +53,7 @@ function StoryNavBar({
           aria-label="Next slide"
         >
           <ChevronRight />
-        </ButtonTw>
+        </Button>
       </div>
     </div>
   );

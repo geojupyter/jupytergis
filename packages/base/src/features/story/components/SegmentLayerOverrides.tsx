@@ -10,7 +10,7 @@ import {
   setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
@@ -129,7 +129,7 @@ export function SegmentLayerOverrides({
                 />
               </span>
               <span className="jgis-story-editor-segment-layer-reset">
-                <ButtonTw
+                <Button
                   type="button"
                   variant="ghost"
                   disabled={!row.isChanged}
@@ -139,7 +139,7 @@ export function SegmentLayerOverrides({
                   }}
                 >
                   <RotateCcw />
-                </ButtonTw>
+                </Button>
               </span>
             </li>
           );

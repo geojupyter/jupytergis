@@ -7,7 +7,7 @@ import {
   ProductsType,
 } from '@/src/features/stac-browser/constants';
 import { Badge } from '@/src/shared/components/Badge';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -160,7 +160,7 @@ const StacFilterSection = ({
         {selectedData.map(data => (
           <Badge key={data} className="jgis-stac-badge">
             <span>{data}</span>
-            <ButtonTw
+            <Button
               variant="ghost"
               size="icon-xs"
               className={
@@ -171,7 +171,7 @@ const StacFilterSection = ({
               }}
             >
               <X />
-            </ButtonTw>
+            </Button>
           </Badge>
         ))}
       </div>

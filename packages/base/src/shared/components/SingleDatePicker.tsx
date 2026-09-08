@@ -8,7 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
-import { ButtonTw } from './ButtonTw';
+import { Button } from './Button';
 import { cn } from './utils';
 
 interface ISingleDatePickerProps {
@@ -33,7 +33,7 @@ function SingleDatePicker({
       <PopoverTrigger
         className={'border-input'}
         render={
-          <ButtonTw
+          <Button
             data-empty={!date}
             className={cn(
               'justify-start text-left font-normal data-[empty=true]:text-muted-foreground',
@@ -43,7 +43,7 @@ function SingleDatePicker({
           >
             {showIcon && <CalendarIcon className="jgis-stac-datepicker-icon" />}
             {date ? format(date, dateFormat) : <span>{placeholder}</span>}
-          </ButtonTw>
+          </Button>
         }
       />
       <PopoverContent className={'w-fit'}>

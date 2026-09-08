@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 
 export interface IMapViewBarActionsProps {
   onBack: () => void;
@@ -13,13 +13,13 @@ export function MapViewBarActions({
 }: IMapViewBarActionsProps): JSX.Element {
   return (
     <>
-      <ButtonTw variant="outline" size="sm" onClick={onBack}>
+      <Button variant="outline" size="sm" onClick={onBack}>
         Back to editor
-      </ButtonTw>
+      </Button>
 
-      <ButtonTw size={'sm'} onClick={onApply}>
+      <Button size={'sm'} onClick={onApply}>
         Apply view
-      </ButtonTw>
+      </Button>
     </>
   );
 }
@@ -32,8 +32,8 @@ export function MapPreviewBarActions({
   onBack,
 }: IMapPreviewBarActionsProps): JSX.Element {
   return (
-    <ButtonTw size="sm" onClick={onBack}>
+    <Button size="sm" onClick={onBack}>
       Back to editor
-    </ButtonTw>
+    </Button>
   );
 }

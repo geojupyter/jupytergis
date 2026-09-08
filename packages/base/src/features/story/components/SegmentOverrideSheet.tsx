@@ -7,7 +7,7 @@ import {
   SymbologyDialog,
   SymbologyWidget,
 } from '@/src/features/layers/symbology/symbologyDialog';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   Sheet,
   SheetClose,
@@ -50,9 +50,9 @@ export function SegmentOverrideSheet({
     <Sheet open={open} onOpenChange={setOpen} modal={false}>
       <SheetTrigger
         render={
-          <ButtonTw size={'xs'} variant="outline">
+          <Button size={'xs'} variant="outline">
             Edit
-          </ButtonTw>
+          </Button>
         }
       />
       <SheetContent showCloseButton={false}>
@@ -73,10 +73,10 @@ export function SegmentOverrideSheet({
           />
         </div>
         <SheetFooter className="jgis-story-editor-sheet-footer">
-          <ButtonTw type="button" onClick={handleSave}>
+          <Button type="button" onClick={handleSave}>
             Save changes
-          </ButtonTw>
-          <SheetClose render={<ButtonTw variant="outline">Close</ButtonTw>} />
+          </Button>
+          <SheetClose render={<Button variant="outline">Close</Button>} />
         </SheetFooter>
       </SheetContent>
     </Sheet>

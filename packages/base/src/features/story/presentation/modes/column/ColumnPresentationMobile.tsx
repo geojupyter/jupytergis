@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
 import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   Drawer,
   DrawerContent,
@@ -152,7 +152,7 @@ export function ColumnPresentationMobile({
         swipeDirection="down"
         showSwipeHandle
       >
-        <DrawerTrigger render={<ButtonTw>Open Story Panel</ButtonTw>} />
+        <DrawerTrigger render={<Button>Open Story Panel</Button>} />
         <DrawerContent
           keepMounted
           container={container}

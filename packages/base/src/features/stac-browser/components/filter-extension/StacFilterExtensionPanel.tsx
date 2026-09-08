@@ -7,7 +7,7 @@ import StacTemporalExtent from '@/src/features/stac-browser/components/shared/St
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacFilterExtension } from '@/src/features/stac-browser/hooks/useStacFilterExtension';
 import { IStacCollection } from '@/src/features/stac-browser/types/types';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   Combobox,
   ComboboxContent,
@@ -104,7 +104,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           <ComboboxTrigger
             className={'border-input'}
             render={
-              <ButtonTw
+              <Button
                 variant="outline"
                 className="h-auto min-h-8 justify-between text-left whitespace-normal"
               />

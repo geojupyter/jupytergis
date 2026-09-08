@@ -18,7 +18,7 @@ import {
 } from '@/src/features/story/utils/spectaPresentation';
 import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
 import { Badge } from '@/src/shared/components/Badge';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -94,9 +94,9 @@ function StorySettingsPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <ButtonTw size={'icon-sm'} variant="ghost" title="Story settings">
+          <Button size={'icon-sm'} variant="ghost" title="Story settings">
             <FontAwesomeIcon icon={faGear} />
-          </ButtonTw>
+          </Button>
         }
       />
       <PopoverContent className={'w-fit'} align="end" side="bottom">
@@ -237,7 +237,7 @@ export function StoryEditorHeaderBar({
           {segmentCount} segment{segmentCount === 1 ? '' : 's'}
         </span>
         {story && canPreview ? (
-          <ButtonTw
+          <Button
             type="button"
             variant="outline"
             size="sm"
@@ -246,7 +246,7 @@ export function StoryEditorHeaderBar({
             }}
           >
             {isMobile ? 'Preview' : 'Preview story'}
-          </ButtonTw>
+          </Button>
         ) : null}
         {story && (
           <StorySettingsPopover

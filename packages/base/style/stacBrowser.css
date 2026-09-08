@@ -141,7 +141,7 @@
 }
 
 /* More specific selector to override button base styles */
-.jgis-button.jgis-queryable-combo-input-date-picker {
+.jgis-queryable-combo-input-date-picker {
   justify-content: flex-start;
 }
 

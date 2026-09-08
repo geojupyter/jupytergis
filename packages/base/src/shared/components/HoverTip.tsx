@@ -1,7 +1,7 @@
 import { ChevronRightIcon } from 'lucide-react';
 import React, { ReactNode } from 'react';
 
-import { ButtonTw } from './ButtonTw';
+import { Button } from './Button';
 import {
   Collapsible,
   CollapsibleContentAnimated,
@@ -67,7 +67,7 @@ export function HoverTip({
           >
             <CollapsibleTrigger
               render={
-                <ButtonTw
+                <Button
                   variant="ghost"
                   size="xs"
                   className="h-auto justify-start pl-0 text-muted-foreground hover:bg-transparent hover:text-foreground data-panel-open:bg-transparent data-panel-open:hover:bg-transparent"

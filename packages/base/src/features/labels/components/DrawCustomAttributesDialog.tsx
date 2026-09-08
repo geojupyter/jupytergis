@@ -13,7 +13,7 @@ import React, { useRef, useState } from 'react';
 import { DrawCustomAttributesPresetsMenu } from '@/src/features/labels/components/DrawCustomAttributesPresetsMenu';
 import { validatePresetName } from '@/src/features/labels/drawCustomAttributes';
 import { useDrawCustomAttributes } from '@/src/features/labels/hooks/useDrawCustomAttributes';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   CollapsibleContentAnimated,
   Collapsible,
@@ -72,7 +72,7 @@ function DrawCustomAttributeDraftRow({
         onKeyDown={handleKeyDown}
       />
       <div className="inline-flex gap-0">
-        <ButtonTw
+        <Button
           type="button"
           variant="ghost"
           size="icon-sm"
@@ -81,8 +81,8 @@ function DrawCustomAttributeDraftRow({
           disabled={!canSave}
         >
           <Save />
-        </ButtonTw>
-        <ButtonTw
+        </Button>
+        <Button
           type="button"
           variant="ghost"
           size="icon-sm"
@@ -91,7 +91,7 @@ function DrawCustomAttributeDraftRow({
           className="text-destructive"
         >
           <Ban />
-        </ButtonTw>
+        </Button>
       </div>
     </div>
   );
@@ -112,14 +112,14 @@ export function DrawCustomAttributesDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <ButtonTw
+          <Button
             variant={'outline'}
             size={'sm'}
             className={'rounded-[0.5rem]'}
           >
             <SlidersHorizontal data-icon="inline-start" />
             Edit
-          </ButtonTw>
+          </Button>
         }
       />
       <DialogContent>
@@ -248,7 +248,7 @@ function DrawCustomAttributesDialogContent({
                   {attribute.value}
                 </span>
                 <div className="inline-flex gap-0">
-                  <ButtonTw
+                  <Button
                     type="button"
                     variant="ghost"
                     size="icon-sm"
@@ -257,8 +257,8 @@ function DrawCustomAttributesDialogContent({
                     disabled={controlsDisabled}
                   >
                     <Pencil />
-                  </ButtonTw>
-                  <ButtonTw
+                  </Button>
+                  <Button
                     type="button"
                     variant="ghost"
                     size="icon-sm"
@@ -268,7 +268,7 @@ function DrawCustomAttributesDialogContent({
                     className="text-destructive"
                   >
                     <Trash2 />
-                  </ButtonTw>
+                  </Button>
                 </div>
               </div>
             );
@@ -319,7 +319,7 @@ function DrawCustomAttributesDialogContent({
                 }}
               />
               <div className="inline-flex gap-0">
-                <ButtonTw
+                <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
@@ -328,8 +328,8 @@ function DrawCustomAttributesDialogContent({
                   disabled={!isPresetNameValid}
                 >
                   <Save />
-                </ButtonTw>
-                <ButtonTw
+                </Button>
+                <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
@@ -338,14 +338,14 @@ function DrawCustomAttributesDialogContent({
                   onClick={resetPresetDraft}
                 >
                   <Ban />
-                </ButtonTw>
+                </Button>
               </div>
             </div>
           </CollapsibleContentAnimated>
         </Collapsible>
         <div className="jgis-draw-custom-attributes-row">
           <div className="jgis-draw-custom-attributes-actions">
-            <ButtonTw
+            <Button
               className="jgis-attribute-add-button"
               type="button"
               variant="outline"
@@ -355,8 +355,8 @@ function DrawCustomAttributesDialogContent({
             >
               <CirclePlus data-icon="inline-start" />
               Add Attribute
-            </ButtonTw>
-            <ButtonTw
+            </Button>
+            <Button
               type="button"
               variant="outline"
               size={'sm'}
@@ -365,7 +365,7 @@ function DrawCustomAttributesDialogContent({
             >
               <BookmarkPlus data-icon="inline-start" />
               Save as preset
-            </ButtonTw>
+            </Button>
           </div>
           <DrawCustomAttributesPresetsMenu
             presets={presets}

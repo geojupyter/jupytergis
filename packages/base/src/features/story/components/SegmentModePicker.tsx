@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 
 import type { StorySegmentDisplayMode } from '@/src/features/story/types/types';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 
 export interface ISegmentModePickerProps {
   value: StorySegmentDisplayMode;
@@ -21,7 +21,7 @@ export function SegmentModePicker({
     <section className="jgis-story-editor-block">
       <div className="jgis-story-editor-label">What is this segment?</div>
       <div className="jgis-story-editor-segment-mode-picker">
-        <ButtonTw
+        <Button
           type="button"
           variant="outline"
           className={`jgis-story-editor-segment-mode-card${
@@ -37,8 +37,8 @@ export function SegmentModePicker({
             <strong>Map</strong>
           </div>
           <span>Saved map view with optional title and caption</span>
-        </ButtonTw>
-        <ButtonTw
+        </Button>
+        <Button
           type="button"
           variant="outline"
           className={`jgis-story-editor-segment-mode-card${
@@ -54,7 +54,7 @@ export function SegmentModePicker({
             <strong>Text</strong>
           </div>
           <span>Full-screen markdown chapter</span>
-        </ButtonTw>
+        </Button>
       </div>
     </section>
   );

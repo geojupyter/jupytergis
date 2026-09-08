@@ -42,7 +42,7 @@ import {
   saveSymbology,
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import { InfoTip } from '@/src/shared/components/InfoTip';
 import {
   NativeSelect,
@@ -171,7 +171,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
         </>
       )}
 
-      <ButtonTw
+      <Button
         type="button"
         variant="ghost"
         onClick={onDelete}
@@ -179,7 +179,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
         style={{ marginLeft: 'auto' }}
       >
         <FontAwesomeIcon icon={faTrash} />
-      </ButtonTw>
+      </Button>
     </div>
   );
 };
@@ -332,7 +332,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           Layer {layerIndex + 1}
         </span>
         {layer.transforms.length === 0 && (
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             onClick={addTransform}
@@ -340,7 +340,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           >
             <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
             Transform
-          </ButtonTw>
+          </Button>
         )}
 
         {!isRaster && (
@@ -361,7 +361,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         )}
 
         {totalLayers > 1 && onMoveUp && (
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             size="icon-sm"
@@ -369,10 +369,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             title="Move layer up"
           >
             <FontAwesomeIcon icon={faArrowUp} />
-          </ButtonTw>
+          </Button>
         )}
         {totalLayers > 1 && onMoveDown && (
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             size="icon-sm"
@@ -380,10 +380,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             title="Move layer down"
           >
             <FontAwesomeIcon icon={faArrowDown} />
-          </ButtonTw>
+          </Button>
         )}
         {totalLayers > 1 && (
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             size="icon-sm"
@@ -391,7 +391,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             title="Remove layer"
           >
             <FontAwesomeIcon icon={faTrash} />
-          </ButtonTw>
+          </Button>
         )}
       </div>
 
@@ -399,7 +399,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       <div className="jp-gis-grammar-when-row">
         <span className="jp-gis-grammar-when-label">when</span>
         {(layer.when?.length ?? 0) > 1 && (
-          <ButtonTw
+          <Button
             type="button"
             variant="ghost"
             size="xs"
@@ -412,7 +412,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             }
           >
             {layer.whenOp ?? 'all'}
-          </ButtonTw>
+          </Button>
         )}
         {layer.when?.map((pred, i) => (
           <WhenRow
@@ -423,7 +423,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             onDelete={() => removeLayerPredicate(i)}
           />
         ))}
-        <ButtonTw
+        <Button
           type="button"
           variant="ghost"
           size="icon-xs"
@@ -432,7 +432,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           title="Add condition"
         >
           <FontAwesomeIcon icon={faPlus} />
-        </ButtonTw>
+        </Button>
       </div>
 
       {/* Transform params (single transform per layer) */}
@@ -504,14 +504,14 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           >
             {layer.rows.length > 1 && (
               <div className="jp-gis-grammar-reorder-bar">
-                <ButtonTw
+                <Button
                   type="button"
                   disabled={i === 0}
                   onClick={() => moveRow(i, i - 1)}
                   title="Move up"
                 >
                   <FontAwesomeIcon icon={faArrowUp} />
-                </ButtonTw>
+                </Button>
                 <div
                   className="jp-gis-grammar-drag-handle"
                   draggable
@@ -528,14 +528,14 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                 >
                   <FontAwesomeIcon icon={faGripVertical} />
                 </div>
-                <ButtonTw
+                <Button
                   type="button"
                   disabled={i === layer.rows.length - 1}
                   onClick={() => moveRow(i, i + 1)}
                   title="Move down"
                 >
                   <FontAwesomeIcon icon={faArrowDown} />
-                </ButtonTw>
+                </Button>
               </div>
             )}
             <MappingRow
@@ -554,14 +554,14 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       </div>
 
       <div className="jp-gis-symbology-button-container">
-        <ButtonTw
+        <Button
           variant="ghost"
           style={{ margin: '0 0 0.5rem 1rem' }}
           onClick={addRow}
         >
           <FontAwesomeIcon icon={faPlus} />
           Add Mapping
-        </ButtonTw>
+        </Button>
       </div>
     </div>
   );
@@ -770,9 +770,9 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <ButtonTw variant="outline" size="sm" onClick={addLayer}>
+        <Button variant="outline" size="sm" onClick={addLayer}>
           Add Layer
-        </ButtonTw>
+        </Button>
       </div>
     </div>
   );

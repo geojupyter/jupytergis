@@ -2,7 +2,7 @@ import { WidgetProps } from '@rjsf/utils';
 import React, { ChangeEvent, useState } from 'react';
 
 import { WMS_AVAILABLE_LAYERS_CACHE } from '@/src/features/layers/forms/source';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import { GlobalStateDbManager } from '@/src/shared/store';
 import { fetchWithProxies } from '@/src/tools';
@@ -127,7 +127,7 @@ export function WmsTileSourceUrlInput(
           placeholder="Enter WMS URL"
           style={{ flexGrow: 1 }}
         />
-        <ButtonTw
+        <Button
           variant="outline"
           size="sm"
           type="button"
@@ -135,7 +135,7 @@ export function WmsTileSourceUrlInput(
           disabled={isLoading}
         >
           {isLoading ? 'Connecting…' : 'Connect'}
-        </ButtonTw>
+        </Button>
       </div>
       {error && (
         <div style={{ marginTop: '0.5rem', color: 'var(--jp-error-color1)' }}>

@@ -2,7 +2,7 @@ import { Collapsible as CollapsiblePrimitive } from '@base-ui/react/collapsible'
 import { ChevronRightIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { ButtonTw } from './ButtonTw';
+import { Button } from './Button';
 import { cn } from './utils';
 
 function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props) {
@@ -63,13 +63,13 @@ const CollapsibleHeader = React.forwardRef<
       {...props}
     >
       <div className="flex min-w-0 items-center gap-1">
-        <ButtonTw
+        <Button
           size="icon-xs"
           variant="ghost"
           className="jgis-rotate-90 hover:bg-transparent"
         >
           <ChevronRightIcon />
-        </ButtonTw>
+        </Button>
         <span id={titleId} className="truncate">
           {title}
         </span>

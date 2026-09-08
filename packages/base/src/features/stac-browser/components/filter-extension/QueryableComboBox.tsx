@@ -14,7 +14,7 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/features/stac-browser/types/types';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
+import { Button } from '@/src/shared/components/Button';
 import {
   Combobox,
   ComboboxContent,
@@ -345,7 +345,7 @@ export function QueryableComboBox({
       >
         <ComboboxTrigger
           className={'border-input'}
-          render={<ButtonTw variant="outline" className="justify-between" />}
+          render={<Button variant="outline" className="justify-between" />}
         >
           <span className="truncate">{getButtonText()}</span>
         </ComboboxTrigger>
