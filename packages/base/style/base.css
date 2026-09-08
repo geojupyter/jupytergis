@@ -116,14 +116,6 @@
   flex-direction: column;
 }
 
-.jp-gis-text-label {
-  margin: 0;
-  padding: 0;
-  font-weight: bold;
-  display: block;
-  position: relative;
-}
-
 /*This is being upstreamed. Will remove once upstream's been fixed.*/
 button.jp-mod-styled.jp-mod-accept {
   background-color: var(--jp-brand-color1) !important;
@@ -380,10 +372,6 @@ body[data-notebook='specta']
 /* Fix for map in mobile specta view */
 body[data-notebook='specta'] #main.jp-ThemedContainer {
   overflow: visible;
-}
-
-.jgis-center-content {
-  text-align: center;
 }
 
 .jgis-rotate-90 {

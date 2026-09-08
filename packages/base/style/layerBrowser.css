@@ -64,13 +64,6 @@
   position: relative;
 }
 
-.jGIS-layer-browser-header-search-icon {
-  position: absolute;
-  top: 50%;
-  left: 0.75rem;
-  transform: translateY(-50%);
-}
-
 .jGIS-layer-browser-header-search {
   box-shadow: none;
   flex: 1 1 0%;
@@ -266,11 +259,6 @@
   text-transform: capitalize;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.jGIS-layer-browser-text-p {
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .jGIS-layer-browser-text-source {

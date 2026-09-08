@@ -171,7 +171,7 @@
   border-color: var(--jp-ui-inverse-font-color1);
 }
 
-*/ .jp-gis-layerSlideNumber {
+.jp-gis-layerSlideNumber {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;

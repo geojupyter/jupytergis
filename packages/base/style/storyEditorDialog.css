@@ -869,13 +869,6 @@ Radix won't set hidden so do it manually */
     justify-content: flex-start;
   }
 
-  .jgis-story-editor-opacity-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
   .jgis-story-editor-opacity-value {
     min-width: 2.5rem;
     text-align: right;
