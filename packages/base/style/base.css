@@ -23,7 +23,6 @@
 @import url('./labels.css');
 @import url('./openeo.css');
 @import url('./shared/button.css');
-@import url('./shared/infoTip.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
 
@@ -43,6 +42,16 @@
 .jp-ThemedContainer button[data-slot],
 .jp-ThemedContainer [data-slot] :is(button) {
   border-radius: revert-layer;
+}
+
+/*
+  JupyterLab unsets link color/decoration on `.jp-ThemedContainer a`.
+  Revert so Tailwind utilities on hover-card content can apply.
+*/
+.jp-ThemedContainer [data-slot='hover-card-content'] a,
+.jp-ThemedContainer [data-slot='hover-card-content'] a:hover {
+  color: revert-layer;
+  text-decoration: revert-layer;
 }
 
 .jgis-underline-indicator {
