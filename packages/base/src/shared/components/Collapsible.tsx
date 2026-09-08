@@ -52,10 +52,7 @@ interface ICollapsibleHeaderProps extends Omit<
 const CollapsibleHeader = React.forwardRef<
   HTMLDivElement,
   ICollapsibleHeaderProps
->(function CollapsibleHeader(
-  { title, titleId, actions, className, ...props },
-  ref,
-) {
+>(({ title, titleId, actions, className, ...props }, ref) => {
   return (
     <div
       ref={ref}

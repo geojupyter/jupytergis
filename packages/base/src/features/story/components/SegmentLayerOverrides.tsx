@@ -10,10 +10,10 @@ import {
   setSegmentLayerOpacity,
   setSegmentLayerVisibility,
 } from '@/src/features/story/utils/storySegmentLayerOverrides';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;

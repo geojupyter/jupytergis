@@ -5,11 +5,11 @@ import React, { useCallback, useRef, useState } from 'react';
 import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { getStorySegmentDisplayTitle } from '@/src/features/story/utils/storySegmentViewItems';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface IStoryEditorSegmentListProps {
   segments: IStorySegmentViewItem[];

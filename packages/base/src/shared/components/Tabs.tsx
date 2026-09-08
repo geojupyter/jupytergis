@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { useCallback, useRef } from 'react';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 import { cva, type VariantProps } from 'class-variance-authority';
+import * as React from 'react';
+import { useCallback, useRef } from 'react';
 
 import {
   cn,
@@ -45,7 +45,7 @@ const tabsListVariants = cva(
 const TabsList = React.forwardRef<
   HTMLDivElement,
   TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>
->(function TabsList({ className, variant = 'default', ...props }, ref) {
+>(({ className, variant = 'default', ...props }, ref) => {
   return (
     <TabsPrimitive.List
       ref={ref}
@@ -60,7 +60,7 @@ const TabsList = React.forwardRef<
 const TabsTrigger = React.forwardRef<
   HTMLButtonElement,
   TabsPrimitive.Tab.Props
->(function TabsTrigger({ className, ...props }, ref) {
+>(({ className, ...props }, ref) => {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   useStripJupyterLabStyling(triggerRef, stripJupyterButtonStyling);

@@ -7,7 +7,6 @@ import {
 import { User } from '@jupyterlab/services';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { cn } from '@/src/shared/components/utils';
 import { FeatureCard } from './components/FeatureCard';
 import { useIdentifyAttributeEditor } from './hooks/useIdentifyAttributeEditor';
 import { PatchGeoJSONFeatureAttributes } from './types/editorTypes';

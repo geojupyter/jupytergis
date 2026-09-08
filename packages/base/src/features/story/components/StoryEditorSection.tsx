@@ -38,9 +38,7 @@ export function StoryEditorSection({
     >
       <CollapsibleTrigger
         nativeButton={false}
-        render={
-          <CollapsibleHeader title={triggerText} titleId={triggerId} />
-        }
+        render={<CollapsibleHeader title={triggerText} titleId={triggerId} />}
       />
       <CollapsibleContentAnimated className="jgis-story-editor-section-body">
         {children}

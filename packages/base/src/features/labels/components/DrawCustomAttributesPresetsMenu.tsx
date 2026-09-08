@@ -2,6 +2,7 @@ import type { IDrawCustomAttributePresets } from '@jupytergis/schema';
 import { ChevronDown } from 'lucide-react';
 import React from 'react';
 
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +10,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 interface IDrawCustomAttributesPresetsMenuProps {
   presets: IDrawCustomAttributePresets;

@@ -1,5 +1,3 @@
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ChevronRight, X } from 'lucide-react';
 import React, { useMemo } from 'react';
 

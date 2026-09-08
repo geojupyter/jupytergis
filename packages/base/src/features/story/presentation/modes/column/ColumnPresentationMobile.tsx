@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react';
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
 import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Drawer,
   DrawerContent,
   DrawerTrigger,
 } from '@/src/shared/components/Drawer';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 const MAIN_ID = 'jp-main-content-panel';
 const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';

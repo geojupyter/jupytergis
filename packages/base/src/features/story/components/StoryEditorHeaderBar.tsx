@@ -18,6 +18,7 @@ import {
 } from '@/src/features/story/utils/spectaPresentation';
 import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
 import { Badge } from '@/src/shared/components/Badge';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -33,7 +34,6 @@ import {
 import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { STORY_TYPE } from '@/src/types';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface IStoryEditorHeaderBarProps {
   model: IJupyterGISModel;

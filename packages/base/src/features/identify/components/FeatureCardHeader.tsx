@@ -17,67 +17,69 @@ interface IFeatureCardHeaderProps extends React.ComponentPropsWithoutRef<'div'> 
 export const FeatureCardHeader = React.forwardRef<
   HTMLDivElement,
   IFeatureCardHeaderProps
->(function FeatureCardHeader(
-  {
-    feature,
-    featureTitle,
-    isFloaterOpen,
-    onToggleFloater,
-    onHighlightFeature,
-    className,
-    ...props
-  },
-  ref,
-) {
-  const featureIdentifier = getFeatureIdentifier(feature);
-  const isRasterFeature =
-    !feature.geometry &&
-    !feature._geometry &&
-    typeof feature?.x !== 'number' &&
-    typeof feature?.y !== 'number';
+>(
+  (
+    {
+      feature,
+      featureTitle,
+      isFloaterOpen,
+      onToggleFloater,
+      onHighlightFeature,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
+    const featureIdentifier = getFeatureIdentifier(feature);
+    const isRasterFeature =
+      !feature.geometry &&
+      !feature._geometry &&
+      typeof feature?.x !== 'number' &&
+      typeof feature?.y !== 'number';
 
-  return (
-    <CollapsibleHeader
-      ref={ref}
-      title={featureTitle}
-      className={className}
-      actions={
-        <>
-          {featureIdentifier && (
+    return (
+      <CollapsibleHeader
+        ref={ref}
+        title={featureTitle}
+        className={className}
+        actions={
+          <>
+            {featureIdentifier && (
+              <ButtonTw
+                size="icon-sm"
+                variant="ghost"
+                onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggleFloater();
+                }}
+                title={isFloaterOpen ? 'Hide map floater' : 'Show map floater'}
+              >
+                {isFloaterOpen ? <EyeOff /> : <Eye />}
+              </ButtonTw>
+            )}
+
             <ButtonTw
               size="icon-sm"
               variant="ghost"
               onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
-                onToggleFloater();
+                onHighlightFeature(feature);
               }}
-              title={isFloaterOpen ? 'Hide map floater' : 'Show map floater'}
+              title={
+                isRasterFeature
+                  ? 'Highlight not available for raster features'
+                  : 'Highlight feature on map'
+              }
+              disabled={isRasterFeature}
             >
-              {isFloaterOpen ? <EyeOff /> : <Eye />}
+              <Search />
             </ButtonTw>
-          )}
-
-          <ButtonTw
-            size="icon-sm"
-            variant="ghost"
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
-              onHighlightFeature(feature);
-            }}
-            title={
-              isRasterFeature
-                ? 'Highlight not available for raster features'
-                : 'Highlight feature on map'
-            }
-            disabled={isRasterFeature}
-          >
-            <Search />
-          </ButtonTw>
-        </>
-      }
-      {...props}
-    />
-  );
-});
+          </>
+        }
+        {...props}
+      />
+    );
+  },
+);

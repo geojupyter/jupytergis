@@ -7,6 +7,7 @@ import {
   SymbologyDialog,
   SymbologyWidget,
 } from '@/src/features/layers/symbology/symbologyDialog';
+import { ButtonTw } from '@/src/shared/components/ButtonTw';
 import {
   Sheet,
   SheetClose,
@@ -17,7 +18,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/src/shared/components/Sheet';
-import { ButtonTw } from '@/src/shared/components/ButtonTw';
 
 export interface ISegmentOverrideSheetProps {
   model: IJupyterGISModel;
