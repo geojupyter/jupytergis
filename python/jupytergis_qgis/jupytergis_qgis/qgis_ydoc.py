@@ -5,7 +5,7 @@ from functools import partial
 from typing import Any
 
 from jupyter_ydoc.ybasedoc import YBaseDoc
-from jupytergis_core.schema import SCHEMA_VERSION
+from jupytergis_core.schema import SCHEMA_VERSION, VERSION
 from pycrdt import Array, Map
 
 
@@ -49,10 +49,12 @@ class YQGISBase(YBaseDoc):
 
     @property
     def version(self) -> str:
-        return SCHEMA_VERSION
+        return VERSION
 
     def get(self):
         virtual_file = {
+            "version": VERSION,
+            "schemaVersion": SCHEMA_VERSION,
             "layers": self._ylayers.to_py(),
             "sources": self._ysources.to_py(),
             "layerTree": reversed_tree(self._ylayerTree.to_py()),

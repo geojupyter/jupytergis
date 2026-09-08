@@ -7,7 +7,7 @@
  */
 
 import { migrate as migrateV0_5ToV0_6 } from './v0_5_to_v0_6';
-import { SCHEMA_VERSION } from '../_interface/version';
+import { SCHEMA_VERSION, VERSION } from '../_interface/version';
 
 interface IMigrationStep {
   from: string;
@@ -138,15 +138,25 @@ export function migrateDocument(
   toVersion?: string,
 ): Record<string, any> {
   const target = toVersion ?? SCHEMA_VERSION;
-  const fileVersion: string = doc.schemaVersion ?? '0.5.0';
 
-  if (_compareVersions(fileVersion, SCHEMA_VERSION) > 0) {
+  const documentVersion: string = doc.version ?? VERSION;
+
+  if (_compareVersions(documentVersion, VERSION) > 0) {
     throw new Error(
-      `Cannot load file with schema version ${fileVersion} (current: ${SCHEMA_VERSION})`,
+      `Cannot open file with JupyterGIS version ${documentVersion} ` +
+        `(current: ${VERSION}). The file was created with a newer version of JupyterGIS.`,
     );
   }
 
-  let current = fileVersion;
+  const schemaVersion: string = doc.schemaVersion ?? '0.5.0';
+
+  if (_compareVersions(schemaVersion, SCHEMA_VERSION) > 0) {
+    throw new Error(
+      `Cannot load file with schema version ${schemaVersion} (current: ${SCHEMA_VERSION})`,
+    );
+  }
+
+  let current = schemaVersion;
   let result = { ...doc };
 
   for (const step of STEPS) {
@@ -171,7 +181,7 @@ export function migrateDocument(
 function _compareVersions(a: string, b: string): number {
   const pa = a.split('.').map(Number);
   const pb = b.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     const diff = (pa[i] ?? 0) - (pb[i] ?? 0);
     if (diff !== 0) {
       return diff;
