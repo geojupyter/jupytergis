@@ -282,7 +282,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
-    if (this._documentPath) {
+    if (window.jupytergisMaps !== undefined) {
+      // The shared model only emits a path change when the document is renamed,
+      // so on a normal open the path has to be read directly.
+      this._documentPath ??=
+        (this._model.sharedModel.getState('path') as string | undefined) ||
+        this._model.filePath ||
+        undefined;
       this._mapAdapter.registerMap(this._documentPath);
     }
   }
@@ -305,6 +311,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
+    this._mapAdapter.unregisterMap();
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
@@ -1012,7 +1019,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const path = this._model.sharedModel.getState('path');
     if (path !== this._documentPath && typeof path === 'string') {
       this._documentPath = path;
-      this._mapAdapter.registerMap(this._documentPath);
+      if (window.jupytergisMaps !== undefined) {
+        this._mapAdapter.unregisterMap();
+        this._mapAdapter.registerMap(path);
+      }
     }
   };
 
@@ -1577,7 +1587,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _documentPath?: string;
-  private _mapKey?: string;
   private _contextMenu: ContextMenu;
   private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;

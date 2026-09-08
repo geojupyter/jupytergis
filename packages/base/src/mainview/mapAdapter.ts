@@ -36,7 +36,8 @@ export interface IMapAdapter {
   };
   getPixelFromCoordinate(coordinate: Coordinate): [number, number];
 
-  registerMap(path: string): void;
+  registerMap(path?: string): void;
+  unregisterMap(): void;
 
   onZoomToPosition(_: IJupyterGISModel, id: string): void;
   convertFeatureToMs(_: IJupyterGISModel, args: string): void;

@@ -602,10 +602,36 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._model.syncPointer(pointer);
   });
 
-  registerMap(path: string): void {
-    if (window.jupytergisMaps !== undefined) {
-      window.jupytergisMaps[path] = this._map;
+  /**
+   * Publish this map on `window.jupytergisMaps` under a unique key, and tag the
+   * map container with that key.
+   *
+   * Notebook widgets all share one synthetic document path, so the path alone
+   * is not a unique key; a suffix is appended when it is already taken. The
+   * container carries the key so a test holding a cell element can find its map
+   * without a second lookup mechanism.
+   */
+  registerMap(path?: string): void {
+    if (window.jupytergisMaps === undefined) {
+      return;
     }
+    const base = path || 'unsaved';
+    let key = base;
+    for (let n = 2; window.jupytergisMaps[key] !== undefined; n++) {
+      key = `${base}#${n}`;
+    }
+    window.jupytergisMaps[key] = this._map;
+    this._mapKey = key;
+    this._map.getTargetElement()?.setAttribute('data-jgis-map', key);
+  }
+
+  unregisterMap(): void {
+    if (window.jupytergisMaps === undefined || this._mapKey === undefined) {
+      return;
+    }
+    delete window.jupytergisMaps[this._mapKey];
+    this._mapKey = undefined;
+    this._map.getTargetElement()?.removeAttribute('data-jgis-map');
   }
 
   /** Compute the current view extent in `targetProjection`. */
@@ -2851,6 +2877,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _mainViewId?: string;
   private _ready = false;
   private _drawTool: DrawToolController;
+  private _mapKey?: string;
   private _pendingZoomLayerId: string | null = null;
   private _loggerRegistry?: ILoggerRegistry;
   private _loadingLayers: Set<string>;
