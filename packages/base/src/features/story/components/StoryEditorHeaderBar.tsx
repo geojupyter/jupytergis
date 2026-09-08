@@ -41,7 +41,6 @@ export interface IStoryEditorHeaderBarProps {
   segmentCount: number;
   isMobile: boolean;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
-  portalContainerRef: RefObject<HTMLElement | null>;
 }
 
 function StoryOpacityField({
@@ -78,11 +77,9 @@ function StoryOpacityField({
 function StorySettingsPopover({
   story,
   onUpdateStory,
-  portalContainerRef,
 }: {
   story: IJGISStoryMap;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
-  portalContainerRef: RefObject<HTMLElement | null>;
 }): JSX.Element {
   const [open, setOpen] = useState(false);
 
@@ -209,7 +206,6 @@ export function StoryEditorHeaderBar({
   segmentCount,
   isMobile,
   onUpdateStory,
-  portalContainerRef,
 }: IStoryEditorHeaderBarProps): JSX.Element {
   const canPreview = model.canUseStoryPreview();
 
@@ -245,11 +241,7 @@ export function StoryEditorHeaderBar({
           </Button>
         ) : null}
         {story && (
-          <StorySettingsPopover
-            story={story}
-            onUpdateStory={onUpdateStory}
-            portalContainerRef={portalContainerRef}
-          />
+          <StorySettingsPopover story={story} onUpdateStory={onUpdateStory} />
         )}
       </div>
     </div>

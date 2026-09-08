@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import React, { type RefObject, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   SymbologyDialog,
@@ -23,14 +23,12 @@ export interface ISegmentOverrideSheetProps {
   model: IJupyterGISModel;
   segmentId: string;
   layerId: string;
-  portalContainerRef: RefObject<HTMLElement | null>;
 }
 
 export function SegmentOverrideSheet({
   model,
   segmentId,
   layerId,
-  portalContainerRef,
 }: ISegmentOverrideSheetProps): JSX.Element {
   const [open, setOpen] = useState(false);
 
