@@ -149,7 +149,7 @@ export function SegmentMarkdownEditor({
     >
       <TabsList
         variant="underline"
-        className="w-full cursor-auto rounded-b-none [&_[data-slot=tabs-trigger]]:text-muted-foreground"
+        className="w-full cursor-auto rounded-b-none"
         aria-label="Markdown editor"
       >
         <TabsTrigger value="write">

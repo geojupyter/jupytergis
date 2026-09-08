@@ -83,7 +83,9 @@
 }
 
 .jgis-underline-indicator[data-active],
-[data-active] > .jgis-underline-indicator {
+[data-active] > .jgis-underline-indicator,
+.jgis-underline-indicator:hover,
+:hover > .jgis-underline-indicator {
   opacity: 1;
 }
 
