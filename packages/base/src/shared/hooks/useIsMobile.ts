@@ -32,6 +32,9 @@ export function useIsMobile(
     }
 
     const update = (width: number): void => {
+      if (width === 0) {
+        return;
+      }
       setIsMobile(width < breakpoint);
     };
 

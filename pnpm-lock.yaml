@@ -307,7 +307,7 @@ importers:
         specifier: ^2.0.0 || ^3.0.0 || ^4.0.0
         version: 4.1.1
       '@jupytergis/schema':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -480,12 +480,12 @@ importers:
       pmtiles:
         specifier: ^3.0.7
         version: 3.2.1
+      proj-codes:
+        specifier: ^0.0.4
+        version: 0.0.4
       proj4:
         specifier: 2.19.3
         version: 2.19.3(geotiff@2.1.3)
-      proj4-list:
-        specifier: 1.0.4
-        version: 1.0.4
       radix-ui:
         specifier: ^1.4.3
         version: 1.6.2(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -624,10 +624,10 @@ importers:
         specifier: ^4.1.2 || ^5.0.0-alpha.0
         version: 4.4.1(react@18.3.1)
       '@jupytergis/base':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../../packages/base
       '@jupytergis/schema':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../../packages/schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -745,10 +745,10 @@ importers:
         specifier: ^4.1.2 || ^5.0.0-alpha.0
         version: 4.4.1(react@18.3.1)
       '@jupytergis/base':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../../packages/base
       '@jupytergis/schema':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../../packages/schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -824,13 +824,13 @@ importers:
         specifier: ^4.1.2 || ^5.0.0-alpha.0
         version: 4.4.1(react@18.3.1)
       '@jupytergis/base':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../../packages/base
       '@jupytergis/jupytergis-core':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../jupytergis_core
       '@jupytergis/schema':
-        specifier: ^0.16.1
+        specifier: ^0.16.2
         version: link:../../packages/schema
       '@jupyterlab/application':
         specifier: ^4.6
@@ -7905,8 +7905,8 @@ packages:
     resolution: {integrity: sha512-QE8RApCM3IaRRxVzxrjbgNMpQEX6Wu0p0KBeoSiSEw5/bsGwZHsshF4LCxH2jp/r6BU+bqA3LrMDEYNfJnpD8Q==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  proj4-list@1.0.4:
-    resolution: {integrity: sha512-BMU39s6xU/bIi3ro9unYo94HauD4bO1u1qXVtoqtc+8qdAKtXXe2FV9zGxEVM/tyNeQUdxX8QHPUtGCktFPwAg==}
+  proj-codes@0.0.4:
+    resolution: {integrity: sha512-KCIlQtOQxuaGa1pmldQ1GXPeMuQPpl5Q+Vg5eWXAm33vVMwWjoDnufZp5Bk1RIqWIzrVNM1tJW7lvMbW08R7zg==}
 
   proj4@2.19.3:
     resolution: {integrity: sha512-sXMnThBbpAzYqYLtKDOzmLGvvfFAv+VIJKKDOUied/xWVeVPKi0pwDFUHnLD4OysbIR1lF4aYO5J4LhJxgKMGw==}
@@ -18394,7 +18394,7 @@ snapshots:
 
   proggy@3.0.0: {}
 
-  proj4-list@1.0.4: {}
+  proj-codes@0.0.4: {}
 
   proj4@2.19.3(geotiff@2.1.3):
     dependencies:

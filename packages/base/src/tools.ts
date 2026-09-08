@@ -1269,6 +1269,13 @@ export interface IBackendCatalog {
   collections: any[];
   processes: any[];
   outputFormats: IFileFormat[];
+  /**
+   * User-defined processes (UDPs) stored on the backend. These are process
+   * graphs the backend has registered under `/process_graphs`, referenceable
+   * by id from other graphs — the basis for "graphs that extend other
+   * graphs". Empty when the backend exposes none (or doesn't support them).
+   */
+  userProcesses: any[];
 }
 
 const _openEOCatalogCache = new Map<string, Promise<IBackendCatalog>>();
@@ -1295,7 +1302,7 @@ export async function fetchBackendCatalog(
   }
   const promise = (async (): Promise<IBackendCatalog> => {
     const connection = await openEOConnect(connectionInfo);
-    const [cols, procs, formats] = await Promise.all([
+    const [cols, procs, formats, udps] = await Promise.all([
       connection.listCollections(),
       connection.listProcesses(),
       // Older clients / backends may not expose listFileTypes — degrade
@@ -1304,6 +1311,19 @@ export async function fetchBackendCatalog(
         try {
           if (typeof (connection as any).listFileTypes === 'function') {
             return await (connection as any).listFileTypes();
+          }
+        } catch {
+          /* ignore */
+        }
+        return null;
+      })(),
+      // User-defined processes. Not every backend exposes them; a backend
+      // without the /process_graphs endpoint (or an unauthenticated session)
+      // should degrade to "no UDPs" rather than failing the whole catalog.
+      (async () => {
+        try {
+          if (typeof (connection as any).listUserProcesses === 'function') {
+            return await (connection as any).listUserProcesses();
           }
         } catch {
           /* ignore */
@@ -1322,10 +1342,17 @@ export async function fetchBackendCatalog(
       id,
       ...(outputRaw[id] ?? {}),
     }));
+    // listUserProcesses() returns a ResponseArray of UserProcess entities;
+    // flatten each to plain metadata (id/parameters/…) via toJSON so the
+    // rest of the app treats them like any other process spec.
+    const userProcesses: any[] = Array.isArray(udps)
+      ? udps.map((p: any) => (typeof p?.toJSON === 'function' ? p.toJSON() : p))
+      : [];
     return {
       collections: (cols as any)?.collections ?? [],
       processes: (procs as any)?.processes ?? [],
       outputFormats,
+      userProcesses,
     };
   })();
   _openEOCatalogCache.set(key, promise);

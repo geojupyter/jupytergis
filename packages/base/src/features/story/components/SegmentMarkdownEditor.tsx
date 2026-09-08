@@ -172,6 +172,7 @@ export function SegmentMarkdownEditor({
             ref={hostRef}
             className="jgis-story-editor-markdown-editor"
             aria-label="Markdown source"
+            data-lm-suppress-shortcuts="true"
           />
         </div>
       </TabsContent>

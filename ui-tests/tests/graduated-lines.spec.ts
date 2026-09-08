@@ -1,7 +1,35 @@
 import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
+import {
+  getLayerSummary,
+  getResolvedFeatureStyles,
+  mapKeyForFile,
+  waitForMapReady,
+} from './utils/map';
+
 const FILENAME = 'graduated-lines-test.jGIS';
+const ROADS_LAYER = 'a1b2c3d4-0000-4000-8000-000000000002';
+
+const SPEED_LIMITS = [30, 50, 70, 90, 110];
+
+// The fixture ramps `speed_limit` over viridis in five equal-interval classes,
+// one per road. Assert what viridis guarantees rather than the exact
+// intermediate colours, which depend on the colormap implementation: the ends
+// of the ramp, five distinct classes, and a green channel that only rises.
+const assertViridisRamp = (strokes: Array<{ value: any; stroke?: string }>) => {
+  expect(strokes.map(({ value }) => value)).toEqual(SPEED_LIMITS);
+
+  const colors = strokes.map(({ stroke }) => stroke);
+  expect(colors[0]).toBe('rgba(68,1,84,1)');
+  expect(colors[colors.length - 1]).toBe('rgba(253,231,37,1)');
+  expect(new Set(colors).size).toBe(SPEED_LIMITS.length);
+
+  const green = colors.map(color => Number(color?.split(',')[1]));
+  for (let i = 1; i < green.length; i++) {
+    expect(green[i]).toBeGreaterThan(green[i - 1]);
+  }
+};
 
 test.describe('#graduatedLines', () => {
   test.beforeAll(async ({ request }) => {
@@ -22,16 +50,22 @@ test.describe('#graduatedLines', () => {
   });
 
   test('graduated symbology renders on line layer', async ({ page }) => {
-    const main = page.locator('.jGIS-Mainview');
-    await expect(main).toBeVisible();
+    const map = await mapKeyForFile(page, FILENAME);
+    await waitForMapReady(page, map);
 
-    // Wait for the map and vector layer to render
-    await new Promise(_ => setTimeout(_, 2000));
+    const layers = await getLayerSummary(page, map);
+    const roads = layers.find(layer => layer.id === ROADS_LAYER);
+    expect(roads).toBeDefined();
+    expect(roads?.visible).toBe(true);
+    expect(roads?.featureCount).toBe(5);
 
-    expect(await main.screenshot()).toMatchSnapshot({
-      name: 'graduated-lines-render.png',
-      maxDiffPixelRatio: 0.02,
-    });
+    const styles = await getResolvedFeatureStyles(
+      page,
+      map,
+      ROADS_LAYER,
+      'speed_limit',
+    );
+    assertViridisRamp(styles);
   });
 
   test('graduated symbology dialog opens with grammar panel', async ({
@@ -61,8 +95,8 @@ test.describe('#graduatedLines', () => {
   test('applying graduated symbology on line layer uses stroke color', async ({
     page,
   }) => {
-    const main = page.locator('.jGIS-Mainview');
-    await expect(main).toBeVisible();
+    const map = await mapKeyForFile(page, FILENAME);
+    await waitForMapReady(page, map);
 
     // Open the symbology dialog
     await page
@@ -77,13 +111,15 @@ test.describe('#graduatedLines', () => {
     await dialog.getByText('Ok', { exact: true }).first().click();
     await expect(dialog).not.toBeAttached();
 
-    // Wait for re-render
-    await new Promise(_ => setTimeout(_, 1000));
+    await waitForMapReady(page, map);
 
-    // The map should still render
-    expect(await main.screenshot()).toMatchSnapshot({
-      name: 'graduated-lines-reapply.png',
-      maxDiffPixelRatio: 0.02,
-    });
+    // Re-applying must not drop the graduated stroke colours.
+    const styles = await getResolvedFeatureStyles(
+      page,
+      map,
+      ROADS_LAYER,
+      'speed_limit',
+    );
+    assertViridisRamp(styles);
   });
 });

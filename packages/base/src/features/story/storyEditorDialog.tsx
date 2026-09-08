@@ -54,6 +54,20 @@ export class StoryEditorWidget extends Dialog<boolean> {
     this.addClass('jgis-story-editor-dialog');
   }
 
+  handleEvent(event: Event): void {
+    if (event.type === 'contextmenu') {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest('.jgis-story-editor-segment-list-items')
+      ) {
+        return;
+      }
+    }
+
+    super.handleEvent(event);
+  }
+
   // Prevent Jupyter Dialog from from eating key presses
   protected _evtKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter' || event.key === 'Escape') {

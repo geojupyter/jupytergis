@@ -66,4 +66,27 @@ test.describe('#export', () => {
       await page.filebrowser.contents.fileExists(`testDir/${filename}.qgz`),
     ).toBeTruthy();
   });
+
+  test('should bundle local vector sources into a sidecar GeoPackage', async ({
+    page,
+  }) => {
+    const filename = 'gpkg-bundle-test';
+    // test.jGIS references a local GeoJSON source; exporting it should pack
+    // that source into a sibling "<project>.gpkg" (GeoPackage export).
+    await page.filebrowser.open('testDir/test.jGIS');
+    await page.menu.clickMenuItem('File>Export To QGZ');
+
+    const dialog = page.locator('.jp-Dialog');
+    await expect(dialog).toBeAttached();
+    await dialog.getByRole('textbox').fill(filename);
+    await dialog.locator('.jp-mod-accept').click();
+    await page.filebrowser.refresh();
+
+    expect(
+      await page.filebrowser.contents.fileExists(`testDir/${filename}.qgz`),
+    ).toBeTruthy();
+    expect(
+      await page.filebrowser.contents.fileExists(`testDir/${filename}.gpkg`),
+    ).toBeTruthy();
+  });
 });

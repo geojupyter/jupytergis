@@ -50,6 +50,7 @@ export function SegmentImageUrlField({
             type="url"
             placeholder="https://example.com/image.jpg"
             value={draftUrl}
+            data-lm-suppress-shortcuts="true"
             onChange={event => setDraftUrl(event.target.value)}
             onKeyDown={event => {
               if (event.key === 'Enter') {

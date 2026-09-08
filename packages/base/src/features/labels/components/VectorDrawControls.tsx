@@ -11,6 +11,9 @@ const DRAW_GEOMETRIES = [
   { value: 'Polygon', label: 'Polygon' },
 ] as const;
 
+/** Empty string = select/edit mode (no draw tool armed). */
+export const DRAW_SELECT_TOOL = '';
+
 export interface IVectorDrawControlsProps {
   drawGeometryLabel: string | undefined;
   onDrawGeometryTypeChange: (geometryType: string) => void;
@@ -24,15 +27,27 @@ export function VectorDrawControls({
   model,
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
+  const isSelectMode = !drawGeometryLabel;
+
   return (
     <div className="jgis-vector-draw-controls">
-      <ButtonGroup aria-label="Geometry type">
+      <ButtonGroup aria-label="Draw tools">
+        <Button
+          type="button"
+          size="sm"
+          variant={isSelectMode ? 'secondary' : 'outline'}
+          aria-pressed={isSelectMode}
+          onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
+        >
+          Select
+        </Button>
         {DRAW_GEOMETRIES.map(({ value, label }) => (
           <Button
             key={value}
             type="button"
             size="sm"
             variant={drawGeometryLabel === value ? 'secondary' : 'outline'}
+            aria-pressed={drawGeometryLabel === value}
             onClick={() => onDrawGeometryTypeChange(value)}
           >
             {label}

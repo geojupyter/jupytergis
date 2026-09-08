@@ -12,6 +12,7 @@ import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListSt
 import { useListStoryScrollTrackContext } from '@/src/features/story/context/ListStoryScrollTrackContext';
 import { useCurrentSegmentIndex } from '@/src/features/story/hooks/useCurrentSegmentIndex';
 import type {
+  IListStoryScrollTrackLayout,
   IListStorySegmentTransition,
   StorySegmentDisplayMode,
   StorySegmentPaneAlignment,
@@ -24,6 +25,7 @@ import {
 } from '@/src/features/story/utils/cssWidth';
 import { getHandoffGapHeight } from '@/src/features/story/utils/getHandoffGapHeight';
 import {
+  estimateMarkdownHeight,
   getSegmentDisplayMode,
   getTransitionTranslatePx,
 } from '@/src/features/story/utils/listStoryScrollTrack';
@@ -109,29 +111,101 @@ function buildPaneConfig(
   };
 }
 
-function getMarkdownLookaheadIndex(
+/** Extra px past the viewport so the next short markdown is already painted. */
+const MARKDOWN_LOOKAHEAD_OVERSCAN_PX = 64;
+
+function overlayPaneHeight(
+  mode: StorySegmentDisplayMode,
+  segmentIndex: number,
+  layout: IListStoryScrollTrackLayout | null,
+  viewportHeight: number,
   items: IStorySegmentViewItem[],
-  afterIndex: number,
-  markdownSegmentGap: boolean,
-): number | null {
+): number {
+  if (mode === 'map') {
+    return Math.max(viewportHeight, 0);
+  }
+
+  const layoutHeight =
+    layout?.segments.find(segment => segment.index === segmentIndex)?.height ??
+    0;
+  if (layoutHeight > 0) {
+    return layoutHeight;
+  }
+
+  const item = items.find(entry => entry.index === segmentIndex);
+  const markdown = getStoryMarkdownFromSlide(item?.activeSlide);
+  return estimateMarkdownHeight(markdown, Math.max(viewportHeight, 1));
+}
+
+function appendMarkdownLookaheadPanes({
+  panes,
+  items,
+  afterIndex,
+  markdownSegmentGap,
+  viewportHeight,
+  layout,
+}: {
+  panes: IOverlayStackPane[];
+  items: IStorySegmentViewItem[];
+  afterIndex: number;
+  markdownSegmentGap: boolean;
+  viewportHeight: number;
+  layout: IListStoryScrollTrackLayout | null;
+}): void {
   if (markdownSegmentGap) {
-    return null;
+    return;
   }
 
   const current = items.find(item => item.index === afterIndex);
-  const next = items.find(item => item.index === afterIndex + 1);
-  if (!current || !next) {
-    return null;
+  if (!current || getSegmentDisplayMode(current.activeSlide) !== 'markdown') {
+    return;
   }
 
-  if (
-    getSegmentDisplayMode(current.activeSlide) === 'markdown' &&
-    getSegmentDisplayMode(next.activeSlide) === 'markdown'
-  ) {
-    return next.index;
-  }
+  // Only panes at/after the anchor count toward filling the viewport.
+  // Outgoing `from` + handoff gap sit above the translate and must not
+  // suppress lookahead into a short markdown run.
+  let mountedHeight = panes
+    .filter(pane => pane.segmentIndex >= afterIndex)
+    .reduce(
+      (sum, pane) =>
+        sum +
+        overlayPaneHeight(
+          pane.mode,
+          pane.segmentIndex,
+          layout,
+          viewportHeight,
+          items,
+        ),
+      0,
+    );
 
-  return null;
+  const fillUntil =
+    Math.max(viewportHeight, 0) + MARKDOWN_LOOKAHEAD_OVERSCAN_PX;
+  let prevIndex = afterIndex;
+
+  while (mountedHeight < fillUntil) {
+    const next = items.find(item => item.index === prevIndex + 1);
+    if (!next || getSegmentDisplayMode(next.activeSlide) !== 'markdown') {
+      break;
+    }
+
+    panes.push({
+      role: 'lookahead',
+      segmentIndex: next.index,
+      mode: 'markdown',
+      config: buildPaneConfig(next, 'markdown'),
+    });
+
+    mountedHeight += overlayPaneHeight(
+      'markdown',
+      next.index,
+      layout,
+      viewportHeight,
+      items,
+    );
+
+    prevIndex = next.index;
+  }
 }
 
 function buildOverlayStack({
@@ -140,12 +214,16 @@ function buildOverlayStack({
   items,
   handoffGapHeight,
   markdownSegmentGap,
+  viewportHeight,
+  layout,
 }: {
   transition: IListStorySegmentTransition;
   intraSegmentScroll: boolean;
   items: IStorySegmentViewItem[];
   handoffGapHeight: number;
   markdownSegmentGap: boolean;
+  viewportHeight: number;
+  layout: IListStoryScrollTrackLayout | null;
 }): IOverlayStack {
   const fromItem = items.find(item => item.index === transition.fromIndex);
 
@@ -158,21 +236,14 @@ function buildOverlayStack({
 
   if (intraSegmentScroll) {
     const panes = [fromPane];
-    const lookaheadIndex = getMarkdownLookaheadIndex(
+    appendMarkdownLookaheadPanes({
+      panes,
       items,
-      transition.fromIndex,
+      afterIndex: transition.fromIndex,
       markdownSegmentGap,
-    );
-
-    if (lookaheadIndex !== null) {
-      const lookaheadItem = items.find(item => item.index === lookaheadIndex);
-      panes.push({
-        role: 'lookahead',
-        segmentIndex: lookaheadIndex,
-        mode: 'markdown',
-        config: buildPaneConfig(lookaheadItem, 'markdown'),
-      });
-    }
+      viewportHeight,
+      layout,
+    });
 
     return { panes, includeGap: false };
   }
@@ -188,21 +259,14 @@ function buildOverlayStack({
     },
   ];
 
-  const lookaheadIndex = getMarkdownLookaheadIndex(
+  appendMarkdownLookaheadPanes({
+    panes,
     items,
-    transition.toIndex,
+    afterIndex: transition.toIndex,
     markdownSegmentGap,
-  );
-
-  if (lookaheadIndex !== null) {
-    const lookaheadItem = items.find(item => item.index === lookaheadIndex);
-    panes.push({
-      role: 'lookahead',
-      segmentIndex: lookaheadIndex,
-      mode: 'markdown',
-      config: buildPaneConfig(lookaheadItem, 'markdown'),
-    });
-  }
+    viewportHeight,
+    layout,
+  });
 
   return { panes, includeGap: handoffGapHeight > 0 };
 }
@@ -460,6 +524,8 @@ export function ListStoryStageOverlay({
       items,
       handoffGapHeight,
       markdownSegmentGap,
+      viewportHeight: stageHeight,
+      layout: scrollTrackLayout,
     });
   }, [
     transition,
@@ -467,6 +533,8 @@ export function ListStoryStageOverlay({
     items,
     handoffGapHeight,
     markdownSegmentGap,
+    stageHeight,
+    scrollTrackLayout,
   ]);
 
   const fromStackPane = overlayStack.panes.find(pane => pane.role === 'from');

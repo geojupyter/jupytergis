@@ -2,6 +2,7 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import { AttachmentsModel, AttachmentsResolver } from '@jupyterlab/attachments';
 import {
   RenderMimeRegistry,
+  type IRenderMime,
   type IRenderMimeRegistry,
   type IUrlResolverFactory,
 } from '@jupyterlab/rendermime';
@@ -22,6 +23,29 @@ function getUrlResolverFactory(
   );
 }
 
+function wrapResolverSoftFail(
+  resolver: IRenderMime.IResolver,
+): IRenderMime.IResolver {
+  return {
+    resolveUrl: async (url, context) => {
+      try {
+        return await resolver.resolveUrl(url, context);
+      } catch {
+        return url;
+      }
+    },
+    getDownloadUrl: async urlPath => {
+      try {
+        return await resolver.getDownloadUrl(urlPath);
+      } catch {
+        return urlPath;
+      }
+    },
+    isLocal: resolver.isLocal?.bind(resolver),
+    resolvePath: resolver.resolvePath?.bind(resolver),
+  };
+}
+
 function createStoryRenderMimeRegistry(
   rendermime: IRenderMimeRegistry,
   model: IJupyterGISModel,
@@ -35,10 +59,12 @@ function createStoryRenderMimeRegistry(
     );
   }
 
-  const resolver = getUrlResolverFactory(urlResolverFactory).createResolver({
-    path: filePath,
-    contents: contentsManager,
-  });
+  const resolver = wrapResolverSoftFail(
+    getUrlResolverFactory(urlResolverFactory).createResolver({
+      path: filePath,
+      contents: contentsManager,
+    }),
+  );
 
   return rendermime.clone({ resolver });
 }

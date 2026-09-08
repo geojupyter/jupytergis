@@ -777,6 +777,30 @@
   flex: 1;
 }
 
+/* Code export view (Python / R) */
+.jp-openeo-code-export {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.jp-openeo-code-export-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.jp-openeo-code-export-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
 .jp-openeo-status {
   font-size: var(--jp-ui-font-size0);
   color: var(--jp-ui-font-color2);

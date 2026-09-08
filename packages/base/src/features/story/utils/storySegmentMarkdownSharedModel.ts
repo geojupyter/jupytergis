@@ -198,6 +198,26 @@ export function disposeSegmentMarkdown(
   model.sharedModel.ydoc.share.delete(segmentId);
 }
 
+/**
+ * Read live markdown without creating a shared model or sync hook.
+ * Returns undefined when no Y.Text exists for the segment yet.
+ */
+export function peekStorySegmentMarkdown(
+  model: IJupyterGISModel,
+  segmentId: string,
+): string | undefined {
+  const cached = sharedModels.get(model)?.get(segmentId);
+  if (cached && !cached.isDisposed) {
+    return cached.getSource();
+  }
+
+  if (!model.sharedModel.ydoc.share.has(segmentId)) {
+    return undefined;
+  }
+
+  return model.sharedModel.ydoc.getText(segmentId).toString();
+}
+
 export function getStorySegmentMarkdownSharedModel(
   model: IJupyterGISModel,
   segmentId: string,

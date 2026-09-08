@@ -58,5 +58,35 @@
     "command": "jupytergis:selectConsoleCompleter",
     "keys": ["Enter"],
     "selector": ".jpgis-console .jp-ConsolePanel .jp-mod-completer-active"
+  },
+  {
+    "command": "jupytergis:undo",
+    "keys": ["Accel Z"],
+    "selector": ".jgis-story-editor"
+  },
+  {
+    "command": "jupytergis:redo",
+    "keys": ["Accel Shift Z"],
+    "selector": ".jgis-story-editor"
+  },
+  {
+    "command": "jupytergis:copyStorySegment",
+    "keys": ["Accel C"],
+    "selector": ".jgis-story-editor"
+  },
+  {
+    "command": "jupytergis:pasteStorySegment",
+    "keys": ["Accel V"],
+    "selector": ".jgis-story-editor"
+  },
+  {
+    "command": "jupytergis:duplicateStorySegment",
+    "keys": ["Accel D"],
+    "selector": ".jgis-story-editor"
+  },
+  {
+    "command": "jupytergis:removeStorySegment",
+    "keys": ["Delete"],
+    "selector": ".jgis-story-editor"
   }
 ]
