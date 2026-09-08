@@ -60,16 +60,15 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     URL_TO_PANEL_MAP[selectedUrl] ?? StacFilterExtensionPanel;
 
   return (
-    <Tabs
-      defaultValue="filters"
-      className="jgis-panel-tabs"
-      style={{ boxShadow: 'none' }}
-    >
-      <TabsList className="jgis-stac-panel-tabs-list">
-        <TabsTrigger className={'text-sm'} value="filters">
+    <Tabs defaultValue="filters" style={{ boxShadow: 'none' }}>
+      <TabsList variant="underline" className="jgis-stac-panel-tabs-list">
+        <TabsTrigger className="jgis-underline-indicator text-sm" value="filters">
           Filters
         </TabsTrigger>
-        <TabsTrigger value="results">{`Results (${totalResults})`}</TabsTrigger>
+        <TabsTrigger
+          className="jgis-underline-indicator"
+          value="results"
+        >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
         <div className="jgis-stac-filter-extension-panel">
