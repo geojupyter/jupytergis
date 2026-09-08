@@ -50,7 +50,7 @@ const SHOWCASES: IShowcase[] = [
   },
 ];
 
-test.describe('Showcase', () => {
+test.describe('Showcase @showcase', () => {
   test.beforeAll(async ({ request }) => {
     const content = galata.newContentsHelper(request);
 
