@@ -2378,8 +2378,6 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
     });
 
-    this._ready = true;
-
     // If a "zoom to layer" request arrived before its layer was on the map,
     // retry now that layers have been (re)built.
     if (
@@ -2859,7 +2857,6 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
   private _mainViewId?: string;
-  private _ready = false;
   private _drawTool: DrawToolController;
   private _mapKey?: string;
   private _pendingZoomLayerId: string | null = null;
