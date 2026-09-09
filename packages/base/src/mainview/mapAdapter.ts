@@ -75,7 +75,6 @@ export interface IMapAdapter {
   ): { code: string; units: string } | undefined;
 
   updateLayersImpl(layerIds: string[]): Promise<void>;
-  createSelectInteraction(): void;
 
   updateLayer(id: string, layer: IJGISLayer, oldLayer?: IDict): Promise<void>;
   updateLayers(layerIds: string[]): void;
