@@ -5,7 +5,10 @@ import {
   IStacQueryableSchema,
   Operator,
 } from '@/src/features/stac-browser/types/types';
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 
 interface IOperatorOption {
   value: Operator;
@@ -29,26 +32,21 @@ function QueryableRow({
   inputComponent,
   onOperatorChange,
 }: IQueryableRowProps) {
-  const currentOperator = operators.find(
-    op => op.value === currentFilter.operator,
-  );
-  const buttonText = currentOperator?.label || 'Select operator...';
-
-  const items: ISelectItem[] = operators.map(operator => ({
-    value: String(operator.value),
-    label: String(operator.label),
-    onSelect: () => onOperatorChange(operator.value),
-  }));
-
   return (
     <div className="jgis-queryable-row">
       <span>{qVal.title || qKey}</span>
-      <Select
-        items={items}
-        buttonText={String(buttonText)}
-        emptyText="No operator found."
-        buttonClassName="jgis-queryable-combo-operator"
-      />
+      <NativeSelect
+        value={String(currentFilter.operator)}
+        onChange={event => {
+          onOperatorChange(event.target.value as Operator);
+        }}
+      >
+        {operators.map(operator => (
+          <NativeSelectOption key={operator.value} value={operator.value}>
+            {operator.label}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
       {inputComponent}
     </div>
   );

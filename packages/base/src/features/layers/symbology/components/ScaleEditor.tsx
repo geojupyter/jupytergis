@@ -283,7 +283,8 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
         />
       </div>
       <button
-        className="jp-gis-grammar-action-btn"
+        type="button"
+        className="inline-flex w-fit cursor-pointer items-center rounded-md border border-border bg-transparent px-3 py-1 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         disabled={!field}
         onClick={classify}
       >
@@ -385,7 +386,8 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
         />
       </div>
       <button
-        className="jp-gis-grammar-action-btn"
+        type="button"
+        className="inline-flex w-fit cursor-pointer items-center rounded-md border border-border bg-transparent px-3 py-1 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         disabled={!field}
         onClick={classify}
       >
@@ -847,7 +849,11 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
           onChange={v => update({ fallback: v })}
         />
       </div>
-      <button className="jp-gis-grammar-action-btn" onClick={classify}>
+      <button
+        type="button"
+        className="inline-flex w-fit cursor-pointer items-center rounded-md border border-border bg-transparent px-3 py-1 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={classify}
+      >
         Set stops
       </button>
       {stopRows.length > 0 && (

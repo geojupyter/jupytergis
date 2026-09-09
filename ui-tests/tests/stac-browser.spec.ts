@@ -75,14 +75,13 @@ test.describe('#stac-browser', () => {
     await page
       .getByRole('tabpanel', { name: 'Filters' })
       .getByRole('combobox')
-      .click();
-    await page.getByRole('option', { name: 'GEODES' }).click();
+      .selectOption({ label: 'GEODES' });
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();
-    await page
-      .getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' })
-      .press('Escape');
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
 
     await page.getByRole('tab', { name: /Results/ }).click();
 

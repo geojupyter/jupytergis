@@ -3,7 +3,7 @@ import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import SegmentImageCaptionField from '@/src/features/story/components/SegmentImageCaptionField';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
@@ -64,7 +64,6 @@ function SegmentEditor({
   state,
   segment,
   editorServices,
-  portalContainerRef,
   canRemoveSegment,
   isMobile,
   onContentModeChange,
@@ -78,7 +77,6 @@ function SegmentEditor({
   state: IStateDB;
   segment: IStorySegmentViewItem;
   editorServices: IEditorServices;
-  portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
   isMobile: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
@@ -127,10 +125,7 @@ function SegmentEditor({
           disabled={!canRemoveSegment}
           onClick={onRemoveSegment}
         >
-          <Trash2
-            data-icon={isMobile ? undefined : 'inline-start'}
-            className="jgis-inline-icon"
-          />
+          <Trash2 data-icon={isMobile ? undefined : 'inline-start'} />
           {isMobile ? null : 'Delete'}
         </Button>
       </div>
@@ -181,7 +176,6 @@ function SegmentEditor({
                 </Button>
                 <Button
                   type="button"
-                  className="jp-mod-styled jp-mod-accept"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterPreviewMode(
                       segment.id,
@@ -226,7 +220,6 @@ function SegmentEditor({
               state={state}
               segmentId={segment.id}
               isMobile={isMobile}
-              portalContainerRef={portalContainerRef}
             />
           </StoryEditorSection>
 
@@ -262,7 +255,8 @@ function SegmentEditor({
                   disabled={isImmediateTransition}
                   aria-label="Transition duration"
                   style={{ maxWidth: '10rem' }}
-                  onValueChange={([time]) => {
+                  onValueChange={value => {
+                    const time = Array.isArray(value) ? value[0] : value;
                     onTransitionChange({ time });
                   }}
                 />
@@ -322,7 +316,6 @@ export function StoryEditorDialogBody({
     story?.overlayContentWidth,
   );
 
-  const portalContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -341,14 +334,13 @@ export function StoryEditorDialogBody({
   }, []);
 
   return (
-    <div ref={portalContainerRef} className="jgis-story-editor" tabIndex={-1}>
+    <div className="jgis-story-editor" tabIndex={-1}>
       <StoryEditorHeaderBar
         model={model}
         story={story}
         segmentCount={segments.length}
         isMobile={isMobile}
         onUpdateStory={updateStory}
-        portalContainerRef={portalContainerRef}
       />
 
       <div className="jgis-story-editor-main">
@@ -369,7 +361,6 @@ export function StoryEditorDialogBody({
               state={state}
               segment={selectedSegment}
               editorServices={editorServices}
-              portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
               isMobile={isMobile}
               onContentModeChange={mode => {

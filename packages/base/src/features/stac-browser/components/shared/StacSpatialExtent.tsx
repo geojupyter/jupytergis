@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Checkbox from '@/src/shared/components/Checkbox';
+import { Checkbox } from '@/src/shared/components/Checkbox';
 
 interface IStacSpatialExtentProps {
   checked: boolean;
