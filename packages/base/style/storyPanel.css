@@ -486,6 +486,7 @@
     select,
     textarea,
     label,
+    img,
     [role='button'],
     [role='link']
   ) {
