@@ -231,6 +231,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState({
       annotations: this._model.sharedModel.getAnnotations(),
     });
+    if (!this._mapAdapter) {
+      return;
+    }
 
     if (this._loggerRegistry) {
       const logger = this._loggerRegistry.getLogger(this._model.filePath);
@@ -310,6 +313,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
+    if (!this._mapAdapter) {
+      return;
+    }
     this._mapAdapter.unregisterMap();
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
@@ -552,7 +558,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return 'Map CRS';
         }
 
-        const proj = this._mapAdapter.getProjection().code;
+        const proj = this._mapAdapter?.getProjection().code;
         const coord = this._clickCoords;
 
         return `Map CRS — ${proj} (${coord[0].toFixed(0)}E, ${coord[1].toFixed(0)}N)`;
@@ -566,7 +572,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._commands.addCommand('Copy-Coordinates-LonLat', {
       label: () => {
-        if (!this._clickCoords) {
+        if (!this._clickCoords || !this._mapAdapter) {
           return 'Latitude/Longitude';
         }
 
@@ -578,6 +584,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
       },
       execute: async () => {
+        if (!this._mapAdapter) {
+          return;
+        }
         const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
           this._mapAdapter.getProjection().code,
@@ -753,7 +762,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
-        this._mapAdapter.moveToPosition({ x, y }, zoom, 0);
+        this._mapAdapter?.moveToPosition({ x, y }, zoom, 0);
       }
       return;
     }
@@ -766,7 +775,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }));
       const viewportState = localState.viewportState?.value;
       if (viewportState) {
-        this._mapAdapter.moveToPosition(
+        this._mapAdapter?.moveToPosition(
           viewportState.coordinates,
           viewportState.zoom,
         );
@@ -782,7 +791,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const clientPointers = { ...this.state.clientPointers };
 
     clients.forEach((client, clientId) => {
-      if (!client?.user || this._model.getClientId() === clientId) {
+      if (
+        !client?.user ||
+        this._model.getClientId() === clientId ||
+        !this._mapAdapter
+      ) {
         return;
       }
 
@@ -880,7 +893,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private async updateOptions(options: IJGISOptions): Promise<void> {
-    const projectionInfo = this._mapAdapter.applyOptions(options);
+    const projectionInfo = this._mapAdapter?.applyOptions(options);
     if (projectionInfo) {
       this.setState(old => ({
         ...old,
@@ -902,6 +915,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   ): void {
     change.layerChange?.forEach(change => {
       const { id, oldValue: oldLayer, newValue: newLayer } = change;
+      if (!this._mapAdapter) {
+        return;
+      }
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this._mapAdapter.removeLayer(id);
@@ -939,7 +955,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
-    this._mapAdapter.updateLayers(
+    this._mapAdapter?.updateLayers(
       JupyterGISModel.getOrderedLayerIds(this._model),
     );
   }
@@ -974,7 +990,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (normalize(sourceServerUrl) === normalize(serverUrl)) {
         // updateSource removes the OL source and reconstructs it; the new
         // OpenEOTileSource finds the cached connection and renders.
-        void this._mapAdapter.updateSource(sourceId, source);
+        void this._mapAdapter?.updateSource(sourceId, source);
       }
     }
   }
@@ -984,6 +1000,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     change: IJGISSourceDocChange,
   ): void {
     change.sourceChange?.forEach(srcChange => {
+      if (!this._mapAdapter) {
+        return;
+      }
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
         this._mapAdapter.removeSource(srcChange.id);
       } else {
@@ -1012,7 +1031,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     change: IJupyterGISDocChange,
   ) => {
     const changedState = change.stateChange?.map(value => value.name);
-    if (!changedState?.includes('path')) {
+    if (!changedState?.includes('path') || !this._mapAdapter) {
       return;
     }
     const path = this._model.sharedModel.getState('path');
@@ -1030,7 +1049,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...old,
       identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
     }));
-    this._mapAdapter.clearHighlightIfNotIdentifying();
+    this._mapAdapter?.clearHighlightIfNotIdentifying();
   };
 
   /**
@@ -1049,11 +1068,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _removeAllInteractions = (): void => {
-    this._mapAdapter.enterPresentationMode();
+    this._mapAdapter?.enterPresentationMode();
   };
 
   private _restoreMapInteractions = (): void => {
-    this._mapAdapter.exitPresentationMode();
+    this._mapAdapter?.exitPresentationMode();
   };
 
   private _setupStoryScrollListener = (): void => {
@@ -1245,7 +1264,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
     const { x, y } = annotation.position;
-    const pixels = this._mapAdapter.getPixelFromCoordinate([x, y]);
+    const pixels = this._mapAdapter?.getPixelFromCoordinate([x, y]);
 
     if (pixels) {
       return { x: pixels[0], y: pixels[1] };
@@ -1299,7 +1318,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
 
         const screenPosition =
-          this._mapAdapter.computeFeatureFloaterPosition(feature);
+          this._mapAdapter?.computeFeatureFloaterPosition(feature);
         if (!screenPosition) {
           return;
         }
@@ -1318,13 +1337,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
 
     if (isSourceType) {
-      this._mapAdapter.updateSource(layerId, jgisLayer);
+      this._mapAdapter?.updateSource(layerId, jgisLayer);
     }
     if (!jgisLayer) {
       this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
-    this._mapAdapter.updateLayer(layerId, jgisLayer);
+    this._mapAdapter?.updateLayer(layerId, jgisLayer);
   }
 
   private _handleThemeChange = (): void => {
@@ -1386,7 +1405,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const isDrawing = this._model.currentMode === 'drawing';
     this.setState(old => ({ ...old, isDrawing }));
 
-    this._mapAdapter.handleDrawModeChanged(isDrawing);
+    this._mapAdapter?.handleDrawModeChanged(isDrawing);
     if (isDrawing) {
       this._drawTool.enterLayer();
       return;
@@ -1415,7 +1434,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     source: IJGISSource,
   ): Promise<void> => {
     this._model.sharedModel.updateSource(id, source);
-    await this._mapAdapter.updateSource(id, source);
+    await this._mapAdapter?.updateSource(id, source);
   };
 
   private _renderAnnotationFloaters(): React.ReactNode {
@@ -1448,7 +1467,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return this._getVisibleDrawIdentifiedFeatures().map(
       ([floaterKey, feature]) => {
         const screenPosition =
-          this._mapAdapter.computeFeatureFloaterPosition(feature);
+          this._mapAdapter?.computeFeatureFloaterPosition(feature);
         if (!screenPosition) {
           return null;
         }
@@ -1581,7 +1600,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
-  private _mapAdapter: IMapAdapter;
+  private _mapAdapter: IMapAdapter | undefined;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
@@ -1593,10 +1612,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
-  private _addLayerForPanels = (id: string, layer: IJGISLayer, index: number) =>
-    this._mapAdapter.addLayer(id, layer, index);
+  private _addLayerForPanels = async (
+    id: string,
+    layer: IJGISLayer,
+    index: number,
+  ): Promise<void> => {
+    if (!this._mapAdapter) {
+      return;
+    }
+
+    await this._mapAdapter.addLayer(id, layer, index);
+  };
   private _removeLayerForPanels = (id: string) =>
-    this._mapAdapter.removeLayer(id);
+    this._mapAdapter?.removeLayer(id);
   private _patchGeoJSONFeatureAttributes: PatchGeoJSONFeatureAttributes;
 
   private _log(
