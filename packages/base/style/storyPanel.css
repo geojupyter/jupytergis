@@ -40,6 +40,10 @@
   border-radius: var(--jp-border-radius);
 }
 
+.jgis-story-viewer-image-zoomable {
+  cursor: zoom-in;
+}
+
 .jgis-story-viewer-nav-container {
   position: absolute;
   bottom: 0;

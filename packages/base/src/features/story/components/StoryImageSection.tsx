@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+
+import { StoryMarkdownImageLightbox } from './StoryMarkdownImageLightbox';
 
 interface IStoryImageSectionProps {
   imageUrl: string;
@@ -19,13 +21,27 @@ function StoryImageSection({
     return null;
   }
 
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const handleOpen = useCallback(() => {
+    setLightboxOpen(true);
+  }, []);
+
   return (
     <div className="jgis-story-viewer-image-section">
       <div className="jgis-story-viewer-image-container">
         <img
           src={imageUrl}
           alt="Story map image"
-          className="jgis-story-viewer-image"
+          className="jgis-story-viewer-image jgis-story-viewer-image-zoomable"
+          onClick={handleOpen}
+          role="button"
+          tabIndex={0}
+        />
+        <StoryMarkdownImageLightbox
+          src={lightboxOpen ? imageUrl : null}
+          alt="Story map image"
+          onClose={() => setLightboxOpen(false)}
         />
         {navSlot}
       </div>
