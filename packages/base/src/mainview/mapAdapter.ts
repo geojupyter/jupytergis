@@ -10,7 +10,6 @@ import type {
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import type { Coordinate } from 'ol/coordinate';
 
 import { OpenLayersAdapter } from './adapters/openlayersAdapter';
 
@@ -35,7 +34,7 @@ export interface IMapAdapter {
     code: string;
     units: string;
   };
-  getPixelFromCoordinate(coordinate: Coordinate): [number, number];
+  getPixelFromCoordinate(coordinate: number[]): [number, number];
 
   registerMap(path?: string): void;
   unregisterMap(): void;
@@ -128,7 +127,7 @@ export interface IMapAdapterCallbacks {
   onScaleChange?: (scale: number) => void;
   onContextMenu?: (
     event: MouseEvent,
-    lastPointerCoord: Coordinate | null,
+    lastPointerCoord: number[] | null,
   ) => void;
   onDrawLayerIdChange?: (layerId: string | undefined) => void;
   onDrawGeometryLabelChange?: (label: string) => void;
