@@ -128,7 +128,7 @@ export interface IMapAdapterCallbacks {
   onAllLayersSettled?: () => void;
   onLayerInserted?: (layerCount: number) => void;
   onLayerAddSettled?: (id: string) => void;
-  shouldShowLayerError?: (id: string, message: string) => boolean;
+  onLayerError?: (id: string, message: string) => void;
 }
 
 /**

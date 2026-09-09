@@ -477,15 +477,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         onLayerAddSettled: id => {
           this.setState(old => ({ ...old, loadingLayer: false }));
         },
-        shouldShowLayerError: (id, message) => {
+        onLayerError: (id, message) => {
           const isDuplicate = this.state.loadingErrors.find(
             item => item.id === id && item.error === message,
           );
           if (isDuplicate) {
-            return false;
+            return;
           }
           this.state.loadingErrors.push({ id, error: message, index: -1 });
-          return true;
         },
       },
     });

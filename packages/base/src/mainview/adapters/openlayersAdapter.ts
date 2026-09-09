@@ -1530,7 +1530,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
     } catch (error: any) {
       const message = error.message || 'invalid file path';
-      if (this._callbacks?.shouldShowLayerError?.(id, message) ?? true) {
+      if (this._callbacks?.onLayerError?.(id, message)) {
         await showErrorMessage(
           `Error Adding ${layer.name}`,
           `Failed to add ${layer.name}: ${message}`,
