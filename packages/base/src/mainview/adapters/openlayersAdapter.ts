@@ -36,6 +36,7 @@ import {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { UUID } from '@lumino/coreutils';
+import type { Geometry } from 'geojson';
 import {
   Collection,
   Feature,
@@ -54,7 +55,7 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
-import { Geometry, Point } from 'ol/geom';
+import { Geometry as OLGeometry, Point } from 'ol/geom';
 import {
   DoubleClickZoom,
   DragAndDrop,
@@ -454,14 +455,14 @@ export class OpenLayersAdapter implements IMapAdapter {
         break;
 
       case 'VectorTileLayer': {
-        const geometries: Geometry[] = [];
+        const geometries: OLGeometry[] = [];
         const features: IIdentifiedFeatureEntry[] = [];
         let foundAnyFeatures = false;
 
         this._map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
           foundAnyFeatures = true;
 
-          let geom: Geometry | undefined;
+          let geom: OLGeometry | undefined;
           let props = {};
 
           if (feature instanceof RenderFeature) {
@@ -1356,16 +1357,19 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._geolocationSource.clear();
   }
 
-  flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
-    if (!geometry || typeof geometry.getExtent !== 'function') {
+  flyToGeometry(_: IJupyterGISModel, geometry: Geometry): void {
+    if (!geometry) {
       this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
       return;
     }
 
-    const view = this._map.getView();
-    const extent = geometry.getExtent();
+    const olGeometry = new GeoJSON().readGeometry(geometry, {
+      featureProjection: this._map.getView().getProjection(),
+    });
 
-    view.fit(extent, {
+    const view = this._map.getView();
+
+    view.fit(olGeometry.getExtent(), {
       padding: [50, 50, 50, 50],
       duration: 1000,
       maxZoom: 16,

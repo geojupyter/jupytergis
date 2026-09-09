@@ -10,6 +10,7 @@ import type {
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import type { Geometry } from 'geojson';
 
 import { OpenLayersAdapter } from './adapters/openlayersAdapter';
 
@@ -45,7 +46,7 @@ export interface IMapAdapter {
     _sender: IJupyterGISModel,
     uiState: IJGISUIState,
   ): void;
-  flyToGeometry(_: IJupyterGISModel, geometry: any): void;
+  flyToGeometry(_: IJupyterGISModel, geometry: Geometry): void;
   highlightFeatureOnMap(
     _sender: IJupyterGISModel,
     featureOrGeometry: any,
