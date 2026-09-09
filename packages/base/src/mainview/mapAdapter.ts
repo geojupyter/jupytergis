@@ -80,8 +80,6 @@ export interface IMapAdapter {
 
   clearHighlightIfNotIdentifying(): void;
 
-  moveLayer(id: string, index: number): void;
-
   addSource(id: string, source: IJGISSource): Promise<void>;
 
   removeSource(id: string): void;

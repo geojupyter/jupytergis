@@ -637,18 +637,6 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._map.getTargetElement()?.removeAttribute('data-jgis-map');
   }
 
-  /** Compute the current view extent in `targetProjection`. */
-  getViewBbox(targetProjection = 'EPSG:4326'): number[] {
-    const view = this._map.getView();
-    const extent = view.calculateExtent(this._map.getSize());
-
-    if (view.getProjection().getCode() === targetProjection) {
-      return extent;
-    }
-
-    return transformExtent(extent, view.getProjection(), targetProjection);
-  }
-
   getZoom(): number {
     return this._map.getView().getZoom() ?? 0;
   }
@@ -679,6 +667,18 @@ export class OpenLayersAdapter implements IMapAdapter {
   /** Converts map coordinate to [longitude, latitude]. */
   toLonLat(coordinate: number[], projection?: any): number[] {
     return projection ? toLonLat(coordinate, projection) : toLonLat(coordinate);
+  }
+
+  /** Compute the current view extent in `targetProjection`. */
+  private getViewBbox(targetProjection = 'EPSG:4326'): number[] {
+    const view = this._map.getView();
+    const extent = view.calculateExtent(this._map.getSize());
+
+    if (view.getProjection().getCode() === targetProjection) {
+      return extent;
+    }
+
+    return transformExtent(extent, view.getProjection(), targetProjection);
   }
 
   /**
@@ -905,16 +905,6 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     return projectionInfo;
-  }
-
-  getSize(): [number, number] | undefined {
-    const size = this._map?.getSize();
-
-    if (!size) {
-      return undefined;
-    }
-
-    return [size[0], size[1]];
   }
 
   /**
@@ -1527,7 +1517,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         const safeIndex = Math.min(index, numLayers);
 
         this._map.getLayers().insertAt(safeIndex, newMapLayer);
-        this.trackLayerViewState(id, newMapLayer);
+        this._trackLayerViewState(id, newMapLayer);
 
         this._callbacks?.onLayerInserted?.(numLayers + 1);
       }
@@ -1755,7 +1745,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   /**
    * Convenience method to get list layer IDs from the OpenLayers Map
    */
-  getLayerIDs(): string[] {
+  private getLayerIDs(): string[] {
     return this._map
       .getLayers()
       .getArray()
@@ -1768,7 +1758,7 @@ export class OpenLayersAdapter implements IMapAdapter {
    * @param id - id of the layer.
    * @param index - expected index of the layer.
    */
-  moveLayer(layerId: string, index: number): void {
+  private moveLayer(layerId: string, index: number): void {
     if (!this._map) {
       return;
     }
@@ -2808,7 +2798,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const view = this._map.getView();
-    const size = this._map.getSize() ?? this.getSize();
+    const size = this._map.getSize();
 
     const resolution = view.getResolutionForExtent(extent, size);
     const zoom = view.getZoomForResolution(resolution);
@@ -2842,7 +2832,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   /**
    * Track layer's extent and zoom in model's view state
    */
-  trackLayerViewState(layerId: string, olLayer: Layer | LayerGroup): void {
+  private _trackLayerViewState(layerId: string, olLayer: Layer | LayerGroup): void {
     const extent = getZoomExtentForOlLayer(
       olLayer,
       this._map.getView().getProjection(),
