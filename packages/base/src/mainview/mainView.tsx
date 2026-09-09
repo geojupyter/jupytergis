@@ -425,6 +425,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       zoomButtonsEnabled: this._model.jgisSettings.zoomButtonsEnabled,
       isSpectaMode: this._model.isSpectaMode(),
       mainViewId: this._mainViewModel.id,
+      loggerRegistry: this._loggerRegistry,
       callbacks: {
         onPostRender: () => {
           if (this.state.annotations) {

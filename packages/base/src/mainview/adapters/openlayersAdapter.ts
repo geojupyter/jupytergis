@@ -189,11 +189,13 @@ export class OpenLayersAdapter implements IMapAdapter {
       isSpectaMode = false,
       mainViewId,
       callbacks,
+      loggerRegistry,
     } = options;
 
     this._callbacks = callbacks;
     this._mainViewId = mainViewId;
     this._controlsTarget = controlsTarget;
+    this._loggerRegistry = loggerRegistry;
 
     const proj = getProjection(projection);
 

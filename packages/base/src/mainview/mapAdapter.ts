@@ -9,6 +9,7 @@ import type {
   IJupyterGISModel,
   JgisCoordinates,
 } from '@jupytergis/schema';
+import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Coordinate } from 'ol/coordinate';
 
 import { OpenLayersAdapter } from './adapters/openlayersAdapter';
@@ -114,6 +115,7 @@ export interface IMapAdapterOptions {
   isSpectaMode?: boolean;
   mainViewId?: string;
   callbacks?: IMapAdapterCallbacks;
+  loggerRegistry?: ILoggerRegistry;
 }
 
 /**
