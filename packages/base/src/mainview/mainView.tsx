@@ -221,7 +221,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       segmentTransition: null,
     };
 
-    this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({
       commands: this._commands,
@@ -1590,7 +1589,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;
   private _state?: IStateDB;
-  private _loadingLayers: Set<string>;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
