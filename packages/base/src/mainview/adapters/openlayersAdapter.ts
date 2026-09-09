@@ -2337,21 +2337,12 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
-   * Add or move the layers of the map.
-   *
-   * @param layerIds - the list of layers in the depth order (beneath first).
-   */
-  updateLayers(layerIds: string[]): void {
-    this.updateLayersImpl(layerIds);
-  }
-
-  /**
    * Updates the position and existence of layers in the OL map based on the layer IDs.
    *
    * @param layerIds - An array of layer IDs that should be present on the map.
    * @returns {} Nothing is returned.
    */
-  async updateLayersImpl(layerIds: string[]): Promise<void> {
+  async updateLayers(layerIds: string[]): Promise<void> {
     // get layers that are currently on the OL map
     const previousLayerIds = this.getLayerIDs();
 

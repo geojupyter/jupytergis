@@ -491,7 +491,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
-      await this._mapAdapter.updateLayersImpl(
+      await this._mapAdapter.updateLayers(
         JupyterGISModel.getOrderedLayerIds(this._model),
       );
       const options = this._model.getOptions();
@@ -943,7 +943,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this._drawTool.enterLayer();
         }
       } else {
-        this._mapAdapter.updateLayers(layerTree);
+        void this._mapAdapter.updateLayers(layerTree);
       }
     });
   }

@@ -75,10 +75,8 @@ export interface IMapAdapter {
     options: IJGISOptions,
   ): { code: string; units: string } | undefined;
 
-  updateLayersImpl(layerIds: string[]): Promise<void>;
-
   updateLayer(id: string, layer: IJGISLayer, oldLayer?: IDict): Promise<void>;
-  updateLayers(layerIds: string[]): void;
+  updateLayers(layerIds: string[]): Promise<void>;
 
   clearHighlightIfNotIdentifying(): void;
 
