@@ -1511,7 +1511,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       const newMapLayer = await this._buildMapLayer(id, layer);
 
       if (newMapLayer !== undefined) {
-        this._waitForReady();
+        await this._waitForReady();
 
         const numLayers = this._map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
