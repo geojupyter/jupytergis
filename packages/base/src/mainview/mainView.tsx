@@ -469,7 +469,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
         },
         onLayerAddSettled: id => {
-          this._loadingLayers.delete(id);
           this.setState(old => ({ ...old, loadingLayer: false }));
         },
         shouldShowLayerError: (id, message) => {

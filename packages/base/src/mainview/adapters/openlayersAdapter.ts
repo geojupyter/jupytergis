@@ -1545,6 +1545,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         );
       }
     } finally {
+      this._loadingLayers.delete(id);
       this._callbacks?.onLayerAddSettled?.(id);
     }
   }
