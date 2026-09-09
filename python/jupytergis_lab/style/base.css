@@ -351,10 +351,18 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border-radius: 100%;
   width: 24px;
   height: 24px;
+  flex: 0 0 auto;
+  overflow: hidden;
   display: flex;
   align-items: center;
   vertical-align: middle;
   color: var(--jp-ui-font-color1);
+}
+
+.jGIS-Annotation-Message .jGIS-Annotation-User-Icon > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .jGIS-Annotation-Message textarea {
