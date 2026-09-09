@@ -5,11 +5,6 @@
   gap: 1rem;
 }
 
-.jp-gis-filter-list {
-  display: flex;
-  flex-direction: column;
-}
-
 .jp-gis-filter-button-container {
   display: flex;
   justify-content: space-between;

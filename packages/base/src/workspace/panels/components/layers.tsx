@@ -123,6 +123,12 @@ function createContextMenu(
     rank: 6,
   });
 
+  gisContextMenu.addItem({
+    command: CommandIDs.showLayerMetadata,
+    selector: GIS_LAYER_ITEM,
+    rank: 6.5,
+  });
+
   const moveSelectedSubmenu = new Menu({ commands });
   moveSelectedSubmenu.title.label = translator
     .load('jupyterlab')
@@ -1039,7 +1045,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
               step={1}
               value={[Math.round(opacity * 100)]}
               aria-label="Layer opacity"
-              onValueChange={([value]) => handleOpacityChange(value / 100)}
+              onValueChange={value => {
+                const next = Array.isArray(value) ? value[0] : value;
+                handleOpacityChange(next / 100);
+              }}
             />
           </span>
         )}

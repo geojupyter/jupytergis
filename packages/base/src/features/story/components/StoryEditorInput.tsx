@@ -28,6 +28,7 @@ export function StoryEditorInput({
       placeholder={placeholder}
       disabled={disabled}
       aria-label={ariaLabel}
+      data-lm-suppress-shortcuts="true"
       onChange={event => {
         setDraft(event.target.value);
       }}

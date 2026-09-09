@@ -31,6 +31,7 @@ function SegmentListItem({
   segment,
   selected,
   onSelect,
+  onContextMenu,
   index,
   canReorder,
   onDragStart,
@@ -38,6 +39,7 @@ function SegmentListItem({
   segment: IStorySegmentViewItem;
   selected: boolean;
   onSelect: () => void;
+  onContextMenu: (event: React.MouseEvent) => void;
   index: number;
   canReorder: boolean;
   onDragStart: (index: number, event: React.DragEvent) => void;
@@ -65,6 +67,7 @@ function SegmentListItem({
           selected ? ' jgis-story-editor-segment-item--selected' : ''
         }`}
         onClick={onSelect}
+        onContextMenu={onContextMenu}
         aria-current={selected ? 'true' : undefined}
       >
         <span className="jgis-story-editor-segment-item-index">
@@ -116,6 +119,7 @@ function MobileSegmentPicker({
       )}
       <Button
         variant="outline"
+        size={'sm'}
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
         aria-label="Add segment"
@@ -248,6 +252,9 @@ export function StoryEditorSegmentList({
                 segment={segment}
                 selected={segment.id === selectedSegmentId}
                 onSelect={() => onSelectSegment(segment.id)}
+                onContextMenu={() => {
+                  onSelectSegment(segment.id);
+                }}
                 index={index}
                 canReorder={canReorder}
                 onDragStart={handleDragStart}
@@ -258,6 +265,7 @@ export function StoryEditorSegmentList({
       </div>
       <Button
         variant="outline"
+        size={'sm'}
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
       >

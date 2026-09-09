@@ -43,6 +43,7 @@ import {
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import { Button } from '@/src/shared/components/Button';
+import { InfoTip } from '@/src/shared/components/InfoTip';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -65,6 +66,7 @@ interface ILayerUIState {
   rows: IGrammarRow[];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
+  declutter?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,11 +343,28 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           </Button>
         )}
 
+        {!isRaster && (
+          <label
+            className="jp-gis-grammar-layer-declutter"
+            title="Skip drawing anything that overlaps something already drawn"
+          >
+            <input
+              type="checkbox"
+              checked={layer.declutter ?? false}
+              onChange={e =>
+                onChange({ ...layer, declutter: e.target.checked })
+              }
+            />
+            declutter
+            <InfoTip text="On a crowded layer, overlapping symbols and text pile up and become unreadable. This skips whatever would overlap something already drawn. It hides data, so it is off by default." />
+          </label>
+        )}
+
         {totalLayers > 1 && onMoveUp && (
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onMoveUp}
             title="Move layer up"
           >
@@ -356,7 +375,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onMoveDown}
             title="Move layer down"
           >
@@ -367,7 +386,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onDelete}
             title="Remove layer"
           >
@@ -382,6 +401,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {(layer.when?.length ?? 0) > 1 && (
           <Button
             type="button"
+            variant="ghost"
+            size="xs"
             className="jp-gis-grammar-when-op"
             onClick={() =>
               onChange({
@@ -404,7 +425,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         ))}
         <Button
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="ghost"
+          size="icon-xs"
+          className="rounded-[10px] border-dashed"
           onClick={addLayerPredicate}
           title="Add condition"
         >
@@ -617,6 +640,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         transforms: grammarLayer.preprocess ?? [],
         ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
         ...(grammarLayer.whenOp ? { whenOp: grammarLayer.whenOp } : {}),
+        ...(grammarLayer.declutter ? { declutter: true } : {}),
         rows: grammarLayer.rules.flatMap(rule =>
           rule.mappings.map((mapping, mi) => ({
             // Preserve the rule's stable id so React keys and story-segment
@@ -662,6 +686,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           : {}),
         ...(uiLayer.when?.length ? { when: uiLayer.when } : {}),
         ...(uiLayer.whenOp ? { whenOp: uiLayer.whenOp } : {}),
+        ...(uiLayer.declutter ? { declutter: true } : {}),
         rules,
       };
     });
@@ -745,7 +770,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button className="jp-gis-grammar-action-btn" onClick={addLayer}>
+        <Button variant="outline" size="sm" onClick={addLayer}>
           Add Layer
         </Button>
       </div>

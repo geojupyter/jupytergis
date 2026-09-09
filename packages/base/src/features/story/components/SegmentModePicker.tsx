@@ -23,6 +23,7 @@ export function SegmentModePicker({
       <div className="jgis-story-editor-segment-mode-picker">
         <Button
           type="button"
+          variant="outline"
           className={`jgis-story-editor-segment-mode-card${
             selectedValue === 'map'
               ? ' jgis-story-editor-segment-mode-card--selected'
@@ -39,6 +40,7 @@ export function SegmentModePicker({
         </Button>
         <Button
           type="button"
+          variant="outline"
           className={`jgis-story-editor-segment-mode-card${
             selectedValue === 'markdown'
               ? ' jgis-story-editor-segment-mode-card--selected'

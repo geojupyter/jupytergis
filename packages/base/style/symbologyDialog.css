@@ -45,26 +45,6 @@ select option {
   max-width: 50%;
 }
 
-.jp-gis-color-ramp-div {
-  display: flex;
-  flex: 1 1 50%;
-  max-width: 50%;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.jp-gis-color-ramp-div > .jp-select-wrapper {
-  flex: 1 0 40%;
-}
-
-.jp-gis-color-ramp-div:last-child {
-  flex-shrink: 0;
-}
-
-.jp-gis-color-ramp-div > input {
-  max-width: 25%;
-}
-
 .jp-gis-layer-symbology-container {
   display: flex;
   flex-direction: column;
@@ -188,7 +168,7 @@ select option {
   justify-content: center;
 }
 
-.jp-gis-color-ramp-warning .jgis-hover-card-trigger {
+.jp-gis-color-ramp-warning [data-slot='hover-card-trigger'] {
   color: white !important;
   filter: drop-shadow(0 0 2px black);
 }
@@ -205,11 +185,6 @@ select option {
   height: 30px;
   visibility: initial;
   border-radius: var(--jp-border-radius);
-}
-
-.jp-Dialog-content:has(.jp-gis-heatmap),
-.jp-Dialog-body:has(.jp-gis-heatmap) {
-  overflow: visible;
 }
 
 .jp-gis-canvas-button-wrapper {
@@ -288,6 +263,20 @@ select option {
   flex: 1 0 auto;
 }
 
+.jp-gis-grammar-layer-declutter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.jp-gis-grammar-layer-declutter input {
+  margin: 0;
+}
+
 .jp-gis-grammar-transform-row {
   display: flex;
   align-items: center;
@@ -306,15 +295,7 @@ select option {
 .jp-gis-grammar-transform-row input,
 .jp-gis-grammar-transform-row [data-slot='native-select'],
 .jp-gis-grammar-transform-row select,
-.jp-gis-grammar-transform-row .jgis-native-select {
-  background: transparent;
-  background-color: transparent;
-  border-color: transparent;
-}
-
-.jp-gis-grammar-transform-row .jgis-button,
-.jp-gis-grammar-layer-header .jgis-button,
-.jp-gis-grammar-layer-section > .jp-gis-grammar-when-row .jgis-button {
+.jp-gis-grammar-transform-row [data-slot='native-select-wrapper'] {
   background: transparent;
   background-color: transparent;
   border-color: transparent;
@@ -358,7 +339,7 @@ select option {
   border-bottom-left-radius: 0;
 }
 
-.jp-gis-grammar-reorder-bar .jgis-button {
+.jp-gis-grammar-reorder-bar [data-slot='button'] {
   height: 20px;
   width: 22px;
   padding: 0;
@@ -368,12 +349,12 @@ select option {
   background: none;
 }
 
-.jp-gis-grammar-reorder-bar .jgis-button:hover:not(:disabled) {
+.jp-gis-grammar-reorder-bar [data-slot='button']:hover:not(:disabled) {
   color: var(--jp-ui-font-color1);
   background: var(--jp-layout-color3);
 }
 
-.jp-gis-grammar-reorder-bar .jgis-button:disabled {
+.jp-gis-grammar-reorder-bar [data-slot='button']:disabled {
   opacity: 0.3;
 }
 
@@ -470,8 +451,7 @@ select option {
   min-width: 0;
 }
 
-.jp-gis-grammar-encoding-select .jgis-combobox-button,
-.jp-gis-grammar-encoding-select .jgis-native-select {
+.jp-gis-grammar-encoding-select [data-slot='native-select-wrapper'] {
   width: 100%;
   box-sizing: border-box;
 }
@@ -514,7 +494,7 @@ select option {
     transform: rotate(90deg);
   }
 
-  .jp-gis-grammar-scale-section .jgis-native-select {
+  .jp-gis-grammar-scale-section [data-slot='native-select-wrapper'] {
     align-self: flex-start;
   }
 }
@@ -526,26 +506,6 @@ select option {
   flex-direction: column;
   gap: 8px;
   background: var(--jp-layout-color0);
-}
-
-.jp-gis-grammar-action-btn {
-  background: transparent;
-  border: 1px solid var(--jp-border-color2);
-  border-radius: var(--jp-border-radius, 0.375rem);
-  color: var(--jp-ui-font-color1);
-  font-size: var(--jp-ui-font-size1);
-  padding: 4px 12px;
-  cursor: pointer;
-  width: fit-content;
-}
-
-.jp-gis-grammar-action-btn:hover {
-  background: var(--jp-layout-color2);
-}
-
-.jp-gis-grammar-action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Preview button spans all encoding rows — stretches vertically */
@@ -625,16 +585,6 @@ select option {
   padding: 0 2px;
 }
 
-.jp-gis-grammar-delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--jp-ui-font-color2);
-  padding: 0 4px;
-  font-size: 16px;
-  line-height: 1;
-}
-
 /* When clause */
 
 .jp-gis-grammar-layer-section > .jp-gis-grammar-when-row {
@@ -681,7 +631,7 @@ select option {
   white-space: nowrap;
 }
 
-.jp-gis-grammar-when-chip button {
+.jp-gis-grammar-when-chip [data-slot='button'] {
   background: none;
   border: none;
   padding: 0 0 0 2px;
@@ -689,22 +639,9 @@ select option {
   line-height: 1;
   color: var(--jp-ui-font-color2);
   font-size: 11px;
-}
-
-.jgis-button.jp-gis-grammar-when-add-btn {
-  background: transparent;
-  background-color: transparent;
-  border: 1px dashed var(--jp-border-color2);
-  border-radius: 10px;
-  padding: 1px 8px;
-  cursor: pointer;
-  font-size: var(--jp-ui-font-size0);
-  color: var(--jp-ui-font-color2);
-}
-
-.jp-gis-grammar-when-add-btn:hover {
-  border-color: var(--jp-brand-color1);
-  color: var(--jp-brand-color1);
+  height: auto;
+  width: auto;
+  min-width: 0;
 }
 
 .jp-gis-grammar-when-form {
@@ -714,7 +651,7 @@ select option {
   flex-wrap: nowrap;
 }
 
-.jp-gis-grammar-when-form .jgis-native-select {
+.jp-gis-grammar-when-form [data-slot='native-select-wrapper'] {
   flex: 0 0 auto;
 }
 
@@ -734,17 +671,6 @@ select option {
   font-size: var(--jp-ui-font-size0);
   border-color: var(--jp-border-color2);
   box-shadow: none;
-}
-
-/* Icon buttons in the when-form should be transparent, not white */
-.jp-gis-grammar-when-form .jgis-button {
-  background: transparent;
-  background-color: transparent;
-  border-color: transparent;
-}
-
-.jgis-button.jp-gis-grammar-when-form-cancel {
-  color: var(--jp-error-color0);
 }
 
 /* Domain min/max pair inside a symbology row */

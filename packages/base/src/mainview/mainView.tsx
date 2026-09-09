@@ -74,7 +74,6 @@ import { singleClick } from 'ol/events/condition';
 import { getCenter, getSize } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { Type } from 'ol/geom/Geometry';
 import {
   DragAndDrop,
   DragPan,
@@ -88,10 +87,7 @@ import {
   DoubleClickZoom,
   Select,
 } from 'ol/interaction';
-import Draw, { DrawEvent } from 'ol/interaction/Draw';
 import type Interaction from 'ol/interaction/Interaction';
-import Modify from 'ol/interaction/Modify';
-import Snap from 'ol/interaction/Snap';
 import {
   Image as ImageLayer,
   Layer,
@@ -123,8 +119,7 @@ import {
 import GeoZarr from 'ol/source/GeoZarr';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Fill, Icon, Stroke, Style } from 'ol/style';
-import CircleStyle from 'ol/style/Circle';
+import { Fill, Icon, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -135,9 +130,9 @@ import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
+import { DrawToolController } from '@/src/features/draw-tool';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import { getFeatureIdentifier } from '@/src/features/identify/utils/getFeatureIdentifier';
-import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
 import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
@@ -165,6 +160,11 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
+import {
+  getZoomExtentForOlLayer,
+  isValidExtent,
+  transformExtentToViewProjection,
+} from './utils/olLayerZoomExtent';
 import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
 import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
 import {
@@ -172,7 +172,10 @@ import {
   OpenEOTileSource,
   openEOEvents,
 } from '../features/layers/openeo/OpenEOTileLayer';
-import { grammarToOLLayer } from '../features/layers/symbology/grammarToOLLayer';
+import {
+  grammarDeclutter,
+  grammarToOLLayer,
+} from '../features/layers/symbology/grammarToOLLayer';
 import {
   extractEncodingFieldValues,
   grammarToOLStyle,
@@ -196,22 +199,6 @@ type OlLayerTypes =
   | StacLayer
   | ImageLayer<any>
   | LayerGroup;
-
-const drawInteractionStyle = new Style({
-  fill: new Fill({
-    color: 'rgba(255, 255, 255, 0.2)',
-  }),
-  stroke: new Stroke({
-    color: '#ffcc33',
-    width: 2,
-  }),
-  image: new CircleStyle({
-    radius: 7,
-    fill: new Fill({
-      color: '#ffcc33',
-    }),
-  }),
-});
 
 interface IMainViewProps {
   viewModel: MainViewModel;
@@ -397,6 +384,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._contextMenu = new ContextMenu({
       commands: this._commands,
     });
+    this._drawTool = new DrawToolController({
+      getMap: () => this._Map,
+      getLayer: layerId => this.getLayer(layerId),
+      getModel: () => this._model,
+      onDrawLayerIdChange: layerId => this._setCurrentDrawLayerId(layerId),
+      onDrawGeometryLabelChange: label =>
+        this.setState(old => ({ ...old, drawGeometryLabel: label })),
+    });
     this._updateCenter = debounce(this.updateCenter, 100);
   }
 
@@ -429,8 +424,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
     }
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      window.jupytergisMaps[this._documentPath] = this._Map;
+    if (window.jupytergisMaps !== undefined) {
+      // The shared model only emits a path change when the document is renamed,
+      // so on a normal open the path has to be read directly.
+      this._documentPath ??=
+        (this._model.sharedModel.getState('path') as string | undefined) ||
+        this._model.filePath ||
+        undefined;
+      this._registerMap(this._documentPath);
     }
   }
 
@@ -452,9 +453,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
-    if (window.jupytergisMaps !== undefined && this._documentPath) {
-      delete window.jupytergisMaps[this._documentPath];
-    }
+    this._unregisterMap();
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
@@ -937,6 +936,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   addContextMenu = (): void => {
+    this._commands.addCommand(CommandIDs.deleteSelectedFeatures, {
+      label: 'Delete feature',
+      isEnabled: () => {
+        if (!this._clickCoords || this._model.currentMode !== 'drawing') {
+          return false;
+        }
+        return this._drawTool.hasFeatureAtCoordinate(this._clickCoords);
+      },
+      execute: () => {
+        if (this._clickCoords) {
+          this._drawTool.deleteAtCoordinate(this._clickCoords);
+        }
+      },
+    });
+
     this._commands.addCommand(CommandIDs.addAnnotation, {
       label: 'Add annotation',
       describedBy: {
@@ -1007,6 +1021,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
         await navigator.clipboard.writeText(text);
       },
+    });
+
+    this._contextMenu.addItem({
+      command: CommandIDs.deleteSelectedFeatures,
+      selector: '.ol-viewport',
+      rank: 0,
     });
 
     this._contextMenu.addItem({
@@ -1772,6 +1792,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer),
+          declutter: grammarDeclutter(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+          ),
         });
 
         break;
@@ -2244,6 +2267,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
+        // Vector tile layers are restyled in place rather than rebuilt, so
+        // declutter has to be pushed across by hand. Vector layers get it for
+        // free because _syncGrammarSubLayers reconstructs the OL layer.
+        (mapLayer as VectorTileLayer).setDeclutter(
+          grammarDeclutter(
+            layerParams.symbologyState as IGrammarSymbologyState,
+          ),
+        );
 
         break;
       }
@@ -2414,6 +2445,72 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return undefined;
   }
 
+  private _fitViewToExtent(
+    extent: number[] | undefined,
+    layerId: string,
+    options: { duration?: number; padding?: number[] } = {},
+  ): void {
+    if (!isValidExtent(extent)) {
+      this._log('warning', `Layer ${layerId} extent is not valid.`);
+      return;
+    }
+
+    this._Map.getView().fit(extent, {
+      size: this._Map.getSize(),
+      duration: options.duration ?? 500,
+      ...(options.padding ? { padding: options.padding } : {}),
+    });
+  }
+
+  private _zoomToJgisLayerWithoutOlLayer(
+    id: string,
+    jgisLayer: IJGISLayer | undefined,
+  ): void {
+    if (!jgisLayer) {
+      return;
+    }
+
+    if (jgisLayer.type === 'StacLayer') {
+      const stacBbox = (jgisLayer.parameters as IStacLayer).data?.bbox;
+      if (stacBbox?.length === 4) {
+        const extent = transformExtentToViewProjection(
+          [...stacBbox],
+          this._Map.getView().getProjection(),
+          getProjection('EPSG:4326'),
+        );
+
+        this._fitViewToExtent(extent, id, {
+          padding: [250, 250, 250, 250],
+        });
+
+        return;
+      }
+    }
+
+    if (jgisLayer.type === 'StorySegmentLayer') {
+      const params = jgisLayer.parameters as IStorySegmentLayer;
+      const coords = getCenter(params.extent);
+      const viewCenter = this._Map.getView().getCenter();
+      const alreadyCentered =
+        viewCenter !== undefined &&
+        Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
+        Math.abs(viewCenter[1] - coords[1]) < 1e-9;
+
+      if (!alreadyCentered) {
+        this._flyToPosition(
+          { x: coords[0], y: coords[1] },
+          params.zoom,
+          (params.transition.time ?? 1) * 1000,
+          params.transition.type,
+        );
+      }
+
+      return;
+    }
+
+    this._pendingZoomLayerId = id;
+  }
+
   private _computeZoomFromExtent(extent: number[]): number | null {
     if (!this._Map) {
       return null;
@@ -2435,32 +2532,26 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     layerId: string,
     olLayer: Layer | LayerGroup,
   ): void {
-    const effectiveLayer =
-      olLayer instanceof LayerGroup
-        ? (olLayer.getLayers().getArray()[0] as Layer | undefined)
-        : olLayer;
-    if (!effectiveLayer) {
+    const extent = getZoomExtentForOlLayer(
+      olLayer,
+      this._Map.getView().getProjection(),
+      (layer, source) => this._computeExtent(layer, source),
+    );
+    if (!isValidExtent(extent)) {
       return;
     }
-    const source = effectiveLayer.getSource();
-    const sourceId = source?.get?.('id');
 
-    let extent = sourceId ? this._model.getExtent(sourceId) : undefined;
-
-    if (!extent) {
-      extent = this._computeExtent(effectiveLayer, source);
+    const zoom = this._computeZoomFromExtent(extent);
+    if (zoom === null) {
+      return;
     }
 
-    if (extent) {
-      const zoom = this._computeZoomFromExtent(extent);
+    const view: IViewState[string] = {
+      extent,
+      zoom,
+    };
 
-      if (zoom === null) {
-        return;
-      }
-
-      const view: IViewState[string] = { extent, zoom };
-      this._model.updateLayerViewState(layerId, view);
-    }
+    this._model.updateLayerViewState(layerId, view);
   }
 
   /**
@@ -2609,8 +2700,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._previousDrawLayerID = selectedLayerId;
-    this._setCurrentDrawLayerId(selectedLayerId);
-    this._editVectorLayer();
+    this._drawTool.setDrawLayerId(selectedLayerId);
+    this._drawTool.enterLayer();
   };
 
   /**
@@ -3019,6 +3110,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         if (mapLayer) {
           this._trackLayerViewState(id, mapLayer);
         }
+
+        if (
+          this._model.currentMode === 'drawing' &&
+          id === this._drawTool.currentDrawLayerId
+        ) {
+          this._drawTool.enterLayer();
+        }
       } else {
         this.updateLayers(layerTree);
       }
@@ -3081,14 +3179,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
-    change.sourceChange?.forEach(change => {
-      if (!change.newValue || Object.keys(change.newValue).length === 0) {
-        this.removeSource(change.id);
+    change.sourceChange?.forEach(srcChange => {
+      if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
+        this.removeSource(srcChange.id);
       } else {
-        const source = this._model.getSource(change.id);
-        if (source) {
-          this.updateSource(change.id, source);
+        const source = this._model.getSource(srcChange.id);
+        if (!source) {
+          return;
         }
+        if (
+          this._model.currentMode === 'drawing' &&
+          srcChange.id === this._drawTool.currentDrawSourceId
+        ) {
+          return;
+        }
+        void this.updateSource(srcChange.id, source);
       }
     });
 
@@ -3108,15 +3213,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
     const path = this._model.sharedModel.getState('path');
     if (path !== this._documentPath && typeof path === 'string') {
-      if (window.jupytergisMaps !== undefined && this._documentPath) {
-        delete window.jupytergisMaps[this._documentPath];
-      }
       this._documentPath = path;
       if (window.jupytergisMaps !== undefined) {
-        window.jupytergisMaps[this._documentPath] = this._Map;
+        this._unregisterMap();
+        this._registerMap(path);
       }
     }
   };
+
+  /**
+   * Publish this map on `window.jupytergisMaps` under a unique key, and tag the
+   * map container with that key.
+   *
+   * Notebook widgets all share one synthetic document path, so the path alone
+   * is not a unique key; a suffix is appended when it is already taken. The
+   * container carries the key so a test holding a cell element can find its map
+   * without a second lookup mechanism.
+   */
+  private _registerMap(path?: string): void {
+    if (window.jupytergisMaps === undefined) {
+      return;
+    }
+    const base = path || 'unsaved';
+    let key = base;
+    for (let n = 2; window.jupytergisMaps[key] !== undefined; n++) {
+      key = `${base}#${n}`;
+    }
+    window.jupytergisMaps[key] = this._Map;
+    this._mapKey = key;
+    this._Map.getTargetElement()?.setAttribute('data-jgis-map', key);
+  }
+
+  private _unregisterMap(): void {
+    if (window.jupytergisMaps === undefined || this._mapKey === undefined) {
+      return;
+    }
+    delete window.jupytergisMaps[this._mapKey];
+    this._mapKey = undefined;
+    this._Map.getTargetElement()?.removeAttribute('data-jgis-map');
+  }
 
   private _clearHighlightWhenIdentifyDisabled(): void {
     if (
@@ -3493,122 +3628,27 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  // TODO this and flyToPosition need a rework
   private _onZoomToPosition(_: IJupyterGISModel, id: string) {
-    // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       this._flyToPosition(annotation.position, annotation.zoom);
       return;
     }
 
-    // The id is a layer
-    const layer = this.getLayer(id);
-    const source = layer?.getSource();
-    const jgisLayer = this._model.getLayer(id);
-
-    /**
-     * Layer may be undefined in two cases:
-     * 1. StorySegmentLayer: These layers don't have an associated OpenLayers layer
-     * 2. StacLayer: When centerOnPosition is called immediately after adding the layer,
-     *    the OpenLayers layer hasn't been created yet, so we use the bbox from the
-     *    layer model's STAC data directly.
-     */
-    if (!layer) {
-      // Handle StacLayer that hasn't been added to the map yet
-      if (jgisLayer?.type === 'StacLayer') {
-        const layerParams = jgisLayer.parameters as IStacLayer;
-        const stacBbox = layerParams.data?.bbox;
-
-        if (stacBbox && stacBbox.length === 4) {
-          // STAC bbox format: [west, south, east, north] in EPSG:4326
-          const [west, south, east, north] = stacBbox;
-          const bboxExtent = [west, south, east, north];
-
-          // Convert from EPSG:4326 to view projection
-          const viewProjection = this._Map.getView().getProjection();
-          const transformedExtent =
-            viewProjection.getCode() !== 'EPSG:4326'
-              ? transformExtent(bboxExtent, 'EPSG:4326', viewProjection)
-              : bboxExtent;
-
-          this._Map.getView().fit(transformedExtent, {
-            size: this._Map.getSize(),
-            duration: 500,
-            padding: [250, 250, 250, 250],
-          });
-          return;
-        }
-      }
-
-      // Handle StorySegmentLayer
-      if (jgisLayer?.type === 'StorySegmentLayer') {
-        const layerParams = jgisLayer.parameters as IStorySegmentLayer;
-        const coords = getCenter(layerParams.extent);
-
-        // Don't move map if we're already centered on the segment
-        const viewCenter = this._Map.getView().getCenter();
-        const centersEqual =
-          viewCenter !== undefined &&
-          Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
-          Math.abs(viewCenter[1] - coords[1]) < 1e-9;
-        if (centersEqual) {
-          return;
-        }
-
-        this._flyToPosition(
-          { x: coords[0], y: coords[1] },
-          layerParams.zoom,
-          (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
-          layerParams.transition.type,
-        );
-
-        return;
-      }
-
-      // Generic layer whose OpenLayers layer hasn't been created yet (e.g. a
-      // layer just added via the Python API with zoom_to=True). Remember the
-      // request and retry once the layer has been added to the map.
-      if (jgisLayer) {
-        this._pendingZoomLayerId = id;
-        return;
-      }
-    }
-
-    const extent = this._computeExtent(layer, source);
-    if (!extent) {
-      this._log('warning', 'Layer ${id} has no extent.');
+    const olLayer = this.getLayer(id);
+    if (!olLayer) {
+      this._zoomToJgisLayerWithoutOlLayer(id, this._model.getLayer(id));
       return;
     }
 
-    if (!extent.every(value => Number.isFinite(value))) {
-      this._log(
-        'warning',
-        `Layer ${id} has an invalid extent: ${extent.join(', ')}`,
-      );
-      return;
-    }
-
-    // Convert layer extent value to view projection if needed
-    const sourceProjection = source?.getProjection();
-    const viewProjection = this._Map.getView().getProjection();
-
-    const transformedExtent =
-      sourceProjection && sourceProjection !== viewProjection
-        ? transformExtent(extent, sourceProjection, viewProjection)
-        : extent;
-    if (!transformedExtent.every(value => Number.isFinite(value))) {
-      this._log(
-        'warning',
-        `Layer ${id} has an invalid transformed extent: ${transformedExtent.join(', ')}`,
-      );
-      return;
-    }
-
-    this._Map.getView().fit(transformedExtent, {
-      size: this._Map.getSize(),
-      duration: 500,
-    });
+    this._fitViewToExtent(
+      getZoomExtentForOlLayer(
+        olLayer,
+        this._Map.getView().getProjection(),
+        (layer, source) => this._computeExtent(layer, source),
+      ),
+      id,
+    );
   }
 
   private _moveToPosition(
@@ -4018,13 +4058,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState(old => ({ ...old, isDrawing }));
 
     if (isDrawing) {
-      this._editVectorLayer();
+      this._setHighlightFeatures([]);
+      this._drawTool.enterLayer();
+      return;
     }
 
-    if (!isDrawing && this._draw) {
-      this._removeDrawInteraction();
-      this._setCurrentDrawLayerId(undefined);
-    }
+    this._drawTool.leaveDrawMode();
   };
 
   private _notifyInteractionModeCommands(): void {
@@ -4035,7 +4074,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _setCurrentDrawLayerId(layerId: string | undefined): void {
-    this._currentDrawLayerID = layerId;
     this.setState(old =>
       old.currentDrawLayerId === layerId
         ? old
@@ -4043,217 +4081,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  private _handleDrawGeometryTypeChange = (
-    /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
-    drawGeometryLabel: string,
-  ) => {
-    // Clicking the active geometry toggles drawing off.
-    if (this._currentDrawGeometry === drawGeometryLabel) {
-      this._currentDrawGeometry = undefined;
-      this._removeInteractions();
-
-      this.setState(old => ({
-        ...old,
-        drawGeometryLabel: '',
-      }));
-      return;
-    }
-
-    this._currentDrawGeometry = drawGeometryLabel as Type;
-
-    if (this._currentDrawLayerID) {
-      this._currentVectorSource = this._getVectorSourceFromLayerID(
-        this._currentDrawLayerID,
-      );
-    }
-
-    this._updateInteractions();
-    this._updateDrawSource();
-
-    this.setState(old => ({
-      ...old,
-      drawGeometryLabel,
-    }));
-  };
-
-  private _getVectorSourceFromLayerID = (
-    layerID: string,
-  ): VectorSource | undefined => {
-    /* get the OpenLayers VectorSource corresponding to the JGIS currentDrawLayerID */
-    const layers = this._Map.getLayers();
-    const layerArray = layers.getArray();
-    const matchingLayer = layerArray.find(layer => layer.get('id') === layerID);
-    const source = matchingLayer?.get('source');
-
-    this._currentVectorSource = source;
-
-    return this._currentVectorSource;
-  };
-
-  _getDrawSourceFromSelectedLayer = () => {
-    const selectedLayers =
-      this._model?.sharedModel.awareness.getLocalState()?.selected?.value;
-
-    if (!selectedLayers) {
-      return;
-    }
-
-    const selectedLayerID = Object.keys(selectedLayers)[0];
-    this._setCurrentDrawLayerId(selectedLayerID);
-
-    const JGISLayer = this._model.getLayer(selectedLayerID);
-    this._currentDrawSourceID = (JGISLayer as any)?.parameters?.source;
-
-    if (this._currentDrawSourceID) {
-      this._currentDrawSource = this._model.getSource(
-        this._currentDrawSourceID,
-      );
-    }
-  };
-
-  _onVectorSourceChange = () => {
-    if (
-      !this._currentVectorSource ||
-      !this._currentDrawSource ||
-      !this._currentDrawSourceID
-    ) {
-      return;
-    }
-
-    const geojsonWriter = new GeoJSON({
-      featureProjection: this._Map.getView().getProjection(),
-    });
-
-    const features = this._currentVectorSource
-      .getFeatures()
-      .map(feature => geojsonWriter.writeFeatureObject(feature));
-
-    const updatedData = {
-      type: 'FeatureCollection',
-      features: features,
-    };
-
-    const updatedJGISLayerSource: IJGISSource = {
-      name: this._currentDrawSource.name,
-      type: this._currentDrawSource.type,
-      parameters: {
-        data: updatedData,
-      },
-    };
-
-    this._currentDrawSource = updatedJGISLayerSource;
-    this._model.sharedModel.updateSource(
-      this._currentDrawSourceID,
-      updatedJGISLayerSource,
-    );
-  };
-
-  _updateDrawSource = () => {
-    if (this._currentVectorSource) {
-      this._currentVectorSource.on('change', this._onVectorSourceChange);
-    }
-  };
-
-  _removeInteractions = () => {
-    if (this._draw) {
-      this._removeDrawInteraction();
-    }
-
-    if (this._select) {
-      this._removeSelectInteraction();
-    }
-
-    if (this._modify) {
-      this._removeModifyInteraction();
-    }
-
-    if (this._snap) {
-      this._removeSnapInteraction();
-    }
-  };
-
-  _updateInteractions = () => {
-    this._removeInteractions();
-
-    if (!this._currentDrawGeometry) {
-      return;
-    }
-
-    this._draw = new Draw({
-      style: drawInteractionStyle,
-      type: this._currentDrawGeometry,
-      source: this._currentVectorSource,
-    });
-    this._draw.on('drawend', this._handleDrawEnd);
-    this._select = new Select();
-    this._modify = new Modify({
-      features: this._select.getFeatures(),
-    });
-    this._snap = new Snap({
-      source: this._currentVectorSource,
-    });
-
-    this._Map.addInteraction(this._draw);
-    this._Map.addInteraction(this._select);
-    this._Map.addInteraction(this._modify);
-    this._Map.addInteraction(this._snap);
-
-    this._draw.setActive(true);
-    this._select.setActive(false);
-    this._modify.setActive(false);
-    this._snap.setActive(true);
-  };
-
-  private _handleDrawEnd = (event: DrawEvent): void => {
-    const feature = event.feature;
-    feature.set('_id', UUID.uuid4());
-    feature.set('_createdAt', new Date().toISOString());
-    feature.set('_creatorClientId', this._model.getClientId().toString());
-    feature.set('_fromDrawTool', true);
-
-    const layerId = this._currentDrawLayerID;
-    const customAttributes = layerId
-      ? this._model.getDrawCustomAttributes(layerId)
-      : [];
-    applyDrawCustomAttributesToFeature(feature, customAttributes);
-  };
-
-  _editVectorLayer = () => {
-    this._getDrawSourceFromSelectedLayer();
-    if (!this._currentDrawLayerID) {
-      return;
-    }
-
-    this._currentVectorSource = this._getVectorSourceFromLayerID(
-      this._currentDrawLayerID,
-    );
-
-    if (!this._currentVectorSource || !this._currentDrawGeometry) {
-      return;
-    }
-
-    this._updateInteractions(); /* remove previous interactions and instantiate new ones */
-    this._updateDrawSource(); /*add new features, update source and get changes reported to the JGIS Document in geoJSON format */
-  };
-
-  private _removeDrawInteraction = () => {
-    this._draw.setActive(false);
-    this._Map.removeInteraction(this._draw);
-  };
-
-  private _removeSelectInteraction = () => {
-    this._select.setActive(false);
-    this._Map.removeInteraction(this._select);
-  };
-
-  private _removeSnapInteraction = () => {
-    this._snap.setActive(false);
-    this._Map.removeInteraction(this._snap);
-  };
-
-  private _removeModifyInteraction = () => {
-    this._modify.setActive(false);
-    this._Map.removeInteraction(this._modify);
+  private _handleDrawGeometryTypeChange = (drawGeometryLabel: string): void => {
+    this._drawTool.handleGeometryTypeChange(drawGeometryLabel);
   };
 
   /**
@@ -4444,6 +4273,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
+  private _mapKey?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _pendingZoomLayerId: string | null = null;
@@ -4451,16 +4281,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;
   } = { current: null };
-  private _draw: Draw;
-  private _snap: Snap;
-  private _modify: Modify;
-  private _select: Select;
-  private _currentDrawLayerID: string | undefined;
+  private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;
-  private _currentDrawSource: IJGISSource | undefined;
-  private _currentVectorSource: VectorSource | undefined;
-  private _currentDrawSourceID: string | undefined;
-  private _currentDrawGeometry: Type | undefined;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
