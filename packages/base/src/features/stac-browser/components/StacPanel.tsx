@@ -62,7 +62,10 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
   return (
     <Tabs defaultValue="filters" style={{ boxShadow: 'none' }}>
       <TabsList variant="underline" className="jgis-stac-panel-tabs-list">
-        <TabsTrigger className="jgis-underline-indicator text-sm" value="filters">
+        <TabsTrigger
+          className="jgis-underline-indicator text-sm"
+          value="filters"
+        >
           Filters
         </TabsTrigger>
         <TabsTrigger
