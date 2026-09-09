@@ -779,10 +779,6 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._sources.clear();
   }
 
-  getMap(): OlMap {
-    return this._map;
-  }
-
   setZoomButtonsEnabled(enabled: boolean): void {
     if (!enabled && this._zoomControl) {
       this._map.removeControl(this._zoomControl);
