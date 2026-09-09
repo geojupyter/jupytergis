@@ -12,8 +12,6 @@ import type {
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Geometry } from 'geojson';
 
-import { OpenLayersAdapter } from './adapters/openlayersAdapter';
-
 export type MapAdapterType = 'openlayers';
 
 /**
@@ -143,6 +141,8 @@ export async function createMapAdapter(
 ): Promise<IMapAdapter> {
   switch (type) {
     case 'openlayers': {
+      const { OpenLayersAdapter } =
+        await import('./adapters/openlayersAdapter');
       return new OpenLayersAdapter(model);
     }
 
