@@ -2830,7 +2830,10 @@ export class OpenLayersAdapter implements IMapAdapter {
   /**
    * Track layer's extent and zoom in model's view state
    */
-  private _trackLayerViewState(layerId: string, olLayer: Layer | LayerGroup): void {
+  private _trackLayerViewState(
+    layerId: string,
+    olLayer: Layer | LayerGroup,
+  ): void {
     const extent = getZoomExtentForOlLayer(
       olLayer,
       this._map.getView().getProjection(),

@@ -231,10 +231,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this.setState({
       annotations: this._model.sharedModel.getAnnotations(),
     });
-    if (!this._mapAdapter) {
-      return;
-    }
-
     if (this._loggerRegistry) {
       const logger = this._loggerRegistry.getLogger(this._model.filePath);
       logger.level = 'debug';
@@ -250,6 +246,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(lonLat, zoom, projection);
+
+    if (!this._mapAdapter) {
+      console.warn('There is No Map Adapter to generateMap');
+      return;
+    }
     this._model.zoomToPositionSignal.connect(
       this._mapAdapter.onZoomToPosition,
       this._mapAdapter,
@@ -882,13 +883,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _onSettingsChanged(): void {
     this.setState({ jgisSettings: this._model.jgisSettings });
 
-    if (!this._mapAdapter) {
-      return;
-    }
-
     // Handle other settings changes (existing code)
     const enabled = this._model.jgisSettings.zoomButtonsEnabled;
-    this._mapAdapter.setZoomButtonsEnabled(enabled);
+    this._mapAdapter?.setZoomButtonsEnabled(enabled);
   }
 
   private async updateOptions(options: IJGISOptions): Promise<void> {
@@ -999,11 +996,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     change: IJGISSourceDocChange,
   ): void {
     change.sourceChange?.forEach(srcChange => {
-      if (!this._mapAdapter) {
-        return;
-      }
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
-        this._mapAdapter.removeSource(srcChange.id);
+        this._mapAdapter?.removeSource(srcChange.id);
       } else {
         const source = this._model.getSource(srcChange.id);
         if (!source) {
@@ -1015,7 +1009,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ) {
           return;
         }
-        void this._mapAdapter.updateSource(srcChange.id, source);
+        void this._mapAdapter?.updateSource(srcChange.id, source);
       }
     });
 
@@ -1611,16 +1605,16 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _loggerRegistry?: ILoggerRegistry;
-  private _addLayerForPanels = async (
+  private _addLayerForPanels = (
     id: string,
     layer: IJGISLayer,
     index: number,
   ): Promise<void> => {
     if (!this._mapAdapter) {
-      return;
+      return Promise.resolve();
     }
 
-    await this._mapAdapter.addLayer(id, layer, index);
+    return this._mapAdapter.addLayer(id, layer, index);
   };
   private _removeLayerForPanels = (id: string) =>
     this._mapAdapter?.removeLayer(id);
