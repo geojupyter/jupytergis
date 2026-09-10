@@ -30,13 +30,21 @@ function disposeRenderer(renderer: Widget): void {
     return;
   }
 
-  if (renderer.isAttached) {
-    try {
+  // React may have already removed the host, leaving Lumino's isAttached
+  // true while node.isConnected is false. Widget.detach()/dispose() throw
+  // in that state — clear the flag so dispose can finish cleanly.
+  try {
+    if (renderer.isAttached && renderer.node.isConnected) {
       Widget.detach(renderer);
-    } catch {
-      // Host may already be gone when React unmounts the pane.
+    } else if (renderer.isAttached) {
+      renderer.clearFlag(Widget.Flag.IsAttached);
+    }
+  } catch {
+    if (renderer.isAttached) {
+      renderer.clearFlag(Widget.Flag.IsAttached);
     }
   }
+
   renderer.dispose();
 }
 

@@ -80,11 +80,12 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
         <Tabs className="jgis-panel-tabs" value={curTab || null}>
-          <TabsList>
+          <TabsList variant="underline">
             {tabInfo.map(tab => (
               <TabsTrigger
                 key={`${tab.name}-${tab.title}`}
                 value={tab.name}
+                className="jgis-underline-indicator"
                 onClick={() => {
                   if (curTab !== tab.name) {
                     setCurTab(tab.name);
