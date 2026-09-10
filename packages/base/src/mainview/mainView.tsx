@@ -314,10 +314,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   componentWillUnmount(): void {
-    if (!this._mapAdapter) {
-      return;
-    }
-    this._mapAdapter.unregisterMap();
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
@@ -340,27 +336,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._model.sharedAnnotationsChanged.disconnect(
       this._onAnnotationsChanged,
       this,
-    );
-    this._model.zoomToPositionSignal.disconnect(
-      this._mapAdapter.onZoomToPosition,
-      this._mapAdapter,
-    );
-    this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
-    this._model.addFeatureAsMsSignal.disconnect(
-      this._mapAdapter.convertFeatureToMs,
-      this._mapAdapter,
-    );
-    this._model.geolocationChanged.disconnect(
-      this._mapAdapter.handleGeolocationChanged,
-      this._mapAdapter,
-    );
-    this._model.flyToGeometrySignal.disconnect(
-      this._mapAdapter.flyToGeometry,
-      this._mapAdapter,
-    );
-    this._model.highlightFeatureSignal.disconnect(
-      this._mapAdapter.highlightFeatureOnMap,
-      this._mapAdapter,
     );
 
     this._model.temporalControllerActiveChanged.disconnect(
@@ -392,14 +367,38 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
-    this._model.uiStateChanged.disconnect(
-      this._mapAdapter.handleLocationIndicatorToggled,
-      this._mapAdapter,
-    );
-    this._model.modeChanged.disconnect(this._handleModeChanged, this);
-    this._mapAdapter.stopLocationIndicator();
     if (this._mapAdapter) {
-      this._mapAdapter.destroy();
+      this._mapAdapter.unregisterMap();
+      this._model.zoomToPositionSignal.disconnect(
+        this._mapAdapter.onZoomToPosition,
+        this._mapAdapter,
+      );
+      this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
+      this._model.addFeatureAsMsSignal.disconnect(
+        this._mapAdapter.convertFeatureToMs,
+        this._mapAdapter,
+      );
+      this._model.geolocationChanged.disconnect(
+        this._mapAdapter.handleGeolocationChanged,
+        this._mapAdapter,
+      );
+      this._model.flyToGeometrySignal.disconnect(
+        this._mapAdapter.flyToGeometry,
+        this._mapAdapter,
+      );
+      this._model.highlightFeatureSignal.disconnect(
+        this._mapAdapter.highlightFeatureOnMap,
+        this._mapAdapter,
+      );
+      this._model.uiStateChanged.disconnect(
+        this._mapAdapter.handleLocationIndicatorToggled,
+        this._mapAdapter,
+      );
+      this._model.modeChanged.disconnect(this._handleModeChanged, this);
+      this._mapAdapter.stopLocationIndicator();
+      if (this._mapAdapter) {
+        this._mapAdapter.destroy();
+      }
     }
 
     this._mainViewModel.dispose();
