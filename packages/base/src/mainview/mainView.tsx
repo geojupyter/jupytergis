@@ -644,7 +644,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       view.on('change:center', () => {
         this._updateCenter();
+        this._updateClientPointerPositions();
         syncViewportThrottled();
+      });
+
+      view.on('change:resolution', () => {
+        this._updateClientPointerPositions();
       });
 
       this._Map.on('postrender', () => {
@@ -2833,6 +2838,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
+            mapCoordinates: {
+              x: pointer.coordinates.x,
+              y: pointer.coordinates.y,
+            },
             coordinates: {
               x: pixel[0],
               y: pixel[1],
@@ -2845,6 +2854,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         } else {
           currentClientPointer = {
             ...currentClientPointer,
+            mapCoordinates: {
+              x: pointer.coordinates.x,
+              y: pointer.coordinates.y,
+            },
             coordinates: {
               x: pixel[0],
               y: pixel[1],
@@ -2860,6 +2873,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       } else {
         delete clientPointers[clientId];
       }
+    });
+
+    this.setState(old => ({ ...old, clientPointers }));
+  }
+
+  // Update the pixel positions of client pointers based on their map coordinates.
+  private _updateClientPointerPositions(): void {
+    const clientPointers = { ...this.state.clientPointers };
+
+    Object.entries(clientPointers).forEach(([clientId, pointer]) => {
+      const pixel = this._Map.getPixelFromCoordinate([
+        pointer.mapCoordinates.x,
+        pointer.mapCoordinates.y,
+      ]);
+
+      clientPointers[Number(clientId)] = {
+        ...pointer,
+        coordinates: {
+          x: pixel[0],
+          y: pixel[1],
+        },
+      };
     });
 
     this.setState(old => ({ ...old, clientPointers }));

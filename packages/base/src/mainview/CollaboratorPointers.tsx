@@ -15,6 +15,7 @@ export type ClientPointer = {
   displayName: string;
   color: string;
   coordinates: JgisCoordinates;
+  mapCoordinates: JgisCoordinates;
   lonLat: { latitude: number; longitude: number };
 };
 
