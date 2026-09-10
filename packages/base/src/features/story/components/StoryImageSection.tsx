@@ -1,6 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { StoryMarkdownImageLightbox } from './StoryMarkdownImageLightbox';
+import {
+  StoryMarkdownImageLightbox,
+  bindStoryZoomableImage,
+} from './StoryMarkdownImageLightbox';
 
 interface IStoryImageSectionProps {
   imageUrl: string;
@@ -17,24 +20,32 @@ function StoryImageSection({
   slideNumber,
   navSlot,
 }: IStoryImageSectionProps) {
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  useEffect(() => {
+    const image = imageRef.current;
+    if (!image || !imageLoaded) {
+      return;
+    }
+
+    return bindStoryZoomableImage(image, () => {
+      setLightboxOpen(true);
+    });
+  }, [imageLoaded, imageUrl]);
+
   if (!imageLoaded) {
     return null;
   }
-
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-
-  const handleOpen = useCallback(() => {
-    setLightboxOpen(true);
-  }, []);
 
   return (
     <div className="jgis-story-viewer-image-section">
       <div className="jgis-story-viewer-image-container">
         <img
+          ref={imageRef}
           src={imageUrl}
           alt="Story map image"
           className="jgis-story-viewer-image jgis-story-viewer-image-zoomable"
-          onClick={handleOpen}
           role="button"
           tabIndex={0}
         />

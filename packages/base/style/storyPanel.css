@@ -490,7 +490,8 @@
     select,
     textarea,
     label,
-    img,
+    .jgis-story-markdown-zoomable-image,
+    .jgis-story-viewer-image-zoomable,
     [role='button'],
     [role='link']
   ) {

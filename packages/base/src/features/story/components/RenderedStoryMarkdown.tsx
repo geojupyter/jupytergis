@@ -5,7 +5,10 @@ import { Widget } from '@lumino/widgets';
 import React, { memo, useLayoutEffect, useRef, useState } from 'react';
 import { StyleModule } from 'style-mod';
 
-import { StoryMarkdownImageLightbox } from '@/src/features/story/components/StoryMarkdownImageLightbox';
+import {
+  StoryMarkdownImageLightbox,
+  bindStoryZoomableImage,
+} from '@/src/features/story/components/StoryMarkdownImageLightbox';
 import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
 const MARKDOWN_MIME = 'text/markdown';
@@ -84,26 +87,17 @@ function bindZoomableImages(
       img.tabIndex = 0;
     }
 
-    const open = (): void => {
-      const src = img.currentSrc || img.src;
-
-      if (!src) {
-        return;
-      }
-
-      onOpen({ src, alt: img.alt || '' });
-    };
-
-    const handleClick = (event: MouseEvent): void => {
-      event.preventDefault();
-      event.stopPropagation();
-      open();
-    };
-
-    img.addEventListener('click', handleClick);
+    cleanups.push(
+      bindStoryZoomableImage(img, () => {
+        const src = img.currentSrc || img.src;
+        if (!src) {
+          return;
+        }
+        onOpen({ src, alt: img.alt || '' });
+      }),
+    );
 
     cleanups.push(() => {
-      img.removeEventListener('click', handleClick);
       img.classList.remove('jgis-story-markdown-zoomable-image');
     });
   }

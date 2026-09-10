@@ -14,6 +14,95 @@ export interface IStoryMarkdownImageLightboxProps {
   onClose: () => void;
 }
 
+const MOVE_THRESHOLD_PX = 8;
+
+function getMobileListScroller(): HTMLElement | null {
+  return document.querySelector('.jgis-story-mobile-list-scroll');
+}
+
+/**
+ * Tap opens the lightbox. On mobile list stories vertical swipes on
+ * the image are forwarded instead of being swallowed.
+ */
+export function bindStoryZoomableImage(
+  element: HTMLElement,
+  onOpen: () => void,
+): () => void {
+  let startY = 0;
+  let startScrollTop = 0;
+  let tracking = false;
+  let didScroll = false;
+
+  const handleTouchStart = (event: TouchEvent): void => {
+    if (event.touches.length !== 1) {
+      tracking = false;
+      return;
+    }
+
+    const scroller = getMobileListScroller();
+    if (!scroller) {
+      tracking = false;
+      return;
+    }
+
+    tracking = true;
+    didScroll = false;
+    startY = event.touches[0].clientY;
+    startScrollTop = scroller.scrollTop;
+  };
+
+  const handleTouchMove = (event: TouchEvent): void => {
+    if (!tracking || event.touches.length !== 1) {
+      return;
+    }
+
+    const scroller = getMobileListScroller();
+    if (!scroller) {
+      return;
+    }
+
+    const dy = startY - event.touches[0].clientY;
+    if (!didScroll && Math.abs(dy) < MOVE_THRESHOLD_PX) {
+      return;
+    }
+
+    didScroll = true;
+    scroller.scrollTop = startScrollTop + dy;
+    event.preventDefault();
+  };
+
+  const handleTouchEnd = (): void => {
+    tracking = false;
+  };
+
+  const handleClick = (event: MouseEvent): void => {
+    if (didScroll) {
+      event.preventDefault();
+      event.stopPropagation();
+      didScroll = false;
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    onOpen();
+  };
+
+  element.addEventListener('touchstart', handleTouchStart, { passive: true });
+  element.addEventListener('touchmove', handleTouchMove, { passive: false });
+  element.addEventListener('touchend', handleTouchEnd);
+  element.addEventListener('touchcancel', handleTouchEnd);
+  element.addEventListener('click', handleClick);
+
+  return () => {
+    element.removeEventListener('touchstart', handleTouchStart);
+    element.removeEventListener('touchmove', handleTouchMove);
+    element.removeEventListener('touchend', handleTouchEnd);
+    element.removeEventListener('touchcancel', handleTouchEnd);
+    element.removeEventListener('click', handleClick);
+  };
+}
+
 export function StoryMarkdownImageLightbox({
   src,
   alt = '',
