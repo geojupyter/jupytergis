@@ -85,7 +85,7 @@ export function StoryMarkdownImageLightbox({
     >
       <DialogContent
         className={cn(
-          'inset-0 top-0 left-0 z-10050 h-dvh w-screen max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none bg-black/95 p-0 text-white ring-0 max-sm:max-w-none data-open:zoom-in-100 data-closed:zoom-out-100',
+          'inset-0 top-0 left-0 z-10050 h-dvh w-screen max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none bg-background/95 p-0 text-foreground ring-0 max-sm:max-w-none data-open:zoom-in-100 data-closed:zoom-out-100',
         )}
       >
         <DialogTitle className="sr-only">Image preview</DialogTitle>
