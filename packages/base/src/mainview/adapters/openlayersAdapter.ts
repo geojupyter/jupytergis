@@ -33,7 +33,6 @@ import {
   IJGISUIState,
   JgisCoordinates,
 } from '@jupytergis/schema';
-import { showErrorMessage } from '@jupyterlab/apputils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { UUID } from '@lumino/coreutils';
 import type { Geometry } from 'geojson';
@@ -1531,12 +1530,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
     } catch (error: any) {
       const message = error.message || 'invalid file path';
-      if (this._callbacks?.onLayerError?.(id, message)) {
-        await showErrorMessage(
-          `Error Adding ${layer.name}`,
-          `Failed to add ${layer.name}: ${message}`,
-        );
-      }
+      this._callbacks?.onLayerError?.(id, message);
     } finally {
       this._loadingLayers.delete(id);
       this._callbacks?.onLayerAddSettled?.(id);

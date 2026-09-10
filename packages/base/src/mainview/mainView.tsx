@@ -21,6 +21,7 @@ import {
   IIdentifiedFeature,
   IIdentifiedFeatures,
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
@@ -485,7 +486,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           if (isDuplicate) {
             return;
           }
-          this.state.loadingErrors.push({ id, error: message, index: -1 });
+          this.setState(old => ({
+            loadingErrors: [
+              ...old.loadingErrors,
+              { id, error: message, index: -1 },
+            ],
+          }));
+          void showErrorMessage('Failed to load layer', message);
         },
       },
     });
