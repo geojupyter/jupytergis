@@ -32,10 +32,11 @@ import {
   IIdentifiedFeatureEntry,
   IJGISUIState,
   JgisCoordinates,
+  IIdentifiedFeature,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { UUID } from '@lumino/coreutils';
-import type { Geometry } from 'geojson';
+import { Feature as GeoJSONFeature, Geometry } from 'geojson';
 import {
   Collection,
   Feature,
@@ -46,8 +47,8 @@ import {
   VectorTile,
   View,
 } from 'ol';
-import type { FeatureLike } from 'ol/Feature';
-import type { GeolocationError } from 'ol/Geolocation';
+import { FeatureLike } from 'ol/Feature';
+import { GeolocationError } from 'ol/Geolocation';
 import TileState from 'ol/TileState';
 import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -157,6 +158,8 @@ type OlLayerTypes =
   | StacLayer
   | ImageLayer<any>
   | LayerGroup;
+
+type FeatureOrGeometry = GeoJSONFeature | Geometry | OLGeometry;
 
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
@@ -1364,12 +1367,12 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   highlightFeatureOnMap(
     sender: IJupyterGISModel,
-    featureOrGeometry: any,
+    featureOrGeometry: FeatureOrGeometry,
   ): void {
     const geometry =
-      featureOrGeometry?.geometry ||
-      featureOrGeometry?._geometry ||
-      featureOrGeometry;
+      'geometry' in featureOrGeometry
+        ? featureOrGeometry.geometry
+        : featureOrGeometry;
 
     if (!geometry) {
       this._log(
@@ -1379,7 +1382,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
-    const isOlGeometry = typeof geometry.getCoordinates === 'function';
+    const isOlGeometry = geometry instanceof OLGeometry;
 
     const parsedGeometry = isOlGeometry
       ? geometry
@@ -1389,7 +1392,9 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
-      ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
+      ...(featureOrGeometry !== geometry && 'properties' in featureOrGeometry
+        ? featureOrGeometry.properties
+        : {}),
     });
 
     this._ensureHighlightLayer();
@@ -2500,15 +2505,17 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   computeFeatureFloaterPosition(
-    feature: any,
+    feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
-    const geometry = feature?.geometry ?? feature?._geometry;
+    const geometry = (feature?.geometry ?? feature?._geometry) as
+      | Geometry
+      | OLGeometry;
 
     if (!geometry) {
       return undefined;
     }
 
-    if (typeof geometry.getExtent === 'function') {
+    if (geometry instanceof OLGeometry) {
       const extent = geometry.getExtent();
       const center = getCenter(extent);
       const pixels = this._map.getPixelFromCoordinate(center);

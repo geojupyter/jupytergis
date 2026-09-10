@@ -1,5 +1,6 @@
 import type {
   IDict,
+  IIdentifiedFeature,
   IJGISLayer,
   IJGISLayers,
   IJGISOptions,
@@ -10,7 +11,7 @@ import type {
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import type { Geometry } from 'geojson';
+import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 export type MapAdapterType = 'openlayers';
 
@@ -47,13 +48,13 @@ export interface IMapAdapter {
   flyToGeometry(_: IJupyterGISModel, geometry: Geometry): void;
   highlightFeatureOnMap(
     _sender: IJupyterGISModel,
-    featureOrGeometry: any,
+    featureOrGeometry: GeoJSONFeature | Geometry,
   ): void;
   handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void;
   startLocationIndicator(): void;
   stopLocationIndicator(): void;
   computeFeatureFloaterPosition(
-    feature: any,
+    feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined;
   toLonLat(coordinate: number[], projection?: any): number[];
   handleDrawModeChanged(isDrawing: boolean): void;
