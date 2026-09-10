@@ -48,6 +48,7 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
     <Tabs className="jgis-panel-tabs" value={curTab || null}>
       <TabsList
         ref={tabsListRef}
+        variant="underline"
         onMouseDown={onTabListMouseDown}
         onTouchStart={onTabListTouchStart}
       >
@@ -55,6 +56,7 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
           <TabsTrigger
             key={tab.name}
             value={tab.name}
+            className="jgis-underline-indicator"
             onClick={() => onTabClick(tab.name)}
           >
             {tab.title}
