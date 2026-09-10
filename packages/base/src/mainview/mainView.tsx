@@ -247,34 +247,41 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     await this.generateMap(lonLat, zoom, projection);
 
-    if (!this._mapAdapter) {
-      console.warn('There is No Map Adapter to generateMap');
-      return;
+    if (this._mapAdapter) {
+      this._model.zoomToPositionSignal.connect(
+        this._mapAdapter.onZoomToPosition,
+        this._mapAdapter,
+      );
+      this._model.addFeatureAsMsSignal.connect(
+        this._mapAdapter.convertFeatureToMs,
+        this._mapAdapter,
+      );
+      this._model.uiStateChanged.connect(
+        this._mapAdapter.handleLocationIndicatorToggled,
+        this._mapAdapter,
+      );
+      this._model.flyToGeometrySignal.connect(
+        this._mapAdapter.flyToGeometry,
+        this._mapAdapter,
+      );
+      this._model.highlightFeatureSignal.connect(
+        this._mapAdapter.highlightFeatureOnMap,
+        this._mapAdapter,
+      );
+      this._model.geolocationChanged.connect(
+        this._mapAdapter.handleGeolocationChanged,
+        this._mapAdapter,
+      );
+      if (window.jupytergisMaps !== undefined) {
+        // The shared model only emits a path change when the document is renamed,
+        // so on a normal open the path has to be read directly.
+        this._documentPath ??=
+          (this._model.sharedModel.getState('path') as string | undefined) ||
+          this._model.filePath ||
+          undefined;
+        this._mapAdapter.registerMap(this._documentPath);
+      }
     }
-    this._model.zoomToPositionSignal.connect(
-      this._mapAdapter.onZoomToPosition,
-      this._mapAdapter,
-    );
-    this._model.addFeatureAsMsSignal.connect(
-      this._mapAdapter.convertFeatureToMs,
-      this._mapAdapter,
-    );
-    this._model.uiStateChanged.connect(
-      this._mapAdapter.handleLocationIndicatorToggled,
-      this._mapAdapter,
-    );
-    this._model.flyToGeometrySignal.connect(
-      this._mapAdapter.flyToGeometry,
-      this._mapAdapter,
-    );
-    this._model.highlightFeatureSignal.connect(
-      this._mapAdapter.highlightFeatureOnMap,
-      this._mapAdapter,
-    );
-    this._model.geolocationChanged.connect(
-      this._mapAdapter.handleGeolocationChanged,
-      this._mapAdapter,
-    );
 
     this._handleRemoteUserChanged();
     this._handlePointerChanged();
@@ -284,15 +291,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (this.state.isSpectaPresentation && !this._spectaModeSetupDone) {
       this._setupSpectaMode();
       this._spectaModeSetupDone = true;
-    }
-    if (window.jupytergisMaps !== undefined) {
-      // The shared model only emits a path change when the document is renamed,
-      // so on a normal open the path has to be read directly.
-      this._documentPath ??=
-        (this._model.sharedModel.getState('path') as string | undefined) ||
-        this._model.filePath ||
-        undefined;
-      this._mapAdapter.registerMap(this._documentPath);
     }
   }
 
