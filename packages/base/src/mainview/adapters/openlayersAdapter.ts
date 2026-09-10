@@ -918,6 +918,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     id: string,
     layer: IJGISLayer,
   ): Promise<Layer | LayerGroup | StacLayer | undefined> {
+    this._callbacks?.onLayerAddStarted?.();
     this._loadingLayers.add(id);
 
     let newMapLayer: OlLayerTypes;
@@ -1180,7 +1181,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return [layerStyle];
   };
 
-  createSelectInteraction = () => {
+  private createSelectInteraction = () => {
     const selectInteraction = new Select({
       hitTolerance: 3,
       multi: true,
@@ -1470,7 +1471,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return parameters?.projection;
   }
 
-  addProjection(target: Layer | IJGISLayer): void {
+  private addProjection(target: Layer | IJGISLayer): void {
     if (target instanceof Layer) {
       const sourceProjection = target.getSource()?.getProjection();
       if (!sourceProjection) {

@@ -127,6 +127,7 @@ export interface IMapAdapterCallbacks {
   onDrawGeometryLabelChange?: (label: string) => void;
   onAllLayersSettled?: () => void;
   onLayerInserted?: (layerCount: number) => void;
+  onLayerAddStarted?: () => void;
   onLayerAddSettled?: (id: string) => void;
   onLayerError?: (id: string, message: string) => void;
 }

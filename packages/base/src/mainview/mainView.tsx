@@ -472,6 +472,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             this.setState(old => ({ ...old, initialLayersReady: true }));
           }
         },
+        onLayerAddStarted: () => {
+          this.setState(old => ({ ...old, loadingLayer: true }));
+        },
         onLayerAddSettled: id => {
           this.setState(old => ({ ...old, loadingLayer: false }));
         },
