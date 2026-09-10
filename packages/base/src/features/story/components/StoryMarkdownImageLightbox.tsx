@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 
 import {
   Dialog,
@@ -14,65 +14,12 @@ export interface IStoryMarkdownImageLightboxProps {
   onClose: () => void;
 }
 
-const FIT_SCALE = 1;
-const ZOOMED_SCALE = 2;
-/** Wait to distinguish single-click (dismiss) from double-click (zoom). */
-const SINGLE_CLICK_CLOSE_MS = 280;
-
 export function StoryMarkdownImageLightbox({
   src,
   alt = '',
   onClose,
 }: IStoryMarkdownImageLightboxProps): JSX.Element {
   const open = Boolean(src);
-  const [scale, setScale] = useState(FIT_SCALE);
-  const scaleRef = useRef(scale);
-  scaleRef.current = scale;
-  const closeTimerRef = useRef<number | null>(null);
-
-  const clearCloseTimer = useCallback((): void => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!open) {
-      clearCloseTimer();
-      return;
-    }
-
-    setScale(FIT_SCALE);
-    clearCloseTimer();
-
-    return () => {
-      clearCloseTimer();
-    };
-  }, [open, src, clearCloseTimer]);
-
-  const handleClick = useCallback(() => {
-    if (scaleRef.current > FIT_SCALE) {
-      clearCloseTimer();
-      setScale(FIT_SCALE);
-      return;
-    }
-
-    clearCloseTimer();
-    closeTimerRef.current = window.setTimeout(() => {
-      closeTimerRef.current = null;
-      onClose();
-    }, SINGLE_CLICK_CLOSE_MS);
-  }, [clearCloseTimer, onClose]);
-
-  const handleDoubleClick = useCallback(() => {
-    clearCloseTimer();
-    if (scaleRef.current > FIT_SCALE) {
-      return;
-    }
-
-    setScale(ZOOMED_SCALE);
-  }, [clearCloseTimer]);
 
   return (
     <Dialog
@@ -90,15 +37,11 @@ export function StoryMarkdownImageLightbox({
       >
         <DialogTitle className="sr-only">Image preview</DialogTitle>
         <DialogDescription className="sr-only">
-          Double-click to zoom further. Click to zoom out or dismiss. Press
-          Escape or use Close to dismiss.
+          Click to dismiss. Press Escape or use Close to dismiss.
         </DialogDescription>
         <div
-          className={
-            'flex size-full cursor-zoom-out touch-manipulation items-center justify-center overflow-hidden select-none'
-          }
-          onClick={handleClick}
-          onDoubleClick={handleDoubleClick}
+          className="flex size-full cursor-zoom-out touch-manipulation items-center justify-center overflow-hidden select-none"
+          onClick={onClose}
         >
           {src ? (
             <img
@@ -106,7 +49,6 @@ export function StoryMarkdownImageLightbox({
               src={src}
               alt={alt}
               draggable={false}
-              style={{ transform: `scale(${scale})` }}
             />
           ) : null}
         </div>

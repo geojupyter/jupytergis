@@ -171,6 +171,7 @@
   height: auto;
   object-fit: contain;
   transform-origin: center center;
+  pointer-events: none;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget blockquote {
