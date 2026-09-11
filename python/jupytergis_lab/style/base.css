@@ -428,47 +428,70 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jGIS-Remote-Pointer {
   position: absolute;
-  transition-property: left, top, width, height;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  transition-property: left, top;
   transition-duration: 150ms;
   transition-timing-function: ease;
   z-index: 20;
 }
 
 .jGIS-Remote-Pointer-Icon {
-  filter: drop-shadow(-1px 0px white) drop-shadow(1px 0px white)
-    drop-shadow(0px -1px white) drop-shadow(0px 1px white)
-    drop-shadow(0px 0px 1px black);
-}
-.jGIS-Remote-Pointer-Icon:hover {
-  scale: 1.3;
-}
-
-.jGIS-Floating-Pointer-Popup {
-  position: absolute;
-  width: 160px;
-  box-shadow: var(--jp-elevation-z6);
-  z-index: 40;
-  max-height: 400px;
-  overflow: auto;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  overflow: visible;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 35%));
 }
 
-.jGIS-Remote-Pointer-Popup {
-  margin-left: 7px;
-  margin-top: 14px;
-  color: #fff;
-  padding: 1em;
-  border-radius: 0.5em;
-  font-size: 12px;
+.jGIS-Remote-Pointer-Icon path {
+  fill: var(--jp-layout-color1);
+  stroke: currentcolor;
+  stroke-width: 100px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+
+.jGIS-Remote-Pointer-Label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 140px;
+  margin-top: 8px;
+  padding: 2px 6px 2px 2px;
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+  border: 1px solid;
+  border-radius: 10px;
+  box-shadow: var(--jp-elevation-z2);
+  font-size: 11px;
   line-height: 1.2;
 }
 
-.jGIS-Remote-Pointer-Popup-Name {
-  font-size: 16px;
-  color: #333;
+.jGIS-Remote-Pointer-Avatar {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 100%;
+  color: var(--jp-ui-inverse-font-color1);
+  font-size: 8px;
 }
 
-.jGIS-Remote-Pointer-Popup-Coordinates {
-  font-size: 14px;
+.jGIS-Remote-Pointer-Avatar > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jGIS-Remote-Pointer-Name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Hack to remove the malformed form button */

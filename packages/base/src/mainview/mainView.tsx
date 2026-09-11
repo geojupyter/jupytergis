@@ -2837,6 +2837,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           currentClientPointer = {
             username: client.user.username,
             displayName: client.user.display_name,
+            initials: client.user.initials ?? '',
+            avatarUrl: client.user.avatar_url,
             color: client.user.color,
             coordinates: {
               x: pixel[0],
