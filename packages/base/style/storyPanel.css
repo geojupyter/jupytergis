@@ -301,7 +301,6 @@
   inset: 0;
   top: var(--jgis-story-title-bar-height);
   z-index: 5;
-  /* Let map clicks pass through; cards/markdown opt back in below. */
   pointer-events: none;
 }
 

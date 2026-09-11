@@ -214,7 +214,6 @@ export function useStoryMap({
     };
   }, [model]);
 
-  // Leave identify if this segment no longer allows it (markdown / flag off).
   useEffect(() => {
     const identifyAllowed =
       getSegmentDisplayMode(activeSlide) === 'map' &&
@@ -229,9 +228,11 @@ export function useStoryMap({
     if (!currentStorySegmentId) {
       return;
     }
+
     if (currentSegmentContentMode === 'markdown') {
       return;
     }
+
     model.centerOnPosition(currentStorySegmentId);
   }, [model, currentStorySegmentId, currentSegmentContentMode]);
 

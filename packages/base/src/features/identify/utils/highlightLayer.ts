@@ -7,25 +7,18 @@ import CircleStyle from 'ol/style/Circle';
 
 import { getCssVarValue } from '@/src/tools';
 
-/** Material blue-700 — JupyterLab brand-color1 fallback */
 const FALLBACK_BRAND_1 = '#1976d2';
-/** Material blue-300 — brand-color2 fallback */
 const FALLBACK_BRAND_2 = '#64b5f6';
-/** Material blue-100 — brand-color3 fallback (light fill) */
 const FALLBACK_BRAND_3 = '#bbdefb';
 
 interface IIdentifyHighlightColors {
-  /** Solid stroke / point ring */
   stroke: string;
-  /** Softer stroke for lines / polygon outlines */
   strokeMuted: string;
-  /** Light fill for polygons */
   fill: string;
 }
 
 /**
  * Theme-aware identify highlight colors from JupyterLab brand.
- * OpenLayers needs resolved color strings (CSS vars don't paint on canvas).
  */
 function getIdentifyHighlightColors(): IIdentifyHighlightColors {
   const mainBrand = getCssVarValue('--jp-brand-color1') || FALLBACK_BRAND_1;

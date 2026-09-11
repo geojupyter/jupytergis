@@ -165,7 +165,10 @@ import {
   isValidExtent,
   transformExtentToViewProjection,
 } from './utils/olLayerZoomExtent';
-import { ensureHighlightLayer, buildHighlightStyle } from '../features/identify/utils/highlightLayer';
+import {
+  ensureHighlightLayer,
+  buildHighlightStyle,
+} from '../features/identify/utils/highlightLayer';
 import {
   OpenEOTileLayer,
   OpenEOTileSource,
@@ -3254,9 +3257,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const interactions = this._Map.getInteractions();
     const interactionArray = interactions.getArray();
 
-    // Remove each interaction type.
-    // Keep Select: its condition already requires identifying mode, and story
-    // presentation unlocks identify via toggleMode without the toolbar.
+    // Remove interactions except Select (used by identify)
     const interactionsToRemove = [
       DragPan,
       DragRotate,
