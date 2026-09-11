@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
 import projCodes from 'proj-codes';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { version } from '@/package.json';
 import {
@@ -16,9 +16,11 @@ import {
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
-  ComboboxItem,
   ComboboxList,
+  ComboboxVirtualizedList,
+  createComboboxVirtualHighlightHandler,
 } from '@/src/shared/components/Combobox';
+import type { ComboboxVirtualizer } from '@/src/shared/components/Combobox';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -113,11 +115,13 @@ const virtualizerRef = useRef<ComboboxVirtualizer | null>(null);
       <Combobox
         virtualized
         items={projectionOptions}
-        itemToStringLabel={option => option.label}
+        itemToStringLabel={(option: IProjectionOption) => option.label}
         onItemHighlighted={handleItemHighlighted}
         value={selectedProjectionOption ?? null}
         onValueChange={handleProjectionChange}
-        isItemEqualToValue={(a, b) => a.value === b.value}
+        isItemEqualToValue={(a: IProjectionOption, b: IProjectionOption) =>
+          a.value === b.value
+        }
       >
         <ComboboxPrimitive.Trigger
           type="button"
