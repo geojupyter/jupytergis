@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/base",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "description": "A JupyterLab extension for 3D modelling.",
   "keywords": [
     "jupyter",
@@ -44,10 +44,10 @@
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": ">=0.2.6 <3.0.0",
-    "@jupyter/collaboration": "^4",
+    "@jupyter/collaboration": "^4 || ^5.0.3",
     "@jupyter/react-components": "^0.16.6",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0 || ^4.0.0",
-    "@jupytergis/schema": "^0.16.2",
+    "@jupytergis/schema": "^0.16.3",
     "@jupyterlab/application": "^4.6",
     "@jupyterlab/apputils": "^4.6",
     "@jupyterlab/attachments": "^4.6",
@@ -118,7 +118,7 @@
     "tailwind-merge": "^3.6.0",
     "three": "^0.135.0",
     "three-mesh-bvh": "^0.5.17",
-    "vaul": "^1.1.2",
+    "tw-animate-css": "^1.4.0",
     "vue": "2.7.16"
   },
   "devDependencies": {
@@ -129,6 +129,7 @@
     "@types/node": "^18.15.11",
     "@types/proj4": "2.19.0",
     "@types/shpjs": "^3.4.7",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "rimraf": "^3.0.2",
     "tailwindcss": "^4.3.3",
     "ts-patch": "^3.3.0",

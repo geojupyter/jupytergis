@@ -2,8 +2,10 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
-import { Button } from '@/src/shared/components/Button';
-import { ButtonGroup } from '@/src/shared/components/ButtonGroup';
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/src/shared/components/ToggleGroup';
 
 const DRAW_GEOMETRIES = [
   { value: 'Point', label: 'Point' },
@@ -13,6 +15,7 @@ const DRAW_GEOMETRIES = [
 
 /** Empty string = select/edit mode (no draw tool armed). */
 export const DRAW_SELECT_TOOL = '';
+const SELECT_TOOL_VALUE = 'select';
 
 export interface IVectorDrawControlsProps {
   drawGeometryLabel: string | undefined;
@@ -27,33 +30,33 @@ export function VectorDrawControls({
   model,
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
-  const isSelectMode = !drawGeometryLabel;
+  const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
 
   return (
     <div className="jgis-vector-draw-controls">
-      <ButtonGroup aria-label="Draw tools">
-        <Button
-          type="button"
-          size="sm"
-          variant={isSelectMode ? 'secondary' : 'outline'}
-          aria-pressed={isSelectMode}
+      <ToggleGroup
+        variant="outline"
+        spacing={0}
+        aria-label="Draw tools"
+        value={[toggleValue]}
+        className="rounded-[0.5rem] bg-background [&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
+      >
+        <ToggleGroupItem
+          value={SELECT_TOOL_VALUE}
           onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
         >
           Select
-        </Button>
+        </ToggleGroupItem>
         {DRAW_GEOMETRIES.map(({ value, label }) => (
-          <Button
+          <ToggleGroupItem
             key={value}
-            type="button"
-            size="sm"
-            variant={drawGeometryLabel === value ? 'secondary' : 'outline'}
-            aria-pressed={drawGeometryLabel === value}
+            value={value}
             onClick={() => onDrawGeometryTypeChange(value)}
           >
             {label}
-          </Button>
+          </ToggleGroupItem>
         ))}
-      </ButtonGroup>
+      </ToggleGroup>
       {drawLayerId ? (
         <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
       ) : null}

@@ -23,7 +23,7 @@ export function DrawCustomAttributesPresetsMenu({
   presets,
   presetNames,
   onLoadPreset,
-  portalContainerRef,
+  portalContainerRef: _portalContainerRef,
   disabled = false,
 }: IDrawCustomAttributesPresetsMenuProps): JSX.Element | null {
   if (presetNames.length === 0) {
@@ -31,17 +31,23 @@ export function DrawCustomAttributesPresetsMenu({
   }
 
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" size="sm" disabled={disabled}>
-          Presets
-          <ChevronDown data-icon="inline-end" className="jgis-inline-icon" />
-        </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+          />
+        }
+      >
+        Presets
+        <ChevronDown data-icon="inline-end" className="jgis-inline-icon" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
         className="jgis-draw-custom-attributes-presets-menu"
-        portalContainer={portalContainerRef.current}
       >
         {presetNames.map(name => {
           const attributeCount = presets[name]?.length ?? 0;
@@ -50,7 +56,7 @@ export function DrawCustomAttributesPresetsMenu({
             <DropdownMenuItem
               key={name}
               className="jgis-draw-custom-attributes-preset-item"
-              onSelect={() => onLoadPreset(name)}
+              onClick={() => onLoadPreset(name)}
             >
               <span className="jgis-draw-custom-attributes-preset-name">
                 {name}
