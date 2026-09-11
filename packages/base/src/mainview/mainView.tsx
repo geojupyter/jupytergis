@@ -893,7 +893,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       selectInteraction.getFeatures().forEach(feature => {
         identifiedFeatures.push({
           feature: feature.getProperties(),
-          floaterOpen: false,
+          // Specta has no IdentifyPanel to open floaters so we  show them on identify.
+          floaterOpen: this._model.isStoryPresentationActive(),
         });
         const geom = feature.getGeometry();
         if (geom) {
@@ -3785,7 +3786,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         bandValues['Alpha'] = data[data.length - 1];
 
         this._model.syncIdentifiedFeatures(
-          [{ feature: bandValues, floaterOpen: false }],
+          [
+            {
+              feature: bandValues,
+              floaterOpen: this._model.isStoryPresentationActive(),
+            },
+          ],
           this._mainViewModel.id,
         );
 
@@ -3843,7 +3849,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (props && Object.keys(props).length > 0) {
         features.push({
           feature: props,
-          floaterOpen: false,
+          // Specta has no IdentifyPanel to open floaters so we show them on identify.
+          floaterOpen: this._model.isStoryPresentationActive(),
         });
       }
 
