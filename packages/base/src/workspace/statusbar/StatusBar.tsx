@@ -40,6 +40,12 @@ const StatusBar: React.FC<IStatusBarProps> = ({
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
+const virtualizerRef = useRef<ComboboxVirtualizer | null>(null);
+  const handleItemHighlighted = useMemo(
+    () => createComboboxVirtualHighlightHandler(virtualizerRef),
+    [],
+  );
+  
   const projectionOptions = useMemo<IProjectionOption[]>(
     () =>
       Object.keys(projCodes).map(code => ({
@@ -105,7 +111,10 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
       <Combobox
+        virtualized
         items={projectionOptions}
+        itemToStringLabel={option => option.label}
+        onItemHighlighted={handleItemHighlighted}
         value={selectedProjectionOption ?? null}
         onValueChange={handleProjectionChange}
         isItemEqualToValue={(a, b) => a.value === b.value}
@@ -124,12 +133,12 @@ const StatusBar: React.FC<IStatusBarProps> = ({
             showTrigger={false}
           />
           <ComboboxEmpty>No projection found.</ComboboxEmpty>
-          <ComboboxList>
-            {(option: IProjectionOption) => (
-              <ComboboxItem key={option.value} value={option}>
-                {option.label}
-              </ComboboxItem>
-            )}
+          <ComboboxList virtualized>
+           <ComboboxVirtualizedList<IProjectionOption>
+              virtualizerRef={virtualizerRef}
+            >
+              {option => option.label}
+            </ComboboxVirtualizedList>
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
