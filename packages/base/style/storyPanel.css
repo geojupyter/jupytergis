@@ -87,8 +87,16 @@
   justify-content: space-between;
 }
 
+.jgis-story-viewer-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .jgis-story-viewer-title {
   text-align: center;
+  margin: 0;
 }
 
 .jgis-story-viewer-caption {
