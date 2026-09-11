@@ -298,8 +298,8 @@ importers:
         specifier: '>=0.2.6 <3.0.0'
         version: 0.2.6(@fortawesome/fontawesome-svg-core@6.7.2)(react@18.3.1)
       '@jupyter/collaboration':
-        specifier: ^4
-        version: 4.4.1
+        specifier: ^4 || ^5.0.3
+        version: 5.0.3
       '@jupyter/react-components':
         specifier: ^0.16.6
         version: 0.16.7
@@ -1764,8 +1764,8 @@ packages:
   '@jupyter/builder@1.2.2':
     resolution: {integrity: sha512-z+qfpeAiDkKVTZfFU6XhHc8YFj9FQ1O4UalH8H50ngcqtLWgMrw4bB1vPMyxX5xWlhdLsUlVfSyLONugdXwS0Q==}
 
-  '@jupyter/collaboration@4.4.1':
-    resolution: {integrity: sha512-YaTxkcP3cbvwpFIFqs2wROHpuSUTB8g0tEIVLbbHNzgr3KDb1Oh63P3depUKBcfKtyt8kkJCHt5Dcop2pP+4CA==}
+  '@jupyter/collaboration@5.0.3':
+    resolution: {integrity: sha512-D3ArfMPvUXzlGcxZffYrWFeCAWZJKHVy/J1mkTyBlOSRvusL/T9qdPHroc/rJp6mf+A/DjLIT9Bxd7WmrcO1Ig==}
 
   '@jupyter/collaborative-drive@4.4.1':
     resolution: {integrity: sha512-pXW8A5KkcE9cnv5W6JeLjQgxOCJ2/myh+UK5DDQ5zzemLvjnS4SUI2IOiujDKlkbxv8kxWxD0Af5CnFw/BgRlw==}
@@ -10699,7 +10699,7 @@ snapshots:
       - '@swc/helpers'
       - webpack
 
-  '@jupyter/collaboration@4.4.1':
+  '@jupyter/collaboration@5.0.3':
     dependencies:
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.6

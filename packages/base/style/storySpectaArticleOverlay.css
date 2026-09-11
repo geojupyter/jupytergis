@@ -158,6 +158,22 @@
   border-radius: 4px;
 }
 
+.jgis-story-rendered-markdown
+  .specta-article-host-widget
+  img.jgis-story-markdown-zoomable-image {
+  cursor: zoom-in;
+}
+
+.jgis-story-image-lightbox-image {
+  max-width: min(100vw, 100%);
+  max-height: min(100dvh, 100%);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
 .jgis-story-rendered-markdown .specta-article-host-widget blockquote {
   border-left: 3px solid;
   padding-left: 1rem;

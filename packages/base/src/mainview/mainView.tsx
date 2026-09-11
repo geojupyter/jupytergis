@@ -644,7 +644,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       view.on('change:center', () => {
         this._updateCenter();
+        this._updateClientPointerPositions();
         syncViewportThrottled();
+      });
+
+      view.on('change:resolution', () => {
+        this._updateClientPointerPositions();
       });
 
       this._Map.on('postrender', () => {
@@ -2837,6 +2842,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           currentClientPointer = {
             username: client.user.username,
             displayName: client.user.display_name,
+            initials: client.user.initials ?? '',
+            avatarUrl: client.user.avatar_url,
             color: client.user.color,
             coordinates: {
               x: pixel[0],
@@ -2865,6 +2872,30 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       } else {
         delete clientPointers[clientId];
       }
+    });
+
+    this.setState(old => ({ ...old, clientPointers }));
+  }
+
+  // Update the pixel positions of client pointers based on their map coordinates.
+  private _updateClientPointerPositions(): void {
+    const clientPointers = { ...this.state.clientPointers };
+
+    Object.entries(clientPointers).forEach(([clientId, pointer]) => {
+      const coordinate = fromLonLat([
+        pointer.lonLat.longitude,
+        pointer.lonLat.latitude,
+      ]);
+
+      const pixel = this._Map.getPixelFromCoordinate(coordinate);
+
+      clientPointers[Number(clientId)] = {
+        ...pointer,
+        coordinates: {
+          x: pixel[0],
+          y: pixel[1],
+        },
+      };
     });
 
     this.setState(old => ({ ...old, clientPointers }));
