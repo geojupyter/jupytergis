@@ -1,5 +1,6 @@
 export { MetadataView } from './components/MetadataView';
-export { getLayerMetadata } from './registry';
+export { getLayerMetadata, populateSourceMetadata } from './registry';
+export { watchSourceMetadata } from './watcher';
 export type {
   IBandMetadata,
   ICrsMetadata,

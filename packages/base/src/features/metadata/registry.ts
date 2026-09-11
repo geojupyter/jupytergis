@@ -1,9 +1,16 @@
 import { IJupyterGISModel, SourceType } from '@jupytergis/schema';
 
+import {
+  fromStoredMetadata,
+  isEmptyMetadata,
+  isMetadataFresh,
+  shouldPersistMetadata,
+  toStoredMetadata,
+} from './persistence';
 import { documentProvider } from './providers/documentProvider';
 import { geoTiffProvider } from './providers/geoTiffProvider';
 import { geoZarrProvider } from './providers/geoZarrProvider';
-import { tileProvider } from './providers/tileProvider';
+import { tileMetadata } from './providers/tileProvider';
 import { vectorProvider } from './providers/vectorProvider';
 import {
   ILayerMetadata,
@@ -26,10 +33,6 @@ const metadataProviders: Partial<Record<SourceType, MetadataProvider>> = {
   GeoJSONSource: vectorProvider,
   ShapefileSource: vectorProvider,
   GeoParquetSource: vectorProvider,
-
-  RasterSource: tileProvider,
-  VectorTileSource: tileProvider,
-  WmsTileSource: tileProvider,
 
   // ADD MORE METADATA PROVIDERS HERE
 };
@@ -60,16 +63,115 @@ export async function getLayerMetadata(
     );
   }
 
-  const provider = metadataProviders[context.source.type];
+  // Tiled services describe themselves entirely from their own parameters, so
+  // they are answered from the document and never read, stored or invalidated.
+  const tile = tileMetadata(context.source);
+  if (tile) {
+    return mergeMetadata(base, tile);
+  }
 
-  if (!provider) {
+  // Metadata is normally written into the document when the source is added,
+  // so this is the usual path: no network, no decoding, just a field read.
+  const stored = context.source.metadata;
+  if (stored && isMetadataFresh(stored, context.source)) {
+    return mergeMetadata(base, fromStoredMetadata(stored));
+  }
+
+  const details = await readSourceMetadata(context);
+
+  if (!details) {
     return withNote(
       base,
       `JupyterGIS cannot yet read detailed information from ${context.source.type}.`,
     );
   }
 
-  return mergeMetadata(base, await provider(context));
+  // Documents written before this feature existed, and sources added through
+  // the Python API with no browser attached, arrive here with nothing stored.
+  // Writing it back means they are only read once rather than on every visit.
+  void storeSourceMetadata(context, details);
+
+  return mergeMetadata(base, details);
+}
+
+/**
+ * Read a source's metadata and store it in the document, so that later readers
+ * — the Information tab, the Python API, the QGIS exporter — get it from the
+ * document instead of reading the file again.
+ *
+ * Returns false when the source has no provider, has nothing worth storing, or
+ * already holds current metadata.
+ */
+export async function populateSourceMetadata(
+  model: IJupyterGISModel,
+  sourceId: string,
+): Promise<boolean> {
+  const context = buildContext(model, sourceId);
+
+  if (!context || !isSourceContext(context) || tileMetadata(context.source)) {
+    return false;
+  }
+
+  if (
+    !shouldPersistMetadata(context.source) ||
+    isMetadataFresh(context.source.metadata, context.source)
+  ) {
+    return false;
+  }
+
+  const details = await readSourceMetadata(context);
+
+  return details ? storeSourceMetadata(context, details) : false;
+}
+
+/**
+ * Run the format-specific provider, or return undefined when there is not one.
+ */
+async function readSourceMetadata(
+  context: ISourceMetadataContext,
+): Promise<Partial<ILayerMetadata> | undefined> {
+  const provider = metadataProviders[context.source.type];
+
+  return provider ? await provider(context) : undefined;
+}
+
+/**
+ * Write metadata onto the source.
+ *
+ * Nothing is written for sources whose data is inline, or when the provider
+ * came back empty — caching an empty result would mean never trying again.
+ * The source is re-read immediately before the write so that a rename or a
+ * parameter edit made while the file was being read is not clobbered.
+ */
+async function storeSourceMetadata(
+  context: ISourceMetadataContext,
+  details: Partial<ILayerMetadata>,
+): Promise<boolean> {
+  const { model, sourceId } = context;
+
+  if (!shouldPersistMetadata(context.source) || isEmptyMetadata(details)) {
+    return false;
+  }
+
+  const current = model.getSource(sourceId);
+
+  if (!current) {
+    return false;
+  }
+
+  try {
+    model.sharedModel.updateSource(sourceId, {
+      ...current,
+      metadata: toStoredMetadata(details, current),
+    });
+    return true;
+  } catch (error) {
+    // A read-only document, or one whose provider rejected the write. The
+    // Information tab still has the metadata it just read; it will simply be
+    // read again next time.
+    console.debug(`Could not store metadata for source ${sourceId}:`, error);
+    return false;
+  }
 }
 
 /**
