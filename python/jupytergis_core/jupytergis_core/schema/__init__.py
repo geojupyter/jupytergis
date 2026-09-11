@@ -30,3 +30,4 @@ from .interfaces.export.exportGeoJson import IExportGeoJSON  # noqa
 from .interfaces.export.exportGeoTiff import IExportGeoTIFF  # noqa
 
 SCHEMA_VERSION = IJGISContent.model_fields["schemaVersion"].default  # noqa
+VERSION = IJGISContent.model_fields["version"].default  # noqa

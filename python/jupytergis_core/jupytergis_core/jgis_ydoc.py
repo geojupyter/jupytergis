@@ -7,7 +7,7 @@ from jupyter_ydoc.ybasedoc import YBaseDoc
 from pycrdt import Array, Map
 
 from .migrations import migrate
-from .schema import SCHEMA_VERSION
+from .schema import SCHEMA_VERSION, VERSION
 
 
 class YJGIS(YBaseDoc):
@@ -25,7 +25,7 @@ class YJGIS(YBaseDoc):
 
     @property
     def version(self) -> str:
-        return SCHEMA_VERSION
+        return VERSION
 
     def get(self) -> str:
         """Returns the content of the document.
@@ -43,6 +43,7 @@ class YJGIS(YBaseDoc):
         layers_tree = self._ylayerTree.to_py()
         return json.dumps(
             dict(
+                version=VERSION,
                 schemaVersion=SCHEMA_VERSION,
                 layers=layers,
                 sources=sources,

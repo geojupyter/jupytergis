@@ -10,7 +10,7 @@ export * from './model';
 export * from './token';
 export type * from './types';
 export * from './doc';
-export { SCHEMA_VERSION } from './_interface/version';
+export { VERSION, SCHEMA_VERSION } from './_interface/version';
 export {
   ProcessingMerge,
   ProcessingCommandIDs,

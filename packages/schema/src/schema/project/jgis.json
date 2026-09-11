@@ -4,6 +4,10 @@
   "required": ["layers", "sources"],
   "additionalProperties": false,
   "properties": {
+    "version": {
+      "type": "string",
+      "default": "0.16.2"
+    },
     "schemaVersion": {
       "type": "string",
       "default": "0.6.0"

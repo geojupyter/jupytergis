@@ -37,7 +37,7 @@ flowchart TD
     -->|react-jsonschema-form| react-forms
 
     npm-script-schema-js -->|json-schema-to-typescript| ts-types
-    npm-script-schema-js -->|scripts/add-schema-version.ts| ts-types
+    npm-script-schema-js -->|scripts/add-versions.ts| ts-types
 
     npm-script-schema-py -->|scripts/preprocess-schemas-for-python-type-generation.js| tmp-schema
     --> |datamodel-code-generator| py-types
@@ -66,7 +66,7 @@ need a combined `forms.json` schema.
 TypeScript types are generated from the JSONSchema files using
 [`json-schema-to-typescript`](https://github.com/bcherny/json-schema-to-typescript).
 
-We additionally run a custom script (`scripts/add-schema-version.ts`) to generate a
+We additionally run a custom script (`scripts/add-versions.ts`) to generate a
 version number variable.
 
 ## Python types
