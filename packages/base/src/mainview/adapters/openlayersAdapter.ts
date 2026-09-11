@@ -1332,10 +1332,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
-  handleGeolocationChanged(
-    _sender: IJupyterGISModel,
-    newPosition: JgisCoordinates,
-  ): void {
+  handleGeolocationChanged(newPosition: JgisCoordinates): void {
     const view = this._map.getView();
     const zoom = view.getZoom();
     if (zoom) {
@@ -1346,6 +1343,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       );
     }
   }
+
   handleLocationIndicatorToggled(
     _sender: IJupyterGISModel,
     uiState: IJGISUIState,

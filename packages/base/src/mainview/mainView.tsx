@@ -20,6 +20,7 @@ import {
   DEFAULT_PROJECTION,
   IIdentifiedFeature,
   IIdentifiedFeatures,
+  JgisCoordinates,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -269,10 +270,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this._mapAdapter.highlightFeatureOnMap,
         this._mapAdapter,
       );
-      this._model.geolocationChanged.connect(
-        this._mapAdapter.handleGeolocationChanged,
-        this._mapAdapter,
-      );
       if (window.jupytergisMaps !== undefined) {
         // The shared model only emits a path change when the document is renamed,
         // so on a normal open the path has to be read directly.
@@ -283,6 +280,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         this._mapAdapter.registerMap(this._documentPath);
       }
     }
+
+    this._model.geolocationChanged.connect(this._geolocationListener, this);
 
     this._handleRemoteUserChanged();
     this._handlePointerChanged();
@@ -363,6 +362,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onStoryPreviewActiveChanged,
       this,
     );
+    this._model.geolocationChanged.disconnect(this._geolocationListener, this);
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
@@ -375,10 +375,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
       this._model.addFeatureAsMsSignal.disconnect(
         this._mapAdapter.convertFeatureToMs,
-        this._mapAdapter,
-      );
-      this._model.geolocationChanged.disconnect(
-        this._mapAdapter.handleGeolocationChanged,
         this._mapAdapter,
       );
       this._model.flyToGeometrySignal.disconnect(
@@ -645,6 +641,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       selector: '.ol-viewport',
       rank: 2,
     });
+  };
+
+  private _geolocationListener = (
+    _sender: IJupyterGISModel,
+    newPosition: JgisCoordinates,
+  ): void => {
+    this._mapAdapter?.handleGeolocationChanged(newPosition);
   };
 
   private _handleSelectedChanged = (): void => {

@@ -57,10 +57,7 @@ export interface IMapAdapter {
     _sender: IJupyterGISModel,
     featureOrGeometry: GeoJSONFeature | Geometry,
   ): void;
-  handleGeolocationChanged(
-    _sender: IJupyterGISModel,
-    newPosition: JgisCoordinates,
-  ): void;
+  handleGeolocationChanged(newPosition: JgisCoordinates): void;
   startLocationIndicator(): void;
   stopLocationIndicator(): void;
   computeFeatureFloaterPosition(
