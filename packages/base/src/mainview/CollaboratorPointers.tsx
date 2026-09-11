@@ -14,7 +14,6 @@ export type ClientPointer = {
   avatarUrl?: string;
   color: string;
   coordinates: JgisCoordinates;
-  lonLat: { latitude: number; longitude: number };
 };
 
 const CollaboratorAvatar: React.FC<{ client: ClientPointer }> = ({
@@ -48,8 +47,6 @@ const CollaboratorAvatar: React.FC<{ client: ClientPointer }> = ({
 const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
   clients,
 }) => {
-  const [openClientId, setOpenClientId] = useState<string | null>(null);
-
   return (
     <>
       {clients &&
@@ -65,9 +62,6 @@ const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
             <div
               className="jGIS-Remote-Pointer"
               style={{ color: client.color }}
-              onClick={() =>
-                setOpenClientId(openClientId === clientId ? null : clientId)
-              }
             >
               <FontAwesomeIcon
                 icon={faArrowPointer}
@@ -83,15 +77,6 @@ const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
                 </span>
               </div>
             </div>
-            {openClientId === clientId && (
-              <div
-                className="jGIS-Remote-Pointer-Coordinates"
-                style={{ borderColor: client.color }}
-              >
-                {client.lonLat.longitude.toFixed(2)},{' '}
-                {client.lonLat.latitude.toFixed(2)}
-              </div>
-            )}
           </div>
         ))}
     </>
