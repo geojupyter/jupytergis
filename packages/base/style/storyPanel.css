@@ -87,8 +87,16 @@
   justify-content: space-between;
 }
 
+.jgis-story-viewer-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .jgis-story-viewer-title {
   text-align: center;
+  margin: 0;
 }
 
 .jgis-story-viewer-caption {
@@ -293,6 +301,7 @@
   inset: 0;
   top: var(--jgis-story-title-bar-height);
   z-index: 5;
+  pointer-events: none;
 }
 
 .jgis-story-stage-overlay--sized {
@@ -332,6 +341,7 @@
 
 .jgis-story-stage-overlay-content {
   box-sizing: border-box;
+  pointer-events: auto;
   /* Background-only opacity so text stays fully opaque. */
   background-color: color-mix(
     in srgb,
@@ -380,6 +390,7 @@
   padding: 1.25rem;
   box-sizing: border-box;
   border-radius: 8px;
+  pointer-events: auto;
   /* Background-only opacity so text stays fully opaque. */
   background-color: color-mix(
     in srgb,

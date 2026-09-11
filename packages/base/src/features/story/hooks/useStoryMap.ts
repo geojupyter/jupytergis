@@ -3,13 +3,22 @@ import type {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   getStoryPresentationMode,
   isColumnPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
@@ -175,13 +184,55 @@ export function useStoryMap({
     };
   }, []);
 
+  // Leave identify only when the active segment actually changes.
+  const previousSegmentRef = useRef<{
+    index: number;
+    id: string | undefined;
+  } | null>(null);
+
+  useEffect(() => {
+    const previous = previousSegmentRef.current;
+    previousSegmentRef.current = {
+      index: currentIndex,
+      id: currentStorySegmentId,
+    };
+
+    if (
+      previous !== null &&
+      previous.index === currentIndex &&
+      previous.id === currentStorySegmentId
+    ) {
+      return;
+    }
+
+    exitStoryIdentifyMode(model);
+  }, [model, currentIndex, currentStorySegmentId]);
+
+  useEffect(() => {
+    return () => {
+      exitStoryIdentifyMode(model);
+    };
+  }, [model]);
+
+  useEffect(() => {
+    const identifyAllowed =
+      getSegmentDisplayMode(activeSlide) === 'map' &&
+      activeSlide?.enableIdentify === true;
+
+    if (!identifyAllowed) {
+      exitStoryIdentifyMode(model);
+    }
+  }, [model, activeSlide]);
+
   useEffect(() => {
     if (!currentStorySegmentId) {
       return;
     }
+
     if (currentSegmentContentMode === 'markdown') {
       return;
     }
+
     model.centerOnPosition(currentStorySegmentId);
   }, [model, currentStorySegmentId, currentSegmentContentMode]);
 

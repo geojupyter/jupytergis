@@ -137,3 +137,19 @@ export function updateSegmentLayerName(
 
   return true;
 }
+
+export function updateSegmentEnableIdentify(
+  model: IJupyterGISModel,
+  segmentId: string,
+  enableIdentify: boolean,
+): boolean {
+  const layer = model.getLayer(segmentId);
+
+  if (!layer || layer.type !== 'StorySegmentLayer') {
+    return false;
+  }
+
+  model.sharedModel.updateObjectParameters(segmentId, { enableIdentify });
+
+  return true;
+}
