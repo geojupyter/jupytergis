@@ -3,19 +3,26 @@ import type {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   getStoryPresentationMode,
   isColumnPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '@/src/features/story/utils/storySegmentOverrides';
-import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
-import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;

@@ -179,10 +179,11 @@ function StoryViewerPanel({
               <Button
                 type="button"
                 variant={isIdentifying ? 'default' : 'outline'}
-                size="icon-sm"
+                size="icon-xs"
                 aria-pressed={isIdentifying}
                 aria-label="Identify features"
                 title="Identify features"
+                className={'rounded-full'}
                 onClick={() => {
                   if (model.currentMode === 'identifying') {
                     exitStoryIdentifyMode(model);

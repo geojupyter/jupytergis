@@ -165,8 +165,7 @@ import {
   isValidExtent,
   transformExtentToViewProjection,
 } from './utils/olLayerZoomExtent';
-import { ensureHighlightLayer } from '../features/identify/utils/highlightLayer';
-import { buildHighlightStyle } from '../features/identify/utils/highlightStyle';
+import { ensureHighlightLayer, buildHighlightStyle } from '../features/identify/utils/highlightLayer';
 import {
   OpenEOTileLayer,
   OpenEOTileSource,
@@ -2161,9 +2160,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
+      | IVectorLayer
+      | IGeoTiffLayer
+      | IGeoZarrLayer
+      | undefined;
     const grammarState = layerParams?.symbologyState as
-      IGrammarSymbologyState | undefined;
+      | IGrammarSymbologyState
+      | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
@@ -3111,7 +3114,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         continue;
       }
       const sourceServerUrl = (source.parameters as any)?.serverUrl as
-        string | undefined;
+        | string
+        | undefined;
       if (!sourceServerUrl) {
         continue;
       }

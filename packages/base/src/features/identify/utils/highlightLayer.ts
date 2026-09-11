@@ -3,12 +3,92 @@ import Feature from 'ol/Feature';
 import { VectorImage as VectorImageLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
+import CircleStyle from 'ol/style/Circle';
+
+import { getCssVarValue } from '@/src/tools';
+
+/** Material blue-700 — JupyterLab accent-color1 fallback */
+const FALLBACK_BRAND_1 = '#1976d2';
+/** Material blue-300 — accent-color2 fallback */
+const FALLBACK_BRAND_2 = '#64b5f6';
+/** Material blue-100 — accent-color3 fallback (light fill) */
+const FALLBACK_BRAND_3 = '#bbdefb';
+
+interface IIdentifyHighlightColors {
+  /** Solid stroke / point ring */
+  stroke: string;
+  /** Softer stroke for lines / polygon outlines */
+  strokeMuted: string;
+  /** Light fill for polygons */
+  fill: string;
+}
+
+/**
+ * Theme-aware identify highlight colors from JupyterLab accent.
+ * OpenLayers needs resolved color strings (CSS vars don't paint on canvas).
+ */
+function getIdentifyHighlightColors(): IIdentifyHighlightColors {
+  const mainBrand = getCssVarValue('--jp-accent-color1') || FALLBACK_BRAND_1;
+  const mutedBrand = getCssVarValue('--jp-accent-color2') || FALLBACK_BRAND_2;
+  const lightBrand = getCssVarValue('--jp-accent-color3') || FALLBACK_BRAND_3;
+
+  return {
+    stroke: mainBrand,
+    strokeMuted: mutedBrand,
+    fill: lightBrand,
+  };
+}
+
+/**
+ * Build a highlight style from an original resolved style.
+ * Preserves data-driven properties (circle radius, line width) and swaps in
+ * the JupyterLab accent highlight color.
+ */
+export function buildHighlightStyle(original: Style, geomType?: string): Style {
+  const { stroke, strokeMuted, fill } = getIdentifyHighlightColors();
+
+  // Only use the circle branch for point geometries.  The OL default style
+  // includes a circle image alongside fill/stroke; without this guard the
+  // circle branch would fire for polygons and produce an invisible style.
+  const isPoint = geomType === 'Point' || geomType === 'MultiPoint';
+  if (isPoint) {
+    const image = original.getImage();
+    if (image instanceof CircleStyle) {
+      return new Style({
+        image: new Circle({
+          radius: image.getRadius(),
+          fill: new Fill({ color: 'transparent' }),
+          stroke: new Stroke({ color: stroke, width: 3 }),
+        }),
+      });
+    }
+  }
+
+  const origStroke = original.getStroke();
+  const origFill = original.getFill();
+
+  if (origStroke || origFill) {
+    return new Style({
+      stroke: new Stroke({
+        color: strokeMuted,
+        width: (origStroke?.getWidth() ?? 1) + 3,
+      }),
+      ...(origFill ? { fill: new Fill({ color: fill }) } : {}),
+    });
+  }
+
+  // Fallback
+  return new Style({
+    stroke: new Stroke({ color: strokeMuted, width: 3 }),
+  });
+}
 
 /**
  * Style function used by the highlight overlay layer.
- * Returns a fixed highlight style based on geometry type.
+ * Returns a theme-aware accent highlight style based on geometry type.
  */
 function highlightStyleFunction(feature: Feature): Style {
+  const { stroke, strokeMuted, fill } = getIdentifyHighlightColors();
   const geomType = feature.getGeometry()?.getType();
   switch (geomType) {
     case 'Point':
@@ -17,23 +97,23 @@ function highlightStyleFunction(feature: Feature): Style {
         image: new Circle({
           radius: 8,
           fill: new Fill({ color: 'transparent' }),
-          stroke: new Stroke({ color: '#ff0', width: 3 }),
+          stroke: new Stroke({ color: stroke, width: 3 }),
         }),
       });
     case 'LineString':
     case 'MultiLineString':
       return new Style({
-        stroke: new Stroke({ color: 'rgba(255, 255, 0, 0.8)', width: 3 }),
+        stroke: new Stroke({ color: strokeMuted, width: 3 }),
       });
     case 'Polygon':
     case 'MultiPolygon':
       return new Style({
-        stroke: new Stroke({ color: '#ff0', width: 2 }),
-        fill: new Fill({ color: 'rgba(255, 255, 0, 0.15)' }),
+        stroke: new Stroke({ color: stroke, width: 2 }),
+        fill: new Fill({ color: fill }),
       });
     default:
       return new Style({
-        stroke: new Stroke({ color: '#ff0', width: 2 }),
+        stroke: new Stroke({ color: stroke, width: 2 }),
       });
   }
 }
