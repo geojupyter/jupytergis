@@ -21,7 +21,9 @@
         "stroke-color",
         "circle-fill-color",
         "circle-stroke-color",
-        "pixel-color"
+        "pixel-color",
+        "text-fill-color",
+        "text-stroke-color"
       ]
     },
     "UInt8Encoding": {
@@ -45,7 +47,25 @@
     },
     "PosFloatEncoding": {
       "type": "string",
-      "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
+      "enum": [
+        "stroke-width",
+        "circle-radius",
+        "circle-stroke-width",
+        "text-stroke-width",
+        "text-font-size"
+      ]
+    },
+    "StringEncoding": {
+      "type": "string",
+      "description": "Encodings whose output is a string. `text-value` is the label content itself; the rest control how it is drawn. `text-font` is the whole CSS font shorthand; `text-font-size` and `text-font-family` set one part each and win over it.",
+      "enum": [
+        "text-value",
+        "text-font",
+        "text-font-family",
+        "text-placement",
+        "text-align",
+        "text-baseline"
+      ]
     },
     "Encoding": {
       "title": "Encoding",
@@ -55,7 +75,8 @@
         { "$ref": "#/definitions/UInt8Encoding" },
         { "$ref": "#/definitions/UNormEncoding" },
         { "$ref": "#/definitions/VirtualEncoding" },
-        { "$ref": "#/definitions/PosFloatEncoding" }
+        { "$ref": "#/definitions/PosFloatEncoding" },
+        { "$ref": "#/definitions/StringEncoding" }
       ]
     },
     "ICompareOp": {
@@ -125,6 +146,24 @@
         "max": { "type": "number" }
       }
     },
+    "IZoomRangePredicate": {
+      "type": "object",
+      "title": "IZoomRangePredicate",
+      "description": "Filter by how far the map is zoomed in, so that detail such as labels can appear only at useful scales. Both bounds are optional and inclusive. Zoom levels follow the standard web-map scheme where 0 is the whole world.",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "zoomRange" },
+        "minZoom": {
+          "type": "number",
+          "description": "Apply only when zoomed in at least this far."
+        },
+        "maxZoom": {
+          "type": "number",
+          "description": "Apply only when zoomed out at least this far."
+        }
+      }
+    },
     "IPredicate": {
       "title": "IPredicate",
       "description": "Predicate union used for conditional rule/layer guards (the `when` field).",
@@ -133,7 +172,8 @@
         { "$ref": "#/definitions/IHasFieldPredicate" },
         { "$ref": "#/definitions/IFieldEqualsPredicate" },
         { "$ref": "#/definitions/IFieldComparePredicate" },
-        { "$ref": "#/definitions/IBetweenPredicate" }
+        { "$ref": "#/definitions/IBetweenPredicate" },
+        { "$ref": "#/definitions/IZoomRangePredicate" }
       ]
     },
     "IKDETransform": {
@@ -344,6 +384,27 @@
         "params": { "$ref": "#/definitions/IConstantNumScaleParams" }
       }
     },
+    "IConstantStrScaleParams": {
+      "type": "object",
+      "title": "IConstantStrParams",
+      "description": "Constant string payload.",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string" }
+      }
+    },
+    "IConstantStrScale": {
+      "type": "object",
+      "title": "IConstantStrScale",
+      "description": "Fixed string value regardless of feature data. Used for the text properties a user sets once, such as the font or the label placement.",
+      "required": ["scheme", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "const": "constant_str" },
+        "params": { "$ref": "#/definitions/IConstantStrScaleParams" }
+      }
+    },
     "IIdentityScale": {
       "type": "object",
       "title": "IIdentityScale",
@@ -393,6 +454,7 @@
         { "$ref": "#/definitions/IScalarScale" },
         { "$ref": "#/definitions/IConstantRGBAScale" },
         { "$ref": "#/definitions/IConstantNumScale" },
+        { "$ref": "#/definitions/IConstantStrScale" },
         { "$ref": "#/definitions/IIdentityScale" },
         { "$ref": "#/definitions/IExpressionScale" }
       ]
@@ -404,6 +466,11 @@
       "required": ["scale", "encodings"],
       "additionalProperties": false,
       "properties": {
+        "fields": {
+          "type": "array",
+          "description": "Input field name(s) for this mapping. Defaults to the rule's fields. Set it when channels of one rule read different columns, such as a label whose text comes from one attribute and whose size comes from another.",
+          "items": { "type": "string" }
+        },
         "scale": { "$ref": "#/definitions/IScale" },
         "encodings": {
           "type": "array",
