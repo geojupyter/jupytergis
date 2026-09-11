@@ -14,6 +14,7 @@ export type ClientPointer = {
   avatarUrl?: string;
   color: string;
   coordinates: JgisCoordinates;
+  lonLat: { latitude: number; longitude: number };
 };
 
 const CollaboratorAvatar: React.FC<{ client: ClientPointer }> = ({

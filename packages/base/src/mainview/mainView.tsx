@@ -2826,6 +2826,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           pointer.coordinates.x,
           pointer.coordinates.y,
         ]);
+        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
 
         if (!currentClientPointer) {
           currentClientPointer = {
@@ -2838,6 +2839,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               x: pixel[0],
               y: pixel[1],
             },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         } else {
           currentClientPointer = {
@@ -2845,6 +2850,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             coordinates: {
               x: pixel[0],
               y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
             },
           };
         }
