@@ -893,7 +893,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       selectInteraction.getFeatures().forEach(feature => {
         identifiedFeatures.push({
           feature: feature.getProperties(),
-          // Specta has no IdentifyPanel to open floaters so we  show them on identify.
+          // Specta has no IdentifyPanel to open floaters so we show them on identify.
           floaterOpen: this._model.isStoryPresentationActive(),
         });
         const geom = feature.getGeometry();
@@ -3746,8 +3746,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const selectedLayer = localState?.selected?.value;
 
     if (!selectedLayer) {
-      // Story presentation may not select a data layer; identify topmost features.
-      this._identifyFeaturesAtPixel(e);
+      if (this._model.isStoryPresentationActive()) {
+        this._identifyFeaturesAtPixel(e);
+      } else {
+        this._log('warning', 'Layer must be selected to use identify tool');
+      }
       return;
     }
 
@@ -3801,12 +3804,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         // trigger highlight via signal
         this._model.highlightFeatureSignal.emit(point);
 
-        break;
-      }
-
-      default: {
-        // Unknown / non-map selection during story: still try features at pixel.
-        this._identifyFeaturesAtPixel(e);
         break;
       }
     }
