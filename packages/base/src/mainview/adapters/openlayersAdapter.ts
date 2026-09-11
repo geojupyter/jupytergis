@@ -144,6 +144,7 @@ import {
   loadFile,
   throttle,
 } from '@/src/tools';
+import { ClientPointer } from '.././CollaboratorPointers';
 import {
   getZoomExtentForOlLayer,
   isValidExtent,
@@ -365,7 +366,12 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     view.on('change:center', () => {
       emitBboxChanged();
+      this._callbacks?.onClientPointerPositionChanged?.();
       syncViewportThrottled();
+    });
+
+    view.on('change:resolution', () => {
+      this._callbacks?.onClientPointerPositionChanged?.();
     });
 
     this._map.on('postrender', () => {
@@ -676,6 +682,31 @@ export class OpenLayersAdapter implements IMapAdapter {
     return olProjection
       ? toLonLat(coordinate, olProjection)
       : toLonLat(coordinate);
+  }
+
+  updateClientPointerPositions(
+    clientPointers: Record<number, ClientPointer>,
+  ): Record<number, ClientPointer> {
+    const updatedPointers = { ...clientPointers };
+
+    Object.entries(updatedPointers).forEach(([clientId, pointer]) => {
+      const coordinate = fromLonLat([
+        pointer.lonLat.longitude,
+        pointer.lonLat.latitude,
+      ]);
+
+      const pixel = this._map.getPixelFromCoordinate(coordinate);
+
+      updatedPointers[Number(clientId)] = {
+        ...pointer,
+        coordinates: {
+          x: pixel[0],
+          y: pixel[1],
+        },
+      };
+    });
+
+    return updatedPointers;
   }
 
   /** Compute the current view extent in `targetProjection`. */
@@ -1182,9 +1213,9 @@ export class OpenLayersAdapter implements IMapAdapter {
         layer.filters.appliedFilters.length === 1
           ? buildCondition(layer.filters.appliedFilters[0])
           : [
-              layer.filters.logicalOp,
-              ...layer.filters.appliedFilters.map(buildCondition),
-            ];
+            layer.filters.logicalOp,
+            ...layer.filters.appliedFilters.map(buildCondition),
+          ];
     }
 
     return [layerStyle];
@@ -1397,8 +1428,8 @@ export class OpenLayersAdapter implements IMapAdapter {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._map.getView().getProjection(),
-        });
+        featureProjection: this._map.getView().getProjection(),
+      });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,

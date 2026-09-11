@@ -13,6 +13,8 @@ import type {
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
+import { ClientPointer } from './CollaboratorPointers';
+
 export type MapAdapterType = 'openlayers';
 
 export interface IMapProjection {
@@ -43,6 +45,9 @@ export interface IMapAdapter {
 
   onZoomToPosition(_: IJupyterGISModel, id: string): void;
   convertFeatureToMs(_: IJupyterGISModel, args: string): void;
+  updateClientPointerPositions(
+    clientPointers: Record<number, ClientPointer>,
+  ): Record<number, ClientPointer>;
   handleLocationIndicatorToggled(
     _sender: IJupyterGISModel,
     uiState: IJGISUIState,
@@ -136,6 +141,7 @@ export interface IMapAdapterCallbacks {
   onLayerAddStarted?: () => void;
   onLayerAddSettled?: (id: string) => void;
   onLayerError?: (id: string, message: string) => void;
+  onClientPointerPositionChanged?: () => void;
 }
 
 /**

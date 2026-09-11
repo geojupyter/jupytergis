@@ -494,6 +494,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }));
           void showErrorMessage('Failed to load layer', message);
         },
+        onClientPointerPositionChanged: () => {
+          if (!this._mapAdapter) {
+            return;
+          }
+
+          const clientPointers = this._mapAdapter.updateClientPointerPositions(
+            this.state.clientPointers,
+          );
+
+          this.setState({ clientPointers });
+        },
       },
     });
 
