@@ -19,8 +19,8 @@ import {
   ComboboxList,
   ComboboxVirtualizedList,
   createComboboxVirtualHighlightHandler,
+  ComboboxVirtualizer,
 } from '@/src/shared/components/Combobox';
-import type { ComboboxVirtualizer } from '@/src/shared/components/Combobox';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -42,12 +42,12 @@ const StatusBar: React.FC<IStatusBarProps> = ({
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
-const virtualizerRef = useRef<ComboboxVirtualizer | null>(null);
+  const virtualizerRef = useRef<ComboboxVirtualizer | null>(null);
   const handleItemHighlighted = useMemo(
     () => createComboboxVirtualHighlightHandler(virtualizerRef),
     [],
   );
-  
+
   const projectionOptions = useMemo<IProjectionOption[]>(
     () =>
       Object.keys(projCodes).map(code => ({
@@ -138,7 +138,7 @@ const virtualizerRef = useRef<ComboboxVirtualizer | null>(null);
           />
           <ComboboxEmpty>No projection found.</ComboboxEmpty>
           <ComboboxList virtualized>
-           <ComboboxVirtualizedList<IProjectionOption>
+            <ComboboxVirtualizedList<IProjectionOption>
               virtualizerRef={virtualizerRef}
             >
               {option => option.label}

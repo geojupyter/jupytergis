@@ -3020,7 +3020,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     } = options;
     let view = this._Map.getView();
 
-   await this._handleProjectionChange(view, projection, bearing);
+    await this._handleProjectionChange(view, projection, bearing);
     view = this._Map.getView();
 
     // Use the extent only if explicitly requested (QGIS files).
