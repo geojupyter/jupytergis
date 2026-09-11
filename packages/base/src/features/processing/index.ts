@@ -17,6 +17,8 @@ import { ProcessingFormDialog } from './ProcessingFormDialog';
 import { processingFormToParam } from './processingFormToParam';
 import {
   isServerProcessingEnabled,
+  ProcessingCancelledError,
+  ProgressCallback,
   runServerProcessing,
   runServerProcessingUrl,
   runServerProcessingUrlWithCutline,
@@ -24,6 +26,143 @@ import {
 import { getGdal } from '../../gdal';
 import { getGeoJSONDataFromLayerSource } from '../../tools';
 import { JupyterGISTracker } from '../../types';
+
+/**
+ * A live processing notification whose message tracks progress.
+ *
+ * The toast is an indeterminate "in-progress" spinner (JupyterLab's toast can't
+ * render a determinate bar — it forces a spinner for the in-progress type), so
+ * `onProgress` reports progress as a percentage in the message text. Server GDAL
+ * raster ops emit progress in several 0→100 sweeps (warp pass, then overview
+ * builds), so the percentage is clamped to be monotonic — it never goes
+ * backwards, which would otherwise look like it's restarting. The browser-WASM
+ * and vector-SQL paths report nothing, so the toast just spins. `attachCancel`
+ * adds a Cancel button (server tasks only); `success`/`error`/`cancelled`
+ * settle the toast and remove the button.
+ */
+interface IProcessingNotification {
+  onProgress: ProgressCallback;
+  attachCancel: (onCancel: () => void) => void;
+  cancelled: () => void;
+  success: (message: string) => void;
+  error: (message: string) => void;
+}
+
+/**
+ * The class we put on our own processing toasts, so the layout tweaks in
+ * `processingNotification.css` apply to them and to nothing else.
+ */
+const PROCESSING_TOAST_CLASS = 'jgis-ProcessingToast';
+
+/**
+ * Tag our toast with {@link PROCESSING_TOAST_CLASS}.
+ *
+ * `Notification.emit` takes no class name, but react-toastify renders the toast
+ * with the notification id as its element id, so we can tag the element
+ * ourselves. The toast is rendered asynchronously (JupyterLab lazy-loads
+ * react-toastify), hence the retry until it lands in the DOM.
+ *
+ * Returns a function that stops looking and removes the class again, to be
+ * called once the notification settles.
+ */
+function tagProcessingToast(id: string): () => void {
+  let stopped = false;
+  const findToast = () => {
+    if (stopped) {
+      return;
+    }
+    const toast = document.getElementById(id);
+    if (toast) {
+      toast.classList.add(PROCESSING_TOAST_CLASS);
+      return;
+    }
+    requestAnimationFrame(findToast);
+  };
+  requestAnimationFrame(findToast);
+
+  return () => {
+    stopped = true;
+    document.getElementById(id)?.classList.remove(PROCESSING_TOAST_CLASS);
+  };
+}
+
+function createProcessingNotification(label: string): IProcessingNotification {
+  const id = Notification.emit(`${label}…`, 'in-progress', {
+    autoClose: false,
+  });
+  const releaseToast = tagProcessingToast(id);
+  // Highest percentage shown so far; keeps the reported progress monotonic.
+  // Starts below zero so a genuine 0% still renders — that first tick is the
+  // signal that GDAL has stopped opening the source and started working.
+  let shownPercent = -1;
+  return {
+    onProgress: (percent: number) => {
+      if (percent <= shownPercent) {
+        return;
+      }
+      shownPercent = percent;
+      Notification.update({
+        id,
+        message: `${label}… ${percent}%`,
+        type: 'in-progress',
+        autoClose: false,
+      });
+    },
+    attachCancel: (onCancel: () => void) => {
+      Notification.update({
+        id,
+        type: 'in-progress',
+        autoClose: false,
+        actions: [
+          {
+            label: 'Cancel',
+            callback: event => {
+              // Keep the toast open so we can show the cancelling state.
+              event.preventDefault();
+              Notification.update({
+                id,
+                message: `Cancelling ${label.toLowerCase()}…`,
+                type: 'in-progress',
+                autoClose: false,
+              });
+              onCancel();
+            },
+          },
+        ],
+      });
+    },
+    cancelled: () => {
+      releaseToast();
+      Notification.update({
+        id,
+        message: `${label} cancelled.`,
+        type: 'default',
+        autoClose: 3000,
+        actions: [],
+      });
+    },
+    success: (message: string) => {
+      releaseToast();
+      Notification.update({
+        id,
+        message,
+        type: 'success',
+        autoClose: 3000,
+        actions: [],
+      });
+    },
+    error: (message: string) => {
+      releaseToast();
+      Notification.update({
+        id,
+        message,
+        type: 'error',
+        autoClose: 5000,
+        actions: [],
+      });
+    },
+  };
+}
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -355,18 +494,25 @@ export async function rasterizeLayer(
 
   const outputName = 'output.tif';
 
+  const notification = createProcessingNotification('Rasterizing');
+
   const doRasterize = async (): Promise<Uint8Array> => {
     if (isServerProcessingEnabled()) {
       console.debug(
         `[JupyterGIS] Processing "${processingType}" via SERVER GDAL (${gdalFunction})`,
       );
       const t0 = performance.now();
-      const response = await runServerProcessing({
-        operation: gdalFunction,
-        options,
-        geojson: geojsonString,
-        outputName,
-      });
+      const controller = new AbortController();
+      notification.attachCancel(() => controller.abort());
+      const response = await runServerProcessing(
+        {
+          operation: gdalFunction,
+          options,
+          geojson: geojsonString,
+          outputName,
+        },
+        { onProgress: notification.onProgress, signal: controller.signal },
+      );
       if (response.format !== 'base64') {
         throw new Error('Expected base64 response for raster output');
       }
@@ -406,28 +552,18 @@ export async function rasterizeLayer(
     }
   };
 
-  const rasterizePromise = doRasterize();
-  Notification.promise(
-    rasterizePromise.then(() => null),
-    {
-      pending: { message: 'Rasterizing…', options: { autoClose: false } },
-      success: {
-        message: () => `${processingType} completed.`,
-        options: { autoClose: 3000 },
-      },
-      error: {
-        message: (err: any) =>
-          `${processingType} failed: ${err?.message ?? err}`,
-      },
-    },
-  );
-
   let tiffBytes: Uint8Array;
   try {
-    tiffBytes = await rasterizePromise;
-  } catch {
+    tiffBytes = await doRasterize();
+  } catch (err: any) {
+    if (err instanceof ProcessingCancelledError) {
+      notification.cancelled();
+      return;
+    }
+    notification.error(`${processingType} failed: ${err?.message ?? err}`);
     return;
   }
+  notification.success(`${processingType} completed.`);
 
   const base64Content = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -725,18 +861,25 @@ export async function clipRasterByExtent(
   const isRemoteUrl =
     rasterUrl.startsWith('http://') || rasterUrl.startsWith('https://');
 
+  const notification = createProcessingNotification('Clipping raster');
+
   const doClip = async (): Promise<Uint8Array<ArrayBuffer>> => {
     if (isRemoteUrl && isServerProcessingEnabled()) {
       console.debug(
         '[JupyterGIS] Clipping raster by extent via SERVER GDAL (vsicurl)',
       );
       const t0 = performance.now();
-      const response = await runServerProcessingUrl({
-        operation: 'gdal_translate',
-        options,
-        url: rasterUrl,
-        outputName,
-      });
+      const controller = new AbortController();
+      notification.attachCancel(() => controller.abort());
+      const response = await runServerProcessingUrl(
+        {
+          operation: 'gdal_translate',
+          options,
+          url: rasterUrl,
+          outputName,
+        },
+        { onProgress: notification.onProgress, signal: controller.signal },
+      );
       if (response.format !== 'base64') {
         throw new Error('Expected base64 response for raster output');
       }
@@ -784,27 +927,18 @@ export async function clipRasterByExtent(
     }
   };
 
-  const clipPromise = doClip();
-  Notification.promise(
-    clipPromise.then(() => null),
-    {
-      pending: { message: 'Clipping raster…', options: { autoClose: false } },
-      success: {
-        message: () => 'Raster clipped successfully.',
-        options: { autoClose: 3000 },
-      },
-      error: {
-        message: (err: any) => `Raster clip failed: ${err?.message ?? err}`,
-      },
-    },
-  );
-
   let outputTiffBytes: Uint8Array<ArrayBuffer>;
   try {
-    outputTiffBytes = await clipPromise;
-  } catch {
+    outputTiffBytes = await doClip();
+  } catch (err: any) {
+    if (err instanceof ProcessingCancelledError) {
+      notification.cancelled();
+      return;
+    }
+    notification.error(`Raster clip failed: ${err?.message ?? err}`);
     return;
   }
+  notification.success('Raster clipped successfully.');
 
   const base64Content = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -1080,13 +1214,17 @@ export async function clipRasterByVector(
       'COMPRESS=LZW',
       '-co',
       'BIGTIFF=IF_SAFER',
-      // Parallel warp + 1 GB warp memory so each pass covers a larger output
-      // area, reducing the number of /vsicurl/ round-trips.
+      // Parallel warp, but a modest warp memory on purpose: gdalwarp only
+      // ticks its progress meter between chunks, so a large -wm sizes the
+      // whole output into one chunk and the run reports 0% and then 100%
+      // with nothing in between. 32 MB gives a France-sized clip a few dozen
+      // chunks. The cost is negligible here — this path is bound by /vsicurl
+      // throughput, not by chunk overhead.
       '-multi',
       '-wo',
       'NUM_THREADS=ALL_CPUS',
       '-wm',
-      '1024',
+      '32',
       '-cutline',
       cutlinePath,
       '-cutline_srs',
@@ -1101,17 +1239,24 @@ export async function clipRasterByVector(
     return opts;
   };
 
+  const notification = createProcessingNotification('Clipping raster');
+
   const doClip = async (): Promise<Uint8Array<ArrayBuffer>> => {
     if (isRemoteUrl && isServerProcessingEnabled()) {
       // {cutlinePath} is substituted by the server with the temp path of the
       // cutline file it writes from `cutlineGeojson`.
-      const response = await runServerProcessingUrlWithCutline({
-        operation: 'gdalwarp',
-        options: buildOptions('{cutlinePath}'),
-        url: rasterUrl,
-        cutlineGeojson: clipGeoJSON,
-        outputName,
-      });
+      const controller = new AbortController();
+      notification.attachCancel(() => controller.abort());
+      const response = await runServerProcessingUrlWithCutline(
+        {
+          operation: 'gdalwarp',
+          options: buildOptions('{cutlinePath}'),
+          url: rasterUrl,
+          cutlineGeojson: clipGeoJSON,
+          outputName,
+        },
+        { onProgress: notification.onProgress, signal: controller.signal },
+      );
       if (response.format !== 'base64') {
         throw new Error('Expected base64 response for raster output');
       }
@@ -1178,27 +1323,18 @@ export async function clipRasterByVector(
     }
   };
 
-  const clipPromise = doClip();
-  Notification.promise(
-    clipPromise.then(() => null),
-    {
-      pending: { message: 'Clipping raster…', options: { autoClose: false } },
-      success: {
-        message: () => 'Raster clipped successfully.',
-        options: { autoClose: 3000 },
-      },
-      error: {
-        message: (err: any) => `Raster clip failed: ${err?.message ?? err}`,
-      },
-    },
-  );
-
   let outputTiffBytes: Uint8Array<ArrayBuffer>;
   try {
-    outputTiffBytes = await clipPromise;
-  } catch {
+    outputTiffBytes = await doClip();
+  } catch (err: any) {
+    if (err instanceof ProcessingCancelledError) {
+      notification.cancelled();
+      return;
+    }
+    notification.error(`Raster clip failed: ${err?.message ?? err}`);
     return;
   }
+  notification.success('Raster clipped successfully.');
 
   const base64Content = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -1486,6 +1622,10 @@ export async function executeSQLProcessing(
   app: JupyterFrontEnd,
   exactLayerName?: string,
 ) {
+  const notification = createProcessingNotification(
+    `Running ${processingType}`,
+  );
+
   const doProcessing = async (): Promise<string> => {
     if (isServerProcessingEnabled()) {
       console.debug(
@@ -1493,12 +1633,17 @@ export async function executeSQLProcessing(
       );
       const t0 = performance.now();
       const outputName = 'output.geojson';
-      const response = await runServerProcessing({
-        operation: gdalFunction,
-        options,
-        geojson: geojsonString,
-        outputName,
-      });
+      const controller = new AbortController();
+      notification.attachCancel(() => controller.abort());
+      const response = await runServerProcessing(
+        {
+          operation: gdalFunction,
+          options,
+          geojson: geojsonString,
+          outputName,
+        },
+        { onProgress: notification.onProgress, signal: controller.signal },
+      );
       console.debug(
         `[JupyterGIS] SERVER GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
       );
@@ -1536,31 +1681,18 @@ export async function executeSQLProcessing(
     }
   };
 
-  const processingPromise = doProcessing();
-  Notification.promise(
-    processingPromise.then(() => null),
-    {
-      pending: {
-        message: `Running ${processingType}…`,
-        options: { autoClose: false },
-      },
-      success: {
-        message: () => `${processingType} completed.`,
-        options: { autoClose: 3000 },
-      },
-      error: {
-        message: (err: any) =>
-          `${processingType} failed: ${err?.message ?? err}`,
-      },
-    },
-  );
-
   let processedGeoJSONString: string;
   try {
-    processedGeoJSONString = await processingPromise;
-  } catch {
+    processedGeoJSONString = await doProcessing();
+  } catch (err: any) {
+    if (err instanceof ProcessingCancelledError) {
+      notification.cancelled();
+      return;
+    }
+    notification.error(`${processingType} failed: ${err?.message ?? err}`);
     return;
   }
+  notification.success(`${processingType} completed.`);
 
   const layerName =
     exactLayerName ??
