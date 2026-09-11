@@ -1,10 +1,7 @@
-import {
-  faArrowPointer,
-  faWindowMinimize,
-} from '@fortawesome/free-solid-svg-icons';
+import { faArrowPointer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict, JgisCoordinates } from '@jupytergis/schema';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ICollaboratorPointersProps {
   clients: IDict<ClientPointer>;
@@ -13,21 +10,52 @@ interface ICollaboratorPointersProps {
 export type ClientPointer = {
   username: string;
   displayName: string;
+  initials: string;
+  avatarUrl?: string;
   color: string;
   coordinates: JgisCoordinates;
   lonLat: { latitude: number; longitude: number };
 };
 
+const CollaboratorAvatar: React.FC<{ client: ClientPointer }> = ({
+  client,
+}) => {
+  const [avatarFailed, setAvatarFailed] = useState(false);
+
+  useEffect(() => setAvatarFailed(false), [client.avatarUrl]);
+
+  const showAvatar = !!client.avatarUrl && !avatarFailed;
+
+  return (
+    <div
+      className="jGIS-Remote-Pointer-Avatar"
+      style={{ backgroundColor: showAvatar ? undefined : client.color }}
+      title={client.displayName}
+    >
+      {showAvatar ? (
+        <img
+          src={client.avatarUrl}
+          alt=""
+          onError={() => setAvatarFailed(true)}
+        />
+      ) : (
+        <span>{client.initials}</span>
+      )}
+    </div>
+  );
+};
+
 const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
   clients,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [openClientId, setOpenClientId] = useState<string | null>(null);
 
   return (
     <>
       {clients &&
-        Object.values(clients).map(client => (
+        Object.entries(clients).map(([clientId, client]) => (
           <div
+            key={clientId}
             className="jGIS-Popup-Wrapper"
             style={{
               left: `${client.coordinates.x}px`,
@@ -35,51 +63,35 @@ const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
             }}
           >
             <div
-              key={client.username}
               className="jGIS-Remote-Pointer"
-              style={{
-                color: client.color,
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                setIsOpen(!isOpen);
-              }}
+              style={{ color: client.color }}
+              onClick={() =>
+                setOpenClientId(openClientId === clientId ? null : clientId)
+              }
             >
               <FontAwesomeIcon
                 icon={faArrowPointer}
                 className="jGIS-Remote-Pointer-Icon"
               />
-            </div>
-            <div
-              style={{
-                visibility: isOpen ? 'visible' : 'hidden',
-                background: client.color,
-              }}
-              className="jGIS-Remote-Pointer-Popup jGIS-Floating-Pointer-Popup"
-            >
               <div
-                className="jGIS-Popup-Topbar"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
+                className="jGIS-Remote-Pointer-Label"
+                style={{ borderColor: client.color }}
               >
-                <FontAwesomeIcon
-                  icon={faWindowMinimize}
-                  className="jGIS-Popup-TopBarIcon"
-                />
-              </div>
-              <div className="jGIS-Remote-Pointer-Popup-Name">
-                {client.displayName}
-              </div>
-              <div className="jGIS-Remote-Pointer-Popup-Coordinates">
-                <br />
-                Pointer Location:
-                <br />
-                Longitude: {client.lonLat.longitude.toFixed(2)}
-                <br />
-                Latitude: {client.lonLat.latitude.toFixed(2)}
+                <CollaboratorAvatar client={client} />
+                <span className="jGIS-Remote-Pointer-Name">
+                  {client.displayName}
+                </span>
               </div>
             </div>
+            {openClientId === clientId && (
+              <div
+                className="jGIS-Remote-Pointer-Coordinates"
+                style={{ borderColor: client.color }}
+              >
+                {client.lonLat.longitude.toFixed(2)},{' '}
+                {client.lonLat.latitude.toFixed(2)}
+              </div>
+            )}
           </div>
         ))}
     </>
