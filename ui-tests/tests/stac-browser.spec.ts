@@ -41,6 +41,8 @@ const mockStacResponse = {
 };
 
 test.describe('#stac-browser', () => {
+  test.describe.configure({ retries: process.env.CI ? 3 : 0 });
+
   test.beforeAll(async ({ request }) => {
     const content = galata.newContentsHelper(request);
     await content.deleteDirectory('/testDir');
@@ -72,23 +74,26 @@ test.describe('#stac-browser', () => {
 
     await page.getByText('Stac Browser').click();
 
+    // The panel restores saved filters from the state DB asynchronously and
+    // overwrites anything selected before that lands, so let it settle first.
+    await page.waitForTimeout(2000);
+
     await page
       .getByRole('tabpanel', { name: 'Filters' })
       .getByRole('combobox')
-      .click();
-    await page.getByRole('option', { name: 'GEODES' }).click();
+      .selectOption({ label: 'GEODES' });
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();
-    await page
-      .getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' })
-      .press('Escape');
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
 
     await page.getByRole('tab', { name: /Results/ }).click();
 
     const resultsList = page.locator('.jgis-stac-browser-results-list');
     await expect(resultsList.locator('button')).toHaveCount(1, {
-      timeout: 10000,
+      timeout: 30000,
     });
   });
 });

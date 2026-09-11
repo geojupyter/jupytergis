@@ -1,8 +1,10 @@
 import React from 'react';
 
 import type { StorySegmentPaneAlignment } from '@/src/features/story/types/types';
-import { Button } from '@/src/shared/components/Button';
-import { ButtonGroup } from '@/src/shared/components/ButtonGroup';
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/src/shared/components/ToggleGroup';
 
 const PANE_ALIGNMENT_OPTIONS: {
   value: StorySegmentPaneAlignment;
@@ -25,19 +27,25 @@ export function SegmentPaneAlignmentPicker({
   return (
     <section className="jgis-story-editor-block">
       <div className="jgis-story-editor-label">Pane alignment</div>
-      <ButtonGroup aria-label="Pane alignment">
+      <ToggleGroup
+        variant="outline"
+        spacing={0}
+        className="[&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
+        aria-label="Pane alignment"
+        value={[value]}
+        onValueChange={next => {
+          const alignment = next[0] as StorySegmentPaneAlignment | undefined;
+          if (alignment) {
+            onChange(alignment);
+          }
+        }}
+      >
         {PANE_ALIGNMENT_OPTIONS.map(option => (
-          <Button
-            key={option.value}
-            type="button"
-            variant={value === option.value ? 'secondary' : 'outline'}
-            aria-pressed={value === option.value}
-            onClick={() => onChange(option.value)}
-          >
+          <ToggleGroupItem key={option.value} value={option.value}>
             {option.label}
-          </Button>
+          </ToggleGroupItem>
         ))}
-      </ButtonGroup>
+      </ToggleGroup>
     </section>
   );
 }

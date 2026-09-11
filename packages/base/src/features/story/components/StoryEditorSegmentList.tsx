@@ -119,6 +119,7 @@ function MobileSegmentPicker({
       )}
       <Button
         variant="outline"
+        size={'sm'}
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
         aria-label="Add segment"
@@ -264,6 +265,7 @@ export function StoryEditorSegmentList({
       </div>
       <Button
         variant="outline"
+        size={'sm'}
         className="jgis-story-editor-add-segment"
         onClick={onAddSegment}
       >

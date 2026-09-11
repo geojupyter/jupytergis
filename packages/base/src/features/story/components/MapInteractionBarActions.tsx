@@ -16,11 +16,8 @@ export function MapViewBarActions({
       <Button variant="outline" size="sm" onClick={onBack}>
         Back to editor
       </Button>
-      <Button
-        size="sm"
-        className="jp-mod-styled jp-mod-accept"
-        onClick={onApply}
-      >
+
+      <Button size={'sm'} onClick={onApply}>
         Apply view
       </Button>
     </>
