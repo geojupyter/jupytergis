@@ -2,6 +2,55 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.2...c228a3acc4035765aff44c0813f6ad50ba1c7d9b))
+
+### Enhancements made
+
+- Add story editor close button & make markdown editor tabs more clickable [#1844](https://github.com/geojupyter/jupytergis/pull/1844) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Add a declutter option for vector layers [#1826](https://github.com/geojupyter/jupytergis/pull/1826) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Component Migration [#1809](https://github.com/geojupyter/jupytergis/pull/1809) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Draw tool: Modify interaction [#1803](https://github.com/geojupyter/jupytergis/pull/1803) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- Metadata Viewer [#1796](https://github.com/geojupyter/jupytergis/pull/1796) ([@arjxn-py](https://github.com/arjxn-py), [@benjaminszeghy](https://github.com/benjaminszeghy), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Story editor shortcuts [#1792](https://github.com/geojupyter/jupytergis/pull/1792) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- replace proj4list with proj-codes [#1776](https://github.com/geojupyter/jupytergis/pull/1776) ([@benjaminszeghy](https://github.com/benjaminszeghy), [@arjxn-py](https://github.com/arjxn-py), [@mfisher87](https://github.com/mfisher87))
+- Implement GeoPackage export [#1312](https://github.com/geojupyter/jupytergis/pull/1312) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Show profile pictures in the annotation panel [#1843](https://github.com/geojupyter/jupytergis/pull/1843) ([@arjxn-py](https://github.com/arjxn-py), [@SylvainCorlay](https://github.com/SylvainCorlay), [@martinRenou](https://github.com/martinRenou))
+- Disable the WMS layers dropdown until the server is connected [#1827](https://github.com/geojupyter/jupytergis/pull/1827) ([@arjxn-py](https://github.com/arjxn-py), [@SandrineP](https://github.com/SandrineP), [@martinRenou](https://github.com/martinRenou))
+- Let mobile story taps reach the segment overlay controls [#1823](https://github.com/geojupyter/jupytergis/pull/1823) ([@arjxn-py](https://github.com/arjxn-py), [@gjmooney](https://github.com/gjmooney))
+- Story Editor: Change segments with arrow keys [#1810](https://github.com/geojupyter/jupytergis/pull/1810) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Fix broken JupyterLite example links in README [#1800](https://github.com/geojupyter/jupytergis/pull/1800) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Refactor `_onZoomToPosition` to work with `LayerGroups` [#1797](https://github.com/geojupyter/jupytergis/pull/1797) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- ignore zero-width resizes for mobile mode [#1787](https://github.com/geojupyter/jupytergis/pull/1787) ([@benjaminszeghy](https://github.com/benjaminszeghy), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Give the STAC browser test extra retries and time to settle [#1840](https://github.com/geojupyter/jupytergis/pull/1840) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Get rid of UI test snapshots [#1829](https://github.com/geojupyter/jupytergis/pull/1829) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Pin pnpm version to fix RTD [#1804](https://github.com/geojupyter/jupytergis/pull/1804) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Fix bloat from proj-codes dependency [#1802](https://github.com/geojupyter/jupytergis/pull/1802) ([@mfisher87](https://github.com/mfisher87), [@benjaminszeghy](https://github.com/benjaminszeghy))
+- Add reference to JOSS article to CITATION.cff [#1780](https://github.com/geojupyter/jupytergis/pull/1780) ([@mfisher87](https://github.com/mfisher87))
+
+### Documentation improvements
+
+- Tweak CNG demo notebook notes/TODOs [#1822](https://github.com/geojupyter/jupytergis/pull/1822) ([@mfisher87](https://github.com/mfisher87))
+- Add CNG demo notebook [#1807](https://github.com/geojupyter/jupytergis/pull/1807) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-25&to=2026-09-10&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-08-25..2026-09-10&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-08-25..2026-09-10&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-25..2026-09-10&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-25..2026-09-10&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-08-25..2026-09-10&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-08-25..2026-09-10&type=Issues)) | @SandrineP ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASandrineP+updated%3A2026-08-25..2026-09-10&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-08-25..2026-09-10&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.1...f47d2e21fd29590362fc6ccc37d8c34a10c2eb3f))
@@ -35,8 +84,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-08-21&to=2026-08-25&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-08-21..2026-08-25&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-08-21..2026-08-25&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-08-21..2026-08-25&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-08-21..2026-08-25&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-08-21..2026-08-25&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.1
 

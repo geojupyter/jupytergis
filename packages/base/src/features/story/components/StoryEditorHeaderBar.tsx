@@ -1,6 +1,7 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
+import { Play } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
@@ -221,23 +222,28 @@ export function StoryEditorHeaderBar({
         }}
       />
       <div className="jgis-story-editor-context-meta-group">
-        <Badge>
-          {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
-        </Badge>
-
-        <span className="jgis-story-editor-context-meta">
-          {segmentCount} segment{segmentCount === 1 ? '' : 's'}
-        </span>
+        {!isMobile ? (
+          <>
+            <Badge>
+              {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
+            </Badge>
+            <span className="jgis-story-editor-context-meta">
+              {segmentCount} segment{segmentCount === 1 ? '' : 's'}
+            </span>
+          </>
+        ) : null}
         {story && canPreview ? (
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            variant={isMobile ? 'ghost' : 'outline'}
+            size={isMobile ? 'icon-sm' : 'sm'}
+            aria-label="Preview story"
+            title="Preview story"
             onClick={() => {
               StoryEditorSession.getInstance().enterStoryPreviewMode();
             }}
           >
-            {isMobile ? 'Preview' : 'Preview story'}
+            {isMobile ? <Play /> : 'Preview story'}
           </Button>
         ) : null}
         {story && (

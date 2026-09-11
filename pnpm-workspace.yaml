@@ -38,3 +38,4 @@ overrides:
 
 minimumReleaseAgeExclude:
   - proj-codes@0.0.4
+  - '@jupyter/collaboration@5.0.3'

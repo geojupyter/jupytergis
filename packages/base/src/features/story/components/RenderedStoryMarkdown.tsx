@@ -2,9 +2,13 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import { jupyterHighlightStyle } from '@jupyterlab/codemirror';
 import { MimeModel } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
-import React, { memo, useLayoutEffect, useRef } from 'react';
+import React, { memo, useLayoutEffect, useRef, useState } from 'react';
 import { StyleModule } from 'style-mod';
 
+import {
+  StoryMarkdownImageLightbox,
+  bindStoryZoomableImage,
+} from '@/src/features/story/components/StoryMarkdownImageLightbox';
 import { useStoryRenderMime } from '@/src/features/story/components/StoryRenderMime';
 
 const MARKDOWN_MIME = 'text/markdown';
@@ -30,13 +34,21 @@ function disposeRenderer(renderer: Widget): void {
     return;
   }
 
-  if (renderer.isAttached) {
-    try {
+  // React may have already removed the host, leaving Lumino's isAttached
+  // true while node.isConnected is false. Widget.detach()/dispose() throw
+  // in that state — clear the flag so dispose can finish cleanly.
+  try {
+    if (renderer.isAttached && renderer.node.isConnected) {
       Widget.detach(renderer);
-    } catch {
-      // Host may already be gone when React unmounts the pane.
+    } else if (renderer.isAttached) {
+      renderer.clearFlag(Widget.Flag.IsAttached);
+    }
+  } catch {
+    if (renderer.isAttached) {
+      renderer.clearFlag(Widget.Flag.IsAttached);
     }
   }
+
   renderer.dispose();
 }
 
@@ -61,6 +73,50 @@ export function ensureJupyterHighlightStyle(): void {
   }
 }
 
+interface ILightboxImage {
+  src: string;
+  alt: string;
+}
+
+function bindZoomableImages(
+  host: HTMLElement,
+  onOpen: (image: ILightboxImage) => void,
+): () => void {
+  const images = Array.from(host.querySelectorAll('img'));
+  const cleanups: Array<() => void> = [];
+
+  for (const img of images) {
+    img.classList.add('jgis-story-markdown-zoomable-image');
+
+    if (!img.getAttribute('role')) {
+      img.setAttribute('role', 'button');
+    }
+    if (!img.hasAttribute('tabindex')) {
+      img.tabIndex = 0;
+    }
+
+    cleanups.push(
+      bindStoryZoomableImage(img, () => {
+        const src = img.currentSrc || img.src;
+        if (!src) {
+          return;
+        }
+        onOpen({ src, alt: img.alt || '' });
+      }),
+    );
+
+    cleanups.push(() => {
+      img.classList.remove('jgis-story-markdown-zoomable-image');
+    });
+  }
+
+  return () => {
+    for (const cleanup of cleanups) {
+      cleanup();
+    }
+  };
+}
+
 /** Jupyter rendermime markdown output (shared by overlay and story editor). */
 export const RenderedStoryMarkdown = memo(
   ({
@@ -74,6 +130,7 @@ export const RenderedStoryMarkdown = memo(
     const hostRef = useRef<HTMLDivElement>(null);
     const onRenderedRef = useRef(onRendered);
     onRenderedRef.current = onRendered;
+    const [lightbox, setLightbox] = useState<ILightboxImage | null>(null);
 
     useLayoutEffect(() => {
       const host = hostRef.current;
@@ -91,6 +148,7 @@ export const RenderedStoryMarkdown = memo(
       });
 
       let cancelled = false;
+      let unbindImages: (() => void) | undefined;
 
       const run = async (): Promise<void> => {
         if (cancelled) {
@@ -118,6 +176,7 @@ export const RenderedStoryMarkdown = memo(
         }
 
         renderer.addClass('jp-MarkdownOutput');
+        unbindImages = bindZoomableImages(host, setLightbox);
         requestAnimationFrame(() => {
           if (!cancelled && !renderer.isDisposed) {
             onRenderedRef.current?.();
@@ -129,6 +188,7 @@ export const RenderedStoryMarkdown = memo(
 
       return () => {
         cancelled = true;
+        unbindImages?.();
         disposeRenderer(renderer);
       };
     }, [rendermime, source]);
@@ -142,7 +202,12 @@ export const RenderedStoryMarkdown = memo(
         <div
           ref={hostRef}
           className="specta-article-host-widget specta-cell-content"
-        ></div>
+        />
+        <StoryMarkdownImageLightbox
+          src={lightbox?.src ?? null}
+          alt={lightbox?.alt}
+          onClose={() => setLightbox(null)}
+        />
       </div>
     );
   },
