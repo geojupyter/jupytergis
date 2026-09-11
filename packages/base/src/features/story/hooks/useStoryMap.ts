@@ -3,7 +3,7 @@ import type {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
+import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   getStoryPresentationMode,
@@ -177,8 +177,27 @@ export function useStoryMap({
     };
   }, []);
 
-  // Leave identify when changing segments or tearing down the story stage.
+  // Leave identify only when the active segment actually changes.
+  const previousSegmentRef = useRef<{
+    index: number;
+    id: string | undefined;
+  } | null>(null);
+
   useEffect(() => {
+    const previous = previousSegmentRef.current;
+    previousSegmentRef.current = {
+      index: currentIndex,
+      id: currentStorySegmentId,
+    };
+
+    if (
+      previous !== null &&
+      previous.index === currentIndex &&
+      previous.id === currentStorySegmentId
+    ) {
+      return;
+    }
+
     exitStoryIdentifyMode(model);
   }, [model, currentIndex, currentStorySegmentId]);
 
