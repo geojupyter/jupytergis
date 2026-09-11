@@ -132,6 +132,7 @@ import {
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
 import {
   IMapAdapter,
+  IMapProjection,
   IMapAdapterCallbacks,
   IMapAdapterOptions,
 } from '@/src/mainview/mapAdapter';
@@ -647,7 +648,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return this._map.getViewport().id;
   }
 
-  getProjection(): { code: string; units: string } {
+  getProjection(): IMapProjection {
     const projection = this._map.getView().getProjection();
 
     return {
@@ -667,8 +668,14 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /** Converts map coordinate to [longitude, latitude]. */
-  toLonLat(coordinate: number[], projection?: any): number[] {
-    return projection ? toLonLat(coordinate, projection) : toLonLat(coordinate);
+  toLonLat(coordinate: number[], projection?: IMapProjection): number[] {
+    const olProjection = projection
+      ? getProjection(projection.code)
+      : undefined;
+
+    return olProjection
+      ? toLonLat(coordinate, olProjection)
+      : toLonLat(coordinate);
   }
 
   /** Compute the current view extent in `targetProjection`. */
@@ -1294,7 +1301,10 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
-  handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void {
+  handleGeolocationChanged(
+    _sender: IJupyterGISModel,
+    newPosition: JgisCoordinates,
+  ): void {
     const view = this._map.getView();
     const zoom = view.getZoom();
     if (zoom) {

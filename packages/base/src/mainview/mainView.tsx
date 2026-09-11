@@ -585,7 +585,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
-          this._mapAdapter.getProjection().code,
+          this._mapAdapter.getProjection(),
         );
 
         return `Latitude/Longitude: (${lonLat[1].toFixed(6)}N, ${lonLat[0].toFixed(6)}E)`;
@@ -596,7 +596,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
         const lonLat = this._mapAdapter.toLonLat(
           this._clickCoords,
-          this._mapAdapter.getProjection().code,
+          this._mapAdapter.getProjection(),
         );
 
         const text = `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;

@@ -15,6 +15,11 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 export type MapAdapterType = 'openlayers';
 
+export interface IMapProjection {
+  code: string;
+  units: string;
+}
+
 /**
  * Minimal abstraction layer between MainView and map engines.
  *
@@ -30,10 +35,7 @@ export interface IMapAdapter {
 
   getZoom(): number;
   getViewportId(): string;
-  getProjection(): {
-    code: string;
-    units: string;
-  };
+  getProjection(): IMapProjection;
   getPixelFromCoordinate(coordinate: number[]): [number, number];
 
   registerMap(path?: string): void;
@@ -50,13 +52,16 @@ export interface IMapAdapter {
     _sender: IJupyterGISModel,
     featureOrGeometry: GeoJSONFeature | Geometry,
   ): void;
-  handleGeolocationChanged(sender: any, newPosition: JgisCoordinates): void;
+  handleGeolocationChanged(
+    _sender: IJupyterGISModel,
+    newPosition: JgisCoordinates,
+  ): void;
   startLocationIndicator(): void;
   stopLocationIndicator(): void;
   computeFeatureFloaterPosition(
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined;
-  toLonLat(coordinate: number[], projection?: any): number[];
+  toLonLat(coordinate: number[], projection?: IMapProjection): number[];
   handleDrawModeChanged(isDrawing: boolean): void;
   flyToPosition(
     center: JgisCoordinates,
