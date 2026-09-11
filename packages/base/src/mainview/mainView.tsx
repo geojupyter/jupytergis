@@ -2838,10 +2838,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            mapCoordinates: {
-              x: pointer.coordinates.x,
-              y: pointer.coordinates.y,
-            },
             coordinates: {
               x: pixel[0],
               y: pixel[1],
@@ -2854,10 +2850,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         } else {
           currentClientPointer = {
             ...currentClientPointer,
-            mapCoordinates: {
-              x: pointer.coordinates.x,
-              y: pointer.coordinates.y,
-            },
             coordinates: {
               x: pixel[0],
               y: pixel[1],
@@ -2883,10 +2875,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const clientPointers = { ...this.state.clientPointers };
 
     Object.entries(clientPointers).forEach(([clientId, pointer]) => {
-      const pixel = this._Map.getPixelFromCoordinate([
-        pointer.mapCoordinates.x,
-        pointer.mapCoordinates.y,
+      const coordinate = fromLonLat([
+        pointer.lonLat.longitude,
+        pointer.lonLat.latitude,
       ]);
+
+      const pixel = this._Map.getPixelFromCoordinate(coordinate);
 
       clientPointers[Number(clientId)] = {
         ...pointer,
