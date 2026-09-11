@@ -50,6 +50,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
+import { Switch } from '@/src/shared/components/Switch';
 import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 
 export interface IStoryEditorDialogBodyProps {
@@ -70,6 +71,7 @@ function SegmentEditor({
   onContentModeChange,
   onContentChange,
   onLayerNameChange,
+  onEnableIdentifyChange,
   onTransitionChange,
   onRemoveSegment,
   isTextSegmentWidthFull,
@@ -83,6 +85,7 @@ function SegmentEditor({
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onLayerNameChange: (name: string) => void;
+  onEnableIdentifyChange: (enableIdentify: boolean) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
   isTextSegmentWidthFull: boolean;
@@ -132,6 +135,16 @@ function SegmentEditor({
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
+
+      {segmentMode === 'map' ? (
+        <label className="jgis-story-editor-toggle-row jgis-story-editor-label justify-start!">
+          <span>Enable identify</span>
+          <Switch
+            checked={segment.activeSlide?.enableIdentify === true}
+            onCheckedChange={onEnableIdentifyChange}
+          />
+        </label>
+      ) : null}
 
       {segmentMode === 'map' || !isTextSegmentWidthFull ? (
         <div className="jgis-story-editor-split">
@@ -310,6 +323,7 @@ export function StoryEditorDialogBody({
     updateSegmentContentMode,
     updateSegmentContent,
     updateSegmentLayerName,
+    updateSegmentEnableIdentify,
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
 
@@ -374,6 +388,9 @@ export function StoryEditorDialogBody({
               }}
               onLayerNameChange={name => {
                 updateSegmentLayerName(selectedSegment.id, name);
+              }}
+              onEnableIdentifyChange={enableIdentify => {
+                updateSegmentEnableIdentify(selectedSegment.id, enableIdentify);
               }}
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);
