@@ -7,11 +7,11 @@ import CircleStyle from 'ol/style/Circle';
 
 import { getCssVarValue } from '@/src/tools';
 
-/** Material blue-700 — JupyterLab accent-color1 fallback */
+/** Material blue-700 — JupyterLab brand-color1 fallback */
 const FALLBACK_BRAND_1 = '#1976d2';
-/** Material blue-300 — accent-color2 fallback */
+/** Material blue-300 — brand-color2 fallback */
 const FALLBACK_BRAND_2 = '#64b5f6';
-/** Material blue-100 — accent-color3 fallback (light fill) */
+/** Material blue-100 — brand-color3 fallback (light fill) */
 const FALLBACK_BRAND_3 = '#bbdefb';
 
 interface IIdentifyHighlightColors {
@@ -24,13 +24,13 @@ interface IIdentifyHighlightColors {
 }
 
 /**
- * Theme-aware identify highlight colors from JupyterLab accent.
+ * Theme-aware identify highlight colors from JupyterLab brand.
  * OpenLayers needs resolved color strings (CSS vars don't paint on canvas).
  */
 function getIdentifyHighlightColors(): IIdentifyHighlightColors {
-  const mainBrand = getCssVarValue('--jp-accent-color1') || FALLBACK_BRAND_1;
-  const mutedBrand = getCssVarValue('--jp-accent-color2') || FALLBACK_BRAND_2;
-  const lightBrand = getCssVarValue('--jp-accent-color3') || FALLBACK_BRAND_3;
+  const mainBrand = getCssVarValue('--jp-brand-color1') || FALLBACK_BRAND_1;
+  const mutedBrand = getCssVarValue('--jp-brand-color2') || FALLBACK_BRAND_2;
+  const lightBrand = getCssVarValue('--jp-brand-color3') || FALLBACK_BRAND_3;
 
   return {
     stroke: mainBrand,
@@ -42,7 +42,7 @@ function getIdentifyHighlightColors(): IIdentifyHighlightColors {
 /**
  * Build a highlight style from an original resolved style.
  * Preserves data-driven properties (circle radius, line width) and swaps in
- * the JupyterLab accent highlight color.
+ * the JupyterLab brand color.
  */
 export function buildHighlightStyle(original: Style, geomType?: string): Style {
   const { stroke, strokeMuted, fill } = getIdentifyHighlightColors();
@@ -85,7 +85,7 @@ export function buildHighlightStyle(original: Style, geomType?: string): Style {
 
 /**
  * Style function used by the highlight overlay layer.
- * Returns a theme-aware accent highlight style based on geometry type.
+ * Returns a theme-aware highlight style based on geometry type.
  */
 function highlightStyleFunction(feature: Feature): Style {
   const { stroke, strokeMuted, fill } = getIdentifyHighlightColors();
