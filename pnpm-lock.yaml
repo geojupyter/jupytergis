@@ -298,7 +298,7 @@ importers:
         specifier: '>=0.2.6 <3.0.0'
         version: 0.2.6(@fortawesome/fontawesome-svg-core@6.7.2)(react@18.3.1)
       '@jupyter/collaboration':
-        specifier: ^5.0.3
+        specifier: ^4 || ^5.0.3
         version: 5.0.3
       '@jupyter/react-components':
         specifier: ^0.16.6
