@@ -1213,9 +1213,9 @@ export class OpenLayersAdapter implements IMapAdapter {
         layer.filters.appliedFilters.length === 1
           ? buildCondition(layer.filters.appliedFilters[0])
           : [
-            layer.filters.logicalOp,
-            ...layer.filters.appliedFilters.map(buildCondition),
-          ];
+              layer.filters.logicalOp,
+              ...layer.filters.appliedFilters.map(buildCondition),
+            ];
     }
 
     return [layerStyle];
@@ -1428,8 +1428,8 @@ export class OpenLayersAdapter implements IMapAdapter {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-        featureProjection: this._map.getView().getProjection(),
-      });
+          featureProjection: this._map.getView().getProjection(),
+        });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
