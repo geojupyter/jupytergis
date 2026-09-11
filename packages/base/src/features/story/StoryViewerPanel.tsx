@@ -11,6 +11,7 @@ import {
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { Button } from '@/src/shared/components/Button';
 import { infoIcon } from '@/src/shared/icons';
@@ -183,6 +184,10 @@ function StoryViewerPanel({
                 aria-label="Identify features"
                 title="Identify features"
                 onClick={() => {
+                  if (model.currentMode === 'identifying') {
+                    exitStoryIdentifyMode(model);
+                    return;
+                  }
                   model.toggleMode('identifying');
                 }}
               >

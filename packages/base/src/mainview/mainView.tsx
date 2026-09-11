@@ -2160,13 +2160,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      | IVectorLayer
-      | IGeoTiffLayer
-      | IGeoZarrLayer
-      | undefined;
+      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
     const grammarState = layerParams?.symbologyState as
-      | IGrammarSymbologyState
-      | undefined;
+      IGrammarSymbologyState | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
@@ -3114,8 +3110,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         continue;
       }
       const sourceServerUrl = (source.parameters as any)?.serverUrl as
-        | string
-        | undefined;
+        string | undefined;
       if (!sourceServerUrl) {
         continue;
       }
@@ -3254,7 +3249,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const interactions = this._Map.getInteractions();
     const interactionArray = interactions.getArray();
 
-    // Remove each interaction type
+    // Remove each interaction type.
+    // Keep Select: its condition already requires identifying mode, and story
+    // presentation unlocks identify via toggleMode without the toolbar.
     const interactionsToRemove = [
       DragPan,
       DragRotate,
@@ -3266,7 +3263,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       PinchZoom,
       DoubleClickZoom,
       DragAndDrop,
-      Select,
     ];
 
     this._spectaRemovedInteractions = [];
@@ -3749,7 +3745,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const selectedLayer = localState?.selected?.value;
 
     if (!selectedLayer) {
-      this._log('warning', 'Layer must be selected to use identify tool');
+      // Story presentation may not select a data layer; identify topmost features.
+      this._identifyFeaturesAtPixel(e);
       return;
     }
 
@@ -3761,72 +3758,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         // Handled by selectInteraction (createSelectInteraction).
         break;
 
-      case 'VectorTileLayer': {
-        const geometries: Geometry[] = [];
-        const features: IIdentifiedFeatureEntry[] = [];
-        let foundAnyFeatures = false;
-
-        this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
-          foundAnyFeatures = true;
-
-          let geom: Geometry | undefined;
-          let props = {};
-
-          if (feature instanceof RenderFeature) {
-            geom = toGeometry(feature);
-          } else if ('getGeometry' in feature) {
-            geom = feature.getGeometry();
-          }
-
-          const rawProps = feature.getProperties();
-          const fid = feature.getId?.() ?? rawProps?.fid;
-
-          if (rawProps && Object.keys(rawProps).length > 1) {
-            const { ...clean } = rawProps;
-            props = clean;
-            if (fid !== null) {
-              // TODO Clean the cache under some condition?
-              this._featureAttributeCache.set(fid, props);
-            }
-          } else if (fid !== null && this._featureAttributeCache.has(fid)) {
-            props = this._featureAttributeCache.get(fid);
-          }
-
-          if (geom) {
-            geometries.push(geom);
-          }
-          if (props && Object.keys(props).length > 0) {
-            features.push({
-              feature: props,
-              floaterOpen: false,
-            });
-          }
-
-          return true;
-        });
-
-        if (features.length > 0) {
-          this._model.syncIdentifiedFeatures(
-            features,
-            this._model.getClientId().toString(),
-          );
-        } else if (!foundAnyFeatures) {
-          this._model.syncIdentifiedFeatures(
-            [],
-            this._model.getClientId().toString(),
-          );
-        }
-
-        if (geometries.length > 0) {
-          for (const geom of geometries) {
-            this._model.highlightFeatureSignal.emit(geom);
-          }
-        } else {
-          const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
-          const point = new Point(coordinate);
-          this._model.highlightFeatureSignal.emit(point);
-        }
-
+      case 'VectorTileLayer':
+      case 'StorySegmentLayer': {
+        this._identifyFeaturesAtPixel(e);
         break;
       }
 
@@ -3863,6 +3797,79 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         break;
       }
+
+      default: {
+        // Unknown / non-map selection during story: still try features at pixel.
+        this._identifyFeaturesAtPixel(e);
+        break;
+      }
+    }
+  }
+
+  private _identifyFeaturesAtPixel(e: MapBrowserEvent<any>): void {
+    const geometries: Geometry[] = [];
+    const features: IIdentifiedFeatureEntry[] = [];
+    let foundAnyFeatures = false;
+
+    this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+      foundAnyFeatures = true;
+
+      let geom: Geometry | undefined;
+      let props = {};
+
+      if (feature instanceof RenderFeature) {
+        geom = toGeometry(feature);
+      } else if ('getGeometry' in feature) {
+        geom = feature.getGeometry();
+      }
+
+      const rawProps = feature.getProperties();
+      const fid = feature.getId?.() ?? rawProps?.fid;
+
+      if (rawProps && Object.keys(rawProps).length > 1) {
+        const { ...clean } = rawProps;
+        props = clean;
+        if (fid !== null) {
+          // TODO Clean the cache under some condition?
+          this._featureAttributeCache.set(fid, props);
+        }
+      } else if (fid !== null && this._featureAttributeCache.has(fid)) {
+        props = this._featureAttributeCache.get(fid);
+      }
+
+      if (geom) {
+        geometries.push(geom);
+      }
+      if (props && Object.keys(props).length > 0) {
+        features.push({
+          feature: props,
+          floaterOpen: false,
+        });
+      }
+
+      return true;
+    });
+
+    if (features.length > 0) {
+      this._model.syncIdentifiedFeatures(
+        features,
+        this._model.getClientId().toString(),
+      );
+    } else if (!foundAnyFeatures) {
+      this._model.syncIdentifiedFeatures(
+        [],
+        this._model.getClientId().toString(),
+      );
+    }
+
+    if (geometries.length > 0) {
+      for (const geom of geometries) {
+        this._model.highlightFeatureSignal.emit(geom);
+      }
+    } else {
+      const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+      const point = new Point(coordinate);
+      this._model.highlightFeatureSignal.emit(point);
     }
   }
 

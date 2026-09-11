@@ -14,6 +14,8 @@ import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '@/src/features/story/utils/storySegmentOverrides';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
@@ -174,6 +176,28 @@ export function useStoryMap({
       });
     };
   }, []);
+
+  // Leave identify when changing segments or tearing down the story stage.
+  useEffect(() => {
+    exitStoryIdentifyMode(model);
+  }, [model, currentIndex, currentStorySegmentId]);
+
+  useEffect(() => {
+    return () => {
+      exitStoryIdentifyMode(model);
+    };
+  }, [model]);
+
+  // Leave identify if this segment no longer allows it (markdown / flag off).
+  useEffect(() => {
+    const identifyAllowed =
+      getSegmentDisplayMode(activeSlide) === 'map' &&
+      activeSlide?.enableIdentify === true;
+
+    if (!identifyAllowed) {
+      exitStoryIdentifyMode(model);
+    }
+  }, [model, activeSlide]);
 
   useEffect(() => {
     if (!currentStorySegmentId) {
