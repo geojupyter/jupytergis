@@ -9,12 +9,15 @@ interface IStopContainerProps {
   selectedMethod: string;
   stopRows: IStopRow[];
   setStopRows: (stops: IStopRow[]) => void;
+  /** Stop (input) values are numeric — see StopRow's `numericStops`. */
+  numericStops?: boolean;
 }
 
 const StopContainer: React.FC<IStopContainerProps> = ({
   selectedMethod,
   stopRows,
   setStopRows,
+  numericStops,
 }) => {
   const addStopRow = () => {
     setStopRows([
@@ -51,6 +54,7 @@ const StopContainer: React.FC<IStopContainerProps> = ({
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}
             useNumber={selectedMethod === 'radius' ? true : false}
+            numericStops={numericStops}
           />
         ))}
       </div>

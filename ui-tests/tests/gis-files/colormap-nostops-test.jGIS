@@ -1,0 +1,120 @@
+{
+ "layerTree": [
+  "a1b2c3d4-0000-4000-8000-000000000001",
+  "a1b2c3d4-0000-4000-8000-000000000002"
+ ],
+ "layers": {
+  "a1b2c3d4-0000-4000-8000-000000000001": {
+   "name": "OpenStreetMap.Mapnik Layer",
+   "parameters": {
+    "source": "a1b2c3d4-0000-4000-8000-000000000003"
+   },
+   "type": "RasterLayer",
+   "visible": true
+  },
+  "a1b2c3d4-0000-4000-8000-000000000002": {
+   "name": "Roads (ColorMap)",
+   "parameters": {
+    "opacity": 1.0,
+    "source": "a1b2c3d4-0000-4000-8000-000000000004",
+    "type": "line",
+    "symbologyState": {
+     "layers": [
+      {
+       "id": "223e7cec-b975-4f1f-b256-859eaeb5d385",
+       "rules": [
+        {
+         "id": "afaf8f71-9d93-4cfb-a756-cae041eff344",
+         "fields": [
+          "speed_limit"
+         ],
+         "mappings": [
+          {
+           "scale": {
+            "scheme": "colorMap",
+            "params": {
+             "name": "viridis",
+             "domain": [
+              30,
+              110
+             ],
+             "nShades": 5,
+             "mode": "equal interval",
+             "reverse": false,
+             "fallback": [
+              0,
+              0,
+              0,
+              0
+             ]
+            }
+           },
+           "encodings": [
+            "fill-color",
+            "stroke-color",
+            "circle-fill-color",
+            "circle-stroke-color"
+           ]
+          },
+          {
+           "scale": {
+            "scheme": "constant_num",
+            "params": {
+             "value": 3
+            }
+           },
+           "encodings": [
+            "stroke-width",
+            "circle-stroke-width"
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "type": "VectorLayer",
+   "visible": true
+  }
+ },
+ "metadata": {},
+ "options": {
+  "bearing": 0.0,
+  "extent": [
+   -225000.0,
+   6125000.0,
+   -208000.0,
+   6136000.0
+  ],
+  "latitude": 48.02,
+  "longitude": -1.95,
+  "pitch": 0.0,
+  "projection": "EPSG:3857",
+  "zoom": 12.0
+ },
+ "schemaVersion": "0.6.0",
+ "sources": {
+  "a1b2c3d4-0000-4000-8000-000000000003": {
+   "name": "OpenStreetMap.Mapnik",
+   "parameters": {
+    "attribution": "(C) OpenStreetMap contributors",
+    "maxZoom": 19.0,
+    "minZoom": 0.0,
+    "provider": "OpenStreetMap",
+    "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "urlParameters": {}
+   },
+   "type": "RasterSource"
+  },
+  "a1b2c3d4-0000-4000-8000-000000000004": {
+   "name": "Roads Test Source",
+   "parameters": {
+    "path": "roads-test.geojson"
+   },
+   "type": "GeoJSONSource"
+  }
+ },
+ "stories": {}
+}
