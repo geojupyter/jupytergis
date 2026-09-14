@@ -28,7 +28,7 @@ import { Vector as VectorSource } from 'ol/source';
 import { Rule } from 'ol/style/flat';
 
 import { getColorMap } from './colorRampUtils';
-import { grammarToOLStyle } from './grammarToOLStyle';
+import { FeatureValues, grammarToOLStyle } from './grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from './styleBuilder';
 
 // Default OL heatmap gradient (cool → warm).
@@ -53,7 +53,7 @@ export function grammarToOLLayer(
   source: VectorSource | any,
   opacity: number,
   visible: boolean,
-  featureValues: unknown[] = [],
+  featureValues: FeatureValues = [],
   isRaster = false,
 ): Layer | LayerGroup {
   const grammarLayers = state.layers ?? [];
@@ -119,7 +119,7 @@ function compileGrammarLayer(
   source: VectorSource,
   opacity: number,
   visible: boolean,
-  featureValues: unknown[],
+  featureValues: FeatureValues,
 ): VectorImageLayer | HeatmapLayer {
   const kdeTransform = grammarLayer.preprocess?.find(
     (t): t is IKDETransform => t.type === 'kde',
@@ -160,14 +160,18 @@ function compileRasterLayer(
   source: any,
   opacity: number,
   visible: boolean,
-  featureValues: unknown[],
+  featureValues: FeatureValues,
 ): WebGLTileLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
   };
   // Use [0, 1] as fallback values so colorRamp stops span the normalized
-  // band range when no explicit featureValues are provided.
-  const values = featureValues.length > 0 ? featureValues : [0, 1];
+  // band range when no explicit featureValues are provided. Raster rules
+  // classify on $band-N pseudo-fields, which have no per-field column.
+  const hasValues = Array.isArray(featureValues)
+    ? featureValues.length > 0
+    : Object.keys(featureValues).length > 0;
+  const values = hasValues ? featureValues : [0, 1];
   const flatStyle = grammarToOLStyle(singleLayerState, values);
   const colorExpr = flatStyle['pixel-color'];
   const bandCount = source.bandCount;
@@ -288,7 +292,7 @@ function compileVectorLayer(
   source: VectorSource,
   opacity: number,
   visible: boolean,
-  featureValues: unknown[],
+  featureValues: FeatureValues,
 ): VectorImageLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],

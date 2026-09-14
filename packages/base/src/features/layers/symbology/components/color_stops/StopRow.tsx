@@ -25,6 +25,13 @@ const StopRow: React.FC<{
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
+  /**
+   * Whether the *stop* (input) value is numeric. Independent of `useNumber`,
+   * which describes the output. Categorical stops are strings; colorMap and
+   * scalar stops must stay numbers or the compiled interpolate expression is
+   * rejected by OpenLayers.
+   */
+  numericStops?: boolean;
 }> = ({
   index,
   dataValue,
@@ -33,6 +40,7 @@ const StopRow: React.FC<{
   setStopRows,
   deleteRow,
   useNumber,
+  numericStops,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +53,10 @@ const StopRow: React.FC<{
   const handleStopChange = (event: { target: { value: string } }) => {
     const newRows = [...stopRows];
     const value = event.target.value;
-    newRows[index].stop = useNumber ? +value : value;
+    const numeric = useNumber || numericStops;
+    // Keep an in-progress edit ('' or '-') as typed; coerce once it parses.
+    newRows[index].stop =
+      numeric && value !== '' && !isNaN(Number(value)) ? +value : value;
     setStopRows(newRows);
   };
 

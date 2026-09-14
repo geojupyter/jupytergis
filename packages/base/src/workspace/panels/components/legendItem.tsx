@@ -16,7 +16,13 @@ import {
   ColorRampName,
   getColorMap,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
+import {
+  grammarNeedsFeatureValues,
+  resolveCategoricalStops,
+  resolveColorMapStops,
+} from '@/src/features/layers/symbology/resolveStops';
 
 // ---------------------------------------------------------------------------
 // Legend entry types
@@ -365,7 +371,19 @@ function kdeToLegendEntries(
   return entries;
 }
 
-function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
+/**
+ * Build the legend for a Grammar state.
+ *
+ * @param featureValues  Feature attribute values keyed by field name, as
+ *   produced by `useGetProperties`. Classification is only persisted to the
+ *   document when the user edits a stop by hand, so without this the legend
+ *   cannot show the breaks the map is actually drawing. Pass `{}` when the
+ *   values are unavailable — scales fall back to a generic ramp preview.
+ */
+function grammarToLegendEntries(
+  state: IGrammarSymbologyState,
+  featureValues: Record<string, Set<any>> = {},
+): LegendEntry[] {
   const entries: LegendEntry[] = [];
 
   for (const grammarLayer of state.layers ?? []) {
@@ -394,6 +412,9 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
     const layerWhen = grammarLayer.when ?? [];
     for (const rule of grammarLayer.rules) {
       const field = rule.fields?.[0];
+      // The column the rule classifies on, if it has loaded. Empty for raster
+      // pseudo-fields ($band-N) and for sources whose features aren't readable.
+      const fieldValues = field ? Array.from(featureValues[field] ?? []) : [];
       const allWhen = [...layerWhen, ...(rule.when ?? [])];
       const whenLbl = formatWhen(allWhen.length > 0 ? allWhen : undefined);
 
@@ -422,18 +443,21 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
           switch (scale.scheme) {
             case 'colorMap': {
               const p = scale.params;
-              if (p.colorStops && p.colorStops.length >= 2) {
+              // Persisted stops when the user edited them, otherwise the same
+              // classification the style compiler derives from the data.
+              const resolved = resolveColorMapStops(p, fieldValues);
+              if (resolved.length >= 2) {
                 // When alpha is driven by a companion scalar, clip the displayed
                 // gradient and ticks to the scalar's effective domain — beyond
                 // it alpha is either 0 (invisible) or constant (fully opaque),
                 // so the meaningful field range is [alphaMin, alphaMax].
-                let displayStops = p.colorStops;
+                let displayStops = resolved;
                 if (withAlpha && layerAlphaScalarStops.length >= 2) {
                   const alphaMin = layerAlphaScalarStops[0].stop;
                   const alphaMax =
                     layerAlphaScalarStops[layerAlphaScalarStops.length - 1]
                       .stop;
-                  const clipped = p.colorStops.filter(
+                  const clipped = resolved.filter(
                     s => s.stop >= alphaMin && s.stop <= alphaMax,
                   );
                   if (clipped.length >= 2) {
@@ -460,7 +484,8 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                   withAlpha,
                 });
               } else {
-                // No colorStops yet — show a preview gradient from the ramp name.
+                // Nothing to classify from — no persisted stops, no data and no
+                // domain. Show a preview gradient from the ramp name.
                 const colors = rampColors(p.name);
                 const preview: GradientEntry = {
                   type: 'gradient',
@@ -486,19 +511,22 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
             }
             case 'categorical': {
               const p = scale.params;
-              if (p.colorStops && p.colorStops.length > 0) {
+              // Persisted stops when the user edited them, otherwise the
+              // categories the style compiler enumerates from the data.
+              const resolved = resolveCategoricalStops(p, fieldValues);
+              if (resolved.length > 0) {
                 entries.push({
                   type: 'categorical',
                   field,
                   encoding: encodingLbl,
                   when: whenLbl,
-                  stops: p.colorStops.map(s => ({
+                  stops: resolved.map(s => ({
                     label: String(s.stop),
                     color: rgbaToString(s.color),
                   })),
                 });
               }
-              // No colorStops → skip (categories not yet loaded).
+              // Categories are unknowable without data — skip until it loads.
               break;
             }
             case 'constant_rgba': {
@@ -1026,6 +1054,19 @@ export const LegendItem: React.FC<{
   const [heatmapColors, setHeatmapColors] = useState<string[] | null>(null);
   const [heatmapReversed, setHeatmapReversed] = useState(false);
 
+  // Only read the features when the legend actually needs them: a scale with
+  // persisted stops is self-describing, and reading them means loading the
+  // whole source. Passing no layerId makes the hook a no-op.
+  const needsFeatureValues = grammarNeedsFeatureValues(
+    symbology?.symbologyState,
+  );
+  // Errors are ignored on purpose — unsupported source types just mean the
+  // legend falls back to the stops in the document.
+  const { featureProperties } = useGetProperties({
+    layerId: needsFeatureValues ? layerId : undefined,
+    model,
+  });
+
   useEffect(() => {
     setEntries([]);
     setHeatmapColors(null);
@@ -1050,9 +1091,14 @@ export const LegendItem: React.FC<{
     }
 
     if (Array.isArray(state.layers)) {
-      setEntries(grammarToLegendEntries(state as IGrammarSymbologyState));
+      setEntries(
+        grammarToLegendEntries(
+          state as IGrammarSymbologyState,
+          featureProperties,
+        ),
+      );
     }
-  }, [symbology, isLoading, error]);
+  }, [symbology, isLoading, error, featureProperties]);
 
   if (isLoading) {
     return <p style={{ fontSize: '0.8em', padding: 6 }}>Loading…</p>;
