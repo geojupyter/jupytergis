@@ -70,6 +70,10 @@ test.describe('#errorTip', () => {
       'https://vega.github.io/vega/docs/expressions/',
     );
 
-    await dialog.getByText('Cancel').click();
+    // Leave the ErrorTip so its portal no longer intercepts the Cancel click.
+    await page.mouse.move(0, 0);
+    await expect(hoverCard).toBeHidden();
+
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
   });
 });
