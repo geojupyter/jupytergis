@@ -2816,7 +2816,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       number,
       IJupyterGISClientState
     >;
-    const clientPointers = { ...this.state.clientPointers };
+    const clientPointers: IDict<ClientPointer> = {};
 
     clients.forEach((client, clientId) => {
       if (!client?.user || this._model.getClientId() === clientId) {
@@ -2824,49 +2824,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       const pointer = client.pointer?.value;
-      let currentClientPointer = clientPointers[clientId];
-
-      if (pointer) {
-        const pixel = this._Map.getPixelFromCoordinate([
-          pointer.coordinates.x,
-          pointer.coordinates.y,
-        ]);
-        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
-
-        if (!currentClientPointer) {
-          currentClientPointer = {
-            username: client.user.username,
-            displayName: client.user.display_name,
-            initials: client.user.initials ?? '',
-            avatarUrl: client.user.avatar_url,
-            color: client.user.color,
-            coordinates: {
-              x: pixel[0],
-              y: pixel[1],
-            },
-            lonLat: {
-              longitude: lonLat[0],
-              latitude: lonLat[1],
-            },
-          };
-        } else {
-          currentClientPointer = {
-            ...currentClientPointer,
-            coordinates: {
-              x: pixel[0],
-              y: pixel[1],
-            },
-            lonLat: {
-              longitude: lonLat[0],
-              latitude: lonLat[1],
-            },
-          };
-        }
-
-        clientPointers[clientId] = currentClientPointer;
-      } else {
-        delete clientPointers[clientId];
+      if (!pointer) {
+        return;
       }
+
+      const pixel = this._Map.getPixelFromCoordinate([
+        pointer.coordinates.x,
+        pointer.coordinates.y,
+      ]);
+      const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
+
+      clientPointers[clientId] = {
+        username: client.user.username,
+        displayName: client.user.display_name,
+        initials: client.user.initials ?? '',
+        avatarUrl: client.user.avatar_url,
+        color: client.user.color,
+        coordinates: {
+          x: pixel[0],
+          y: pixel[1],
+        },
+        lonLat: {
+          longitude: lonLat[0],
+          latitude: lonLat[1],
+        },
+      };
     });
 
     this.setState(old => ({ ...old, clientPointers }));
