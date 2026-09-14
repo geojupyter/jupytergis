@@ -142,7 +142,7 @@ export function migrateDocument(
 
   if (_compareVersions(fileVersion, SCHEMA_VERSION) > 0) {
     throw new Error(
-      `Cannot load file with schema version ${fileVersion} (current: ${SCHEMA_VERSION})`,
+      `Newer schema version ${fileVersion} (supported: ${SCHEMA_VERSION})`,
     );
   }
 
