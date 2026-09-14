@@ -43,20 +43,14 @@ export interface IMapAdapter {
   registerMap(path?: string): void;
   unregisterMap(): void;
 
-  onZoomToPosition(_: IJupyterGISModel, id: string): void;
-  convertFeatureToMs(_: IJupyterGISModel, args: string): void;
+  onZoomToPosition(id: string): void;
+  convertFeatureToMs(args: string): void;
   updateClientPointerPositions(
     clientPointers: Record<number, ClientPointer>,
   ): Record<number, ClientPointer>;
-  handleLocationIndicatorToggled(
-    _sender: IJupyterGISModel,
-    uiState: IJGISUIState,
-  ): void;
-  flyToGeometry(_: IJupyterGISModel, geometry: Geometry): void;
-  highlightFeatureOnMap(
-    _sender: IJupyterGISModel,
-    featureOrGeometry: GeoJSONFeature | Geometry,
-  ): void;
+  handleLocationIndicatorToggled(uiState: IJGISUIState): void;
+  flyToGeometry(geometry: Geometry): void;
+  highlightFeatureOnMap(featureOrGeometry: GeoJSONFeature | Geometry): void;
   handleGeolocationChanged(newPosition: JgisCoordinates): void;
   startLocationIndicator(): void;
   stopLocationIndicator(): void;

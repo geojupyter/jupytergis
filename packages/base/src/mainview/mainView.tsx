@@ -21,6 +21,7 @@ import {
   IIdentifiedFeature,
   IIdentifiedFeatures,
   JgisCoordinates,
+  IJGISUIState,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -30,6 +31,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
 import { ContextMenu, Menu } from '@lumino/widgets';
+import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
@@ -249,39 +251,34 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     await this.generateMap(lonLat, zoom, projection);
 
-    if (this._mapAdapter) {
-      this._model.zoomToPositionSignal.connect(
-        this._mapAdapter.onZoomToPosition,
-        this._mapAdapter,
-      );
-      this._model.addFeatureAsMsSignal.connect(
-        this._mapAdapter.convertFeatureToMs,
-        this._mapAdapter,
-      );
-      this._model.uiStateChanged.connect(
-        this._mapAdapter.handleLocationIndicatorToggled,
-        this._mapAdapter,
-      );
-      this._model.flyToGeometrySignal.connect(
-        this._mapAdapter.flyToGeometry,
-        this._mapAdapter,
-      );
-      this._model.highlightFeatureSignal.connect(
-        this._mapAdapter.highlightFeatureOnMap,
-        this._mapAdapter,
-      );
-      if (window.jupytergisMaps !== undefined) {
-        // The shared model only emits a path change when the document is renamed,
-        // so on a normal open the path has to be read directly.
-        this._documentPath ??=
-          (this._model.sharedModel.getState('path') as string | undefined) ||
-          this._model.filePath ||
-          undefined;
-        this._mapAdapter.registerMap(this._documentPath);
-      }
+    if (window.jupytergisMaps !== undefined) {
+      // The shared model only emits a path change when the document is renamed,
+      // so on a normal open the path has to be read directly.
+      this._documentPath ??=
+        (this._model.sharedModel.getState('path') as string | undefined) ||
+        this._model.filePath ||
+        undefined;
+      this._mapAdapter?.registerMap(this._documentPath);
     }
 
     this._model.geolocationChanged.connect(this._geolocationListener, this);
+    this._model.flyToGeometrySignal.connect(this._flyToGeometryListner, this);
+    this._model.uiStateChanged.connect(
+      this._handleLocationIndicatorListner,
+      this,
+    );
+    this._model.highlightFeatureSignal.connect(
+      this._highlightFeatureListner,
+      this,
+    );
+    this._model.zoomToPositionSignal.connect(
+      this._onZoomToPositionListner,
+      this,
+    );
+    this._model.addFeatureAsMsSignal.connect(
+      this._convertFeatureToMsListner,
+      this,
+    );
 
     this._handleRemoteUserChanged();
     this._handlePointerChanged();
@@ -349,6 +346,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     openEOEvents.connected.disconnect(this._onOpenEOConnected, this);
     this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
+    this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
     this._model.selectedChanged.disconnect(
       this._handleTemporalControllerActiveChanged,
       this,
@@ -363,37 +361,35 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this,
     );
     this._model.geolocationChanged.disconnect(this._geolocationListener, this);
+    this._model.uiStateChanged.disconnect(
+      this._handleLocationIndicatorListner,
+      this,
+    );
+    this._model.highlightFeatureSignal.disconnect(
+      this._highlightFeatureListner,
+      this,
+    );
+    this._model.flyToGeometrySignal.disconnect(
+      this._flyToGeometryListner,
+      this,
+    );
+    this._model.zoomToPositionSignal.disconnect(
+      this._onZoomToPositionListner,
+      this,
+    );
+    this._model.addFeatureAsMsSignal.disconnect(
+      this._convertFeatureToMsListner,
+      this,
+    );
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
+    this._mapAdapter?.unregisterMap();
+
+    this._model.modeChanged.disconnect(this._handleModeChanged, this);
+    this._mapAdapter?.stopLocationIndicator();
     if (this._mapAdapter) {
-      this._mapAdapter.unregisterMap();
-      this._model.zoomToPositionSignal.disconnect(
-        this._mapAdapter.onZoomToPosition,
-        this._mapAdapter,
-      );
-      this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
-      this._model.addFeatureAsMsSignal.disconnect(
-        this._mapAdapter.convertFeatureToMs,
-        this._mapAdapter,
-      );
-      this._model.flyToGeometrySignal.disconnect(
-        this._mapAdapter.flyToGeometry,
-        this._mapAdapter,
-      );
-      this._model.highlightFeatureSignal.disconnect(
-        this._mapAdapter.highlightFeatureOnMap,
-        this._mapAdapter,
-      );
-      this._model.uiStateChanged.disconnect(
-        this._mapAdapter.handleLocationIndicatorToggled,
-        this._mapAdapter,
-      );
-      this._model.modeChanged.disconnect(this._handleModeChanged, this);
-      this._mapAdapter.stopLocationIndicator();
-      if (this._mapAdapter) {
-        this._mapAdapter.destroy();
-      }
+      this._mapAdapter.destroy();
     }
 
     this._mainViewModel.dispose();
@@ -648,6 +644,41 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     newPosition: JgisCoordinates,
   ): void => {
     this._mapAdapter?.handleGeolocationChanged(newPosition);
+  };
+
+  private _handleLocationIndicatorListner = (
+    _sender: IJupyterGISModel,
+    uiState: IJGISUIState,
+  ): void => {
+    this._mapAdapter?.handleLocationIndicatorToggled(uiState);
+  };
+
+  private _highlightFeatureListner = (
+    _sender: IJupyterGISModel,
+    featureOrGeometry: GeoJSONFeature | Geometry,
+  ): void => {
+    this._mapAdapter?.highlightFeatureOnMap(featureOrGeometry);
+  };
+
+  private _flyToGeometryListner = (
+    _sender: IJupyterGISModel,
+    geometry: Geometry,
+  ): void => {
+    this._mapAdapter?.flyToGeometry(geometry);
+  };
+
+  private _onZoomToPositionListner = (
+    _sender: IJupyterGISModel,
+    id: string,
+  ): void => {
+    this._mapAdapter?.onZoomToPosition(id);
+  };
+
+  private _convertFeatureToMsListner = (
+    _sender: IJupyterGISModel,
+    args: string,
+  ): void => {
+    this._mapAdapter?.convertFeatureToMs(args);
   };
 
   private _handleSelectedChanged = (): void => {

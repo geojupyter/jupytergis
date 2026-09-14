@@ -1344,10 +1344,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
-  handleLocationIndicatorToggled(
-    _sender: IJupyterGISModel,
-    uiState: IJGISUIState,
-  ): void {
+  handleLocationIndicatorToggled(uiState: IJGISUIState): void {
     const active = Boolean(uiState.locationIndicatorActive);
     if (active === this._locationIndicatorActive) {
       return;
@@ -1385,7 +1382,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._geolocationSource.clear();
   }
 
-  flyToGeometry(_: IJupyterGISModel, geometry: Geometry): void {
+  flyToGeometry(geometry: Geometry): void {
     if (!geometry) {
       this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
       return;
@@ -1404,10 +1401,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     });
   }
 
-  highlightFeatureOnMap(
-    sender: IJupyterGISModel,
-    featureOrGeometry: FeatureOrGeometry,
-  ): void {
+  highlightFeatureOnMap(featureOrGeometry: FeatureOrGeometry): void {
     const geometry =
       'geometry' in featureOrGeometry
         ? featureOrGeometry.geometry
@@ -2425,11 +2419,11 @@ export class OpenLayersAdapter implements IMapAdapter {
     ) {
       const pendingId = this._pendingZoomLayerId;
       this._pendingZoomLayerId = null;
-      this.onZoomToPosition(this._model, pendingId);
+      this.onZoomToPosition(pendingId);
     }
   }
 
-  convertFeatureToMs(_: IJupyterGISModel, args: string) {
+  convertFeatureToMs(args: string) {
     const json = JSON.parse(args);
     const { id: layerId, selectedFeature } = json;
     const olLayer = this.getLayer(layerId);
@@ -2446,7 +2440,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     });
   }
 
-  onZoomToPosition(_: IJupyterGISModel, id: string) {
+  onZoomToPosition(id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
