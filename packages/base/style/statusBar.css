@@ -15,3 +15,23 @@
 .jgis-status-bar-coords {
   min-width: 160px;
 }
+
+.jgis-status-bar-projection-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jgis-status-bar-projection-trigger:hover {
+  opacity: 0.7;
+  background-color: var(--jp-layout-color2);
+}
+
+[data-slot='combobox-content'].jgis-status-bar-select-popover {
+  width: auto;
+  min-width: 20rem;
+  max-width: min(28rem, var(--available-width));
+  z-index: 2000;
+}
