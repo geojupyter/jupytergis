@@ -17,11 +17,13 @@ import type {
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
+import { IDisposable } from '@lumino/disposable';
 import { MessageLoop } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
 
 import { ConsoleView } from '../features/console';
+import { watchSourceMetadata } from '../features/metadata';
 import { JupyterGISMainViewPanel } from '../mainview';
 import { MainViewModel } from '../mainview/mainviewmodel';
 
@@ -39,6 +41,11 @@ export class JupyterGISDocumentWidget
     options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>,
   ) {
     super(options);
+
+    this._metadataWatcher = watchSourceMetadata(
+      this.context.model,
+      this.context.ready,
+    );
   }
 
   get model(): IJupyterGISModel {
@@ -49,6 +56,7 @@ export class JupyterGISDocumentWidget
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
+    this._metadataWatcher.dispose();
     this.content.dispose();
     super.dispose();
   }
@@ -56,6 +64,8 @@ export class JupyterGISDocumentWidget
   onResize = (msg: any): void => {
     window.dispatchEvent(new Event('resize'));
   };
+
+  private _metadataWatcher: IDisposable;
 }
 
 /**

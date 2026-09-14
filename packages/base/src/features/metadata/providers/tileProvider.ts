@@ -1,21 +1,36 @@
-import {
-  ILayerMetadata,
-  ISourceMetadataContext,
-  IMetadataField,
-} from '../types';
+import { IJGISSource, SourceType } from '@jupytergis/schema';
+
+import { ILayerMetadata, IMetadataField } from '../types';
 import { buildCrsMetadata } from '../utils/crs';
+
+const TILE_SOURCES: SourceType[] = [
+  'RasterSource',
+  'VectorTileSource',
+  'WmsTileSource',
+];
 
 /**
  * Metadata for tiled web services: XYZ rasters, vector tiles and WMS.
  *
- * These have no file to inspect — everything we can honestly say about them is
- * declared on the source. Their "pyramid" is the zoom range of the tile scheme
- * rather than a set of overviews inside a file.
+ * Deliberately not a metadata provider. Providers read the data a source points
+ * at, which costs a network round trip and is worth storing in the document.
+ * A tiled service has no file to inspect: everything we can honestly say about
+ * it is already declared on the source, so this is a synchronous read of
+ * parameters that are a few lines away in the same document. Recomputing it is
+ * free; storing it would duplicate the document into itself.
+ *
+ * Returns undefined for anything that is not a tiled service.
+ *
+ * Their "pyramid" is the zoom range of the tile scheme rather than a set of
+ * overviews inside a file.
  */
-export async function tileProvider(
-  context: ISourceMetadataContext,
-): Promise<Partial<ILayerMetadata>> {
-  const { source } = context;
+export function tileMetadata(
+  source: IJGISSource,
+): Partial<ILayerMetadata> | undefined {
+  if (!TILE_SOURCES.includes(source.type)) {
+    return undefined;
+  }
+
   const parameters = source.parameters ?? {};
 
   const extra: IMetadataField[] = [];

@@ -1,114 +1,30 @@
-import { IJGISLayer, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISBandMetadata,
+  IJGISCrsMetadata,
+  IJGISExtentMetadata,
+  IJGISLayer,
+  IJGISMetadataField,
+  IJGISPyramidLevel,
+  IJGISPyramidMetadata,
+  IJGISSource,
+  IJGISVectorMetadata,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 
 /**
- * A single label/value row rendered in the Metadata tab.
+ * The data-carrying halves of the metadata are defined in the schema rather
+ * than here, because they are persisted into the `.jGIS` document (see
+ * `persistence.ts`) and read back by the Python API and the QGIS exporter.
+ * Aliasing them keeps a single definition: a change to the stored shape is a
+ * schema change, and cannot drift away from what the UI renders.
  */
-export interface IMetadataField {
-  label: string;
-  value: string;
-  /**
-   * Render the value in a monospace font. Use for proj strings, WKT, URLs and
-   * anything else where character alignment carries meaning.
-   */
-  mono?: boolean;
-  /**
-   * Render the value as an external link pointing at this URL.
-   */
-  href?: string;
-}
-
-/**
- * The coordinate reference system the data is stored in.
- *
- * Every field is optional: most formats only tell us some of this, and it is
- * better to show the user what we actually know than to display empty rows.
- */
-export interface ICrsMetadata {
-  /** Normalized authority code, e.g. `EPSG:26915`. */
-  code?: string;
-  /** Human readable name, e.g. `NAD83 / UTM zone 15N`. */
-  name?: string;
-  /** proj4 definition string. */
-  proj4?: string;
-  /**
-   * Well-known text. Only populated when the file itself carries it; we do not
-   * ship an EPSG database, so this is often unavailable.
-   */
-  wkt?: string;
-  /** Linear/angular unit of the CRS, e.g. `m` or `degrees`. */
-  units?: string;
-}
-
-/**
- * The geographic extent (bounding box) of the data, as
- * `[minX, minY, maxX, maxY]`.
- */
-export interface IExtentMetadata {
-  /** Extent in the data's own CRS. */
-  native?: number[];
-  /** The CRS `native` is expressed in. */
-  nativeCrs?: string;
-  /** Extent in `EPSG:4326`, for readers who think in latitude/longitude. */
-  wgs84?: number[];
-  /**
-   * True when this is the extent the layer occupies on the map rather than one
-   * read from the file itself. Displayed with a caveat so that the user is not
-   * told the file's native extent is something it is not.
-   */
-  approximate?: boolean;
-}
-
-/**
- * A single band (raster) of the data.
- */
-export interface IBandMetadata {
-  /** 1-based band index. */
-  band: number;
-  name: string;
-  dataType?: string;
-  colorInterpretation?: string;
-  noData?: string;
-  minimum?: number;
-  maximum?: number;
-}
-
-/**
- * One level of an internal tile pyramid (a GeoTIFF overview, a Zarr multiscale
- * level, ...).
- */
-export interface IPyramidLevel {
-  /** 0 is the full resolution image. */
-  level: number;
-  width?: number;
-  height?: number;
-  /** Downsampling factor relative to the full resolution image. */
-  scale?: number;
-  /** Free-form label, used by formats that name their levels (e.g. Zarr). */
-  name?: string;
-}
-
-/**
- * Information about how the data is tiled and pyramided.
- */
-export interface IPyramidMetadata {
-  levels: IPyramidLevel[];
-  tileWidth?: number;
-  tileHeight?: number;
-  /** Whether the data is internally tiled (as opposed to stripped). */
-  tiled?: boolean;
-  /** Tiled web services expose a zoom range rather than overview levels. */
-  minZoom?: number;
-  maxZoom?: number;
-}
-
-/**
- * Information specific to vector data.
- */
-export interface IVectorMetadata {
-  featureCount?: number;
-  geometryTypes?: string[];
-  fields?: { name: string; type: string }[];
-}
+export type IMetadataField = IJGISMetadataField;
+export type ICrsMetadata = IJGISCrsMetadata;
+export type IExtentMetadata = IJGISExtentMetadata;
+export type IBandMetadata = IJGISBandMetadata;
+export type IPyramidLevel = IJGISPyramidLevel;
+export type IPyramidMetadata = IJGISPyramidMetadata;
+export type IVectorMetadata = IJGISVectorMetadata;
 
 /**
  * Everything the Metadata tab knows about one layer or source.
