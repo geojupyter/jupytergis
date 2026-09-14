@@ -32,8 +32,9 @@ def migrate(doc: dict[str, Any], to_version: str | None = None) -> dict[str, Any
 
     if current > Version(SCHEMA_VERSION):
         raise ValueError(
-            f"Cannot load file with schema version {current} "
-            f"(current: {SCHEMA_VERSION})",
+            f"This JupyterGIS file cannot be opened because it uses a newer "
+            f"schema version ({current}). The current supported schema version "
+            f"is {SCHEMA_VERSION}.",
         )
 
     result = dict(doc)

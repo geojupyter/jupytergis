@@ -142,7 +142,9 @@ export function migrateDocument(
 
   if (_compareVersions(fileVersion, SCHEMA_VERSION) > 0) {
     throw new Error(
-      `Cannot load file with schema version ${fileVersion} (current: ${SCHEMA_VERSION})`,
+      'This JupyterGIS file cannot be opened because it uses a newer ' +
+        `schema version (${fileVersion}). The current supported schema ` +
+        `version is ${SCHEMA_VERSION}.`,
     );
   }
 
