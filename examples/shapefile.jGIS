@@ -116,6 +116,5 @@
       "type": "ShapefileSource"
     }
   },
-  "stories": {},
-  "version": "0.16.2"
+  "stories": {}
 }

@@ -103,6 +103,5 @@
       "type": "RasterSource"
     }
   },
-  "stories": {},
-  "version": "0.16.2"
+  "stories": {}
 }

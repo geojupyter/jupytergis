@@ -22,27 +22,19 @@ def migrate(doc: dict[str, Any], to_version: str | None = None) -> dict[str, Any
     :param doc: Parsed jGIS document dict.
     :param to_version: Target schema version. Defaults to the current
         ``SCHEMA_VERSION`` if omitted.
-    :raises ValueError: If the document's version or schema version is newer than the current version.
+    :raises ValueError: If the document's version is newer than the current
+        schema version.
     """
-    from jupytergis_core.schema import SCHEMA_VERSION, VERSION
-
-    document_version = Version(doc.get("version", VERSION))
-
-    current_version = Version(VERSION)
-
-    if document_version.release[:2] > current_version.release[:2]:
-        raise ValueError(
-            f"Cannot load file with JupyterGIS version {document_version} "
-            f"(current: {VERSION}). The file was created with a newer version of JupyterGIS.",
-        )
+    from jupytergis_core.schema import SCHEMA_VERSION
 
     current = Version(doc.get("schemaVersion", "0.5.0"))
     target = Version(to_version or SCHEMA_VERSION)
 
     if current > Version(SCHEMA_VERSION):
         raise ValueError(
-            f"Cannot load file with schema version {current} "
-            f"(current: {SCHEMA_VERSION})",
+            f"This JupyterGIS file cannot be opened because it uses a newer "
+            f"schema version ({current}). The current supported schema version "
+            f"is {SCHEMA_VERSION}.",
         )
 
     result = dict(doc)

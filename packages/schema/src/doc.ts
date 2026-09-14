@@ -16,7 +16,7 @@ import {
   IJGISStoryMap,
   IJGISViewState,
 } from './_interface/project/jgis';
-import { SCHEMA_VERSION, VERSION } from './_interface/version';
+import { SCHEMA_VERSION } from './_interface/version';
 import {
   IDict,
   IJGISLayerDocChange,
@@ -42,7 +42,6 @@ export const DEFAULT_WORLD_EXTENT_3857: [number, number, number, number] = [
 
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
-  "version": "${VERSION}",
 	"schemaVersion": "${SCHEMA_VERSION}",
 	"layers": {},
 	"sources": {},
@@ -197,7 +196,7 @@ export class JupyterGISDoc
   }
 
   get version(): string {
-    return VERSION;
+    return SCHEMA_VERSION;
   }
 
   get layers(): IJGISLayers {
