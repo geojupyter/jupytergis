@@ -1011,6 +1011,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layerParams: IStorySegmentLayer = {
       extent,
       zoom,
+      enableIdentify: false,
       transition: { type: 'linear', time: 1 },
       layerOverride: [],
       content: {
