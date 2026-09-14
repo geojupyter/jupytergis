@@ -708,6 +708,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         .getViewport()
         .addEventListener('pointermove', this._onPointerMove.bind(this));
 
+      this._Map
+        .getViewport()
+        .addEventListener('pointerleave', this._onPointerLeave.bind(this));
+
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model),
@@ -3707,10 +3711,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._syncPointer(coordinates);
   }
 
-  private _syncPointer = throttle((coordinates: Coordinate) => {
-    const pointer = {
-      coordinates: { x: coordinates[0], y: coordinates[1] },
-    };
+  private _onPointerLeave() {
+    this._syncPointer(null);
+  }
+
+  private _syncPointer = throttle((coordinates: Coordinate | null) => {
+    const pointer = coordinates
+      ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
+      : undefined;
     this._model.syncPointer(pointer);
   });
 
