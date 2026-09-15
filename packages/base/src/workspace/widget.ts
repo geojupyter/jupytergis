@@ -17,7 +17,7 @@ import type {
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
-import { MessageLoop } from '@lumino/messaging';
+import { Message, MessageLoop } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
 
@@ -51,6 +51,11 @@ export class JupyterGISDocumentWidget
   dispose(): void {
     this.content.dispose();
     super.dispose();
+  }
+
+  protected onAfterHide(msg: Message): void {
+    super.onAfterHide(msg);
+    this.model.syncPointer(undefined);
   }
 
   onResize = (msg: any): void => {

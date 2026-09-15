@@ -434,6 +434,10 @@ export class OpenLayersAdapter implements IMapAdapter {
         this._syncPointer(this._lastPointerCoord);
       });
 
+    this._map.getViewport().addEventListener('pointerleave', () => {
+      this._syncPointer(null);
+    });
+
     this._map.getViewport().addEventListener('contextmenu', event => {
       event.preventDefault();
       event.stopPropagation();
@@ -623,10 +627,10 @@ export class OpenLayersAdapter implements IMapAdapter {
     await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
   }
 
-  private _syncPointer = throttle((coordinates: Coordinate) => {
-    const pointer = {
-      coordinates: { x: coordinates[0], y: coordinates[1] },
-    };
+  private _syncPointer = throttle((coordinates: Coordinate | null) => {
+    const pointer = coordinates
+      ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
+      : undefined;
     this._model.syncPointer(pointer);
   });
 

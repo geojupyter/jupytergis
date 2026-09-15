@@ -88,6 +88,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._sharedModel.changed.connect(this._onSharedModelChanged);
     }
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', this._onPageExit);
+      window.addEventListener('pagehide', this._onPageExit);
+    }
     this._sharedModel.metadataChanged.connect(
       this._metadataChangedHandler,
       this,
@@ -394,6 +398,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
     this._isDisposed = true;
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', this._onPageExit);
+      window.removeEventListener('pagehide', this._onPageExit);
+    }
     this._sharedModel.dispose();
     this._disposed.emit();
     Signal.clearData(this);
@@ -1351,6 +1359,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       mainGroupIndex,
     };
   }
+
+  private _onPageExit = (): void => {
+    this._sharedModel?.awareness.setLocalState(null);
+  };
 
   private _onClientStateChanged = (changed: any) => {
     const clients = this.sharedModel.awareness.getStates() as Map<
