@@ -365,18 +365,6 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           </Button>
         )}
 
-        {!isRaster && !hasLabel && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={addLabel}
-            title="Label each feature with one of its attributes"
-          >
-            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
-            Label
-          </Button>
-        )}
-
         {!isRaster && (
           <label
             className="jp-gis-grammar-layer-declutter"
@@ -592,6 +580,17 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <FontAwesomeIcon icon={faPlus} />
           Add Mapping
         </Button>
+        {!isRaster && !hasLabel && (
+          <Button
+            variant="ghost"
+            style={{ margin: '0 0 0.5rem 1rem' }}
+            onClick={addLabel}
+            title="Label each feature with one of its attributes"
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Add Label
+          </Button>
+        )}
       </div>
     </div>
   );
