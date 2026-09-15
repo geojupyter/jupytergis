@@ -1853,6 +1853,33 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
+   * Builds the proxy URL for a given URL.
+   * @param url - the URL to proxy.
+   * @param useProxy - whether to use the proxy.
+   * @param httpHeaders - HTTP headers to pass to the proxy.
+   */
+
+  private getProxyUrl(
+    url: string,
+    useProxy?: boolean,
+    httpHeaders?: string,
+  ): string {
+    if (!useProxy) {
+      return url;
+    }
+    const headersParam =
+      httpHeaders && Object.keys(httpHeaders).length > 0
+        ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
+        : '';
+
+    const proxyBase = isJupyterLite()
+      ? `${this._model.jgisSettings.proxyUrl}/`
+      : INTERNAL_PROXY_BASE;
+
+    return `${proxyBase}?url=${encodeURIComponent(url)}${headersParam}`;
+  }
+
+  /**
    * Add a source in the map.
    *
    * @param id - the source id.
@@ -1927,19 +1954,13 @@ export class OpenLayersAdapter implements IMapAdapter {
             };
 
             if (sourceParameters.useProxy) {
-              const extraHeaders = sourceParameters.httpHeaders ?? {};
-              const headersParam =
-                Object.keys(extraHeaders).length > 0
-                  ? `&headers=${encodeURIComponent(JSON.stringify(extraHeaders))}`
-                  : '';
-
-              const proxyBase = isJupyterLite()
-                ? `${this._model.jgisSettings.proxyUrl}/`
-                : `${INTERNAL_PROXY_BASE}`;
-
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
-                const proxyUrl = `${proxyBase}?url=${encodeURIComponent(tileUrl)}${headersParam}`;
+                const proxyUrl = this.getProxyUrl(
+                  tileUrl,
+                  sourceParameters.useProxy,
+                  sourceParameters.httpHeaders,
+                );
                 vtTile.setLoader((extent, _resolution, projection) => {
                   return fetch(proxyUrl)
                     .then(response => {
@@ -2120,7 +2141,11 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: sourceInfo.url,
+                  url: this.getProxyUrl(
+                    sourceInfo.url!,
+                    sourceParameters.useProxy,
+                    sourceParameters.httpHeaders,
+                  ),
                 };
               } else if (isDataUrl) {
                 // Inline base64 GeoTIFF embedded in the .jGIS doc.
