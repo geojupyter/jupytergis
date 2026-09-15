@@ -11,23 +11,6 @@ permissions:
   contents: read
 
 jobs:
-  pr-context:
-    # Persist the PR number as an artifact so the `Galata Diff Report` workflow
-    # (triggered via `workflow_run`) can find the PR to comment on.
-    name: Save PR context
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Save PR number
-        run: echo "${{ github.event.number }}" > pr_number.txt
-
-      - name: Upload PR number
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: pr-number
-          path: pr_number.txt
-          if-no-files-found: error
-
   build:
     name: Build artifacts
     runs-on: ubuntu-latest
@@ -241,16 +224,6 @@ jobs:
         shell: bash -l {0}
         working-directory: ui-tests
         run: pnpm run test
-
-      # The showcase images are documentation renders, not regression tests, so
-      # a diff must not block a PR. This step exists only so the snapshot diff
-      # bot has images to comment with; comment "please update snapshots" to
-      # accept them.
-      - name: Render showcase snapshots (informational)
-        continue-on-error: true
-        shell: bash -l {0}
-        working-directory: ui-tests
-        run: pnpm run test:showcase
 
       - name: Upload Playwright Test report
         id: upload-galata-artifact

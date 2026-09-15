@@ -20,22 +20,7 @@ of snapshot testing.
 Please **do not run snapshot tests locally** and instead rely on CI (GitHub Actions).
 ```
 
-## Automatic method (recommended)
-
-In a PR which requires snapshot updates, add a comment containing the text:
-
-```
-please update snapshots
-```
-
-The bot will react with a thumbs-up 👍 to indicate that it's started the task.
-If the user requesting the snapshot updates doesn't have the correct permissions, the
-bot will react with a thumbs-down 👎.
-
-This workflow is powered by a
-[currently-unreleased reusable workflow from the `jupyterlab/maintainer-tools` repository](https://github.com/jupyterlab/maintainer-tools/pull/268).
-
-## Manual method (for emergencies)
+## Update the snapshots
 
 ### 1) Download the test report
 
