@@ -26,4 +26,3 @@ jobs:
             ^/.*
             https://blog\.jupyter\.org/.*
             https://medium\.com/.*
-            https://zenodo\.org/badge/.*
