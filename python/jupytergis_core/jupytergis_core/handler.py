@@ -173,6 +173,7 @@ class ProxyHandler(APIHandler):
             response = await self._make_request(url, method, body, extra_headers)
 
             # Forward response
+            self.set_status(response.code)
             self._set_response_headers(response)
             self.finish(response.body)
 
@@ -292,6 +293,9 @@ class ProxyHandler(APIHandler):
             logger.info("validate_cert: %s", validate_cert)
 
             headers: dict[str, str] = {}
+            range_header = self.request.headers.get("Range")
+            if range_header:
+                headers["Range"] = range_header
             if body:
                 headers["Content-Type"] = "application/json"
             if extra_headers:
