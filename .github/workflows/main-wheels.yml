@@ -15,32 +15,28 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       github.event.workflow_run.conclusion == 'success'
-      && github.event.workflow_run.event == 'push'
       && github.event.workflow_run.head_branch == 'main'
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
+          name: extension-artifacts
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          name: extension-artifacts
-          path: /tmp/wheels
 
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           out="$(mktemp -d)"
-          find /tmp/wheels -name '*.whl' -exec cp {} "$out/" \;
+          find . -name '*.whl' -exec cp {} "$out/" \;
 
           # A fresh repo each run, so the branch stays one commit and old wheels
           # never pile up in history.
           git -C "$out" -c init.defaultBranch=main init --quiet
           git -C "$out" add -A
           git -C "$out" -c user.name=github-actions -c user.email=github-actions@github.com \
-            commit --quiet -m "Wheels for ${SHA}"
+            commit --quiet -m "Wheels for ${{ github.event.workflow_run.head_sha }}"
           git -C "$out" push --quiet --force \
-            "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" HEAD:main-wheels
+            "https://x-access-token:$GH_TOKEN@github.com/${{ github.repository }}.git" HEAD:main-wheels
 
-          echo "https://raw.githubusercontent.com/${REPO}/main-wheels/" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://raw.githubusercontent.com/${{ github.repository }}/main-wheels/" >> "$GITHUB_STEP_SUMMARY"
