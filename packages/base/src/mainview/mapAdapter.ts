@@ -89,6 +89,9 @@ export interface IMapAdapter {
   /** Adds or removes the zoom +/- control, matching `enabled`. */
   setZoomButtonsEnabled(enabled: boolean | undefined): void;
 
+  /** Enables or disables pan/zoom navigation (used while following a user). */
+  setNavigationEnabled(enabled: boolean): void;
+
   /** Removes the FullScreen control. */
   enterPresentationMode(): void;
 
