@@ -985,7 +985,12 @@ export class OpenLayersAdapter implements IMapAdapter {
         view.getProjection(),
       );
 
-      this.moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
+      // Instant: the extent is read from the view on the next line.
+      this.moveToPosition(
+        { x: centerCoord[0], y: centerCoord[1] },
+        zoom || 0,
+        0,
+      );
 
       // Save the extent if it does not exist, to allow proper export to qgis.
       if (!options.extent) {
@@ -2601,16 +2606,17 @@ export class OpenLayersAdapter implements IMapAdapter {
     duration = 1000,
   ) {
     const view = this._map.getView();
-    view.setZoom(zoom);
-    view.setCenter([center.x, center.y]);
-    // Zoom needs to be set before changing center
-    if (!view.animate === undefined) {
-      view.animate({ zoom, duration });
-      view.animate({
-        center: [center.x, center.y],
-        duration,
-      });
+    const targetCenter: Coordinate = [center.x, center.y];
+
+    view.cancelAnimations();
+
+    if (!duration) {
+      view.setZoom(zoom);
+      view.setCenter(targetCenter);
+      return;
     }
+
+    view.animate({ center: targetCenter, zoom, duration });
   }
 
   computeFeatureFloaterPosition(
