@@ -796,6 +796,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       IJupyterGISClientState
     >;
 
+    this._mapAdapter?.setNavigationEnabled(!remoteUser);
+
     // If we are in following mode, update UI and viewport from the remote user.
     if (remoteUser) {
       const remoteState = clients.get(remoteUser);

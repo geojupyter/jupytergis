@@ -852,6 +852,35 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
+  setNavigationEnabled(enabled: boolean): void {
+    const navigationInteractions = [
+      DragPan,
+      DragRotate,
+      DragZoom,
+      KeyboardPan,
+      KeyboardZoom,
+      MouseWheelZoom,
+      PinchRotate,
+      PinchZoom,
+      DoubleClickZoom,
+    ];
+
+    this._map?.getInteractions().forEach(interaction => {
+      if (
+        navigationInteractions.some(
+          InteractionClass => interaction instanceof InteractionClass,
+        )
+      ) {
+        interaction.setActive(enabled);
+      }
+    });
+
+    const controlsRoot = this._controlsTarget ?? this._map?.getTargetElement();
+    controlsRoot
+      ?.querySelectorAll<HTMLButtonElement>('.ol-zoom button')
+      .forEach(button => (button.disabled = !enabled));
+  }
+
   enterPresentationMode(): void {
     if (!this._map) {
       return;
