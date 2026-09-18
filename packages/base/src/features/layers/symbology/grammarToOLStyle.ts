@@ -6,8 +6,8 @@
  *
  * Compilation steps:
  *   1. Expand rules into per-encoding entries (guard + expression).
- *   2. Build a case expression per encoding (conditional entries first,
- *      last unconditional entry as the else branch).
+ *   2. Build a case expression per encoding (top wins: conditional entries
+ *      in listed order, the first unconditional entry as the else branch).
  *   3. Assemble sub-encodings (fill-red/green/blue/alpha) into a composite
  *      fill-color ['array', r, g, b, a] expression.
  */
@@ -229,20 +229,30 @@ export function extractEncodingFieldValues(
 
 /**
  * Merge a list of EncodingEntries into a single OL expression.
- * Conditional entries form case branches; the last unconditional entry wins
- * as the else branch (transparent/zero if none).
+ *
+ * Entries arrive in the order the symbology menu lists them, and that menu
+ * means "top wins" throughout (issue #1477): for one encoding, the first
+ * rule that applies decides it. An unconditional entry always applies, so it
+ * ends the chain and anything listed below it cannot affect that encoding.
+ * Conditional entries above it become case branches in listed order, since
+ * OL evaluates a case expression top to bottom and takes the first match.
  */
 function buildEncodingExpr(
   entries: IEncodingEntry[],
   encoding: Encoding,
 ): ExpressionValue {
-  const conditional = entries.filter(e => e.guard !== undefined);
-  const unconditional = entries.filter(e => e.guard === undefined);
+  const firstUnconditional = entries.findIndex(e => e.guard === undefined);
+  const reachable =
+    firstUnconditional === -1
+      ? entries
+      : entries.slice(0, firstUnconditional + 1);
 
   const elseExpr: ExpressionValue =
-    unconditional.length > 0
-      ? unconditional[unconditional.length - 1].expr
-      : encodingZero(encoding);
+    firstUnconditional === -1
+      ? encodingZero(encoding)
+      : entries[firstUnconditional].expr;
+
+  const conditional = reachable.filter(e => e.guard !== undefined);
 
   if (conditional.length === 0) {
     return elseExpr;
