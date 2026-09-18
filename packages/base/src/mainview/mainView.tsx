@@ -402,7 +402,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     center: number[],
     zoom: number,
     projection = DEFAULT_PROJECTION,
-    mapAdapterType: MapAdapterType = 'openlayers',
+    mapAdapterType: MapAdapterType = 'maplibre',
   ): Promise<void> {
     const layers = this._model.getLayers();
 

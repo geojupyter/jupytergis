@@ -1,0 +1,791 @@
+/* eslint-disable no-console */
+import type {
+  IDict,
+  IIdentifiedFeature,
+  IJGISLayer,
+  IJGISOptions,
+  IJGISSource,
+  IJupyterGISModel,
+  IRasterLayer,
+  IRasterSource,
+  IVectorLayer,
+  IVectorTileLayer,
+  IVectorTileSource,
+  JgisCoordinates,
+} from '@jupytergis/schema';
+import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
+import { Map as MlMap, NavigationControl } from 'maplibre-gl';
+
+import { loadFile } from '@/src/tools';
+import { ClientPointer } from '.././CollaboratorPointers';
+import { IMapAdapter, IMapAdapterOptions, IMapProjection } from '../mapAdapter';
+
+export class MapLibreAdapter implements IMapAdapter {
+  constructor(model: IJupyterGISModel) {
+    this._model = model;
+    this._loadingLayers = new Set();
+  }
+
+  async initialize(
+    target: HTMLElement,
+    options: IMapAdapterOptions,
+  ): Promise<void> {
+    const {
+      projection = 'EPSG:3857',
+      center = [0, 0],
+      lonLat,
+      zoom = 1,
+      rotation = 0,
+      zoomButtonsEnabled = false,
+      mainViewId,
+      callbacks,
+      loggerRegistry,
+    } = options;
+
+    this._callbacks = callbacks;
+    this._mainViewId = mainViewId;
+    this._loggerRegistry = loggerRegistry;
+
+    if (projection !== 'EPSG:3857') {
+      this._log(
+        'warning',
+        `MapLibre only supports EPSG:3857; ignoring requested projection ${projection}.`,
+      );
+    }
+
+    this._map = new MlMap({
+      container: target,
+      style: {
+        version: 8,
+        sources: {},
+        layers: [],
+      },
+      center: lonLat ?? center,
+      zoom,
+      bearing: rotation,
+      pitch: 0,
+    });
+
+    if (zoomButtonsEnabled) {
+      this._navigationControl = new NavigationControl({
+        showCompass: true,
+        visualizePitch: true,
+      });
+      this._map.addControl(this._navigationControl);
+    }
+
+    await new Promise<void>(resolve => {
+      if (this._map.loaded()) {
+        resolve();
+        return;
+      }
+      this._map.once('load', () => resolve());
+    });
+
+    this._setupViewEvents();
+  }
+
+  destroy(): void {
+    this.unregisterMap();
+    this._map?.remove();
+  }
+
+  /**
+   * Fires the same onScaleChange/onPostRender callbacks MainView already
+   * wires up for OpenLayers, so React state (scale readout, annotation/
+   * feature-floater repositioning) stays in sync regardless of engine.
+   */
+  private _setupViewEvents(): void {
+    this._map.on('render', () => {
+      this._callbacks?.onPostRender?.();
+    });
+
+    this._map.on('contextmenu', event => {
+      event.preventDefault();
+      this._callbacks?.onContextMenu?.(event.originalEvent, [
+        event.lngLat.lng,
+        event.lngLat.lat,
+      ]);
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Sources
+  // ---------------------------------------------------------------------
+
+  async addSource(id: string, source: IJGISSource): Promise<void> {
+    if (this._map.getSource(id)) {
+      return;
+    }
+
+    switch (source.type) {
+      case 'GeoJSONSource': {
+        const data =
+          source.parameters?.data ||
+          (await loadFile({
+            filepath: source.parameters?.path,
+            type: 'GeoJSONSource',
+            model: this._model,
+          }));
+
+        this._map.addSource(id, {
+          type: 'geojson',
+          data,
+        });
+        break;
+      }
+
+      case 'VectorTileSource': {
+        const parameters = source.parameters as IVectorTileSource;
+        this._map.addSource(id, {
+          type: 'vector',
+          url: this._computeSourceUrl(source),
+          minzoom: parameters.minZoom,
+          maxzoom: parameters.maxZoom,
+          attribution: parameters.attribution,
+        });
+        break;
+      }
+
+      case 'RasterSource': {
+        const parameters = source.parameters as IRasterSource;
+        this._map.addSource(id, {
+          type: 'raster',
+          tiles: [this._computeSourceUrl(source)],
+          tileSize: 256,
+          minzoom: parameters.minZoom,
+          maxzoom: parameters.maxZoom,
+          attribution: parameters.attribution,
+        });
+        break;
+      }
+
+      default: {
+        this._log(
+          'warning',
+          `MapLibreAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
+        );
+      }
+    }
+  }
+
+  removeSource(id: string): void {
+    if (this._map.getSource(id)) {
+      this._map.removeSource(id);
+    }
+  }
+
+  async updateSource(id: string, source: IJGISSource): Promise<void> {
+    // TODO: update source
+    this.removeSource(id);
+    await this.addSource(id, source);
+  }
+
+  private _computeSourceUrl(source: IJGISSource): string {
+    const parameters = source.parameters as IRasterSource;
+    const urlParameters = parameters.urlParameters || {};
+    let url: string = parameters.url;
+
+    for (const parameterName of Object.keys(urlParameters)) {
+      url = url.replace(`{${parameterName}}`, urlParameters[parameterName]);
+    }
+    if (url.includes('{max_zoom}')) {
+      url = url.replace('{max_zoom}', String(parameters.maxZoom));
+    }
+    if (url.includes('{min_zoom}')) {
+      url = url.replace('{min_zoom}', String(parameters.minZoom));
+    }
+
+    return url;
+  }
+
+  private _addVectorLayerGroup(
+    id: string,
+    sourceId: string,
+    visible: boolean,
+    opacity: number,
+    color?: string,
+    index?: number,
+  ): void {
+    const beforeId = this._beforeIdForIndex(index);
+    const fillId = `${id}-fill`;
+    const lineId = `${id}-line`;
+    const circleId = `${id}-circle`;
+    const visibility = visible ? 'visible' : 'none';
+
+    this._map.addLayer(
+      {
+        id: fillId,
+        type: 'fill',
+        source: sourceId,
+        filter: ['==', ['geometry-type'], 'Polygon'],
+        layout: { visibility },
+        paint: { 'fill-color': color, 'fill-opacity': opacity * 0.4 },
+      },
+      beforeId,
+    );
+    this._map.addLayer(
+      {
+        id: lineId,
+        type: 'line',
+        source: sourceId,
+        filter: [
+          'any',
+          ['==', ['geometry-type'], 'LineString'],
+          ['==', ['geometry-type'], 'Polygon'],
+        ],
+        layout: { visibility },
+        paint: {
+          'line-color': color,
+          'line-opacity': opacity,
+          'line-width': 2,
+        },
+      },
+      beforeId,
+    );
+    this._map.addLayer(
+      {
+        id: circleId,
+        type: 'circle',
+        source: sourceId,
+        filter: ['==', ['geometry-type'], 'Point'],
+        layout: { visibility },
+        paint: {
+          'circle-color': color,
+          'circle-opacity': opacity,
+          'circle-radius': 5,
+        },
+      },
+      beforeId,
+    );
+
+    this._layerSubIds.set(id, [fillId, lineId, circleId]);
+  }
+
+  async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
+    this._callbacks?.onLayerAddStarted?.();
+    this._loadingLayers.add(id);
+
+    try {
+      switch (layer.type) {
+        case 'VectorLayer': {
+          const parameters = layer.parameters as IVectorLayer;
+          const sourceId = parameters.source;
+
+          if (!this._map.getSource(sourceId)) {
+            this._log(
+              'error',
+              `MapLibreAdapter: cannot add layer ${id}, source "${sourceId}" was not found.`,
+            );
+            return;
+          }
+
+          this._addVectorLayerGroup(
+            id,
+            sourceId,
+            layer.visible ?? true,
+            parameters.opacity ?? 1,
+            '#3388ff',
+            index,
+          );
+
+          this._layerVisibility.set(id, layer.visible ?? true);
+          break;
+        }
+
+        case 'VectorTileLayer': {
+          const parameters = layer.parameters as IVectorTileLayer;
+
+          if (!this._map.getSource(parameters.source)) {
+            this._log(
+              'error',
+              `MapLibreAdapter: cannot add layer ${id}, source "${parameters.source}" was not found.`,
+            );
+            return;
+          }
+
+          this._addVectorLayerGroup(
+            id,
+            parameters.source,
+            layer.visible ?? true,
+            parameters.opacity ?? 1,
+            '#3388ff',
+            index,
+          );
+
+          this._layerVisibility.set(id, layer.visible ?? true);
+          break;
+        }
+
+        case 'RasterLayer': {
+          const parameters = layer.parameters as IRasterLayer;
+          const sourceId = parameters.source;
+
+          if (!this._map.getSource(sourceId)) {
+            this._log(
+              'error',
+              `MapLibreAdapter: cannot add layer ${id}, source "${sourceId}" was not found.`,
+            );
+            return;
+          }
+
+          this._map.addLayer(
+            {
+              id,
+              type: 'raster',
+              source: sourceId,
+              layout: {
+                visibility: layer.visible ? 'visible' : 'none',
+              },
+              paint: {
+                'raster-opacity': parameters.opacity ?? 1,
+              },
+            },
+            this._beforeIdForIndex(index),
+          );
+
+          this._layerSubIds.set(id, [id]);
+          this._layerVisibility.set(id, layer.visible ?? true);
+          break;
+        }
+
+        default:
+          this._log(
+            'warning',
+            `MapLibreAdapter: layer type "${layer.type}" is not yet supported. Skipping layer ${id}.`,
+          );
+          return;
+      }
+
+      this._insertIntoLayerOrder(id, index);
+
+      this._callbacks?.onLayerInserted?.(
+        this._map.getStyle().layers?.length ?? 0,
+      );
+    } finally {
+      this._loadingLayers.delete(id);
+      this._callbacks?.onLayerAddSettled?.(id);
+
+      if (this._loadingLayers.size === 0) {
+        this._callbacks?.onAllLayersSettled?.();
+      }
+    }
+  }
+
+  removeLayer(id: string): void {
+    const subIds = this._layerSubIds.get(id) ?? [id];
+    for (const subId of subIds) {
+      if (this._map.getLayer(subId)) {
+        this._map.removeLayer(subId);
+      }
+    }
+    this._layerSubIds.delete(id);
+    this._layerVisibility.delete(id);
+    const orderIndex = this._layerOrder.indexOf(id);
+    if (orderIndex !== -1) {
+      this._layerOrder.splice(orderIndex, 1);
+    }
+  }
+
+  async updateLayer(
+    id: string,
+    layer: IJGISLayer,
+    oldLayer?: IDict,
+  ): Promise<void> {
+    const subIds = this._layerSubIds.get(id);
+
+    if (!subIds || !subIds.every(subId => this._map.getLayer(subId))) {
+      this._log(
+        'error',
+        `MapLibreAdapter: cannot update layer ${id} - layer not found in adapter`,
+      );
+      return;
+    }
+
+    const visibility = layer.visible ? 'visible' : 'none';
+
+    switch (layer.type) {
+      case 'RasterLayer': {
+        const parameters = layer.parameters as IRasterLayer;
+        this._map.setPaintProperty(
+          id,
+          'raster-opacity',
+          parameters.opacity ?? 1,
+        );
+        this._map.setLayoutProperty(id, 'visibility', visibility);
+        break;
+      }
+
+      case 'VectorLayer':
+      case 'VectorTileLayer': {
+        const parameters = layer.parameters as IVectorLayer | IVectorTileLayer;
+        const opacity = parameters.opacity ?? 1;
+        const color = parameters.color?.hex ?? '#3388ff';
+        const [fillId, lineId, circleId] = subIds;
+
+        this._map.setPaintProperty(fillId, 'fill-color', color);
+        this._map.setPaintProperty(fillId, 'fill-opacity', opacity * 0.4);
+        this._map.setPaintProperty(lineId, 'line-color', color);
+        this._map.setPaintProperty(lineId, 'line-opacity', opacity);
+        this._map.setPaintProperty(circleId, 'circle-color', color);
+        this._map.setPaintProperty(circleId, 'circle-opacity', opacity);
+
+        for (const subId of subIds) {
+          this._map.setLayoutProperty(subId, 'visibility', visibility);
+        }
+        break;
+      }
+
+      default:
+        return;
+    }
+
+    this._layerVisibility.set(id, layer.visible ?? true);
+  }
+
+  async updateLayers(layerIds: string[]): Promise<void> {
+    for (let index = 0; index < layerIds.length; index++) {
+      const id = layerIds[index];
+      const layer = this._model.getLayers()[id];
+
+      if (!layer) {
+        continue;
+      }
+
+      const sourceId = layer.parameters?.source;
+
+      if (sourceId) {
+        const source = this._model.getSources()[sourceId];
+
+        if (source && !this._map.getSource(sourceId)) {
+          await this.addSource(sourceId, source);
+        }
+      }
+
+      if (!this._layerSubIds.has(id)) {
+        await this.addLayer(id, layer, index);
+      }
+    }
+
+    // Reorder to match layerIds (bottom to top), moving each layer's
+    // whole sub-layer group just before the next known layer's group.
+    for (let index = layerIds.length - 1; index >= 0; index--) {
+      const id = layerIds[index];
+      const subIds = this._layerSubIds.get(id);
+      if (!subIds) {
+        continue;
+      }
+      const beforeId = this._beforeIdForIndex(index + 1, layerIds);
+      for (const subId of subIds) {
+        if (this._map.getLayer(subId)) {
+          this._map.moveLayer(subId, beforeId);
+        }
+      }
+    }
+    this._layerOrder = [...layerIds];
+  }
+
+  /**
+   * MapLibre layer ids for the JGIS layer that should end up directly
+   * above the layer being placed, so it can be inserted `beforeId` it.
+   * `order` defaults to _layerOrder (the adapter's own record of what's
+   * currently on the map); updateLayers passes the target order being
+   * built instead, since _layerOrder hasn't been updated to it yet.
+   */
+  private _beforeIdForIndex(
+    index?: number,
+    order: string[] = this._layerOrder,
+  ): string | undefined {
+    if (index === undefined) {
+      return undefined;
+    }
+    for (let i = index; i < order.length; i++) {
+      const subIds = this._layerSubIds.get(order[i]);
+      if (subIds?.[0] && this._map.getLayer(subIds[0])) {
+        return subIds[0];
+      }
+    }
+    return undefined;
+  }
+
+  private _insertIntoLayerOrder(id: string, index?: number): void {
+    const existing = this._layerOrder.indexOf(id);
+    if (existing !== -1) {
+      this._layerOrder.splice(existing, 1);
+    }
+    if (index === undefined || index >= this._layerOrder.length) {
+      this._layerOrder.push(id);
+    } else {
+      this._layerOrder.splice(index, 0, id);
+    }
+  }
+
+  getZoom(): number {
+    return this._map.getZoom();
+  }
+
+  getViewportId(): string {
+    return this._map.getContainer().id;
+  }
+
+  getProjection(): IMapProjection {
+    return { code: 'EPSG:3857', units: 'm' };
+  }
+
+  getPixelFromCoordinate(coordinate: number[]): [number, number] {
+    const point = this._map.project([coordinate[0], coordinate[1]]);
+    return [point.x, point.y];
+  }
+
+  /** MapLibre always renders in Web Mercator, so `coordinate` here is
+   * already [lng, lat] on the map's own terms; `projection` is accepted
+   * for interface parity with OpenLayersAdapter and ignored. */
+  toLonLat(coordinate: number[]): number[] {
+    return coordinate;
+  }
+
+  flyToPosition(
+    center: JgisCoordinates,
+    zoom: number,
+    duration = 1000,
+    transitionType?: 'linear' | 'immediate' | 'smooth',
+  ): void {
+    if (transitionType === 'immediate') {
+      this._map.jumpTo({ center: [center.x, center.y], zoom });
+      return;
+    }
+
+    this._map.flyTo({
+      center: [center.x, center.y],
+      zoom,
+      duration,
+      curve: transitionType === 'smooth' ? 1.8 : 1.42,
+    });
+  }
+
+  moveToPosition(center: JgisCoordinates, zoom: number, duration = 1000): void {
+    this._map.easeTo({ center: [center.x, center.y], zoom, duration });
+  }
+
+  applyOptions(
+    options: IJGISOptions,
+  ): { code: string; units: string } | undefined {
+    const { projection, latitude, longitude, zoom, bearing, pitch } = options;
+
+    if (projection !== undefined && projection !== 'EPSG:3857') {
+      this._log(
+        'warning',
+        `MapLibre only supports EPSG:3857; ignoring requested projection ${projection}.`,
+      );
+    }
+
+    this._map.jumpTo({
+      center: [longitude || 0, latitude || 0],
+      zoom: zoom || 0,
+      bearing: bearing || 0,
+      pitch: pitch || 0,
+    });
+
+    return undefined;
+  }
+
+  updateClientPointerPositions(
+    clientPointers: Record<number, ClientPointer>,
+  ): Record<number, ClientPointer> {
+    const updated = { ...clientPointers };
+
+    Object.entries(updated).forEach(([clientId, pointer]) => {
+      const point = this._map.project([
+        pointer.lonLat.longitude,
+        pointer.lonLat.latitude,
+      ]);
+      updated[Number(clientId)] = {
+        ...pointer,
+        coordinates: { x: point.x, y: point.y },
+      };
+    });
+
+    return updated;
+  }
+
+  // ---------------------------------------------------------------------
+  // Controls / navigation
+  // ---------------------------------------------------------------------
+
+  setZoomButtonsEnabled(enabled: boolean | undefined): void {
+    if (!enabled && this._navigationControl) {
+      this._map.removeControl(this._navigationControl);
+      this._navigationControl = undefined;
+      return;
+    }
+    if (enabled && !this._navigationControl) {
+      this._navigationControl = new NavigationControl({
+        showCompass: true,
+        visualizePitch: true,
+      });
+      this._map.addControl(this._navigationControl);
+    }
+  }
+
+  setNavigationEnabled(enabled: boolean): void {
+    const handlers: Array<keyof MlMap> = [
+      'dragPan',
+      'dragRotate',
+      'scrollZoom',
+      'boxZoom',
+      'keyboard',
+      'doubleClickZoom',
+      'touchZoomRotate',
+      'touchPitch',
+    ];
+    handlers.forEach(name => {
+      const handler = this._map[name] as unknown as {
+        enable: () => void;
+        disable: () => void;
+      };
+      enabled ? handler.enable() : handler.disable();
+    });
+  }
+
+  enterPresentationMode(): void {
+    this.setNavigationEnabled(false);
+    if (this._navigationControl) {
+      this._presentationHadNavigationControl = true;
+      this._map.removeControl(this._navigationControl);
+    }
+  }
+
+  exitPresentationMode(): void {
+    this.setNavigationEnabled(true);
+    if (this._presentationHadNavigationControl && this._navigationControl) {
+      this._map.addControl(this._navigationControl);
+      this._presentationHadNavigationControl = false;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Debug registry — mirrors OpenLayersAdapter.registerMap/unregisterMap.
+  // ---------------------------------------------------------------------
+
+  registerMap(path?: string): void {
+    if (window.jupytergisMaps === undefined) {
+      return;
+    }
+    const base = path || 'unsaved';
+    let key = base;
+    for (let n = 2; window.jupytergisMaps[key] !== undefined; n++) {
+      key = `${base}#${n}`;
+    }
+    window.jupytergisMaps[key] = this._map;
+    this._mapKey = key;
+    this._map.getContainer().setAttribute('data-jgis-map', key);
+  }
+
+  unregisterMap(): void {
+    if (window.jupytergisMaps === undefined || this._mapKey === undefined) {
+      return;
+    }
+    delete window.jupytergisMaps[this._mapKey];
+    this._map.getContainer().removeAttribute('data-jgis-map');
+    this._mapKey = undefined;
+  }
+
+  //   Todos
+
+  onZoomToPosition(id: string): void {
+    this._notImplemented('onZoomToPosition', id);
+  }
+
+  convertFeatureToMs(args: string): void {
+    this._notImplemented('convertFeatureToMs', args);
+  }
+
+  handleLocationIndicatorToggled(): void {
+    this._notImplemented('handleLocationIndicatorToggled');
+  }
+
+  flyToGeometry(geometry: Geometry): void {
+    this._notImplemented('flyToGeometry', geometry);
+  }
+
+  highlightFeatureOnMap(featureOrGeometry: GeoJSONFeature | Geometry): void {
+    this._notImplemented('highlightFeatureOnMap', featureOrGeometry);
+  }
+
+  handleGeolocationChanged(newPosition: JgisCoordinates): void {
+    this._notImplemented('handleGeolocationChanged', newPosition);
+  }
+
+  startLocationIndicator(): void {
+    this._notImplemented('startLocationIndicator');
+  }
+
+  stopLocationIndicator(): void {
+    this._notImplemented('stopLocationIndicator');
+  }
+
+  computeFeatureFloaterPosition(
+    feature: IIdentifiedFeature,
+  ): { x: number; y: number } | undefined {
+    this._notImplemented('computeFeatureFloaterPosition', feature);
+    return undefined;
+  }
+
+  handleDrawModeChanged(isDrawing: boolean): void {
+    this._notImplemented('handleDrawModeChanged', isDrawing);
+  }
+
+  clearHighlightIfNotIdentifying(): void {
+    // No-op: no highlight layer exists yet in this adapter, so there is
+    // nothing to clear. Deliberately silent (unlike the other stubs)
+    // since MainView calls this unconditionally on every identify-state
+    // change, and warning on every call would be noise, not signal.
+  }
+
+  private _notImplemented(name: string, ...args: unknown[]): void {
+    if (this._warnedOnce.has(name)) {
+      return;
+    }
+    this._warnedOnce.add(name);
+    this._log('warning', `MapLibreAdapter.${name} is not implemented yet.`);
+    // eslint-disable-next-line no-console
+    if (args.length) {
+      console.debug(`MapLibreAdapter.${name} args:`, ...args);
+    }
+  }
+
+  private _log(
+    level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+    message: string,
+  ): void {
+    if (level === 'error' || level === 'critical') {
+      // eslint-disable-next-line no-console
+      console.error(message);
+    } else if (level === 'warning') {
+      // eslint-disable-next-line no-console
+      console.warn(message);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(message);
+    }
+
+    this._loggerRegistry
+      ?.getLogger(this._model.filePath)
+      .log({ type: 'text', level, data: message });
+  }
+
+  private _map: MlMap;
+  private _model: IJupyterGISModel;
+  private _mainViewId?: string;
+  private _mapKey?: string;
+  private _loggerRegistry?: ILoggerRegistry;
+  private _navigationControl?: NavigationControl;
+  private _presentationHadNavigationControl = false;
+  private _layerVisibility = new Map<string, boolean>();
+  private _loadingLayers: Set<string>;
+  private _layerSubIds = new Map<string, string[]>();
+  private _layerOrder: string[] = [];
+  private _warnedOnce = new Set<string>();
+  private _callbacks?: IMapAdapterOptions['callbacks'];
+}
