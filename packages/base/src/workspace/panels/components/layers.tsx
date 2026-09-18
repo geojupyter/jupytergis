@@ -6,6 +6,7 @@ import {
   IJGISLayerTree,
   IJupyterGISModel,
   ISelection,
+  JupyterGISModel,
   ProcessingMerge,
   SelectionType,
 } from '@jupytergis/schema';
@@ -116,6 +117,25 @@ function createContextMenu(
     selector: GIS_LAYER_ITEM,
     rank: 5,
   });
+
+  const compareSubmenu = new Menu({ commands });
+  compareSubmenu.title.label = translator.load('jupyterlab').__('Compare With');
+  compareSubmenu.id = 'jp-gis-contextmenu-compare';
+
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 5.1,
+    submenu: compareSubmenu,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.stopComparing,
+    selector: GIS_LAYER_ITEM,
+    rank: 5.2,
+  });
+
+  gisContextMenu.opened.connect(() => buildCompareMenu(gisContextMenu, model));
 
   gisContextMenu.addItem({
     command: CommandIDs.zoomToLayer,
@@ -236,6 +256,48 @@ function createContextMenu(
   });
 
   return gisContextMenu;
+}
+
+/**
+ * Populate the "Compare With" submenu with every other layer in the document.
+ */
+function buildCompareMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
+  const submenu =
+    contextMenu.menu.items.find(
+      item =>
+        item.type === 'submenu' &&
+        item.submenu?.id === 'jp-gis-contextmenu-compare',
+    )?.submenu ?? null;
+
+  if (!submenu) {
+    return;
+  }
+
+  submenu.clearItems();
+
+  const selected = model.localState?.selected?.value ?? {};
+  const selectedIds = Object.keys(selected);
+  const layerId =
+    selectedIds.length === 1 && selected[selectedIds[0]].type === 'layer'
+      ? selectedIds[0]
+      : undefined;
+
+  if (!layerId) {
+    return;
+  }
+
+  for (const otherLayerId of JupyterGISModel.getOrderedLayerIds(model)) {
+    const layer = model.getLayer(otherLayerId);
+
+    if (!layer || otherLayerId === layerId) {
+      continue;
+    }
+
+    submenu.addItem({
+      command: CommandIDs.compareWithLayer,
+      args: { layerId, otherLayerId, label: layer.name },
+    });
+  }
 }
 
 /**

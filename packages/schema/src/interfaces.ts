@@ -17,6 +17,7 @@ import { SplitPanel } from '@lumino/widgets';
 import { FeatureLike } from 'ol/Feature';
 
 import {
+  IJGISComparison,
   IJGISContent,
   IDrawCustomAttribute,
   IDrawCustomAttributePresets,
@@ -253,6 +254,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
 
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
+  removeOption(key: keyof IJGISOptions): void;
 
   getAnnotation(id: string): IAnnotation | undefined;
   setAnnotation(id: string, value: IAnnotation): void;
@@ -410,6 +412,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeSource(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
+  getComparison(): IJGISComparison | undefined;
+  setComparison(comparison: IJGISComparison | undefined): void;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;

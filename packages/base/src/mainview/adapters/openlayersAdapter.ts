@@ -49,9 +49,11 @@ import {
 } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import { GeolocationError } from 'ol/Geolocation';
+import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
 import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
+import type { EventsKey } from 'ol/events';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
@@ -134,6 +136,7 @@ import {
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
 import {
   IMapAdapter,
+  IMapComparison,
   IMapProjection,
   IMapAdapterCallbacks,
   IMapAdapterOptions,
@@ -164,6 +167,25 @@ type OlLayerTypes =
   | LayerGroup;
 
 type FeatureOrGeometry = GeoJSONFeature | Geometry | OLGeometry;
+
+/**
+ * Every layer renders under a class of its own, so that the comparison can clip
+ * one without touching its neighbours: OpenLayers shares a canvas between
+ * adjacent layers whose class names match.
+ */
+function comparisonLayerClass(id: string): string {
+  return `jgis-layer-${id}`;
+}
+
+function setClipPath(viewport: HTMLElement, id: string, clip: string): void {
+  viewport
+    .querySelectorAll<HTMLElement>(`.${comparisonLayerClass(id)}`)
+    .forEach(element => {
+      if (element.style.clipPath !== clip) {
+        element.style.clipPath = clip;
+      }
+    });
+}
 
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
@@ -881,6 +903,58 @@ export class OpenLayersAdapter implements IMapAdapter {
       .forEach(button => (button.disabled = !enabled));
   }
 
+  /**
+   * Clip the first compared layer to the left of a vertical divider and the
+   * second to the right.
+   *
+   * Clipping the elements a layer draws into is the only clip that holds for
+   * every OpenLayers renderer: a layer extent would miss heatmaps, whose
+   * renderer never applies one.
+   */
+  setComparison(comparison: IMapComparison | null): void {
+    this._unclipComparedLayers();
+    this._comparison = comparison;
+
+    if (comparison && !this._comparisonKey) {
+      // OpenLayers rebuilds these elements as layers are restyled and
+      // reordered, so the clip is re-applied with every frame.
+      this._comparisonKey = this._map?.on('postrender', () =>
+        this._clipComparedLayers(),
+      );
+    } else if (!comparison && this._comparisonKey) {
+      unByKey(this._comparisonKey);
+      this._comparisonKey = undefined;
+    }
+
+    this._clipComparedLayers();
+    this._map?.render();
+  }
+
+  private _clipComparedLayers(): void {
+    const viewport = this._map?.getViewport();
+    const comparison = this._comparison;
+
+    if (!viewport || !comparison) {
+      return;
+    }
+
+    const split = Math.min(100, Math.max(0, comparison.fraction * 100));
+    const [left, right] = comparison.layers;
+
+    setClipPath(viewport, left, `inset(0 ${100 - split}% 0 0)`);
+    setClipPath(viewport, right, `inset(0 0 0 ${split}%)`);
+  }
+
+  private _unclipComparedLayers(): void {
+    const viewport = this._map?.getViewport();
+
+    for (const layerId of this._comparison?.layers ?? []) {
+      if (viewport) {
+        setClipPath(viewport, layerId, '');
+      }
+    }
+  }
+
   enterPresentationMode(): void {
     if (!this._map) {
       return;
@@ -1018,6 +1092,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     let newMapLayer: OlLayerTypes;
     let layerParameters: any;
+    const className = comparisonLayerClass(id);
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
@@ -1048,6 +1123,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources.get(layerParameters.source),
+          className,
         });
 
         break;
@@ -1072,6 +1148,8 @@ export class OpenLayersAdapter implements IMapAdapter {
             layerParameters.opacity,
             layer.visible,
             featureValues,
+            false,
+            className,
           ) as OlLayerTypes;
         } else {
           newMapLayer = new VectorImageLayer({
@@ -1079,6 +1157,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             visible: layer.visible,
             source: this._sources.get(layerParameters.source),
             style: this.vectorLayerStyleRuleBuilder(layer),
+            className,
           });
         }
 
@@ -1095,6 +1174,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           declutter: grammarDeclutter(
             layerParameters.symbologyState as IGrammarSymbologyState,
           ),
+          className,
         });
 
         break;
@@ -1109,6 +1189,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           style: {
             color: ['color', this.hillshadeMath()],
           },
+          className,
         });
 
         break;
@@ -1120,6 +1201,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources.get(layerParameters.source),
+          className,
         });
 
         break;
@@ -1131,6 +1213,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources.get(layerParameters.source),
+          className,
         });
         break;
       }
@@ -1148,6 +1231,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             layer.visible ?? true,
             [],
             true,
+            className,
           ) as OlLayerTypes;
         } else {
           // This is to handle python sending a None for the color
@@ -1155,6 +1239,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             opacity: layerParameters.opacity,
             visible: layer.visible,
             source: geoTiffSource,
+            className,
           };
 
           if (layerParameters.color) {
@@ -1181,6 +1266,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             layer.visible ?? true,
             [],
             true,
+            className,
           ) as OlLayerTypes;
         } else {
           const bands = source?.parameters?.bands || [];
@@ -1194,6 +1280,7 @@ export class OpenLayersAdapter implements IMapAdapter {
               gamma: layerParameters.gamma ?? 1,
               color: layerParameters.color ?? defaultColor,
             },
+            className,
           });
         }
 
@@ -2775,6 +2862,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       layer.visible,
       featureValues,
       layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
+      comparisonLayerClass(id),
     );
 
     if (mapLayer instanceof LayerGroup) {
@@ -2980,6 +3068,8 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _drawTool: DrawToolController;
   private _mapKey?: string;
   private _pendingZoomLayerId: string | null = null;
+  private _comparison: IMapComparison | null = null;
+  private _comparisonKey?: EventsKey;
   private _loggerRegistry?: ILoggerRegistry;
   private _loadingLayers: Set<string>;
   private _highlightLayerRef: {
