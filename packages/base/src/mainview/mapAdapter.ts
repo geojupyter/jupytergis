@@ -15,7 +15,7 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import { ClientPointer } from './CollaboratorPointers';
 
-export type MapAdapterType = 'openlayers';
+export type MapAdapterType = 'openlayers' | 'maplibre';
 
 export interface IMapProjection {
   code: string;
@@ -151,6 +151,11 @@ export async function createMapAdapter(
       const { OpenLayersAdapter } =
         await import('./adapters/openlayersAdapter');
       return new OpenLayersAdapter(model);
+    }
+
+    case 'maplibre': {
+      const { MapLibreAdapter } = await import('./adapters/maplibreAdapter');
+      return new MapLibreAdapter(model);
     }
 
     default: {
