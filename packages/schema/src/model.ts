@@ -1369,9 +1369,21 @@ export class JupyterGISModel implements IJupyterGISModel {
       number,
       IJupyterGISClientState
     >;
+    this._unfollowIfUserLeft(changed.removed);
     this._emitAwarenessFieldDeltas(changed, clients);
     this._previousClientStates = new Map(clients);
   };
+
+  /**
+   * Stop following a user once they leave
+   */
+  private _unfollowIfUserLeft(removed?: number[]): void {
+    const followedClientId = this.localState?.remoteUser;
+
+    if (followedClientId !== undefined && removed?.includes(followedClientId)) {
+      this.setUserToFollow(undefined);
+    }
+  }
 
   private _emitAwarenessFieldDeltas(
     changed: {
