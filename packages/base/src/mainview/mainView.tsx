@@ -82,6 +82,7 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
+  pointersAnimated: boolean;
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
   scale: number;
@@ -209,6 +210,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       loading: true,
       annotations: {},
       clientPointers: {},
+      pointersAnimated: true,
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
       scale: 0,
@@ -495,7 +497,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             this.state.clientPointers,
           );
 
-          this.setState({ clientPointers });
+          this.setState({ clientPointers, pointersAnimated: false });
         },
       },
     });
@@ -884,7 +886,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       };
     });
 
-    this.setState(old => ({ ...old, clientPointers }));
+    this.setState(old => ({ ...old, clientPointers, pointersAnimated: true }));
   }
 
   private _onStoryPreviewActiveChanged = (): void => {
@@ -1522,6 +1524,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   render(): JSX.Element {
     const {
       clientPointers,
+      pointersAnimated,
       displayTemporalController,
       drawGeometryLabel,
       isDrawing,
@@ -1571,6 +1574,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             loading={loading}
             remoteUser={remoteUser}
             clientPointers={clientPointers}
+            pointersAnimated={pointersAnimated}
             spectaMobileTouch={spectaMobileTouch}
             onTouchStart={this._handleSpectaTouchStart}
             onTouchEnd={this._handleSpectaTouchEnd}

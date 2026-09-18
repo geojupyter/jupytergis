@@ -13,6 +13,7 @@ export interface IMainViewMapSurfaceProps {
   loading: boolean;
   remoteUser?: User.IIdentity | null;
   clientPointers: IDict<ClientPointer>;
+  pointersAnimated: boolean;
   spectaMobileTouch: boolean;
   onTouchStart?: (event: React.TouchEvent) => void;
   onTouchEnd?: (event: React.TouchEvent) => void;
@@ -24,6 +25,7 @@ export function MainViewMapSurface({
   loading,
   remoteUser,
   clientPointers,
+  pointersAnimated,
   spectaMobileTouch,
   onTouchStart,
   onTouchEnd,
@@ -42,7 +44,10 @@ export function MainViewMapSurface({
     >
       <LoadingOverlay loading={loading} />
       <FollowIndicator remoteUser={remoteUser} />
-      <CollaboratorPointers clients={clientPointers} />
+      <CollaboratorPointers
+        clients={clientPointers}
+        animated={pointersAnimated}
+      />
       {children}
     </div>
   );

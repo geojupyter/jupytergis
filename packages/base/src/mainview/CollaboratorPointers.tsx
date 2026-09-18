@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 
 interface ICollaboratorPointersProps {
   clients: IDict<ClientPointer>;
+  animated?: boolean;
 }
 
 export type ClientPointer = {
@@ -47,6 +48,7 @@ const CollaboratorAvatar: React.FC<{ client: ClientPointer }> = ({
 
 const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
   clients,
+  animated = true,
 }) => {
   return (
     <>
@@ -54,10 +56,9 @@ const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
         Object.entries(clients).map(([clientId, client]) => (
           <div
             key={clientId}
-            className="jGIS-Popup-Wrapper"
+            className={`jGIS-Popup-Wrapper jGIS-Remote-Pointer-Wrapper${animated ? ' jGIS-Remote-Pointer-Animated' : ''}`}
             style={{
-              left: `${client.coordinates.x}px`,
-              top: `${client.coordinates.y}px`,
+              transform: `translate3d(${client.coordinates.x}px, ${client.coordinates.y}px, 0)`,
             }}
           >
             <div
