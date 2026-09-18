@@ -116,10 +116,15 @@
 
 .jgis-story-rendered-markdown .specta-article-host-widget a {
   text-decoration: none;
+  color: var(--jgis-specta-text-color, var(--jp-content-link-color)) !important;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget a:hover {
   text-decoration: underline;
+  color: var(
+    --jgis-specta-text-color,
+    var(--jp-content-link-hover-color, var(--jp-content-link-color))
+  ) !important;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget pre {
