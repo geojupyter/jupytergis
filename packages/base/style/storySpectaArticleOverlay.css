@@ -195,7 +195,7 @@
   padding-left: 1rem;
   margin: 1.2em 0;
   font-style: italic;
-  color: var(--jp-ui-font-color2);
+  color: var(--jgis-specta-text-color, var(--jp-ui-font-color2)) !important;
   font-size: 1em;
 }
 
@@ -219,6 +219,11 @@
   border: 0;
   height: 1px;
   margin: 2em 0;
+  color: var(--jgis-specta-text-color, var(--jp-border-color2)) !important;
+  background-color: var(
+    --jgis-specta-text-color,
+    var(--jp-border-color1)
+  ) !important;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget table {
@@ -226,6 +231,7 @@
   border-collapse: collapse;
   margin: 1.2em 0;
   font-size: 0.9em;
+  color: var(--jgis-specta-text-color, var(--jp-ui-font-color1)) !important;
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget th,
