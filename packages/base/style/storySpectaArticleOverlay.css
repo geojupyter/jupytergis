@@ -128,7 +128,10 @@
 }
 
 .jgis-story-rendered-markdown .specta-article-host-widget pre {
-  background-color: var(--jp-cell-editor-background) !important;
+  background-color: var(
+    --jgis-specta-content-bg-color,
+    var(--jp-cell-editor-background)
+  ) !important;
   padding: 2rem !important;
   border-radius: 4px !important;
   border: 1px solid var(--jp-cell-editor-border-color) !important;
@@ -149,6 +152,10 @@
   color: var(
     --jgis-specta-text-color,
     var(--jp-content-font-color1)
+  ) !important;
+  background-color: var(
+    --jgis-specta-content-bg-color,
+    var(--jp-layout-color2)
   ) !important;
   padding: 0.2em 0.4em;
   border-radius: 4px;
