@@ -418,3 +418,72 @@ svg[data-size='lg'] {
   height: 1.25rem;
   flex-shrink: 0;
 }
+
+.jgis-swipe-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  margin-left: -5px;
+  z-index: 30;
+  cursor: ew-resize;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jgis-swipe-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--jp-ui-font-color1);
+  opacity: 0.7;
+}
+
+.jgis-swipe-divider .jgis-swipe-divider-stop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Sits just above the drag handle: the middle of the map is the only strip
+     the floating panels never cover. */
+  transform: translate(-50%, calc(-50% - 28px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.jgis-swipe-divider .jgis-swipe-divider-stop:hover {
+  color: var(--jp-error-color1);
+  border-color: var(--jp-error-color1);
+}
+
+.jgis-swipe-divider-handle {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.jgis-swipe-divider:focus-visible {
+  outline: none;
+}
+
+.jgis-swipe-divider:focus-visible .jgis-swipe-divider-handle {
+  border-color: var(--jp-brand-color1);
+}

@@ -55,12 +55,20 @@ export function grammarToOLLayer(
   visible: boolean,
   featureValues: unknown[] = [],
   isRaster = false,
+  className?: string,
 ): Layer | LayerGroup {
   const grammarLayers = state.layers ?? [];
 
   if (isRaster) {
     const subLayers = grammarLayers.map(grammarLayer =>
-      compileRasterLayer(grammarLayer, source, opacity, visible, featureValues),
+      compileRasterLayer(
+        grammarLayer,
+        source,
+        opacity,
+        visible,
+        featureValues,
+        className,
+      ),
     );
     if (subLayers.length === 1) {
       return subLayers[0];
@@ -72,11 +80,18 @@ export function grammarToOLLayer(
   if (grammarLayers.length === 0) {
     // No grammar layers defined yet — return an empty vector layer so the map
     // has a valid layer object to call setVisible/setOpacity on.
-    return new VectorImageLayer({ opacity, visible, source });
+    return new VectorImageLayer({ opacity, visible, source, className });
   }
 
   const subLayers = grammarLayers.map(grammarLayer =>
-    compileGrammarLayer(grammarLayer, source, opacity, visible, featureValues),
+    compileGrammarLayer(
+      grammarLayer,
+      source,
+      opacity,
+      visible,
+      featureValues,
+      className,
+    ),
   );
 
   if (subLayers.length === 1) {
@@ -120,6 +135,7 @@ function compileGrammarLayer(
   opacity: number,
   visible: boolean,
   featureValues: unknown[],
+  className?: string,
 ): VectorImageLayer | HeatmapLayer {
   const kdeTransform = grammarLayer.preprocess?.find(
     (t): t is IKDETransform => t.type === 'kde',
@@ -132,6 +148,7 @@ function compileGrammarLayer(
       source,
       opacity,
       visible,
+      className,
     );
   }
 
@@ -141,6 +158,7 @@ function compileGrammarLayer(
     opacity,
     visible,
     featureValues,
+    className,
   );
 }
 
@@ -161,6 +179,7 @@ function compileRasterLayer(
   opacity: number,
   visible: boolean,
   featureValues: unknown[],
+  className?: string,
 ): WebGLTileLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
@@ -178,6 +197,7 @@ function compileRasterLayer(
       opacity,
       visible,
       source,
+      className,
     });
   }
 
@@ -194,6 +214,7 @@ function compileRasterLayer(
     visible,
     source,
     style: { color: finalExpr },
+    className,
   });
 }
 
@@ -207,6 +228,7 @@ function compileKDELayer(
   source: VectorSource,
   opacity: number,
   visible: boolean,
+  className?: string,
 ): HeatmapLayer {
   const gradient = extractGradient(grammarLayer.rules) ?? DEFAULT_GRADIENT;
   const { weightField } = kdeTransform;
@@ -215,6 +237,7 @@ function compileKDELayer(
     opacity,
     visible,
     source,
+    className,
     blur: kdeTransform.blur ?? 15,
     radius: kdeTransform.radius ?? 10,
     gradient,
@@ -289,6 +312,7 @@ function compileVectorLayer(
   opacity: number,
   visible: boolean,
   featureValues: unknown[],
+  className?: string,
 ): VectorImageLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
@@ -306,5 +330,6 @@ function compileVectorLayer(
     source,
     style: [rule],
     declutter: grammarLayer.declutter ? grammarLayer.id : false,
+    className,
   });
 }

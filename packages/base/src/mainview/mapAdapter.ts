@@ -22,6 +22,13 @@ export interface IMapProjection {
   units: string;
 }
 
+export interface IMapComparison {
+  /** The compared layers: the first shows on the left, the second on the right. */
+  layers: [string, string];
+  /** Divider position, as a fraction of the map width. */
+  fraction: number;
+}
+
 /**
  * Minimal abstraction layer between MainView and map engines.
  *
@@ -91,6 +98,9 @@ export interface IMapAdapter {
 
   /** Enables or disables pan/zoom navigation (used while following a user). */
   setNavigationEnabled(enabled: boolean): void;
+
+  /** Clips each compared layer to its side of a divider; `null` clears it. */
+  setComparison(comparison: IMapComparison | null): void;
 
   /** Removes the FullScreen control. */
   enterPresentationMode(): void;
