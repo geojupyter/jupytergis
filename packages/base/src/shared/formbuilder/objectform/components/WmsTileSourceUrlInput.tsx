@@ -26,11 +26,25 @@ export function WmsTileSourceUrlInput(
   const model = context?.model;
   const layers = context?.wmsAvailableLayers ?? [];
   const setWmsAvailableLayers = context?.setWmsAvailableLayers;
+  const disconnectWms = context?.disconnectWms;
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
   const text = !value ? '' : String(value);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  // handleConnect sets the layers before its cache save resolves, so wait for
+  // isLoading to clear; a Disconnect in that window would be undone by the save.
+  const isConnected = layers.length > 0 && !isLoading;
+  const namedLayerCount = layers.filter(layer => layer.name !== '').length;
+
+  const handleDisconnect = async () => {
+    setError(undefined);
+    try {
+      await disconnectWms?.();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value);
@@ -127,25 +141,35 @@ export function WmsTileSourceUrlInput(
           placeholder="Enter WMS URL"
           style={{ flexGrow: 1 }}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          onClick={handleConnect}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Connecting…' : 'Connect'}
-        </Button>
+        {isConnected ? (
+          <>
+            <span role="status" style={{ whiteSpace: 'nowrap' }}>
+              {`Connected (${namedLayerCount} layer${namedLayerCount === 1 ? '' : 's'})`}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={handleDisconnect}
+            >
+              Disconnect
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            onClick={handleConnect}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Connecting…' : 'Connect'}
+          </Button>
+        )}
       </div>
       {error && (
         <div style={{ marginTop: '0.5rem', color: 'var(--jp-error-color1)' }}>
           {error}
-        </div>
-      )}
-      {layers.length > 0 && (
-        <div style={{ marginTop: '0.5rem' }}>
-          {layers.length} layer(s) found. Choose one in the `params.layers`
-          dropdown.
         </div>
       )}
     </>
