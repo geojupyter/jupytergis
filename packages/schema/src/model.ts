@@ -32,6 +32,7 @@ import {
   AwarenessFieldKey,
   IAwarenessFieldChange,
   IAnnotationModel,
+  IDict,
   IIdentifiedFeatures,
   IDrawCustomAttribute,
   IDrawCustomAttributePresets,
@@ -43,7 +44,9 @@ import {
   IJGISUIState,
   IJupyterGISClientState,
   IJupyterGISDoc,
+  IDialogViewState,
   IJupyterGISModel,
+  IOpenDialogState,
   ISelection,
   IStorySegmentRef,
   IUserData,
@@ -313,6 +316,27 @@ export class JupyterGISModel implements IJupyterGISModel {
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   > {
     return this._drawCustomAttributesChanged;
+  }
+
+  get openDialogChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
+  > {
+    return this._openDialogChanged;
+  }
+
+  get dialogStateChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogState']>
+  > {
+    return this._dialogStateChanged;
+  }
+
+  get dialogViewChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogView']>
+  > {
+    return this._dialogViewChanged;
   }
 
   get remoteUserChanged(): ISignal<
@@ -808,6 +832,54 @@ export class JupyterGISModel implements IJupyterGISModel {
     attributes: IDrawCustomAttribute[],
   ): void {
     this.sharedModel.setPreset(name, attributes);
+  }
+
+  syncOpenDialog(dialog: IOpenDialogState | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.openDialog,
+      {
+        value: dialog,
+        emitter,
+      },
+    );
+  }
+
+  syncDialogState(state: IDict | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.dialogState,
+      {
+        value: state,
+        emitter,
+      },
+    );
+  }
+
+  setDialogStateKey(key: string, value: unknown, emitter?: string): void {
+    this.syncDialogState(
+      {
+        ...(this.localState?.dialogState?.value ?? {}),
+        [key]: value,
+      },
+      emitter,
+    );
+  }
+
+  syncDialogView(view: IDialogViewState | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.dialogView,
+      {
+        value: view,
+        emitter,
+      },
+    );
+  }
+
+  updateDialogView(patch: Partial<IDialogViewState>, emitter?: string): void {
+    const current = this.localState?.dialogView?.value;
+    if (!current) {
+      return;
+    }
+    this.syncDialogView({ ...current, ...patch }, emitter);
   }
 
   setUserToFollow(userId?: number): void {
@@ -1463,6 +1535,27 @@ export class JupyterGISModel implements IJupyterGISModel {
               >,
             );
             break;
+          case AWARENESS_STATE_FIELDS.openDialog:
+            this._openDialogChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['openDialog']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.dialogState:
+            this._dialogStateChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['dialogState']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.dialogView:
+            this._dialogViewChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['dialogView']
+              >,
+            );
+            break;
           case AWARENESS_STATE_FIELDS.remoteUser:
             this._remoteUserChanged.emit(
               payload as IAwarenessFieldChange<
@@ -1569,6 +1662,18 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _drawCustomAttributesChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >(this);
+  private _openDialogChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
+  >(this);
+  private _dialogStateChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogState']>
+  >(this);
+  private _dialogViewChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogView']>
   >(this);
   private _remoteUserChanged = new Signal<
     this,

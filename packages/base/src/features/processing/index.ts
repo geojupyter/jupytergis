@@ -24,6 +24,7 @@ import {
 import { getGdal } from '../../gdal';
 import { getGeoJSONDataFromLayerSource } from '../../tools';
 import { JupyterGISTracker } from '../../types';
+import { launchFollowable } from '../follow';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -162,22 +163,32 @@ export async function processLayer(
 
     // Open ProcessingFormDialog
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
-        schema,
-        model,
         sourceData: {
           inputLayer: selectedLayerId,
           outputLayerName: selected.name,
         },
-        formContext: 'create',
+        formContext: 'create' as const,
         processingType,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: processingType },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -279,22 +290,32 @@ export async function rasterizeLayer(
     )[0];
 
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
-        schema,
-        model,
         sourceData: {
           inputLayer: selectedLayerId,
           outputFileName: `${selected.name.replace(/\s+/g, '_')}_rasterized.tif`,
         },
-        formContext: 'create',
+        formContext: 'create' as const,
         processingType,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: processingType },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -645,22 +666,32 @@ export async function clipRasterByExtent(
     )[0];
 
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: 'Clip Raster by Extent',
-        schema,
-        model,
         sourceData: {
           inputLayer: selectedLayerId,
           outputFileName,
         },
-        formContext: 'create',
-        processingType: 'ClipRasterByExtent',
+        formContext: 'create' as const,
+        processingType: 'ClipRasterByExtent' as const,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: 'ClipRasterByExtent' },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -952,23 +983,33 @@ export async function clipRasterByVector(
     };
 
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: 'Clip Raster by Vector',
-        schema,
-        model,
         sourceData: {
           inputLayer: inputLayerId,
           outputFileName,
           cropToCutline: true,
         },
-        formContext: 'create',
-        processingType: 'ClipRasterByVector',
+        formContext: 'create' as const,
+        processingType: 'ClipRasterByVector' as const,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: 'ClipRasterByVector' },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -1378,22 +1419,32 @@ export async function clipVectorByMaskLayer(
         .get('ClipVectorByMaskLayer') as IDict),
     };
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: 'Clip',
-        schema,
-        model,
         sourceData: {
           inputLayer: inputLayerId,
           outputLayerName: `${selected.name} Clipped`,
         },
-        formContext: 'create',
-        processingType: 'ClipVectorByMaskLayer',
+        formContext: 'create' as const,
+        processingType: 'ClipVectorByMaskLayer' as const,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: 'ClipVectorByMaskLayer' },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {

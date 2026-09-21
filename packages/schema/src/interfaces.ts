@@ -155,6 +155,57 @@ export interface IDrawCustomAttributesAwarenessState {
   emitter?: string | null;
 }
 
+export type FollowDialogKind =
+  | 'symbology'
+  | 'layerProperties'
+  | 'layerCreation'
+  | 'processing'
+  | 'layerBrowser'
+  | 'storyEditor';
+
+export interface IOpenDialogState {
+  kind: FollowDialogKind;
+  params?: IDict;
+}
+
+export interface IOpenDialogAwarenessState {
+  value?: IOpenDialogState | null;
+  emitter?: string | null;
+}
+
+/**
+ * The live contents of the open dialog, keyed by which part of it they belong
+ * to (the rjsf form data, the symbology rules, ...). Only what the dialog
+ * holds in React state: nothing here is written to the document.
+ */
+export interface IDialogStateAwarenessState {
+  value?: IDict | null;
+  emitter?: string | null;
+}
+
+/**
+ * Where the mouse is inside the open dialog and how far its panes are
+ * scrolled. Both are fractions rather than pixels, so they land in the same
+ * place on a window of a different size.
+ *
+ * This is deliberately a field of its own rather than part of the dialog
+ * contents: it changes many times a second, and merging it into the contents
+ * would rebroadcast the whole form on every mouse move.
+ */
+export interface IDialogViewState {
+  kind: FollowDialogKind;
+  pointer?: { x: number; y: number };
+  /**
+   * Scroll offset per scrollable pane, keyed by its position in the dialog.
+   */
+  scroll?: { [path: string]: number };
+}
+
+export interface IDialogViewAwarenessState {
+  value?: IDialogViewState | null;
+  emitter?: string | null;
+}
+
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   lastAddedLayer?: { layerId?: string };
@@ -167,6 +218,9 @@ export interface IJupyterGISClientState {
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
   drawCustomAttributes: IDrawCustomAttributesAwarenessState;
+  openDialog: IOpenDialogAwarenessState;
+  dialogState: IDialogStateAwarenessState;
+  dialogView: IDialogViewAwarenessState;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -179,6 +233,9 @@ export const AWARENESS_STATE_FIELDS = {
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
   drawCustomAttributes: 'drawCustomAttributes',
+  openDialog: 'openDialog',
+  dialogState: 'dialogState',
+  dialogView: 'dialogView',
   remoteUser: 'remoteUser',
   isTemporalControllerActive: 'isTemporalControllerActive',
   lastAddedLayer: 'lastAddedLayer',
@@ -336,6 +393,18 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   >;
+  openDialogChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
+  >;
+  dialogStateChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogState']>
+  >;
+  dialogViewChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogView']>
+  >;
   remoteUserChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -449,6 +518,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     name: string,
     attributes: IDrawCustomAttribute[],
   ): void;
+  syncOpenDialog(dialog: IOpenDialogState | null, emitter?: string): void;
+  syncDialogState(state: IDict | null, emitter?: string): void;
+  setDialogStateKey(key: string, value: unknown, emitter?: string): void;
+  syncDialogView(view: IDialogViewState | null, emitter?: string): void;
+  updateDialogView(patch: Partial<IDialogViewState>, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
