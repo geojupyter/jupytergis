@@ -33,6 +33,7 @@ import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
 import { Slider } from '@/src/shared/components/Slider';
 import {
+  columns2Icon,
   nonVisibilityIcon,
   targetWithCenterIcon,
   visibilityIcon,
@@ -784,6 +785,25 @@ interface ILayerProps {
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
+type ComparedSide = 'left' | 'right' | null;
+
+function getComparedSide(
+  layerId: string,
+  model: IJupyterGISModel | undefined,
+): ComparedSide {
+  const layers = model?.getComparison()?.layers;
+
+  if (!layers) {
+    return null;
+  }
+
+  if (layers[0] === layerId) {
+    return 'left';
+  }
+
+  return layers[1] === layerId ? 'right' : null;
+}
+
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
   return (
     (model?.localState?.selected?.value &&
@@ -806,6 +826,9 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
+  );
+  const [comparedSide, setComparedSide] = useState<ComparedSide>(
+    getComparedSide(layerId, gisModel),
   );
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -849,6 +872,21 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
     return () => {
       gisModel?.selectedChanged.disconnect(handleSelectedChanged);
+    };
+  }, [gisModel, layerId]);
+
+  /**
+   * Listen to the layers being compared in the map view.
+   */
+  useEffect(() => {
+    const handleComparisonChanged = () => {
+      setComparedSide(getComparedSide(layerId, gisModel));
+    };
+    gisModel?.sharedOptionsChanged.connect(handleComparisonChanged);
+    handleComparisonChanged();
+
+    return () => {
+      gisModel?.sharedOptionsChanged.disconnect(handleComparisonChanged);
     };
   }, [gisModel, layerId]);
 
@@ -1053,6 +1091,19 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           <LabIcon.resolveReact
             {...icons.get(layer.type)}
             className={LAYER_ICON_CLASS}
+          />
+        )}
+
+        {comparedSide && (
+          <LabIcon.resolveReact
+            icon={columns2Icon}
+            className={LAYER_ICON_CLASS}
+            tag="span"
+            title={
+              comparedSide === 'left'
+                ? 'Compared, shown left of the swipe divider'
+                : 'Compared, shown right of the swipe divider'
+            }
           />
         )}
 
