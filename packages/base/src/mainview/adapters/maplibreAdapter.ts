@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type {
   IDict,
   IIdentifiedFeature,
@@ -110,15 +109,25 @@ export class MapLibreAdapter implements IMapAdapter {
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Sources
-  // ---------------------------------------------------------------------
-
   async addSource(id: string, source: IJGISSource): Promise<void> {
-    if (this._map.getSource(id)) {
-      return;
+    this._log('info', `Loading source "${source.name ?? id}" (${source.type})`);
+
+    const pending = this._pendingSourceAdds.get(id);
+    if (pending) {
+      return pending;
     }
 
+    const promise = this._addSource(id, source).finally(() => {
+      this._pendingSourceAdds.delete(id);
+    });
+    this._pendingSourceAdds.set(id, promise);
+    return promise;
+  }
+
+  private async _addSource(
+    id: string,
+    source: IJGISSource,
+  ): Promise<void> {
     switch (source.type) {
       case 'GeoJSONSource': {
         const data =
@@ -137,26 +146,26 @@ export class MapLibreAdapter implements IMapAdapter {
       }
 
       case 'VectorTileSource': {
-        const parameters = source.parameters as IVectorTileSource;
+        const sourceParameters = source.parameters as IVectorTileSource;
         this._map.addSource(id, {
           type: 'vector',
           url: this._computeSourceUrl(source),
-          minzoom: parameters.minZoom,
-          maxzoom: parameters.maxZoom,
-          attribution: parameters.attribution,
+          minzoom: sourceParameters.minZoom,
+          maxzoom: sourceParameters.maxZoom,
+          attribution: sourceParameters.attribution,
         });
         break;
       }
 
       case 'RasterSource': {
-        const parameters = source.parameters as IRasterSource;
+        const sourceParameters = source.parameters as IRasterSource;
         this._map.addSource(id, {
           type: 'raster',
           tiles: [this._computeSourceUrl(source)],
           tileSize: 256,
-          minzoom: parameters.minZoom,
-          maxzoom: parameters.maxZoom,
-          attribution: parameters.attribution,
+          minzoom: sourceParameters.minZoom,
+          maxzoom: sourceParameters.maxZoom,
+          attribution: sourceParameters.attribution,
         });
         break;
       }
@@ -183,18 +192,18 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   private _computeSourceUrl(source: IJGISSource): string {
-    const parameters = source.parameters as IRasterSource;
-    const urlParameters = parameters.urlParameters || {};
-    let url: string = parameters.url;
+    const sourceParameters = source.parameters as IRasterSource;
+    const urlParameters = sourceParameters.urlParameters || {};
+    let url: string = sourceParameters.url;
 
     for (const parameterName of Object.keys(urlParameters)) {
       url = url.replace(`{${parameterName}}`, urlParameters[parameterName]);
     }
     if (url.includes('{max_zoom}')) {
-      url = url.replace('{max_zoom}', String(parameters.maxZoom));
+      url = url.replace('{max_zoom}', String(sourceParameters.maxZoom));
     }
     if (url.includes('{min_zoom}')) {
-      url = url.replace('{min_zoom}', String(parameters.minZoom));
+      url = url.replace('{min_zoom}', String(sourceParameters.minZoom));
     }
 
     return url;
@@ -270,8 +279,8 @@ export class MapLibreAdapter implements IMapAdapter {
     try {
       switch (layer.type) {
         case 'VectorLayer': {
-          const parameters = layer.parameters as IVectorLayer;
-          const sourceId = parameters.source;
+          const layerParameters = layer.parameters as IVectorLayer;
+          const sourceId = layerParameters.source;
 
           if (!this._map.getSource(sourceId)) {
             this._log(
@@ -285,7 +294,7 @@ export class MapLibreAdapter implements IMapAdapter {
             id,
             sourceId,
             layer.visible ?? true,
-            parameters.opacity ?? 1,
+            layerParameters.opacity ?? 1,
             '#3388ff',
             index,
           );
@@ -295,21 +304,21 @@ export class MapLibreAdapter implements IMapAdapter {
         }
 
         case 'VectorTileLayer': {
-          const parameters = layer.parameters as IVectorTileLayer;
+          const layerParameters = layer.parameters as IVectorTileLayer;
 
-          if (!this._map.getSource(parameters.source)) {
+          if (!this._map.getSource(layerParameters.source)) {
             this._log(
               'error',
-              `MapLibreAdapter: cannot add layer ${id}, source "${parameters.source}" was not found.`,
+              `MapLibreAdapter: cannot add layer ${id}, source "${layerParameters.source}" was not found.`,
             );
             return;
           }
 
           this._addVectorLayerGroup(
             id,
-            parameters.source,
+            layerParameters.source,
             layer.visible ?? true,
-            parameters.opacity ?? 1,
+            layerParameters.opacity ?? 1,
             '#3388ff',
             index,
           );
@@ -319,8 +328,8 @@ export class MapLibreAdapter implements IMapAdapter {
         }
 
         case 'RasterLayer': {
-          const parameters = layer.parameters as IRasterLayer;
-          const sourceId = parameters.source;
+          const layerParameters = layer.parameters as IRasterLayer;
+          const sourceId = layerParameters.source;
 
           if (!this._map.getSource(sourceId)) {
             this._log(
@@ -339,7 +348,7 @@ export class MapLibreAdapter implements IMapAdapter {
                 visibility: layer.visible ? 'visible' : 'none',
               },
               paint: {
-                'raster-opacity': parameters.opacity ?? 1,
+                'raster-opacity': layerParameters.opacity ?? 1,
               },
             },
             this._beforeIdForIndex(index),
@@ -407,11 +416,11 @@ export class MapLibreAdapter implements IMapAdapter {
 
     switch (layer.type) {
       case 'RasterLayer': {
-        const parameters = layer.parameters as IRasterLayer;
+        const layerParameters = layer.parameters as IRasterLayer;
         this._map.setPaintProperty(
           id,
           'raster-opacity',
-          parameters.opacity ?? 1,
+          layerParameters.opacity ?? 1,
         );
         this._map.setLayoutProperty(id, 'visibility', visibility);
         break;
@@ -419,9 +428,11 @@ export class MapLibreAdapter implements IMapAdapter {
 
       case 'VectorLayer':
       case 'VectorTileLayer': {
-        const parameters = layer.parameters as IVectorLayer | IVectorTileLayer;
-        const opacity = parameters.opacity ?? 1;
-        const color = parameters.color?.hex ?? '#3388ff';
+        const layerParameters = layer.parameters as
+          | IVectorLayer
+          | IVectorTileLayer;
+        const opacity = layerParameters.opacity ?? 1;
+        const color = layerParameters.color?.hex ?? '#3388ff';
         const [fillId, lineId, circleId] = subIds;
 
         this._map.setPaintProperty(fillId, 'fill-color', color);
@@ -784,6 +795,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _presentationHadNavigationControl = false;
   private _layerVisibility = new Map<string, boolean>();
   private _loadingLayers: Set<string>;
+  private _pendingSourceAdds = new Map<string, Promise<void>>();
   private _layerSubIds = new Map<string, string[]>();
   private _layerOrder: string[] = [];
   private _warnedOnce = new Set<string>();
