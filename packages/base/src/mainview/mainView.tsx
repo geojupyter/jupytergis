@@ -881,11 +881,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ]);
 
       clientPointers[clientId] = {
-        username: client.user.username,
-        displayName: client.user.display_name,
-        initials: client.user.initials ?? '',
-        avatarUrl: client.user.avatar_url,
-        color: client.user.color,
+        user: client.user,
         coordinates: {
           x: pixel[0],
           y: pixel[1],
