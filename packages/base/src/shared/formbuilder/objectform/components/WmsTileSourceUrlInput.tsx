@@ -32,10 +32,10 @@ export function WmsTileSourceUrlInput(
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const namedLayerCount = layers.filter(layer => layer.name !== '').length;
   // handleConnect sets the layers before its cache save resolves, so wait for
   // isLoading to clear; a Disconnect in that window would be undone by the save.
-  const isConnected = layers.length > 0 && !isLoading;
-  const namedLayerCount = layers.filter(layer => layer.name !== '').length;
+  const isConnected = namedLayerCount > 0 && !isLoading;
 
   const handleDisconnect = async () => {
     setError(undefined);
