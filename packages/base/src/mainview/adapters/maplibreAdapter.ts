@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type {
   IDict,
   IIdentifiedFeature,
@@ -10,15 +11,28 @@ import type {
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
+  IViewState,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
-import { Map as MlMap, NavigationControl } from 'maplibre-gl';
+import type {
+  Feature as GeoJSONFeature,
+  FeatureCollection,
+  Geometry,
+} from 'geojson';
+import {
+  GeoJSONSource,
+  LngLatBoundsLike,
+  Map as MlMap,
+  NavigationControl,
+} from 'maplibre-gl';
 
 import { loadFile } from '@/src/tools';
 import { ClientPointer } from '.././CollaboratorPointers';
 import { IMapAdapter, IMapAdapterOptions, IMapProjection } from '../mapAdapter';
+import { isValidExtent } from '../utils/olLayerZoomExtent';
+
+const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 
 export class MapLibreAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
@@ -146,6 +160,8 @@ export class MapLibreAdapter implements IMapAdapter {
           data = JSON.parse(data);
         }
 
+        this._geojsonData.set(id, data as GeoJSONFeature | FeatureCollection);
+
         this._map.addSource(id, {
           type: 'geojson',
           data,
@@ -191,14 +207,18 @@ export class MapLibreAdapter implements IMapAdapter {
           'warning',
           `MapLibreAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
         );
+        return;
       }
     }
+
+    this._trackSourceExtZoom(id, source.type);
   }
 
   removeSource(id: string): void {
     if (this._map.getSource(id)) {
       this._map.removeSource(id);
     }
+    this._geojsonData.delete(id);
   }
 
   async updateSource(id: string, source: IJGISSource): Promise<void> {
@@ -228,16 +248,11 @@ export class MapLibreAdapter implements IMapAdapter {
   private _resolveVectorSourceLayer(sourceId: string): string | undefined {
     const source = this._model.getSource(sourceId);
 
-    console.log('JGIS vector source:', source);
-    console.log('JGIS vector source parameters:', source?.parameters);
-
     if (!source || source.type !== 'VectorTileSource') {
       return undefined;
     }
 
     const sourceParameters = source.parameters as IVectorTileSource;
-
-    console.log('sourceLayer:', sourceParameters.sourceLayer);
 
     return sourceParameters.sourceLayer || undefined;
   }
@@ -433,6 +448,7 @@ export class MapLibreAdapter implements IMapAdapter {
       }
 
       this._insertIntoLayerOrder(id, index);
+      this._trackLayerViewState(id);
 
       this._callbacks?.onLayerInserted?.(
         this._map.getStyle().layers?.length ?? 0,
@@ -560,6 +576,15 @@ export class MapLibreAdapter implements IMapAdapter {
       }
     }
     this._layerOrder = [...layerIds];
+
+    if (
+      this._pendingZoomLayerId &&
+      this._layerSubIds.has(this._pendingZoomLayerId)
+    ) {
+      const pendingId = this._pendingZoomLayerId;
+      this._pendingZoomLayerId = null;
+      this.onZoomToPosition(pendingId);
+    }
   }
 
   /**
@@ -627,17 +652,29 @@ export class MapLibreAdapter implements IMapAdapter {
     duration = 1000,
     transitionType?: 'linear' | 'immediate' | 'smooth',
   ): void {
-    if (transitionType === 'immediate') {
-      this._map.jumpTo({ center: [center.x, center.y], zoom });
+    const targetCenter: [number, number] = [center.x, center.y];
+
+    if (transitionType === 'linear') {
+      this._map.easeTo({
+        center: targetCenter,
+        zoom,
+        duration,
+        easing: t => t,
+      });
       return;
     }
 
-    this._map.flyTo({
-      center: [center.x, center.y],
-      zoom,
-      duration,
-      curve: transitionType === 'smooth' ? 1.8 : 1.42,
-    });
+    if (transitionType === 'smooth') {
+      this._map.flyTo({
+        center: targetCenter,
+        zoom,
+        duration,
+        curve: 1.8,
+      });
+      return;
+    }
+
+    this._map.jumpTo({ center: targetCenter, zoom });
   }
 
   moveToPosition(center: JgisCoordinates, zoom: number, duration = 1000): void {
@@ -684,10 +721,6 @@ export class MapLibreAdapter implements IMapAdapter {
 
     return updated;
   }
-
-  // ---------------------------------------------------------------------
-  // Controls / navigation
-  // ---------------------------------------------------------------------
 
   setZoomButtonsEnabled(enabled: boolean | undefined): void {
     if (!enabled && this._navigationControl) {
@@ -740,10 +773,6 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
-  // ---------------------------------------------------------------------
-  // Debug registry — mirrors OpenLayersAdapter.registerMap/unregisterMap.
-  // ---------------------------------------------------------------------
-
   registerMap(path?: string): void {
     if (window.jupytergisMaps === undefined) {
       return;
@@ -767,14 +796,224 @@ export class MapLibreAdapter implements IMapAdapter {
     this._mapKey = undefined;
   }
 
-  //   Todos
-
   onZoomToPosition(id: string): void {
-    this._notImplemented('onZoomToPosition', id);
+    // Check if the id is an annotation, same as OpenLayersAdapter.
+    const annotation = this._model.annotationModel?.getAnnotation(id);
+    if (annotation) {
+      this.flyToPosition(annotation.position, annotation.zoom);
+      return;
+    }
+
+    if (!this._layerSubIds.has(id)) {
+      // retry until the layer is loaded
+      this._pendingZoomLayerId = id;
+      return;
+    }
+
+    this._fitViewToExtent(this._computeExtentForLayer(id), id);
   }
 
   convertFeatureToMs(args: string): void {
-    this._notImplemented('convertFeatureToMs', args);
+    const json = JSON.parse(args);
+    const { id: layerId, selectedFeature } = json;
+
+    const sourceId = this._sourceIdForLayer(layerId);
+    if (!sourceId) {
+      return;
+    }
+
+    const data = this._geojsonData.get(sourceId);
+    if (!data) {
+      return;
+    }
+
+    const features = this._featuresFromGeoJson(data);
+
+    features.forEach(feature => {
+      if (!feature.properties) {
+        feature.properties = {};
+      }
+      const time = feature.properties[selectedFeature];
+      const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
+      feature.properties[`${selectedFeature}ms`] = parsedTime;
+    });
+
+    const source = this._map.getSource(sourceId) as GeoJSONSource;
+    source?.setData(data as any);
+  }
+
+  /**
+   * Computes the source id for a layer.
+   */
+  private _sourceIdForLayer(layerId: string): string | undefined {
+    const layer = this._model.getLayer(layerId);
+    return layer?.parameters?.source;
+  }
+
+  /**
+   * Computes the extent for a layer.
+   */
+  private _computeExtentForLayer(layerId: string): number[] | undefined {
+    const sourceId = this._sourceIdForLayer(layerId);
+    if (!sourceId) {
+      return undefined;
+    }
+
+    const source = this._model.getSource(sourceId);
+    return this._computeExtentForSource(sourceId, source?.type);
+  }
+
+  /* GeoJSON sources contain feature data, so their extent can be computed
+   * from the features. Raster and vector tile sources only provide tile URLs,
+   * so MapLibre does not expose dataset bounds for them; use the world extent
+   * as a fallback until source bounds are supported.
+   */
+
+  private _computeExtentForSource(
+    sourceId: string,
+    sourceType?: string,
+  ): number[] | undefined {
+    switch (sourceType) {
+      case 'GeoJSONSource':
+        return this._computeGeoJsonExtent(sourceId);
+
+      case 'RasterSource':
+      case 'VectorTileSource':
+        return [...WORLD_EXTENT];
+
+      default:
+        return undefined;
+    }
+  }
+
+  /** Extent of a cached GeoJSON source's features, in lng/lat degrees. */
+  private _computeGeoJsonExtent(sourceId: string): number[] | undefined {
+    const data = this._geojsonData.get(sourceId);
+    if (!data) {
+      return undefined;
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    const visitCoords = (coords: any): void => {
+      if (typeof coords[0] === 'number') {
+        const [x, y] = coords;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        return;
+      }
+      coords.forEach(visitCoords);
+    };
+
+    const visitGeometry = (geometry: Geometry | null | undefined): void => {
+      if (!geometry) {
+        return;
+      }
+      if (geometry.type === 'GeometryCollection') {
+        geometry.geometries.forEach(visitGeometry);
+        return;
+      }
+      visitCoords((geometry as any).coordinates);
+    };
+
+    this._featuresFromGeoJson(data).forEach(feature =>
+      visitGeometry(feature.geometry),
+    );
+
+    const extent = [minX, minY, maxX, maxY];
+    return isValidExtent(extent) ? extent : undefined;
+  }
+
+  private _featuresFromGeoJson(
+    data: GeoJSONFeature | FeatureCollection,
+  ): GeoJSONFeature[] {
+    if (data.type === 'FeatureCollection') {
+      return data.features;
+    }
+    if (data.type === 'Feature') {
+      return [data];
+    }
+    return [];
+  }
+
+  /**
+   * Fits the view to an extent.
+   */
+  private _fitViewToExtent(
+    extent: number[] | undefined,
+    layerId: string,
+    options: { duration?: number; padding?: number } = {},
+  ): void {
+    if (!isValidExtent(extent)) {
+      this._log('warning', `Layer ${layerId} extent is not valid.`);
+      return;
+    }
+
+    this._map.fitBounds(this._toLngLatBounds(extent), {
+      duration: options.duration ?? 500,
+      padding: options.padding ?? 40,
+      maxZoom: 16,
+    });
+  }
+
+  /**
+   * Computes the zoom level from an extent.
+   */
+  private _computeZoomFromExtent(extent: number[]): number | null {
+    if (!this._map || !isValidExtent(extent)) {
+      this._log('warning', 'Extent is not valid.');
+      return null;
+    }
+
+    const camera = this._map.cameraForBounds(this._toLngLatBounds(extent));
+    return camera?.zoom ?? this._map.getZoom() ?? null;
+  }
+
+  private _toLngLatBounds(extent: number[]): LngLatBoundsLike {
+    return [
+      [extent[0], extent[1]],
+      [extent[2], extent[3]],
+    ];
+  }
+
+  private _trackSourceExtZoom(sourceId: string, sourceType?: string): void {
+    const extent = this._computeExtentForSource(sourceId, sourceType);
+    if (!isValidExtent(extent)) {
+      this._log('warning', `Source ${sourceId} extent is not valid to track.`);
+      return;
+    }
+
+    const zoom = this._computeZoomFromExtent(extent);
+    if (zoom === null) {
+      return;
+    }
+
+    const view: IViewState[string] = { extent, zoom };
+    this._model.updateLayerViewState(sourceId, view);
+  }
+
+  /**
+   * Track layer's extent and zoom in model's view state
+   */
+  private _trackLayerViewState(layerId: string): void {
+    const extent = this._computeExtentForLayer(layerId);
+    if (!isValidExtent(extent)) {
+      this._log('warning', `Layer ${layerId} extent is not valid to track.`);
+      return;
+    }
+
+    const zoom = this._computeZoomFromExtent(extent);
+    if (zoom === null) {
+      return;
+    }
+
+    const view: IViewState[string] = { extent, zoom };
+    this._model.updateLayerViewState(layerId, view);
   }
 
   handleLocationIndicatorToggled(): void {
@@ -861,8 +1100,10 @@ export class MapLibreAdapter implements IMapAdapter {
   private _layerVisibility = new Map<string, boolean>();
   private _loadingLayers: Set<string>;
   private _pendingSourceAdds = new Map<string, Promise<void>>();
+  private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _layerSubIds = new Map<string, string[]>();
   private _layerOrder: string[] = [];
+  private _pendingZoomLayerId: string | null = null;
   private _warnedOnce = new Set<string>();
   private _callbacks?: IMapAdapterOptions['callbacks'];
 }
