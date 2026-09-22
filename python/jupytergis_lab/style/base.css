@@ -460,7 +460,13 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   paint-order: stroke fill;
 }
 
-.jGIS-Remote-Pointer-Label {
+/* The pill comes from @jupyter/collaboration, whose own CSS is a CodeMirror
+   base theme and so only applies inside an editor. Restyle it here. */
+.jGIS-Remote-Pointer-Pill-Host {
+  display: contents;
+}
+
+.jGIS-Remote-Pointer .jp-remote-userFlag {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -476,7 +482,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   line-height: 1.2;
 }
 
-.jGIS-Remote-Pointer-Avatar {
+.jGIS-Remote-Pointer .jp-remote-userFlag-avatar {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
@@ -489,13 +495,13 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   font-size: 8px;
 }
 
-.jGIS-Remote-Pointer-Avatar > img {
+.jGIS-Remote-Pointer .jp-remote-userFlag-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.jGIS-Remote-Pointer-Name {
+.jGIS-Remote-Pointer .jp-remote-userFlag-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
