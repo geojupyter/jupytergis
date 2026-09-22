@@ -24,10 +24,7 @@ export interface IDrawToolHost {
   onDrawGeometryLabelChange(label: string): void;
 }
 
-/**
- * OpenLayers-specific draw / modify / snap interactions.
- */
-export class DrawToolController implements IDrawToolAdapter {
+export class OpenLayersDrawToolController implements IDrawToolAdapter {
   private _draw: Draw | undefined;
   private _snap: Snap | undefined;
   private _modify: Modify | undefined;

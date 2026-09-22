@@ -109,7 +109,7 @@ import projcodes from 'proj-codes';
 import proj4 from 'proj4';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
-import { DrawToolController } from '@/src/features/draw-tool/open-layers/drawToolController';
+import { OpenLayersDrawToolController } from '@/src/features/draw-tool/open-layers/openLayersDrawToolController';
 import {
   ensureHighlightLayer,
   buildHighlightStyle,
@@ -170,7 +170,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
     this._loadingLayers = new Set();
-    this._drawTool = new DrawToolController({
+    this._drawTool = new OpenLayersDrawToolController({
       getMap: () => this._map,
       getLayer: layerId => this.getLayer(layerId),
       getModel: () => this._model,
