@@ -80,7 +80,7 @@ export class DrawToolController implements IDrawToolAdapter {
     this._host.onDrawGeometryLabelChange('');
   }
 
-  deleteAtCoordinate(coordinate: number[]): boolean {
+  deleteAtCoordinate(coordinate: Coordinate): boolean {
     const map = this._host.getMap();
     if (!this._currentDrawLayerId || !map) {
       return false;
@@ -91,7 +91,7 @@ export class DrawToolController implements IDrawToolAdapter {
       return false;
     }
 
-    const pixel = map.getPixelFromCoordinate(coordinate as Coordinate);
+    const pixel = map.getPixelFromCoordinate(coordinate);
     if (!pixel) {
       return false;
     }
@@ -129,7 +129,7 @@ export class DrawToolController implements IDrawToolAdapter {
     return true;
   }
 
-  hasFeatureAtCoordinate(coordinate: number[]): boolean {
+  hasFeatureAtCoordinate(coordinate: Coordinate): boolean {
     const map = this._host.getMap();
     if (!this._currentDrawLayerId || !map) {
       return false;
@@ -139,7 +139,7 @@ export class DrawToolController implements IDrawToolAdapter {
       return false;
     }
 
-    const pixel = map.getPixelFromCoordinate(coordinate as Coordinate);
+    const pixel = map.getPixelFromCoordinate(coordinate);
     if (!pixel) {
       return false;
     }
