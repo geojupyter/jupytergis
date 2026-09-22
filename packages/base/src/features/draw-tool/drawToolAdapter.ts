@@ -1,6 +1,3 @@
-/**
- * Engine-agnostic draw / edit API used by MainView via the map adapter.
- */
 export interface IDrawToolAdapter {
   readonly currentDrawLayerId: string | undefined;
   readonly currentDrawSourceId: string | undefined;

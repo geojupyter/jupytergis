@@ -12,7 +12,6 @@ import { Layer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 
 import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
-
 import type { IDrawToolAdapter } from '../drawToolAdapter';
 import { drawInteractionStyle } from './drawInteractionStyle';
 import { getVectorSourceFromLayer, isDrawLayer } from './drawToolUtils';

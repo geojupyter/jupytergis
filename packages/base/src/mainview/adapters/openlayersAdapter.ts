@@ -108,10 +108,8 @@ import StacLayer from 'ol-stac';
 import projcodes from 'proj-codes';
 import proj4 from 'proj4';
 
-import {
-  DrawToolController,
-  type IDrawToolAdapter,
-} from '@/src/features/draw-tool';
+import type { IDrawToolAdapter } from '@/src/features/draw-tool';
+import { DrawToolController } from '@/src/features/draw-tool/open-layers/drawToolController';
 import {
   ensureHighlightLayer,
   buildHighlightStyle,

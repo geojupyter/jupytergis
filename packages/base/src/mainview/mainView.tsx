@@ -529,7 +529,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ) {
           return false;
         }
-        
+
         return this._mapAdapter.drawTool.hasFeatureAtCoordinate(
           this._clickCoords,
         );
