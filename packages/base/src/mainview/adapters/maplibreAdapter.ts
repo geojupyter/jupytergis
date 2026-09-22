@@ -82,6 +82,7 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.once('load', () => resolve());
     });
 
+    this._map.resize();
     this._setupViewEvents();
   }
 
@@ -107,6 +108,10 @@ export class MapLibreAdapter implements IMapAdapter {
         event.lngLat.lat,
       ]);
     });
+
+    this._map.on('error', event => {
+      console.error('MapLibre error:', event.error);
+    });
   }
 
   async addSource(id: string, source: IJGISSource): Promise<void> {
@@ -124,36 +129,47 @@ export class MapLibreAdapter implements IMapAdapter {
     return promise;
   }
 
-  private async _addSource(
-    id: string,
-    source: IJGISSource,
-  ): Promise<void> {
+  private async _addSource(id: string, source: IJGISSource): Promise<void> {
     switch (source.type) {
       case 'GeoJSONSource': {
-        const data =
-          source.parameters?.data ||
-          (await loadFile({
+        let data = source.parameters?.data;
+
+        if (!data) {
+          data = await loadFile({
             filepath: source.parameters?.path,
             type: 'GeoJSONSource',
             model: this._model,
-          }));
+          });
+        }
+
+        if (typeof data === 'string') {
+          data = JSON.parse(data);
+        }
 
         this._map.addSource(id, {
           type: 'geojson',
           data,
         });
+
         break;
       }
 
       case 'VectorTileSource': {
         const sourceParameters = source.parameters as IVectorTileSource;
+
+        const url = this._computeSourceUrl(source);
+
+        const isTms = url.includes('{-y}');
+
         this._map.addSource(id, {
           type: 'vector',
-          url: this._computeSourceUrl(source),
+          tiles: [url],
+          scheme: isTms ? 'tms' : 'xyz',
           minzoom: sourceParameters.minZoom,
           maxzoom: sourceParameters.maxZoom,
           attribution: sourceParameters.attribution,
         });
+
         break;
       }
 
@@ -209,73 +225,116 @@ export class MapLibreAdapter implements IMapAdapter {
     return url;
   }
 
+  private _resolveVectorSourceLayer(sourceId: string): string | undefined {
+    const source = this._model.getSource(sourceId);
+
+    console.log('JGIS vector source:', source);
+    console.log('JGIS vector source parameters:', source?.parameters);
+
+    if (!source || source.type !== 'VectorTileSource') {
+      return undefined;
+    }
+
+    const sourceParameters = source.parameters as IVectorTileSource;
+
+    console.log('sourceLayer:', sourceParameters.sourceLayer);
+
+    return sourceParameters.sourceLayer || undefined;
+  }
+
   private _addVectorLayerGroup(
     id: string,
     sourceId: string,
     visible: boolean,
     opacity: number,
-    color?: string,
+    color: string,
     index?: number,
+    sourceLayer?: string,
   ): void {
-    const beforeId = this._beforeIdForIndex(index);
-    const fillId = `${id}-fill`;
-    const lineId = `${id}-line`;
-    const circleId = `${id}-circle`;
     const visibility = visible ? 'visible' : 'none';
+
+    const sourceLayerProperty = sourceLayer
+      ? { 'source-layer': sourceLayer }
+      : {};
 
     this._map.addLayer(
       {
-        id: fillId,
+        id: `${id}-fill`,
         type: 'fill',
         source: sourceId,
-        filter: ['==', ['geometry-type'], 'Polygon'],
-        layout: { visibility },
-        paint: { 'fill-color': color, 'fill-opacity': opacity * 0.4 },
+        ...sourceLayerProperty,
+        filter: [
+          'any',
+          ['==', ['geometry-type'], 'Polygon'],
+          ['==', ['geometry-type'], 'MultiPolygon'],
+        ],
+        layout: {
+          visibility,
+        },
+        paint: {
+          'fill-color': color,
+          'fill-opacity': opacity * 0.4,
+        },
       },
-      beforeId,
+      this._beforeIdForIndex(index),
     );
+
     this._map.addLayer(
       {
-        id: lineId,
+        id: `${id}-line`,
         type: 'line',
         source: sourceId,
+        ...sourceLayerProperty,
         filter: [
           'any',
           ['==', ['geometry-type'], 'LineString'],
+          ['==', ['geometry-type'], 'MultiLineString'],
           ['==', ['geometry-type'], 'Polygon'],
+          ['==', ['geometry-type'], 'MultiPolygon'],
         ],
-        layout: { visibility },
+        layout: {
+          visibility,
+        },
         paint: {
           'line-color': color,
           'line-opacity': opacity,
           'line-width': 2,
         },
       },
-      beforeId,
+      this._beforeIdForIndex(index),
     );
+
     this._map.addLayer(
       {
-        id: circleId,
+        id: `${id}-circle`,
         type: 'circle',
         source: sourceId,
-        filter: ['==', ['geometry-type'], 'Point'],
-        layout: { visibility },
+        ...sourceLayerProperty,
+        filter: [
+          'any',
+          ['==', ['geometry-type'], 'Point'],
+          ['==', ['geometry-type'], 'MultiPoint'],
+        ],
+        layout: {
+          visibility,
+        },
         paint: {
           'circle-color': color,
           'circle-opacity': opacity,
           'circle-radius': 5,
         },
       },
-      beforeId,
+      this._beforeIdForIndex(index),
     );
 
-    this._layerSubIds.set(id, [fillId, lineId, circleId]);
+    this._layerSubIds.set(id, [`${id}-fill`, `${id}-line`, `${id}-circle`]);
   }
 
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
     this._callbacks?.onLayerAddStarted?.();
     this._loadingLayers.add(id);
 
+    this._log('info', `MapLibreAdapter: adding layer ${id}`);
     try {
       switch (layer.type) {
         case 'VectorLayer': {
@@ -304,26 +363,32 @@ export class MapLibreAdapter implements IMapAdapter {
         }
 
         case 'VectorTileLayer': {
-          const layerParameters = layer.parameters as IVectorTileLayer;
+          const sourceId = layer.parameters?.source;
 
-          if (!this._map.getSource(layerParameters.source)) {
-            this._log(
-              'error',
-              `MapLibreAdapter: cannot add layer ${id}, source "${layerParameters.source}" was not found.`,
-            );
+          if (!sourceId || !this._map.getSource(sourceId)) {
+            console.warn(`Source ${sourceId} not found for layer ${id}`);
+            return;
+          }
+
+          const sourceLayer = this._resolveVectorSourceLayer(sourceId);
+
+          if (!sourceLayer) {
+            console.warn(`No source-layer found for vector source ${sourceId}`);
             return;
           }
 
           this._addVectorLayerGroup(
             id,
-            layerParameters.source,
+            sourceId,
             layer.visible ?? true,
-            layerParameters.opacity ?? 1,
+            layer.parameters?.opacity ?? 1,
             '#3388ff',
             index,
+            sourceLayer,
           );
 
           this._layerVisibility.set(id, layer.visible ?? true);
+
           break;
         }
 
