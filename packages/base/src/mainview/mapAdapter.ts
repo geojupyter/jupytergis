@@ -18,6 +18,8 @@ import { ClientPointer } from './CollaboratorPointers';
 
 export type MapAdapterType = 'openlayers';
 
+export const VIEWPORT_SYNC_INTERVAL = 200;
+
 export interface IMapProjection {
   code: string;
   units: string;
@@ -77,6 +79,7 @@ export interface IMapAdapter {
     center: JgisCoordinates,
     zoom: number,
     duration?: number,
+    easing?: 'ease' | 'linear',
   ): void;
 
   applyOptions(

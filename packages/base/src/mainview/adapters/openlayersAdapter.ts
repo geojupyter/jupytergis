@@ -53,6 +53,7 @@ import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
 import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
+import { linear } from 'ol/easing';
 import type { EventsKey } from 'ol/events';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
@@ -141,6 +142,7 @@ import {
   IMapProjection,
   IMapAdapterCallbacks,
   IMapAdapterOptions,
+  VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
 import {
@@ -391,7 +393,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         },
         this._mainViewId,
       );
-    }, 200);
+    }, VIEWPORT_SYNC_INTERVAL);
 
     view.on('change:center', () => {
       emitBboxChanged();
@@ -401,6 +403,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     view.on('change:resolution', () => {
       this._callbacks?.onClientPointerPositionChanged?.();
+      syncViewportThrottled();
     });
 
     this._map.on('postrender', () => {
@@ -2697,6 +2700,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     center: { x: number; y: number },
     zoom: number,
     duration = 1000,
+    easing: 'ease' | 'linear' = 'ease',
   ) {
     const view = this._map.getView();
     const targetCenter: Coordinate = [center.x, center.y];
@@ -2709,7 +2713,12 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
-    view.animate({ center: targetCenter, zoom, duration });
+    view.animate({
+      center: targetCenter,
+      zoom,
+      duration,
+      easing: easing === 'linear' ? linear : undefined,
+    });
   }
 
   computeFeatureFloaterPosition(
