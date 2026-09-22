@@ -108,7 +108,10 @@ import StacLayer from 'ol-stac';
 import projcodes from 'proj-codes';
 import proj4 from 'proj4';
 
-import { DrawToolController } from '@/src/features/draw-tool';
+import {
+  DrawToolController,
+  type IDrawToolAdapter,
+} from '@/src/features/draw-tool';
 import {
   ensureHighlightLayer,
   buildHighlightStyle,
@@ -133,7 +136,6 @@ import {
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
 import {
-  IDrawToolAdapter,
   IMapAdapter,
   IMapProjection,
   IMapAdapterCallbacks,
@@ -836,6 +838,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
+    this._drawTool.leaveDrawMode();
     this._map.setTarget(undefined);
     this._sources.clear();
   }

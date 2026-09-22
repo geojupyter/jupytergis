@@ -13,6 +13,8 @@ import type {
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
+import type { IDrawToolAdapter } from '@/src/features/draw-tool';
+
 import { ClientPointer } from './CollaboratorPointers';
 
 export type MapAdapterType = 'openlayers';
@@ -99,18 +101,6 @@ export interface IMapAdapter {
   exitPresentationMode(): void;
 
   readonly drawTool: IDrawToolAdapter;
-}
-
-export interface IDrawToolAdapter {
-  readonly currentDrawLayerId: string | undefined;
-  readonly currentDrawSourceId: string | undefined;
-  handleGeometryTypeChange(drawGeometryLabel: string): void;
-  enterLayer(): void;
-  leaveDrawMode(): void;
-  removeInteractions(): void;
-  deleteAtCoordinate(coordinate: number[]): boolean;
-  hasFeatureAtCoordinate(coordinate: number[]): boolean;
-  setDrawLayerId(layerId: string): void;
 }
 
 export interface IMapAdapterOptions {

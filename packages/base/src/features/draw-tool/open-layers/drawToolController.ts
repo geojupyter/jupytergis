@@ -13,6 +13,7 @@ import { Vector as VectorSource } from 'ol/source';
 
 import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
 
+import type { IDrawToolAdapter } from '../drawToolAdapter';
 import { drawInteractionStyle } from './drawInteractionStyle';
 import { getVectorSourceFromLayer, isDrawLayer } from './drawToolUtils';
 
@@ -27,7 +28,7 @@ export interface IDrawToolHost {
 /**
  * OpenLayers-specific draw / modify / snap interactions.
  */
-export class DrawToolController {
+export class DrawToolController implements IDrawToolAdapter {
   private _draw: Draw | undefined;
   private _snap: Snap | undefined;
   private _modify: Modify | undefined;
@@ -73,12 +74,11 @@ export class DrawToolController {
     this._removeInteractions();
     this._currentDrawGeometry = undefined;
     this._currentDrawLayerId = undefined;
+    this._currentDrawSourceId = undefined;
+    this._currentDrawSource = undefined;
+    this._currentVectorSource = undefined;
     this._host.onDrawLayerIdChange(undefined);
     this._host.onDrawGeometryLabelChange('');
-  }
-
-  removeInteractions(): void {
-    this._removeInteractions();
   }
 
   deleteAtCoordinate(coordinate: number[]): boolean {
@@ -132,7 +132,11 @@ export class DrawToolController {
 
   hasFeatureAtCoordinate(coordinate: number[]): boolean {
     const map = this._host.getMap();
-    if (!this._currentVectorSource || !map) {
+    if (!this._currentDrawLayerId || !map) {
+      return false;
+    }
+
+    if (!this._resolveVectorSource(this._currentDrawLayerId)) {
       return false;
     }
 
