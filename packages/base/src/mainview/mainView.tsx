@@ -63,6 +63,9 @@ import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '../features/story/types/types';
 
+/** Duration of the initial ease-in when you start following someone. */
+const FOLLOW_JUMP_DURATION = 500;
+
 interface IMainViewProps {
   viewModel: MainViewModel;
   state?: IStateDB;
@@ -812,14 +815,24 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }));
       }
 
+      // Ease into the first jump only: tracking updates arrive every 200ms.
+      const startedFollowing = this._followedClientId !== remoteUser;
+      this._followedClientId = remoteUser;
+
       const remoteViewport = remoteState.viewportState;
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
-        this._mapAdapter?.moveToPosition({ x, y }, zoom, 0);
+        this._mapAdapter?.moveToPosition(
+          { x, y },
+          zoom,
+          startedFollowing ? FOLLOW_JUMP_DURATION : 0,
+        );
       }
       return;
     }
+
+    this._followedClientId = null;
 
     // If we are unfollowing, reset to local viewport and clear follow UI.
     if (this.state.remoteUser !== null) {
@@ -868,11 +881,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ]);
 
       clientPointers[clientId] = {
-        username: client.user.username,
-        displayName: client.user.display_name,
-        initials: client.user.initials ?? '',
-        avatarUrl: client.user.avatar_url,
-        color: client.user.color,
+        user: client.user,
         coordinates: {
           x: pixel[0],
           y: pixel[1],
@@ -1632,6 +1641,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _mapAdapter: IMapAdapter | undefined;
+  private _followedClientId: number | null = null;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;

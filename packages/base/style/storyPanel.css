@@ -367,7 +367,6 @@
 }
 
 .jgis-story-segment-transition-stack .jgis-story-map-scroll-pane {
-  height: var(--jgis-handoff-gap-height, 100%);
   min-height: var(--jgis-handoff-gap-height, 100%);
 }
 

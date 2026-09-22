@@ -1,48 +1,29 @@
 import { faArrowPointer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { collaboratorPill } from '@jupyter/collaboration';
 import { IDict, JgisCoordinates } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import { User } from '@jupyterlab/services';
+import React, { useEffect, useRef } from 'react';
 
 interface ICollaboratorPointersProps {
   clients: IDict<ClientPointer>;
 }
 
 export type ClientPointer = {
-  username: string;
-  displayName: string;
-  initials: string;
-  avatarUrl?: string;
-  color: string;
+  user: User.IIdentity;
   coordinates: JgisCoordinates;
   lonLat: { latitude: number; longitude: number };
 };
 
-const CollaboratorAvatar: React.FC<{ client: ClientPointer }> = ({
-  client,
-}) => {
-  const [avatarFailed, setAvatarFailed] = useState(false);
+const CollaboratorPill: React.FC<{ user: User.IIdentity }> = ({ user }) => {
+  const host = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setAvatarFailed(false), [client.avatarUrl]);
+  useEffect(() => {
+    host.current?.replaceChildren(collaboratorPill(user));
+    // Rebuild only when what the pill renders changes, not on every pointer move.
+  }, [user.display_name, user.initials, user.avatar_url, user.color]);
 
-  const showAvatar = !!client.avatarUrl && !avatarFailed;
-
-  return (
-    <div
-      className="jGIS-Remote-Pointer-Avatar"
-      style={{ backgroundColor: showAvatar ? undefined : client.color }}
-      title={client.displayName}
-    >
-      {showAvatar ? (
-        <img
-          src={client.avatarUrl}
-          alt=""
-          onError={() => setAvatarFailed(true)}
-        />
-      ) : (
-        <span>{client.initials}</span>
-      )}
-    </div>
-  );
+  return <div className="jGIS-Remote-Pointer-Pill-Host" ref={host} />;
 };
 
 const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
@@ -54,29 +35,20 @@ const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
         Object.entries(clients).map(([clientId, client]) => (
           <div
             key={clientId}
-            className="jGIS-Popup-Wrapper"
+            className="jGIS-Popup-Wrapper jGIS-Remote-Pointer-Wrapper"
             style={{
-              left: `${client.coordinates.x}px`,
-              top: `${client.coordinates.y}px`,
+              transform: `translate3d(${client.coordinates.x}px, ${client.coordinates.y}px, 0)`,
             }}
           >
             <div
               className="jGIS-Remote-Pointer"
-              style={{ color: client.color }}
+              style={{ color: client.user.color }}
             >
               <FontAwesomeIcon
                 icon={faArrowPointer}
                 className="jGIS-Remote-Pointer-Icon"
               />
-              <div
-                className="jGIS-Remote-Pointer-Label"
-                style={{ borderColor: client.color }}
-              >
-                <CollaboratorAvatar client={client} />
-                <span className="jGIS-Remote-Pointer-Name">
-                  {client.displayName}
-                </span>
-              </div>
+              <CollaboratorPill user={client.user} />
             </div>
           </div>
         ))}

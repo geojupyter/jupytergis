@@ -20,9 +20,9 @@ license = {file = "LICENSE"}
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-  "jupytergis_core==0.16.3",
-  "jupytergis_lab==0.16.3",
-  "jupytergis_qgis==0.16.3",
+  "jupytergis_core==0.16.4",
+  "jupytergis_lab==0.16.4",
+  "jupytergis_qgis==0.16.4",
   "jupyter-collaboration>=4,<6",
   "jupyter-docprovider>=2,<4",
   "jupyter-server-ydoc>=2,<4",
@@ -45,7 +45,7 @@ Issues = "https://github.com/geojupyter/jupytergis/issues"
 
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling>=1.5.0,<2", "tomlkit>=0.13.2,<0.14"]
+requires = ["hatchling>=1.5.0,<1.32.2", "tomlkit>=0.13.2,<0.14"]
 
 [tool.hatch.version]
 path = "jupytergis/__init__.py"

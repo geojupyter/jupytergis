@@ -66,7 +66,14 @@ export function grammarToOLLayer(
       return subLayers[0];
     }
     // Empty or multi-layer: wrap in a group (empty group renders nothing).
-    return new LayerGroup({ opacity, visible, layers: subLayers });
+    // OL renders the last array entry on top, but the UI lists grammar
+    // layers top-to-bottom with "top of the list" meaning "on top of the
+    // map" (matching the regular layer panel), so reverse before grouping.
+    return new LayerGroup({
+      opacity,
+      visible,
+      layers: [...subLayers].reverse(),
+    });
   }
 
   if (grammarLayers.length === 0) {
@@ -83,7 +90,10 @@ export function grammarToOLLayer(
     return subLayers[0];
   }
 
-  return new LayerGroup({ opacity, visible, layers: subLayers });
+  // OL renders the last array entry on top, but the UI lists grammar layers
+  // top-to-bottom with "top of the list" meaning "on top of the map"
+  // (matching the regular layer panel), so reverse before grouping.
+  return new LayerGroup({ opacity, visible, layers: [...subLayers].reverse() });
 }
 
 /**
