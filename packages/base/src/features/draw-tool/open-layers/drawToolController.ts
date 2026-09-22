@@ -12,6 +12,7 @@ import { Layer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 
 import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
+
 import { drawInteractionStyle } from './drawInteractionStyle';
 import { getVectorSourceFromLayer, isDrawLayer } from './drawToolUtils';
 
@@ -23,6 +24,9 @@ export interface IDrawToolHost {
   onDrawGeometryLabelChange(label: string): void;
 }
 
+/**
+ * OpenLayers-specific draw / modify / snap interactions.
+ */
 export class DrawToolController {
   private _draw: Draw | undefined;
   private _snap: Snap | undefined;
@@ -77,7 +81,7 @@ export class DrawToolController {
     this._removeInteractions();
   }
 
-  deleteAtCoordinate(coordinate: Coordinate): boolean {
+  deleteAtCoordinate(coordinate: number[]): boolean {
     const map = this._host.getMap();
     if (!this._currentDrawLayerId || !map) {
       return false;
@@ -88,7 +92,7 @@ export class DrawToolController {
       return false;
     }
 
-    const pixel = map.getPixelFromCoordinate(coordinate);
+    const pixel = map.getPixelFromCoordinate(coordinate as Coordinate);
     if (!pixel) {
       return false;
     }
@@ -126,13 +130,13 @@ export class DrawToolController {
     return true;
   }
 
-  hasFeatureAtCoordinate(coordinate: Coordinate): boolean {
+  hasFeatureAtCoordinate(coordinate: number[]): boolean {
     const map = this._host.getMap();
     if (!this._currentVectorSource || !map) {
       return false;
     }
 
-    const pixel = map.getPixelFromCoordinate(coordinate);
+    const pixel = map.getPixelFromCoordinate(coordinate as Coordinate);
     if (!pixel) {
       return false;
     }
