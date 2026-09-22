@@ -61,7 +61,7 @@ import { MainViewModel } from './mainviewmodel';
 import {
   createMapAdapter,
   IMapAdapter,
-  IMapComparison,
+  IMapLayerComparison,
   MapAdapterType,
 } from './mapAdapter';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
@@ -106,7 +106,7 @@ interface IStates {
   identifyFeatureFloatersVersion: number;
   /** List story segment handoff for the map stage overlay; null when off. */
   segmentTransition: IListStorySegmentTransition | null;
-  comparison: IMapComparison | null;
+  comparison: IMapLayerComparison | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -1022,39 +1022,44 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   /** Hands the map the document's comparison, keeping the divider where it is. */
   private _syncComparison(): void {
+    if (!this._mapAdapter) {
+      return;
+    }
+
     const stored = this._model.getComparison();
     const current = this.state.comparison;
-    const usable =
+    // A compared layer may have been deleted since the comparison was stored.
+    const isStoredComparisonUsable =
       stored && stored.layers.every(id => this._model.getLayer(id));
 
-    const comparison: IMapComparison | null = usable
-      ? { layers: stored.layers, fraction: current?.fraction ?? 0.5 }
+    const comparison: IMapLayerComparison | null = isStoredComparisonUsable
+      ? { layers: stored.layers, position: current?.position ?? 0.5 }
       : null;
 
     if (
-      comparison?.layers?.[0] === current?.layers?.[0] &&
-      comparison?.layers?.[1] === current?.layers?.[1]
+      comparison?.layers[0] === current?.layers[0] &&
+      comparison?.layers[1] === current?.layers[1]
     ) {
       return;
     }
 
     this.setState({ comparison });
-    this._mapAdapter?.setComparison(comparison);
+    this._mapAdapter.setLayerComparison(comparison);
   }
 
   private _handleStopComparison = (): void => {
     this._model.setComparison(undefined);
   };
 
-  private _handleComparisonFractionChange = (fraction: number): void => {
+  private _handleComparisonSwipe = (position: number): void => {
     const current = this.state.comparison;
-    if (!current) {
+    if (!current || !this._mapAdapter) {
       return;
     }
 
-    const comparison = { ...current, fraction };
+    const comparison = { ...current, position };
     this.setState({ comparison });
-    this._mapAdapter?.setComparison(comparison);
+    this._mapAdapter.setLayerComparison(comparison);
   };
 
   /**
@@ -1674,8 +1679,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             ) : null}
             {comparison ? (
               <SwipeDivider
-                fraction={comparison.fraction}
-                onFractionChange={this._handleComparisonFractionChange}
+                position={comparison.position}
+                onPositionChange={this._handleComparisonSwipe}
                 onStop={this._handleStopComparison}
               />
             ) : null}

@@ -136,7 +136,7 @@ import {
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
 import {
   IMapAdapter,
-  IMapComparison,
+  IMapLayerComparison,
   IMapProjection,
   IMapAdapterCallbacks,
   IMapAdapterOptions,
@@ -173,13 +173,17 @@ type FeatureOrGeometry = GeoJSONFeature | Geometry | OLGeometry;
  * one without touching its neighbours: OpenLayers shares a canvas between
  * adjacent layers whose class names match.
  */
-function comparisonLayerClass(id: string): string {
-  return `jgis-layer-${id}`;
+function comparisonLayerClass(layerId: string): string {
+  return `jgis-layer-${layerId}`;
 }
 
-function setClipPath(viewport: HTMLElement, id: string, clip: string): void {
+function setClipPath(
+  viewport: HTMLElement,
+  layerId: string,
+  clip: string,
+): void {
   viewport
-    .querySelectorAll<HTMLElement>(`.${comparisonLayerClass(id)}`)
+    .querySelectorAll<HTMLElement>(`.${comparisonLayerClass(layerId)}`)
     .forEach(element => {
       if (element.style.clipPath !== clip) {
         element.style.clipPath = clip;
@@ -907,17 +911,17 @@ export class OpenLayersAdapter implements IMapAdapter {
    * Clip the first compared layer to the left of a vertical divider and the
    * second to the right.
    *
-   * Clipping the elements a layer draws into is the only clip that holds for
-   * every OpenLayers renderer: a layer extent would miss heatmaps, whose
-   * renderer never applies one.
+   * The clip is applied to the container elements OpenLayers renders each
+   * layer into, because that is the only clip every renderer honours: setting
+   * a layer extent has no effect on heatmaps, whose renderer ignores it.
    */
-  setComparison(comparison: IMapComparison | null): void {
+  setLayerComparison(comparison: IMapLayerComparison | null): void {
     this._unclipComparedLayers();
     this._comparison = comparison;
 
     if (comparison && !this._comparisonKey) {
-      // OpenLayers rebuilds these elements as layers are restyled and
-      // reordered, so the clip is re-applied with every frame.
+      // OpenLayers recreates those container elements when layers are
+      // restyled or reordered, so re-apply the clip after every render.
       this._comparisonKey = this._map?.on('postrender', () =>
         this._clipComparedLayers(),
       );
@@ -938,11 +942,11 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
-    const split = Math.min(100, Math.max(0, comparison.fraction * 100));
+    const splitPercent = Math.min(100, Math.max(0, comparison.position * 100));
     const [left, right] = comparison.layers;
 
-    setClipPath(viewport, left, `inset(0 ${100 - split}% 0 0)`);
-    setClipPath(viewport, right, `inset(0 0 0 ${split}%)`);
+    setClipPath(viewport, left, `inset(0 ${100 - splitPercent}% 0 0)`);
+    setClipPath(viewport, right, `inset(0 0 0 ${splitPercent}%)`);
   }
 
   private _unclipComparedLayers(): void {
@@ -3068,7 +3072,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _drawTool: DrawToolController;
   private _mapKey?: string;
   private _pendingZoomLayerId: string | null = null;
-  private _comparison: IMapComparison | null = null;
+  private _comparison: IMapLayerComparison | null = null;
   private _comparisonKey?: EventsKey;
   private _loggerRegistry?: ILoggerRegistry;
   private _loadingLayers: Set<string>;

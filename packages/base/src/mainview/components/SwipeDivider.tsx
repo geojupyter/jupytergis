@@ -5,14 +5,14 @@ import React from 'react';
 const STEP = 0.02;
 
 export interface ISwipeDividerProps {
-  fraction: number;
-  onFractionChange: (fraction: number) => void;
+  position: number;
+  onPositionChange: (position: number) => void;
   onStop: () => void;
 }
 
 export function SwipeDivider({
-  fraction,
-  onFractionChange,
+  position,
+  onPositionChange,
   onStop,
 }: ISwipeDividerProps): JSX.Element {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -28,7 +28,7 @@ export function SwipeDivider({
 
     const onMove = (moveEvent: PointerEvent) => {
       const rect = container.getBoundingClientRect();
-      onFractionChange(
+      onPositionChange(
         Math.min(1, Math.max(0, (moveEvent.clientX - rect.left) / rect.width)),
       );
     };
@@ -42,30 +42,29 @@ export function SwipeDivider({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const offset =
-      event.key === 'ArrowLeft' ? -STEP : event.key === 'ArrowRight' ? STEP : 0;
-    if (!offset) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
       return;
     }
+    const offset = event.key === 'ArrowLeft' ? -STEP : STEP;
 
     // The map listens for keyboard events on `document`, so arrow keys would
     // pan it as well as move the divider.
     event.preventDefault();
     event.stopPropagation();
-    onFractionChange(Math.min(1, Math.max(0, fraction + offset)));
+    onPositionChange(Math.min(1, Math.max(0, position + offset)));
   };
 
   return (
     <div
       ref={ref}
       className="jgis-swipe-divider"
-      style={{ left: `${fraction * 100}%` }}
+      style={{ left: `${position * 100}%` }}
       role="slider"
       tabIndex={0}
       aria-label="Layer comparison divider"
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={Math.round(fraction * 100)}
+      aria-valuenow={Math.round(position * 100)}
       onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
     >

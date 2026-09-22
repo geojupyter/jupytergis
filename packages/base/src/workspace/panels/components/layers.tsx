@@ -295,8 +295,12 @@ function buildCompareMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
     }
 
     submenu.addItem({
-      command: CommandIDs.compareWithLayer,
-      args: { layerId, otherLayerId, label: layer.name },
+      command: CommandIDs.compareLayers,
+      args: {
+        layerIdLeft: layerId,
+        layerIdRight: otherLayerId,
+        label: layer.name,
+      },
     });
   }
 }
@@ -799,9 +803,11 @@ function getComparedSide(
 
   if (layers[0] === layerId) {
     return 'left';
+  } else if (layers[1] === layerId) {
+    return 'right';
+  } else {
+    return null;
   }
-
-  return layers[1] === layerId ? 'right' : null;
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
@@ -1101,8 +1107,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             tag="span"
             title={
               comparedSide === 'left'
-                ? 'Compared, shown left of the swipe divider'
-                : 'Compared, shown right of the swipe divider'
+                ? 'Comparing, shown left of the swipe divider'
+                : 'Comparing, shown right of the swipe divider'
             }
           />
         )}

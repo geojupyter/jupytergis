@@ -1337,50 +1337,53 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.compareWithLayer, {
+  commands.addCommand(CommandIDs.compareLayers, {
     label: args =>
       args['label'] ? (args['label'] as string) : trans.__('Compare With'),
-    caption:
-      'Swipe between the selected layer and another one in the current JupyterGIS document.',
+    caption: 'Swipe to compare two layers in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
         properties: {
           filePath: { type: 'string' },
-          layerId: { type: 'string' },
-          otherLayerId: { type: 'string' },
+          layerIdLeft: { type: 'string' },
+          layerIdRight: { type: 'string' },
           label: { type: 'string' },
         },
       },
     },
     execute: (args?: {
       filePath?: string;
-      layerId?: string;
-      otherLayerId?: string;
+      layerIdLeft?: string;
+      layerIdRight?: string;
     }) => {
-      const { filePath, otherLayerId } = args ?? {};
+      const { filePath, layerIdRight } = args ?? {};
 
       const model = filePath
         ? tracker.find(w => w.model.filePath === filePath)?.model
         : tracker.currentWidget?.model;
 
-      if (!model || !model.sharedModel.editable || !otherLayerId) {
+      if (!model || !model.sharedModel.editable || !layerIdRight) {
         return;
       }
 
-      const layerId = args?.layerId ?? Private.getSelectedLayerId(model);
-      if (!layerId || layerId === otherLayerId) {
+      const layerIdLeft =
+        args?.layerIdLeft ?? Private.getSelectedLayerId(model);
+      if (!layerIdLeft || layerIdLeft === layerIdRight) {
         return;
       }
 
-      model.setComparison({ mode: 'swipe', layers: [layerId, otherLayerId] });
+      model.setComparison({
+        mode: 'swipe',
+        layers: [layerIdLeft, layerIdRight],
+      });
       commands.notifyCommandChanged(CommandIDs.stopComparing);
     },
   });
 
   commands.addCommand(CommandIDs.stopComparing, {
     label: trans.__('Stop Comparing'),
-    caption: 'Stop swiping between the layers of this comparison group.',
+    caption: 'Stop comparing layers.',
     describedBy: {
       args: {
         type: 'object',
@@ -2537,7 +2540,7 @@ namespace Private {
     }
   }
 
-  /** The single layer selected in the layer tree, if that is the selection. */
+  /** The single layer selected in the layer tree. If multiple are selected, returns `undefined`. */
   export function getSelectedLayerId(
     model: IJupyterGISModel | undefined,
   ): string | undefined {
