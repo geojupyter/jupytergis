@@ -133,6 +133,7 @@ import {
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
 import {
+  IDrawToolAdapter,
   IMapAdapter,
   IMapProjection,
   IMapAdapterCallbacks,
@@ -2972,12 +2973,16 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._model.updateLayerViewState(layerId, view);
   }
 
+  get drawTool(): IDrawToolAdapter {
+    return this._drawTool;
+  }
+
   private _map: OlMap;
   private _sourceToLayerMap = new Map();
   private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
   private _mainViewId?: string;
-  private _drawTool: DrawToolController;
+  private _drawTool: IDrawToolAdapter;
   private _mapKey?: string;
   private _pendingZoomLayerId: string | null = null;
   private _loggerRegistry?: ILoggerRegistry;

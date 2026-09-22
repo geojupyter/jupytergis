@@ -97,6 +97,20 @@ export interface IMapAdapter {
 
   /** Restores whatever enterPresentationMode() removed. */
   exitPresentationMode(): void;
+
+  readonly drawTool: IDrawToolAdapter;
+}
+
+export interface IDrawToolAdapter {
+  readonly currentDrawLayerId: string | undefined;
+  readonly currentDrawSourceId: string | undefined;
+  handleGeometryTypeChange(drawGeometryLabel: string): void;
+  enterLayer(): void;
+  leaveDrawMode(): void;
+  removeInteractions(): void;
+  deleteAtCoordinate(coordinate: number[]): boolean;
+  hasFeatureAtCoordinate(coordinate: number[]): boolean;
+  setDrawLayerId(layerId: string): void;
 }
 
 export interface IMapAdapterOptions {
