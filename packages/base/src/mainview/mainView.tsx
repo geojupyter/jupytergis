@@ -36,7 +36,6 @@ import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
-import { DrawToolController } from '@/src/features/draw-tool';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import {
   getStoryPresentationMode,
@@ -523,14 +522,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._commands.addCommand(CommandIDs.deleteSelectedFeatures, {
       label: 'Delete feature',
       isEnabled: () => {
-        if (!this._clickCoords || this._model.currentMode !== 'drawing') {
+        if (
+          !this._clickCoords ||
+          !this._mapAdapter ||
+          this._model.currentMode !== 'drawing'
+        ) {
           return false;
         }
-        return this._drawTool.hasFeatureAtCoordinate(this._clickCoords);
+        
+        return this._mapAdapter.drawTool.hasFeatureAtCoordinate(
+          this._clickCoords,
+        );
       },
       execute: () => {
         if (this._clickCoords) {
-          this._drawTool.deleteAtCoordinate(this._clickCoords);
+          this._mapAdapter?.drawTool.deleteAtCoordinate(this._clickCoords);
         }
       },
     });
@@ -724,8 +730,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._previousDrawLayerID = selectedLayerId;
-    this._drawTool.setDrawLayerId(selectedLayerId);
-    this._drawTool.enterLayer();
+    this._mapAdapter?.drawTool.setDrawLayerId(selectedLayerId);
+    this._mapAdapter?.drawTool.enterLayer();
   };
 
   /**
@@ -981,9 +987,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
         if (
           this._model.currentMode === 'drawing' &&
-          id === this._drawTool.currentDrawLayerId
+          id === this._mapAdapter.drawTool.currentDrawLayerId
         ) {
-          this._drawTool.enterLayer();
+          this._mapAdapter.drawTool.enterLayer();
         }
       } else {
         void this._mapAdapter.updateLayers(layerTree);
@@ -1052,7 +1058,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }
         if (
           this._model.currentMode === 'drawing' &&
-          srcChange.id === this._drawTool.currentDrawSourceId
+          srcChange.id === this._mapAdapter?.drawTool.currentDrawSourceId
         ) {
           return;
         }
@@ -1447,11 +1453,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._mapAdapter?.handleDrawModeChanged(isDrawing);
     if (isDrawing) {
-      this._drawTool.enterLayer();
+      this._mapAdapter?.drawTool.enterLayer();
       return;
     }
 
-    this._drawTool.leaveDrawMode();
+    this._mapAdapter?.drawTool.leaveDrawMode();
   };
 
   private _notifyInteractionModeCommands(): void {
@@ -1462,7 +1468,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _handleDrawGeometryTypeChange = (drawGeometryLabel: string): void => {
-    this._drawTool.handleGeometryTypeChange(drawGeometryLabel);
+    this._mapAdapter?.drawTool.handleGeometryTypeChange(drawGeometryLabel);
   };
 
   /**
@@ -1647,7 +1653,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _ready = false;
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
-  private _drawTool: DrawToolController;
   private _previousDrawLayerID: string | undefined;
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
