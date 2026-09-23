@@ -27,6 +27,7 @@ import {
   NavigationControl,
 } from 'maplibre-gl';
 
+import { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { loadFile } from '@/src/tools';
 import { ClientPointer } from '.././CollaboratorPointers';
 import { IMapAdapter, IMapAdapterOptions, IMapProjection } from '../mapAdapter';
@@ -1077,6 +1078,9 @@ export class MapLibreAdapter implements IMapAdapter {
     // change, and warning on every call would be noise, not signal.
   }
 
+  get drawTool(): IDrawToolAdapter {
+    return this._drawTool;
+  }
   private _notImplemented(name: string, ...args: unknown[]): void {
     if (this._warnedOnce.has(name)) {
       return;
@@ -1112,6 +1116,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _map: MlMap;
   private _model: IJupyterGISModel;
   private _mainViewId?: string;
+  private _drawTool: IDrawToolAdapter;
   private _mapKey?: string;
   private _loggerRegistry?: ILoggerRegistry;
   private _navigationControl?: NavigationControl;
