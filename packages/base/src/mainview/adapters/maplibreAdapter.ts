@@ -144,71 +144,79 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   private async _addSource(id: string, source: IJGISSource): Promise<void> {
-    switch (source.type) {
-      case 'GeoJSONSource': {
-        let data = source.parameters?.data;
+    try {
+      switch (source.type) {
+        case 'GeoJSONSource': {
+          let data = source.parameters?.data;
 
-        if (!data) {
-          data = await loadFile({
-            filepath: source.parameters?.path,
-            type: 'GeoJSONSource',
-            model: this._model,
+          if (!data) {
+            data = await loadFile({
+              filepath: source.parameters?.path,
+              type: 'GeoJSONSource',
+              model: this._model,
+            });
+          }
+
+          if (typeof data === 'string') {
+            data = JSON.parse(data);
+          }
+
+          this._geojsonData.set(id, data as GeoJSONFeature | FeatureCollection);
+
+          this._map.addSource(id, {
+            type: 'geojson',
+            data,
           });
+
+          break;
         }
 
-        if (typeof data === 'string') {
-          data = JSON.parse(data);
+        case 'VectorTileSource': {
+          const sourceParameters = source.parameters as IVectorTileSource;
+
+          const url = this._computeSourceUrl(source);
+
+          const isTms = url.includes('{-y}');
+
+          this._map.addSource(id, {
+            type: 'vector',
+            tiles: [url],
+            scheme: isTms ? 'tms' : 'xyz',
+            minzoom: sourceParameters.minZoom,
+            maxzoom: sourceParameters.maxZoom,
+            attribution: sourceParameters.attribution,
+          });
+
+          break;
         }
 
-        this._geojsonData.set(id, data as GeoJSONFeature | FeatureCollection);
+        case 'RasterSource': {
+          const sourceParameters = source.parameters as IRasterSource;
+          this._map.addSource(id, {
+            type: 'raster',
+            tiles: [this._computeSourceUrl(source)],
+            tileSize: 256,
+            minzoom: sourceParameters.minZoom,
+            maxzoom: sourceParameters.maxZoom,
+            attribution: sourceParameters.attribution,
+          });
+          break;
+        }
 
-        this._map.addSource(id, {
-          type: 'geojson',
-          data,
-        });
-
-        break;
+        default: {
+          this._log(
+            'warning',
+            `MapLibreAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
+          );
+          return;
+        }
       }
-
-      case 'VectorTileSource': {
-        const sourceParameters = source.parameters as IVectorTileSource;
-
-        const url = this._computeSourceUrl(source);
-
-        const isTms = url.includes('{-y}');
-
-        this._map.addSource(id, {
-          type: 'vector',
-          tiles: [url],
-          scheme: isTms ? 'tms' : 'xyz',
-          minzoom: sourceParameters.minZoom,
-          maxzoom: sourceParameters.maxZoom,
-          attribution: sourceParameters.attribution,
-        });
-
-        break;
-      }
-
-      case 'RasterSource': {
-        const sourceParameters = source.parameters as IRasterSource;
-        this._map.addSource(id, {
-          type: 'raster',
-          tiles: [this._computeSourceUrl(source)],
-          tileSize: 256,
-          minzoom: sourceParameters.minZoom,
-          maxzoom: sourceParameters.maxZoom,
-          attribution: sourceParameters.attribution,
-        });
-        break;
-      }
-
-      default: {
-        this._log(
-          'warning',
-          `MapLibreAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
-        );
-        return;
-      }
+    } catch (error: any) {
+      this._log(
+        'error',
+        `MapLibreAdapter: failed to load source "${source.name ?? id}" (${source.type}): ${error?.message}`,
+      );
+      return;
     }
 
     this._trackSourceExtZoom(id, source.type);
@@ -222,9 +230,14 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   async updateSource(id: string, source: IJGISSource): Promise<void> {
-    // TODO: update source
-    this.removeSource(id);
-    await this.addSource(id, source);
+    const layerId = this._sourceToLayerMap.get(id);
+    const jgisLayer = layerId ? this._model.getLayer(layerId) : undefined;
+
+    if (!layerId || !jgisLayer) {
+      this.removeSource(id);
+      await this.addSource(id, source);
+      return;
+    }
   }
 
   private _computeSourceUrl(source: IJGISSource): string {
@@ -378,7 +391,8 @@ export class MapLibreAdapter implements IMapAdapter {
         }
 
         case 'VectorTileLayer': {
-          const sourceId = layer.parameters?.source;
+          const layerParameters = layer.parameters as IVectorTileLayer;
+          const sourceId = layerParameters.source;
 
           if (!sourceId || !this._map.getSource(sourceId)) {
             console.warn(`Source ${sourceId} not found for layer ${id}`);
@@ -445,6 +459,11 @@ export class MapLibreAdapter implements IMapAdapter {
             `MapLibreAdapter: layer type "${layer.type}" is not yet supported. Skipping layer ${id}.`,
           );
           return;
+      }
+
+      const trackedSourceId = layer.parameters?.source;
+      if (trackedSourceId) {
+        this._sourceToLayerMap.set(trackedSourceId, id);
       }
 
       this._insertIntoLayerOrder(id, index);
@@ -1100,6 +1119,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _layerVisibility = new Map<string, boolean>();
   private _loadingLayers: Set<string>;
   private _pendingSourceAdds = new Map<string, Promise<void>>();
+  private _sourceToLayerMap = new Map<string, string>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _layerSubIds = new Map<string, string[]>();
   private _layerOrder: string[] = [];
