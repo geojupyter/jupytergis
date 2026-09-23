@@ -2,6 +2,33 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.5
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.4...12b7e6e888f109f8f7f045cc3d4a65b3d8384c45))
+
+### Enhancements made
+
+- Reuse the collaborator pill from `@jupyter/collaboration` for map cursors [#1880](https://github.com/geojupyter/jupytergis/pull/1880) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Show a connected state and a Disconnect button in the WMS source form [#1876](https://github.com/geojupyter/jupytergis/pull/1876) ([@costajohnt](https://github.com/costajohnt), [@arjxn-py](https://github.com/arjxn-py))
+- Fix the story map pane scrollbar [#1874](https://github.com/geojupyter/jupytergis/pull/1874) ([@arjxn-py](https://github.com/arjxn-py))
+- Smooth remote cursors by animating a transform [#1871](https://github.com/geojupyter/jupytergis/pull/1871) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Restore draw tool [#1884](https://github.com/geojupyter/jupytergis/pull/1884) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py))
+- fix: render top-of-list symbology rule on top of the map [#1865](https://github.com/geojupyter/jupytergis/pull/1865) ([@ghostiee-11](https://github.com/ghostiee-11), [@MMesch](https://github.com/MMesch))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-09-18&to=2026-09-22&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-09-18..2026-09-22&type=Issues)) | @costajohnt ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Acostajohnt+updated%3A2026-09-18..2026-09-22&type=Issues)) | @ghostiee-11 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aghostiee-11+updated%3A2026-09-18..2026-09-22&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-09-18..2026-09-22&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-09-18..2026-09-22&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-09-18..2026-09-22&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.4
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.3...25e48a7a32ae4ddad6e2210375fea6f75c9f3ef2))
@@ -40,8 +67,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-09-10&to=2026-09-18&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-09-10..2026-09-18&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-09-10..2026-09-18&type=Issues)) | @brichet ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2026-09-10..2026-09-18&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-09-10..2026-09-18&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-09-10..2026-09-18&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-09-10..2026-09-18&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-09-10..2026-09-18&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-09-10..2026-09-18&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.3
 

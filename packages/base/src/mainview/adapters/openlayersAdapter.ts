@@ -108,7 +108,8 @@ import StacLayer from 'ol-stac';
 import projcodes from 'proj-codes';
 import proj4 from 'proj4';
 
-import { DrawToolController } from '@/src/features/draw-tool';
+import type { IDrawToolAdapter } from '@/src/features/draw-tool';
+import { OpenLayersDrawToolController } from '@/src/features/draw-tool/open-layers/openLayersDrawToolController';
 import {
   ensureHighlightLayer,
   buildHighlightStyle,
@@ -169,7 +170,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
     this._loadingLayers = new Set();
-    this._drawTool = new DrawToolController({
+    this._drawTool = new OpenLayersDrawToolController({
       getMap: () => this._map,
       getLayer: layerId => this.getLayer(layerId),
       getModel: () => this._model,
@@ -835,6 +836,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
+    this._drawTool.leaveDrawMode();
     this._map.setTarget(undefined);
     this._sources.clear();
   }
@@ -2972,12 +2974,16 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._model.updateLayerViewState(layerId, view);
   }
 
+  get drawTool(): IDrawToolAdapter {
+    return this._drawTool;
+  }
+
   private _map: OlMap;
   private _sourceToLayerMap = new Map();
   private _sources = new Map<string, any>();
   private _model: IJupyterGISModel;
   private _mainViewId?: string;
-  private _drawTool: DrawToolController;
+  private _drawTool: IDrawToolAdapter;
   private _mapKey?: string;
   private _pendingZoomLayerId: string | null = null;
   private _loggerRegistry?: ILoggerRegistry;
