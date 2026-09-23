@@ -28,7 +28,7 @@ test.describe('#annotations', () => {
     await page.getByText('Annotations').click();
 
     // Right-click on the map canvas to open context menu
-    const canvas = page.locator('canvas');
+    const canvas = page.locator('.jGIS-Mainview canvas').first();
     await canvas.click({ button: 'right', position: { x: 348, y: 348 } });
 
     // Click "Add annotation" from context menu
