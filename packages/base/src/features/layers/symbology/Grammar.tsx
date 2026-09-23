@@ -43,7 +43,6 @@ import {
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
 import { Button } from '@/src/shared/components/Button';
-import { InfoTip } from '@/src/shared/components/InfoTip';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -66,7 +65,6 @@ interface ILayerUIState {
   rows: IGrammarRow[];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
-  declutter?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,23 +339,6 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
             Transform
           </Button>
-        )}
-
-        {!isRaster && (
-          <label
-            className="jp-gis-grammar-layer-declutter"
-            title="Skip drawing anything that overlaps something already drawn"
-          >
-            <input
-              type="checkbox"
-              checked={layer.declutter ?? false}
-              onChange={e =>
-                onChange({ ...layer, declutter: e.target.checked })
-              }
-            />
-            declutter
-            <InfoTip text="On a crowded layer, overlapping symbols and text pile up and become unreadable. This skips whatever would overlap something already drawn. It hides data, so it is off by default." />
-          </label>
         )}
 
         {totalLayers > 1 && onMoveUp && (
@@ -640,7 +621,6 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         transforms: grammarLayer.preprocess ?? [],
         ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
         ...(grammarLayer.whenOp ? { whenOp: grammarLayer.whenOp } : {}),
-        ...(grammarLayer.declutter ? { declutter: true } : {}),
         rows: grammarLayer.rules.flatMap(rule =>
           rule.mappings.map((mapping, mi) => ({
             // Preserve the rule's stable id so React keys and story-segment
@@ -686,7 +666,6 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           : {}),
         ...(uiLayer.when?.length ? { when: uiLayer.when } : {}),
         ...(uiLayer.whenOp ? { whenOp: uiLayer.whenOp } : {}),
-        ...(uiLayer.declutter ? { declutter: true } : {}),
         rules,
       };
     });
