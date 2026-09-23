@@ -521,7 +521,8 @@ export class MapLibreAdapter implements IMapAdapter {
       return;
     }
 
-    const visibility = layer.visible ? 'visible' : 'none';
+    const visible = layer.visible ?? true;
+    const visibility = visible ? 'visible' : 'none';
 
     switch (layer.type) {
       case 'RasterLayer': {
