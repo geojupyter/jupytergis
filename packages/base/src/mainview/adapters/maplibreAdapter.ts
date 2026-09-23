@@ -280,8 +280,6 @@ export class MapLibreAdapter implements IMapAdapter {
     index?: number,
     sourceLayer?: string,
   ): void {
-    const visibility = visible ? 'visible' : 'none';
-
     const sourceLayerProperty = sourceLayer
       ? { 'source-layer': sourceLayer }
       : {};
@@ -297,9 +295,6 @@ export class MapLibreAdapter implements IMapAdapter {
           ['==', ['geometry-type'], 'Polygon'],
           ['==', ['geometry-type'], 'MultiPolygon'],
         ],
-        layout: {
-          visibility,
-        },
         paint: {
           'fill-color': color,
           'fill-opacity': opacity * 0.4,
@@ -321,9 +316,6 @@ export class MapLibreAdapter implements IMapAdapter {
           ['==', ['geometry-type'], 'Polygon'],
           ['==', ['geometry-type'], 'MultiPolygon'],
         ],
-        layout: {
-          visibility,
-        },
         paint: {
           'line-color': color,
           'line-opacity': opacity,
@@ -344,9 +336,6 @@ export class MapLibreAdapter implements IMapAdapter {
           ['==', ['geometry-type'], 'Point'],
           ['==', ['geometry-type'], 'MultiPoint'],
         ],
-        layout: {
-          visibility,
-        },
         paint: {
           'circle-color': color,
           'circle-opacity': opacity,
@@ -364,107 +353,14 @@ export class MapLibreAdapter implements IMapAdapter {
     this._loadingLayers.add(id);
 
     this._log('info', `MapLibreAdapter: adding layer ${id}`);
+
     try {
-      switch (layer.type) {
-        case 'VectorLayer': {
-          const layerParameters = layer.parameters as IVectorLayer;
-          const sourceId = layerParameters.source;
+      await this._buildMapLayer(id, layer, index);
 
-          if (!this._map.getSource(sourceId)) {
-            this._log(
-              'error',
-              `MapLibreAdapter: cannot add layer ${id}, source "${sourceId}" was not found.`,
-            );
-            return;
-          }
+      const sourceId = layer.parameters?.source;
 
-          this._addVectorLayerGroup(
-            id,
-            sourceId,
-            layer.visible ?? true,
-            layerParameters.opacity ?? 1,
-            '#3388ff',
-            index,
-          );
-
-          this._layerVisibility.set(id, layer.visible ?? true);
-          break;
-        }
-
-        case 'VectorTileLayer': {
-          const layerParameters = layer.parameters as IVectorTileLayer;
-          const sourceId = layerParameters.source;
-
-          if (!sourceId || !this._map.getSource(sourceId)) {
-            console.warn(`Source ${sourceId} not found for layer ${id}`);
-            return;
-          }
-
-          const sourceLayer = this._resolveVectorSourceLayer(sourceId);
-
-          if (!sourceLayer) {
-            console.warn(`No source-layer found for vector source ${sourceId}`);
-            return;
-          }
-
-          this._addVectorLayerGroup(
-            id,
-            sourceId,
-            layer.visible ?? true,
-            layer.parameters?.opacity ?? 1,
-            '#3388ff',
-            index,
-            sourceLayer,
-          );
-
-          this._layerVisibility.set(id, layer.visible ?? true);
-
-          break;
-        }
-
-        case 'RasterLayer': {
-          const layerParameters = layer.parameters as IRasterLayer;
-          const sourceId = layerParameters.source;
-
-          if (!this._map.getSource(sourceId)) {
-            this._log(
-              'error',
-              `MapLibreAdapter: cannot add layer ${id}, source "${sourceId}" was not found.`,
-            );
-            return;
-          }
-
-          this._map.addLayer(
-            {
-              id,
-              type: 'raster',
-              source: sourceId,
-              layout: {
-                visibility: layer.visible ? 'visible' : 'none',
-              },
-              paint: {
-                'raster-opacity': layerParameters.opacity ?? 1,
-              },
-            },
-            this._beforeIdForIndex(index),
-          );
-
-          this._layerSubIds.set(id, [id]);
-          this._layerVisibility.set(id, layer.visible ?? true);
-          break;
-        }
-
-        default:
-          this._log(
-            'warning',
-            `MapLibreAdapter: layer type "${layer.type}" is not yet supported. Skipping layer ${id}.`,
-          );
-          return;
-      }
-
-      const trackedSourceId = layer.parameters?.source;
-      if (trackedSourceId) {
-        this._sourceToLayerMap.set(trackedSourceId, id);
+      if (sourceId) {
+        this._sourceToLayerMap.set(sourceId, id);
       }
 
       this._insertIntoLayerOrder(id, index);
@@ -483,6 +379,112 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
+  private async _buildMapLayer(
+    id: string,
+    layer: IJGISLayer,
+    index?: number,
+  ): Promise<void> {
+    const sourceId = layer.parameters?.source;
+
+    if (!sourceId) {
+      return;
+    }
+
+    const source = this._model.getSource(sourceId);
+
+    if (!source) {
+      this._log(
+        'error',
+        `MapLibreAdapter: source "${sourceId}" not found for layer "${id}".`,
+      );
+      return;
+    }
+
+    if (!this._map.getSource(sourceId)) {
+      await this.addSource(sourceId, source);
+    }
+
+    if (!this._map.getSource(sourceId)) {
+      this._log(
+        'error',
+        `MapLibreAdapter: source "${sourceId}" could not be added.`,
+      );
+      return;
+    }
+
+    const visible = layer.visible ?? true;
+
+    switch (layer.type) {
+      case 'RasterLayer': {
+        const parameters = layer.parameters as IRasterLayer;
+
+        this._map.addLayer({
+          id,
+          type: 'raster',
+          source: sourceId,
+          layout: {
+            visibility: visible ? 'visible' : 'none',
+          },
+          paint: {
+            'raster-opacity': parameters.opacity ?? 1,
+          },
+        });
+
+        this._layerSubIds.set(id, [id]);
+        break;
+      }
+
+      case 'VectorLayer': {
+        const parameters = layer.parameters as IVectorLayer;
+
+        this._addVectorLayerGroup(
+          id,
+          sourceId,
+          visible,
+          parameters.opacity ?? 1,
+          parameters.color?.hex ?? '#3388ff',
+          index,
+        );
+
+        break;
+      }
+
+      case 'VectorTileLayer': {
+        const parameters = layer.parameters as IVectorTileLayer;
+
+        const sourceLayer = this._resolveVectorSourceLayer(sourceId);
+
+        if (!sourceLayer) {
+          this._log(
+            'warning',
+            `No source-layer found for vector source ${sourceId}`,
+          );
+          return;
+        }
+
+        this._addVectorLayerGroup(
+          id,
+          sourceId,
+          visible,
+          parameters.opacity ?? 1,
+          parameters.color?.hex ?? '#3388ff',
+          index,
+          sourceLayer,
+        );
+
+        break;
+      }
+
+      default:
+        this._log(
+          'warning',
+          `MapLibreAdapter: layer type "${layer.type}" is not yet supported.`,
+        );
+        return;
+    }
+
+    this._layerVisibility.set(id, visible);
+  }
   removeLayer(id: string): void {
     const subIds = this._layerSubIds.get(id) ?? [id];
     for (const subId of subIds) {
