@@ -709,15 +709,15 @@ export class MapLibreAdapter implements IMapAdapter {
     if (projection !== undefined && projection !== 'EPSG:3857') {
       this._log(
         'warning',
-        `MapLibre only supports EPSG:3857; ignoring requested projection ${projection}.`,
+        `MapLibre adapter expects EPSG:3857 map coordinates; received ${projection}.`,
       );
     }
 
     this._map.jumpTo({
-      center: [longitude || 0, latitude || 0],
-      zoom: zoom || 0,
-      bearing: bearing || 0,
-      pitch: pitch || 0,
+      center: [longitude ?? 0, latitude ?? 0],
+      zoom: zoom ?? 0,
+      bearing: bearing ?? 0,
+      pitch: pitch ?? 0,
     });
 
     return undefined;
