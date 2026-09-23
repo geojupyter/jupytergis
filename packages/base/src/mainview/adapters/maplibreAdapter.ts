@@ -284,6 +284,8 @@ export class MapLibreAdapter implements IMapAdapter {
       ? { 'source-layer': sourceLayer }
       : {};
 
+    const visibility = visible ? 'visible' : 'none';
+
     this._map.addLayer(
       {
         id: `${id}-fill`,
@@ -295,6 +297,9 @@ export class MapLibreAdapter implements IMapAdapter {
           ['==', ['geometry-type'], 'Polygon'],
           ['==', ['geometry-type'], 'MultiPolygon'],
         ],
+        layout: {
+          visibility,
+        },
         paint: {
           'fill-color': color,
           'fill-opacity': opacity * 0.4,
@@ -316,6 +321,9 @@ export class MapLibreAdapter implements IMapAdapter {
           ['==', ['geometry-type'], 'Polygon'],
           ['==', ['geometry-type'], 'MultiPolygon'],
         ],
+        layout: {
+          visibility,
+        },
         paint: {
           'line-color': color,
           'line-opacity': opacity,
@@ -336,6 +344,9 @@ export class MapLibreAdapter implements IMapAdapter {
           ['==', ['geometry-type'], 'Point'],
           ['==', ['geometry-type'], 'MultiPoint'],
         ],
+        layout: {
+          visibility,
+        },
         paint: {
           'circle-color': color,
           'circle-opacity': opacity,
@@ -414,73 +425,85 @@ export class MapLibreAdapter implements IMapAdapter {
 
     const visible = layer.visible ?? true;
 
-    switch (layer.type) {
-      case 'RasterLayer': {
-        const parameters = layer.parameters as IRasterLayer;
+    try {
+      switch (layer.type) {
+        case 'RasterLayer': {
+          const parameters = layer.parameters as IRasterLayer;
 
-        this._map.addLayer({
-          id,
-          type: 'raster',
-          source: sourceId,
-          layout: {
-            visibility: visible ? 'visible' : 'none',
-          },
-          paint: {
-            'raster-opacity': parameters.opacity ?? 1,
-          },
-        });
+          this._map.addLayer({
+            id,
+            type: 'raster',
+            source: sourceId,
+            layout: {
+              visibility: visible ? 'visible' : 'none',
+            },
+            paint: {
+              'raster-opacity': parameters.opacity ?? 1,
+            },
+          });
 
-        this._layerSubIds.set(id, [id]);
-        break;
-      }
-
-      case 'VectorLayer': {
-        const parameters = layer.parameters as IVectorLayer;
-
-        this._addVectorLayerGroup(
-          id,
-          sourceId,
-          visible,
-          parameters.opacity ?? 1,
-          parameters.color?.hex ?? '#3388ff',
-          index,
-        );
-
-        break;
-      }
-
-      case 'VectorTileLayer': {
-        const parameters = layer.parameters as IVectorTileLayer;
-
-        const sourceLayer = this._resolveVectorSourceLayer(sourceId);
-
-        if (!sourceLayer) {
-          this._log(
-            'warning',
-            `No source-layer found for vector source ${sourceId}`,
-          );
-          return;
+          this._layerSubIds.set(id, [id]);
+          break;
         }
 
-        this._addVectorLayerGroup(
-          id,
-          sourceId,
-          visible,
-          parameters.opacity ?? 1,
-          parameters.color?.hex ?? '#3388ff',
-          index,
-          sourceLayer,
-        );
+        case 'VectorLayer': {
+          const parameters = layer.parameters as IVectorLayer;
 
-        break;
+          this._addVectorLayerGroup(
+            id,
+            sourceId,
+            visible,
+            parameters.opacity ?? 1,
+            parameters.color?.hex ?? '#3388ff',
+            index,
+          );
+
+          break;
+        }
+
+        case 'VectorTileLayer': {
+          const parameters = layer.parameters as IVectorTileLayer;
+
+          const sourceLayer = this._resolveVectorSourceLayer(sourceId);
+
+          if (!sourceLayer) {
+            this._log(
+              'warning',
+              `No source-layer found for vector source ${sourceId}`,
+            );
+            return;
+          }
+
+          this._addVectorLayerGroup(
+            id,
+            sourceId,
+            visible,
+            parameters.opacity ?? 1,
+            parameters.color?.hex ?? '#3388ff',
+            index,
+            sourceLayer,
+          );
+
+          break;
+        }
+
+        default:
+          this._log(
+            'warning',
+            `MapLibreAdapter: layer type "${layer.type}" is not yet supported.`,
+          );
+          return;
       }
-
-      default:
-        this._log(
-          'warning',
-          `MapLibreAdapter: layer type "${layer.type}" is not yet supported.`,
-        );
-        return;
+    } catch (error: any) {
+      // MapLibre throws on invalid style specs (bad color format, unknown
+      // property, etc). Previously this propagated out of addLayer() with
+      // no catch, so the UI's loading state still cleared via `finally`
+      // and the layer looked "loaded" while nothing was ever painted.
+      this._log(
+        'error',
+        `MapLibreAdapter: failed to add layer "${layer.name ?? id}" (${layer.type}) to the map: ${error?.message}`,
+      );
+      return;
     }
 
     this._layerVisibility.set(id, visible);
