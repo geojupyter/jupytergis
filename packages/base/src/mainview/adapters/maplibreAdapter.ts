@@ -89,6 +89,8 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.addControl(this._navigationControl);
     }
 
+    this._setupViewEvents();
+
     await new Promise<void>(resolve => {
       if (this._map.loaded()) {
         resolve();
@@ -98,7 +100,6 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.resize();
-    this._setupViewEvents();
   }
 
   destroy(): void {
@@ -164,9 +165,23 @@ export class MapLibreAdapter implements IMapAdapter {
 
           this._geojsonData.set(id, data as GeoJSONFeature | FeatureCollection);
 
+          //   Debug logs
+          console.log('[MapLibre] GEOJSON BEFORE addSource', {
+            id,
+            type: data?.type,
+            featureCount: data?.features?.length,
+            firstFeature: data?.features?.[0],
+          });
+
           this._map.addSource(id, {
             type: 'geojson',
             data,
+          });
+
+          console.log('[MapLibre] GEOJSON SOURCE ADDED', {
+            id,
+            data,
+            source: this._map.getSource(id),
           });
 
           break;
@@ -490,6 +505,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerVisibility.set(id, visible);
+    console.log('layer visibility', id, visible);
   }
   removeLayer(id: string): void {
     const subIds = this._layerSubIds.get(id) ?? [id];
@@ -868,7 +884,7 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     const source = this._map.getSource(sourceId) as GeoJSONSource;
-    source?.setData(data as any);
+    source?.setData(data);
   }
 
   /**
