@@ -12,6 +12,7 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse
 
+from .postgis import get_postgis_url
 from .processing import (
     ALLOWED_OPERATIONS,
     gdal_available,
@@ -684,9 +685,11 @@ def setup_handlers(web_app: Any) -> None:
     ]
 
     # Add feature flags
+    web_app.settings.setdefault("page_config_data", {})
     if os.environ.get("JGIS_EXPOSE_MAPS", False):
-        web_app.settings.setdefault("page_config_data", {})
         web_app.settings["page_config_data"]["jgis_expose_maps"] = True
+    if get_postgis_url():
+        web_app.settings["page_config_data"]["jgis_postgis"] = True
 
     web_app.add_handlers(host_pattern, handlers)
     logger.info("JupyterGIS proxy endpoint initialized at: %s", proxy_route)

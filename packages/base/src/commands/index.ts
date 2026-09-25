@@ -16,6 +16,7 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import { PageConfig } from '@jupyterlab/coreutils';
 import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
@@ -2518,8 +2519,8 @@ namespace Private {
 
   /**
    * Return the id of a draw-compatible selected layer, creating an empty
-   * inline GeoJSON layer when the current selection is
-   * missing or not editable for drawing.
+   * layer when the current selection is missing or not editable for drawing.
+   * A feature-store layer is used when the server has JGIS_POSTGIS_URL set.
    */
   export function ensureDrawCompatibleLayer(
     model: IJupyterGISModel,
@@ -2542,27 +2543,47 @@ namespace Private {
 
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
+    const useFeatureStore = Boolean(PageConfig.getOption('jgis_postgis'));
 
-    const sourceModel: IJGISSource = {
-      type: 'GeoJSONSource',
-      name: 'Draw Layer Source',
-      parameters: {
-        data: {
-          type: 'FeatureCollection',
-          features: [],
+    let sourceModel: IJGISSource;
+    if (useFeatureStore) {
+      const storeId = UUID.uuid4();
+      sourceModel = {
+        type: 'FeatureStoreSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        } satisfies IFeatureStoreSource,
+      };
+    } else {
+      sourceModel = {
+        type: 'GeoJSONSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
         },
-      },
-    };
+      };
+    }
 
     const layerModel: IJGISLayer = {
       type: 'VectorLayer',
       name: 'Draw Layer',
       visible: true,
-      parameters: {
-        source: sourceId,
-        opacity: 1.0,
-        symbologyState: { layers: [] },
-      },
+      parameters: useFeatureStore
+        ? {
+            source: sourceId,
+            opacity: 1.0,
+          }
+        : {
+            source: sourceId,
+            opacity: 1.0,
+            symbologyState: { layers: [] },
+          },
     };
 
     model.sharedModel.addSource(sourceId, sourceModel);
