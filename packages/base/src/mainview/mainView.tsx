@@ -63,6 +63,7 @@ import {
   IMapAdapter,
   IMapLayerComparison,
   MapAdapterType,
+  VIEWPORT_SYNC_INTERVAL,
 } from './mapAdapter';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
@@ -837,7 +838,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }));
       }
 
-      // Ease into the first jump only: tracking updates arrive every 200ms.
       const startedFollowing = this._followedClientId !== remoteUser;
       this._followedClientId = remoteUser;
 
@@ -845,16 +845,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
+        const target = this._followedViewport;
+        if (
+          !startedFollowing &&
+          target &&
+          target.x === x &&
+          target.y === y &&
+          target.zoom === zoom
+        ) {
+          return;
+        }
+        this._followedViewport = { x, y, zoom };
         this._mapAdapter?.moveToPosition(
           { x, y },
           zoom,
-          startedFollowing ? FOLLOW_JUMP_DURATION : 0,
+          startedFollowing ? FOLLOW_JUMP_DURATION : VIEWPORT_SYNC_INTERVAL,
+          startedFollowing ? 'ease' : 'linear',
         );
       }
       return;
     }
 
     this._followedClientId = null;
+    this._followedViewport = null;
 
     // If we are unfollowing, reset to local viewport and clear follow UI.
     if (this.state.remoteUser !== null) {
@@ -1717,6 +1730,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _mapAdapter: IMapAdapter | undefined;
   private _followedClientId: number | null = null;
+  private _followedViewport: { x: number; y: number; zoom: number } | null =
+    null;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
