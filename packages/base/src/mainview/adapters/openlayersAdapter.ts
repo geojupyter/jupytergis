@@ -205,10 +205,13 @@ export class OpenLayersAdapter implements IMapAdapter {
       getMap: () => this._map,
       getLayer: layerId => this.getLayer(layerId),
       getModel: () => this._model,
+      getFeatureStoreOverlay: storeId =>
+        this._featureStoreSources.get(storeId)?.overlay,
       onDrawLayerIdChange: layerId =>
         this._callbacks?.onDrawLayerIdChange?.(layerId),
       onDrawGeometryLabelChange: label =>
         this._callbacks?.onDrawGeometryLabelChange?.(label),
+      log: (level, message) => this._log(level, message),
     });
   }
   async initialize(

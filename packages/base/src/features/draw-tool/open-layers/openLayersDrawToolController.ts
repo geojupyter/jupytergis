@@ -1,4 +1,11 @@
-import type { IJupyterGISModel, IJGISSource } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import type {
+  IDrawCustomAttribute,
+  IFeatureStoreGeometry,
+  IFeatureStoreSource,
+  IJGISSource,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
 import Feature from 'ol/Feature';
@@ -20,8 +27,13 @@ export interface IDrawToolHost {
   getMap(): OlMap | undefined;
   getLayer(layerId: string): Layer | undefined;
   getModel(): IJupyterGISModel;
+  getFeatureStoreOverlay(storeId: string): VectorSource | undefined;
   onDrawLayerIdChange(layerId: string | undefined): void;
   onDrawGeometryLabelChange(label: string): void;
+  log(
+    level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+    message: string,
+  ): void;
 }
 
 export class OpenLayersDrawToolController implements IDrawToolAdapter {
@@ -179,6 +191,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     this._currentVectorSource = getVectorSourceFromLayer(
       id => this._host.getLayer(id),
       layerId,
+      this._host.getModel(),
+      storeId => this._host.getFeatureStoreOverlay(storeId),
     );
 
     return this._currentVectorSource;
@@ -211,6 +225,11 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       !this._currentDrawSourceId ||
       !map
     ) {
+      return;
+    }
+
+    // Feature-store overlays sync via Ydoc featureStores, not source data.
+    if (this._currentDrawSource.type === 'FeatureStoreSource') {
       return;
     }
 
@@ -322,7 +341,9 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
   private _handleDrawEnd = (event: DrawEvent): void => {
     const model = this._host.getModel();
     const feature = event.feature;
-    feature.set('_id', UUID.uuid4());
+    const featureId = UUID.uuid4();
+    feature.setId(featureId);
+    feature.set('_id', featureId);
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', model.getClientId().toString());
     feature.set('_fromDrawTool', true);
@@ -333,6 +354,11 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       : [];
     applyDrawCustomAttributesToFeature(feature, customAttributes);
 
+    if (this._currentDrawSource?.type === 'FeatureStoreSource') {
+      this._addFeatureStoreFeature(feature, featureId, customAttributes);
+      return;
+    }
+
     const source = layerId
       ? this._resolveVectorSource(layerId)
       : this._currentVectorSource;
@@ -341,4 +367,65 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     // OL dispatches drawend before adding the feature to the source.
     this._persist(source, onSource ? undefined : feature);
   };
+
+  private _addFeatureStoreFeature(
+    feature: Feature,
+    featureId: string,
+    customAttributes: IDrawCustomAttribute[],
+  ): void {
+    const map = this._host.getMap();
+    const model = this._host.getModel();
+    const storeId = (
+      this._currentDrawSource?.parameters as IFeatureStoreSource | undefined
+    )?.storeId;
+
+    if (!storeId || !map) {
+      return;
+    }
+
+    const geometry = feature.getGeometry();
+    if (!geometry) {
+      return;
+    }
+
+    const geojsonGeometry = new GeoJSON().writeGeometryObject(geometry, {
+      featureProjection: map.getView().getProjection(),
+      dataProjection: 'EPSG:4326',
+    }) as IFeatureStoreGeometry;
+
+    const props = Object.fromEntries(
+      customAttributes.map(attribute => [attribute.key, attribute.value]),
+    );
+
+    const result = model.addFeatureStoreFeature({
+      storeId,
+      id: featureId,
+      geometry: geojsonGeometry,
+      props,
+    });
+
+    // Drop the temporary OL feature; store sync re-adds from Ydoc.
+    this._currentVectorSource?.removeFeature(feature);
+
+    if (!result.ok) {
+      const messages: Record<string, string> = {
+        compacting: 'Cannot add features while folding into baseline.',
+        missingStore: 'Feature store overlay is missing for this layer.',
+        hardLimit:
+          'Overlay hard limit reached. Fold edits into the baseline before adding more.',
+      };
+      void showErrorMessage(
+        'Feature store',
+        messages[result.reason] ?? messages.hardLimit,
+      );
+      return;
+    }
+
+    if (result.nearSoftLimit) {
+      this._host.log(
+        'warning',
+        'Feature store overlay is near its soft limit; fold soon.',
+      );
+    }
+  }
 }
