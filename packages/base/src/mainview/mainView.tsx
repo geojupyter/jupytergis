@@ -246,6 +246,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._contextMenu = new ContextMenu({
       commands: this._commands,
     });
+    this._drawTool = new DrawToolController({
+      getMap: () => this._Map,
+      getLayer: layerId => this.getLayer(layerId),
+      getModel: () => this._model,
+      getFeatureStoreOverlay: storeId =>
+        this._featureStoreSources.get(storeId)?.overlay,
+      onDrawLayerIdChange: layerId => this._setCurrentDrawLayerId(layerId),
+      onDrawGeometryLabelChange: label =>
+        this.setState(old => ({ ...old, drawGeometryLabel: label })),
+      log: (level, message) => this._log(level, message),
+    });
+    this._updateCenter = debounce(this.updateCenter, 100);
   }
 
   async componentDidMount(): Promise<void> {
