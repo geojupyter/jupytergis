@@ -8,7 +8,8 @@ import {
 import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
 import { RJSFSchema } from '@rjsf/utils';
-import { Map } from 'ol';
+import type { Map as MlMap } from 'maplibre-gl';
+import type { Map as OlMap } from 'ol';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];
@@ -40,7 +41,7 @@ declare global {
     /**
      * Access JupyterGIS map
      */
-    jupytergisMaps: { [name: string]: Map };
+    jupytergisMaps: { [name: string]: OlMap | MlMap };
   }
 }
 

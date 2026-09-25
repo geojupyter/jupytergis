@@ -53,6 +53,11 @@
       "additionalProperties": {
         "type": "string"
       }
+    },
+    "sourceLayer": {
+      "type": "string",
+      "description": "The layer name inside the vector tiles",
+      "default": ""
     }
   }
 }
