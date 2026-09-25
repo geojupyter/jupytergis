@@ -25,6 +25,7 @@ import {
   LngLatBoundsLike,
   Map as MlMap,
   NavigationControl,
+  setWorkerUrl,
 } from 'maplibre-gl';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
@@ -68,6 +69,13 @@ export class MapLibreAdapter implements IMapAdapter {
       );
     }
 
+    setWorkerUrl(
+      new URL(
+        'maplibre-gl/dist/maplibre-gl-worker.mjs',
+        import.meta.url,
+      ).toString(),
+    );
+
     this._map = new MlMap({
       container: target,
       style: {
@@ -80,7 +88,7 @@ export class MapLibreAdapter implements IMapAdapter {
       bearing: rotation,
       pitch: 0,
     });
-
+    (window as any).mapDebug = this._map;
     if (zoomButtonsEnabled) {
       this._navigationControl = new NavigationControl({
         showCompass: true,
@@ -182,6 +190,12 @@ export class MapLibreAdapter implements IMapAdapter {
             id,
             data,
             source: this._map.getSource(id),
+          });
+
+          console.log('[MapLibre] GEOJSON SOURCE STATE', {
+            sourceId: id,
+            sourceExists: !!this._map.getSource(id),
+            mapLoaded: this._map.loaded(),
           });
 
           break;
@@ -295,66 +309,51 @@ export class MapLibreAdapter implements IMapAdapter {
     index?: number,
     sourceLayer?: string,
   ): void {
-    const sourceLayerProperty = sourceLayer
-      ? { 'source-layer': sourceLayer }
-      : {};
-
-    const visibility = visible ? 'visible' : 'none';
-
-    this._map.addLayer(
-      {
-        id: `${id}-fill`,
-        type: 'fill',
-        source: sourceId,
-        ...sourceLayerProperty,
-        layout: {
-          visibility,
-        },
-        paint: {
-          'fill-color': '#ff0000',
-          'fill-opacity': 1,
-        },
+    // For GeoJSON sources, do not set `source-layer`.
+    this._map.addLayer({
+      id,
+      type: 'fill',
+      source: sourceId,
+      layout: {
+        visibility: visible ? 'visible' : 'none',
       },
-      this._beforeIdForIndex(index),
-    );
-
-    this._map.addLayer(
-      {
-        id: `${id}-line`,
-        type: 'line',
-        source: sourceId,
-        ...sourceLayerProperty,
-        layout: {
-          visibility,
-        },
-        paint: {
-          'line-color': '#000000',
-          'line-opacity': 1,
-          'line-width': 3,
-        },
+      paint: {
+        'fill-color': '#ff0000',
+        'fill-opacity': 0.8,
       },
-      this._beforeIdForIndex(index),
-    );
+    });
 
-    this._map.addLayer(
-      {
-        id: `${id}-circle`,
-        type: 'circle',
-        source: sourceId,
-        ...sourceLayerProperty,
-        layout: {
-          visibility,
-        },
-        paint: {
-          'circle-color': '#0000ff',
-          'circle-opacity': 1,
-          'circle-radius': 8,
-        },
-      },
-      this._beforeIdForIndex(index),
-    );
+    this._layerSubIds.set(id, [id]);
 
-    this._layerSubIds.set(id, [`${id}-fill`, `${id}-line`, `${id}-circle`]);
+    console.log('[MapLibre] GEOJSON LAYER AFTER ADD', {
+      id,
+      sourceId,
+      layerExists: !!this._map.getLayer(id),
+      visibility: this._map.getLayoutProperty(id, 'visibility'),
+      fillColor: this._map.getPaintProperty(id, 'fill-color'),
+      fillOpacity: this._map.getPaintProperty(id, 'fill-opacity'),
+      sourceExists: !!this._map.getSource(sourceId),
+      zoom: this._map.getZoom(),
+      center: this._map.getCenter(),
+    });
+  }
+
+  private _logMapLayers(context: string): void {
+    const layers = this._map.getStyle().layers ?? [];
+
+    console.log(`[MapLibre] ${context} - MAP LAYERS`, {
+      count: layers.length,
+      layers: layers.map(layer => ({
+        id: layer.id,
+        type: layer.type,
+        source: 'source' in layer ? layer.source : undefined,
+        sourceLayer:
+          'source-layer' in layer ? layer['source-layer'] : undefined,
+        visibility: this._map.getLayoutProperty(layer.id, 'visibility'),
+        layout: layer.layout,
+        paint: layer.paint,
+      })),
+    });
   }
 
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
@@ -365,6 +364,8 @@ export class MapLibreAdapter implements IMapAdapter {
 
     try {
       await this._buildMapLayer(id, layer, index);
+
+      this._logMapLayers(`After adding: ${id}`);
 
       const sourceId = layer.parameters?.source;
 
@@ -554,23 +555,31 @@ export class MapLibreAdapter implements IMapAdapter {
 
       case 'VectorLayer':
       case 'VectorTileLayer': {
-        const layerParameters = layer.parameters as
-          | IVectorLayer
-          | IVectorTileLayer;
-        const opacity = layerParameters.opacity ?? 1;
-        const color = layerParameters.color?.hex ?? '#3388ff';
-        const [fillId, lineId, circleId] = subIds;
+        const [fillId] = subIds;
+        const layerParameters = layer.parameters as IVectorLayer;
 
-        this._map.setPaintProperty(fillId, 'fill-color', color);
-        this._map.setPaintProperty(fillId, 'fill-opacity', opacity * 0.4);
-        this._map.setPaintProperty(lineId, 'line-color', color);
-        this._map.setPaintProperty(lineId, 'line-opacity', opacity);
-        this._map.setPaintProperty(circleId, 'circle-color', color);
-        this._map.setPaintProperty(circleId, 'circle-opacity', opacity);
+        console.log('[MapLibre] updating vector layer', {
+          id,
+          fillId,
+          opacity: layerParameters.opacity,
+          visibility,
+          layer: this._map.getLayer(fillId),
+        });
 
-        for (const subId of subIds) {
-          this._map.setLayoutProperty(subId, 'visibility', visibility);
-        }
+        this._map.setPaintProperty(
+          fillId,
+          'fill-opacity',
+          layerParameters.opacity ?? 1,
+        );
+
+        this._map.setLayoutProperty(fillId, 'visibility', visibility);
+
+        console.log('[MapLibre] vector layer updated', {
+          fillId,
+          opacity: this._map.getPaintProperty(fillId, 'fill-opacity'),
+          visibility: this._map.getLayoutProperty(fillId, 'visibility'),
+        });
+
         break;
       }
 
@@ -601,25 +610,10 @@ export class MapLibreAdapter implements IMapAdapter {
       }
 
       if (!this._layerSubIds.has(id)) {
-        await this.addLayer(id, layer, index);
+        await this.addLayer(id, layer);
       }
     }
 
-    // Reorder to match layerIds (bottom to top), moving each layer's
-    // whole sub-layer group just before the next known layer's group.
-    for (let index = layerIds.length - 1; index >= 0; index--) {
-      const id = layerIds[index];
-      const subIds = this._layerSubIds.get(id);
-      if (!subIds) {
-        continue;
-      }
-      const beforeId = this._beforeIdForIndex(index + 1, layerIds);
-      for (const subId of subIds) {
-        if (this._map.getLayer(subId)) {
-          this._map.moveLayer(subId, beforeId);
-        }
-      }
-    }
     this._layerOrder = [...layerIds];
 
     if (
